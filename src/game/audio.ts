@@ -1,3 +1,4 @@
+/** INVENTED. No wiki page specifies these tones. */
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let muted = false;

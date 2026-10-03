@@ -4,104 +4,123 @@ import type { AugmentId, BeaconKind, Game } from "../types.ts";
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
 
 /**
- * Augmentations page, store costs under each heading.
- * Stackable on the wiki (Re-loader, Shield Charge Booster, FTL Recharge Booster,
- * Scrap Recovery Arm, Reverse Ion Field) still share the three-slot cap.
+ * Augmentations, purchase price under each heading below.
+ * The three-slot cap is the sentence above "Offensive Augmentations":
+ * a ship can have only up to three augmentations. That paragraph has no heading.
+ * Stackable on the wiki (Automated Re-loader, Shield Charge Booster, FTL Recharge Booster,
+ * Scrap Recovery Arm, Reverse Ion Field) still share that cap.
  * INVENTED: installAugment refuses a second copy, so those stacks only happen if
- * a test writes the array directly. Keel Plate and Bulkhead Casing are not sold;
- * their sell prices are 40. The 50 scrap cost below is not on the page.
+ * a test writes the array directly.
+ * Rock Plating and Titanium System Casing are under "Non-Purchasable Augmentations"
+ * and are not sold; their sell prices are 40. The 50 scrap store cost below is INVENTED.
  */
 export const CATALOG: Listing[] = [
+  // Augmentations, "Offensive Augmentations", Automated Re-loader. Store cost 40.
   {
     id: "feed",
     name: "Automated Re-loader",
     detail: "Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.",
     cost: 40,
   },
+  // Augmentations, "Offensive Augmentations", Explosive Replicator. Store cost 60.
   {
     id: "echo",
     name: "Explosive Replicator",
     detail: "A missile has a 50% chance not to be spent.",
     cost: 60,
   },
+  // Augmentations, "Offensive Augmentations", Stealth Weapons. Store cost 50.
   {
     id: "quiet",
     name: "Stealth Weapons",
     detail: "Firing does not drop cloaking.",
     cost: 50,
   },
+  // Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Store cost 120.
   {
     id: "hot",
     name: "Weapon Pre-Igniter",
     detail: "After a jump, enabled weapons that have power start fully charged.",
     cost: 120,
   },
+  // Augmentations, "Defensive Augmentations", Repair Arm. Store cost 50.
   {
     id: "weld",
     name: "Repair Arm",
     detail: "Scrap gain repairs 2 hull when the hull is not full, and the scrap is cut 15%.",
     cost: 50,
   },
+  // Augmentations, "Defensive Augmentations", Reverse Ion Field. Store cost 45.
   {
     id: "baffle",
     name: "Reverse Ion Field",
     detail: "50% chance to ignore an ion hit. Two or more ignore every ion hit.",
     cost: 45,
   },
+  // Augmentations, "Defensive Augmentations", Shield Charge Booster. Store cost 45.
   {
     id: "coil",
     name: "Shield Charge Booster",
     detail: "Shields recharge 15% faster per copy.",
     cost: 45,
   },
+  // Augmentations, "FTL Augmentations", FTL Recharge Booster. Store cost 50.
   {
     id: "spool",
     name: "FTL Recharge Booster",
     detail: "One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.",
     cost: 50,
   },
+  // Augmentations, "Misc. Augmentations", Scrap Recovery Arm. Store cost 50.
   {
     id: "hook",
     name: "Scrap Recovery Arm",
     detail: "Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.",
     cost: 50,
   },
+  // Augmentations, "Non-Purchasable Augmentations", Rock Plating. Sell price 40. Store cost 50 is INVENTED.
   {
     id: "keel",
     name: "Rock Plating",
     detail: "15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.",
     cost: 50,
   },
+  // Augmentations, "Non-Purchasable Augmentations", Titanium System Casing. Sell price 40. Store cost 50 is INVENTED.
   {
     id: "casing",
     name: "Titanium System Casing",
     detail: "15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.",
     cost: 50,
   },
+  // Augmentations, "Misc. Augmentations", Battery Charger. Store cost 40.
   {
     id: "tap",
     name: "Battery Charger",
     detail: "The Backup Battery cooldown is cut in half.",
     cost: 40,
   },
+  // Augmentations, "Crew Augmentations", Emergency Respirators. Store cost 50.
   {
     id: "lung",
     name: "Emergency Respirators",
     detail: "Suffocation damage is halved.",
     cost: 50,
   },
+  // Augmentations, "Defensive Augmentations", Fire Suppression. Store cost 65.
   {
     id: "squall",
     name: "Fire Suppression",
     detail: "Fires on your ship die down faster than a person can put them out.",
     cost: 65,
   },
+  // Augmentations, "FTL Augmentations", Distraction Buoys. Store cost 55.
   {
     id: "falsebuoy",
     name: "Distraction Buoys",
     detail: "At sector start, before sector 8, the fleet falls back one jump.",
     cost: 55,
   },
+  // Augmentations, "Misc. Augmentations", Long-Ranged Scanners. Store cost 30.
   {
     id: "glass",
     name: "Long-Ranged Scanners",
@@ -214,13 +233,13 @@ export function spoolRate(g: Game): number {
   return 0.57;
 }
 
-/** Augmentations, "Non-Purchasable", Rock Plating: 15% chance to negate hull damage. Store price is INVENTED. */
+/** Augmentations, "Non-Purchasable Augmentations", Rock Plating: 15% chance to negate hull damage. Store price is INVENTED. */
 export function keelHolds(g: Game): boolean {
   if (!has(g, "keel")) return false;
   return rand(g) < 0.15;
 }
 
-/** Augmentations, "Non-Purchasable", Titanium System Casing: 15% chance to negate system damage. Store price is INVENTED. */
+/** Augmentations, "Non-Purchasable Augmentations", Titanium System Casing: 15% chance to negate system damage. Store price is INVENTED. */
 export function casingHolds(g: Game): boolean {
   if (!has(g, "casing")) return false;
   return rand(g) < 0.15;
@@ -263,8 +282,10 @@ export function reveals(g: Game, beaconKind: BeaconKind): boolean {
 }
 
 /**
- * Augmentations, Scrap Recovery Arm (+10% per copy, before rounding) then Repair Arm
- * (15% less scrap, and 2 hull when the hull is not already full).
+ * Augmentations, "Misc. Augmentations", Scrap Recovery Arm: +10% per copy, stacked before rounding down.
+ * Augmentations, "Defensive Augmentations", Repair Arm: 15% less scrap, and 2 hull when the hull is not already full.
+ * INFERRED: the two are applied in that order. The page never states a combined formula.
+ * Repair Arm also says scrap is not reduced when the hull is already full. This function still applies the cut.
  */
 export function adjustScrapAmount(g: Game, scrap: number): number {
   let n = scrap * (1 + 0.1 * copies(g, "hook"));
@@ -278,7 +299,10 @@ export function adjustScrapAmount(g: Game, scrap: number): number {
   return Math.floor(n);
 }
 
-/** Augmentations: three slots is the cap. INVENTED: a second copy of a stackable augment is refused. */
+/**
+ * Augmentations, the paragraph above "Offensive Augmentations": up to three augmentations.
+ * That paragraph has no heading. INVENTED: a second copy of a stackable augment is refused.
+ */
 export function installAugment(g: Game, id: AugmentId): boolean {
   const row = CATALOG.find((item) => item.id === id);
   if (!row) return false;

@@ -110,7 +110,7 @@ export function toggleSpikePower(g: Game) {
   if (kit.power > 0) kit.power -= 1;
 }
 
-/** Hacking wiki, "Overview": the drone is aimed at a single system before it launches. */
+/** Hacking wiki, "Choosing your hacking target": the drone is aimed at a single system before it launches. */
 export function armSpike(g: Game, systemId: SysId) {
   const kit = kitOf(g);
   if (!kit || running(kit)) return;
@@ -119,9 +119,9 @@ export function armSpike(g: Game, systemId: SysId) {
 }
 
 /**
- * Hacking wiki, "Overview": launching costs one drone part, then the pulse runs.
+ * Hacking wiki, "Choosing your hacking target": launching costs one drone part, then the pulse runs.
  * "Overview" (Hacking pulse) sets the length from power in the system (4, 7, or 10 seconds).
- * The same heading says the drone takes about 2–3 seconds to arrive; this launch does not wait.
+ * "Choosing your hacking target" says the drone takes about 2–3 seconds to arrive; this launch does not wait.
  */
 export function launchSpike(g: Game): boolean {
   const kit = kitOf(g);

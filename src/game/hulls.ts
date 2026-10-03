@@ -1,11 +1,14 @@
 import type { KinId } from "./extras/kin.ts";
 import type { AugmentId, KitId, SysId } from "./types.ts";
+import { CRYSTAL_HULLS } from "./wiki/hulls-crystal.ts";
+import { MANTIS_HULLS } from "./wiki/hulls-mantis.ts";
 
 /**
  * Hangar rows whose cruiser pages returned text.
- * The Kestrel Cruiser, The Engi Cruiser, The Federation Cruiser: layout blocks.
+ * Cruiser layout blocks, plus Mantis and Crystal from src/game/wiki.
  * Tile positions are not on those pages (they are pictures). Every hull uses the
- * shared original room grid. INFERRED coordinates. The pictures were not copied.
+ * shared original room grid. INFERRED coordinates. The hangar shows each page's
+ * exterior file. Those files are not traced for room coordinates.
  *
  * Power splits are INFERRED. The pages list system levels, not which bars start filled.
  * Bars are filled until the reactor is spent, weapons first when the guns need them.
@@ -56,6 +59,11 @@ const sub = {
 };
 
 export const HULLS: HullSpec[] = [
+  /**
+   * Wiki page "The Kestrel Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "kestrel-a",
     cruiser: "Kestrel Cruiser",
@@ -88,6 +96,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Kestrel Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "kestrel-b",
     cruiser: "Kestrel Cruiser",
@@ -121,6 +134,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Kestrel Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "kestrel-c",
     cruiser: "Kestrel Cruiser",
@@ -154,6 +172,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Engi Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "engi-a",
     cruiser: "Engi Cruiser",
@@ -187,6 +210,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: ["Engi Med-bot Dispersal"],
   },
+  /**
+   * Wiki page "The Engi Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "engi-b",
     cruiser: "Engi Cruiser",
@@ -216,6 +244,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: ["Drone Reactor Booster", "Anti-Personnel Drone", "System Repair Drone (second)"],
   },
+  /**
+   * Wiki page "The Engi Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "engi-c",
     cruiser: "Engi Cruiser",
@@ -252,6 +285,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: ["Defense Scrambler"],
   },
+  /**
+   * Wiki page "The Federation Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "fed-a",
     cruiser: "Federation Cruiser",
@@ -285,6 +323,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Federation Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "fed-b",
     cruiser: "Federation Cruiser",
@@ -316,6 +359,11 @@ export const HULLS: HullSpec[] = [
     augments: [],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Federation Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "fed-c",
     cruiser: "Federation Cruiser",
@@ -355,6 +403,11 @@ export const HULLS: HullSpec[] = [
     augments: ["lung"],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Zoltan Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "zoltan-a",
     cruiser: "Zoltan Cruiser",
@@ -377,7 +430,10 @@ export const HULLS: HullSpec[] = [
       pilot: [1, 1],
       doors: [2, 2],
     },
-    weapons: ["leto"],
+    // Wiki page "The Zoltan Cruiser", section "Layout A": Leto Missiles and Halberd Beam.
+    // Beam (Weapons), "Halberd Beam": power 3. Missile (Weapons), "Leto Missiles": power 1.
+    // Together they need more than the starting weapon bars. powerMask powers the Leto first. The Halberd charges once the Leto is switched off or the weapon bars are raised.
+    weapons: ["leto", "halberd"],
     crew: [
       { kin: "spark", room: "p-pilot" },
       { kin: "spark", room: "p-engines" },
@@ -385,8 +441,14 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {},
     augments: [],
-    unfitted: ["Halberd Beam", "Zoltan Shield"],
+    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
+    unfitted: ["Zoltan Shield"],
   },
+  /**
+   * Wiki page "The Zoltan Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "zoltan-b",
     cruiser: "Zoltan Cruiser",
@@ -401,14 +463,16 @@ export const HULLS: HullSpec[] = [
     parts: 2,
     systems: {
       shields: [1, 1],
-      engines: [2, 2],
+      // Beam (Weapons), "Pike Beam": power 2, stored as id shear. Ion (Weapons), "Ion Blast": power 1, twice.
+      // Sum is 4, the weapon system level. Engines power 0 is INFERRED so reactor 5 can hold shields 1 + weapons 4.
+      engines: [2, 0],
       oxygen: [1, 0],
       medbay: [1, 0],
-      weapons: [4, 2],
+      weapons: [4, 4],
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["needle", "needle"],
+    weapons: ["needle", "needle", "shear"],
     crew: [
       { kin: "spark", room: "p-pilot" },
       { kin: "spark", room: "p-engines" },
@@ -416,8 +480,14 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {},
     augments: [],
-    unfitted: ["Pike Beam", "Zoltan Shield"],
+    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
+    unfitted: ["Zoltan Shield"],
   },
+  /**
+   * Wiki page "The Zoltan Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "zoltan-c",
     cruiser: "Zoltan Cruiser",
@@ -439,7 +509,9 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: [],
+    // Wiki page "The Zoltan Cruiser", section "Layout C": Ion Charger. Ion (Weapons), "Ion Charger": power 2.
+    // Weapon bars start at 0 because the reactor's 2 bars are in shields. The charger is mounted and waits for those bars.
+    weapons: ["ioncharger"],
     crew: [
       { kin: "spark", room: "p-pilot" },
       { kin: "spark", room: "p-engines" },
@@ -452,8 +524,14 @@ export const HULLS: HullSpec[] = [
       cell: { level: 2, power: 0 },
     },
     augments: [],
-    unfitted: ["Ion Charger", "Zoltan Shield"],
+    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
+    unfitted: ["Zoltan Shield"],
   },
+  /**
+   * Wiki page "The Slug Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "slug-a",
     cruiser: "Slug Cruiser",
@@ -470,21 +548,29 @@ export const HULLS: HullSpec[] = [
       shields: [2, 2],
       engines: [2, 2],
       oxygen: [1, 1],
-      medbay: [1, 1],
-      weapons: [3, 1],
+      // Medbay power 0 is INFERRED so the weapon bars can sit at 3.
+      // Dual Lasers 1 and Anti-Bio Beam 2 fill those bars. Breach Bomb Mark I is mounted and unpowered until one of them is switched off.
+      medbay: [1, 0],
+      weapons: [3, 3],
       sensors: [0, 0],
       pilot: [1, 1],
       doors: [2, 2],
     },
-    weapons: ["twin"],
+    // Wiki page "The Slug Cruiser", section "Layout A": Dual Lasers, Anti-Bio Beam, Breach Bomb Mark I.
+    weapons: ["twin", "antibio", "breach1"],
     crew: [
       { kin: "gel", room: "p-pilot" },
       { kin: "gel", room: "p-engines" },
     ],
     kits: {},
     augments: [],
-    unfitted: ["Anti-Bio Beam", "Breach Bomb I", "Slug Repair Gel"],
+    unfitted: ["Slug Repair Gel"],
   },
+  /**
+   * Wiki page "The Slug Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "slug-b",
     cruiser: "Slug Cruiser",
@@ -502,12 +588,14 @@ export const HULLS: HullSpec[] = [
       engines: [2, 2],
       oxygen: [1, 0],
       medbay: [0, 0],
-      weapons: [2, 1],
+      // Bomb (Weapons), "Healing Burst": power 1. Missile (Weapons), "Artemis Missiles": power 1.
+      // Together they fill weapon level 2. Shields 2 + engines 2 + weapons 2 + teleporter 1 = reactor 7.
+      weapons: [2, 2],
       sensors: [0, 0],
       pilot: [1, 1],
       doors: [2, 2],
     },
-    weapons: ["artemis"],
+    weapons: ["artemis", "healburst"],
     crew: [
       { kin: "gel", room: "p-pilot" },
       { kin: "gel", room: "p-engines" },
@@ -515,8 +603,15 @@ export const HULLS: HullSpec[] = [
     ],
     kits: { sling: { level: 1, power: 1 } },
     augments: [],
-    unfitted: ["Healing Burst", "Slug Repair Gel"],
+    unfitted: ["Slug Repair Gel"],
   },
+  /**
+   * Wiki page "The Slug Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * Wiki page "The Slug Cruiser", section "Layout C": Sensors is not listed, so the level is 0.
+   * Chain Burst Laser is the starting gun. It takes the 2 weapon bars the reactor can spare.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "slug-c",
     cruiser: "Slug Cruiser",
@@ -534,12 +629,13 @@ export const HULLS: HullSpec[] = [
       engines: [2, 2],
       oxygen: [1, 1],
       medbay: [0, 0],
-      weapons: [2, 0],
-      sensors: [1, 1],
+      weapons: [2, 2],
+      sensors: [0, 0],
       pilot: [1, 1],
       doors: [2, 2],
     },
-    weapons: [],
+    // Wiki page "The Slug Cruiser", section "Layout C": Chain Burst Laser. Id chainlaser.
+    weapons: ["chainlaser"],
     crew: [
       { kin: "gel", room: "p-pilot" },
       { kin: "gel", room: "p-engines" },
@@ -551,8 +647,13 @@ export const HULLS: HullSpec[] = [
       cradle: { level: 1, power: 0 },
     },
     augments: [],
-    unfitted: ["Chain Burst Laser", "Slug Repair Gel"],
+    unfitted: ["Slug Repair Gel"],
   },
+  /**
+   * Wiki page "The Rock Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "rock-a",
     cruiser: "Rock Cruiser",
@@ -569,12 +670,14 @@ export const HULLS: HullSpec[] = [
       shields: [2, 2],
       engines: [2, 2],
       oxygen: [1, 1],
-      medbay: [1, 1],
-      weapons: [3, 1],
+      // Missile (Weapons), "Hull Missile": power 2. Missile (Weapons), "Artemis Missiles": power 1.
+      // Medbay power 0 is INFERRED so both named guns fit in reactor 8 (shields 2 + engines 2 + oxygen 1 + weapons 3).
+      medbay: [1, 0],
+      weapons: [3, 3],
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["artemis"],
+    weapons: ["artemis", "hullmissile"],
     crew: [
       { kin: "stone", room: "p-pilot" },
       { kin: "stone", room: "p-engines" },
@@ -582,8 +685,13 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {},
     augments: ["keel"],
-    unfitted: ["Hull Missile"],
+    unfitted: [],
   },
+  /**
+   * Wiki page "The Rock Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "rock-b",
     cruiser: "Rock Cruiser",
@@ -606,7 +714,9 @@ export const HULLS: HullSpec[] = [
       pilot: [1, 1],
       doors: [0, 0],
     },
-    weapons: ["cask"],
+    // Wiki page "The Rock Cruiser", section "Layout B": Fire Bomb and Heavy Pierce Laser Mark I. Each is 2 power.
+    // Weapon bars start at 2, so the Fire Bomb takes them. The Heavy Pierce charges once the Fire Bomb is switched off.
+    weapons: ["cask", "heavypierce"],
     crew: [
       { kin: "stone", room: "p-pilot" },
       { kin: "stone", room: "p-engines" },
@@ -615,8 +725,13 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {},
     augments: ["keel"],
-    unfitted: ["Heavy Pierce Laser Mk. I"],
+    unfitted: [],
   },
+  /**
+   * Wiki page "The Rock Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "rock-c",
     cruiser: "Rock Cruiser",
@@ -634,11 +749,13 @@ export const HULLS: HullSpec[] = [
       engines: [2, 2],
       oxygen: [1, 1],
       medbay: [0, 0],
-      weapons: [3, 0],
+      // Missile (Weapons), "Swarm Missiles": power 2. Crystal (Weapons), "Heavy Crystal Mark I": power 1.
+      // Sum is 3, which is the weapon system level. Clone bay stays at power 0. Draw is shields 2 + engines 2 + oxygen 1 + weapons 3 = reactor 8.
+      weapons: [3, 3],
       sensors: [1, 1],
       ...sub,
     },
-    weapons: [],
+    weapons: ["swarmmissiles", "heavycrystal"],
     crew: [
       { kin: "stone", room: "p-pilot" },
       { kin: "stone", room: "p-engines" },
@@ -646,8 +763,13 @@ export const HULLS: HullSpec[] = [
     ],
     kits: { cradle: { level: 1, power: 0 } },
     augments: ["keel"],
-    unfitted: ["Swarm Missiles", "Heavy Crystal Mark I"],
+    unfitted: [],
   },
+  /**
+   * Wiki page "The Stealth Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "stealth-a",
     cruiser: "Stealth Cruiser",
@@ -665,11 +787,13 @@ export const HULLS: HullSpec[] = [
       engines: [4, 4],
       oxygen: [1, 1],
       medbay: [1, 0],
-      weapons: [2, 1],
+      // Beam (Weapons), "Mini Beam": power 1. Laser (Weapons), "Dual Lasers": power 1.
+      // The spare reactor bar raises weapons power from 1 to 2. INFERRED which bar was the spare.
+      weapons: [2, 2],
       sensors: [2, 2],
       ...sub,
     },
-    weapons: ["twin"],
+    weapons: ["twin", "mini"],
     crew: [
       { kin: "plain", room: "p-pilot" },
       { kin: "plain", room: "p-engines" },
@@ -677,8 +801,13 @@ export const HULLS: HullSpec[] = [
     ],
     kits: { veil: { level: 1, power: 1 } },
     augments: ["casing", "glass"],
-    unfitted: ["Mini Beam"],
+    unfitted: [],
   },
+  /**
+   * Wiki page "The Stealth Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "stealth-b",
     cruiser: "Stealth Cruiser",
@@ -696,20 +825,30 @@ export const HULLS: HullSpec[] = [
       engines: [2, 2],
       oxygen: [1, 1],
       medbay: [1, 0],
-      weapons: [4, 0],
+      // Beam (Weapons), "Glaive Beam": power 4.
+      // Engines 2 + oxygen 1 + cloak 2 + glaive 4 = 9, and the reactor is 7.
+      // INFERRED: the named gun takes the bars. Cloak stays installed at level 2 with power 0.
+      weapons: [4, 4],
       sensors: [2, 2],
       ...sub,
     },
-    weapons: [],
+    weapons: ["glaive"],
     crew: [
       { kin: "plain", room: "p-pilot" },
       { kin: "plain", room: "p-engines" },
       { kin: "spark", room: "p-weapons" },
     ],
-    kits: { veil: { level: 2, power: 2 } },
+    kits: { veil: { level: 2, power: 0 } },
     augments: ["glass"],
-    unfitted: ["Glaive Beam"],
+    unfitted: [],
   },
+  /**
+   * Wiki page "The Stealth Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * Wiki page "The Stealth Cruiser", section "Layout C": Laser Charger (S) and Mini Beam. Both are 1 power, and the weapon system is level 2.
+   * Shield Overcharger + and Anti-Drone are not schematic ids in swarm.ts. They stay unfitted.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "stealth-c",
     cruiser: "Stealth Cruiser",
@@ -727,11 +866,12 @@ export const HULLS: HullSpec[] = [
       engines: [3, 3],
       oxygen: [1, 1],
       medbay: [0, 0],
-      weapons: [2, 0],
+      // Two 1-power guns. The reactor had three bars free (7 − engines 3 − oxygen 1). Two go to weapons. INFERRED.
+      weapons: [2, 2],
       sensors: [0, 0],
       ...sub,
     },
-    weapons: [],
+    weapons: ["chargers", "mini"],
     crew: [
       { kin: "plain", room: "p-pilot" },
       { kin: "stone", room: "p-engines" },
@@ -742,8 +882,14 @@ export const HULLS: HullSpec[] = [
       swarm: { level: 2, power: 0, target: null },
     },
     augments: ["glass"],
-    unfitted: [],
+    unfitted: ["Shield Overcharger +", "Anti-Drone"],
   },
+  /**
+   * Wiki page "The Lanius Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * Wiki page "The Lanius Cruiser", section "Layout A": Chain Burst Laser (2 power) and Ion Stunner (1). Weapon system is level 3 and already powered to 3.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "lanius-a",
     cruiser: "Lanius Cruiser",
@@ -765,7 +911,7 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: [],
+    weapons: ["chainlaser", "stunner"],
     crew: [
       { kin: "plain", room: "p-pilot" },
       { kin: "voidlung", room: "p-engines" },
@@ -778,6 +924,11 @@ export const HULLS: HullSpec[] = [
     augments: ["lung"],
     unfitted: [],
   },
+  /**
+   * Wiki page "The Lanius Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
+   * Power fills are not on the page. INFERRED.
+   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   */
   {
     id: "lanius-b",
     cruiser: "Lanius Cruiser",
@@ -795,11 +946,13 @@ export const HULLS: HullSpec[] = [
       engines: [1, 1],
       oxygen: [1, 1],
       medbay: [0, 0],
-      weapons: [1, 0],
+      // Wiki page "Flak (Weapons)", "Adv. Flak Gun": 1 power. The weapon system is level 1.
+      // One reactor bar was spare (8 − shields 2 − engines 1 − oxygen 1 − teleporter 1 − mind control 1). INFERRED that it powers this gun.
+      weapons: [1, 1],
       sensors: [0, 0],
       ...sub,
     },
-    weapons: [],
+    weapons: ["advflak"],
     crew: [
       { kin: "shell", room: "p-pilot" },
       { kin: "voidlung", room: "p-engines" },
@@ -811,8 +964,10 @@ export const HULLS: HullSpec[] = [
       cradle: { level: 1, power: 0 },
     },
     augments: ["lung"],
-    unfitted: ["Advanced Flak"],
+    unfitted: [],
   },
+  ...MANTIS_HULLS,
+  ...CRYSTAL_HULLS,
 ];
 
 export function hullById(id: string): HullSpec | undefined {

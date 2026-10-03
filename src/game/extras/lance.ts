@@ -30,7 +30,7 @@ export const UPGRADE_COSTS: Record<number, number> = {
 
 /**
  * INFERRED: one reactor bar. Artillery Beam "Overview" states no power cost.
- * MISMATCH: code has 1 bar at every level. Beam (Weapon) "Artillery Beam" says power 1-4.
+ * MISMATCH: code has 1 bar at every level. Wiki page "Beam (Weapons)", section "Beam weapons table": power 1-4*.
  */
 const BARS = 1;
 
@@ -70,7 +70,7 @@ export function installLance(g: Game): boolean {
 /**
  * One reactor bar, or off. Unpowered charge does not advance.
  * Artillery Beam "Overview": no console, so it cannot be manned to shorten the charge.
- * INFERRED: one reactor bar. Artillery Beam "Overview" states no power cost, and Beam (Weapon) lists power 1–4.
+ * INFERRED: one reactor bar. Artillery Beam "Overview" states no power cost. Wiki page "Beam (Weapons)", section "Beam weapons table": power 1-4*.
  * "Overview": powering off drains the charge. The page says "quickly" and gives no seconds, so a full bar empties in 2s. INFERRED.
  */
 export function toggleLancePower(g: Game): void {

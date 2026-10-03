@@ -27,16 +27,14 @@ export function bombIgnores(def: WeaponDef): boolean {
  * Flak I and the Fire Bomb. Display names match those rows.
  */
 export const ORDNANCE: WeaponDef[] = [
+  // Flak (Weapons), "Flak Gun Mark I": purchase price 65, power 2, charge 10 seconds, shots 3, damage per shot 1.
+  // That section also lists targeting radius 42 and 3 additional fake flak. Neither is a field here.
+  // Lead: flak never causes fires or breaches, so fire 0 and breach 0 are stated, not a missing percent.
+  // INFERRED: gap 0 from the lead "all the shots arrive almost simultaneously". Ion 0. No missile cost is listed, so ammo is false.
   {
     id: "scatter",
     name: "Flak I",
     kind: "flak",
-    // Flak (Weapons) "Flak Gun Mark I" and "Flak weapons table": 2 power, 10s, 3 shots, 1 damage, price 65.
-    // Wiki flak gun: 2 power, 10s, 3 pellets, 1 damage, no fire, no breach, no missile. Store price 65.
-    // Lead text: each projectile depletes one shield layer, and flak never causes fires or breaches.
-    // "Understanding flak accuracy": each shot can miss on evasion, or miss the room inside the circle.
-    // INFERRED: gap 0 ("all the shots arrive almost simultaneously"); ion 0; ammo false (no missile cost is listed).
-    // MISMATCH: code has no radius and no fake projectiles. Wiki "Flak weapons table" says radius 42 and 3 fake flak.
     power: 2,
     charge: 10,
     shots: 3,
@@ -49,16 +47,14 @@ export const ORDNANCE: WeaponDef[] = [
     price: 65,
     blurb: "Three pellets. Each is one damage, can miss alone, and one shield layer stops one.",
   },
+  // Bomb (Weapons), "Fire Bomb": purchase price 50, power 2, charge 15 seconds, system damage 0.
+  // Effect: guaranteed 1-2 fires, so fire is 1. No breach percent is published, so breach is 0.
+  // "Comparing bombs to missiles": 1 missile per shot, and bombs do no hull damage. Crew damage 30 is not a field.
+  // INFERRED: shots 1, gap 0, ion 0. The section does not number them. How often the second fire happens is not published.
   {
     id: "cask",
     name: "Fire Bomb",
     kind: "bomb",
-    // Bomb (Weapons) "Fire Bomb" and "Bomb weapons table": 2 power, 15s, system damage 0, fire/breach/stun 100/0/0, price 50.
-    // Wiki fire bomb: 2 power, 15s, 0 system damage, 100% fire, 0 breach. Store price 50. Spends a missile.
-    // "Comparing bombs to missiles": 1 missile per shot; no hull damage. "Fire Bomb" also lists crew damage 30, which this def does not store.
-    // INFERRED: shots 1, gap 0, ion 0. The page does not number them. fire 1 is the table's 100% chance.
-    // Fire Bomb: guaranteed 1–2 fires. applyImpact adds the second on a coin flip. INFERRED: the page does not say how often it is 2.
-    // Bomb lead: they can miss. applyImpact rolls evasion. They still do not pop shields.
     power: 2,
     charge: 15,
     shots: 1,

@@ -1,4 +1,6 @@
+import { roomClip } from "@/game/layouts";
 import type { Crew, Ship } from "@/game/types";
+import { DoorTicks, cellOwners } from "./DoorTicks";
 
 type Props = {
   ship: Ship;
@@ -25,6 +27,7 @@ export function ShipView({
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
+  const cells = cellOwners(ship.rooms);
   return (
     <div
       className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}`}
@@ -36,15 +39,18 @@ export function ShipView({
       {ship.rooms.map((room) => {
         const occupants = showCrew ? here.filter((c) => c.room === room.id) : [];
         const hot = occupants.some((c) => c.id === selectedId);
+        const clip = roomClip(room);
         return (
           <div
             key={room.id}
             className={
               "room" +
+              (clip ? " is-cut" : "") +
               (room.flash > 0 ? " is-flash" : "") +
               (room.fire > 0 ? " is-fire" : "") +
               (room.venting ? " is-vent" : "") +
               (room.o2 <= 10 ? " is-low" : "") +
+              ((room.lock ?? 0) > 0 ? " is-lock" : "") +
               (hot ? " is-hot" : "") +
               (targetable ? " is-aim" : "")
             }
@@ -53,6 +59,7 @@ export function ShipView({
               gridRow: `${room.y + 1} / span ${room.h}`,
             }}
           >
+            {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
             <button
               type="button"
               className="room-hit"
@@ -95,6 +102,7 @@ export function ShipView({
                 </div>
               ) : null}
             </div>
+            <DoorTicks room={room} marks={ship.doorMarks} doors={ship.doors} cells={cells} />
           </div>
         );
       })}

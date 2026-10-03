@@ -2,9 +2,10 @@ import { log, rand, sparePower } from "../sim.ts";
 import type { Game, Kit, Shot } from "../types.ts";
 
 /**
- * Drone Control, opening paragraph: the system itself is priced at 60.
+ * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
  * A store bundle with a System Repair drone is 75. Any other bundled schematic is 85.
  * The naked 60 is not what a store charges, so installSwarm still refuses.
+ * There is no heading on that paragraph. "Overview" is the next heading, not its section.
  */
 export const INSTALL_SCRAP: number | null = null;
 export const BUNDLE_PATCH = 75;
@@ -19,7 +20,7 @@ export const SYSTEM_POWER = 0;
 
 export type SwarmKind = "ward" | "ward2" | "wardcut" | "striker" | "beam" | "board" | "patch" | "hull";
 
-/** Per-drone power. The system overhead above is separate and is 0. */
+/** Per-drone power. The system overhead above is separate and is 0. INFERRED, same as SYSTEM_POWER. */
 export const DRONE_POWER: Record<SwarmKind, number> = {
   /** Drone Control, Defensive Drones > Defense Drone Mark I: "Power requirement: 2 power". */
   ward: 2,
@@ -53,8 +54,9 @@ export const DRONE_COOLDOWN_S: Record<"ward" | "ward2" | "wardcut", number> = {
 };
 
 /**
- * Drones page, paragraph above Combat Drone Mark I:
+ * Drone Control, "Combat Drones (offensive drones)", the paragraph above "Combat Drone Mark I":
  * "Drones deal 1 hull/system damage per projectile (of the Combat Drones)".
+ * The Drones page is only a redirect and does not contain this sentence.
  */
 const STRIKER_DAMAGE = 1;
 
@@ -81,16 +83,17 @@ const STRIKER_BREACH = 0;
 const STRIKER_FLIGHT_S = 0.7;
 
 /**
- * INFERRED: Combat Drones (offensive drones) > Anti-Ship Beam Drone I
- * gives beam length and beam speed, not a fire interval in seconds.
- * 3 is not a wiki number.
+ * INFERRED: Drone Control, "Combat Drones (offensive drones)" > "Anti-Ship Beam Drone I"
+ * lists "Beam speed: 3" and a beam length, not a fire interval in seconds.
+ * Using that 3 as this interval is not what the 3 means.
  */
 const BEAM_INTERVAL_S = 3;
 
 /**
  * Drone Control, Combat Drones (offensive drones):
  * "1 hull/system damage ... per room crossed by the beam (of the Beam Drones, but not the Fire Drone)."
- * Anti-Ship Beam Drone I beam length is "20 (0.4 tile diagonally)", so one room per swipe.
+ * Anti-Ship Beam Drone I beam length is "20 (0.4 tile diagonally)".
+ * INFERRED: one room per swipe. The page does not say the swipe hits one room.
  */
 const BEAM_DAMAGE = 1;
 
@@ -105,7 +108,9 @@ const BEAM_FIRE = 10 / 100;
 const BOARD_INTERVAL_S = 1;
 
 /**
- * INFERRED: no DPS on the drone page, reused the fight's invented 6.
+ * Drone Control, "Boarding Drones" > "Boarding Drone": health 150, and it attacks
+ * crew and systems. No damage per hit is stated.
+ * INFERRED: no DPS on that section, reused the fight's invented 6.
  * One attack deals that many hit points to a crew member, or that many
  * system damage bars when no enemy crew are left.
  */
@@ -142,7 +147,7 @@ function powered(kit: Kit, kind: SwarmKind): boolean {
 function blank(): Kit {
   return {
     id: "swarm",
-    // Drone Control, opening paragraph: a store purchase "comes with 2 slots and 2 system levels."
+    // Drone Control, the paragraph above "Overview": a store purchase "comes with 2 slots and 2 system levels."
     level: 2,
     // INVENTED: a fitted kit starts unpowered, idle, and not deployed.
     power: 0,
@@ -154,7 +159,7 @@ function blank(): Kit {
   };
 }
 
-/** Buy drone control. Refuses: a store sells a bundle, not the naked 60. */
+/** Buy drone control. Refuses: the paragraph above "Overview" sells a bundle, not the naked 60. */
 export function installSwarm(g: Game): boolean {
   if (INSTALL_SCRAP == null || g.player.kits.swarm) return false;
   if (g.scrap < INSTALL_SCRAP) return false;
@@ -165,7 +170,7 @@ export function installSwarm(g: Game): boolean {
 }
 
 /**
- * Drone Control, opening paragraph: 75 with a System Repair schematic, 85 otherwise.
+ * Drone Control, the paragraph above "Overview": 75 with a System Repair schematic, 85 otherwise.
  * Comes with 2 slots and 2 levels (blank()). The schematic is selected, not deployed;
  * deploy still spends one part.
  */
@@ -181,7 +186,11 @@ export function installSwarmBundle(g: Game, kind: "patch" | "ward" | "striker"):
   return true;
 }
 
-/** One reactor bar, up to the kit level, or off. Same step as the other kits. */
+/**
+ * Systems, "Powering and upgrading systems": one bar at a time.
+ * INFERRED: power stops at the kit level, and the same step turns a bar off.
+ * Drone Control does not state that step.
+ */
 export function toggleSwarmPower(g: Game): void {
   const kit = g.player.kits.swarm;
   if (!kit) return;
@@ -222,9 +231,10 @@ export function deploy(g: Game, kind: string): boolean {
   g.player.parts -= PART_COST;
   kit.on = true;
   kit.target = kind;
-  // Anti-Combat "starts fully charged". Combat Mark I does not say that, so the
-  // striker interval starts empty. Beam and board pages give no starting charge,
-  // so those intervals start empty too. Defense cooldowns also start ready.
+  // Drone Control, "Anti-Combat Drone": "Starts fully charged when first deployed".
+  // Combat Drone Mark I does not say that, so the striker interval starts empty.
+  // Beam and Boarding Drone give no starting charge, so those intervals start empty too.
+  // Defense cooldowns also start ready.
   setCooldown(kit, 0);
   kit.left = 0;
   log(g, `Drone Control deploys ${kind}.`);
@@ -342,7 +352,8 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
       const sys = enemy.systems[room.system];
       if (sys.damage < sys.level) sys.damage += BEAM_DAMAGE;
     }
-    // One tile. No stack cap is stated on the beam drone.
+    // INFERRED: one tile per swipe. "Anti-Ship Beam Drone I" gives a 10% chance per tile
+    // and a beam length of 0.4 tile. No stack cap is stated.
     if (rand(g) < BEAM_FIRE) room.fire += 1;
   }
 }

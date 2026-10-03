@@ -8,6 +8,7 @@ import {
   SECTOR_NAMES,
   WEAPONS,
   XP_NEED,
+  hullRepairPerPoint,
   shieldLayerSeconds,
   skillRank,
   upgradeCost,
@@ -40,13 +41,17 @@ import { stageHull, rollSurge } from "./extras/ram.ts";
 import { kinOf } from "./extras/kin.ts";
 import { hullById } from "./hulls.ts";
 import { layoutFor } from "./layouts.ts";
+import { SECTOR_TYPES } from "./wiki/sectors.ts";
 import type {
   Beacon,
   Crew,
+  Difficulty,
   Door,
+  DoorMark,
   Game,
   KitId,
   Room,
+  SectorNode,
   Ship,
   Shot,
   SkillName,
@@ -68,6 +73,42 @@ const ALL_SYS: SysId[] = [
 ];
 
 const SAVE_KEY = "ashwake-save-v1";
+
+// INVENTED: seeded rng, ids, log lines, and floating text. No fetched page specifies them.
+// Score, s: wallet is what the player receives. eligible is what counts, defaulting to the wallet.
+// Scrap Recovery Arm's bonus is not eligible. Repair Arm's cut is not removed from eligible.
+function addScrap(g: Game, wallet: number, eligible?: number) {
+  const score = eligible ?? wallet;
+  if (wallet > 0) g.scrap += wallet;
+  if (score > 0) g.scrapCollected = (g.scrapCollected ?? 0) + score;
+}
+
+const START_SCRAP: Record<Difficulty, number> = { easy: 30, normal: 10, hard: 0 };
+const SCORE_D: Record<Difficulty, number> = { easy: 1, normal: 1.25, hard: 1.5 };
+
+/** Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. Flagship phases are not in k. */
+export function runScore(g: Game): number {
+  const s = g.scrapCollected ?? 0;
+  const b = g.beaconsVisited ?? 0;
+  const k = g.phase === "victory" ? Math.max(0, g.kills - 1) : g.kills;
+  const d = SCORE_D[g.difficulty] ?? SCORE_D.normal;
+  return Math.floor((s + 10 * b + 20 * k) * d);
+}
+
+/** Template:Stores: hull repairs in stores. 2 scrap in sectors 1–3, 3 in 4–6, 4 in 7–8. */
+export function repairHull(g: Game, mode: "one" | "all" | "max") {
+  const missing = g.player.hullMax - g.player.hull;
+  const rate = hullRepairPerPoint(g.sector);
+  if (missing <= 0) return;
+  let n = 0;
+  if (mode === "one") n = g.scrap >= rate ? 1 : 0;
+  else if (mode === "all") n = g.scrap >= missing * rate ? missing : 0;
+  else n = Math.min(missing, Math.floor(g.scrap / rate));
+  if (n <= 0) return;
+  g.scrap -= n * rate;
+  g.player.hull += n;
+  sfx(g, "click");
+}
 
 export function rand(g: Game): number {
   let a = g.seed | 0;
@@ -118,6 +159,7 @@ function systems(levels: Partial<Record<SysId, [number, number]>>): Record<SysId
   return out;
 }
 
+// Systems: subsystems need no reactor power. Piloting, sensors, and doors are subsystems.
 export function isMain(id: SysId): boolean {
   return (
     id === "shields" ||
@@ -137,6 +179,7 @@ export function functional(sys: SystemState): boolean {
 }
 
 export function maxBubbles(ship: Ship): number {
+  // Shields, Overview: one barrier for every two system levels, and the system must be powered.
   return Math.floor(bars(ship.systems.shields) / 2);
 }
 
@@ -170,19 +213,58 @@ function touches(a: Room, b: Room): boolean {
   return (xTouch && yOverlap) || (yTouch && xOverlap);
 }
 
-function addDoors(rooms: Room[]): Door[] {
-  const doors: Door[] = [];
-  for (let i = 0; i < rooms.length; i++) {
-    doors.push({ a: rooms[i].id, b: "void", open: false, hp: 0, stuck: 0 });
-    for (let j = i + 1; j < rooms.length; j++) {
-      if (touches(rooms[i], rooms[j])) {
-        doors.push({ a: rooms[i].id, b: rooms[j].id, open: true, hp: 0, stuck: 0 });
+// INFERRED: interior doors start open and airlocks start shut. The fetched pages do not say the default.
+// A traced layout passes the orange bars. One door per connected pair. A room with no airlock bar has no void door.
+function addDoors(rooms: Room[], marks?: DoorMark[]): Door[] {
+  if (!marks) {
+    const doors: Door[] = [];
+    for (let i = 0; i < rooms.length; i++) {
+      doors.push({ a: rooms[i].id, b: "void", open: false, hp: 0, stuck: 0 });
+      for (let j = i + 1; j < rooms.length; j++) {
+        if (touches(rooms[i], rooms[j])) {
+          doors.push({ a: rooms[i].id, b: rooms[j].id, open: true, hp: 0, stuck: 0 });
+        }
+      }
+    }
+    return doors;
+  }
+  const at = new Map<string, string>();
+  for (const r of rooms) {
+    for (let y = r.y; y < r.y + r.h; y++) {
+      for (let x = r.x; x < r.x + r.w; x++) {
+        if (r.omit?.some((cell) => cell.x === x && cell.y === y)) continue;
+        at.set(`${x},${y}`, r.id);
       }
     }
   }
+  const step: Record<DoorMark["side"], [number, number]> = {
+    n: [0, -1],
+    e: [1, 0],
+    s: [0, 1],
+    w: [-1, 0],
+  };
+  const doors: Door[] = [];
+  const seen = new Set<string>();
+  const vented = new Set<string>();
+  for (const mark of marks) {
+    const id = at.get(`${mark.x},${mark.y}`);
+    if (!id) continue;
+    const [dx, dy] = step[mark.side];
+    const other = at.get(`${mark.x + dx},${mark.y + dy}`);
+    if (!other || other === id) {
+      if (!other) vented.add(id);
+      continue;
+    }
+    const key = id < other ? `${id}|${other}` : `${other}|${id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    doors.push({ a: id, b: other, open: true, hp: 0, stuck: 0 });
+  }
+  for (const id of vented) doors.push({ a: id, b: "void", open: false, hp: 0, stuck: 0 });
   return doors;
 }
 
+// INVENTED: the Lark, this room grid, and this starting fit. Not a paragraph on the fetched pages.
 function makePlayer(): Ship {
   const rooms: Room[] = [
     room({ id: "p-engines", title: "Engines", system: "engines", x: 0, y: 0, w: 2, h: 1 }),
@@ -224,6 +306,7 @@ function makePlayer(): Ship {
   };
 }
 
+// INVENTED: Ada Voss, Ivo Park, and Nen Hale. Not a cruiser roster.
 function starterCrew(): Crew[] {
   return [
     { id: "c-ada", name: "Ada Voss", side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-pilot", path: [], move: 0, think: 0, tone: 0 },
@@ -280,6 +363,7 @@ function sideCrew(g: Game, side: "player" | "enemy", aboard: "player" | "enemy")
 }
 
 function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): boolean {
+  // INFERRED: fire, oxygen at or below 5%, or a boarder cancels manning. The fetched pages do not number that.
   const r = roomWith(ship, system);
   if (!r) return false;
   if (r.fire > 0 || r.o2 <= 5) return false;
@@ -318,6 +402,7 @@ function rankOf(c: Crew | undefined, skill: SkillName): 0 | 1 | 2 {
 }
 
 function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) {
+  // INFERRED: callers grant 1 point or dt. The fetched pages do not number skill gain.
   if (!c || amount <= 0 || c.side !== "player") return;
   if (!c.skills) c.skills = {};
   const before = rankOf(c, skill);
@@ -470,6 +555,100 @@ export function doorLabel(ship: Ship, door: Door): string {
   return `${a} – ${b}`;
 }
 
+function coated(ship: Ship, id: string): boolean {
+  return (roomById(ship, id)?.lock ?? 0) > 0;
+}
+
+/**
+ * Crystal, "Crystal Lockdown": the coating lasts 12 seconds and resets blast-door health.
+ * Door System, "Hits required to break a door": that table is the health being reset. No new hit count is introduced.
+ * Crystal, "Crystal Lockdown": a coated door can be broken, but the page states no hit count or rate, so breaking is not applied.
+ */
+function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: string) {
+  const room = roomById(ship, roomId);
+  if (!room) return;
+  room.lock = 12;
+  const level = doorLevel(g, ship, aboard);
+  for (const door of ship.doors) {
+    if (door.b === "void") continue;
+    if (door.a !== roomId && door.b !== roomId) continue;
+    door.hp = blastHits(level);
+  }
+}
+
+/** Crystal, "Crystal Lockdown": Crystals coat the room they are in. The recharge is 50 seconds. */
+export function lockdown(g: Game, crewId: string): boolean {
+  const crew = g.crew.find((c) => c.id === crewId);
+  if (!crew || crew.hp <= 0 || crew.kin !== "shard") return false;
+  if ((crew.lockCool ?? 0) > 0) return false;
+  const ship = crew.aboard === "player" ? g.player : g.enemy;
+  if (!ship || !roomById(ship, crew.room)) return false;
+  coatRoom(g, ship, crew.aboard, crew.room);
+  crew.lockCool = 50;
+  sfx(g, "click");
+  return true;
+}
+
+/** Crystal, "Crystal Lockdown": the shortcut is P. The page does not name a target when none is selected, so none is chosen. */
+export function lockdownSelected(g: Game) {
+  if (!g.selected) return;
+  lockdown(g, g.selected);
+}
+
+/**
+ * Crystal, "Crystal Lockdown": Z opens every door at once and overrides the coating, including for a suffocation trap.
+ * INFERRED: a dead door system cannot do this. The page does not say Z bypasses a broken Door System.
+ */
+export function openAllDoors(g: Game) {
+  if (!functional(g.player.systems.doors)) {
+    log(g, "Door control is dead.");
+    return;
+  }
+  for (const door of g.player.doors) {
+    door.open = true;
+    if (door.b !== "void") continue;
+    const room = roomById(g.player, door.a);
+    if (room) room.venting = true;
+  }
+  sfx(g, "vent");
+}
+
+function crystalInCloneBay(c: Crew, ship: Ship | null): boolean {
+  if ((c.cloneIn ?? 0) > 0) return true;
+  const room = ship ? roomById(ship, c.room) : undefined;
+  return room?.title === "Clone Bay";
+}
+
+/** Crystal, "Crystal Lockdown": an FTL jump recharges Lockdown instantly, unless that Crystal is in the Clone Bay. */
+function rechargeLockdown(g: Game) {
+  for (const c of g.crew) {
+    if (c.kin !== "shard") continue;
+    const ship = c.aboard === "player" ? g.player : g.enemy;
+    if (crystalInCloneBay(c, ship)) continue;
+    c.lockCool = 0;
+  }
+}
+
+/** Zoltan Shield, lead: an FTL jump completely recharges the bubble. It does not recharge on a timer. */
+function rechargeZoltan(ship: Ship) {
+  if (ship.zoltan == null) return;
+  ship.zoltan = 5;
+}
+
+function tickLockdown(g: Game, dt: number) {
+  for (const c of g.crew) {
+    if ((c.lockCool ?? 0) <= 0) continue;
+    c.lockCool = Math.max(0, (c.lockCool ?? 0) - dt);
+  }
+  for (const ship of [g.player, g.enemy]) {
+    if (!ship) continue;
+    for (const room of ship.rooms) {
+      if ((room.lock ?? 0) <= 0) continue;
+      room.lock = Math.max(0, (room.lock ?? 0) - dt);
+    }
+  }
+}
+
 export function toggleDoor(g: Game, a: string, b: string) {
   if (!functional(g.player.systems.doors)) {
     log(g, "Door control is dead.");
@@ -477,6 +656,8 @@ export function toggleDoor(g: Game, a: string, b: string) {
   }
   const door = findDoor(g.player, a, b);
   if (!door || door.stuck > 0) return;
+  // Crystal, "Crystal Lockdown": coated rooms cannot be opened or closed by hand. Airlocks are not blocked.
+  if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b))) return;
   door.open = !door.open;
   if (door.b === "void") {
     const room = roomById(g.player, door.a);
@@ -499,6 +680,9 @@ export function orderCrew(g: Game, crewId: string, dest: string) {
   if (!c || c.side !== "player" || c.hp <= 0) return;
   const ship = c.aboard === "player" ? g.player : g.enemy;
   if (!ship || !roomById(ship, dest)) return;
+  // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
+  // A path that was already started can still finish, which is how a Crystal leaves as the coating forms.
+  if (coated(ship, c.room) || coated(ship, dest)) return;
   if (c.room === dest && c.path.length === 0) {
     g.selected = null;
     return;
@@ -511,12 +695,28 @@ export function orderCrew(g: Game, crewId: string, dest: string) {
   sfx(g, "click");
 }
 
+/**
+ * Weapon Control, Overview: a left click or keys 1–4 activate the slot and it begins charging.
+ * Clicking or pressing a slot that is already charging changes the cursor to targeting mode.
+ */
 export function armWeapon(g: Game, weaponUid: string) {
+  const w = g.player.weapons.find((x) => x.uid === weaponUid);
+  if (!w) return;
+  if (!w.enabled) {
+    w.enabled = true;
+    g.armed = weaponUid;
+    g.targeting = false;
+    sfx(g, "click");
+    return;
+  }
   g.armed = weaponUid;
+  g.targeting = true;
   sfx(g, "click");
 }
 
 export function aim(g: Game, roomId: string) {
+  // Weapon Control, Overview: a target room is confirmed by a left click while the cursor is targeting.
+  if (!g.targeting) return;
   if (!g.enemy || !roomById(g.enemy, roomId)) return;
   const mask = powerMask(g.player);
   let index = g.player.weapons.findIndex((w) => w.uid === g.armed);
@@ -524,6 +724,7 @@ export function aim(g: Game, roomId: string) {
   const w = g.player.weapons[index];
   if (!w) {
     log(g, "No weapon selected.");
+    g.targeting = false;
     return;
   }
   g.armed = w.uid;
@@ -534,6 +735,43 @@ export function aim(g: Game, roomId: string) {
     log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}.`);
     sfx(g, "click");
   }
+  // INFERRED: confirming the room leaves targeting mode. The overview does not say the cursor stays.
+  g.targeting = false;
+}
+
+/** Weapon Control, Overview: the right mouse button cancels targeting. */
+export function cancelTargeting(g: Game) {
+  if (!g.targeting) return;
+  g.targeting = false;
+  sfx(g, "click");
+}
+
+/** Weapon Control, Overview: a right click or Shift+1–4 depowers the weapon. It does not power it back on. */
+export function depowerWeapon(g: Game, weaponUid: string) {
+  const w = g.player.weapons.find((x) => x.uid === weaponUid);
+  if (!w) return;
+  w.enabled = false;
+  g.targeting = false;
+  sfx(g, "click");
+}
+
+/** Weapon Control, Overview: autofire for all weapons, or the opposite on one slot. */
+export function slotAutofire(g: Game, w: WeaponInst): boolean {
+  return !!g.autofireAll !== !!w.autoInvert;
+}
+
+/** Weapon Control, Overview: Ctrl+1–4 or Ctrl+left click reverses one slot against the all-weapons setting. */
+export function reverseSlotAuto(g: Game, weaponUid: string) {
+  const w = g.player.weapons.find((x) => x.uid === weaponUid);
+  if (!w) return;
+  w.autoInvert = !w.autoInvert;
+  sfx(g, "click");
+}
+
+/** Weapon Control, Overview: autofire can be enabled or disabled for all weapons. */
+export function toggleAutoAll(g: Game) {
+  g.autofireAll = !g.autofireAll;
+  sfx(g, "click");
 }
 
 export function fireReady(g: Game) {
@@ -561,12 +799,10 @@ export function choiceDisabled(g: Game, id: string): string | null {
 }
 
 export function toggleAuto(g: Game, weaponUid: string) {
-  const w = g.player.weapons.find((x) => x.uid === weaponUid);
-  if (!w) return;
-  w.autofire = !w.autofire;
-  sfx(g, "click");
+  reverseSlotAuto(g, weaponUid);
 }
 
+// INFERRED: the swipe is the aimed room plus one neighbor. Weapons, "Beams" does not give this path.
 function beamRooms(ship: Ship, origin: string): string[] {
   const r = roomById(ship, origin);
   if (!r) return [origin];
@@ -576,6 +812,8 @@ function beamRooms(ship: Ship, origin: string): string[] {
 }
 
 function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
+  // Weapons, "Missiles" and "Bombs": one ammunition per shot.
+  // INFERRED: flight 0.7s, missiles and bombs 1.35s, beams 0.32s. "Weapons timing and travel times" lists no seconds.
   const def = WEAPONS[w.defId];
   if (!def || w.charge < 1 || !w.target) return;
   const ship = from === "player" ? g.player : g.enemy;
@@ -605,6 +843,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
       breachChance: def.breach,
       targetRoom: rooms[0],
       beamRooms: def.kind === "beam" ? rooms : undefined,
+      defId: w.defId,
       wait: i * def.gap,
       t: 0,
       duration: def.kind === "missile" || def.kind === "bomb" ? 1.35 : def.kind === "beam" ? 0.32 : 0.7,
@@ -629,7 +868,7 @@ function hurtSystem(ship: Ship, id: SysId, amount: number) {
   syncShields(ship);
 }
 
-/** Ions: each point locks one bar for 5 seconds, stacking to five. */
+/** Systems and Template:In-game tips: one power off per ion point, locked 5 seconds per point, up to 5 ion points. */
 function applyIon(ship: Ship, id: SysId, points: number) {
   const sys = ship.systems[id];
   for (let i = 0; i < points; i++) {
@@ -639,6 +878,36 @@ function applyIon(ship: Ship, id: SysId, points: number) {
   const cap = capOf(sys);
   if (isMain(id) && sys.power > cap) sys.power = cap;
   syncShields(ship);
+}
+
+/**
+ * Spend points from the green bubble. Returns null when there is nothing to spend.
+ * A return of 0 means the bubble paid the whole amount.
+ * Augmentations, "Zoltan Shield": it absorbs damage before standard shields and hull.
+ */
+function spendZoltan(ship: Ship, amount: number): number | null {
+  if (ship.zoltan == null || ship.zoltan <= 0 || amount <= 0) return null;
+  const used = Math.min(ship.zoltan, amount);
+  ship.zoltan -= used;
+  return amount - used;
+}
+
+function noteZoltan(g: Game, playerHurt: boolean) {
+  const ship = playerHurt ? g.player : g.enemy;
+  const left = ship?.zoltan ?? 0;
+  log(g, playerHurt ? `Zoltan Shield ${left}.` : `Their Zoltan Shield ${left}.`);
+  sfx(g, "shield");
+  floatAt(g, "SHIELD", playerHurt ? 68 : 32, 16);
+}
+
+/**
+ * Zoltan Shield, lead: beams hit the bubble in 2 ticks, doubling base damage, and room count does not change that.
+ * Zoltan Shield, lead: Anti-Bio Beam, Fire Beam, and Artillery Beam deal 2 damage in total.
+ * Artillery Beam is not launched as a shot. lance.ts still skips this bubble.
+ */
+function zoltanBeamCost(shot: Shot): number {
+  if (shot.defId === "antibio" || shot.defId === "firebeam") return 2;
+  return shot.damage * 2;
 }
 
 export function applyImpact(g: Game, shot: Shot) {
@@ -657,8 +926,34 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     const r = roomById(ship, shot.targetRoom);
     if (!r) return;
-    if (shot.damage > 0) strikeRoom(g, ship, aboard, shot.targetRoom, shot.damage, shot, playerTarget);
-    else {
+    // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
+    // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
+    if ((ship.zoltan ?? 0) > 0 && shot.damage <= 0 && shot.ion > 0) {
+      spendZoltan(ship, shot.ion * 2);
+      noteZoltan(g, playerTarget);
+      return;
+    }
+    // Zoltan Shield, lead: Fire Bomb, Crystal Lockdown Bomb, Healing Burst, and Repair Burst have no effect on the bubble.
+    if ((ship.zoltan ?? 0) > 0 && shot.damage <= 0 && shot.ion <= 0) {
+      log(g, playerTarget ? "The Zoltan Shield shrugs the bomb off." : "Their Zoltan Shield shrugs the bomb off.");
+      sfx(g, "shield");
+      return;
+    }
+    if (shot.damage > 0) {
+      const left = spendZoltan(ship, shot.damage);
+      if (left === 0) {
+        noteZoltan(g, playerTarget);
+        return;
+      }
+      strikeRoom(g, ship, aboard, shot.targetRoom, left == null ? shot.damage : left, shot, playerTarget);
+    } else {
+      // Crystal, "Crystal Lockdown": the Crystal Lockdown Bomb is identical in its coating effect.
+      if (shot.defId === "lockdown") {
+        coatRoom(g, ship, aboard, r.id);
+        log(g, playerTarget ? `${r.title} locked down.` : `Their ${r.title} locked down.`);
+        sfx(g, "click");
+        return;
+      }
       // Fire Bomb: guaranteed 1–2 fires. The page does not say how often it is 2, so the second fire is a coin flip. INFERRED.
       if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
       if (shot.fireChance >= 1 && rand(g) < 0.5) r.fire = Math.min(3, r.fire + 1);
@@ -672,12 +967,17 @@ export function applyImpact(g: Game, shot: Shot) {
   const missed = rand(g) * 100 < evade;
 
   if (shot.kind === "beam") {
+    // Weapons, "Beams": a beam never misses, and each layer cuts damage by 1. This miss roll is INVENTED.
     if (missed) {
       if (playerTarget) noteDodge(g);
       log(g, playerTarget ? "Beam missed the Lark." : "Their hull slipped the beam.");
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
       return;
     }
+    const bubble = spendZoltan(ship, zoltanBeamCost(shot));
+    if (bubble != null) noteZoltan(g, playerTarget);
+    if (bubble === 0) return;
+    // Zoltan Shield, lead: if the bubble breaks before the swipe ends, the beam continues against regular shields or hull.
     const reduce = ship.shieldNow;
     const dmg = Math.max(0, shot.damage - reduce);
     if (dmg <= 0) {
@@ -698,7 +998,27 @@ export function applyImpact(g: Game, shot: Shot) {
     return;
   }
 
-  // Shields: one layer blocks one projectile. Missiles ignore layers. Beams are handled above and do not pop layers.
+  if (shot.kind === "ion") {
+    // Zoltan Shield, lead: ion weapons deal double damage to the bubble.
+    // The page does not say leftover ion reaches a system, so none is applied.
+    const bubble = spendZoltan(ship, Math.max(0, shot.ion) * 2);
+    if (bubble != null) {
+      noteZoltan(g, playerTarget);
+      return;
+    }
+  }
+
+  let damage = shot.damage;
+  if (shot.kind !== "ion" && damage > 0) {
+    const left = spendZoltan(ship, damage);
+    if (left === 0) {
+      noteZoltan(g, playerTarget);
+      return;
+    }
+    if (left != null) damage = left;
+  }
+
+  // Weapons, "Lasers": one shot drops one layer. "Missiles": ignore layers. "Beams": do not pop layers.
   if (shot.kind !== "missile" && ship.shieldNow > 0) {
     ship.shieldNow -= 1;
     ship.shieldCharge = 0;
@@ -726,7 +1046,7 @@ export function applyImpact(g: Game, shot: Shot) {
     return;
   }
 
-  strikeRoom(g, ship, aboard, shot.targetRoom, shot.damage, shot, playerTarget);
+  strikeRoom(g, ship, aboard, shot.targetRoom, damage, shot, playerTarget);
 }
 
 function strikeRoom(
@@ -744,13 +1064,19 @@ function strikeRoom(
     if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
     else hurtSystem(ship, r.system, damage);
   }
-  const held = playerHurt && negateHull(g);
-  if (!held) ship.hull = Math.max(0, ship.hull - damage);
-  else log(g, "Rock Plating held the hull.");
+  // Bomb (Weapons) lead: bombs deal no hull damage. System damage above still lands.
+  // Crew damage on a bomb is often its own figure (BOMB_GAPS). This still uses 15 per system point from Weapons, "Weapons: general information".
+  if (shot.kind !== "bomb") {
+    const held = playerHurt && negateHull(g);
+    if (!held) ship.hull = Math.max(0, ship.hull - damage);
+    else log(g, "Rock Plating held the hull.");
+  }
   r.flash = 0.35;
+  // Weapons, "Weapons: general information": each point of system damage deals 15 crew damage.
   for (const c of g.crew) {
     if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.hp -= 15 * damage;
   }
+  // INFERRED: a hit starts one fire, stacked to 3. The fetched pages do not number that cap.
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
   if (shot.breachChance > 0 && rand(g) < shot.breachChance) r.breach += 1;
   floatAt(g, `−${damage}`, playerHurt ? 74 : 26, 30);
@@ -768,6 +1094,7 @@ function strikeRoom(
   }
 }
 
+// INVENTED: target weights. Weapons and shields 6, piloting 4, engines 3, oxygen 2, else 1.
 function weightedRoom(g: Game, ship: Ship): string {
   const weights = ship.rooms.map((r) => {
     if (r.system === "weapons" || r.system === "shields") return 6;
@@ -801,7 +1128,9 @@ function chargeSide(
     if (from === "enemy" && !w.target) w.target = weightedRoom(g, g.player);
     if (frozen) return;
     w.charge = Math.min(1, w.charge + dt / (def.charge * mult));
-    const auto = from === "enemy" || w.autofire;
+    // Weapon Control, Overview: enemy guns always fire when charged. Player autofire is the all-weapons
+    // setting, reversed per slot by Ctrl.
+    const auto = from === "enemy" || slotAutofire(g, w);
     if (auto && w.charge >= 1 && w.target) launch(g, from, w);
   });
 }
@@ -815,11 +1144,21 @@ function moveCrew(g: Game, dt: number) {
     if (c.hp <= 0 || c.path.length === 0) continue;
     const ship = c.aboard === "player" ? g.player : g.enemy;
     const next = c.path[0];
-    const door = ship ? findDoor(ship, c.room, next) : undefined;
+    if (!ship) continue;
+    // Crystal, "Crystal Lockdown": nobody enters a coated room.
+    if (coated(ship, next)) {
+      c.path = [];
+      continue;
+    }
+    const door = findDoor(ship, c.room, next);
     const hostile = c.side !== (c.aboard === "player" ? "player" : "enemy");
-    if (door && !door.open && hostile && ship) {
+    const leaving = coated(ship, c.room);
+    // Crystal, "Crystal Lockdown": the page states no rate for breaking a coated door, so a shut door is not punched through while the coating lasts.
+    if (leaving && door && !door.open) continue;
+    if (door && !door.open && hostile && !leaving) {
       const level = doorLevel(g, ship, c.aboard);
-      if (door.hp <= 0) door.hp = blastHits(level) || 8;
+      // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
+      if (door.hp <= 0) door.hp = blastHits(level);
       door.hp -= dt;
       if (door.hp > 0) continue;
       door.open = true;
@@ -870,7 +1209,7 @@ function armDoors(ship: Ship, level: number) {
  * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3.
  * Unpowered rooms fall at 1.2% per second.
  * Fires die below 10% oxygen. Suffocation is still the 5% check in life().
- * INFERRED: 12% per breach and 1% per fire, and 28% through an open airlock. The Door System page does not give airflow rates.
+ * INFERRED: 12% per breach, 1% per fire, 28% through an open airlock, and 40% of the difference through an open door. The Door System page does not give airflow rates.
  */
 function airflow(ship: Ship, dt: number) {
   const o2 = bars(ship.systems.oxygen);
@@ -912,7 +1251,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const pals = present.filter((c) => withUs(c) && (c.stun ?? 0) <= 0);
     const foes = present.filter((c) => !withUs(c));
     if (pals.length && foes.length) {
-      // INFERRED: 6 damage a second while trading blows. The wiki lists crew health, not this flat rate.
+      // INFERRED: 6 damage a second while trading blows, plus 10% per combat rank taken. The wiki lists crew health, not this flat rate.
       const dps = 6;
       for (const c of foes) {
         const hit = pals.reduce(
@@ -932,6 +1271,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         bumpXp(g, c, "combat", dt);
       }
     } else if (r.fire > 0 && pals.length) {
+      // INFERRED: each crew member removes 0.45 fire per second.
       r.fire = Math.max(0, r.fire - pals.length * 0.45 * dt);
       // Fires: 2.128 HP per second per fire. kin.fireTaken is 0 for a fire-immune lineage.
       for (const c of pals) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
@@ -956,6 +1296,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         sfx(g, "click");
       }
     }
+    // INFERRED: spread every 7s, 70% through an open door, else +0.5 fire. The 15% oxygen gate is not on the fetched pages.
     if (r.fire > 0 && r.o2 > 15) {
       const sealed = ship.doors.some((d) => !d.open && d.b !== "void" && (d.a === r.id || d.b === r.id));
       r.fireTick += dt * (sealed ? 1 / closedSlow : 1);
@@ -1011,6 +1352,8 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
+// INFERRED: rocks every 8s (1 damage, 5% breach) and artillery every 14s (1 damage, 15% fire, 10% breach).
+// Those intervals are not on the fetched pages.
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
     g.asteroidT += dt;
@@ -1085,6 +1428,7 @@ function bossThink(g: Game, dt: number) {
   }
 }
 
+// INVENTED: two boarders, Hook and Barb, after the timer set in startCombat.
 function boarders(g: Game, dt: number) {
   if (g.boardTimer <= 0) return;
   g.boardTimer -= dt;
@@ -1111,12 +1455,22 @@ function boarders(g: Game, dt: number) {
   sfx(g, "alarm");
 }
 
+// INVENTED: boarders pick a new system every 4–7 seconds.
 function wanderBoarders(g: Game, dt: number) {
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "player" || c.hp <= 0) continue;
     c.think -= dt;
     if (c.path.length > 0 || c.think > 0) continue;
-    const options = g.player.rooms.filter((r) => r.system);
+    // Crystal, "Crystal Lockdown": a new walk cannot start out of a coated room.
+    if (coated(g.player, c.room)) {
+      c.think = 4 + rand(g) * 3;
+      continue;
+    }
+    const options = g.player.rooms.filter((r) => r.system && !coated(g.player, r.id));
+    if (!options.length) {
+      c.think = 4 + rand(g) * 3;
+      continue;
+    }
     const dest = pick(g, options).id;
     const path = bfs(g.player, c.room, dest);
     if (path && path.length) {
@@ -1132,6 +1486,17 @@ function reap(g: Game) {
   if (!dead.length) return;
   for (const c of dead) {
     if (noteDeath(g, c)) continue;
+    // Wiki page "Zoltans", section "Race characteristics": death burst deals 15 HP to enemy crew in the same room.
+    // Wiki page "Zoltans", section "Race characteristics": drone damage is 7.5 HP. Drones in this tree have no HP field, so 7.5 is not applied.
+    // Wiki page "Zoltans", section "Race characteristics": damage to allies while mind-controlled has no printed number, so it is not applied.
+    if (c.kin === "spark") {
+      for (const other of g.crew) {
+        if (other.hp <= 0 || other.id === c.id) continue;
+        if (other.room !== c.room || other.aboard !== c.aboard) continue;
+        if (other.side === c.side) continue;
+        other.hp -= 15;
+      }
+    }
     if (c.side === "player") log(g, `${c.name} is gone.`);
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
@@ -1142,11 +1507,11 @@ function endCheck(g: Game) {
   if (g.phase !== "combat") return;
   const live = g.crew.filter((c) => c.side === "player" && (c.hp > 0 || (c.cloneIn ?? 0) > 0));
   if (g.player.hull <= 0) {
-    lose(g, "The hull opens. The line does not slow down.");
+    lose(g, "hull");
     return;
   }
   if (live.length === 0) {
-    lose(g, "No one left to hold the chair. The Lark drifts.");
+    lose(g, "crew");
     return;
   }
   if (g.enemy && g.enemy.hull <= 0) {
@@ -1174,11 +1539,12 @@ function advanceRam(g: Game) {
   log(g, next === 2 ? "The Flagship brings up the second hull." : "The Flagship brings up its last hull.");
 }
 
-function lose(g: Game, text: string) {
+function lose(g: Game, reason: "hull" | "crew") {
   g.phase = "defeat";
-  g.outcome = text;
+  g.outcome = g.training ? "tutorial" : reason;
   g.paused = true;
   g.picking = false;
+  g.sectorMap = false;
   sfx(g, "die");
   clearSave();
 }
@@ -1194,14 +1560,16 @@ function winCombat(g: Game) {
   g.boardTimer = 0;
   if (boss) {
     g.phase = "victory";
-    g.outcome = "The Flagship breaks up. Beyond it, the gate is just quiet.";
+    g.outcome = "victory";
+    g.sectorMap = false;
     sfx(g, "win");
     clearSave();
     return;
   }
   const band = SCRAP_MEDIUM[Math.min(7, Math.max(0, g.sector - 1))];
-  let scrap = band[0] + irand(g, band[1] - band[0] + 1);
-  scrap = adjustScrap(g, scrap);
+  // Score, s: the band counts. Scrap Recovery Arm's extra does not. Repair Arm does not reduce s.
+  let eligible = band[0] + irand(g, band[1] - band[0] + 1);
+  let scrap = adjustScrap(g, eligible);
   const notes: string[] = [];
   if (g.pending === "crew") {
     addCrew(g);
@@ -1214,8 +1582,10 @@ function winCombat(g: Game) {
   } else if (g.pending?.startsWith("bonus:")) {
     const extra = Number(g.pending.slice(6)) || 0;
     scrap += extra;
+    eligible += extra;
     g.pending = null;
   }
+  // INFERRED: missile 34%, fuel 28%, weapon 16% or 12 scrap. Stores, "Resources" does not list defeat drops.
   if (rand(g) < 0.34) {
     g.missiles += 1;
     notes.push("Missile salvaged.");
@@ -1231,9 +1601,12 @@ function winCombat(g: Game) {
       const def = pick(g, options);
       giveWeapon(g, def.id);
       notes.push(`${def.name} mounted.`);
-    } else scrap += 12;
+    } else {
+      scrap += 12;
+      eligible += 12;
+    }
   }
-  g.scrap += scrap;
+  addScrap(g, scrap, eligible);
   g.reward = { scrap, note: notes.join(" ") };
   g.phase = "reward";
   g.paused = true;
@@ -1242,6 +1615,7 @@ function winCombat(g: Game) {
   if (b) b.resolved = true;
 }
 
+// INVENTED: three weapon slots.
 function giveWeapon(g: Game, defId: string) {
   if (g.player.weapons.length >= 3) return;
   if (g.player.weapons.some((w) => w.defId === defId)) return;
@@ -1255,9 +1629,10 @@ function giveWeapon(g: Game, defId: string) {
   });
 }
 
+// INVENTED: a fifth crew pays 15 scrap instead, and a new hire starts at 80 HP.
 function addCrew(g: Game) {
   if (g.crew.filter((c) => c.side === "player").length >= 5) {
-    g.scrap += 15;
+    addScrap(g, 15);
     return;
   }
   const used = new Set(g.crew.map((c) => c.name));
@@ -1281,6 +1656,7 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
   const boss = tier === "boss";
   const rooms: Room[] = boss
     ? [
+        // MISMATCH and INVENTED: not the Flagship. "1st Stage" is hull 20, eleven crew, shields 8, engines 2, and Ion, Laser, Missile, Beam — not this two-row grid.
         room({ id: "e-shields", title: "Shields", system: "shields", x: 0, y: 0, w: 2, h: 1 }),
         room({ id: "e-weapons", title: "Weapons", system: "weapons", x: 2, y: 0, w: 2, h: 1 }),
         room({ id: "e-oxygen", title: "Oxygen", system: "oxygen", x: 0, y: 1, w: 1, h: 1 }),
@@ -1288,6 +1664,7 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
         room({ id: "e-engines", title: "Engines", system: "engines", x: 2, y: 1, w: 2, h: 1 }),
       ]
     : [
+        // INVENTED: one shared grid for every non-boss hull.
         room({ id: "e-shields", title: "Shields", system: "shields", x: 0, y: 0, w: 2, h: 1 }),
         room({ id: "e-pilot", title: "Piloting", system: "pilot", x: 2, y: 0, w: 1, h: 1 }),
         room({ id: "e-weapons", title: "Weapons", system: "weapons", x: 0, y: 1, w: 1, h: 1 }),
@@ -1295,11 +1672,13 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
         room({ id: "e-oxygen", title: "Oxygen", system: "oxygen", x: 2, y: 1, w: 1, h: 1 }),
       ];
   const loadout: Record<string, { hull: number; shield: number; eng: number; wep: number; guns: string[]; ammo: number; name: string }> = {
+    // INVENTED: Cinder picket, Margin cutter, Ash barge, Hullhook, Gate hunter, and these hull, shield, and gun numbers.
     scout: { hull: 6, shield: 2, eng: 1, wep: 1, guns: ["spark"], ammo: 0, name: "Cinder picket" },
     fighter: { hull: 8, shield: 2, eng: 2, wep: 1, guns: ["twin"], ammo: 0, name: "Margin cutter" },
     rocket: { hull: 9, shield: 2, eng: 2, wep: 2, guns: ["spark", "dart"], ammo: 4, name: "Ash barge" },
     boarder: { hull: 7, shield: 2, eng: 2, wep: 1, guns: ["spark"], ammo: 0, name: "Hullhook" },
     ace: { hull: 11, shield: 4, eng: 3, wep: 3, guns: ["twin", "spark"], ammo: 0, name: "Gate hunter" },
+    // MISMATCH and INVENTED: only hull 20 matches "1st Stage" / "General". Shields, engines, guns, and ammo do not.
     boss: { hull: 20, shield: 4, eng: 3, wep: 4, guns: ["lineburst", "dart"], ammo: 6, name: "Flagship" },
   };
   const spec = loadout[tier] ?? loadout.scout;
@@ -1308,10 +1687,12 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
     name: spec.name,
     hull: spec.hull,
     hullMax: spec.hull,
+    // INVENTED: reactor is shields + engines + 1 + weapons. On the boss, "1st Stage" / "General" is 42.
     reactor: shieldPower + spec.eng + 1 + spec.wep,
     systems: systems({
       shields: [spec.shield, shieldPower],
       engines: [spec.eng, spec.eng],
+      // MISMATCH and INVENTED on the boss: "1st Stage" / "Systems" lists oxygen 2 and piloting 3. Every hull here is 1.
       oxygen: [1, 1],
       weapons: [Math.max(spec.wep, 1), spec.wep],
       pilot: [1, 1],
@@ -1321,6 +1702,7 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
     weapons: spec.guns.map((defId) => ({
       uid: uid(g),
       defId,
+      // INFERRED: enemy guns start up to 35% charged.
       charge: rand(g) * 0.35,
       enabled: true,
       autofire: true,
@@ -1334,6 +1716,7 @@ function makeEnemy(g: Game, tier: string): { ship: Ship; crew: Crew[] } {
     kits: {},
     parts: 0,
   };
+  // INVENTED: Pilot, Gunner, and Warden. "1st Stage" / "General" lists eleven humans on the Flagship.
   const crew: Crew[] = [
     { id: uid(g), name: "Pilot", side: "enemy", aboard: "enemy", hp: 100, maxHp: 100, room: "e-pilot", path: [], move: 0, think: 0, tone: 3 },
     { id: uid(g), name: "Gunner", side: "enemy", aboard: "enemy", hp: 100, maxHp: 100, room: "e-weapons", path: [], move: 0, think: 0, tone: 3 },
@@ -1375,8 +1758,10 @@ export function startCombat(g: Game, tier: string, asteroid = false) {
   g.shipSheet = false;
   g.event = null;
   g.asteroid = asteroid;
+  // INFERRED: first rock at 3s, artillery at 6s, boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
   g.asteroidT = 3;
   const here = g.beacons.find((b) => b.id === g.here);
+  // INFERRED: line artillery starts once the fleet column has passed this beacon.
   g.asb = !!here && here.col < g.fleet;
   g.asbT = 6;
   g.boardTimer = tier === "boarder" ? 9 : 0;
@@ -1396,6 +1781,7 @@ function link(a: Beacon, b: Beacon) {
   if (!b.links.includes(a.id)) b.links.push(a.id);
 }
 
+// INVENTED: beacon kind weights.
 const KINDS: Beacon["kind"][] = [
   "hostile",
   "hostile",
@@ -1409,6 +1795,76 @@ const KINDS: Beacon["kind"][] = [
   "cache",
 ];
 
+const ONCE_SECTOR = new Set([
+  "engi-home",
+  "zoltan-home",
+  "mantis-home",
+  "rebel-stronghold",
+  "rock-home",
+  "slug-home",
+]);
+
+function mixSeed(seed: number, salt: number) {
+  let x = (Math.imul(seed ^ salt, 0x9e3779b9) ^ (salt * 13)) >>> 0;
+  x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
+  return (x ^ (x >>> 15)) >>> 0;
+}
+
+/** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
+export function buildRoute(seed: number): SectorNode[] {
+  const used = new Set<string>();
+  const start = SECTOR_TYPES.find((s) => s.id === "civilian-start");
+  const last = SECTOR_TYPES.find((s) => s.id === "last-stand");
+  const nodes: SectorNode[] = [
+    {
+      id: "sec-0",
+      name: start?.name ?? "Civilian (Starting) Sector",
+      group: "civilian",
+      col: 0,
+      row: 1,
+      links: [],
+    },
+  ];
+  const groupOf = (group: string): SectorNode["group"] =>
+    group === "hostile" || group === "nebula" ? group : "civilian";
+  const poolFor = (sector: number) =>
+    SECTOR_TYPES.filter((s) => {
+      if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand") return false;
+      if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
+      if (used.has(s.id)) return false;
+      if ((s.id === "engi-home" || s.id === "zoltan-home" || s.id === "mantis-home") && sector < 3) return false;
+      if ((s.id === "rebel-stronghold" || s.id === "rock-home") && sector < 5) return false;
+      if ((s.id === "slug-nebula" || s.id === "slug-home") && sector < 4) return false;
+      return true;
+    });
+  for (let sector = 2; sector <= 7; sector++) {
+    const pool = poolFor(sector);
+    const a = pool[mixSeed(seed, sector * 2) % pool.length];
+    if (ONCE_SECTOR.has(a.id)) used.add(a.id);
+    const rest = pool.filter((s) => s.id !== a.id);
+    const b = rest[mixSeed(seed, sector * 2 + 1) % rest.length];
+    if (ONCE_SECTOR.has(b.id)) used.add(b.id);
+    const col = sector - 1;
+    nodes.push({ id: `sec-${col}-a`, name: a.name, group: groupOf(a.group), col, row: 0, links: [] });
+    nodes.push({ id: `sec-${col}-b`, name: b.name, group: groupOf(b.group), col, row: 2, links: [] });
+  }
+  nodes.push({
+    id: "sec-7",
+    name: last?.name ?? "The Last Stand",
+    group: "last-stand",
+    col: 7,
+    row: 1,
+    links: [],
+  });
+  for (let col = 0; col < 7; col++) {
+    const from = nodes.filter((n) => n.col === col);
+    const to = nodes.filter((n) => n.col === col + 1);
+    for (const node of from) node.links = to.map((t) => t.id);
+  }
+  return nodes;
+}
+
+// INVENTED: column counts, links, and kind mix. Sectors, "Technical details of sector generation and events" is a 6×4 grid from event lists.
 function makeMap(g: Game) {
   const last = g.sector >= 8 ? 4 : 6;
   const cols: Beacon[][] = [];
@@ -1451,9 +1907,11 @@ function makeMap(g: Game) {
   start.kind = "start";
   start.visited = true;
   start.resolved = true;
+  // INVENTED: beacon names Departure and Lane out.
   start.name = "Departure";
   const exit = cols[last][0];
   if (g.sector >= 8) {
+    // Sectors, "The Last Stand": sector 8 and the Flagship on the right. The column fleet here is INVENTED; the page uses random takeover.
     exit.kind = "boss";
     exit.name = "Flagship";
     exit.tier = "boss";
@@ -1462,13 +1920,16 @@ function makeMap(g: Game) {
   } else {
     exit.kind = "exit";
     exit.name = "Lane out";
+    // INVENTED: a picket on the exit. "Exit beacon events" is EXIT_LIST, not these odds.
     if (rand(g) < (g.sector === 1 ? 0.45 : 0.7)) exit.flag = "picket";
     g.ramId = null;
     g.ramClock = 2;
   }
+  // INVENTED: beacon names.
   const names = ["Silt", "Hinge", "Marrow", "Kite", "Brine", "Cask", "Loom", "Vesper", "Nock", "Quarry", "Weld", "Pell"];
   let ni = 0;
   const middles = cols.flat().filter((b) => b !== start && b !== exit);
+  // Stores, "Guaranteed stores": the count depends on sector type. Forcing one store is INFERRED.
   if (!middles.some((b) => b.kind === "store") && middles[0]) middles[0].kind = "store";
   for (const b of middles) {
     b.name = names[ni % names.length];
@@ -1477,15 +1938,18 @@ function makeMap(g: Game) {
       b.tier = tierFor(g, false);
     }
     if (b.kind === "event") b.asteroid = rand(g) < 0.5;
+    // INVENTED: distress ship tier.
     if (b.kind === "distress") b.tier = g.sector <= 2 ? "fighter" : "rocket";
   }
   g.beacons = cols.flat();
   g.here = start.id;
   g.fleet = 0;
+  // INVENTED: sector name fallback.
   g.sectorName = SECTOR_NAMES[g.sector - 1] ?? "Reach";
   onNewSector(g);
 }
 
+// INVENTED: which enemy tier a sector rolls.
 function tierFor(g: Game, exit: boolean): string {
   const s = g.sector;
   if (exit) return s <= 2 ? "fighter" : s <= 4 ? "rocket" : "ace";
@@ -1516,7 +1980,8 @@ function applyHull(g: Game, id: string) {
   const laid = layoutFor(spec.id);
   if (laid) {
     ship.rooms = laid.rooms.map((r) => room(r));
-    ship.doors = addDoors(ship.rooms);
+    ship.doors = addDoors(ship.rooms, laid.marks);
+    ship.doorMarks = laid.marks;
     ship.cols = laid.cols;
     ship.rows = laid.rows;
   }
@@ -1536,9 +2001,13 @@ function applyHull(g: Game, id: string) {
   }
   ship.shieldNow = Math.floor(ship.systems.shields.power / 2);
   g.player = ship;
+  g.hullId = id;
   g.fuel = spec.fuel;
   g.missiles = spec.missiles;
   g.augments = [...spec.augments];
+  // Augmentations, "Zoltan Shield": on arrival the ship starts with a green shield that absorbs 5 points.
+  // Not an AugmentId: the page has no purchase price, and the store catalog requires one.
+  if (spec.unfitted.includes("Zoltan Shield")) ship.zoltan = 5;
   g.armed = ship.weapons[0]?.uid ?? "";
   g.crew = g.crew.filter((c) => c.side !== "player");
   spec.crew.forEach((seat, i) => {
@@ -1560,10 +2029,15 @@ function applyHull(g: Game, id: string) {
   });
   const guns = spec.weapons.map((id) => WEAPONS[id]?.name ?? id).join(", ");
   log(g, `${spec.name} leaves the hangar.${guns ? ` ${guns}.` : ""}`);
-  if (spec.unfitted.length) log(g, `Not fitted: ${spec.unfitted.join(", ")}.`);
+  const pending = spec.unfitted.filter((name) => name !== "Zoltan Shield");
+  if (pending.length) log(g, `Not fitted: ${pending.join(", ")}.`);
 }
 
-export function createGame(seed = (Date.now() ^ 0x9e3779b9) >>> 0, hullId?: string): Game {
+export function createGame(
+  seed = (Date.now() ^ 0x9e3779b9) >>> 0,
+  hullId?: string,
+  difficulty: Difficulty = "normal",
+): Game {
   const g = {
     seed: seed || 1,
     uid: 10,
@@ -1574,7 +2048,9 @@ export function createGame(seed = (Date.now() ^ 0x9e3779b9) >>> 0, hullId?: stri
     beacons: [],
     here: "",
     fleet: 0,
-    scrap: 10,
+    // Score, s: initial scrap is 30 Easy, 10 Normal, 0 Hard, and it is not added to scrapCollected.
+    scrap: START_SCRAP[difficulty],
+    difficulty,
     fuel: 16,
     missiles: 0,
     player: makePlayer(),
@@ -1585,6 +2061,8 @@ export function createGame(seed = (Date.now() ^ 0x9e3779b9) >>> 0, hullId?: stri
     selected: null,
     mode: "crew",
     armed: "w-line",
+    targeting: false,
+    autofireAll: false,
     ramId: null,
     ramClock: 2,
     augments: [],
@@ -1612,12 +2090,22 @@ export function createGame(seed = (Date.now() ^ 0x9e3779b9) >>> 0, hullId?: stri
     outcome: "",
     jumps: 0,
     kills: 0,
+    scrapCollected: 0,
+    beaconsVisited: 1,
+    sectorMap: false,
+    route: [],
+    routeHere: "",
+    hullId: hullId,
+    training: false,
     manual: false,
     shipSheet: false,
     muted: false,
     lowHull: false,
   } as Game;
   makeMap(g);
+  g.sectorName = "Civilian (Starting) Sector";
+  g.route = buildRoute(seed || 1);
+  g.routeHere = g.route[0]?.id ?? "";
   if (hullId) applyHull(g, hullId);
   return g;
 }
@@ -1645,9 +2133,16 @@ export function commitJump(g: Game, id: string) {
   }
   const dest = g.beacons.find((b) => b.id === id);
   if (!dest) return;
+  // Stores, "Fuel": one fuel per jump. A nebula slows the rebel advance; half a column is INFERRED.
   g.fuel -= 1;
   g.jumps += 1;
+  // Score, b: a rebel-held or about-to-be-held beacon does not count. The fleet column that would mark one is INVENTED, so this jump still counts.
+  g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   onPlayerJump(g);
+  // Zoltan Shield, lead: an FTL jump completely recharges the bubble.
+  rechargeZoltan(g.player);
+  // Crystal, "Crystal Lockdown": an FTL jump recharges Lockdown unless that Crystal is in the Clone Bay.
+  rechargeLockdown(g);
   g.fleet += dest.kind === "nebula" ? 0.5 : 1;
   g.here = dest.id;
   dest.visited = true;
@@ -1686,6 +2181,7 @@ export function commitJump(g: Game, id: string) {
   arrive(g, dest);
 }
 
+// Sectors, "The Last Stand": the Flagship jumps every two player jumps. INFERRED: it steps to the nearest beacon. The name Wake is INVENTED.
 function stepRam(g: Game, ram: Beacon) {
   const here = g.beacons.find((b) => b.id === g.here);
   if (!here) return;
@@ -1729,6 +2225,7 @@ function arrive(g: Game, b: Beacon) {
   g.event = eventFor(g, b);
 }
 
+// INVENTED: one scripted event (cache, mayday, dust well, rock field, wreck, deserter). Not a sector event list.
 function eventFor(g: Game, b: Beacon): Game["event"] {
   if (b.kind === "empty" || b.kind === "start") {
     return {
@@ -1808,19 +2305,25 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
   };
 }
 
+// Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8.
+// INVENTED: Dart is pinned in the stock. The missile price is the store price, not a Dart price.
 function rollStock(g: Game): StockItem[] {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
   const guns = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
+  const fuelN = 3 + irand(g, 5);
+  const missileN = 2 + irand(g, 5);
+  const partN = 2 + irand(g, 3);
   const items: StockItem[] = [
-    { id: "fuel", kind: "fuel", ref: "fuel", name: "Fuel ×3", detail: "Three jumps. Three scrap each.", cost: 9, amount: 3 },
-    { id: "missiles", kind: "missiles", ref: "missiles", name: "Missiles ×3", detail: "Feed for the Dart.", cost: 12, amount: 3 },
+    { id: "fuel", kind: "fuel", ref: "fuel", name: `Fuel ×${fuelN}`, detail: "3 scrap each.", cost: fuelN * 3, amount: fuelN },
+    { id: "missiles", kind: "missiles", ref: "missiles", name: `Missiles ×${missileN}`, detail: "6 scrap each.", cost: missileN * 6, amount: missileN },
+    { id: "parts", kind: "parts", ref: "parts", name: `Drone parts ×${partN}`, detail: "8 scrap each.", cost: partN * 8, amount: partN },
     {
       id: "repair",
       kind: "repair",
       ref: "repair",
       name: "Hull patch +5",
-      detail: "Two scrap a point.",
-      cost: Math.min(10, (g.player.hullMax - g.player.hull) * 2, 5 * 2),
+      detail: `${hullRepairPerPoint(g.sector)} scrap a point.`,
+      cost: Math.min(5, g.player.hullMax - g.player.hull) * hullRepairPerPoint(g.sector),
       amount: 5,
     },
   ];
@@ -1837,7 +2340,8 @@ function rollStock(g: Game): StockItem[] {
       amount: 1,
     });
   }
-  if (items[2].cost <= 0) items.splice(2, 1);
+  const repair = items.findIndex((item) => item.kind === "repair");
+  if (repair >= 0 && items[repair].cost <= 0) items.splice(repair, 1);
   return items;
 }
 
@@ -1856,6 +2360,7 @@ export function buy(g: Game, id: string) {
   g.scrap -= item.cost;
   if (item.kind === "fuel") g.fuel += item.amount;
   if (item.kind === "missiles") g.missiles += item.amount;
+  if (item.kind === "parts") g.player.parts += item.amount;
   if (item.kind === "repair") {
     const gain = Math.min(item.amount, g.player.hullMax - g.player.hull);
     g.player.hull += gain;
@@ -1874,6 +2379,7 @@ export function leaveStore(g: Game) {
   g.paused = false;
 }
 
+// INVENTED: scrap, fuel, and fight payouts for that scripted event.
 export function choose(g: Game, id: string) {
   const b = hereBeacon(g);
   const resolve = () => {
@@ -1884,7 +2390,7 @@ export function choose(g: Game, id: string) {
   };
   switch (id) {
     case "empty-take":
-      g.scrap += 4;
+      addScrap(g, 4);
       resolve();
       break;
     case "cache-take":
@@ -1903,7 +2409,7 @@ export function choose(g: Game, id: string) {
       startCombat(g, b?.tier || "fighter");
       break;
     case "nebula-drift":
-      g.scrap += 5;
+      addScrap(g, 5);
       resolve();
       break;
     case "nebula-ping":
@@ -1912,7 +2418,7 @@ export function choose(g: Game, id: string) {
         g.event = null;
         startCombat(g, "fighter");
       } else {
-        g.scrap += 8;
+        addScrap(g, 8);
         log(g, "Just a reflection.");
         resolve();
       }
@@ -1928,12 +2434,12 @@ export function choose(g: Game, id: string) {
       resolve();
       break;
     case "wreck-strip":
-      g.scrap += 12;
+      addScrap(g, 12);
       resolve();
       break;
     case "wreck-deep":
       if (rand(g) < 0.5) {
-        g.scrap += 22;
+        addScrap(g, 22);
         g.fuel += 1;
         g.event = {
           title: "Deep cache",
@@ -1965,7 +2471,7 @@ export function choose(g: Game, id: string) {
       startCombat(g, tierFor(g, true));
       break;
     case "exit-leave":
-      nextSector(g);
+      openSectorMap(g);
       break;
     case "ack":
       resolve();
@@ -1975,7 +2481,30 @@ export function choose(g: Game, id: string) {
   }
 }
 
-function nextSector(g: Game) {
+function openSectorMap(g: Game) {
+  g.event = null;
+  g.paused = false;
+  g.phase = "map";
+  g.sectorMap = true;
+  if (!g.route?.length) {
+    g.route = buildRoute(g.seed);
+    g.routeHere = g.route[0]?.id ?? "";
+  }
+}
+
+/** Sectors chart: only a node linked from the current one. */
+export function chooseSector(g: Game, id: string) {
+  if (!g.sectorMap) return;
+  const here = g.route.find((n) => n.id === g.routeHere);
+  if (!here?.links.includes(id)) return;
+  const next = g.route.find((n) => n.id === id);
+  if (!next) return;
+  g.routeHere = id;
+  g.sectorMap = false;
+  nextSector(g, next.name);
+}
+
+function nextSector(g: Game, name?: string) {
   if (g.sector >= 8) {
     g.phase = "map";
     return;
@@ -1983,14 +2512,18 @@ function nextSector(g: Game) {
   g.sector += 1;
   g.player.shieldCharge = 0;
   if (g.sector === 8) {
+    // Sectors, "The Last Stand": on entry, 10 hull repairs and 10 fuel.
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
-    g.missiles += 10;
-    log(g, "Gate patch: hull and ten missiles.");
+    g.fuel += 10;
+    log(g, "10 hull repairs. 10 fuel.");
   }
   makeMap(g);
+  if (name) g.sectorName = name;
+  g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   g.phase = "map";
   g.paused = false;
   g.event = null;
+  g.sectorMap = false;
   log(g, `${g.sectorName}. The line starts over, closer than you like.`);
   sfx(g, "click");
 }
@@ -2011,6 +2544,7 @@ export function continueReward(g: Game) {
   }
 }
 
+// Stores, "Fuel": waiting advances the rebels like a jump. INFERRED: two hull if their column has passed.
 export function waitHere(g: Game) {
   if (g.phase !== "map") return;
   g.fleet += 1;
@@ -2045,9 +2579,10 @@ export function upgrade(g: Game, id: SysId | "reactor") {
   log(g, `${id} upgraded.`);
 }
 
+// Template:Stores: hull repairs in stores. Per point: 2 in sectors 1–3, 3 in 4–6, 4 in 7–8.
 export function patchAll(g: Game) {
   const missing = g.player.hullMax - g.player.hull;
-  const cost = missing * 2;
+  const cost = missing * hullRepairPerPoint(g.sector);
   if (missing <= 0 || g.scrap < cost) return;
   g.scrap -= cost;
   g.player.hull = g.player.hullMax;
@@ -2083,6 +2618,7 @@ export function step(g: Game, dt: number) {
     return;
   }
   if (g.paused || g.phase !== "combat" || !g.enemy) {
+    if (g.phase !== "combat") g.targeting = false;
     flushSfx(g.sfx);
     return;
   }
@@ -2092,6 +2628,7 @@ export function step(g: Game, dt: number) {
   airflow(g.enemy, h);
   tickDoors(g.player, h);
   tickDoors(g.enemy, h);
+  tickLockdown(g, h);
   moveCrew(g, h);
   life(g, g.player, "player", h);
   life(g, g.enemy, "enemy", h);
@@ -2156,6 +2693,13 @@ export function loadGame(): Game | null {
     g.floaters = [];
     g.manual = false;
     if (g.armed === undefined) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
+    if (g.targeting == null) g.targeting = false;
+    if (g.autofireAll == null) {
+      g.autofireAll = false;
+      for (const w of g.player.weapons) {
+        if (w.autofire) w.autoInvert = true;
+      }
+    }
     if (g.ramId === undefined) g.ramId = null;
     if (g.enemyFlee == null) g.enemyFlee = 0;
     if (g.ramStage == null) g.ramStage = 1;
@@ -2163,7 +2707,17 @@ export function loadGame(): Game | null {
       if (d.hp == null) d.hp = 0;
       if (d.stuck == null) d.stuck = 0;
     }
+    if (g.difficulty !== "easy" && g.difficulty !== "normal" && g.difficulty !== "hard") g.difficulty = "normal";
+    if (g.scrapCollected == null) g.scrapCollected = 0;
+    if (g.beaconsVisited == null) g.beaconsVisited = g.jumps + 1;
+    if (g.sectorMap == null) g.sectorMap = false;
+    if (!g.route) {
+      g.route = buildRoute(g.seed || 1);
+      g.routeHere = g.route[0]?.id ?? "";
+    }
+    if (g.training == null) g.training = false;
     if (!g.augments) g.augments = [];
+    if (g.player.zoltan == null && g.hullId?.startsWith("zoltan-")) g.player.zoltan = 5;
     if (!g.player.kits) g.player.kits = {};
     if (g.player.parts == null) g.player.parts = 0;
     if (g.enemy) {

@@ -1,0 +1,1456 @@
+# Wiki checklist
+
+Pass 2 of the FTL wiki (`ftl.fandom.com`, namespace 0, 1380 pages) against `src/`.
+
+Statuses are `present`, `partial`, `missing`, and `not-a-surface`. `present` means the sim reads the cited rule. `partial` means some of it runs and a stated piece does not. `missing` means the page states a rule the run does not perform. `not-a-surface` is an alias, a wiki-process page, or a revision with no control, number, layout, or rule. A stored catalog number the fight never reads is `missing`, not `present`.
+
+Reactor bars in this code: only shields, engines, oxygen, medbay, weapons, and kits draw power. Piloting, doors, and sensors do not.
+
+## Pass 2 surface
+
+Wired into the hangar (`HULLS`) and the weapon list (`WEAPONS`):
+
+- Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance and Mantis Pheromones stay unfitted. Room grids for those hulls are still the shared player grid.
+- Wiki weapon rows, except `pike` (the same Pike Beam row is already id `shear`) and Boss Beam / Boss Laser (no printed power, BLOCKED). Boss Ion power is 3. Boss Missile power is 4.
+- Starting guns are mounted even when their power sum is above the powered bars. `powerMask` feeds the list in order; switching one off or raising the weapon bars powers the next. That includes Halberd on Zoltan A, Ion Charger on Zoltan C, Breach Bomb I on Slug A, and Heavy Pierce on Rock B. Anti-Bio on Slug A, Healing Burst on Slug B, Hull Missile on Rock A, Swarm Missiles and Heavy Crystal I on Rock C, Mini Beam on Stealth A, Glaive Beam on Stealth B, Pike Beam on Zoltan B.
+- Bombs do not subtract hull. Bomb (Weapons) lead. Crew figures stay in `BOMB_GAPS`.
+
+Named and still not installed, because they are not an augment or a drone id:
+
+- Zoltan Shield, Slug Repair Gel, Engi Med-bot Dispersal, Drone Reactor Booster, Shield Overcharger +, Anti-Drone. Mantis Pheromones and Crystal Vengeance are the same kind of name.
+
+Catalog only. The numbers are in `src/game/wiki/` and the fight does not use them:
+
+- Flagship phases, rebel rows, faction pages, sector types (`SECTOR_NAMES` stay INVENTED), achievements, store assortment beyond fuel, missiles, drone parts, and hull repair, missing augments, missing drone schematics.
+- Kin gaps, except the Zoltan death burst: wiki page "Zoltans", section "Race characteristics", 15 HP to enemy crew in the room. The 7.5 drone figure is not applied, because drones have no HP field.
+- Event slices 0–3: 881 titles classified mechanic or no-mechanic from revision wikitext. None of those outcomes are playable events. Narrative was not copied in.
+
+Still a picture, or not fetched:
+
+- Room art and tile coordinates. They stay INFERRED.
+- Score. The lead formula runs: D is 1 / 1.25 / 1.5 and the lit hangar button sets scrap to 30 / 10 / 0. Rebel-held beacons still count, because that fleet column is INVENTED. Selling scrap is not a control.
+
+## Counts
+
+| Status | Pages |
+|---|---|
+| present | 3 |
+| partial | 159 |
+| missing | 289 |
+| not-a-surface | 929 |
+
+The checklist is not complete. 289 rows are still missing and 159 are still partial.
+
+Second pass checked the Score lead formula and the store resource table against the dump and against `runScore` / `rollStock`. Weapon-family rows that still said those guns were absent were corrected against `WEAPONS`. Engines, Mind Control, and Ion Blast Mark II still match the tables the sim reads. Rows that were only a title string in `src/` stay partial: the article was not re-opened. Alias, meta, and no-mechanic catalog rows are not-a-surface. A catalog number the fight does not read is missing. Event prose was not copied into the run.
+
+## Work tracker
+
+| Id | Point | Output | Status |
+|---|---|---|---|
+| mantis | The Mantis Cruiser A/B/C | hulls-mantis.ts, spread into HULLS | wired loadout. Shared room grid. Pheromones unfitted. |
+| crystal | The Crystal Cruiser A/B | hulls-crystal.ts, spread into HULLS | wired loadout. Shared room grid. Vengeance unfitted. |
+| w-laser | Laser rows | weapons-laser.ts, merged into WEAPONS | wired. Pierce and chain steps are gaps. Boss Laser BLOCKED (no power). |
+| w-beam | Beam rows | weapons-beam.ts, merged into WEAPONS | wired, except pike (already id shear). Boss Beam BLOCKED (no power). |
+| w-ion | Ion Charger, Chain Ion, Boss Ion | weapons-ion.ts | wired. Chain profile is a gap. |
+| w-missile | Missile rows other than Artemis and Leto | weapons-missile.ts | wired. |
+| w-bomb | Bomb rows other than Fire Bomb | weapons-bomb.ts | wired. strikeRoom skips hull damage for bombs. |
+| w-flak | Adv. Flak, Flak II, crystal weapons | weapons-flak-crystal.ts | wired. Crystal pierce is a gap. |
+| augs | Augment rows missing from CATALOG | augments-missing.ts | catalog only. |
+| sectors | Sector types | sectors.ts | catalog only. SECTOR_NAMES stay INVENTED. |
+| rebels | Rebel and auto-ship rows | enemies-rebel.ts | catalog only. |
+| flagship | Flagship phase numbers | flagship.ts | catalog only. Boss fight stays INVENTED. |
+| factions | Other non-player ship pages | enemies-factions.ts | catalog only. |
+| achievements | Achievement list | achievements.ts | catalog only. Unlocks are labels. |
+| stores | Store resource prices | sim.ts rollStock | fuel 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. Hull repair follows the sector. Other assortment rules stay catalog-only. |
+| drones | Drone schematics missing from swarm.ts | drones-missing.ts | catalog only. |
+| kin | Racial abilities missing from kin.ts | kin-gaps.ts | catalog, plus the Zoltan death burst of 15 HP in reap. Drone 7.5 is not applied. |
+| events | 881 remaining titles, four slices | events-0.ts through events-3.ts | cataloged. Not playable. |
+| comments | Paragraph cites on existing modules | content, hulls, sim, extras, UI | second pass landed. INFERRED or INVENTED marks the blocks with no wiki paragraph. |
+| score | Score lead formula | sim.ts runScore, Hangar START | D is 1 / 1.25 / 1.5. Initial scrap is 30 / 10 / 0 from the lit button. Rebel-held beacons still count. |
+
+## Still pictures, not text
+
+Room art and tile coordinates are images. They stay INFERRED. Do not trace them from memory.
+
+## All pages
+
+- [ ] AI-Controlled Rebel Ships — missing — AUTO_ROWS in enemies-rebel.ts. Hull and shields are ranges, not a starting loadout. makeEnemy does not use them.
+- [ ] ASB — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Abandoned Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Abandoned Space Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Abandoned space station — not-a-surface — same title as "Abandoned Space Station" with different capitalization
+- [ ] Abandoned station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Achievement — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Achievements — missing — Rows live in src/game/wiki/achievements.ts. Hull unlock strings are labels. There is no tracker.
+- [ ] Adv. FTL Navigation — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Advanced Edition — partial — several AE systems exist. Not gated.
+- [ ] Advanced FTL Navigation — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Advanced Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ancestry — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ancient Device — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ancient device — not-a-surface — same title as "Ancient Device" with different capitalization
+- [ ] Anti-Bio Beam — partial — Beam (Weapons) row id antibio is in WEAPONS and fitted on Slug A. Crew-only damage stays in a gap. Breach Bomb I is mounted beside it and waits for a free weapon bar.
+- [ ] Anti-Ship Battery Firing on Lanius Ships — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Anti-ship battery firing on Lanius ships — not-a-surface — same title as "Anti-Ship Battery Firing on Lanius Ships" with different capitalization
+- [ ] Ariolimax — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Artillery Beam — partial — see Artillery Beam system.
+- [ ] Artillery Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid Field — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid Field Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid Field Lanius Scavengers — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid Fields — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid Mining Colony — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid belt distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Asteroid field Lanius scavengers — not-a-surface — same title as "Asteroid Field Lanius Scavengers" with different capitalization
+- [ ] Asteroid mining colony — not-a-surface — same title as "Asteroid Mining Colony" with different capitalization
+- [ ] Augmentation — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Augmentations — partial — Purchasable rows are in extras/augments.ts. Defense Scrambler, Zoltan Shield Bypass, Adv. FTL Navigation, and the non-purchasable rows are in augments-missing.ts and are not wired.
+- [ ] Augments — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-Ship Warning in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship attacking civilian — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship attacking outpost — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship attacking refueling outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship attacking small outpost — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship carrying shield virus — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship close to star — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight (Crystal) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight in asteroid field — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight in nebula — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight near sun — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship in asteroid belt — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship in nebula — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near radar station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near sensor station — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near small space-station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near storage station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near storage station in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near storage vessel — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near sun — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship pursuing civilian ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship sits dormant — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship warning — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship warning in nebula — not-a-surface — same title as "Auto-Ship Warning in Nebula" with different capitalization
+- [ ] Automated Re-Fueling Ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Automated Re-loader — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Automated Rebel Scout Attacking Refueling Outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Automated Rebel Ship Close to Star — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Automated Rebel scout attacking refueling outpost — not-a-surface — same title as "Automated Rebel Scout Attacking Refueling Outpost" with different capitalization
+- [ ] Automated re-fueling ship — not-a-surface — same title as "Automated Re-Fueling Ship" with different capitalization
+- [ ] Automated rebel ship close to star — not-a-surface — same title as "Automated Rebel Ship Close to Star" with different capitalization
+- [ ] Automated refueling ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Avast, ye scurvy dogs! — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Backup Battery — partial — cell.ts. Enemy-start rule INVENTED.
+- [ ] Backup DNA Bank — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Badly Damaged Lanius Craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Badly damaged Lanius craft — not-a-surface — same title as "Badly Damaged Lanius Craft" with different capitalization
+- [ ] Battery — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Battery Charger — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Battle Royale — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Battlefield wreckage — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Beacon — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Beacons — partial — map kinds exist. Names are INVENTED.
+- [ ] Beam (Weapon) — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Beam (Weapons) — partial — Pike is id shear. Halberd, Glaive, Mini, and Anti-Bio are in WEAPONS. Boss Beam is BLOCKED: the section states no power, so no WeaponDef is emitted. Artillery Beam stays on the lance system. Length and pierce stay in gaps.
+- [ ] Bird of Prey — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Black Market Weapon Trader — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Black Market Weapons Trader — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Black Raven — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Black market weapons trader — not-a-surface — same title as "Black Market Weapons Trader" with different capitalization
+- [ ] Blue Options — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans (Abandoned) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans (Pirate) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans jammed sensors — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans near sun — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Mantis — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Rockmen near sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: rebels in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders in Nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders in Plasma Storm — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders in nebula — not-a-surface — same title as "Boarders in Nebula" with different capitalization
+- [ ] Boarders in plasma storm — not-a-surface — same title as "Boarders in Plasma Storm" with different capitalization
+- [ ] Boarding — partial — teleporter and a board timer. Not the full page.
+- [ ] Bomb (Weapon) — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Bomb (Weapons) — partial — src/game/content.ts — the bomb rows are in WEAPONS. strikeRoom skips hull damage. Crew figures stay in BOMB_GAPS.
+- [ ] Bravais — partial — crystal-a in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid.
+- [ ] Brutal Exchange Between Several Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Brutal Exchange between Several Ships — not-a-surface — same title as "Brutal Exchange Between Several Ships" with different capitalization
+- [ ] Brutal exchange between several ships — not-a-surface — same title as "Brutal Exchange Between Several Ships" with different capitalization
+- [ ] Bulwark — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Bump Hulls with Mantis Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Bump hulls with Mantis ship — not-a-surface — same title as "Bump Hulls with Mantis Ship" with different capitalization
+- [ ] Capture the ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Carnelian — partial — crystal-b in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid.
+- [ ] Cerenkov — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Chain Vulcan — partial — id vulcan is in WEAPONS. charge stores the first step, 11.1s. Later steps are in LASER_GAPS.
+- [ ] Civilian Empty Beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian FTL Haywire Escort — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian FTL haywire escort — not-a-surface — same title as "Civilian FTL Haywire Escort" with different capitalization
+- [ ] Civilian Sector — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian Ship Chased by Pirate — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian Ship Fleeing from Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian Ship Out Of FTL Fuel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian Ship fleeing from Lanius — not-a-surface — same title as "Civilian Ship Fleeing from Lanius" with different capitalization
+- [ ] Civilian Vessel Under Fire from a Lanius Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian empty beacon — not-a-surface — same title as "Civilian Empty Beacon" with different capitalization
+- [ ] Civilian ship chased by Pirate — not-a-surface — same title as "Civilian Ship Chased by Pirate" with different capitalization
+- [ ] Civilian ship chased by Pirate (distress) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilian ship chased by pirate — not-a-surface — same title as "Civilian Ship Chased by Pirate" with different capitalization
+- [ ] Civilian ship fleeing from Lanius — not-a-surface — same title as "Civilian Ship Fleeing from Lanius" with different capitalization
+- [ ] Civilian vessel under fire from a Lanius ship — not-a-surface — same title as "Civilian Vessel Under Fire from a Lanius Ship" with different capitalization
+- [ ] Civilians Under Fire from Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilians fleeing from Lanius — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilians under fire from Lanius — not-a-surface — same title as "Civilians Under Fire from Lanius" with different capitalization
+- [ ] Civilized Trader — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Civilized trader — not-a-surface — same title as "Civilized Trader" with different capitalization
+- [ ] Clash of the Titans — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Cloaking — partial — veil.ts. Power-bar count INFERRED.
+- [ ] Clone Bay — partial — cradle.ts. Revive HP and power bar INFERRED.
+- [ ] Clonebay — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Closed Mining Fields — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Closed mining fields — not-a-surface — same title as "Closed Mining Fields" with different capitalization
+- [ ] Confused Mantis — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crew — partial — eight lineages in kin.ts from the race table. Several racial abilities are not fields.
+- [ ] Crew Member — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crew Members — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crew Teleporter — partial — sling.ts. Pad count and several timings INFERRED.
+- [ ] Crew hiring station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crew member — not-a-surface — same title as "Crew Member" with different capitalization
+- [ ] Crew members — not-a-surface — same title as "Crew Members" with different capitalization
+- [ ] Crew races — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crew skills — partial — XP thresholds in content.ts marked INFERRED, not re-checked.
+- [ ] Crewmembers — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crushed Pirate — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crushed pirate — not-a-surface — same title as "Crushed Pirate" with different capitalization
+- [ ] Crystal — partial — stat row. Lockdown ability not applied.
+- [ ] Crystal (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal (Weapons) — partial — rows are in weapons-flak-crystal.ts and WEAPONS. kind stays laser. Pierce 1 is only in FLAK_CRYSTAL_GAPS.
+- [ ] Crystal Auto-ship fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Auto Fight — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Boarders — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Burst Mark II — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Civilian Question — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Collector of Alien Artifacts — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Cruiser — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Lockdown — missing — 12s lockdown and 50s recharge are in kin-gaps.ts. No crew ability is wired.
+- [ ] Crystal Lockdown ability — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Rebel Fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Rebel fight — not-a-surface — same title as "Crystal Rebel Fight" with different capitalization
+- [ ] Crystal Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal Vengeance — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal attacking Federation loyalists — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal boarders — not-a-surface — same title as "Crystal Boarders" with different capitalization
+- [ ] Crystal chat — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal civilian question — not-a-surface — same title as "Crystal Civilian Question" with different capitalization
+- [ ] Crystal collector of alien artifacts — not-a-surface — same title as "Crystal Collector of Alien Artifacts" with different capitalization
+- [ ] Crystal empty beacon — not-a-surface — same title as "Crystal Empty Beacon" with different capitalization
+- [ ] Crystal fight — not-a-surface — same title as "Crystal Fight" with different capitalization
+- [ ] Crystal fight choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal fight with surrender offer (Human crew) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal fight with surrender offer (hull repairs) — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal scrap collector — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal sector — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal ship attacking Federation loyalists — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal ship convoy fight — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal store — not-a-surface — same title as "Crystal Store" with different capitalization
+- [ ] Crystalline Border Guard — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Cache — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Man Buried — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Men Buried — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Research Facility — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Ship Carrying Humans — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Ship Engaged with Rebel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Ship Messaging About Rebels — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline border guard — not-a-surface — same title as "Crystalline Border Guard" with different capitalization
+- [ ] Crystalline cache — not-a-surface — same title as "Crystalline Cache" with different capitalization
+- [ ] Crystalline men buried — not-a-surface — same title as "Crystalline Men Buried" with different capitalization
+- [ ] Crystalline research facility — not-a-surface — same title as "Crystalline Research Facility" with different capitalization
+- [ ] Crystalline ship carrying humans — not-a-surface — same title as "Crystalline Ship Carrying Humans" with different capitalization
+- [ ] Crystalline ship engaged with Rebel — not-a-surface — same title as "Crystalline Ship Engaged with Rebel" with different capitalization
+- [ ] Crystalline ship messaging about Rebels — not-a-surface — same title as "Crystalline Ship Messaging About Rebels" with different capitalization
+- [ ] Cut content — not-a-surface — wiki process, not a game system
+- [ ] DA-SR 12 — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Damaged Lanius Absorbing Jump Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Damaged Lanius absorbing jump beacon — not-a-surface — same title as "Damaged Lanius Absorbing Jump Beacon" with different capitalization
+- [ ] Damaged Space Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Damaged Stasis Pod — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Damaged Vessel docked with Beacon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Damaged and Dilapidated Space Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Damaged space station — not-a-surface — same title as "Damaged Space Station" with different capitalization
+- [ ] Damaged stasis pod — not-a-surface — same title as "Damaged Stasis Pod" with different capitalization
+- [ ] Dangerous-looking ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Dangerous Looking Ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Dangerous looking ship — not-a-surface — same title as "Dangerous Looking Ship" with different capitalization
+- [ ] Dangerous looking slug ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] De-Activated Rebel Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Deactivated Auto-ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Deactivated Rebel Automated Scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Deactivated rebel automated scout — not-a-surface — same title as "Deactivated Rebel Automated Scout" with different capitalization
+- [ ] Debris Field Zoltan Cruiser — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Debris field Zoltan cruiser — not-a-surface — same title as "Debris Field Zoltan Cruiser" with different capitalization
+- [ ] Default rewards (generic) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Defense Drones Don't Do D'anything! — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Defense Scrambler — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Dense Asteroid Field Distress Call — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Dense asteroid field distress — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Dense asteroid field distress call — not-a-surface — same title as "Dense Asteroid Field Distress Call" with different capitalization
+- [ ] Destroyed Cargo Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Destroyed cargo ship — not-a-surface — same title as "Destroyed Cargo Ship" with different capitalization
+- [ ] Diplomatic Immunity — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Disabled Rock Transport — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Disabled Rock ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Disabled Rock transport — not-a-surface — same title as "Disabled Rock Transport" with different capitalization
+- [ ] Disintegration Ray — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Distraction Buoys — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Distress: Civilian Ship Chased by Pirate — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress: civilian ship chased by Pirate — not-a-surface — same title as "Distress: Civilian Ship Chased by Pirate" with different capitalization
+- [ ] Distress Beacon Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress Signal Emitter Consumed — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress Signal from Slug Ship Under Attack by the Lanius — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress Signal from Slug Ship Under attack by the Lanius — not-a-surface — same title as "Distress Signal from Slug Ship Under Attack by the Lanius" with different capitalization
+- [ ] Distress Signals — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress beacon — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress signal emitter consumed — not-a-surface — same title as "Distress Signal Emitter Consumed" with different capitalization
+- [ ] Distress signal from Slug ship under attack by Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Distress signal from Slug ship under attack by the Lanius — not-a-surface — same title as "Distress Signal from Slug Ship Under Attack by the Lanius" with different capitalization
+- [ ] Door System — partial — upgrade prices cited. Airflow percents in sim are INFERRED.
+- [ ] Doors — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drifting Debris — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship (Pirate) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship (Slug) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship Distress — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship Distress (Pirate) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship Distress (Slug) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting Refugee Ship Distress (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drifting debris — not-a-surface — same title as "Drifting Debris" with different capitalization
+- [ ] Drifting refugee ship — not-a-surface — same title as "Drifting Refugee Ship" with different capitalization
+- [ ] Drifting refugee ship (Pirate) — not-a-surface — same title as "Drifting Refugee Ship (Pirate)" with different capitalization
+- [ ] Drifting refugee ship (Slug) — not-a-surface — same title as "Drifting Refugee Ship (Slug)" with different capitalization
+- [ ] Drifting refugee ship (Zoltan) — not-a-surface — same title as "Drifting Refugee Ship (Zoltan)" with different capitalization
+- [ ] Drifting refugee ship distress — not-a-surface — same title as "Drifting Refugee Ship Distress" with different capitalization
+- [ ] Drifting refugee ship distress (Pirate) — not-a-surface — same title as "Drifting Refugee Ship Distress (Pirate)" with different capitalization
+- [ ] Drifting refugee ship distress (Slug) — not-a-surface — same title as "Drifting Refugee Ship Distress (Slug)" with different capitalization
+- [ ] Drifting refugee ship distress (Zoltan) — not-a-surface — same title as "Drifting Refugee Ship Distress (Zoltan)" with different capitalization
+- [ ] Drone Control — partial — eight schematic ids in swarm.ts. System price left null. Some drone pages not split out.
+- [ ] Drone Reactor Booster — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drone Recovery Arm — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drone Schematic — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Drone Schematics — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Drone parts — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drones — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drones salesman — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Dual Lasers — partial — src/game/content.ts — Laser (Weapons), Dual Lasers: price is 0 because it cannot be bought. The sell figure 12 is not a sell control. Fitted as twin.
+- [ ] Easter Eggs and Trivia — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Easter eggs and trivia — not-a-surface — wiki process, not a game system
+- [ ] Emergency Respirators — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Empty beacon (Civilian) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Crystal) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Engi) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Lanius) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Last Stand) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Mantis) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Pirate) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Rebel) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Rock) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Slug) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty beacon (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty nebula beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Empty nebula beacon (Slug) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Encrypted Federation Signal — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Encrypted federation signal — not-a-surface — same title as "Encrypted Federation Signal" with different capitalization
+- [ ] Enemy Ships — missing — FACTION_PAGES in enemies-factions.ts. makeEnemy still uses one INVENTED grid.
+- [ ] Enemy ships' weapons (tables) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Enemy ships weaponry (tables) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi — partial — stat row in kin.ts.
+- [ ] Engi Colony Hiding — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Controlled Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Engi Distress Call — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Fleet Discussion — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Free Stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Homeworlds — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Mantis Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Mantis fight — not-a-surface — same title as "Engi Mantis Fight" with different capitalization
+- [ ] Engi Med-bot Dispersal — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Engi Pirate Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Pirate fight — not-a-surface — same title as "Engi Pirate Fight" with different capitalization
+- [ ] Engi Rebel Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Rebel fight — not-a-surface — same title as "Engi Rebel Fight" with different capitalization
+- [ ] Engi Research Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi Surrender — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi attacked by Mantis — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi attacked by Rebel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi cache — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi colony hiding — not-a-surface — same title as "Engi Colony Hiding" with different capitalization
+- [ ] Engi distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi distress Rebel fight — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi distress call — not-a-surface — same title as "Engi Distress Call" with different capitalization
+- [ ] Engi empty beacon — not-a-surface — same title as "Engi Empty Beacon" with different capitalization
+- [ ] Engi fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi fight (Zoltan) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi fleet discussion — not-a-surface — same title as "Engi Fleet Discussion" with different capitalization
+- [ ] Engi free stuff — not-a-surface — same title as "Engi Free Stuff" with different capitalization
+- [ ] Engi mantis fight — not-a-surface — same title as "Engi Mantis Fight" with different capitalization
+- [ ] Engi pirate fight — not-a-surface — same title as "Engi Pirate Fight" with different capitalization
+- [ ] Engi research station — not-a-surface — same title as "Engi Research Station" with different capitalization
+- [ ] Engi ship attacked by Mantis ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi ship distress call — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi ship under attack by Rebel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi smashed ships — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi store — not-a-surface — same title as "Engi Store" with different capitalization
+- [ ] Engi surrender — not-a-surface — same title as "Engi Surrender" with different capitalization
+- [ ] Engi virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engines — present — src/game/content.ts — Engines, System Upgrades and FTL Drive charge time: evasion and the charge tables are what evasionPercent reads.
+- [ ] Environmental Hazard — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Environmental Hazards — partial — asteroids and ASB timers exist in combat. Not audited number-for-number.
+- [ ] Escape Pod Floating Nearby — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Escape pod — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Escape pod floating nearby — not-a-surface — same title as "Escape Pod Floating Nearby" with different capitalization
+- [ ] Escort FTL haywire civilian ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort Nearby Ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort civilian ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort civilians — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort civilians FTL haywire — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort nearby ship — not-a-surface — same title as "Escort Nearby Ship" with different capitalization
+- [ ] Event — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Events — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Events commented out — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Exit Beacons — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Explore the System — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Explore the system — not-a-surface — same title as "Explore the System" with different capitalization
+- [ ] Explosive Replicator — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] FTL: Advanced Edition — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] FTL: Faster Than Light — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] FTL: Faster Than Light (about the game) — not-a-surface — wiki process, not a game system
+- [ ] FTL: Faster Than Light Wiki — not-a-surface — wiki process, not a game system
+- [ ] FTL Jammer — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] FTL Recharge Booster — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] FTL haywire civilian ship escort — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] FTL iPad Edition — not-a-surface — wiki process, not a game system
+- [ ] Federation Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Federation Deserters — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Fleet — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Fleet and Rebel Fleet Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Science-Craft Docked with Lanius — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Science-Craft docked with Lanius — not-a-surface — same title as "Federation Science-Craft Docked with Lanius" with different capitalization
+- [ ] Federation Ship in Need of Aid — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Ship in need of Aid — not-a-surface — same title as "Federation Ship in Need of Aid" with different capitalization
+- [ ] Federation Ships — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Terraforming Team C12 — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation base assist — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation deserters — not-a-surface — same title as "Federation Deserters" with different capitalization
+- [ ] Federation fleet and Rebel fleet fight — not-a-surface — same title as "Federation Fleet and Rebel Fleet Fight" with different capitalization
+- [ ] Federation science-craft docked with Lanius — not-a-surface — same title as "Federation Science-Craft Docked with Lanius" with different capitalization
+- [ ] Federation ship in need of aid — not-a-surface — same title as "Federation Ship in Need of Aid" with different capitalization
+- [ ] Federation signal broadcast — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation terraforming team C12 — not-a-surface — same title as "Federation Terraforming Team C12" with different capitalization
+- [ ] Fight in Last Stand — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fire — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Fire Suppression — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Fire chance — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fire on Small Research Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fire on research station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Fire on small research station — not-a-surface — same title as "Fire on Small Research Station" with different capitalization
+- [ ] Fires — partial — kin cites 2.128 crew damage. Fight rate in sim is a separate INFERRED path.
+- [ ] Fires and venting — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Flagship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Flak (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Flak (Weapons) — partial — src/game/content.ts — Flak I, Adv. Flak, and Flak II are in WEAPONS. Radius and fake pellets stay in gaps. Flak Artillery is a system.
+- [ ] Flak Artillery — partial — flakart.ts. Flight time and spread INFERRED.
+- [ ] Forward Scout of Rebel Fleet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Forward scout of Rebel fleet — not-a-surface — same title as "Forward Scout of Rebel Fleet" with different capitalization
+- [ ] Free Drone Schematic — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Free Stuff — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Free Weapon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Free drone schematic — not-a-surface — same title as "Free Drone Schematic" with different capitalization
+- [ ] Free scrap with resources — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Free scrap with resources (Engi) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Free scrap with resources (Lanius) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Free scrap with resources (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Free stuff — not-a-surface — same title as "Free Stuff" with different capitalization
+- [ ] Free weapon — not-a-surface — same title as "Free Weapon" with different capitalization
+- [ ] Friendly Refugee — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Friendly Ship Out of Fuel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Friendly Slaver — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Friendly refugee — not-a-surface — same title as "Friendly Refugee" with different capitalization
+- [ ] Friendly ship out of fuel — not-a-surface — same title as "Friendly Ship Out of Fuel" with different capitalization
+- [ ] Friendly slaver — not-a-surface — same title as "Friendly Slaver" with different capitalization
+- [ ] Fuel — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Fuel Auto-ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Automated Rebel Scout — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Engi Ship Repair — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Engi ship repair — not-a-surface — same title as "Fuel Engi Ship Repair" with different capitalization
+- [ ] Fuel Fleet Delay — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Fleet delay — not-a-surface — same title as "Fuel Fleet Delay" with different capitalization
+- [ ] Fuel Mantis Attack — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Mantis attack — not-a-surface — same title as "Fuel Mantis Attack" with different capitalization
+- [ ] Fuel Trader — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Trader (Distress) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Wait Fail — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel Wait Fail (Distress) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel automated Rebel scout — not-a-surface — same title as "Fuel Automated Rebel Scout" with different capitalization
+- [ ] Fuel for Drone — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel for drone — not-a-surface — same title as "Fuel for Drone" with different capitalization
+- [ ] Fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Fuel trader — not-a-surface — same title as "Fuel Trader" with different capitalization
+- [ ] Fuel trader (distress) — not-a-surface — same title as "Fuel Trader (Distress)" with different capitalization
+- [ ] Fuel wait fail — not-a-surface — same title as "Fuel Wait Fail" with different capitalization
+- [ ] Fuel wait fail (Distress) — not-a-surface — same title as "Fuel Wait Fail (Distress)" with different capitalization
+- [ ] Fuel wait fail (distress) — not-a-surface — same title as "Fuel Wait Fail (Distress)" with different capitalization
+- [ ] Full Arsenal — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Galactic Federation — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Game Bugs — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Game Over — partial — defeat phase exists. Page not opened.
+- [ ] Game bugs — not-a-surface — wiki process, not a game system
+- [ ] Game patches — not-a-surface — wiki process, not a game system
+- [ ] General Store — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] General store — not-a-surface — same title as "General Store" with different capitalization
+- [ ] Giant Alien Spiders — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Giant alien spiders — not-a-surface — same title as "Giant Alien Spiders" with different capitalization
+- [ ] Givin' her all she's got, Captain! — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Glaive Beam — partial — Fitted on Stealth B. Beam length and shield profile stay in gaps. Cloak power 0 is INFERRED so the 4-power gun fits reactor 7.
+- [ ] Guides and Tips — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Guides and tips — not-a-surface — wiki process, not a game system
+- [ ] Hacking — partial — spike.ts. Several timings INFERRED.
+- [ ] Hacking Stun — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Hazards — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Healing Burst — partial — Bomb (Weapons) row is in WEAPONS and fitted on Slug B. Hull damage is 0. Crew heal stays in BOMB_GAPS.
+- [ ] Heavily Damaged Federation Ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Heavily Damaged Federation Ship Random Event — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Heavily damaged Federation ship — not-a-surface — same title as "Heavily Damaged Federation Ship" with different capitalization
+- [ ] Hidden Crystal Worlds — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Hidden federation base — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Hiring Crewmembers Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Hiring crewmembers station — not-a-surface — same title as "Hiring Crewmembers Station" with different capitalization
+- [ ] Home Sweet Home — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Hostile Lanius Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Hostile Lanius ship — not-a-surface — same title as "Hostile Lanius Ship" with different capitalization
+- [ ] Hostile Pirate in Lanius Sector — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Hostile Rebel in Lanius Sector — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Hostile Rebel in Lanius sector — not-a-surface — same title as "Hostile Rebel in Lanius Sector" with different capitalization
+- [ ] Hostile pirate in Lanius sector — not-a-surface — same title as "Hostile Pirate in Lanius Sector" with different capitalization
+- [ ] Huge Rebel Shipyard — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Huge Rebel shipyard — not-a-surface — same title as "Huge Rebel Shipyard" with different capitalization
+- [ ] Hull — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Human — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Human Boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human Boarders Sensors Jammed — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders — not-a-surface — same title as "Human Boarders" with different capitalization
+- [ ] Human boarders in abandoned sector — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders in pirate sector — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders in plasma storm — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders jammed sensors — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders near sun — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Human boarders sensors jammed — not-a-surface — same title as "Human Boarders Sensors Jammed" with different capitalization
+- [ ] Humans — partial — stat row only. XP bonus not applied.
+- [ ] I hardly lifted a finger — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] I hardly lifted a finger (Achievement) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Improve Reactor for Supplies — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Improve reactor for supplies — not-a-surface — same title as "Improve Reactor for Supplies" with different capitalization
+- [ ] Intelligent Lifeform on Planet — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Intelligent life form on planet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Intelligent life forms planet — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Intelligent lifeform on planet — not-a-surface — same title as "Intelligent Lifeform on Planet" with different capitalization
+- [ ] Intelligent ponies — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Intercept Comm Chatter from Mantis Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Intercept comm chatter from Mantis ship — not-a-surface — same title as "Intercept Comm Chatter from Mantis Ship" with different capitalization
+- [ ] Ion (Weapons) — partial — Ion Blast, Ion Blast II, Heavy Ion, Ion Stunner, Ion Charger, Chain Ion, and Boss Ion are in WEAPONS. Boss Ion power is 3. The chain profile stays in a gap.
+- [ ] Ion Blast Mark II — present — src/game/content.ts — Ion (Weapons), Ion Blast Mark II: power 3, charge 4, ion 1, price 70, fitted as ion2 on the Engi A hull.
+- [ ] Ion Storm — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ion Storm Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ion Storms — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ions (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Is it warm in here? — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] KazaaakplethKilik — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Kestrel Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Kruos — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] LRS — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius — partial — suffocation immunity. Movement 0.85 is the measured footnote (INFERRED vs printed 0.85 note). Oxygen drain not applied.
+- [ ] Lanius Absorbing Rebel Base — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Absorbing Rebel Scout — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Attacking Civilian — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Lanius Distress Beacon Empty — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Distress Signal Blinks Out — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Empty Beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Merchant — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Merchant with Improved Translator — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Pirate fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Rebel fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Salvaging Small Asteroid Belt — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Salvaging Small Civilian Craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Scavenger Trader — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Ship Mining Mantis Ship's Hull — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Ships — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Store — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius Vessel in Rich Debris Field — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius absorbing Auto-ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius absorbing Rebel base — not-a-surface — same title as "Lanius Absorbing Rebel Base" with different capitalization
+- [ ] Lanius absorbing Rebel scout — not-a-surface — same title as "Lanius Absorbing Rebel Scout" with different capitalization
+- [ ] Lanius absorbing automated scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius absorbing jump beacon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius absorbing rebel base — not-a-surface — same title as "Lanius Absorbing Rebel Base" with different capitalization
+- [ ] Lanius attacking Civilian — not-a-surface — same title as "Lanius Attacking Civilian" with different capitalization
+- [ ] Lanius attacking Mantis — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking Mantis ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking Rock — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking Rock ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking Slug — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking Slug ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius attacking civilian — not-a-surface — same title as "Lanius Attacking Civilian" with different capitalization
+- [ ] Lanius attacking civilian distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius craftsmen — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius distress beacon empty — not-a-surface — same title as "Lanius Distress Beacon Empty" with different capitalization
+- [ ] Lanius distress signal blinks out — not-a-surface — same title as "Lanius Distress Signal Blinks Out" with different capitalization
+- [ ] Lanius empty beacon — not-a-surface — same title as "Lanius Empty Beacon" with different capitalization
+- [ ] Lanius empty beacon distress — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius empty distress beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius empty distress beacon 1 — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius empty distress beacon 2 — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight distress — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight distress trap — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight in asteroid field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight near pulsar — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight with friendly ASB support — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius free stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius lone ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius merchant with improved translator — not-a-surface — same title as "Lanius Merchant with Improved Translator" with different capitalization
+- [ ] Lanius powered-down ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius salvaging — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius salvaging small civilian craft — not-a-surface — same title as "Lanius Salvaging Small Civilian Craft" with different capitalization
+- [ ] Lanius scavenger trader — not-a-surface — same title as "Lanius Scavenger Trader" with different capitalization
+- [ ] Lanius ship absorbing automated scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship absorbing jump beacon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship absorbing rebel base — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking Mantis — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking Rock — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking Slug — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking civilian distress — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship in rich debris field — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship mining Mantis ship's hull — not-a-surface — same title as "Lanius Ship Mining Mantis Ship's Hull" with different capitalization
+- [ ] Lanius ship mining Mantis ship hull — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship salvager — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius store — not-a-surface — same title as "Lanius Store" with different capitalization
+- [ ] Lanius trader — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius trader with translator — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius vessel in rich debris field — not-a-surface — same title as "Lanius Vessel in Rich Debris Field" with different capitalization
+- [ ] Lanius with Federation science craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius with docked science craft — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Large Asteroid Field — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Large Convoy — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Large Trade Station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Large asteroid field — not-a-surface — same title as "Large Asteroid Field" with different capitalization
+- [ ] Large convoy — not-a-surface — same title as "Large Convoy" with different capitalization
+- [ ] Large trade station — not-a-surface — same title as "Large Trade Station" with different capitalization
+- [ ] Laser (Weapons) — partial — src/game/content.ts — the laser rows are in WEAPONS. Pierce and chain steps stay in gaps. Boss Laser has no printed power, so no WeaponDef.
+- [ ] Laser Charger (S) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lasers (Weapon) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Last Stand empty beacon — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Legendary Thief KazaaakplethKilik Random Event — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Legendary thief KazaaakplethKilik — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Legendary thief KazaaakplethKilik Random Event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
+- [ ] Legendary thief KazaaakplethKilik random event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
+- [ ] Lifeform Scanner — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Lone Lanius ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Long-Range Scanners — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Long-Ranged Scanners — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Loss of Cabin Pressure — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lumbering Zoltan Freighter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lumbering Zoltan freighter — not-a-surface — same title as "Lumbering Zoltan Freighter" with different capitalization
+- [ ] Main Page — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Malfunction Defense System — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Malfunction defense system — not-a-surface — same title as "Malfunction Defense System" with different capitalization
+- [ ] Malfunctioning defense system — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Man of War — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Manpower — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis — partial — src/game/extras/kin.ts — the comparison-table row is read by movement, repair, and combat. The ship is The Mantis Cruiser, not this page.
+- [ ] Mantis Attacking Civilian — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Attacking Engi Station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Attacking Slug — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Attacking Smaller Crystal Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Controlled Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Mantis Empty Beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Fight with Boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Fuel Attack — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Fugitive — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Homeworlds — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Hunting Slugs — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Pheromones — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Ship-Collectors — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Ship Doesn't See You — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Ship Rock Body Parts — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Ship Rock body parts — not-a-surface — same title as "Mantis Ship Rock Body Parts" with different capitalization
+- [ ] Mantis Ships — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Ships Battle for Rock Freighter — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Venture Close to Sun — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis War Camp — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis attacking Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis attacking Crystal ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis attacking Engi station — not-a-surface — same title as "Mantis Attacking Engi Station" with different capitalization
+- [ ] Mantis attacking Slug — not-a-surface — same title as "Mantis Attacking Slug" with different capitalization
+- [ ] Mantis attacking Slug ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis attacking civilian — not-a-surface — same title as "Mantis Attacking Civilian" with different capitalization
+- [ ] Mantis attacking slug — not-a-surface — same title as "Mantis Attacking Slug" with different capitalization
+- [ ] Mantis attacking smaller Crystal ship — not-a-surface — same title as "Mantis Attacking Smaller Crystal Ship" with different capitalization
+- [ ] Mantis boarders — not-a-surface — same title as "Mantis Boarders" with different capitalization
+- [ ] Mantis empty beacon — not-a-surface — same title as "Mantis Empty Beacon" with different capitalization
+- [ ] Mantis fight — not-a-surface — same title as "Mantis Fight" with different capitalization
+- [ ] Mantis fight (Engi) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight (Slug) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight choice in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight in nebula (Slug) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight in nebula choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight near sun — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight with boarders — not-a-surface — same title as "Mantis Fight with Boarders" with different capitalization
+- [ ] Mantis fight with boarders (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fugitive — not-a-surface — same title as "Mantis Fugitive" with different capitalization
+- [ ] Mantis hunting Slugs — not-a-surface — same title as "Mantis Hunting Slugs" with different capitalization
+- [ ] Mantis in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis in nebula — not-a-surface — same title as "Mantis in Nebula" with different capitalization
+- [ ] Mantis outcasts — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship-collectors — not-a-surface — same title as "Mantis Ship-Collectors" with different capitalization
+- [ ] Mantis ship Rock body parts — not-a-surface — same title as "Mantis Ship Rock Body Parts" with different capitalization
+- [ ] Mantis ship attacking Crystal — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship attacking Slug ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship comm chatter — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship comm chatter intercept — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship doesn't see you — not-a-surface — same title as "Mantis Ship Doesn't See You" with different capitalization
+- [ ] Mantis ship with Rock body parts — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ships battle for Rock Freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
+- [ ] Mantis ships battle for Rock freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
+- [ ] Mantis store — not-a-surface — same title as "Mantis Store" with different capitalization
+- [ ] Mantis venture close to sun — not-a-surface — same title as "Mantis Venture Close to Sun" with different capitalization
+- [ ] Mantis war camp — not-a-surface — same title as "Mantis War Camp" with different capitalization
+- [ ] Master of Patience — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Medbay — partial — system exists. Upgrade row is a single price.
+- [ ] Mercenary — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mercenary work — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant's Request — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant's request — not-a-surface — same title as "Merchant's Request" with different capitalization
+- [ ] Merchant Fuel Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant Ship Docked with Lanius Transport — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant Ship docked with Lanius Transport — not-a-surface — same title as "Merchant Ship Docked with Lanius Transport" with different capitalization
+- [ ] Merchant docked with Lanius — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant docked with Lanius Transport — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant ship docked with Lanius transport — not-a-surface — same title as "Merchant Ship Docked with Lanius Transport" with different capitalization
+- [ ] Merchant with Conspicuous Markings — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Merchant with conspicuous markings — not-a-surface — same title as "Merchant with Conspicuous Markings" with different capitalization
+- [ ] Meta:Event Conventions — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mind Control — present — src/game/extras/leash.ts — Overview and System Upgrades are what the leash runs. A few timings stay INFERRED.
+- [ ] Mini Beam — partial — Fitted on Stealth A and Stealth C. Purchase price is 0 because the page says it sells and cannot be bought.
+- [ ] Missile (Weapons) — partial — src/game/content.ts — the wiki missile rows are in WEAPONS. Dart stays INVENTED. Boss Missile power is 4.
+- [ ] Missiles — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Missiles (Weapon) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mods and Tools — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mods and tools — not-a-surface — wiki process, not a game system
+- [ ] Music — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Nebula Empty Beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula Seen Ships Exchange Fire — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula Trader — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula battlefield — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula empty beacon — not-a-surface — same title as "Nebula Empty Beacon" with different capitalization
+- [ ] Nebula lost ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Nebula seen Ships Exchange Fire — not-a-surface — same title as "Nebula Seen Ships Exchange Fire" with different capitalization
+- [ ] Nebula seen ships exchange fire — not-a-surface — same title as "Nebula Seen Ships Exchange Fire" with different capitalization
+- [ ] Nebula store — not-a-surface — same title as "Nebula Store" with different capitalization
+- [ ] Nebula trader — not-a-surface — same title as "Nebula Trader" with different capitalization
+- [ ] Nebula wreckage — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Nisos — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] No Escape — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Auto-ship fight — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Auto-ship warning — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Engi ship repair — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Mantis fight — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Rebel assistant hails — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Rebel fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Rebel fleet delay — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Slug fuel depot — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Slug fuel trader — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: automated refueling ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: drifting debris — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: explore the system — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: friendly refugee — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: fuel trader — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: fuel trader (distress) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: fuel trader (distress off) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: fuel trader (distress on) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: poorly armed Slug ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: prepare to dock — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: refugee trading — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: wait fail — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: wait fail (distress) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: wait fail (distress off) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: wait fail (distress on) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Noether — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Odd Moon — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Odd moon — not-a-surface — same title as "Odd Moon" with different capitalization
+- [ ] Orbiting Small Platform — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Orbiting refueling platform — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Orbiting small platform — not-a-surface — same title as "Orbiting Small Platform" with different capitalization
+- [ ] Oxygen — partial — suffocation rate cited on Crew/kin. Venting rates in sim are INFERRED.
+- [ ] Patches — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Phase Shift — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Piloting — partial — autopilot percents are in upgrade blurbs. Not re-audited against the page this pass.
+- [ ] Pirate Attacking Civilian in Lanius Sector — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Bribing You for Unknown Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Charges Crystalline Transport — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Controlled Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Empty Beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Engine Hack — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Fight Near Sun — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Fight in Asteroid Field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Salesman — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Ship firing on Docked Ships — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Slaver — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Smuggler — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate Toll — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate arms dealer — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate at Pulsar — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate at pulsar — not-a-surface — same title as "Pirate at Pulsar" with different capitalization
+- [ ] Pirate attacking Crystal — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate attacking Crystal ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate attacking civilian — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate attacking civilian (Lanius) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate attacking civilian distress — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate attacking civilian in Lanius sector — not-a-surface — same title as "Pirate Attacking Civilian in Lanius Sector" with different capitalization
+- [ ] Pirate blockade — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate briber — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate bribing you for unknown ship — not-a-surface — same title as "Pirate Bribing You for Unknown Ship" with different capitalization
+- [ ] Pirate charges Crystalline transport — not-a-surface — same title as "Pirate Charges Crystalline Transport" with different capitalization
+- [ ] Pirate empty beacon — not-a-surface — same title as "Pirate Empty Beacon" with different capitalization
+- [ ] Pirate engine hack — not-a-surface — same title as "Pirate Engine Hack" with different capitalization
+- [ ] Pirate engine hacker — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight — not-a-surface — same title as "Pirate Fight" with different capitalization
+- [ ] Pirate fight (Engi) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight (Lanius) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight (Slug) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight choice in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight distress — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight distress trap — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight in asteroid field — not-a-surface — same title as "Pirate Fight in Asteroid Field" with different capitalization
+- [ ] Pirate fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight in nebula choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight near pulsar — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight near sun — not-a-surface — same title as "Pirate Fight Near Sun" with different capitalization
+- [ ] Pirate in Nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate in nebula — not-a-surface — same title as "Pirate in Nebula" with different capitalization
+- [ ] Pirate ship attacking Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship attacking civilian (Lanius) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship attacking civilian distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship distress trap — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship selling drones — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship selling unknown weapon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship selling weapon — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ships in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate slaver — not-a-surface — same title as "Pirate Slaver" with different capitalization
+- [ ] Pirate smuggler — not-a-surface — same title as "Pirate Smuggler" with different capitalization
+- [ ] Pirate smuggler ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate store — not-a-surface — same title as "Pirate Store" with different capitalization
+- [ ] Pirate toll — not-a-surface — same title as "Pirate Toll" with different capitalization
+- [ ] Pirate trap — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plagued station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma Storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma Storm Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma Storm Events — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma Storm Incapacitated Ships — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma Storms — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma storm Auto-ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma storm automated scout — not-a-surface — same title as "Plasma Storm Automated Scout" with different capitalization
+- [ ] Plasma storm incapacitated ships — not-a-surface — same title as "Plasma Storm Incapacitated Ships" with different capitalization
+- [ ] Plasma storm pirate ships — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Plasma storm wreckage — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Poorly Armed Slug Ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Poorly armed Slug ship — not-a-surface — same title as "Poorly Armed Slug Ship" with different capitalization
+- [ ] Power — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Powered-Down Lanius Vessel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Powered-down Lanius vessel — not-a-surface — same title as "Powered-Down Lanius Vessel" with different capitalization
+- [ ] Prepare to Dock — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Prepare to dock — not-a-surface — same title as "Prepare to Dock" with different capitalization
+- [ ] Pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Quest beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] RNG — partial — seeded rand in sim. Page not opened.
+- [ ] Races — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Crew — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Crew Members — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Engi — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Human — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Lanius — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Mantis — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Rockman — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Slug — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races/Zoltan — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Ancient Device — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Crew — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Crystal — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Engi — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Human — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Lanius — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Mantis — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Rockman — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Slug — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Races (legacy page with comments)/Zoltan — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Random Event — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Random Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Random event — not-a-surface — same title as "Random Event" with different capitalization
+- [ ] Rarity — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Reactor — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rebel AI Scout Carrying Shield Virus — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel AI Scout carrying Shield Virus — not-a-surface — same title as "Rebel AI Scout Carrying Shield Virus" with different capitalization
+- [ ] Rebel AI scout carrying shield virus — not-a-surface — same title as "Rebel AI Scout Carrying Shield Virus" with different capitalization
+- [ ] Rebel Assistant Hails — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Attacking Civilians in Last Stand — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Attacking Engi — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-Ship Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-Ship Sits Dormant — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-Ship Warning — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-Ship in Nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-Ship sits Dormant — not-a-surface — same title as "Rebel Auto-Ship Sits Dormant" with different capitalization
+- [ ] Rebel Auto-ship carrying shield virus — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-ship fight — not-a-surface — same title as "Rebel Auto-Ship Fight" with different capitalization
+- [ ] Rebel Auto-ship in asteroid belt — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-ship in nebula — not-a-surface — same title as "Rebel Auto-Ship in Nebula" with different capitalization
+- [ ] Rebel Auto-ship near sensor station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-ship near small space-station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-ship near storage vessel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Auto-ship sits dormant — not-a-surface — same title as "Rebel Auto-Ship Sits Dormant" with different capitalization
+- [ ] Rebel Auto-ship warning — not-a-surface — same title as "Rebel Auto-Ship Warning" with different capitalization
+- [ ] Rebel Automated-Scout in Asteroid Belt — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Automated Ship Near Sensor Station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Automated Ship Near Small Space-Station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Automated Ship Near Small Space-station — not-a-surface — same title as "Rebel Automated Ship Near Small Space-Station" with different capitalization
+- [ ] Rebel Automated Ship Near Storage Vessel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Automated Ship near small space-station — not-a-surface — same title as "Rebel Automated Ship Near Small Space-Station" with different capitalization
+- [ ] Rebel Boarders in Nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Civilian Checkpoint — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Controlled Sector — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Fight in Last Stand — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Flagship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rebel Flagship Construction — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Fleet — partial — a fleet column exists. Pursuit timings not copied.
+- [ ] Rebel Fleet Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Fleet fight — not-a-surface — same title as "Rebel Fleet Fight" with different capitalization
+- [ ] Rebel Scout Attacking Refueling Outpost — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Scout Pursuing Civilian Ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Ship Laying Down Fire on Crystalline Vessel — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Ship Nearby — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Ship With Boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Ship in Nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Ship with Boarders — not-a-surface — same title as "Rebel Ship With Boarders" with different capitalization
+- [ ] Rebel Ships — missing — REBEL_ROWS in enemies-rebel.ts. makeEnemy names stay INVENTED.
+- [ ] Rebel Store — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Stronghold — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Transport — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel Unarmed Defector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel assistant hails — not-a-surface — same title as "Rebel Assistant Hails" with different capitalization
+- [ ] Rebel at Pulsar — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel at pulsar — not-a-surface — same title as "Rebel at Pulsar" with different capitalization
+- [ ] Rebel attacking Crystal ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel attacking Engi — not-a-surface — same title as "Rebel Attacking Engi" with different capitalization
+- [ ] Rebel attacking Federation loyalists — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel attacking civilians in Last Stand — not-a-surface — same title as "Rebel Attacking Civilians in Last Stand" with different capitalization
+- [ ] Rebel attacking poorly equipped Engi — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel attacking refueling outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel automated-scout in asteroid belt — not-a-surface — same title as "Rebel Automated-Scout in Asteroid Belt" with different capitalization
+- [ ] Rebel boarders in nebula — not-a-surface — same title as "Rebel Boarders in Nebula" with different capitalization
+- [ ] Rebel checkpoint — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel civilian checkpoint — not-a-surface — same title as "Rebel Civilian Checkpoint" with different capitalization
+- [ ] Rebel defector — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel empty beacon — not-a-surface — same title as "Rebel Empty Beacon" with different capitalization
+- [ ] Rebel fight — not-a-surface — same title as "Rebel Fight" with different capitalization
+- [ ] Rebel fight (Crystal) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight (Engi) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight (Lanius) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight (Slug) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight among Federation and Rebel fleets — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight among Rebel fleet — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight chance — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight chance in nebula — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight choice in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight in Last Stand — not-a-surface — same title as "Rebel Fight in Last Stand" with different capitalization
+- [ ] Rebel fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight in nebula choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight in plasma storm — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight near pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight with boarders — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel in Plasma Storm — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel in nebula — not-a-surface — same title as "Rebel in Nebula" with different capitalization
+- [ ] Rebel in plasma storm — not-a-surface — same title as "Rebel in Plasma Storm" with different capitalization
+- [ ] Rebel scout attacking refueling outpost — not-a-surface — same title as "Rebel Scout Attacking Refueling Outpost" with different capitalization
+- [ ] Rebel scout pursuing civilian ship — not-a-surface — same title as "Rebel Scout Pursuing Civilian Ship" with different capitalization
+- [ ] Rebel ship attacking Crystal ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship attacking Federation loyalists — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship attacking civilians in Last Stand — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship attacking refueling outpost — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship in nebula — not-a-surface — same title as "Rebel Ship in Nebula" with different capitalization
+- [ ] Rebel ship laying down fire on Crystalline vessel — not-a-surface — same title as "Rebel Ship Laying Down Fire on Crystalline Vessel" with different capitalization
+- [ ] Rebel ship nearby — not-a-surface — same title as "Rebel Ship Nearby" with different capitalization
+- [ ] Rebel ship supplying civilians — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship warning — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship with boarders — not-a-surface — same title as "Rebel Ship With Boarders" with different capitalization
+- [ ] Rebel shipyard — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel store — not-a-surface — same title as "Rebel Store" with different capitalization
+- [ ] Rebel supplying civilians — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel transport — not-a-surface — same title as "Rebel Transport" with different capitalization
+- [ ] Rebel transport ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel unarmed defector — not-a-surface — same title as "Rebel Unarmed Defector" with different capitalization
+- [ ] Rebels — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rebels Supplying Civilians — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebels supplying civilians — not-a-surface — same title as "Rebels Supplying Civilians" with different capitalization
+- [ ] Reconstructive Teleport — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Red-Tail — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Red Giant — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Red Giant Events — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Red Giants — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refuel Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refuel station — not-a-surface — same title as "Refuel Station" with different capitalization
+- [ ] Refueling Platform Garbled Broadcast — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refueling platform — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refueling platform garbled broadcast — not-a-surface — same title as "Refueling Platform Garbled Broadcast" with different capitalization
+- [ ] Refueling station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee (Pirate) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee (Slug) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee (Zoltan) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee Ship Trading for Scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee Ship with Communications Down — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee comms down — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee distress (Pirate) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee distress (Slug) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee distress (Zoltan) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Refugee ship trading for scrap — not-a-surface — same title as "Refugee Ship Trading for Scrap" with different capitalization
+- [ ] Refugee ship with communications down — not-a-surface — same title as "Refugee Ship with Communications Down" with different capitalization
+- [ ] Refugee with communications down — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Remote Settlement — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Remote settlement — not-a-surface — same title as "Remote Settlement" with different capitalization
+- [ ] Repair Arm — partial — src/game/extras/augments.ts — the 15% cut and the 2 hull repair run. Score s is not reduced by the cut.
+- [ ] Repair Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Repair Station in Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Repair station — not-a-surface — same title as "Repair Station" with different capitalization
+- [ ] Repair station in Last Stand — not-a-surface — same title as "Repair Station in Last Stand" with different capitalization
+- [ ] Research Station Near Pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Research Station near Pulsar — not-a-surface — same title as "Research Station Near Pulsar" with different capitalization
+- [ ] Research station near pulsar — not-a-surface — same title as "Research Station Near Pulsar" with different capitalization
+- [ ] Research station with no response — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Resources — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Reverse Ion Field — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rewards — partial — SCRAP_MEDIUM bands. Label INFERRED.
+- [ ] Robotic Warfare — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rock Armoured Transport — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Boarders Near Sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Bride Transport — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Controlled Sector — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rock Deserters — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Empty Beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Fight With Boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Fight With Boarders in Asteroid Field — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Fight in Asteroid Field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Fight with Boarders — not-a-surface — same title as "Rock Fight With Boarders" with different capitalization
+- [ ] Rock Fight with Boarders in Asteroid Field — not-a-surface — same title as "Rock Fight With Boarders in Asteroid Field" with different capitalization
+- [ ] Rock Homeworlds — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Live Mine — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Pirate Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Pirate Near Sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Pirate in Asteroid Field — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Plating — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rock Ship Being Mined by Lanius — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Ships — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock Store — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock War Vessel Encounter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock and Slug standoff — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock armoured transport — not-a-surface — same title as "Rock Armoured Transport" with different capitalization
+- [ ] Rock atheists — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock boarders near sun — not-a-surface — same title as "Rock Boarders Near Sun" with different capitalization
+- [ ] Rock bride — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock bride transport — not-a-surface — same title as "Rock Bride Transport" with different capitalization
+- [ ] Rock deserters — not-a-surface — same title as "Rock Deserters" with different capitalization
+- [ ] Rock empty beacon — not-a-surface — same title as "Rock Empty Beacon" with different capitalization
+- [ ] Rock fight — not-a-surface — same title as "Rock Fight" with different capitalization
+- [ ] Rock fight choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock fight in asteroid field — not-a-surface — same title as "Rock Fight in Asteroid Field" with different capitalization
+- [ ] Rock fight in nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock fight with boarders — not-a-surface — same title as "Rock Fight With Boarders" with different capitalization
+- [ ] Rock fight with boarders in asteroid field — not-a-surface — same title as "Rock Fight With Boarders in Asteroid Field" with different capitalization
+- [ ] Rock live mine — not-a-surface — same title as "Rock Live Mine" with different capitalization
+- [ ] Rock pirate fight — not-a-surface — same title as "Rock Pirate Fight" with different capitalization
+- [ ] Rock pirate fight in asteroid field — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock pirate fight near sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock pirate in asteroid field — not-a-surface — same title as "Rock Pirate in Asteroid Field" with different capitalization
+- [ ] Rock pirate near sun — not-a-surface — same title as "Rock Pirate Near Sun" with different capitalization
+- [ ] Rock pirates fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock pirates fight in asteroid field — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock pirates fight near sun — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock ship being mined by Lanius — not-a-surface — same title as "Rock Ship Being Mined by Lanius" with different capitalization
+- [ ] Rock ship in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock ship in uncharted nebula plasma storm — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock store — not-a-surface — same title as "Rock Store" with different capitalization
+- [ ] Rock war vessel encounter — not-a-surface — same title as "Rock War Vessel Encounter" with different capitalization
+- [ ] Rockman — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rockmen — partial — stat row. Firefight speed is not fireTaken.
+- [ ] Rupturing Zoltan Freighter — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rupturing Zoltan freighter — not-a-surface — same title as "Rupturing Zoltan Freighter" with different capitalization
+- [ ] Science craft docked with Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Score — partial — src/game/sim.ts — Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. The lit hangar button sets initial scrap to 30 / 10 / 0, and that scrap is not in s. Rebel-held beacons still count because the fleet column is INVENTED. Selling scrap is not a control.
+- [ ] Scrap — partial — src/game/sim.ts — scrap is the spendable currency. Score s excludes starting scrap and the Scrap Recovery Arm bonus. Repair Arm does not reduce s.
+- [ ] Scrap Hoarder — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Scrap Recovery Arm — partial — src/game/extras/augments.ts — Misc. Augmentations: +10% is applied to the wallet and kept out of Score s. Rounded down.
+- [ ] Sector — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Sectors — missing — SECTOR_TYPES is in sectors.ts. SECTOR_NAMES in content.ts stay INVENTED. The page does not print a generation order.
+- [ ] Sell drone parts for scrap — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Sell fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Sell missiles for scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Selling Drone Parts Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Selling Missiles Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Selling drone parts station — not-a-surface — same title as "Selling Drone Parts Station" with different capitalization
+- [ ] Selling missiles station — not-a-surface — same title as "Selling Missiles Station" with different capitalization
+- [ ] Sensors — partial — level formula in sensors.ts is INFERRED.
+- [ ] Settlement Mercenary Work — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Settlement mercenary work — not-a-surface — same title as "Settlement Mercenary Work" with different capitalization
+- [ ] Shield Charge Booster — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Shields — partial — layer times cited. Full upgrade table not copied.
+- [ ] Shields Holding — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Ship Achievements — missing — Rows live in src/game/wiki/achievements.ts. Not a tracker.
+- [ ] Ship Achievements/Advanced Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Ancestry — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Artillery Mastery — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Avast, ye scurvy dogs! — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Battle Royale — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Bird of Prey — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Clash of the Titans — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Defense Drones Don't Do D'anything! — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Disintegration Ray — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Disintigration Ray — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Full Arsenal — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Givin' her all she's got, Captain! — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Home Sweet Home — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/I hardly lifted a finger — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Is it warm in here? — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Loss of Cabin Pressure — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Manpower — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Master of Patience — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/No Escape — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Phase Shift — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Robotic Warfare — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Scrap Hoarder — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Shields Holding — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Sweet Revenge — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Tactical Approach — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Take no prisoners! — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/The United Federation — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/The guns... They've stopped — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/Tough Little Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Achievements/We're in position! — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Being Mined by Lanius — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Comparison — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Damaged Near Sun — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Scrap Comparison — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Strategies — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship Without Slug Markings — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Ship achievements — not-a-surface — same title as "Ship Achievements" with different capitalization
+- [ ] Ship damaged near sun — not-a-surface — same title as "Ship Damaged Near Sun" with different capitalization
+- [ ] Ship without Slug markings — not-a-surface — same title as "Ship Without Slug Markings" with different capitalization
+- [ ] Ships — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Shivan — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Simo-H — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Single Life Form on Moon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Single life form on moon — not-a-surface — same title as "Single Life Form on Moon" with different capitalization
+- [ ] Skills — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slaver (friendly) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slaver (hostile) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slocknog — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Boarding Rock Freighter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Captain Invites You to a Drink — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Comm Tapping — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Controlled Nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Disable Door System — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Empty Beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Exposed in Open Space — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Fight in Ion Storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Fight in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Home Nebula — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Home Nebula Surrender — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Home Nebula surrender — not-a-surface — same title as "Slug Home Nebula Surrender" with different capitalization
+- [ ] Slug Home nebula surrender — not-a-surface — same title as "Slug Home Nebula Surrender" with different capitalization
+- [ ] Slug Mantis fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Mantis fight in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Nebula Empty Beacon — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Oxygen Malfunction — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Pirate — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Pirate fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Rebel — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Rebel fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Repair Gel — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Repair Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Sabotage Oxygen System — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Ships — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Transport with Military Escort — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug Trapped on a Moon — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug and Rock Standoff — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug and Rock Standoff in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug and Rock standoff — not-a-surface — same title as "Slug and Rock Standoff" with different capitalization
+- [ ] Slug and Rock standoff in nebula — not-a-surface — same title as "Slug and Rock Standoff in Nebula" with different capitalization
+- [ ] Slug boarding Rock freighter — not-a-surface — same title as "Slug Boarding Rock Freighter" with different capitalization
+- [ ] Slug boarding Rock ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug captain invites you to a drink — not-a-surface — same title as "Slug Captain Invites You to a Drink" with different capitalization
+- [ ] Slug comm tapping — not-a-surface — same title as "Slug Comm Tapping" with different capitalization
+- [ ] Slug disable Door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
+- [ ] Slug disable door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
+- [ ] Slug doors hacker — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug drink — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug empty beacon — not-a-surface — same title as "Slug Empty Beacon" with different capitalization
+- [ ] Slug empty nebula beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug exposed in open space — not-a-surface — same title as "Slug Exposed in Open Space" with different capitalization
+- [ ] Slug fake store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug fight in ion storm — not-a-surface — same title as "Slug Fight in Ion Storm" with different capitalization
+- [ ] Slug fight in nebula — not-a-surface — same title as "Slug Fight in Nebula" with different capitalization
+- [ ] Slug fight in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug hacker (choice) — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug hacker (doors) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug hacker (medical) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug hacker (oxygen) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug medical hacker — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug moons question — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug nebula empty beacon — not-a-surface — same title as "Slug Nebula Empty Beacon" with different capitalization
+- [ ] Slug oxygen hacker — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug oxygen malfunction — not-a-surface — same title as "Slug Oxygen Malfunction" with different capitalization
+- [ ] Slug question — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug repair station — not-a-surface — same title as "Slug Repair Station" with different capitalization
+- [ ] Slug sabotage medical unit — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug sabotage oxygen system — not-a-surface — same title as "Slug Sabotage Oxygen System" with different capitalization
+- [ ] Slug ship boarding Rock ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug store — not-a-surface — same title as "Slug Store" with different capitalization
+- [ ] Slug store ship — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug transport with military escort — not-a-surface — same title as "Slug Transport with Military Escort" with different capitalization
+- [ ] Slug trapped on a moon — not-a-surface — same title as "Slug Trapped on a Moon" with different capitalization
+- [ ] Slugman Fuel Depot — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slugman fuel depot — not-a-surface — same title as "Slugman Fuel Depot" with different capitalization
+- [ ] Slugs — partial — stat row. Mind-control immunity and room vision not applied.
+- [ ] Slugs Detected Radiation From Your Medical Unit — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slugs Detected Radiation from Your Medical Unit — not-a-surface — same title as "Slugs Detected Radiation From Your Medical Unit" with different capitalization
+- [ ] Slugs detected radiation from your medical unit — not-a-surface — same title as "Slugs Detected Radiation From Your Medical Unit" with different capitalization
+- [ ] Small Asteroid Belt Distress Beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Small Rebel Research Station — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Small Research Station with No Response — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Small asteroid belt distress beacon — not-a-surface — same title as "Small Asteroid Belt Distress Beacon" with different capitalization
+- [ ] Small research station with no response — not-a-surface — same title as "Small Research Station with No Response" with different capitalization
+- [ ] Smouldering Engi Research Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Smuggler — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Soundtrack — not-a-surface — wiki process, not a game system
+- [ ] Space Station Under Construction — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Space Station under Construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
+- [ ] Space station under construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
+- [ ] Special events crewmembers — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Specialty Work on Your Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Specialty Work on your Ship — not-a-surface — same title as "Specialty Work on Your Ship" with different capitalization
+- [ ] Specialty work on your ship — not-a-surface — same title as "Specialty Work on Your Ship" with different capitalization
+- [ ] Stasis chamber — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Stasis pod — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Stationed Rebel Ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Stationed Rebel ship — not-a-surface — same title as "Stationed Rebel Ship" with different capitalization
+- [ ] Stealth Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Stealth Weapons — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Store — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Store (Crystal) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Engi) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Lanius) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Mantis) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Pirate) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Rebel) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Rock) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store (event) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store in nebula (Slug) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store in nebula (Uncharted) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Store in uncharted nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Stores — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Stores and resources — partial — src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. Hull repair uses the sector rate. The 2–4 assortment slots are not rolled.
+- [ ] Surrender — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Sweet Revenge — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] System Repair Drone — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Systems — partial — eight core systems plus nine kits. Upgrade tables in content.ts are incomplete (INFERRED rows).
+- [ ] Tactical Approach — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Take no prisoners! — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Tech support — not-a-surface — wiki process, not a game system
+- [ ] Tektite — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Teleporter — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Terraforming federation team C12 — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Terraforming scan — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Terrified Rock Crew in Zoltan Nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Terrified Rock crew in Zoltan nebula — not-a-surface — same title as "Terrified Rock Crew in Zoltan Nebula" with different capitalization
+- [ ] Tetragon — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Adjudicator — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Basilisk — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Black Raven — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Crystal Cruiser — partial — Bravais and Carnelian are in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid. Unlocks are labels.
+- [ ] The Engi Cruiser — partial — Torus, Vortex, Tetragon in hulls.ts. Med-bot, Drone Reactor Booster, second repair drone, Defense Scrambler still unfitted.
+- [ ] The Engi Virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Engi virus — not-a-surface — same title as "The Engi Virus" with different capitalization
+- [ ] The Federation Cruiser — partial — Osprey, Nisos, Fregatidae in hulls.ts. Artillery and flak artillery are systems, not a traced room picture.
+- [ ] The Final Boss — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Fregatidae — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Gila Monster — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Kestrel — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Kestrel Cruiser — partial — layouts A–C in hulls.ts (The Kestrel, Red-Tail, The Swallow). Tile positions INFERRED. Power fill INFERRED. Unlocks are labels.
+- [ ] The Lanius Cruiser — partial — Kruos starts with Chain Burst Laser and Ion Stunner. Shrike starts with Advanced Flak. Room positions are INFERRED.
+- [ ] The Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Mantis Cruiser — partial — Gila Monster, Basilisk, and Theseus are in HULLS. Mantis Pheromones stays unfitted. Teleporter power is INFERRED. Room grid is the shared player grid.
+- [ ] The Mercenary — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Nesasio — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Osprey — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Rebel Flagship — partial — Phase numbers are in flagship.ts. The boss in makeEnemy is still INVENTED. Boss Laser and Boss Beam have no printed power, so they are BLOCKED. Boss Ion power is 3. Boss Missile power is 4. The room diagram is a picture.
+- [ ] The Rebellion — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Rock Cruiser — partial — Bulwark starts with Artemis and Hull Missile. Tektite starts with Swarm Missiles and Heavy Crystal I. Shivan mounts the Fire Bomb and the Heavy Pierce. The Heavy Pierce waits until the Fire Bomb is switched off or the weapon bars are raised.
+- [ ] The Shrike — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Slug Cruiser — partial — Man of War mounts Dual Lasers, Anti-Bio Beam, and Breach Bomb I. The bomb waits until one of the others is switched off. Stormwalker starts with Artemis and Healing Burst. Ariolimax starts with Chain Burst Laser. Slug Repair Gel stays unfitted.
+- [ ] The Stealth Cruiser — partial — Nesasio starts with Dual Lasers and Mini Beam. DA-SR 12 starts with the Glaive Beam and cloak power 0 (INFERRED). Simo-H starts with Laser Charger (S) and Mini Beam. Shield Overcharger + and Anti-Drone stay unfitted.
+- [ ] The Stormwalker — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Swallow — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Theseus — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Torus — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The United Federation — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The Vortex — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] The Zoltan Cruiser — partial — Noether starts with two Ion Blasts and Pike Beam (id shear). Adjudicator mounts Leto and Halberd; the Halberd waits for bars. Cerenkov mounts the Ion Charger with weapon bars at 0. Zoltan Shield stays unfitted.
+- [ ] The guns... They've stopped — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] The mercenary — not-a-surface — same title as "The Mercenary" with different capitalization
+- [ ] Titanium System Casing — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Torus — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Tough Little Ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: fuel for drone parts — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: sell drone parts for scrap — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: sell fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: sell missiles for scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: selling drone parts station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade: selling missiles station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade resources — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade resources in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade scrap for upgrades — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Trader — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trader in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trap Distress Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Two Pirate Ships in Nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Two Smashed Ships — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Two pirate ships in Nebula — not-a-surface — same title as "Two Pirate Ships in Nebula" with different capitalization
+- [ ] Two pirate ships in nebula — not-a-surface — same title as "Two Pirate Ships in Nebula" with different capitalization
+- [ ] Two pirate ships in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Two smashed Engi ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Two smashed ships — not-a-surface — same title as "Two Smashed Ships" with different capitalization
+- [ ] Unarmed Zoltan Transport — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Unarmed Zoltan transport — not-a-surface — same title as "Unarmed Zoltan Transport" with different capitalization
+- [ ] Uncharted Nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Unencrypted Communication Channel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Unencrypted communication channel — not-a-surface — same title as "Unencrypted Communication Channel" with different capitalization
+- [ ] Unknown Disease on Mining Colony — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Unknown disease on mining colony — not-a-surface — same title as "Unknown Disease on Mining Colony" with different capitalization
+- [ ] Venting — partial — room venting exists. Rates INFERRED.
+- [ ] We're in position! — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Weak and Hungry Human Intruders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Weak and hungry Human intruders — not-a-surface — same title as "Weak and Hungry Human Intruders" with different capitalization
+- [ ] Weak and hungry human boarders — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Weapon Control — partial — left click or 1–4 powers a slot; the next press on a powered slot enters targeting; a left click confirms the room; right click cancels targeting; right click or Shift+1–4 depowers; Ctrl+click or Ctrl+1–4 reverses that slot against the all-weapons autofire setting. Charge math, ion lock, drag reorder, and Zoltan weapon power are still local or absent.
+- [ ] Weapon Pre-Igniter — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Weapons — partial — family rules cited in content.ts and ordnance.ts. Most rows are not fitted.
+- [ ] Weapons/Tables — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Weapons (tables) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Weapons trader — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Zoltan "Great Eye" — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan "Science Ship" — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan "Wise Man" — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan "science ship" — not-a-surface — same title as "Zoltan "Science Ship"" with different capitalization
+- [ ] Zoltan "wise man" — not-a-surface — same title as "Zoltan "Wise Man"" with different capitalization
+- [ ] Zoltan Academy Free Augment — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Border Police — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Controlled Sector — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Zoltan Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Engi fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Fight with Boarders — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Follows Mantis — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Great Eye — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Homeworlds — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Life Raft — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Mantis fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Mantis fight with boarders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Pirate Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Pirate fight — not-a-surface — same title as "Zoltan Pirate Fight" with different capitalization
+- [ ] Zoltan Research Facility — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Rock fight in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Security Checkpoint — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Shield — missing — Bubble numbers are in augments-missing.ts. It is not an AugmentId and there is no bubble in combat.
+- [ ] Zoltan Shield Bypass — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Ship Tour — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan Trade Hub — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan academy free augment — not-a-surface — same title as "Zoltan Academy Free Augment" with different capitalization
+- [ ] Zoltan border police — not-a-surface — same title as "Zoltan Border Police" with different capitalization
+- [ ] Zoltan empty beacon — not-a-surface — same title as "Zoltan Empty Beacon" with different capitalization
+- [ ] Zoltan fight — not-a-surface — same title as "Zoltan Fight" with different capitalization
+- [ ] Zoltan fight in asteroid field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan fight with boarders — not-a-surface — same title as "Zoltan Fight with Boarders" with different capitalization
+- [ ] Zoltan follows Mantis — not-a-surface — same title as "Zoltan Follows Mantis" with different capitalization
+- [ ] Zoltan free augment — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan free map — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan free stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan life raft — not-a-surface — same title as "Zoltan Life Raft" with different capitalization
+- [ ] Zoltan odd moon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan pirate fight — not-a-surface — same title as "Zoltan Pirate Fight" with different capitalization
+- [ ] Zoltan quest primitives — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan research facility — not-a-surface — same title as "Zoltan Research Facility" with different capitalization
+- [ ] Zoltan retake the ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan science ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan security checkpoint — not-a-surface — same title as "Zoltan Security Checkpoint" with different capitalization
+- [ ] Zoltan shield — not-a-surface — same title as "Zoltan Shield" with different capitalization
+- [ ] Zoltan ship asks to dock — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan ship follows Mantis ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan ship tour — not-a-surface — same title as "Zoltan Ship Tour" with different capitalization
+- [ ] Zoltan store — not-a-surface — same title as "Zoltan Store" with different capitalization
+- [ ] Zoltan trade hub — not-a-surface — same title as "Zoltan Trade Hub" with different capitalization
+- [ ] Zoltan wise man — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltans — partial — src/game/sim.ts — Zoltans, Race characteristics: the 15 HP death burst is applied in reap. The 7.5 drone figure is not applied, because drones have no HP.

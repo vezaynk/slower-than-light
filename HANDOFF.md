@@ -39,23 +39,21 @@ The checklist was never a full pass of the wiki. Only pages that returned text w
 
 ## Still missing
 
-Ships:
+Progress is tracked in `WIKI-CHECKLIST.md`. Do not treat a catalog file as a working system.
 
-- Mantis: The Gila Monster, The Basilisk, The Theseus
-- Crystal: Bravais, Carnelian
-- Named but not fitted: Halberd Beam, Pike Beam, Ion Charger, Anti-Bio Beam, Breach Bomb, Healing Burst, Chain Burst Laser, Hull Missile, Heavy Pierce Laser, Swarm Missiles, Heavy Crystal, Mini Beam, Glaive Beam, Advanced Flak, Zoltan Shield, Slug Repair Gel, Engi Med-bot Dispersal, Drone Reactor Booster
-- Unlocks are labels only
-- Room art is not traced from the wiki images
+Ships now in the hangar: Mantis A/B/C (Gila Monster, Basilisk, Theseus) and Crystal A/B (Bravais, Carnelian), plus the earlier cruisers. Room art is still not traced. Unlocks are still labels. New hulls use the shared player grid.
+
+Named guns are mounted even when they need more power than the starting bars. The player switches one off, or moves reactor bars, and `powerMask` powers the next gun in the list. Zoltan Shield, Slug Repair Gel, Engi Med-bot Dispersal, Drone Reactor Booster, Mantis Pheromones, Crystal Vengeance, Shield Overcharger +, and Anti-Drone are still names only.
+
+`dart` is still an invented missile. Id `shear` is invented; its display name is Pike Beam. Boss Ion power is 3. Boss Missile power is 4. Boss Laser and Boss Beam have no printed power, so they are BLOCKED.
 
 Enemies:
 
-- One shared room grid and a few tiers
-- No Rebel, Engi, Zoltan, Mantis, Slug, Rock, Pirate, Auto, or Lanius hulls
-- No Flagship room layout
+- One shared room grid and invented tier names
+- Rebel, auto, and faction rows are catalogued in `src/game/wiki/` and are not what `makeEnemy` spawns
+- Flagship phase numbers are catalogued. The boss fight is still invented. No flagship room layout
 
-Weapons fitted today: Burst Laser II, Basic Laser, Dual Lasers, Heavy Laser I, Ion Blast, Ion Blast II, Heavy Ion, Ion Stunner, Artemis, Leto, one beam (`shear`), Flak I, Fire Bomb. `dart` is not a wiki weapon.
-
-Also missing as pages: wiki sector types, the random-event and quest catalog, achievements, and store stock for the weapons and augments above. Sector names in `SECTOR_NAMES` are invented.
+`SECTOR_NAMES` are still invented. Sector types, achievements, store rules, missing augments, and missing drones are catalogs. Kin gaps are catalogs except the Zoltan death burst (15 HP to enemy crew in the same room). Crystal lockdown, the Zoltan power bar, and the other racial abilities are not wired. Event slices 0–3 classify 881 pages as mechanic or no-mechanic. Those outcomes are not playable events. Score was not fetched.
 
 ## Next session
 

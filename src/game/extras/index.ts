@@ -72,7 +72,8 @@ export function onPlayerJump(g: Game) {
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   onCradleJump(g);
   primeWeapons(g);
-  // Augmentations, "Misc. Augmentations", Drone Recovery Arm. INVENTED: one part, and only if the drone is still powered.
+  // Augmentations, "Misc. Augmentations", Drone Recovery Arm: "Non-destroyed drones will be retrieved when jumping, allowing their parts to be reused."
+  // INVENTED: one part, and only if the drone is still powered. The page never states that part count.
   g.player.parts += partsBack(g);
 }
 

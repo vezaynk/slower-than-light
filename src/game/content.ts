@@ -1,5 +1,11 @@
 import type { SysId, WeaponKind } from "./types";
 import { ORDNANCE } from "./extras/ordnance.ts";
+import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";
+import { BOMB_WEAPONS } from "./wiki/weapons-bomb.ts";
+import { FLAK_CRYSTAL_WEAPONS } from "./wiki/weapons-flak-crystal.ts";
+import { ION_WEAPONS } from "./wiki/weapons-ion.ts";
+import { LASER_WEAPONS } from "./wiki/weapons-laser.ts";
+import { MISSILE_WEAPONS } from "./wiki/weapons-missile.ts";
 
 export type WeaponDef = {
   id: string;
@@ -19,14 +25,14 @@ export type WeaponDef = {
 };
 
 /**
- * Weapon names follow the wiki row when the numbers match that row.
- * Burst Laser II: 2 power, 12s, 3 shots, 1 damage, 10% fire.
- * Basic Laser: 1 power, 10s, 1 shot. Dual Lasers: 1 power, 10s, 2 shots.
- * Heavy Laser: 1 power, 9s, 2 damage. Ion Blast: 1 power, 8s, 1 ion.
- * INVENTED: Dart's 14s charge is not player Artemis (11s) or Leto (9s), so it keeps its own name.
- * Shear is a short beam. INFERRED: 16s is not Pike 14s or Halberd 17s, so it keeps its own name.
+ * Fitted weapons. Each object is cited on the comment above it.
+ * Dart stays Dart: its charge is not a wiki missile. INVENTED name.
+ * The id `shear` is an invented local id. Its numbers are the Pike Beam row, so the display name is Pike Beam.
  */
 export const WEAPONS: Record<string, WeaponDef> = {
+  // Laser (Weapons), "Burst Laser Mark II": purchase price 80, power 2, charge 12 seconds, shots 3, damage per shot 1.
+  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.1, not on the page.
+  // Breach is not stated. gap 0.28 is not on the page and is left in place.
   lineburst: {
     id: "lineburst",
     name: "Burst Laser II",
@@ -37,12 +43,15 @@ export const WEAPONS: Record<string, WeaponDef> = {
     gap: 0.28,
     damage: 1,
     ion: 0,
-    fire: 0.1,
+    fire: 0,
     breach: 0,
     ammo: false,
-    price: 0,
+    price: 80,
     blurb: "Three bolts. The first one only buys down a shield layer.",
   },
+  // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)". price 0, not the sell value.
+  // Power 1, charge 10 seconds, shots 1, damage per shot 1.
+  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
   spark: {
     id: "spark",
     name: "Basic Laser",
@@ -53,12 +62,16 @@ export const WEAPONS: Record<string, WeaponDef> = {
     gap: 0,
     damage: 1,
     ion: 0,
-    fire: 0.08,
+    fire: 0,
     breach: 0,
     ammo: false,
-    price: 20,
+    price: 0,
     blurb: "One bolt. A shield layer stops it whole.",
   },
+  // Laser (Weapons), "Dual Lasers": "Sells for: 12 (cannot be bought or found)". price 0, not the sell value.
+  // Power 1, charge 10 seconds, shots 2, damage per shot 1.
+  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
+  // gap 0.3 is not on the page and is left in place.
   twin: {
     id: "twin",
     name: "Dual Lasers",
@@ -69,12 +82,14 @@ export const WEAPONS: Record<string, WeaponDef> = {
     gap: 0.3,
     damage: 1,
     ion: 0,
-    fire: 0.08,
+    fire: 0,
     breach: 0,
     ammo: false,
-    price: 35,
+    price: 0,
     blurb: "Two bolts from a single power bar.",
   },
+  // Laser (Weapons), "Heavy Laser Mark I": purchase price 50, power 1, charge 9 seconds, shots 1, damage per shot 2.
+  // Laser (Weapons), "Types of lasers": the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance.
   heavy: {
     id: "heavy",
     name: "Heavy Laser",
@@ -85,12 +100,13 @@ export const WEAPONS: Record<string, WeaponDef> = {
     gap: 0,
     damage: 2,
     ion: 0,
-    fire: 0,
-    breach: 0.05,
+    fire: 0.3,
+    breach: 0.3,
     ammo: false,
-    price: 45,
+    price: 50,
     blurb: "Two hull if it lands. One shield layer still eats the entire shot.",
   },
+  // INVENTED. Charge is 14 seconds, which is not Artemis (Missile (Weapons), "Artemis Missiles", 11 seconds) or Leto ("Leto Missiles", 9 seconds), so it is not renamed.
   dart: {
     id: "dart",
     name: "Dart",
@@ -107,6 +123,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     price: 40,
     blurb: "Ignores shields. Spends one missile. Can still miss.",
   },
+  // Ion (Weapons), "Ion Blast": purchase price 30, power 1, charge 8 seconds, shots 1, ion damage per shot 1.
+  // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
   needle: {
     id: "needle",
     name: "Ion Blast",
@@ -120,52 +138,55 @@ export const WEAPONS: Record<string, WeaponDef> = {
     fire: 0,
     breach: 0,
     ammo: false,
-    price: 38,
+    price: 30,
     blurb: "No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.",
   },
+  // Missile (Weapons), "Artemis Missiles": sells for 19 (cannot be bought or found), so price is 0, not 19.
+  // Power 1, charge 11 seconds, shots 1, damage per shot 2.
+  // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
+  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
   artemis: {
     id: "artemis",
     name: "Artemis Missiles",
     kind: "missile",
-    // Missile (Weapons), "Missile weapons table", player Artemis: 1 power, 11s, 1 shot, 2 damage.
-    // Fire, breach, stun 10 / 9 / 10. Sells for 19. Spends one missile.
-    // MISMATCH: stun is not applied. WeaponDef has no stun field.
     power: 1,
     charge: 11,
     shots: 1,
     gap: 0,
     damage: 2,
     ion: 0,
-    fire: 0.1,
-    breach: 0.09,
+    fire: 0,
+    breach: 0,
     ammo: true,
-    price: 19,
+    price: 0,
     blurb: "Ignores shields. Two damage. Spends one missile. Can still miss.",
   },
+  // Missile (Weapons), "Leto Missiles": sells for 10 (cannot be bought or found), so price is 0, not 10.
+  // Power 1, charge 9 seconds, shots 1, damage per shot 1.
+  // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
+  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
   leto: {
     id: "leto",
     name: "Leto Missiles",
     kind: "missile",
-    // Missile (Weapons), "Missile weapons table", Leto: 1 power, 9s, 1 shot, 1 damage.
-    // Fire, breach, stun 10 / 9 / 10. Sells for 10. Spends one missile.
-    // MISMATCH: stun is not applied.
     power: 1,
     charge: 9,
     shots: 1,
     gap: 0,
     damage: 1,
     ion: 0,
-    fire: 0.1,
-    breach: 0.09,
+    fire: 0,
+    breach: 0,
     ammo: true,
-    price: 10,
+    price: 0,
     blurb: "Ignores shields. One damage. Spends one missile. Can still miss.",
   },
+  // Ion (Weapons), "Ion Blast Mark II": purchase price 70, power 3, charge 4 seconds, shots 1, ion damage per shot 1.
+  // No hull damage is stated, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
   ion2: {
     id: "ion2",
     name: "Ion Blast II",
     kind: "ion",
-    // Ion (Weapons), "Ion weapons table", Ion Blast II: 3 power, 4s, 1 shot, 1 ion, price 70.
     power: 3,
     charge: 4,
     shots: 1,
@@ -178,12 +199,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
     price: 70,
     blurb: "No hull damage. Locks one power bar for 5 seconds if it gets past the shields.",
   },
+  // Ion (Weapons), "Heavy Ion": purchase price 45, power 2, charge 13 seconds, shots 1, ion damage per shot 2.
+  // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. No percent is published. Stun is not a field.
   heavyion: {
     id: "heavyion",
     name: "Heavy Ion",
     kind: "ion",
-    // Ion (Weapons), "Ion weapons table", Heavy Ion: 2 power, 13s, 1 shot, 2 ion, price 45.
-    // Stun 20% is not applied.
     power: 2,
     charge: 13,
     shots: 1,
@@ -196,12 +217,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
     price: 45,
     blurb: "No hull damage. Two ion if it lands, which is two locked bars.",
   },
+  // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.
+  // No hull damage is stated, so damage is 0. Effect: stuns crew in the room for 5 seconds. That stun is not a field.
   stunner: {
     id: "stunner",
     name: "Ion Stunner",
     kind: "ion",
-    // Ion (Weapons), "Ion weapons table", Ion Stunner: 1 power, 10s, 1 shot, 1 ion, price 35.
-    // The table's 100% stun (5 seconds) is not applied. MISMATCH.
     power: 1,
     charge: 10,
     shots: 1,
@@ -214,9 +235,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
     price: 35,
     blurb: "No hull damage. One ion if it lands. The page's room stun is not simulated.",
   },
+  // Beam (Weapons), "Pike Beam": purchase price 55, power 2, charge 16 seconds, damage 1 per room.
+  // The id `shear` is INVENTED. The display name is the wiki row those numbers match.
+  // Halberd Beam is a different row: 65 scrap, 3 power, 17 seconds, 2 damage. It is registered from weapons-beam.ts.
   shear: {
     id: "shear",
-    name: "Shear",
+    name: "Pike Beam",
     kind: "beam",
     power: 2,
     charge: 16,
@@ -232,7 +256,21 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
 };
 
+// Wiki page "Flak (Weapons)", section "Flak Gun Mark I", and wiki page "Bomb (Weapons)", section "Fire Bomb".
 for (const extra of ORDNANCE) WEAPONS[extra.id] = extra;
+// Ids already stored are left as they are. The added rows are wiki page "Laser (Weapons)", section "List of Laser weapons"; "Beam (Weapons)", section "List of Beam weapons"; "Ion (Weapons)", section "List of Ion weapons"; "Missile (Weapons)", section "List of Missile weapons"; "Bomb (Weapons)", section "List of Bomb weapons"; "Flak (Weapons)", section "List of Flak weapons"; "Crystal (Weapons)", section "List of Crystal weapons".
+// `pike` is skipped: wiki page "Beam (Weapons)", section "Pike Beam", is already stored as `shear`.
+for (const extra of [
+  ...LASER_WEAPONS,
+  ...BEAM_WEAPONS,
+  ...ION_WEAPONS,
+  ...MISSILE_WEAPONS,
+  ...BOMB_WEAPONS,
+  ...FLAK_CRYSTAL_WEAPONS,
+]) {
+  if (extra.id === "pike" || WEAPONS[extra.id]) continue;
+  WEAPONS[extra.id] = extra;
+}
 
 export const SYS_LABEL: Record<SysId, string> = {
   shields: "Shields",
@@ -253,23 +291,23 @@ export const MAIN_SYSTEMS: SysId[] = [
   "weapons",
 ];
 
-/** Engines, evasion from powered bars alone, levels 0–8. Manning is added in the sim. */
+/** Engines, "System Upgrades", Evasion column. Powered levels 1–8 with a working pilot: 5, 10, 15, 20, 25, 28, 31, 35. Index 0 is no engines. Manning is added in the sim. */
 export const EVADE_TABLE = [0, 5, 10, 15, 20, 25, 28, 31, 35];
 
-/** Engines, "FTL Charge Times", unmanned, by powered engine level. */
+/** Engines, "FTL Drive charge time", unmanned column, levels 1–8. Index 0 is unused. */
 export const FTL_UNMANNED = [0, 67.9, 53.1, 43.6, 36.9, 32.1, 28.3, 25.4, 23.0];
 
-/** Engines, "FTL Charge Times", manned, skill ranks 0 / 1 / 2. */
+/** Engines, "FTL Drive charge time", manned columns, skill ranks 0 / 1 / 2. */
 export const FTL_SKILL = [
   [0, 61.8, 48.3, 39.6, 33.6, 29.0, 25.7, 23.1, 20.9],
   [0, 58.0, 45.4, 37.2, 31.6, 27.5, 24.2, 21.7, 19.6],
   [0, 54.3, 42.6, 34.9, 29.5, 25.7, 22.6, 20.3, 18.4],
 ];
 
-/** Wiki FTL charge seconds, engines manned at the first skill tier. */
+/** Engines, "FTL Drive charge time", manned skill 0. */
 export const FTL_MANNED = FTL_SKILL[0];
 
-/** INVENTED names. Sector count of 8 matches the campaign length, not these labels. */
+/** INVENTED strings. Wiki page "Sectors" names different sector types (Civilian, Engi, Mantis, and the rest). The array is not replaced. */
 export const SECTOR_NAMES = [
   "Cinder Reach",
   "Glass Margin",
@@ -281,7 +319,7 @@ export const SECTOR_NAMES = [
   "Shut Gate",
 ];
 
-/** Rewards, medium difficulty scrap band by sector. INFERRED label: the page's "medium" row for sectors 1–8. */
+/** Template:Scrap rewards (Normal), Medium column, sectors 1–8. Easy and Hard are other templates and are not this array. */
 export const SCRAP_MEDIUM: [number, number][] = [
   [12, 19],
   [16, 27],
@@ -293,7 +331,10 @@ export const SCRAP_MEDIUM: [number, number][] = [
   [45, 74],
 ];
 
-/** Skills: XP to reach rank 1. Rank 2 is twice that. INFERRED amounts; the skills page lists ranks but these thresholds were not re-checked this pass. */
+/**
+ * Humans, "Race characteristics", column XP/level: Piloting 15, Engines 15, Shields 55, Weapons 65, Repair 18, Combat 8.
+ * skillRank treats the next rank as another XP/level of the same amount.
+ */
 export const XP_NEED = {
   pilot: 15,
   engines: 15,
@@ -309,6 +350,7 @@ export function skillRank(xp: number, need: number): 0 | 1 | 2 {
   return 0;
 }
 
+/** INVENTED personal names. Hangar crew cards repeat the wiki race count and do not use this pool. */
 export const CREW_POOL = [
   "Ada Voss",
   "Ivo Park",
@@ -318,7 +360,7 @@ export const CREW_POOL = [
   "Mara Kent",
 ];
 
-/** Shields, recharge: layers 1–2 take 2s, the 3rd 1.72s, the 4th 1.5s, the 5th 1.33s. */
+/** Wiki page "Shields", section "Overview": layers 1–2 restore in 2s, the 3rd in 1.72s, the 4th in 1.5s, the 5th in 1.33s. No later layer is listed, so that 1.33s is reused. INFERRED for a layer past the 5th. */
 export function shieldLayerSeconds(layer: number): number {
   if (layer <= 2) return 2;
   if (layer === 3) return 1.72;
@@ -327,27 +369,47 @@ export function shieldLayerSeconds(layer: number): number {
 }
 
 /**
- * Cost of the next level, keyed by the current level.
- * Door System "System Upgrades": the cost column is the price of that level.
- * Level 1 is 60 (buying the system), level 2 is 35, level 3 is 50. Keyed here by the level you already have.
- * Reactor stepping and several other rows are INFERRED where a full table was not copied.
+ * Cost of the next level, keyed by the level already owned.
+ * Weapon Control, Engines, Shields, Medbay, and Piloting "System Upgrades" tables.
+ * Reactor bars: Template:Reactor power cost. The bar being bought is level + 1, and the cap is 25.
+ * Ship: finishing a reactor that already has 8 bars costs 490 scrap.
  */
 export function upgradeCost(id: SysId | "reactor", level: number): number | null {
   if (id === "reactor") {
-    if (level >= 16) return null;
-    return 20 + Math.max(0, level - 8) * 5;
+    const next = level + 1;
+    if (next > 25) return null;
+    if (next <= 5) return 30;
+    if (next <= 10) return 20;
+    if (next <= 15) return 25;
+    if (next <= 20) return 30;
+    return 35;
   }
   const table: Partial<Record<SysId, Record<number, number>>> = {
-    shields: { 2: 20, 3: 30, 4: 40, 5: 60, 6: 80, 7: 100 },
+    // Shields: 100 is Shields-1 to Shields-2 (Zoltan B). 125 is the store price of a missing Shields system, not this row.
+    shields: { 1: 100, 2: 20, 3: 30, 4: 40, 5: 60, 6: 80, 7: 100 },
+    // Engines: costs to reach levels 2–8 are 10, 15, 30, 40, 60, 80, 120.
     engines: { 1: 10, 2: 15, 3: 30, 4: 40, 5: 60, 6: 80, 7: 120 },
+    // Oxygen, "System Upgrades": level 2 costs 25, level 3 costs 50.
     oxygen: { 1: 25, 2: 50 },
-    medbay: { 1: 35 },
-    weapons: { 3: 25, 4: 40, 5: 60 },
+    // Medbay, "System Upgrades": level 2 costs 35, level 3 costs 45. The 50 on level 1 is the store purchase.
+    medbay: { 1: 35, 2: 45 },
+    // Weapon Control, "System Upgrades": level 2 is 40, then 25, 35, 50, 75, 90, 100 through level 8.
+    weapons: { 1: 40, 2: 25, 3: 35, 4: 50, 5: 75, 6: 90, 7: 100 },
+    // Piloting, "System Upgrades": level 2 costs 20, level 3 costs 50.
     pilot: { 1: 20, 2: 50 },
+    // Sensors, "System Upgrades": level 3 costs 40.
     sensors: { 2: 40 },
+    // Door System, "System Upgrades": level 1 is 60, level 2 is 35, level 3 is 50.
     doors: { 0: 60, 1: 35, 2: 50 },
   };
   return table[id]?.[level] ?? null;
+}
+
+/** Template:Stores: hull repairs in stores. Per hull point: 2 in sectors 1–3, 3 in 4–6, 4 in 7–8. */
+export function hullRepairPerPoint(sector: number): number {
+  if (sector >= 7) return 4;
+  if (sector >= 4) return 3;
+  return 2;
 }
 
 export function upgradeBlurb(id: SysId | "reactor", level: number): string {

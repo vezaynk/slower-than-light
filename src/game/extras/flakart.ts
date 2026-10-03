@@ -35,29 +35,30 @@ export const UPGRADE_COSTS: Record<2 | 3 | 4, number> = {
 /**
  * Not sold.
  * Flak Artillery, Overview: pre-installed only.
- * Flak Artillery, Flak weapons table: Price N/A.
- * Flak Artillery, Main systems: purchase cost is a dash.
+ * Wiki page "Flak (Weapons)", section "Flak weapons table": Price N/A.
+ * Wiki page "Flak Artillery", section "System Upgrades": purchase cost is a dash.
  * armFlak therefore spends no scrap.
  */
 export const SOLD_IN_STORES = false;
 
 /**
  * Flak Artillery, Overview: "Automatically fires a 7-flak burst".
- * Flak Artillery, List of Flak weapons: Shots 7.
- * Flak Artillery, List of Flak weapons: Additional fake flak 7.
- * INFERRED: fake pellets deal no damage, so only the 7 damaging shots are pushed.
+ * Wiki page "Flak (Weapons)", section "List of Flak weapons": Shots 7.
+ * Wiki page "Flak (Weapons)", section "List of Flak weapons": Additional fake flak 7.
+ * Wiki page "Flak (Weapons)", section "Understanding flak accuracy": fake flak cannot deal damage.
+ * INFERRED: only those 7 damaging shots are pushed. The page does not say to omit the fake pellets.
  */
 export const PROJECTILES = 7;
 
 /**
  * Flak Artillery, Overview: "does one damage to room that it hits."
- * Flak Artillery, List of Flak weapons: Damage per shot 1.
+ * Wiki page "Flak (Weapons)", section "List of Flak weapons": Damage per shot 1.
  */
 export const DAMAGE = 1;
 
 /**
- * Flak Artillery, Flak weapons table: Power 1-4*.
- * Flak Artillery, Main systems: "More power means faster cooldown."
+ * Wiki page "Flak (Weapons)", section "Flak weapons table": Power 1-4*.
+ * Wiki page "Systems", section "Main systems": "More power means faster cooldown."
  * INFERRED: bars accepted equal the level, and that level's System Upgrades
  * charge time is the cooldown. Reactor bars are not taken off the hull.
  */
@@ -70,7 +71,7 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 
 /**
  * INFERRED: 0.7s flight, same as the host's other non-missile projectiles.
- * Flak Artillery, Flak weapons table lists speed 26, which is not a second count.
+ * Wiki page "Flak (Weapons)", section "Flak weapons table": speed 26, which is not a second count.
  */
 const FLIGHT_SECONDS = 0.7;
 
@@ -134,7 +135,7 @@ export function tickFlak(g: Game, dt: number): void {
  * Flak Artillery, Overview: each shot is targeted at a random room.
  * INFERRED: a shuffled round-robin spreads the seven across the enemy hull
  * instead of stacking them. Pixel radius is not simulated.
- * Flak Artillery, Flak weapons table: radius 35*.
+ * Wiki page "Flak (Weapons)", section "Flak weapons table": radius 35*.
  */
 function spreadRooms(g: Game, rooms: { id: string }[], count: number): string[] {
   const ids = rooms.map((room) => room.id);

@@ -29,6 +29,8 @@ export type Room = {
   y: number;
   w: number;
   h: number;
+  /** Cells inside the box that are hull, not floor. */
+  omit?: { x: number; y: number }[];
   o2: number;
   fire: number;
   breach: number;
@@ -36,6 +38,8 @@ export type Room = {
   fireTick: number;
   flash: number;
   venting: boolean;
+  /** Seconds of crystal coating left. Absent means the room is not coated. */
+  lock?: number;
 };
 
 export type Door = {
@@ -46,6 +50,15 @@ export type Door = {
   hp: number;
   /** Seconds a broken door stays stuck open. */
   stuck: number;
+};
+
+/** One orange bar on a hangar cutaway. Side is the edge of cell (x, y). */
+export type DoorSide = "n" | "e" | "s" | "w";
+
+export type DoorMark = {
+  x: number;
+  y: number;
+  side: DoorSide;
 };
 
 export type SkillName = "pilot" | "engines" | "weapons" | "shields" | "repair" | "combat";
@@ -71,6 +84,8 @@ export type Crew = {
   cloneIn?: number;
   /** Seconds this body cannot act. Hacking Stun sets this for the pulse. */
   stun?: number;
+  /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
+  lockCool?: number;
 };
 
 export type WeaponInst = {
@@ -79,6 +94,11 @@ export type WeaponInst = {
   charge: number;
   enabled: boolean;
   autofire: boolean;
+  /**
+   * Weapon Control, Overview: Ctrl on this slot reverses the all-weapons autofire setting.
+   * Absent means the slot follows autofireAll.
+   */
+  autoInvert?: boolean;
   target: string | null;
 };
 
@@ -92,6 +112,8 @@ export type Shot = {
   breachChance: number;
   targetRoom: string;
   beamRooms?: string[];
+  /** Weapon id, when the shot was launched from a mount. Tests may set it. */
+  defId?: string;
   wait: number;
   t: number;
   duration: number;
@@ -163,10 +185,20 @@ export type Ship = {
   shieldCharge: number;
   cols: number;
   rows: number;
+  /**
+   * Orange bars from the hangar picture. Absent means every shared wall has a door,
+   * which is the Lark grid. Interior bars share one door per room pair.
+   */
+  doorMarks?: DoorMark[];
   /** Optional kits bought onto this hull. Empty on a fresh Lark. */
   kits: Partial<Record<KitId, Kit>>;
   /** Drone parts. Spent by the spike and the swarm. */
   parts: number;
+  /**
+   * Zoltan Shield points left. Absent means the ship has no such augment.
+   * 0 means the 5-point bubble is depleted until the next FTL jump.
+   */
+  zoltan?: number;
 };
 
 export type BeaconKind =
@@ -195,6 +227,16 @@ export type Beacon = {
   asteroid: boolean;
 };
 
+/** Between-sector chart. Names and colors come from the Sectors page. */
+export type SectorNode = {
+  id: string;
+  name: string;
+  group: "civilian" | "hostile" | "nebula" | "last-stand";
+  col: number;
+  row: number;
+  links: string[];
+};
+
 export type Phase =
   | "title"
   | "map"
@@ -205,9 +247,12 @@ export type Phase =
   | "victory"
   | "defeat";
 
+/** Score, lead formula: Easy, Normal, or Hard. D is 1, 1.25, or 1.5. */
+export type Difficulty = "easy" | "normal" | "hard";
+
 export type StockItem = {
   id: string;
-  kind: "fuel" | "missiles" | "weapon" | "repair";
+  kind: "fuel" | "missiles" | "parts" | "weapon" | "repair";
   ref: string;
   name: string;
   detail: string;
@@ -250,6 +295,10 @@ export type Game = {
   selected: string | null;
   /** Weapon currently receiving a target click. */
   armed: string | null;
+  /** Weapon Control, Overview: the cursor is in targeting mode. */
+  targeting: boolean;
+  /** Weapon Control, Overview: autofire for every weapon. A slot's autoInvert reverses that. */
+  autofireAll: boolean;
   mode: "crew" | "vent";
   event: GameEvent | null;
   stock: StockItem[] | null;
@@ -277,6 +326,20 @@ export type Game = {
   outcome: string;
   jumps: number;
   kills: number;
+  /** Score, lead formula: Easy 1, Normal 1.25, Hard 1.5. Missing on an old save means Normal. */
+  difficulty: Difficulty;
+  /** Score page: scrap gained during the run. Starting scrap is not included. */
+  scrapCollected: number;
+  /** Score page: beacons visited. The starting beacon counts. */
+  beaconsVisited: number;
+  /** Sectors page chart. Empty until the exit beacon opens it. */
+  sectorMap: boolean;
+  route: SectorNode[];
+  routeHere: string;
+  /** Hull chosen in the hangar. Restart uses it. */
+  hullId?: string;
+  /** Title TUTORIAL. Game Over uses the training sentence only for this run. */
+  training: boolean;
   manual: boolean;
   shipSheet: boolean;
   muted: boolean;

@@ -1,4 +1,4 @@
-import type { SysId, WeaponKind } from "./types";
+import type { Difficulty, SysId, WeaponKind } from "./types";
 import { ORDNANCE } from "./extras/ordnance.ts";
 import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";
 import { BOMB_WEAPONS } from "./wiki/weapons-bomb.ts";
@@ -330,6 +330,45 @@ export const SCRAP_MEDIUM: [number, number][] = [
   [40, 66],
   [45, 74],
 ];
+
+/** Template:Scrap rewards (Medium), Easy column, sectors 1–8. */
+const SCRAP_MEDIUM_EASY: [number, number][] = [
+  [16, 27],
+  [21, 35],
+  [26, 42],
+  [31, 50],
+  [36, 58],
+  [40, 66],
+  [45, 74],
+  [50, 81],
+];
+
+/** Template:Scrap rewards (Medium), Hard column, sectors 1–8. */
+const SCRAP_MEDIUM_HARD: [number, number][] = [
+  [12, 19],
+  [12, 19],
+  [16, 27],
+  [21, 35],
+  [26, 42],
+  [31, 50],
+  [36, 58],
+  [40, 66],
+];
+
+/**
+ * The Rebel Flagship: destroying stage 1 or stage 2 pays a high scrap reward at sector 1 value.
+ * Stage 3 pays none. Easy high is 27–32. Normal and Hard high are 19–23.
+ */
+export function flagshipStageScrap(difficulty: Difficulty): [number, number] {
+  if (difficulty === "easy") return [27, 32];
+  return [19, 23];
+}
+
+/** Template:Scrap rewards (Medium), the column for the hangar difficulty. */
+export function mediumScrapBand(difficulty: Difficulty, sector: number): [number, number] {
+  const table = difficulty === "easy" ? SCRAP_MEDIUM_EASY : difficulty === "hard" ? SCRAP_MEDIUM_HARD : SCRAP_MEDIUM;
+  return table[Math.min(7, Math.max(0, sector - 1))];
+}
 
 /**
  * Humans, "Race characteristics", column XP/level: Piloting 15, Engines 15, Shields 55, Weapons 65, Repair 18, Combat 8.

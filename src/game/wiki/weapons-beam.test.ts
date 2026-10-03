@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { BEAM_GAPS, BEAM_WEAPONS } from "./weapons-beam.ts";
+import { BEAM_CREW, BEAM_GAPS, BEAM_WEAPONS } from "./weapons-beam.ts";
 
 const byId = Object.fromEntries(BEAM_WEAPONS.map((w) => [w.id, w]));
 
@@ -109,6 +109,19 @@ describe("beam weapons", () => {
       byId.antibio.blurb,
       "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
     );
+  });
+
+  it("stores printed crew-damage HP and leaves the dash and blocked beams out", () => {
+    assert.equal(BEAM_CREW.mini, 15);
+    assert.equal(BEAM_CREW.pike, 15);
+    assert.equal(BEAM_CREW.hullbeam, 15);
+    assert.equal(BEAM_CREW.halberd, 30);
+    assert.equal(BEAM_CREW.glaive, 45);
+    assert.equal(BEAM_CREW.antibio, 60);
+    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "firebeam"), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "bossbeam"), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "artillery-beam"), false);
+    assert.match(src, /Fire Beam's crew line is "-"/);
   });
 
   it("parks length, rooms, pierce, and anti-bio crew damage in gaps", () => {

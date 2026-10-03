@@ -1,5 +1,6 @@
 import { createGame, log, sparePower, startCombat } from "../sim.ts";
 import type { Crew, Game, Kit } from "../types.ts";
+import { bypassZoltan } from "../wiki/cited-bypass.ts";
 
 // Combat setup stays on the sim. This module does not construct a game.
 void createGame;
@@ -169,6 +170,16 @@ export function startLeash(g: Game, crewId: string) {
   }
   const crew = g.crew.find((c) => c.id === crewId);
   if (!crew || crew.side !== "enemy" || crew.hp <= 0) return;
+  // Zoltan Shield: mind control does not pass the bubble. Bypass lets it through and does not spend the bubble.
+  // Crew who already boarded the player are on this side of the bubble.
+  if (
+    crew.aboard === "enemy" &&
+    (g.enemy?.zoltan ?? 0) > 0 &&
+    !(g.augments.includes("bypass") && bypassZoltan("mind") === "pass")
+  ) {
+    log(g, "Their Zoltan Shield blocks mind control.");
+    return;
+  }
   for (const other of g.crew) {
     if (other.leashed) clearCrew(other);
   }

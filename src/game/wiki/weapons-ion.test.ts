@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { ION_GAPS, ION_WEAPONS } from "./weapons-ion.ts";
+
+const src = readFileSync(new URL("./weapons-ion.ts", import.meta.url), "utf8");
 
 const byId = Object.fromEntries(ION_WEAPONS.map((w) => [w.id, w]));
 
@@ -47,6 +50,9 @@ describe("ion weapons", () => {
     assert.equal(ION_GAPS.ioncharger.maxShots, 3);
     assert.deepEqual(ION_GAPS.chainion.laterIon, [2, 3, 4]);
     assert.equal(ION_GAPS.chainion.secondsToFullChain, 56);
+    assert.equal(byId.chainion.ion, 1);
+    assert.equal("chain" in byId.chainion, false);
+    assert.match(src, /WeaponDef has no chain field/);
     assert.equal(ION_GAPS.bossion.chargeByLevel[1], 35);
     assert.equal(ION_GAPS.bossion.chargeByLevel[2], 28);
     assert.equal(ION_GAPS.bossion.chargeByLevel[3], 21);

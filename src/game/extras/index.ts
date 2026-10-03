@@ -21,10 +21,10 @@ import { leashedDamageBonus, tickLeash } from "./leash.ts";
 import { partsBack } from "./moreaugs.ts";
 import { onJumpSling, tickSling } from "./sling.ts";
 import { spikeEvadeZero, spikeFreezesFtl, tickSpike } from "./spike.ts";
-import { swarmIntercept, tickSwarm } from "./swarm.ts";
+import { enemyDefenseIntercept, swarmIntercept, tickSwarm } from "./swarm.ts";
 import { tickVeil, veilBlocks, veilEvade } from "./veil.ts";
 
-export { onNewSector, swarmIntercept };
+export { enemyDefenseIntercept, onNewSector, swarmIntercept };
 
 export function tickExtras(g: Game, dt: number) {
   tickVeil(g, dt);

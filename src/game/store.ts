@@ -1,7 +1,8 @@
 /** INVENTED session store for the open run. It encodes no wiki rule. */
-import { create } from "zustand";
+import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { noteRun } from "./wiki/achievement-track";
 import { createGame, loadGame, saveGame, step } from "./sim";
+import type { CrewPick } from "./crew-look";
 import type { Difficulty, Game } from "./types";
 
 type Store = {
@@ -12,17 +13,14 @@ type Store = {
   tick: (dt: number) => void;
   bump: () => void;
   act: (fn: (g: Game) => void) => void;
-  newRun: (hullId?: string, difficulty?: Difficulty) => void;
+  newRun: (hullId?: string, difficulty?: Difficulty, crew?: CrewPick[]) => void;
   continueRun: () => boolean;
 };
 
-export const useGame = create<Store>((set, get) => {
-  const game = createGame(1);
-  game.phase = "title";
+type Actions = Omit<Store, "version" | "game" | "boot">;
+
+function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getState"]): Actions {
   return {
-    version: 0,
-    boot: "title",
-    game,
     tick: (dt) => {
       const game = get().game;
       step(game, dt);
@@ -36,9 +34,9 @@ export const useGame = create<Store>((set, get) => {
       saveGame(game);
       set({ version: get().version + 1 });
     },
-    newRun: (hullId?: string, difficulty: Difficulty = "normal") => {
+    newRun: (hullId?: string, difficulty: Difficulty = "normal", crew: CrewPick[] = []) => {
       const seed = (Date.now() ^ 0x9e3779b9) >>> 0 || 1;
-      const next = createGame(seed, hullId, difficulty);
+      const next = createGame(seed, hullId, difficulty, crew);
       noteRun(next);
       saveGame(next);
       set({ game: next, version: get().version + 1 });
@@ -51,4 +49,23 @@ export const useGame = create<Store>((set, get) => {
       return true;
     },
   };
-});
+}
+
+/**
+ * Dev hot reload re-runs this module whenever sim.ts or anything below it changes. A second store
+ * would leave the game loop ticking the old one while the screen shows a fresh, frozen one. So in dev
+ * there is one store per page: a re-run keeps the run in progress and only swaps in the new actions.
+ */
+type Shared = { __ashwakeStore?: UseBoundStore<StoreApi<Store>> };
+const shared = import.meta.env?.DEV ? (globalThis as Shared).__ashwakeStore : undefined;
+
+export const useGame: UseBoundStore<StoreApi<Store>> =
+  shared ??
+  create<Store>((set, get) => {
+    const game = createGame(1);
+    game.phase = "title";
+    return { version: 0, boot: "title", game, ...actions(set, get) };
+  });
+
+if (shared) shared.setState(actions(shared.setState, shared.getState));
+if (import.meta.env?.DEV) (globalThis as Shared).__ashwakeStore = useGame;

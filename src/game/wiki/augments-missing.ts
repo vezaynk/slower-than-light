@@ -12,46 +12,6 @@ export type MissingAugment = {
  */
 export const MISSING_AUGMENTS: MissingAugment[] = [
   /**
-   * Augmentations, "Offensive Augmentations", "Defense Scrambler", bullet "Purchase price: 80".
-   * Augmentations, "Defense Scrambler", bullet "Prevents enemy defensive drones from acquiring and shooting down targets."
-   * Augmentations, "Defense Scrambler", bullet "Affects only Defense Drone I and II and Anti-Combat Drone."
-   */
-  {
-    id: "scrambler",
-    name: "Defense Scrambler",
-    detail:
-      "Enemy defensive drones cannot acquire or shoot down targets, and this affects only Defense Drone I, Defense Drone II, and the Anti-Combat Drone.",
-    cost: 80,
-    purchasable: true,
-  },
-  /**
-   * Augmentations, "Offensive Augmentations", "Zoltan Shield Bypass", bullet "Purchase price: 55".
-   * Augmentations, "Zoltan Shield Bypass", description "Allows crew/bomb teleportation and mind control to work through Zoltan Shields."
-   * Augmentations, "Zoltan Shield Bypass", bullet "Hacking drones still cannot be launched and will be destroyed if it comes into contact with a Zoltan Shield".
-   * Augmentations, "Zoltan Shield Bypass", bullet "Boarding drones can be launched but will be destroyed upon contact with a Zoltan Shield."
-   */
-  {
-    id: "bypass",
-    name: "Zoltan Shield Bypass",
-    detail:
-      "Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields, hacking drones still cannot be launched and are destroyed on contact, and boarding drones can be launched but are destroyed on contact.",
-    cost: 55,
-    purchasable: true,
-  },
-  /**
-   * Augmentations, "FTL Augmentations", "Adv. FTL Navigation", bullet "Purchase price: 50".
-   * Augmentations, "Adv. FTL Navigation", description "Allows the ship to jump to any previously visited Beacon."
-   * Augmentations, "Adv. FTL Navigation", bullet "Allows jumping to previously visited beacons which were later overtaken by the Rebel Fleet."
-   */
-  {
-    id: "nav",
-    name: "Adv. FTL Navigation",
-    detail:
-      "The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.",
-    cost: 50,
-    purchasable: true,
-  },
-  /**
    * Augmentations, "Non-Purchasable Augmentations", "Crystal Vengeance". No purchase price.
    * Augmentations, "Crystal Vengeance", description "there is a 10 percent chance to break off a shard".
    * Augmentations, "Crystal Vengeance", bullet "Fires a crystal shot that does 1 damage, has a 10% chance to breach, has a 20% chance to stun for 3s (with Advanced Edition), completely ignores shields, and is affected by evasion; can be shot down by defense drones."

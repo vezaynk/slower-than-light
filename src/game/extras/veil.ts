@@ -1,5 +1,5 @@
 import type { Game, Kit, Ship } from "../types.ts";
-import { log, sparePower } from "../sim.ts";
+import { log, rand, sparePower } from "../sim.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -103,7 +103,16 @@ export function tickVeil(g: Game, dt: number) {
     kit.on = true;
     kit.left = 5 * kit.level;
     kit.cool = 0;
+    // Cloaking, "Enemy AI and Cloaking": "They will randomly decide whether to fire weapons freely while cloaked,
+    // or hold fire until cloaking ends; this pattern may change throughout the fight." Rolled per cloak.
+    kit.target = rand(g) < 0.5 ? "hold" : "fire";
   }
+}
+
+/** The enemy is cloaked and chose to hold fire for this cloak (see tickVeil). */
+export function enemyHoldsFire(g: Game): boolean {
+  const kit = g.enemy?.kits.veil;
+  return !!kit && active(kit) && kit.target === "hold";
 }
 
 /** Wiki page "Cloaking", section "Overview": flat +60 while that hull's Veil is up, powered, and still counting. */

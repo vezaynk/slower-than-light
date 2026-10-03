@@ -1,4 +1,5 @@
 import type { KinId } from "./extras/kin.ts";
+import type { EscapePlan } from "./wiki/escape.ts";
 
 export type SysId =
   | "shields"
@@ -25,6 +26,8 @@ export type Room = {
   id: string;
   title: string;
   system: SysId | null;
+  /** Subsystem kit housed in this room (enemy hulls from enemy-gen.ts). Weapon hits damage it. */
+  kit?: KitId;
   x: number;
   y: number;
   w: number;
@@ -75,6 +78,8 @@ export type Crew = {
   move: number;
   think: number;
   tone: number;
+  /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */
+  uniform?: number;
   skills?: Partial<Record<SkillName, number>>;
   /** Lineage id from extras/kin.ts. Absent means the baseline row. */
   kin?: KinId;
@@ -145,6 +150,16 @@ export type Kit = {
   on: boolean;
   /** Module scratch timer (shield-drop cadence, drone shot cadence). */
   aux: number;
+  /** Bars knocked out by weapon hits on the kit's room (enemy hulls). Absent means 0. */
+  damage?: number;
+  /** Repair progress on the next damaged bar, in crew-seconds. */
+  fix?: number;
+  /** System Repair drone's room. Absent until that crew drone is deployed. */
+  room?: string;
+  /** Rooms the System Repair drone has not entered yet. */
+  path?: string[];
+  /** Progress toward the next room, from 0 to 1. */
+  move?: number;
 };
 
 export type AugmentId =
@@ -169,7 +184,15 @@ export type AugmentId =
   | "stun"
   | "dna"
   | "mend"
-  | "pulseeye";
+  | "pulseeye"
+  | "medbot"
+  | "gel"
+  | "pheromone"
+  | "nav"
+  | "scrambler"
+  | "booster"
+  | "bypass"
+  | "vengeance";
 
 export type Ship = {
   name: string;
@@ -199,6 +222,17 @@ export type Ship = {
    * 0 means the 5-point bubble is depleted until the next FTL jump.
    */
   zoltan?: number;
+  /** Enemy hulls: the wiki class this ship was rolled from (wiki/enemy-ships.ts). */
+  classId?: string;
+  /** Faction page the class comes from, and whether this is the pirate version. */
+  faction?: string;
+  pirate?: boolean;
+  /** AI-Controlled Rebel Ships: "Automated ships are unmanned." Systems run without crew. */
+  automated?: boolean;
+  /** Enemy systems installed per the wiki that the sim does not run yet (drones, hacking, cloaking, …). */
+  unwired?: { id: string; level: number }[];
+  /** Enemy hull has a Crew Teleporter, so it can board. */
+  boards?: boolean;
 };
 
 export type BeaconKind =
@@ -252,7 +286,7 @@ export type Difficulty = "easy" | "normal" | "hard";
 
 export type StockItem = {
   id: string;
-  kind: "fuel" | "missiles" | "parts" | "weapon" | "repair";
+  kind: "fuel" | "missiles" | "parts" | "weapon" | "repair" | "system" | "augment" | "drone" | "crew";
   ref: string;
   name: string;
   detail: string;
@@ -284,6 +318,8 @@ export type Game = {
   beacons: Beacon[];
   here: string;
   fleet: number;
+  /** Augmentations, Distraction Buoys: the next fleet advance is skipped. 0 means none waiting. */
+  buoyDelay: number;
   scrap: number;
   fuel: number;
   missiles: number;
@@ -320,8 +356,12 @@ export type Game = {
   /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */
   ramStage: 1 | 2 | 3;
   flee: number;
-  /** Enemy jump charge, 0 to 1. Engines, "FTL Charge Times", doubled by the FTL Jammer. */
+  /** Enemy escape progress, 0 to 1, against enemyEscape.seconds. Moves only while enemyEscape.running. */
   enemyFlee: number;
+  /** How the current enemy tries to jump away (wiki/escape.ts). Null outside a fight. */
+  enemyEscape?: EscapePlan | null;
+  /** Rebel Fleet: a fleeing scout or auto-ship got away, so the next fleet advance is doubled. */
+  pursuitDouble?: boolean;
   picking: boolean;
   outcome: string;
   jumps: number;

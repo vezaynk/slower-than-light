@@ -7,7 +7,8 @@ import type { WeaponDef } from "../content.ts";
  * "Comparing bombs to missiles": "Both bombs and missile weapons use 1 missile ammunition every time they fire".
  * A section that does not restate a missile cost still sets ammo from that lead.
  * Lead: "They deal no hull damage". `damage` is the section's system damage, not hull.
- * Crew damage, stun, breach wording, and heals are in BOMB_GAPS.
+ * Each section's "Crew damage" number is BOMB_CREW. WeaponDef has no crew-damage field.
+ * Stun, breach wording, heals, and repairs stay in BOMB_GAPS.
  */
 export const BOMB_WEAPONS: WeaponDef[] = [
   {
@@ -219,6 +220,32 @@ export const BOMB_WEAPONS: WeaponDef[] = [
       "Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.",
   },
 ];
+
+/**
+ * "Crew damage" numbers from Bomb (Weapons), one per section.
+ * Fire Bomb is not a row above. ordnance.ts fits it as cask.
+ * Healing Burst's 150 and Repair Burst's 8 bars are not crew-damage numbers.
+ */
+export const BOMB_CREW: Record<string, number> = {
+  // Bomb (Weapons) "Small Bomb": Crew damage: 30.
+  smallbomb: 30,
+  // Bomb (Weapons) "Breach Bomb Mark I": Crew damage: 30.
+  breach1: 30,
+  // Bomb (Weapons) "Breach Bomb Mark II": Crew damage: 45.
+  breach2: 45,
+  // Bomb (Weapons) "Fire Bomb": Crew damage: 30. Fitted id is cask.
+  cask: 30,
+  // Bomb (Weapons) "Ion Bomb": Crew damage: 0.
+  ionbomb: 0,
+  // Bomb (Weapons) "Stun Bomb": Crew damage: 0.
+  stunbomb: 0,
+  // Bomb (Weapons) "Healing Burst": Crew damage: 0. The 150-point heal is BOMB_GAPS, not this number.
+  healburst: 0,
+  // Bomb (Weapons) "Repair Burst": Crew damage: 0. The 8-bar repair is BOMB_GAPS, not this number.
+  repairburst: 0,
+  // Bomb (Weapons) "Crystal Lockdown Bomb": Crew damage: 0.
+  lockdown: 0,
+};
 
 /**
  * Published effects WeaponDef cannot store.

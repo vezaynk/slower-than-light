@@ -10,36 +10,36 @@ Reactor bars in this code: only shields, engines, oxygen, medbay, weapons, and k
 
 Wired into the hangar (`HULLS`) and the weapon list (`WEAPONS`):
 
-- Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance and Mantis Pheromones stay unfitted. Room grids for those hulls are still the shared player grid.
+- Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance stays unfitted. Mantis A/B/C start with Mantis Pheromones, which speed your crew by 25%. Player hangar cutaways are traced from the hangar pictures. Enemy ships still use one shared grid.
 - Wiki weapon rows, except `pike` (the same Pike Beam row is already id `shear`) and Boss Beam / Boss Laser (no printed power, BLOCKED). Boss Ion power is 3. Boss Missile power is 4.
 - Starting guns are mounted even when their power sum is above the powered bars. `powerMask` feeds the list in order; switching one off or raising the weapon bars powers the next. That includes Halberd on Zoltan A, Ion Charger on Zoltan C, Breach Bomb I on Slug A, and Heavy Pierce on Rock B. Anti-Bio on Slug A, Healing Burst on Slug B, Hull Missile on Rock A, Swarm Missiles and Heavy Crystal I on Rock C, Mini Beam on Stealth A, Glaive Beam on Stealth B, Pike Beam on Zoltan B.
-- Bombs do not subtract hull. Bomb (Weapons) lead. Crew figures stay in `BOMB_GAPS`.
+- Bombs do not subtract hull. Bomb (Weapons) lead. Printed bomb and beam crew HP is applied. Healing Burst adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member. Repair Burst removes 8 system damage, does not miss the shooter's own ship, and does not clear fire or a breach. Neither spends a Zoltan Shield. Heavy Pierce and the four crystal guns ignore one shield layer; a second layer stops the shot and drops one bubble. Beam pierce and beam chain stay gaps. `WeaponDef` has no pierce field.
 
-Named and still not installed, because they are not an augment or a drone id:
+Named and still not installed, because they are not an augment or a drone id, or the effect has no field to run in:
 
-- Zoltan Shield, Slug Repair Gel, Engi Med-bot Dispersal, Drone Reactor Booster, Shield Overcharger +, Anti-Drone. Mantis Pheromones and Crystal Vengeance are the same kind of name.
+- Zoltan Shield is the bubble on Zoltan hulls (`ship.zoltan`), not an augment id. The Flagship's third stage sets that bubble to 12. Shield Overcharger + and Anti-Drone are still names only. Crystal Vengeance is not sold and no cruiser starts with it. When the player hull drops, a fitted copy has a 10 percent chance to throw a 1-damage shard that ignores regular shields, can miss to evasion, can be shot down by an enemy Defense Drone I or II, and is absorbed by a Zoltan Shield. The shard names no room, so breach and stun are not applied. Drone Reactor Booster is not sold and no cruiser starts with it. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and it still applies no repair rate. Slug Repair Gel seals player breaches at 75% crew repair speed. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay. Engi A starts with the med-bot. Slug A/B/C start with the gel. Mantis A/B/C start with the pheromones. None of the three is sold.
 
-Catalog only. The numbers are in `src/game/wiki/` and the fight does not use them:
+Some catalog numbers now run. The rest stay in `src/game/wiki/` and the fight does not use them:
 
-- Flagship phases, rebel rows, faction pages, sector types (`SECTOR_NAMES` stay INVENTED), achievements, store assortment beyond fuel, missiles, drone parts, and hull repair, missing augments, missing drone schematics.
-- Kin gaps, except the Zoltan death burst: wiki page "Zoltans", section "Race characteristics", 15 HP to enemy crew in the room. The 7.5 drone figure is not applied, because drones have no HP field.
-- Event slices 0–3: 881 titles classified mechanic or no-mechanic from revision wikitext. None of those outcomes are playable events. Narrative was not copied in.
+- Flagship stage 1 numbers are written onto the shared enemy grid (hull 20, reactor 42, shields 8, engines 2, oxygen 2, piloting 3, weapons bar 3, Boss Ion and Boss Missile). Destroying that hull applies stage 2 (hull 22, reactor 44, engines 3, Boss Missile only), then stage 3 (hull 20, reactor 32, engines 6, weapons level 4, Zoltan Shield 12). Stages 1 and 2 pay sector-1 high scrap. Stage 3 pays none. The ion-room crew are not removed. The cutaway is traced and the fight still uses the two-row grid: stage 1 is 52 squares, stage 2 is 42, stage 3 is 32, and the two Hard links are 4. Boss Laser and Boss Beam stay blocked. Rebel rows and faction pages are still catalogs. `SECTOR_NAMES` stay INVENTED. The Last Stand stamps three Federation Repair Stations and pays 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. Jumping into an overtaken beacon, before sector 8, fights a Rebel Elite whose only reward is 1 fuel. Waiting with no fuel when that column arrives pays 4 fuel. The Elite's hull and guns stay the shared grid, because the page prints ranges. Store rows now include the printed system prices, catalog augments, and the front of the crew price list. Drone Control is not offered (the template prints both 75 and 85). Weapons and augments sell for half the purchase price, or for a printed sell line, and that scrap is in the score. Drone schematics are not stocked. Buying Medbay or Clone Bay replaces the other and keeps its level. Achievements stay catalogs. Combat Drone Mark II and the Ion Intruder remain on the missing-schematic list and are not SwarmKind ids. Mark II deploys at 4 power and emits no shot. The Ion Intruder pulses on a wait drawn from 8.2 to 10 seconds. The other missing drone schematics stay catalogs.
+- Kin gaps, except the Zoltan death burst and the Zoltan power bar. Wiki page "Zoltans", section "Race characteristics": 15 HP to enemy crew in the room, and one power bar for a living Zoltan in shields, engines, oxygen, medbay, or weapons. Ion does not remove that bar. A full system does not free a reactor bar. Piloting, sensors, and doors stay unaffected. The 7.5 drone figure is not applied, because drones have no HP field.
+- Event slices 0–3: 881 titles classified mechanic or no-mechanic from revision wikitext. 162 of those pages now place one beacon in a sector the page names, while a free beacon remains, and run a stated scrap tier, trade, hull change, fleet delay, or fight. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid. Out-of-fuel pages are written and not placed, because they name no sector. Engi cache stays separate and partial. A page that states no amount, including Free scrap with resources (Engi), stays unwired. Narrative was not copied in. Rebel defector fights a Rebel ship when the proposal is accepted. The random crew, 3 hull, engine damage, doubled pursuit, and boarders are not applied. Crystal scrap collector spends 35 scrap. The Crystal crewmember, Crystal Lockdown Bomb, and Crystal Burst Mark II are not granted.
 
 Still a picture, or not fetched:
 
-- Room art and tile coordinates. They stay INFERRED.
-- Score. The lead formula runs: D is 1 / 1.25 / 1.5 and the lit hangar button sets scrap to 30 / 10 / 0. Rebel-held beacons still count, because that fleet column is INVENTED. Selling scrap is not a control.
+- Enemy room art is still one shared grid. Player hangar cutaways are traced from the hangar pictures, and their square counts are those pictures.
+- Score. The lead formula runs: D is 1 / 1.25 / 1.5 and the lit hangar button sets scrap to 30 / 10 / 0. Rebel-held beacons still count, because that fleet column is INVENTED. Selling a weapon or augment adds that scrap to s.
 
 ## Counts
 
 | Status | Pages |
 |---|---|
 | present | 3 |
-| partial | 159 |
-| missing | 289 |
-| not-a-surface | 929 |
+| partial | 319 |
+| missing | 224 |
+| not-a-surface | 834 |
 
-The checklist is not complete. 289 rows are still missing and 159 are still partial.
+The checklist is not complete. 224 rows are still missing and 319 are still partial. The count changed because Rebel defector and Crystal scrap collector now place one beacon. This was not a new pass of all 1380 pages.
 
 Second pass checked the Score lead formula and the store resource table against the dump and against `runScore` / `rollStock`. Weapon-family rows that still said those guns were absent were corrected against `WEAPONS`. Engines, Mind Control, and Ion Blast Mark II still match the tables the sim reads. Rows that were only a title string in `src/` stay partial: the article was not re-opened. Alias, meta, and no-mechanic catalog rows are not-a-surface. A catalog number the fight does not read is missing. Event prose was not copied into the run.
 
@@ -47,30 +47,30 @@ Second pass checked the Score lead formula and the store resource table against 
 
 | Id | Point | Output | Status |
 |---|---|---|---|
-| mantis | The Mantis Cruiser A/B/C | hulls-mantis.ts, spread into HULLS | wired loadout. Shared room grid. Pheromones unfitted. |
+| mantis | The Mantis Cruiser A/B/C | hulls-mantis.ts, spread into HULLS | wired loadout. Shared room grid. A/B/C start with pheromones. |
 | crystal | The Crystal Cruiser A/B | hulls-crystal.ts, spread into HULLS | wired loadout. Shared room grid. Vengeance unfitted. |
-| w-laser | Laser rows | weapons-laser.ts, merged into WEAPONS | wired. Pierce and chain steps are gaps. Boss Laser BLOCKED (no power). |
-| w-beam | Beam rows | weapons-beam.ts, merged into WEAPONS | wired, except pike (already id shear). Boss Beam BLOCKED (no power). |
+| w-laser | Laser rows | weapons-laser.ts, cited-weapons.ts | wired. Heavy Pierce ignores one shield layer. Chain steps stay a gap. Boss Laser BLOCKED (no power). |
+| w-beam | Beam rows | weapons-beam.ts, cited-weapons.ts | crew HP applied (Mini/Pike/Hull 15, Halberd 30, Glaive 45, Anti-Bio 60). Fire Beam dash stays null. Pierce and chain stay gaps. pike is still id shear. Boss Beam BLOCKED (no power). |
 | w-ion | Ion Charger, Chain Ion, Boss Ion | weapons-ion.ts | wired. Chain profile is a gap. |
 | w-missile | Missile rows other than Artemis and Leto | weapons-missile.ts | wired. |
-| w-bomb | Bomb rows other than Fire Bomb | weapons-bomb.ts | wired. strikeRoom skips hull damage for bombs. |
-| w-flak | Adv. Flak, Flak II, crystal weapons | weapons-flak-crystal.ts | wired. Crystal pierce is a gap. |
-| augs | Augment rows missing from CATALOG | augments-missing.ts | catalog only. |
-| sectors | Sector types | sectors.ts | catalog only. SECTOR_NAMES stay INVENTED. |
+| w-bomb | Bomb rows other than Fire Bomb | weapons-bomb.ts, cited-weapons.ts | wired. strikeRoom skips hull damage. Printed crew HP is applied (Small and Breach I 30, Breach II 45, Fire Bomb 30; ion, stun, heal, repair, and lockdown bombs 0). Healing Burst adds 150 HP. Repair Burst removes 8 system damage and does not clear fire or a breach. |
+| w-flak | Adv. Flak, Flak II, crystal weapons | weapons-flak-crystal.ts, cited-weapons.ts | wired. The four crystal guns ignore one shield layer. That 1 is not a WeaponDef field. |
+| augs | Augment rows missing from CATALOG | augments-missing.ts, extras/augments.ts | medbot, gel, and pheromone run and are not sold. Engi A, Slug A/B/C, and Mantis A/B/C start with them. Distraction Buoys skip the next advance when the fleet is already at 0. Adv. FTL Navigation is sold for 50 and the jump runs. Defense Scrambler is sold for 80 and blocks a deployed enemy Defense Drone I or II. Drone Reactor Booster stays out of the catalog and, when fitted, moves the System Repair drone at 62.5 percent of crew speed. Zoltan Shield Bypass is sold for 55. Crystal Vengeance stays out of the catalog and sells for the printed 40. The other missing rows stay catalog-only. |
+| sectors | Sector types | sectors.ts, cited-sectors.ts | Last Stand repair stations pay. Nebula fleet advance is 0.5 or 0.8. SECTOR_NAMES stay INVENTED. Beacon roll counts are not the map. |
 | rebels | Rebel and auto-ship rows | enemies-rebel.ts | catalog only. |
-| flagship | Flagship phase numbers | flagship.ts | catalog only. Boss fight stays INVENTED. |
+| flagship | Flagship phase numbers | flagship.ts, cited-enemies.ts | stage 1 on the shared grid. Destroying the hull applies stage 2, then stage 3, including the stage-3 Zoltan Shield of 12. Stages 1 and 2 pay sector-1 high scrap. Stage 3 pays none. Ion-room crew stay. The cutaway is traced and the fight still uses the two-row grid. Boss Laser and Boss Beam blocked. |
 | factions | Other non-player ship pages | enemies-factions.ts | catalog only. |
 | achievements | Achievement list | achievements.ts | catalog only. Unlocks are labels. |
-| stores | Store resource prices | sim.ts rollStock | fuel 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. Hull repair follows the sector. Other assortment rules stay catalog-only. |
-| drones | Drone schematics missing from swarm.ts | drones-missing.ts | catalog only. |
-| kin | Racial abilities missing from kin.ts | kin-gaps.ts | catalog, plus the Zoltan death burst of 15 HP in reap. Drone 7.5 is not applied. |
-| events | 881 remaining titles, four slices | events-0.ts through events-3.ts | cataloged. Not playable. |
+| stores | Store resource prices | sim.ts rollStock, cited-stores.ts | fuel, missiles, parts, and hull repair unchanged. Missing systems use the printed prices except Drone Control (75 and 85, unlabeled). Catalog augments and the front of the crew list are offered. Weapons and augments sell for half the purchase price, or for a printed sell line. citedStock adds 1, 2, or 3 slots from the seed, on top of the weapon slot in rollStock. Buying Medbay or Clone Bay replaces the other and keeps its level. Drone schematics are not stocked. A bought system does not add a room. |
+| drones | Drone schematics missing from swarm.ts | drones-missing.ts | Combat Drone Mark II deploys at 4 power and emits no shot. The Ion Intruder pulses inside 8.2–10 seconds, applies 3 ion, stuns for 6 seconds, and changes room. Neither is a SwarmKind and neither is stocked. The other rows stay catalog-only. |
+| kin | Racial abilities missing from kin.ts | kin-gaps.ts, sim.ts | Zoltan death burst of 15 HP in reap. A living Zoltan adds 1 bar in shields, engines, oxygen, medbay, or weapons. Ion does not remove it. A full system does not free reactor power. Crystal lockdown coats for 12s and recharges in 50s. Drone 7.5 is not applied. Rock fire-fighting is 167 percent of that crew member's share of the inferred 0.45 extinguish. Crystal fire-fighting is 83 percent of the same share. Fire Suppression stays 2 per second and is not scaled. Other racial abilities stay catalog-only. |
+| events | 881 remaining titles, four slices | events-0.ts through events-3.ts, cited-events.ts | 162 pages place one beacon and run a stated trade, scrap tier, hull change, fleet delay, or fight. Engi cache stays partial. Out-of-fuel pages are written and not placed. The template does not say which matching out-of-fuel page plays. Pages with no stated amount stay unwired. Rebel defector fights a Rebel ship. Its random crew, hull, pursuit, and boarders are not applied. Crystal scrap collector spends 35 scrap. Its crew and named weapons are not granted. |
 | comments | Paragraph cites on existing modules | content, hulls, sim, extras, UI | second pass landed. INFERRED or INVENTED marks the blocks with no wiki paragraph. |
 | score | Score lead formula | sim.ts runScore, Hangar START | D is 1 / 1.25 / 1.5. Initial scrap is 30 / 10 / 0 from the lit button. Rebel-held beacons still count. |
 
 ## Still pictures, not text
 
-Room art and tile coordinates are images. They stay INFERRED. Do not trace them from memory.
+Player hangar cutaways are traced from the hangar pictures in layouts.ts. Enemy room art is still one shared grid. Do not copy those bitmaps into the app.
 
 ## All pages
 
@@ -82,14 +82,14 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Abandoned station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Achievement — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Achievements — missing — Rows live in src/game/wiki/achievements.ts. Hull unlock strings are labels. There is no tracker.
-- [ ] Adv. FTL Navigation — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Adv. FTL Navigation — partial — Purchase price 50. With it fitted, a jump can target any beacon already visited, including one the Rebel Fleet overtook. The jump still spends one fuel. The page redirects to Augmentations.
 - [ ] Advanced Edition — partial — several AE systems exist. Not gated.
 - [ ] Advanced FTL Navigation — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Advanced Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Ancestry — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Ancient Device — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Ancient device — not-a-surface — same title as "Ancient Device" with different capitalization
-- [ ] Anti-Bio Beam — partial — Beam (Weapons) row id antibio is in WEAPONS and fitted on Slug A. Crew-only damage stays in a gap. Breach Bomb I is mounted beside it and waits for a free weapon bar.
+- [ ] Anti-Bio Beam — partial — Beam (Weapons) row id antibio is in WEAPONS and fitted on Slug A. Crew damage is 60 per room, not scaled by system damage. Pierce stays a gap. Breach Bomb I is mounted beside it and waits for a free weapon bar.
 - [ ] Anti-Ship Battery Firing on Lanius Ships — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Anti-ship battery firing on Lanius ships — not-a-surface — same title as "Anti-Ship Battery Firing on Lanius Ships" with different capitalization
 - [ ] Ariolimax — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
@@ -104,35 +104,35 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Asteroid field Lanius scavengers — not-a-surface — same title as "Asteroid Field Lanius Scavengers" with different capitalization
 - [ ] Asteroid mining colony — not-a-surface — same title as "Asteroid Mining Colony" with different capitalization
 - [ ] Augmentation — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Augmentations — partial — Purchasable rows are in extras/augments.ts. Defense Scrambler, Zoltan Shield Bypass, Adv. FTL Navigation, and the non-purchasable rows are in augments-missing.ts and are not wired.
+- [ ] Augmentations — partial — Purchasable rows are in extras/augments.ts. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay and does nothing with a clone bay. Slug Repair Gel adds 0.75 breach repair per second on every breached player room. Mantis Pheromones multiply your crew's move by 1.25. None of the three is sold. Engi A starts with the med-bot, Slug A/B/C start with the gel, and Mantis A/B/C start with the pheromones. Distraction Buoys skip the next fleet advance when the sector starts the fleet at 0, and they do nothing in sector 8. Adv. FTL Navigation is sold for 50. With it fitted, a jump can target any beacon already visited, including one the fleet overtook, and that jump still spends one fuel. Defense Scrambler is sold for 80. While it is fitted, an enemy Defense Drone I or II that is actually deployed does not shoot down a shot at your ship, and that drone does not spend its cooldown. Your own defense drones still fire. A generated enemy leaves its drone schematic undeployed, and Anti-Combat still has no enemy-drone list to stun. Drone Reactor Booster is not sold. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and it still applies no repair rate. Zoltan Shield Bypass is sold for 55. With it fitted, crew teleport, bomb teleport, and mind control pass a Zoltan Shield without spending it, and a damage bomb strikes the room. Hacking still cannot launch: the drone part is kept when the augment is fitted, and spent when it is not. A boarding drone is destroyed on contact either way. An enemy teleporter party does not cross a player bubble. The event exception for an initial boarding party has no separate path. Crystal Vengeance is not sold. A fitted copy sells for 40. A player hull hit rolls the 10 percent shard. Breach and stun are not applied, because the shot names no room, and the friendly-drone bug is not implemented. Crystal cruisers do not start with it.
 - [ ] Augments — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-Ship Warning in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship attacking civilian — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship attacking outpost — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship attacking civilian — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship attacking outpost — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Auto-ship attacking refueling outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship attacking small outpost — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship carrying shield virus — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship carrying shield virus — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Auto-ship close to star — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight (Crystal) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight in asteroid field — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight in nebula — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship fight near sun — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship fight (Crystal) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship fight in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship fight near sun — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Auto-ship in asteroid belt — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship in nebula — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship near radar station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship near sensor station — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near radar station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship near sensor station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Auto-ship near small space-station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship near storage station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship near storage station in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Auto-ship near storage station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship near storage station in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Auto-ship near storage vessel — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship near sun — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship pursuing civilian ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Auto-ship sits dormant — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship warning — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Auto-ship warning in nebula — not-a-surface — same title as "Auto-Ship Warning in Nebula" with different capitalization
+- [ ] Auto-ship warning — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Auto-ship warning in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Automated Re-Fueling Ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Automated Re-loader — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Automated Rebel Scout Attacking Refueling Outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -151,9 +151,9 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Battle Royale — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Battlefield wreckage — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Beacon — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Beacons — partial — map kinds exist. Names are INVENTED.
+- [ ] Beacons — partial — map kinds exist. Names are INVENTED. The Last Stand stamps three Federation Repair Stations. Taking the supplies grants 15 hull, one scrap roll from 22 to 44, 5 fuel, 4 missiles, and 5 drone parts, once. Distress and store markers, and the 19–24 beacon roll, are not what the map does.
 - [ ] Beam (Weapon) — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Beam (Weapons) — partial — Pike is id shear. Halberd, Glaive, Mini, and Anti-Bio are in WEAPONS. Boss Beam is BLOCKED: the section states no power, so no WeaponDef is emitted. Artillery Beam stays on the lance system. Length and pierce stay in gaps.
+- [ ] Beam (Weapons) — partial — Pike is id shear. Halberd, Glaive, Mini, and Anti-Bio are in WEAPONS. Crew HP is the printed per-room figure (15, 30, 45, or 60) and is not multiplied by tiles. Boss Beam is BLOCKED: the section states no power, so no WeaponDef is emitted. Artillery Beam stays on the lance system. Length, pierce, and chain stay gaps. Fire Beam has no crew figure.
 - [ ] Bird of Prey — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Black Market Weapon Trader — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Black Market Weapons Trader — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -164,7 +164,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Boarders: Humans (Abandoned) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans (Pirate) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Boarders: Humans in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Boarders: Humans jammed sensors — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans near sun — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Mantis — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -176,7 +176,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Boarders in plasma storm — not-a-surface — same title as "Boarders in Plasma Storm" with different capitalization
 - [ ] Boarding — partial — teleporter and a board timer. Not the full page.
 - [ ] Bomb (Weapon) — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Bomb (Weapons) — partial — src/game/content.ts — the bomb rows are in WEAPONS. strikeRoom skips hull damage. Crew figures stay in BOMB_GAPS.
+- [ ] Bomb (Weapons) — partial — src/game/content.ts — the bomb rows are in WEAPONS. strikeRoom skips hull damage. Printed crew HP is flat (Small Bomb 30, Breach I 30, Breach II 45, Fire Bomb 30; ion, stun, heal, repair, and lockdown bombs 0). Healing Burst adds 150 HP. Repair Burst removes 8 system damage, does not miss the shooter's own ship, and does not clear fire or a breach. Neither spends a Zoltan Shield. Aiming a bomb at your own ship is still not a control.
 - [ ] Bravais — partial — crystal-a in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid.
 - [ ] Brutal Exchange Between Several Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Brutal Exchange between Several Ships — not-a-surface — same title as "Brutal Exchange Between Several Ships" with different capitalization
@@ -227,7 +227,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Crewmembers — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed Pirate — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed pirate — not-a-surface — same title as "Crushed Pirate" with different capitalization
-- [ ] Crystal — partial — stat row. Lockdown ability not applied.
+- [ ] Crystal — partial — stat row. Lockdown coats a room for 12 seconds and recharges in 50. Fire-fighting speed 83% scales that crew member's share of the inferred 0.45 extinguish. It is not fireTaken.
 - [ ] Crystal (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal (Weapons) — partial — rows are in weapons-flak-crystal.ts and WEAPONS. kind stays laser. Pierce 1 is only in FLAK_CRYSTAL_GAPS.
 - [ ] Crystal Auto-ship fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -239,7 +239,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Crystal Cruiser — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystal Lockdown — missing — 12s lockdown and 50s recharge are in kin-gaps.ts. No crew ability is wired.
+- [ ] Crystal Lockdown — partial — a Crystal coats the room for 12 seconds and the ability recharges in 50. An FTL jump clears that cooldown unless the Crystal is in the clone bay. The page states no rate for breaking a coated door, so that break is not applied.
 - [ ] Crystal Lockdown ability — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal Rebel Fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal Rebel fight — not-a-surface — same title as "Crystal Rebel Fight" with different capitalization
@@ -252,13 +252,13 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Crystal civilian question — not-a-surface — same title as "Crystal Civilian Question" with different capitalization
 - [ ] Crystal collector of alien artifacts — not-a-surface — same title as "Crystal Collector of Alien Artifacts" with different capitalization
 - [ ] Crystal empty beacon — not-a-surface — same title as "Crystal Empty Beacon" with different capitalization
-- [ ] Crystal fight — not-a-surface — same title as "Crystal Fight" with different capitalization
-- [ ] Crystal fight choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystal fight with surrender offer (Human crew) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystal fight with surrender offer (hull repairs) — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystal scrap collector — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Crystal fight choice — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Crystal fight with surrender offer (Human crew) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Crystal fight with surrender offer (hull repairs) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Crystal scrap collector — partial — one beacon in Hidden Crystal Worlds. Offering 35 scrap spends 35 scrap. The Crystal crewmember, Crystal Lockdown Bomb, and Crystal Burst Mark II are not granted. Turning him down does nothing.
 - [ ] Crystal sector — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystal ship attacking Federation loyalists — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystal ship attacking Federation loyalists — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Crystal ship convoy fight — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystal store — not-a-surface — same title as "Crystal Store" with different capitalization
 - [ ] Crystalline Border Guard — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -268,7 +268,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Crystalline Research Facility — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystalline Ship Carrying Humans — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystalline Ship Engaged with Rebel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystalline Ship Messaging About Rebels — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Crystalline Ship Messaging About Rebels — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Crystalline border guard — not-a-surface — same title as "Crystalline Border Guard" with different capitalization
 - [ ] Crystalline cache — not-a-surface — same title as "Crystalline Cache" with different capitalization
 - [ ] Crystalline men buried — not-a-surface — same title as "Crystalline Men Buried" with different capitalization
@@ -291,14 +291,14 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Dangerous looking ship — not-a-surface — same title as "Dangerous Looking Ship" with different capitalization
 - [ ] Dangerous looking slug ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] De-Activated Rebel Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Deactivated Auto-ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Deactivated Auto-ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Deactivated Rebel Automated Scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Deactivated rebel automated scout — not-a-surface — same title as "Deactivated Rebel Automated Scout" with different capitalization
 - [ ] Debris Field Zoltan Cruiser — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Debris field Zoltan cruiser — not-a-surface — same title as "Debris Field Zoltan Cruiser" with different capitalization
 - [ ] Default rewards (generic) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Defense Drones Don't Do D'anything! — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Defense Scrambler — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Defense Scrambler — partial — Sold for 80. An enemy Defense Drone I or II that is actually deployed does not shoot down a shot at the ship carrying it, and does not spend cooldown. The player's own defense drones still fire. Generated enemies leave the drone schematic undeployed. Anti-Combat is named by the block and still has no enemy-drone list to stun.
 - [ ] Dense Asteroid Field Distress Call — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Dense asteroid field distress — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Dense asteroid field distress call — not-a-surface — same title as "Dense Asteroid Field Distress Call" with different capitalization
@@ -309,7 +309,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Disabled Rock ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Disabled Rock transport — not-a-surface — same title as "Disabled Rock Transport" with different capitalization
 - [ ] Disintegration Ray — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Distraction Buoys — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Distraction Buoys — partial — before sector 8, a fleet already at 0 skips its next advance. A fleet already ahead still loses one jump at sector start. The article was not re-opened, so other sentences on the page are not claimed.
 - [ ] Distress: Civilian Ship Chased by Pirate — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Distress: civilian ship chased by Pirate — not-a-surface — same title as "Distress: Civilian Ship Chased by Pirate" with different capitalization
 - [ ] Distress Beacon Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -341,8 +341,8 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Drifting refugee ship distress (Pirate) — not-a-surface — same title as "Drifting Refugee Ship Distress (Pirate)" with different capitalization
 - [ ] Drifting refugee ship distress (Slug) — not-a-surface — same title as "Drifting Refugee Ship Distress (Slug)" with different capitalization
 - [ ] Drifting refugee ship distress (Zoltan) — not-a-surface — same title as "Drifting Refugee Ship Distress (Zoltan)" with different capitalization
-- [ ] Drone Control — partial — eight schematic ids in swarm.ts. System price left null. Some drone pages not split out.
-- [ ] Drone Reactor Booster — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Drone Control — partial — eight SwarmKind ids in swarm.ts. Combat Drone Mark II deploys at 4 power and emits no shot, because the page prints no cooldown. The Ion Intruder pulses on a wait drawn from 8.2 to 10 seconds, applies 3 ion to a system that is not destroyed, stuns enemy crew in that room for 6 seconds, and then changes room. The timer freezes while unpowered. Neither id is a SwarmKind, and neither schematic is stocked. Health 125, speed 18, and the door-break rate are not applied. System price left null. Some drone pages not split out.
+- [ ] Drone Reactor Booster — partial — Not sold. A fitted copy moves the System Repair drone at 62.5 percent of the 0.6 second crew walk; without it, that drone moves at 50 percent. Boarding, combat, hull, and defense drones are not sped up. The page gives no repair seconds, so the drone still applies no repair rate. Engi cruisers do not start with it.
 - [ ] Drone Recovery Arm — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Drone Schematic — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Drone Schematics — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
@@ -382,7 +382,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Engi Homeworlds — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Mantis Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Mantis fight — not-a-surface — same title as "Engi Mantis Fight" with different capitalization
-- [ ] Engi Med-bot Dispersal — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Engi Med-bot Dispersal — partial — heals your crew at 1.6 HP per second outside the medbay while that medbay is powered. A clone bay stops it. Crew on another ship are skipped. Medbay level does not change the rate. No purchase price, so it is not sold. Engi A starts with it. Engi A's medbay power is 0, so the heal waits for a bar.
 - [ ] Engi Pirate Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Pirate fight — not-a-surface — same title as "Engi Pirate Fight" with different capitalization
 - [ ] Engi Rebel Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -393,13 +393,13 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Engi Surrender — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi attacked by Mantis — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi attacked by Rebel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Engi cache — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi cache — partial — wiki/engi-cache.ts. In Engi Controlled Sector and Engi Homeworlds, booby-trapping spends 2 missiles and delays the Rebel Fleet for 2 turns. Securing grants medium scrap from Template:Scrap rewards (Medium) for the hangar difficulty and sector. The page does not name the drone schematic, so none is granted.
 - [ ] Engi colony hiding — not-a-surface — same title as "Engi Colony Hiding" with different capitalization
 - [ ] Engi distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Engi distress Rebel fight — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi distress Rebel fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Engi distress call — not-a-surface — same title as "Engi Distress Call" with different capitalization
 - [ ] Engi empty beacon — not-a-surface — same title as "Engi Empty Beacon" with different capitalization
-- [ ] Engi fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Engi fight (Zoltan) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi fleet discussion — not-a-surface — same title as "Engi Fleet Discussion" with different capitalization
 - [ ] Engi free stuff — not-a-surface — same title as "Engi Free Stuff" with different capitalization
@@ -409,21 +409,21 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Engi ship attacked by Mantis ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi ship distress call — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi ship under attack by Rebel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Engi smashed ships — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Engi smashed ships — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Engi store — not-a-surface — same title as "Engi Store" with different capitalization
 - [ ] Engi surrender — not-a-surface — same title as "Engi Surrender" with different capitalization
 - [ ] Engi virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engines — present — src/game/content.ts — Engines, System Upgrades and FTL Drive charge time: evasion and the charge tables are what evasionPercent reads.
 - [ ] Environmental Hazard — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Environmental Hazards — partial — asteroids and ASB timers exist in combat. Not audited number-for-number.
+- [ ] Environmental Hazards — partial — a nebula beacon advances the fleet by 0.5 outside a nebula sector and by 0.8 inside one. The anti-ship battery shot is 3 hull and a breach. A defense drone does not shoot it down. A Zoltan Shield does not take it; the hull does. It does not arm on a nebula beacon. The shot timer is still the old 14 seconds. Asteroid numbers were not re-audited.
 - [ ] Escape Pod Floating Nearby — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Escape pod — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Escape pod floating nearby — not-a-surface — same title as "Escape Pod Floating Nearby" with different capitalization
 - [ ] Escort FTL haywire civilian ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Escort Nearby Ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Escort civilian ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Escort civilians — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Escort civilians FTL haywire — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Escort civilians — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Escort civilians FTL haywire — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Escort nearby ship — not-a-surface — same title as "Escort Nearby Ship" with different capitalization
 - [ ] Event — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Events — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -441,7 +441,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] FTL haywire civilian ship escort — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] FTL iPad Edition — not-a-surface — wiki process, not a game system
 - [ ] Federation Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Federation Deserters — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Federation Deserters — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Federation Fleet — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Federation Fleet and Rebel Fleet Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Federation Science-Craft Docked with Lanius — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -472,16 +472,16 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Flak Artillery — partial — flakart.ts. Flight time and spread INFERRED.
 - [ ] Forward Scout of Rebel Fleet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Forward scout of Rebel fleet — not-a-surface — same title as "Forward Scout of Rebel Fleet" with different capitalization
-- [ ] Free Drone Schematic — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Free Drone Schematic — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Free Stuff — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Free Weapon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Free drone schematic — not-a-surface — same title as "Free Drone Schematic" with different capitalization
-- [ ] Free scrap with resources — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Free scrap with resources — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Free scrap with resources (Engi) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Free scrap with resources (Lanius) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Free scrap with resources (Lanius) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Free scrap with resources (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Free stuff — not-a-surface — same title as "Free Stuff" with different capitalization
-- [ ] Free weapon — not-a-surface — same title as "Free Weapon" with different capitalization
+- [ ] Free weapon — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Friendly Refugee — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Friendly Ship Out of Fuel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Friendly Slaver — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
@@ -527,7 +527,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Hacking — partial — spike.ts. Several timings INFERRED.
 - [ ] Hacking Stun — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Hazards — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Healing Burst — partial — Bomb (Weapons) row is in WEAPONS and fitted on Slug B. Hull damage is 0. Crew heal stays in BOMB_GAPS.
+- [ ] Healing Burst — partial — Bomb (Weapons) row is in WEAPONS and fitted on Slug B. Hull damage is 0. A hit adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member, and does not spend a Zoltan Shield. It can still miss. Aiming it at your own ship is still not a control.
 - [ ] Heavily Damaged Federation Ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Heavily Damaged Federation Ship Random Event — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Heavily damaged Federation ship — not-a-surface — same title as "Heavily Damaged Federation Ship" with different capitalization
@@ -621,34 +621,34 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Lanius empty distress beacon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius empty distress beacon 1 — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius empty distress beacon 2 — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius fight distress — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius fight distress — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius fight distress trap — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius fight in asteroid field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius fight near pulsar — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius fight with friendly ASB support — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius fight near pulsar — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius fight with friendly ASB support — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius free stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius lone ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius lone ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius merchant with improved translator — not-a-surface — same title as "Lanius Merchant with Improved Translator" with different capitalization
-- [ ] Lanius powered-down ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius powered-down ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius salvaging — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius salvaging small civilian craft — not-a-surface — same title as "Lanius Salvaging Small Civilian Craft" with different capitalization
 - [ ] Lanius scavenger trader — not-a-surface — same title as "Lanius Scavenger Trader" with different capitalization
-- [ ] Lanius ship absorbing automated scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship absorbing automated scout — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius ship absorbing jump beacon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius ship absorbing rebel base — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship attacking Mantis — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship attacking Rock — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship attacking Slug — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship attacking civilian distress — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship in rich debris field — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship attacking Mantis — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius ship attacking Rock — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius ship attacking Slug — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius ship attacking civilian — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius ship attacking civilian distress — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius ship in rich debris field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius ship mining Mantis ship's hull — not-a-surface — same title as "Lanius Ship Mining Mantis Ship's Hull" with different capitalization
 - [ ] Lanius ship mining Mantis ship hull — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius ship salvager — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius ship salvager — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius store — not-a-surface — same title as "Lanius Store" with different capitalization
-- [ ] Lanius trader — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Lanius trader with translator — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Lanius trader — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Lanius trader with translator — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Lanius vessel in rich debris field — not-a-surface — same title as "Lanius Vessel in Rich Debris Field" with different capitalization
 - [ ] Lanius with Federation science craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius with docked science craft — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -663,7 +663,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Lasers (Weapon) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Last Stand empty beacon — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Legendary Thief KazaaakplethKilik Random Event — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Legendary thief KazaaakplethKilik — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Legendary thief KazaaakplethKilik — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Legendary thief KazaaakplethKilik Random Event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
 - [ ] Legendary thief KazaaakplethKilik random event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
 - [ ] Lifeform Scanner — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
@@ -694,7 +694,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Mantis Fugitive — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Homeworlds — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Hunting Slugs — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis Pheromones — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis Pheromones — partial — your crew move 25% faster on your ship and while boarding. No purchase price, so it is not sold. Mantis A/B/C start with it. The event text on this title is not a separate playable event.
 - [ ] Mantis Ship-Collectors — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Ship Doesn't See You — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Ship Rock Body Parts — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -703,7 +703,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Mantis Ships Battle for Rock Freighter — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Venture Close to Sun — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis War Camp — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis War Camp — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis attacking Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis attacking Crystal ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis attacking Engi station — not-a-surface — same title as "Mantis Attacking Engi Station" with different capitalization
@@ -714,32 +714,32 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Mantis attacking smaller Crystal ship — not-a-surface — same title as "Mantis Attacking Smaller Crystal Ship" with different capitalization
 - [ ] Mantis boarders — not-a-surface — same title as "Mantis Boarders" with different capitalization
 - [ ] Mantis empty beacon — not-a-surface — same title as "Mantis Empty Beacon" with different capitalization
-- [ ] Mantis fight — not-a-surface — same title as "Mantis Fight" with different capitalization
-- [ ] Mantis fight (Engi) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight (Slug) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight choice in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight in nebula (Slug) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight (Engi) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight (Slug) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight (Zoltan) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight choice — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight choice in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis fight in nebula (Slug) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis fight in nebula choice — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fight near sun — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis fight near sun — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis fight with boarders — not-a-surface — same title as "Mantis Fight with Boarders" with different capitalization
 - [ ] Mantis fight with boarders (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis fugitive — not-a-surface — same title as "Mantis Fugitive" with different capitalization
 - [ ] Mantis hunting Slugs — not-a-surface — same title as "Mantis Hunting Slugs" with different capitalization
 - [ ] Mantis in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis in nebula — not-a-surface — same title as "Mantis in Nebula" with different capitalization
-- [ ] Mantis outcasts — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis ship-collectors — not-a-surface — same title as "Mantis Ship-Collectors" with different capitalization
+- [ ] Mantis outcasts — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis ship-collectors — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis ship Rock body parts — not-a-surface — same title as "Mantis Ship Rock Body Parts" with different capitalization
-- [ ] Mantis ship attacking Crystal — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis ship attacking Slug ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship attacking Crystal — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis ship attacking Slug ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Mantis ship attacking civilian — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis ship comm chatter — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis ship comm chatter intercept — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis ship doesn't see you — not-a-surface — same title as "Mantis Ship Doesn't See You" with different capitalization
-- [ ] Mantis ship with Rock body parts — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Mantis ship with Rock body parts — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Mantis ships battle for Rock Freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
 - [ ] Mantis ships battle for Rock freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
 - [ ] Mantis store — not-a-surface — same title as "Mantis Store" with different capitalization
@@ -785,18 +785,18 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Nisos — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] No Escape — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] No fuel: Auto-ship fight — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Auto-ship warning — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Engi ship repair — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Mantis fight — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Auto-ship warning — missing — the choice is written and is not placed. The page names no sector.
+- [ ] No fuel: Engi ship repair — missing — the choice is written and is not placed. The page names no sector.
+- [ ] No fuel: Mantis fight — missing — the choice is written and is not placed. The page names no sector.
 - [ ] No fuel: Rebel assistant hails — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Rebel fight — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Rebel fleet delay — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: Slug fuel depot — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: Rebel fight — missing — the choice is written and is not placed. The page names no sector.
+- [ ] No fuel: Rebel fleet delay — missing — the choice is written and is not placed. The page names no sector.
+- [ ] No fuel: Slug fuel depot — missing — the choice is written and is not placed. The page names no sector.
 - [ ] No fuel: Slug fuel trader — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: automated refueling ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: automated refueling ship — missing — the choice is written and is not placed. The page names no sector.
 - [ ] No fuel: drifting debris — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: explore the system — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] No fuel: friendly refugee — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] No fuel: explore the system — missing — the choice is written and is not placed. The page names no sector.
+- [ ] No fuel: friendly refugee — missing — the choice is written and is not placed. The page names no sector.
 - [ ] No fuel: fuel trader — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] No fuel: fuel trader (distress) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] No fuel: fuel trader (distress off) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -843,41 +843,41 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Pirate attacking civilian distress — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Pirate attacking civilian in Lanius sector — not-a-surface — same title as "Pirate Attacking Civilian in Lanius Sector" with different capitalization
 - [ ] Pirate blockade — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate briber — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate briber — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate bribing you for unknown ship — not-a-surface — same title as "Pirate Bribing You for Unknown Ship" with different capitalization
 - [ ] Pirate charges Crystalline transport — not-a-surface — same title as "Pirate Charges Crystalline Transport" with different capitalization
 - [ ] Pirate empty beacon — not-a-surface — same title as "Pirate Empty Beacon" with different capitalization
 - [ ] Pirate engine hack — not-a-surface — same title as "Pirate Engine Hack" with different capitalization
-- [ ] Pirate engine hacker — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight — not-a-surface — same title as "Pirate Fight" with different capitalization
-- [ ] Pirate fight (Engi) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight (Lanius) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight (Slug) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight choice in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate engine hacker — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight (Engi) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight (Lanius) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight (Slug) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight (Zoltan) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight choice in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate fight distress — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Pirate fight distress trap — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight in asteroid field — not-a-surface — same title as "Pirate Fight in Asteroid Field" with different capitalization
-- [ ] Pirate fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate fight in nebula choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight near pulsar — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate fight near sun — not-a-surface — same title as "Pirate Fight Near Sun" with different capitalization
+- [ ] Pirate fight near pulsar — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate fight near sun — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate in Nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Pirate in nebula — not-a-surface — same title as "Pirate in Nebula" with different capitalization
-- [ ] Pirate ship attacking Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship attacking civilian — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship attacking civilian (Lanius) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship attacking civilian distress — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship distress trap — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship selling drones — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship attacking Crystal — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ship attacking civilian — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ship attacking civilian (Lanius) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ship attacking civilian distress — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ship distress trap — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ship selling drones — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate ship selling unknown weapon — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ship selling weapon — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Pirate ships in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Pirate ship selling weapon — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Pirate ships in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate slaver — not-a-surface — same title as "Pirate Slaver" with different capitalization
-- [ ] Pirate smuggler — not-a-surface — same title as "Pirate Smuggler" with different capitalization
+- [ ] Pirate smuggler — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate smuggler ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Pirate store — not-a-surface — same title as "Pirate Store" with different capitalization
-- [ ] Pirate toll — not-a-surface — same title as "Pirate Toll" with different capitalization
+- [ ] Pirate toll — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Pirate trap — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plagued station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma Storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -958,9 +958,9 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Rebel Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel Fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel Fight in Last Stand — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel Flagship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Rebel Flagship — partial — a new boss fight applies stage 1 on the shared grid: hull 20, reactor 42, shields 8, engines 2, oxygen 2, piloting 3, weapons bar 3, 11 humans, Boss Ion powered, Boss Missile mounted and unpowered. Destroying that hull applies stage 2 (hull 22, reactor 44, engines 3, Boss Missile only), then stage 3 (hull 20, reactor 32, engines 6, weapons level 4, Zoltan Shield 12). Door, cloaking, medbay, hacking, drones, teleporter, and mind control stay off this grid. The ion-room crew are not removed. Boss Laser and Boss Beam have no printed power. The cutaway is traced and the fight still uses the two-row grid: stage 1 is 52 squares, stage 2 is 42, stage 3 is 32, and the two Hard links are 4. Destroying stage 1 or 2 pays sector-1 high scrap (Easy 27–32, Normal and Hard 19–23). Stage 3 pays none. The fight does not stop for a reward screen.
 - [ ] Rebel Flagship Construction — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel Fleet — partial — a fleet column exists. Pursuit timings not copied.
+- [ ] Rebel Fleet — partial — a nebula beacon outside a nebula sector advances 0.5, and one inside a nebula sector advances 0.8. The battery is 3 hull and a breach, off on nebula beacons and off on an Easy exit. It cannot be shot down, and a Zoltan Shield does not take it. Jumping into an overtaken beacon before sector 8 fights a Rebel Elite and pays 1 fuel, with no scrap. Waiting there with no fuel pays 4 fuel for that Elite. Sector 8 does not use this column. A fueled wait still scrapes 2 hull, which the page does not state. The out-of-fuel wait exception for the battery is not decided. Rebel-held beacons still count toward score. Distraction Buoys skip the next advance when the map starts the fleet at 0. The Elite's hull and guns stay the shared grid, because Elite Fighter and Elite Assault print ranges.
 - [ ] Rebel Fleet Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel Fleet fight — not-a-surface — same title as "Rebel Fleet Fight" with different capitalization
 - [ ] Rebel Scout Attacking Refueling Outpost — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -986,47 +986,47 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Rebel attacking refueling outpost — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel automated-scout in asteroid belt — not-a-surface — same title as "Rebel Automated-Scout in Asteroid Belt" with different capitalization
 - [ ] Rebel boarders in nebula — not-a-surface — same title as "Rebel Boarders in Nebula" with different capitalization
-- [ ] Rebel checkpoint — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel checkpoint — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel civilian checkpoint — not-a-surface — same title as "Rebel Civilian Checkpoint" with different capitalization
-- [ ] Rebel defector — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel defector — partial — one beacon in Rebel Controlled Sector or Rebel Stronghold. Accepting the proposal fights a Rebel ship on the shared grid. The random crew, 3 hull, engine damage, doubled pursuit, and boarders are not applied. Rejecting him is not a choice, because that result branches.
 - [ ] Rebel empty beacon — not-a-surface — same title as "Rebel Empty Beacon" with different capitalization
-- [ ] Rebel fight — not-a-surface — same title as "Rebel Fight" with different capitalization
-- [ ] Rebel fight (Crystal) — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight (Engi) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight (Lanius) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight (Slug) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight among Federation and Rebel fleets — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight among Rebel fleet — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight (Crystal) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight (Engi) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight (Lanius) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight (Slug) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight among Federation and Rebel fleets — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight among Rebel fleet — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel fight chance — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel fight chance in nebula — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight choice in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight choice in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel fight in Last Stand — not-a-surface — same title as "Rebel Fight in Last Stand" with different capitalization
-- [ ] Rebel fight in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel fight in nebula choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight in plasma storm — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight near pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel fight with boarders — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel fight in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight near pulsar — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel fight with boarders — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel in Plasma Storm — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel in nebula — not-a-surface — same title as "Rebel in Nebula" with different capitalization
 - [ ] Rebel in plasma storm — not-a-surface — same title as "Rebel in Plasma Storm" with different capitalization
 - [ ] Rebel scout attacking refueling outpost — not-a-surface — same title as "Rebel Scout Attacking Refueling Outpost" with different capitalization
 - [ ] Rebel scout pursuing civilian ship — not-a-surface — same title as "Rebel Scout Pursuing Civilian Ship" with different capitalization
-- [ ] Rebel ship attacking Crystal ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel ship attacking Federation loyalists — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel ship attacking civilians in Last Stand — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel ship attacking refueling outpost — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship attacking Crystal ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel ship attacking Federation loyalists — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel ship attacking civilians in Last Stand — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel ship attacking refueling outpost — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel ship in nebula — not-a-surface — same title as "Rebel Ship in Nebula" with different capitalization
 - [ ] Rebel ship laying down fire on Crystalline vessel — not-a-surface — same title as "Rebel Ship Laying Down Fire on Crystalline Vessel" with different capitalization
 - [ ] Rebel ship nearby — not-a-surface — same title as "Rebel Ship Nearby" with different capitalization
-- [ ] Rebel ship supplying civilians — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Rebel ship warning — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel ship supplying civilians — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rebel ship warning — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel ship with boarders — not-a-surface — same title as "Rebel Ship With Boarders" with different capitalization
-- [ ] Rebel shipyard — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel shipyard — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel store — not-a-surface — same title as "Rebel Store" with different capitalization
 - [ ] Rebel supplying civilians — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rebel transport — not-a-surface — same title as "Rebel Transport" with different capitalization
-- [ ] Rebel transport ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rebel transport ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rebel unarmed defector — not-a-surface — same title as "Rebel Unarmed Defector" with different capitalization
 - [ ] Rebels — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Rebels Supplying Civilians — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
@@ -1039,9 +1039,9 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Refuel Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Refuel station — not-a-surface — same title as "Refuel Station" with different capitalization
 - [ ] Refueling Platform Garbled Broadcast — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Refueling platform — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Refueling platform garbled broadcast — not-a-surface — same title as "Refueling Platform Garbled Broadcast" with different capitalization
-- [ ] Refueling station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Refueling platform — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Refueling platform garbled broadcast — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Refueling station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Refugee — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee (Pirate) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee (Slug) — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1057,11 +1057,11 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Refugee ship with communications down — not-a-surface — same title as "Refugee Ship with Communications Down" with different capitalization
 - [ ] Refugee with communications down — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Remote Settlement — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Remote settlement — not-a-surface — same title as "Remote Settlement" with different capitalization
+- [ ] Remote settlement — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Repair Arm — partial — src/game/extras/augments.ts — the 15% cut and the 2 hull repair run. Score s is not reduced by the cut.
 - [ ] Repair Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Repair Station in Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Repair station — not-a-surface — same title as "Repair Station" with different capitalization
+- [ ] Repair station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Repair station in Last Stand — not-a-surface — same title as "Repair Station in Last Stand" with different capitalization
 - [ ] Research Station Near Pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Research Station near Pulsar — not-a-surface — same title as "Research Station Near Pulsar" with different capitalization
@@ -1097,46 +1097,46 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Rock War Vessel Encounter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock and Slug standoff — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock armoured transport — not-a-surface — same title as "Rock Armoured Transport" with different capitalization
-- [ ] Rock atheists — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock atheists — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rock boarders near sun — not-a-surface — same title as "Rock Boarders Near Sun" with different capitalization
 - [ ] Rock bride — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock bride transport — not-a-surface — same title as "Rock Bride Transport" with different capitalization
 - [ ] Rock deserters — not-a-surface — same title as "Rock Deserters" with different capitalization
 - [ ] Rock empty beacon — not-a-surface — same title as "Rock Empty Beacon" with different capitalization
-- [ ] Rock fight — not-a-surface — same title as "Rock Fight" with different capitalization
+- [ ] Rock fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rock fight choice — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rock fight in asteroid field — not-a-surface — same title as "Rock Fight in Asteroid Field" with different capitalization
-- [ ] Rock fight in nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rock fight with boarders — not-a-surface — same title as "Rock Fight With Boarders" with different capitalization
-- [ ] Rock fight with boarders in asteroid field — not-a-surface — same title as "Rock Fight With Boarders in Asteroid Field" with different capitalization
+- [ ] Rock fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rock fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rock fight with boarders — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rock fight with boarders in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rock live mine — not-a-surface — same title as "Rock Live Mine" with different capitalization
 - [ ] Rock pirate fight — not-a-surface — same title as "Rock Pirate Fight" with different capitalization
 - [ ] Rock pirate fight in asteroid field — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock pirate fight near sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock pirate in asteroid field — not-a-surface — same title as "Rock Pirate in Asteroid Field" with different capitalization
 - [ ] Rock pirate near sun — not-a-surface — same title as "Rock Pirate Near Sun" with different capitalization
-- [ ] Rock pirates fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rock pirates fight in asteroid field — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rock pirates fight near sun — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock pirates fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rock pirates fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Rock pirates fight near sun — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rock ship being mined by Lanius — not-a-surface — same title as "Rock Ship Being Mined by Lanius" with different capitalization
-- [ ] Rock ship in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Rock ship in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Rock ship in uncharted nebula plasma storm — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock store — not-a-surface — same title as "Rock Store" with different capitalization
 - [ ] Rock war vessel encounter — not-a-surface — same title as "Rock War Vessel Encounter" with different capitalization
 - [ ] Rockman — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rockmen — partial — stat row. Firefight speed is not fireTaken.
+- [ ] Rockmen — partial — stat row. Fire-fighting speed 167% scales that crew member's share of the inferred 0.45 extinguish. It is not fireTaken. Fire Suppression is not scaled.
 - [ ] Rupturing Zoltan Freighter — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rupturing Zoltan freighter — not-a-surface — same title as "Rupturing Zoltan Freighter" with different capitalization
 - [ ] Science craft docked with Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Score — partial — src/game/sim.ts — Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. The lit hangar button sets initial scrap to 30 / 10 / 0, and that scrap is not in s. Rebel-held beacons still count because the fleet column is INVENTED. Selling scrap is not a control.
+- [ ] Score — partial — src/game/sim.ts — Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. The lit hangar button sets initial scrap to 30 / 10 / 0, and that scrap is not in s. Rebel-held beacons still count because the fleet column is INVENTED. Selling a weapon or augment adds that scrap to s.
 - [ ] Scrap — partial — src/game/sim.ts — scrap is the spendable currency. Score s excludes starting scrap and the Scrap Recovery Arm bonus. Repair Arm does not reduce s.
 - [ ] Scrap Hoarder — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Scrap Recovery Arm — partial — src/game/extras/augments.ts — Misc. Augmentations: +10% is applied to the wallet and kept out of Score s. Rounded down.
 - [ ] Sector — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Sectors — missing — SECTOR_TYPES is in sectors.ts. SECTOR_NAMES in content.ts stay INVENTED. The page does not print a generation order.
-- [ ] Sell drone parts for scrap — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Sectors — partial — SECTOR_TYPES is in sectors.ts. SECTOR_NAMES in content.ts stay INVENTED. Entering The Last Stand still grants 10 hull and 10 fuel. Three repair stations then pay 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. The 19–24 beacon roll, the color chances, and the hostile/neutral counts are not what the map generates.
+- [ ] Sell drone parts for scrap — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Sell fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Sell missiles for scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Sell missiles for scrap — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Selling Drone Parts Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Selling Missiles Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Selling drone parts station — not-a-surface — same title as "Selling Drone Parts Station" with different capitalization
@@ -1145,7 +1145,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Settlement Mercenary Work — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Settlement mercenary work — not-a-surface — same title as "Settlement Mercenary Work" with different capitalization
 - [ ] Shield Charge Booster — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Shields — partial — layer times cited. Full upgrade table not copied.
+- [ ] Shields — partial — layer times cited. Heavy Pierce and the four crystal guns ignore one layer; a second layer stops the shot and drops one bubble. Beams still lose 1 damage per layer and do not drop a bubble. Full upgrade table not copied.
 - [ ] Shields Holding — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Ship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Ship Achievements — missing — Rows live in src/game/wiki/achievements.ts. Not a tracker.
@@ -1194,8 +1194,8 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Single Life Form on Moon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Single life form on moon — not-a-surface — same title as "Single Life Form on Moon" with different capitalization
 - [ ] Skills — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Slaver (friendly) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slaver (hostile) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slaver (friendly) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slaver (hostile) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Slocknog — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Slug Boarding Rock Freighter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1210,7 +1210,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Slug Fight in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Home Nebula — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Slug Home Nebula Surrender — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Slug Home Nebula surrender — not-a-surface — same title as "Slug Home Nebula Surrender" with different capitalization
+- [ ] Slug Home Nebula surrender — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Slug Home nebula surrender — not-a-surface — same title as "Slug Home Nebula Surrender" with different capitalization
 - [ ] Slug Mantis fight — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Mantis fight in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1220,7 +1220,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Slug Pirate fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Rebel — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Rebel fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug Repair Gel — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Slug Repair Gel — partial — every breached player room gains 0.75 repair per second, including an empty room, stacked on crew repair. No purchase price, so it is not sold. Slug A/B/C start with it.
 - [ ] Slug Repair Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Sabotage Oxygen System — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Ships — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1238,19 +1238,19 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Slug disable Door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
 - [ ] Slug disable door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
 - [ ] Slug doors hacker — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug drink — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug drink — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Slug empty beacon — not-a-surface — same title as "Slug Empty Beacon" with different capitalization
 - [ ] Slug empty nebula beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug exposed in open space — not-a-surface — same title as "Slug Exposed in Open Space" with different capitalization
 - [ ] Slug fake store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Slug fight in ion storm — not-a-surface — same title as "Slug Fight in Ion Storm" with different capitalization
-- [ ] Slug fight in nebula — not-a-surface — same title as "Slug Fight in Nebula" with different capitalization
-- [ ] Slug fight in plasma storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug hacker (choice) — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug hacker (doors) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug hacker (medical) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug hacker (oxygen) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug fight in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slug fight in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slug hacker (choice) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slug hacker (doors) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slug hacker (medical) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Slug hacker (oxygen) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Slug medical hacker — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug moons question — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug nebula empty beacon — not-a-surface — same title as "Slug Nebula Empty Beacon" with different capitalization
@@ -1279,7 +1279,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Smouldering Engi Research Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Smuggler — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Soundtrack — not-a-surface — wiki process, not a game system
-- [ ] Space Station Under Construction — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Space Station Under Construction — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Space Station under Construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
 - [ ] Space station under construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
 - [ ] Special events crewmembers — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
@@ -1307,7 +1307,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Store in nebula (Uncharted) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Store in uncharted nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Stores — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Stores and resources — partial — src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. Hull repair uses the sector rate. The 2–4 assortment slots are not rolled.
+- [ ] Stores and resources — partial — src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. Hull repair uses the sector rate. Missing systems are listed at the printed prices (Shields 125, Medbay 50, Clone Bay 50, Teleporter 90, Cloaking 150, Mind Control 75, Hacking 80, Sensors 40, Doors 60, Backup Battery 35). Drone Control is not offered. Catalog augments and the first crew races are buyable. Weapons and augments sell for half the purchase price, rounded down, unless the page prints a sell amount. Drone schematics are not sold. The item slots beyond fuel, missiles, drone parts, hull repair, and the weapon slot are 1, 2, or 3, from the seed. A bought system does not add a room. Buying Medbay or Clone Bay replaces the other and keeps its level.
 - [ ] Surrender — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Sweet Revenge — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] System Repair Drone — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
@@ -1326,8 +1326,8 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] The Basilisk — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] The Black Raven — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] The Crystal Cruiser — partial — Bravais and Carnelian are in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid. Unlocks are labels.
-- [ ] The Engi Cruiser — partial — Torus, Vortex, Tetragon in hulls.ts. Med-bot, Drone Reactor Booster, second repair drone, Defense Scrambler still unfitted.
-- [ ] The Engi Virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Engi Cruiser — partial — Torus, Vortex, Tetragon in hulls.ts. Torus starts with Engi Med-bot Dispersal. Drone Reactor Booster, the second repair drone, and Defense Scrambler stay unfitted.
+- [ ] The Engi Virus — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] The Engi virus — not-a-surface — same title as "The Engi Virus" with different capitalization
 - [ ] The Federation Cruiser — partial — Osprey, Nisos, Fregatidae in hulls.ts. Artillery and flak artillery are systems, not a traced room picture.
 - [ ] The Final Boss — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
@@ -1337,15 +1337,15 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] The Kestrel Cruiser — partial — layouts A–C in hulls.ts (The Kestrel, Red-Tail, The Swallow). Tile positions INFERRED. Power fill INFERRED. Unlocks are labels.
 - [ ] The Lanius Cruiser — partial — Kruos starts with Chain Burst Laser and Ion Stunner. Shrike starts with Advanced Flak. Room positions are INFERRED.
 - [ ] The Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] The Mantis Cruiser — partial — Gila Monster, Basilisk, and Theseus are in HULLS. Mantis Pheromones stays unfitted. Teleporter power is INFERRED. Room grid is the shared player grid.
-- [ ] The Mercenary — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] The Mantis Cruiser — partial — Gila Monster, Basilisk, and Theseus are in HULLS and start with Mantis Pheromones. Teleporter power is INFERRED. Room grid is the shared player grid.
+- [ ] The Mercenary — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] The Nesasio — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] The Osprey — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] The Rebel Flagship — partial — Phase numbers are in flagship.ts. The boss in makeEnemy is still INVENTED. Boss Laser and Boss Beam have no printed power, so they are BLOCKED. Boss Ion power is 3. Boss Missile power is 4. The room diagram is a picture.
+- [ ] The Rebel Flagship — partial — Phase numbers are in flagship.ts and are applied when that stage's hull is destroyed. The room grid is still the shared enemy grid. Boss Laser and Boss Beam have no printed power, so they are BLOCKED. Boss Ion power is 3. Boss Missile power is 4. The room diagram is a picture.
 - [ ] The Rebellion — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] The Rock Cruiser — partial — Bulwark starts with Artemis and Hull Missile. Tektite starts with Swarm Missiles and Heavy Crystal I. Shivan mounts the Fire Bomb and the Heavy Pierce. The Heavy Pierce waits until the Fire Bomb is switched off or the weapon bars are raised.
+- [ ] The Rock Cruiser — partial — Bulwark starts with Artemis and Hull Missile. Tektite starts with Swarm Missiles and Heavy Crystal I. Shivan mounts the Fire Bomb and the Heavy Pierce. The Heavy Pierce waits until the Fire Bomb is switched off or the weapon bars are raised. It ignores one shield layer.
 - [ ] The Shrike — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] The Slug Cruiser — partial — Man of War mounts Dual Lasers, Anti-Bio Beam, and Breach Bomb I. The bomb waits until one of the others is switched off. Stormwalker starts with Artemis and Healing Burst. Ariolimax starts with Chain Burst Laser. Slug Repair Gel stays unfitted.
+- [ ] The Slug Cruiser — partial — Man of War mounts Dual Lasers, Anti-Bio Beam, and Breach Bomb I. The bomb waits until one of the others is switched off. Stormwalker starts with Artemis and Healing Burst. Ariolimax starts with Chain Burst Laser. All three start with Slug Repair Gel.
 - [ ] The Stealth Cruiser — partial — Nesasio starts with Dual Lasers and Mini Beam. DA-SR 12 starts with the Glaive Beam and cloak power 0 (INFERRED). Simo-H starts with Laser Charger (S) and Mini Beam. Shield Overcharger + and Anti-Drone stay unfitted.
 - [ ] The Stormwalker — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] The Swallow — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
@@ -1365,9 +1365,9 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Trade: sell missiles for scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Trade: selling drone parts station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Trade: selling missiles station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Trade fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Trade resources — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Trade resources in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade fuel for drone parts — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Trade resources — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Trade resources in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Trade scrap for upgrades — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Trader — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Trader in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1391,7 +1391,7 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Weak and Hungry Human Intruders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Weak and hungry Human intruders — not-a-surface — same title as "Weak and Hungry Human Intruders" with different capitalization
 - [ ] Weak and hungry human boarders — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Weapon Control — partial — left click or 1–4 powers a slot; the next press on a powered slot enters targeting; a left click confirms the room; right click cancels targeting; right click or Shift+1–4 depowers; Ctrl+click or Ctrl+1–4 reverses that slot against the all-weapons autofire setting. Charge math, ion lock, drag reorder, and Zoltan weapon power are still local or absent.
+- [ ] Weapon Control — partial — left click or 1–4 powers a slot; the next press on a powered slot enters targeting; a left click confirms the room; right click cancels targeting; right click or Shift+1–4 depowers; Ctrl+click or Ctrl+1–4 reverses that slot against the all-weapons autofire setting. Charge math, ion lock, and drag reorder are still local or absent. A Zoltan in the weapons room adds one bar to that pool, and the pool still feeds slots from the left. The left-slot-only rule and the depower-on-leave rule are not performed.
 - [ ] Weapon Pre-Igniter — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Weapons — partial — family rules cited in content.ts and ordnance.ts. Most rows are not fitted.
 - [ ] Weapons/Tables — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1422,35 +1422,35 @@ Room art and tile coordinates are images. They stay INFERRED. Do not trace them 
 - [ ] Zoltan Research Facility — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Rock fight in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Security Checkpoint — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Zoltan Shield — missing — Bubble numbers are in augments-missing.ts. It is not an AugmentId and there is no bubble in combat.
+- [ ] Zoltan Shield — partial — ship.zoltan absorbs damage before shields and hull. Ion spends double. Beams spend double, and Anti-Bio and Fire Beam spend 2. Fire Bomb, Crystal Lockdown Bomb, Healing Burst, and Repair Burst leave the bubble alone. A jump recharges a bubble to 5. The bubble blocks crew teleport, mind control, hacking, boarding drones, and an enemy teleporter party. Bypass lets crew, bombs, and mind control through without spending it. The event exception for an initial boarding party has no separate path. Shield Overcharger, the pulsar, and drone HP are not applied.
 - [ ] Zoltan Shield Bypass — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Ship Tour — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Ships — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Store — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Trade Hub — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan academy free augment — not-a-surface — same title as "Zoltan Academy Free Augment" with different capitalization
-- [ ] Zoltan border police — not-a-surface — same title as "Zoltan Border Police" with different capitalization
+- [ ] Zoltan border police — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan empty beacon — not-a-surface — same title as "Zoltan Empty Beacon" with different capitalization
-- [ ] Zoltan fight — not-a-surface — same title as "Zoltan Fight" with different capitalization
-- [ ] Zoltan fight in asteroid field — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan fight — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Zoltan fight in asteroid field — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan fight with boarders — not-a-surface — same title as "Zoltan Fight with Boarders" with different capitalization
 - [ ] Zoltan follows Mantis — not-a-surface — same title as "Zoltan Follows Mantis" with different capitalization
-- [ ] Zoltan free augment — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan free augment — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan free map — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan free stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan life raft — not-a-surface — same title as "Zoltan Life Raft" with different capitalization
 - [ ] Zoltan odd moon — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan pirate fight — not-a-surface — same title as "Zoltan Pirate Fight" with different capitalization
-- [ ] Zoltan quest primitives — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan quest primitives — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan research facility — not-a-surface — same title as "Zoltan Research Facility" with different capitalization
-- [ ] Zoltan retake the ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan retake the ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan science ship — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Zoltan security checkpoint — not-a-surface — same title as "Zoltan Security Checkpoint" with different capitalization
+- [ ] Zoltan security checkpoint — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan shield — not-a-surface — same title as "Zoltan Shield" with different capitalization
 - [ ] Zoltan ship asks to dock — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Zoltan ship follows Mantis ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Zoltan ship follows Mantis ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
 - [ ] Zoltan ship tour — not-a-surface — same title as "Zoltan Ship Tour" with different capitalization
 - [ ] Zoltan store — not-a-surface — same title as "Zoltan Store" with different capitalization
 - [ ] Zoltan trade hub — not-a-surface — same title as "Zoltan Trade Hub" with different capitalization
-- [ ] Zoltan wise man — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Zoltans — partial — src/game/sim.ts — Zoltans, Race characteristics: the 15 HP death burst is applied in reap. The 7.5 drone figure is not applied, because drones have no HP.
+- [ ] Zoltan wise man — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses the shared enemy grid.
+- [ ] Zoltans — partial — src/game/sim.ts — Zoltans, Race characteristics: the 15 HP death burst is applied in reap. A living Zoltan in shields, engines, oxygen, medbay, or weapons adds 1 power bar, and ion does not remove it. A full system does not free a reactor bar. Piloting, sensors, and doors are unaffected. Cloaking, hacking, the teleporter, mind control, drones, and the clone bay are not given the bar. Weapon-slot priority and the shields pair/buffer case are not performed. The 7.5 drone figure is not applied, because drones have no HP.

@@ -225,6 +225,7 @@ export function PixelLayout({ id }: { id: string }) {
           className="room-grid"
           style={{
             aspectRatio: `${layout.cols} / ${layout.rows}`,
+            ["--ar" as string]: layout.cols / layout.rows,
             gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
             gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
           }}
@@ -290,17 +291,6 @@ export function UnlockDiagram() {
   );
 }
 
-function letter(rows: string[], ox: number, oy: number) {
-  const s = 2;
-  return rows.flatMap((row, y) =>
-    [...row].flatMap((ch, x) =>
-      ch === "#"
-        ? [<rect key={`${ox}-${x}-${y}`} x={ox + x * s} y={oy + y * s} width={s} height={s} fill="#f4f7f4" />]
-        : [],
-    ),
-  );
-}
-
 /** Banner above Playable ships. Returns to the title menu. */
 export function PixelTitle() {
   return (
@@ -325,9 +315,7 @@ export function PixelTitle() {
           ),
         )}
       </g>
-      {letter(["###", "#..", "###", "#..", "#..", "#..", "#.."], 108, 14)}
-      {letter(["###", ".#.", ".#.", ".#.", ".#.", ".#.", ".#."], 120, 14)}
-      {letter(["#..", "#..", "#..", "#..", "#..", "#..", "###"], 132, 14)}
+      {blit("ASHWAKE", 152 - textWidth("ASHWAKE", 1), 19, 1, "#f4f7f4", "banner")}
     </svg>
   );
 }
@@ -341,7 +329,10 @@ const FONT: Record<string, string[]> = {
   E: ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
   F: ["11111", "10000", "10000", "11110", "10000", "10000", "10000"],
   G: ["01111", "10000", "10000", "10111", "10001", "10001", "01111"],
+  H: ["10001", "10001", "10001", "11111", "10001", "10001", "10001"],
   I: ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+  J: ["00111", "00010", "00010", "00010", "00010", "10010", "01100"],
+  K: ["10001", "10010", "10100", "11000", "10100", "10010", "10001"],
   L: ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
   M: ["10001", "11011", "10101", "10001", "10001", "10001", "10001"],
   N: ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
@@ -354,6 +345,8 @@ const FONT: Record<string, string[]> = {
   U: ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
   V: ["10001", "10001", "10001", "10001", "10001", "01010", "00100"],
   W: ["10001", "10001", "10001", "10101", "10101", "10101", "01010"],
+  Y: ["10001", "10001", "01010", "00100", "00100", "00100", "00100"],
+  "·": ["0", "0", "0", "1", "0", "0", "0"],
   "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
   "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
   "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
@@ -512,10 +505,10 @@ function shipPixels(ship: (typeof FLEET)[number]) {
   return rects;
 }
 
-/** 2012 title: planet and fleet on the left, FTL and the menu on the right. */
+/** Title: planet and fleet on the left, the ASHWAKE mark and the menu on the right. */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
-  const mark = "© 2012 SUBSET GAMES";
-  const version = "v. 1.01";
+  const mark = "FAN PROJECT · INSPIRED BY FTL";
+  const version = "v. 0.1";
   return (
     <svg className="pixel-menu" viewBox={`0 0 ${TITLE_VIEW.w} ${TITLE_VIEW.h}`} aria-hidden="true">
       <rect width={TITLE_VIEW.w} height={TITLE_VIEW.h} fill="#07060d" />
@@ -526,7 +519,7 @@ export function PixelMenu({ continueReady }: { continueReady: boolean }) {
         <rect key={`p${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="2" height="2" fill={cell.fill} />
       ))}
       {FLEET.map((ship) => shipPixels(ship))}
-      {blit("FTL", TITLE_VIEW.w - MENU_RIGHT - textWidth("FTL", 6), 16, 6, "#f4f7f4", "logo")}
+      {blit("ASHWAKE", TITLE_VIEW.w - MENU_RIGHT - textWidth("ASHWAKE", 4), 24, 4, "#f4f7f4", "logo")}
       {TITLE_LINES.map((item, i) =>
         blit(
           item.label,

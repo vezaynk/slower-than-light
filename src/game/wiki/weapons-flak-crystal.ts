@@ -4,6 +4,7 @@ import type { WeaponDef } from "../content.ts";
  * Unfitted rows from page titles "Flak (Weapons)" and "Crystal (Weapons)".
  * Flak Gun Mark I is already fitted as scatter. Flak Artillery is not a weapon
  * row; flakart.ts owns that system, and the extra numbers sit in the gaps.
+ * Crystal pages state one shield layer of pierce. WeaponDef has no pierce field.
  */
 export type FlakCrystalGap = {
   id: string;
@@ -195,21 +196,21 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
   {
     id: "crystalburst",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
   },
   {
     id: "crystalburst2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
   },
   {
     id: "heavycrystal",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
   },
   {
     id: "heavycrystal2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
   },
 ];

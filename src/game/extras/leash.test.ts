@@ -28,13 +28,14 @@ function pushKit(g: ReturnType<typeof createGame>, level = 1, power = 1): Kit {
 }
 
 function enemyPilot(g: ReturnType<typeof createGame>) {
-  return g.crew.find((c) => c.side === "enemy" && c.name === "Pilot");
+  // Enemy crew are named by race (enemy-gen.ts); the pilot is whoever sits in the piloting room.
+  return g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-pilot");
 }
 
 describe("leash", () => {
   it("leashes the enemy pilot for the level duration, then clears it", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const kit = pushKit(g, 1, 1);
     const pilot = enemyPilot(g);
     assert.ok(pilot);
@@ -67,9 +68,9 @@ describe("leash", () => {
 
   it("scales duration and damage with the upgrade table", () => {
     const mid = createGame(2);
-    startCombat(mid, "scout");
+    startCombat(mid, "Rebel ship");
     pushKit(mid, 2, 1);
-    const gunner = mid.crew.find((c) => c.side === "enemy" && c.name === "Gunner");
+    const gunner = mid.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
     assert.ok(gunner);
     startLeash(mid, gunner.id);
     assert.equal(gunner.leashed, 20);
@@ -77,7 +78,7 @@ describe("leash", () => {
     assert.equal(gunner.side, "enemy");
 
     const high = createGame(3);
-    startCombat(high, "scout");
+    startCombat(high, "Rebel ship");
     pushKit(high, 3, 1);
     const pilot = enemyPilot(high);
     assert.ok(pilot);
@@ -117,7 +118,7 @@ describe("leash", () => {
 
   it("does not leash without power", () => {
     const g = createGame(5);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     pushKit(g, 1, 0);
     const pilot = enemyPilot(g);
     assert.ok(pilot);

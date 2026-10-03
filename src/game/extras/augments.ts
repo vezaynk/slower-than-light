@@ -1,4 +1,4 @@
-import { log, powerMask, rand } from "../sim.ts";
+import { bars, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Game } from "../types.ts";
 
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
@@ -169,6 +169,28 @@ export const CATALOG: Listing[] = [
     detail: "Living crew show up even when sensors do not.",
     cost: 40,
   },
+  // Augmentations, "FTL Augmentations", "Adv. FTL Navigation". Purchase price 50.
+  {
+    id: "nav",
+    name: "Adv. FTL Navigation",
+    detail: "The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.",
+    cost: 50,
+  },
+  // Augmentations, "Offensive Augmentations", Defense Scrambler. Purchase price 80.
+  {
+    id: "scrambler",
+    name: "Defense Scrambler",
+    detail:
+      "Enemy Defense Drone I, Defense Drone II, and Anti-Combat drones cannot acquire or shoot down targets. Your own defense drones still fire.",
+    cost: 80,
+  },
+  // Augmentations, "Offensive Augmentations", Zoltan Shield Bypass. Purchase price 55.
+  {
+    id: "bypass",
+    name: "Zoltan Shield Bypass",
+    detail: "Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.",
+    cost: 55,
+  },
 ];
 
 function copies(g: Game, id: AugmentId): number {
@@ -196,7 +218,7 @@ export function saveMissile(g: Game): boolean {
 /** Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Artillery is a separate kit and is not primed. */
 export function primeWeapons(g: Game) {
   if (!has(g, "hot")) return;
-  const mask = powerMask(g.player);
+  const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   let primed = false;
   g.player.weapons.forEach((w, i) => {
     if (!w.enabled || !mask[i]) return;
@@ -256,21 +278,50 @@ export function lungScale(g: Game, aboard: "player" | "enemy"): number {
  * INFERRED: 2 fire-units per second. The page says fires go out at Crystal crew speed and does not give this rate.
  */
 export function tickSquall(g: Game, dt: number) {
-  if (!has(g, "squall")) return;
-  for (const room of g.player.rooms) {
-    if (room.fire <= 0) continue;
-    room.fire = Math.max(0, room.fire - dt * 2);
+  if (has(g, "squall")) {
+    for (const room of g.player.rooms) {
+      if (room.fire <= 0) continue;
+      room.fire = Math.max(0, room.fire - dt * 2);
+    }
+  }
+  tickMedbot(g, dt);
+}
+
+/**
+ * Augmentations, "Non-Purchasable Augmentations", Engi Med-bot Dispersal.
+ * 1.6 HP per second, outside the medbay, and only while that medbay is powered.
+ * Medbay level does not change the 1.6. Crew on another ship are not healed.
+ * A clone bay on the ship makes this do nothing. No purchase price, so it is not in CATALOG.
+ */
+export function tickMedbot(g: Game, dt: number) {
+  if (!(dt > 0) || !has(g, "medbot")) return;
+  if (g.player.kits.cradle) return;
+  if (bars(g.player.systems.medbay, zoltanBars(g.crew, g.player, "player", "medbay")) <= 0) return;
+  for (const crew of g.crew) {
+    if (crew.side !== "player" || crew.aboard !== "player" || crew.hp <= 0) continue;
+    const room = g.player.rooms.find((item) => item.id === crew.room);
+    if (!room || room.system === "medbay") continue;
+    crew.hp = Math.min(crew.maxHp, crew.hp + 1.6 * dt);
   }
 }
 
 /**
  * Augmentations, "FTL Augmentations", Distraction Buoys:
  * "Leaves a false signal at sector start to delay Rebels 1 jump."
- * No effect in the final sector. A line already at 0 stays at 0.
+ * No effect in the final sector. A fleet already at 0 skips its next advance.
  */
 export function onNewSector(g: Game) {
-  if (g.sector >= 8 || !has(g, "falsebuoy")) return;
-  if (g.fleet <= 0) return;
+  if (g.sector >= 8 || !has(g, "falsebuoy")) {
+    g.buoyDelay = 0;
+    return;
+  }
+  // The map starts the fleet at 0, so a subtraction would do nothing. Hold the next advance instead.
+  if (g.fleet <= 0) {
+    g.buoyDelay = 1;
+    log(g, "Distraction Buoys. The fleet loses a jump.");
+    return;
+  }
+  g.buoyDelay = 0;
   g.fleet -= 1;
   log(g, "Distraction Buoys. The fleet loses a jump.");
 }

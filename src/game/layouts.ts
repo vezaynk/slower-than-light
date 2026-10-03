@@ -50,7 +50,7 @@ function pack(rows: Raw[], cols: number, gridRows: number): Layout {
   };
 }
 
-/** Traced from the Kestrel A hangar picture, including which orange bar sits on which wall. 47 is that picture's square count. The cruiser page states no square count. */
+/** Traced from the Kestrel A hangar picture, including which orange bar sits on which wall. 51 is that picture's square count. The cruiser page states no square count. The C console is the right-hand room. The nose chair is the pink cell past the empty floor. */
 const kestrelA = traced(
   [
     ["p-a0", "Hall", null, 6, 0, 2, 1],
@@ -60,11 +60,12 @@ const kestrelA = traced(
     ["p-medbay", "Medbay", "medbay", 8, 1, 2, 2],
     ["p-a3", "Hall", null, 0, 2, 1, 2],
     ["p-engines", "Engines", "engines", 1, 2, 2, 2],
-    ["p-shields", "Shields", "shields", 4, 2, 2, 2],
+    ["p-a9", "Hall", null, 4, 2, 2, 2],
     ["p-doors", "Doors", "doors", 10, 2, 2, 1],
-    ["p-pilot", "Piloting", "pilot", 12, 2, 1, 2],
+    ["p-a10", "Hall", null, 12, 2, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 14, 2, 1, 2],
     ["p-a4", "Hall", null, 6, 3, 2, 2],
-    ["p-sensors", "Sensors", "sensors", 8, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 8, 3, 2, 2],
     ["p-weapons", "Weapons", "weapons", 10, 3, 2, 1],
     ["p-a5", "Hall", null, 1, 4, 2, 1],
     ["p-a6", "Hall", null, 3, 4, 2, 1],
@@ -97,23 +98,25 @@ const kestrelA = traced(
     [0, 2, "w"],
     [7, 5, "s"],
     [7, 0, "n"],
+    [13, 3, "e"],
   ],
-  13,
+  15,
   6,
 );
 
-/** Traced from the Kestrel B hangar picture. The two aft tiles are one engines room. 35 is that picture's square count. The cruiser page states no square count. */
+/** Traced from the Kestrel B hangar picture. The C console is the upper room and the nozzle is the aft room. 37 is that picture's square count. The cruiser page states no square count. The chair is the pink room ahead of the empty floor. */
 const kestrelB = traced(
   [
-    ["p-engines", "Engines", "engines", 1, 0, 2, 2],
+    ["p-shields", "Shields", "shields", 1, 0, 2, 2],
     ["p-medbay", "Medbay", "medbay", 3, 0, 2, 1],
     ["p-oxygen", "Oxygen", "oxygen", 6, 0, 2, 2],
     ["p-b1", "Hall", null, 4, 1, 2, 1],
-    ["p-shields", "Shields", "shields", 0, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 2, 2, 1],
     ["p-b2", "Hall", null, 6, 2, 2, 1],
     ["p-doors", "Doors", "doors", 8, 2, 2, 1],
-    ["p-pilot", "Piloting", "pilot", 10, 2, 2, 1],
-    ["p-sensors", "Sensors", "sensors", 1, 3, 1, 1],
+    ["p-b7", "Hall", null, 10, 2, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 12, 2, 2, 1],
+    ["p-b8", "Hall", null, 1, 3, 1, 1],
     ["p-weapons", "Weapons", "weapons", 4, 3, 2, 1],
     ["p-b3", "Hall", null, 6, 3, 2, 2],
     ["p-b4", "Hall", null, 1, 4, 2, 1],
@@ -150,7 +153,7 @@ const kestrelB = traced(
     [11, 2, "e"],
     [11, 2, "s"],
   ],
-  12,
+  14,
   6,
 );
 
@@ -256,7 +259,7 @@ const engiA = traced(
   7,
 );
 
-/** Traced from the Engi B hangar picture, including which orange bar sits on which wall. 30 is that picture's square count. The cruiser page states no square count. A sky strip above the hull is not a room. */
+/** Traced from the Engi B hangar picture, including which orange bar sits on which wall. 32 is that picture's square count. The cruiser page states no square count. A sky strip above the hull is not a room. The white cockpit sits one cell past the dark floor. */
 const engiB = traced(
   [
     ["p-engines", "Engines", "engines", 0, 0, 2, 2],
@@ -266,13 +269,13 @@ const engiB = traced(
     ["p-ebh2", "Hall", null, 0, 2, 1, 2],
     ["p-oxygen", "Oxygen", "oxygen", 1, 2, 1, 2],
     ["p-medbay", "Medbay", "medbay", 6, 3, 1, 2],
-    ["p-sensors", "Sensors", "sensors", 0, 4, 2, 2],
+    ["p-drones", "Drones", null, 0, 4, 2, 2],
     ["p-doors", "Doors", "doors", 2, 4, 2, 1],
     ["p-ebh3", "Hall", null, 4, 4, 2, 1],
     ["p-ebh4", "Hall", null, 2, 5, 2, 1],
-    ["p-pilot", "Piloting", "pilot", 4, 5, 1, 1],
-    ["p-ebh5", "Hall", null, 5, 5, 1, 1],
+    ["p-shields", "Shields", "shields", 4, 5, 2, 1],
     ["p-ebh6", "Hall", null, 6, 5, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 5, 1, 2],
   ],
   [
     [1, 1, "e"],
@@ -297,8 +300,8 @@ const engiB = traced(
     [0, 3, "w"],
     [0, 2, "w"],
   ],
-  8,
-  6,
+  9,
+  7,
 );
 
 /** Traced from the Stealth A hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 36 is that picture's square count. */
@@ -389,12 +392,12 @@ const stealthB = traced(
   7,
 );
 
-/** Traced from the Rock A hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 47 is that picture's square count. */
+/** Traced from the Rock A hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 47 is that picture's square count. The C console is the upper room. The barrels beside it are a floor gun; the weapons console is the handgun. */
 const rockA = traced(
   [
     ["p-oxygen", "Oxygen", "oxygen", 0, 0, 1, 2],
     ["p-doors", "Doors", "doors", 1, 0, 1, 2],
-    ["p-sensors", "Sensors", "sensors", 2, 0, 2, 2],
+    ["p-shields", "Shields", "shields", 2, 0, 2, 2],
     ["p-rah0", "Hall", null, 4, 0, 2, 2],
     ["p-rah1", "Hall", null, 6, 0, 2, 2],
     ["p-pilot", "Piloting", "pilot", 8, 1, 1, 1],
@@ -407,7 +410,7 @@ const rockA = traced(
     ["p-weapons", "Weapons", "weapons", 0, 4, 1, 2],
     ["p-rah8", "Hall", null, 1, 4, 1, 2],
     ["p-engines", "Engines", "engines", 2, 4, 2, 2],
-    ["p-shields", "Shields", "shields", 4, 4, 2, 2],
+    ["p-rah10", "Hall", null, 4, 4, 2, 2],
     ["p-medbay", "Medbay", "medbay", 6, 4, 2, 2],
     ["p-rah9", "Hall", null, 8, 4, 1, 2],
   ],
@@ -447,12 +450,12 @@ const rockA = traced(
   6,
 );
 
-/** Traced from the Rock B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 40 is that picture's square count. */
+/** Traced from the Rock B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 40 is that picture's square count. The C console is the upper-right room. The bottom cell has no console. */
 const rockB = traced(
   [
     ["p-engines", "Engines", "engines", 0, 0, 2, 2],
     ["p-medbay", "Medbay", "medbay", 2, 0, 2, 2],
-    ["p-sensors", "Sensors", "sensors", 6, 0, 2, 2],
+    ["p-shields", "Shields", "shields", 6, 0, 2, 2],
     ["p-weapons", "Weapons", "weapons", 8, 0, 1, 2],
     ["p-oxygen", "Oxygen", "oxygen", 4, 1, 1, 2],
     ["p-rbh0", "Hall", null, 2, 2, 2, 1],
@@ -465,7 +468,7 @@ const rockB = traced(
     ["p-rbh6", "Hall", null, 2, 5, 2, 2],
     ["p-rbh7", "Hall", null, 6, 5, 2, 2],
     ["p-rbh8", "Hall", null, 8, 5, 1, 2],
-    ["p-shields", "Shields", "shields", 1, 6, 1, 1],
+    ["p-rbh9", "Hall", null, 1, 6, 1, 1],
   ],
   [
     [1, 1, "e"],
@@ -649,7 +652,7 @@ const fedA = traced(
   8,
 );
 
-/** Traced from the Federation B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 37 is that picture's square count. */
+/** Traced from the Federation B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 37 is that picture's square count. The chair is the left room. The C console is the nose. The middle room on that deck has no console. */
 const fedB = traced(
   [
     ["p-fbh0", "Hall", null, 0, 0, 2, 2],
@@ -659,14 +662,14 @@ const fedB = traced(
     ["p-fbh4", "Hall", null, 3, 2, 2, 1],
     ["p-fbh5", "Hall", null, 9, 2, 2, 1],
     ["p-fbh6", "Hall", null, 11, 2, 1, 1],
-    ["p-shields", "Shields", "shields", 1, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 1, 3, 2, 1],
     ["p-oxygen", "Oxygen", "oxygen", 4, 3, 2, 1],
-    ["p-artillery", "Artillery", null, 6, 3, 2, 1],
+    ["p-fbh10", "Hall", null, 6, 3, 2, 1],
     ["p-medbay", "Medbay", "medbay", 8, 3, 2, 1],
     ["p-fbh7", "Hall", null, 2, 4, 1, 2],
     ["p-weapons", "Weapons", "weapons", 3, 4, 2, 1],
     ["p-fbh8", "Hall", null, 9, 4, 2, 1],
-    ["p-pilot", "Piloting", "pilot", 11, 4, 1, 2],
+    ["p-shields", "Shields", "shields", 11, 4, 1, 2],
     ["p-engines", "Engines", "engines", 0, 5, 2, 2],
     ["p-fbh9", "Hall", null, 2, 6, 1, 2],
     ["p-doors", "Doors", "doors", 0, 7, 2, 1],
@@ -807,7 +810,7 @@ const zoltanA = traced(
   7,
 );
 
-/** Traced from the Zoltan B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 36 is that picture's square count. */
+/** Traced from the Zoltan B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 36 is that picture's square count. The C console is the upper-right room. */
 const zoltanB = traced(
   [
     ["p-medbay", "Medbay", "medbay", 6, 0, 2, 2],
@@ -815,7 +818,7 @@ const zoltanB = traced(
     ["p-zbh1", "Hall", null, 10, 0, 1, 2],
     ["p-engines", "Engines", "engines", 2, 1, 1, 1],
     ["p-zbh2", "Hall", null, 4, 1, 1, 2],
-    ["p-sensors", "Sensors", "sensors", 8, 1, 2, 2],
+    ["p-shields", "Shields", "shields", 8, 1, 2, 2],
     ["p-zbh3", "Hall", null, 2, 2, 1, 1],
     ["p-zbh4", "Hall", null, 6, 2, 2, 2],
     ["p-pilot", "Piloting", "pilot", 10, 2, 1, 2],
@@ -825,7 +828,7 @@ const zoltanB = traced(
     ["p-zbh7", "Hall", null, 8, 3, 2, 1],
     ["p-oxygen", "Oxygen", "oxygen", 2, 4, 1, 2],
     ["p-weapons", "Weapons", "weapons", 4, 4, 1, 2],
-    ["p-shields", "Shields", "shields", 6, 4, 1, 1],
+    ["p-zbh9", "Hall", null, 6, 4, 1, 1],
     ["p-zbh8", "Hall", null, 6, 5, 1, 1],
   ],
   [
@@ -856,16 +859,16 @@ const zoltanB = traced(
   6,
 );
 
-/** Traced from the Zoltan C hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 40 is that picture's square count. */
+/** Traced from the Zoltan C hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 42 is that picture's square count. The nozzle is the aft cell, the C is beside it, and the chair is the pink nose. */
 const zoltanC = traced(
   [
-    ["p-pilot", "Piloting", "pilot", 1, 0, 2, 2],
-    ["p-zch0", "Hall", null, 0, 1, 1, 1],
+    ["p-shields", "Shields", "shields", 1, 0, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 1, 1, 1],
     ["p-oxygen", "Oxygen", "oxygen", 8, 1, 2, 1],
     ["p-zch1", "Hall", null, 10, 1, 1, 1],
-    ["p-shields", "Shields", "shields", 2, 2, 2, 1],
+    ["p-battery", "Backup Battery", null, 2, 2, 2, 1],
     ["p-zch2", "Hall", null, 4, 2, 2, 1],
-    ["p-engines", "Engines", "engines", 6, 2, 2, 1],
+    ["p-zch11", "Hall", null, 6, 2, 2, 1],
     ["p-zch3", "Hall", null, 9, 2, 1, 2],
     ["p-zch4", "Hall", null, 5, 3, 2, 2],
     ["p-zch5", "Hall", null, 7, 4, 2, 1],
@@ -873,10 +876,11 @@ const zoltanC = traced(
     ["p-zch7", "Hall", null, 0, 5, 1, 2],
     ["p-zch8", "Hall", null, 1, 5, 2, 1],
     ["p-zch9", "Hall", null, 3, 5, 2, 1],
-    ["p-sensors", "Sensors", "sensors", 5, 5, 2, 2],
+    ["p-drones", "Drones", null, 5, 5, 2, 2],
     ["p-zch10", "Hall", null, 8, 5, 2, 1],
     ["p-weapons", "Weapons", "weapons", 1, 6, 2, 1],
     ["p-doors", "Doors", "doors", 3, 6, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 11, 3, 1, 2],
   ],
   [
     [2, 1, "s"],
@@ -906,8 +910,59 @@ const zoltanC = traced(
     [8, 1, "w"],
     [10, 4, "e"],
   ],
-  11,
+  12,
   7,
+);
+
+/** Traced from the Mantis A hangar picture, including which orange bar sits on which wall. 48 is that picture's square count. The cruiser page states no square count. */
+const mantisA = traced(
+  [
+    ["p-weapons", "Weapons", "weapons", 0, 0, 2, 1],
+    ["p-doors", "Doors", "doors", 2, 0, 2, 1],
+    ["p-mah0", "Hall", null, 1, 1, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 8, 1, 2, 2],
+    ["p-mah1", "Hall", null, 5, 2, 2, 1],
+    ["p-mah2", "Hall", null, 1, 3, 1, 2],
+    ["p-engines", "Engines", "engines", 2, 3, 2, 2],
+    ["p-mah3", "Hall", null, 4, 3, 1, 2],
+    ["p-shields", "Shields", "shields", 5, 3, 1, 2],
+    ["p-mah4", "Hall", null, 6, 3, 2, 2],
+    ["p-mah5", "Hall", null, 8, 3, 2, 2],
+    ["p-mah6", "Hall", null, 1, 5, 2, 2],
+    ["p-mah7", "Hall", null, 5, 5, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 8, 5, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 0, 7, 2, 2],
+    ["p-mah8", "Hall", null, 2, 7, 2, 1],
+  ],
+  [
+    [1, 0, "s"],
+    [2, 0, "s"],
+    [2, 2, "s"],
+    [5, 2, "s"],
+    [6, 2, "s"],
+    [9, 2, "s"],
+    [1, 3, "e"],
+    [3, 3, "e"],
+    [1, 4, "e"],
+    [7, 3, "e"],
+    [2, 4, "s"],
+    [4, 4, "e"],
+    [5, 4, "s"],
+    [6, 4, "s"],
+    [9, 4, "s"],
+    [1, 6, "s"],
+    [2, 6, "s"],
+    [5, 2, "n"],
+    [6, 2, "n"],
+    [9, 2, "e"],
+    [1, 3, "w"],
+    [1, 4, "w"],
+    [5, 5, "s"],
+    [6, 5, "s"],
+    [9, 5, "e"],
+  ],
+  10,
+  9,
 );
 
 /** Traced from the Mantis B hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 40 is that picture's square count. */
@@ -1014,19 +1069,19 @@ const mantisC = traced(
   9,
 );
 
-/** Traced from the Crystal A hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 35 is that picture's square count. */
+/** Traced from the Crystal A hangar picture, including which orange bar sits on which wall. The cruiser page states no square count. 35 is that picture's square count. The chair is the small upper room. The C console is the lower-left cell. The tall cell beside that C has no console, and the picture has no engines nozzle, so that plate stays Hall. Its id is still the engines seat. */
 const crystalA = traced(
   [
     ["p-weapons", "Weapons", "weapons", 2, 0, 2, 1],
     ["p-doors", "Doors", "doors", 9, 0, 1, 2],
     ["p-cah0", "Hall", null, 1, 1, 2, 2],
     ["p-cah1", "Hall", null, 7, 1, 1, 2],
-    ["p-engines", "Engines", "engines", 3, 2, 1, 1],
+    ["p-pilot", "Piloting", "pilot", 3, 2, 1, 1],
     ["p-cah2", "Hall", null, 8, 2, 2, 2],
     ["p-cah3", "Hall", null, 2, 3, 1, 1],
     ["p-cah4", "Hall", null, 3, 3, 1, 1],
     ["p-shields", "Shields", "shields", 0, 4, 1, 1],
-    ["p-pilot", "Piloting", "pilot", 1, 4, 1, 2],
+    ["p-engines", "Hall", null, 1, 4, 1, 2],
     ["p-oxygen", "Oxygen", "oxygen", 2, 4, 1, 1],
     ["p-medbay", "Medbay", "medbay", 8, 4, 2, 2],
     ["p-cah5", "Hall", null, 2, 5, 2, 1],
@@ -1110,7 +1165,7 @@ const crystalB = traced(
   8,
 );
 
-/** Looks up a layout. Its square total is the published count already stored. Positions are INFERRED because the wiki picture was not text. */
+/** Looks up a layout. Hangar square counts are the traced pictures, not a wiki sentence. */
 export function layoutFor(id: string): Layout | undefined {
   return LAYOUTS[id];
 }
@@ -1240,6 +1295,324 @@ const core = (med: "Medbay" | "Clone Bay", medSys: SysId | null): Sized[] => [
   { id: "p-pilot", title: "Piloting", system: "pilot", size: 4 },
 ];
 
+/** Traced from the Slug A hangar picture, including which gray bar sits on which wall. 40 is that picture's square count. The cruiser page states no square count. */
+const slugA = traced(
+  [
+    ["p-doors", "Doors", "doors", 1, 0, 1, 2],
+    ["p-sah0", "Hall", null, 2, 0, 1, 2],
+    ["p-sah1", "Hall", null, 3, 0, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 4, 1, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 6, 1, 1, 1],
+    ["p-weapons", "Weapons", "weapons", 2, 2, 2, 2],
+    ["p-sah2", "Hall", null, 6, 2, 1, 1],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 2],
+    ["p-sah3", "Hall", null, 5, 3, 2, 1],
+    ["p-shields", "Shields", "shields", 7, 3, 1, 2],
+    ["p-sah4", "Hall", null, 3, 4, 1, 2],
+    ["p-sah5", "Hall", null, 5, 4, 1, 2],
+    ["p-sah6", "Hall", null, 6, 5, 1, 2],
+    ["p-sah7", "Hall", null, 1, 6, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 2, 6, 2, 2],
+    ["p-sah8", "Hall", null, 4, 6, 2, 2],
+  ],
+  [
+    [1, 0, "e"],
+    [2, 0, "e"],
+    [4, 0, "s"],
+    [2, 1, "s"],
+    [3, 2, "e"],
+    [5, 2, "e"],
+    [1, 3, "e"],
+    [5, 2, "s"],
+    [3, 3, "s"],
+    [5, 3, "s"],
+    [6, 3, "e"],
+    [3, 5, "s"],
+    [5, 5, "e"],
+    [5, 5, "s"],
+    [1, 7, "e"],
+    [3, 7, "e"],
+    [1, 0, "w"],
+    [1, 1, "w"],
+    [1, 6, "w"],
+    [1, 7, "w"],
+  ],
+  8,
+  8,
+);
+
+/** Traced from the Slug C hangar picture, including which gray bar sits on which wall. 42 is that picture's square count. The cruiser page states no square count. */
+const slugC = traced(
+  [
+    ["p-mind", "Mind Control", null, 1, 0, 2, 2],
+    ["p-sch0", "Hall", null, 3, 0, 2, 1],
+    ["p-sch1", "Hall", null, 5, 0, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 3, 1, 2, 1],
+    ["p-sch2", "Hall", null, 6, 1, 1, 2],
+    ["p-sch3", "Hall", null, 1, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 2, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 4, 3, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 6, 3, 2, 2],
+    ["p-clone", "Clone Bay", null, 1, 5, 2, 1],
+    ["p-sch4", "Hall", null, 6, 5, 1, 2],
+    ["p-hack", "Hacking", null, 1, 6, 2, 2],
+    ["p-sch5", "Hall", null, 3, 6, 2, 1],
+    ["p-sch6", "Hall", null, 5, 6, 1, 2],
+    ["p-doors", "Doors", "doors", 3, 7, 2, 1],
+  ],
+  [
+    [2, 0, "e"],
+    [4, 0, "e"],
+    [1, 1, "s"],
+    [2, 1, "e"],
+    [4, 1, "e"],
+    [5, 1, "e"],
+    [1, 2, "s"],
+    [6, 2, "s"],
+    [1, 3, "e"],
+    [3, 3, "e"],
+    [1, 4, "e"],
+    [1, 4, "s"],
+    [3, 4, "e"],
+    [6, 4, "s"],
+    [1, 5, "s"],
+    [2, 6, "e"],
+    [4, 6, "e"],
+    [5, 6, "e"],
+    [2, 7, "e"],
+    [4, 7, "e"],
+    [1, 0, "w"],
+    [5, 0, "e"],
+    [5, 0, "n"],
+    [1, 1, "w"],
+    [1, 2, "w"],
+    [1, 5, "w"],
+    [1, 6, "w"],
+    [1, 7, "w"],
+  ],
+  8,
+  8,
+);
+
+/** Traced from the Slug B hangar picture, including which gray bar sits on which wall. 52 is that picture's square count. The cruiser page states no square count. */
+const slugB = traced(
+  [
+    ["p-sbh0", "Hall", null, 4, 0, 1, 2],
+    ["p-engines", "Engines", "engines", 6, 0, 2, 2],
+    ["p-tele", "Teleporter", null, 5, 1, 1, 2],
+    ["p-sbh1", "Hall", null, 0, 2, 2, 1],
+    ["p-sbh2", "Hall", null, 2, 2, 2, 2],
+    ["p-sbh3", "Hall", null, 8, 2, 2, 1],
+    ["p-sbh4", "Hall", null, 10, 2, 2, 2],
+    ["p-sbh5", "Hall", null, 0, 3, 1, 2],
+    ["p-sbh6", "Hall", null, 4, 3, 2, 2],
+    ["p-sbh7", "Hall", null, 6, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 3, 1, 2],
+    ["p-shields", "Shields", "shields", 2, 4, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 10, 4, 2, 2],
+    ["p-sbh8", "Hall", null, 0, 5, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 5, 5, 1, 2],
+    ["p-sbh9", "Hall", null, 8, 5, 2, 1],
+    ["p-sbh10", "Hall", null, 4, 6, 1, 2],
+    ["p-sbh11", "Hall", null, 6, 6, 2, 2],
+    ["p-doors", "Doors", "doors", 6, 8, 2, 1],
+  ],
+  [
+    [4, 0, "w"],
+    [6, 0, "n"],
+    [4, 1, "e"],
+    [4, 1, "w"],
+    [5, 1, "e"],
+    [0, 2, "s"],
+    [1, 2, "e"],
+    [5, 2, "s"],
+    [8, 2, "n"],
+    [8, 2, "s"],
+    [9, 2, "e"],
+    [9, 2, "n"],
+    [0, 3, "w"],
+    [2, 3, "s"],
+    [3, 3, "e"],
+    [5, 3, "e"],
+    [7, 3, "e"],
+    [0, 4, "s"],
+    [0, 4, "w"],
+    [3, 4, "e"],
+    [5, 4, "s"],
+    [8, 4, "s"],
+    [1, 5, "e"],
+    [8, 5, "s"],
+    [9, 5, "e"],
+    [9, 5, "s"],
+    [4, 6, "e"],
+    [4, 6, "w"],
+    [5, 6, "e"],
+    [4, 7, "w"],
+    [6, 7, "s"],
+  ],
+  12,
+  9,
+);
+
+/** Traced from the Lanius B hangar picture, including which orange bar sits on which wall. 46 is that picture's square count. The cruiser page states no square count. */
+const laniusB = traced(
+  [
+    ["p-lb0", "Hall", null, 0, 0, 2, 2],
+    ["p-lb1", "Hall", null, 2, 0, 2, 1],
+    ["p-shields", "Shields", "shields", 5, 0, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 2, 1, 2, 1],
+    ["p-lb2", "Hall", null, 7, 1, 2, 1],
+    ["p-lb3", "Hall", null, 5, 2, 2, 2],
+    ["p-engines", "Engines", "engines", 3, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 7, 3, 1, 2],
+    ["p-lb4", "Hall", null, 5, 4, 2, 2],
+    ["p-doors", "Doors", "doors", 0, 6, 2, 2],
+    ["p-clone", "Clone Bay", null, 2, 6, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 5, 6, 2, 2],
+    ["p-lb5", "Hall", null, 7, 6, 2, 1],
+    ["p-lb6", "Hall", null, 2, 7, 2, 1],
+    ["p-lb7", "Doors", null, 2, 8, 2, 1],
+    ["p-mind", "Mind Control", null, 4, 8, 2, 1],
+  ],
+  [
+    [1, 0, "e"],
+    [2, 0, "s"],
+    [3, 0, "n"],
+    [5, 0, "n"],
+    [0, 1, "s"],
+    [0, 1, "w"],
+    [1, 1, "e"],
+    [6, 1, "e"],
+    [6, 1, "s"],
+    [7, 1, "n"],
+    [7, 1, "s"],
+    [8, 1, "n"],
+    [8, 1, "s"],
+    [4, 3, "e"],
+    [4, 3, "n"],
+    [6, 3, "e"],
+    [4, 4, "e"],
+    [4, 4, "s"],
+    [6, 4, "e"],
+    [6, 5, "s"],
+    [0, 6, "n"],
+    [0, 6, "w"],
+    [1, 6, "e"],
+    [2, 6, "s"],
+    [6, 6, "e"],
+    [7, 6, "n"],
+    [7, 6, "s"],
+    [8, 6, "n"],
+    [8, 6, "s"],
+    [1, 7, "e"],
+    [3, 7, "s"],
+    [5, 7, "s"],
+    [3, 8, "e"],
+  ],
+  9,
+  9,
+);
+
+/** Traced from the Lanius A hangar picture, including which orange bar sits on which wall. 42 is that picture's square count. The cruiser page states no square count. The clone-bay tube is not in the picture, so that room is not titled. */
+const laniusA = traced(
+  [
+    ["p-sensors", "Sensors", "sensors", 0, 0, 2, 2],
+    ["p-la0", "Hall", null, 2, 0, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 0, 2, 1],
+    ["p-hack", "Hacking", null, 6, 0, 1, 1],
+    ["p-la1", "Hall", null, 2, 1, 2, 1],
+    ["p-shields", "Shields", "shields", 4, 1, 2, 2],
+    ["p-la2", "Hall", null, 6, 1, 1, 1],
+    ["p-la3", "Hall", null, 7, 1, 1, 2],
+    ["p-engines", "Engines", "engines", 3, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 7, 3, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 4, 5, 2, 2],
+    ["p-la4", "Hall", null, 7, 5, 1, 2],
+    ["p-la5", "Hall", null, 0, 6, 2, 2],
+    ["p-la6", "Hall", null, 2, 6, 2, 1],
+    ["p-la7", "Hall", null, 6, 6, 1, 2],
+    ["p-la8", "Hall", null, 2, 7, 2, 1],
+    ["p-doors", "Doors", "doors", 4, 7, 2, 1],
+  ],
+  [
+    [1, 0, "e"],
+    [3, 0, "e"],
+    [5, 0, "e"],
+    [0, 1, "s"],
+    [1, 1, "e"],
+    [2, 1, "s"],
+    [3, 1, "e"],
+    [3, 1, "s"],
+    [5, 1, "e"],
+    [6, 1, "e"],
+    [4, 2, "s"],
+    [7, 2, "s"],
+    [3, 3, "w"],
+    [3, 4, "w"],
+    [4, 4, "s"],
+    [7, 4, "s"],
+    [0, 6, "n"],
+    [1, 6, "e"],
+    [2, 6, "n"],
+    [3, 6, "e"],
+    [3, 6, "n"],
+    [5, 6, "e"],
+    [6, 6, "e"],
+    [1, 7, "e"],
+    [3, 7, "e"],
+    [5, 7, "e"],
+  ],
+  8,
+  8,
+);
+
+/** Traced from the Stealth C hangar picture, including which orange bar sits on which wall. 39 is that picture's square count. The cruiser page states no square count. */
+const stealthC = traced(
+  [
+    ["p-doors", "Doors", "doors", 2, 0, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 0, 2, 1],
+    ["p-sth0", "Hall", null, 5, 1, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 6, 1, 2, 2],
+    ["p-sth1", "Hall", null, 0, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 2, 2, 2, 2],
+    ["p-sth2", "Hall", null, 8, 2, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 12, 2, 1, 2],
+    ["p-sth3", "Hall", null, 10, 2, 1, 1],
+    ["p-sth4", "Doors", null, 0, 3, 2, 1],
+    ["p-sth5", "Hall", null, 5, 3, 1, 2],
+    ["p-drones", "Drones", null, 6, 3, 2, 2],
+    ["p-sth6", "Hall", null, 2, 4, 2, 2],
+    ["p-sth7", "Hall", null, 4, 5, 2, 1],
+  ],
+  [
+    [3, 0, "e"],
+    [5, 0, "s"],
+    [2, 1, "w"],
+    [3, 1, "s"],
+    [5, 1, "e"],
+    [5, 1, "w"],
+    [1, 2, "e"],
+    [5, 2, "s"],
+    [5, 2, "w"],
+    [7, 2, "e"],
+    [9, 2, "e"],
+    [10, 2, "s"],
+    [12, 2, "w"],
+    [1, 3, "e"],
+    [3, 3, "s"],
+    [5, 3, "w"],
+    [7, 3, "e"],
+    [2, 4, "w"],
+    [5, 4, "e"],
+    [5, 4, "s"],
+    [5, 4, "w"],
+    [3, 5, "e"],
+  ],
+  13,
+  6,
+);
+
 /** Each entry keeps its published square total. Cruiser pages do not state square counts, so the count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text. */
 export const LAYOUTS: Record<string, Layout> = {
   // Square total is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
@@ -1267,31 +1640,12 @@ export const LAYOUTS: Record<string, Layout> = {
   // Traced from the Zoltan C hangar picture.
   "zoltan-c": zoltanC,
 
-  // "The Slug Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "slug-a": sized(
-    core("Medbay", "medbay").filter((r) => r.id !== "p-sensors"),
-    10,
-    5,
-  ),
-  // "The Slug Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "slug-b": sized(
-    [
-      ...core("Medbay", "medbay").filter((r) => r.id !== "p-medbay" && r.id !== "p-sensors"),
-      { id: "p-tele", title: "Teleporter", system: null, size: 4 },
-    ],
-    13,
-    7,
-  ),
-  // "The Slug Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "slug-c": sized(
-    [
-      ...core("Clone Bay", null),
-      { id: "p-hack", title: "Hacking", system: null, size: 2 },
-      { id: "p-mind", title: "Mind Control", system: null, size: 2 },
-    ],
-    11,
-    5,
-  ),
+  // Traced from the Slug A hangar picture.
+  "slug-a": slugA,
+  // Traced from the Slug B hangar picture.
+  "slug-b": slugB,
+  // Traced from the Slug C hangar picture.
+  "slug-c": slugC,
   // Traced from the Rock A hangar picture.
   "rock-a": rockA,
   // Traced from the Rock B hangar picture.
@@ -1303,34 +1657,14 @@ export const LAYOUTS: Record<string, Layout> = {
   // Traced from the Stealth B hangar picture.
   "stealth-b": stealthB,
 
-  // "The Stealth Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "stealth-c": sized(
-    [
-      ...core("Clone Bay", null).filter((r) => r.id !== "p-shields" && r.id !== "p-sensors"),
-      { id: "p-drones", title: "Drones", system: null, size: 4 },
-    ],
-    8,
-    6,
-  ),
-  // "The Lanius Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "lanius-a": sized(
-    [
-      ...core("Clone Bay", null),
-      { id: "p-hack", title: "Hacking", system: null, size: 2 },
-    ],
-    11,
-    5,
-  ),
-  // "The Lanius Cruiser" states no square count. The count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text.
-  "lanius-b": sized(
-    [
-      ...core("Clone Bay", null).filter((r) => r.id !== "p-sensors"),
-      { id: "p-tele", title: "Teleporter", system: null, size: 4 },
-      { id: "p-mind", title: "Mind Control", system: null, size: 2 },
-    ],
-    11,
-    7,
-  ),
+  // Traced from the Stealth C hangar picture.
+  "stealth-c": stealthC,
+  // Traced from the Lanius A hangar picture.
+  "lanius-a": laniusA,
+  // Traced from the Lanius B hangar picture.
+  "lanius-b": laniusB,
+  // Traced from the Mantis A hangar picture.
+  "mantis-a": mantisA,
   // Traced from the Mantis B hangar picture.
   "mantis-b": mantisB,
   // Traced from the Mantis C hangar picture.

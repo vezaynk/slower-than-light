@@ -1,18 +1,4 @@
 import { useEffect, useState, type ReactNode } from "react";
-import {
-  Compass,
-  Crosshair,
-  DoorOpen,
-  Eye,
-  Gauge,
-  HeartPulse,
-  Minus,
-  Plus,
-  Shield,
-  Volume2,
-  VolumeX,
-  Wind,
-} from "lucide-react";
 import { resumeAudio, setMuted, unlockAudio } from "@/game/audio";
 import {
   SECTOR_NAMES,
@@ -23,8 +9,8 @@ import {
   upgradeCost,
 } from "@/game/content";
 import { CATALOG } from "@/game/extras/augments";
+import { navAllows } from "@/game/wiki/cited-nav";
 import { installCell, startCell } from "@/game/extras/cell";
-import { kinOf } from "@/game/extras/kin";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
@@ -40,12 +26,14 @@ import {
   continueReward,
   depowerWeapon,
   doorLabel,
-  enemySpoolSeconds,
+  enemyEscapeView,
   evasionPercent,
   ftlSeconds,
   hasSave,
   isMain,
+  bars,
   maxBubbles,
+  zoltanBars,
   lockdown,
   lockdownSelected,
   openAllDoors,
@@ -65,20 +53,17 @@ import {
   upgrade,
 } from "@/game/sim";
 import { useGame } from "@/game/store";
-import type { Game, KitId, SysId } from "@/game/types";
-import { ShipView } from "./ShipView";
+import type { Crew, Game, KitId, SysId } from "@/game/types";
+import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
+import { CombatFx } from "./CombatFx";
+import { FullscreenButton } from "./FullscreenButton";
+import { CrewFace } from "./CrewSprite";
+import { DroneArt, WeaponArt } from "./GearArt";
+import { PixelIcon } from "./PixelIcon";
+import type { IconName } from "@/game/icons";
+import { Screen } from "./Screen";
+import { ShipView, type AimMark } from "./ShipView";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
-
-const ICONS: Record<SysId, typeof Shield> = {
-  shields: Shield,
-  engines: Gauge,
-  oxygen: Wind,
-  medbay: HeartPulse,
-  weapons: Crosshair,
-  pilot: Compass,
-  sensors: Eye,
-  doors: DoorOpen,
-};
 
 const SYS_ORDER: SysId[] = [
   "shields",
@@ -229,11 +214,13 @@ export function GameApp() {
   }, []);
 
   return (
-    <div className={game.phase === "title" ? "deck" : "deck play-root"}>
-      {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={reduced ? 0 : game.trauma * game.trauma} />}
-      {game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null}
-      {game.shipSheet ? <ShipSheet game={game} /> : null}
-    </div>
+    <Screen>
+      <div className={game.phase === "title" ? "deck" : "deck play-root"}>
+        {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={reduced ? 0 : game.trauma * game.trauma} />}
+        {game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null}
+        {game.shipSheet ? <ShipSheet game={game} /> : null}
+      </div>
+    </Screen>
   );
 }
 
@@ -255,6 +242,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       }}
     >
       <Hud game={game} />
+      <CombatFx />
       <CrewRail game={game} />
       <div className="stage-slot">
         {sector ? (
@@ -281,9 +269,8 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
 }
 
 function Hud({ game }: { game: Game }) {
-  const evade = evasionPercent(game, game.player, "player");
   const bubbles = game.player.shieldNow;
-  const cap = Math.max(maxBubbles(game.player), bubbles, 1);
+  const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles, 1);
   const spool = ftlSeconds(game, game.player);
   const charging = game.phase === "combat" && game.flee < 1;
   const ready = game.phase === "combat" && game.flee >= 1 && !game.picking;
@@ -298,7 +285,7 @@ function Hud({ game }: { game: Game }) {
             ))}
           </div>
           <div className="scrap-box" aria-label={`${game.scrap} scrap`}>
-            <GearIcon />
+            <PixelIcon name="scrap" size={20} />
             <b>{game.scrap}</b>
           </div>
         </div>
@@ -315,16 +302,16 @@ function Hud({ game }: { game: Game }) {
               ))}
             </span>
           ) : null}
-          <span className="evade-chip" aria-label={`Evasion ${evade} percent`}>
-            <i />
-            {evade}
+          <span className="count-chip" aria-label={`${game.fuel} fuel`} title="Fuel">
+            <PixelIcon name="fuel" />
+            {game.fuel}
           </span>
-          <span className="count-chip" aria-label={`${game.missiles} missiles`}>
-            <MissileIcon />
+          <span className="count-chip" aria-label={`${game.missiles} missiles`} title="Missiles">
+            <PixelIcon name="missile" />
             {game.missiles}
           </span>
-          <span className="count-chip" aria-label={`${game.player.parts} drone parts`}>
-            <PartIcon />
+          <span className="count-chip" aria-label={`${game.player.parts} drone parts`} title="Drone parts">
+            <PixelIcon name="parts" />
             {game.player.parts}
           </span>
         </div>
@@ -355,7 +342,7 @@ function Hud({ game }: { game: Game }) {
             <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : 1) * 100)}%` }} />
           </span>
           <em>
-            {charging ? "CHARGING" : game.picking ? "CHART" : "READY"} · {game.fuel}
+            {charging ? "CHARGING" : game.picking ? "CHART" : "READY"}
           </em>
         </button>
         <button
@@ -369,11 +356,12 @@ function Hud({ game }: { game: Game }) {
             })
           }
         >
-          <ShipIcon />
+          <PixelIcon name="ship" size={20} />
         </button>
         <button type="button" className="frame-btn" aria-label="Upgrades" onClick={() => act((g) => { g.shipSheet = true; })}>
-          <WrenchIcon />
+          <PixelIcon name="upgrade" size={20} />
         </button>
+        <FullscreenButton />
       </div>
     </header>
   );
@@ -385,16 +373,19 @@ function CrewRail({ game }: { game: Game }) {
   return (
     <aside className="crew-rail">
       <div className="air-readout">
-        <span>
-          <i className="evade-mini" />
+        <span title="Evasion">
+          <PixelIcon name="evade" />
           {evasionPercent(game, game.player, "player")}%
         </span>
-        <span>O2 {air}%</span>
+        <span title="Oxygen">
+          <PixelIcon name="oxygen" />
+          {air}%
+        </span>
       </div>
       {crew.map((c) => (
         <div key={c.id} className={`crew-card${c.id === game.selected ? " is-selected" : ""}`}>
           <button type="button" className="crew-card-hit" onClick={() => act((g) => selectCrew(g, c.id))}>
-            <Portrait kin={c.kin ?? "plain"} />
+            <Portrait crew={c} />
             <span>
               <strong>{c.name}</strong>
               <i className="hp">
@@ -422,7 +413,7 @@ function CrewRail({ game }: { game: Game }) {
 function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } }) {
   const intruders = game.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
   const bubbles = game.player.shieldNow;
-  const cap = Math.max(maxBubbles(game.player), 1);
+  const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), 1);
   return (
     <div className="sky" style={shake}>
       <div className="planet" />
@@ -455,10 +446,24 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   );
 }
 
+/** Queued rooms for powered player guns. Numbers match the dock slots (1–4). */
+function aimMarks(game: Game): AimMark[] {
+  const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
+  return game.player.weapons.flatMap((w, i) => {
+    if (!w.target || !mask[i]) return [];
+    const state = slotAutofire(game, w) ? "auto" : w.charge >= 0.9 ? "ready" : "charging";
+    return [{ room: w.target, slot: i + 1, state } as AimMark];
+  });
+}
+
 function TargetPanel({ game }: { game: Game }) {
   const enemy = game.enemy;
   if (!enemy) return null;
-  const foeSpool = enemySpoolSeconds(game);
+  const escape = enemyEscapeView(game);
+  // Cloaking: "When an enemy ship is cloaked, you lose vision of its interior unless your crew… is aboard".
+  const veil = enemy.kits.veil;
+  const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+  const cloaked = !!veil?.on && veil.left > 0;
   return (
     <aside className="target-panel">
       <div className="target-head">
@@ -466,33 +471,48 @@ function TargetPanel({ game }: { game: Game }) {
         <div>
           <p>Class: {enemy.name}</p>
           <p>Relationship: Hostile</p>
-          <p className="mini">
-            Their jump {foeSpool == null ? "—" : `${Math.round(game.enemyFlee * foeSpool)}s`}
-          </p>
+          {escape ? (
+            <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
+              {escape.stalled ? "FTL STALLED" : `FTL CHARGING · ${escape.left}s`}
+            </p>
+          ) : null}
         </div>
       </div>
-      <div className="target-body">
+      {/* Documented hulls vary in width; tiles shrink so the widest still fits the panel. */}
+      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.min(48, Math.floor(300 / Math.max(1, enemy.cols)))}px` }}>
         <ShipView
           ship={enemy}
           crew={game.crew}
           aboard="enemy"
-          showCrew
+          showCrew={!cloaked || ownAboard}
           selectedId={null}
           ventMode={false}
           targetable
           onRoom={(id) => act((g) => aim(g, id))}
           onCrew={() => undefined}
+          aims={aimMarks(game)}
         />
+        {cloaked ? <p className="cloak-tag">CLOAKED</p> : null}
       </div>
       <div className="target-systems">
         {SYS_ORDER.map((id) => {
           const sys = enemy.systems[id];
           if (sys.level <= 0 && sys.power <= 0) return null;
-          const Icon = ICONS[id];
+          const shown = isMain(id) ? bars(sys, zoltanBars(game.crew, enemy, "enemy", id)) : sys.power;
           return (
-            <span key={id} title={`${SYS_LABEL[id]} ${sys.power}`}>
-              <Icon size={14} />
-              <b>{sys.power}</b>
+            <span key={id} title={`${SYS_LABEL[id]} ${shown}`}>
+              <PixelIcon name={id} size={16} />
+              <b>{shown}</b>
+            </span>
+          );
+        })}
+        {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {
+          const kit = enemy.kits[id];
+          if (!kit) return null;
+          return (
+            <span key={id} title={`${KIT_LABEL[id]} ${kit.level}`} className={kit.on ? "is-on" : undefined}>
+              <PixelIcon name={id} size={16} />
+              <b>{kit.level}</b>
             </span>
           );
         })}
@@ -502,7 +522,7 @@ function TargetPanel({ game }: { game: Game }) {
 }
 
 function Dock({ game }: { game: Game }) {
-  const mask = powerMask(game.player);
+  const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
   return (
     <footer className="dock">
       <div className="power-dock">
@@ -522,6 +542,7 @@ function Dock({ game }: { game: Game }) {
             const pips = 7;
             const filled = Math.round(Math.max(0, Math.min(1, w.charge)) * pips);
             const name = def?.name ?? w.defId;
+            const aimed = w.target && game.enemy ? game.enemy.rooms.find((r) => r.id === w.target)?.title : null;
             return (
               <button
                 key={w.uid}
@@ -546,8 +567,15 @@ function Dock({ game }: { game: Game }) {
                 }}
               >
                 <span className="gun-hit">
-                  <WeaponGlyph kind={def?.kind ?? "laser"} />
+                  <WeaponArt id={w.defId} height={24} />
                   <span className="gun-name">{name}</span>
+                  {aimed ? (
+                    <span className="gun-aim">
+                      <PixelIcon name="target" size={12} />
+                      {aimed}
+                      {auto ? " · AUTO" : ""}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="charge-pips" aria-hidden="true">
                   {Array.from({ length: pips }, (_, i) => (
@@ -558,6 +586,9 @@ function Dock({ game }: { game: Game }) {
               </button>
             );
           })}
+          {Array.from({ length: Math.max(0, 3 - game.player.weapons.length) }, (_, i) => (
+            <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
+          ))}
         </div>
         <div className="dock-caption">
           <span className="dock-label">WEAPONS</span>
@@ -584,7 +615,6 @@ function Dock({ game }: { game: Game }) {
         ) : null}
         <div className="sub-row">
           {(["pilot", "sensors", "doors"] as SysId[]).map((id) => {
-            const Icon = ICONS[id];
             const sys = game.player.systems[id];
             return (
               <button
@@ -606,7 +636,7 @@ function Dock({ game }: { game: Game }) {
                     <b key={n} className={n < sys.level ? "on" : ""} />
                   ))}
                 </i>
-                <Icon size={16} />
+                <PixelIcon name={id} size={16} />
               </button>
             );
           })}
@@ -630,7 +660,7 @@ function Dock({ game }: { game: Game }) {
                     <b key={n} className={n < kit.power ? "on" : ""} />
                   ))}
                 </i>
-                <KitMark id={id} />
+                <PixelIcon name={id} size={16} />
               </button>
             );
           })}
@@ -644,8 +674,11 @@ function Dock({ game }: { game: Game }) {
 function PowerStack({ game, id }: { game: Game; id: SysId }) {
   const sys = game.player.systems[id];
   const cap = Math.max(0, sys.level - sys.damage - sys.ion.length);
-  const Icon = ICONS[id];
   const slots = sys.level;
+  const capacity = Math.max(0, sys.level - sys.damage);
+  const ionLocked = Math.min(sys.ion.length, capacity);
+  const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
+  const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
   return (
     <div className="power-stack">
       <div className="power-col">
@@ -654,7 +687,15 @@ function PowerStack({ game, id }: { game: Game; id: SysId }) {
           const ionStart = sys.level - sys.ion.length;
           const dmgStart = ionStart - sys.damage;
           const cls =
-            sys.ion.length > 0 && i >= ionStart ? "is-ion" : sys.damage > 0 && i >= dmgStart ? "is-dmg" : i < sys.power ? "on" : "";
+            i < green
+              ? "on"
+              : i < live
+                ? "is-zoltan"
+                : sys.ion.length > 0 && i >= ionStart
+                  ? "is-ion"
+                  : sys.damage > 0 && i >= dmgStart
+                    ? "is-dmg"
+                    : "";
           return (
             <button
               key={i}
@@ -671,7 +712,7 @@ function PowerStack({ game, id }: { game: Game; id: SysId }) {
         })}
       </div>
       <span className="sys-orb" title={SYS_LABEL[id]}>
-        <Icon size={15} />
+        <PixelIcon name={id} size={16} />
       </span>
     </div>
   );
@@ -710,7 +751,7 @@ function RewardModal({ game }: { game: Game }) {
       <article className="ftl-card">
         <p>{reward.note || "The buoy is quiet."}</p>
         <p className="loot-chip">
-          <GearIcon />
+          <PixelIcon name="scrap" size={20} />
           <b>{reward.scrap}</b>
         </p>
         <button type="button" className="choice-line" onClick={() => act((g) => continueReward(g))}>
@@ -751,67 +792,12 @@ function setBars(g: Game, id: SysId, next: number) {
   }
 }
 
-function Portrait({ kin }: { kin: string }) {
+function Portrait({ crew }: { crew: Crew }) {
   return (
-    <span className={`portrait kin-${kin}`} aria-hidden="true">
-      <i />
+    <span className="portrait" aria-hidden="true">
+      <CrewFace crew={crew} size={24} />
     </span>
   );
-}
-
-function GearIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="hud-icon" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path
-        fill="currentColor"
-        d="M11 1h2v3.2h-2zM11 19.8h2V23h-2zM1 11h3.2v2H1zM19.8 11H23v2h-3.2zM4.1 4.8l1.5-1.5 2.2 2.2-1.5 1.5zM16.2 18.5l1.5-1.5 2.2 2.2-1.5 1.5zM18.5 4.8l1.5 1.5-2.2 2.2-1.5-1.5zM5.6 16.9l1.5 1.5-2.2 2.2-1.5-1.5z"
-      />
-    </svg>
-  );
-}
-
-function MissileIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="hud-icon" aria-hidden="true">
-      <path fill="currentColor" d="M4 14 L14 4 h4 v4 L10 16 H8 L6 18 l-2 2 2-4z" />
-    </svg>
-  );
-}
-
-function PartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="hud-icon" aria-hidden="true">
-      <rect x="4" y="4" width="7" height="7" fill="none" stroke="currentColor" strokeWidth="2" />
-      <rect x="13" y="13" width="7" height="7" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path stroke="currentColor" strokeWidth="2" d="M13 7h4v4M7 13v4h4" />
-    </svg>
-  );
-}
-
-function ShipIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="hud-icon" aria-hidden="true">
-      <path fill="none" stroke="currentColor" strokeWidth="1.8" d="M3 14h10l7-5v8l-7-3H3z" />
-    </svg>
-  );
-}
-
-function WrenchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="hud-icon" aria-hidden="true">
-      <path fill="none" stroke="currentColor" strokeWidth="1.8" d="M14 6a4 4 0 0 0-5 5L4 16l4 4 5-5a4 4 0 0 0 5-5l-3 1-2-2z" />
-    </svg>
-  );
-}
-
-function WeaponGlyph({ kind }: { kind: string }) {
-  return <span className={`gun-glyph kind-${kind}`} aria-hidden="true" />;
-}
-
-function KitMark({ id }: { id: KitId }) {
-  const letter = KIT_LABEL[id].slice(0, 1);
-  return <span className="kit-mark">{letter}</span>;
 }
 
 /**
@@ -837,6 +823,7 @@ function TitleScreen() {
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
     <section className="title-shot">
+      <FullscreenButton className="frame-btn title-fs" />
       <div
         className="title-frame"
         onClick={() => {
@@ -897,8 +884,8 @@ function TitlePanel() {
   return (
     <div className="title-panel" onClick={(e) => e.stopPropagation()}>
       <p>CREDITS</p>
-      <p>© 2012 Subset Games</p>
-      <p>v. 1.01</p>
+      <p className="title-panel-body">Ashwake is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
+      <p>v. 0.1</p>
     </div>
   );
 }
@@ -1077,15 +1064,16 @@ function MapScreen({ game }: { game: Game }) {
           {game.beacons.map((b) => {
             if (b.id === game.here) return null;
             const linked = here?.links.includes(b.id) ?? false;
+            const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
             const swallowed = b.col < game.fleet;
             const tag = b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
             return (
               <button
                 key={b.id}
                 type="button"
-                className={`beacon${linked ? " is-linked" : ""}${swallowed ? " is-over" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
+                className={`beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
                 style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
-                disabled={!linked || (game.phase === "combat" && game.flee < 1)}
+                disabled={!open || (game.phase === "combat" && game.flee < 1)}
                 aria-label={tag || "Beacon"}
                 onClick={() => act((g) => commitJump(g, b.id))}
               />
@@ -1105,6 +1093,12 @@ function MapScreen({ game }: { game: Game }) {
       <div className="sector-key beacon-foot">
         <span>SECTOR {game.sector}</span>
         {named ? <span>{named}</span> : null}
+        <span className="beacon-legend">
+          <span><i className="key-beacon is-linked" />Jump</span>
+          <span><i className="key-beacon" />Beacon</span>
+          <span><i className="key-beacon is-visited" />Visited</span>
+          <span><i className="key-beacon is-over" />Fleet</span>
+        </span>
         {game.picking ? (
           <button type="button" onClick={() => act((g) => { g.picking = false; })}>
             CANCEL
@@ -1247,7 +1241,7 @@ function ShipSheet({ game }: { game: Game }) {
               })
             }
           >
-            {game.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            <PixelIcon name={game.muted ? "mute" : "sound"} />
             {game.muted ? "Unmute" : "Mute"}
           </button>
         </div>
@@ -1256,7 +1250,9 @@ function ShipSheet({ game }: { game: Game }) {
             .filter((c) => c.side === "player" && c.hp > 0)
             .map((c) => (
               <span key={c.id}>
-                <i className={`token tone-${c.tone}`}>{c.name.slice(0, 1)}</i>
+                <i className="token is-sprite">
+                  <CrewFace crew={c} size={16} />
+                </i>
                 {c.name} {c.hp} hp
               </span>
             ))}
@@ -1278,7 +1274,6 @@ function ShipSheet({ game }: { game: Game }) {
           />
           {SYS_ORDER.map((id) => {
             const sys = game.player.systems[id];
-            const Icon = ICONS[id];
             const cost = upgradeCost(id, sys.level);
             return (
               <PowerRow
@@ -1289,7 +1284,7 @@ function ShipSheet({ game }: { game: Game }) {
                 power={isMain(id) ? sys.power : sys.level}
                 max={Math.max(0, sys.level - sys.damage - sys.ion.length)}
                 cost={cost}
-                icon={Icon}
+                icon={id}
                 onUp={cost != null ? () => act((g) => upgrade(g, id)) : null}
                 onDown={isMain(id) ? () => act((g) => powerDown(g, id)) : null}
                 onPlus={isMain(id) ? () => act((g) => powerUp(g, id)) : null}
@@ -1304,8 +1299,15 @@ function ShipSheet({ game }: { game: Game }) {
             return (
               <p key={id} className="power-row">
                 <span className="power-name">
+                  <PixelIcon name={id} />
                   {KIT_LABEL[id]} · {kit.level}
                 </span>
+                {id === "swarm" && droneKeyOf(kit.target) ? (
+                  <span className="power-drone">
+                    <DroneArt kind={droneKeyOf(kit.target)} height={20} />
+                    {DRONE_LOOKS[droneKeyOf(kit.target)!].name}
+                  </span>
+                ) : null}
                 <span className="mini">{kit.power > 0 ? `${kit.power} power` : "unpowered"}</span>
               </p>
             );
@@ -1337,6 +1339,7 @@ function PowerRow({
   onUp,
   onDown,
   onPlus,
+  icon,
 }: {
   name: string;
   blurb: string;
@@ -1344,14 +1347,17 @@ function PowerRow({
   power: number;
   max: number;
   cost: number | null;
-  icon?: typeof Shield;
+  icon?: IconName;
   onUp: (() => void) | null;
   onDown: (() => void) | null;
   onPlus: (() => void) | null;
 }) {
   return (
     <div className="power-row">
-      <span className="power-name">{name}</span>
+      <span className="power-name">
+        {icon ? <PixelIcon name={icon} /> : null}
+        {name}
+      </span>
       <span className="bars" aria-hidden="true">
         {Array.from({ length: Math.max(max, power, 1) }, (_, i) => (
           <i key={i} className={i < power ? "on" : ""} />
@@ -1361,12 +1367,12 @@ function PowerRow({
       <span className="mode-row">
         {onDown ? (
           <button type="button" className="icon-btn" aria-label={`Less ${name}`} onClick={onDown}>
-            <Minus size={14} />
+            <PixelIcon name="minus" />
           </button>
         ) : null}
         {onPlus ? (
           <button type="button" className="icon-btn" aria-label={`More ${name}`} onClick={onPlus}>
-            <Plus size={14} />
+            <PixelIcon name="plus" />
           </button>
         ) : null}
         {onUp ? (

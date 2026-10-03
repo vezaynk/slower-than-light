@@ -1,5 +1,10 @@
-import { log, rand, sparePower } from "../sim.ts";
-import type { Game, Kit, Shot } from "../types.ts";
+import { applyIon, log, rand, sparePower } from "../sim.ts";
+import type { Game, Kit, Room, Ship, Shot } from "../types.ts";
+import { crewDroneSpeed } from "../wiki/cited-booster.ts";
+import { bypassZoltan } from "../wiki/cited-bypass.ts";
+import { COMBAT2 } from "../wiki/cited-combat2.ts";
+import { INTRUDER } from "../wiki/cited-intruder.ts";
+import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 
 /**
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
@@ -222,7 +227,9 @@ function ready(kit: Kit): boolean {
  */
 export function deploy(g: Game, kind: string): boolean {
   const kit = g.player.kits.swarm;
-  if (!kit || !isKind(kind)) return false;
+  // Combat Drone Mark II and the Ion Intruder stay outside SwarmKind. drones-missing.ts still lists them.
+  const cited = kind === "combat2" || kind === "ionintruder";
+  if (!kit || (!isKind(kind) && !cited)) return false;
   if (kit.on && kit.target === kind) return true;
   if (g.player.parts < PART_COST) {
     log(g, "Drone Control needs a drone part.");
@@ -231,6 +238,9 @@ export function deploy(g: Game, kind: string): boolean {
   g.player.parts -= PART_COST;
   kit.on = true;
   kit.target = kind;
+  kit.path = [];
+  kit.move = 0;
+  if (kind !== "patch") kit.room = undefined;
   // Drone Control, "Anti-Combat Drone": "Starts fully charged when first deployed".
   // Combat Drone Mark I does not say that, so the striker interval starts empty.
   // Beam and Boarding Drone give no starting charge, so those intervals start empty too.
@@ -241,10 +251,20 @@ export function deploy(g: Game, kind: string): boolean {
   return true;
 }
 
-function shoots(kind: SwarmKind, shot: { kind: string; from: string }): boolean {
+function shoots(
+  kind: SwarmKind,
+  shot: { kind: string; from: string; defId?: string },
+  defender: "player" | "enemy",
+): boolean {
   if (kind !== "ward" && kind !== "ward2") return false;
-  // Incoming only. The ship's own shots are not targets.
-  if (shot.from === "player") return false;
+  // Incoming only. The defending ship's own shots are not targets.
+  if (shot.from === defender) return false;
+  // Augmentations, Crystal Vengeance: defense drones can shoot the shard down.
+  // The grey note calls it a neutral projectile like an asteroid. Mark I shoots asteroids, so both marks do.
+  // A friendly drone does not. That shoot-down is the grey [bugged] note, and it is not implemented.
+  if (shot.defId === "vengeance") return true;
+  // Environmental Hazards, anti-ship battery: it cannot be shot down.
+  if (shot.from === "env" && shot.kind === "missile") return false;
   // Defensive Drones > Defense Drone Mark I: missiles, hacking and boarding
   // drones, individual flak debris, and asteroids.
   if (shot.kind === "missile" || shot.kind === "flak") return true;
@@ -263,12 +283,29 @@ function shoots(kind: SwarmKind, shot: { kind: string; from: string }): boolean 
  * True when a powered defense drone is off cooldown and this shot is one it
  * shoots down. One shot per cooldown: a hit fills kit.cool and kit.aux.
  */
-export function swarmIntercept(g: Game, shot: { kind: string; from: string }): boolean {
+export function swarmIntercept(g: Game, shot: { kind: string; from: string; defId?: string }): boolean {
   const kit = g.player.kits.swarm;
   if (!kit || !isKind(kit.target)) return false;
   const kind = kit.target;
   if (!powered(kit, kind) || !ready(kit)) return false;
-  if (!shoots(kind, shot)) return false;
+  if (!shoots(kind, shot, "player")) return false;
+  if (kind !== "ward" && kind !== "ward2") return false;
+  setCooldown(kit, DRONE_COOLDOWN_S[kind]);
+  return true;
+}
+
+/**
+ * Augmentations, "Defense Scrambler": enemy Defense Drone I, Defense Drone II,
+ * and Anti-Combat drones cannot acquire a target. The player's own drones are
+ * not this check. A blocked drone does not spend its cooldown.
+ */
+export function enemyDefenseIntercept(g: Game, shot: { kind: string; from: string; defId?: string }): boolean {
+  const kit = g.enemy?.kits.swarm;
+  if (!kit || !isKind(kit.target)) return false;
+  const kind = kit.target;
+  if (g.augments.includes("scrambler") && scramblerBlocks(kind)) return false;
+  if (!powered(kit, kind) || !ready(kit)) return false;
+  if (!shoots(kind, shot, "enemy")) return false;
   if (kind !== "ward" && kind !== "ward2") return false;
   setCooldown(kit, DRONE_COOLDOWN_S[kind]);
   return true;
@@ -367,6 +404,16 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       return;
     }
     kit.aux -= BOARD_INTERVAL_S;
+    // Zoltan Shield: a boarding drone is destroyed on contact and does not damage the bubble.
+    // Bypass still says launch-then-destroyed. The fitted path reads that row. It is never "pass".
+    if ((enemy.zoltan ?? 0) > 0) {
+      const via = g.augments.includes("bypass") ? bypassZoltan("board") : "destroyed";
+      if (via !== "pass") {
+        kit.on = false;
+        log(g, "The boarding drone breaks on their Zoltan Shield.");
+        return;
+      }
+    }
     // Drone Control, Boarding Drones: "They ignore regular shields".
     // shieldNow is not read and is not reduced. Boarding Drones > Boarding Drone
     // boards and attacks crew and systems inside.
@@ -394,14 +441,151 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
   }
 }
 
-function tickPatch(): void {
+function linked(ship: Ship, id: string): string[] {
+  const out: string[] = [];
+  for (const door of ship.doors) {
+    if (door.b === "void") continue;
+    if (door.a === id) out.push(door.b);
+    else if (door.b === id) out.push(door.a);
+  }
+  return out;
+}
+
+function route(ship: Ship, from: string, to: string): string[] | null {
+  if (from === to) return [];
+  const queue = [from];
+  const prev = new Map<string, string | null>([[from, null]]);
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const next of linked(ship, cur)) {
+      if (prev.has(next)) continue;
+      prev.set(next, cur);
+      if (next === to) {
+        const path: string[] = [];
+        let walk: string | null = to;
+        while (walk && walk !== from) {
+          path.push(walk);
+          walk = prev.get(walk) ?? null;
+        }
+        path.reverse();
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
+function needsRepair(ship: Ship, room: Room): boolean {
+  if (room.fire > 0 || room.breach > 0) return true;
+  return !!room.system && ship.systems[room.system].damage > 0;
+}
+
+/** Nearest room with a fire, a breach, or system damage. The drone stays put when it is already there. */
+function repairRoom(ship: Ship, from: string): string | null {
+  const here = ship.rooms.find((room) => room.id === from);
+  if (here && needsRepair(ship, here)) return null;
+  let best: { id: string; steps: number } | null = null;
+  for (const room of ship.rooms) {
+    if (!needsRepair(ship, room)) continue;
+    const path = route(ship, from, room.id);
+    if (!path || path.length === 0) continue;
+    if (!best || path.length < best.steps) best = { id: room.id, steps: path.length };
+  }
+  return best?.id ?? null;
+}
+
+function tickCrewDrone(g: Game, kit: Kit, dt: number) {
+  const ship = g.player;
+  if (!kit.room || !ship.rooms.some((room) => room.id === kit.room)) {
+    kit.room = ship.rooms[0]?.id;
+    kit.path = [];
+    kit.move = 0;
+  }
+  if (!kit.room) return;
+  if (!kit.path || kit.path.length === 0) {
+    const dest = repairRoom(ship, kit.room);
+    if (!dest) return;
+    const path = route(ship, kit.room, dest);
+    if (!path || path.length === 0) return;
+    kit.path = path;
+  }
+  // INFERRED crew walk is one room in 0.6s. Drone Reactor Booster states the crew-drone fraction of that speed.
+  const pace = crewDroneSpeed(g.augments.includes("booster"));
+  kit.move = (kit.move ?? 0) + (dt * pace) / 0.6;
+  if (kit.move >= 1) {
+    const next = kit.path.shift();
+    if (next) kit.room = next;
+    kit.move = 0;
+  }
+}
+
+function tickPatch(g: Game, kit: Kit, dt: number) {
   // Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires, at the same speed as an Engi".
   // The page gave no seconds, so this tick applies no repair rate.
+  tickCrewDrone(g, kit, dt);
 }
 
 function tickHull(): void {
   // Drone Control, Defensive Drones > Hull Repair Drone: "repairing 3-5 hull points and then self-destructs".
   // That is a total, not hull-per-second. The page gave no seconds, so this tick applies no rate.
+}
+
+function tickCombat2(kit: Kit): void {
+  // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
+  // The page prints no cooldown, so no shot is built. Damage and fire stay on COMBAT2 until a cooldown exists.
+  // Speed 28 is movement, not a fire interval.
+  if (!kit.on || kit.power < COMBAT2.power) return;
+  if (COMBAT2.cooldown == null) return;
+}
+
+function systemRooms(enemy: Ship): Room[] {
+  return enemy.rooms.filter((room) => room.system);
+}
+
+function rollIntruderWait(g: Game): number {
+  // Drone Control, Ion Intruder: "Pulse time varies between 8.2 and 10 seconds."
+  // INFERRED: each wait is uniform inside that range. The page names no distribution.
+  return INTRUDER.pulseMin + rand(g) * (INTRUDER.pulseMax - INTRUDER.pulseMin);
+}
+
+function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
+  const systems = systemRooms(enemy);
+  if (systems.length === 0) return;
+  if (!kit.room || !systems.some((room) => room.id === kit.room)) {
+    kit.room = systems[Math.floor(rand(g) * systems.length)]?.id;
+  }
+  const room = enemy.rooms.find((item) => item.id === kit.room);
+  if (room?.system) {
+    const sys = enemy.systems[room.system];
+    // A destroyed system is not ionized. An ionized system is still a target.
+    if (sys.damage < sys.level) {
+      applyIon(enemy, room.system, INTRUDER.ion);
+      for (const c of g.crew) {
+        if (c.side !== "enemy" || c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
+        if ((c.leashed ?? 0) > 0) continue;
+        c.stun = INTRUDER.stunSeconds;
+      }
+    }
+  }
+  const others = systems.filter((item) => item.id !== kit.room);
+  // INFERRED: "then moves to a different system" names no walk speed. The room changes when the pulse fires.
+  // Speed 18, health 125, and the door-break rate are not a single usable number, so none of them run.
+  if (others.length > 0) kit.room = others[Math.floor(rand(g) * others.length)]?.id;
+}
+
+function tickIntruder(g: Game, kit: Kit, dt: number): void {
+  if (!(kit.left > 0)) kit.left = rollIntruderWait(g);
+  // Removing power does not reset the cooldown. The timer freezes: it is not zeroed and it does not advance.
+  if (!kit.on || kit.power < INTRUDER.power) return;
+  const enemy = g.enemy;
+  if (!enemy) return;
+  kit.aux += dt;
+  while (kit.aux >= kit.left) {
+    pulseIntruder(g, enemy, kit);
+    kit.aux -= kit.left;
+    kit.left = rollIntruderWait(g);
+  }
 }
 
 /**
@@ -411,11 +595,30 @@ function tickHull(): void {
  * INFERRED: Overview says a drone stops when the system cannot power it, and
  * Anti-Combat needs continuous power to recharge.
  */
+function tickEnemyDefense(g: Game, dt: number) {
+  const kit = g.enemy?.kits.swarm;
+  if (!kit || !isKind(kit.target)) return;
+  const kind = kit.target;
+  if (kind !== "ward" && kind !== "ward2" && kind !== "wardcut") return;
+  if (!powered(kit, kind)) return;
+  tickCooldown(kit, dt);
+}
+
 export function tickSwarm(g: Game, dt: number) {
   retireReady(g);
   if (!(dt > 0)) return;
+  tickEnemyDefense(g, dt);
   const kit = g.player.kits.swarm;
-  if (!kit || !isKind(kit.target) || !powered(kit, kit.target)) return;
+  if (!kit?.target) return;
+  if (kit.target === "combat2") {
+    tickCombat2(kit);
+    return;
+  }
+  if (kit.target === "ionintruder") {
+    tickIntruder(g, kit, dt);
+    return;
+  }
+  if (!isKind(kit.target) || !powered(kit, kit.target)) return;
   const kind = kit.target;
   if (kind === "striker") {
     tickStriker(g, kit, dt);
@@ -430,7 +633,7 @@ export function tickSwarm(g: Game, dt: number) {
     return;
   }
   if (kind === "patch") {
-    tickPatch();
+    tickPatch(g, kit, dt);
     return;
   }
   if (kind === "hull") {

@@ -5,6 +5,7 @@ import type { WeaponDef } from "../content.ts";
  * The lead says "Ion weapons do not damage hull, systems, or crew." damage is 0.
  * No section lists a missile cost, so ammo is false.
  * Not here: Ion Blast, Ion Blast Mark II, Heavy Ion, Ion Stunner.
+ * Chain Ion's later ion steps stay in ION_GAPS. WeaponDef has no chain field.
  */
 export const ION_WEAPONS: WeaponDef[] = [
   {
@@ -93,7 +94,7 @@ export const ION_GAPS = {
   chainion: {
     // Wiki page "Ion (Weapons)", ===Chain Ion===.
     // "each subsequent shot dealing 1 additional ion damage, up to a maximum of 4".
-    // The weapon's ion field is the first shot. Later steps:
+    // WeaponDef has no chain field. ion stays the first printed shot, 1. Later steps:
     laterIon: [2, 3, 4],
     // "it takes 56 seconds to fully chain."
     secondsToFullChain: 56,

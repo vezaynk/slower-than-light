@@ -4,6 +4,8 @@ import type { WeaponDef } from "../content.ts";
  * Beam rows from wiki page "Beam (Weapons)" that are not already fitted.
  * Artillery Beam is not a WeaponDef. src/game/extras/lance.ts owns that system.
  * Boss Beam is BLOCKED because the section states no power requirement.
+ * Printed crew-damage HP is BEAM_CREW. Fire Beam prints a dash, so it is omitted.
+ * "Per room tile" is not a WeaponDef or Shot field, so the HP is not multiplied by tiles.
  */
 
 export const BEAM_WEAPONS: WeaponDef[] = [
@@ -163,6 +165,26 @@ export const BEAM_WEAPONS: WeaponDef[] = [
       "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
   },
 ];
+
+/**
+ * Crew-damage HP printed on Beam (Weapons).
+ * Fire Beam's crew line is "-", not a number. Boss Beam prints no crew line.
+ * Artillery Beam prints 15 HP per room tile, and lance.ts does not launch a shot.
+ */
+export const BEAM_CREW: Record<string, number> = {
+  // Beam (Weapons), "Mini Beam": Crew damage: 15 HP per room tile.
+  mini: 15,
+  // Beam (Weapons), "Pike Beam": Crew damage: 15 HP per room tile. Fitted id is shear, not pike.
+  pike: 15,
+  // Beam (Weapons), "Hull Beam": Crew damage: 15 HP per room tile.
+  hullbeam: 15,
+  // Beam (Weapons), "Halberd Beam": Crew damage: 30 HP per room tile.
+  halberd: 30,
+  // Beam (Weapons), "Glaive Beam": Crew damage: 45 HP per room tile.
+  glaive: 45,
+  // Beam (Weapons), "Anti-Bio Beam": Crew damage: 60 HP per room tile.
+  antibio: 60,
+};
 
 export const BEAM_GAPS: { id: string; note: string }[] = [
   {

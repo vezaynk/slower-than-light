@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, noteRun } from "@/game/wiki/achievement-track";
 import { buy, createGame, leaveStore, repairHull, runScore } from "@/game/sim";
+import { citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
 import { useGame } from "@/game/store";
 import type { Game, SectorNode } from "@/game/types";
+import { WeaponArt } from "./GearArt";
+import { PixelIcon } from "./PixelIcon";
 import { PixelHull } from "./PixelArt";
 
 function act(fn: (g: Game) => void) {
@@ -70,7 +73,6 @@ export function AchievementsScreen({
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<"stats" | "achievements">(game && (game.phase === "victory" || game.phase === "defeat") ? "stats" : "stats");
-  const [list, setList] = useState(false);
   const [type, setType] = useState<"A" | "B" | "C">("A");
   const [earned, setEarned] = useState<string[]>([]);
   const finished = !!game && (game.phase === "victory" || game.phase === "defeat") && game.outcome !== "tutorial";
@@ -80,45 +82,39 @@ export function AchievementsScreen({
   }, [game]);
   return (
     <section className="wiki-screen ach-screen" onClick={(e) => e.stopPropagation()}>
-      <div className="ach-tabs">
+      <header className="ach-tabs">
         <button type="button" className={tab === "stats" ? "is-on" : ""} onClick={() => setTab("stats")}>
           STATS
         </button>
         <button type="button" className={tab === "achievements" ? "is-on" : ""} onClick={() => setTab("achievements")}>
           ACHIEVEMENTS
         </button>
-      </div>
+        <button type="button" className="wiki-close" onClick={onClose}>
+          CLOSE
+        </button>
+      </header>
       {tab === "achievements" ? (
         <div className="ach-body">
           {ACH_GROUPS.map((group) => (
             <div key={group.title}>
-              <p>{group.title}</p>
+              <h3>{group.title}</h3>
               <AchievementTiles ids={group.ids} earned={earned} />
             </div>
           ))}
-          <p>Ship Achievements</p>
+          <h3>Ship Achievements</h3>
           {SHIP_GROUPS.map((group) => (
             <div key={group.title}>
-              <p>{group.title}</p>
+              <h3>{group.title}</h3>
               <AchievementTiles ids={group.ids} earned={earned} />
             </div>
           ))}
         </div>
       ) : (
         <div className="ach-body">
-          {finished && game ? <RunStats game={game} /> : null}
-          {!list ? (
-            <button type="button" className="wiki-key" onClick={() => setList(true)}>
-              Ship Best
-            </button>
-          ) : (
-            <ShipBest type={type} onType={setType} />
-          )}
+          {finished && game ? <RunStats game={game} /> : <p className="store-note">Finish a run to see its stats here.</p>}
+          <ShipBest type={type} onType={setType} />
         </div>
       )}
-      <button type="button" className="wiki-close" onClick={onClose}>
-        CLOSE
-      </button>
     </section>
   );
 }
@@ -178,7 +174,9 @@ function ShipBest({ type, onType }: { type: "A" | "B" | "C"; onType: (type: "A" 
           <i>1 2 3</i>
         </span>
         {Array.from({ length: 7 }, (_, i) => (
-          <span key={i} className="ship-card is-locked" aria-label="Locked" />
+          <span key={i} className="ship-card is-locked" aria-label="Locked">
+            <PixelIcon name="lock" size={24} />
+          </span>
         ))}
       </div>
     </div>
@@ -471,17 +469,45 @@ export function Verdict({ game }: { game: Game }) {
   );
 }
 
-/** Crystal_Store.png: ITEMS, HIRE CREW, REPAIR, WEAPONS. */
+/** Crystal_Store.png: ITEMS, HIRE CREW, REPAIR, WEAPONS. SELL lists fitted weapons and augments. */
 export function StoreBoard({ game }: { game: Game }) {
   const stock = game.stock ?? [];
   const items = stock.filter((item) => item.kind === "fuel" || item.kind === "missiles" || item.kind === "parts");
   const weapons = stock.filter((item) => item.kind === "weapon");
+  const crew = stock.filter((item) => item.kind === "crew");
+  const systems = stock.filter((item) => item.kind === "system");
+  const augments = stock.filter((item) => item.kind === "augment");
+  const drones = stock.filter((item) => item.kind === "drone");
+  const quotes = citedSellQuote(game);
+  const priced = (item: (typeof stock)[number]) => (
+    <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
+      <span style={{ minWidth: 0 }}>{item.name}</span>
+      <b style={{ flex: "none" }}>{item.cost}</b>
+    </button>
+  );
   return (
     <div
       className="modal-layer"
       onClick={() => act((g) => leaveStore(g))}
     >
-      <section className="store-board" onClick={(e) => e.stopPropagation()}>
+      <section
+        className="store-board"
+        style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", minWidth: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div>
+          <h2>SELL</h2>
+          {quotes.length ? (
+            quotes.map((quote) => (
+              <button key={quote.id} type="button" onClick={() => act((g) => citedSell(g, quote.id))}>
+                <span style={{ minWidth: 0 }}>{quote.name}</span>
+                <b style={{ flex: "none" }}>{quote.scrap}</b>
+              </button>
+            ))
+          ) : (
+            <p className="store-note">Nothing fitted sells.</p>
+          )}
+        </div>
         <div>
           <h2>ITEMS</h2>
           {items.map((item) => (
@@ -495,11 +521,7 @@ export function StoreBoard({ game }: { game: Game }) {
         </div>
         <div>
           <h2>HIRE CREW</h2>
-          <div className="hire-row">
-            <span />
-            <span />
-            <span />
-          </div>
+          {crew.length ? crew.map(priced) : <p className="store-note">No one here is looking for a berth.</p>}
         </div>
         <div>
           <h2>REPAIR</h2>
@@ -507,11 +529,6 @@ export function StoreBoard({ game }: { game: Game }) {
             <button type="button" onClick={() => act((g) => repairHull(g, "one"))}>
               FIX 1
             </button>
-            <button type="button" onClick={() => act((g) => repairHull(g, "max"))}>
-              MAX
-            </button>
-          </div>
-          <div className="repair-row">
             <button type="button" onClick={() => act((g) => repairHull(g, "all"))}>
               FIX ALL
             </button>
@@ -528,6 +545,7 @@ export function StoreBoard({ game }: { game: Game }) {
           <div className="weapon-row">
             {weapons.map((item) => (
               <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
+                <WeaponArt id={item.ref} height={22} />
                 <span>{item.name}</span>
                 <b>{item.cost}</b>
               </button>
@@ -537,6 +555,24 @@ export function StoreBoard({ game }: { game: Game }) {
               : null}
           </div>
         </div>
+        {systems.length ? (
+          <div>
+            <h2>SYSTEMS</h2>
+            {systems.map(priced)}
+          </div>
+        ) : null}
+        {augments.length ? (
+          <div>
+            <h2>AUGMENTS</h2>
+            {augments.map(priced)}
+          </div>
+        ) : null}
+        {drones.length ? (
+          <div>
+            <h2>DRONES</h2>
+            {drones.map(priced)}
+          </div>
+        ) : null}
       </section>
     </div>
   );

@@ -72,9 +72,10 @@ describe("lance", () => {
     g.enemy.doors = [];
     const hull = g.enemy.hull;
     const bubble = g.enemy.shieldNow;
-    const room = g.enemy.rooms.find((r) => r.system === "oxygen");
-    assert.ok(room);
-    g.enemy.systems.oxygen.damage = g.enemy.systems.oxygen.level;
+    // Documented hulls differ (auto-ships have no oxygen room), so take any system room but weapons.
+    const room = g.enemy.rooms.find((r) => r.system && r.system !== "weapons");
+    assert.ok(room?.system);
+    g.enemy.systems[room.system].damage = g.enemy.systems[room.system].level;
     aimLance(g, room.id);
     tickLance(g, 0.1);
     assert.equal(g.enemy.hull, hull - 1);

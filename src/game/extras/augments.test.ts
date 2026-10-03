@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
-import type { AugmentId, WeaponInst } from "../types.ts";
+import type { AugmentId, Kit, WeaponInst } from "../types.ts";
 import {
   CATALOG,
   adjustScrapAmount,
@@ -17,10 +17,14 @@ import {
   reveals,
   saveMissile,
   spoolRate,
+  tickMedbot,
   tickSquall,
 } from "./augments.ts";
 
-const NAMES: Record<AugmentId, string> = {
+/** Sold rows only. medbot, gel, pheromone, booster, and vengeance have no purchase price and are not in CATALOG. */
+type CatalogId = Exclude<AugmentId, "medbot" | "gel" | "pheromone" | "booster" | "vengeance">;
+
+const NAMES: Record<CatalogId, string> = {
   feed: "Automated Re-loader",
   echo: "Explosive Replicator",
   quiet: "Stealth Weapons",
@@ -43,9 +47,12 @@ const NAMES: Record<AugmentId, string> = {
   dna: "Backup DNA Bank",
   mend: "Reconstructive Teleport",
   pulseeye: "Lifeform Scanner",
+  nav: "Adv. FTL Navigation",
+  scrambler: "Defense Scrambler",
+  bypass: "Zoltan Shield Bypass",
 };
 
-const COSTS: Record<AugmentId, number> = {
+const COSTS: Record<CatalogId, number> = {
   feed: 40,
   echo: 60,
   quiet: 50,
@@ -68,6 +75,9 @@ const COSTS: Record<AugmentId, number> = {
   dna: 40,
   mend: 70,
   pulseeye: 40,
+  nav: 50,
+  scrambler: 80,
+  bypass: 55,
 };
 
 function gun(partial: Partial<WeaponInst> & Pick<WeaponInst, "uid" | "defId">): WeaponInst {
@@ -82,7 +92,7 @@ function gun(partial: Partial<WeaponInst> & Pick<WeaponInst, "uid" | "defId">): 
 
 describe("augments", () => {
   it("lists original names and page prices", () => {
-    const ids = Object.keys(NAMES) as AugmentId[];
+    const ids = Object.keys(NAMES) as CatalogId[];
     assert.equal(CATALOG.length, ids.length);
     for (const id of ids) {
       const row = CATALOG.find((item) => item.id === id);
@@ -217,6 +227,7 @@ describe("augments", () => {
     g.fleet = 0;
     onNewSector(g);
     assert.equal(g.fleet, 0);
+    assert.equal(g.buoyDelay, 1);
 
     g.sector = 8;
     g.fleet = 4;
@@ -254,5 +265,88 @@ describe("augments", () => {
     assert.equal(g.augments.length, 3);
     assert.equal(g.scrap, scrap);
     assert.equal(g.augments.includes("echo"), false);
+  });
+
+  it("refuses to sell medbot, which has no purchase price", () => {
+    const g = createGame(1);
+    g.scrap = 500;
+    assert.equal(installAugment(g, "medbot"), false);
+    assert.deepEqual(g.augments, []);
+    assert.equal(g.scrap, 500);
+  });
+
+  it("heals crew outside a powered medbay at 1.6 per second", () => {
+    const g = createGame(1);
+    const ada = g.crew.find((c) => c.id === "c-ada");
+    const ivo = g.crew.find((c) => c.id === "c-ivo");
+    const nen = g.crew.find((c) => c.id === "c-nen");
+    assert.ok(ada && ivo && nen);
+    ada.hp = 40;
+    ivo.hp = 50;
+    nen.hp = 99;
+    g.player.systems.medbay.power = 1;
+
+    tickMedbot(g, 1);
+    assert.equal(ada.hp, 40);
+
+    g.augments = ["medbot"];
+    tickMedbot(g, 1);
+    assert.equal(ada.hp, 41.6);
+    assert.equal(ivo.hp, 51.6);
+    assert.equal(nen.hp, 100);
+
+    // Augmentations, Engi Med-bot Dispersal: the medbay room itself is not "outside".
+    ada.room = "p-medbay";
+    tickMedbot(g, 1);
+    assert.equal(ada.hp, 41.6);
+
+    // Same bullet: crew on another ship are not healed.
+    ada.room = "p-pilot";
+    ada.aboard = "enemy";
+    tickMedbot(g, 1);
+    assert.equal(ada.hp, 41.6);
+    ada.aboard = "player";
+
+    // Medbay level does not change the 1.6.
+    ivo.room = "p-engines";
+    g.player.systems.medbay.level = 3;
+    g.player.systems.medbay.power = 3;
+    const before = ivo.hp;
+    tickMedbot(g, 1);
+    assert.equal(ivo.hp, before + 1.6);
+
+    // One ion point on a single powered bar leaves the medbay unpowered.
+    g.player.systems.medbay.level = 1;
+    g.player.systems.medbay.power = 1;
+    g.player.systems.medbay.ion = [5];
+    tickMedbot(g, 1);
+    assert.equal(ivo.hp, before + 1.6);
+    g.player.systems.medbay.ion = [];
+    g.player.systems.medbay.power = 0;
+    tickMedbot(g, 1);
+    assert.equal(ivo.hp, before + 1.6);
+
+    // A clone bay makes the augment do nothing, even with a powered medbay.
+    g.player.systems.medbay.power = 1;
+    g.player.kits.cradle = {
+      id: "cradle",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    } satisfies Kit;
+    tickMedbot(g, 1);
+    assert.equal(ivo.hp, before + 1.6);
+
+    g.player.kits.cradle = undefined;
+    const boarder = { ...nen, id: "c-foe", side: "enemy" as const, hp: 10, maxHp: 100, room: "p-weapons" };
+    g.crew.push(boarder);
+    tickSquall(g, 1);
+    assert.equal(ivo.hp, before + 1.6 + 1.6);
+    assert.equal(boarder.hp, 10);
+    assert.equal(nen.hp, 100);
   });
 });

@@ -9,9 +9,6 @@ const zoltanWiki = readFileSync("/tmp/wiki-pages/Zoltan_Shield.wikitext", "utf8"
 const catalogSrc = readFileSync(new URL("../extras/augments.ts", import.meta.url), "utf8");
 
 const EXPECTED: Record<string, string> = {
-  scrambler: "Defense Scrambler",
-  bypass: "Zoltan Shield Bypass",
-  nav: "Adv. FTL Navigation",
   vengeance: "Crystal Vengeance",
   stasis: "Damaged Stasis Pod",
   booster: "Drone Reactor Booster",

@@ -207,8 +207,8 @@ export const HULLS: HullSpec[] = [
     ],
     // Drone Control (3). Combat Drone Mark I takes 2 of those bars.
     kits: { swarm: { level: 3, power: 2, target: "striker" } },
-    augments: [],
-    unfitted: ["Engi Med-bot Dispersal"],
+    augments: ["medbot"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Engi Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -563,8 +563,8 @@ export const HULLS: HullSpec[] = [
       { kin: "gel", room: "p-engines" },
     ],
     kits: {},
-    augments: [],
-    unfitted: ["Slug Repair Gel"],
+    augments: ["gel"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Slug Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -602,8 +602,8 @@ export const HULLS: HullSpec[] = [
       { kin: "gel", room: "p-weapons" },
     ],
     kits: { sling: { level: 1, power: 1 } },
-    augments: [],
-    unfitted: ["Slug Repair Gel"],
+    augments: ["gel"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Slug Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -646,8 +646,8 @@ export const HULLS: HullSpec[] = [
       leash: { level: 1, power: 1 },
       cradle: { level: 1, power: 0 },
     },
-    augments: [],
-    unfitted: ["Slug Repair Gel"],
+    augments: ["gel"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Rock Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.

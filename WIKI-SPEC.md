@@ -2,6 +2,8 @@
 
 Source: latest-only public dump of ftl.fandom.com (`ftl.fandom.com-20261002-current.xml`, `pages.jsonl`). Namespace 0 articles are the rules. Namespace 6 file names are the layout pictures; the bytes stay in the dump. Namespace 10 templates and namespace 14 categories are used only where they state a mechanic (weapon tables, store stock, scrap tiers, crew comparison, event categories). No user page, talk page, message wall, forum, board, or blog thread was used.
 
+Wiki dump is here: ../ftl.fandom.com-dump
+
 A rule is one sentence plus the page title. If the dump does not state a number, name, or control, this spec says **not stated**. Visible link text is the text after `|` in a wikilink. `[[File:...]]` is an image citation, not prose.
 
 Player ships are named `<class> <layout letter>` (example: Stealth A). (`Ship`)
@@ -343,23 +345,23 @@ Crystal weapons pierce a single shield layer. Only shields level 2 and higher st
 - Drone Recovery Arm returns non-destroyed external drones on jump so the part can be reused: combat drones after the fight, defense drones when the jump starts. (`Augmentations`)
 - Ship interior drone power and behavior are on `Drone Control`. Prices and power:
 
-| Drone | Scrap | Rarity | Power | Other stated stat |
-| --- | --- | --- | --- | --- |
-| Combat I | 50 | 2 | 2 | |
-| Combat II | 75 | 5 | 4 | |
-| Beam I | 50 | 3 | 2 | beam speed 3 |
-| Beam II | 60 | 5 | 3 | beam speed 8; Advanced Edition |
-| Fire Drone | 50 in the purchasable list the control page prices the fire drone at 50 with rarity 4; the purchasable-drone template cell labeled Fire Drone is 60 / 4 |  | 3 | beam speed 2; Advanced Edition |
-| Defense I | 50 | 1 | 2 | shoots missiles and some other incoming shots |
-| Defense II | 70 | 3 | 3 | |
-| Anti-Combat | 35 | 1 | 1 | Advanced Edition |
-| Shield Overcharger | 60 | 4 | 3 | Advanced Edition |
-| Shield Overcharger + | not a store item | 0 | not stated here | equipped on Stealth C |
-| Anti-Personnel | 35 | 2 | 2 | health 150 |
-| System Repair | 30 | 1 | 1 | health 25; repairs, seals breaches, and fights fires at Engi speed |
-| Hull Repair | 85 | 4 | not stated in the price block read | repairs hull |
-| Boarding | 70 | 4 | 3 | health 150; speed 18 in space |
-| Ion Intruder | 65 | 4 | 3 | health 125; speed 18; ion pulse 3 and a stun; Advanced Edition |
+| Drone                | Scrap                                                                                                                                                   | Rarity | Power                              | Other stated stat                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------- | ------------------------------------------------------------------ |
+| Combat I             | 50                                                                                                                                                      | 2      | 2                                  |                                                                    |
+| Combat II            | 75                                                                                                                                                      | 5      | 4                                  |                                                                    |
+| Beam I               | 50                                                                                                                                                      | 3      | 2                                  | beam speed 3                                                       |
+| Beam II              | 60                                                                                                                                                      | 5      | 3                                  | beam speed 8; Advanced Edition                                     |
+| Fire Drone           | 50 in the purchasable list the control page prices the fire drone at 50 with rarity 4; the purchasable-drone template cell labeled Fire Drone is 60 / 4 |        | 3                                  | beam speed 2; Advanced Edition                                     |
+| Defense I            | 50                                                                                                                                                      | 1      | 2                                  | shoots missiles and some other incoming shots                      |
+| Defense II           | 70                                                                                                                                                      | 3      | 3                                  |                                                                    |
+| Anti-Combat          | 35                                                                                                                                                      | 1      | 1                                  | Advanced Edition                                                   |
+| Shield Overcharger   | 60                                                                                                                                                      | 4      | 3                                  | Advanced Edition                                                   |
+| Shield Overcharger + | not a store item                                                                                                                                        | 0      | not stated here                    | equipped on Stealth C                                              |
+| Anti-Personnel       | 35                                                                                                                                                      | 2      | 2                                  | health 150                                                         |
+| System Repair        | 30                                                                                                                                                      | 1      | 1                                  | health 25; repairs, seals breaches, and fights fires at Engi speed |
+| Hull Repair          | 85                                                                                                                                                      | 4      | not stated in the price block read | repairs hull                                                       |
+| Boarding             | 70                                                                                                                                                      | 4      | 3                                  | health 150; speed 18 in space                                      |
+| Ion Intruder         | 65                                                                                                                                                      | 4      | 3                                  | health 125; speed 18; ion pulse 3 and a stun; Advanced Edition     |
 
 The Fire Drone price conflict is the two templates/sections above; both are in the dump. (`Template:Purchasable drones`, `Drone Control`)
 
@@ -381,16 +383,16 @@ The Fire Drone price conflict is the two templates/sections above; both are in t
 - Medbay heals crew inside it. Clone Bay clones the dead with a skill penalty and heals a little per jump with no power. They replace each other. (`Systems`, `FTL: Advanced Edition`)
 - Comparison (`Template:Crew races (comparison)`). Columns: store cost, max health, repair multiplier, seconds per fire, combat multiplier, move multiplier, blue-option count.
 
-| Race | Cost | HP | Repair | Fire (s) | Combat | Move | Blue options | Stated trait |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Human | 45 | 100 | ×1 | 10.4 | ×1 | ×1 | 1 | −10% experience required |
-| Engi | 50 | 100 | ×2 | 5.2 | ×0.5 | ×1 | 8 | exceptional engineers (`Engi`) |
-| Mantis | 55 | 100 | ×0.5 | 20.8 | ×1.5 | ×1.2 | 2 (3) | warrior race (`Mantis`) |
-| Rock | 55 | 150 | ×1 | 6.2 | ×1 | ×0.5 | 5 (6) | immune to fire |
-| Zoltan | 60 | 70 | ×1 | 10.4 | ×1 | ×1 | 2 | +1 power in the room they occupy |
-| Slug | 45 | 100 | ×1 | 10.4 | ×1 | ×1 | 10 (11) | immune to mind control; shows living enemy crew |
-| Crystal | 60 | 125 | ×1 | 12.5 | ×1 | ×0.8 | 3 | Lockdown; −50% suffocation damage |
-| Lanius | 50 | 100 | ×1 | 10.4 | ×1 | ×0.85 | 11 | immune to suffocation; drains oxygen in the room |
+| Race    | Cost | HP  | Repair | Fire (s) | Combat | Move  | Blue options | Stated trait                                     |
+| ------- | ---- | --- | ------ | -------- | ------ | ----- | ------------ | ------------------------------------------------ |
+| Human   | 45   | 100 | ×1     | 10.4     | ×1     | ×1    | 1            | −10% experience required                         |
+| Engi    | 50   | 100 | ×2     | 5.2      | ×0.5   | ×1    | 8            | exceptional engineers (`Engi`)                   |
+| Mantis  | 55   | 100 | ×0.5   | 20.8     | ×1.5   | ×1.2  | 2 (3)        | warrior race (`Mantis`)                          |
+| Rock    | 55   | 150 | ×1     | 6.2      | ×1     | ×0.5  | 5 (6)        | immune to fire                                   |
+| Zoltan  | 60   | 70  | ×1     | 10.4     | ×1     | ×1    | 2            | +1 power in the room they occupy                 |
+| Slug    | 45   | 100 | ×1     | 10.4     | ×1     | ×1    | 10 (11)      | immune to mind control; shows living enemy crew  |
+| Crystal | 60   | 125 | ×1     | 12.5     | ×1     | ×0.8  | 3            | Lockdown; −50% suffocation damage                |
+| Lanius  | 50   | 100 | ×1     | 10.4     | ×1     | ×0.85 | 11           | immune to suffocation; drains oxygen in the room |
 
 - Unmodified crew damage is 3–7 HP per hit. System sabotage is the same for every race. An untrained human takes 12.5 seconds to repair one system bar or one breach. (`Template:Crew races (comparison)`)
 - Zoltan power is not halved by ion storms and is not stripped by ion weapons. Subsystems cannot be ion-proofed by a Zoltan. (`Ship`)
@@ -492,16 +494,16 @@ Scrap is the currency for upgrades, reactor bars, store goods, and some event ch
 
 Low / medium / high scrap by sector (`Template:Scrap rewards (Easy)`, `Template:Scrap rewards (Normal)`, `Template:Scrap rewards (Hard)`):
 
-| Sector | Easy | Normal | Hard |
-| --- | --- | --- | --- |
-| 1 | 10–14 / 16–27 / 27–32 | 7–10 / 12–19 / 19–23 | 7–10 / 12–19 / 19–23 |
-| 2 | 13–18 / 21–35 / 35–41 | 10–14 / 16–27 / 27–32 | 7–10 / 12–19 / 19–23 |
-| 3 | 16–23 / 26–42 / 42–51 | 13–18 / 21–35 / 35–41 | 10–14 / 16–27 / 27–32 |
-| 4 | 19–27 / 31–50 / 50–60 | 16–23 / 26–42 / 42–51 | 13–18 / 21–35 / 35–41 |
-| 5 | 22–31 / 36–58 / 58–69 | 19–27 / 31–50 / 50–60 | 16–23 / 26–42 / 42–51 |
-| 6 | 25–35 / 40–66 / 66–79 | 22–31 / 36–58 / 58–69 | 19–27 / 31–50 / 50–60 |
-| 7 | 28–39 / 45–74 / 74–88 | 25–35 / 40–66 / 66–79 | 22–31 / 36–58 / 58–69 |
-| 8 | 31–44 / 50–81 / 81–97 | 28–39 / 45–74 / 74–88 | 25–35 / 40–66 / 66–79 |
+| Sector | Easy                  | Normal                | Hard                  |
+| ------ | --------------------- | --------------------- | --------------------- |
+| 1      | 10–14 / 16–27 / 27–32 | 7–10 / 12–19 / 19–23  | 7–10 / 12–19 / 19–23  |
+| 2      | 13–18 / 21–35 / 35–41 | 10–14 / 16–27 / 27–32 | 7–10 / 12–19 / 19–23  |
+| 3      | 16–23 / 26–42 / 42–51 | 13–18 / 21–35 / 35–41 | 10–14 / 16–27 / 27–32 |
+| 4      | 19–27 / 31–50 / 50–60 | 16–23 / 26–42 / 42–51 | 13–18 / 21–35 / 35–41 |
+| 5      | 22–31 / 36–58 / 58–69 | 19–27 / 31–50 / 50–60 | 16–23 / 26–42 / 42–51 |
+| 6      | 25–35 / 40–66 / 66–79 | 22–31 / 36–58 / 58–69 | 19–27 / 31–50 / 50–60 |
+| 7      | 28–39 / 45–74 / 74–88 | 25–35 / 40–66 / 66–79 | 22–31 / 36–58 / 58–69 |
+| 8      | 31–44 / 50–81 / 81–97 | 28–39 / 45–74 / 74–88 | 25–35 / 40–66 / 66–79 |
 
 Fuel. "Powers your FTL drive. One jump per fuel." Every jump costs 1, including backtracking. All ships start with 16. Store price 3; refuel events 2. (`Stores and resources`)
 

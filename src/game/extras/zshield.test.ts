@@ -40,6 +40,13 @@ function advance(g: ReturnType<typeof createGame>, seconds: number) {
   assert.ok(n < 20000);
 }
 
+function parkEngines(g: ReturnType<typeof createGame>) {
+  g.player.systems.engines.power = 0;
+  for (const c of g.crew) {
+    if (c.aboard === "player" && c.room === "p-engines") c.room = "p-medbay";
+  }
+}
+
 function quiet(g: ReturnType<typeof createGame>) {
   g.player.systems.engines.power = 0;
   if (g.enemy) {
@@ -63,7 +70,7 @@ describe("zoltan shield", () => {
 
   it("absorbs damage before regular shields and hull, and only a jump refills it", () => {
     const g = createGame(2, "zoltan-a");
-    g.player.systems.engines.power = 0;
+    parkEngines(g);
     const hull = g.player.hull;
     const bubble = g.player.shieldNow;
     const sys = g.player.systems.weapons.damage;
@@ -105,6 +112,7 @@ describe("zoltan shield", () => {
 
   it("doubles ion and beam damage against the bubble, and utility bombs do nothing to it", () => {
     const g = createGame(3, "zoltan-b");
+    parkEngines(g);
     const hull = g.player.hull;
     applyImpact(g, shot({ kind: "ion", damage: 0, ion: 1 }));
     assert.equal(g.player.zoltan, 3);
@@ -122,6 +130,7 @@ describe("zoltan shield", () => {
     assert.ok(g.player.hull < hull);
 
     const fresh = createGame(4, "zoltan-b");
+    parkEngines(fresh);
     applyImpact(fresh, shot({ kind: "beam", damage: 0, defId: "antibio" }));
     assert.equal(fresh.player.zoltan, 3);
     assert.equal(fresh.player.hull, fresh.player.hullMax);

@@ -214,6 +214,8 @@ describe("flak and crystal wiki weapons", () => {
       assert.equal(extra.pierce, 1);
       assert.equal(extra.radius, undefined);
       assert.equal(extra.fake, undefined);
+      assert.equal("pierce" in row, false);
+      assert.match(extra.note, /WeaponDef has no pierce field/);
       assert.match(extra.note, /pierce/);
       assert.match(extra.note, /no percent is given/);
       assert.match(extra.note, new RegExp(`rarity ${rarity(section)}`));

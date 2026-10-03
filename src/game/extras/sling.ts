@@ -1,5 +1,6 @@
 import type { Crew, Game, Kit } from "../types";
-import { log, roomById, sparePower } from "../sim.ts";
+import { log, rand, roomById, sparePower } from "../sim.ts";
+import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 
 /** Crew Teleporter wiki, "System Upgrades": level 1 cost is 90. */
@@ -144,6 +145,11 @@ export function sendSling(g: Game, roomId: string) {
     log(g, "No one to teleport.");
     return;
   }
+  // Zoltan Shield: the bubble prevents boarding. Bypass lets crew teleport through and does not spend the bubble.
+  if ((g.enemy.zoltan ?? 0) > 0 && !(g.augments.includes("bypass") && bypassZoltan("crew") === "pass")) {
+    log(g, "Their Zoltan Shield blocks the teleporter.");
+    return;
+  }
   for (const c of crew) {
     c.aboard = "enemy";
     c.room = roomId;
@@ -207,4 +213,32 @@ export function onJumpSling(g: Game) {
     c.hp = 0;
     log(g, `${c.name} is lost on the other hull.`);
   }
+}
+
+/**
+ * Enemy boarding (moved from sim.ts). Crew Teleporter, "Enemy Crew Teleporter".
+ * Current behaviour, to be replaced by the teleporter work: once per fight, after g.boardTimer
+ * (set in startCombat when the hull has a teleporter), up to two crew who are not piloting beam aboard.
+ */
+export function tickEnemyBoarding(g: Game, dt: number) {
+  if (g.boardTimer <= 0) return;
+  g.boardTimer -= dt;
+  if (g.boardTimer > 0) return;
+  g.boardTimer = 0;
+  // Zoltan Shield: the bubble prevents boarding. The event line about an initial boarding party is not this teleporter path.
+  if ((g.player.zoltan ?? 0) > 0) {
+    log(g, "The Zoltan Shield stops the boarders.");
+    return;
+  }
+  const party = g.crew
+    .filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room !== "e-pilot")
+    .slice(0, 2);
+  if (!party.length) return;
+  for (const c of party) {
+    c.aboard = "player";
+    c.room = g.player.rooms[Math.floor(rand(g) * g.player.rooms.length)]?.id ?? c.room;
+    c.path = [];
+    c.think = 2;
+  }
+  log(g, "Boarders on the hull.");
 }

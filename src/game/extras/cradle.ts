@@ -156,3 +156,12 @@ export function onCradleJump(g: Game) {
     crew.hp = Math.min(crew.maxHp, crew.hp + heal);
   }
 }
+
+/**
+ * Clone Bay: "If the enemy ship's crew is dead, the battle will continue until their Clone Bay is destroyed."
+ * sim.ts endCheck asks this before awarding a crew-kill win. Stub until the enemy Clone Bay work lands.
+ */
+export function enemyCloneHolds(g: Game): boolean {
+  void g;
+  return false;
+}

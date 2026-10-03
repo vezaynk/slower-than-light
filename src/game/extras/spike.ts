@@ -1,5 +1,6 @@
 import { bars, log, roomWith, sparePower } from "../sim.ts";
 import { WEAPONS } from "../content.ts";
+import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
 import type { Game, Kit, Ship, SysId, SystemState } from "../types.ts";
 
@@ -136,6 +137,18 @@ export function launchSpike(g: Game): boolean {
   if (running(kit) || kit.cool > 0) return false;
   const seconds = pulseSeconds(powered);
   if (seconds <= 0) return false;
+  // Zoltan Shield: a hacking drone is destroyed on contact and does not damage the bubble.
+  // Augmentations, Zoltan Shield Bypass: it still cannot be launched, and the part is not spent.
+  // Without the augment the launch spends the part and the drone breaks before the pulse.
+  if ((g.enemy.zoltan ?? 0) > 0) {
+    if (g.augments.includes("bypass") && bypassZoltan("hack") === "destroyed") {
+      log(g, "Hacking cannot launch through a Zoltan Shield.");
+      return false;
+    }
+    g.player.parts -= 1;
+    log(g, "The hacking drone breaks on their Zoltan Shield.");
+    return false;
+  }
   g.player.parts -= 1;
   kit.on = true;
   kit.left = seconds;

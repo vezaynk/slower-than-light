@@ -4,14 +4,32 @@
  * the cutaway, the system icons, CREW, WEAPONS, DRONES, AUGMENTATIONS.
  * Score, lead formula: the lit button sets initial scrap to 30, 10, or 0. The highlight starts on EASY.
  * Advanced Edition Content stays on: every layout on the page can be selected.
- * Crew cards repeat the race counts on the layout line. They are not given names.
+ * Crew cards repeat the race counts on the layout line. INVENTED: CUSTOMIZE edits a name
+ * and uniform per seat, and the run starts with exactly those crew (crew-look.ts).
  */
 import { useEffect, useState } from "react";
 import { WEAPONS } from "@/game/content";
+import {
+  NAME_MAX,
+  PLAYER_UNIFORMS,
+  UNIFORMS,
+  defaultPicks,
+  kinLabel,
+  randomName,
+  type CrewPick,
+} from "@/game/crew-look";
+import type { KinId } from "@/game/extras/kin";
+import { droneKeyForName, weaponIdForName } from "@/game/gear-look";
+import { hullById } from "@/game/hulls";
+import { iconForName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
 import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
 import { hangarSheet } from "@/game/wiki/hangar-sheet";
+import { CrewSprite } from "./CrewSprite";
+import { DroneArt, WeaponArt } from "./GearArt";
+import { FullscreenButton } from "./FullscreenButton";
+import { PixelIcon } from "./PixelIcon";
 import { PixelLayout } from "./PixelArt";
 
 type Letter = "A" | "B" | "C";
@@ -30,9 +48,28 @@ function letterOf(heading: string): Letter {
   return "A";
 }
 
+const RACE_KIN: Record<string, KinId> = {
+  engi: "shell",
+  zoltan: "spark",
+  mantis: "blade",
+  slug: "gel",
+  rock: "stone",
+  rockman: "stone",
+  rockmen: "stone",
+  lanius: "voidlung",
+  crystal: "shard",
+};
+
+/** Seats in the order the run will place them: the hull spec when there is one, else the sheet's race line. */
+function seatsOf(layoutId: string, races: string[]): KinId[] {
+  const hull = hullById(layoutId);
+  if (hull) return hull.crew.map((seat) => seat.kin);
+  return races.map((race) => RACE_KIN[race.toLowerCase()] ?? "plain");
+}
+
 function weaponPower(name: string) {
-  const row = Object.values(WEAPONS).find((weapon) => weapon.name === name);
-  return row ? row.power : null;
+  const id = weaponIdForName(name);
+  return id ? (WEAPONS[id]?.power ?? null) : null;
 }
 
 function absentDrones(lines: string[]) {
@@ -40,29 +77,8 @@ function absentDrones(lines: string[]) {
 }
 
 function SysMark({ name }: { name: string }) {
-  const key = name.toLowerCase();
-  const path =
-    key.includes("shield") ? "M8 2 14 5v5c0 4-2.6 6.4-6 8-3.4-1.6-6-4-6-8V5z" :
-    key.includes("engine") ? "M3 5h6l2 3H3zm0 8h8l-2-3H3zm10-5h3v2h-3z" :
-    key.includes("med") ? "M7 3h2v4h4v2H9v4H7V9H3V7h4z" :
-    key.includes("oxygen") || key === "o2" ? "M8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm-2 5h1.2v3H6zm2.2 0H11v3H8.2z" :
-    key.includes("weapon") ? "M2 8h8l2-2v4l-2-2H2z" :
-    key.includes("pilot") ? "M3 11 8 3l5 8H3zm4-2h2v2H7z" :
-    key.includes("sensor") ? "M8 3a5 5 0 0 1 5 5h-2a3 3 0 0 0-3-3zM8 8a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" :
-    key.includes("door") ? "M4 2h8v12H4zm2 6h1.5v2H6z" :
-    key.includes("clone") ? "M5 3h4v3H5zm2 3v2m-3 1h6v4H4z" :
-    key.includes("hack") ? "M3 8h4l1-2 2 4 1-2h2" :
-    key.includes("mind") ? "M8 2a4 4 0 0 0-2 7v2h4V9a4 4 0 0 0-2-7z" :
-    key.includes("cloak") ? "M3 5h10v2H3zm1 3h8v2H4zm1 3h6v2H5z" :
-    key.includes("drone") ? "M8 3 13 8 8 13 3 8z" :
-    key.includes("tele") ? "M3 4h4v3H3zm6 5h4v3H9zM6 7l4 2" :
-    key.includes("artillery") ? "M2 9h7l3-3v4l-3-1H2z" :
-    "M3 3h10v10H3z";
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true">
-      <path d={path} fill="currentColor" />
-    </svg>
-  );
+  const icon = iconForName(name);
+  return icon ? <PixelIcon name={icon} size={20} /> : <i className="hangar-sys-blank" aria-hidden="true" />;
 }
 
 export function Hangar() {
@@ -78,10 +94,23 @@ export function Hangar() {
   const sheet = hangarSheet(layout);
   const active = letterOf(layout.heading);
 
+  const seats = seatsOf(layout.id, sheet.crew);
+  const [picks, setPicks] = useState<CrewPick[]>(() => defaultPicks(seats.length));
+  const [editing, setEditing] = useState<number | null>(null);
+
   useEffect(() => {
     setName(sheet.defaultName);
     setRename(false);
   }, [layout.id, sheet.defaultName]);
+
+  useEffect(() => {
+    setPicks(defaultPicks(seats.length));
+    setEditing(null);
+  }, [layout.id, seats.length]);
+
+  function updatePick(seat: number, patch: Partial<CrewPick>) {
+    setPicks((list) => list.map((pick, i) => (i === seat ? { ...pick, ...patch } : pick)));
+  }
 
   function stepPage(dir: number) {
     setPageIndex((index) => (index + dir + CRUISER_PAGES.length) % CRUISER_PAGES.length);
@@ -89,7 +118,7 @@ export function Hangar() {
 
   function start() {
     const chosen = name.trim() || sheet.defaultName;
-    useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty]);
+    useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty], picks);
     if (chosen && chosen !== sheet.defaultName) {
       useGame.getState().act((game) => {
         game.player.name = chosen;
@@ -105,11 +134,7 @@ export function Hangar() {
 
   return (
     <section className="hangar">
-      <div className="hangar-floor" aria-hidden="true">
-        <i className="bay-ship is-left" />
-        <i className="bay-ship is-right" />
-        <i className="bay-rail" />
-      </div>
+      <div className="hangar-floor" aria-hidden="true" />
 
       <header className="hangar-top">
         <button type="button" onClick={() => setRename(true)}>
@@ -147,6 +172,7 @@ export function Hangar() {
           <button type="button" className="hangar-start" onClick={start}>
             START
           </button>
+          <FullscreenButton className="hangar-fs" />
         </div>
       </header>
 
@@ -185,9 +211,9 @@ export function Hangar() {
           <p>Available Achievements:</p>
           <p>Complete 2/3 to unlock a layout!</p>
           <div>
-            <i />
-            <i />
-            <i />
+            <PixelIcon name="lock" size={24} />
+            <PixelIcon name="lock" size={24} />
+            <PixelIcon name="lock" size={24} />
           </div>
         </div>
       </aside>
@@ -212,14 +238,73 @@ export function Hangar() {
         <section className="hangar-panel">
           <h2>CREW</h2>
           <div className="hangar-crew">
-            {sheet.crew.map((race, index) => (
-              <article key={`${race}-${index}`} className="hangar-crew-card">
-                <i className={`crew-bust race-${race.toLowerCase()}`} aria-hidden="true" />
-                <p>{race}</p>
-                <span>CUSTOMIZE</span>
-              </article>
-            ))}
+            {seats.map((kin, index) => {
+              const pick = picks[index];
+              if (!pick) return null;
+              return (
+                <button
+                  key={`${layout.id}-${index}`}
+                  type="button"
+                  className={`hangar-crew-card${editing === index ? " is-on" : ""}`}
+                  aria-label={`Customize ${pick.name}`}
+                  aria-expanded={editing === index}
+                  onClick={() => setEditing(index)}
+                >
+                  <CrewSprite kin={kin} uniform={UNIFORMS[pick.uniform]} size={36} />
+                  <span className="hangar-crew-name">{pick.name}</span>
+                  <span className="hangar-crew-race">{kinLabel(kin)}</span>
+                  <span className="hangar-crew-cta">CUSTOMIZE</span>
+                </button>
+              );
+            })}
           </div>
+          {editing != null && picks[editing] ? (
+            <div className="hangar-crew-layer" onClick={() => setEditing(null)}>
+            <div
+              className="hangar-crew-edit"
+              role="dialog"
+              aria-label="Customize crew"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <CrewSprite kin={seats[editing]} uniform={UNIFORMS[picks[editing].uniform]} size={56} />
+              <div className="hangar-crew-fields">
+                <label>
+                  <span>NAME</span>
+                  <input
+                    value={picks[editing].name}
+                    maxLength={NAME_MAX}
+                    autoFocus
+                    onChange={(event) => updatePick(editing, { name: event.target.value })}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === "Escape") setEditing(null);
+                    }}
+                  />
+                </label>
+                <div className="hangar-swatches" role="radiogroup" aria-label="Uniform">
+                  {UNIFORMS.slice(0, PLAYER_UNIFORMS).map((color, index) => (
+                    <button
+                      key={color}
+                      type="button"
+                      role="radio"
+                      aria-checked={picks[editing].uniform === index}
+                      aria-label={`Uniform ${index + 1}`}
+                      style={{ background: color }}
+                      onClick={() => updatePick(editing, { uniform: index })}
+                    />
+                  ))}
+                </div>
+                <div className="hangar-crew-actions">
+                  <button type="button" onClick={() => updatePick(editing, { name: randomName() })}>
+                    RANDOM
+                  </button>
+                  <button type="button" onClick={() => setEditing(null)}>
+                    DONE
+                  </button>
+                </div>
+              </div>
+            </div>
+            </div>
+          ) : null}
         </section>
         <div className="hangar-mid">
           <section className="hangar-panel">
@@ -238,7 +323,11 @@ export function Hangar() {
                     ) : (
                       <span className="hangar-power" />
                     )}
-                    <i className="slot-gun" aria-hidden="true" />
+                    {weaponIdForName(weapon) ? (
+                      <WeaponArt id={weaponIdForName(weapon)!} height={26} />
+                    ) : (
+                      <i className="slot-gun" aria-hidden="true" />
+                    )}
                     <p>{weapon}</p>
                   </article>
                 );
@@ -256,6 +345,7 @@ export function Hangar() {
               <div className="hangar-slots">
                 {droneNames.map((drone) => (
                   <article key={drone} className="hangar-slot">
+                    <DroneArt kind={droneKeyForName(drone)} height={32} />
                     <p>{drone}</p>
                   </article>
                 ))}

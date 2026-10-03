@@ -48,9 +48,8 @@ export const MANTIS_HULLS: HullSpec[] = [
     ],
     // Wiki page "The Mantis Cruiser", section "Layout A": Teleporter (1). Medbay power is the bar left empty. INFERRED.
     kits: { sling: { level: 1, power: 1 } },
-    augments: [],
-    // Mantis Pheromones is not in the AugmentId union.
-    unfitted: ["Mantis Pheromones"],
+    augments: ["pheromone"],
+    unfitted: [],
   },
   {
     id: "mantis-b",
@@ -93,9 +92,9 @@ export const MANTIS_HULLS: HullSpec[] = [
       // The empty weapon bar is left off so this pad can take one bar. INFERRED.
       sling: { level: 1, power: 1 },
     },
-    augments: [],
-    // Defense Drone I does not fit in the single schematic slot. Mantis Pheromones is not in the AugmentId union.
-    unfitted: ["Defense Drone I", "Mantis Pheromones"],
+    augments: ["pheromone"],
+    // Defense Drone I does not fit in the single schematic slot.
+    unfitted: ["Defense Drone I"],
   },
   {
     id: "mantis-c",
@@ -140,8 +139,7 @@ export const MANTIS_HULLS: HullSpec[] = [
       // Wiki page "The Mantis Cruiser", section "Layout C": Teleporter (1). The layout quote is the boarding party.
       sling: { level: 1, power: 1 },
     },
-    augments: [],
-    // Mantis Pheromones is not in the AugmentId union.
-    unfitted: ["Mantis Pheromones"],
+    augments: ["pheromone"],
+    unfitted: [],
   },
 ];

@@ -1,0 +1,240 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { SECTOR_NAMES } from "../content.ts";
+import { choose, chooseSector, commitJump, createGame, runScore, startCombat, waitHere } from "../sim.ts";
+import { stampEngiCache } from "./engi-cache.ts";
+import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
+
+function enterLastStand(seed = 1) {
+  const g = createGame(seed, "kestrel-a", "normal");
+  const from = g.route.find((n) => n.links.includes("sec-7"));
+  assert.ok(from);
+  g.sector = 7;
+  g.phase = "map";
+  g.sectorMap = true;
+  g.routeHere = from.id;
+  g.player.hull = 12;
+  g.fuel = 4;
+  g.missiles = 1;
+  g.player.parts = 2;
+  const scrap = g.scrap;
+  chooseSector(g, "sec-7");
+  return { g, scrap };
+}
+
+describe("Last Stand repair stations", () => {
+  it("stamps three stations and does not grant their supplies or the entry bundle again", () => {
+    const { g, scrap } = enterLastStand(4);
+    assert.equal(g.sector, 8);
+    assert.equal(g.sectorName, "The Last Stand");
+    assert.equal(g.player.hull, 22);
+    assert.equal(g.fuel, 14);
+    assert.equal(g.missiles, 1);
+    assert.equal(g.player.parts, 2);
+    assert.equal(g.scrap, scrap);
+
+    const repairs = g.beacons.filter((b) => b.flag === "last-stand-repair");
+    assert.equal(repairs.length, 3);
+    for (const b of repairs) {
+      assert.equal(b.name, "Federation Repair Station");
+      assert.equal(b.kind, "event");
+      assert.equal(b.asteroid, false);
+      assert.equal(b.resolved, false);
+    }
+    assert.equal(g.beacons.some((b) => b.kind === "store" && b.flag === "last-stand-repair"), false);
+    assert.equal(g.beacons.some((b) => b.kind === "start" && b.flag === "last-stand-repair"), false);
+    assert.ok(g.beacons.some((b) => b.kind === "boss" && b.name === "Flagship"));
+    assert.equal(g.beacons.filter((b) => b.kind === "store").length >= 1, true);
+
+    citedSector(g);
+    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+    assert.equal(g.player.hull, 22);
+    assert.equal(g.fuel, 14);
+  });
+
+  it("does not stamp any other sector name, and it leaves an Engi cache in place", () => {
+    const g = createGame(2);
+    citedSector(g);
+    assert.equal(g.beacons.some((b) => b.flag === "last-stand-repair"), false);
+    assert.equal(g.sectorName, "Civilian (Starting) Sector");
+
+    g.sectorName = "Engi Homeworlds";
+    stampEngiCache(g);
+    const cache = g.beacons.find((b) => b.flag === "engi-cache");
+    assert.ok(cache);
+    citedSector(g);
+    assert.equal(cache.flag, "engi-cache");
+    assert.equal(cache.name, "Engi cache");
+    assert.equal(g.beacons.some((b) => b.flag === "last-stand-repair"), false);
+  });
+
+  it("will not overwrite the cache, the exit, or invent a station the map does not have", () => {
+    const g = createGame(6);
+    g.sectorName = "The Last Stand";
+    const cache = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store");
+    assert.ok(cache);
+    cache.flag = "engi-cache";
+    const exit = g.beacons.find((b) => b.kind === "exit");
+    const start = g.beacons.find((b) => b.kind === "start");
+    const store = g.beacons.find((b) => b.kind === "store");
+    citedSector(g);
+    assert.equal(cache.flag, "engi-cache");
+    assert.equal(exit?.kind, "exit");
+    assert.notEqual(exit?.flag, "last-stand-repair");
+    assert.notEqual(start?.flag, "last-stand-repair");
+    assert.notEqual(store?.flag, "last-stand-repair");
+    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+
+    const thin = createGame(6);
+    thin.sectorName = "The Last Stand";
+    thin.beacons = thin.beacons.filter((b) => b.kind === "start" || b.kind === "exit" || b.kind === "store");
+    citedSector(thin);
+    assert.equal(thin.beacons.some((b) => b.flag === "last-stand-repair"), false);
+  });
+
+  it("does not pay the station when the ship jumps there", () => {
+    const { g } = enterLastStand(8);
+    const here = g.beacons.find((b) => b.id === g.here);
+    const dest = g.beacons.find((b) => b.flag === "last-stand-repair");
+    assert.ok(here && dest);
+    if (!here.links.includes(dest.id)) here.links.push(dest.id);
+    const hull = g.player.hull;
+    const fuel = g.fuel;
+    const missiles = g.missiles;
+    const parts = g.player.parts;
+    const scrap = g.scrap;
+    commitJump(g, dest.id);
+    assert.equal(g.here, dest.id);
+    assert.equal(g.event?.title, "Federation Repair Station");
+    assert.equal(g.player.hull, hull);
+    assert.equal(g.fuel, fuel - 1);
+    assert.equal(g.missiles, missiles);
+    assert.equal(g.player.parts, parts);
+    assert.equal(g.scrap, scrap);
+    assert.equal(dest.resolved, false);
+  });
+
+  it("pays 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once", () => {
+    const { g } = enterLastStand(8);
+    const here = g.beacons.find((b) => b.id === g.here);
+    const dest = g.beacons.find((b) => b.flag === "last-stand-repair");
+    assert.ok(here && dest);
+    if (!here.links.includes(dest.id)) here.links.push(dest.id);
+    g.player.hull = 10;
+    const fuel = g.fuel;
+    const missiles = g.missiles;
+    const parts = g.player.parts;
+    const scrap = g.scrap;
+    commitJump(g, dest.id);
+    choose(g, "last-stand-repair");
+    assert.equal(g.player.hull, Math.min(g.player.hullMax, 25));
+    const gained = g.scrap - scrap;
+    assert.ok(gained >= 22 && gained <= 44, String(gained));
+    assert.equal(g.fuel, fuel - 1 + 5);
+    assert.equal(g.missiles, missiles + 4);
+    assert.equal(g.player.parts, parts + 5);
+    assert.equal(dest.resolved, true);
+    assert.equal(g.phase, "map");
+    choose(g, "last-stand-repair");
+    assert.equal(g.scrap - scrap, gained);
+    assert.equal(g.fuel, fuel - 1 + 5);
+    assert.equal(g.player.hull, Math.min(g.player.hullMax, 25));
+  });
+});
+
+describe("score beacons", () => {
+  it("returns null so rebel columns do not rewrite beaconsVisited", () => {
+    const g = createGame(1, undefined, "easy");
+    g.scrapCollected = 10;
+    g.beaconsVisited = 1;
+    g.kills = 2;
+    g.fleet = 4;
+    for (const b of g.beacons) {
+      if (b.col < g.fleet) b.visited = true;
+    }
+    assert.equal(citedBeaconCount(g), null);
+    assert.equal(runScore(g), 10 + 10 + 40);
+    g.beaconsVisited = 0;
+    g.scrapCollected = 0;
+    g.kills = 0;
+    assert.equal(citedBeaconCount(g), null);
+    assert.equal(runScore(g), 0);
+  });
+});
+
+describe("fleet advance and the anti-ship battery", () => {
+  it("halves a nebula beacon outside a nebula sector, and takes a fifth off inside one", () => {
+    const g = createGame(1);
+    assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
+    assert.equal(citedFleetAdvance(g, { kind: "empty" }), 1);
+    g.sectorName = "Slug Controlled Nebula";
+    assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
+    g.sectorName = "Uncharted Nebula";
+    assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
+    g.sectorName = "Slug Home Nebula";
+    assert.equal(citedFleetAdvance(g, { kind: "empty" }), 1);
+
+    g.fuel = 5;
+    g.fleet = 2;
+    g.phase = "map";
+    g.sectorName = "Civilian Sector";
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.kind = "nebula";
+    const before = g.fleet;
+    waitHere(g);
+    assert.equal(g.fleet, before + 0.5);
+
+    const dest = g.beacons.find((b) => b.id !== g.here);
+    assert.ok(dest);
+    dest.kind = "nebula";
+    if (!here.links.includes(dest.id)) here.links.push(dest.id);
+    g.sectorName = "Slug Home Nebula";
+    const at = g.fleet;
+    commitJump(g, dest.id);
+    assert.equal(g.fleet, at + 0.8);
+  });
+
+  it("arms the battery on an overtaken beacon, not on a nebula, and not on an Easy exit", () => {
+    const shot = citedAsbShot();
+    assert.equal(shot.damage, 3);
+    assert.equal(shot.breachChance, 1);
+    assert.equal(shot.fireChance, 0);
+
+    const g = createGame(1, "kestrel-a", "normal");
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.col = 0;
+    g.fleet = 2;
+    here.kind = "empty";
+    assert.equal(citedAsb(g, here), true);
+    here.kind = "nebula";
+    assert.equal(citedAsb(g, here), false);
+    g.difficulty = "easy";
+    here.kind = "exit";
+    assert.equal(citedAsb(g, here), false);
+    g.difficulty = "hard";
+    here.kind = "exit";
+    assert.equal(citedAsb(g, here), true);
+
+    here.kind = "nebula";
+    g.fleet = 3;
+    startCombat(g, "scout");
+    assert.equal(g.asb, false);
+  });
+});
+
+describe("sector names left in place", () => {
+  it("does not replace the invented sector-name list", () => {
+    assert.deepEqual(SECTOR_NAMES, [
+      "Cinder Reach",
+      "Glass Margin",
+      "Salt Lattice",
+      "Red Kiln",
+      "Quiet Arm",
+      "Broken Mile",
+      "Night Freight",
+      "Shut Gate",
+    ]);
+  });
+});

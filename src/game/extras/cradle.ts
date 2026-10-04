@@ -1,4 +1,4 @@
-import { log, sparePower } from "../sim.ts";
+import { kitBars, log, sparePower } from "../sim.ts";
 import { helixHolds } from "./moreaugs.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
 
@@ -74,18 +74,35 @@ export function toggleCradlePower(g: Game) {
 }
 
 /**
+ * Player cloning queue, head first. Wiki page "Clone Bay", "Overview": "whatever crew dies earlier is the first one to
+ * be in the beginning of the cloning queue. The crew order in the cloning queue cannot be altered."
+ */
+function playerQueued(g: Game): Crew[] {
+  return g.crew
+    .filter((c) => c.side === "player" && (c.cloneIn ?? 0) > 0)
+    .sort((a, b) => (a.cloneSeq ?? 0) - (b.cloneSeq ?? 0));
+}
+
+/**
  * Wiki page "Clone Bay", section "System Upgrades": start a 12/9/7 second clone.
+ * "Overview": "Multiple dead crewmembers can be queued for revival, one-by-one". cloneSeq is the queue slot, allocated
+ * like the enemy path (one past the current tail).
+ * INFERRED: a waiting clone's timer is preset to the full level time at death and only counts once it reaches the
+ * head (tickCradle). The page does not say when a waiting clone's timer is set; an upgrade mid-queue keeps the old time.
  * INFERRED: the timer starts at death. "Overview" also has a death-animation delay (about 1.5–2s) that is not added.
  */
 export function onCradleDeath(g: Game, crew: Crew): boolean {
+  if (crew.side === "enemy") return onEnemyCradleDeath(g, crew);
   if (crew.side !== "player") return false;
   const kit = poweredCradle(g);
   if (!kit) return false;
   if ((crew.cloneIn ?? 0) > 0) return true;
   const seconds = CLONE_SECONDS[kit.level];
   if (seconds == null) return false;
+  const seq = playerQueued(g).reduce((top, c) => Math.max(top, c.cloneSeq ?? 0), 0) + 1;
   crew.hp = 0;
   crew.cloneIn = seconds;
+  crew.cloneSeq = seq;
   crew.room = "p-medbay";
   crew.aboard = "player";
   crew.path = [];
@@ -104,50 +121,55 @@ function restoreSkills(crew: Crew) {
 
 /**
  * Wiki page "Clone Bay", "System Upgrades": the 12/9/7 countdown runs while a bar is assigned.
+ * "Overview": revival is "one-by-one", so only the head of the queue (lowest cloneSeq) counts down.
  * INFERRED: the body returns at maxHp. The page does not state revive HP.
- * "Overview": offline for 3 seconds permanently loses the clone. kit.aux counts those seconds.
+ * "Overview": "The Clone Bay is offline for 3 seconds" loses a clone, and "The crew clone, who entered the Clone Bay
+ * last ... will be lost first." kit.aux counts those seconds. "The crew clone loss progression is preserved between
+ * jumps": nothing on the jump path resets kit.aux.
+ * INFERRED: one clone per 3 offline seconds, then the count restarts for the next. The page does not give the cadence.
+ * INFERRED: offline means no working bar (unpowered, or every level damaged), as cradleOffline for the enemy.
  */
 export function tickCradle(g: Game, dt: number) {
+  tickEnemyCradle(g, dt);
   const kit = g.player.kits.cradle;
   if (!kit) return;
-  const pending = g.crew.some((c) => c.side === "player" && (c.cloneIn ?? 0) > 0);
-  if (!poweredCradle(g)) {
+  const queued = playerQueued(g);
+  if (!poweredCradle(g) || cradleOffline(kit)) {
     // Augmentations, "Crew Augmentations", Backup DNA Bank: an offline bay does not erase the copy.
     if (helixHolds(g)) return;
-    if (!pending) {
+    if (!queued.length) {
       kit.aux = 0;
       return;
     }
     kit.aux += dt;
     if (kit.aux < 3) return;
-    for (const crew of g.crew) {
-      if (crew.side !== "player" || (crew.cloneIn ?? 0) <= 0) continue;
-      crew.cloneIn = undefined;
-    }
     kit.aux = 0;
-    log(g, "Clone Bay was dark. The copy is gone.");
+    dropClone(queued[queued.length - 1]);
+    log(g, "Clone Bay was dark. A copy is gone.");
     return;
   }
   kit.aux = 0;
-  for (const crew of g.crew) {
-    if (crew.side !== "player") continue;
-    if (crew.cloneIn == null || crew.cloneIn <= 0) continue;
-    crew.cloneIn -= dt;
-    if (crew.cloneIn > 0) continue;
-    crew.hp = crew.maxHp;
-    crew.cloneIn = undefined;
-    restoreSkills(crew);
-    log(g, `Clone Bay returned ${crew.name}.`);
-  }
+  const head = queued[0];
+  if (!head) return;
+  head.cloneIn = (head.cloneIn ?? 0) - dt;
+  if (head.cloneIn > 0) return;
+  head.hp = head.maxHp;
+  dropClone(head);
+  restoreSkills(head);
+  log(g, `Clone Bay returned ${head.name}.`);
 }
 
 /**
  * Wiki page "Clone Bay", "System Upgrades": 8/16/25 HP flat per jump.
- * "Overview": jump heal needs no power, and this does not check the bar.
+ * "Overview": "Clone Bay does not need to be powered to activate the jump heal, but won't heal crew if it is fully
+ * ionized or destroyed." Destroyed = every level damaged (cradleDestroyed). Kits carry no ion in this tree, so the
+ * "fully ionized" half has nothing to check yet.
+ * "Overview": "Waiting at a beacon applies the jump heal effect": sim.ts waitHere calls this too.
  */
 export function onCradleJump(g: Game) {
   const kit = g.player.kits.cradle;
   if (!kit || kit.level <= 0) return;
+  if (cradleDestroyed(kit)) return;
   const heal = JUMP_HEAL[kit.level];
   if (heal == null) return;
   for (const crew of g.crew) {
@@ -157,11 +179,152 @@ export function onCradleJump(g: Game) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Enemy Clone Bay. Wiki page "Clone Bay", section "Overview", unless noted.
+// ---------------------------------------------------------------------------
+
+/** The enemy's Clone Bay kit, if its hull has one (enemy-gen.ts maps "clonebay" to kit "cradle"). */
+function enemyCradle(g: Game): Kit | null {
+  const kit = g.enemy?.kits.cradle;
+  if (!kit || kit.level <= 0) return null;
+  return kit;
+}
+
 /**
- * Clone Bay: "If the enemy ship's crew is dead, the battle will continue until their Clone Bay is destroyed."
- * sim.ts endCheck asks this before awarding a crew-kill win. Stub until the enemy Clone Bay work lands.
+ * "Destroyed" means every level is damaged, not merely depowered.
+ * Overview: "won't heal crew if it is fully ionized or destroyed" names ion and destruction as separate states,
+ * so ion never counts as destroyed. Kits carry no ion in this tree anyway.
+ */
+function cradleDestroyed(kit: Kit): boolean {
+  return (kit.damage ?? 0) >= kit.level;
+}
+
+/** Overview: "The Clone Bay is offline" — INFERRED: offline means no working bar (destroyed, or power knocked out). */
+function cradleOffline(kit: Kit): boolean {
+  return kitBars(kit) < 1;
+}
+
+function enemyQueued(g: Game): Crew[] {
+  return g.crew
+    .filter((c) => c.side === "enemy" && c.hp <= 0 && (c.cloneIn ?? 0) > 0)
+    .sort((a, b) => (a.cloneSeq ?? 0) - (b.cloneSeq ?? 0));
+}
+
+function enemyLive(g: Game): boolean {
+  return g.crew.some((c) => c.side === "enemy" && c.hp > 0);
+}
+
+function dropClone(crew: Crew) {
+  crew.cloneIn = undefined;
+  crew.cloneSeq = undefined;
+}
+
+/**
+ * Overview: "the enemy cloning queue is purged instantly when there are no live crew left and the Clone Bay is
+ * destroyed, contrary to a 3-second crew loss process applied to player's crew".
+ * Returns true when it purged, so endCheck can award the crew-kill win this tick.
+ */
+function purgeEnemyClones(g: Game): boolean {
+  const kit = enemyCradle(g);
+  if (!kit || !cradleDestroyed(kit) || enemyLive(g)) return false;
+  const queued = enemyQueued(g);
+  if (!queued.length) return false;
+  for (const crew of queued) dropClone(crew);
+  log(g, "Their Clone Bay is wrecked. The clones are gone.");
+  return true;
+}
+
+/** Clone Bay room on the enemy hull: the room housing kit "cradle" (enemy-gen.ts names it `e-clonebay`). */
+function enemyCradleRoom(g: Game): string | null {
+  return g.enemy?.rooms.find((r) => r.kit === "cradle")?.id ?? null;
+}
+
+/**
+ * Overview: "Multiple dead crewmembers can be queued for revival, one-by-one: whatever crew dies earlier is the first
+ * one to be in the beginning of the cloning queue." System Upgrades: cloning takes 12 / 9 / 7 seconds.
+ * INFERRED: an enemy boarder who dies aboard the player ship is cloned too. The page only excludes crew "left on the
+ * enemy ship" when a ship jumps away, which is about jumping, not about dying aboard.
+ * INFERRED: a death while the bay is destroyed still queues if enemy crew are alive (they may repair it); the
+ * 3-second offline loss in tickEnemyCradle then decides. With no live crew left it is purged at once (Overview).
+ * INFERRED: as for the player, the death-animation delay (1.5–2 s) is not added.
+ */
+function onEnemyCradleDeath(g: Game, crew: Crew): boolean {
+  const kit = enemyCradle(g);
+  if (!kit) return false;
+  if ((crew.cloneIn ?? 0) > 0) return true;
+  const seconds = CLONE_SECONDS[kit.level];
+  const room = enemyCradleRoom(g);
+  if (seconds == null || !room) return false;
+  const seq = enemyQueued(g).reduce((top, c) => Math.max(top, c.cloneSeq ?? 0), 0) + 1;
+  crew.hp = 0;
+  crew.cloneIn = seconds;
+  crew.cloneSeq = seq;
+  crew.room = room;
+  crew.aboard = "enemy";
+  crew.path = [];
+  // "If the Clone Bay is destroyed while all enemy crew are dead or are in the cloning queue, the fight ends immediately."
+  if (purgeEnemyClones(g)) return false;
+  return true;
+}
+
+/**
+ * Enemy queue, one body at a time (Overview: "queued for revival, one-by-one"). The head counts down only while the
+ * bay has a working bar.
+ * Overview: offline for 3 seconds loses a clone, and "The crew clone, who entered the Clone Bay last ... will be lost
+ * first." Backup DNA Bank is "available for player only", so enemies get no exemption.
+ * INFERRED: each further clone needs another 3 offline seconds. The page does not give the cadence.
+ * INFERRED: revive HP is full and the body appears in the Clone Bay room, as for the player.
+ * Overview: revived crew take the 20% skill penalty (1 point of combat), via restoreSkills.
+ */
+function tickEnemyCradle(g: Game, dt: number) {
+  const kit = enemyCradle(g);
+  if (!kit) return;
+  if (purgeEnemyClones(g)) return;
+  const queued = enemyQueued(g);
+  if (!queued.length) {
+    kit.aux = 0;
+    return;
+  }
+  if (cradleOffline(kit)) {
+    kit.aux += dt;
+    if (kit.aux < 3) return;
+    kit.aux = 0;
+    dropClone(queued[queued.length - 1]);
+    log(g, "Their Clone Bay went dark. A clone is lost.");
+    return;
+  }
+  kit.aux = 0;
+  const head = queued[0];
+  head.cloneIn = (head.cloneIn ?? 0) - dt;
+  if (head.cloneIn > 0) return;
+  head.hp = head.maxHp;
+  dropClone(head);
+  head.room = enemyCradleRoom(g) ?? head.room;
+  head.aboard = "enemy";
+  head.path = [];
+  restoreSkills(head);
+  log(g, `Their Clone Bay returned ${head.name}.`);
+}
+
+/** Head of the enemy cloning queue for the target panel: seconds left on the head clone and queue length. */
+export function enemyCloneQueue(g: Game): { seconds: number; count: number; offline: boolean } | null {
+  const kit = enemyCradle(g);
+  if (!kit) return null;
+  const queued = enemyQueued(g);
+  if (!queued.length) return null;
+  return { seconds: Math.ceil(queued[0].cloneIn ?? 0), count: queued.length, offline: cradleOffline(kit) };
+}
+
+/**
+ * Clone Bay, Overview: "If the enemy ship's crew is dead, the battle will continue until their Clone Bay is destroyed."
+ * sim.ts endCheck asks this before awarding a crew-kill win. True while the bay is not destroyed and a body waits.
+ * "If the Clone Bay is destroyed while all enemy crew are dead or are in the cloning queue, the fight ends
+ * immediately": a destroyed bay with no live crew purges the queue here, so the win lands this tick.
  */
 export function enemyCloneHolds(g: Game): boolean {
-  void g;
-  return false;
+  const kit = enemyCradle(g);
+  if (!kit) return false;
+  purgeEnemyClones(g);
+  if (cradleDestroyed(kit)) return false;
+  return enemyQueued(g).length > 0;
 }

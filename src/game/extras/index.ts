@@ -18,6 +18,8 @@ import { onCradleDeath, onCradleJump, tickCradle } from "./cradle.ts";
 import { tickLance } from "./lance.ts";
 import { tickFlak } from "./flakart.ts";
 import { leashedDamageBonus, tickLeash } from "./leash.ts";
+import { tickSabotage } from "./sabotage.ts";
+import { tickLanius } from "./lineage.ts";
 import { partsBack } from "./moreaugs.ts";
 import { onJumpSling, tickSling } from "./sling.ts";
 import { spikeEvadeZero, spikeFreezesFtl, tickSpike } from "./spike.ts";
@@ -36,11 +38,16 @@ export function tickExtras(g: Game, dt: number) {
   tickLance(g, dt);
   tickFlak(g, dt);
   tickSwarm(g, dt);
+  tickSabotage(g, dt);
   tickSquall(g, dt);
+  tickLanius(g, dt);
 }
 
+/**
+ * Evasion added on top of the Engines table. Cloak evasion survives a Piloting/Engines hack
+ * (Hacking, "Overview": "Does not affect evasion gained from Cloak").
+ */
 export function extraEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
-  if (spikeEvadeZero(g, ship)) return 0;
   return veilEvade(g, ship, aboard);
 }
 

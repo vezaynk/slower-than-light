@@ -251,23 +251,36 @@ describe("Zoltan Shield Bypass", () => {
   });
 
   it("stops an enemy teleporter party on a player bubble and lets one through when the bubble is down", () => {
-    const held = fight(11);
-    held.player.zoltan = 5;
-    held.boardTimer = 0.05;
-    const foe = ensureFoe(held);
-    const spot = foe.room;
-    step(held, 0.05);
-    assert.equal(foe.aboard, "enemy");
-    assert.equal(foe.room, spot);
-    step(held, 0.05);
-    assert.equal(foe.aboard, "enemy");
+    // Crew Teleporter, "Enemy Crew Teleporter": only a hull with a teleporter boards, and its crew walk to the
+    // pads first, so this uses a Mantis ship that has one and runs the real loop (extras/sling.ts).
+    function teleporterFight(seed: number): Game {
+      for (let s = seed; s < seed + 400; s++) {
+        const g = createGame(s);
+        startCombat(g, "Mantis ship");
+        if (!g.enemy?.kits.sling) continue;
+        g.enemy.weapons = [];
+        g.player.weapons = [];
+        g.enemyEscape = null;
+        g.asteroid = false;
+        g.asb = false;
+        return g;
+      }
+      throw new Error("no Mantis ship with a teleporter");
+    }
+    const boarded = (g: Game) => g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
 
-    const open = fight(12);
+    const held = teleporterFight(11);
+    held.player.zoltan = 5;
+    for (let i = 0; i < 20 * 20 && held.phase === "combat"; i++) {
+      held.player.zoltan = 5;
+      step(held, 0.05);
+    }
+    assert.equal(boarded(held), false);
+
+    const open = teleporterFight(12);
     open.player.zoltan = 0;
-    open.boardTimer = 0.05;
-    const rider = ensureFoe(open);
-    step(open, 0.05);
-    assert.equal(rider.aboard, "player");
+    for (let i = 0; i < 40 * 20 && open.phase === "combat" && !boarded(open); i++) step(open, 0.05);
+    assert.equal(boarded(open), true);
   });
 
   it("lets a player bomb through the bubble and still shrugs one that is not the player's", () => {

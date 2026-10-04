@@ -1129,3 +1129,50 @@ export const ENEMY_WEAPON_POOLS: Record<EnemyClass["faction"], string[]> = {
     "Ion Stunner",
   ],
 };
+
+/**
+ * @agent:drones. Hand-added from "Template:Enemy ships drones" (and each faction page's "Drones" section).
+ * Template: "Ships in the table are marked by either D, D/H, or H index letters ... If the index letter is not
+ * bold, then the system is optional for this ship." and "This categorization also applies to pirated ship versions."
+ * Schematic ids are the Kit.target strings: striker (Combat Drone Mark I), combat2 (Mark II), beam (Anti-Ship Beam
+ * Drone I), beam2 (II), fire (Anti-Ship Fire Drone), ward / ward2 (Defense Drone Mark I / II), wardcut (Anti-Combat),
+ * overcharger (Shield Overcharger), patch (System Repair), personnel (Anti-Personnel), board (Boarding Drone),
+ * ionintruder (Ion Intruder).
+ * `parts` is the baseline from Enemy Ships, "Missile and drone stocks": "Most ships have 4 drone parts (baseline)",
+ * "Auto-Assault and Zoltan Hacker: 5 parts", "Zoltan Bomber: 2 parts".
+ * `maxDrones` is the template's max parts column, "# of drones ×2", halved (8 → 4, 6 → 3, 4 → 2). Drone Control,
+ * Overview agrees: "Enemies can have up to 4 active drones (Rebel Rigger, Rebel Disruptor, the Flagship, and Engi ships)."
+ */
+export type EnemyDroneRow = { drones: string[]; maxDrones: number; parts: number };
+
+/** Template row "Rebel Rigger D / Rebel Disruptor D/H": every column, 4 to 8 parts. */
+const REBEL_DRONES = [
+  "striker", "combat2", "beam", "beam2", "fire",
+  "ward", "ward2", "wardcut", "overcharger",
+  "patch", "personnel",
+  "board", "ionintruder",
+];
+/** Template rows "Engi Scout / Outrider / Bomber / Hacker": defensive column only, 4 to 8 parts.
+ * Enemy Ships: "an Engi ship will never have offensive drones." */
+const ENGI_DRONES = ["ward", "ward2", "wardcut"];
+
+export const ENEMY_DRONES: Record<string, EnemyDroneRow> = {
+  "rebel-rigger": { drones: REBEL_DRONES, maxDrones: 4, parts: 4 },
+  "rebel-disruptor": { drones: REBEL_DRONES, maxDrones: 4, parts: 4 },
+  "engi-scout": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
+  "engi-outrider": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
+  "engi-bomber": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
+  "engi-hacker": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
+  /** Template row "Zoltan Bomber D": Combat Drone Mark I, Beam Drone I and II, Fire Drone. Min 2 parts, max 4. */
+  "energy-bomber": { drones: ["striker", "beam", "beam2", "fire"], maxDrones: 2, parts: 2 },
+  /** Template row "Zoltan Hacker H": "Ships marked only by index H don't have regular drones".
+   * Enemy Ships, "Missile and drone stocks": "Zoltan Hacker: 5 parts" (the template row prints "2 / 5 (H)"). */
+  "energy-hacker": { drones: [], maxDrones: 0, parts: 5 },
+  /** Template row "Auto-Assault D": offensive column (Combat I and II, Beam I and II, Fire). Min 5, max 6 parts. */
+  "auto-assault": { drones: ["striker", "combat2", "beam", "beam2", "fire"], maxDrones: 3, parts: 5 },
+  /** Template row "Auto-Hacker H": "a fixed number of drone parts for their Hacking system ... 4 for Auto-Hacker". */
+  "auto-hacker": { drones: [], maxDrones: 0, parts: 4 },
+};
+
+/** Enemy Ships, "Missile and drone stocks": "Most ships have 4 drone parts (baseline)". */
+export const ENEMY_PARTS_BASELINE = 4;

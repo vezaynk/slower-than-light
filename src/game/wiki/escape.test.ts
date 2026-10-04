@@ -80,6 +80,8 @@ describe("escape in a fight", () => {
     const g = createGame(4);
     startCombat(g, "Rebel ship");
     g.enemyEscape!.chance = 100;
+    // wiki/surrender.ts rolls first at low hull; keep this fight to the escape rule.
+    g.enemySurrender!.chance = 0;
     g.enemy!.hull = 2;
     run(g, 1);
     assert.equal(g.enemyEscape?.running, true);

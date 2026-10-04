@@ -2926,8 +2926,114 @@ button.gun-slot {
 
 /* @agent:clonebay — enemy clone bay styles go below this line. */
 
+/* Enemy cloning queue readout (enemyCloneQueue): only while a dead enemy waits in their Clone Bay. */
+
+.target-head .clone-line { margin-top: 4px; font-family: var(--font-hud); font-size: 22px; letter-spacing: 0.06em; color: var(--color-ok); }
+
+.target-head .clone-line.is-offline { color: var(--color-muted); }
+
 /* @agent:mindcontrol — enemy mind control styles go below this line. */
+
+/* Mind-controlled crew token (either direction): a pulsing magenta pixel outline plus a small glyph.
+   Held by the enemy = solid ring; held by the player = dashed ring. */
+.token.is-leashed {
+  --mind: var(--color-mind, #e04cff);
+  position: relative;
+  outline: 2px solid var(--mind);
+  outline-offset: 1px;
+  animation: mind-pulse 1.1s steps(2, end) infinite;
+}
+
+.token.is-leashed.leashed-by-player { outline-style: dashed; }
+
+.token.is-leashed::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 4px;
+  height: 4px;
+  background: var(--mind);
+  box-shadow: 0 0 0 1px var(--color-bg);
+  pointer-events: none;
+}
+
+.token.is-leashed.is-selected { outline-color: var(--color-primary); }
+
+@keyframes mind-pulse {
+  0% { outline-color: var(--mind); }
+  100% { outline-color: color-mix(in srgb, var(--mind) 35%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .token.is-leashed { animation: none; }
+}
 
 /* @agent:drones — enemy drone styles go below this line. */
 
 /* @agent:hacking — enemy hacking styles go below this line. */
+/* Player room whose system carries an enemy hacking drone (ShipView .is-hacked, data-hacked). */
+.room.is-hacked {
+  --hack: #27d3a2;
+}
+
+.room.is-hacked .hack-mark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hack) 28%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+  box-shadow: inset 0 0 0 2px var(--hack);
+}
+
+.room.is-hacked-latched .hack-mark {
+  opacity: 0.55;
+}
+
+.room.is-hacked-pulse .hack-mark {
+  animation: hack-pulse 0.6s steps(2, jump-none) infinite alternate;
+}
+
+/* Pixel drone glyph latched in the room's top-right corner. */
+.room.is-hacked .hack-drone {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--hack);
+  box-shadow:
+    -2px 2px 0 0 #0b2a22,
+    2px -2px 0 0 #0b2a22;
+}
+
+@keyframes hack-pulse {
+  0% { opacity: 1; }
+  100% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room.is-hacked-pulse .hack-mark { animation: none; }
+}
+
+/* @agent:surrender */
+.loot-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.loot-row .loot-chip {
+  margin: 0 !important;
+}
+
+.surrender-card .surrender-sub {
+  margin: 10px 0 0;
+  color: var(--color-line);
+  text-align: center;
+}

@@ -8,7 +8,15 @@ import { WEAPONS } from "./content.ts";
 import type { KinId } from "./extras/kin.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, KitId, SysId } from "./types.ts";
-import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS, type EnemyClass, type EnemySystem, type Range } from "./wiki/enemy-ships.ts";
+import {
+  ENEMY_CLASSES,
+  ENEMY_DRONES,
+  ENEMY_PARTS_BASELINE,
+  ENEMY_WEAPON_POOLS,
+  type EnemyClass,
+  type EnemySystem,
+  type Range,
+} from "./wiki/enemy-ships.ts";
 
 export type EnemyRoomSpec = { id: string; title: string; system: SysId | null; kit?: KitId; x: number; y: number; w: number; h: number };
 
@@ -34,7 +42,97 @@ export type EnemySpec = {
   crew: { kin: KinId; race: string; room: string }[];
   /** Crew Teleporter installed: the ship can board. */
   boards: boolean;
+  /** @agent:drones. Drone parts in stock (Enemy Ships, "Missile and drone stocks"). */
+  parts: number;
+  /** @agent:drones. Drone schematics this hull fields this fight, in power order. Empty without Drone Control. */
+  drones: string[];
 };
+
+/**
+ * @agent:drones. Power per enemy drone schematic, Drone Control, each schematic's "Power requirement" line.
+ * The SwarmKind entries repeat DRONE_POWER in extras/swarm.ts (swarm-enemy.test.ts checks they agree).
+ * Kept here so this pure module does not import swarm.ts, which imports sim.ts.
+ */
+export const SCHEMATIC_POWER: Record<string, number> = {
+  /** Combat Drone Mark I: "Power requirement: 2 power". */
+  striker: 2,
+  /** Combat Drone Mark II: "Power requirement: 4 power". */
+  combat2: 4,
+  /** Anti-Ship Beam Drone I: "Power requirement: 2 power". */
+  beam: 2,
+  /** Anti-Ship Beam Drone II: "Power requirement: 3 power". */
+  beam2: 3,
+  /** Anti-Ship Fire Drone: "Power requirement: 3 power". */
+  fire: 3,
+  /** Defense Drone Mark I: "Power requirement: 2 power". */
+  ward: 2,
+  /** Defense Drone Mark II: "Power requirement: 3 power". */
+  ward2: 3,
+  /** Anti-Combat Drone: "Power requirement: 1 power". */
+  wardcut: 1,
+  /** Shield Overcharger: "Power requirement: 3 power". */
+  overcharger: 3,
+  /** System Repair Drone: "Power requirement: 1 power". */
+  patch: 1,
+  /** Anti-Personnel Drone: "Power requirement: 2 power". */
+  personnel: 2,
+  /** Boarding Drone: "Power requirement: 3 power". */
+  board: 3,
+  /** Ion Intruder Drone: "Power requirement: 3 power". */
+  ionintruder: 3,
+};
+
+/**
+ * @agent:drones. Schematics the enemy side of extras/swarm.ts can run. Combat Drone Mark II prints no cooldown
+ * (wiki/cited-combat2.ts), so an enemy never picks it: it would sit powered and never fire.
+ */
+export const ENEMY_RUNNABLE = new Set([
+  "striker",
+  "beam",
+  "beam2",
+  "fire",
+  "ward",
+  "ward2",
+  "wardcut",
+  "overcharger",
+  "patch",
+  "personnel",
+  "board",
+  "ionintruder",
+]);
+
+/**
+ * @agent:drones. Enemy Ships, "Missile and drone stocks": "the game will always give them at least double the number
+ * of parts as they have drones ... Hacking does not count towards this increase".
+ */
+export function enemyParts(classId: string, drones: number): number {
+  const base = ENEMY_DRONES[classId]?.parts ?? ENEMY_PARTS_BASELINE;
+  return Math.max(base, drones * 2);
+}
+
+/**
+ * @agent:drones. Which drones this hull fields. Allowed schematics: Template:Enemy ships drones (ENEMY_DRONES).
+ * Count cap: that row's max parts column ("# of drones ×2"), halved.
+ * INFERRED: the wiki does not say how an enemy picks among its allowed schematics. Each slot draws uniformly from
+ * the runnable schematics that still fit the Drone Control level, until the cap or nothing fits. Repeats allowed.
+ * Drone Control, "Drone Schematics": "Before the start of a ship fight it is impossible to know the exact drones the
+ * enemy ship will deploy" — this list stays hidden; swarm.ts deploys it on the first combat tick.
+ */
+export function rollDrones(classId: string, level: number, rand: () => number): string[] {
+  const row = ENEMY_DRONES[classId];
+  if (!row || level <= 0) return [];
+  const pool = row.drones.filter((id) => ENEMY_RUNNABLE.has(id));
+  const out: string[] = [];
+  let left = level;
+  while (out.length < row.maxDrones) {
+    const fits = pool.filter((id) => (SCHEMATIC_POWER[id] ?? Infinity) <= left);
+    if (!fits.length) break;
+    const id = fits[Math.floor(rand() * fits.length) % fits.length];
+    out.push(id);
+    left -= SCHEMATIC_POWER[id];
+  }
+  return out;
+}
 
 /** Systems with enemy behaviour in sim.ts. */
 const RUN: Partial<Record<EnemySystem, SysId>> = {
@@ -313,7 +411,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0].id,
   }));
   const weaponLevel = systems.weapons?.[0] ?? 1;
-  return {
+  const spec: EnemySpec = {
     classId: cls.id,
     name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
     pirate,
@@ -331,5 +429,14 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     missiles: cls.missiles,
     crew,
     boards: installed.some(([id]) => id === "teleporter"),
+    parts: enemyParts(cls.id, 0),
+    drones: [],
   };
+  // @agent:drones. Rolled after every other roll, and only for a hull with Drone Control, so the rest of the spec
+  // draws the same numbers it did before drones existed.
+  if (kits.swarm) {
+    spec.drones = rollDrones(cls.id, kits.swarm, rand);
+    spec.parts = enemyParts(cls.id, spec.drones.length);
+  }
+  return spec;
 }

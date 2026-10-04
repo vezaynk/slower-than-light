@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat, step } from "../sim.ts";
+import { REPAIR_SECONDS, createGame, startCombat, step } from "../sim.ts";
 
 describe("starting augments", () => {
   it("fits the ones whose effect already runs", () => {
@@ -25,7 +25,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
       if (crew.room === room.id) crew.room = elsewhere.id;
     }
     room.breach = 1;
-    room.breachFix = 7.97;
+    room.breachFix = REPAIR_SECONDS - 0.03;
     room.fire = 0;
     empty.augments = ["gel"];
     step(empty, 0.05);
@@ -38,7 +38,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
       if (crew.room === open.id) crew.room = bare.player.rooms.find((item) => item.id !== open.id)!.id;
     }
     open.breach = 1;
-    open.breachFix = 7.97;
+    open.breachFix = REPAIR_SECONDS - 0.03;
     open.fire = 0;
     step(bare, 0.05);
     assert.equal(open.breach, 1);
@@ -61,7 +61,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     worker.stun = 0;
     bench.fire = 0;
     bench.breach = 1;
-    bench.breachFix = 7.92;
+    bench.breachFix = REPAIR_SECONDS - 0.08;
     stacked.augments = ["gel"];
     step(stacked, 0.05);
     assert.equal(bench.breach, 0);

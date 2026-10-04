@@ -15,6 +15,9 @@ import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil } from "@/game/extras/veil";
+import { enemyCloneQueue } from "@/game/extras/cradle";
+// @agent:surrender. The surrender card lists the offered cargo.
+import { surrenderOfferView } from "@/game/wiki/surrender";
 import {
   aim,
   armWeapon,
@@ -464,6 +467,9 @@ function TargetPanel({ game }: { game: Game }) {
   const veil = enemy.kits.veil;
   const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const cloaked = !!veil?.on && veil.left > 0;
+  // Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon." Shown here as a
+  // countdown on the head clone plus the queue size. Hidden while cloaked, like the interior.
+  const clones = cloaked && !ownAboard ? null : enemyCloneQueue(game);
   return (
     <aside className="target-panel">
       <div className="target-head">
@@ -474,6 +480,12 @@ function TargetPanel({ game }: { game: Game }) {
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               {escape.stalled ? "FTL STALLED" : `FTL CHARGING · ${escape.left}s`}
+            </p>
+          ) : null}
+          {clones ? (
+            <p className={`clone-line${clones.offline ? " is-offline" : ""}`} role="status">
+              {clones.offline ? "CLONING HALTED" : `CLONING · ${clones.seconds}s`}
+              {clones.count > 1 ? ` +${clones.count - 1}` : ""}
             </p>
           ) : null}
         </div>
@@ -721,11 +733,20 @@ function PowerStack({ game, id }: { game: Game; id: SysId }) {
 function EventModal({ game }: { game: Game }) {
   const event = game.event;
   if (!event) return null;
+  // @agent:surrender. Rewards, "Stuff": the offered resources and scrap, shown before the player answers.
+  const offer = surrenderOfferView(game);
   return (
     <div className="modal-layer">
-      <article className="ftl-card">
+      <article className={`ftl-card${offer ? " surrender-card" : ""}`}>
         {event.title ? <p className="event-lead">{event.title}</p> : null}
         <p>{event.body}</p>
+        {offer ? (
+          <>
+            <p className="surrender-sub">They offer:</p>
+            <LootChips scrap={offer.scrap} res={offer} />
+            {offer.weapon ? <p className="surrender-sub">Plus a weapon from their racks.</p> : null}
+          </>
+        ) : null}
         <div className="choice-list">
           {event.choices.map((c, index) => {
             const why = choiceDisabled(game, c.id);
@@ -750,14 +771,40 @@ function RewardModal({ game }: { game: Game }) {
     <div className="modal-layer">
       <article className="ftl-card">
         <p>{reward.note || "The buoy is quiet."}</p>
-        <p className="loot-chip">
-          <PixelIcon name="scrap" size={20} />
-          <b>{reward.scrap}</b>
-        </p>
+        {reward.res ? (
+          <LootChips scrap={reward.scrap} res={reward.res} />
+        ) : (
+          <p className="loot-chip">
+            <PixelIcon name="scrap" size={20} />
+            <b>{reward.scrap}</b>
+          </p>
+        )}
         <button type="button" className="choice-line" onClick={() => act((g) => continueReward(g))}>
           1. Continue...
         </button>
       </article>
+    </div>
+  );
+}
+
+/** @agent:surrender. Scrap plus fuel, missiles and drone parts, one chip each, zero amounts left out. */
+function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missiles?: number; parts?: number } }) {
+  const items: [IconName, number, string][] = [
+    ["scrap", scrap, "Scrap"],
+    ["fuel", res.fuel ?? 0, "Fuel"],
+    ["missile", res.missiles ?? 0, "Missiles"],
+    ["parts", res.parts ?? 0, "Drone parts"],
+  ];
+  return (
+    <div className="loot-row">
+      {items
+        .filter(([, n]) => n > 0)
+        .map(([icon, n, label]) => (
+          <p key={icon} className="loot-chip" title={label}>
+            <PixelIcon name={icon} size={20} />
+            <b>{n}</b>
+          </p>
+        ))}
     </div>
   );
 }

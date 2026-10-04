@@ -846,7 +846,8 @@ export const HULLS: HullSpec[] = [
    * Wiki page "The Stealth Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Stealth Cruiser", section "Layout C": Laser Charger (S) and Mini Beam. Both are 1 power, and the weapon system is level 2.
-   * Shield Overcharger + and Anti-Drone are not schematic ids in swarm.ts. They stay unfitted.
+   * Shield Overcharger + can be deployed and is still not a SwarmKind. It stays unfitted.
+   * Anti-Drone is still a name only. It stays unfitted.
    * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
    */
   {

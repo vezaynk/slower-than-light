@@ -1,5 +1,6 @@
 import type { KinId } from "./extras/kin.ts";
 import type { EscapePlan } from "./wiki/escape.ts";
+import type { SurrenderPlan } from "./wiki/surrender.ts";
 
 export type SysId =
   | "shields"
@@ -43,6 +44,13 @@ export type Room = {
   venting: boolean;
   /** Seconds of crystal coating left. Absent means the room is not coated. */
   lock?: number;
+  /** Boarding, "Combat": sabotage bar (0..1) from boarders and fires. At 1 the room's system takes 1 damage. Absent means 0. */
+  sabotage?: number;
+  /**
+   * @agent:hacking. Player rooms only: an enemy hacking drone is latched onto this room's system ("latched"),
+   * or its pulse is running ("pulse"). Written each combat tick by extras/spike.ts; ShipView draws it.
+   */
+  hacked?: "latched" | "pulse";
 };
 
 export type Door = {
@@ -53,6 +61,11 @@ export type Door = {
   hp: number;
   /** Seconds a broken door stays stuck open. */
   stuck: number;
+  /**
+   * @agent:hacking. Player doors only: locked by an enemy hack (extras/spike.ts). Hacking, "Overview":
+   * "Hacked doors are equivalent to level 3 blast doors" for the hacked ship's crew.
+   */
+  hacked?: boolean;
 };
 
 /** One orange bar on a hangar cutaway. Side is the edge of cell (x, y). */
@@ -85,8 +98,12 @@ export type Crew = {
   kin?: KinId;
   /** Seconds left fighting for the other side. */
   leashed?: number;
+  /** Mind Control health boost (+15 at level 2, +30 at level 3) added to maxHp and hp while leashed (extras/leash.ts). */
+  leashBoost?: number;
   /** Seconds until a clone finishes. Set only while this body is waiting. */
   cloneIn?: number;
+  /** Clone Bay queue position, either side (lower clones first, "one-by-one"). Set only while `cloneIn` is set. */
+  cloneSeq?: number;
   /** Seconds this body cannot act. Hacking Stun sets this for the pulse. */
   stun?: number;
   /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
@@ -160,6 +177,58 @@ export type Kit = {
   path?: string[];
   /** Progress toward the next room, from 0 to 1. */
   move?: number;
+  /**
+   * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
+   * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.
+   */
+  loadout?: string[];
+  /** @agent:drones. Enemy drones deployed this fight, one per loadout slot. Absent until the first combat tick. */
+  drones?: DroneUnit[];
+  /** @agent:drones. Seconds the player's deployed drone is stunned (enemy Anti-Combat Drone). */
+  stun?: number;
+  /** @agent:hacking. Enemy hacking drone: seconds of flight left. Absent while no drone is flying (extras/spike.ts). */
+  hackFly?: number;
+  /** @agent:hacking. Enemy hacking drone: the full flight time rolled at launch, for flight progress in the fx. */
+  hackFlyTotal?: number;
+  /** @agent:hacking. Enemy hacking drone: latched onto the player hull on `target`. */
+  hackLatched?: boolean;
+  /** @agent:hacking. Player crew id an enemy Mind Control hack is holding this pulse. */
+  hackHeld?: string;
+};
+
+/**
+ * @agent:drones. One drone an enemy Drone Control has deployed (extras/swarm.ts).
+ * Drone Control, Overview: "Enemies can have up to 4 active drones".
+ */
+export type DroneUnit = {
+  /** Stable id. CombatFx keys the orbit and the shot muzzle on it. */
+  id: string;
+  /** Schematic id, the same strings as Kit.target ("striker", "ward", "beam2", "ionintruder", …). */
+  kind: string;
+  /** False once destroyed. `cool` then counts the redeploy delay. */
+  alive: boolean;
+  /** True while Drone Control bars cover it this tick. */
+  powered: boolean;
+  /** Shot, swipe, or pulse cadence, in seconds accumulated. */
+  aux: number;
+  /** Defense cooldown or target-acquire wait; for a dead drone, the redeploy delay. */
+  cool: number;
+  /** Seconds of stun left (Anti-Combat Drone, ion). */
+  stun?: number;
+  /** Seconds elapsed in the current ion stun. Absent when the stun is not from ion. */
+  ionT?: number;
+  /** Seconds left flying to the player hull (boarding drone, Ion Intruder). */
+  fly?: number;
+  /** Player room it is in (boarders), or the room the last swipe hit (beams, for the fx). */
+  room?: string;
+  /** Boarding drone / Ion Intruder health. */
+  hp?: number;
+  /** Ion Intruder pulse wait or overcharger layer wait, in seconds. */
+  left?: number;
+  /** Boarding drone progress toward the next broken system bar. */
+  fix?: number;
+  /** Seconds since the last shot or swipe, for the fx. */
+  fired?: number;
 };
 
 export type AugmentId =
@@ -194,6 +263,20 @@ export type AugmentId =
   | "bypass"
   | "vengeance";
 
+/** Crew Teleporter, "Enemy Crew Teleporter": one enemy hull's boarding bookkeeping (extras/sling.ts). */
+export type EnemyBoarding = {
+  /** Boardings sent this fight. */
+  sent: number;
+  /** Most boardings this hull may send: 2, or 3–4 for a Rebel Elite. */
+  limit: number;
+  /** Crew ids walking to, or standing on, the teleporter pads. */
+  party: string[];
+  /** Crew ids this teleporter sent aboard the player, and which it can recall. */
+  away: string[];
+  /** Station room each boarder left, so recalled crew walk back to it. */
+  home: Record<string, string>;
+};
+
 export type Ship = {
   name: string;
   hull: number;
@@ -222,6 +305,13 @@ export type Ship = {
    * 0 means the 5-point bubble is depleted until the next FTL jump.
    */
   zoltan?: number;
+  /**
+   * Drone Control, Shield Overcharger: "Overcharged shields are lost when making FTL jump."
+   * True only when this bubble was created while zoltan was absent.
+   * A bubble that was already present, including a depleted 0, is not marked.
+   * PARTIAL: points added onto an existing bubble are not subtracted. The page gives no ledger.
+   */
+  zoltanOver?: boolean;
   /** Enemy hulls: the wiki class this ship was rolled from (wiki/enemy-ships.ts). */
   classId?: string;
   /** Faction page the class comes from, and whether this is the pirate version. */
@@ -233,6 +323,8 @@ export type Ship = {
   unwired?: { id: string; level: number }[];
   /** Enemy hull has a Crew Teleporter, so it can board. */
   boards?: boolean;
+  /** Enemy Crew Teleporter plan for this fight (extras/sling.ts). Absent until the hull first acts on it. */
+  boarding?: EnemyBoarding;
 };
 
 export type BeaconKind =
@@ -338,7 +430,8 @@ export type Game = {
   mode: "crew" | "vent";
   event: GameEvent | null;
   stock: StockItem[] | null;
-  reward: { scrap: number; note: string } | null;
+  /** @agent:surrender. `res` lists non-scrap resources on the reward card (surrender cargo, stalemate fuel). */
+  reward: { scrap: number; note: string; res?: { fuel?: number; missiles?: number; parts?: number } } | null;
   pending: string | null;
   tutorial: boolean;
   hint: boolean;
@@ -360,6 +453,10 @@ export type Game = {
   enemyFlee: number;
   /** How the current enemy tries to jump away (wiki/escape.ts). Null outside a fight. */
   enemyEscape?: EscapePlan | null;
+  /** @agent:surrender. Surrender offer state for the current enemy (wiki/surrender.ts). */
+  enemySurrender?: SurrenderPlan | null;
+  /** @agent:surrender. Anti-stalemate clock: seconds below the hull threshold since the enemy last lost hull. */
+  stalemate?: { ship: string; hull: number; quiet: number } | null;
   /** Rebel Fleet: a fleeing scout or auto-ship got away, so the next fleet advance is doubled. */
   pursuitDouble?: boolean;
   picking: boolean;

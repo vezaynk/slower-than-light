@@ -7,8 +7,9 @@
  */
 import { useEffect, useRef } from "react";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
+import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
 import { useGame } from "@/game/store";
-import type { Shot } from "@/game/types";
+import type { DroneUnit, Shot } from "@/game/types";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
@@ -19,6 +20,17 @@ type Ring = { box: Box; life: number };
 
 /** Drones that fly at the enemy. The rest hold station around the player hull. */
 const OUTBOUND = new Set<DroneKey>(["striker", "striker2", "beam", "beam2", "fire", "board", "intruder", "personnel"]);
+
+/** Enemy schematic ids (Kit.target strings) to drone art keys. */
+const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
+  combat2: "striker2",
+  ionintruder: "intruder",
+  overcharger: "overcharge",
+};
+
+function enemyDroneKey(unit: DroneUnit): DroneKey | null {
+  return ENEMY_DRONE_KEY[unit.kind] ?? droneKeyOf(unit.kind);
+}
 
 function hash(id: string) {
   let h = 2166136261;
@@ -126,6 +138,69 @@ export function CombatFx() {
         }
       }
 
+      // Enemy drones: offensive ones orbit the player hull, defensive ones their own hull, boarders fly over
+      // and then sit in a player room, crew drones sit in an enemy room. Positions feed enemy drone shots below.
+      const enemyDroneAt = new Map<string, Pt>();
+      for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+        const spot = enemyDroneSpot(unit);
+        const ekey = enemyDroneKey(unit);
+        if (!spot || !ekey) continue;
+        const phase = hash(unit.id) * Math.PI * 2;
+        const t = live ? time : 0;
+        let p: Pt | null = null;
+        let size = 27;
+        if (spot.at === "player-orbit" || spot.at === "enemy-orbit") {
+          const around = hull(spot.at === "player-orbit" ? "player" : "enemy");
+          if (around) {
+            // Opposite spin to the player's own drone, so the two read apart.
+            const a = -t * (spot.at === "player-orbit" ? 0.8 : 0.55) + phase;
+            p = {
+              x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22),
+              y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 18),
+            };
+          }
+        } else if (spot.at === "flying") {
+          const a = hull("enemy");
+          const b = hull("player");
+          if (a && b) {
+            const k = Math.min(1, Math.max(0, spot.progress));
+            p = {
+              x: a.x + a.w / 2 + (b.x + b.w / 2 - (a.x + a.w / 2)) * k,
+              y: a.y + a.h / 2 + (b.y + b.h / 2 - (a.y + a.h / 2)) * k + Math.sin(k * Math.PI) * -30,
+            };
+          }
+        } else {
+          const r = room(spot.at === "player-room" ? "player" : "enemy", spot.room);
+          if (r) {
+            size = 21;
+            p = { x: r.x + r.w / 2 + Math.sin(t * 2 + phase) * 3, y: r.y + r.h / 2 };
+          }
+        }
+        if (!p) continue;
+        enemyDroneAt.set(unit.id, p);
+        const stunned = (unit.stun ?? 0) > 0;
+        ctx.globalAlpha = !unit.powered ? 0.4 : stunned ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
+        ctx.drawImage(droneSprite(ekey), Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+        ctx.globalAlpha = 1;
+        // Enemy drones carry a red tag pixel pair so they never read as yours.
+        ctx.fillStyle = "#ff5a4a";
+        ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - size / 2) - 4, 3, 2);
+        if (stunned) {
+          ctx.strokeStyle = "#b48cff";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(Math.round(p.x - size / 2) - 2, Math.round(p.y - size / 2) - 2, size + 4, size + 4);
+        }
+        // The fire drone's swipe makes no shot; draw it here for its first 0.4 s.
+        if (unit.kind === "fire" && unit.room && (unit.fired ?? 99) < 0.4) {
+          const r = room("player", unit.room);
+          if (r) {
+            ctx.strokeStyle = "#ff8a3a";
+            ctx.lineWidth = 3;
+            line(ctx, p, { x: r.x + r.w / 2, y: r.y + r.h / 2 });
+          }
+        }
+      }
+
       const muzzle = (shot: Shot): Pt | null => {
         if (shot.from === "env") {
           const target = hull("player");
@@ -143,6 +218,10 @@ export function CombatFx() {
           }
         } else if (side === "player") {
           const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
+          if (drone) return drone;
+        } else if (shot.label?.startsWith(DRONE_LABEL)) {
+          // Enemy drone shots leave from that drone.
+          const drone = enemyDroneAt.get(shot.label.slice(DRONE_LABEL.length));
           if (drone) return drone;
         }
         const own = hull(side);

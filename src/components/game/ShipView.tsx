@@ -110,6 +110,7 @@ export function ShipView({
           <div
             key={room.id}
             data-room={room.id}
+            data-hacked={room.hacked}
             className={
               "room" +
               (clip ? " is-cut" : "") +
@@ -119,7 +120,9 @@ export function ShipView({
               (room.o2 <= 10 ? " is-low" : "") +
               ((room.lock ?? 0) > 0 ? " is-lock" : "") +
               (hot ? " is-hot" : "") +
-              (targetable ? " is-aim" : "")
+              (targetable ? " is-aim" : "") +
+              // @agent:hacking. An enemy hacking drone on this room's system (extras/spike.ts, Room.hacked).
+              (room.hacked ? ` is-hacked is-hacked-${room.hacked}` : "")
             }
             style={{
               gridColumn: `${room.x + 1} / span ${room.w}`,
@@ -155,8 +158,11 @@ export function ShipView({
                     <button
                       key={c.id}
                       type="button"
-                      className={`token is-sprite${c.id === selectedId ? " is-selected" : ""}`}
-                      aria-label={c.name}
+                      className={`token is-sprite${c.id === selectedId ? " is-selected" : ""}${
+                        (c.leashed ?? 0) > 0 ? ` is-leashed leashed-by-${c.side === "player" ? "enemy" : "player"}` : ""
+                      }`}
+                      aria-label={(c.leashed ?? 0) > 0 ? `${c.name} (mind-controlled)` : c.name}
+                      title={(c.leashed ?? 0) > 0 ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
                       aria-pressed={c.id === selectedId}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -169,6 +175,11 @@ export function ShipView({
                 </div>
               ) : null}
             </div>
+            {room.hacked ? (
+              <div className="hack-mark" aria-label={room.hacked === "pulse" ? "Hacked: pulse" : "Hacking drone attached"}>
+                <i className="hack-drone" aria-hidden="true" />
+              </div>
+            ) : null}
             <DoorTicks room={room} marks={ship.doorMarks} doors={ship.doors} cells={cells} />
             {aims.some((a) => a.room === room.id) ? (
               <div className="aim-marks" aria-hidden="true">

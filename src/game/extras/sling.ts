@@ -1,7 +1,9 @@
-import type { Crew, Game, Kit } from "../types";
-import { log, rand, roomById, sparePower } from "../sim.ts";
+import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
+import { enemyEscapeView, kitBars, log, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
+import { heldByEnemy } from "./leash.ts";
+import { veilBlocks } from "./veil.ts";
 
 /** Crew Teleporter wiki, "System Upgrades": level 1 cost is 90. */
 const INSTALL_COST = 90;
@@ -175,7 +177,8 @@ export function recallSling(g: Game) {
     else if (kit.cool > 0) log(g, "Teleporter is still cooling.");
     return;
   }
-  const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+  // Mind Control: "A player cannot teleport own mind-controlled crew from the enemy ship".
+  const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0 && !heldByEnemy(c));
   if (away.length < 1) {
     log(g, "No one to pull back.");
     return;
@@ -215,30 +218,315 @@ export function onJumpSling(g: Game) {
   }
 }
 
+// ---------------------------------------------------------------------------------------------
+// Enemy Crew Teleporter. Crew Teleporter wiki, "Enemy Crew Teleporter" (the bullet list under that heading).
+// ---------------------------------------------------------------------------------------------
+
+/** The enemy teleporter room id (enemy-gen.ts names the room after its kit). */
+const PADS = "e-teleporter";
+
 /**
- * Enemy boarding (moved from sim.ts). Crew Teleporter, "Enemy Crew Teleporter".
- * Current behaviour, to be replaced by the teleporter work: once per fight, after g.boardTimer
- * (set in startCombat when the hull has a teleporter), up to two crew who are not piloting beam aboard.
+ * Crew Teleporter, "Enemy Crew Teleporter": "When their crew is low on health (below 25% HP)."
+ * Strictly below, as the page words it.
  */
-export function tickEnemyBoarding(g: Game, dt: number) {
-  if (g.boardTimer <= 0) return;
-  g.boardTimer -= dt;
-  if (g.boardTimer > 0) return;
-  g.boardTimer = 0;
-  // Zoltan Shield: the bubble prevents boarding. The event line about an initial boarding party is not this teleporter path.
-  if ((g.player.zoltan ?? 0) > 0) {
-    log(g, "The Zoltan Shield stops the boarders.");
+const RECALL_HP = 0.25;
+
+/**
+ * INFERRED: a crew member needs at least half health to join a boarding party. The page gives no
+ * send threshold; this keeps a crew member that was just pulled back at under 25% from being sent
+ * straight back before it heals.
+ */
+const SEND_HP = 0.5;
+
+/** Crew Teleporter, "Enemy Crew Teleporter": "...the remaining timer is less than 15 seconds." */
+const RECALL_ESCAPE_SECONDS = 15;
+
+/** Crew Teleporter, "Enemy Crew Teleporter": "...three or more completely broken systems." */
+const RECALL_BROKEN = 3;
+
+/** The enemy hull's working teleporter kit, or undefined when it has none (or no pad room). */
+function enemySling(g: Game): Kit | undefined {
+  const ship = g.enemy;
+  const kit = ship?.kits.sling;
+  if (!ship || !kit || kit.level <= 0 || !roomById(ship, PADS)) return undefined;
+  return kit;
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "The enemy ships will usually send their crew as boarders
+ * to the player ship, if the circumstances and the crew count allows, 2 times." ... "The Rebel Elite
+ * ships can send their boarders 3 or 4 times."
+ * INFERRED: 3 or 4 is an even roll per fight. The page does not weight them.
+ */
+function boardingLimit(g: Game, ship: Ship): number {
+  if (/^elite-/.test(ship.classId ?? "")) return rand(g) < 0.5 ? 3 : 4;
+  return 2;
+}
+
+function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
+  if (!ship.boarding) ship.boarding = { sent: 0, limit: boardingLimit(g, ship), party: [], away: [], home: {} };
+  return ship.boarding;
+}
+
+/** Room graph walk over interior doors, the same rule sim.ts uses for crew orders. */
+function route(ship: Ship, from: string, to: string): string[] | null {
+  if (from === to) return [];
+  const prev = new Map<string, string | null>([[from, null]]);
+  const q = [from];
+  while (q.length) {
+    const cur = q.shift()!;
+    for (const d of ship.doors) {
+      if (d.b === "void") continue;
+      const n = d.a === cur ? d.b : d.b === cur ? d.a : null;
+      if (!n || prev.has(n)) continue;
+      prev.set(n, cur);
+      if (n === to) {
+        const path: string[] = [];
+        let w: string | null = to;
+        while (w && w !== from) {
+          path.push(w);
+          w = prev.get(w) ?? null;
+        }
+        return path.reverse();
+      }
+      q.push(n);
+    }
+  }
+  return null;
+}
+
+/** Sets a walk with the regular crew movement in sim.ts (moveCrew steps along c.path). */
+function walkTo(ship: Ship, c: Crew, dest: string) {
+  if (c.room === dest) {
+    c.path = [];
+    c.move = 0;
     return;
   }
-  const party = g.crew
-    .filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room !== "e-pilot")
-    .slice(0, 2);
+  if (c.path.length && c.path[c.path.length - 1] === dest) return;
+  const path = route(ship, c.room, dest);
+  if (!path) return;
+  c.path = path;
+  c.move = 0;
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "When the enemy ship has three or more completely broken
+ * systems." INFERRED: completely broken means damage at or above the installed level. Systems and
+ * subsystem kits both count, since the page says "systems" and the teleporter itself is one.
+ */
+export function enemyBrokenSystems(ship: Ship): number {
+  let n = 0;
+  for (const sys of Object.values(ship.systems)) if (sys.level > 0 && sys.damage >= sys.level) n += 1;
+  for (const kit of Object.values(ship.kits)) if (kit && kit.level > 0 && (kit.damage ?? 0) >= kit.level) n += 1;
+  return n;
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "If the player has active Zoltan Shield (which prevents
+ * hostile teleportation), the enemy ship will not keep their crew standing on the teleporter pads."
+ * The Zoltan Shield Bypass augment is the player's, so it never helps the enemy here.
+ */
+function zoltanBlocks(g: Game): boolean {
+  return (g.player.zoltan ?? 0) > 0;
+}
+
+/**
+ * Crew Teleporter: "Cloaking prevents hostile crew from teleporting onto or from the opposing ship
+ * (e.g. ... enemy crew cannot teleport onto or from a cloaked player ship)."
+ */
+function playerCloaked(g: Game): boolean {
+  return veilBlocks(g, "enemy");
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "This cooldown takes between 20 and 10 seconds, depending on
+ * the system upgrade level." A use also needs the system working (at least one undamaged, powered bar).
+ */
+function ready(kit: Kit): boolean {
+  return kitBars(kit) > 0 && kit.cool <= 0;
+}
+
+/**
+ * Crew Teleporter, "Mind Control and Crew Teleporter": "the enemy cannot teleport their mind-controlled
+ * crew from the player's ship." INFERRED: a mind-controlled crew member on its own hull is not sent either.
+ */
+function leashed(c: Crew): boolean {
+  return (c.leashed ?? 0) > 0;
+}
+
+function aliveById(g: Game, id: string): Crew | undefined {
+  return g.crew.find((c) => c.id === id && c.hp > 0 && c.side === "enemy");
+}
+
+/**
+ * INFERRED: where a crew member walks after leaving the pads or being pulled back. A hurt one
+ * (under the send threshold) goes to the medbay if the hull has one; anyone else returns to the station
+ * they left. The page says the enemy pulls crew back "to heal" only in an editor comment.
+ */
+function goHome(ship: Ship, b: EnemyBoarding, c: Crew) {
+  const medbay = ship.systems.medbay?.level > 0 ? ship.rooms.find((r) => r.system === "medbay") : undefined;
+  const dest = c.hp < c.maxHp * SEND_HP && medbay ? medbay.id : (b.home[c.id] ?? c.room);
+  walkTo(ship, c, dest);
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "The enemy ship will recall its boarding party (or separate
+ * boarders, if they are not in the same room at the moment of recall) in several circumstances".
+ * - "When their crew is low on health (below 25% HP)." INFERRED: the hurt boarder is pulled with any
+ *   party member in its room, per "separate boarders, if they are not in the same room".
+ * - "When the enemy ship is running away and the remaining timer is less than 15 seconds." Everyone.
+ * - "When the enemy ship has three or more completely broken systems." Everyone.
+ * INFERRED: a recall is a teleporter use, so it needs working bars and no cooldown, and starts the
+ * cooldown. Basis, "Hacking pulse and Crew Teleporter": a forced recall puts "the system on cooldown if
+ * anyone was successfully recalled". Zoltan Shields and the player's cloak block it ("Zoltan Shields
+ * block teleportation"; cloaking blocks teleporting "onto or from a cloaked player ship").
+ * "(note that this does not apply ... to the boarders carried over from previous beacons)": only crew this
+ * teleporter sent this fight (b.away) are ever recalled.
+ */
+function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
+  if (!b.away.length) return;
+  const crew = b.away.map((id) => aliveById(g, id)).filter((c): c is Crew => !!c && !leashed(c));
+  if (!crew.length) return;
+  const escape = enemyEscapeView(g);
+  const fleeing = escape != null && escape.left < RECALL_ESCAPE_SECONDS;
+  const wrecked = enemyBrokenSystems(ship) >= RECALL_BROKEN;
+  let pull: Crew[];
+  if (fleeing || wrecked) pull = crew;
+  else {
+    const hurt = crew.filter((c) => c.hp < c.maxHp * RECALL_HP);
+    pull = crew.filter((c) => hurt.some((h) => h.room === c.room));
+  }
+  if (!pull.length) return;
+  if (!ready(kit) || zoltanBlocks(g) || playerCloaked(g)) return;
+  for (const c of pull) {
+    c.aboard = "enemy";
+    c.room = PADS;
+    c.path = [];
+    c.move = 0;
+    c.think = 0;
+    goHome(ship, b, c);
+  }
+  b.away = b.away.filter((id) => !pull.some((c) => c.id === id));
+  kit.cool = cooldown(kit.level);
+  log(g, pull.length > 1 ? "They pull their boarders back." : "They pull a boarder back.");
+}
+
+/** True while a recall circumstance holds for the whole party, so no new party is sent into it (INFERRED). */
+function recallWeather(g: Game, ship: Ship): boolean {
+  const escape = enemyEscapeView(g);
+  return (escape != null && escape.left < RECALL_ESCAPE_SECONDS) || enemyBrokenSystems(ship) >= RECALL_BROKEN;
+}
+
+/**
+ * INFERRED party size: up to 2 (the pads, "Ships can have only 2-tile Teleporter rooms"), keeping 1 crew
+ * home when the hull has 3 or fewer aboard and 2 when it has 4 or more. The pilot always stays.
+ * Basis: the Flagship "will send all its crew except for 1 or 2 crewmembers" (same section); the
+ * regular "if ... the crew count allows" gives no number.
+ * INFERRED: one party at a time. A new one forms only after the last is recalled or dead.
+ * INFERRED: healthiest first, at least half health.
+ */
+function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
+  if (b.sent >= b.limit || b.away.length > 0 || b.party.length > 0) return;
+  const home = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c));
+  const keep = home.length >= 4 ? 2 : 1;
+  const size = Math.min(2, home.length - keep);
+  if (size <= 0) return;
+  const pilot = ship.rooms.find((r) => r.system === "pilot")?.id ?? "e-pilot";
+  const picks = home
+    .filter((c) => c.room !== pilot && c.hp >= c.maxHp * SEND_HP)
+    .sort((a, z) => z.hp / z.maxHp - a.hp / a.maxHp)
+    .slice(0, size);
+  if (!picks.length) return;
+  for (const c of picks) {
+    // A crew member still walking back from an earlier trip keeps that station as home.
+    b.home[c.id] = c.path.length ? c.path[c.path.length - 1] : c.room;
+    walkTo(ship, c, PADS);
+  }
+  b.party = picks.map((c) => c.id);
+}
+
+/**
+ * Crew Teleporter, "Enemy Crew Teleporter": "Unlike the player, the enemy waits till their crew is
+ * standing on the teleporter pads and only then sends them to the player ship."
+ * INVENTED: the party lands together in one random player room (the page does not say where).
+ */
+function sendParty(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
+  const party = b.party.map((id) => aliveById(g, id)).filter((c): c is Crew => !!c);
   if (!party.length) return;
+  // Everyone keeps walking until they stand on the pads.
+  for (const c of party) if (c.room !== PADS && c.path.length === 0) walkTo(ship, c, PADS);
+  if (!party.every((c) => c.room === PADS && c.path.length === 0)) return;
+  if (!ready(kit)) return;
+  const landing = g.player.rooms[Math.floor(rand(g) * g.player.rooms.length)]?.id;
+  if (!landing) return;
   for (const c of party) {
     c.aboard = "player";
-    c.room = g.player.rooms[Math.floor(rand(g) * g.player.rooms.length)]?.id ?? c.room;
+    c.room = landing;
     c.path = [];
+    c.move = 0;
+    // sim.ts wanderBoarders takes over once this runs out.
     c.think = 2;
   }
+  b.away.push(...party.map((c) => c.id));
+  b.party = [];
+  b.sent += 1;
+  kit.cool = cooldown(kit.level);
   log(g, "Boarders on the hull.");
+}
+
+/**
+ * Enemy boarding, called from sim.ts boarders(). Crew Teleporter, "Enemy Crew Teleporter".
+ * INFERRED: nothing starts until g.boardTimer (9 s, set in startCombat for a hull with a teleporter) runs out;
+ * then the party walks to the pads. The page gives no opening delay.
+ * The enemy's teleporter cooldown is counted down here (tickSling counts only the player's).
+ */
+export function tickEnemyBoarding(g: Game, dt: number) {
+  const ship = g.enemy;
+  const kit = enemySling(g);
+  if (!ship || !kit) {
+    if (g.boardTimer > 0) g.boardTimer = Math.max(0, g.boardTimer - dt);
+    return;
+  }
+  if (kit.cool > 0) kit.cool = Math.max(0, kit.cool - dt);
+  if (g.boardTimer > 0) {
+    g.boardTimer = Math.max(0, g.boardTimer - dt);
+    if (g.boardTimer > 0) return;
+  }
+  const b = boardingPlan(g, ship);
+  b.away = b.away.filter((id) => {
+    const c = aliveById(g, id);
+    return !!c && c.aboard === "player";
+  });
+  // A party member that died, was mind-controlled, or fell under the recall line leaves the party.
+  b.party = b.party.filter((id) => {
+    const c = aliveById(g, id);
+    if (!c || c.aboard !== "enemy") return false;
+    if (leashed(c) || c.hp < c.maxHp * RECALL_HP) {
+      goHome(ship, b, c);
+      return false;
+    }
+    return true;
+  });
+
+  recallBoarders(g, ship, kit, b);
+
+  // Crew Teleporter, "Enemy Crew Teleporter": "...the enemy ship will not keep their crew standing on the
+  // teleporter pads. But as soon the Zoltan Shield is down and the circumstances allow, the enemy ship will
+  // order its crew to board the player ship."
+  if (zoltanBlocks(g)) {
+    if (b.party.length) {
+      for (const id of b.party) {
+        const c = aliveById(g, id);
+        if (c) goHome(ship, b, c);
+      }
+      b.party = [];
+      log(g, "The Zoltan Shield stops the boarders.");
+    }
+    return;
+  }
+  if (recallWeather(g, ship)) return;
+  formParty(g, ship, b);
+  // INFERRED: a player cloak holds the party on the pads (the page names no step-off for cloaking).
+  if (playerCloaked(g)) return;
+  sendParty(g, ship, kit, b);
 }

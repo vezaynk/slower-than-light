@@ -5,7 +5,7 @@
  * "Speed: 5" is movement, not a cooldown, and the caller does not move the drone.
  * SwarmKind is not extended. Neither schematic is stocked.
  * Shield Overcharger + prints "Sells for: 30 (cannot be bought or found)."
- * Game has no schematic sell quote, so that 30 is not offered.
+ * A fitted copy quotes that 30. The schematic is not stocked.
  */
 
 export const OVERCHARGER = {
@@ -18,6 +18,6 @@ export const OVERCHARGER = {
 export const OVERCHARGER_PLUS = {
   // "Power requirement: 2 power". "This modified schematic requires 1 less power."
   power: 2,
-  // "Sells for: 30 (cannot be bought or found)." Not a store row and not a sell quote.
+  // "Sells for: 30 (cannot be bought or found)." Not a store row. A fitted drone quotes it.
   sell: 30,
 } as const;

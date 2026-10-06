@@ -6,7 +6,7 @@ import { HULLS } from "../hulls.ts";
 import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS } from "./cited-overcharger.ts";
-import { CITED_DRONES, citedSellQuote, citedStock } from "./cited-stores.ts";
+import { CITED_DRONES, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
 
 const src = readFileSync(new URL("./cited-overcharger.ts", import.meta.url), "utf8");
 
@@ -313,6 +313,40 @@ describe("Shield Overcharger +", () => {
     const quotes = citedSellQuote(createGame(22));
     assert.equal(
       quotes.some((quote) => /overcharger/i.test(quote.name)),
+      false,
+    );
+    const fitted = createGame(23);
+    fitted.scrap = 0;
+    fitted.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "overchargerplus",
+      on: true,
+      aux: 0,
+    };
+    const plus = citedSellQuote(fitted).find((quote) => quote.ref === "overchargerplus");
+    assert.ok(plus);
+    assert.equal(plus.id, "d:overchargerplus");
+    assert.equal(plus.kind, "drone");
+    assert.equal(plus.scrap, 30);
+    assert.equal(citedSell(fitted, plus.id), true);
+    assert.equal(fitted.scrap, 30);
+    assert.equal(fitted.player.kits.swarm?.target, null);
+    fitted.player.kits.swarm = {
+      id: "swarm",
+      level: 3,
+      power: 3,
+      left: 0,
+      cool: 0,
+      target: "overcharger",
+      on: true,
+      aux: 0,
+    };
+    assert.equal(
+      citedSellQuote(fitted).some((quote) => quote.ref === "overcharger" || quote.ref === "overchargerplus"),
       false,
     );
 

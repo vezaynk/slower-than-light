@@ -3,6 +3,7 @@ import { KIN, type KinId } from "../extras/kin.ts";
 import { WEAPONS } from "../content.ts";
 import type { AugmentId, Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
+import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
@@ -115,7 +116,7 @@ const AUGMENT_SELL_NAME: Partial<Record<AugmentId, string>> = {
 
 export type SellQuote = {
   id: string;
-  kind: "weapon" | "augment";
+  kind: "weapon" | "augment" | "drone";
   ref: string;
   name: string;
   scrap: number;
@@ -341,7 +342,9 @@ function augmentSell(id: AugmentId): number | null {
  * Scrap: half-price, rounded down against the player.
  * A printed "Sells for" or "Sell price" replaces that half.
  * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold. Drone Control is not sold.
- * Drone schematics are not quoted: Game has no schematic list.
+ * Drone schematics are not quoted, except a fitted Shield Overcharger +.
+ * Drone Control, "Shield Overcharger +": "Sells for: 30 (cannot be bought or found)."
+ * The regular Shield Overcharger has a purchase price and no printed sell line used here.
  */
 export function citedSellQuote(g: Game): SellQuote[] {
   const quotes: SellQuote[] = [];
@@ -368,13 +371,36 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   });
+  const over = g.player.kits.swarm;
+  // A fitted Shield Overcharger + only. Identified by the drone id, not by the scrap amount.
+  if (over?.target === "overchargerplus") {
+    quotes.push({
+      id: "d:overchargerplus",
+      kind: "drone",
+      ref: "overchargerplus",
+      name: "Shield Overcharger +",
+      scrap: OVERCHARGER_PLUS.sell,
+    });
+  }
   return quotes;
 }
 
-/** Add the quoted scrap. Remove that one weapon or augment. Do not subtract scrap. */
+/** Add the quoted scrap. Remove that one weapon, augment, or fitted Shield Overcharger +. Do not subtract scrap. */
 export function citedSell(g: Game, id: string): boolean {
   const quote = citedSellQuote(g).find((row) => row.id === id);
   if (!quote) return false;
+  if (quote.kind === "drone") {
+    const kit = g.player.kits.swarm;
+    if (!kit || kit.target !== quote.ref) return false;
+    kit.target = null;
+    kit.on = false;
+    kit.left = 0;
+    kit.aux = 0;
+    delete kit.hp;
+    g.scrap += quote.scrap;
+    g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    return true;
+  }
   if (quote.kind === "weapon") {
     const uid = id.slice(2);
     const index = g.player.weapons.findIndex((weapon) => weapon.uid === uid);

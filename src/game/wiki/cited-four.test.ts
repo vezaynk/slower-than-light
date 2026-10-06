@@ -268,7 +268,7 @@ describe("Drone Reactor Booster", () => {
     assert.equal(boosted.kit.room, "p-shields");
   });
 
-  it("does not speed any other drone and still applies no repair rate", () => {
+  it("does not speed any other drone, and does not speed the repair itself", () => {
     const others: SwarmKind[] = ["ward", "ward2", "wardcut", "striker", "beam", "board", "hull"];
     for (const kind of others) {
       const g = createGame(15);
@@ -308,10 +308,16 @@ describe("Drone Reactor Booster", () => {
       aux: 0,
     };
     startCombat(g, "scout");
-    g.player.systems.weapons.damage = 2;
+    const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.weapons.fix = 0;
     assert.equal(deploy(g, "patch"), true);
-    tickSwarm(g, 30);
-    assert.equal(g.player.systems.weapons.damage, 2);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 6.25);
+    assert.equal(g.player.systems.weapons.damage, 0);
     assert.equal(g.player.hull, g.player.hullMax);
   });
 });

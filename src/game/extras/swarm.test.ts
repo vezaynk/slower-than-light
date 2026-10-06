@@ -299,14 +299,18 @@ describe("swarm", () => {
     );
   });
 
-  it("patch deploys and does not invent a repair rate", () => {
+  it("patch repairs one bar in 6.25s, an Engi's pace, even with no oxygen", () => {
     const g = createGame(16);
     place(g, 1);
     startCombat(g, "scout");
     assert.ok(g.enemy);
     assert.equal(DRONE_POWER.patch, 1);
-    g.player.systems.weapons.damage = 2;
+    const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.weapons.fix = 0;
     g.enemy.systems.weapons.damage = 1;
+    weapons.o2 = 0;
+    const power = g.player.systems.weapons.power;
     const playerHull = g.player.hull;
     assert.equal(deploy(g, "patch"), true);
     assert.equal(g.player.parts, 1);
@@ -314,11 +318,21 @@ describe("swarm", () => {
     assert.ok(kit);
     assert.equal(kit.on, true);
     assert.equal(kit.target, "patch");
-    tickSwarm(g, 30);
-    assert.equal(g.player.systems.weapons.damage, 2);
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 6.24);
+    assert.equal(g.player.systems.weapons.damage, 1);
+    tickSwarm(g, 0.01);
+    assert.equal(g.player.systems.weapons.damage, 0);
+    assert.equal(g.player.systems.weapons.fix, 0);
+    assert.equal(g.player.systems.weapons.power, power);
     assert.equal(g.enemy.systems.weapons.damage, 1);
     assert.equal(g.player.hull, playerHull);
     assert.equal(g.enemy.hull, g.enemy.hullMax);
+
+    weapons.fire = 1;
+    tickSwarm(g, 1);
+    assert.ok(Math.abs(weapons.fire - (1 - 0.096 * 2)) < 1e-9, String(weapons.fire));
   });
 
   it("hull deploys and does not invent a hull-per-second", () => {

@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, isMain, kitBars, log, rand, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { applyIon, FIRE_FIGHT_SHARE, isMain, kitBars, log, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -507,7 +507,48 @@ function route(ship: Ship, from: string, to: string): string[] | null {
 
 function needsRepair(ship: Ship, room: Room): boolean {
   if (room.fire > 0 || room.breach > 0) return true;
-  return !!room.system && ship.systems[room.system].damage > 0;
+  if (room.system && ship.systems[room.system].damage > 0) return true;
+  return !!room.kit && (ship.kits[room.kit]?.damage ?? 0) > 0;
+}
+
+/**
+ * Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires,
+ * at the same speed as an Engi". Engi repair is ×2, so one bar or breach takes REPAIR_SECONDS / 2.
+ * Skills: racial repair also scales fire-fighting, so the fire share uses that same ×2.
+ * Fire, then a breach, then a system or kit. The printed priority list beyond that is not applied.
+ * INFERRED: the drone is not crew, so low oxygen does not stop it.
+ * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
+ */
+function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {
+  const pace = kinOf("shell").repair;
+  if (room.fire > 0) {
+    room.fire = Math.max(0, room.fire - FIRE_FIGHT_SHARE * pace * dt);
+    return;
+  }
+  if (room.breach > 0) {
+    room.breachFix += pace * dt;
+    if (room.breachFix >= REPAIR_SECONDS) {
+      room.breach = Math.max(0, room.breach - 1);
+      room.breachFix = 0;
+    }
+    return;
+  }
+  if (room.system && ship.systems[room.system].damage > 0) {
+    const sys = ship.systems[room.system];
+    sys.fix += pace * dt;
+    if (sys.fix >= REPAIR_SECONDS) {
+      sys.damage = Math.max(0, sys.damage - 1);
+      sys.fix = 0;
+    }
+    return;
+  }
+  const kit = room.kit ? ship.kits[room.kit] : undefined;
+  if (!kit || (kit.damage ?? 0) <= 0) return;
+  kit.fix = (kit.fix ?? 0) + pace * dt;
+  if (kit.fix < REPAIR_SECONDS) return;
+  kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
+  kit.fix = 0;
+  if (repowerKits) kit.power = kit.level - (kit.damage ?? 0);
 }
 
 /** Nearest room with a fire, a breach, or system damage. The drone stays put when it is already there. */
@@ -550,8 +591,14 @@ function tickCrewDrone(g: Game, kit: Kit, dt: number) {
 }
 
 function tickPatch(g: Game, kit: Kit, dt: number) {
-  // Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires, at the same speed as an Engi".
-  // The page gave no seconds, so this tick applies no repair rate.
+  const ship = g.player;
+  const here = kit.room ? ship.rooms.find((room) => room.id === kit.room) : undefined;
+  // Stay and work when this room needs it. The walk still picks the nearest other room, not the printed priority list.
+  if (here && needsRepair(ship, here)) {
+    kit.path = [];
+    engiRepair(ship, here, dt, false);
+    return;
+  }
   tickCrewDrone(g, kit, dt);
 }
 
@@ -897,9 +944,6 @@ const FIRE_DRONE_FIRE = 90 / 100;
  * Anti-Ship Fire Drone: "Does 1 damage to a Zoltan Shield, just like the Anti-Ship Beam Drone I".
  */
 const SWIPE_ZOLTAN: Record<string, number> = { beam: 1, beam2: 2, fire: 1 };
-
-/** Fires extinguished per second by one crew member, sim.ts life() (INFERRED there). Used for the System Repair Drone. */
-const EXTINGUISH = 0.45;
 
 /** Shot label prefix for a shot fired by an enemy drone. CombatFx reads the drone id after the colon. */
 export const DRONE_LABEL = "drone:";
@@ -1410,53 +1454,19 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
 }
 
 /**
- * System Repair Drone aboard the enemy: "Repairs systems and breaches, and puts out fires, at the same speed as an
- * Engi". Uses the sim.ts repair counters (6 crew-seconds a bar, 8 a breach) at the Engi repair multiplier.
- * INFERRED: it goes straight to the first room needing work (fire, then breach, then system or subsystem). The
- * wiki's priority list and walking are not modelled.
+ * System Repair Drone aboard the enemy: same Engi pace as the player's drone.
+ * INFERRED: it goes straight to the first room needing work. The wiki's priority list and walking are not modelled.
  */
-function tickEnemyPatch(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
-  const engi = kinOf("shell").repair;
-  const work = (room: Room) =>
-    room.fire > 0 ||
-    room.breach > 0 ||
-    (!!room.system && enemy.systems[room.system].damage > 0) ||
-    (!!room.kit && (enemy.kits[room.kit]?.damage ?? 0) > 0);
+function tickEnemyPatch(_g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
   const here = enemy.rooms.find((room) => room.id === unit.room);
-  const room = here && work(here) ? here : enemy.rooms.find(work);
+  const room = here && needsRepair(enemy, here) ? here : enemy.rooms.find((item) => needsRepair(enemy, item));
   if (!room) {
     unit.room = undefined;
     return;
   }
   unit.room = room.id;
   unit.fired = 0;
-  if (room.fire > 0) {
-    room.fire = Math.max(0, room.fire - EXTINGUISH * dt);
-    return;
-  }
-  if (room.breach > 0) {
-    room.breachFix += engi * dt;
-    return;
-  }
-  if (room.system && enemy.systems[room.system].damage > 0) {
-    const sys = enemy.systems[room.system];
-    sys.fix += engi * dt;
-    if (sys.fix >= 6) {
-      sys.damage = Math.max(0, sys.damage - 1);
-      sys.fix = 0;
-    }
-    return;
-  }
-  const kit = room.kit ? enemy.kits[room.kit] : undefined;
-  if (kit && (kit.damage ?? 0) > 0) {
-    kit.fix = (kit.fix ?? 0) + engi * dt;
-    if (kit.fix >= 6) {
-      kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
-      kit.fix = 0;
-      // Same as sim.ts crew repair: an enemy re-powers each bar it fixes.
-      kit.power = kit.level - kit.damage;
-    }
-  }
+  engiRepair(enemy, room, dt, true);
 }
 
 /**

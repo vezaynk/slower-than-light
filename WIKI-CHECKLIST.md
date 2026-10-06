@@ -81,7 +81,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Abandoned Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Abandoned Space Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Abandoned space station — not-a-surface — same title as "Abandoned Space Station" with different capitalization
-- [ ] Abandoned station — partial — filler-events.ts draws low scrap, a Pirate fight with 2 boarders, scrap-the-machinery, or an empty shell. Not drawn: 2–4 boarders with no ship, and the Clone Bay blue option.
+- [ ] Abandoned station — partial — Both the quest card and filler-events.ts draw low scrap, a Pirate fight with 2 boarders, 2–4 boarders and a planet battery with no ship, scrap-the-machinery, or an empty shell. Killing those boarders pays no scrap and is not a ship kill. The Clone Bay DNA option is on the quest card only.
 - [ ] Achievement — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Achievements — partial — 51 rows in achievements.ts. achievement-track.ts tracks 12: just-getting-started, federation-base-in-range, federation-victory-easy, federation-victory-normal, your-own-fleet, the-united-federation, full-arsenal, artillery-mastery, ancestry, givin-her-all-shes-got-captain, manpower, scrap-hoarder. Hard wins are stored on the unlock save and are not a rule. The other 39 store no counter. Hangar START follows unlocks.ts.
 - [ ] Adv. FTL Navigation — partial — Purchase price 50. With it fitted, a jump can target any beacon already visited, including one the Rebel Fleet overtook. The jump still spends one fuel. The page redirects to Augmentations.
@@ -89,7 +89,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Advanced FTL Navigation — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Advanced Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Ancestry — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Ancient Device — partial — Same card as dest "Ancient device" (quests-a-pages.ts). Scrap rolls high scrap or a Rock fight. Reactivate needs a Crystal and places a marker on this map. The jump to the Hidden Crystal Worlds is not a sector change.
+- [ ] Ancient Device — partial — Same card as dest "Ancient device" (quests-a-pages.ts). Scrap rolls high scrap or a Rock fight. Reactivate needs a Crystal. It grants 1 fuel and spends that fuel jumping to the Hidden Crystal Worlds at the same sector number, then places the crystal-unlock marker on that map. The exit does not open the chart: it picks a random later sector, or The Last Stand when the number is already 7. Stores there are not limited to crystal weapons. Ruwen marking the entry beacon, and the restart drop into a Civilian sector, are not simulated.
 - [ ] Ancient device — not-a-surface — same title as "Ancient Device" with different capitalization
 - [ ] Anti-Bio Beam — partial — Beam (Weapons) row id antibio is in WEAPONS and fitted on Slug A. Crew damage is 60 per room, not scaled by system damage. Pierce stays a gap. Breach Bomb I is mounted beside it and waits for a free weapon bar.
 - [ ] Anti-Ship Battery Firing on Lanius Ships — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
@@ -153,7 +153,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Battle Royale — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Battlefield wreckage — partial — filler-events.ts rolls little remains (weight 4), a Slug ship that leaves, medium salvage, or a Mantis, Rebel, or Zoltan fight. This audit did not re-open the article.
 - [ ] Beacon — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Beacons — partial — mixBeacons scales the Sectors "Beacons:" min–max lines onto the 10–15 free middle beacons (INFERRED largest remainder). Named specials and the three Last Stand repair stations keep exact counts. The map is still not 19–24 beacons. Taking the supplies grants 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts, once. A marker that would land in sector 8 is cancelled, and a nebula beacon cannot hold one.
+- [ ] Beacons — partial — The map is a 6×4 grid of 19–24 beacons. mixBeacons scales the Sectors "Beacons:" min–max lines onto the free beacons (INFERRED largest remainder). Named specials and the three Last Stand repair stations keep exact counts. Beacons left after the list take the neutral fallback. Taking the supplies grants 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts, once. A marker that would land in sector 8 is cancelled, and a nebula beacon cannot hold one.
 - [ ] Beam (Weapon) — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Beam (Weapons) — partial — Pike is id shear. Halberd, Glaive, Mini, and Anti-Bio are in WEAPONS. Crew HP is the printed per-room figure (15, 30, 45, or 60) and is not multiplied by tiles. Boss Beam is a WeaponDef. Power 3 is the inferred artillery maximum, not a printed power line. Charge times are 32.5/26/19.5, outside the Weapons pool. Length, pierce, and chain stay gaps. Fire Beam has no crew figure.
 - [ ] Bird of Prey — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
@@ -212,7 +212,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Civilized trader — not-a-surface — same title as "Civilized Trader" with different capitalization
 - [ ] Clash of the Titans — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Cloaking — partial — veil.ts on either hull, including Flagship stage 1 at level 2. Power-bar count INFERRED.
-- [ ] Clone Bay — partial — cradle.ts on either hull. Revive HP and power bar INFERRED. The Abandoned station Clone Bay blue option is not wired.
+- [ ] Clone Bay — partial — cradle.ts on either hull. Revive HP and power bar INFERRED. The Abandoned station quest card offers the DNA search when a Clone Bay is fitted. The calm result is weight 2 and the crazed boarder is weight 1. The filler copy of that station has no DNA option.
 - [ ] Clonebay — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Closed Mining Fields — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Closed mining fields — not-a-surface — same title as "Closed Mining Fields" with different capitalization
@@ -225,7 +225,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Crew member — not-a-surface — same title as "Crew Member" with different capitalization
 - [ ] Crew members — not-a-surface — same title as "Crew Members" with different capitalization
 - [ ] Crew races — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Crew skills — partial — XP thresholds in content.ts marked INFERRED, not re-checked.
+- [ ] Crew skills — partial — Combat skill multiplies the attacker's hand-to-hand damage by 1, 1.1, or 1.2 and does not scale sabotage. Piloting, engines evasion, engines FTL, weapons charge, and shields recharge use the printed tables. A non-flagship automated ship keeps the level-0 manning bonus; ion does not remove it, and system damage does. Flagship artillery stays on the printed charge table unless a gunner is there. XP thresholds in content.ts stay INFERRED.
 - [ ] Crewmembers — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed Pirate — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed pirate — not-a-surface — same title as "Crushed Pirate" with different capitalization
@@ -304,7 +304,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Dense Asteroid Field Distress Call — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Dense asteroid field distress — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Dense asteroid field distress call — not-a-surface — same title as "Dense Asteroid Field Distress Call" with different capitalization
-- [ ] Destroyed Cargo Ship — partial — Same card as dest "Destroyed cargo ship" (cited-events-surrender.ts). Bring aboard rolls medium supplies, low scrap, or a Pirate fight with boarders. Not drawn: 2–4 boarders with no ship.
+- [ ] Destroyed Cargo Ship — partial — Same card as dest "Destroyed cargo ship" (cited-events-surrender.ts). Bring aboard rolls medium supplies, low scrap, 2–4 boarders with no ship, or a Pirate fight with boarders. Killing the shipless boarders pays no scrap and is not a ship kill.
 - [ ] Destroyed cargo ship — not-a-surface — same title as "Destroyed Cargo Ship" with different capitalization
 - [ ] Diplomatic Immunity — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Disabled Rock Transport — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
@@ -466,7 +466,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Fire on Small Research Station — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Fire on research station — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Fire on small research station — not-a-surface — same title as "Fire on Small Research Station" with different capitalization
-- [ ] Fires — partial — A fire burns 0.96% oxygen per second and dies below 10% oxygen. Fire-fighting is the crew-races share: 0.096 of a fire per second for an untrained Human, times repair skill ×1 / ×1.1 / ×1.2, times Rock 1.67 or Crystal 0.83. Fire Suppression stays 2 per second and is not scaled. The 2.128 crew-damage cite is not this path. A fire started on the map does not spread until a fight.
+- [ ] Fires — partial — A fire burns 0.96% oxygen per second and dies below 10% oxygen. Fire-fighting is the crew-races share: 0.096 of a fire per second for an untrained Human, times repair skill ×1 / ×1.1 / ×1.2, times Rock 1.67 or Crystal 0.83. Fire Suppression stays 2 per second and is not scaled. The 2.128 crew-damage cite is not this path. The same oxygen loss, extinguish, crew damage, and 7-second spread run on the map. Repair, venting, oxygen refill, and system sabotage stay on the combat tick.
 - [ ] Fires and venting — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Flagship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Flak (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -678,7 +678,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Main Page — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Malfunction Defense System — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Malfunction defense system — not-a-surface — same title as "Malfunction Defense System" with different capitalization
-- [ ] Malfunctioning defense system — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Malfunctioning defense system — missing — The page is a branch with no odds, not the events-2 extract of 5 hull. Simply fire is either 5 hull plus one system and one breach, or low scrap with resources. Ion, Cloaking, and an Engi crew are blue options. Leave them alone does nothing. Not wired.
 - [ ] Man of War — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Manpower — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis — partial — src/game/extras/kin.ts — the comparison-table row is read by movement, repair, and combat. The ship is The Mantis Cruiser, not this page.
@@ -751,7 +751,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Medbay — partial — system exists. Upgrade row is a single price.
 - [ ] Mercenary — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mercenary work — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Merchant's Request — partial — Same card as dest "Merchant's request" (cited-events-quests-b.ts). Yes opens a delivery or an investigation in quests-b.ts. At the research station, "3–4 human boarders" with no ship are not drawn.
+- [ ] Merchant's Request — partial — Same card as dest "Merchant's request" (cited-events-quests-b.ts). Yes opens a delivery or an investigation in quests-b.ts. At the research station, brace, drag, and medbay level 2 each fight 3–4 human boarders with no ship. Drag can turn one crewmember. Beam turns one crewmember and does not board if that fails.
 - [ ] Merchant's request — not-a-surface — same title as "Merchant's Request" with different capitalization
 - [ ] Merchant Fuel Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Merchant Ship Docked with Lanius Transport — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -783,7 +783,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Nebula seen ships exchange fire — not-a-surface — same title as "Nebula Seen Ships Exchange Fire" with different capitalization
 - [ ] Nebula store — not-a-surface — same title as "Nebula Store" with different capitalization
 - [ ] Nebula trader — not-a-surface — same title as "Nebula Trader" with different capitalization
-- [ ] Nebula wreckage — partial — quests-b.ts. A Slug scan and the investigate roll (nothing weight 3, 5 hull plus a fire, or a survivor) run. A saved survivor's race is INFERRED. A fire outside combat does not spread until a fight.
+- [ ] Nebula wreckage — partial — quests-b.ts. A Slug scan and the investigate roll (nothing weight 3, 5 hull plus a fire, or a survivor) run. A saved survivor's race is INFERRED. A fire started there spreads on the map under the same 7-second rule.
 - [ ] Nisos — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] No Escape — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] No fuel: Auto-ship fight — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
@@ -1050,7 +1050,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Refugee (Zoltan) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee Ship Trading for Scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee Ship with Communications Down — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Refugee comms down — partial — filler-events.ts rolls a lost crewmember, a gained crewmember, 2–4 missiles plus medium scrap, or nothing. Not drawn: 2–4 human boarders with no ship.
+- [ ] Refugee comms down — partial — filler-events.ts rolls a lost crewmember, a gained crewmember, 2–4 missiles plus medium scrap, nothing, or 2–4 human boarders with no ship. Killing those boarders pays no scrap and is not a ship kill.
 - [ ] Refugee distress — partial — filler-events.ts hail uses the same five results as Refugee: a shown trade, a Pirate ambush, a Zoltan fight, a pirate bait fight, or a Slug fight.
 - [ ] Refugee distress (Pirate) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee distress (Slug) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
@@ -1135,7 +1135,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Scrap Hoarder — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Scrap Recovery Arm — partial — src/game/extras/augments.ts — Misc. Augmentations: +10% is applied to the wallet and kept out of Score s. Rounded down.
 - [ ] Sector — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Sectors — partial — SECTOR_TYPES is in sectors.ts. SECTOR_NAMES in content.ts stay INVENTED. mixBeacons scales each type's "Beacons:" list onto the 10–15 free middles. The map is still not 19–24 beacons. Entering The Last Stand still grants 10 hull and 10 fuel. Three repair stations then pay 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. Color chances are not what the map generates.
+- [ ] Sectors — partial — SECTOR_TYPES is in sectors.ts. SECTOR_NAMES in content.ts stay INVENTED. Each sector is a 6×4 grid of 19–24 beacons, and mixBeacons scales each type's "Beacons:" list onto the free beacons. Beacons left after the list take the neutral fallback. Entering The Last Stand still grants 10 hull and 10 fuel. Three repair stations then pay 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. Color chances are not what the map generates.
 - [ ] Sell drone parts for scrap — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Sell fuel for drone parts — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Sell missiles for scrap — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.

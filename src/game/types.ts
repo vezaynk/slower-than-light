@@ -28,6 +28,13 @@ export type SystemState = {
   /** Seconds left on each ion point. One point locks one bar for 5s. */
   ion: number[];
   fix: number;
+  /**
+   * Reactor bars a standing Zoltan presence has already replaced.
+   * Shields peel pairs and do not put them back. Engines, the medbay, and oxygen
+   * replace a full system and do not put them back. Weapons put them back from spare
+   * when the Zoltans leave a system that is no longer full.
+   */
+  zoltanHeld?: number;
 };
 
 export type Room = {
@@ -244,6 +251,11 @@ export type Kit = {
    * A new arrival replaces one locked reactor bar. Absent means this cooldown has not been seen yet.
    */
   swap?: string[];
+  /**
+   * Reactor bars Zoltans have displaced in Drone Control while the system is full.
+   * Same stamp as SystemState.zoltanHeld. Leaving restores them from spare.
+   */
+  zoltanHeld?: number;
   /**
    * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
    * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.

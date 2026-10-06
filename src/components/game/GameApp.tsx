@@ -758,6 +758,25 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           );
         })}
       </div>
+      {playerSensorLevel(game) >= 3 ? (
+        <div className="foe-charges" aria-label="Enemy weapon charge">
+          {enemy.weapons.map((w) => {
+            const name = WEAPONS[w.defId]?.name ?? w.defId;
+            const pips = 7;
+            const filled = Math.round(Math.max(0, Math.min(1, w.charge)) * pips);
+            return (
+              <div key={w.uid} className="foe-charge">
+                <span className="foe-charge-name">{name}</span>
+                <span className="charge-pips" aria-hidden="true">
+                  {Array.from({ length: pips }, (_, i) => (
+                    <i key={i} className={i < filled ? "on" : ""} />
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
     </aside>
   );
 }

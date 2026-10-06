@@ -1211,6 +1211,33 @@ button:disabled {
   font-weight: 400;
 }
 
+.foe-charges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px 10px;
+}
+
+.foe-charge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 108px;
+}
+
+.foe-charge-name {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dock {
   grid-area: dock;
   display: grid;

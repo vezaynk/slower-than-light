@@ -294,7 +294,9 @@ export function startLeash(g: Game, crewId: string) {
  * lower `kit.level`; damage and depowering are the only decreases this tree has.
  */
 function playerLevel(kit: Kit): number {
-  if (kit.power < 1) return 0;
+  // Zoltans: a Zoltan bar keeps Mind Control up when ion or a depower has removed the reactor bar.
+  // Bars the Zoltan does not cover still drop through kit.power. There is no player cooldown.
+  if (kit.power < 1 && (kit.zoltan ?? 0) < 1) return 0;
   return Math.max(0, kit.level - (kit.damage ?? 0));
 }
 

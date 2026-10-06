@@ -915,6 +915,38 @@ function endEnemyPulse(g: Game, kit: Kit) {
 }
 
 /**
+ * Zoltans: ion damage interrupts a hacking pulse and starts a cooldown equivalent to the ion damage.
+ * INFERRED: one ion point is the 5 second lock applyIon already uses, so the cooldown is that many seconds per point.
+ * A Zoltan in the room does not keep the pulse alive. One point ends a level 3 pulse.
+ * Cloaking and Mind Control are not interrupted here.
+ */
+export const HACK_ION_LOCK = 5;
+
+export function ionHitsHack(g: Game, ship: Ship, points: number): void {
+  const kit = ship.kits.spike;
+  if (!kit || !running(kit)) return;
+  kit.left = 0;
+  kit.on = false;
+  kit.aux = 0;
+  kit.cool = Math.max(kit.cool, Math.max(1, points) * HACK_ION_LOCK);
+  if (ship === g.player) {
+    if (kit.hackHeld) {
+      const c = g.crew.find((x) => x.id === kit.hackHeld);
+      kit.hackHeld = undefined;
+      if (c && c.side === "enemy" && (c.leashed ?? 0) > 0) {
+        c.leashed = 0;
+        delete c.leashed;
+      }
+    }
+    const cell = g.enemy?.kits.cell;
+    if (cell?.drained != null) delete cell.drained;
+    return;
+  }
+  releaseHeld(g, kit);
+  if (g.player.kits.cell?.drained != null) delete g.player.kits.cell.drained;
+}
+
+/**
  * Hacking wiki, "Overview" (Mind Control): "temporarily turns one random enemy into an ally, and removes enemy mind
  * control from allies." From the enemy's side: one random player crew member fights for them this pulse, and the
  * player's own holds on enemy crew end. "Fails completely when used by automated ships." "If the enemy mind-controlled
@@ -1361,11 +1393,13 @@ export function hackRepairScale(g: Game, ship: Ship, id: string | undefined): nu
  * "System cannot be manned" (passive): with their drone on Sensors the manning step is dropped, so the level is the
  * unmanned one. Sensors wiki, "Overview": "Manning the Sensors console makes the system work 1 level above"; the
  * level-4 row is "Only available when Level 3 Sensors subsystem is manned", so unmanned tops out at 3.
- * Base level comes from sensors.ts sensorLevel. NOT MODELLED: nebulas ("Sensors are temporarily disabled in nebulas").
+ * Base level comes from sensors.ts sensorLevel.
+ * Sensors, "Overview": "Sensors are temporarily disabled in nebulas."
  */
 export function playerSensorLevel(g: Game): number {
   const ship = g.player;
   if (!ship.systems.sensors) return 0;
+  if (g.beacons.find((b) => b.id === g.here)?.kind === "nebula") return 0;
   if (g.phase === "combat" && enemyPulseOn(g, ["sensors"])) return 0;
   if (g.phase === "combat" && hackBlocksManning(g, ship, "sensors")) {
     const sys = ship.systems.sensors;

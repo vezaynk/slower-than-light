@@ -53,7 +53,7 @@ export type ShipSight = {
  * Slugs, lead and "Race characteristics": a Slug sees the interior of rooms that touch
  * the room they stand in, and reveals live enemy crew on both ships. Crew drones do not.
  * Sensors, "Overview": level 1 is your interior, level 2 adds the enemy interior, and
- * level 2 still shows enemy crew through a cloak. A nebula does not disable Sensors here.
+ * level 2 still shows enemy crew through a cloak. A nebula disables Sensors; a Slug still sees.
  * Cloaking: vision of a cloaked enemy returns while your crew is aboard.
  */
 export function shipSight(g: Game): ShipSight {

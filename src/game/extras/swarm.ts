@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -216,6 +216,7 @@ export function toggleSwarmPower(g: Game): void {
     kit.power += 1;
     return;
   }
+  // Zoltans: dropping a reactor bar does not undeploy a drone those Zoltan bars still cover alone.
   if (kit.power > 0) kit.power -= 1;
 }
 
@@ -1314,6 +1315,20 @@ function unitPower(kind: string): number {
   return SCHEMATIC_POWER[kind] ?? Number.POSITIVE_INFINITY;
 }
 
+/** Same occupy / add split as sim.ts powerMask. Zero Zoltans keep the old skip-if-short walk. */
+function dronePool(kit: Kit): { z: number; r: number; occupy: boolean } {
+  const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
+  const z = kit.zoltan ?? 0;
+  const held = kit.zoltanHeld ?? 0;
+  const occupy = capacity > 0 && z > 0 && kit.power + held >= capacity;
+  const green = Math.min(Math.max(0, kit.power), capacity);
+  return {
+    z,
+    r: occupy ? Math.min(green, Math.max(0, capacity - z)) : green,
+    occupy,
+  };
+}
+
 /** Fights for the player: player crew, or enemy crew under the player's mind control. Same rule as sim.ts life(). */
 function forPlayer(c: Crew): boolean {
   return (c.leashed ?? 0) > 0 ? c.side === "enemy" : c.side === "player";
@@ -1382,7 +1397,9 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
  * is impossible to know the exact drones the enemy ship will deploy, because the Drone Control system is technically
  * depowered and the drones aren't deployed yet." So nothing is deployed until the first combat tick, and that tick
  * only deploys: no drone acts on the tick it launches (INFERRED).
- * Power: Drone Control bars (kitBars) go to deployed drones in loadout order. A drone the bars no longer cover stops
+ * Power: Drone Control bars go to drones from the first loadout slot. A full system lets Zoltan bars
+ * occupy those slots and does not combine a partial Zoltan into a drone it cannot finish (sim.ts takePowerSlot).
+ * A drone the bars no longer cover stops
  * (Overview: "The drone will stay active until it is destroyed, its system is too damaged to power it, or you
  * deactivate it"). It stays deployed, and repowering it spends no part (Overview: only a drone "not already
  * deployed" spends one). A destroyed drone waits REDEPLOY_S and then spends a part to deploy again.
@@ -1394,25 +1411,24 @@ export function tickEnemyDrones(g: Game, dt: number) {
   if (!enemy || !kit?.loadout?.length) return;
   const first = !kit.drones;
   if (!kit.drones) kit.drones = kit.loadout.map((kind, i) => stowed(kind, i, g));
-  const bars = kitBars(kit);
-  let used = 0;
+  const pool = dronePool(kit);
   for (const unit of kit.drones) {
     // @agent:flagship. The Rebel Flagship prints "Boarding Drone (Boss) (2)" (wiki/flagship-systems.ts).
     const need = flagshipDronePower(enemy, unit.kind) ?? unitPower(unit.kind);
     if (!unit.alive) {
       unit.powered = false;
       if (!first) unit.cool = Math.max(0, unit.cool - dt);
-      if (unit.cool > 0 || used + need > bars || enemy.parts < PART_COST) continue;
+      // A stowed drone that will not launch must not waste a partial Zoltan bar.
+      if (unit.cool > 0 || enemy.parts < PART_COST || !powerSlotFits(need, pool)) continue;
       deployUnit(g, enemy, unit);
-      used += need;
+      takePowerSlot(need, true, pool);
       kit.on = true;
       const name = unitName(unit.kind);
       log(g, `Their Drone Control launches ${/^[aeiou]/.test(name) ? "an" : "a"} ${name}.`);
       continue;
     }
     const was = unit.powered;
-    unit.powered = used + need <= bars;
-    if (unit.powered) used += need;
+    unit.powered = takePowerSlot(need, true, pool);
     // Defensive Drones: the acquire second also follows a reactivation.
     if (unit.powered && !was && DEFENSIVE.has(unit.kind)) unit.cool = Math.max(unit.cool, ACQUIRE_S);
     tickUnit(g, enemy, unit, dt);

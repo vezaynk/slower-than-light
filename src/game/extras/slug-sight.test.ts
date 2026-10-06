@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
+import { playerSensorLevel } from "./spike.ts";
 import { shipSight } from "./slug-sight.ts";
 import type { Crew, Game } from "../types.ts";
 
@@ -82,6 +83,23 @@ describe("Slug vision", () => {
     const cloaked = shipSight(g);
     assert.equal(cloaked.interior("enemy", foe.room), false);
     assert.equal(cloaked.showCrew(foe), true);
+  });
+
+  it("still opens adjacent rooms when a nebula has disabled Sensors", () => {
+    const g = createGame(25);
+    startCombat(g, "scout");
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.kind = "nebula";
+    g.player.systems.sensors.level = 3;
+    gel(g, "p-engines");
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    const sight = shipSight(g);
+    assert.equal(playerSensorLevel(g), 0);
+    assert.equal(sight.interior("player", "p-engines"), true);
+    assert.equal(sight.interior("player", "p-shields"), true);
+    assert.equal(sight.interior("enemy", foe.room), false);
   });
 
   it("an enemy Slug does not open rooms for you", () => {

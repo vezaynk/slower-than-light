@@ -49,6 +49,7 @@ import {
   spikeEvadeZero,
   hackBlocksManning,
   hackRepairScale,
+  ionHitsHack,
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
@@ -250,7 +251,8 @@ export function isMain(id: SysId): boolean {
 /**
  * Reactor bars in this system, plus an optional Zoltan bar.
  * Wiki page "Zoltans": that bar is not removed by ion, and it cannot exceed the undamaged levels.
- * bonus 0 is the reactor count this function used before. A full system does not lower sys.power.
+ * bonus 0 is the reactor count this function used before.
+ * settleZoltanPower is what frees reactor bars. This sum does not.
  */
 export function bars(sys: SystemState, bonus = 0): number {
   const capacity = Math.max(0, sys.level - sys.damage);
@@ -658,20 +660,78 @@ export function enemyEscapeView(g: Game): { left: number; stalled: boolean } | n
   return { left: Math.max(0, Math.ceil((1 - g.enemyFlee) * total)), stalled: enemyEscapeStalled(g, ship) };
 }
 
+/**
+ * One weapon or drone slot against a Zoltan pool and a reactor pool.
+ * Disabled slots take nothing.
+ * A full system (occupy) spends Zoltan bars from the left. A partial fill is wasted and reactor does not finish that slot.
+ * A system with an empty bar (not occupy) lets Zoltan and reactor combine on the same slot.
+ * A slot paid entirely by Zoltan bars stays up when ion has already removed the reactor bars.
+ */
+export function takePowerSlot(
+  cost: number,
+  enabled: boolean,
+  pool: { z: number; r: number; occupy: boolean },
+): boolean {
+  if (!enabled || !Number.isFinite(cost)) return false;
+  if (pool.occupy) {
+    if (pool.z >= cost) {
+      pool.z -= cost;
+      return true;
+    }
+    if (pool.z > 0) {
+      pool.z = 0;
+      return false;
+    }
+    if (pool.r >= cost) {
+      pool.r -= cost;
+      return true;
+    }
+    return false;
+  }
+  if (pool.z >= cost) {
+    pool.z -= cost;
+    return true;
+  }
+  if (pool.z + pool.r >= cost) {
+    pool.r -= cost - pool.z;
+    pool.z = 0;
+    return true;
+  }
+  if (pool.z > 0) {
+    pool.z = 0;
+    return false;
+  }
+  return false;
+}
+
+/** True when takePowerSlot would power the slot. Does not spend bars. */
+export function powerSlotFits(cost: number, pool: { z: number; r: number; occupy: boolean }): boolean {
+  if (!Number.isFinite(cost)) return false;
+  if (pool.occupy) {
+    if (pool.z >= cost) return true;
+    if (pool.z > 0) return false;
+    return pool.r >= cost;
+  }
+  if (pool.z >= cost) return true;
+  return pool.z + pool.r >= cost;
+}
+
 export function powerMask(ship: Ship, bonus = 0): boolean[] {
   // @agent:flagship. Flagship artillery has no shared Weapons pool (wiki/flagship-systems.ts flagshipPowerMask).
   const artillery = flagshipPowerMask(ship);
   if (artillery) return artillery;
-  let pool = bars(ship.systems.weapons, bonus);
-  return ship.weapons.map((w) => {
-    const cost = WEAPONS[w.defId]?.power ?? 1;
-    if (!w.enabled) return false;
-    if (pool >= cost) {
-      pool -= cost;
-      return true;
-    }
-    return false;
-  });
+  const sys = ship.systems.weapons;
+  const capacity = Math.max(0, sys.level - sys.damage);
+  const ionLocked = Math.min(Math.max(0, sys.ion.length), capacity);
+  const held = sys.zoltanHeld ?? 0;
+  const full = sys.ion.length === 0 && capacity > 0 && bonus > 0 && sys.power + held >= capacity;
+  const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
+  const pool = {
+    z: bonus,
+    r: full ? Math.min(green, Math.max(0, capacity - bonus)) : green,
+    occupy: full,
+  };
+  return ship.weapons.map((w) => takePowerSlot(WEAPONS[w.defId]?.power ?? 1, w.enabled, pool));
 }
 
 function reactorUsed(ship: Ship): number {
@@ -688,6 +748,119 @@ function reactorUsed(ship: Ship): number {
 
 export function sparePower(ship: Ship): number {
   return ship.reactor + batteryBonus(ship) - reactorUsed(ship);
+}
+
+type ZoltanBox = {
+  power: number;
+  level: number;
+  damage?: number;
+  ion?: number[];
+  zoltanHeld?: number;
+};
+
+function stampHeld(box: { zoltanHeld?: number }, held: number): void {
+  if (held > 0) box.zoltanHeld = held;
+  else delete box.zoltanHeld;
+}
+
+/**
+ * Weapons and Drone Control, when the system is full: each Zoltan occupies a bar and
+ * frees that reactor bar. Leaving a system that is no longer full puts the bars back
+ * from spare. A second call with the same crew does not peel again.
+ * Wiki page "Zoltans": power starts at the highest-priority module. Weapon Control:
+ * leaving without spare reactor power depowers the leftmost slots.
+ */
+function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
+  const capacity = Math.max(0, box.level - (box.damage ?? 0));
+  const ion = box.ion?.length ?? 0;
+  let held = box.zoltanHeld ?? 0;
+  const base = box.power + held;
+  const full = ion === 0 && capacity > 0 && base >= capacity && zoltans > 0;
+  if (full) {
+    const want = Math.min(zoltans, base);
+    if (want > held) {
+      const peel = Math.min(box.power, want - held);
+      box.power -= peel;
+      held += peel;
+    }
+    // Still full: a partial departure keeps the occupy stamp, so reactor is not put back into that slot.
+    stampHeld(box, held);
+    return;
+  }
+  if (held > zoltans) {
+    const drop = held - zoltans;
+    const take = Math.min(drop, Math.max(0, sparePower(ship)));
+    box.power += take;
+    held = zoltans;
+  }
+  stampHeld(box, held);
+}
+
+/**
+ * Wiki page "Zoltans": one Zoltan can fill a shield buffer. Two replace one reactor pair
+ * and cannot fill only a buffer. Leaving does not put the peeled pair back.
+ */
+function settleShields(sys: SystemState, zoltans: number): void {
+  const pairs = Math.floor(zoltans / 2) * 2;
+  let held = sys.zoltanHeld ?? 0;
+  const want = Math.min(pairs, sys.power + held);
+  if (want > held) {
+    const peel = Math.min(sys.power, want - held);
+    sys.power -= peel;
+    held += peel;
+  }
+  if (pairs < held) held = pairs;
+  stampHeld(sys, held);
+}
+
+/**
+ * Wiki page "Zoltans": Zoltans replace reactor power when as many stay as there are
+ * power levels in Engines, Medbay, or Oxygen. Ion still on the system skips this,
+ * so the remaining reactor stays and the yellow bars fill the gap. Leaving does not restore.
+ */
+function settleCover(sys: SystemState, zoltans: number): void {
+  const capacity = Math.max(0, sys.level - sys.damage);
+  const covered = capacity > 0 && zoltans >= capacity && sys.ion.length === 0;
+  let held = sys.zoltanHeld ?? 0;
+  if (covered) {
+    const want = Math.min(zoltans, sys.power + held);
+    if (want > held) {
+      const peel = Math.min(sys.power, want - held);
+      sys.power -= peel;
+      held += peel;
+    }
+  }
+  if (zoltans < held) held = zoltans;
+  stampHeld(sys, held);
+}
+
+function zoltanCount(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: string | undefined): number {
+  if (!roomId) return 0;
+  return citedZoltanPower(
+    g.crew.filter((c) => c.aboard === aboard),
+    roomId,
+  );
+}
+
+/**
+ * Apply the Zoltan replace rules after noteZoltanKits.
+ * Shields run first so a peeled pair is spare before weapons try to restore.
+ */
+export function settleZoltanPower(g: Game): void {
+  settleShipZoltan(g, g.player, "player");
+  if (g.enemy) settleShipZoltan(g, g.enemy, "enemy");
+}
+
+function settleShipZoltan(g: Game, ship: Ship, aboard: "player" | "enemy"): void {
+  const count = (id: SysId) => zoltanCount(g, ship, aboard, roomWith(ship, id)?.id);
+  settleShields(ship.systems.shields, count("shields"));
+  for (const id of ["engines", "medbay", "oxygen"] as const) settleCover(ship.systems[id], count(id));
+  settleDisplace(ship, ship.systems.weapons, count("weapons"));
+  const swarm = ship.kits.swarm;
+  if (!swarm) return;
+  const room = ship.rooms.find((r) => r.kit === "swarm");
+  const z = room ? zoltanCount(g, ship, aboard, room.id) : (swarm.zoltan ?? 0);
+  settleDisplace(ship, swarm, z);
 }
 
 function capOf(sys: SystemState): number {
@@ -1526,6 +1699,9 @@ export function applyImpact(g: Game, shot: Shot) {
       return;
     }
     const r = roomById(ship, shot.targetRoom);
+    // Zoltans: ion damage interrupts Hacking. The cooldown matches the ion damage.
+    // A room that only houses the kit still counts. Cloaking and Mind Control are left alone.
+    if (r?.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
@@ -3646,6 +3822,7 @@ function tickBoarding(g: Game, dt: number) {
   life(g, g.player, "player", dt);
   reap(g);
   noteZoltanKits(g);
+  settleZoltanPower(g);
   swapZoltanCooldown(g);
   tickPlayerSabotage(g, dt);
   wanderBoarders(g, dt);
@@ -3707,6 +3884,7 @@ export function step(g: Game, dt: number) {
   reap(g);
   // Zoltans: the kit bar is whoever is standing there after movement and deaths, before the kits tick.
   noteZoltanKits(g);
+  settleZoltanPower(g);
   shieldRegen(g, g.player, "player", h);
   shieldRegen(g, g.enemy, "enemy", h);
   tickIons(g.player, h);

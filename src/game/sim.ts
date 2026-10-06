@@ -1692,6 +1692,42 @@ function burnIntruders(r: Room, foes: Crew[], dt: number) {
   for (const c of foes) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
 }
 
+/**
+ * AI-Controlled Rebel Ships: "automatically repair systems over time (at 1/3 the speed of a human)."
+ * A human bar is REPAIR_SECONDS, so one bar here is 37.5 seconds.
+ * "They cannot repair hull breaches, and as a consequence can never repair a breached system."
+ * "Fires (one is enough) stop and reset the repairs in damaged systems."
+ * INFERRED: every damaged system progresses at once, not one room at a time.
+ * The Flagship AI keeps its own inferred rate in flagship-systems.ts and is not this rule.
+ */
+function autoRepair(ship: Ship, room: Room, dt: number) {
+  if (!ship.automated || ship.flagship) return;
+  const sys = room.system ? ship.systems[room.system] : undefined;
+  const kit = room.kit ? ship.kits[room.kit] : undefined;
+  if (room.fire > 0) {
+    if (sys) sys.fix = 0;
+    if (kit) kit.fix = 0;
+    return;
+  }
+  if (room.breach > 0) return;
+  const pace = dt / 3;
+  if (sys && sys.damage > 0) {
+    sys.fix += pace;
+    if (sys.fix >= REPAIR_SECONDS) {
+      sys.damage -= 1;
+      sys.fix = 0;
+    }
+  }
+  if (kit && (kit.damage ?? 0) > 0) {
+    kit.fix = (kit.fix ?? 0) + pace;
+    if (kit.fix >= REPAIR_SECONDS) {
+      kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
+      kit.fix = 0;
+      kit.power = kit.level - kit.damage;
+    }
+  }
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
@@ -1783,6 +1819,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     if (r.o2 <= 5) {
       for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
     } else burnIntruders(r, foes, dt);
+    autoRepair(ship, r, dt);
     r.flash = Math.max(0, r.flash - dt);
   }
 }

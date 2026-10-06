@@ -98,8 +98,8 @@ function systemHit(g: Game): string {
 }
 
 /**
- * "1 damage with [fire] to a random room" (and "a breach"). INFERRED: the room's system (if any) takes the 1 damage, and
- * the fire / breach stay in the room until put out (fires only spread and burn during a fight here).
+ * "1 damage with [fire] to a random room" (and "a breach"). INFERRED: the room's system (if any) takes the 1 damage.
+ * The fire and breach stay until put out. A fire spreads, eats oxygen, and burns crew outside a fight (sim.ts tickIdleFires).
  */
 function roomHit(g: Game, breach = false): string {
   const rooms = g.player.rooms;

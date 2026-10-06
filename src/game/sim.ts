@@ -1594,11 +1594,63 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   }
 }
 
+/**
+ * Door System: closed doors slow fire spread ×1.75. Closed blast doors (level 2+) slow it ×10.
+ * Doors level 3–4 don't slow it more than level 2 (Fires, "Dealing with fires").
+ */
+function doorSpreadSlow(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+  return doorLevel(g, ship, aboard) >= 2 ? 10 : 1.75;
+}
+
+/**
+ * Template:Crew races (comparison), fire-fighting note, and Fires, "Dealing with fires": crew in the room put the
+ * fire out. FIRE_FIGHT_SHARE is an untrained Human. Rockmen and Crystal scale by their printed fire-fighting bonus.
+ * Repair skill applies (repairPace). Fire Suppression is not scaled.
+ * Fires, lead: "2.128 damage per second for each fire in a room" to non-immune crew. The damage uses the fire left
+ * after this moment's extinguishing. kin.fireTaken is 0 for a fire-immune lineage.
+ */
+function fightFire(r: Room, pals: Crew[], dt: number) {
+  let rate = 0;
+  for (const c of pals) {
+    const kin = c.kin ?? "plain";
+    const scale = kin === "stone" ? rockExtinguishScale() : kin === "shard" ? crystalExtinguishScale() : 1;
+    rate += FIRE_FIGHT_SHARE * repairPace(c) * scale;
+  }
+  r.fire = Math.max(0, r.fire - rate * dt);
+  for (const c of pals) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
+}
+
+/**
+ * Fires, lead: "Fires spread from tile to tile and can spread between rooms. The speed of fire spreading is randomised."
+ * INFERRED: every 7s, 70% through an open door, else +0.5 fire, cap 3. The 15% oxygen gate is not on the fetched pages.
+ * The external spread note the page links is not copied here. A closed door divides the tick (doorSpreadSlow).
+ */
+function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number) {
+  if (!(r.fire > 0 && r.o2 > 15)) return;
+  const sealed = ship.doors.some((d) => !d.open && d.b !== "void" && (d.a === r.id || d.b === r.id));
+  r.fireTick += dt * (sealed ? 1 / closedSlow : 1);
+  if (r.fireTick <= 7) return;
+  r.fireTick = 0;
+  const openNeigh = ship.doors.find((d) => {
+    if (!d.open || d.b === "void") return false;
+    return d.a === r.id || d.b === r.id;
+  });
+  if (openNeigh && rand(g) < 0.7) {
+    const nid = openNeigh.a === r.id ? (openNeigh.b as string) : openNeigh.a;
+    const n = roomById(ship, nid);
+    if (n) n.fire = Math.min(3, n.fire + 1);
+  } else if (r.fire < 3) r.fire += 0.5;
+}
+
+/** Fires, lead: the same 2.128 HP/s hits boarders standing in the fire. Suffocation, when it applies, replaces this. */
+function burnIntruders(r: Room, foes: Crew[], dt: number) {
+  if (r.fire <= 0) return;
+  for (const c of foes) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
-  const doorLv = doorLevel(g, ship, aboard);
-  // Door System: closed doors slow fire spread ×1.75. Closed blast doors (level 2+) slow it ×10.
-  const closedSlow = doorLv >= 2 ? 10 : 1.75;
+  const closedSlow = doorSpreadSlow(g, ship, aboard);
   for (const r of ship.rooms) {
     const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
     // Mind Control, "Overview": a leashed crew member is an ally of the side holding it and "treated as an intruder"
@@ -1633,20 +1685,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         bumpXp(g, c, "combat", dt);
       }
     } else if (r.fire > 0 && pals.length) {
-      // Template:Crew races (comparison), fire-fighting note: "to put out a fire, in percent per second (a fire
-      // starts with 100% health): crewRepairMult * crewFireMult * repairSkillMult * 8", crewFireMult 1.2 for most
-      // crew. FIRE_FIGHT_SHARE is that for an untrained Human. Rockmen and Crystal, "Race characteristics": 167% and
-      // 83% of it (2.0/1.2 and 1.0/1.2). repairSkillMult is the Skills "Repair skill" table (repairPace).
-      // Fire Suppression is not scaled.
-      let rate = 0;
-      for (const c of pals) {
-        const kin = c.kin ?? "plain";
-        const scale = kin === "stone" ? rockExtinguishScale() : kin === "shard" ? crystalExtinguishScale() : 1;
-        rate += FIRE_FIGHT_SHARE * repairPace(c) * scale;
-      }
-      r.fire = Math.max(0, r.fire - rate * dt);
-      // Fires: 2.128 HP per second per fire. kin.fireTaken is 0 for a fire-immune lineage.
-      for (const c of pals) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
+      fightFire(r, pals, dt);
     } else if (pals.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
       // Skills: "It takes 12.5 seconds for an untrained Human to repair one system bar, or to repair a breach"; skill speeds both.
       r.breachFix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt;
@@ -1686,23 +1725,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       r.breachFix = 0;
       log(g, `${r.title} leak sealed.`);
     }
-    // INFERRED: spread every 7s, 70% through an open door, else +0.5 fire. The 15% oxygen gate is not on the fetched pages.
-    if (r.fire > 0 && r.o2 > 15) {
-      const sealed = ship.doors.some((d) => !d.open && d.b !== "void" && (d.a === r.id || d.b === r.id));
-      r.fireTick += dt * (sealed ? 1 / closedSlow : 1);
-      if (r.fireTick > 7) {
-        r.fireTick = 0;
-        const openNeigh = ship.doors.find((d) => {
-          if (!d.open || d.b === "void") return false;
-          return d.a === r.id || d.b === r.id;
-        });
-        if (openNeigh && rand(g) < 0.7) {
-          const nid = openNeigh.a === r.id ? (openNeigh.b as string) : openNeigh.a;
-          const n = roomById(ship, nid);
-          if (n) n.fire = Math.min(3, n.fire + 1);
-        } else if (r.fire < 3) r.fire += 0.5;
-      }
-    }
+    spreadFire(g, ship, r, closedSlow, dt);
     // Medbay: level 1 heals at the suffocation rate, 6.4 HP/s. Level 2 is 9.6. Level 3 is 19.2.
     if (mainBars(g, ship, aboard, "medbay") > 0 && r.system === "medbay" && r.fire <= 0 && foes.length === 0 && r.o2 > 5) {
       const powered = mainBars(g, ship, aboard, "medbay");
@@ -1712,9 +1735,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // Oxygen: at 5% or less, crew lose 6.4 HP per second.
     if (r.o2 <= 5) {
       for (const c of present) c.hp -= 6.4 * suffocateScale(g, aboard) * kinOf(c.kin ?? "plain").suffocate * dt;
-    } else if (r.fire > 0) {
-      for (const c of foes) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
-    }
+    } else burnIntruders(r, foes, dt);
     r.flash = Math.max(0, r.flash - dt);
   }
 }
@@ -3085,6 +3106,46 @@ function stepShots(g: Game, dt: number) {
   g.shots = g.shots.filter((s) => s.t < 1);
 }
 
+/**
+ * Fires, lead: events start fires, and a fire spreads, consumes oxygen, and burns crew whether or not a fight is on.
+ * This is the fire portion of airflow() and life() — oxygen 0.96%/s, death below 10%, extinguish, 2.128 HP/s, and
+ * spreadFire — on the player ship. Melee, repair, medbay, suffocation, door venting, and the oxygen-system refill
+ * stay on the combat tick. System sabotage (0.08/s) stays on that tick too (extras/sabotage.ts).
+ */
+function tickIdleFires(g: Game, dt: number) {
+  const ship = g.player;
+  if (!ship.rooms.some((r) => r.fire > 0)) return;
+  const aboard = "player" as const;
+  // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
+  // Fires: fires "die out" once oxygen drops below 10%.
+  for (const r of ship.rooms) {
+    r.o2 -= 0.96 * r.fire * dt;
+    r.o2 = Math.max(0, Math.min(100, r.o2));
+    if (r.o2 < 10) r.fire = 0;
+  }
+  const closedSlow = doorSpreadSlow(g, ship, aboard);
+  for (const r of ship.rooms) {
+    const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
+    const pals = present.filter((c) => sideOf(c) === aboard && (c.stun ?? 0) <= 0);
+    const foes = present.filter((c) => sideOf(c) !== aboard);
+    // Same priority as life(): crew who are trading blows do not also fight the fire. The blows themselves stay in life().
+    if (!(pals.length && foes.length) && r.fire > 0 && pals.length) fightFire(r, pals, dt);
+    spreadFire(g, ship, r, closedSlow, dt);
+    if (r.o2 > 5) burnIntruders(r, foes, dt);
+  }
+  if (!g.crew.some((c) => c.hp <= 0)) return;
+  reap(g);
+  if (g.phase !== "map" && g.phase !== "event" && g.phase !== "store" && g.phase !== "reward") return;
+  const live = g.crew.some((c) => c.side === "player" && (c.hp > 0 || (c.cloneIn ?? 0) > 0));
+  if (!live && g.player.hull > 0) lose(g, "crew");
+}
+
+function idleShip(g: Game): boolean {
+  if (g.paused) return false;
+  if (g.phase === "map" || g.phase === "event" || g.phase === "store" || g.phase === "reward") return true;
+  return g.phase === "combat" && !g.enemy;
+}
+
 export function step(g: Game, dt: number) {
   g.trauma = Math.max(0, g.trauma - dt * 1.7);
   for (const f of g.floaters) f.life -= dt;
@@ -3098,6 +3159,8 @@ export function step(g: Game, dt: number) {
     // @agent:hacking. A latched enemy hacking drone leaves with its ship: clear the hacked-room and door marks.
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
     if (g.phase !== "combat") g.targeting = false;
+    // A single step never advances more than 0.05s, matching the combat body below.
+    if (idleShip(g)) tickIdleFires(g, Math.min(dt, 0.05));
     flushSfx(g.sfx);
     return;
   }

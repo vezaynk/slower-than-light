@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buy, commitJump, createGame } from "../sim.ts";
+import { buy, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, WeaponInst } from "../types.ts";
-import { CITED_DRONES, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
+import { CITED_DRONES, CRYSTAL_SECTOR_WEAPONS, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
 
 function openStore(seed: number, prep?: (g: Game) => void) {
   const g = createGame(seed);
@@ -417,5 +417,62 @@ describe("cited stores", () => {
       citedSellQuote(g).some((quote) => quote.kind === "weapon" && quote.ref === "swarm"),
       false,
     );
+  });
+});
+
+describe("Hidden Crystal Worlds stock", () => {
+  const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
+
+  it("sells two crystal weapons and only a Crystal crewmember", () => {
+    const g = openStore(9, (game) => {
+      game.sectorName = "Hidden Crystal Worlds";
+      ownEveryPricedSystem(game);
+      game.augments = ["feed", "echo", "quiet"];
+    });
+    const guns = (g.stock ?? []).filter((item) => item.kind === "weapon");
+    assert.deepEqual(
+      guns.map((item) => item.ref),
+      ["crystalburst", "crystalburst2"],
+    );
+    const crew = (g.stock ?? []).filter((item) => item.kind === "crew");
+    assert.deepEqual(
+      crew.map((item) => item.ref),
+      ["shard"],
+    );
+    g.scrap = crew[0].cost;
+    buy(g, crew[0].id);
+    assert.equal(
+      g.crew.some((c) => c.side === "player" && c.kin === "shard"),
+      true,
+    );
+    for (const gun of guns) assert.ok(allowed.has(gun.ref));
+  });
+
+  it("gives a crystal weapon for a crew kill, and can still give another gun for a hull kill", () => {
+    const fromCrew = new Set<string>();
+    const fromHull = new Set<string>();
+    for (let seed = 1; seed <= 80; seed++) {
+      for (const mode of ["crew", "hull"] as const) {
+        const g = createGame(seed);
+        g.sectorName = "Hidden Crystal Worlds";
+        g.player.weapons = [];
+        startCombat(g, "scout");
+        assert.ok(g.enemy);
+        g.enemy.automated = false;
+        g.enemy.classId = g.enemy.classId || "cited";
+        if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
+        if (mode === "crew") {
+          for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
+        } else {
+          g.enemy.hull = 0;
+        }
+        step(g, 0);
+        if (g.phase !== "reward") continue;
+        for (const w of g.player.weapons) (mode === "crew" ? fromCrew : fromHull).add(w.defId);
+      }
+    }
+    assert.ok(fromCrew.size > 0);
+    for (const id of fromCrew) assert.ok(allowed.has(id), id);
+    assert.ok([...fromHull].some((id) => !allowed.has(id)));
   });
 });

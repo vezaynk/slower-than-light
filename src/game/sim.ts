@@ -101,7 +101,7 @@ import {
   citedSector,
   lastStandRepairEvent,
 } from "./wiki/cited-sectors.ts";
-import { citedBuy, citedStock } from "./wiki/cited-stores.ts";
+import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce } from "./wiki/cited-weapons.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
@@ -2030,7 +2030,13 @@ function winCombat(g: Game) {
   }
   if (rand(g) < 0.16) {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
-    const options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
+    let options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
+    // Sectors, "Hidden Crystal Worlds", "Sector specifics": a crew-kill reward is a crystal weapon, including the Lockdown Bomb.
+    // A hull kill keeps the priced pool. The 16% above stays inferred.
+    if (deadCrew && g.sectorName === "Hidden Crystal Worlds") {
+      const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
+      options = options.filter((w) => allowed.has(w.id));
+    }
     if (options.length && g.player.weapons.length < 3) {
       const def = pick(g, options);
       giveWeapon(g, def.id);
@@ -2872,7 +2878,12 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
 // INVENTED: Dart is pinned in the stock. The missile price is the store price, not a Dart price.
 function rollStock(g: Game): StockItem[] {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
-  const guns = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
+  // Sectors, "Hidden Crystal Worlds", "Sector specifics": the shelf is crystal weapons, including the Lockdown Bomb.
+  // The two-gun count below is the same as every other sector. Dart stays pinned only outside this sector.
+  const crystal = g.sectorName === "Hidden Crystal Worlds";
+  const guns = crystal
+    ? CRYSTAL_SECTOR_WEAPONS.map((id) => WEAPONS[id]).filter((w) => w && w.price > 0 && !owned.has(w.id))
+    : Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
   const fuelN = 3 + irand(g, 5);
   const missileN = 2 + irand(g, 5);
   const partN = 2 + irand(g, 3);

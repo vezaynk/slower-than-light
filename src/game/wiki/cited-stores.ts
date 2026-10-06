@@ -44,6 +44,14 @@ const CREW_CAP = 8;
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
 const NOT_SOLD: ReadonlySet<AugmentId> = new Set(["keel", "casing"]);
 
+/**
+ * Sectors, "Hidden Crystal Worlds", "Sector specifics": "only crystal weapons (including Lockdown Bomb)
+ * can be purchased in stores or received as a crew kill reward".
+ * Page order of Crystal (Weapons), then Bomb (Weapons) "Crystal Lockdown Bomb".
+ * Store rarity on those rows is not used. This list is the allowed set.
+ */
+export const CRYSTAL_SECTOR_WEAPONS = ["crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2", "lockdown"] as const;
+
 // Template:Crew races (comparison). Store cost column, table order.
 const CREW: readonly { ref: KinId; cost: number }[] = [
   { ref: "plain", cost: 45 },
@@ -189,8 +197,10 @@ function crewItems(g: Game): StockItem[] {
   const aboard = g.crew.filter((c) => c.side === "player").length;
   const free = CREW_CAP - aboard;
   if (free <= 0) return [];
+  // Sectors, "Hidden Crystal Worlds", "Crewmembers": only Crystal crew can be purchased.
   // Not a random draw. The run RNG is left alone. First rows of the comparison table that still fit.
-  return CREW.slice(0, Math.min(SLOT, free)).map((row) => {
+  const rows = g.sectorName === "Hidden Crystal Worlds" ? CREW.filter((row) => row.ref === "shard") : CREW;
+  return rows.slice(0, Math.min(SLOT, free)).map((row) => {
     const kin = KIN[row.ref];
     return {
       id: `crew-${row.ref}`,

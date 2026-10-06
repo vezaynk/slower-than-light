@@ -29,6 +29,7 @@ import {
   suffocateScale,
   targetIsCloaked,
   tickExtras,
+  tickPlayerSabotage,
   weaponBoost,
   keepMissile,
   leashMult,
@@ -2278,6 +2279,39 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   sfx(g, "alarm");
 }
 
+function enemyAboard(g: Game): boolean {
+  return g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
+}
+
+/**
+ * Destroyed cargo ship, Research station with no response, Abandoned station, Refugee comms down: boarders beam
+ * aboard and no enemy ship is on the page. startCombat would delete them and put a hull on the scope.
+ * Opens the crew fight only: phase combat, enemy stays null. The play view already ticks that phase.
+ * `asb` is Abandoned station's planet-side battery. The first shot waits the same 6s startCombat uses; the 14s
+ * interval stays the existing one.
+ * INFERRED: the beacon is spent when they board, so the card does not reopen. Killing them is not a ship kill.
+ * INVENTED: the log line when the last boarder dies (tickBoarding).
+ */
+export function beginBoarding(g: Game, asb = false) {
+  if (!enemyAboard(g)) return;
+  g.enemy = null;
+  g.shots = [];
+  g.phase = "combat";
+  g.paused = false;
+  g.flee = 0;
+  g.enemyFlee = 0;
+  g.event = null;
+  g.picking = false;
+  g.fightEvent = null;
+  g.enemyEscape = null;
+  g.enemySurrender = null;
+  g.asb = asb;
+  if (asb) g.asbT = 6;
+  const b = g.beacons.find((x) => x.id === g.here);
+  if (b && b.kind !== "boss") b.resolved = true;
+  sfx(g, "alarm");
+}
+
 function link(a: Beacon, b: Beacon) {
   if (!a.links.includes(b.id)) a.links.push(b.id);
   if (!b.links.includes(a.id)) b.links.push(a.id);
@@ -3146,6 +3180,42 @@ function idleShip(g: Game): boolean {
   return g.phase === "combat" && !g.enemy;
 }
 
+/**
+ * Player half of the combat tick with no enemy hull: airflow, doors, movement, melee and fires (life),
+ * the same 0.08/s sabotage, boarders picking a new room, and the FTL spool. Repair and venting run because
+ * this is a fight. The battery or an asteroid field is the only environment. No enemy guns, surrender, or winCombat.
+ */
+function tickBoarding(g: Game, dt: number) {
+  g.time += dt;
+  airflow(g, g.player, "player", dt);
+  tickDoors(g.player, dt);
+  moveCrew(g, dt);
+  life(g, g.player, "player", dt);
+  reap(g);
+  tickPlayerSabotage(g, dt);
+  wanderBoarders(g, dt);
+  if (g.asb || g.asteroid) environment(g, dt);
+  if (g.shots.length) stepShots(g, dt);
+  const spool = ftlSeconds(g, g.player);
+  if (spool) g.flee = Math.min(1, g.flee + dt / spool);
+  if (g.player.hull <= 0) {
+    lose(g, "hull");
+    return;
+  }
+  const live = g.crew.some((c) => c.side === "player" && (c.hp > 0 || (c.cloneIn ?? 0) > 0));
+  if (!live) {
+    lose(g, "crew");
+    return;
+  }
+  if (enemyAboard(g)) return;
+  g.crew = g.crew.filter((c) => c.side === "player" || (c.cloneIn ?? 0) > 0);
+  g.shots = [];
+  g.asb = false;
+  g.phase = "map";
+  g.flee = 0;
+  log(g, "The boarders are dead.");
+}
+
 export function step(g: Game, dt: number) {
   g.trauma = Math.max(0, g.trauma - dt * 1.7);
   for (const f of g.floaters) f.life -= dt;
@@ -3160,7 +3230,12 @@ export function step(g: Game, dt: number) {
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
     if (g.phase !== "combat") g.targeting = false;
     // A single step never advances more than 0.05s, matching the combat body below.
-    if (idleShip(g)) tickIdleFires(g, Math.min(dt, 0.05));
+    // Boarders with no enemy hull (beginBoarding) use the crew fight. A fire on the map stays in tickIdleFires.
+    if (idleShip(g)) {
+      const h = Math.min(dt, 0.05);
+      if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
+      else tickIdleFires(g, h);
+    }
     flushSfx(g.sfx);
     return;
   }

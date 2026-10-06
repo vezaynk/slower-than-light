@@ -15,13 +15,12 @@
  * default Rebel rows ("escape+surrender|REBEL|50|30-40|3-4|50|20-30|2-3" is the standard Rebel row). Nebula wreckage's
  * Zoltan ship prints no ref: default rows.
  *
- * Not wired: boarders outside a ship fight (Research station with no response, "3-4 human boarders beam aboard your
- * ship" with no ship present; boarders fight only inside a ship fight here, as in quests.ts "Abandoned station"); the
- * Anti-Personnel Drone blue option (no Anti-Personnel Drone in this game: wiki/drones-missing.ts).
+ * Shipless boarders (Research station with no response) run through beginBoarding (sim.ts): no enemy hull, same melee.
+ * Not wired: the Anti-Personnel Drone blue option (no Anti-Personnel Drone in this game: wiki/drones-missing.ts).
  */
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
-import { hurtSystem, log, rand } from "../sim.ts";
+import { beginBoarding, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import {
   addQuest,
@@ -159,6 +158,21 @@ function loseCrew(g: Game): string {
   const line = `${lost.name} is lost.`;
   log(g, line);
   return line;
+}
+
+/** "who becomes an enemy": that crew fights aboard your ship. INFERRED: never the last living crewmember. */
+function turnCoat(g: Game): boolean {
+  const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+  if (mine.length <= 1) return false;
+  const turned = pick(g, mine);
+  turned.side = "enemy";
+  turned.aboard = "player";
+  turned.path = [];
+  turned.move = 0;
+  turned.think = 0;
+  if (g.selected === turned.id) g.selected = null;
+  log(g, `${turned.name} turns on the crew.`);
+  return true;
 }
 
 /** {{SurrenderEscape(alt)|no|...}}: no escape (NEVER_RUN) and no surrender offer. */
@@ -622,20 +636,36 @@ export const PART_B: QuestPart = {
       }
     },
     "q:research:leave": (g) => done(g),
-    // "3-4 human boarders beam aboard your ship." Not wired (no ship fight here): the beacon is spent.
-    "q:research:brace": (g) => done(g),
+    // "3-4 human boarders beam aboard your ship." No enemy ship.
+    "q:research:brace": (g) => {
+      humanBoarders(g, 3, 4, "human boarders beam aboard.");
+      beginBoarding(g);
+    },
     "q:research:antidote": (g) => {
       result(g, "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is the cause of their frenzy. It synthesizes an antidote and releases it into the room. After a time, the scientists recover. One offers their services as thanks for saving them.", scrapOnly(g, "medium"), [crew(g, randomRace(g), "repair")]);
     },
-    // "You lose a crewmember, who becomes an enemy, and 3-4 human boarders" (the boarders are not wired).
+    // "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship."
     "q:research:drag": (g) => {
-      result(g, "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.", undefined, [loseCrew(g)]);
+      log(g, "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.");
+      turnCoat(g);
+      humanBoarders(g, 3, 4, "human boarders beam aboard.");
+      beginBoarding(g);
     },
+    // Teleporter: "lose a crewmember, who becomes an enemy." No extra boarders. Last crew stays (the card remains).
     "q:research:beam": (g) => {
-      result(g, "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks.", undefined, [loseCrew(g)]);
+      const text = "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks.";
+      if (!turnCoat(g)) {
+        result(g, text);
+        return;
+      }
+      log(g, text);
+      beginBoarding(g);
     },
+    // Medbay level 2: "3-4 human boarders beam aboard your ship." The crewmember recovers.
     "q:research:medbay": (g) => {
-      result(g, "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.");
+      log(g, "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.");
+      humanBoarders(g, 3, 4, "human boarders beam aboard.");
+      beginBoarding(g);
     },
     "q:research:cure": (g) => {
       result(g, "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is driving your crew member insane. It synthesizes an antidote and releases it into the ship. After a time, the frenzied scientists recover and one offers to help out as thanks for saving them.", undefined, [crew(g, randomRace(g))]);

@@ -1,6 +1,6 @@
 import { WEAPONS, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { hurtSystem, log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, hurtSystem, log, rand, startCombat } from "../sim.ts";
 import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
 import {
@@ -401,9 +401,9 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:intelligent-ponies:1", label: "Ignore it.", fx: [{ k: "nothing" }] },
     ],
   },
-  // EMPTY_STATION2. Examine: low scrap ({{DuplicateEvent|2}}); 2 boarders and a Pirate ship; a cloning bay (scrap the
-  // machinery: low scrap); an empty shell. Not drawn: "2-4 boarders" with an Anti-Ship Battery and no ship (crew
-  // combat runs only inside a fight here, as in surrender.ts "Destroyed cargo ship").
+  // EMPTY_STATION2. Examine: low scrap ({{DuplicateEvent|2}}); 2 boarders and a Pirate ship; 2-4 boarders and a
+  // planet-side Anti-Ship Battery with no ship; a cloning bay (scrap the machinery: low scrap); an empty shell.
+  // Unnamed boarders are INFERRED human. The Clonebay DNA blue option is not offered on this copy.
   {
     dest: "Abandoned station",
     slug: "abandoned-station",
@@ -494,8 +494,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:refugee-distress:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
-  // REFUGEE_GHOST. Board: lose a crewmember; a crewmember; "medium|2-4 missiles" missiles and scrap; nothing. Not
-  // drawn: "2-4 human boarders" with no ship (crew combat runs only inside a fight here).
+  // REFUGEE_GHOST. Board, five results, no odds: lose a crewmember; a crewmember; "medium|2-4 missiles" missiles
+  // and scrap; "2-4 human boarders" with no ship; nothing.
   {
     dest: "Refugee comms down",
     slug: "refugee-comms-down",
@@ -893,12 +893,16 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // ---- Abandoned station ----
   "c:abandoned-station:0": (g) => {
-    const r = weighted(g, [["supplies", 2], ["pirates", 1], ["clone", 1], ["shell", 1]] as const);
+    const r = weighted(g, [["supplies", 2], ["pirates", 1], ["battery", 1], ["clone", 1], ["shell", 1]] as const);
     if (r === "supplies") show(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
     else if (r === "pirates") {
       fight(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!", "Pirate ship", "abandoned-station");
       // "2 boarders beam aboard your ship" (surrender.ts humanBoarders, the same intruder kit).
       humanBoarders(g, 2, 2);
+    } else if (r === "battery") {
+      log(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!");
+      humanBoarders(g, 2, 4, "boarders beam aboard.");
+      beginBoarding(g, true);
     } else if (r === "clone") {
       // The Clonebay blue option is not wired; "Scrap the machinery." is.
       card(g, "The station is in disarray. You find a cloning bay partially intact but nothing else seems to be functioning.", [
@@ -979,11 +983,15 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // ---- Refugee comms down ----
   "c:refugee-comms-down:0": (g) => {
-    const r = weighted(g, [["cannibals", 1], ["freezer", 1], ["supplies", 1], ["ghost", 1]] as const);
+    const r = weighted(g, [["cannibals", 1], ["freezer", 1], ["supplies", 1], ["boarders", 1], ["ghost", 1]] as const);
     if (r === "cannibals") show(g, "As you investigate the ship, you are attacked by the now-cannibalistic crew! Driven mad by lack of food, they have turned to feeding on each other. As you fight your way off the ship, one of your crew falls to the crazed attackers, and you are forced to leave them behind or else lose your entire ship.", undefined, [loseCrew(g)]);
     else if (r === "freezer") show(g, "It looks as if the ship ran out of fuel, and the crew ran out of food not long after. Despite the grisly scene that remains, you find one surviving crewman locked in the freezer, almost perfectly preserved and apparently overlooked by the starving crew.", undefined, [gainCrew(g)]);
     else if (r === "supplies") show(g, "The ship is completely abandoned. It looks like it ran out of fuel... and the crew ran out of food not long after. Despite the grisly scene that remains, you are able to scavenge some supplies from the cargo hold.", resource(g, "missiles", [2, 4], "medium"));
-    else show(g, "The ship is completely abandoned. There is no trace of the crew or any cargo. Mystified, you leave the ghost ship and continue on.");
+    else if (r === "boarders") {
+      log(g, "As you approach the ship, the other ship's transporters suddenly power up, and your decks swarm with now-cannibalistic refugees! Driven mad by lack of food, they have turned to feeding on each other - and now your crew is next!");
+      humanBoarders(g, 2, 4, "human boarders beam aboard.");
+      beginBoarding(g);
+    } else show(g, "The ship is completely abandoned. There is no trace of the crew or any cargo. Mystified, you leave the ghost ship and continue on.");
   },
   "c:refugee-comms-down:1": done,
   "c:empty-nebula-beacon:0": done,

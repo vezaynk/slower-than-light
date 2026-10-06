@@ -31,7 +31,7 @@ import { upgradeCost, WEAPONS } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { hurtSystem, log, openStoreHere, rand } from "../sim.ts";
+import { beginBoarding, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
@@ -629,20 +629,26 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:station:contact": (g) => {
     result(g, "Amidst the blasts from the Anti-Ship Battery, the cargo ship escaped from the station. They jettisoned some scrap towards your ship before jumping away.", scrapOnly(g, "medium"));
   },
-  // Abandoned station, "Move in to examine the station." Not wired: the boarders-plus-battery result (boarders fight only
-  // inside a ship fight here), and the Clonebay result's crazed-clone boarder.
+  // Abandoned station, "Move in to examine the station." DuplicateEvent|2 on the scrap text, then one each of the
+  // pirate ship, the battery with no ship, the cloning bay, and the empty shell. Race of the unnamed boarders is
+  // INFERRED human (the pirate burst on this page already uses humanBoarders).
   "q:station:examine": (g) => {
     const r = weighted(g, [
       ["scrap", 2],
       ["pirate", 1],
+      ["battery", 1],
       ["clone", 1],
       ["shell", 1],
-    ] as ["scrap" | "pirate" | "clone" | "shell", number][]);
+    ] as ["scrap" | "pirate" | "battery" | "clone" | "shell", number][]);
     if (r === "scrap") {
       result(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
     } else if (r === "pirate") {
       pageFight(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!", "Pirate ship", "quest-abandoned-station");
       humanBoarders(g, 2, 2);
+    } else if (r === "battery") {
+      log(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!");
+      humanBoarders(g, 2, 4, "boarders beam aboard.");
+      beginBoarding(g, true);
     } else if (r === "clone") {
       const choices: Choice[] = [{ id: "q:station:scrapmachines", label: "Scrap the machinery." }];
       if (g.player.kits.cradle) choices.unshift({ id: "q:station:dna", label: "Search for a surviving DNA bank." });
@@ -651,8 +657,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
       result(g, "As you approach it becomes clear that the station is simply an empty shell. It has been stripped of useful materials long ago.");
     }
   },
+  // Clonebay DNA: DuplicateEvent|2 calm crewmember, or 1 crazed boarder. No printed odds (weight 2 / 1).
+  // The crazed boarder's race is not named. INFERRED human, same as the unnamed boarders on this page.
   "q:station:dna": (g) => {
-    result(g, "While the cloning facilities are no longer functioning, you find someone was in queue to be cloned. You transfer their data to your Clonebay and after a time their body is rebuilt. The clone is extremely confused but calms down after you try to explain the situation. With no other options the clone offers to work on your ship for a time.", undefined, [crew(g, randomRace(g))]);
+    const rebuilt = "While the cloning facilities are no longer functioning, you find someone was in queue to be cloned. You transfer their data to your Clonebay and after a time their body is rebuilt.";
+    if (weighted(g, [["calm", 2], ["crazed", 1]] as ["calm" | "crazed", number][]) === "crazed") {
+      log(g, `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`);
+      humanBoarders(g, 1, 1, "boarder beams aboard.");
+      beginBoarding(g);
+      return;
+    }
+    result(g, `${rebuilt} The clone is extremely confused but calms down after you try to explain the situation. With no other options the clone offers to work on your ship for a time.`, undefined, [crew(g, randomRace(g))]);
   },
   "q:station:scrapmachines": (g) => result(g, "You take what you can and prepare to move on.", scrapOnly(g, "low")),
   "q:station:stay": (g) => result(g, "You decide it's not worth the time to examine."),

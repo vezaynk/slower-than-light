@@ -15,7 +15,7 @@ import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, log, rand, startCombat } from "../sim.ts";
 import type { Crew, Difficulty, Game } from "../types.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
@@ -892,8 +892,11 @@ export function pageFight(g: Game, text: string, tier: string, slug: string, esc
   if (escape) g.enemyEscape = escape;
 }
 
-/** "Destroyed cargo ship": "2-4 human boarders beam aboard your ship". INFERRED: each lands in a random room. */
-export function humanBoarders(g: Game, lo: number, hi: number) {
+/**
+ * "Destroyed cargo ship": "2-4 human boarders beam aboard your ship". INFERRED: each lands in a random room.
+ * `line` replaces the crate sentence on pages that are not the cargo ambush (`${n} ${line}`).
+ */
+export function humanBoarders(g: Game, lo: number, hi: number, line?: string) {
   const n = between(g, [lo, hi]);
   const hp = kinOf("plain").hp;
   for (let i = 0; i < n; i++) {
@@ -902,7 +905,7 @@ export function humanBoarders(g: Game, lo: number, hi: number) {
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({ id: "u" + g.uid.toString(36), name: "Human", side: "enemy", aboard: "player", hp, maxHp: hp, room, path: [], move: 0, think: 0, tone: 3, kin: "plain" });
   }
-  log(g, `${n} boarders burst out of the crates.`);
+  log(g, line ? `${n} ${line}` : `${n} boarders burst out of the crates.`);
 }
 
 function pick<T>(g: Game, items: T[]): T {
@@ -930,18 +933,20 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     pageResult(g, "The Engi obediently transfer over the goods and get on their way. Money for nothing.", rollStandard(g));
   },
 
-  // ---- "Destroyed cargo ship", Bring it aboard. Four results on the page. ----
-  // Wired: "medium scrap with resources"; "low scrap" (Scrap only); the ambush fight with boarders.
-  // Not wired: the boarders-only result ("2-4 human boarders beam aboard your ship", no ship): crew combat here runs
-  // only inside a fight, so it is left out of the draw (three results, equal odds). INFERRED.
+  // ---- "Destroyed cargo ship", Bring it aboard. Four results on the page, no odds (equal, INFERRED). ----
+  // "medium scrap with resources"; "low scrap" (Scrap only); "2-4 human boarders" with no ship; the ambush fight.
   "c:destroyed-cargo-ship:0": (g) => {
-    const r = pick(g, ["supplies", "goods", "ambush"] as const);
+    const r = pick(g, ["supplies", "goods", "boarders", "ambush"] as const);
     if (r === "supplies") {
       pageResult(g, "They appear to be filled with military supplies! You take everything you can use and jettison the rest.", rollStandard(g, "medium"));
     } else if (r === "goods") {
       const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: between(g, scrapBand(g, "low")), fuel: 0, missiles: 0, parts: 0 };
       offer.scrap = adjustScrap(g, offer.eligible);
       pageResult(g, "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap.", offer);
+    } else if (r === "boarders") {
+      log(g, "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...");
+      humanBoarders(g, 2, 4);
+      beginBoarding(g);
     } else {
       // JELLY_PIRATE_WITHBOARDERS: "70% chance for escape attempt at 20-40% hull with 15 seconds countdown timer".
       const escape: EscapePlan = { ...NEVER_RUN, mode: "hull", seconds: HULL_RUN_SECONDS, chance: 70, threshold: 20 + rand(g) * 20 };

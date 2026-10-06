@@ -95,3 +95,8 @@ export function tickSabotage(g: Game, dt: number) {
   sabotageShip(g, g.player, "player", dt);
   sabotageShip(g, g.enemy, "enemy", dt);
 }
+
+/** Boarding with no enemy hull: the same 0.08/s, on the player ship only. */
+export function tickPlayerSabotage(g: Game, dt: number) {
+  sabotageShip(g, g.player, "player", dt);
+}

@@ -214,13 +214,14 @@ describe("The Black Raven", () => {
 });
 
 describe("Destroyed cargo ship", () => {
-  it("Bring it aboard: supplies, scrap, or the pirate ambush with 2-4 Human boarders", () => {
+  it("Bring it aboard: supplies, scrap, boarders with no ship, or the pirate ambush", () => {
     const seen = new Set<string>();
-    for (let seed = 1; seed < 60 && seen.size < 3; seed++) {
+    for (let seed = 1; seed < 80 && seen.size < 4; seed++) {
       const g = arrive(seed, "Pirate Controlled Sector", "Destroyed cargo ship");
       const s0 = snap(g);
+      const kills = g.kills;
       choose(g, "c:destroyed-cargo-ship:0");
-      if (g.phase === "combat") {
+      if (g.phase === "combat" && g.enemy) {
         seen.add("ambush");
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.ok(boarders.length >= 2 && boarders.length <= 4);
@@ -229,6 +230,14 @@ describe("Destroyed cargo ship", () => {
         assert.equal(g.enemySurrender!.chance, 100);
         assert.ok(g.enemySurrender!.threshold >= 0 && g.enemySurrender!.threshold <= 50);
         for (let i = 0; i < 300 && g.phase === "combat"; i++) step(g, 1 / 30);
+      } else if (g.phase === "combat" && !g.enemy) {
+        seen.add("boarders");
+        const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+        assert.ok(boarders.length >= 2 && boarders.length <= 4);
+        assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain"));
+        assert.equal(g.kills, kills);
+        assert.equal(g.scrap, s0.scrap);
+        assert.equal(g.asb, false);
       } else if (g.event!.body.startsWith("They appear to be filled")) {
         seen.add("supplies");
         const d = kinds(s0, g);
@@ -240,6 +249,6 @@ describe("Destroyed cargo ship", () => {
         assert.ok(g.scrap > s0.scrap);
       }
     }
-    assert.equal(seen.size, 3);
+    assert.equal(seen.size, 4);
   });
 });

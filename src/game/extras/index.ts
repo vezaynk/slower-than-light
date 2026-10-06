@@ -18,7 +18,7 @@ import { onCradleDeath, onCradleJump, tickCradle } from "./cradle.ts";
 import { tickLance } from "./lance.ts";
 import { tickFlak } from "./flakart.ts";
 import { leashedDamageBonus, tickLeash } from "./leash.ts";
-import { tickSabotage } from "./sabotage.ts";
+import { tickPlayerSabotage, tickSabotage } from "./sabotage.ts";
 import { tickLanius } from "./lineage.ts";
 import { partsBack } from "./moreaugs.ts";
 import { onJumpSling, tickSling } from "./sling.ts";
@@ -27,7 +27,7 @@ import { enemyDefenseIntercept, onJumpSwarm, swarmIntercept, tickSwarm } from ".
 import { tickVeil, veilBlocks, veilEvade } from "./veil.ts";
 import { flagshipAiEvade } from "../wiki/flagship-systems.ts";
 
-export { enemyDefenseIntercept, onNewSector, swarmIntercept };
+export { enemyDefenseIntercept, onNewSector, swarmIntercept, tickPlayerSabotage };
 
 export function tickExtras(g: Game, dt: number) {
   tickVeil(g, dt);

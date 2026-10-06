@@ -1,4 +1,7 @@
+import { skillRank } from "../content.ts";
 import { applyIon, isMain, kitBars, log, rand, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { xpNeedFor } from "./lineage.ts";
+import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
@@ -622,7 +625,7 @@ function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
     (c) => c.aboard === "enemy" && c.room === kit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && !forPlayer(c),
   );
   if (!foes.length) return false;
-  kit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * dt, 0);
+  kit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * crewCombat(c) * dt, 0);
   if (kit.hp > 0) return false;
   kit.hp = 0;
   kit.path = [];
@@ -869,6 +872,11 @@ const BREAK_BAR_S = 6;
 
 /** INFERRED: sim.ts life() trades blows at 6 HP per second per crew member, times that crew's combat multiplier. */
 const MELEE_DPS = 6;
+
+/** Crew skills, Combat skill: the attacker's rank multiplies damage to an onboard drone. Level 0 stays ×1. */
+function crewCombat(c: Crew): number {
+  return combatSkillMult(skillRank(c.skills?.combat ?? 0, xpNeedFor(c, "combat")));
+}
 
 /** INVENTED: how long a drone beam swipe takes to land. The pages give beam speed and length, not seconds. */
 const DRONE_BEAM_S = 0.4;
@@ -1126,7 +1134,7 @@ function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt:
     (c) => c.aboard === aboard && c.room === unit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && forPlayer(c),
   );
   if (!foes.length) return false;
-  unit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * dt, 0);
+  unit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * crewCombat(c) * dt, 0);
   if (unit.hp > 0) return false;
   killUnit(g, unit, `Crew tore their ${unitName(unit.kind)} apart.`);
   return true;

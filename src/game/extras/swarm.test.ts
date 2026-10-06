@@ -400,4 +400,35 @@ describe("Ion Intruder body", () => {
     assert.equal(kit.hp, 0);
     assert.equal(kit.lost, REDEPLOY_S);
   });
+
+  it("takes 20% more damage from a gold combat crew member", () => {
+    const drop = (xp: number) => {
+      const g = createGame(42);
+      place(g, 3);
+      startCombat(g, "scout");
+      assert.equal(deploy(g, "ionintruder"), true);
+      const kit = g.player.kits.swarm;
+      assert.ok(kit);
+      const room = g.enemy?.rooms.find((item) => item.system);
+      assert.ok(room);
+      kit.room = room.id;
+      kit.left = 30;
+      const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+      assert.ok(foe);
+      const away = g.enemy?.rooms.find((item) => item.id !== room.id);
+      assert.ok(away);
+      for (const c of g.crew) if (c.side === "enemy") c.room = away.id;
+      foe.room = room.id;
+      foe.path = [];
+      foe.stun = 0;
+      foe.leashed = undefined;
+      foe.kin = "plain";
+      foe.skills = { combat: xp };
+      const before = kit.hp ?? 0;
+      tickSwarm(g, 1);
+      return before - (kit.hp ?? 0);
+    };
+    assert.ok(Math.abs(drop(0) - 6) < 1e-9);
+    assert.ok(Math.abs(drop(14) / drop(0) - 1.2) < 1e-9);
+  });
 });

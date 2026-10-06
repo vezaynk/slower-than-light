@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy } from "./enemy-gen.ts";
-import { createGame, repairPace, startCombat, step } from "./sim.ts";
-import { XP_NEED } from "./content.ts";
-import { ALL_CREW_RACES, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
+import { createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
+import { WEAPONS, XP_NEED } from "./content.ts";
+import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -107,6 +107,154 @@ describe("Skills, Repair skill: 10% / 20% faster repair", () => {
     });
     assert.ok(rates[0] > 0);
     assert.ok(Math.abs(rates[1] / rates[0] - 1.2) < 1e-6);
+  });
+});
+
+describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
+  it("prints the table, with level 0 as default damage", () => {
+    assert.deepEqual([...COMBAT_SKILL_MULT], [1, 1.1, 1.2]);
+  });
+
+  it("a gold fighter deals 20% more and does not take 20% more", () => {
+    const g = createGame(11);
+    startCombat(g, "scout");
+    const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
+    assert.ok(room);
+    const away = g.player.rooms.find((r) => r.id !== room.id);
+    assert.ok(away);
+    const hero = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(hero && foe);
+    for (const c of g.crew) {
+      if (c.id !== hero.id && c.id !== foe.id) c.room = away.id;
+      c.path = [];
+      c.think = 30;
+      c.stun = 0;
+    }
+    hero.room = room.id;
+    hero.aboard = "player";
+    hero.kin = "plain";
+    hero.skills = { combat: 14 };
+    hero.hp = hero.maxHp;
+    foe.room = room.id;
+    foe.aboard = "player";
+    foe.side = "enemy";
+    foe.kin = "plain";
+    foe.skills = {};
+    foe.hp = foe.maxHp;
+    foe.leashed = undefined;
+    const heroBefore = hero.hp;
+    const foeBefore = foe.hp;
+    step(g, 1);
+    const dealt = foeBefore - foe.hp;
+    const taken = heroBefore - hero.hp;
+    assert.ok(Math.abs(dealt / taken - 1.2) < 1e-6, `${dealt} vs ${taken}`);
+  });
+
+  it("does not speed sabotage", () => {
+    const rates = [0, 100].map((xp) => {
+      const g = createGame(13);
+      startCombat(g, "scout");
+      const room = g.enemy?.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0);
+      assert.ok(room && g.enemy);
+      const away = g.enemy.rooms.find((r) => r.id !== room.id);
+      assert.ok(away);
+      for (const c of g.crew) if (c.side === "enemy") c.room = away.id;
+      const hero = g.crew.find((c) => c.side === "player" && c.hp > 0);
+      assert.ok(hero);
+      hero.aboard = "enemy";
+      hero.room = room.id;
+      hero.path = [];
+      hero.stun = 0;
+      hero.think = 30;
+      hero.skills = { combat: xp };
+      room.fire = 0;
+      room.sabotage = 0;
+      step(g, 0.5);
+      return room.sabotage ?? 0;
+    });
+    assert.ok(rates[0] > 0);
+    assert.ok(Math.abs(rates[1] - rates[0]) < 1e-9);
+  });
+});
+
+describe("AI-Controlled Rebel Ships, manning bonuses", () => {
+  function autoHull(seed: number) {
+    const g = createGame(seed);
+    startCombat(g, "scout");
+    const e = g.enemy;
+    assert.ok(e);
+    e.automated = true;
+    e.flagship = undefined;
+    for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
+    e.systems.engines.level = 2;
+    e.systems.engines.power = 2;
+    e.systems.engines.damage = 0;
+    e.systems.engines.ion = [];
+    e.systems.pilot.level = 1;
+    e.systems.pilot.power = 1;
+    e.systems.pilot.damage = 0;
+    e.systems.pilot.ion = [];
+    assert.ok(e.rooms.some((r) => r.system === "pilot"));
+    return { g, e };
+  }
+
+  it("adds the untrained +5/+5 while both systems are undamaged", () => {
+    const { g, e } = autoHull(15);
+    // Engines level 2 is 10, plus 5 engines and 5 piloting.
+    assert.equal(evasionPercent(g, e, "enemy"), 20);
+    e.systems.engines.damage = 1;
+    // One bar left is 5, and only piloting still adds 5.
+    assert.equal(evasionPercent(g, e, "enemy"), 10);
+  });
+
+  it("keeps the bonus while engines are ionized and drops it when piloting is destroyed", () => {
+    const { g, e } = autoHull(16);
+    e.systems.engines.ion = [5, 5];
+    assert.equal(evasionPercent(g, e, "enemy"), 10);
+    e.systems.engines.ion = [];
+    e.systems.pilot.damage = 1;
+    // Piloting is gone, so only the undamaged engines table plus its +5.
+    assert.equal(evasionPercent(g, e, "enemy"), 15);
+  });
+
+  it("charges an undamaged Weapon Control at the untrained 0.9", () => {
+    const charged = (damage: number) => {
+      const { g, e } = autoHull(17);
+      e.systems.weapons.level = 2;
+      e.systems.weapons.power = 2;
+      e.systems.weapons.damage = damage;
+      e.systems.weapons.ion = [];
+      e.weapons = [{ id: "w", defId: "spark", charge: 0, enabled: true, target: "p-pilot" }];
+      if (e.kits.veil) {
+        e.kits.veil.power = 0;
+        e.kits.veil.on = false;
+      }
+      step(g, 0.05);
+      return e.weapons[0].charge;
+    };
+    const bare = 0.05 / WEAPONS.spark.charge;
+    assert.ok(Math.abs(charged(0) - bare / 0.9) < 1e-9);
+    assert.ok(Math.abs(charged(1) - bare) < 1e-9);
+  });
+
+  it("recharges undamaged shields at the untrained 1.1", () => {
+    const gained = (damage: number) => {
+      const { g, e } = autoHull(18);
+      e.systems.shields.level = 4;
+      e.systems.shields.power = 4;
+      e.systems.shields.damage = damage;
+      e.systems.shields.ion = [];
+      e.shieldNow = 0;
+      e.shieldCharge = 0;
+      for (const w of e.weapons) w.enabled = false;
+      for (const w of g.player.weapons) w.enabled = false;
+      // step clamps one call to 0.05s. 37 calls is 1.85s: past 2/1.1 and short of 2.
+      for (let i = 0; i < 37; i++) step(g, 0.05);
+      return e.shieldNow;
+    };
+    assert.equal(gained(0), 1);
+    assert.equal(gained(1), 0);
   });
 });
 

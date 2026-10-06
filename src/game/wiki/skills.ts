@@ -17,6 +17,18 @@ export function repairSkillMult(rank: 0 | 1 | 2): number {
 }
 
 /**
+ * Wiki page "Crew skills", section "Combat skill": "Level 0 (White) | Default crew damage",
+ * "Level 1 (Green) | 10% more crew damage", "Level 2 (Gold) | 20% more crew damage".
+ * "The combat skill works as a multiplier when calculating the hand-to-hand damage" to crew and onboard drones.
+ * "doesn't increase the sabotage damage to (sub-)systems", so sabotage does not read this.
+ */
+export const COMBAT_SKILL_MULT = [1, 1.1, 1.2] as const;
+
+export function combatSkillMult(rank: 0 | 1 | 2): number {
+  return COMBAT_SKILL_MULT[rank] ?? 1;
+}
+
+/**
  * Wiki "Sectors", each sector's "Crewmembers" paragraph: "In this sector, crewmembers of the following races can be
  * purchased or received as a crew kill reward. By rarity (only affects the store assortment probability), from common
  * to rare". Race names as enemy-gen.ts spells them ("Rockmen" -> "Rock").

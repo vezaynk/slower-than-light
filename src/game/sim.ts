@@ -63,7 +63,7 @@ import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
-import { repairSkillMult } from "./wiki/skills.ts";
+import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
@@ -540,15 +540,47 @@ const WEAPON_RATE = [0.9, 0.85, 0.8];
 /** Shields, manning: recharge rate ×1.1 / ×1.2 / ×1.3. */
 const SHIELD_RATE = [1.1, 1.2, 1.3];
 
+/**
+ * AI-Controlled Rebel Ships: "automated ships get manning bonuses for all their systems."
+ * "Only damaging the system removes the manning bonus." Ion, fire, a breach, boarding, and a latched hack do not.
+ * The Flagship AI dodge is flagshipAiEvade, so this stays off while that bonus is already in extraEvade.
+ */
+function autoManning(ship: Ship): boolean {
+  return !!ship.automated && !ship.flagship?.ai;
+}
+
+function autoSkillEvade(ship: Ship, engBars: number): number {
+  if (!autoManning(ship)) return 0;
+  const engines = ship.systems.engines;
+  const pilot = ship.systems.pilot;
+  // Unpowered engines have no table and no bonus. Ion that locks a still-undamaged system keeps the +5.
+  const enginesUp = engines.level > 0 && engines.damage === 0 && (engBars > 0 || engines.ion.length > 0);
+  const pilotUp = pilot.level > 0 && pilot.damage === 0;
+  return (enginesUp ? EVADE_SKILL[0] : 0) + (pilotUp ? EVADE_SKILL[0] : 0);
+}
+
 /** Engines evasion table, plus manning, plus Piloting autopilot (50% at level 2, 80% at level 3, minimum 2). */
 export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   // Hacking, "Overview": "Piloting/Engines: reduces base evasion to 0 ... Does not affect evasion gained from Cloak."
   if (spikeEvadeZero(g, ship)) return Math.min(100, extraEvade(g, ship, aboard));
   const eng = Math.min(8, mainBars(g, ship, aboard, "engines"));
-  if (eng <= 0) return Math.min(100, extraEvade(g, ship, aboard));
   const pilot = ship.systems.pilot;
-  if (!functional(pilot) || !roomWith(ship, "pilot")) return Math.min(100, extraEvade(g, ship, aboard));
-  let evade = EVADE_TABLE[eng] ?? 0;
+  // An auto-ship's ionized piloting is still manned: ion is not system damage.
+  const pilotHolds = functional(pilot) || (autoManning(ship) && pilot.damage === 0 && pilot.ion.length > 0 && pilot.level > 0);
+  const enginesIonKept = autoManning(ship) && eng <= 0 && ship.systems.engines.damage === 0 && ship.systems.engines.ion.length > 0 && ship.systems.engines.level > 0;
+  if (eng <= 0 && !enginesIonKept) return Math.min(100, extraEvade(g, ship, aboard));
+  if (!pilotHolds || !roomWith(ship, "pilot")) {
+    // Damaging piloting removes only that system's bonus. Powered, undamaged engines keep theirs.
+    if (autoManning(ship) && eng > 0 && ship.systems.engines.damage === 0) {
+      return Math.min(100, Math.round((EVADE_TABLE[eng] ?? 0) + EVADE_SKILL[0] + extraEvade(g, ship, aboard)));
+    }
+    return Math.min(100, extraEvade(g, ship, aboard));
+  }
+  let evade = eng > 0 ? (EVADE_TABLE[eng] ?? 0) : 0;
+  if (autoManning(ship)) {
+    evade += autoSkillEvade(ship, eng);
+    return Math.min(100, Math.round(evade + extraEvade(g, ship, aboard)));
+  }
   const engCrew = manningCrew(g, ship, aboard, "engines");
   if (engCrew) evade += EVADE_SKILL[rankOf(engCrew, "engines")];
   if (present(g, ship, aboard, "pilot")) {
@@ -1390,7 +1422,22 @@ function chargeSide(
 ) {
   const mask = powerMask(ship, zoltanBars(g.crew, ship, from, "weapons"));
   const gunner = manningCrew(g, ship, from, "weapons");
-  const mult = (gunner ? WEAPON_RATE[rankOf(gunner, "weapons")] : 1) / weaponBoost(g, from);
+  // Crew skills, Weapons skill: charge time ×0.9 / ×0.85 / ×0.8. Level 0 is already 10% faster.
+  // AI-Controlled Rebel Ships: an undamaged Weapon Control keeps the untrained bonus. The Flagship's
+  // artillery "cannot be manned", so that hull stays on the printed charge table.
+  const weapons = ship.systems.weapons;
+  const skill = ship.flagship
+    ? gunner
+      ? WEAPON_RATE[rankOf(gunner, "weapons")]
+      : 1
+    : ship.automated
+      ? weapons.level > 0 && weapons.damage === 0
+        ? WEAPON_RATE[0]
+        : 1
+      : gunner
+        ? WEAPON_RATE[rankOf(gunner, "weapons")]
+        : 1;
+  const mult = skill / weaponBoost(g, from);
   // @agent:hacking. Hacking, "Overview" (Weapon Control): an enemy pulse drains and holds the player's weapons.
   const frozen = targetIsCloaked(g, from) || hackHoldsWeapons(g, from);
   ship.weapons.forEach((w, i) => {
@@ -1565,20 +1612,21 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // Augmentations, "Slug Repair Gel": every breached player room, at 75% of regular crew repair speed, stacked on the same counter.
     if (aboard === "player" && r.breach > 0 && g.augments.includes("gel")) r.breachFix += 0.75 * dt;
     if (pals.length && foes.length) {
-      // INFERRED: 6 damage a second while trading blows, plus 10% per combat rank taken. The wiki lists crew health, not this flat rate.
+      // INFERRED: 6 damage a second while trading blows. The wiki lists crew health, not this flat rate.
+      // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2). Level 0 is default.
       const dps = 6;
+      const dealt = (attacker: Crew) => combatSkillMult(rankOf(attacker, "combat"));
       for (const c of foes) {
         const hit = pals.reduce(
-          (sum, p) => sum + (dps / foes.length) * dt * leashMult(p) * kinOf(p.kin ?? "plain").fight,
+          (sum, p) => sum + (dps / foes.length) * dt * leashMult(p) * kinOf(p.kin ?? "plain").fight * dealt(p),
           0,
         );
         c.hp -= hit;
         for (const p of pals) bumpXp(g, p, "combat", dt);
       }
       for (const c of pals) {
-        const rank = rankOf(c, "combat");
         const incoming = foes.reduce(
-          (sum, f) => sum + (dps / pals.length) * dt * (1 + 0.1 * rank) * leashMult(f) * kinOf(f.kin ?? "plain").fight,
+          (sum, f) => sum + (dps / pals.length) * dt * leashMult(f) * kinOf(f.kin ?? "plain").fight * dealt(f),
           0,
         );
         c.hp -= incoming;
@@ -1677,7 +1725,13 @@ function shieldRegen(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number
   // @agent:hacking. Hacking, "Overview" (Shields): no recharge while an enemy pulse discharges them (extras/spike.ts).
   if (ship.shieldNow < cap && mainBars(g, ship, aboard, "shields") >= 2 && !hackHoldsShields(g, ship)) {
     const op = manningCrew(g, ship, aboard, "shields");
-    const rate = op ? SHIELD_RATE[rankOf(op, "shields")] : 1;
+    // Crew skills, Shields skill: recharge rate ×1.1 / ×1.2 / ×1.3. An undamaged auto-ship keeps the untrained ×1.1.
+    const shields = ship.systems.shields;
+    const rate = ship.automated && shields.level > 0 && shields.damage === 0
+      ? SHIELD_RATE[0]
+      : op
+        ? SHIELD_RATE[rankOf(op, "shields")]
+        : 1;
     const need = shieldLayerSeconds(ship.shieldNow + 1) / (rate * shieldBoost(g, aboard));
     ship.shieldCharge += dt;
     if (ship.shieldCharge >= need) {

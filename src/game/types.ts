@@ -123,6 +123,13 @@ export type WeaponInst = {
    */
   autoInvert?: boolean;
   target: string | null;
+  /**
+   * Chain step. Absent is the first printed step.
+   * Laser (Weapons): Chain Burst 16/13/10/7, Chain Vulcan 11.1 down to 1.1.
+   * Ion (Weapons): Chain Ion deals 1, then 2, 3, and 4 ion. Its charge stays 14 seconds.
+   * Losing power resets this. A cloak pause does not.
+   */
+  chain?: number;
 };
 
 export type Shot = {

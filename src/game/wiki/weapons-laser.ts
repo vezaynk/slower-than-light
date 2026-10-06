@@ -317,11 +317,11 @@ export const LASER_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "chainlaser",
-    note: 'Laser (Weapons), "Chain Burst Laser": "Charge-up profile: 16s/13s/10s/7s (-3s per step, 3 steps total)". charge stores the first step, 16. Later steps are 13, 10, and 7. "Charge time resets to 16 seconds if the weapon goes offline".',
+    note: 'Laser (Weapons), "Chain Burst Laser": "Charge-up profile: 16s/13s/10s/7s (-3s per step, 3 steps total)". charge stores the first step, 16. Later steps are 13, 10, and 7. "Charge time resets to 16 seconds if the weapon goes offline". cited-chain.ts steps combat through that profile.',
   },
   {
     id: "vulcan",
-    note: 'Laser (Weapons), "Chain Vulcan": "Charge-up profile: 11.1s / 9.1s / 7.1s / 5.1s / 3.1s / 1.1s (-2s per step, 5 steps total)". charge stores the first step, 11.1. Later steps are 9.1, 7.1, 5.1, 3.1, and 1.1. "Charge time resets to 11.1 seconds if the weapon goes offline". "It takes 35.5 seconds before the Vulcan gets up to full speed".',
+    note: 'Laser (Weapons), "Chain Vulcan": "Charge-up profile: 11.1s / 9.1s / 7.1s / 5.1s / 3.1s / 1.1s (-2s per step, 5 steps total)". charge stores the first step, 11.1. Later steps are 9.1, 7.1, 5.1, 3.1, and 1.1. "Charge time resets to 11.1 seconds if the weapon goes offline". "It takes 35.5 seconds before the Vulcan gets up to full speed". cited-chain.ts steps combat through that profile.',
   },
   {
     id: "chargers",

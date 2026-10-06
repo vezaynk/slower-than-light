@@ -65,6 +65,7 @@ import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
+import { chainChargeSeconds, chainIonAmount, isChainWeapon, nextChainStep } from "./wiki/cited-chain.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
@@ -1039,6 +1040,9 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
     else ship.ammo -= 1;
   }
   w.charge = 0;
+  // Ion (Weapons), Chain Ion: the shot uses this step, then the step advances. A dry missile returns above.
+  const step = w.chain ?? 0;
+  const ion = chainIonAmount(w.defId, step) ?? def.ion;
   const rooms = def.kind === "beam" ? beamRooms(targetShip, w.target) : [w.target];
   const shots = def.kind === "beam" ? 1 : def.shots;
   for (let i = 0; i < shots; i++) {
@@ -1047,7 +1051,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
       kind: def.kind,
       from,
       damage: def.damage,
-      ion: def.ion,
+      ion,
       fireChance: def.fire,
       breachChance: def.breach,
       targetRoom: rooms[0],
@@ -1058,6 +1062,8 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
       duration: def.kind === "missile" || def.kind === "bomb" ? 1.35 : def.kind === "beam" ? 0.32 : 0.7,
     });
   }
+  const next = nextChainStep(w.defId, step);
+  if (next != null) w.chain = next;
   // INVENTED: a manual gun fires its queued room once and then needs a new target. Autofire keeps the room.
   if (from === "player" && !slotAutofire(g, w)) w.target = null;
   const sound = def.kind === "flak" ? "laser" : def.kind === "bomb" ? "missile" : def.kind === "laser" ? "laser" : def.kind;
@@ -1443,13 +1449,25 @@ function chargeSide(
   const frozen = targetIsCloaked(g, from) || hackHoldsWeapons(g, from);
   ship.weapons.forEach((w, i) => {
     const def = WEAPONS[w.defId];
-    if (!def || !mask[i]) return;
+    if (!def) return;
+    // Laser (Weapons): Chain Burst and Chain Vulcan "Charge time resets … if the weapon goes offline."
+    // Partial charge is dropped, so the next charge is a full first step.
+    // Ion (Weapons), Chain Ion: INFERRED the same reset. The section prints the ion climb, not the reset.
+    // A cloak pause and a weapons-hack hold freeze the charge and keep the step. They are not "offline".
+    // A flagship artillery hack (hackDrainsGun) takes that one gun offline.
+    if (!mask[i] || hackDrainsGun(g, from, w.defId)) {
+      if (isChainWeapon(w.defId)) {
+        w.chain = 0;
+        w.charge = 0;
+      }
+      return;
+    }
     // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
     if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
-    // A flagship artillery hack holds that one gun (spike.ts hackDrainsGun). The others keep charging.
-    if (frozen || hackDrainsGun(g, from, w.defId)) return;
+    if (frozen) return;
     // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
-    w.charge = Math.min(1, w.charge + dt / ((flagshipChargeSeconds(ship, w) ?? def.charge) * mult));
+    const seconds = flagshipChargeSeconds(ship, w) ?? chainChargeSeconds(w.defId, w.chain ?? 0) ?? def.charge;
+    w.charge = Math.min(1, w.charge + dt / (seconds * mult));
     // Weapon Control, Overview: enemy guns always fire when charged. Player autofire is the all-weapons
     // setting, reversed per slot by Ctrl. INVENTED: a player gun aimed while charging fires the moment it is
     // ready, and launch() drops that room afterwards unless the slot is on autofire.

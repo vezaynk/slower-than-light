@@ -11,6 +11,7 @@ import {
   swarmIntercept,
   tickSwarm,
 } from "../extras/swarm.ts";
+import { COMBAT2, orbitLegSeconds } from "./cited-combat2.ts";
 import { applyImpact, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { citedSellQuote, citedStock } from "./cited-stores.ts";
@@ -508,18 +509,36 @@ describe("Crystal Vengeance", () => {
 });
 
 describe("Combat Drone Mark II and the Ion Intruder", () => {
-  it("deploys Mark II at power 4 and still fires nothing", () => {
-    for (const power of [4, 3]) {
-      const g = fight(28 + power);
-      swarmKit(g, power);
-      assert.equal(deploy(g, "combat2"), true);
-      assert.equal(g.player.kits.swarm?.target, "combat2");
-      const hull = g.enemy!.hull;
-      g.shots = [];
-      tickSwarm(g, 30);
-      assert.equal(g.shots.length, 0);
-      assert.equal(g.enemy!.hull, hull);
-    }
+  it("deploys Mark II at power 4 and fires when the orbit leg finishes", () => {
+    const low = fight(31);
+    swarmKit(low, 3);
+    assert.equal(deploy(low, "combat2"), true);
+    const held = low.enemy!.hull;
+    low.shots = [];
+    tickSwarm(low, 30);
+    assert.equal(low.shots.length, 0);
+    assert.equal(low.enemy!.hull, held);
+
+    const g = fight(32);
+    swarmKit(g, 4);
+    assert.equal(deploy(g, "combat2"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    kit.heading = 0;
+    kit.bearing = 180;
+    kit.left = orbitLegSeconds(0, 180, COMBAT2.speed);
+    kit.aux = 0;
+    g.shots = [];
+    tickSwarm(g, kit.left - 0.01);
+    assert.equal(g.shots.length, 0);
+    tickSwarm(g, 0.01);
+    const shot = g.shots[0];
+    assert.ok(shot);
+    assert.equal(shot.kind, "laser");
+    assert.equal(shot.damage, COMBAT2.damage);
+    assert.equal(shot.fireChance, COMBAT2.fireChance);
+    assert.equal(shot.from, "player");
+    assert.ok(g.enemy!.rooms.some((room) => room.id === shot.targetRoom));
   });
 
   it("pulses inside 8.2 to 10 seconds, ions a live system, and stuns only enemy crew", () => {

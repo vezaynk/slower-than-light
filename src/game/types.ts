@@ -198,6 +198,13 @@ export type Kit = {
   on: boolean;
   /** Module scratch timer (shield-drop cadence, drone shot cadence). */
   aux: number;
+  /**
+   * Combat drone orbit, degrees. Drone Control, "Combat Drones (offensive drones)":
+   * the drone flies to a new angle and fires when it arrives. Absent until that flight starts.
+   */
+  heading?: number;
+  /** Destination angle for the flight in `left`. Absent until a leg is chosen. */
+  bearing?: number;
   /** Bars knocked out by weapon hits on the kit's room (enemy hulls). Absent means 0. */
   damage?: number;
   /** Repair progress on the next damaged bar, in crew-seconds. */
@@ -266,6 +273,10 @@ export type DroneUnit = {
   powered: boolean;
   /** Shot, swipe, or pulse cadence, in seconds accumulated. */
   aux: number;
+  /** Combat drone's current orbit angle, in degrees. Absent until the first leg. */
+  heading?: number;
+  /** Combat drone's destination angle. The leg length is `left`. */
+  bearing?: number;
   /** Defense cooldown or target-acquire wait; for a dead drone, the redeploy delay. */
   cool: number;
   /** Seconds of stun left (Anti-Combat Drone, ion). */

@@ -34,7 +34,7 @@ export const MISSING_DRONES: DroneRow[] = [
     name: "Combat Drone Mark II",
     power: 4,
     cooldown: null,
-    note: "Fires a laser blast that deals 1 hull/system damage per projectile, with a 10% chance to start fire in the hit room.",
+    note: "Fires a laser blast that deals 1 hull/system damage per projectile, with a 10% chance to start fire in the hit room. The page prints no cooldown. Speed 28 is the orbit, and the shot wait is that leg.",
     source: cite("Combat Drone Mark II"),
   },
   {

@@ -86,11 +86,12 @@ export const SCHEMATIC_POWER: Record<string, number> = {
 };
 
 /**
- * @agent:drones. Schematics the enemy side of extras/swarm.ts can run. Combat Drone Mark II prints no cooldown
- * (wiki/cited-combat2.ts), so an enemy never picks it: it would sit powered and never fire.
+ * @agent:drones. Schematics the enemy side of extras/swarm.ts can run.
+ * Combat Drone Mark II fires on the orbit leg in swarm.ts (cited-combat2.ts).
  */
 export const ENEMY_RUNNABLE = new Set([
   "striker",
+  "combat2",
   "beam",
   "beam2",
   "fire",

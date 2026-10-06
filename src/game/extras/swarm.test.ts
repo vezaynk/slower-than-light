@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, startCombat } from "../sim.ts";
+import { COMBAT1_SPEED, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Shot } from "../types.ts";
 import {
   DRONE_COOLDOWN_S,
@@ -114,16 +115,24 @@ describe("swarm", () => {
     assert.equal(swarmIntercept(g, { kind: "asteroid", from: "enemy" }), true);
   });
 
-  it("combat drone does not fire before 2.5s", () => {
+  it("combat drone fires when the orbit leg finishes", () => {
     const g = createGame(6);
     place(g);
     startCombat(g, "scout");
     assert.ok(g.enemy);
     assert.equal(deploy(g, "striker"), true);
-    tickSwarm(g, 2);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    // 180 degrees at Speed 15 is 4 seconds. Shields, Overview: a 90 degree leg is the 2 second layer.
+    kit.heading = 0;
+    kit.bearing = 180;
+    kit.left = orbitLegSeconds(0, 180, COMBAT1_SPEED);
+    kit.aux = 0;
+    assert.equal(kit.left, 4);
+    tickSwarm(g, 3.99);
     assert.equal(g.shots.length, 0);
     assert.equal(swarmCombatShots(g).length, 0);
-    tickSwarm(g, 0.5);
+    tickSwarm(g, 0.01);
     assert.equal(g.shots.length, 1);
     const shot = g.shots[0];
     assert.ok(shot);
@@ -137,6 +146,11 @@ describe("swarm", () => {
     assert.ok(shot.duration > 0);
     assert.ok(g.enemy.rooms.some((r) => r.id === shot.targetRoom));
     assert.deepEqual(swarmCombatShots(g), [{ damage: 1, fireChance: 0.1, kind: "laser" }]);
+    // The arrival rolled a new leg. Pin a long one so this half-second does not fire again.
+    kit.heading = 180;
+    kit.bearing = 0;
+    kit.left = 4;
+    kit.aux = 0;
     tickSwarm(g, 0.5);
     assert.equal(g.shots.length, 1);
     assert.equal(swarmCombatShots(g).length, 0);

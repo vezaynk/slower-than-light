@@ -18,6 +18,7 @@ import {
   ionHitsDrone,
   tickSwarm,
 } from "./swarm.ts";
+import { COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 
 const OFFENSIVE = ["striker", "combat2", "beam", "beam2", "fire", "board", "ionintruder"];
 
@@ -183,6 +184,28 @@ describe("enemy offensive drones", () => {
     }
     assert.ok(seen.size >= 10, `shots ${seen.size}`);
     assert.ok(g.player.hull < hull);
+  });
+
+  it("a Combat Drone Mark II finishes a shorter leg than Mark I", () => {
+    const g = quiet(41);
+    fleet(g, ["combat2"], 4);
+    dropPlayerShields(g);
+    tickSwarm(g, 0.05);
+    const unit = units(g)[0];
+    unit.heading = 0;
+    unit.bearing = 180;
+    unit.left = orbitLegSeconds(0, 180, COMBAT2.speed);
+    unit.aux = 0;
+    g.shots = [];
+    tickSwarm(g, unit.left - 0.01);
+    assert.equal(g.shots.filter((s) => s.label?.startsWith(DRONE_LABEL)).length, 0);
+    tickSwarm(g, 0.01);
+    const shot = g.shots.find((s) => s.label?.startsWith(DRONE_LABEL));
+    assert.ok(shot);
+    assert.equal(shot.kind, "laser");
+    assert.equal(shot.damage, 1);
+    assert.equal(shot.from, "enemy");
+    assert.ok(unit.left < 4);
   });
 
   it("a beam drone does nothing through shields and burns hull without them", () => {

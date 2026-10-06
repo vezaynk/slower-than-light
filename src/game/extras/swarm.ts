@@ -9,7 +9,12 @@ import { kinOf } from "./kin.ts";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
-import { COMBAT2 } from "../wiki/cited-combat2.ts";
+import {
+  COMBAT1_SPEED,
+  COMBAT2,
+  bearingAccepted,
+  orbitLegSeconds,
+} from "../wiki/cited-combat2.ts";
 import { INTRUDER } from "../wiki/cited-intruder.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS } from "../wiki/cited-overcharger.ts";
 import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
@@ -77,12 +82,6 @@ const STRIKER_DAMAGE = 1;
 
 /** Drone Control, Combat Drone Mark I: "Laser blast has 10% chance to start fire in the hit room". */
 const STRIKER_FIRE = 10 / 100;
-
-/**
- * INFERRED: Combat Drone Mark I says the blast is "usually slower than normal
- * shield recharge" and gives no interval in seconds. 2.5 is not a wiki number.
- */
-const STRIKER_INTERVAL_S = 2.5;
 
 /**
  * INFERRED: Combat Drone Mark I lists a laser and a 10% fire chance only.
@@ -272,6 +271,9 @@ export function deploy(g: Game, kind: string): boolean {
   // Defense cooldowns also start ready.
   setCooldown(kit, 0);
   kit.left = 0;
+  // A new flight starts at the nose. The first leg is chosen on the next tick.
+  delete kit.heading;
+  delete kit.bearing;
   log(g, `Drone Control deploys ${kind}.`);
   return true;
 }
@@ -376,17 +378,50 @@ function retireReady(g: Game) {
   }
 }
 
-function tickStriker(g: Game, kit: Kit, dt: number) {
-  kit.aux += dt;
-  while (kit.aux >= STRIKER_INTERVAL_S) {
-    const room = enemyRoom(g);
-    if (!room) {
-      kit.aux = STRIKER_INTERVAL_S;
+/**
+ * Drone Control, "Combat Drones (offensive drones)": the next angle is random,
+ * at least ORBIT_MIN_SEP from the last, and the comparison does not wrap.
+ * A stuck roll falls back to the opposite angle, which that check accepts.
+ */
+export function pickOrbitBearing(g: Game, from: number): number {
+  for (let i = 0; i < 64; i++) {
+    const next = rand(g) * 360;
+    if (bearingAccepted(from, next)) return next;
+  }
+  return (from + 180) % 360;
+}
+
+type OrbitBody = { heading?: number; bearing?: number; left?: number; aux: number };
+
+/**
+ * Fly the current leg and fire once on arrival. A missing room holds the shot
+ * where it is (cloaking, or no hull yet). The timer does not run while unpowered:
+ * callers skip this until the bars cover the drone.
+ */
+function flyCombatLaser(g: Game, body: OrbitBody, dt: number, speed: number, room: () => string | null, fire: (roomId: string) => void) {
+  if (body.heading == null) body.heading = 0;
+  if (body.bearing == null || !(body.left != null && body.left > 0)) {
+    body.bearing = pickOrbitBearing(g, body.heading);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed);
+  }
+  body.aux += dt;
+  let guard = 0;
+  while (body.aux >= (body.left ?? 0) && guard++ < 32) {
+    const id = room();
+    if (!id) {
+      body.aux = body.left ?? 0;
       return;
     }
-    kit.aux -= STRIKER_INTERVAL_S;
-    pushStriker(g, room);
+    body.aux -= body.left ?? 0;
+    body.heading = body.bearing;
+    fire(id);
+    body.bearing = pickOrbitBearing(g, body.heading);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed);
   }
+}
+
+function tickStriker(g: Game, kit: Kit, dt: number) {
+  flyCombatLaser(g, kit, dt, COMBAT1_SPEED, () => enemyRoom(g), (room) => pushStriker(g, room));
 }
 
 function tickWardcut(g: Game, kit: Kit, dt: number) {
@@ -647,12 +682,11 @@ function tickHull(): void {
   // That is a total, not hull-per-second. The page gave no seconds, so this tick applies no rate.
 }
 
-function tickCombat2(kit: Kit): void {
+function tickCombat2(g: Game, kit: Kit, dt: number) {
   // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
-  // The page prints no cooldown, so no shot is built. Damage and fire stay on COMBAT2 until a cooldown exists.
-  // Speed 28 is movement, not a fire interval.
+  // "Moves faster, and consequently has a higher rate of fire." The wait is the orbit leg.
   if (!kit.on || kit.power < COMBAT2.power) return;
-  if (COMBAT2.cooldown == null) return;
+  flyCombatLaser(g, kit, dt, COMBAT2.speed, () => enemyRoom(g), (room) => pushStriker(g, room));
 }
 
 function systemRooms(enemy: Ship): Room[] {
@@ -938,7 +972,7 @@ export function tickSwarm(g: Game, dt: number) {
     return;
   }
   if (kit.target === "combat2") {
-    tickCombat2(kit);
+    tickCombat2(g, kit, dt);
     return;
   }
   if (kit.target === "ionintruder") {
@@ -1168,6 +1202,8 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
   unit.move = undefined;
   unit.hp = UNIT_HP[unit.kind];
   unit.fly = BOARDERS.has(unit.kind) ? BOARD_FLY_S : undefined;
+  unit.heading = undefined;
+  unit.bearing = undefined;
   // Defensive Drones: "require approximately a second to acquire a target after being deployed".
   // Anti-Combat Drone: "Starts fully charged when first deployed", so after that second it fires at once.
   unit.cool = DEFENSIVE.has(unit.kind) ? ACQUIRE_S : 0;
@@ -1186,6 +1222,8 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
   unit.stun = undefined;
   unit.ionT = undefined;
   unit.fly = undefined;
+  unit.heading = undefined;
+  unit.bearing = undefined;
   unit.room = undefined;
   unit.path = undefined;
   unit.move = undefined;
@@ -1311,6 +1349,7 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
       if (unit.cool <= 0) enemyAntiCombat(g, unit);
       return;
     case "striker":
+    case "combat2":
       tickEnemyStriker(g, unit, dt);
       return;
     case "beam":
@@ -1352,34 +1391,38 @@ function randomOf<T>(g: Game, list: readonly T[]): T | undefined {
   return list[Math.floor(rand(g) * list.length) % list.length];
 }
 
-/** Combat Drone Mark I on the player: "Continually attacks the enemy ship with a single laser blast". Same cadence and damage as yours. */
+/** Combat Drone Mark I and Mark II aboard the enemy. Same orbit leg as the player's copy. */
 function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
-  unit.aux += dt;
-  while (unit.aux >= STRIKER_INTERVAL_S) {
-    // INFERRED: Cloaking, Overview: "weapons cannot target a cloaked ship". The drone holds its charged shot.
-    const room = veilBlocks(g, "enemy") ? undefined : randomOf(g, g.player.rooms);
-    if (!room) {
-      unit.aux = STRIKER_INTERVAL_S;
-      return;
-    }
-    unit.aux -= STRIKER_INTERVAL_S;
-    unit.fired = 0;
-    // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
-    g.shots.push({
-      id: nextId(g),
-      kind: "laser",
-      from: "enemy",
-      damage: STRIKER_DAMAGE,
-      ion: STRIKER_ION,
-      fireChance: STRIKER_FIRE,
-      breachChance: STRIKER_BREACH,
-      targetRoom: room.id,
-      wait: SHOT_WAIT_S,
-      t: SHOT_T,
-      duration: STRIKER_FLIGHT_S,
-      label: DRONE_LABEL + unit.id,
-    });
-  }
+  const speed = unit.kind === "combat2" ? COMBAT2.speed : COMBAT1_SPEED;
+  flyCombatLaser(
+    g,
+    unit,
+    dt,
+    speed,
+    () => {
+      // INFERRED: Cloaking, Overview: "weapons cannot target a cloaked ship". The drone holds its charged shot.
+      if (veilBlocks(g, "enemy")) return null;
+      return randomOf(g, g.player.rooms)?.id ?? null;
+    },
+    (roomId) => {
+      unit.fired = 0;
+      // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
+      g.shots.push({
+        id: nextId(g),
+        kind: "laser",
+        from: "enemy",
+        damage: unit.kind === "combat2" ? COMBAT2.damage : STRIKER_DAMAGE,
+        ion: STRIKER_ION,
+        fireChance: unit.kind === "combat2" ? COMBAT2.fireChance : STRIKER_FIRE,
+        breachChance: STRIKER_BREACH,
+        targetRoom: roomId,
+        wait: SHOT_WAIT_S,
+        t: SHOT_T,
+        duration: STRIKER_FLIGHT_S,
+        label: DRONE_LABEL + unit.id,
+      });
+    },
+  );
 }
 
 function linkedRoom(g: Game, ship: Ship, id: string): string | undefined {

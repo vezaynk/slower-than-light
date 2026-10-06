@@ -210,6 +210,13 @@ export type Kit = {
   lost?: number;
   /** Ion Intruder health while that schematic is deployed. Drone Control: "Health: 125 HP". */
   hp?: number;
+  /**
+   * Ion Intruder: a blast door took damage since the last pulse.
+   * Drone Control: "Will skip its cooldown if it attacked a blast door ... beforehand."
+   */
+  doorHit?: boolean;
+  /** The door already counted for that skip, so the same door does not skip again. */
+  doorChew?: string;
   /** @agent:hacking. Enemy hacking drone: seconds of flight left. Absent while no drone is flying (extras/spike.ts). */
   hackFly?: number;
   /** @agent:hacking. Enemy hacking drone: the full flight time rolled at launch, for flight progress in the fx. */
@@ -266,6 +273,10 @@ export type DroneUnit = {
   path?: string[];
   /** Ion Intruder progress toward the next room, from 0 to 1. */
   move?: number;
+  /** A blast door took damage since the last pulse. Consumed when the cooldown is skipped. */
+  doorHit?: boolean;
+  /** The door already counted for that skip. */
+  doorChew?: string;
   /** Seconds since the last shot or swipe, for the fx. */
   fired?: number;
 };

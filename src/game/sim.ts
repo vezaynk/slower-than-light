@@ -716,7 +716,7 @@ function findDoor(ship: Ship, a: string, b: string): Door | undefined {
 }
 
 /** Door System, "Manning": a body on the console counts as one level higher, capped at 4. */
-function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+export function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   const sys = ship.systems.doors;
   if (!functional(sys)) return 0;
   let level = Math.max(0, sys.level - sys.damage);
@@ -725,7 +725,7 @@ function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
 }
 
 /** Door System, "Hits required to break a door", Normal row: level 2 is 8, level 3 is 12, level 4 is 18. Easy and Hard are not implemented. */
-function blastHits(level: number): number {
+export function blastHits(level: number): number {
   if (level >= 4) return 18;
   if (level === 3) return 12;
   if (level === 2) return 8;
@@ -1698,7 +1698,7 @@ function burnIntruders(r: Room, foes: Crew[], dt: number) {
  * "They cannot repair hull breaches, and as a consequence can never repair a breached system."
  * "Fires (one is enough) stop and reset the repairs in damaged systems."
  * INFERRED: every damaged system progresses at once, not one room at a time.
- * The Flagship AI keeps its own inferred rate in flagship-systems.ts and is not this rule.
+ * The Flagship AI uses this same 37.5 s pace in flagship-systems.ts and is not this function.
  */
 function autoRepair(ship: Ship, room: Room, dt: number) {
   if (!ship.automated || ship.flagship) return;

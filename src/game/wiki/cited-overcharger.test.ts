@@ -5,7 +5,7 @@ import { DRONE_POWER, deploy, swarmIntercept, tickSwarm } from "../extras/swarm.
 import { HULLS } from "../hulls.ts";
 import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { OVERCHARGER, OVERCHARGER_PLUS } from "./cited-overcharger.ts";
+import { OVERCHARGER, OVERCHARGER_PLUS, OVERCHARGER_SPEED } from "./cited-overcharger.ts";
 import { CITED_DRONES, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
 
 const src = readFileSync(new URL("./cited-overcharger.ts", import.meta.url), "utf8");
@@ -38,7 +38,9 @@ describe("Shield Overcharger citation", () => {
     assert.equal(OVERCHARGER_PLUS.power, 2);
     assert.deepEqual(OVERCHARGER.waits, [8, 10, 13, 16, 20]);
     assert.equal(OVERCHARGER_PLUS.sell, 30);
+    assert.equal(OVERCHARGER_SPEED, 5);
     assert.equal("speed" in OVERCHARGER, false);
+    assert.equal("speed" in OVERCHARGER_PLUS, false);
     assert.equal("cooldown" in OVERCHARGER, false);
     assert.deepEqual(Object.keys(OVERCHARGER), ["power", "waits"]);
     assert.deepEqual(Object.keys(OVERCHARGER_PLUS), ["power", "sell"]);

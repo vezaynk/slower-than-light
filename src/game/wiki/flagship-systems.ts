@@ -399,9 +399,11 @@ function tickSurgeDrones(g: Game, state: FlagshipState, dt: number) {
  * the AI took control of the ship. The Flagship will then behave like an automated ship: undamaged systems are
  * treated as manned (even those that are hacked), and damaged systems are all progressively repaired at a set rate,
  * except those with fire or a breach in their room."
- * INFERRED rate: one bar per 12.5 s per system (sim.ts REPAIR_SECONDS, one untrained Human), since none is printed.
+ * AI-Controlled Rebel Ships: automated ships repair "at 1/3 the speed of a human" (sim.ts REPAIR_SECONDS, 37.5 s a bar).
+ * INFERRED: this page's "set rate" is that pace. Fire or a breach still skips the room, which is this sentence,
+ * not the auto-ship split where a fire resets progress and a breach freezes it. autoRepair stays off this hull.
  */
-const AI_REPAIR_S = 12.5;
+export const AI_REPAIR_S = 37.5;
 
 function tickAi(g: Game, ship: Ship, state: FlagshipState, dt: number) {
   if (!state.ai) {

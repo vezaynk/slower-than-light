@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
+import { REPAIR_SECONDS, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
 import { sensorLevel } from "../extras/sensors.ts";
 import type { Game } from "../types.ts";
 import {
+  AI_REPAIR_S,
   FLAGSHIP_ZOLTAN,
   SURGE_LASERS,
   SURGE_STUN_S,
@@ -241,9 +242,16 @@ describe("Rebel Flagship AI takeover", () => {
     assert.ok(e.flagship?.ai);
     // "1st Stage" / "Dodge Rate": "If controlled by AI: 20%".
     assert.equal(evasionPercent(g, e, "enemy"), 20);
+    for (const w of [...g.player.weapons, ...e.weapons]) w.enabled = false;
+    g.player.hull = 400;
+    e.hull = 400;
     e.systems.shields.damage = 2;
-    for (let i = 0; i < 300; i++) step(g, 0.05);
-    assert.ok(e.systems.shields.damage < 2);
+    e.systems.shields.fix = 0;
+    for (let i = 0; i < 749; i++) step(g, 0.05);
+    assert.equal(e.systems.shields.damage, 2);
+    step(g, 0.05);
+    assert.equal(e.systems.shields.damage, 1);
+    assert.equal(g.phase, "combat");
   });
 
   it("matches the printed AI dodge on stages 2 and 3", () => {
@@ -465,18 +473,51 @@ describe("@agent:flagship Rebel Flagship per-room artillery", () => {
     assert.equal(e.systems.weapons.damage, 0);
   });
 
-  it("the AI repairs each gun once per 12.5 s, and the next stage starts with fresh guns", () => {
+  it("the AI repairs each gun once per 37.5 s, and the next stage starts with fresh guns", () => {
+    assert.equal(AI_REPAIR_S, REPAIR_SECONDS * 3);
     const g = bossFight(65);
     const e = g.enemy!;
     for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
     hurtArtillery(e, "e-laser", 2);
     hurtArtillery(e, "e-missile", 1);
+    for (const w of [...g.player.weapons, ...e.weapons]) w.enabled = false;
+    g.player.hull = 400;
+    e.hull = 400;
     step(g, 0.01);
     assert.ok(e.flagship!.ai);
-    for (let i = 0; i < 260; i++) step(g, 0.05);
+    assert.equal(e.flagship!.guns!["e-laser"].damage, 2);
+    for (let i = 0; i < 749; i++) step(g, 0.05);
+    assert.equal(e.flagship!.guns!["e-laser"].damage, 2);
+    assert.equal(e.flagship!.guns!["e-missile"].damage, 1);
+    step(g, 0.05);
     assert.equal(e.flagship!.guns!["e-laser"].damage, 1);
     assert.equal(e.flagship!.guns!["e-missile"].damage, 0);
     nextStage(g);
     assert.ok(Object.values(e.flagship!.guns!).every((gun) => gun.damage === 0));
+  });
+
+  it("the AI skips a gun whose room is on fire or breached", () => {
+    const g = bossFight(66);
+    const e = g.enemy!;
+    for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
+    hurtArtillery(e, "e-laser", 1);
+    const room = e.rooms.find((item) => item.id === "e-laser");
+    assert.ok(room);
+    room.fire = 1;
+    for (const w of [...g.player.weapons, ...e.weapons]) w.enabled = false;
+    g.player.hull = 400;
+    e.hull = 400;
+    step(g, 0.01);
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.equal(e.flagship!.guns!["e-laser"].damage, 1);
+    assert.equal(e.flagship!.guns!["e-laser"].fix, 0);
+    room.fire = 0;
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.ok(Math.abs(e.flagship!.guns!["e-laser"].fix - 1) < 1e-9, String(e.flagship!.guns!["e-laser"].fix));
+    const progressed = e.flagship!.guns!["e-laser"].fix;
+    room.breach = 1;
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.equal(e.flagship!.guns!["e-laser"].damage, 1);
+    assert.equal(e.flagship!.guns!["e-laser"].fix, progressed);
   });
 });

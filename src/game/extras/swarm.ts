@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, FIRE_FIGHT_SHARE, isMain, kitBars, log, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -555,7 +555,7 @@ function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): v
  * 3. A breach.
  * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
  *    nearest room wins. INFERRED: a kit ranks with those systems.
- * Repower-sticky, the walk home, and door breaking are not in this rank.
+ * Repower-sticky and the walk home are not in this rank. Door breaking is the walk below.
  */
 const PATCH_AIR = 25;
 
@@ -616,6 +616,8 @@ function tickCrewDrone(g: Game, kit: Kit, dt: number) {
     if (!path || path.length === 0) return;
     kit.path = path;
   }
+  // The player's drone breaks its own shut doors, including a hacked one. The enemy copy still appears in the room.
+  if (chewDoor(g, ship, kit, dt, "player", "player", true) === "blocked") return;
   // INFERRED crew walk is one room in 0.6s. Drone Reactor Booster states the crew-drone fraction of that speed.
   const pace = crewDroneSpeed(g.augments.includes("booster"));
   kit.move = (kit.move ?? 0) + (dt * pace) / 0.6;
@@ -673,16 +675,86 @@ export const INTRUDER_SPACE_SPEED = 18;
 /**
  * INFERRED: one interior room takes the same 0.6s baseline as crew movement (sim.ts moveCrew).
  * "Speed: 18 (when moving through space)" is INTRUDER_SPACE_SPEED and is not this step.
- * "Quickly breaks down doors" has no printed rate, so the walk does not spend door hp.
- * "Will skip its cooldown if it attacked a blast door or a door locked with the Lockdown effect beforehand"
- * needs that rate, so the skip does not run either.
  */
 const INTRUDER_ROOM_S = 0.6;
 
-type Walker = { room?: string; path?: string[]; move?: number };
+/**
+ * Door System, "Door strength": boarders "make about one attack per second".
+ * Drone Control, Ion Intruder and System Repair: "Quickly breaks down doors".
+ * The Ion Intruder note says that speed was not measured against crew.
+ * INFERRED: two hits per second, twice the printed crew attack. Speed 18 is not this rate.
+ */
+export const DRONE_DOOR_HITS_PER_S = 2;
 
-function stepIntruderWalk(walker: Walker, dt: number) {
+/** Hacking, "Overview": hacked doors are level-3 blast doors. extras/spike.ts HACKED_DOOR_LEVEL. */
+const HACKED_DOOR_LEVEL = 3;
+
+type Walker = { room?: string; path?: string[]; move?: number; doorHit?: boolean; doorChew?: string };
+
+function interiorDoor(ship: Ship, a: string, b: string) {
+  return ship.doors.find((door) => door.b !== "void" && ((door.a === a && door.b === b) || (door.a === b && door.b === a)));
+}
+
+function roomCoated(ship: Ship, id: string): boolean {
+  return (ship.rooms.find((room) => room.id === id)?.lock ?? 0) > 0;
+}
+
+/**
+ * A shut door holds the walker. A blast door loses DRONE_DOOR_HITS_PER_S hits per second.
+ * Crystal Lockdown prints no break rate, so a coated door is not attacked and does not arm the cooldown skip.
+ * Hacking: the hacker's crew walk through. breakOwn is the System Repair drone, which still breaks them.
+ * A level-1 door has no hit budget and opens on this tick. A blast door that opens this tick still holds the step.
+ */
+function chewDoor(
+  g: Game,
+  ship: Ship,
+  walker: Walker,
+  dt: number,
+  aboard: "player" | "enemy",
+  side: "player" | "enemy",
+  breakOwn: boolean,
+): "blocked" | "clear" {
+  const next = walker.path?.[0];
+  if (!walker.room || !next) return "clear";
+  const door = interiorDoor(ship, walker.room, next);
+  if (!door || door.open) return "clear";
+  if (roomCoated(ship, next) || roomCoated(ship, walker.room)) return "blocked";
+  const hacked = ship === g.player && !!door.hacked && !!g.enemy;
+  const home = aboard === "player" ? "player" : "enemy";
+  if (hacked && side === "enemy" && !breakOwn) return "clear";
+  if (!hacked && side === home && !breakOwn) return "clear";
+  const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard));
+  if (hits <= 0) {
+    door.open = true;
+    door.stuck = 7;
+    door.hp = 0;
+    log(g, "A door gives way.");
+    return "clear";
+  }
+  if (door.hp <= 0) door.hp = hits;
+  const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
+  if (walker.doorChew !== key) {
+    walker.doorChew = key;
+    walker.doorHit = true;
+  }
+  door.hp -= dt * DRONE_DOOR_HITS_PER_S;
+  if (door.hp > 0) return "blocked";
+  door.open = true;
+  door.stuck = 7;
+  door.hp = 0;
+  log(g, "A door gives way.");
+  return "blocked";
+}
+
+function takeDoorSkip(walker: Walker): boolean {
+  if (!walker.doorHit) return false;
+  walker.doorHit = false;
+  return true;
+}
+
+function stepIntruderWalk(g: Game, ship: Ship, walker: Walker, dt: number, aboard: "player" | "enemy", side: "player" | "enemy") {
   if (!walker.path?.length) return;
+  if (chewDoor(g, ship, walker, dt, aboard, side, false) === "blocked") return;
   walker.move = (walker.move ?? 0) + dt / INTRUDER_ROOM_S;
   while (walker.move >= 1 && walker.path.length > 0) {
     const next = walker.path.shift();
@@ -765,7 +837,7 @@ function addOvercharge(ship: Ship): void {
 
 function tickOvercharger(g: Game, kit: Kit, dt: number): void {
   // Drone Control, Shield Overcharger and Shield Overcharger +.
-  // Speed 5 is movement. This tick does not move the drone and does not fire.
+  // OVERCHARGER_SPEED is a flight figure, not a wait. This tick does not move the drone and does not fire.
   const need = kit.target === "overchargerplus" ? OVERCHARGER_PLUS.power : OVERCHARGER.power;
   // "Each timer resets should the drone become unpowered."
   if (!kit.on || kit.power < need) {
@@ -810,7 +882,10 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
   }
   if (hurtPlayerIntruder(g, kit, dt)) return;
   // The walk started by the previous pulse. Speed 18 is space flight, not this step.
-  if (kit.path?.length) stepIntruderWalk(kit, dt);
+  if (kit.path?.length) stepIntruderWalk(g, enemy, kit, dt, "enemy", "player");
+  // "Will skip its cooldown if it attacked a blast door ... beforehand." One skip per door.
+  // A Lockdown door is not attacked: Crystal Lockdown prints no break rate.
+  if (takeDoorSkip(kit)) kit.aux = kit.left;
   kit.aux += dt;
   while (kit.aux >= kit.left) {
     pulseIntruder(g, enemy, kit);
@@ -1466,8 +1541,9 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
  */
 function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
   if (unit.hp == null) unit.hp = INTRUDER_HP;
-  if (unit.path?.length) stepIntruderWalk(unit, dt);
+  if (unit.path?.length) stepIntruderWalk(g, g.player, unit, dt, "player", "enemy");
   if (!((unit.left ?? 0) > 0)) unit.left = rollIntruderWait(g);
+  if (takeDoorSkip(unit)) unit.aux = unit.left ?? 0;
   unit.aux += dt;
   while (unit.aux >= (unit.left ?? 0)) {
     unit.aux -= unit.left ?? 0;
@@ -1486,7 +1562,7 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
         log(g, `Their ion intruder pulses the ${room.title}.`);
       }
     }
-    // "then moves to a different system". No printed door-break rate, so door hp is left alone.
+    // "then moves to a different system". A shut blast door is broken on the walk, at DRONE_DOOR_HITS_PER_S.
     if (unit.room) unit.path = intruderRoute(g, ship, unit.room, playerSystemRooms(g));
   }
 }

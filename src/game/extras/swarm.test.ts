@@ -4,6 +4,7 @@ import { createGame, startCombat } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
 import {
   DRONE_COOLDOWN_S,
+  DRONE_DOOR_HITS_PER_S,
   DRONE_POWER,
   INSTALL_SCRAP,
   INTRUDER_HP,
@@ -377,6 +378,51 @@ describe("swarm", () => {
     assert.equal(doors.breach, 1);
   });
 
+  it("breaks a shut blast door at two hits a second, then walks through", () => {
+    const g = createGame(19);
+    place(g, 1);
+    assert.equal(deploy(g, "patch"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    const shields = g.player.rooms.find((room) => room.system === "shields");
+    const doorRoom = g.player.rooms.find((room) => room.system === "doors");
+    assert.ok(weapons && shields && doorRoom);
+    g.player.systems.shields.damage = 1;
+    g.player.systems.doors.level = 2;
+    g.player.systems.doors.damage = 0;
+    for (const c of g.crew) {
+      if (c.side === "player" && c.room === doorRoom.id) {
+        c.room = weapons.id;
+        c.path = [];
+      }
+    }
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    const next = kit.path?.[0];
+    assert.ok(next);
+    const door = g.player.doors.find(
+      (item) => item.b !== "void" && ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
+    );
+    assert.ok(door);
+    door.open = false;
+    door.hp = 0;
+    door.stuck = 0;
+    kit.move = 0;
+    tickSwarm(g, 1);
+    assert.equal(door.hp, 8 - DRONE_DOOR_HITS_PER_S);
+    assert.equal(door.open, false);
+    assert.equal(kit.room, weapons.id);
+    tickSwarm(g, 3);
+    assert.equal(door.open, true);
+    assert.equal(door.stuck, 7);
+    assert.equal(door.hp, 0);
+    assert.equal(kit.room, weapons.id);
+    tickSwarm(g, 1.25);
+    assert.equal(kit.room, next);
+  });
+
   it("hull deploys and does not invent a hull-per-second", () => {
     const g = createGame(17);
     place(g, 2);
@@ -398,7 +444,7 @@ describe("swarm", () => {
 });
 
 describe("Ion Intruder body", () => {
-  it("has 125 health, walks to the next system, and does not spend door hp", () => {
+  it("has 125 health, walks an open door, and does not spend its hp", () => {
     assert.equal(INTRUDER_HP, 125);
     assert.equal(INTRUDER_SPACE_SPEED, 18);
     const g = createGame(41);
@@ -424,6 +470,75 @@ describe("Ion Intruder body", () => {
     tickSwarm(g, 0.6);
     assert.equal(kit.room, next);
     assert.deepEqual(enemy.doors.map((door) => door.hp), doors);
+  });
+
+  it("spends two hits a second on a blast door and skips that cooldown once", () => {
+    assert.equal(DRONE_DOOR_HITS_PER_S, 2);
+    const g = createGame(43);
+    place(g, 3);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    assert.equal(deploy(g, "ionintruder"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const room = enemy.rooms.find((item) => item.system);
+    assert.ok(room?.system);
+    const away = enemy.rooms.find((item) => item.id !== room.id && item.system !== "doors");
+    assert.ok(away);
+    for (const c of g.crew) {
+      if (c.side !== "enemy") continue;
+      c.room = away.id;
+      c.aboard = "enemy";
+      c.path = [];
+    }
+    enemy.systems.doors.level = 2;
+    enemy.systems.doors.damage = 0;
+    kit.room = room.id;
+    kit.left = 0.05;
+    kit.aux = 0;
+    kit.path = [];
+    tickSwarm(g, 0.05);
+    const next = kit.path?.[0];
+    assert.ok(next);
+    const door = enemy.doors.find(
+      (item) => item.b !== "void" && ((item.a === room.id && item.b === next) || (item.b === room.id && item.a === next)),
+    );
+    assert.ok(door);
+    door.open = false;
+    door.hp = 0;
+    door.stuck = 0;
+    enemy.systems[room.system].ion = [];
+    kit.left = 30;
+    kit.aux = 0;
+    kit.doorHit = undefined;
+    kit.doorChew = undefined;
+    tickSwarm(g, 0.05);
+    assert.ok(Math.abs(door.hp - (8 - 0.05 * DRONE_DOOR_HITS_PER_S)) < 1e-9, String(door.hp));
+    assert.equal(door.open, false);
+    assert.equal(kit.room, room.id);
+    assert.equal(enemy.systems[room.system].ion.length, 3);
+    const ion = enemy.systems[room.system].ion.length;
+    const left = kit.left;
+    tickSwarm(g, 0.05);
+    assert.equal(enemy.systems[room.system].ion.length, ion);
+    assert.equal(kit.left, left);
+
+    door.hp = 8;
+    door.open = false;
+    room.lock = 12;
+    kit.left = 30;
+    kit.aux = 0;
+    kit.doorHit = undefined;
+    kit.doorChew = undefined;
+    kit.path = [next];
+    kit.room = room.id;
+    tickSwarm(g, 1);
+    assert.equal(door.hp, 8);
+    assert.equal(door.open, false);
+    assert.equal(kit.room, room.id);
+    assert.equal(enemy.systems[room.system].ion.length, ion);
+    assert.equal(kit.left, 30);
   });
 
   it("dies at 0 health and waits out the redeploy", () => {

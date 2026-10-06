@@ -335,6 +335,48 @@ describe("swarm", () => {
     assert.ok(Math.abs(weapons.fire - (1 - 0.096 * 2)) < 1e-9, String(weapons.fire));
   });
 
+  it("walks to a fire before a damaged Shields room, and to Oxygen when the air is under 25%", () => {
+    const g = createGame(18);
+    place(g, 1);
+    assert.equal(deploy(g, "patch"), true);
+    const kit = g.player.kits.swarm!;
+    const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
+    const shields = g.player.rooms.find((room) => room.system === "shields")!;
+    const oxygen = g.player.rooms.find((room) => room.system === "oxygen")!;
+    const doors = g.player.rooms.find((room) => room.system === "doors")!;
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.shields.damage = 1;
+    oxygen.fire = 1;
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    assert.equal(kit.path?.[kit.path.length - 1], oxygen.id);
+    assert.equal(g.player.systems.shields.damage, 1);
+
+    for (const room of g.player.rooms) room.o2 = 20;
+    oxygen.fire = 0;
+    g.player.systems.oxygen.damage = 1;
+    weapons.fire = 1;
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    assert.equal(kit.path?.[kit.path.length - 1], oxygen.id);
+
+    for (const room of g.player.rooms) room.o2 = 100;
+    g.player.systems.oxygen.damage = 0;
+    weapons.fire = 0;
+    oxygen.fire = 0;
+    doors.breach = 1;
+    doors.venting = false;
+    oxygen.fire = 1;
+    oxygen.venting = true;
+    kit.room = doors.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    assert.equal(kit.path?.[kit.path.length - 1], shields.id);
+    assert.equal(doors.breach, 1);
+  });
+
   it("hull deploys and does not invent a hull-per-second", () => {
     const g = createGame(17);
     place(g, 2);

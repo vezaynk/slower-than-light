@@ -506,18 +506,12 @@ function route(ship: Ship, from: string, to: string): string[] | null {
   return null;
 }
 
-function needsRepair(ship: Ship, room: Room): boolean {
-  if (room.fire > 0 || room.breach > 0) return true;
-  if (room.system && ship.systems[room.system].damage > 0) return true;
-  return !!room.kit && (ship.kits[room.kit]?.damage ?? 0) > 0;
-}
-
 /**
  * Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires,
  * at the same speed as an Engi". Engi repair is ×2, so one bar or breach takes REPAIR_SECONDS / 2.
  * Skills: racial repair also scales fire-fighting, so the fire share uses that same ×2.
- * Fire, then a breach, then a system or kit. The printed priority list beyond that is not applied.
- * INFERRED: the drone is not crew, so low oxygen does not stop it.
+ * Inside the room the order is still fire, then a breach, then a system or kit.
+ * Which room is patchRank. INFERRED: the drone is not crew, so low oxygen does not stop the work.
  * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
  */
 function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {
@@ -552,18 +546,59 @@ function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): v
   if (repowerKits) kit.power = kit.level - (kit.damage ?? 0);
 }
 
-/** Nearest room with a fire, a breach, or system damage. The drone stays put when it is already there. */
-function repairRoom(ship: Ship, from: string): string | null {
-  const here = ship.rooms.find((room) => room.id === from);
-  if (here && needsRepair(ship, here)) return null;
-  let best: { id: string; steps: number } | null = null;
+/**
+ * Drone Control, System Repair Drone, "Priorities (in the descending order)", plus the oxygen line.
+ * 0. Oxygen below 25% sends it to a damaged Oxygen system "over anything else".
+ *    INFERRED: 25% is the average of the room oxygen readings. The sim has no single ship meter.
+ * 1. A fire. A vented room's fire is ignored, and that room is skipped until the fire is gone.
+ * 2. A damaged Shields system.
+ * 3. A breach.
+ * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
+ *    nearest room wins. INFERRED: a kit ranks with those systems.
+ * Repower-sticky, the walk home, and door breaking are not in this rank.
+ */
+const PATCH_AIR = 25;
+
+function shipAir(ship: Ship): number {
+  if (ship.rooms.length === 0) return 100;
+  let sum = 0;
+  for (const room of ship.rooms) sum += room.o2;
+  return sum / ship.rooms.length;
+}
+
+function patchRank(ship: Ship, room: Room, air: number): number | null {
+  if (air < PATCH_AIR && room.system === "oxygen" && ship.systems.oxygen.damage > 0) return 0;
+  // "if a fire is in a vented room, it will be completely ignored" even when that room is damaged.
+  if (room.venting && room.fire > 0) return null;
+  if (room.fire > 0) return 1;
+  if (room.system === "shields" && ship.systems.shields.damage > 0) return 2;
+  if (room.breach > 0) return 3;
+  if (room.system && ship.systems[room.system].damage > 0) return 4;
+  if (room.kit && (ship.kits[room.kit]?.damage ?? 0) > 0) return 4;
+  return null;
+}
+
+/** The room to work. Same id as `from` means stay. Null means nothing qualifies. */
+function patchTarget(ship: Ship, from: string): string | null {
+  const air = shipAir(ship);
+  let best: { id: string; rank: number; steps: number } | null = null;
   for (const room of ship.rooms) {
-    if (!needsRepair(ship, room)) continue;
-    const path = route(ship, from, room.id);
-    if (!path || path.length === 0) continue;
-    if (!best || path.length < best.steps) best = { id: room.id, steps: path.length };
+    const rank = patchRank(ship, room, air);
+    if (rank == null) continue;
+    const steps = room.id === from ? 0 : (route(ship, from, room.id)?.length ?? -1);
+    if (steps < 0) continue;
+    if (!best || rank < best.rank || (rank === best.rank && steps < best.steps)) {
+      best = { id: room.id, rank, steps };
+    }
   }
   return best?.id ?? null;
+}
+
+/** Next room to walk to, or null when the drone should stay and work (or has no job). */
+function repairRoom(ship: Ship, from: string): string | null {
+  const target = patchTarget(ship, from);
+  if (!target || target === from) return null;
+  return target;
 }
 
 function tickCrewDrone(g: Game, kit: Kit, dt: number) {
@@ -594,12 +629,14 @@ function tickCrewDrone(g: Game, kit: Kit, dt: number) {
 function tickPatch(g: Game, kit: Kit, dt: number) {
   const ship = g.player;
   const here = kit.room ? ship.rooms.find((room) => room.id === kit.room) : undefined;
-  // Stay and work when this room needs it. The walk still picks the nearest other room, not the printed priority list.
-  if (here && needsRepair(ship, here)) {
+  const target = kit.room ? patchTarget(ship, kit.room) : null;
+  if (here && target === here.id) {
     kit.path = [];
     engiRepair(ship, here, dt, false);
     return;
   }
+  // A new higher-ranked room replaces a walk that was aimed somewhere else.
+  if (target && kit.path?.length && kit.path[kit.path.length - 1] !== target) kit.path = [];
   tickCrewDrone(g, kit, dt);
 }
 
@@ -1455,12 +1492,15 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
 }
 
 /**
- * System Repair Drone aboard the enemy: same Engi pace as the player's drone.
- * INFERRED: it goes straight to the first room needing work. The wiki's priority list and walking are not modelled.
+ * System Repair Drone aboard the enemy: same Engi pace and the same patchTarget rank as the player's drone.
+ * INFERRED: it still appears in that room instead of walking. The printed walk, the repower stick, and the
+ * trip home are not modelled.
  */
 function tickEnemyPatch(_g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
-  const here = enemy.rooms.find((room) => room.id === unit.room);
-  const room = here && needsRepair(enemy, here) ? here : enemy.rooms.find((item) => needsRepair(enemy, item));
+  const from = unit.room && enemy.rooms.some((room) => room.id === unit.room) ? unit.room : enemy.rooms[0]?.id;
+  if (!from) return;
+  const target = patchTarget(enemy, from);
+  const room = target ? enemy.rooms.find((item) => item.id === target) : undefined;
   if (!room) {
     unit.room = undefined;
     return;

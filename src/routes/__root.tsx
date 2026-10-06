@@ -5,6 +5,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "ASHWAKE";
+const BASE = import.meta.env.BASE_URL;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -16,14 +17,14 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#020308" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/svg+xml", href: `${BASE}favicon.svg` },
       { rel: "stylesheet", href: appCss },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap",
       },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      { rel: "manifest", href: `${BASE}__grok/manifest.webmanifest` },
+      { rel: "apple-touch-icon", href: `${BASE}__grok/icon-180.png` },
     ],
   }),
   // The document shell is always server-rendered, even with SSR off in src/start.ts.

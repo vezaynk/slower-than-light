@@ -142,10 +142,18 @@ function authPopupPlugin(): Plugin {
   };
 }
 
+/**
+ * Static GitHub Pages build: `PAGES_BASE=/ashwake/ npm run build:pages`. The game
+ * is client-only (SSR off in src/start.ts), so the SPA shell prerenders to a
+ * plain index.html and no Nitro server is needed.
+ */
+const pagesBase = process.env.PAGES_BASE;
+
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
 // The dev server starts once `src/router.tsx` and `src/routes/` exist — see
 // AGENTS.md § "First scaffold".
 export default defineConfig(({ command, isPreview }) => ({
+  ...(pagesBase ? { base: pagesBase } : {}),
   server: {
     host: "0.0.0.0",
     port: 8080,
@@ -166,8 +174,12 @@ export default defineConfig(({ command, isPreview }) => ({
     // PWA head + ?install=1 tutorial page; runs before Start/Nitro.
     grokPwaPlugin(),
     tailwindcss(),
-    tanstackStart(),
-    ...(command === "build" || isPreview
+    tanstackStart(
+      pagesBase
+        ? { spa: { enabled: true, prerender: { outputPath: "/index.html", crawlLinks: false } } }
+        : {},
+    ),
+    ...(!pagesBase && (command === "build" || isPreview)
       ? [
           nitro({
             preset: "vercel",

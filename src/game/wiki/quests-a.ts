@@ -11,7 +11,7 @@
  */
 import { kinOf } from "../extras/kin.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { log, rand } from "../sim.ts";
+import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { EXTRA_EVENTS as ZOLTAN_PAGES } from "./cited-events-zoltan.ts";
@@ -197,12 +197,11 @@ const CHOICES_A: QuestPart["choices"] = {
   "c:ancient-device:1": (g) => result(g, "Better not risk it. The Rock people are unlikely to respond well to vandalism."),
   "c:ancient-device:2": (g) => {
     if (!hasCrystal(g)) return;
-    // "You receive 1 fuel" ... "You jump to the Hidden Crystal Worlds. [1 subtract_fuel]": the fuel nets to zero.
-    // INVENTED substitute: this build has no jump to the Hidden Crystal Worlds (it is not on the sector chart), so the
-    // companion's coordinates ("A quest marker is added to your map.") go on this map, or the next sector's.
+    // "You receive 1 fuel" then "You jump to the Hidden Crystal Worlds" spends that fuel. The marker is on the new map.
+    enterHiddenCrystal(g);
     result(
       g,
-      "Your Crystalline companion says, \"It looks like we have found the abandoned link to my home worlds. I can reactivate it.\" He transmits some codes to the device and it immediately powers on.\n\nBefore you can react, the space around you distorts and a wormhole forms. You begin to sound the alarm, but your companion calms you and indicates that you should fly directly into the wormhole. You reluctantly do as he says.\n\n\"You have done as you promised and so shall I. The coordinates of my old ship have been forwarded to your navigation system.\"",
+      "Your Crystalline companion says, \"It looks like we have found the abandoned link to my home worlds. I can reactivate it.\" He transmits some codes to the device and it immediately powers on.\n\nBefore you can react, the space around you distorts and a wormhole forms. You begin to sound the alarm, but your companion calms you and indicates that you should fly directly into the wormhole. You reluctantly do as he says.\n\nYou arrive in a sector not listed in any star charts. Strange crystalline ships dot the horizon. Your companion speaks, \"Here we are, my home sector. It has been a long time since others have set foot here, I wonder how you will be received.\"\n\n\"You have done as you promised and so shall I. The coordinates of my old ship have been forwarded to your navigation system.\"",
       undefined,
       [addQuest(g, "crystal-unlock")],
     );

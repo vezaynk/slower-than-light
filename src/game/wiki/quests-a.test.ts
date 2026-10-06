@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { classIdFor, pickEnemy, requestFor } from "../enemy-gen.ts";
 import { choiceDisabled, choose, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
+import { SECTOR_TYPES } from "./sectors.ts";
 import { citedEvent, citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 import { addQuest } from "./quests.ts";
 import { EXTRA_EVENTS } from "./quests-a-pages.ts";
@@ -163,7 +164,14 @@ describe("quest openers (quests-a)", () => {
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     assert.ok(joinCrew(g, "Crystal"));
     assert.equal(choiceDisabled(g, "c:ancient-device:2"), null);
+    const fuelBefore = g.fuel;
     choose(g, "c:ancient-device:2");
+    // Ancient device: the jump stays on the Rock Homeworlds sector number. The granted fuel is spent on the jump.
+    assert.equal(g.sector, 5);
+    assert.equal(g.sectorName, "Hidden Crystal Worlds");
+    assert.equal(g.fuel, fuelBefore);
+    assert.equal(g.sectorMap, false);
+    assert.ok(questBeacon(g, "crystal-unlock"));
     choose(g, "ack");
     g.augments = [];
     const fuel = g.fuel;
@@ -171,6 +179,55 @@ describe("quest openers (quests-a)", () => {
     assert.ok(g.unlocked?.includes("crystal-a"));
     assert.ok(g.augments.includes("vengeance"));
     assert.ok(g.fuel >= fuel - 1 + 2);
+  });
+
+  it("Ancient device: the exit skips the chart and can land off the Rock Homeworlds links", () => {
+    const names = new Set<string>();
+    let offChart = 0;
+    for (let seed = 1; seed <= 24; seed++) {
+      const g = atCited(createGame(seed), "Rock Homeworlds", "Ancient device");
+      g.sector = 5;
+      g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
+      assert.ok(joinCrew(g, "Crystal"));
+      choose(g, "c:ancient-device:2");
+      choose(g, "ack");
+      const exit = g.beacons.find((b) => b.kind === "exit");
+      assert.ok(exit);
+      g.here = exit.id;
+      g.phase = "map";
+      g.event = null;
+      const rock = (g.route ?? []).find((n) => n.name === "Rock Homeworlds");
+      const linked = new Set(
+        (rock?.links ?? [])
+          .map((id) => (g.route ?? []).find((n) => n.id === id)?.name)
+          .filter((name): name is string => !!name),
+      );
+      choose(g, "exit-leave");
+      assert.equal(g.sectorMap, false);
+      assert.equal(g.sector, 6);
+      assert.ok(SECTOR_TYPES.some((s) => s.name === g.sectorName));
+      assert.notEqual(g.sectorName, "Hidden Crystal Worlds");
+      names.add(g.sectorName);
+      if (!linked.has(g.sectorName)) offChart += 1;
+    }
+    assert.ok(names.size > 1);
+    assert.ok(offChart > 0);
+
+    const last = atCited(createGame(3), "Rock Homeworlds", "Ancient device");
+    last.sector = 7;
+    last.crew = last.crew.filter((c) => c.side === "player").slice(0, 3);
+    assert.ok(joinCrew(last, "Crystal"));
+    choose(last, "c:ancient-device:2");
+    choose(last, "ack");
+    const lane = last.beacons.find((b) => b.kind === "exit");
+    assert.ok(lane);
+    last.here = lane.id;
+    last.phase = "map";
+    last.event = null;
+    choose(last, "exit-leave");
+    assert.equal(last.sector, 8);
+    assert.equal(last.sectorName, "The Last Stand");
+    assert.equal(last.sectorMap, false);
   });
 
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {

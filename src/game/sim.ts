@@ -2983,6 +2983,11 @@ export function choose(g: Game, id: string) {
       startCombat(g, tierFor(g, true));
       break;
     case "exit-leave":
+      // Ancient device, Notes: leaving the Hidden Crystal Worlds does not open the sector chart.
+      if (g.sectorName === "Hidden Crystal Worlds") {
+        leaveHiddenCrystal(g);
+        break;
+      }
       openSectorMap(g);
       break;
     case "engi-cache-trap":
@@ -3065,6 +3070,80 @@ export function chooseSector(g: Game, id: string) {
   g.routeHere = id;
   g.sectorMap = false;
   nextSector(g, next.name);
+}
+
+/** Chart eligibility for one sector number. The crystal exit is not limited to the two linked nodes. */
+function sectorPool(g: Game, sector: number): string[] {
+  const used = new Set(
+    (g.route ?? [])
+      .map((n) => SECTOR_TYPES.find((s) => s.name === n.name)?.id)
+      .filter((id): id is string => !!id && ONCE_SECTOR.has(id)),
+  );
+  return SECTOR_TYPES.filter((s) => {
+    if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand") return false;
+    if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
+    if (used.has(s.id)) return false;
+    if ((s.id === "engi-home" || s.id === "zoltan-home" || s.id === "mantis-home") && sector < 3) return false;
+    if ((s.id === "rebel-stronghold" || s.id === "rock-home") && sector < 5) return false;
+    if ((s.id === "slug-nebula" || s.id === "slug-home") && sector < 4) return false;
+    return true;
+  }).map((s) => s.name);
+}
+
+/**
+ * Ancient device: a Crystal crewmember jumps to the Hidden Crystal Worlds.
+ * Sectors: the sector is not on the chart, the Rebels still follow, and enemy strength stays the Rock Homeworlds number.
+ * The page gives 1 fuel and then spends that 1 fuel on the jump.
+ */
+export function enterHiddenCrystal(g: Game) {
+  g.fuel += 1;
+  g.fuel = Math.max(0, g.fuel - 1);
+  g.player.shieldCharge = 0;
+  g.jumps += 1;
+  onPlayerJump(g);
+  leashOnLeave(g);
+  rememberFlagship(g);
+  dropOvercharged(g.player);
+  rechargeZoltan(g.player);
+  rechargeLockdown(g);
+  g.crew = g.crew.filter((c) => c.side === "player");
+  g.enemy = null;
+  g.shots = [];
+  g.asteroid = false;
+  g.asb = false;
+  armDoors(g.player, doorLevel(g, g.player, "player"));
+  makeMap(g);
+  g.sectorName = "Hidden Crystal Worlds";
+  stampEngiCache(g);
+  stampCitedEvents(g);
+  citedSector(g);
+  placeQueuedQuests(g);
+  g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
+  g.phase = "map";
+  g.paused = false;
+  g.event = null;
+  g.picking = false;
+  g.flee = 0;
+  g.enemyFlee = 0;
+  g.pending = null;
+  g.sectorMap = false;
+  log(g, "Hidden Crystal Worlds.");
+}
+
+/**
+ * Ancient device, Notes: the exit does not open the chart. The next sector is a random one after the Rock
+ * Homeworlds number, and it may not be a sector connected to the Rock Homeworlds. Sector 8 stays The Last Stand.
+ */
+function leaveHiddenCrystal(g: Game) {
+  if (g.sector >= 7) nextSector(g, "The Last Stand");
+  else {
+    const pool = sectorPool(g, g.sector + 1);
+    nextSector(g, pool.length ? pool[irand(g, pool.length)] : "Civilian Sector");
+  }
+  const col = g.sector <= 1 ? 0 : g.sector - 1;
+  const nodes = (g.route ?? []).filter((n) => n.col === col);
+  const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
+  if (match) g.routeHere = match.id;
 }
 
 function nextSector(g: Game, name?: string) {

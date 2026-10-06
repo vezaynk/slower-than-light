@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { HULLS } from "../hulls.ts";
 import { createGame } from "../sim.ts";
+import { UNLOCKS_KEY } from "../unlocks.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
 import {
   earnedIds,
@@ -60,7 +62,17 @@ describe("achievement tracker", () => {
     eight.phase = "victory";
     eight.outcome = "victory";
     eight.difficulty = "easy";
-    assert.deepEqual(earnedNow(eight), ["just-getting-started", "federation-base-in-range"]);
+    assert.deepEqual(earnedNow(eight), [
+      "just-getting-started",
+      "federation-base-in-range",
+      "federation-victory-easy",
+    ]);
+    eight.difficulty = "normal";
+    assert.ok(earnedNow(eight).includes("federation-victory-normal"));
+    assert.equal(earnedNow(eight).includes("federation-victory-easy"), false);
+    eight.difficulty = "hard";
+    assert.equal(earnedNow(eight).includes("federation-victory-easy"), false);
+    assert.equal(earnedNow(eight).includes("federation-victory-normal"), false);
 
     const short = createGame(1, "lanius-a");
     short.phase = "map";
@@ -97,12 +109,32 @@ describe("achievement tracker", () => {
     assert.deepEqual(noteRun(quiet).sort(), ["federation-base-in-range", "just-getting-started", "scrap-hoarder"]);
   });
 
+  it("reads Your Own Fleet from the saved Type A unlocks", () => {
+    memoryStorage();
+    const typeA = HULLS.filter((hull) => hull.layout === "A").map((hull) => hull.id);
+    localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ ships: typeA.slice(0, -1), wins: [] }));
+    resetAchievementMemory();
+    const shy = createGame(2);
+    shy.phase = "map";
+    assert.equal(earnedNow(shy).includes("your-own-fleet"), false);
+    localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ ships: typeA, wins: [], boss: ["easy"] }));
+    resetAchievementMemory();
+    const fleet = createGame(3);
+    fleet.phase = "map";
+    assert.ok(earnedNow(fleet).includes("your-own-fleet"));
+    assert.ok(earnedNow(fleet).includes("federation-victory-easy"));
+    assert.equal(earnedNow(fleet).includes("federation-victory-normal"), false);
+  });
+
   it("marks every other named achievement as not tracked", () => {
     const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
     // @agent:unlocks: six stateless ship achievements added for Layout B unlocks (unlocks.ts).
     assert.deepEqual(tracked, [
       "just-getting-started",
       "federation-base-in-range",
+      "federation-victory-easy",
+      "federation-victory-normal",
+      "your-own-fleet",
       "the-united-federation",
       "full-arsenal",
       "artillery-mastery",

@@ -16,16 +16,25 @@
  * Advanced Edition Content is always on in this build (Hangar.tsx header), so the C rule needs no AE check.
  */
 import { HULLS, type HullSpec } from "./hulls.ts";
-import type { Game } from "./types.ts";
+import type { Difficulty, Game } from "./types.ts";
 import { ACHIEVEMENTS } from "./wiki/achievements.ts";
 
 export const UNLOCKS_KEY = "ashwake:unlocks";
+
+const DIFFICULTIES = ["easy", "normal", "hard"] as const;
 
 export type UnlockState = {
   /** Hull ids (layouts) the player may start. */
   ships: string[];
   /** Hull ids that have defeated the Rebel Flagship. "Ship Achievements": the Victory Achievement "displays which layout was used". */
   wins: string[];
+  /**
+   * Difficulties on which a Flagship victory was recorded.
+   * Achievements: "Beat the boss on Easy." and "Beat the boss on Normal."
+   * Hard is stored with the win. The Achievements page has no Hard row.
+   * Absent means none recorded.
+   */
+  boss?: Difficulty[];
 };
 
 /** Rule kind for the hangar and the tests. */
@@ -140,7 +149,9 @@ export function emptyUnlocks(): UnlockState {
 }
 
 export function allUnlocks(prev: UnlockState = emptyUnlocks()): UnlockState {
-  return { ships: HULLS.map((h) => h.id), wins: [...prev.wins] };
+  const next: UnlockState = { ships: HULLS.map((h) => h.id), wins: [...prev.wins] };
+  if (prev.boss?.length) next.boss = [...prev.boss];
+  return next;
 }
 
 export function isUnlockedIn(state: UnlockState, hullId: string): boolean {
@@ -183,6 +194,7 @@ export function fightUnlock(g: Game, slug: string | null | undefined): void {
 export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly string[]): UnlockState {
   const ships = new Set(state.ships);
   const wins = new Set(state.wins);
+  const boss = new Set(state.boss ?? []);
   ships.add("kestrel-a");
   const live = g.phase !== "title";
   const hull = live ? cruiserOf(g.hullId) : undefined;
@@ -198,7 +210,11 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
       if (c) ships.add(c);
     }
     // sim.ts winCombat sets phase and outcome "victory" when the Flagship falls.
-    if (g.phase === "victory" && g.outcome === "victory") wins.add(hull.id);
+    // Achievements, "Federation Victory (Easy)" / "(Normal)": the win keeps its difficulty.
+    if (g.phase === "victory" && g.outcome === "victory") {
+      wins.add(hull.id);
+      boss.add(g.difficulty);
+    }
   }
 
   // "defeat the Rebel Flagship with the previous ship in the diagram". Any layout of that cruiser counts. INFERRED:
@@ -231,14 +247,19 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
   ).length;
   if (cruisers >= 4) ships.add("lanius-a");
 
+  const prevBoss = state.boss ?? [];
   const same =
     ships.size === state.ships.length && wins.size === state.wins.length && state.ships.every((s) => ships.has(s));
-  if (same && state.wins.every((w) => wins.has(w))) return state;
+  const bossSame = boss.size === prevBoss.length && prevBoss.every((d) => boss.has(d));
+  if (same && state.wins.every((w) => wins.has(w)) && bossSame) return state;
   const order = HULLS.map((h) => h.id);
-  return {
+  const next: UnlockState = {
     ships: [...ships].sort((x, y) => order.indexOf(x) - order.indexOf(y)),
     wins: [...wins].sort((x, y) => order.indexOf(x) - order.indexOf(y)),
   };
+  const recorded = DIFFICULTIES.filter((d) => boss.has(d));
+  if (recorded.length) next.boss = recorded;
+  return next;
 }
 
 /** Parse a stored value. Anything unreadable is the start state. */
@@ -250,7 +271,13 @@ export function parseUnlocks(raw: string | null): UnlockState {
     const ok = (list: unknown) =>
       Array.isArray(list) ? list.filter((id): id is string => typeof id === "string" && !!cruiserOf(id)) : [];
     const ships = new Set([...base.ships, ...ok(parsed?.ships)]);
-    return { ships: [...ships], wins: ok(parsed?.wins) };
+    const boss = Array.isArray(parsed?.boss)
+      ? parsed.boss.filter((d): d is Difficulty => typeof d === "string" && (DIFFICULTIES as readonly string[]).includes(d))
+      : [];
+    const next: UnlockState = { ships: [...ships], wins: ok(parsed?.wins) };
+    const recorded = DIFFICULTIES.filter((d) => boss.includes(d));
+    if (recorded.length) next.boss = recorded;
+    return next;
   } catch {
     return base;
   }

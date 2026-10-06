@@ -5,7 +5,8 @@
  * Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
 import { HULLS } from "../hulls.ts";
-import type { Game } from "../types.ts";
+import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
+import type { Difficulty, Game } from "../types.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
 
 const STORAGE_KEY = "ashwake-achievements-v1";
@@ -29,6 +30,35 @@ function sectorFive(g: Game): boolean {
  */
 function sectorEight(g: Game): boolean {
   return g.sector >= 8;
+}
+
+function savedUnlocks() {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return parseUnlocks(localStorage.getItem(UNLOCKS_KEY));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Achievements, "General Progression": "Federation Victory (Easy)" — "Beat the boss on Easy."
+ * "Federation Victory (Normal)" — "Beat the boss on Normal."
+ * A victory this run counts, and so does a difficulty already stored on the win record.
+ */
+function beatBoss(g: Game, difficulty: Difficulty): boolean {
+  if (g.phase === "victory" && g.outcome === "victory" && g.difficulty === difficulty) return true;
+  return savedUnlocks()?.boss?.includes(difficulty) ?? false;
+}
+
+/**
+ * Achievements, "General Progression": "Your Own Fleet" — "Unlock the Type A layout for every playable ship."
+ * The saved unlock list is that set. Layout B and Layout C are not part of the line.
+ */
+function yourOwnFleet(): boolean {
+  const ships = new Set(savedUnlocks()?.ships ?? []);
+  const typeA = HULLS.filter((hull) => hull.layout === "A");
+  return typeA.length > 0 && typeA.every((hull) => ships.has(hull.id));
 }
 
 /**
@@ -109,6 +139,9 @@ function ancestry(g: Game): boolean {
 const RULES: Rule[] = [
   { id: "just-getting-started", met: sectorFive },
   { id: "federation-base-in-range", met: sectorEight },
+  { id: "federation-victory-easy", met: (g) => beatBoss(g, "easy") },
+  { id: "federation-victory-normal", met: (g) => beatBoss(g, "normal") },
+  { id: "your-own-fleet", met: () => yourOwnFleet() },
   { id: "the-united-federation", met: unitedFederation },
   { id: "full-arsenal", met: fullArsenal },
   { id: "artillery-mastery", met: artilleryMastery },
@@ -123,9 +156,6 @@ const RULES: Rule[] = [
  * Kills, beacons, and hull are stored, and none of these lines is only that reading.
  *
  * Achievements, "General Progression":
- * - "Federation Victory (Easy)" — "Beat the boss on Easy."
- * - "Federation Victory (Normal)" — "Beat the boss on Normal."
- * - "Your Own Fleet" — "Unlock the Type A layout for every playable ship."
  * - "Rule Ten: Greed is Eternal" — "Collect 10,000 scrap across all games." Scrap this run is stored. A total across games is not.
  * - "Warlord" — "Defeat 1000 ships across all playthroughs." Kills this run are stored. A total across playthroughs is not.
  *

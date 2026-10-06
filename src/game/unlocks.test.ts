@@ -158,6 +158,29 @@ describe("ship unlocks (Ships, Layouts)", () => {
     assert.deepEqual(all.wins, ["engi-a"]);
   });
 
+  it("records the difficulty of a Flagship win", () => {
+    const easy = deriveUnlocks(
+      start,
+      run("kestrel-a", { phase: "victory", outcome: "victory", sector: 8, difficulty: "easy" }),
+      [],
+    );
+    assert.deepEqual(easy.boss, ["easy"]);
+    assert.ok(easy.wins.includes("kestrel-a"));
+    const both = deriveUnlocks(
+      easy,
+      run("engi-a", { phase: "victory", outcome: "victory", sector: 8, difficulty: "normal" }),
+      [],
+    );
+    assert.deepEqual(both.boss, ["easy", "normal"]);
+    const hard = deriveUnlocks(
+      start,
+      run("kestrel-a", { phase: "victory", outcome: "victory", difficulty: "hard" }),
+      [],
+    );
+    assert.deepEqual(hard.boss, ["hard"]);
+    assert.deepEqual(parseUnlocks(JSON.stringify(both)).boss, ["easy", "normal"]);
+  });
+
   it("reads bad storage as the start state", () => {
     assert.deepEqual(parseUnlocks(null), start);
     assert.deepEqual(parseUnlocks("{nope"), start);

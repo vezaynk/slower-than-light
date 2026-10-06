@@ -80,6 +80,10 @@ type Props = {
   crew: Crew[];
   aboard: "player" | "enemy";
   showCrew: boolean;
+  /** Room interior (fire, air, damage). Absent means every room is open. */
+  seen?: (roomId: string) => boolean;
+  /** Crew still drawn when their room is closed. Slug life signs use this. */
+  crewLit?: (c: Crew) => boolean;
   selectedId: string | null;
   ventMode: boolean;
   targetable: boolean;
@@ -101,6 +105,8 @@ export function ShipView({
   crew,
   aboard,
   showCrew,
+  seen,
+  crewLit,
   selectedId,
   ventMode,
   targetable,
@@ -147,7 +153,10 @@ export function ShipView({
       }}
     >
       {ship.rooms.map((room) => {
-        const occupants = showCrew ? here.filter((c) => c.room === room.id) : [];
+        const open = seen ? seen(room.id) : true;
+        const occupants = showCrew
+          ? here.filter((c) => c.room === room.id && (open || (crewLit?.(c) ?? false)))
+          : [];
         const hot = occupants.some((c) => c.id === selectedId);
         const clip = roomClip(room);
         const pick = hackPick ? hackPick(room.id) : null;
@@ -166,6 +175,7 @@ export function ShipView({
               (room.o2 <= 10 ? " is-low" : "") +
               ((room.lock ?? 0) > 0 ? " is-lock" : "") +
               (hot ? " is-hot" : "") +
+              (open ? "" : " is-unseen") +
               (targetable ? " is-aim" : "") +
               // @agent:hacking. An enemy hacking drone on this room's system (extras/spike.ts, Room.hacked).
               (room.hacked ? ` is-hacked is-hacked-${room.hacked}` : "") +
@@ -189,21 +199,25 @@ export function ShipView({
             />
             <div className="room-body">
               <div className="room-name">{roomLabel(room.title, room.w)}</div>
-              <div className="room-flags">
-                {room.fire > 0 ? <span>Fire</span> : null}
-                {room.breach > 0 ? <span>Leak</span> : null}
-                {room.venting ? <span>Vent</span> : null}
-                {/* @agent:flagship. A flagship artillery room shows its own gun (wiki/flagship-systems.ts artilleryGun). */}
-                {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
-                  <span>Dmg {(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
-                ) : null}
-                {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
-                  <span>Ion</span>
-                ) : null}
-              </div>
-              <div className="o2" aria-hidden="true">
-                <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${room.o2}%` }} />
-              </div>
+              {open ? (
+                <div className="room-flags">
+                  {room.fire > 0 ? <span>Fire</span> : null}
+                  {room.breach > 0 ? <span>Leak</span> : null}
+                  {room.venting ? <span>Vent</span> : null}
+                  {/* @agent:flagship. A flagship artillery room shows its own gun (wiki/flagship-systems.ts artilleryGun). */}
+                  {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
+                    <span>Dmg {(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
+                  ) : null}
+                  {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
+                    <span>Ion</span>
+                  ) : null}
+                </div>
+              ) : null}
+              {open ? (
+                <div className="o2" aria-hidden="true">
+                  <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${room.o2}%` }} />
+                </div>
+              ) : null}
               {showCrew ? (
                 <div className="crew-row">
                   {occupants.map((c) => (

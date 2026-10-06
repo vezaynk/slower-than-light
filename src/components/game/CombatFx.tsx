@@ -8,6 +8,7 @@
 import { useEffect, useRef } from "react";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
+import { roomInterior } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
 import { enemyHackView, playerHackView } from "@/game/extras/spike";
 // @agent:flagship. Stage-2 Power Surge drones (read-only view).
@@ -226,7 +227,10 @@ export function CombatFx() {
             };
           }
         } else {
-          const r = room(spot.at === "player-room" ? "player" : "enemy", spot.room);
+          // Slugs: a crew drone in a closed room has no life sign, so it is not drawn.
+          const side = spot.at === "player-room" ? "player" : "enemy";
+          if (!roomInterior(g, side, spot.room)) continue;
+          const r = room(side, spot.room);
           if (r) {
             size = 21;
             p = { x: r.x + r.w / 2 + Math.sin(t * 2 + phase) * 3, y: r.y + r.h / 2 };

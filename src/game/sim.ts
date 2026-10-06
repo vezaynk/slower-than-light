@@ -944,6 +944,7 @@ function stopTargeting(g: Game) {
 function dropQueued(w: WeaponInst) {
   w.target = null;
   w.beamLine = null;
+  w.own = false;
 }
 
 export function armWeapon(g: Game, weaponUid: string) {
@@ -967,7 +968,9 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   // Weapon Control, Overview: a target room is confirmed by a left click while the cursor is targeting.
   // Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the start and the second click fires.
   if (!g.targeting) return;
-  if (!g.enemy || !roomById(g.enemy, roomId)) return;
+  const enemyRoom = g.enemy ? roomById(g.enemy, roomId) : undefined;
+  const ownRoom = roomById(g.player, roomId);
+  if (!enemyRoom && !ownRoom) return;
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   let index = g.player.weapons.findIndex((w) => w.uid === g.armed);
   if (index < 0) index = g.player.weapons.findIndex((w, i) => w.enabled && mask[i]);
@@ -979,14 +982,18 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   }
   g.armed = w.uid;
   const def = WEAPONS[w.defId];
+  // Bomb (Weapons), lead: "Bombs are the only weapons that can be fired at your own ship."
   if (def?.kind === "beam") {
-    aimBeam(g, w, !!mask[index], roomId, point ?? roomCenter(roomById(g.enemy, roomId)!));
+    if (!enemyRoom || !g.enemy) return;
+    aimBeam(g, w, !!mask[index], roomId, point ?? roomCenter(enemyRoom));
     return;
   }
+  if (!enemyRoom && def?.kind !== "bomb") return;
   g.beamAnchor = null;
   w.beamLine = null;
+  w.own = def?.kind === "bomb" && !enemyRoom;
   w.target = roomId;
-  const title = roomById(g.enemy, roomId)?.title ?? "room";
+  const title = (enemyRoom ?? ownRoom)?.title ?? "room";
   if (mask[index] && w.charge >= 1) launch(g, "player", w);
   else {
     log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}.`);
@@ -1130,7 +1137,8 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
   const def = WEAPONS[w.defId];
   if (!def || w.charge < 1 || !w.target) return;
   const ship = from === "player" ? g.player : g.enemy;
-  const targetShip = from === "player" ? g.enemy : g.player;
+  // Bomb (Weapons), lead: a bomb may be aimed at the shooter's own hull. Every other shot goes to the other hull.
+  const targetShip = from === "player" && def.kind === "bomb" && w.own ? g.player : from === "player" ? g.enemy : g.player;
   if (!ship || !targetShip) return;
   const rooms = def.kind === "beam" ? beamSwipe(from, targetShip, w) : [w.target];
   if (rooms.length === 0 || !rooms[0]) return;
@@ -1165,6 +1173,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
       beamRooms: def.kind === "beam" ? rooms : undefined,
       beamLine: line,
       defId: w.defId,
+      own: from === "player" && def.kind === "bomb" && w.own === true ? true : undefined,
       wait: i * def.gap,
       t: 0,
       duration: def.kind === "missile" || def.kind === "bomb" ? 1.35 : def.kind === "beam" ? 0.32 : 0.7,
@@ -1211,6 +1220,56 @@ function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void 
     if (!kit) continue;
     const room = ship.rooms.find((r) => r.kit === kit.id);
     kit.zoltan = room ? citedZoltanPower(crew, room.id) : 0;
+  }
+}
+
+/**
+ * Zoltans, lead: Cloaking, Hacking, Crew Teleporter, and Mind Control lock reactor bars
+ * during the cooldown after use. Mind Control's ordinary cooldown is still 0 (leash.ts);
+ * this is true only while kit.cool is actually counting, including an enemy hold's wait
+ * and Hacking's relaunch wait, which share that field.
+ */
+const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["veil", "spike", "sling", "leash"]);
+
+export function cooldownLocksPower(kit: Kit | undefined): boolean {
+  return !!kit && kit.cool > 0 && COOLDOWN_LOCK.has(kit.id);
+}
+
+/**
+ * Zoltans, lead: walking a Zoltan into a cooling system turns one locked bar from reactor
+ * power into Zoltan power. Leaving empties that bar, so the reactor power stays free.
+ * A Zoltan already standing there when the cooldown is first seen does not swap until
+ * they leave and come back. One arrival frees one bar.
+ */
+export function swapZoltanCooldown(g: Game): void {
+  peelZoltanCooldown(g, g.player, "player");
+  if (g.enemy) peelZoltanCooldown(g, g.enemy, "enemy");
+}
+
+function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): void {
+  if (!ship.kits || !ship.rooms) return;
+  for (const kit of Object.values(ship.kits)) {
+    if (!kit || !COOLDOWN_LOCK.has(kit.id)) continue;
+    if (kit.cool <= 0) {
+      delete kit.swap;
+      continue;
+    }
+    const room = ship.rooms.find((r) => r.kit === kit.id);
+    const here = room
+      ? g.crew
+          .filter((c) => c.aboard === aboard && c.kin === "spark" && c.hp > 0 && c.room === room.id)
+          .map((c) => c.id)
+      : [];
+    if (!kit.swap) {
+      kit.swap = here;
+      continue;
+    }
+    const known = new Set(kit.swap);
+    for (const id of here) {
+      if (known.has(id)) continue;
+      if (kit.power > 0) kit.power -= 1;
+    }
+    kit.swap = here;
   }
 }
 
@@ -1277,16 +1336,19 @@ function zoltanBeamCost(shot: Shot): number {
 }
 
 export function applyImpact(g: Game, shot: Shot) {
-  const playerTarget = shot.from !== "player";
+  // Bomb (Weapons), lead: a bomb aimed at your own ship hits that hull. Every other shot hits the other one.
+  const ownBomb = shot.kind === "bomb" && shot.own === true;
+  const playerTarget = ownBomb ? shot.from === "player" : shot.from !== "player";
   const ship = playerTarget ? g.player : g.enemy;
   if (!ship) return;
   const aboard: "player" | "enemy" = playerTarget ? "player" : "enemy";
   if (shot.kind === "bomb") {
-    // Bomb (Weapons), lead: a bomb can miss. It still does not pop shields.
+    // Bomb (Weapons), lead: "Bombs can miss, but not when targeting your own ship."
+    // Template:In-game tips, Repair Bomb: "Bombs never miss when targeting your own ship."
+    // Template:In-game tips, Heal Bomb: a Healing Burst can still miss the enemy ship.
     const evade = evasionPercent(g, ship, aboard);
-    // Template:In-game tips: Repair Burst never misses your own ship. Healing Burst can still miss.
-    const ownHull = (shot.from === "player" && ship === g.player) || (shot.from === "enemy" && ship === g.enemy);
-    if (!(shot.defId === "repairburst" && ownHull) && rand(g) * 100 < evade) {
+    const ownHull = ownBomb && playerTarget === (shot.from === "player");
+    if (!ownHull && rand(g) * 100 < evade) {
       if (playerTarget) noteDodge(g);
       log(g, playerTarget ? "Bomb missed the Lark." : "They slipped the bomb.");
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
@@ -3584,6 +3646,7 @@ function tickBoarding(g: Game, dt: number) {
   life(g, g.player, "player", dt);
   reap(g);
   noteZoltanKits(g);
+  swapZoltanCooldown(g);
   tickPlayerSabotage(g, dt);
   wanderBoarders(g, dt);
   if (g.asb || g.asteroid) environment(g, dt);
@@ -3651,6 +3714,8 @@ export function step(g: Game, dt: number) {
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   syncShields(g.enemy, zoltanBars(g.crew, g.enemy, "enemy", "shields"));
   tickExtras(g, h);
+  // Zoltans, lead: the cooldown is running before a Zoltan who just arrived replaces a locked bar.
+  swapZoltanCooldown(g);
   // Crystal Lockdown: crew and drones already punched this tick. A melted room drops leftover coating hits.
   meltCoats(g);
   chargeSide(g, g.player, "player", h);

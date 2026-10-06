@@ -427,6 +427,14 @@ button:disabled {
   box-shadow: inset 0 0 0 1px #4a3b2c;
 }
 
+.room.is-unseen {
+  background: #120e0b;
+}
+
+.room.is-unseen .room-name {
+  color: #8a7d6a;
+}
+
 .room-hit {
   position: absolute;
   inset: 0;
@@ -1634,7 +1642,8 @@ button.gun-slot {
   cursor: crosshair;
 }
 
-.play.is-targeting .target-body .room {
+.play.is-targeting .target-body .room,
+.play.is-targeting .hull-own .room.is-aim {
   outline: 1px solid rgba(255, 255, 255, 0.75);
 }
 

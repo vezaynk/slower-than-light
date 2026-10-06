@@ -1,6 +1,6 @@
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { kitBars, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
+import { cooldownLocksPower, kitBars, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -71,7 +71,7 @@ export function upgradeVeil(g: Game) {
 /** INFERRED: one reactor bar. Wiki page "Cloaking" gives no power-bar count under "Overview" or "System Upgrades". */
 export function toggleVeilPower(g: Game) {
   const kit = g.player.kits.veil;
-  if (!kit) return;
+  if (!kit || cooldownLocksPower(kit)) return;
   if (kit.power >= 1) {
     kit.power -= 1;
     return;

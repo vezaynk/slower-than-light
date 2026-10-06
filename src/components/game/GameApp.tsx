@@ -16,6 +16,7 @@ import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDi
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil } from "@/game/extras/veil";
 import { enemyCloneQueue } from "@/game/extras/cradle";
+import { shipSight } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
 import { hackedPlayerKit, playerCloneQueue } from "@/game/ui-views";
 import {
@@ -558,10 +559,17 @@ function CrewRail({ game }: { game: Game }) {
   );
 }
 
+function bombAiming(game: Game): boolean {
+  if (!game.targeting) return false;
+  const w = game.player.weapons.find((item) => item.uid === game.armed);
+  return WEAPONS[w?.defId ?? ""]?.kind === "bomb";
+}
+
 function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } }) {
   const intruders = game.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
   const bubbles = game.player.shieldNow;
   const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), 1);
+  const sight = shipSight(game);
   return (
     <div className="sky" style={shake}>
       <div className="planet" />
@@ -572,13 +580,17 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         crew={game.crew}
         aboard="player"
         showCrew
+        seen={(id) => sight.interior("player", id)}
+        crewLit={(c) => sight.showCrew(c)}
         selectedId={game.selected}
         ventMode={game.mode === "vent"}
-        targetable={false}
+        targetable={bombAiming(game)}
         onRoom={(id) => {
           if (game.selected) act((g) => orderCrew(g, game.selected!, id));
+          else if (game.targeting) act((g) => aim(g, id));
         }}
         onCrew={(id) => act((g) => selectCrew(g, id))}
+        aims={aimMarks(game)}
       />
       {intruders ? (
         <p className="intruder-warn">
@@ -638,6 +650,7 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
   const veil = enemy.kits.veil;
   const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const cloaked = !!veil?.on && veil.left > 0;
+  const sight = shipSight(game);
   // Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon." Shown here as a
   // countdown on the head clone plus the queue size. Hidden while cloaked, like the interior.
   const clones = cloaked && !ownAboard ? null : enemyCloneQueue(game);
@@ -683,7 +696,9 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           ship={enemy}
           crew={game.crew}
           aboard="enemy"
-          showCrew={!cloaked || ownAboard}
+          showCrew
+          seen={(id) => sight.interior("enemy", id)}
+          crewLit={(c) => sight.showCrew(c)}
           selectedId={null}
           ventMode={false}
           targetable
@@ -770,7 +785,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const pips = 7;
             const filled = Math.round(Math.max(0, Math.min(1, w.charge)) * pips);
             const name = def?.name ?? w.defId;
-            const aimed = w.target && game.enemy ? game.enemy.rooms.find((r) => r.id === w.target)?.title : null;
+            const aimed = w.target
+              ? (w.own ? game.player.rooms : game.enemy?.rooms)?.find((r) => r.id === w.target)?.title ?? null
+              : null;
             return (
               <button
                 key={w.uid}

@@ -1,6 +1,6 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { seatKits } from "../layouts.ts";
-import { enemyEscapeView, kitBars, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
+import { cooldownLocksPower, enemyEscapeView, kitBars, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
@@ -119,7 +119,7 @@ export function upgradeSling(g: Game) {
  */
 export function toggleSlingPower(g: Game) {
   const kit = sling(g);
-  if (!kit) return;
+  if (!kit || cooldownLocksPower(kit)) return;
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) > 0) {
     kit.power += 1;

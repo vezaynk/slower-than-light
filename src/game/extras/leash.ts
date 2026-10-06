@@ -1,4 +1,4 @@
-import { createGame, kitBars, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, kitBars, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -183,7 +183,7 @@ export function upgradeLeash(g: Game) {
  */
 export function toggleLeashPower(g: Game) {
   const kit = g.player.kits.leash;
-  if (!kit) return;
+  if (!kit || cooldownLocksPower(kit)) return;
   if (kit.power >= 1) {
     kit.power = 0;
     return;

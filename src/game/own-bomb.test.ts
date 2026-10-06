@@ -1,0 +1,147 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { aim, applyImpact, armWeapon, createGame, evasionPercent, fireReady, startCombat, step } from "./sim.ts";
+import type { Game, Shot } from "./types.ts";
+
+function quiet(g: Game) {
+  startCombat(g, "scout");
+  assert.ok(g.enemy);
+  g.enemy.weapons = [];
+  g.player.systems.engines.power = 0;
+}
+
+function mount(g: Game, defId: string, charge = 1) {
+  g.player.weapons = [{ uid: "b", defId, charge, enabled: true, autofire: false, target: null }];
+  g.player.systems.weapons.level = Math.max(g.player.systems.weapons.level, 1);
+  g.player.systems.weapons.power = 1;
+  g.missiles = 4;
+  g.targeting = true;
+  g.armed = "b";
+}
+
+function bomb(partial: Partial<Shot> & Pick<Shot, "targetRoom" | "defId">): Shot {
+  return {
+    id: "s",
+    kind: "bomb",
+    from: "player",
+    damage: 0,
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    wait: 0,
+    t: 1,
+    duration: 1,
+    ...partial,
+  };
+}
+
+function sureEvade(g: Game, ship: "player" | "enemy") {
+  const hull = ship === "player" ? g.player : g.enemy!;
+  hull.systems.engines.level = 8;
+  hull.systems.engines.power = 8;
+  hull.systems.engines.damage = 0;
+  hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
+  hull.systems.pilot.damage = 0;
+  hull.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  const engines = hull.rooms.find((r) => r.system === "engines");
+  const pilot = hull.rooms.find((r) => r.system === "pilot");
+  const crew = g.crew.filter((c) => c.aboard === ship && c.hp > 0);
+  if (engines && crew[0]) {
+    crew[0].room = engines.id;
+    crew[0].path = [];
+  }
+  if (pilot && crew[1]) {
+    crew[1].room = pilot.id;
+    crew[1].path = [];
+  }
+}
+
+describe("bombs aimed at your own ship", () => {
+  it("heals your medbay crew and does not heal the enemy", () => {
+    const g = createGame(11);
+    quiet(g);
+    mount(g, "healburst");
+    const bay = g.player.rooms.find((r) => r.system === "medbay");
+    assert.ok(bay);
+    const crew = g.crew.find((c) => c.side === "player");
+    assert.ok(crew);
+    crew.room = bay.id;
+    crew.hp = 20;
+    const foe = g.crew.find((c) => c.side === "enemy");
+    const foeHp = foe?.hp;
+    const hull = g.player.hull;
+    g.player.weapons[0].charge = 0;
+    aim(g, bay.id);
+    assert.equal(g.player.weapons[0].own, true);
+    assert.equal(g.player.weapons[0].target, bay.id);
+    assert.equal(g.shots.length, 0);
+    g.player.weapons[0].charge = 1;
+    fireReady(g);
+    assert.equal(g.shots[0]?.own, true);
+    assert.equal(g.shots[0]?.targetRoom, bay.id);
+    assert.equal(g.player.weapons[0].target, null);
+    assert.equal(g.player.weapons[0].own, false);
+    assert.equal(g.missiles, 3);
+    for (let i = 0; i < 40 && g.shots.length; i++) step(g, 0.05);
+    assert.equal(g.shots.length, 0);
+    assert.equal(crew.hp, crew.maxHp);
+    assert.equal(g.player.hull, hull);
+    if (foe) assert.equal(foe.hp, foeHp);
+  });
+
+  it("repairs your own system even when evasion is full, and a Healing Burst can still miss theirs", () => {
+    const g = createGame(12);
+    quiet(g);
+    sureEvade(g, "player");
+    assert.equal(evasionPercent(g, g.player, "player"), 100);
+    const bay = g.player.rooms.find((r) => r.system === "medbay");
+    assert.ok(bay && bay.system);
+    g.player.systems[bay.system].damage = 3;
+    bay.fire = 1;
+    bay.breach = 1;
+    const hull = g.player.hull;
+    applyImpact(g, bomb({ defId: "repairburst", targetRoom: bay.id, own: true }));
+    assert.equal(g.player.systems[bay.system].damage, 0);
+    assert.equal(bay.fire, 1);
+    assert.equal(bay.breach, 1);
+    assert.equal(g.player.hull, hull);
+
+    sureEvade(g, "enemy");
+    assert.equal(evasionPercent(g, g.enemy!, "enemy"), 100);
+    const foe = g.crew.find((c) => c.side === "player");
+    assert.ok(foe);
+    const enemyRoom = g.enemy!.rooms.find((r) => r.system);
+    assert.ok(enemyRoom);
+    foe.aboard = "enemy";
+    foe.room = enemyRoom.id;
+    foe.hp = 20;
+    applyImpact(g, bomb({ defId: "healburst", targetRoom: enemyRoom.id }));
+    assert.equal(foe.hp, 20);
+  });
+
+  it("lands a damage bomb on your ship without touching the hull, and a laser cannot aim there", () => {
+    const g = createGame(13);
+    quiet(g);
+    sureEvade(g, "player");
+    const bay = g.player.rooms.find((r) => r.system === "medbay");
+    assert.ok(bay && bay.system);
+    // Small Bomb prints 2 system damage. A level-1 medbay can only hold 1, so the bar count is raised first.
+    g.player.systems[bay.system].level = 2;
+    const hull = g.player.hull;
+    applyImpact(g, bomb({ defId: "smallbomb", damage: 2, targetRoom: bay.id, own: true }));
+    assert.equal(g.player.systems[bay.system].damage, 2);
+    assert.equal(g.player.hull, hull);
+
+    g.player.weapons = [{ uid: "gun", defId: "lineburst", charge: 0, enabled: true, autofire: false, target: null }];
+    g.targeting = true;
+    g.armed = "gun";
+    armWeapon(g, "gun");
+    aim(g, bay.id);
+    assert.equal(g.player.weapons[0].target, null);
+    assert.equal(g.shots.length, 0);
+    const enemyRoom = g.enemy!.rooms[0];
+    aim(g, enemyRoom.id);
+    assert.equal(g.player.weapons[0].target, enemyRoom.id);
+    assert.equal(g.player.weapons[0].own, false);
+  });
+});

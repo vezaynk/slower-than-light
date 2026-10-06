@@ -135,6 +135,11 @@ export type WeaponInst = {
   autoInvert?: boolean;
   target: string | null;
   /**
+   * Bomb (Weapons), lead: a bomb aimed at your own ship. Absent or false means the enemy hull.
+   * Other weapons cannot set it.
+   */
+  own?: boolean;
+  /**
    * Drawn swipe, in the enemy hull's tile space. The rooms on this segment are the shot.
    * Absent until the player has clicked both ends. Enemy beams do not set it.
    */
@@ -162,6 +167,11 @@ export type Shot = {
   beamLine?: BeamLine;
   /** Weapon id, when the shot was launched from a mount. Tests may set it. */
   defId?: string;
+  /**
+   * Bomb (Weapons), lead: this bomb was aimed at the shooter's own hull.
+   * Absent means the other hull, which is every non-bomb shot.
+   */
+  own?: boolean;
   wait: number;
   t: number;
   duration: number;
@@ -229,6 +239,11 @@ export type Kit = {
   home?: boolean;
   /** System Repair: power was off, so the next powered tick reassesses from the room it is in. */
   hold?: boolean;
+  /**
+   * Zoltans, lead: Zoltan ids already in this room during the current cooldown.
+   * A new arrival replaces one locked reactor bar. Absent means this cooldown has not been seen yet.
+   */
+  swap?: string[];
   /**
    * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
    * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.

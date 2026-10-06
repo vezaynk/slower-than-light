@@ -1,4 +1,4 @@
-import { bars, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, cooldownLocksPower, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -150,7 +150,7 @@ export function installSpike(g: Game): boolean {
  */
 export function toggleSpikePower(g: Game) {
   const kit = kitOf(g);
-  if (!kit) return;
+  if (!kit || cooldownLocksPower(kit)) return;
   if (kit.power < kit.level && sparePower(g.player) >= 1) {
     kit.power += 1;
     return;
@@ -1402,13 +1402,13 @@ export function hackVision(g: Game): { system: string; room: string | null; sens
  */
 export function lowerSpikePower(g: Game) {
   const kit = kitOf(g);
-  if (kit && kit.power > 0) kit.power -= 1;
+  if (kit && kit.power > 0 && !cooldownLocksPower(kit)) kit.power -= 1;
 }
 
 /** Adds one bar when the reactor has one spare and the level allows it (the add half of toggleSpikePower). */
 export function raiseSpikePower(g: Game) {
   const kit = kitOf(g);
-  if (kit && kit.power < kit.level && sparePower(g.player) >= 1) kit.power += 1;
+  if (kit && !cooldownLocksPower(kit) && kit.power < kit.level && sparePower(g.player) >= 1) kit.power += 1;
 }
 
 /**

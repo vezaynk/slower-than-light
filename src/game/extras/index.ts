@@ -65,8 +65,8 @@ export function batteryBonus(ship: Ship): number {
   return cellBonus(ship);
 }
 
-export function suffocateScale(g: Game, aboard: "player" | "enemy"): number {
-  return lungScale(g, aboard);
+export function suffocateScale(g: Game, crew: Crew): number {
+  return lungScale(g, crew);
 }
 
 export function noteDeath(g: Game, c: Crew): boolean {

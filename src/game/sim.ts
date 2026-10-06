@@ -1770,15 +1770,18 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       log(g, `${r.title} leak sealed.`);
     }
     spreadFire(g, ship, r, closedSlow, dt);
-    // Medbay: level 1 heals at the suffocation rate, 6.4 HP/s. Level 2 is 9.6. Level 3 is 19.2.
-    if (mainBars(g, ship, aboard, "medbay") > 0 && r.system === "medbay" && r.fire <= 0 && foes.length === 0 && r.o2 > 5) {
+    // Medbay: level 1 heals at 6.4 HP/s, level 2 at 9.6, level 3 at 19.2.
+    // Medbay page: level 1 equals the suffocation rate, so an airless level 1 bay negates a full-rate human
+    // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
+    // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.
+    if (mainBars(g, ship, aboard, "medbay") > 0 && r.system === "medbay" && r.fire <= 0 && foes.length === 0) {
       const powered = mainBars(g, ship, aboard, "medbay");
       const rate = powered >= 3 ? 19.2 : powered >= 2 ? 9.6 : 6.4;
       for (const c of pals) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
     }
-    // Oxygen: at 5% or less, crew lose 6.4 HP per second.
+    // Oxygen: at 5% or less, crew lose 6.4 HP per second, scaled per crew (Emergency Respirators, then kin).
     if (r.o2 <= 5) {
-      for (const c of present) c.hp -= 6.4 * suffocateScale(g, aboard) * kinOf(c.kin ?? "plain").suffocate * dt;
+      for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
     } else burnIntruders(r, foes, dt);
     r.flash = Math.max(0, r.flash - dt);
   }

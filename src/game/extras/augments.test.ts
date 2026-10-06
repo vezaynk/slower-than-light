@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
-import type { AugmentId, Kit, WeaponInst } from "../types.ts";
+import { createGame, startCombat, step } from "../sim.ts";
+import type { AugmentId, Crew, Kit, WeaponInst } from "../types.ts";
 import {
   CATALOG,
   adjustScrapAmount,
@@ -189,15 +189,21 @@ describe("augments", () => {
     assert.equal(g.player.weapons[1].charge, 1);
   });
 
-  it("adds shield speed per coil and halves suffocation only for the player", () => {
+  it("adds shield speed per coil and halves suffocation for the player's own crew", () => {
     const g = createGame(1);
+    const yours = { side: "player" } as Crew;
+    const theirs = { side: "enemy" } as Crew;
     assert.equal(coilRate(g, "player"), 1);
-    assert.equal(lungScale(g, "player"), 1);
+    assert.equal(lungScale(g, yours), 1);
     g.augments = ["coil", "coil", "lung"];
     assert.equal(coilRate(g, "player"), 1.3);
     assert.equal(coilRate(g, "enemy"), 1);
-    assert.equal(lungScale(g, "player"), 0.5);
-    assert.equal(lungScale(g, "enemy"), 1);
+    assert.equal(lungScale(g, yours), 0.5);
+    // A leash does not lend the player's augment to an enemy, or take it off your own crew.
+    yours.leashed = 4;
+    theirs.leashed = 4;
+    assert.equal(lungScale(g, yours), 0.5);
+    assert.equal(lungScale(g, theirs), 1);
   });
 
   it("puts player fires out by twice the tick and ignores the other hull", () => {
@@ -351,5 +357,116 @@ describe("augments", () => {
     assert.equal(ivo.hp, before + 1.6 + 1.6);
     assert.equal(boarder.hp, 10);
     assert.equal(nen.hp, 100);
+  });
+});
+
+const TICK = 0.05;
+const FULL = 6.4 * TICK;
+
+function near(actual: number, expected: number) {
+  assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} vs ${expected}`);
+}
+
+/** Guns, cloak, and oxygen off, every room airless, so one tick is suffocation and medbay only. */
+function airlessFight(seed: number) {
+  const g = createGame(seed);
+  startCombat(g, "Rebel ship");
+  assert.ok(g.enemy);
+  g.player.hull = 400;
+  g.enemy.hull = 400;
+  g.player.systems.oxygen.power = 0;
+  g.enemy.systems.oxygen.power = 0;
+  for (const w of [...g.player.weapons, ...g.enemy.weapons]) {
+    w.enabled = false;
+    w.charge = 0;
+    w.target = null;
+  }
+  for (const kit of Object.values(g.enemy.kits)) {
+    if (!kit) continue;
+    kit.power = 0;
+    kit.on = false;
+  }
+  for (const r of [...g.player.rooms, ...g.enemy.rooms]) {
+    r.o2 = 0;
+    r.fire = 0;
+    r.breach = 0;
+  }
+  return g;
+}
+
+function stand(c: Crew, aboard: "player" | "enemy", room: string, hp = 80) {
+  c.aboard = aboard;
+  c.room = room;
+  c.path = [];
+  c.hp = hp;
+  c.maxHp = 100;
+  c.stun = 5;
+}
+
+describe("Emergency Respirators", () => {
+  it("halves a boarder and quarters a Crystal, and leaves the enemy at full", () => {
+    const g = airlessFight(3);
+    const room = g.enemy!.rooms[0]!;
+    const away = g.enemy!.rooms.find((r) => r.id !== room.id)!;
+    for (const c of g.crew) if (c.room === room.id) c.room = away.id;
+    const yours = g.crew.find((c) => c.side === "player")!;
+    const theirs = g.crew.find((c) => c.side === "enemy")!;
+    yours.kin = "plain";
+    theirs.kin = "plain";
+    stand(yours, "enemy", room.id);
+    stand(theirs, "enemy", room.id);
+    g.augments = ["lung"];
+    step(g, TICK);
+    near(80 - yours.hp, FULL * 0.5);
+    near(80 - theirs.hp, FULL);
+
+    yours.kin = "shard";
+    stand(yours, "enemy", room.id);
+    stand(theirs, "enemy", room.id);
+    step(g, TICK);
+    near(80 - yours.hp, FULL * 0.25);
+    near(80 - theirs.hp, FULL);
+
+    g.augments = [];
+    yours.kin = "shard";
+    stand(yours, "enemy", room.id);
+    step(g, TICK);
+    near(80 - yours.hp, FULL * 0.5);
+  });
+
+  it("nets the printed airless medbay rates", () => {
+    const g = airlessFight(4);
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const elsewhere = g.player.rooms.find((r) => r.id !== bay.id)!;
+    const yours = g.crew.find((c) => c.side === "player")!;
+    yours.kin = "plain";
+    for (const c of g.crew) if (c !== yours && c.room === bay.id) c.room = elsewhere.id;
+    g.player.systems.medbay.damage = 0;
+    g.player.systems.medbay.ion = [];
+
+    const tickBay = (level: number, kin: Crew["kin"]) => {
+      g.player.systems.medbay.level = level;
+      g.player.systems.medbay.power = level;
+      yours.kin = kin;
+      stand(yours, "player", bay.id, 40);
+      yours.stun = 0;
+      step(g, TICK);
+      return yours.hp - 40;
+    };
+
+    // Level 1 equals suffocation, so a human nets zero. The augment's half leaves +3.2 HP/s.
+    g.augments = [];
+    near(tickBay(1, "plain"), 0);
+    g.augments = ["lung"];
+    near(tickBay(1, "plain"), FULL * 0.5);
+    // Crystal's racial half nets the same +3.2 without the augment. With it, suffocation is a quarter.
+    g.augments = [];
+    near(tickBay(1, "shard"), FULL * 0.5);
+    g.augments = ["lung"];
+    near(tickBay(1, "shard"), FULL * 0.75);
+    // Level 2 heals at 9.6 in an airless bay with no augment. Level 3 heals at 19.2.
+    g.augments = [];
+    near(tickBay(2, "plain"), 9.6 * TICK - FULL);
+    near(tickBay(3, "plain"), 19.2 * TICK - FULL);
   });
 });

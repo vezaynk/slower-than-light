@@ -1,5 +1,5 @@
 import { bars, log, powerMask, rand, zoltanBars } from "../sim.ts";
-import type { AugmentId, BeaconKind, Game } from "../types.ts";
+import type { AugmentId, BeaconKind, Crew, Game } from "../types.ts";
 
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
 
@@ -103,7 +103,7 @@ export const CATALOG: Listing[] = [
   {
     id: "lung",
     name: "Emergency Respirators",
-    detail: "Suffocation damage is halved.",
+    detail: "Suffocation damage is halved, including while boarding. A Crystal takes a quarter.",
     cost: 50,
   },
   // Augmentations, "Defensive Augmentations", Fire Suppression. Store cost 65.
@@ -267,10 +267,17 @@ export function casingHolds(g: Game): boolean {
   return rand(g) < 0.15;
 }
 
-/** Augmentations, "Crew Augmentations", Emergency Respirators: half suffocation damage. Crystal's further cut is not implemented. */
-export function lungScale(g: Game, aboard: "player" | "enemy"): number {
-  if (aboard !== "player") return 1;
-  return has(g, "lung") ? 0.5 : 1;
+/**
+ * Augmentations, "Crew Augmentations", Emergency Respirators: "Crew take half damage from low oxygen."
+ * "The effect also works when boarding enemy ships."
+ * Crystal's printed 25% is this half times the racial half in kin.ts, including while boarding.
+ * Oxygen: "halves the suffocation damage of your crew."
+ * INFERRED: the half follows the crew member's own side, not a mind-control leash.
+ * The Oxygen page leaves a mind-controlled enemy as an untested note. Enemy hulls do not carry this augment.
+ */
+export function lungScale(g: Game, crew: Crew): number {
+  if (crew.side !== "player" || !has(g, "lung")) return 1;
+  return 0.5;
 }
 
 /**

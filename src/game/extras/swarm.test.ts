@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat } from "../sim.ts";
-import type { Game, Kit } from "../types.ts";
+import { applyImpact, createGame, startCombat } from "../sim.ts";
+import type { DroneUnit, Game, Kit, Shot } from "../types.ts";
 import {
   DRONE_COOLDOWN_S,
   DRONE_DOOR_HITS_PER_S,
@@ -601,5 +601,121 @@ describe("Ion Intruder body", () => {
     };
     assert.ok(Math.abs(drop(0) - 6) < 1e-9);
     assert.ok(Math.abs(drop(14) / drop(0) - 1.2) < 1e-9);
+  });
+});
+
+function hit(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage">): Shot {
+  return {
+    id: "s",
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    targetRoom: "",
+    wait: 0,
+    t: 1,
+    duration: 1,
+    ...partial,
+  };
+}
+
+function unit(partial: Partial<DroneUnit> & Pick<DroneUnit, "id" | "kind">): DroneUnit {
+  return { alive: true, powered: true, aux: 0, cool: 0, ...partial };
+}
+
+describe("on-board drone damage", () => {
+  it("takes half the crew damage, and a drone elsewhere or still in flight does not", () => {
+    const g = createGame(11);
+    place(g, 3);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    enemy.systems.engines.power = 0;
+    enemy.shieldNow = 0;
+    enemy.zoltan = 0;
+    enemy.hull = 40;
+    const room = enemy.rooms.find((item) => item.system);
+    const other = enemy.rooms.find((item) => item.id !== room?.id);
+    assert.ok(room && other);
+    assert.equal(deploy(g, "ionintruder"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    kit.room = room.id;
+    kit.hp = 125;
+    const patch = unit({ id: "ed-patch", kind: "patch", hp: 25, room: room.id });
+    const away = unit({ id: "ed-away", kind: "patch", hp: 25, room: other.id });
+    const flying = unit({ id: "ed-fly", kind: "ionintruder", hp: 125, room: room.id, fly: 1 });
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "patch",
+      on: true,
+      aux: 0,
+      drones: [patch, away, flying],
+    };
+    applyImpact(g, hit({ kind: "laser", from: "player", damage: 1, targetRoom: room.id }));
+    assert.equal(kit.hp, 117.5);
+    assert.equal(patch.hp, 17.5);
+    assert.equal(away.hp, 25);
+    assert.equal(flying.hp, 125);
+    assert.equal(kit.on, true);
+  });
+
+  it("destroys a drone that cannot cover the half, and leaves the intruder alone on the other hull", () => {
+    const g = createGame(12);
+    place(g, 3);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    enemy.systems.engines.power = 0;
+    enemy.shieldNow = 0;
+    enemy.zoltan = 0;
+    g.player.systems.engines.power = 0;
+    g.player.shieldNow = 0;
+    g.player.zoltan = 0;
+    const room = enemy.rooms.find((item) => item.system);
+    const playerRoom = g.player.rooms.find((item) => item.system);
+    assert.ok(room && playerRoom);
+    assert.equal(deploy(g, "ionintruder"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    kit.room = room.id;
+    kit.hp = 7;
+    applyImpact(
+      g,
+      hit({
+        kind: "beam",
+        from: "player",
+        damage: 2,
+        defId: "halberd",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+      }),
+    );
+    assert.equal(kit.on, false);
+    assert.ok(g.log.some((line) => /destroys the drone/.test(line)));
+
+    kit.on = true;
+    kit.target = "ionintruder";
+    kit.room = playerRoom.id;
+    kit.hp = 125;
+    const board = unit({ id: "ed-board", kind: "board", hp: 150, room: playerRoom.id });
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "board",
+      on: true,
+      aux: 0,
+      drones: [board],
+    };
+    applyImpact(g, hit({ kind: "laser", from: "enemy", damage: 1, targetRoom: playerRoom.id }));
+    assert.equal(kit.hp, 125);
+    assert.equal(board.hp, 142.5);
+    assert.equal(board.alive, true);
   });
 });

@@ -58,7 +58,7 @@ import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
-import { shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
+import { hurtRoomDrones, shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
@@ -1458,6 +1458,8 @@ function strikeRoom(
   for (const c of g.crew) {
     if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.hp -= crewHit;
   }
+  // Weapons, "Weapons: general information": on-board drones take half of that crew damage.
+  hurtRoomDrones(g, aboard, roomId, crewHit);
   // INFERRED: a hit starts one fire, stacked to 3. The fetched pages do not number that cap.
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
   if (shot.breachChance > 0 && rand(g) < shot.breachChance) r.breach += 1;

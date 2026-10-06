@@ -230,7 +230,7 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
   {
     id: "shield-layers",
     // Beam (Weapons), "Beam targeting and damage mechanics".
-    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the damage of a beam is reduced by one for every shield layer. Beams do not deplete regular shield layers. A 2-damage Halberd Beam deals 1 damage per room through 1 shield layer. Damage to crew drones is halved.',
+    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the damage of a beam is reduced by one for every shield layer. Beams do not deplete regular shield layers. A 2-damage Halberd Beam deals 1 damage per room through 1 shield layer. Damage to crew drones is halved. A drone that already has health and is in the room takes half the crew damage.',
   },
   {
     id: "zoltan-shield",

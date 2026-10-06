@@ -1077,6 +1077,33 @@ const ZOLTAN_DRONE_HP = 7.5;
  * Zoltans, "Race characteristics": the death burst's drone damage, on a drone that already has health and is in the room.
  * Orbiting drones have no health field, so they are skipped. A drone at 0 or below is destroyed.
  */
+/**
+ * Weapons, "Weapons: general information": "On-board drones take half the regular crew damage."
+ * Beam (Weapons), "Beam targeting and damage mechanics": "Damage to crew drones is halved."
+ * crewHit is the damage the crew in that room just took. A drone with no health field is orbiting and is skipped.
+ * A drone at 0 or below is destroyed. The player's Ion Intruder stands on the enemy ship. A crew drone stands on its own.
+ */
+export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: string, crewHit: number): void {
+  if (!(crewHit > 0)) return;
+  const half = crewHit / 2;
+  const kit = g.player.kits.swarm;
+  if (kit?.on && kit.hp != null && kit.room === roomId) {
+    const onEnemy = kit.target === "ionintruder" || kit.target === "board";
+    if ((aboard === "enemy") === onEnemy) {
+      kit.hp -= half;
+      if (kit.hp <= 0) killPlayerDrone(g, "The hit destroys the drone.");
+    }
+  }
+  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+    if (!unit.alive || unit.hp == null || unit.room !== roomId) continue;
+    const spot = enemyDroneSpot(unit);
+    if (aboard === "player" && spot?.at !== "player-room") continue;
+    if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
+    unit.hp -= half;
+    if (unit.hp <= 0) killUnit(g, unit, "The hit destroys the drone.");
+  }
+}
+
 export function zoltanBurstDrones(g: Game, dead: Crew): void {
   if (dead.kin !== "spark" || !dead.room) return;
   if (dead.side === "enemy") {

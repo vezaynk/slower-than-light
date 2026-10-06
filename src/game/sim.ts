@@ -58,7 +58,7 @@ import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
-import { shotHitsDrone } from "./extras/swarm.ts";
+import { shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
@@ -1878,7 +1878,7 @@ function reap(g: Game) {
   for (const c of dead) {
     if (noteDeath(g, c)) continue;
     // Wiki page "Zoltans", section "Race characteristics": death burst deals 15 HP to enemy crew in the same room.
-    // Wiki page "Zoltans", section "Race characteristics": drone damage is 7.5 HP. Drones in this tree have no HP field, so 7.5 is not applied.
+    // Wiki page "Zoltans", section "Race characteristics": a drone in that room loses 7.5 HP.
     // Wiki page "Zoltans", section "Race characteristics": damage to allies while mind-controlled has no printed number, so it is not applied.
     if (c.kin === "spark") {
       for (const other of g.crew) {
@@ -1887,6 +1887,7 @@ function reap(g: Game) {
         if (other.side === c.side) continue;
         other.hp -= 15;
       }
+      zoltanBurstDrones(g, c);
     }
     if (c.side === "player") log(g, `${c.name} is gone.`);
   }

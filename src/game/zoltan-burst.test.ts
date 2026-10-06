@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "./sim.ts";
-import type { Crew } from "./types.ts";
+import type { Crew, DroneUnit, Kit } from "./types.ts";
 
 function body(partial: Pick<Crew, "id" | "name" | "side" | "room"> & Partial<Crew>): Crew {
   return {
@@ -73,4 +73,71 @@ describe("zoltan death burst", () => {
     step(g2, 0);
     assert.equal(near2.hp, 40);
   });
+
+  it("takes 7.5 from a drone that has health and is in the room", () => {
+    const g = createGame(4);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    const swarm = g.enemy.kits.swarm ?? (g.enemy.kits.swarm = kit());
+    swarm.loadout = [];
+    const intruder = drone({ id: "ion", kind: "ionintruder", hp: 125, room: "p-sensors" });
+    const boarder = drone({ id: "board", kind: "board", hp: 150, room: "p-doors" });
+    const repair = drone({ id: "patch", kind: "patch", hp: 25, room: "p-sensors" });
+    const orbiter = drone({ id: "orb", kind: "striker", room: "p-sensors" });
+    delete orbiter.hp;
+    const fragile = drone({ id: "frag", kind: "personnel", hp: 4, room: "p-sensors" });
+    swarm.drones = [intruder, boarder, repair, orbiter, fragile];
+    g.crew.push(
+      body({ id: "z", name: "Zed", side: "player", room: "p-sensors", kin: "spark", hp: 0, maxHp: 70 }),
+    );
+    step(g, 0);
+    assert.equal(intruder.hp, 117.5);
+    assert.equal(boarder.hp, 150);
+    assert.equal(repair.hp, 17.5);
+    assert.equal(orbiter.hp, undefined);
+    assert.equal(orbiter.alive, true);
+    assert.equal(fragile.alive, false);
+  });
+
+  it("hits the player's Ion Intruder when an enemy Zoltan dies in its room", () => {
+    const g = createGame(5);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
+    const swarm = g.enemy.kits.swarm ?? (g.enemy.kits.swarm = kit());
+    swarm.loadout = [];
+    const theirs = drone({ id: "ion", kind: "ionintruder", hp: 125, room: "e-weapons" });
+    swarm.drones = [theirs];
+    g.player.kits.swarm = kit();
+    g.player.kits.swarm.on = true;
+    g.player.kits.swarm.target = "ionintruder";
+    g.player.kits.swarm.hp = 125;
+    g.player.kits.swarm.room = "e-weapons";
+    g.player.kits.swarm.left = 9;
+    g.crew.push(
+      body({
+        id: "ez",
+        name: "Zed",
+        side: "enemy",
+        aboard: "enemy",
+        room: "e-weapons",
+        kin: "spark",
+        hp: 0,
+        maxHp: 70,
+      }),
+    );
+    step(g, 0);
+    assert.equal(g.player.kits.swarm.hp, 117.5);
+    assert.equal(g.player.kits.swarm.on, true);
+    assert.equal(theirs.hp, 125);
+    assert.equal(theirs.alive, true);
+  });
 });
+
+function kit(): Kit {
+  return { id: "swarm", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+}
+
+function drone(partial: Pick<DroneUnit, "id" | "kind" | "room"> & Partial<DroneUnit>): DroneUnit {
+  return { alive: true, powered: true, aux: 0, cool: 0, ...partial };
+}

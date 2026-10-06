@@ -913,6 +913,29 @@ const DEFENSIVE = new Set(["ward", "ward2", "wardcut", "overcharger"]);
 /** Drone Control, "Crew Drones": stay aboard their own ship. */
 const CREW_DRONES = new Set(["patch", "personnel"]);
 
+/** Zoltans, "Race characteristics": "a drone actually loses only 7.5 HP". Crew in the room still take 15. */
+const ZOLTAN_DRONE_HP = 7.5;
+
+/**
+ * Zoltans, "Race characteristics": the death burst's drone damage, on a drone that already has health and is in the room.
+ * Orbiting drones have no health field, so they are skipped. A drone at 0 or below is destroyed.
+ */
+export function zoltanBurstDrones(g: Game, dead: Crew): void {
+  if (dead.kin !== "spark" || !dead.room) return;
+  if (dead.side === "enemy") {
+    const kit = g.player.kits.swarm;
+    if (!kit?.on || kit.hp == null || kit.room !== dead.room) return;
+    kit.hp -= ZOLTAN_DRONE_HP;
+    if (kit.hp <= 0) killPlayerDrone(g, "The Zoltan burst destroys the drone.");
+    return;
+  }
+  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+    if (!unit.alive || unit.hp == null || unit.room !== dead.room) continue;
+    unit.hp -= ZOLTAN_DRONE_HP;
+    if (unit.hp <= 0) killUnit(g, unit, "The Zoltan burst destroys the drone.");
+  }
+}
+
 /** Where a deployed enemy drone is, for CombatFx: around the player hull, around its own hull, flying, or in a room. */
 export type EnemyDroneSpot =
   | { at: "player-orbit" }

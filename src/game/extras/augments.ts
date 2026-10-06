@@ -47,7 +47,7 @@ export const CATALOG: Listing[] = [
   {
     id: "weld",
     name: "Repair Arm",
-    detail: "Scrap gain repairs 2 hull when the hull is not full, and the scrap is cut 15%.",
+    detail: "Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.",
     cost: 50,
   },
   // Augmentations, "Defensive Augmentations", Reverse Ion Field. Store cost 45.
@@ -335,17 +335,15 @@ export function reveals(g: Game, beaconKind: BeaconKind): boolean {
 /**
  * Augmentations, "Misc. Augmentations", Scrap Recovery Arm: +10% per copy, stacked before rounding down.
  * Augmentations, "Defensive Augmentations", Repair Arm: 15% less scrap, and 2 hull when the hull is not already full.
+ * "Does not reduce scrap gain if your hull is at maximum."
  * INFERRED: the two are applied in that order. The page never states a combined formula.
- * Repair Arm also says scrap is not reduced when the hull is already full. This function still applies the cut.
  */
 export function adjustScrapAmount(g: Game, scrap: number): number {
   let n = scrap * (1 + 0.1 * copies(g, "hook"));
-  if (has(g, "weld")) {
+  if (has(g, "weld") && g.player.hull < g.player.hullMax) {
     n *= 0.85;
-    if (g.player.hull < g.player.hullMax) {
-      g.player.hull += 2;
-      log(g, "Repair Arm seals 2 hull.");
-    }
+    g.player.hull += 2;
+    log(g, "Repair Arm seals 2 hull.");
   }
   return Math.floor(n);
 }

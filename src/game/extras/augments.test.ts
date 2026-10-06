@@ -134,11 +134,14 @@ describe("augments", () => {
     assert.equal(g.player.hull, 14);
 
     g.player.hull = g.player.hullMax;
-    assert.equal(adjustScrapAmount(g, 10), 8);
+    assert.equal(adjustScrapAmount(g, 10), 10);
+    assert.equal(g.player.hull, g.player.hullMax);
+
+    g.augments = ["hook", "weld"];
+    assert.equal(adjustScrapAmount(g, 10), 11);
     assert.equal(g.player.hull, g.player.hullMax);
 
     g.player.hull = 10;
-    g.augments = ["hook", "weld"];
     assert.equal(adjustScrapAmount(g, 10), 9);
     assert.equal(g.player.hull, 12);
   });

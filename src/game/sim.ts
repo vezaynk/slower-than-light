@@ -410,7 +410,8 @@ export function roomWith(ship: Ship, system: SysId): Room | undefined {
 /**
  * Wiki page "Zoltans", lead and "Race characteristics": one bar per living Zoltan
  * standing in that room. Piloting, sensors, and doors get none.
- * Cloaking, hacking, the teleporter, mind control, drones, and the clone bay are not this count.
+ * Cloaking, hacking, the teleporter, mind control, drones, and the clone bay are kits.
+ * noteZoltanKits counts those. This function stays on the five main systems.
  */
 export function zoltanBars(
   crew: readonly Pick<Crew, "kin" | "hp" | "room" | "aboard">[],
@@ -1075,10 +1076,34 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
   }
 }
 
-/** Working bars of a subsystem kit: its power, capped by undamaged levels. Shared by the extras modules. */
-export function kitBars(kit: Kit | undefined): number {
+/**
+ * Working bars of a kit: reactor power plus one yellow bar per living Zoltan in its room.
+ * Wiki page "Zoltans": subsystems are unaffected; these kits are not subsystems.
+ * The yellow bar does not lower kit.power, and it cannot exceed the undamaged levels.
+ * Kits have no ion track, so ion does not remove it. Pass `bonus` to override the stamp.
+ */
+export function kitBars(kit: Kit | undefined, bonus?: number): number {
   if (!kit) return 0;
-  return Math.max(0, Math.min(kit.power, kit.level - (kit.damage ?? 0)));
+  const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
+  const green = Math.max(0, Math.min(kit.power, capacity));
+  const yellow = Math.max(0, Math.min(bonus ?? kit.zoltan ?? 0, capacity));
+  return Math.min(capacity, green + yellow);
+}
+
+/** Wiki page "Zoltans": one bar per living Zoltan standing in that kit's room. Writes the stamp kitBars reads. */
+export function noteZoltanKits(g: Game): void {
+  stampZoltanKits(g, g.player, "player");
+  if (g.enemy) stampZoltanKits(g, g.enemy, "enemy");
+}
+
+function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void {
+  if (!ship.kits || !ship.rooms) return;
+  const crew = g.crew.filter((c) => c.aboard === aboard);
+  for (const kit of Object.values(ship.kits)) {
+    if (!kit) continue;
+    const room = ship.rooms.find((r) => r.kit === kit.id);
+    kit.zoltan = room ? citedZoltanPower(crew, room.id) : 0;
+  }
 }
 
 /** A hit on a kit's room knocks out bars like a system hit ("Weapons: general information": damage per point). */
@@ -3353,6 +3378,7 @@ function tickBoarding(g: Game, dt: number) {
   moveCrew(g, dt);
   life(g, g.player, "player", dt);
   reap(g);
+  noteZoltanKits(g);
   tickPlayerSabotage(g, dt);
   wanderBoarders(g, dt);
   if (g.asb || g.asteroid) environment(g, dt);
@@ -3411,6 +3437,8 @@ export function step(g: Game, dt: number) {
   life(g, g.player, "player", h);
   life(g, g.enemy, "enemy", h);
   reap(g);
+  // Zoltans: the kit bar is whoever is standing there after movement and deaths, before the kits tick.
+  noteZoltanKits(g);
   shieldRegen(g, g.player, "player", h);
   shieldRegen(g, g.enemy, "enemy", h);
   tickIons(g.player, h);

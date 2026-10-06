@@ -171,6 +171,11 @@ export type Kit = {
   level: number;
   /** Reactor bars currently fed into this kit. Subsystems stay at 0. */
   power: number;
+  /**
+   * Living Zoltans in this kit's room. Stamped by noteZoltanKits. Not reactor power.
+   * Wiki page "Zoltans": one yellow bar, and it is not removed by ion. Kits have no ion track.
+   */
+  zoltan?: number;
   /** Seconds of the active effect left. */
   left: number;
   /** Seconds until it can be started again. */

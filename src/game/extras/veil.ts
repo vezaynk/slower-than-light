@@ -1,6 +1,6 @@
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { kitBars, log, rand, sparePower } from "../sim.ts";
+import { kitBars, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -86,6 +86,7 @@ export function toggleVeilPower(g: Game) {
 export function startVeil(g: Game) {
   const kit = g.player.kits.veil;
   if (!kit) return;
+  noteZoltanKits(g);
   if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
   kit.on = true;
   kit.left = 5 * kit.level;

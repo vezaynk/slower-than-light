@@ -1,6 +1,6 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { seatKits } from "../layouts.ts";
-import { enemyEscapeView, kitBars, log, rand, roomById, sparePower } from "../sim.ts";
+import { enemyEscapeView, kitBars, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
@@ -135,6 +135,7 @@ export function toggleSlingPower(g: Game) {
 export function sendSling(g: Game, roomId: string) {
   const kit = sling(g);
   if (!kit) return;
+  noteZoltanKits(g);
   if (!canRun(kit) && kit.cool <= 0) {
     log(g, "Teleporter has no power.");
     return;
@@ -177,6 +178,7 @@ export function sendSling(g: Game, roomId: string) {
 export function recallSling(g: Game) {
   const kit = sling(g);
   if (!kit) return;
+  noteZoltanKits(g);
   if (!canRun(kit)) {
     if (kit.cool <= 0) log(g, "Teleporter has no power.");
     else if (kit.cool > 0) log(g, "Teleporter is still cooling.");

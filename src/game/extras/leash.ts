@@ -1,4 +1,4 @@
-import { createGame, kitBars, log, rand, sparePower, startCombat } from "../sim.ts";
+import { createGame, kitBars, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -234,6 +234,7 @@ export function retarget(g: Game) {
 export function startLeash(g: Game, crewId: string) {
   const kit = g.player.kits.leash;
   if (!kit) return;
+  noteZoltanKits(g);
   if (kitBars(kit) < 1) {
     log(g, "Mind Control has no power.");
     return;

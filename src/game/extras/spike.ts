@@ -1,4 +1,4 @@
-import { bars, evasionPercent, kitBars, log, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -79,7 +79,11 @@ function fedBars(kit: Kit): number {
     ion: [],
     fix: 0,
   };
-  return bars(sys);
+  // Zoltans: one yellow bar in this room. It does not lower kit.power. This call still ignores kit.damage.
+  const base = bars(sys);
+  const cap = Math.max(0, kit.level);
+  const yellow = Math.min(kit.zoltan ?? 0, cap);
+  return Math.min(cap, base + yellow);
 }
 
 function pulseSeconds(powered: number): number {
@@ -184,6 +188,7 @@ export function armSpike(g: Game, systemId: string): boolean {
 export function launchSpike(g: Game): boolean {
   const kit = kitOf(g);
   if (!kit || !g.enemy) return false;
+  noteZoltanKits(g);
   // "this choice is permanent" (see below): a latched drone pins the target before it is checked.
   if (g.enemy.hackDrone != null && g.enemy.hackDrone !== kit.target) kit.target = g.enemy.hackDrone;
   if (!kit.target || !isTarget(g, kit.target)) return false;

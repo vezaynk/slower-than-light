@@ -196,6 +196,8 @@ export type Kit = {
   ionT?: number;
   /** @agent:drones. Seconds until the player can redeploy after a drone was destroyed (swarm.ts REDEPLOY_S). */
   lost?: number;
+  /** Ion Intruder health while that schematic is deployed. Drone Control: "Health: 125 HP". */
+  hp?: number;
   /** @agent:hacking. Enemy hacking drone: seconds of flight left. Absent while no drone is flying (extras/spike.ts). */
   hackFly?: number;
   /** @agent:hacking. Enemy hacking drone: the full flight time rolled at launch, for flight progress in the fx. */
@@ -248,6 +250,10 @@ export type DroneUnit = {
   left?: number;
   /** Boarding drone progress toward the next broken system bar. */
   fix?: number;
+  /** Ion Intruder rooms still to enter. Absent means it is not walking. */
+  path?: string[];
+  /** Ion Intruder progress toward the next room, from 0 to 1. */
+  move?: number;
   /** Seconds since the last shot or swipe, for the fx. */
   fired?: number;
 };

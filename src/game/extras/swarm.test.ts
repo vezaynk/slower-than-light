@@ -6,6 +6,9 @@ import {
   DRONE_COOLDOWN_S,
   DRONE_POWER,
   INSTALL_SCRAP,
+  INTRUDER_HP,
+  INTRUDER_SPACE_SPEED,
+  REDEPLOY_S,
   deploy,
   installSwarm,
   installSwarmBundle,
@@ -335,5 +338,66 @@ describe("swarm", () => {
     tickSwarm(g, 30);
     assert.equal(g.player.hull, 4);
     assert.equal(g.enemy.hull, 3);
+  });
+});
+
+describe("Ion Intruder body", () => {
+  it("has 125 health, walks to the next system, and does not spend door hp", () => {
+    assert.equal(INTRUDER_HP, 125);
+    assert.equal(INTRUDER_SPACE_SPEED, 18);
+    const g = createGame(41);
+    place(g, 3);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    assert.equal(deploy(g, "ionintruder"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    assert.equal(kit.hp, 125);
+    const room = enemy.rooms.find((item) => item.system);
+    assert.ok(room);
+    kit.room = room.id;
+    kit.left = 0.05;
+    kit.aux = 0;
+    const doors = enemy.doors.map((door) => door.hp);
+    tickSwarm(g, 0.05);
+    assert.equal(kit.room, room.id);
+    assert.ok((kit.path ?? []).length > 0);
+    assert.deepEqual(enemy.doors.map((door) => door.hp), doors);
+    const next = kit.path?.[0];
+    tickSwarm(g, 0.6);
+    assert.equal(kit.room, next);
+    assert.deepEqual(enemy.doors.map((door) => door.hp), doors);
+  });
+
+  it("dies at 0 health and waits out the redeploy", () => {
+    const g = createGame(42);
+    place(g, 3);
+    startCombat(g, "scout");
+    assert.equal(deploy(g, "ionintruder"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const room = g.enemy?.rooms.find((item) => item.system);
+    assert.ok(room);
+    kit.room = room.id;
+    kit.left = 30;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    const away = g.enemy?.rooms.find((item) => item.id !== room.id);
+    assert.ok(away);
+    for (const c of g.crew) if (c.side === "enemy") c.room = away.id;
+    foe.room = room.id;
+    foe.aboard = "enemy";
+    foe.path = [];
+    foe.stun = 0;
+    foe.leashed = undefined;
+    // One untrained crew member hits at 6 HP per second. 125 / 6 is just over 20 seconds.
+    tickSwarm(g, 20);
+    assert.equal(kit.on, true);
+    assert.ok((kit.hp ?? 0) > 0);
+    tickSwarm(g, 1);
+    assert.equal(kit.on, false);
+    assert.equal(kit.hp, 0);
+    assert.equal(kit.lost, REDEPLOY_S);
   });
 });

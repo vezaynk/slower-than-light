@@ -259,6 +259,8 @@ export function deploy(g: Game, kind: string): boolean {
   kit.target = kind;
   kit.path = [];
   kit.move = 0;
+  if (kind === "ionintruder") kit.hp = INTRUDER_HP;
+  else delete kit.hp;
   if (kind !== "patch") kit.room = undefined;
   // Drone Control, "Anti-Combat Drone": "Starts fully charged when first deployed".
   // Combat Drone Mark I does not say that, so the striker interval starts empty.
@@ -567,6 +569,68 @@ function systemRooms(enemy: Ship): Room[] {
   return enemy.rooms.filter((room) => room.system);
 }
 
+/**
+ * Drone Control, Ion Intruder Drone: "Health: 125 HP".
+ * Enemy copies already stored this on DroneUnit. The player's drone uses Kit.hp.
+ */
+export const INTRUDER_HP = 125;
+
+/**
+ * Drone Control, Ion Intruder Drone: "Speed: 18 (when moving through space)".
+ * A space-flight figure, not seconds, and not the interior step below.
+ * BOARD_FLY_S stays the invented flight window. This number is not converted into it.
+ */
+export const INTRUDER_SPACE_SPEED = 18;
+
+/**
+ * INFERRED: one interior room takes the same 0.6s baseline as crew movement (sim.ts moveCrew).
+ * "Speed: 18 (when moving through space)" is INTRUDER_SPACE_SPEED and is not this step.
+ * "Quickly breaks down doors" has no printed rate, so the walk does not spend door hp.
+ * "Will skip its cooldown if it attacked a blast door or a door locked with the Lockdown effect beforehand"
+ * needs that rate, so the skip does not run either.
+ */
+const INTRUDER_ROOM_S = 0.6;
+
+type Walker = { room?: string; path?: string[]; move?: number };
+
+function stepIntruderWalk(walker: Walker, dt: number) {
+  if (!walker.path?.length) return;
+  walker.move = (walker.move ?? 0) + dt / INTRUDER_ROOM_S;
+  while (walker.move >= 1 && walker.path.length > 0) {
+    const next = walker.path.shift();
+    if (next) walker.room = next;
+    walker.move -= 1;
+  }
+  if (walker.path.length === 0) walker.move = 0;
+}
+
+/** A door-linked route to a different system. No route means it stays. The page does not teleport it. */
+function intruderRoute(g: Game, ship: Ship, from: string, systems: Room[]): string[] {
+  const pool = systems.filter((room) => room.id !== from);
+  while (pool.length > 0) {
+    const dest = pool.splice(Math.floor(rand(g) * pool.length), 1)[0];
+    if (!dest) break;
+    const path = route(ship, from, dest.id);
+    if (path && path.length > 0) return path;
+  }
+  return [];
+}
+
+function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
+  if (!kit.room || kit.hp == null) return false;
+  const foes = g.crew.filter(
+    (c) => c.aboard === "enemy" && c.room === kit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && !forPlayer(c),
+  );
+  if (!foes.length) return false;
+  kit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * dt, 0);
+  if (kit.hp > 0) return false;
+  kit.hp = 0;
+  kit.path = [];
+  kit.move = 0;
+  killPlayerDrone(g, "Crew tore your ion intruder apart.");
+  return true;
+}
+
 function rollIntruderWait(g: Game): number {
   // Drone Control, Ion Intruder: "Pulse time varies between 8.2 and 10 seconds."
   // INFERRED: each wait is uniform inside that range. The page names no distribution.
@@ -592,10 +656,8 @@ function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
       }
     }
   }
-  const others = systems.filter((item) => item.id !== kit.room);
-  // INFERRED: "then moves to a different system" names no walk speed. The room changes when the pulse fires.
-  // Speed 18, health 125, and the door-break rate are not a single usable number, so none of them run.
-  if (others.length > 0) kit.room = others[Math.floor(rand(g) * others.length)]?.id;
+  // "then moves to a different system". The walk is stepIntruderWalk. This pulse only chooses the rooms.
+  if (kit.room) kit.path = intruderRoute(g, enemy, kit.room, systems);
 }
 
 function overchargerWait(layers: number): number | null {
@@ -646,11 +708,21 @@ function tickOvercharger(g: Game, kit: Kit, dt: number): void {
 }
 
 function tickIntruder(g: Game, kit: Kit, dt: number): void {
+  if (kit.hp == null) kit.hp = INTRUDER_HP;
   if (!(kit.left > 0)) kit.left = rollIntruderWait(g);
   // Removing power does not reset the cooldown. The timer freezes: it is not zeroed and it does not advance.
   if (!kit.on || kit.power < INTRUDER.power) return;
   const enemy = g.enemy;
   if (!enemy) return;
+  const systems = systemRooms(enemy);
+  if (!kit.room || !systems.some((room) => room.id === kit.room)) {
+    kit.room = systems[Math.floor(rand(g) * systems.length)]?.id;
+    kit.path = [];
+    kit.move = 0;
+  }
+  if (hurtPlayerIntruder(g, kit, dt)) return;
+  // The walk started by the previous pulse. Speed 18 is space flight, not this step.
+  if (kit.path?.length) stepIntruderWalk(kit, dt);
   kit.aux += dt;
   while (kit.aux >= kit.left) {
     pulseIntruder(g, enemy, kit);
@@ -784,11 +856,11 @@ export const ION_KILL_PER_S = 15 / 100;
  * Health lines: Boarding Drone "Health: 150 HP", Ion Intruder Drone "Health: 125 HP",
  * Anti-Personnel Drone "Health: 150 HP", System Repair Drone "Health: 25 HP".
  */
-const UNIT_HP: Record<string, number> = { board: 150, ionintruder: 125, personnel: 150, patch: 25 };
+const UNIT_HP: Record<string, number> = { board: 150, ionintruder: INTRUDER_HP, personnel: 150, patch: 25 };
 
 /**
- * INVENTED: Boarding Drone and Ion Intruder print "Speed: 18 (when moving through space)", a movement figure, not
- * seconds. 3 seconds of flight is the window your defense drones get to shoot one down.
+ * INVENTED: Boarding Drone and Ion Intruder print "Speed: 18 (when moving through space)" (INTRUDER_SPACE_SPEED),
+ * a movement figure, not seconds. 3 seconds of flight is the window your defense drones get to shoot one down.
  */
 export const BOARD_FLY_S = 3;
 
@@ -877,6 +949,8 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
   unit.ionT = undefined;
   unit.fired = undefined;
   unit.room = undefined;
+  unit.path = undefined;
+  unit.move = undefined;
   unit.hp = UNIT_HP[unit.kind];
   unit.fly = BOARDERS.has(unit.kind) ? BOARD_FLY_S : undefined;
   // Defensive Drones: "require approximately a second to acquire a target after being deployed".
@@ -898,6 +972,8 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
   unit.ionT = undefined;
   unit.fly = undefined;
   unit.room = undefined;
+  unit.path = undefined;
+  unit.move = undefined;
   if (unit.kind !== "ionintruder") {
     unit.aux = 0;
     unit.left = undefined;
@@ -1276,6 +1352,8 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
  * crew by origin, leashed or not, and never enemy-side crew.
  */
 function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
+  if (unit.hp == null) unit.hp = INTRUDER_HP;
+  if (unit.path?.length) stepIntruderWalk(unit, dt);
   if (!((unit.left ?? 0) > 0)) unit.left = rollIntruderWait(g);
   unit.aux += dt;
   while (unit.aux >= (unit.left ?? 0)) {
@@ -1295,9 +1373,8 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
         log(g, `Their ion intruder pulses the ${room.title}.`);
       }
     }
-    const others = playerSystemRooms(g).filter((item) => item.id !== unit.room);
-    const next = randomOf(g, others);
-    if (next) unit.room = next.id;
+    // "then moves to a different system". No printed door-break rate, so door hp is left alone.
+    if (unit.room) unit.path = intruderRoute(g, ship, unit.room, playerSystemRooms(g));
   }
 }
 

@@ -565,7 +565,9 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.equal(foe.stun, 6);
     assert.equal(other.stun, 0);
     assert.equal(friend.stun, 0);
-    assert.notEqual(kit.room, room.id);
+    // The pulse lands in this room, then a walk is queued. The room does not change in the same call.
+    assert.equal(kit.room, room.id);
+    assert.ok((kit.path ?? []).length > 0);
     for (const otherRoom of systems) {
       if (!otherRoom.system || otherRoom.system === room.system) continue;
       assert.equal(enemy.systems[otherRoom.system].ion.length, 0);
@@ -597,7 +599,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     tickSwarm(dead, 1.86);
     assert.equal(sys.ion.length, 0);
     assert.equal(foe.stun, 0);
-    assert.notEqual(kit.room, room.id);
+    assert.equal(kit.room, room.id);
+    assert.ok((kit.path ?? []).length > 0);
 
     const frozen = fight(35);
     swarmKit(frozen, 2);

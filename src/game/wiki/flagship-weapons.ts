@@ -21,7 +21,7 @@ export const BOSS_LASER: WeaponDef = {
   id: "bosslaser",
   name: "Boss Laser",
   kind: "laser",
-  // INFERRED: the artillery maximum (4), as Boss Missile stores its 4. No power line is printed; unused by the sim.
+  // INFERRED, chosen: the artillery maximum (4). No power line is printed. Not a Weapons-pool cost.
   power: 4,
   // Level-1 base. The other levels are in ARTILLERY_CHARGE.
   charge: 25,
@@ -49,7 +49,7 @@ export const BOSS_BEAM: WeaponDef = {
   id: "bossbeam",
   name: "Boss Beam",
   kind: "beam",
-  // INFERRED: the artillery maximum (3). No power line is printed; unused by the sim.
+  // INFERRED, chosen: the artillery maximum (3). No power line is printed. Not a Weapons-pool cost.
   power: 3,
   charge: 32.5,
   shots: 1,

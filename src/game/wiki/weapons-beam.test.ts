@@ -147,7 +147,7 @@ describe("beam weapons", () => {
     assert.match(gap("zoltan-shield"), /80%/);
   });
 
-  it("copies Artillery Beam numbers under lance.ts and blocks Boss Beam", () => {
+  it("copies Artillery Beam numbers under lance.ts and keeps Boss Beam out of this catalog", () => {
     const art = gap("artillery-beam");
     assert.match(art, /lance\.ts owns the system/);
     assert.match(art, /4 system levels/);
@@ -162,14 +162,16 @@ describe("beam weapons", () => {
 
     assert.equal(byId.bossbeam, undefined);
     const boss = gap("bossbeam");
-    assert.match(boss, /BLOCKED/);
-    assert.match(boss, /missing field: power/);
+    assert.equal(boss.includes("BLOCKED"), false);
+    assert.match(boss, /artillery maximum is 3/);
+    assert.match(boss, /not a Weapons-pool cost/);
+    assert.match(boss, /flagship-weapons\.ts/);
+    assert.match(boss, /does not emit a second WeaponDef/);
     assert.match(boss, /32\.5s/);
     assert.match(boss, /26s/);
     assert.match(boss, /19\.5s/);
     assert.match(boss, /Beam length 100/);
     assert.match(boss, /2 damage per room hit/);
-    assert.match(boss, /no WeaponDef is emitted/);
   });
 
   it("cites Beam (Weapons) and each section heading", () => {

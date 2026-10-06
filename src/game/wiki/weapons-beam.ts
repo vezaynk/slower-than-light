@@ -3,7 +3,8 @@ import type { WeaponDef } from "../content.ts";
 /**
  * Beam rows from wiki page "Beam (Weapons)" that are not already fitted.
  * Artillery Beam is not a WeaponDef. src/game/extras/lance.ts owns that system.
- * Boss Beam is BLOCKED because the section states no power requirement.
+ * Boss Beam is not in this list. flagship-weapons.ts stores power 3 as the artillery maximum.
+ * INFERRED: that 3 is not a Weapons-pool cost. The section states no power requirement.
  * Printed crew-damage HP is BEAM_CREW. Fire Beam prints a dash, so it is omitted.
  * "Per room tile" is not a WeaponDef or Shot field, so the HP is not multiplied by tiles.
  */
@@ -222,10 +223,9 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "bossbeam",
-    // Beam (Weapons), "Boss Beam": no power requirement is stated.
-    // BLOCKED: missing field is power. Do not invent a power or a single charge.
-    // Charge is 32.5s / 26s / 19.5s by artillery level. The italic quote is inside an HTML comment, so there is no blurb.
-    note: 'BLOCKED: missing field: power. Beam (Weapons), "Boss Beam" states no power requirement, so no WeaponDef is emitted. Charge time 32.5s for level 1, 26s for level 2, 19.5s for level 3. Beam length 100 (2.2 tiles diagonally). Deals 2 damage per room hit. Artillery system with 3 system levels maximum. Only used by the Rebel Flagship in phase 1-2. The italic quote is inside an HTML comment and is not copied.',
+    // Beam (Weapons), "Boss Beam": "Artillery system: with 3 system levels maximum". No power requirement.
+    // INFERRED: that maximum is the WeaponDef power in flagship-weapons.ts, and it is not a Weapons-pool cost.
+    note: 'INFERRED: the artillery maximum is 3, stored on the WeaponDef in flagship-weapons.ts, and it is not a Weapons-pool cost. Beam (Weapons), "Boss Beam" states no power requirement. This catalog does not emit a second WeaponDef. Charge time 32.5s for level 1, 26s for level 2, 19.5s for level 3. Beam length 100 (2.2 tiles diagonally). Deals 2 damage per room hit. Artillery system with 3 system levels maximum. Only used by the Rebel Flagship in phase 1-2. The italic quote is inside an HTML comment and is not copied.',
   },
   {
     id: "shield-layers",

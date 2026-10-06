@@ -57,11 +57,14 @@ describe("laser weapons", () => {
     assert.match(gap("charger2"), /5 seconds per shot, up to 4 shots/);
   });
 
-  it("blocks Boss Laser for missing power", () => {
+  it("keeps Boss Laser out of the pool catalog", () => {
     assert.equal(LASER_WEAPONS.some((weapon) => weapon.id === "bosslaser"), false);
     const boss = gap("bosslaser");
-    assert.match(boss, /BLOCKED/);
-    assert.match(boss, /no power|missing field: power/i);
+    assert.equal(boss.includes("BLOCKED"), false);
+    assert.match(boss, /artillery maximum is 4/);
+    assert.match(boss, /not a Weapons-pool cost/);
+    assert.match(boss, /flagship-weapons\.ts/);
+    assert.match(boss, /does not emit a second WeaponDef/);
     assert.match(boss, /25s/);
   });
 });

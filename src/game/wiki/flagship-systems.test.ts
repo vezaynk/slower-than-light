@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, evasionPercent, startCombat, step } from "../sim.ts";
+import { createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
 import { sensorLevel } from "../extras/sensors.ts";
 import type { Game } from "../types.ts";
 import {
@@ -276,6 +276,23 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
     hurtArtillery(g.enemy!, "e-laser", 2);
     hurtArtillery(g.enemy!, "e-missile", 4);
     assert.deepEqual(secs(), { bosslaser: Infinity, bossmissile: Infinity });
+  });
+
+  it("arms Boss Laser and Boss Beam when the Weapons pool is empty", () => {
+    // Laser (Weapons) / Beam (Weapons): no power requirement. The stored 4 and 3 are artillery maxima.
+    const g = bossFight(31);
+    const e = g.enemy!;
+    e.systems.weapons.power = 0;
+    assert.equal(WEAPONS.bosslaser.power, 4);
+    assert.equal(WEAPONS.bossbeam.power, 3);
+    const mask = powerMask(e);
+    const laser = e.weapons.findIndex((w) => w.defId === "bosslaser");
+    const beam = e.weapons.findIndex((w) => w.defId === "bossbeam");
+    assert.equal(mask[laser], true);
+    assert.equal(mask[beam], true);
+    const before = e.weapons[laser].charge;
+    step(g, 0.05);
+    assert.ok(e.weapons[laser].charge > before);
   });
 
   it("prints the boss weapon stats", () => {

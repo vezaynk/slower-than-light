@@ -3,7 +3,8 @@ import type { WeaponDef } from "../content.ts";
 /**
  * Laser (Weapons). Rows not already fitted.
  * Omitted: Basic Laser, Dual Lasers, Burst Laser Mark II, Heavy Laser Mark I.
- * Boss Laser is BLOCKED because the section states no power requirement, same rule as Boss Beam in weapons-beam.ts.
+ * Boss Laser is not in this list. flagship-weapons.ts stores power 4 as the artillery maximum.
+ * INFERRED: that 4 is not a Weapons-pool cost. The section states no power requirement.
  * kind is "laser". ammo is false: no section lists a missile cost.
  * ion is 0: no section states ion.
  */
@@ -337,9 +338,8 @@ export const LASER_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "bosslaser",
-    // Laser (Weapons), "Boss Laser": no power requirement is stated.
-    // BLOCKED: missing field is power. Do not invent a power or a single charge.
-    // Charge is 25s / 20s / 15s / 10s by artillery level.
-    note: 'BLOCKED: missing field: power. Laser (Weapons), "Boss Laser" states no power requirement, so no WeaponDef is emitted. Charge time 25s for level 1, 20s for level 2, 15s for level 3, 10s for level 4. Shots: 3. Damage per shot: 1. Artillery system with 4 system levels maximum. Only used by the Rebel Flagship in phase 1-3. Effect: low chance of fire or breach. The section gives no percent.',
+    // Laser (Weapons), "Boss Laser": "Artillery system: with 4 system levels maximum". No power requirement.
+    // INFERRED: that maximum is the WeaponDef power in flagship-weapons.ts, and it is not a Weapons-pool cost.
+    note: 'INFERRED: the artillery maximum is 4, stored on the WeaponDef in flagship-weapons.ts, and it is not a Weapons-pool cost. Laser (Weapons), "Boss Laser" states no power requirement. This catalog does not emit a second WeaponDef. Charge time 25s for level 1, 20s for level 2, 15s for level 3, 10s for level 4. Shots: 3. Damage per shot: 1. Artillery system with 4 system levels maximum. Only used by the Rebel Flagship in phase 1-3. Effect: low chance of fire or breach. The section gives no percent.',
   },
 ];

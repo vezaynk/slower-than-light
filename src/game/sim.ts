@@ -42,6 +42,7 @@ import {
   clearEnemyHackMarks,
   hackFreezesFtl,
   hackHoldsShields,
+  hackDrainsGun,
   hackHoldsWeapons,
   hackLocksDoor,
   spikeEvadeZero,
@@ -1397,7 +1398,8 @@ function chargeSide(
     if (!def || !mask[i]) return;
     // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
     if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
-    if (frozen) return;
+    // A flagship artillery hack holds that one gun (spike.ts hackDrainsGun). The others keep charging.
+    if (frozen || hackDrainsGun(g, from, w.defId)) return;
     // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
     w.charge = Math.min(1, w.charge + dt / ((flagshipChargeSeconds(ship, w) ?? def.charge) * mult));
     // Weapon Control, Overview: enemy guns always fire when charged. Player autofire is the all-weapons

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat } from "../sim.ts";
+import { createGame, startCombat, step } from "../sim.ts";
 import { WEAPONS } from "../content.ts";
 import type { Game } from "../types.ts";
 import {
@@ -186,5 +186,36 @@ describe("spike", () => {
     assert.equal(interior.open, false);
     assert.equal(airlock.open, true);
     assert.equal(stuck.open, true);
+  });
+});
+
+describe("flagship artillery hack", () => {
+  it("drains the aimed gun and leaves the other artillery charging", () => {
+    const g = createGame(2);
+    g.scrap = 80;
+    g.player.parts = 2;
+    assert.equal(installSpike(g), true);
+    toggleSpikePower(g);
+    const boss = g.beacons.find((beacon) => beacon.kind === "exit");
+    assert.ok(boss);
+    boss.kind = "boss";
+    g.here = boss.id;
+    startCombat(g, "boss");
+    const enemy = g.enemy;
+    assert.ok(enemy?.flagship);
+    assert.equal(armSpike(g, "weapons"), false);
+    assert.equal(armSpike(g, "e-laser"), true);
+    assert.equal(launchLanded(g), true);
+    assert.equal(g.player.kits.spike?.target, "e-laser");
+    for (const w of enemy.weapons) w.charge = 0.4;
+    const before = Object.fromEntries(enemy.weapons.map((w) => [w.defId, w.charge]));
+    for (let i = 0; i < 10; i++) step(g, 0.05);
+    const laser = enemy.weapons.find((w) => w.defId === "bosslaser");
+    assert.ok(laser);
+    assert.ok(laser.charge < (before.bosslaser ?? 1), String(laser.charge));
+    for (const w of enemy.weapons) {
+      if (w.defId === "bosslaser") continue;
+      assert.ok(w.charge > (before[w.defId] ?? 0), `${w.defId} ${w.charge}`);
+    }
   });
 });

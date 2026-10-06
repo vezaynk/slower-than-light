@@ -29,6 +29,7 @@ import {
   queueSpike,
   playerSensorLevel,
   raiseSpikePower,
+  spikeAimId,
   spikeRoomTargetable,
 } from "@/game/extras/spike";
 import { create } from "zustand";
@@ -161,12 +162,11 @@ function hackIconClick() {
  */
 function hackRoomClick(roomId: string) {
   const g = useGame.getState().game;
-  if (!spikeRoomTargetable(g, roomId)) return;
+  const id = spikeAimId(g, roomId);
+  if (!id) return;
   act((game) => {
-    const room = game.enemy?.rooms.find((r) => r.id === roomId);
-    const id = room?.system ?? room?.kit;
-    if (!id) return;
     // @agent:hack-rules. "Once the game is unpaused, this choice is permanent": while paused the pick only queues.
+    // A flagship artillery room aims at that room (spike.ts spikeAimId), not every gun.
     if (game.paused) queueSpike(game, id);
     else if (armSpike(game, id)) launchSpike(game);
   });

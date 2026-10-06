@@ -49,6 +49,19 @@ const TARGETS: readonly SysId[] = [
   "sensors",
 ];
 
+/**
+ * The Rebel Flagship: "The Flagship's 'weapons' are artillery systems, each located in its own room."
+ * Same rooms as wiki/flagship-systems.ts GUN_ROOM. Hacking one room drains that gun.
+ * Hacking, "Overview": "Artillery Beam / Flak Artillery / Rebel Flagship weapons: drains charge (same effect as on weapons)."
+ * Weapon Control still drains every gun on a hull that is not the flagship.
+ */
+const FLAGSHIP_GUN: Record<string, string> = {
+  "e-ion": "bossion",
+  "e-laser": "bosslaser",
+  "e-missile": "bossmissile",
+  "e-beam": "bossbeam",
+};
+
 function kitOf(g: Game): Kit | undefined {
   return g.player.kits.spike;
 }
@@ -85,8 +98,16 @@ function pulseSeconds(powered: number): number {
 const KIT_TARGETS: readonly KitId[] = ["spike", "cradle", "veil", "sling", "leash", "swarm", "cell", "flak", "lance"];
 
 function isTarget(g: Game, id: string): boolean {
+  // Each flagship artillery room is its own system. "weapons" would drain every gun.
+  if (id === "weapons" && g.enemy?.flagship) return false;
+  if (g.enemy?.flagship && FLAGSHIP_GUN[id] && g.enemy.rooms.some((room) => room.id === id)) return true;
   if ((TARGETS as readonly string[]).includes(id)) return true;
   return (KIT_TARGETS as readonly string[]).includes(id) && !!g.enemy?.kits[id as KitId];
+}
+
+/** The room the drone was aimed at: an artillery room id, or the room that houses that system. */
+function aimRoom(ship: Ship, id: string): Room | undefined {
+  return ship.rooms.find((room) => room.id === id) ?? roomOf(ship, id);
 }
 
 /** The room on `ship` that houses system or kit `id` (kits sit in rooms with `kit` set on enemy hulls). */
@@ -367,7 +388,7 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
   if (!enemy || !kit.target) return;
   // Augmentations, "Offensive Augmentations", Hacking Stun: crew in the pulsed room cannot act for the pulse.
   if (hackStuns(g)) {
-    const room = roomOf(enemy, kit.target);
+    const room = aimRoom(enemy, kit.target);
     if (room) {
       for (const c of g.crew) {
         if (c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
@@ -387,16 +408,12 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
     }
     return;
   }
-  if (kit.target === "weapons") {
-    for (const w of enemy.weapons) {
-      // Hacking wiki, "Overview" (Weapon Control): drain at the weapon's own base charge speed.
-      const seconds = WEAPONS[w.defId]?.charge;
-      if (seconds == null || seconds <= 0) continue;
-      w.charge -= dt / seconds;
-      if (w.charge < 0) w.charge = 0;
-      // INFERRED: hold the bar at 0.99 so it cannot fire. The page says weapons cannot fire and never states 0.99.
-      w.charge = Math.min(w.charge, 0.99);
-    }
+  if (kit.target === "weapons" || FLAGSHIP_GUN[kit.target]) {
+    // A flagship artillery room is one gun. "weapons" on that hull is not a shared pool, so it drains nothing.
+    const only = enemy.flagship ? FLAGSHIP_GUN[kit.target] : null;
+    if (enemy.flagship && !only) return;
+    // Hacking wiki, "Overview" (Weapon Control), and "Rebel Flagship weapons: drains charge (same effect as on weapons)."
+    drainGuns(enemy.weapons, dt, only);
     return;
   }
   if (kit.target === "oxygen") {
@@ -976,9 +993,29 @@ function pulseSwarm(g: Game, kit: Kit, dt: number) {
   }
 }
 
+/**
+ * Hacking wiki, "Overview" (Weapon Control): drain at the weapon's own base charge speed and hold it under a full bar.
+ * INFERRED: the hold is 0.99. The page says weapons cannot fire and never states 0.99.
+ * `only` limits the drain to one flagship artillery gun. Null drains every listed gun.
+ */
+function drainGuns(weapons: Ship["weapons"], dt: number, only: string | null) {
+  for (const w of weapons) {
+    if (only && w.defId !== only) continue;
+    const seconds = WEAPONS[w.defId]?.charge;
+    if (seconds == null || seconds <= 0) continue;
+    w.charge = Math.min(0.99, Math.max(0, w.charge - dt / seconds));
+  }
+}
+
 /** Effects of the enemy's pulse on the player, by hacked system. Hacking wiki, "Overview" (Active effects). */
 function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
   const ship = g.player;
+  const artillery = ship.flagship ? FLAGSHIP_GUN[kit.target ?? ""] : undefined;
+  if (artillery) {
+    // Rebel Flagship weapons: one artillery room, the same drain as Weapon Control, not every gun.
+    drainGuns(ship.weapons, dt, artillery);
+    return;
+  }
   switch (kit.target) {
     case "shields":
       // "Shields: discharges shields, requiring 2 seconds to remove 1 shield layer." sim.ts shieldRegen holds the
@@ -992,11 +1029,9 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
     case "weapons":
       // "Weapon Control: drains the charge of all weapons on the ship and prevents them from being fired";
       // "Draining speed is the same as speed as the base-level charging speed". sim.ts chargeSide stops the charge.
-      for (const w of ship.weapons) {
-        const seconds = WEAPONS[w.defId]?.charge;
-        if (seconds == null || seconds <= 0) continue;
-        w.charge = Math.min(0.99, Math.max(0, w.charge - dt / seconds));
-      }
+      // A flagship hull's guns are separate artillery. This case is the shared Weapons system, so it does not run there.
+      if (ship.flagship) return;
+      drainGuns(ship.weapons, dt, null);
       return;
     case "oxygen":
       // "Oxygen: drains O2 levels of ship at 6% per second."
@@ -1197,11 +1232,30 @@ export function hackFreezesFtl(g: Game, ship: Ship): boolean {
 
 /** Hacking wiki, "Overview" (Weapon Control): the hacked side's weapons do not charge (sim.ts chargeSide). */
 export function hackHoldsWeapons(g: Game, from: "player" | "enemy"): boolean {
-  if (from === "player") return enemyPulseOn(g, ["weapons"]);
+  if (from === "player") {
+    // Flagship artillery is not one Weapons system. hackDrainsGun holds the one gun.
+    if (g.player.flagship) return false;
+    return enemyPulseOn(g, ["weapons"]);
+  }
   // The player's own pulse on the enemy's Weapons: "drains the charge ... and prevents them from being fired".
   // Without this the enemy recharged every tick, cancelling the drain.
+  // A flagship pulse names one artillery room, so this does not freeze the other guns.
   const kit = kitOf(g);
-  return !!kit && running(kit) && kit.target === "weapons";
+  if (!kit || !running(kit) || g.enemy?.flagship) return false;
+  return kit.target === "weapons";
+}
+
+/**
+ * The one flagship gun a hacking pulse is draining. Other guns on that hull keep charging.
+ * Hacking, "Overview": Rebel Flagship weapons drain charge the same way Weapon Control does, per artillery room.
+ */
+export function hackDrainsGun(g: Game, from: "player" | "enemy", defId: string): boolean {
+  const ship = from === "enemy" ? g.enemy : g.player;
+  if (!ship?.flagship) return false;
+  const kit = from === "enemy" ? kitOf(g) : enemyKit(g);
+  if (!kit || !running(kit)) return false;
+  if (from === "player" && (!kit.hackLatched || !operational(kit))) return false;
+  return FLAGSHIP_GUN[kit.target ?? ""] === defId;
 }
 
 /**
@@ -1330,7 +1384,7 @@ export function hackVision(g: Game): { system: string; room: string | null; sens
   const kit = kitOf(g);
   const powered = !!kit && fedBars(kit) >= 1;
   const evasion = powered && (id === "engines" || id === "pilot") ? evasionPercent(g, foe, "enemy") : null;
-  return { system: id, room: roomOf(foe, id)?.id ?? null, sensors: 4, evasion };
+  return { system: id, room: aimRoom(foe, id)?.id ?? null, sensors: 4, evasion };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1356,11 +1410,20 @@ export function raiseSpikePower(g: Game) {
  * Hacking wiki, "Choosing your hacking target": "click on the hacking drone icon, then click an enemy system room."
  * True when enemy room `roomId` holds a system or kit this drone may be aimed at (TARGETS / KIT_TARGETS).
  */
-export function spikeRoomTargetable(g: Game, roomId: string): boolean {
+/**
+ * The system or artillery room a click on `roomId` aims at.
+ * On the flagship, an artillery room aims at that room, not the shared Weapons id.
+ */
+export function spikeAimId(g: Game, roomId: string): string | null {
   const room = g.enemy?.rooms.find((r) => r.id === roomId);
-  if (!room) return false;
+  if (!room) return null;
+  if (g.enemy?.flagship && FLAGSHIP_GUN[room.id]) return room.id;
   const id = room.system ?? room.kit;
-  return !!id && isTarget(g, id);
+  return id && isTarget(g, id) ? id : null;
+}
+
+export function spikeRoomTargetable(g: Game, roomId: string): boolean {
+  return spikeAimId(g, roomId) != null;
 }
 
 export type PlayerHackState =
@@ -1406,7 +1469,7 @@ export function playerHackView(g: Game): {
   const total = kit.hackFlyTotal ?? kit.hackFly ?? 0;
   const progress = flying && total > 0 ? Math.min(1, Math.max(0, 1 - (kit.hackFly ?? 0) / total)) : 0;
   const target = latchedId ?? flyingId ?? kit.target ?? null;
-  const room = foe && target ? (roomOf(foe, target)?.id ?? null) : null;
+  const room = foe && target ? (aimRoom(foe, target)?.id ?? null) : null;
   const powered = fedBars(kit);
   const base = {
     target,

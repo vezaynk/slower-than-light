@@ -76,7 +76,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 ## All pages
 
-- [ ] AI-Controlled Rebel Ships — partial — auto-scout, auto-surveyor, auto-assault, and auto-hacker are classes in enemy-ships.ts. rollEnemy places hull and systems inside the printed ranges, not one loadout. Room geometry is INFERRED.
+- [ ] AI-Controlled Rebel Ships — partial — auto-scout, auto-surveyor, auto-assault, and auto-hacker are classes in enemy-ships.ts. rollEnemy places hull and systems inside the printed ranges, not one loadout. Room geometry is INFERRED. They repair every damaged system at one third of a human, 37.5 seconds a bar (INFERRED: all at once). A breach is not repaired, and a breached system does not progress. A fire resets that progress. The Flagship AI keeps its own inferred 12.5 second bar.
 - [ ] ASB — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Abandoned Sector — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Abandoned Space Station — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.

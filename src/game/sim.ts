@@ -734,6 +734,29 @@ export function blastHits(level: number): number {
   return 0;
 }
 
+/**
+ * Crystal Lockdown: "at least 5 crew" punching from the start can break the door just before the
+ * 12 second coating melts, and crew "make about one attack per second" (Door System, "Door strength").
+ * INFERRED: 5 × 12 = 60 hits. The door level does not change this. One drone at two hits a second
+ * does not finish inside the coating.
+ */
+export const COATED_DOOR_HITS = 5 * 12;
+
+/** Punch a crystal coating. "clear" means it no longer blocks. "broke" means this punch opened the door. */
+export function punchCoat(door: Door, hits: number): "held" | "broke" | "clear" {
+  if (door.b === "void") return "clear";
+  if (door.coat == null) door.coat = COATED_DOOR_HITS;
+  if (door.coat <= 0) return "clear";
+  door.coat -= hits;
+  // A 12 second coat of 0.05s steps lands on a float just under 60. That last flake still breaks it.
+  if (door.coat > 1e-6) return "held";
+  door.coat = 0;
+  door.open = true;
+  door.stuck = 7;
+  door.hp = 0;
+  return "broke";
+}
+
 export function doorLabel(ship: Ship, door: Door): string {
   const a = roomById(ship, door.a)?.title ?? "Room";
   if (door.b === "void") return `Airlock · ${a}`;
@@ -747,8 +770,9 @@ function coated(ship: Ship, id: string): boolean {
 
 /**
  * Crystal, "Crystal Lockdown": the coating lasts 12 seconds and resets blast-door health.
- * Door System, "Hits required to break a door": that table is the health being reset. No new hit count is introduced.
- * Crystal, "Crystal Lockdown": a coated door can be broken, but the page states no hit count or rate, so breaking is not applied.
+ * Door System, "Hits required to break a door": that table is the health being reset.
+ * The coating itself is COATED_DOOR_HITS, and the door level does not change it.
+ * Airlocks are not coated.
  */
 function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: string) {
   const room = roomById(ship, roomId);
@@ -759,6 +783,7 @@ function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: strin
     if (door.b === "void") continue;
     if (door.a !== roomId && door.b !== roomId) continue;
     door.hp = blastHits(level);
+    door.coat = COATED_DOOR_HITS;
   }
 }
 
@@ -843,6 +868,18 @@ function tickLockdown(g: Game, dt: number) {
     for (const room of ship.rooms) {
       if ((room.lock ?? 0) <= 0) continue;
       room.lock = Math.max(0, (room.lock ?? 0) - dt);
+    }
+  }
+}
+
+/** Crystal Lockdown: once the coating has melted, leftover coating hits go with it and the door stays as it is. */
+function meltCoats(g: Game) {
+  for (const ship of [g.player, g.enemy]) {
+    if (!ship) continue;
+    for (const door of ship.doors) {
+      if (door.b === "void" || !(door.coat != null && door.coat > 0)) continue;
+      if (coated(ship, door.a) || coated(ship, door.b)) continue;
+      door.coat = 0;
     }
   }
 }
@@ -1645,9 +1682,16 @@ function moveCrew(g: Game, dt: number) {
     const hacked = !!door && hackLocksDoor(g, ship, door);
     const hostile =
       (c.leashed ?? 0) <= 0 && (hacked ? c.side === "player" : c.side !== (c.aboard === "player" ? "player" : "enemy"));
-    const leaving = coated(ship, c.room);
-    // Crystal, "Crystal Lockdown": the page states no rate for breaking a coated door, so a shut door is not punched through while the coating lasts.
-    if (leaving && door && !door.open) continue;
+    // Coat hits stay up through this tick after the 12 seconds hit 0, so the last punches still land.
+    const coatShut = !!door && door.b !== "void" && !door.open && (door.coat ?? 0) > 0;
+    const leaving = coated(ship, c.room) || coatShut;
+    // Crystal Lockdown: a shut coated door is punched at the crew's one attack per second.
+    // Airlocks are not coated. Entering a coated room is refused above, before this punch.
+    if (leaving && door && !door.open && door.b !== "void") {
+      const result = punchCoat(door, dt);
+      if (result === "broke") log(g, "A door gives way.");
+      if (result === "held") continue;
+    } else if (leaving && door && !door.open) continue;
     if (door && !door.open && hostile && !leaving) {
       const level = hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, c.aboard);
       // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
@@ -3607,6 +3651,8 @@ export function step(g: Game, dt: number) {
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   syncShields(g.enemy, zoltanBars(g.crew, g.enemy, "enemy", "shields"));
   tickExtras(g, h);
+  // Crystal Lockdown: crew and drones already punched this tick. A melted room drops leftover coating hits.
+  meltCoats(g);
   chargeSide(g, g.player, "player", h);
   chargeSide(g, g.enemy, "enemy", h);
   wanderBoarders(g, h);

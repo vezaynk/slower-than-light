@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   applyImpact,
+  COATED_DOOR_HITS,
   commitJump,
   createGame,
   lockdown,
@@ -156,6 +157,7 @@ describe("zoltan shield", () => {
     );
     assert.ok(door);
     assert.equal(door.hp, 8);
+    assert.equal(door.coat, COATED_DOOR_HITS);
   });
 });
 
@@ -248,6 +250,54 @@ describe("crystal lockdown", () => {
 
     advance(g, first.lockCool ?? 0);
     assert.ok((first.lockCool ?? 0) < 0.001);
+  });
+
+  it("breaks a coated door after 60 crew hits, and the door level does not change that", () => {
+    const g = createGame(9);
+    startCombat(g, "scout");
+    quiet(g);
+    for (const w of g.player.weapons) w.enabled = false;
+    const here = g.player.rooms.find((room) => room.system === "weapons");
+    const next = g.player.rooms.find((room) => room.system === "sensors");
+    assert.ok(here && next);
+    const door = g.player.doors.find(
+      (item) =>
+        item.b !== "void" &&
+        ((item.a === here.id && item.b === next.id) || (item.b === here.id && item.a === next.id)),
+    );
+    assert.ok(door);
+    g.player.systems.doors.level = 4;
+    g.player.systems.doors.damage = 0;
+    door.open = false;
+    door.hp = 0;
+    door.stuck = 0;
+    here.lock = 12;
+    door.coat = COATED_DOOR_HITS;
+    const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+    assert.ok(crew.length >= 1);
+    const base = crew[0];
+    assert.ok(base);
+    while (g.crew.filter((c) => c.side === "player" && c.hp > 0).length < 5) {
+      const i = g.crew.length;
+      g.crew.push({ ...base, id: `punch-${i}`, name: `Punch ${i}`, path: [], move: 0 });
+    }
+    for (const c of g.crew) {
+      if (c.side !== "player" || c.hp <= 0) continue;
+      c.room = here.id;
+      c.aboard = "player";
+      c.path = [next.id];
+      c.move = 0;
+      c.stun = 0;
+    }
+    for (let i = 0; i < 220; i++) step(g, 0.05);
+    assert.equal(door.open, false);
+    assert.equal(door.hp, 0);
+    assert.ok((door.coat ?? 0) > 1);
+    for (let i = 0; i < 40 && !door.open; i++) step(g, 0.05);
+    assert.equal(door.open, true);
+    assert.equal(door.stuck, 7);
+    assert.equal(door.hp, 0);
+    assert.equal(door.coat ?? 0, 0);
   });
 
   it("recharges on a jump unless the Crystal is in the Clone Bay", () => {

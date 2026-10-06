@@ -66,6 +66,11 @@ export type Door = {
   open: boolean;
   /** Hits left before a boarder breaks a blast door. */
   hp: number;
+  /**
+   * Crystal Lockdown coating hits still left. Separate from `hp`: the coating resets blast-door
+   * health, and the door level does not change the coating. Absent means this door is not coated.
+   */
+  coat?: number;
   /** Seconds a broken door stays stuck open. */
   stuck: number;
   /**
@@ -216,6 +221,15 @@ export type Kit = {
   /** Progress toward the next room, from 0 to 1. */
   move?: number;
   /**
+   * System Repair: the system room this drone was standing in when power came back.
+   * That system is finished before any higher-priority job. Absent means it is not stuck.
+   */
+  stick?: string;
+  /** System Repair: walking back to Drone Control, and not taking a new job until it arrives. */
+  home?: boolean;
+  /** System Repair: power was off, so the next powered tick reassesses from the room it is in. */
+  hold?: boolean;
+  /**
    * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
    * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.
    */
@@ -297,6 +311,12 @@ export type DroneUnit = {
   path?: string[];
   /** Ion Intruder progress toward the next room, from 0 to 1. */
   move?: number;
+  /** System Repair: system room to finish first after power returns. */
+  stick?: string;
+  /** System Repair: walking back to Drone Control without taking a new job. */
+  home?: boolean;
+  /** System Repair: saw a tick with no power, so the next powered tick reassesses. */
+  hold?: boolean;
   /** A blast door took damage since the last pulse. Consumed when the cooldown is skipped. */
   doorHit?: boolean;
   /** The door already counted for that skip. */

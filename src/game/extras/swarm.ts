@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -263,6 +263,7 @@ export function deploy(g: Game, kind: string): boolean {
   kit.path = [];
   kit.move = 0;
   if (kind === "ionintruder") kit.hp = INTRUDER_HP;
+  else if (kind === "patch") kit.hp = 25;
   else delete kit.hp;
   if (kind !== "patch") kit.room = undefined;
   // Drone Control, "Anti-Combat Drone": "Starts fully charged when first deployed".
@@ -271,6 +272,11 @@ export function deploy(g: Game, kind: string): boolean {
   // Defense cooldowns also start ready.
   setCooldown(kit, 0);
   kit.left = 0;
+  // Hull Repair Drone: "repairing 3-5 hull points". The roll is the total for this deployment.
+  if (kind === "hull") kit.left = 3 + Math.floor(rand(g) * 3);
+  delete kit.stick;
+  delete kit.home;
+  delete kit.hold;
   // A new flight starts at the nose. The first leg is chosen on the next tick.
   delete kit.heading;
   delete kit.bearing;
@@ -590,8 +596,9 @@ function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): v
  * 3. A breach.
  * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
  *    nearest room wins. INFERRED: a kit ranks with those systems.
- * Repower-sticky and the walk home are not in this rank. Door breaking is the walk below.
+ * Repower-sticky and the walk home are applied in tickRepair, above this rank.
  */
+
 const PATCH_AIR = 25;
 
 function shipAir(ship: Ship): number {
@@ -629,57 +636,163 @@ function patchTarget(ship: Ship, from: string): string | null {
   return best?.id ?? null;
 }
 
-/** Next room to walk to, or null when the drone should stay and work (or has no job). */
-function repairRoom(ship: Ship, from: string): string | null {
-  const target = patchTarget(ship, from);
-  if (!target || target === from) return null;
-  return target;
+type RepairBody = {
+  room?: string;
+  path?: string[];
+  move?: number;
+  doorHit?: boolean;
+  doorChew?: string;
+  stick?: string;
+  home?: boolean;
+  hold?: boolean;
+  hp?: number;
+};
+
+/** Drone Control, System Repair Drone: "Health: 25 HP". */
+const PATCH_HP = 25;
+
+/**
+ * INVENTED: Crew Drones and System Repair say an idle drone heals in the Drone Control room when that
+ * system has any power. No rate is printed. 5 HP per second fills an empty drone in 5 seconds.
+ */
+export const PATCH_HEAL = 5;
+
+/**
+ * INVENTED: Hull Repair Drone repairs 3–5 hull then self-destructs. The page prints no seconds.
+ * One hull point every 3 seconds. Two points, the Recovery Arm's "just after 2 repairs", take 6 seconds.
+ * Speed 20 is movement around the ship, not this rate.
+ */
+export const HULL_POINT_S = 3;
+
+function droneBay(ship: Ship): string | undefined {
+  return ship.rooms.find((room) => room.kit === "swarm")?.id;
 }
 
-function tickCrewDrone(g: Game, kit: Kit, dt: number) {
-  const ship = g.player;
-  if (!kit.room || !ship.rooms.some((room) => room.id === kit.room)) {
-    kit.room = ship.rooms[0]?.id;
-    kit.path = [];
-    kit.move = 0;
-  }
-  if (!kit.room) return;
-  if (!kit.path || kit.path.length === 0) {
-    const dest = repairRoom(ship, kit.room);
-    if (!dest) return;
-    const path = route(ship, kit.room, dest);
-    if (!path || path.length === 0) return;
-    kit.path = path;
-  }
-  // The player's drone breaks its own shut doors, including a hacked one. The enemy copy still appears in the room.
-  if (chewDoor(g, ship, kit, dt, "player", "player", true) === "blocked") return;
-  // INFERRED crew walk is one room in 0.6s. Drone Reactor Booster states the crew-drone fraction of that speed.
-  const pace = crewDroneSpeed(g.augments.includes("booster"));
-  kit.move = (kit.move ?? 0) + (dt * pace) / 0.6;
-  if (kit.move >= 1) {
-    const next = kit.path.shift();
-    if (next) kit.room = next;
-    kit.move = 0;
-  }
-}
-
-function tickPatch(g: Game, kit: Kit, dt: number) {
-  const ship = g.player;
-  const here = kit.room ? ship.rooms.find((room) => room.id === kit.room) : undefined;
-  const target = kit.room ? patchTarget(ship, kit.room) : null;
-  if (here && target === here.id) {
-    kit.path = [];
-    engiRepair(ship, here, dt, false);
+/**
+ * Drone Control, System Repair: "If its power is interrupted, it will fully reassess the task priorities."
+ * On the next powered tick, a drone standing in a system room repairs that system first, "even" ahead of
+ * a higher-priority system. The oxygen-below-25% line is one of those priorities, so the stuck room wins.
+ */
+function noteRepairPower(body: RepairBody, ship: Ship, poweredNow: boolean): void {
+  if (!poweredNow) {
+    body.path = [];
+    body.move = 0;
+    body.home = false;
+    body.stick = undefined;
+    body.hold = true;
     return;
   }
-  // A new higher-ranked room replaces a walk that was aimed somewhere else.
-  if (target && kit.path?.length && kit.path[kit.path.length - 1] !== target) kit.path = [];
-  tickCrewDrone(g, kit, dt);
+  if (!body.hold) return;
+  body.hold = false;
+  body.home = false;
+  body.path = [];
+  body.move = 0;
+  const here = body.room ? ship.rooms.find((room) => room.id === body.room) : undefined;
+  body.stick = here?.system ? here.id : undefined;
 }
 
-function tickHull(): void {
-  // Drone Control, Defensive Drones > Hull Repair Drone: "repairing 3-5 hull points and then self-destructs".
-  // That is a total, not hull-per-second. The page gave no seconds, so this tick applies no rate.
+/** The room to work. A stuck system outranks patchTarget. Walking home takes no job. */
+function repairDest(ship: Ship, body: RepairBody): string | null {
+  if (body.home) return null;
+  if (body.stick) {
+    const stuck = ship.rooms.find((room) => room.id === body.stick);
+    const sys = stuck?.system;
+    if (stuck && sys && ship.systems[sys].damage > 0) return stuck.id;
+    body.stick = undefined;
+  }
+  if (!body.room) return null;
+  return patchTarget(ship, body.room);
+}
+
+/**
+ * Healing needs any power in Drone Control, including one Zoltan bar, and does not require
+ * this schematic's own power line. Only while idle in the drone bay. The rate is PATCH_HEAL.
+ */
+function maybeHealBay(ship: Ship, body: RepairBody, dt: number): void {
+  const bay = droneBay(ship);
+  if (!bay || body.room !== bay || body.home || (body.path?.length ?? 0) > 0) return;
+  if (kitBars(ship.kits.swarm) < 1) return;
+  body.hp = Math.min(PATCH_HP, (body.hp ?? PATCH_HP) + PATCH_HEAL * dt);
+}
+
+/**
+ * System Repair on either ship. Crew Drones: they move at the crew-drone fraction of crew speed,
+ * break shut doors, and when idle return to the drone bay. While walking home, new tasks wait
+ * until arrival or a repower. The player's Drone Reactor Booster is `pace`; the enemy copy is not boosted.
+ */
+function tickRepair(
+  g: Game,
+  ship: Ship,
+  body: RepairBody,
+  dt: number,
+  aboard: "player" | "enemy",
+  repowerKits: boolean,
+  pace: number,
+): void {
+  const bay = droneBay(ship);
+  if (!body.room || !ship.rooms.some((room) => room.id === body.room)) {
+    body.room = bay ?? ship.rooms[0]?.id;
+    body.path = [];
+    body.move = 0;
+  }
+  if (!body.room) return;
+  const target = repairDest(ship, body);
+  const here = ship.rooms.find((room) => room.id === body.room);
+  if (here && target === here.id) {
+    body.path = [];
+    engiRepair(ship, here, dt, repowerKits);
+    return;
+  }
+  // A new higher-ranked room replaces a walk that was aimed somewhere else. A walk already
+  // chosen, including the booster test's path, is kept when nothing outranks it.
+  if (target && body.path?.length && body.path[body.path.length - 1] !== target) body.path = [];
+  if (!body.home && !target && (!body.path || body.path.length === 0) && bay && body.room !== bay) {
+    const path = route(ship, body.room, bay);
+    if (path && path.length > 0) {
+      body.home = true;
+      body.path = path;
+    }
+  }
+  if ((!body.path || body.path.length === 0) && target && target !== body.room) {
+    const path = route(ship, body.room, target);
+    if (path && path.length) body.path = path;
+  }
+  if (!body.path || body.path.length === 0) {
+    if (body.home && body.room === bay) body.home = false;
+    maybeHealBay(ship, body, dt);
+    return;
+  }
+  if (chewDoor(g, ship, body, dt, aboard, aboard, true) === "blocked") return;
+  body.move = (body.move ?? 0) + (dt * pace) / 0.6;
+  if (body.move >= 1) {
+    const next = body.path.shift();
+    if (next) body.room = next;
+    body.move = 0;
+  }
+  if (body.home && body.room === bay && (body.path?.length ?? 0) === 0) {
+    body.home = false;
+    const job = repairDest(ship, body);
+    if (job && job !== body.room) {
+      const path = route(ship, body.room, job);
+      if (path && path.length) body.path = path;
+    }
+  }
+}
+
+function tickHull(g: Game, kit: Kit, dt: number): void {
+  // Hull Repair Drone: "repairing 3-5 hull points and then self-destructs".
+  // Reaching a full hull ends the job early. A hull that was already full has not been repaired.
+  kit.aux += dt;
+  let repaired = false;
+  while (kit.aux >= HULL_POINT_S && kit.left > 0 && g.player.hull < g.player.hullMax) {
+    kit.aux -= HULL_POINT_S;
+    g.player.hull += 1;
+    kit.left -= 1;
+    repaired = true;
+  }
+  if (kit.left <= 0 || (repaired && g.player.hull >= g.player.hullMax)) {
+    killPlayerDrone(g, "Your hull repair drone breaks apart.");
+  }
 }
 
 function tickCombat2(g: Game, kit: Kit, dt: number) {
@@ -735,7 +848,7 @@ function roomCoated(ship: Ship, id: string): boolean {
 
 /**
  * A shut door holds the walker. A blast door loses DRONE_DOOR_HITS_PER_S hits per second.
- * Crystal Lockdown prints no break rate, so a coated door is not attacked and does not arm the cooldown skip.
+ * A coated door spends COATED_DOOR_HITS (punchCoat), not blast-door health, and still arms the ion skip.
  * Hacking: the hacker's crew walk through. breakOwn is the System Repair drone, which still breaks them.
  * A level-1 door has no hit budget and opens on this tick. A blast door that opens this tick still holds the step.
  */
@@ -752,7 +865,15 @@ function chewDoor(
   if (!walker.room || !next) return "clear";
   const door = interiorDoor(ship, walker.room, next);
   if (!door || door.open) return "clear";
-  if (roomCoated(ship, next) || roomCoated(ship, walker.room)) return "blocked";
+  if (roomCoated(ship, next) || roomCoated(ship, walker.room) || (door.coat ?? 0) > 0) {
+    const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
+    if (walker.doorChew !== key) {
+      walker.doorChew = key;
+      walker.doorHit = true;
+    }
+    if (punchCoat(door, dt * DRONE_DOOR_HITS_PER_S) === "broke") log(g, "A door gives way.");
+    return "blocked";
+  }
   const hacked = ship === g.player && !!door.hacked && !!g.enemy;
   const home = aboard === "player" ? "player" : "enemy";
   if (hacked && side === "enemy" && !breakOwn) return "clear";
@@ -918,7 +1039,7 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
   // The walk started by the previous pulse. Speed 18 is space flight, not this step.
   if (kit.path?.length) stepIntruderWalk(g, enemy, kit, dt, "enemy", "player");
   // "Will skip its cooldown if it attacked a blast door ... beforehand." One skip per door.
-  // A Lockdown door is not attacked: Crystal Lockdown prints no break rate.
+  // A Lockdown door is attacked too: "or a door locked with the Lockdown effect".
   if (takeDoorSkip(kit)) kit.aux = kit.left;
   kit.aux += dt;
   while (kit.aux >= kit.left) {
@@ -983,6 +1104,26 @@ export function tickSwarm(g: Game, dt: number) {
     tickOvercharger(g, kit, dt);
     return;
   }
+  // Hull Repair: "Depowering, or otherwise making an active Hull Repair Drone go offline, interrupts
+  // the hull repairs and removes it without salvaging the drone part." Not the 10 second rebuild.
+  if (kit.target === "hull" && kit.on && !powered(kit, "hull")) {
+    kit.on = false;
+    kit.target = null;
+    kit.left = 0;
+    kit.aux = 0;
+    log(g, "Hull Repair goes offline. The drone part stays spent.");
+    return;
+  }
+  if (kit.target === "patch" && kit.on) {
+    const fed = powered(kit, "patch");
+    noteRepairPower(kit, g.player, fed);
+    if (!fed) {
+      maybeHealBay(g.player, kit, dt);
+      return;
+    }
+    tickRepair(g, g.player, kit, dt, "player", false, crewDroneSpeed(g.augments.includes("booster")));
+    return;
+  }
   if (!isKind(kit.target) || !powered(kit, kit.target)) return;
   const kind = kit.target;
   if (kind === "striker") {
@@ -997,12 +1138,8 @@ export function tickSwarm(g: Game, dt: number) {
     tickBoard(g, kit, dt);
     return;
   }
-  if (kind === "patch") {
-    tickPatch(g, kit, dt);
-    return;
-  }
   if (kind === "hull") {
-    tickHull();
+    tickHull(g, kit, dt);
     return;
   }
   if (kind === "wardcut") {
@@ -1204,6 +1341,9 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
   unit.fly = BOARDERS.has(unit.kind) ? BOARD_FLY_S : undefined;
   unit.heading = undefined;
   unit.bearing = undefined;
+  unit.stick = undefined;
+  unit.home = undefined;
+  unit.hold = undefined;
   // Defensive Drones: "require approximately a second to acquire a target after being deployed".
   // Anti-Combat Drone: "Starts fully charged when first deployed", so after that second it fires at once.
   unit.cool = DEFENSIVE.has(unit.kind) ? ACQUIRE_S : 0;
@@ -1227,6 +1367,9 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
   unit.room = undefined;
   unit.path = undefined;
   unit.move = undefined;
+  unit.stick = undefined;
+  unit.home = undefined;
+  unit.hold = undefined;
   if (unit.kind !== "ionintruder") {
     unit.aux = 0;
     unit.left = undefined;
@@ -1330,7 +1473,10 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
     const aboard = BOARDERS.has(unit.kind) ? "player" : "enemy";
     if (crewHitsDrone(g, unit, aboard, dt)) return;
   }
+  if (unit.kind === "patch") noteRepairPower(unit, enemy, unit.powered);
   if (!unit.powered) {
+    // System Repair heals in the bay on any Drone Control power, even when this schematic is the one left dark.
+    if (unit.kind === "patch") maybeHealBay(enemy, unit, dt);
     // Shield Overcharger: "Each timer resets should the drone become unpowered".
     // Ion Intruder Drone: "Removing power does not reset its cooldown", so its timer just freezes.
     if (unit.kind === "overcharger") {
@@ -1638,22 +1784,12 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
 }
 
 /**
- * System Repair Drone aboard the enemy: same Engi pace and the same patchTarget rank as the player's drone.
- * INFERRED: it still appears in that room instead of walking. The printed walk, the repower stick, and the
- * trip home are not modelled.
+ * System Repair Drone aboard the enemy: the same walk, repower stick, and trip home as the player's drone.
+ * No Drone Reactor Booster. A repaired bar is fed again, matching enemy crew repair.
  */
-function tickEnemyPatch(_g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
-  const from = unit.room && enemy.rooms.some((room) => room.id === unit.room) ? unit.room : enemy.rooms[0]?.id;
-  if (!from) return;
-  const target = patchTarget(enemy, from);
-  const room = target ? enemy.rooms.find((item) => item.id === target) : undefined;
-  if (!room) {
-    unit.room = undefined;
-    return;
-  }
-  unit.room = room.id;
-  unit.fired = 0;
-  engiRepair(enemy, room, dt, true);
+function tickEnemyPatch(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
+  tickRepair(g, enemy, unit, dt, "enemy", true, crewDroneSpeed(false));
+  if (unit.room) unit.fired = 0;
 }
 
 /**

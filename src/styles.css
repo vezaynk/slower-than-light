@@ -2264,6 +2264,35 @@ button.gun-slot {
 }
 .hangar-achieve p { margin: 0 0 4px; }
 .hangar-achieve div { display: flex; gap: 10px; margin-top: 8px; color: var(--color-line); }
+/* @agent:unlocks. Locked layouts, ship achievement locks, developer unlock switch. */
+.hangar-ach { display: inline-grid; color: var(--color-line-dim); }
+.hangar-ach.is-earned { color: var(--color-accent); }
+.hangar-letters button.is-locked:not(.is-on) { color: var(--color-muted); border-color: var(--color-line-dim); }
+.hangar-letters button { position: relative; white-space: nowrap; }
+.hangar-letters button .px-icon { position: absolute; top: 2px; right: 2px; }
+.hangar-stage.is-locked .pixel-figure { filter: brightness(0.45) saturate(0.3); }
+.hangar-dev { display: flex; }
+.hangar-dev button { flex: 1; font-size: 16px; border-style: dashed; color: var(--color-muted); }
+.hangar-start:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.hangar-locked {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: min(92%, 460px);
+  padding: 10px 14px;
+  background: rgba(5, 8, 11, 0.9);
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-align: center;
+}
+.hangar-locked p { margin: 0; }
+.hangar-locked-title { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px !important; font-family: var(--font-hud); font-size: 24px; color: var(--color-danger); letter-spacing: 0.06em; }
 
 .hangar .pixel-figure { grid-column: auto; grid-row: auto; align-self: stretch; flex: 1; min-height: 0; width: 100%; margin: 0; container-type: size; display: grid; place-items: center; }
 .hangar-stage .pixel-hull { display: none; }
@@ -3036,4 +3065,385 @@ button.gun-slot {
   margin: 10px 0 0;
   color: var(--color-line);
   text-align: center;
+}
+
+/* @agent:combat-ui */
+/* Player Clone Bay queue in the crew rail (GameApp CrewRail, ui-views.ts playerCloneQueue). */
+.clone-queue {
+  margin-top: 4px;
+  padding: 4px 6px 6px;
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+}
+
+.clone-queue-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--color-ok);
+}
+
+.clone-queue-faces {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+/* Dimmed: these crew are dead until the bay revives them. */
+.clone-face .portrait {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  border-color: var(--color-line-dim);
+}
+
+.clone-face:first-child .portrait {
+  opacity: 0.8;
+  border-color: var(--color-ok);
+}
+
+.clone-more {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+/* Cloaking sub-orb greyed while the enemy pulse hacks it (spike.ts playerCloakHacked). */
+.sub-orb.is-hack-locked {
+  cursor: not-allowed;
+  color: var(--color-line-dim);
+  border-color: var(--color-line-dim);
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.sub-orb.is-hack-locked .px-icon {
+  opacity: 0.45;
+}
+
+/* Hacked kit with no room on the player ship: a teal hatch ring on its orb (ui-views.ts hackedPlayerKit). */
+.sub-orb.is-kit-hacked {
+  --hack-ring: color-mix(in srgb, var(--color-ok) 55%, var(--color-ion));
+  border-color: var(--hack-ring);
+}
+
+.sub-orb.is-kit-hacked::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px dashed var(--hack-ring);
+  pointer-events: none;
+}
+
+.sub-orb.is-kit-hacked-pulse::after {
+  animation: kit-hack-pulse 0.6s steps(2, jump-none) infinite alternate;
+}
+
+@keyframes kit-hack-pulse {
+  0% { opacity: 1; }
+  100% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sub-orb.is-kit-hacked-pulse::after { animation: none; }
+}
+
+/* @agent:hack-ui */
+/* Player Hacking controls (GameApp HackOrb / TargetPanel, ShipView .hack-reticle). Ion blue marks the player's
+   drone so it never reads as a weapon reticle (accent yellow) or the enemy's drone on our hull (teal hatch). */
+.hack-pod {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.hack-power {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hack-power button {
+  width: 18px;
+  height: 17px;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface);
+  color: var(--color-line);
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+}
+
+.hack-power button:not(:disabled):hover {
+  border-color: var(--color-line);
+}
+
+.hack-power button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.hack-orb.is-usable {
+  border-color: var(--color-ion);
+  color: var(--color-ion);
+}
+
+.hack-orb.is-aiming {
+  background: var(--color-surface-2);
+  border-color: var(--color-fg);
+  color: var(--color-fg);
+  box-shadow: 0 0 0 2px var(--color-ion);
+}
+
+.hack-orb.is-on {
+  border-color: var(--color-ion);
+  color: var(--color-ion);
+}
+
+.hack-orb .px-icon {
+  display: block;
+}
+
+/* Status card: sits left of the subsystem column, above AUTOFIRE, in the dock's empty middle. */
+.hack-card {
+  position: absolute;
+  right: calc(100% + 12px);
+  bottom: 44px;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 8px 5px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.hack-pod.is-ready .hack-card,
+.hack-pod.is-latched .hack-card,
+.hack-pod.is-pulse .hack-card,
+.hack-pod.is-aiming .hack-card {
+  border-color: var(--color-ion);
+}
+
+.hack-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ion);
+  letter-spacing: 0.08em;
+}
+
+.hack-card-state {
+  font-family: var(--font-hud);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+}
+
+.hack-pod.is-nopower .hack-card-state,
+.hack-pod.is-noparts .hack-card-state,
+.hack-pod.is-zoltan .hack-card-state,
+.hack-pod.is-cloaked .hack-card-state {
+  color: var(--color-danger);
+}
+
+.hack-pod.is-cooldown .hack-card-state,
+.hack-pod.is-idle .hack-card-state {
+  color: var(--color-muted);
+}
+
+.hack-pod.is-pulse .hack-card-state,
+.hack-pod.is-aiming .hack-card-state {
+  color: var(--color-ion);
+}
+
+.hack-meter {
+  display: block;
+  height: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-dim);
+}
+
+.hack-meter > i {
+  display: block;
+  height: 100%;
+  background: var(--color-ion);
+}
+
+.hack-meter.is-cool > i {
+  background: var(--color-line-dim);
+}
+
+.hack-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.hack-card-cost,
+.hack-card-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-fg);
+}
+
+.hack-card-cost.is-short {
+  color: var(--color-danger);
+}
+
+.hack-card-target em {
+  font-style: normal;
+  color: var(--color-ion);
+}
+
+.hack-card-pulse {
+  margin-left: auto;
+  color: var(--color-muted);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* Hack targeting on the enemy hull: hackable rooms lit in ion blue, the rest dimmed. */
+.play.is-hack-targeting .target-body .room {
+  outline: none;
+}
+
+.play.is-hack-targeting .target-body .room.is-hack-pick {
+  box-shadow: inset 0 0 0 2px var(--color-ion);
+}
+
+.play.is-hack-targeting .target-body .room.is-hack-nopick {
+  opacity: 0.55;
+}
+
+.play.is-hack-targeting .target-body .room.is-hack-nopick .room-hit {
+  cursor: not-allowed;
+}
+
+/* The player's drone on an enemy room: a square ion-blue reticle in the bottom-left corner (gun marks are centred). */
+.hack-reticle {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px var(--color-bg));
+}
+
+.hack-reticle-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--color-ink);
+  color: var(--color-ion);
+  border: 2px solid var(--color-ion);
+}
+
+.hack-reticle-box .px-icon {
+  display: block;
+}
+
+.hack-reticle b {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  padding: 0 3px;
+  color: var(--color-ink);
+  background: var(--color-ion);
+}
+
+.hack-reticle.is-pulse .hack-reticle-box {
+  background: var(--color-ion);
+  color: var(--color-ink);
+  animation: hack-ui-blink 0.5s steps(2, jump-none) infinite;
+}
+
+@keyframes hack-ui-blink {
+  0% { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hack-reticle.is-pulse .hack-reticle-box { animation: none; }
+}
+
+/* Target panel: drone readouts. */
+.target-head .hack-evasion {
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: var(--color-ion);
+}
+
+.target-head .hack-line {
+  margin-top: 4px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--color-ion);
+}
+
+.target-head .hack-line.is-pulse {
+  color: var(--color-fg);
+}
+
+.target-systems span.is-hack-seen {
+  border-color: var(--color-ion);
+  color: var(--color-ion);
+}
+
+@media (max-width: 760px) {
+  .hack-card {
+    right: 0;
+    bottom: calc(100% + 40px);
+    width: 172px;
+  }
+}
+
+/* @agent:hack-rules — paused launch queue and drone flight on the hacking card. */
+.hack-pod.is-queued .hack-card-state {
+  color: var(--color-accent);
+}
+
+.hack-pod.is-flying .hack-card-state {
+  color: var(--color-ion);
+}
+
+.hack-meter.is-fly > i {
+  background: var(--color-ion);
+}
+
+.hack-meter.is-fly.is-held > i {
+  background: var(--color-danger);
+}
+
+/* @agent:quests. Beacons, "Quest (marker) beacon": a 'QUEST' tag, readable from any distance. Amber so it does not
+   read as a jump target (green), visited (dim) or the fleet (red). */
+.beacon-map.sector-map .jump-tag.is-quest {
+  border-color: #f2c94c;
+  color: #f2c94c;
+}
+.beacon-map.sector-map .beacon.is-quest:not(.is-over) {
+  outline: 2px solid #f2c94c;
+  outline-offset: 2px;
 }

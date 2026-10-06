@@ -67,6 +67,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
   chargers: { frame: "block", barrels: 1, reach: 4, charger: true, body: BONE, trim: SLATE, glow: AMBER },
   charger: { frame: "block", barrels: 2, reach: 6, charger: true, body: STEEL, trim: SLATE, glow: AMBER },
   charger2: { frame: "block", barrels: 4, reach: 7, charger: true, mark: 2, body: STEEL, trim: GUNMETAL, glow: AMBER },
+  // @agent:flagship. Rebel Flagship artillery (wiki/flagship-weapons.ts), in the boss maroon of Boss Ion / Missile.
+  bosslaser: { frame: "block", barrels: 3, reach: 9, heavy: true, mark: 3, body: "#5a2a2a", trim: SLATE, glow: RED },
   // Crystal: faceted prisms.
   crystalburst: { frame: "prism", barrels: 2, reach: 5, body: "#a8e8ff", trim: "#5aa8c8", glow: PINK },
   crystalburst2: { frame: "prism", barrels: 3, reach: 6, mark: 2, body: "#a8e8ff", trim: "#5aa8c8", glow: PINK },
@@ -99,6 +101,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
   glaive: { frame: "lens", barrels: 1, reach: 10, heavy: true, mark: 2, body: BONE, trim: GUNMETAL, glow: "#fff27a" },
   firebeam: { frame: "lens", barrels: 1, reach: 6, fins: true, body: GUNMETAL, trim: RUST, glow: ORANGE },
   antibio: { frame: "lens", barrels: 1, reach: 4, mark: 1, body: "#5a7a4a", trim: "#34472a", glow: GREEN },
+  // @agent:flagship. Boss Beam, flagship artillery.
+  bossbeam: { frame: "lens", barrels: 2, reach: 9, heavy: true, mark: 3, body: "#5a2a2a", trim: SLATE, glow: RED },
   // Flak: drums with stubby barrels.
   scatter: { frame: "drum", barrels: 3, reach: 4, body: "#a04040", trim: SLATE, glow: ORANGE },
   advflak: { frame: "drum", barrels: 3, reach: 6, mark: 1, body: "#a04040", trim: SLATE, glow: AMBER },

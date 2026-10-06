@@ -1,4 +1,4 @@
-import type { DoorMark, DoorSide, SysId } from "./types.ts";
+import type { Door, DoorMark, DoorSide, KitId, Room, Ship, SysId } from "./types.ts";
 
 /**
  * Interior tiles. Each cell is one square, the same unit on every hull.
@@ -17,6 +17,8 @@ export type TileRoom = {
   h: number;
   /** Cells inside the box that the picture leaves as hull. The piloting room on Kestrel C is an L. */
   omit?: { x: number; y: number }[];
+  /** Subsystem kit seated here (seatLayout). Absent on the raw traced layouts. */
+  kit?: KitId;
 };
 
 export type Layout = {
@@ -1675,3 +1677,172 @@ export const LAYOUTS: Record<string, Layout> = {
   "crystal-b": crystalB,
 };
 
+
+// ---------------------------------------------------------------------------------------------
+// Kit rooms on player hulls.
+// Systems, lead: "Each system occupies one predetermined room specific to the ship (the player cannot choose what
+// room to put a purchasable system to nor cannot alter the position of any installed system)." Same page: "All
+// player ships have eight slots for systems, and four slots for subsystems." The cruiser pages list systems but
+// not which room each one takes, so the documented spots are the rooms traced off the hangar pictures with a
+// system label (Cloaking, Teleporter, Drones, ...). Every other kit goes to an empty traced room (INFERRED).
+// ---------------------------------------------------------------------------------------------
+
+/** Room title for a kit, as the hangar pictures label it. Artillery Beam and Flak Artillery share one label. */
+export const KIT_TITLE: Record<KitId, string> = {
+  veil: "Cloaking",
+  sling: "Teleporter",
+  spike: "Hacking",
+  swarm: "Drones",
+  leash: "Mind Control",
+  cradle: "Clone Bay",
+  cell: "Backup Battery",
+  lance: "Artillery",
+  flak: "Artillery",
+};
+
+/**
+ * Preferred square counts per kit for an INFERRED room, best first.
+ * - Crew Teleporter: "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person
+ *   teleporters" (Mantis B, Mantis C, Crystal B, whose 4-tile rooms are traced).
+ * - Clone Bay: "a 4-tile Clone Bay room, similarly to Medbay ... while a 2-tile Clone Bay room".
+ * - Mind Control: the page's figure is a "4-tile Mind Control room".
+ * - Drone Control: the page's gallery shows "DroneRoomLarge" and "DroneRoomSmall". INFERRED: 4 then 2.
+ * - INFERRED for the rest: the traced Cloaking rooms are 4 squares, the traced Artillery and Backup Battery rooms 2.
+ */
+const KIT_SQUARES: Record<KitId, number[]> = {
+  sling: [2, 4],
+  cradle: [4, 2],
+  leash: [4, 2],
+  swarm: [4, 2],
+  veil: [4, 2],
+  spike: [4, 2, 1],
+  cell: [2, 4],
+  lance: [2, 4],
+  flak: [2, 4],
+};
+
+type Seat = { id: string; title: string; system: SysId | null; w: number; h: number; omit?: { x: number; y: number }[]; kit?: KitId };
+
+function squares(r: Seat): number {
+  return r.w * r.h - (r.omit?.length ?? 0);
+}
+
+/**
+ * The room a kit belongs in, or undefined when the hull has no free room.
+ * 1. A room already holding it. 2. A traced room labelled for it (the documented spot).
+ * 3. Clone Bay only: the medical room, when Medbay is not fitted. Systems: "Clone bays and medbays are mutually
+ *    exclusive: buying one replaces the other". 4. INFERRED: the first empty traced room ("Hall"/"Hold") whose
+ *    square count is earliest in KIT_SQUARES, then any empty room.
+ */
+export function kitSeat<R extends Seat>(rooms: R[], kit: KitId, medbayLevel = 0): R | undefined {
+  const held = rooms.find((r) => r.kit === kit);
+  if (held) return held;
+  const free = (r: R) => !r.kit && r.system === null;
+  const traced = rooms.find((r) => free(r) && r.title === KIT_TITLE[kit]);
+  if (traced) return traced;
+  if (kit === "cradle" && medbayLevel <= 0) {
+    const bay = rooms.find((r) => !r.kit && r.system === "medbay");
+    if (bay) return bay;
+  }
+  const empty = rooms.filter((r) => free(r) && (r.title === "Hall" || r.title === "Hold"));
+  for (const n of KIT_SQUARES[kit]) {
+    const hit = empty.find((r) => squares(r) === n);
+    if (hit) return hit;
+  }
+  return empty[0];
+}
+
+function claim(r: Seat, kit: KitId) {
+  r.kit = kit;
+  r.title = KIT_TITLE[kit];
+  // Clone Bay takes over the medical room (Systems: buying one replaces the other).
+  if (kit === "cradle" && r.system === "medbay") r.system = null;
+}
+
+/** A copy of a hangar layout with each listed kit seated, for the hangar cutaway. */
+export function seatLayout(layout: Layout, kits: KitId[]): Layout {
+  const rooms = layout.rooms.map((r) => ({ ...r }));
+  for (const kit of kits) {
+    const r = kitSeat(rooms, kit);
+    if (r) claim(r, kit);
+  }
+  return { ...layout, rooms };
+}
+
+function touching(a: Seat & { x: number; y: number }, b: Seat & { x: number; y: number }): boolean {
+  const xTouch = a.x + a.w === b.x || b.x + b.w === a.x;
+  const yOverlap = a.y < b.y + b.h && a.y + a.h > b.y;
+  const yTouch = a.y + a.h === b.y || b.y + b.h === a.y;
+  const xOverlap = a.x < b.x + b.w && a.x + a.w > b.x;
+  return (xTouch && yOverlap) || (yTouch && xOverlap);
+}
+
+/**
+ * INVENTED: a hull with no empty room left (the Lark grid has none) grows one 2×1 room under the grid for the kit.
+ * Doors follow the untraced rule in sim.ts addDoors: one to space, one open door per touching room.
+ */
+function growRoom(ship: Ship, kit: KitId): Room {
+  const taken = (x: number, y: number) =>
+    ship.rooms.some((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
+  const width = Math.max(2, ship.cols);
+  let x = 0;
+  let y = ship.rows;
+  // First open 2×1 spot, top to bottom, that still touches the hull's rooms.
+  find: for (let sy = 0; sy <= ship.rows; sy++) {
+    for (let sx = 0; sx + 2 <= width; sx++) {
+      if (taken(sx, sy) || taken(sx + 1, sy)) continue;
+      const box = { id: "", title: "", system: null, x: sx, y: sy, w: 2, h: 1 };
+      if (!ship.rooms.some((o) => touching(o, box))) continue;
+      x = sx;
+      y = sy;
+      break find;
+    }
+  }
+  const r: Room = {
+    id: `p-kit-${kit}`,
+    title: KIT_TITLE[kit],
+    system: null,
+    kit,
+    x,
+    y,
+    w: 2,
+    h: 1,
+    o2: 100,
+    fire: 0,
+    breach: 0,
+    breachFix: 0,
+    fireTick: 0,
+    flash: 0,
+    venting: false,
+  };
+  const doors: Door[] = [{ a: r.id, b: "void", open: false, hp: 0, stuck: 0 }];
+  for (const o of ship.rooms) if (touching(o, r)) doors.push({ a: o.id, b: r.id, open: true, hp: 0, stuck: 0 });
+  ship.rooms.push(r);
+  ship.doors.push(...doors);
+  ship.rows = Math.max(ship.rows, y + 1);
+  return r;
+}
+
+/**
+ * Gives every kit on a player hull its room (`room.kit`), so weapon hits reach it (sim.ts strikeRoom -> hurtKit),
+ * crew repair it (sim.ts life), and the Hard targeting list resolves it (wiki/targeting.ts). Idempotent.
+ * Also undoes a Clone Bay room when the store swaps Medbay back in (Systems: "buying one replaces the other").
+ */
+export function seatKits(ship: Ship): void {
+  if (!ship.rooms || !ship.kits) return;
+  const medbay = ship.systems?.medbay?.level ?? 0;
+  for (const r of ship.rooms) {
+    if (!r.kit || ship.kits[r.kit]) continue;
+    if (r.kit === "cradle" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {
+      r.system = "medbay";
+      r.title = "Medbay";
+    }
+    delete r.kit;
+  }
+  for (const id of Object.keys(ship.kits) as KitId[]) {
+    if (!ship.kits[id]) continue;
+    const r = kitSeat(ship.rooms, id, medbay);
+    if (r) claim(r, id);
+    else growRoom(ship, id);
+  }
+}

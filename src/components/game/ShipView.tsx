@@ -1,6 +1,7 @@
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { Crew, Ship } from "@/game/types";
+import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
@@ -8,6 +9,13 @@ import { PixelIcon } from "./PixelIcon";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
 export type AimMark = { room: string; slot: number; state: "charging" | "ready" | "auto" };
+
+/**
+ * @agent:hack-ui. The player's hacking drone on an enemy room, drawn as its own reticle (not a numbered gun mark).
+ * Hacking wiki, "Choosing your hacking target": "Choosing a hacking target works much the same as targeting your
+ * weapons." "aim" = picked but not launched, "latched" = drone on the hull, "pulse" = the hacking pulse is running.
+ */
+export type HackMark = { room: string; phase: "aim" | "latched" | "pulse"; left: number };
 
 /** One-tile rooms fit about five characters, so they get a short label. The full name stays in the aria-label. */
 const SHORT: Record<string, string> = {
@@ -76,6 +84,10 @@ type Props = {
   onRoom: (id: string) => void;
   onCrew: (id: string) => void;
   aims?: AimMark[];
+  /** @agent:hack-ui. The player's hacking drone reticle (enemy ship only). */
+  hackMark?: HackMark | null;
+  /** @agent:hack-ui. In hack targeting: true for rooms the drone may be aimed at. */
+  hackPick?: (roomId: string) => boolean;
 };
 
 export function ShipView({
@@ -89,6 +101,8 @@ export function ShipView({
   onRoom,
   onCrew,
   aims = [],
+  hackMark = null,
+  hackPick,
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
@@ -106,6 +120,8 @@ export function ShipView({
         const occupants = showCrew ? here.filter((c) => c.room === room.id) : [];
         const hot = occupants.some((c) => c.id === selectedId);
         const clip = roomClip(room);
+        const pick = hackPick ? hackPick(room.id) : null;
+        const drone = hackMark && hackMark.room === room.id ? hackMark : null;
         return (
           <div
             key={room.id}
@@ -122,7 +138,9 @@ export function ShipView({
               (hot ? " is-hot" : "") +
               (targetable ? " is-aim" : "") +
               // @agent:hacking. An enemy hacking drone on this room's system (extras/spike.ts, Room.hacked).
-              (room.hacked ? ` is-hacked is-hacked-${room.hacked}` : "")
+              (room.hacked ? ` is-hacked is-hacked-${room.hacked}` : "") +
+              // @agent:hack-ui. Player hack targeting: valid rooms are lit, the rest are dimmed.
+              (pick === true ? " is-hack-pick" : pick === false ? " is-hack-nopick" : "")
             }
             style={{
               gridColumn: `${room.x + 1} / span ${room.w}`,
@@ -142,10 +160,11 @@ export function ShipView({
                 {room.fire > 0 ? <span>Fire</span> : null}
                 {room.breach > 0 ? <span>Leak</span> : null}
                 {room.venting ? <span>Vent</span> : null}
-                {room.system && ship.systems[room.system].damage > 0 ? (
-                  <span>Dmg {ship.systems[room.system].damage}</span>
+                {/* @agent:flagship. A flagship artillery room shows its own gun (wiki/flagship-systems.ts artilleryGun). */}
+                {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
+                  <span>Dmg {(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
                 ) : null}
-                {room.system && ship.systems[room.system].ion.length > 0 ? (
+                {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
                   <span>Ion</span>
                 ) : null}
               </div>
@@ -181,6 +200,23 @@ export function ShipView({
               </div>
             ) : null}
             <DoorTicks room={room} marks={ship.doorMarks} doors={ship.doors} cells={cells} />
+            {drone ? (
+              <div
+                className={`hack-reticle is-${drone.phase}`}
+                aria-label={
+                  drone.phase === "pulse"
+                    ? `Hacking pulse, ${Math.ceil(drone.left)} seconds`
+                    : drone.phase === "latched"
+                      ? "Your hacking drone is attached"
+                      : "Hacking target"
+                }
+              >
+                <span className="hack-reticle-box">
+                  <PixelIcon name="spike" size={16} />
+                </span>
+                {drone.phase === "pulse" ? <b>{Math.ceil(drone.left)}</b> : null}
+              </div>
+            ) : null}
             {aims.some((a) => a.room === room.id) ? (
               <div className="aim-marks" aria-hidden="true">
                 {aims

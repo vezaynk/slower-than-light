@@ -148,7 +148,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Accept",
         fx: [
           { k: "res", id: "fuel", sign: 1, lo: 1, hi: 3 },
-          { k: "note", text: "The page's quest marker is not added." },
+          // @agent:quests. The page's quest marker is added after this choice (wiki/quests.ts questAfterCited).
+          { k: "nothing" },
         ],
       },
       {

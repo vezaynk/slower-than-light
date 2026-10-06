@@ -1,6 +1,7 @@
 /** INVENTED session store for the open run. It encodes no wiki rule. */
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { noteRun } from "./wiki/achievement-track";
+import { noteUnlocks } from "./unlock-store"; // @agent:unlocks
 import { createGame, loadGame, saveGame, step } from "./sim";
 import type { CrewPick } from "./crew-look";
 import type { Difficulty, Game } from "./types";
@@ -25,12 +26,14 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
       const game = get().game;
       step(game, dt);
       noteRun(game);
+      noteUnlocks(game);
     },
     bump: () => set({ version: get().version + 1 }),
     act: (fn) => {
       const game = get().game;
       fn(game);
       noteRun(game);
+      noteUnlocks(game);
       saveGame(game);
       set({ version: get().version + 1 });
     },
@@ -38,6 +41,7 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
       const seed = (Date.now() ^ 0x9e3779b9) >>> 0 || 1;
       const next = createGame(seed, hullId, difficulty, crew);
       noteRun(next);
+      noteUnlocks(next);
       saveGame(next);
       set({ game: next, version: get().version + 1 });
     },
@@ -45,6 +49,7 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
       const next = loadGame();
       if (!next) return false;
       noteRun(next);
+      noteUnlocks(next);
       set({ game: next, version: get().version + 1 });
       return true;
     },

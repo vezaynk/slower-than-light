@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 import { WEAPONS } from "../content.ts";
+import type { Game } from "../types.ts";
 import {
   armSpike,
   installSpike,
@@ -11,6 +12,21 @@ import {
   tickSpike,
   toggleSpikePower,
 } from "./spike.ts";
+
+/**
+ * @agent:hack-rules. Hacking wiki, "Choosing your hacking target": the drone "takes about 2--3 seconds to reach the
+ * enemy ship". launchSpike now starts that flight; these pulse checks land it at once.
+ */
+function launchLanded(g: Game): boolean {
+  const ok = launchSpike(g);
+  const kit = g.player.kits.spike;
+  if (ok && kit && kit.hackFly != null) {
+    kit.hackFly = 0;
+    tickSpike(g, 1e-6);
+  }
+  return ok;
+}
+
 
 function armed(parts = 2) {
   const g = createGame(2);
@@ -29,7 +45,7 @@ describe("spike", () => {
   it("spends a part, pulses shields for 4s, and drops one bubble after 2s", () => {
     const g = armed(2);
     armSpike(g, "shields");
-    assert.equal(launchSpike(g), true);
+    assert.equal(launchLanded(g), true);
     assert.equal(g.player.parts, 1);
     assert.equal(g.player.kits.spike?.left, 4);
     assert.equal(g.player.kits.spike?.on, true);
@@ -40,7 +56,7 @@ describe("spike", () => {
 
     g.player.parts = 0;
     const left = g.player.kits.spike?.left;
-    assert.equal(launchSpike(g), false);
+    assert.equal(launchLanded(g), false);
     assert.equal(g.player.parts, 0);
     assert.equal(g.player.kits.spike?.left, left);
   });
@@ -48,7 +64,7 @@ describe("spike", () => {
   it("does not launch with zero parts or zero power", () => {
     const dry = armed(0);
     armSpike(dry, "shields");
-    assert.equal(launchSpike(dry), false);
+    assert.equal(launchLanded(dry), false);
     assert.equal(dry.player.parts, 0);
     assert.equal(dry.player.kits.spike?.left, 0);
 
@@ -59,14 +75,14 @@ describe("spike", () => {
     startCombat(cold, "scout");
     armSpike(cold, "shields");
     assert.equal(cold.player.kits.spike?.power, 0);
-    assert.equal(launchSpike(cold), false);
+    assert.equal(launchLanded(cold), false);
     assert.equal(cold.player.parts, 2);
   });
 
   it("cools for 20s after the pulse and can lock engines or pilot", () => {
     const g = armed(2);
     armSpike(g, "engines");
-    assert.equal(launchSpike(g), true);
+    assert.equal(launchLanded(g), true);
     assert.equal(spikeFreezesFtl(g), true);
     assert.equal(spikeEvadeZero(g, g.enemy!), true);
     assert.equal(spikeEvadeZero(g, g.player), false);
@@ -78,8 +94,14 @@ describe("spike", () => {
     tickSpike(g, 20);
     assert.equal(g.player.kits.spike?.cool, 0);
 
-    armSpike(g, "pilot");
-    assert.equal(launchSpike(g), true);
+    // Hacking wiki, "Choosing your hacking target": "this choice is permanent: you can only hack one system in a
+    // fight, unless your hacking drone is somehow destroyed." This test used to retarget freely; now the latched
+    // drone pins Engines, and Piloting is only reachable after the drone is gone.
+    assert.equal(armSpike(g, "pilot"), false);
+    assert.equal(g.player.kits.spike?.target, "engines");
+    delete g.enemy!.hackDrone;
+    assert.equal(armSpike(g, "pilot"), true);
+    assert.equal(launchLanded(g), true);
     assert.equal(g.player.parts, 0);
     assert.equal(spikeFreezesFtl(g), true);
     assert.equal(g.player.kits.spike?.left, 4);
@@ -90,7 +112,7 @@ describe("spike", () => {
     const enemy = g.enemy!;
     for (const w of enemy.weapons) w.charge = 1;
     armSpike(g, "weapons");
-    launchSpike(g);
+    launchLanded(g);
     tickSpike(g, 1);
     for (const w of enemy.weapons) {
       const seconds = WEAPONS[w.defId]?.charge ?? 1;
@@ -104,9 +126,10 @@ describe("spike", () => {
     tickSpike(g, 20);
 
     for (const room of enemy.rooms) room.o2 = 100;
+    delete enemy.hackDrone; // "unless your hacking drone is somehow destroyed": frees the permanent target.
     armSpike(g, "oxygen");
     g.player.parts = 1;
-    assert.equal(launchSpike(g), true);
+    assert.equal(launchLanded(g), true);
     tickSpike(g, 1);
     for (const room of enemy.rooms) assert.ok(Math.abs(room.o2 - 94) < 1e-9);
     tickSpike(g, 3);
@@ -137,9 +160,10 @@ describe("spike", () => {
     friend.room = "e-medbay";
     friend.aboard = "enemy";
     const friendHp = friend.hp;
+    delete enemy.hackDrone; // "unless your hacking drone is somehow destroyed": frees the permanent target.
     armSpike(g, "medbay");
     g.player.parts = 1;
-    launchSpike(g);
+    launchLanded(g);
     tickSpike(g, 1);
     assert.ok(Math.abs(foe.hp - 87) < 1e-9);
     assert.equal(friend.hp, friendHp);
@@ -154,9 +178,10 @@ describe("spike", () => {
     airlock.open = true;
     stuck.open = true;
     stuck.stuck = 3;
+    delete enemy.hackDrone; // "unless your hacking drone is somehow destroyed": frees the permanent target.
     armSpike(g, "doors");
     g.player.parts = 1;
-    launchSpike(g);
+    launchLanded(g);
     tickSpike(g, 0.5);
     assert.equal(interior.open, false);
     assert.equal(airlock.open, true);

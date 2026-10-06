@@ -4,6 +4,9 @@
  * Easy / Normal / Hard splits are not averaged. Hard-only lines are
  * FLAGSHIP_HARD. Room diagrams are pictures, so no grid is stored.
  * Power Surge cooldown is the printed range, 20 to 30 seconds.
+ * @agent:flagship. The fight now uses the traced cutaways (wiki/flagship-layout.ts) and runs each stage's
+ * systems and Power Surge through wiki/flagship-systems.ts. The "No room layout is encoded" notes below
+ * describe these rows only.
  */
 
 export type FlagshipPhase = {

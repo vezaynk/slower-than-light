@@ -88,9 +88,17 @@ function plan(mode: EscapeMode, seconds: number, extra: Partial<EscapePlan> = {}
   return { mode, seconds, chance: 0, threshold: 0, rolled: false, running: mode === "start", pursuit: false, ...extra };
 }
 
+/** Event pages that print their own hull-triggered escape row, keyed by the cited event slug. */
+const EVENT_HULL_ROWS: Record<string, { chance: number; low: number; high: number }> = {
+  // Pirate briber: "has 60% chance to try to escape at 30-40% hull".
+  "pirate-briber": { chance: 60, low: 30, high: 40 },
+};
+
 export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   const scripted = ctx.event ? RUN_FROM_START[ctx.event] : undefined;
   if (scripted) return plan("start", scripted.seconds, { pursuit: scripted.pursuit });
+  const own = ctx.event ? EVENT_HULL_ROWS[ctx.event] : undefined;
+  if (own) return plan("hull", HULL_RUN_SECONDS, { chance: own.chance, threshold: own.low + rand() * (own.high - own.low) });
   // Enemy Ships: out of fuel and WAIT, "all ships start running" at 80 seconds. The "No fuel: …" event
   // pages are the ones reached by waiting with no fuel, so their slug marks the rule.
   if (ctx.event?.startsWith("no-fuel-")) return plan("start", OUT_OF_FUEL_WAIT_SECONDS);

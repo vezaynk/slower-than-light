@@ -23,8 +23,9 @@ import { tickLanius } from "./lineage.ts";
 import { partsBack } from "./moreaugs.ts";
 import { onJumpSling, tickSling } from "./sling.ts";
 import { spikeEvadeZero, spikeFreezesFtl, tickSpike } from "./spike.ts";
-import { enemyDefenseIntercept, swarmIntercept, tickSwarm } from "./swarm.ts";
+import { enemyDefenseIntercept, onJumpSwarm, swarmIntercept, tickSwarm } from "./swarm.ts";
 import { tickVeil, veilBlocks, veilEvade } from "./veil.ts";
+import { flagshipAiEvade } from "../wiki/flagship-systems.ts";
 
 export { enemyDefenseIntercept, onNewSector, swarmIntercept };
 
@@ -48,7 +49,8 @@ export function tickExtras(g: Game, dt: number) {
  * (Hacking, "Overview": "Does not affect evasion gained from Cloak").
  */
 export function extraEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
-  return veilEvade(g, ship, aboard);
+  // @agent:flagship. The Rebel Flagship, Dodge Rate "If controlled by AI" (wiki/flagship-systems.ts).
+  return veilEvade(g, ship, aboard) + flagshipAiEvade(g, ship);
 }
 
 export function targetIsCloaked(g: Game, from: "player" | "enemy"): boolean {
@@ -82,6 +84,7 @@ export function onPlayerJump(g: Game) {
   // Augmentations, "Misc. Augmentations", Drone Recovery Arm: "Non-destroyed drones will be retrieved when jumping, allowing their parts to be reused."
   // INVENTED: one part, and only if the drone is still powered. The page never states that part count.
   g.player.parts += partsBack(g);
+  onJumpSwarm(g);
 }
 
 export function adjustScrap(g: Game, scrap: number): number {

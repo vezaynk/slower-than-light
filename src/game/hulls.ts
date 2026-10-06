@@ -14,7 +14,8 @@ import { MANTIS_HULLS } from "./wiki/hulls-mantis.ts";
  * Bars are filled until the reactor is spent, weapons first when the guns need them.
  * Scrap is not on these pages. The caller keeps the existing 10.
  *
- * INVENTED: the pages lock layouts behind achievements. This list does not.
+ * @agent:unlocks. `unlock` is the page's line for the hangar lock card. The rules that gate START live in
+ * unlocks.ts (pure) and unlock-store.ts (localStorage "ashwake:unlocks").
  */
 
 export type HullCrew = {
@@ -62,7 +63,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "kestrel-a",
@@ -99,7 +100,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "kestrel-b",
@@ -137,7 +138,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "kestrel-c",
@@ -175,7 +176,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "engi-a",
@@ -213,7 +214,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "engi-b",
@@ -247,7 +248,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "engi-c",
@@ -288,7 +289,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "fed-a",
@@ -297,7 +298,7 @@ export const HULLS: HullSpec[] = [
     name: "The Osprey",
     quote:
       "This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!",
-    unlock: "Defeat the Flagship, or defeat it with the Engi Cruiser.",
+    unlock: "Defeat the Flagship prototype in the Rebel Stronghold sector, or defeat the Rebel Flagship with the Engi Cruiser.",
     source: "The Federation Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -326,7 +327,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "fed-b",
@@ -362,7 +363,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "fed-c",
@@ -406,7 +407,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "zoltan-a",
@@ -447,7 +448,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "zoltan-b",
@@ -486,7 +487,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "zoltan-c",
@@ -530,7 +531,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Slug Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "slug-a",
@@ -569,7 +570,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Slug Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "slug-b",
@@ -610,7 +611,7 @@ export const HULLS: HullSpec[] = [
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Slug Cruiser", section "Layout C": Sensors is not listed, so the level is 0.
    * Chain Burst Laser is the starting gun. It takes the 2 weapon bars the reactor can spare.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "slug-c",
@@ -652,7 +653,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "rock-a",
@@ -690,7 +691,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "rock-b",
@@ -730,7 +731,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "rock-c",
@@ -768,7 +769,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Stealth Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "stealth-a",
@@ -806,7 +807,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Stealth Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "stealth-b",
@@ -848,7 +849,7 @@ export const HULLS: HullSpec[] = [
    * Wiki page "The Stealth Cruiser", section "Layout C": Laser Charger (S) and Mini Beam. Both are 1 power, and the weapon system is level 2.
    * Shield Overcharger + can be deployed and is still not a SwarmKind. It stays unfitted.
    * Anti-Drone is still a name only. It stays unfitted.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "stealth-c",
@@ -889,7 +890,7 @@ export const HULLS: HullSpec[] = [
    * Wiki page "The Lanius Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Lanius Cruiser", section "Layout A": Chain Burst Laser (2 power) and Ion Stunner (1). Weapon system is level 3 and already powered to 3.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "lanius-a",
@@ -928,7 +929,7 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Lanius Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is a label, not a gate. INFERRED that the hangar does not lock it.
+   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "lanius-b",

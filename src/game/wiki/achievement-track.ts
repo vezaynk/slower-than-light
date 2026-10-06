@@ -44,9 +44,77 @@ function scrapHoarder(g: Game): boolean {
   return cruiser === ship && g.scrap >= 600;
 }
 
+/** @agent:unlocks. The hangar hull's cruiser and Layout A spec (start levels), for the ship achievements below. */
+function flying(g: Game, cruiser: string) {
+  const hull = g.hullId ? HULLS.find((h) => h.id === g.hullId) : undefined;
+  return hull?.cruiser === cruiser ? hull : undefined;
+}
+
+/**
+ * @agent:unlocks. Ship Achievements, "Kestrel Cruiser": "The United Federation" — "Have six unique aliens on the Kestrel
+ * Cruiser simultaneously." Page "The United Federation": "One human does count toward this achievement."
+ */
+function unitedFederation(g: Game): boolean {
+  if (!flying(g, "Kestrel Cruiser")) return false;
+  return new Set(g.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.kin)).size >= 6;
+}
+
+/**
+ * @agent:unlocks. "Full Arsenal" — "Have 11 systems installed on the Kestrel Cruiser at one time." Page note: "primary
+ * systems" and "subsystems" are not distinguished. INFERRED: every system level above 0 and every kit fitted counts.
+ */
+function fullArsenal(g: Game): boolean {
+  if (!flying(g, "Kestrel Cruiser")) return false;
+  const systems = Object.values(g.player.systems).filter((s) => s.level > 0).length;
+  const kits = Object.values(g.player.kits).filter((k) => k && k.level > 0).length;
+  return systems + kits >= 11;
+}
+
+/**
+ * @agent:unlocks. "Givin' her all she's got, Captain!" — "With the Zoltan Cruiser, have 29 power in systems at the same
+ * time." INFERRED: the power fields of systems and kits; a Zoltan's own bar is counted only where the sim stores it there.
+ */
+function givinHerAll(g: Game): boolean {
+  if (!flying(g, "Zoltan Cruiser")) return false;
+  const sys = Object.values(g.player.systems).reduce((n, s) => n + s.power, 0);
+  const kits = Object.values(g.player.kits).reduce((n, k) => n + (k?.power ?? 0), 0);
+  return sys + kits >= 29;
+}
+
+/**
+ * @agent:unlocks. "Manpower" — "Get to sector 5 without upgrading your reactor in the Zoltan Cruiser." INFERRED: reactor at
+ * or below the layout's start. The page exempts event reactor upgrades; the run does not tell those apart, so one
+ * blocks it here.
+ */
+function manpower(g: Game): boolean {
+  const hull = flying(g, "Zoltan Cruiser");
+  return !!hull && g.sector >= 5 && g.player.reactor <= hull.reactor;
+}
+
+/**
+ * @agent:unlocks. "Artillery Mastery" — "Get to sector 5 with the Federation Cruiser without upgrading your weapons
+ * system." INFERRED: weapons level at or below the layout's start level.
+ */
+function artilleryMastery(g: Game): boolean {
+  const hull = flying(g, "Federation Cruiser");
+  const start = hull?.systems.weapons?.[0] ?? 0;
+  return !!hull && g.sector >= 5 && g.player.systems.weapons.level <= start;
+}
+
+/** @agent:unlocks. "Ancestry" — "Find the secret sector with the Rock Cruiser." Sectors: "Hidden Crystal Worlds". */
+function ancestry(g: Game): boolean {
+  return !!flying(g, "Rock Cruiser") && g.sectorName === "Hidden Crystal Worlds";
+}
+
 const RULES: Rule[] = [
   { id: "just-getting-started", met: sectorFive },
   { id: "federation-base-in-range", met: sectorEight },
+  { id: "the-united-federation", met: unitedFederation },
+  { id: "full-arsenal", met: fullArsenal },
+  { id: "artillery-mastery", met: artilleryMastery },
+  { id: "ancestry", met: ancestry },
+  { id: "givin-her-all-shes-got-captain", met: givinHerAll },
+  { id: "manpower", met: manpower },
   { id: "scrap-hoarder", met: scrapHoarder },
 ];
 
@@ -79,16 +147,16 @@ const RULES: Rule[] = [
  * - "Slice and Dice" — every room hit by a beam within five seconds.
  * - "Victory through Asphyxiation" — enemy oxygen under five percent.
  *
- * Ship Achievements, "Kestrel Cruiser": six unique aliens; eleven systems; repair from 1 HP to full.
+ * Ship Achievements, "Kestrel Cruiser": repair from 1 HP to full. (Six aliens and eleven systems are tracked above.)
  * Hull is the current number, not that repair.
  * Ship Achievements, "Stealth Cruiser": one cloak destroying a full-health ship; 9 damage avoided in one cloak; sector 8 with no environmental beacon.
  * Ship Achievements, "Mantis Cruiser": crew of 20 ships by sector 6; five crew kills with no hull or crew loss; last crewmember kills the last enemy.
  * Ship Achievements, "Engi Cruiser": three drones at once; a kill using only drones; four ioned systems at once.
- * Ship Achievements, "Federation Cruiser": artillery-only kill with no hull damage; four blue events by sector 5; sector 5 with no weapons upgrade.
+ * Ship Achievements, "Federation Cruiser": artillery-only kill with no hull damage; four blue events by sector 5. (No weapons upgrade is tracked above.)
  * Ship Achievements, "Slug Cruiser": full enemy vision without sensors; 30 nebula jumps; three crew with one Anti-Bio Beam shot.
  * Beacons visited are not nebula jumps.
- * Ship Achievements, "Rock Cruiser": a crew kill on a burning enemy; a missile-only kill of a ship with a defense drone; the secret sector.
- * Ship Achievements, "Zoltan Cruiser": a kill before the Zoltan Shield drops; 29 power in systems; sector 5 with no reactor upgrade.
+ * Ship Achievements, "Rock Cruiser": a crew kill on a burning enemy; a missile-only kill of a ship with a defense drone. (Secret sector is tracked above.)
+ * Ship Achievements, "Zoltan Cruiser": a kill before the Zoltan Shield drops. (29 power and no reactor upgrade are tracked above.)
  * Ship Achievements, "Crystal Cruiser": a Crystal Vengeance shard kill; four crew trapped in one room; 10 Rock ships destroyed.
  * Ship Achievements, "Lanius Cruiser": Hacking, Mind Control, and Battery active together; oxygen never above 20 percent through sector 8.
  * "Scrap Hoarder" is the one Lanius line that is tracked. It is not in this list.
@@ -116,8 +184,9 @@ function read(): Set<string> {
   if (memory) return memory;
   const next = new Set<string>();
   memory = next;
-  if (typeof localStorage === "undefined") return next;
   try {
+    // Inside the try: with site data blocked, merely reading the localStorage global throws.
+    if (typeof localStorage === "undefined") return next;
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return next;
@@ -132,8 +201,8 @@ function read(): Set<string> {
 
 function write(ids: Set<string>) {
   memory = ids;
-  if (typeof localStorage === "undefined") return;
   try {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
   } catch {
     // Storage can be full or blocked. The in-memory set still holds this session.

@@ -3,11 +3,12 @@
  * START, SHIP, LIST, LAYOUT, TYPE, HIDE ROOMS, Available Achievements,
  * the cutaway, the system icons, CREW, WEAPONS, DRONES, AUGMENTATIONS.
  * Score, lead formula: the lit button sets initial scrap to 30, 10, or 0. The highlight starts on EASY.
- * Advanced Edition Content stays on: every layout on the page can be selected.
+ * Advanced Edition Content stays on. @agent:unlocks: every layout can be viewed; a locked one shows its unlock line and
+ * START is off (unlocks.ts, unlock-store.ts). UNLOCK ALL / RESET LOCKS and ?unlockAll=1 are the developer switches.
  * Crew cards repeat the race counts on the layout line. INVENTED: CUSTOMIZE edits a name
  * and uniform per seat, and the run starts with exactly those crew (crew-look.ts).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { WEAPONS } from "@/game/content";
 import {
   NAME_MAX,
@@ -26,6 +27,10 @@ import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
 import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
 import { hangarSheet } from "@/game/wiki/hangar-sheet";
+import { ACHIEVEMENTS } from "@/game/wiki/achievements";
+import { earnedIds } from "@/game/wiki/achievement-track";
+import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
+import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/unlocks";
 import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { FullscreenButton } from "./FullscreenButton";
@@ -76,6 +81,9 @@ function absentDrones(lines: string[]) {
   return lines.length === 0 || lines.every((line) => /^none \(/i.test(line));
 }
 
+/** @agent:unlocks. Server render and first paint: only the start ship. The client store takes over after hydration. */
+const SERVER_UNLOCKS = emptyUnlocks();
+
 function SysMark({ name }: { name: string }) {
   const icon = iconForName(name);
   return icon ? <PixelIcon name={icon} size={20} /> : <i className="hangar-sys-blank" aria-hidden="true" />;
@@ -93,6 +101,14 @@ export function Hangar() {
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
   const sheet = hangarSheet(layout);
   const active = letterOf(layout.heading);
+  // @agent:unlocks. Ships page, "Layouts": locked layouts are shown but START is off (unlocks.ts).
+  const unlocks = useSyncExternalStore(subscribeUnlocks, getUnlocks, () => SERVER_UNLOCKS);
+  const locked = !isUnlockedIn(unlocks, layout.id);
+  const lockRule = ruleFor(layout.id);
+  const cruiser = hullById(layout.id)?.cruiser ?? "";
+  const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
+  const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
+  const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
 
   const seats = seatsOf(layout.id, sheet.crew);
   const [picks, setPicks] = useState<CrewPick[]>(() => defaultPicks(seats.length));
@@ -117,6 +133,7 @@ export function Hangar() {
   }
 
   function start() {
+    if (locked) return;
     const chosen = name.trim() || sheet.defaultName;
     useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty], picks);
     if (chosen && chosen !== sheet.defaultName) {
@@ -169,7 +186,7 @@ export function Hangar() {
               </button>
             ))}
           </div>
-          <button type="button" className="hangar-start" onClick={start}>
+          <button type="button" className="hangar-start" onClick={start} disabled={locked} title={locked ? "Locked" : undefined}>
             START
           </button>
           <FullscreenButton className="hangar-fs" />
@@ -191,15 +208,18 @@ export function Hangar() {
         <div className="hangar-letters">
           {page.layouts.map((item) => {
             const itemLetter = letterOf(item.heading);
+            const shut = !isUnlockedIn(unlocks, item.id);
             return (
               <button
                 key={item.id}
                 type="button"
-                className={active === itemLetter ? "is-on" : undefined}
+                className={[active === itemLetter ? "is-on" : "", shut ? "is-locked" : ""].join(" ").trim() || undefined}
                 aria-pressed={active === itemLetter}
+                aria-label={`TYPE ${itemLetter}${shut ? " (locked)" : ""}`}
                 onClick={() => setLetter(itemLetter)}
               >
                 TYPE {itemLetter}
+                {shut ? <PixelIcon name="lock" size={12} /> : null}
               </button>
             );
           })}
@@ -211,15 +231,36 @@ export function Hangar() {
           <p>Available Achievements:</p>
           <p>Complete 2/3 to unlock a layout!</p>
           <div>
-            <PixelIcon name="lock" size={24} />
-            <PixelIcon name="lock" size={24} />
-            <PixelIcon name="lock" size={24} />
+            {shipAch.map((row) => (
+              <span
+                key={row.id}
+                className={`hangar-ach${earned.has(row.id) ? " is-earned" : ""}`}
+                title={`${row.name}: ${row.requirement}${earned.has(row.id) ? " (earned)" : ""}`}
+              >
+                <PixelIcon name="lock" size={24} />
+              </span>
+            ))}
           </div>
+        </div>
+        <div className="hangar-dev" role="group" aria-label="Developer unlocks">
+          <button type="button" onClick={() => (allOpen ? resetUnlocks() : unlockAll())}>
+            {allOpen ? "RESET LOCKS" : "UNLOCK ALL"}
+          </button>
         </div>
       </aside>
 
-      <div className={`hangar-stage${hideRooms ? " is-bare" : ""}`}>
+      <div className={`hangar-stage${hideRooms ? " is-bare" : ""}${locked ? " is-locked" : ""}`}>
         <PixelLayout id={layout.id} />
+        {locked ? (
+          <div className="hangar-locked" role="note">
+            <p className="hangar-locked-title">
+              <PixelIcon name="lock" size={20} /> LOCKED
+            </p>
+            {(sheet.unlock.length ? sheet.unlock : [lockRule.quote]).map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        ) : null}
         <div className="hangar-bars">
           {sheet.systems.map((system) => (
             <span key={system.name} className="hangar-bar" title={`${system.name} (${system.level})`}>

@@ -1,11 +1,13 @@
-import { bars, kitBars, log, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, evasionPercent, kitBars, log, rand, roomWith, sparePower } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
+import { sensorLevel } from "./sensors.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
-import { sideOf } from "./leash.ts";
+import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
-import { ANTI_STUN_S, interceptIncomingDrone } from "./swarm.ts";
-import type { Door, Game, Kit, Ship, SysId, SystemState } from "../types.ts";
+import { ANTI_STUN_S, REDEPLOY_S, interceptIncomingDrone } from "./swarm.ts";
+import type { Door, Game, Kit, KitId, Room, Ship, SysId, SystemState } from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
 export const SPIKE_COST = 80;
@@ -33,9 +35,8 @@ const MEDBAY_HURT = 13;
 const COOLDOWN = 20;
 
 /**
- * Hacking wiki, "Overview" (Active effects during hacking pulse): systems this kit can lock.
- * That label also names artillery, Hacking, Backup Battery, Drone Control, Crew Teleporter,
- * Mind Control, Cloaking, Clone Bay, and Sensors, which are not in this list.
+ * Hacking wiki, "Overview" (Active effects during hacking pulse): main systems this kit can lock.
+ * @agent:hack-rules. "Sensors: disable sensors." joins the list; the subsystems on that label are KIT_TARGETS.
  */
 const TARGETS: readonly SysId[] = [
   "shields",
@@ -45,6 +46,7 @@ const TARGETS: readonly SysId[] = [
   "oxygen",
   "medbay",
   "doors",
+  "sensors",
 ];
 
 function kitOf(g: Game): Kit | undefined {
@@ -72,8 +74,24 @@ function pulseSeconds(powered: number): number {
   return PULSE_SECONDS[i] ?? 0;
 }
 
-function isTarget(id: string): id is SysId {
-  return (TARGETS as readonly string[]).includes(id);
+/**
+ * Enemy kits the player's drone may also be aimed at, when the enemy hull has one (enemy-gen.ts rooms carry `kit`).
+ * @agent:hack-rules. Hacking wiki, "Overview" (Active effects during hacking pulse) lists every one of them:
+ * "Hacking: ends an active hack", "Backup Battery: disables bonus power", "Drone Control: disables drones",
+ * "Crew Teleporter: forcibly recalls hostile boarders", "Mind Control: temporarily turns one random enemy into an
+ * ally", "Cloaking: ends an active cloak", "Clone Bay: disables the clone bay", and "Artillery Beam / Flak Artillery
+ * / Rebel Flagship weapons: drains charge". Effects: applyPulse below (flak / cradle read hackPulseOn).
+ */
+const KIT_TARGETS: readonly KitId[] = ["spike", "cradle", "veil", "sling", "leash", "swarm", "cell", "flak", "lance"];
+
+function isTarget(g: Game, id: string): boolean {
+  if ((TARGETS as readonly string[]).includes(id)) return true;
+  return (KIT_TARGETS as readonly string[]).includes(id) && !!g.enemy?.kits[id as KitId];
+}
+
+/** The room on `ship` that houses system or kit `id` (kits sit in rooms with `kit` set on enemy hulls). */
+function roomOf(ship: Ship, id: string): Room | undefined {
+  return ship.rooms.find((r) => r.system === id || r.kit === id);
 }
 
 /**
@@ -95,6 +113,7 @@ export function installSpike(g: Game): boolean {
     on: false,
     aux: 0,
   };
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Hacking installed on the Lark.");
   return true;
 }
@@ -114,12 +133,26 @@ export function toggleSpikePower(g: Game) {
   if (kit.power > 0) kit.power -= 1;
 }
 
-/** Hacking wiki, "Choosing your hacking target": the drone is aimed at a single system before it launches. */
-export function armSpike(g: Game, systemId: SysId) {
+/**
+ * Hacking wiki, "Choosing your hacking target": the drone is aimed at a single system before it launches.
+ * "Once the game is unpaused, this choice is permanent: you can only hack one system in a fight, unless your hacking
+ * drone is somehow destroyed." So with a drone latched (Ship.hackDrone) the aim is pinned to that system; it frees
+ * again when the drone is destroyed (deleted by the enemy's pulse on Hacking) or the next fight brings a new hull.
+ * Returns false when the aim was refused.
+ */
+export function armSpike(g: Game, systemId: string): boolean {
   const kit = kitOf(g);
-  if (!kit || running(kit)) return;
-  if (!isTarget(systemId)) return;
+  if (!kit || running(kit)) return false;
+  if (!isTarget(g, systemId)) return false;
+  // @agent:hack-rules. A drone already in flight is committed ("this choice is permanent").
+  if (g.enemy?.hackFlying != null) return false;
+  const latched = g.enemy?.hackDrone;
+  if (latched != null && latched !== systemId) {
+    kit.target = latched;
+    return false;
+  }
   kit.target = systemId;
+  return true;
 }
 
 /**
@@ -130,38 +163,185 @@ export function armSpike(g: Game, systemId: SysId) {
 export function launchSpike(g: Game): boolean {
   const kit = kitOf(g);
   if (!kit || !g.enemy) return false;
-  if (!kit.target || !isTarget(kit.target)) return false;
+  // "this choice is permanent" (see below): a latched drone pins the target before it is checked.
+  if (g.enemy.hackDrone != null && g.enemy.hackDrone !== kit.target) kit.target = g.enemy.hackDrone;
+  if (!kit.target || !isTarget(g, kit.target)) return false;
   const powered = fedBars(kit);
   if (powered < 1) return false;
+  // @agent:hacking. Hacking wiki, "Choosing your hacking target": the drone "latches onto the hull and becomes
+  // invulnerable", and "you can only hack one system in a fight, unless your hacking drone is somehow destroyed".
+  // A drone already latched on this target pulses again without a new part (or a new Zoltan check: nothing launches).
+  // "Once the game is unpaused, this choice is permanent": a latched drone pins the target (armSpike, and the pull-back
+  // above), so no second drone launches while one is attached.
+  const latched = g.enemy.hackDrone != null && g.enemy.hackDrone === kit.target;
+  if (latched) {
+    if (running(kit) || kit.cool > 0) return false;
+    if (enemyPulseOn(g, ["spike"])) return false;
+    const again = pulseSeconds(powered);
+    if (again <= 0) return false;
+    startOwnPulse(g, kit, again);
+    log(g, `Hacking pulses their ${LABEL[kit.target] ?? kit.target}.`);
+    return true;
+  }
+  // @agent:hack-rules. One drone at a time: a drone still in flight is not doubled.
+  if (g.enemy.hackFlying != null) return false;
   if (g.player.parts < 1) {
     log(g, "Hacking needs a drone part.");
     return false;
   }
   if (running(kit) || kit.cool > 0) return false;
+  // @agent:hack-ui. Hacking wiki, "Choosing your hacking target": "if they are cloaked, you must wait for the cloak to
+  // end." No part is spent: nothing launches.
+  if (veilBlocks(g, "player")) {
+    log(g, "Hacking must wait for their cloak to end.");
+    return false;
+  }
   // @agent:hacking. INFERRED: no launch while the enemy's pulse is on this Hacking system. Hacking, "Overview"
   // (Hacking row): a pulse "ends an active hack"; the page never says whether a new one can start meanwhile.
   if (enemyPulseOn(g, ["spike"])) return false;
   const seconds = pulseSeconds(powered);
   if (seconds <= 0) return false;
-  // Zoltan Shield: a hacking drone is destroyed on contact and does not damage the bubble.
-  // Augmentations, Zoltan Shield Bypass: it still cannot be launched, and the part is not spent.
-  // Without the augment the launch spends the part and the drone breaks before the pulse.
+  // Hacking: "Hacking drone cannot be launched at a ship with a Zoltan Shield, even with the Zoltan Shield Bypass
+  // augmentation." So nothing launches and no part is spent. (A drone already flying when a shield goes up still
+  // breaks on impact: arriveOwn.)
   if ((g.enemy.zoltan ?? 0) > 0) {
-    if (g.augments.includes("bypass") && bypassZoltan("hack") === "destroyed") {
-      log(g, "Hacking cannot launch through a Zoltan Shield.");
-      return false;
-    }
-    g.player.parts -= 1;
-    log(g, "The hacking drone breaks on their Zoltan Shield.");
+    log(g, "Hacking cannot launch at a Zoltan Shield.");
     return false;
   }
   g.player.parts -= 1;
+  // @agent:hack-rules. Hacking wiki, "Choosing your hacking target": "This costs one drone part and takes about 2--3
+  // seconds to reach the enemy ship." Same flight model as the enemy's drone (launchEnemySpike): a uniform 2..3 s roll,
+  // counted down by tickOwnFlight. The pulse starts when it latches (arriveOwn).
+  const fly = FLIGHT_MIN + rand(g) * FLIGHT_SPREAD;
+  kit.hackFly = fly;
+  kit.hackFlyTotal = fly;
+  kit.stun = undefined;
+  kit.on = false;
+  kit.left = 0;
+  kit.aux = 0;
+  kit.cool = 0;
+  g.enemy.hackFlying = kit.target;
+  log(g, `Hacking drone away toward their ${LABEL[kit.target] ?? kit.target}.`);
+  return true;
+}
+
+// ---------------------------------------------------------------------------------------------
+// @agent:hack-rules. The player's paused launch queue and the drone's flight to the enemy hull.
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Hacking wiki, "Choosing your hacking target": "Once the game is unpaused, this choice is permanent ... If you change
+ * your mind while still paused, you can cancel the hack launch by clicking on the drone icon again."
+ * A pick made while paused only aims and queues (Kit.hackQueued); no part is spent. tickSpike (which only runs
+ * unpaused, sim.ts step) commits it through launchSpike. Picking another room while still paused re-aims the queue.
+ * Returns false when the aim was refused (same rules as armSpike).
+ */
+export function queueSpike(g: Game, systemId: string): boolean {
+  const kit = kitOf(g);
+  if (!kit || !armSpike(g, systemId)) return false;
+  kit.hackQueued = true;
+  return true;
+}
+
+/** Cancels a launch queued while paused ("cancel the hack launch by clicking on the drone icon again"). */
+export function cancelQueuedSpike(g: Game): boolean {
+  const kit = kitOf(g);
+  if (!kit?.hackQueued) return false;
+  delete kit.hackQueued;
+  return true;
+}
+
+/** Ends the player's flight bookkeeping (lost, latched, or the fight is gone). */
+function clearOwnFlight(g: Game, kit: Kit) {
+  kit.hackFly = undefined;
+  kit.hackFlyTotal = undefined;
+  kit.stun = undefined;
+  if (g.enemy) delete g.enemy.hackFlying;
+}
+
+/**
+ * Hacking wiki, "Choosing your hacking target": "If the drone is destroyed, you will be able to send another one after
+ * a short delay." Same RELAUNCH_DELAY as the enemy's loseDrone. The aim frees again ("unless your hacking drone is
+ * somehow destroyed").
+ */
+function loseOwnDrone(g: Game, kit: Kit) {
+  clearOwnFlight(g, kit);
+  kit.cool = RELAUNCH_DELAY;
+}
+
+/** Hacking wiki, "Overview" (Hacking pulse): starts a pulse and its at-start effects (startEnemyPulse's twin). */
+function startOwnPulse(g: Game, kit: Kit, seconds: number) {
   kit.on = true;
   kit.left = seconds;
   kit.aux = 0;
   kit.cool = 0;
-  log(g, `Hacking locks ${kit.target}.`);
-  return true;
+  const foe = g.enemy;
+  if (!foe) return;
+  // "Cloaking: ends an active cloak". As startEnemyPulse: the cloak then cools 20 s (Cloaking, "Overview").
+  const veil = foe.kits.veil;
+  if (kit.target === "veil" && veil?.on) {
+    veil.on = false;
+    veil.left = 0;
+    veil.cool = CLOAK_COOLDOWN;
+  }
+}
+
+/**
+ * Hacking wiki, "Choosing your hacking target": "When the drone reaches the enemy ship, it latches onto the hull and
+ * becomes invulnerable." Overview: a drone launched before a Zoltan Shield went up "will be destroyed upon impact with
+ * the Zoltan Shield". INFERRED: the first pulse starts on latching (the old instant launch did the same), unless the
+ * enemy's pulse is on this Hacking system right now (then the icon starts it later).
+ */
+function arriveOwn(g: Game, kit: Kit) {
+  const foe = g.enemy;
+  const target = foe?.hackFlying;
+  if (!foe || !target) {
+    clearOwnFlight(g, kit);
+    return;
+  }
+  if ((foe.zoltan ?? 0) > 0) {
+    loseOwnDrone(g, kit);
+    log(g, "Your hacking drone breaks on their Zoltan Shield.");
+    return;
+  }
+  clearOwnFlight(g, kit);
+  kit.target = target;
+  foe.hackDrone = target;
+  log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
+  const seconds = pulseSeconds(fedBars(kit));
+  if (seconds > 0 && !enemyPulseOn(g, ["spike"])) startOwnPulse(g, kit, seconds);
+}
+
+/**
+ * Hacking wiki, "Choosing your hacking target": "While travelling, the hacking drone can be targeted by defense drones
+ * and anti-combat drones" (swarm.ts interceptIncomingDrone, defender "enemy": "down" or a 5 s "stun"). "Defense drones
+ * can be dodged by de-powering the hacking drone as they shoot, which freezes the hacking drone in place and causes all
+ * shots to target ahead and miss." So with no power in Hacking the drone holds still and is not intercepted.
+ * NOT MODELLED: "or even destroyed by random collisions" (no flight geometry).
+ */
+function tickOwnFlight(g: Game, kit: Kit, dt: number) {
+  const foe = g.enemy;
+  if (!foe || g.phase !== "combat" || foe.hackFlying == null) {
+    clearOwnFlight(g, kit);
+    return;
+  }
+  const stunned = (kit.stun ?? 0) > 0;
+  if (stunned) kit.stun = Math.max(0, (kit.stun ?? 0) - dt);
+  const powered = fedBars(kit) >= 1;
+  const hit = powered ? interceptIncomingDrone(g, "enemy", "hacking") : null;
+  if (hit === "down") {
+    loseOwnDrone(g, kit);
+    log(g, "Their drone shoots down your hacking drone.");
+    return;
+  }
+  if (hit === "stun") {
+    kit.stun = ANTI_STUN_S;
+    log(g, "Their drone stuns your hacking drone.");
+    return;
+  }
+  if (!powered || stunned) return;
+  kit.hackFly = (kit.hackFly ?? 0) - dt;
+  if (kit.hackFly <= 0) arriveOwn(g, kit);
 }
 
 /** Hacking wiki, "Overview" (Piloting/Engines): the pulse stops the FTL drive charging. */
@@ -187,13 +367,17 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
   if (!enemy || !kit.target) return;
   // Augmentations, "Offensive Augmentations", Hacking Stun: crew in the pulsed room cannot act for the pulse.
   if (hackStuns(g)) {
-    const room = roomWith(enemy, kit.target as SysId);
+    const room = roomOf(enemy, kit.target);
     if (room) {
       for (const c of g.crew) {
         if (c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
         c.stun = kit.left;
       }
     }
+  }
+  if (kit.target === "spike") {
+    pulseTheirHacking(g, kit, dt);
+    return;
   }
   if (kit.target === "shields") {
     kit.aux += dt;
@@ -237,7 +421,189 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
       if (door.b === "void" || door.stuck > 0) continue;
       door.open = false;
     }
+    return;
   }
+  // @agent:hack-rules. The subsystem rows of "Active effects during hacking pulse", mirrored from applyEnemyPulse.
+  // Clone Bay ("disables the clone bay"): cradle.ts asks hackPulseOn. Flak Artillery ("drains charge"): flakart.ts
+  // asks hackPulseOn. Sensors ("disable sensors"): enemySensorsHacked. Artillery Beam: enemy hulls fire none (lance.ts
+  // runs the player's only), so a pulse on it has nothing to drain.
+  switch (kit.target) {
+    case "veil": {
+      // "Cloaking: ends an active cloak, and prevents the enemy from entering cloak." The end is startOwnPulse; a cloak
+      // started during the pulse is cancelled at once. INFERRED (as applyEnemyPulse): that cancel costs no cooldown.
+      const veil = enemy.kits.veil;
+      if (veil?.on) {
+        veil.on = false;
+        veil.left = 0;
+      }
+      return;
+    }
+    case "cell": {
+      // "Backup Battery: disables bonus power, putting the system on cooldown if active, and temporarily removes two
+      // regular power bars from reactor." The drain is syncOwnPulse (Kit.drained, cell.ts cellBonus).
+      // Backup Battery wiki, "Overview": 20 s cooldown (the "tap" augment is the player's, so not here).
+      const cell = enemy.kits.cell;
+      if (cell?.on && cell.left > 0) {
+        cell.on = false;
+        cell.left = 0;
+        cell.aux = 0;
+        cell.cool = 20;
+      }
+      return;
+    }
+    case "swarm":
+      pulseTheirSwarm(g, kit, dt);
+      return;
+    case "leash":
+      pulseTheirMind(g, kit);
+      return;
+    case "sling":
+      pulseTheirSling(g);
+      return;
+    default:
+      return;
+  }
+}
+
+/**
+ * @agent:hack-rules. Hacking wiki, "Overview" (Drone Control): "disables drones, with a chance to destroy them (higher
+ * chance with higher-level hacking)"; "after a one-second delay, there's a 15% chance to destroy the drone every
+ * second". Every deployed enemy drone (swarm.ts DroneUnit) is stunned for the rest of the pulse.
+ * INFERRED: the 15% is rolled per drone. A destroyed drone is reset as swarm.ts killUnit does (redeploy wait 10 s).
+ */
+function pulseTheirSwarm(g: Game, kit: Kit, dt: number) {
+  const units = g.enemy?.kits.swarm?.drones ?? [];
+  const live = units.filter((u) => u.alive);
+  for (const u of live) u.stun = Math.max(u.stun ?? 0, kit.left);
+  const before = kit.aux;
+  kit.aux += dt;
+  for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
+    if (s < 2) continue;
+    for (const u of live) {
+      if (!u.alive || rand(g) >= DRONE_KILL_PER_S) continue;
+      u.alive = false;
+      u.powered = false;
+      u.cool = REDEPLOY_S;
+      u.stun = undefined;
+      u.ionT = undefined;
+      u.fly = undefined;
+      u.room = undefined;
+      if (u.kind !== "ionintruder") {
+        u.aux = 0;
+        u.left = undefined;
+      }
+      log(g, "Your hack burns out one of their drones.");
+    }
+  }
+}
+
+/**
+ * @agent:hack-rules. Hacking wiki, "Overview" (Mind Control): "temporarily turns one random enemy into an ally, and
+ * removes enemy mind control from allies." "If the enemy mind-controlled crew dies during the disruption, then another
+ * enemy crew will be mind-controlled." Mind Control, "Overview": "Slugs cannot be mind controlled." (kin "gel").
+ * The removal is leash.ts clearEnemyLeash. The turned crew member is held for the pulse (kit.hackHeld; syncOwnPulse
+ * frees them). INFERRED: any living enemy crew member, on either hull, as the enemy's pulseMind picks.
+ */
+function pulseTheirMind(g: Game, kit: Kit) {
+  if (g.crew.some((c) => c.side === "player" && (c.leashed ?? 0) > 0)) clearEnemyLeash(g);
+  const held = g.crew.find((c) => c.id === kit.hackHeld);
+  if (held && held.hp > 0 && (held.leashed ?? 0) > 0) {
+    held.leashed = kit.left;
+    return;
+  }
+  kit.hackHeld = undefined;
+  const pool = g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && (c.leashed ?? 0) <= 0 && c.kin !== "gel");
+  if (!pool.length) return;
+  const c = pool[Math.floor(rand(g) * pool.length) % pool.length];
+  c.leashed = kit.left;
+  c.path = [];
+  c.move = 0;
+  kit.hackHeld = c.id;
+  log(g, `${c.name} is turned by your hack.`);
+}
+
+/**
+ * @agent:hack-rules. Hacking wiki, "Overview" (Crew Teleporter): "forcibly recalls hostile boarders, putting the system
+ * on cooldown if anyone was successfully recalled." "Does not retrieve crew from a cloaked ship." "If one of your crew
+ * is mind-controlled on your ship, hacking the enemy teleporter will not send the affected crew to the enemy ship!
+ * Enemies will also not be recalled in this case, unless they enter the same room as your mind-controlled crew."
+ * The enemy's boarders on the Lark go back to their pad room (the room with kit "sling", sling.ts PADS; INFERRED
+ * fallback: the first enemy room). Teleporter cooldown 20 / 15 / 10 s by level (slingCooldown).
+ */
+function pulseTheirSling(g: Game) {
+  const foe = g.enemy;
+  const sling = foe?.kits.sling;
+  if (!foe || !sling || veilBlocks(g, "enemy")) return;
+  const away = g.crew.filter((c) => c.aboard === "player" && c.hp > 0 && c.side === "enemy" && sideOf(c) === "enemy");
+  if (!away.length) return;
+  const heldRooms = new Set(
+    g.crew.filter((c) => c.aboard === "player" && c.hp > 0 && c.side === "player" && sideOf(c) === "enemy").map((c) => c.room),
+  );
+  const pull = heldRooms.size ? away.filter((c) => heldRooms.has(c.room)) : away;
+  if (!pull.length) return;
+  const land = roomOf(foe, "sling")?.id ?? foe.rooms[0]?.id;
+  if (!land) return;
+  for (const c of pull) {
+    c.aboard = "enemy";
+    c.room = land;
+    c.path = [];
+    c.move = 0;
+  }
+  sling.on = false;
+  sling.left = 0;
+  sling.cool = slingCooldown(sling.level);
+  log(g, pull.length > 1 ? "Your hack yanks their boarders home." : "Your hack yanks a boarder home.");
+}
+
+/**
+ * @agent:hack-rules. Hacking wiki, "Overview" (Sensors): "disable sensors." True while the player's pulse is on the
+ * enemy's Sensors.
+ * @agent:enemy-sensors. FINDING: the wiki documents NO gameplay effect of an enemy's Sensors, so hacking them changes
+ * nothing for the enemy and nothing here reads this flag on purpose. Sensors wiki, "Overview": "Enemy ships do not have
+ * Sensors subsystem, but have all the information about your ship and crew." Cloaking wiki, "Overview": enemies "can
+ * use mind control against your ship even while you are cloaked (because they don't need vision)". So enemy targeting,
+ * crew AI, boarding and drones never consult their Sensors (hooks noted in wiki/targeting.ts and extras/crewai.ts).
+ * What the player does get from the drone is generic to every hacked system (Hacking "Overview", passive effects):
+ * "Room vision and max-level Sensors information on the system" and "Repair speed of the system is halved."
+ * Pinned in extras/sensors-enemy.test.ts. NOT INVENTED: no enemy-side penalty is added.
+ */
+export function enemySensorsHacked(g: Game): boolean {
+  return playerPulseOn(g, "sensors");
+}
+
+/**
+ * @agent:hacking. The player's pulse on the enemy's Hacking system. Hacking wiki, "Overview" (Active effects):
+ * "Hacking: ends an active hack, with a chance to destroy the hacking drone (higher chance with higher-level hacking)."
+ * "Defences against hacking": "Hacking the enemy's hacking system cancels the active hack and has a chance to destroy
+ * the hacking drone." "Overview" (Hacking pulse): drone "can only be removed if destroyed by the hacking system being
+ * hacked", and the odds: "after a one-second delay, there's a 15% chance to destroy the drone every second" (39% / 62% /
+ * 77% over the 4 / 7 / 10 second pulse). The drone at risk is the one the hacked Hacking system owns: the enemy's
+ * drone latched on the player hull. INFERRED: a drone still in flight is not at risk (the page says "attached").
+ * kit.aux is the per-second clock, as in pulseSwarm.
+ */
+function pulseTheirHacking(g: Game, kit: Kit, dt: number) {
+  const theirs = enemyKit(g);
+  if (!theirs) return;
+  if (running(theirs)) {
+    endEnemyPulse(g, theirs);
+    log(g, "Your hack cuts their hacking pulse.");
+  }
+  if (!theirs.hackLatched) return;
+  const before = kit.aux;
+  kit.aux += dt;
+  for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
+    if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
+      loseDrone(theirs);
+      log(g, "Your hack burns out their hacking drone.");
+      return;
+    }
+  }
+}
+
+/** True while the player's own pulse runs on enemy system or kit `id`. */
+function playerPulseOn(g: Game, id: string): boolean {
+  const kit = kitOf(g);
+  return !!g.enemy && !!kit && running(kit) && kit.target === id;
 }
 
 /** Hacking wiki, "Overview" (Hacking pulse): counts the pulse down, then starts the 20 second cooldown. */
@@ -247,6 +613,19 @@ export function tickSpike(g: Game, dt: number) {
   tickEnemySpike(g, dt);
   const kit = kitOf(g);
   if (!kit) return;
+  // @agent:hack-rules. A launch queued while paused commits on the first unpaused tick (queueSpike).
+  if (kit.hackQueued) {
+    delete kit.hackQueued;
+    launchSpike(g);
+  }
+  if (kit.hackFly != null) {
+    tickOwnFlight(g, kit, dt);
+    // INFERRED: a drone that latched this tick starts its pulse clock on the next one.
+    if (running(kit)) {
+      syncOwnPulse(g, kit);
+      return;
+    }
+  }
   if (running(kit)) {
     const step = Math.min(dt, kit.left);
     applyPulse(g, kit, step);
@@ -259,9 +638,30 @@ export function tickSpike(g: Game, dt: number) {
       kit.aux = 0;
     }
     if (rest > 0) kit.cool = Math.max(0, kit.cool - rest);
-    return;
+  } else if (kit.cool > 0) kit.cool = Math.max(0, kit.cool - dt);
+  syncOwnPulse(g, kit);
+}
+
+/**
+ * @agent:hack-rules. Undoes the player's per-pulse holds once the pulse is over (ended, cut by the enemy's hack on
+ * Hacking, or the fight is gone): the enemy crew member a Mind Control pulse turned, and the Backup Battery drain.
+ */
+function syncOwnPulse(g: Game, kit: Kit) {
+  const foe = g.enemy;
+  const on = !!foe && g.phase === "combat" && running(kit);
+  if (kit.hackHeld && !(on && kit.target === "leash")) {
+    const c = g.crew.find((x) => x.id === kit.hackHeld);
+    kit.hackHeld = undefined;
+    if (c && c.side === "enemy" && (c.leashed ?? 0) > 0) {
+      c.leashed = 0;
+      delete c.leashed;
+    }
   }
-  if (kit.cool > 0) kit.cool = Math.max(0, kit.cool - dt);
+  const cell = foe?.kits.cell;
+  if (cell) {
+    if (on && kit.target === "cell") cell.drained = DRAINED_BARS;
+    else if (cell.drained != null) delete cell.drained;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -370,7 +770,8 @@ function hackDroneIntercept(g: Game): "down" | "stun" | null {
 
 /** Hacking wiki, "Hacking specifics for enemy ships": level cap (see ENEMY_LEVEL3). */
 function capEnemyLevel(ship: Ship, kit: Kit) {
-  const cap = ENEMY_LEVEL3.has(ship.classId ?? "") ? 3 : ENEMY_MAX_LEVEL;
+  // @agent:flagship. "...and the Flagship in phase 1": the flagship hull (Ship.flagship) now carries a Hacking kit.
+  const cap = ENEMY_LEVEL3.has(ship.classId ?? "") || ship.flagship ? 3 : ENEMY_MAX_LEVEL;
   if (kit.level <= cap) return;
   kit.level = cap;
   kit.power = Math.min(kit.power, kit.level - (kit.damage ?? 0));
@@ -622,8 +1023,9 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       return;
     }
     case "spike": {
-      // "Hacking: ends an active hack". The chance to destroy the hacking drone has no target here: the player's
-      // hack spends a part per launch and leaves no persistent drone.
+      // "Hacking: ends an active hack, with a chance to destroy the hacking drone". Choosing your hacking target: "It
+      // can only be destroyed if the enemy hacks your hacking system." The drone at risk is the player's, latched on
+      // the enemy hull (Ship.hackDrone): 15% a second after a one-second delay, as in pulseTheirHacking.
       const own = ship.kits.spike;
       if (own && running(own)) {
         own.on = false;
@@ -631,11 +1033,22 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
         own.aux = 0;
         own.cool = COOLDOWN;
       }
+      const foe = g.enemy;
+      if (!foe || foe.hackDrone == null) return;
+      const before = kit.aux;
+      kit.aux += dt;
+      for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
+        if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
+          delete foe.hackDrone;
+          log(g, "Their hack burns out your hacking drone.");
+          return;
+        }
+      }
       return;
     }
     case "cell": {
-      // "Backup Battery: disables bonus power, putting the system on cooldown if active". NOT MODELLED: "temporarily
-      // removes two regular power bars from reactor".
+      // "Backup Battery: disables bonus power, putting the system on cooldown if active". The other half, "temporarily
+      // removes two regular power bars from reactor", is syncDrain (Kit.drained, read by cell.ts cellBonus).
       const cell = ship.kits.cell;
       if (cell?.on && cell.left > 0) {
         cell.on = false;
@@ -655,9 +1068,9 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       pulseSling(g);
       return;
     default:
-      // engines / pilot: predicates below (evasion 0, FTL frozen). doors: syncDoors.
-      // NOT MODELLED: Clone Bay ("disables the clone bay"; cradle.ts has no hook), Sensors ("disable sensors";
-      // sensors.ts sensorLevel has no caller yet), Artillery Beam / Flak Artillery ("drains charge").
+      // engines / pilot: predicates below (evasion 0, FTL frozen). doors: syncDoors. cell: syncDrain.
+      // Clone Bay ("disables the clone bay"): cradle.ts asks hackPulseOn. Sensors ("disable sensors"):
+      // playerSensorLevel. Artillery Beam / Flak Artillery ("drains charge"): lance.ts / flakart.ts ask hackPulseOn.
       return;
   }
 }
@@ -700,8 +1113,24 @@ function syncRooms(g: Game, kit: Kit | undefined) {
   }
 }
 
+/**
+ * @agent:hacking. Hacking wiki, "Overview" (Backup Battery): "temporarily removes two regular power bars from reactor".
+ * Backup Battery wiki, "Overview": "Hacking a Backup Battery will cause it to shut down and drain two regular power bars
+ * from the reactor." INFERRED: "temporarily" is the pulse; the bars come back when it ends or their Hacking goes down.
+ */
+const DRAINED_BARS = 2;
+
+function syncDrain(g: Game, kit: Kit | undefined) {
+  const cell = g.player.kits.cell;
+  if (!cell) return;
+  const on = !!kit && !!g.enemy && enemyPulseOn(g, ["cell"]);
+  if (on) cell.drained = DRAINED_BARS;
+  else if (cell.drained != null) delete cell.drained;
+}
+
 /** Clears every enemy-hack mark on the player hull. sim.ts step calls it outside combat. */
 export function clearEnemyHackMarks(g: Game) {
+  if (g.player.kits.cell?.drained != null) delete g.player.kits.cell.drained;
   for (const r of g.player.rooms) if (r.hacked) delete r.hacked;
   for (const d of g.player.doors) {
     if (!d.hacked) continue;
@@ -752,11 +1181,13 @@ export function tickEnemySpike(g: Game, dt: number) {
     }
   } else if (kit.cool > 0) {
     kit.cool = Math.max(0, kit.cool - dt);
-  } else if (live) {
+  } else if (live && !playerPulseOn(g, "spike")) {
+    // @agent:hacking. INFERRED: no new pulse while the player's pulse is on their Hacking ("ends an active hack").
     startEnemyPulse(g, kit);
   }
   syncDoors(g, kit);
   syncRooms(g, kit);
+  syncDrain(g, kit);
 }
 
 /** Hacking wiki, "Overview" (Piloting/Engines): "stops the FTL drive charging". The player's ship only. */
@@ -816,4 +1247,193 @@ export function enemyHackView(g: Game): {
   if (!kit.hackLatched) return null;
   const pulse = running(kit) && operational(kit);
   return { phase: pulse ? "pulse" : "latched", progress: 1, target: kit.target, label, room, left: kit.left, cool: kit.cool };
+}
+
+// ---------------------------------------------------------------------------------------------
+// @agent:hacking. Shared hacking predicates for sim.ts and the other extras (both directions).
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * True while a hostile Hacking pulse is working on system or kit `id` of `ship`: the enemy's pulse on the player
+ * hull (their Hacking must still work), or the player's pulse on the enemy hull. Hacking wiki, "Overview" (Active
+ * effects during hacking pulse). Read by cradle.ts (Clone Bay), lance.ts and flakart.ts (artillery charge drain).
+ */
+export function hackPulseOn(g: Game, ship: Ship, id: string): boolean {
+  if (ship === g.player) return enemyPulseOn(g, [id]);
+  if (g.enemy && ship === g.enemy) return playerPulseOn(g, id);
+  return false;
+}
+
+/**
+ * The system or kit id on `ship` with a hostile hacking drone attached, or null. Hacking wiki, "Overview": "Passive
+ * effects on a system with attached hacking drone" need only the drone, not power in the hacker's system.
+ */
+export function hackDroneOn(g: Game, ship: Ship): string | null {
+  if (ship === g.player) {
+    const kit = enemyKit(g);
+    return kit?.hackLatched && kit.target ? kit.target : null;
+  }
+  if (g.enemy && ship === g.enemy) return g.enemy.hackDrone ?? null;
+  return null;
+}
+
+/**
+ * Hacking wiki, "Overview" (passive effects): "System cannot be manned, but automated ships still get their manning
+ * bonuses." sim.ts manning() asks this. An automated hull keeps whatever its rules give it.
+ */
+export function hackBlocksManning(g: Game, ship: Ship, id: string): boolean {
+  if (ship.automated) return false;
+  return hackDroneOn(g, ship) === id;
+}
+
+/**
+ * Hacking wiki, "Overview" (passive effects): "Repair speed of the system is halved." sim.ts life() scales crew
+ * repair of that system (or kit) room by this. Breach repair in the room is not the system's, so it is not halved.
+ * INFERRED: the room's breach is left at full speed; the page names only the system.
+ */
+export function hackRepairScale(g: Game, ship: Ship, id: string | undefined): number {
+  if (!id) return 1;
+  return hackDroneOn(g, ship) === id ? 0.5 : 1;
+}
+
+/**
+ * Read-only, for the UI: the player's working Sensors level (0..4), with the hacking rules applied.
+ * Hacking wiki, "Overview" (Active effects): "Sensors: disable sensors." -> 0 while the enemy's pulse is on Sensors.
+ * "System cannot be manned" (passive): with their drone on Sensors the manning step is dropped, so the level is the
+ * unmanned one. Sensors wiki, "Overview": "Manning the Sensors console makes the system work 1 level above"; the
+ * level-4 row is "Only available when Level 3 Sensors subsystem is manned", so unmanned tops out at 3.
+ * Base level comes from sensors.ts sensorLevel. NOT MODELLED: nebulas ("Sensors are temporarily disabled in nebulas").
+ */
+export function playerSensorLevel(g: Game): number {
+  const ship = g.player;
+  if (!ship.systems.sensors) return 0;
+  if (g.phase === "combat" && enemyPulseOn(g, ["sensors"])) return 0;
+  if (g.phase === "combat" && hackBlocksManning(g, ship, "sensors")) {
+    const sys = ship.systems.sensors;
+    return Math.max(0, Math.min(3, sys.level - sys.damage - sys.ion.length));
+  }
+  return sensorLevel(g, ship, "player");
+}
+
+/**
+ * Read-only, for the UI: what the player's latched drone reveals on the enemy hull, or null with no drone.
+ * Hacking wiki, "Overview" (passive effects): "Room vision and max-level Sensors information on the system."
+ * -> `room` is the enemy room to reveal, `sensors` is 4 for that system.
+ * "Additional passive effects if the Hacking system is powered: If the targeted system is Piloting or Engines, the ship
+ * name on the top right corner is replaced with text that states the current Evasion of the enemy ship."
+ * -> `evasion` is that percent while the player's Hacking has a working bar, else null.
+ */
+export function hackVision(g: Game): { system: string; room: string | null; sensors: 4; evasion: number | null } | null {
+  const foe = g.enemy;
+  const id = foe?.hackDrone;
+  if (!foe || !id) return null;
+  const kit = kitOf(g);
+  const powered = !!kit && fedBars(kit) >= 1;
+  const evasion = powered && (id === "engines" || id === "pilot") ? evasionPercent(g, foe, "enemy") : null;
+  return { system: id, room: roomOf(foe, id)?.id ?? null, sensors: 4, evasion };
+}
+
+// ---------------------------------------------------------------------------------------------
+// @agent:hack-ui. Read-only helpers for the player's Hacking controls (GameApp dock orb, ShipView reticle).
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Removes one bar from the player's Hacking. toggleSpikePower adds first, so the dock's "-" needs its own step.
+ * Hacking wiki, "Overview": doors under the drone open for hostile crew "by removing all power from your hacking system".
+ */
+export function lowerSpikePower(g: Game) {
+  const kit = kitOf(g);
+  if (kit && kit.power > 0) kit.power -= 1;
+}
+
+/** Adds one bar when the reactor has one spare and the level allows it (the add half of toggleSpikePower). */
+export function raiseSpikePower(g: Game) {
+  const kit = kitOf(g);
+  if (kit && kit.power < kit.level && sparePower(g.player) >= 1) kit.power += 1;
+}
+
+/**
+ * Hacking wiki, "Choosing your hacking target": "click on the hacking drone icon, then click an enemy system room."
+ * True when enemy room `roomId` holds a system or kit this drone may be aimed at (TARGETS / KIT_TARGETS).
+ */
+export function spikeRoomTargetable(g: Game, roomId: string): boolean {
+  const room = g.enemy?.rooms.find((r) => r.id === roomId);
+  if (!room) return false;
+  const id = room.system ?? room.kit;
+  return !!id && isTarget(g, id);
+}
+
+export type PlayerHackState =
+  | "nopower" // "With power in the hacking system" not met
+  | "zoltan" // "If the enemy has a Zoltan Shield, you must destroy it first"
+  | "cloaked" // "if they are cloaked, you must wait for the cloak to end"
+  | "noparts" // "This costs one drone part"
+  | "cooldown" // "Overview" (Hacking pulse): 20 seconds cooldown
+  | "pulse" // the hacking pulse is running
+  | "queued" // @agent:hack-rules. picked while paused: launches on unpause, icon cancels
+  | "flying" // @agent:hack-rules. drone in flight, "about 2--3 seconds to reach the enemy ship"
+  | "latched" // drone attached, pulse ready
+  | "ready" // no drone yet, can launch
+  | "idle"; // no fight
+
+/**
+ * The player's Hacking state for the dock. Order follows launchSpike's own checks so the label matches what a click
+ * would do. `room` is the enemy room the drone sits on (or is aimed at), `cost` is the drone part per launch.
+ */
+export function playerHackView(g: Game): {
+  state: PlayerHackState;
+  target: string | null;
+  label: string | null;
+  room: string | null;
+  latched: boolean;
+  left: number;
+  cool: number;
+  power: number;
+  level: number;
+  pulse: number;
+  parts: number;
+  cost: 1;
+  /** @agent:hack-rules. Flight progress 0..1 while "flying"; stunned by an Anti-Combat Drone; frozen with no power. */
+  progress: number;
+  stunned: boolean;
+} | null {
+  const kit = kitOf(g);
+  if (!kit) return null;
+  const foe = g.enemy;
+  const latchedId = foe?.hackDrone ?? null;
+  const flyingId = foe?.hackFlying ?? null;
+  const flying = flyingId != null && kit.hackFly != null;
+  const total = kit.hackFlyTotal ?? kit.hackFly ?? 0;
+  const progress = flying && total > 0 ? Math.min(1, Math.max(0, 1 - (kit.hackFly ?? 0) / total)) : 0;
+  const target = latchedId ?? flyingId ?? kit.target ?? null;
+  const room = foe && target ? (roomOf(foe, target)?.id ?? null) : null;
+  const powered = fedBars(kit);
+  const base = {
+    target,
+    label: target ? (LABEL[target] ?? target) : null,
+    room,
+    latched: latchedId != null,
+    left: kit.left,
+    cool: kit.cool,
+    power: kit.power,
+    level: kit.level,
+    pulse: pulseSeconds(powered),
+    parts: g.player.parts,
+    cost: 1 as const,
+    progress,
+    stunned: flying && (kit.stun ?? 0) > 0,
+  };
+  let state: PlayerHackState;
+  if (running(kit)) state = "pulse";
+  else if (!foe || g.phase !== "combat") state = "idle";
+  else if (kit.hackQueued && latchedId == null) state = "queued";
+  else if (flying) state = "flying";
+  else if (powered < 1) state = "nopower";
+  else if (kit.cool > 0) state = "cooldown";
+  else if (latchedId != null) state = "latched";
+  else if ((foe.zoltan ?? 0) > 0) state = "zoltan";
+  else if (veilBlocks(g, "player")) state = "cloaked";
+  else if (g.player.parts < 1) state = "noparts";
+  else state = "ready";
+  return { state, ...base };
 }

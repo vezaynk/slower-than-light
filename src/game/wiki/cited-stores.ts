@@ -2,6 +2,7 @@ import { CATALOG } from "../extras/augments.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
 import { WEAPONS } from "../content.ts";
 import type { AugmentId, Game, Kit, KitId, StockItem, SysId } from "../types.ts";
+import { seatKits } from "../layouts.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
@@ -306,7 +307,12 @@ function grantCrew(g: Game, item: StockItem): boolean {
  * Return true after the purchase is applied. Scrap is spent by buy().
  */
 export function citedBuy(g: Game, item: StockItem): boolean {
-  if (item.kind === "system") return grantSystem(g, item);
+  if (item.kind === "system") {
+    const ok = grantSystem(g, item);
+    // Kit room (layouts.ts seatKits): a bought kit takes its hull's room; a Medbay swap takes the Clone Bay room back.
+    if (ok) seatKits(g.player);
+    return ok;
+  }
   if (item.kind === "augment") return grantAugment(g, item);
   if (item.kind === "crew") return grantCrew(g, item);
   return false;

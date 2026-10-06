@@ -1,5 +1,6 @@
 import type { Game, Kit, Ship } from "../types.ts";
-import { log, rand, sparePower } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
+import { kitBars, log, rand, sparePower } from "../sim.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -27,7 +28,8 @@ function blankVeil(): Kit {
 }
 
 function active(kit: Kit | undefined): boolean {
-  return !!kit && kit.on && kit.left > 0 && kit.power >= 1 && kit.level > 0;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  return !!kit && kit.on && kit.left > 0 && kitBars(kit) >= 1 && kit.level > 0;
 }
 
 function endVeil(kit: Kit) {
@@ -52,6 +54,7 @@ export function installVeil(g: Game) {
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
   g.player.kits.veil = blankVeil();
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Cloaking fitted.");
 }
 
@@ -74,6 +77,8 @@ export function toggleVeilPower(g: Game) {
     return;
   }
   if (sparePower(g.player) < 1) return;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.level - (kit.damage ?? 0) < 1) return;
   kit.power += 1;
 }
 
@@ -81,7 +86,7 @@ export function toggleVeilPower(g: Game) {
 export function startVeil(g: Game) {
   const kit = g.player.kits.veil;
   if (!kit) return;
-  if (kit.power < 1 || kit.cool > 0 || kit.on) return;
+  if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
   kit.on = true;
   kit.left = 5 * kit.level;
   kit.cool = 0;

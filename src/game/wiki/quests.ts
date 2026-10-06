@@ -1,0 +1,1025 @@
+/**
+ * @agent:quests. Quest markers and the quest-marker destinations of the cited events that name one.
+ *
+ * Beacons, "Quest (marker) beacon":
+ *   ''Unvisited. Quest destination.'' "To access the newly-spawned quest, you must navigate to a beacon marked 'QUEST',
+ *   usually a couple jumps from your current position. Once spawned, quest beacons can be seen on the map from any
+ *   distance away."
+ *   "Quest beacons will normally be placed in the current sector ("Added a quest marker to your map!"). However, if you
+ *   don't have many jumps left, the game will push the quest into the next sector instead ("Added a quest marker to the
+ *   next sector!"): it will appear regardless of which sector you choose. If this happens in sector 7, the quest will be
+ *   "cancelled", because quests are not allowed in sector 8 ("Upon examining your map, you realize you just won't have
+ *   time and need to get to the Federation base! You leave the quest for another day.")."
+ *   "A spawned quest marker will replace another event at the beacon that it overwrites, unless it is a store, exit, or
+ *   another quest marker." "A quest marker cannot appear in nebula area: if the current sector event is bound to create a
+ *   quest marker, while there is only nebula area to the right of the player ship or there are no suitable beacons to be
+ *   overwritten, the quest marker beacon will be placed in the next sector."
+ *
+ * Rebel Fleet: no page in the dump says what the fleet does to a quest beacon. Beacons says Distress beacons "will remain
+ * on the map till they get overtaken by rebels". INFERRED: a quest beacon is the same. Once the fleet column covers it,
+ * sim.ts commitJump's overtaken rule (a Rebel Elite) applies there and the quest is lost.
+ *
+ * INFERRED: "a couple jumps" / "don't have many jumps left" is read as: the marker goes on a beacon at least two columns to
+ * the right of the ship; with no such beacon it goes to the next sector. A beacon the ship already visited, one the fleet
+ * has taken, and a ship-unlocking event page are not overwritten.
+ * INFERRED everywhere below: a page that lists N results without odds rolls them with equal odds ({{DuplicateEvent|N}}
+ * counts N times). Unnamed weapons, drone schematics and augments are not granted (as in surrender.ts); named ones are.
+ * INVENTED: quest beacon names, and the one-word labels of "Fight ..." / "Continue" buttons where a page prints none.
+ * Ship unlocks (Stealth, Mantis, Slug Cruisers) are not wired: hulls.ts says "unlock is a label, not a gate".
+ */
+import { upgradeCost, WEAPONS } from "../content.ts";
+import { adjustScrap } from "../extras/index.ts";
+import { kinOf } from "../extras/kin.ts";
+import { xpNeedFor } from "../extras/lineage.ts";
+import { hurtSystem, log, openStoreHere, rand } from "../sim.ts";
+import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
+import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
+// @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
+import { PART_A } from "./quests-a.ts";
+import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
+import type { EscapePlan } from "./escape.ts";
+import {
+  between,
+  closeFight,
+  here,
+  humanBoarders,
+  joinCrew,
+  NEVER_RUN,
+  pageCard,
+  pageFight,
+  payOffer,
+  randomRace,
+  rollStandard,
+  rollSurrenderOffer,
+  scrapBand,
+  type SurrenderOffer,
+  type SurrenderTier,
+} from "./surrender.ts";
+
+/**
+ * @agent:quests-a. One quest-opener module (quests-a.ts, quests-b.ts): its quest ids, arrival cards, choices, page wins
+ * and "gotaway" cards, merged after this file's own tables. Append a module to PARTS; do not reorder.
+ */
+export type QuestPart = {
+  quests: Record<string, { page: string; title: string }>;
+  arrive: Record<string, (g: Game, b: Beacon) => void>;
+  choices: Record<string, (g: Game) => void>;
+  disabled?: (g: Game, id: string) => string | null;
+  wins: Record<string, Win>;
+  gotAway: Record<string, (g: Game) => void>;
+};
+const PARTS = (): QuestPart[] => [PART_A, PART_B];
+function fromParts<K extends "quests" | "arrive" | "choices" | "wins" | "gotAway">(k: K, id: string): QuestPart[K][string] | undefined {
+  for (const part of PARTS()) {
+    const table = part?.[k] as Record<string, QuestPart[K][string]> | undefined;
+    if (table?.[id]) return table[id];
+  }
+  return undefined;
+}
+
+/** Quest id -> the event page whose "Quest Marker" section it is, and the INVENTED beacon name. */
+export const QUESTS: Record<string, { page: string; title: string }> = {
+  escort: { page: "Escort civilians", title: "Escort destination" },
+  "mantis-war-camp": { page: "Mantis war camp", title: "Mantis encampment" },
+  "space-station": { page: "Space station under construction", title: "Missing cargo ship" },
+  "defector-cache": { page: "Rebel defector", title: "Defector's cache" },
+  "mantis-chase": { page: "Mantis ship-collectors", title: "Mantis trail" },
+  "fed-base": { page: "Rebel ship attacking Federation loyalists", title: "Hidden Federation Base" },
+  "thief-stash": { page: "Legendary thief KazaaakplethKilik", title: "Thief's cache" },
+  "slug-pirate-trap": { page: "Slug comm tapping", title: "Slug raid" },
+  "engi-real": { page: "Engi fleet discussion", title: "Rebel base" },
+  "engi-fake": { page: "Engi fleet discussion", title: "Rebel base" },
+  "engi-final": { page: "Engi fleet discussion", title: "Mantis convoy" },
+  "slug-platform": { page: "Slug Home Nebula surrender", title: "Construction platform" },
+  "store-rescue": { page: "Settlement mercenary work", title: "Space dock" },
+};
+
+export const QUEST_ADDED = "Added a quest marker to your map!";
+export const QUEST_NEXT = "Added a quest marker to the next sector!";
+export const QUEST_CANCELLED =
+  "Upon examining your map, you realize you just won't have time and need to get to the Federation base! You leave the quest for another day.";
+
+/** Ship-unlocking event pages (Category:Ship Unlocking Events) are not overwritten by a marker. INFERRED (Beacons @to-do). */
+const KEEP_FLAGS = new Set([
+  "cited:engi-fleet-discussion",
+  "cited:legendary-thief-kazaaakplethkilik",
+  "cited:slug-home-nebula-surrender",
+  "engi-cache",
+  "last-stand-repair",
+  // @agent:quests-a. Category:Ship Unlocking Events pages wired in quests-a.ts.
+  "cited:ancient-device",
+  "cited:rock-war-vessel-encounter",
+  "cited:unarmed-zoltan-transport",
+  "cited:zoltan-research-facility",
+]);
+
+function canHold(g: Game, b: Beacon, from: Beacon | undefined): boolean {
+  if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store") return false;
+  // "A quest marker cannot appear in nebula area".
+  if (b.kind === "nebula") return false;
+  if (b.quest || b.visited || b.id === g.here || KEEP_FLAGS.has(b.flag)) return false;
+  // Rebel Fleet: a beacon the column has taken is not a quest destination. INFERRED.
+  if (b.col < g.fleet) return false;
+  // "usually a couple jumps from your current position": two columns or more to the right. INFERRED.
+  return b.col >= (from?.col ?? 0) + 2;
+}
+
+/**
+ * A beacon for a new marker, or undefined. Beacon-mix (wiki/beacon-mix.ts) leaves the Sectors page's "N quests" lines as
+ * unflagged `event` beacons; those are taken first, then any other beacon a marker may overwrite.
+ */
+export function questSpot(g: Game): Beacon | undefined {
+  const from = here(g);
+  const ok = g.beacons.filter((b) => canHold(g, b, from));
+  const slots = ok.filter((b) => b.kind === "event" && !b.flag);
+  const pool = slots.length ? slots : ok;
+  if (!pool.length) return undefined;
+  return pool[Math.min(pool.length - 1, Math.floor(rand(g) * pool.length))];
+}
+
+function mark(b: Beacon, id: string) {
+  b.quest = id;
+  b.kind = "event";
+  b.flag = `quest:${id}`;
+  b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? "Quest";
+  b.asteroid = false;
+  b.resolved = false;
+  b.visited = false;
+  b.tier = "pool";
+}
+
+/** Adds a quest marker per Beacons, "Quest (marker) beacon". Returns the line the game prints. */
+export function addQuest(g: Game, id: string): string {
+  // "quests are not allowed in sector 8".
+  if (g.sector >= 8) {
+    log(g, QUEST_CANCELLED);
+    return QUEST_CANCELLED;
+  }
+  const spot = questSpot(g);
+  if (spot) {
+    mark(spot, id);
+    log(g, QUEST_ADDED);
+    return QUEST_ADDED;
+  }
+  // "If this happens in sector 7, the quest will be "cancelled"".
+  if (g.sector >= 7) {
+    log(g, QUEST_CANCELLED);
+    return QUEST_CANCELLED;
+  }
+  (g.questsNext ??= []).push(id);
+  log(g, QUEST_NEXT);
+  return QUEST_NEXT;
+}
+
+/** sim.ts nextSector, after the sector's events are stamped: "it will appear regardless of which sector you choose". */
+export function placeQueuedQuests(g: Game) {
+  const queued = g.questsNext ?? [];
+  g.questsNext = [];
+  for (const id of queued) {
+    const spot = questSpot(g);
+    if (spot) mark(spot, id);
+    // INFERRED: a sector with no room (all nebula, say) loses the marker. The page does not cover this case.
+    else log(g, "No room on this map for the quest marker.");
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Cards and payouts
+// ---------------------------------------------------------------------------------------------------------------
+
+export type Choice = { id: string; label: string };
+const ACK: Choice[] = [{ id: "ack", label: "Continue" }];
+
+/** Rewards, "Scrap only": T scrap. Same augment adjustment as the other rewards. */
+export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
+  const eligible = between(g, scrapBand(g, tier));
+  return { tier, scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 };
+}
+
+/** The result card: page text, what was paid, extras, and the next choices ("ack" by default). */
+export function result(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = [], choices: Choice[] = ACK) {
+  const lines: string[] = [text];
+  const got: string[] = [];
+  if (offer) {
+    const paid = payOffer(g, offer, true);
+    if (offer.scrap) got.push(`Scrap: ${offer.scrap}.`);
+    if (offer.fuel) got.push(`Fuel: ${offer.fuel}.`);
+    if (offer.missiles) got.push(`Missiles: ${offer.missiles}.`);
+    if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
+    if (paid.weaponName) got.push(`${paid.weaponName}.`);
+    got.push(...paid.extras);
+  }
+  const tail = [...got, ...extras].filter(Boolean);
+  if (tail.length) lines.push(tail.join(" "));
+  for (const l of got) log(g, l);
+  g.event = { title: here(g)?.name ?? "Event", body: lines.join("\n\n"), choices };
+  g.phase = "event";
+  g.paused = true;
+}
+
+export function card(g: Game, body: string, choices: Choice[]) {
+  pageCard(g, body, choices);
+  g.paused = true;
+}
+
+export function weighted<T>(g: Game, items: [T, number][]): T {
+  let roll = rand(g) * items.reduce((a, [, w]) => a + w, 0);
+  for (const [item, w] of items) {
+    roll -= w;
+    if (roll < 0) return item;
+  }
+  return items[items.length - 1][0];
+}
+
+export function pick<T>(g: Game, items: T[]): T {
+  return items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))];
+}
+
+export function repair(g: Game, n: number): string {
+  g.player.hull = Math.min(g.player.hullMax, g.player.hull + n);
+  return `Hull repairs: ${n}.`;
+}
+
+const AUG_NAMES: Partial<Record<AugmentId, string>> = {
+  casing: "Titanium System Casing",
+  gel: "Slug Repair Gel",
+  pheromone: "Mantis Pheromones",
+  // @agent:quests-a.
+  keel: "Rock Plating",
+  vengeance: "Crystal Vengeance",
+};
+
+/** A named augmentation. Three is the cap (augments.ts installAugment); a full rack loses it. INFERRED. */
+export function grantAug(g: Game, id: AugmentId): string {
+  const name = AUG_NAMES[id] ?? id;
+  if (g.augments.includes(id)) return `${name} is already fitted.`;
+  if (g.augments.length >= 3) return `No free augmentation slot for ${name}.`;
+  g.augments.push(id);
+  return `${name} fitted.`;
+}
+
+/** A crewmember joins; `skill` at level 1 (page: "with 1 skill in ..."). */
+export function crew(g: Game, race: string, skill?: SkillName, name?: string): string {
+  if (!joinCrew(g, race, name)) return "There is no room aboard for the new crewmember.";
+  const c = g.crew[g.crew.length - 1];
+  if (skill) c.skills = { ...(c.skills ?? {}), [skill]: xpNeedFor(c, skill) };
+  return `A ${race} crewmember joins you.`;
+}
+
+function hasEngi(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "shell");
+}
+function hasSlug(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
+}
+export function sensors(g: Game): number {
+  return g.player.systems.sensors?.level ?? 0;
+}
+export function hasTeleporter(g: Game): boolean {
+  return (g.player.kits.sling?.level ?? 0) > 0;
+}
+function hasMissileWeapon(g: Game): boolean {
+  return g.player.weapons.some((w) => WEAPONS[w.defId]?.kind === "missile");
+}
+
+function damageHull(g: Game, n: number): boolean {
+  g.player.hull = Math.max(0, g.player.hull - n);
+  log(g, `Hull damage: ${n}.`);
+  if (g.player.hull > 0) return false;
+  g.phase = "defeat";
+  g.outcome = g.training ? "tutorial" : "hull";
+  g.paused = true;
+  g.event = null;
+  return true;
+}
+
+export function startRun(seconds: number): EscapePlan {
+  return { ...NEVER_RUN, mode: "start", seconds, running: true };
+}
+export function hullRun(chance: number, threshold: number, seconds: number): EscapePlan {
+  return { ...NEVER_RUN, mode: "hull", seconds, chance, threshold };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Arriving at a quest beacon (sim.ts eventFor)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Template:Escort Civilian Ship (Escort civilians and Escort civilians FTL haywire "Destination"). */
+function arriveEscort(g: Game) {
+  const r = pick(g, ["ambush", "reward", "store", "reactor"] as const);
+  if (r === "ambush") {
+    card(g, "You escort the ship to the requested beacon. Much to your dismay you are ambushed by a Rebel ship. You walked right into their trap!", [
+      { id: "q:escort:fight", label: "Fight the Rebel ship." },
+    ]);
+  } else if (r === "reward") {
+    result(g, "Shortly after you arrive, the ship you were escorting jumps nearby. They thank you for your help and offer you a reward.", rollStandard(g, "high"));
+  } else if (r === "store") {
+    // "Your ship receives 5 repairs and a store opens."
+    result(g, "The ship you were escorting thanks you, \"I don't think we could have made it without your help. Let my friends patch up some of your hull and show you their wares.\"", undefined, [repair(g, 5)], STORE_CHOICES);
+  } else {
+    // "Your ship reactor is upgraded." Ref: "If your ship reactor was already fully upgraded ... "Could not upgrade the
+    // Reactor, it's maxed" - and nothing happens."
+    let note = "Could not upgrade the Reactor, it's maxed";
+    if (upgradeCost("reactor", g.player.reactor) != null) {
+      g.player.reactor += 1;
+      note = `Reactor ${g.player.reactor}.`;
+    }
+    result(g, "You arrive and the ship you were escorting jumps in behind you. \"Thanks for the help. We work at a nearby fusion power plant, we could try to improve your reactor's output as a form of compensation.\"", undefined, [note]);
+  }
+}
+
+export const STORE_CHOICES: Choice[] = [
+  { id: "q:open-store", label: "See their wares." },
+  { id: "ack", label: "Leave." },
+];
+
+/** Space station under construction, "Quest Marker": "One of the following subevents occurs". */
+function arriveStation(g: Game) {
+  const r = pick(g, ["rebel", "empty", "floating"] as const);
+  if (r === "rebel") {
+    card(g, "You find the missing cargo ship docked to a Rebel station. You send a short-band message to them and discover they are being held against their will and forced to 'donate to their supplies for the war effort.'", [
+      { id: "q:station:attack", label: "Attack the Rebels to help them escape." },
+      { id: "q:station:leave", label: "Leave." },
+    ]);
+  } else if (r === "empty") {
+    // {{:Abandoned station}}.
+    card(g, "You find the missing cargo ship docked to an empty space station. However their hold appears to be empty and there are no obvious signs that anyone is inside the ship or station. Everything looks abandoned.", [
+      { id: "q:station:examine", label: "Move in to examine the station." },
+      { id: "q:station:stay", label: "Stay near the Beacon." },
+    ]);
+  } else {
+    card(g, "You find the missing cargo ship floating near the beacon. \"Thank heavens! We've been drifting here after using the last of our fuel to escape a pirate raid.\"", [
+      { id: "q:station:fuel4", label: "Give them the requested 4 fuel." },
+      { id: "q:station:fuel1", label: "Give them 1 fuel." },
+      { id: "q:station:none", label: "Do not give them any." },
+    ]);
+  }
+}
+
+/** Template:Hidden federation base. Five results; the fifth is "Federation Base Assist". */
+function arriveFedBase(g: Game) {
+  const r = pick(g, ["schematic", "crew", "dock", "empty", "assist"] as const);
+  if (r === "schematic") {
+    // "You receive a drone schematic with high scrap." The schematic is not named: only the high scrap.
+    result(g, "You find the planet at the indicated coordinates. Your initial scans show the planet to be barren and devoid of life, but you get a prompt reply when you broadcast on Federation frequencies. \"Hello! So nice to see friends. We'll bring you up some supplies.\"", scrapOnly(g, "high"));
+  } else if (r === "crew") {
+    // "You receive a crewmember and low scrap with resources." Race not named: INFERRED random.
+    const joined = crew(g, randomRace(g));
+    result(g, "By following the directions given to you, you find a well-disguised outpost. You are welcomed by a friendly face who offers to assist you in your quest by joining your crew.", rollStandard(g, "low"), [joined]);
+  } else if (r === "dock") {
+    result(g, "After a quick search you discover the hidden Federation space-dock. They offer you some supplies in addition to fully repairing your ship.", rollStandard(g, "medium"), [repair(g, 35)]);
+  } else if (r === "empty") {
+    const choices: Choice[] = [{ id: "ack", label: "Leave." }];
+    // {{Blue Option|Improved Sensors|...|level=2}} / {{Blue Option|Advanced Sensors|...|level=3}} / Long-Ranged Scanners.
+    if (sensors(g) >= 2 || g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan", label: "Run a second scan pass." });
+    card(g, "You search near the coordinates given to you, but your search yields no results. Perhaps they were mistaken.", choices);
+  } else {
+    // Federation Base Assist: two Auto-ship variants are wired. Not wired: the AE variants with a friendly Anti-Ship
+    // Battery (this game's battery only fires on the player), including the Elite Rebel one.
+    card(g, "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!", [
+      { id: "q:fed-base:assist", label: "Fight the Auto-ship." },
+    ]);
+  }
+}
+
+/** Builds the card for a quest beacon on arrival, or null when `b` holds no live quest. sim.ts eventFor calls this. */
+export function questEvent(g: Game, b: Beacon): GameEvent | null {
+  if (!b.quest || b.resolved) return null;
+  switch (b.quest) {
+    case "escort":
+      arriveEscort(g);
+      break;
+    case "mantis-war-camp": {
+      // Mantis war camp, "Quest Marker".
+      const choices: Choice[] = [{ id: "q:war-camp:leave", label: "Leave before they notice you." }];
+      // {{Blue Option|Missile Weapon|Bombard their key structures.}} [1 missile]
+      if (hasMissileWeapon(g)) choices.push({ id: "q:war-camp:missile", label: "Bombard their key structures." });
+      // {{Blue Option|Fire Bomb|Teleport fire bombs into key structures.}} [2 missiles]. Fire Bomb is fitted as "cask".
+      if (g.player.weapons.some((w) => w.defId === "cask")) choices.push({ id: "q:war-camp:firebomb", label: "Teleport fire bombs into key structures." });
+      card(g, "You find the Mantis encampment but there are far too many of them to count accurately. You send a long range message back to the settlement with your findings but unfortunately there's not much you can do. It would be suicide to attack directly.", choices);
+      break;
+    }
+    case "space-station":
+      arriveStation(g);
+      break;
+    case "defector-cache":
+      // Rebel defector, "Quest Marker": two results.
+      if (rand(g) < 0.5) {
+        result(g, "Arriving at the specified coordinates, you find a sizable stash of useful materials.", rollSurrenderOffer(g, "high", true));
+      } else {
+        result(g, "You arrive at location of the hoard, but discover that it was not quite as large as advertised.", scrapOnly(g, "low"));
+      }
+      break;
+    case "mantis-chase":
+      card(g, "You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!\n\n\"Not YOU again! Do you know how much these repairs are going to cost me? Time to take out the big guns.\"", [
+        { id: "q:mantis-chase:fight", label: "Fight the Mantis Bomber." },
+      ]);
+      break;
+    case "fed-base":
+      arriveFedBase(g);
+      break;
+    case "thief-stash":
+      // "You receive a weapon with high scrap." The weapon is not named: only the high scrap.
+      result(g, "You arrive at small asteroid field and discover the hidden cache among the debris. You input the codes given to you by KazaaakplethKilik and find a weapon inside.", scrapOnly(g, "high"));
+      break;
+    case "slug-pirate-trap":
+      // Not wired: "when you arrive there will be a nebula environment" (no per-fight nebula environment here).
+      card(g, "You catch up with the two Slug ships and they're already carrying out their raid! One is in close combat with the pirate, the other seems to be heading for a small space cache the pirate was protecting.\n\nSuddenly the first ship bursts into flames, and an urgent call arrives from the remaining Slugs. \"We sssugest you distract the pirate vesssel while we retrieve the valuables. Fifty fifty sssplit.\"", [
+        { id: "q:slug-trap:engage", label: "Engage the pirate." },
+        { id: "q:slug-trap:cache", label: "Head for the cache." },
+      ]);
+      break;
+    case "engi-real":
+    case "engi-fake":
+      card(g, "You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them.", [
+        { id: `q:${b.quest}:fight`, label: "Fight the Rebel ship." },
+      ]);
+      break;
+    case "engi-final":
+      card(g, "You have finally caught up with the ships you've been hunting. A hangar-sized cargo ship is being escorted by a number of Mantis ships. As you reconsider the assault, a squadron of Engi ships with pirate emblems jump in and assist you. You prepare to fight the Mantis but scans indicate they are manned by Rebels!", [
+        { id: "q:engi-final:fight", label: "Fight the Mantis ship." },
+      ]);
+      break;
+    case "slug-platform":
+      card(g, "You arrive to discover an impressive cruiser being worked on by a few smaller ships and guarded by an assault ship. The mobile construction platform is slowly slipping into the clouds. You have not yet been noticed.", [
+        { id: "q:slug-platform:charge", label: "Charge them before they escape." },
+        { id: "q:slug-platform:tail", label: "Try to tail them without being noticed." },
+      ]);
+      break;
+    case "store-rescue":
+      card(g, "Once you arrive at the beacon you detect a Rebel scout assaulting a compound on a nearby desolate moon.", [
+        { id: "q:store-rescue:engage", label: "Engage the Rebel and rescue the space dock." },
+        { id: "q:store-rescue:avoid", label: "Avoid a fight." },
+      ]);
+      break;
+    default: {
+      // @agent:quests-a. Quest-opener modules.
+      const arrive = fromParts("arrive", b.quest);
+      if (!arrive) return null;
+      arrive(g, b);
+    }
+  }
+  return g.event;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Choices (routed by surrender.ts surrenderChoose, before citedChoose)
+// ---------------------------------------------------------------------------------------------------------------
+
+const DEFECTOR_FIGHT = "Rebel ship";
+
+function defectorFight(g: Game, text: string) {
+  pageFight(g, text, DEFECTOR_FIGHT, "rebel-defector");
+}
+
+/** Rebel Defector victories after the Federation loyalists fight: "Contact the Federation ship". */
+function loyalistsRescueCard(g: Game) {
+  const choices: Choice[] = [{ id: "q:loyalists:rescue", label: "Quickly try to rescue the crew." }];
+  // {{Blue Option|Nano Med-bot Dispersal|...}} ("medbot"), {{Blue Option|Teleporter|...}}. Healing Burst is not wired.
+  if (g.augments.includes("medbot")) choices.push({ id: "q:loyalists:medbot", label: "Pump their ship with Nano Med-bots to aid in the rescue." });
+  if (hasTeleporter(g)) choices.push({ id: "q:loyalists:teleport", label: "Lock on to all remaining life signatures and beam them onto your ship." });
+  card(g, "Their ship looks to be on the verge of destruction and life signs are fading quickly.", choices);
+}
+
+function thiefDyingCard(g: Game, scan: boolean) {
+  const choices: Choice[] = [
+    { id: "q:thief:mercy", label: scan ? "Let him die." : "Put him out of his misery." },
+    { id: "q:thief:listen", label: scan ? "Dock and try to speak with him." : "Listen to what he has to say." },
+  ];
+  // {{Blue Option|Adv. Medbay|...|level=2+}}, {{Blue Option|Adv. Clonebay|...|level=2+}}.
+  if ((g.player.systems.medbay?.level ?? 0) >= 2) {
+    choices.push({ id: "q:thief:save", label: scan ? "Dock and quickly take him back to the medbay." : "Quickly teleport him back to the medbay." });
+  }
+  if ((g.player.kits.cradle?.level ?? 0) >= 2) choices.push({ id: "q:thief:clone", label: "Quickly configure the Clonebay to save him." });
+  card(g, scan ? "You detect KazaaakplethKilik slumped in a corner dying." : "You find KazaaakplethKilik slumped in a corner dying.", choices);
+}
+
+function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
+  const body = "The Engi emerge victorious from their battles with only minor losses. They message you, \"Project X-ME56 commissioned by Federation military research division. Advanced stealth cruiser. Project finished during rebellion. Unable to reconnect with Federation military command.\"";
+  const choices = [{ id: "q:engi-victory:ask", label: "Ask about the Mantis ships." }];
+  if (offer) result(g, `${text}\n\n${body}`, offer, [], choices);
+  else card(g, text ? `${text}\n\n${body}` : body, choices);
+}
+
+const CHOICES: Record<string, (g: Game) => void> = {
+  // ---- Cited cards that open a quest branch ----
+  // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
+  "c:slug-comm-tapping:0": (g) => {
+    const line = addQuest(g, "slug-pirate-trap");
+    result(g, "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.", undefined, [line]);
+  },
+  // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
+  "c:engi-fleet-discussion:0": (g) => {
+    result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
+  },
+  // {{Blue Option|Engi Crew|Have your Engi crewmember contact them.}}
+  "c:engi-fleet-discussion:2": (g) => {
+    if (!hasEngi(g)) return;
+    card(g, "Your crew member syncs with the comm unit to communicate with them directly. You offer your help and a summary of the ship's mission. They respond, \"Our goals have analogous elements. However, not all available for disclosure, discretion necessary.\"", [
+      { id: "q:engi-fleet:offer", label: "Offer your help." },
+    ]);
+  },
+  "q:engi-fleet:offer": (g) => {
+    // "A quest marker is added to your map." ... "A second quest marker is added to your map." -> "Agree."
+    const first = addQuest(g, "engi-real");
+    const second = addQuest(g, "engi-fake");
+    card(
+      g,
+      `"Secret technologies stolen by Mantis. Implicit connection to Rebels. Implicit. Tracked Mantis to hidden Rebel base, uploading coordinates."\n\n${first}\n\n"However, tracked second ship to different base. Would calculate probability but data insufficient. Cannot risk obvious Rebel-Engi conflict. Also, need time to acquire military ships. Assist in finding technology?"\n\n${second}`,
+      [{ id: "ack", label: "Agree." }],
+    );
+  },
+  // Rebel defector, "Reject his offer. You can never trust these Rebels." Three results.
+  "c:rebel-defector:1": (g) => {
+    const r = pick(g, ["cache", "boarder", "fight"] as const);
+    if (r === "cache") {
+      card(g, "He offers to lead you to a secret cache of scrap nearby if you let him join your crew.", [
+        { id: "q:defector:reluctant", label: "Reluctantly accept his proposal and fight the Rebel ship." },
+        { id: "q:defector:execute", label: "Reject him outright and execute him on the spot." },
+        { id: "q:defector:again", label: "Reject his offer again." },
+      ]);
+    } else if (r === "boarder") {
+      defectorFight(g, "Attempting to deal with attacks from inside and out is never easy!");
+      humanBoarders(g, 1, 1);
+    } else {
+      defectorFight(g, "Your fearless crew easily overcome the intruder, but the Rebel ship still needs to be dealt with.");
+    }
+  },
+  "q:defector:reluctant": (g) => {
+    // {{DuplicateEvent|3}} on the crew + quest result; the other three once each.
+    const r = weighted(g, [
+      ["join", 3],
+      ["deceive", 1],
+      ["trigger", 1],
+      ["evisc", 1],
+    ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
+    if (r === "join") {
+      const joined = crew(g, "Human");
+      const line = addQuest(g, "defector-cache");
+      log(g, joined);
+      defectorFight(g, "Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks.");
+      log(g, line);
+    } else if (r === "deceive") {
+      // "3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled". Doubling as cited-events.ts fx "double".
+      if (damageHull(g, 3)) return;
+      hurtSystem(g.player, "engines", 1);
+      g.fleet *= 2;
+      log(g, "Rebel Fleet pursuit is doubled.");
+      defectorFight(g, "The dishonorable Rebel has deceived you. He damages your ship and steals ship information before teleporting away. The fleet will be able to track you with ease. If they can't kill you now, that is!");
+    } else if (r === "trigger") {
+      if (damageHull(g, 3)) return;
+      hurtSystem(g.player, "pilot", 1);
+      defectorFight(g, "Your new crew-member smiles, then reveals a small remote trigger in the palm of his hand. Explosions rocket around the ship as more intruders teleport aboard!");
+      humanBoarders(g, 2, 2);
+    } else {
+      // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). INFERRED: never the last crewmember.
+      const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+      if (g.player.kits.cradle) log(g, "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.");
+      else if (mine.length > 1) {
+        const lost = pick(g, mine);
+        g.crew = g.crew.filter((c) => c.id !== lost.id);
+        log(g, `${lost.name} is gone.`);
+      }
+      defectorFight(g, "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!");
+      humanBoarders(g, 1, 1);
+    }
+  },
+  "q:defector:execute": (g) => defectorFight(g, "You execute the defector and turn to the Rebel ship."),
+  "q:defector:again": (g) => {
+    defectorFight(g, "You reject his offer again.");
+    humanBoarders(g, 1, 1);
+  },
+
+  // ---- Quest-beacon choices ----
+  "q:open-store": (g) => {
+    openStoreHere(g);
+  },
+  "q:escort:fight": (g) => pageFight(g, "The Rebel ship attacks.", "Rebel ship", "quest-escort"),
+
+  "q:war-camp:leave": (g) => {
+    if (rand(g) < 0.5) {
+      pageFight(g, "As you try to leave, a patrol spots you. Wailing sirens begin to blare around the camp and the ship moves in to attack!", "Mantis ship", "quest-mantis-war-camp", { ...NEVER_RUN });
+    } else {
+      result(g, "They must have been focused on setting up camp since you got far enough away to attempt a jump without being noticed.");
+    }
+  },
+  "q:war-camp:missile": (g) => {
+    if (g.missiles < 1 || !hasMissileWeapon(g)) return;
+    g.missiles -= 1;
+    pageFight(g, "You fire at their fuel depot, but a shot from the surface rips the missile to shreds. They must have a planetary defense system set up already! You try to get away but a nearby patrol ship moves in to attack.", "Mantis ship", "quest-mantis-war-camp", { ...NEVER_RUN });
+  },
+  "q:war-camp:firebomb": (g) => {
+    if (g.missiles < 2) return;
+    g.missiles -= 2;
+    const joined = crew(g, "Engi");
+    result(
+      g,
+      "It appears they have not set up a Teleporter disruption field yet. You deposit one bomb in a fuel depot and another in the barracks. Mantis comm channels fill with panicked chatter and you watch a number of structures go up in flames.\n\nWith most of their ships and forces focused on the chaos, you slip undetected to a nearby depot. You find some useful resources and an Engi slave who gladly accepts your liberation.",
+      rollSurrenderOffer(g, "high", true),
+      [joined],
+    );
+  },
+
+  "q:station:attack": (g) => {
+    pageFight(g, "You move in to attack the Rebel ship that is threatening them and scanners detect weapon locks from a nearby Anti-Ship Battery. It's about to get hectic!", "Rebel ship", "quest-space-station-rebel", { ...NEVER_RUN });
+    // "while a planet-side Anti-Ship Battery periodically fires on your ship."
+    g.asb = true;
+  },
+  "q:station:leave": (g) => result(g, "You apologize but it's not worth the risk to attack a Rebel station."),
+  "q:station:contact": (g) => {
+    result(g, "Amidst the blasts from the Anti-Ship Battery, the cargo ship escaped from the station. They jettisoned some scrap towards your ship before jumping away.", scrapOnly(g, "medium"));
+  },
+  // Abandoned station, "Move in to examine the station." Not wired: the boarders-plus-battery result (boarders fight only
+  // inside a ship fight here), and the Clonebay result's crazed-clone boarder.
+  "q:station:examine": (g) => {
+    const r = weighted(g, [
+      ["scrap", 2],
+      ["pirate", 1],
+      ["clone", 1],
+      ["shell", 1],
+    ] as ["scrap" | "pirate" | "clone" | "shell", number][]);
+    if (r === "scrap") {
+      result(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
+    } else if (r === "pirate") {
+      pageFight(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!", "Pirate ship", "quest-abandoned-station");
+      humanBoarders(g, 2, 2);
+    } else if (r === "clone") {
+      const choices: Choice[] = [{ id: "q:station:scrapmachines", label: "Scrap the machinery." }];
+      if (g.player.kits.cradle) choices.unshift({ id: "q:station:dna", label: "Search for a surviving DNA bank." });
+      card(g, "The station is in disarray. You find a cloning bay partially intact but nothing else seems to be functioning.", choices);
+    } else {
+      result(g, "As you approach it becomes clear that the station is simply an empty shell. It has been stripped of useful materials long ago.");
+    }
+  },
+  "q:station:dna": (g) => {
+    result(g, "While the cloning facilities are no longer functioning, you find someone was in queue to be cloned. You transfer their data to your Clonebay and after a time their body is rebuilt. The clone is extremely confused but calms down after you try to explain the situation. With no other options the clone offers to work on your ship for a time.", undefined, [crew(g, randomRace(g))]);
+  },
+  "q:station:scrapmachines": (g) => result(g, "You take what you can and prepare to move on.", scrapOnly(g, "low")),
+  "q:station:stay": (g) => result(g, "You decide it's not worth the time to examine."),
+  "q:station:fuel4": (g) => {
+    if (g.fuel < 4) return;
+    g.fuel -= 4;
+    result(g, "\"Great, thank you. Here's some scrap metal for your troubles. Be careful out there.\"", scrapOnly(g, "medium"));
+  },
+  "q:station:fuel1": (g) => {
+    if (g.fuel < 1) return;
+    g.fuel -= 1;
+    result(g, "\"Well, I suppose that's better than nothing. Thank you. Hopefully we can find a station at the next Beacon.\"");
+  },
+  "q:station:none": (g) => result(g, "\"I see...\""),
+
+  "q:mantis-collectors:follow": (g) => {
+    result(g, "You input their coordinates into your map and prepare to follow.", undefined, [addQuest(g, "mantis-chase")]);
+  },
+  "q:mantis-collectors:forget": (g) => result(g, "They're not worth the trouble. You prepare to leave."),
+  // DONOR_MANTIS_CHASE2: "attempts to escape at 60% hull (12 seconds timer)". INFERRED: a certain attempt, like CHASE1.
+  // "Fight a Mantis Bomber" (enemy-gen classId). Not applied: "with crew entirely composed of Mantis".
+  "q:mantis-chase:fight": (g) => pageFight(g, "The Mantis Bomber moves in.", "Mantis Bomber", "quest-mantis-chase", hullRun(100, 60, 12)),
+
+  "q:loyalists:contact": (g) => {
+    const r = pick(g, ["base", "supplies", "rescue"] as const);
+    if (r === "base") {
+      result(g, "\"Thank you for saving us. This ship is transporting Federation civilians on the run from the rebellion and we don't have the equipment to fight for ourselves. I don't have much to offer, but I can inform you of a hidden Federation base nearby. Perhaps they can assist you more.\"", undefined, [addQuest(g, "fed-base")]);
+    } else if (r === "supplies") {
+      result(g, "\"Thanks, we didn't think there would be Rebel ships all the way out here. They seem to be searching for something. Take some extra supplies as thanks for your aid.\"", rollStandard(g, "medium"));
+    } else loyalistsRescueCard(g);
+  },
+  "q:loyalists:rescue": (g) => {
+    result(g, "Despite your efforts the majority do not survive. The sole survivor offers to join your crew and helps you strip the now derelict ship of useful components.", rollStandard(g, "low"), [crew(g, randomRace(g))]);
+  },
+  "q:loyalists:medbot": (g) => {
+    // "a crewmember with 1 skill in shields, and high (3-6 fuel) fuel and scrap" (Rewards, "Fuel": T fuel & T scrap).
+    const offer = scrapOnly(g, "high");
+    offer.fuel = between(g, [3, 6]);
+    result(g, "You drag the injured and dying crew on to your ship. The Med-bots help stabilize their condition, but most perish. The surviving shields operator offers to join your crew and helps you strip their broken ship of scrap.", offer, [crew(g, randomRace(g), "shields")]);
+  },
+  "q:loyalists:teleport": (g) => {
+    const joined = crew(g, randomRace(g), "combat");
+    result(g, "Your quick reactions allow you to stabilize a few of the seriously wounded crewmembers. An infantryman offers to join your crew and the rest tell you of a hidden Federation base a few jumps from here.", scrapOnly(g, "medium"), [joined, addQuest(g, "fed-base")]);
+  },
+  "q:fed-base:scan": (g) => {
+    if (sensors(g) >= 3 || g.augments.includes("glass")) {
+      // "You receive a weapon with medium scrap." The weapon is not named: only the medium scrap.
+      result(g, "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.", scrapOnly(g, "medium"));
+    } else {
+      result(g, "Your Advanced Sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a supply cache whose Federation signal emitter has malfunctioned.", rollStandard(g, "medium"));
+    }
+  },
+  "q:fed-base:assist": (g) => pageFight(g, "The automated drone turns on you.", "Auto-ship", "quest-fed-assist"),
+  "q:fed-assist:contact": (g) => {
+    if (rand(g) < 0.5) {
+      // "You receive a crewmember and a weapon with low scrap." The weapon is not named.
+      result(g, "With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight.", scrapOnly(g, "low"), [crew(g, randomRace(g))]);
+    } else {
+      result(g, "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"", rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
+    }
+  },
+
+  "q:thief:strip": (g) => {
+    result(g, "It seems almost a waste for such a fierce foe to die in such an anticlimactic fashion. You shrug it off and take what you can.", rollStandard(g, "high"));
+  },
+  "q:thief:teleport": (g) => thiefDyingCard(g, false),
+  "q:thief:scan": (g) => thiefDyingCard(g, true),
+  "q:thief:mercy": (g) => {
+    result(g, "Thus ends the life of the famed captain, KazaaakplethKilik... You wonder what secrets went with him to the grave as you thoroughly loot his ship.", rollStandard(g, "high"));
+  },
+  "q:thief:listen": (g) => {
+    result(g, "In his dying moments he gives up the location of his secret stash. You strip the ship wondering what other secrets went with him to the grave.", rollStandard(g, "high"), [addQuest(g, "thief-stash")]);
+  },
+  "q:thief:save": (g) => {
+    card(g, "Your haste has paid off and you are able to bring him back from the brink of death. When his senses return he says, \"I never thought I would see this day, but... I am willing to devote myself and my ships to your cause.\"", [
+      { id: "q:thief:accept", label: "Accept." },
+    ]);
+  },
+  "q:thief:clone": (g) => {
+    card(g, "Your haste has paid off and you register him into the Clonebay's database. After he passes away he is quickly reconstructed on board your ship. When his senses return he says, \"I never thought I would see this day, but... I am willing to devote myself and my ships to your cause.\"", [
+      { id: "q:thief:accept", label: "Accept." },
+    ]);
+  },
+  "q:thief:accept": (g) => {
+    // "receive high scrap, Mantis Pheromones augmentation, Mantis crewmember named Kazaaak maxed in all skills, and a
+    // quest marker". The Mantis Cruiser unlock is the grantUnlock line below.
+    grantUnlock(g, "mantis-a"); // @agent:unlocks. "You unlock the Mantis Cruiser".
+    let joined = "There is no room aboard for Kazaaak.";
+    if (joinCrew(g, "Mantis", "Kazaaak")) {
+      const c = g.crew[g.crew.length - 1];
+      const all: SkillName[] = ["pilot", "engines", "weapons", "shields", "repair", "combat"];
+      c.skills = Object.fromEntries(all.map((s) => [s, xpNeedFor(c, s) * 2]));
+      joined = "Kazaaak joins your crew.";
+    }
+    result(g, "KazaaakplethKilik joins your crew, offers the coordinates for a nearby stash of stolen military goods and transmits the coordinates for a custom cruiser he has been working on. You forward it to the Federation, sure they can make good use of it.", scrapOnly(g, "high"), [joined, grantAug(g, "pheromone"), addQuest(g, "thief-stash")]);
+  },
+
+  "q:slug-trap:engage": (g) => {
+    // INFERRED: the page prints no escape for this pirate.
+    pageFight(g, "There's money to be made here. The Slugs know that. You turn on the pirate and intercept just before he can reach the cache!", "Pirate ship", "quest-slug-pirate-trap-engage", { ...NEVER_RUN });
+  },
+  "q:slug-trap:cache": (g) => {
+    pageFight(g, "When he sees you making for the cache the Slug captain hails: \"Foolish alienss, no eye for profit. Bessst of luck to you.\" They jump off, leaving you toe to toe with the pirate!", "Pirate ship", "quest-slug-pirate-trap-cache", { ...NEVER_RUN });
+  },
+
+  // REBEL_ENGI_UNLOCK_2REAL / 2FAKE: "immediately starts to escape (40 seconds timer)".
+  "q:engi-real:fight": (g) => {
+    pageFight(g, "As soon as they see you they power up their engines to jump away. Stop them!", "Rebel ship", "quest-engi-real", startRun(40));
+  },
+  "q:engi-fake:fight": (g) => {
+    pageFight(g, "As soon as they see you, they power up their engines to jump away.  Stop them!", "Rebel ship", "quest-engi-fake", startRun(40));
+  },
+  // Fake marker, after "Demand information": "Let them go." -> "The ship turns neutral." / "Ignore him and attack."
+  "q:engi-fake:go": (g) => {
+    closeFight(g);
+    result(g, "The ship turns neutral and jumps away.");
+  },
+  "q:engi-fake:attack": (g) => {
+    const plan = g.enemySurrender;
+    if (plan) plan.refused = true;
+    g.event = null;
+    g.phase = g.enemy ? "combat" : "map";
+    g.paused = false;
+    log(g, "\"No, wait...\" You cut the transmission and continue the assault.");
+  },
+  // MANTIS_ENGI_UNLOCK_3: "Fight the Mantis Ship controlled by Humans", {{SurrenderEscape(alt)|no|...}}.
+  "q:engi-final:fight": (g) => {
+    pageFight(g, "The Mantis escort turns to meet you.", "Mantis ship", "quest-engi-final", { ...NEVER_RUN });
+    const hp = kinOf("plain").hp;
+    for (const c of g.crew) {
+      if (c.side !== "enemy") continue;
+      c.kin = "plain";
+      c.hp = hp;
+      c.maxHp = hp;
+    }
+  },
+  "q:engi-victory:ask": (g) => {
+    card(g, "\"Likely ploy by Rebels to avoid breaking non-aggression pact with Engi. 97.56 percent likely. Your mission to assist last Federation fleet, correct? Coordinates?\"", [
+      { id: "q:engi-victory:transmit", label: "Transmit coordinates of Federation command." },
+    ]);
+  },
+  "q:engi-victory:transmit": (g) => {
+    // "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your
+    // ship receives 20 repairs." The unlock is the grantUnlock line below.
+    grantUnlock(g, "stealth-a"); // @agent:unlocks. "You unlock the Stealth Cruiser".
+    result(g, "\"Satisfactory. Delivery of tech will assist in Federation cause. Gratitude alone insufficient. Commencing ship repair and compensation.\" Their crews deliver a weapon for installation but you're more pleased to hear that the Federation will have an improved arsenal.", rollStandard(g, "high"), [grantAug(g, "casing"), repair(g, 20)]);
+  },
+
+  // "this ship is always a Slug Assault class" / the interceptor: "It is always a Slug Interceptor class" (enemy-gen classId).
+  "q:slug-platform:charge": (g) => {
+    pageFight(g, "You charge the assault ship guarding the platform.", "Slug Assault", "quest-slug-platform", { ...NEVER_RUN });
+  },
+  "q:slug-platform:tail": (g) => {
+    const choices: Choice[] = [
+      { id: "q:slug-platform:slow", label: "Fly slowly toward their last known position." },
+      { id: "q:slug-platform:wait", label: "Wait and hope the escort leaves." },
+    ];
+    // {{Blue Option|Slug Crew|...}}, {{Blue Option|Improved Sensors|...|level=2+}}.
+    if (hasSlug(g)) choices.push({ id: "q:slug-platform:slug", label: "Have your crewmember monitor their life signatures." });
+    if (sensors(g) >= 2) choices.push({ id: "q:slug-platform:sensors", label: "Try to maintain a lock on their ships from a distance." });
+    card(g, "You slip into the nebula undetected but at this rate you are likely to get lost and lose track of them.", choices);
+  },
+  "q:slug-platform:slow": (g) => {
+    pageFight(g, "You are advancing slowly when suddenly the assault ship bursts through the clouds. They must have been able to detect you with their telepathy!", "Slug Assault", "quest-slug-platform", { ...NEVER_RUN });
+  },
+  "q:slug-platform:wait": (g) => {
+    result(g, "You wait for a time before attempting to advance toward the platform. However, after some frantic searching you can't tell if they left or you simply miscalculated your trajectory... You give up the search and prepare to leave.");
+  },
+  "q:slug-platform:slug": (g) => {
+    card(g, "You try to stay just far enough away that they won't detect your life signatures without actively searching for you. After a time, your Slug tells you the ship with a larger crew has jumped away. He guides the helm toward the platform...\n\nThe only ship left near the cruiser is an interceptor. This should be easy!", [
+      { id: "q:slug-platform:interceptor", label: "Fight the interceptor." },
+    ]);
+  },
+  "q:slug-platform:sensors": (g) => {
+    card(g, "You overclock your sensors, trying to get them to function in the clouds. They work just enough to let you keep tabs on their general position. After a time, the assault ship and most of the escort jumps away from the platform. You take the opportunity and move in to attack.\n\nThe only ship left near the cruiser is an interceptor. This should be easy!", [
+      { id: "q:slug-platform:interceptor", label: "Fight the interceptor." },
+    ]);
+  },
+  // "This ship starts to escape with 35 seconds countdown timer."
+  "q:slug-platform:interceptor": (g) => {
+    pageFight(g, "The interceptor powers up its FTL drive in preparation to escape. At the same time, the cruiser's FTL drive does the same. They must be linked! Don't let them get away!", "Slug Interceptor", "quest-slug-interceptor", startRun(35));
+  },
+
+  "q:store-rescue:engage": (g) => {
+    pageFight(g, "You engage the Rebel scout.", "Rebel ship", "quest-store-rescue", { ...NEVER_RUN });
+  },
+  "q:store-rescue:avoid": (g) => {
+    result(g, "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon.");
+  },
+
+  // Slug Home Nebula surrender, "Let them live." -> "We don't want the weapon, we want information." (the `extra` answer).
+  "s:slug-home-nebula-surrender:info": (g) => {
+    if (!g.enemy) return;
+    g.kills += 1;
+    closeFight(g);
+    result(g, "You ask where they were delivering the weapon. \"By telling you we will probably die jussst as like as not... Oh well.\" They give you the coordinates of the a prototype cruiser's mobile construction platform.", undefined, [addQuest(g, "slug-platform")]);
+  },
+};
+
+/** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
+export function questChoose(g: Game, id: string): boolean {
+  const run = CHOICES[id] ?? fromParts("choices", id);
+  if (!run) return false;
+  if (questChoiceDisabled(g, id)) return true;
+  run(g);
+  return true;
+}
+
+/** sim.ts choiceDisabled: a price or a blue-option requirement the ship does not meet. */
+export function questChoiceDisabled(g: Game, id: string): string | null {
+  if (id === "c:engi-fleet-discussion:2" && !hasEngi(g)) return "Needs an Engi crewmember";
+  if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
+  if (id === "q:war-camp:firebomb" && g.missiles < 2) return "Need 2 missiles";
+  if (id === "q:station:fuel4" && g.fuel < 4) return "Need 4 fuel";
+  if (id === "q:station:fuel1" && g.fuel < 1) return "Need 1 fuel";
+  for (const part of PARTS()) {
+    const why = part?.disabled?.(g, id);
+    if (why) return why;
+  }
+  return null;
+}
+
+/** Cited choices whose table fx stays in citedChoose; the quest marker is added after it (sim.ts choose). */
+const AFTER_CITED: Record<string, string> = {
+  // Escort civilians: "You receive low (1-3) fuel and a quest marker is added to your map."
+  "c:escort-civilians:0": "escort",
+  // Escort civilians FTL haywire: "You receive low scrap and a quest marker is added to your map."
+  "c:escort-civilians-ftl-haywire:0": "escort",
+  // Mantis war camp: "You receive medium scrap and a quest marker is added to your map."
+  "c:mantis-war-camp:0": "mantis-war-camp",
+  // Space station under construction: "You receive 2-4 fuel 0-4 missiles 0-2 drone parts, and a quest marker".
+  "c:space-station-under-construction:0": "space-station",
+};
+
+/** sim.ts choose, after citedChoose applied a choice. */
+export function questAfterCited(g: Game, id: string) {
+  const quest = AFTER_CITED[id];
+  if (quest) {
+    const line = addQuest(g, quest);
+    // A short card so the marker line is seen; "ack" goes back to the map (the beacon is already resolved).
+    g.event = { title: here(g)?.name ?? "Event", body: line, choices: ACK };
+    g.phase = "event";
+    g.paused = true;
+    return;
+  }
+  // Mantis ship-collectors, DONOR_MANTIS_CHASE1: {{SurrenderEscape(alt)|escapechance100timer|...|50|5|5}}, "attempts to
+  // escape at 50% hull (5 seconds timer)". Its "gotaway" result offers the quest marker (pageGotAway).
+  if (id === "c:mantis-ship-collectors:0" && g.phase === "combat" && g.enemy) {
+    g.enemyEscape = hullRun(100, 50, 5);
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Page win rewards (sim.ts winCombat) and "gotaway" results (sim.ts step, enemy escape)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** False: the page prints no result for this ending, so winCombat pays its default salvage. */
+export type Win = (g: Game, deadCrew: boolean) => boolean | void;
+
+/** Rewards, "Standard" by destroyed / crew-killed, with the page's text. */
+export function std(destroyed: SurrenderTier, killed: SurrenderTier, textD: string, textK = textD, then?: Choice[]): Win {
+  return (g, deadCrew) => result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? killed : destroyed), [], then);
+}
+
+/**
+ * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
+ * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
+ */
+export const PAGE_WINS: Record<string, Win> = {
+  // ---- Ship surrender Events pages (cited-events-surrender.ts) ----
+  // Settlement mercenary work: "destroyed/deadCrew ... You receive low scrap with resources."
+  "settlement-mercenary-work": std("low", "low", "With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump."),
+  // The Black Raven: destroyed -> medium, deadCrew -> high scrap with resources.
+  "the-black-raven": std("medium", "high", "\"The Black Raven\" breaks apart and you salvage the remains.", "The once-dreaded pirate Nights has been killed and you proceed to loot his ship."),
+  // Zoltan ship asks to dock: destroyed -> low, deadCrew -> medium scrap with resources.
+  "zoltan-ship-asks-to-dock": std("low", "medium", "While you search the debris, you wonder what it was that could have provoked them to act so irrationally.", "While you scrap their ship, you wonder what it was that could have provoked them to act so irrationally."),
+  // ---- Other cited pages with a quest branch ----
+  // Mantis ship-collectors: destroyed -> medium, deadCrew -> high scrap with resources.
+  "mantis-ship-collectors": std("medium", "high", "Their ship breaks apart and you move in to scrap the remains.", "With no more crew on board you are free to salvage what you can from the remains."),
+  // Rebel ship attacking Federation loyalists: "medium scrap with resources" -> "Contact the Federation ship".
+  "rebel-ship-attacking-federation-loyalists": std("medium", "medium", "With the ship destroyed, you quickly collect useful resources.", "With the crew of the Rebel ship dead, you salvage what you can.", [
+    { id: "q:loyalists:contact", label: "Contact the Federation ship." },
+  ]),
+  // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
+  "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {
+    if (!deadCrew) {
+      result(g, "KazaaakplethKilik fights to the last, and you pick the scraps from the corpse of his ship. You sense, though, that his death has left a great mystery unresolved.", rollStandard(g, "medium"));
+      return;
+    }
+    const choices: Choice[] = [{ id: "q:thief:strip", label: "Move in to strip their ship." }];
+    // {{Blue Option|Teleporter|...}}, {{Blue Option|Sensors|...|level=3}}.
+    if (hasTeleporter(g)) choices.push({ id: "q:thief:teleport", label: "Quickly teleport additional crew and check for survivors." });
+    if (sensors(g) >= 3) choices.push({ id: "q:thief:scan", label: "Quickly scan their ship for survivors." });
+    card(g, "No more life signs are detected aboard their ship.  You appear to have won.", choices);
+  },
+  // ---- Quest-marker fights ----
+  "quest-mantis-war-camp": std("medium", "high", "With the patrol ship destroyed you hasten to leave. It won't be long before the other ships catch up.", "With the patrol ship taken care of you hasten to leave. It won't be long before the other ships catch up."),
+  // Space station under construction: destroyed -> medium, deadCrew -> high; then "Contact the cargo ship." -> medium scrap.
+  "quest-space-station-rebel": std("medium", "high", "You quickly salvage what you can from the ship.", "You quickly salvage what you can from the ship.", [
+    { id: "q:station:contact", label: "Contact the cargo ship." },
+  ]),
+  // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not named.
+  "quest-mantis-chase": std("medium", "high", "Their ship breaks apart and you salvage the two ships.", "You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible."),
+  // Slug comm tapping marker: Engage -> medium / high; Head for the cache -> low / medium (scrap with resources).
+  "quest-slug-pirate-trap-engage": std("medium", "high", "With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand."),
+  "quest-slug-pirate-trap-cache": std("low", "medium", "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship.", "With the pirate defeated, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship."),
+  // Engi fleet discussion, real marker: deadCrew -> "high scrap with resources and a final quest marker". The page prints
+  // no destroyed result. INFERRED: a destroyed ship pays the default reward and the trail is lost.
+  "quest-engi-real": (g, deadCrew) => {
+    if (!deadCrew) return false;
+    result(g, "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them.", rollStandard(g, "high"), [addQuest(g, "engi-final")]);
+  },
+  // Fake marker: destroyed / deadCrew -> medium scrap with resources.
+  "quest-engi-fake": std("medium", "medium", "You take what you can from the debris.", "A quick search of their communication logs shows that the tech you were searching for never passed through this base... It must have been a decoy! You strip what you can and prepare to jump."),
+  // Final marker: destroyed -> Victory; deadCrew -> medium scrap with resources, then Victory.
+  "quest-engi-final": (g, deadCrew) => {
+    if (deadCrew) engiVictory(g, "You strip what you can and contact the Engi ships.", rollStandard(g, "medium"));
+    else engiVictory(g);
+  },
+  // Slug Home Nebula marker: the platform guard -> high scrap with resources.
+  "quest-slug-platform": std("high", "high", "With the assault ship taken care of, you turn your attention to the construction platform. However, you find that it has long since disappeared into the clouds. You scrap what you can and prepare to move on."),
+  // The interceptor: "receive high scrap with resources and Slug Repair Gel augmentation". The Slug Cruiser unlock is the grantUnlock line.
+  "quest-slug-interceptor": (g) => {
+    grantUnlock(g, "slug-a"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
+    result(g, "With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!", rollStandard(g, "high"), [grantAug(g, "gel")]);
+  },
+  // Settlement mercenary work marker: "medium scrap, your ship receives 5 repairs and a store opens."
+  "quest-store-rescue": (g) => {
+    result(g, "The outpost hails you, \"Thank you! I don't know what we did to anger the Rebels, but they were ready to kill us. I'll show you our goods and patch up your hull.\"", scrapOnly(g, "medium"), [repair(g, 5)], STORE_CHOICES);
+  },
+  // Federation Base Assist (Auto-ship): "low scrap with resources", then one of two follow-ups.
+  "quest-fed-assist": std("low", "low", "You scrap the wreckage.", "You scrap the wreckage.", [{ id: "q:fed-assist:contact", label: "Contact the Federation outpost." }]),
+};
+
+/**
+ * sim.ts winCombat, after the fight is cleaned up. True when the page paid its own reward (and set the next card).
+ * `deadCrew`: the fight ended because the enemy crew died ({{Winning|deadCrew=true}}), not the hull.
+ */
+export function pageWin(g: Game, slug: string | null | undefined, deadCrew: boolean): boolean {
+  const win = slug ? (PAGE_WINS[slug] ?? fromParts("wins", slug)) : undefined;
+  if (!win) return false;
+  if (win(g, deadCrew) === false) return false;
+  if (g.phase === "event") g.sfx.push("win");
+  return g.phase === "event" || g.phase === "reward";
+}
+
+/** "gotaway" results, keyed like PAGE_WINS. */
+const GOT_AWAY: Record<string, (g: Game) => void> = {
+  // Mantis ship-collectors: "After them!" -> quest marker / "Forget it." -> nothing.
+  "mantis-ship-collectors": (g) => {
+    card(g, "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want.", [
+      { id: "q:mantis-collectors:follow", label: "After them!" },
+      { id: "q:mantis-collectors:forget", label: "Forget it." },
+    ]);
+  },
+  "quest-mantis-chase": (g) => result(g, "Looks like they got away. At least you're able to scrap their abandoned fighter.", rollStandard(g, "high")),
+  // "Nothing happens. [unlock quest is failed]"
+  "quest-engi-real": (g) => result(g, "With the ship gone, you search through the abandoned base for any signs of their destination but find none."),
+  "quest-engi-fake": (g) => result(g, "With the ship gone you search through the abandoned base for any signs of their destination but find none."),
+  "quest-slug-interceptor": (g) => result(g, "The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..."),
+};
+
+/** sim.ts step, right after an enemy escapes. Opens the page's "gotaway" card; the beacon is spent either way. */
+export function pageGotAway(g: Game, slug: string | null | undefined) {
+  const run = slug ? (GOT_AWAY[slug] ?? fromParts("gotAway", slug)) : undefined;
+  if (!run) return;
+  const b = here(g);
+  if (b) b.resolved = true;
+  run(g);
+}

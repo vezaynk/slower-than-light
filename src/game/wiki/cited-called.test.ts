@@ -201,7 +201,9 @@ describe("Zoltan Shield Bypass", () => {
     assert.equal(foe.leashed, 14);
   });
 
-  it("spends a hacking part only when the bypass is absent, and never spends the bubble", () => {
+  // Hacking: "Hacking drone cannot be launched at a ship with a Zoltan Shield, even with the Zoltan Shield Bypass
+  // augmentation." No launch, so no part is spent with or without the augment (was: spent without it).
+  it("never launches a hacking drone at a Zoltan Shield, spends no part, and never spends the bubble", () => {
     const bare = fight(7);
     bare.scrap = 80;
     bare.player.parts = 2;
@@ -210,7 +212,7 @@ describe("Zoltan Shield Bypass", () => {
     armSpike(bare, "shields");
     bare.enemy!.zoltan = 4;
     assert.equal(launchSpike(bare), false);
-    assert.equal(bare.player.parts, 1);
+    assert.equal(bare.player.parts, 2);
     assert.equal(bare.player.kits.spike?.on, false);
     assert.equal(bare.enemy!.zoltan, 4);
 

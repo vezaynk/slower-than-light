@@ -1,4 +1,6 @@
 import { rand } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
+import { hackPulseOn } from "./spike.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
 
 /**
@@ -86,6 +88,7 @@ export function chargeFlakSeconds(level: FlakLevel): number {
 /** Install at a level without a store. Flak Artillery, Overview: not sold. The kit is the slot. */
 export function armFlak(g: Game, level: FlakLevel): void {
   g.player.kits.flak = blank(level);
+  seatKits(g.player); // Kit room (layouts.ts): a fitted system takes its hull's room.
 }
 
 function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): void {
@@ -93,6 +96,20 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   if (!kit || !kit.on) return;
   const other = from === "player" ? g.enemy : g.player;
   const seconds = chargeFlakSeconds(kit.level as FlakLevel);
+  // Systems, "Damaged and destroyed systems": "A system with all its levels damaged is considered destroyed, i.e.
+  // completely unfunctional". Flak Artillery, Overview: "Powering off drains charge quickly". INFERRED: a destroyed
+  // flak drains like a powered-off one, a full charge in 2 seconds (as lance.ts).
+  if ((kit.damage ?? 0) >= kit.level) {
+    kit.aux = Math.max(0, kit.aux - (dt * seconds) / 2);
+    return;
+  }
+  // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship
+  // weapons: drains charge (same effect as on weapons)"; on weapons "Draining speed is the same as speed as the
+  // base-level charging speed". aux is seconds of charge, so it loses one second per second of pulse.
+  if (hackPulseOn(g, ship, "flak")) {
+    kit.aux = Math.max(0, kit.aux - dt);
+    return;
+  }
   kit.aux += dt;
   if (kit.aux < seconds) return;
   const rooms = other?.rooms ?? [];

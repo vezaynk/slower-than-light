@@ -1,4 +1,5 @@
 import { createGame, kitBars, log, rand, sparePower, startCombat } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 
@@ -156,6 +157,7 @@ export function installLeash(g: Game) {
   }
   g.scrap -= INSTALL_COST;
   g.player.kits.leash = blank();
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Mind Control fitted to the Lark.");
 }
 
@@ -188,6 +190,11 @@ export function toggleLeashPower(g: Game) {
   }
   if (sparePower(g.player) < 1) {
     log(g, "No spare power on the Lark.");
+    return;
+  }
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.level - (kit.damage ?? 0) < 1) {
+    log(g, "Mind Control is too damaged to power.");
     return;
   }
   kit.power = 1;
@@ -227,7 +234,7 @@ export function retarget(g: Game) {
 export function startLeash(g: Game, crewId: string) {
   const kit = g.player.kits.leash;
   if (!kit) return;
-  if (kit.power < 1) {
+  if (kitBars(kit) < 1) {
     log(g, "Mind Control has no power.");
     return;
   }
@@ -382,6 +389,28 @@ export function clearEnemyLeash(g: Game): number {
   }
   endEnemyLeash(g);
   return freed;
+}
+
+/**
+ * @agent:hacking. Every mind-control hold ends when the two ships part (the player jumps away, or the enemy escapes).
+ * Called by sim.ts before `g.enemy` is dropped, so the enemy kit's state is still reachable.
+ * INFERRED: holds end on leaving. Mind Control wiki, "Overview" never says what happens to a hold across a jump; it
+ * only says "Mind Control's cooldown is immediately reset by an FTL jump" (so the player kit's cooldown is cleared).
+ * Without this a player crew member held by the enemy (or by the enemy's Mind Control hack, spike.ts hackHeld) stayed
+ * "leashed" on the map, where tickLeash never runs, and could not be ordered until the next fight.
+ */
+export function leashOnLeave(g: Game) {
+  clearEnemyLeash(g);
+  const hack = g.enemy?.kits.spike;
+  if (hack) hack.hackHeld = undefined;
+  for (const c of g.crew) if (isLeashed(c)) clearCrew(c);
+  const kit = g.player.kits.leash;
+  if (kit) {
+    kit.on = false;
+    kit.left = 0;
+    kit.target = null;
+    kit.cool = 0;
+  }
 }
 
 /**

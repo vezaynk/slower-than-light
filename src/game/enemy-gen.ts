@@ -6,6 +6,7 @@
  */
 import { WEAPONS } from "./content.ts";
 import type { KinId } from "./extras/kin.ts";
+import { rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, KitId, SysId } from "./types.ts";
 import {
@@ -17,6 +18,8 @@ import {
   type EnemySystem,
   type Range,
 } from "./wiki/enemy-ships.ts";
+// @agent:sector-hostiles. Documented / derived hostile encounters per sector type.
+import { sectorHostiles } from "./wiki/sector-hostiles.ts";
 
 export type EnemyRoomSpec = { id: string; title: string; system: SysId | null; kit?: KitId; x: number; y: number; w: number; h: number };
 
@@ -186,21 +189,16 @@ const KIN_OF: Record<string, KinId> = {
   Crystal: "shard",
   Lanius: "voidlung",
 };
-const KIN_NAME: Record<KinId, string> = {
-  plain: "Human",
-  shell: "Engi",
-  blade: "Mantis",
-  gel: "Slug",
-  stone: "Rock",
-  spark: "Zoltan",
-  shard: "Crystal",
-  voidlung: "Lanius",
-};
 
 export type PoolContext = { sector: number; sectorName: string; difficulty: Difficulty };
 
-/** What a fight asks for: any ship in the sector pool, or one faction, and/or a pirate. */
-export type EnemyRequest = { faction?: EnemyClass["faction"]; pirate?: boolean; event?: string };
+/**
+ * What a fight asks for: any ship in the sector pool, or one faction, and/or a pirate.
+ * `classId`: one ship class (wiki/enemy-ships.ts id), when the event page names it ("Fight a Mantis Bomber", "always a
+ * Slug Assault class"). requestFor reads it from the fight string by class name ("Mantis Bomber", "Slug Assault pirate
+ * ship") or id ("slug-assault").
+ */
+export type EnemyRequest = { faction?: EnemyClass["faction"]; pirate?: boolean; event?: string; classId?: string };
 
 function slug(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -225,7 +223,17 @@ export function requestFor(tier: string): EnemyRequest {
   // Enemy Ships, "Pirated ships": Federation ships are fought only as pirates "except for the Federation
   // deserters event", which asks for a "Federation ship". So a Federation request takes either.
   const pirate = /pirate/i.test(tier) ? true : faction && faction !== "federation" ? false : undefined;
-  return { faction, pirate };
+  const classId = classIdFor(tier);
+  return classId ? { faction, pirate, classId } : { faction, pirate };
+}
+
+/** Class names longest first, so "Rock Assault (Elite)" wins over "Rock Assault". */
+const CLASS_NAMES = ENEMY_CLASSES.map((c) => ({ id: c.id, name: c.name.toLowerCase() })).sort((a, b) => b.name.length - a.name.length);
+
+/** The ship class a fight string names ("Fight a Mantis Bomber"), by class name or id; undefined for "Mantis ship". */
+export function classIdFor(tier: string): string | undefined {
+  const t = tier.toLowerCase();
+  return CLASS_NAMES.find((c) => t.includes(c.name) || t === c.id)?.id;
 }
 
 /** Enemy Ships, "Pirated ships": Engi, Lanius, and Crystal have no pirate versions; Federation is only fought as pirates. */
@@ -238,12 +246,15 @@ function fleetOnly(c: EnemyClass) {
   return /overtaken by the Rebel Fleet/i.test(c.where ?? "");
 }
 
+type PoolEntry = { cls: EnemyClass; pirate: boolean };
+
 /**
- * Classes a normal hostile beacon can field in this sector, each as regular and/or pirate.
+ * Classes this sector's number can field, each as regular and/or pirate: each class's "Encountered in sectors" range and
+ * `where` notes. An event that asks for a ship draws from this (the event page itself places that ship here).
  * Sector 1: wiki "Sectors", Civilian (Starting) Sector lists the HOSTILE_CIVILIAN and HOSTILE1 event lists,
  * whose fights are Rebel, Auto-ship, Mantis, and Pirate ships only.
  */
-export function enemyPool(ctx: PoolContext): { cls: EnemyClass; pirate: boolean }[] {
+export function rangePool(ctx: PoolContext): PoolEntry[] {
   const out: { cls: EnemyClass; pirate: boolean }[] = [];
   for (const cls of ENEMY_CLASSES) {
     if (cls.uniqueTo || fleetOnly(cls)) continue;
@@ -264,7 +275,45 @@ export function enemyPool(ctx: PoolContext): { cls: EnemyClass; pirate: boolean 
   return out;
 }
 
-/** INFERRED: the wiki gives no faction mix per sector. A sector named for a faction favours that faction ×3. */
+function fitsRequest(e: PoolEntry, want: EnemyRequest): boolean {
+  return (!want.faction || e.cls.faction === want.faction) && (want.pirate == null || e.pirate === want.pirate);
+}
+
+/**
+ * @agent:sector-hostiles. Weights of a sector's random fights from its hostile encounter list (wiki/sector-hostiles.ts):
+ * documented event lists for the two Civilian sectors, event-page {{Locations}} for the rest. Each event's weight is
+ * split evenly over the pool entries that can field its ship. INFERRED: the faction pages give no odds between classes.
+ * An entry that no listed event fields weighs 0. Null when the sector name has no list (e.g. the placeholder names).
+ */
+export function hostileWeights(pool: PoolEntry[], sectorName: string): number[] | null {
+  const list = sectorHostiles(sectorName);
+  if (!list) return null;
+  const out = pool.map(() => 0);
+  for (const e of list) {
+    // The list's weights stay by faction: its one class-named row ("Rock Assault (Elite) ship") is a unique ship that
+    // only its own event fields (pickEnemy), so a class request would drop that weight entirely.
+    const asked = requestFor(e.ship);
+    const want: EnemyRequest = { faction: asked.faction, pirate: asked.pirate };
+    const fit = pool.flatMap((p, i) => (fitsRequest(p, want) ? [i] : []));
+    for (const i of fit) out[i] += e.weight / fit.length;
+  }
+  return out.some((w) => w > 0) ? out : null;
+}
+
+/**
+ * Classes a normal hostile beacon can field in this sector: the range pool, narrowed to the factions (and pirates) the
+ * sector's hostile encounter list fights. A sector with no list keeps the whole range pool.
+ */
+export function enemyPool(ctx: PoolContext): PoolEntry[] {
+  const pool = rangePool(ctx);
+  const w = hostileWeights(pool, ctx.sectorName);
+  return w ? pool.filter((_, i) => w[i] > 0) : pool;
+}
+
+/**
+ * INFERRED fallback, only for a sector name with no hostile list (sector-hostiles.ts) and for a fight an event asked
+ * for: a sector named for a faction favours that faction ×3.
+ */
 function weight(entry: { cls: EnemyClass; pirate: boolean }, sectorName: string): number {
   const name = sectorName.toLowerCase();
   if (entry.pirate) return name.includes("pirate") ? 3 : 1;
@@ -280,9 +329,16 @@ export function pickEnemy(ctx: PoolContext, rand: () => number, want: EnemyReque
   // "Ship unique to the … event": that event fields this class and no other does.
   const unique = want.event ? ENEMY_CLASSES.find((cls) => cls.uniqueTo && slug(cls.uniqueTo) === want.event) : undefined;
   if (unique) return { cls: unique, pirate: false };
-  const fits = (e: { cls: EnemyClass; pirate: boolean }) =>
-    (!want.faction || e.cls.faction === want.faction) && (want.pirate == null || e.pirate === want.pirate);
-  let pool = enemyPool(ctx).filter(fits);
+  // A page that names the class ("always a Slug Assault class") gets that class. INFERRED: the page places it, so its
+  // sector range and `where` notes do not apply (The Black Raven: "the only event where you fight a Slug Assault in
+  // sector 4"). Pirate only when asked and the class has a pirate version; Federation classes are only pirates.
+  const named = want.classId ? ENEMY_CLASSES.find((c) => c.id === want.classId) : undefined;
+  if (named) return { cls: named, pirate: named.faction === "federation" || (want.pirate === true && canBePirate(named)) };
+  const fits = (e: PoolEntry) => fitsRequest(e, want);
+  // @agent:sector-hostiles. A fight an event asked for takes any class of that ship in range; a plain hostile beacon
+  // draws from the sector's hostile encounter list.
+  const requested = !!want.faction || want.pirate != null;
+  let pool = requested ? rangePool(ctx).filter(fits) : enemyPool(ctx);
   if (!pool.length && (want.faction || want.pirate != null)) {
     // The event names a ship the sector line does not list for this sector. INFERRED: take that faction's
     // ships from any sector rather than swapping in a different faction.
@@ -294,7 +350,7 @@ export function pickEnemy(ctx: PoolContext, rand: () => number, want: EnemyReque
       .filter(fits);
   }
   if (!pool.length) return { cls: ENEMY_CLASSES.find((c) => c.id === "rebel-fighter")!, pirate: false };
-  const weights = pool.map((e) => weight(e, ctx.sectorName));
+  const weights = (!requested && hostileWeights(pool, ctx.sectorName)) || pool.map((e) => weight(e, ctx.sectorName));
   let roll = rand() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < pool.length; i++) {
     roll -= weights[i];
@@ -393,9 +449,8 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
   const races: string[] = [];
   if (pirate) {
     // Enemy Ships, "Pirated ships": "pirate crews are randomly chosen from the races that can be encountered in that sector".
-    // INFERRED: any race.
-    const kins = Object.keys(KIN_NAME) as KinId[];
-    for (let i = 0; i < crewCount; i++) races.push(KIN_NAME[kins[Math.floor(rand() * kins.length) % kins.length]]);
+    // The races are the Sectors page's per-sector "Crewmembers" list (wiki/skills.ts); INFERRED: any race off that list.
+    races.push(...rollPirateCrew(ctx.sectorName, crewCount, rand));
   } else {
     for (const [race, lo, hi] of cls.crewMix) {
       const n = lo + Math.floor(rand() * (hi - lo + 1));

@@ -1,6 +1,7 @@
 import { hurtKit, hurtSystem, log, zoltanBars } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
 import { sideOf } from "./leash.ts";
+import { artilleryGun, hurtArtillery } from "../wiki/flagship-systems.ts";
 
 /**
  * Fires: "0.08 system damage per second for each fire in a room (same as a single boarder)".
@@ -31,6 +32,9 @@ function sabotageCounts(g: Game, aboard: "player" | "enemy", r: Room): { boarder
 
 /** Level and damage of the room's system or kit, or null if the room houses nothing that can be sabotaged. */
 function target(ship: Ship, r: Room): { level: number; damage: number } | null {
+  // @agent:flagship. A flagship artillery room is its own system (wiki/flagship-systems.ts artilleryGun).
+  const gun = artilleryGun(ship, r.id);
+  if (gun) return { level: ship.systems.weapons.level, damage: gun.damage };
   if (r.system) {
     const sys = ship.systems[r.system];
     if (!sys || sys.level <= 0) return null;
@@ -69,7 +73,9 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
     if (r.sabotage < 1) continue;
     // Boarding, "Combat": "When the bar is filled, the system takes 1 damage".
     r.sabotage = 0;
-    if (r.system) hurtSystem(ship, r.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
+    if (r.system) {
+      if (!hurtArtillery(ship, r.id, 1)) hurtSystem(ship, r.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
+    }
     else if (r.kit) hurtKit(ship, r.kit, 1);
     r.flash = Math.max(r.flash, 0.3);
     const after = target(ship, r);

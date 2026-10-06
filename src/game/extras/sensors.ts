@@ -10,6 +10,8 @@ import type { Game, Ship } from "../types.ts";
  * INFERRED: a living crew member standing still in the room counts as manning. Sensors, "Overview" only says "manning the console."
  * Systems, the paragraph above "Main systems": ionized or damaged systems cannot be manned, and fires, breaches, and intruders prevent manning. That paragraph has no heading.
  * Sensors "System Upgrades": level 4 only while level 3 is manned. An unattended level of 4 still reports 3.
+ * @agent:enemy-sensors. Player-side only. Sensors "Overview": "Enemy ships do not have Sensors subsystem, but have all
+ * the information about your ship and crew." No enemy decision reads this (see spike.ts enemySensorsHacked).
  */
 export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   const sys = ship.systems.sensors;
@@ -36,5 +38,7 @@ export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): nu
   if (manned) level += 1;
   // Sensors "System Upgrades": level 4 exists only while a level-3 system is manned.
   if (!manned) level = Math.min(level, 3);
+  // @agent:flagship. The Rebel Flagship: "limits Sensors functionality capping them at level 2" (player's sensors).
+  if (aboard === "player" && g.phase === "combat" && g.enemy?.flagship) level = Math.min(level, 2);
   return Math.max(0, Math.min(4, level));
 }

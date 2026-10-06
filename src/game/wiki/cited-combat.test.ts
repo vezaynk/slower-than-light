@@ -237,7 +237,8 @@ describe("flagship stages inside the fight", () => {
     assert.equal(g.enemy?.systems.engines.level, 3);
     assert.deepEqual(
       g.enemy?.weapons.map((weapon) => weapon.defId),
-      ["bossmissile"],
+      // @agent:flagship. Boss Laser and Boss Beam are WeaponDefs now (wiki/flagship-weapons.ts).
+      ["bosslaser", "bossmissile", "bossbeam"],
     );
     assert.equal(g.enemy?.zoltan, undefined);
     g.enemy!.hull = 0;

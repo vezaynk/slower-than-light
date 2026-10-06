@@ -16,6 +16,8 @@ const SECTOR_NAMES = [
   "Pirate Controlled Sector",
   "Rebel Stronghold",
   "Hidden Crystal Worlds",
+  // Lanius ships fight only in the Abandoned Sector's hostile list (wiki/sector-hostiles.ts).
+  "Abandoned Sector",
 ];
 
 function seeded(seed: number) {

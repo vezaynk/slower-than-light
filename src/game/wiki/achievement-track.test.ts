@@ -99,7 +99,18 @@ describe("achievement tracker", () => {
 
   it("marks every other named achievement as not tracked", () => {
     const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
-    assert.deepEqual(tracked, ["just-getting-started", "federation-base-in-range", "scrap-hoarder"]);
+    // @agent:unlocks: six stateless ship achievements added for Layout B unlocks (unlocks.ts).
+    assert.deepEqual(tracked, [
+      "just-getting-started",
+      "federation-base-in-range",
+      "the-united-federation",
+      "full-arsenal",
+      "artillery-mastery",
+      "ancestry",
+      "givin-her-all-shes-got-captain",
+      "manpower",
+      "scrap-hoarder",
+    ]);
     assert.equal(untrackedIds().length, ACHIEVEMENTS.length - tracked.length);
     for (const id of untrackedIds()) assert.equal(isTracked(id), false);
   });

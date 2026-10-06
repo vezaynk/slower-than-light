@@ -6,6 +6,7 @@ import { FLAK_CRYSTAL_WEAPONS } from "./wiki/weapons-flak-crystal.ts";
 import { ION_WEAPONS } from "./wiki/weapons-ion.ts";
 import { LASER_WEAPONS } from "./wiki/weapons-laser.ts";
 import { MISSILE_WEAPONS } from "./wiki/weapons-missile.ts";
+import { registerFlagshipWeapons } from "./wiki/flagship-weapons.ts";
 
 export type WeaponDef = {
   id: string;
@@ -271,6 +272,8 @@ for (const extra of [
   if (extra.id === "pike" || WEAPONS[extra.id]) continue;
   WEAPONS[extra.id] = extra;
 }
+// @agent:flagship. Boss Laser and Boss Beam, and the flagship page's Boss Missile breach (wiki/flagship-weapons.ts).
+registerFlagshipWeapons(WEAPONS);
 
 export const SYS_LABEL: Record<SysId, string> = {
   shields: "Shields",

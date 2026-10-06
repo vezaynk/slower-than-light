@@ -16,8 +16,25 @@ import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDi
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil } from "@/game/extras/veil";
 import { enemyCloneQueue } from "@/game/extras/cradle";
+// @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
+import { hackedPlayerKit, playerCloneQueue } from "@/game/ui-views";
+import {
+  armSpike,
+  cancelQueuedSpike,
+  hackVision,
+  launchSpike,
+  lowerSpikePower,
+  playerCloakHacked,
+  playerHackView,
+  queueSpike,
+  playerSensorLevel,
+  raiseSpikePower,
+  spikeRoomTargetable,
+} from "@/game/extras/spike";
+import { create } from "zustand";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { surrenderOfferView } from "@/game/wiki/surrender";
+import { artilleryView } from "@/game/wiki/flagship-systems";
 import {
   aim,
   armWeapon,
@@ -56,6 +73,7 @@ import {
   upgrade,
 } from "@/game/sim";
 import { useGame } from "@/game/store";
+import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
 import type { Crew, Game, KitId, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
@@ -65,7 +83,7 @@ import { DroneArt, WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 import type { IconName } from "@/game/icons";
 import { Screen } from "./Screen";
-import { ShipView, type AimMark } from "./ShipView";
+import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
 
 const SYS_ORDER: SysId[] = [
@@ -94,6 +112,97 @@ const KIT_LABEL: Record<KitId, string> = {
 function act(fn: (g: Game) => void) {
   unlockAudio();
   useGame.getState().act(fn);
+}
+
+/**
+ * @agent:hack-ui. Hack targeting mode. INVENTED UI-only flag (not saved with the run), the hacking twin of
+ * Game.targeting. Hacking wiki, "Choosing your hacking target": "Choosing a hacking target works much the same as
+ * targeting your weapons. With power in the hacking system, click on the hacking drone icon, then click an enemy
+ * system room."
+ */
+const useHackAim = create<{ on: boolean }>(() => ({ on: false }));
+
+function setHackAim(on: boolean) {
+  if (useHackAim.getState().on !== on) useHackAim.setState({ on });
+}
+
+/**
+ * @agent:hack-ui. The hacking drone icon (dock orb, or H). Hacking wiki, "Choosing your hacking target":
+ * - no drone yet: enter hack targeting; "you can cancel the hack launch by clicking on the drone icon again".
+ * - drone attached: start the hacking pulse ("Overview", Hacking pulse: 4 / 7 / 10 seconds, then "20 seconds cooldown
+ *   before activating the next pulse"). spike.ts launchSpike re-pulses a latched drone without a new part.
+ */
+function hackIconClick() {
+  const g = useGame.getState().game;
+  const view = playerHackView(g);
+  if (!view) return;
+  if (useHackAim.getState().on) {
+    setHackAim(false);
+    return;
+  }
+  // @agent:hack-rules. "If you change your mind while still paused, you can cancel the hack launch by clicking on the
+  // drone icon again." (spike.ts queueSpike / cancelQueuedSpike)
+  if (view.state === "queued") {
+    act((game) => cancelQueuedSpike(game));
+    return;
+  }
+  if (view.latched) {
+    if (view.state === "latched") act((game) => launchSpike(game));
+    return;
+  }
+  if (view.state !== "ready") return;
+  act((game) => cancelTargeting(game));
+  setHackAim(true);
+}
+
+/**
+ * @agent:hack-ui. A room click in hack targeting: aim the drone at that room's system and launch it (one drone part).
+ * Rooms with no hackable system keep the mode on, like a miss-click while aiming a gun.
+ */
+function hackRoomClick(roomId: string) {
+  const g = useGame.getState().game;
+  if (!spikeRoomTargetable(g, roomId)) return;
+  act((game) => {
+    const room = game.enemy?.rooms.find((r) => r.id === roomId);
+    const id = room?.system ?? room?.kit;
+    if (!id) return;
+    // @agent:hack-rules. "Once the game is unpaused, this choice is permanent": while paused the pick only queues.
+    if (game.paused) queueSpike(game, id);
+    else if (armSpike(game, id)) launchSpike(game);
+  });
+  setHackAim(false);
+}
+
+/** @agent:hack-ui. Short status for the hacking orb, by spike.ts playerHackView state. */
+function hackStatus(view: NonNullable<ReturnType<typeof playerHackView>>, aiming: boolean): string {
+  if (aiming) return "PICK A SYSTEM";
+  switch (view.state) {
+    case "pulse":
+      return `PULSE ${view.left.toFixed(1)}s`;
+    case "cooldown":
+      return `COOLDOWN ${Math.ceil(view.cool)}s`;
+    case "latched":
+      return "PULSE READY";
+    case "queued":
+      return "LAUNCH ON UNPAUSE";
+    case "flying":
+      // @agent:hack-rules. Hacking wiki: de-powering "freezes the hacking drone in place"; Anti-Combat Drones stun it.
+      if (view.stunned) return "DRONE STUNNED";
+      if (view.power < 1) return "DRONE HELD";
+      return `DRONE INBOUND ${Math.round(view.progress * 100)}%`;
+    case "nopower":
+      return "NO POWER";
+    case "noparts":
+      return "NO DRONE PARTS";
+    case "zoltan":
+      return "ZOLTAN SHIELD UP";
+    case "cloaked":
+      return "TARGET CLOAKED";
+    case "ready":
+      return "LAUNCH READY";
+    default:
+      return view.latched ? "DRONE ATTACHED" : "STANDBY";
+  }
 }
 
 /** INVENTED title line. The play HUD follows the combat, event, and pause screens. */
@@ -133,6 +242,12 @@ export function GameApp() {
         act((game) => lockdownSelected(game));
         return;
       }
+      // @agent:hack-ui. INVENTED key: H acts as the hacking drone icon (aim / cancel, or pulse once attached).
+      if (e.code === "KeyH" && plain && g.phase === "combat") {
+        e.preventDefault();
+        hackIconClick();
+        return;
+      }
       // Crystal, "Crystal Lockdown": Z opens every door and overrides the coating.
       if (e.code === "KeyZ" && plain) {
         e.preventDefault();
@@ -167,6 +282,7 @@ export function GameApp() {
           act((game) => depowerWeapon(game, weapon.uid));
           return;
         }
+        setHackAim(false);
         act((game) => armWeapon(game, weapon.uid));
       }
     };
@@ -236,11 +352,20 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   const showTarget = !!game.enemy && !chart && (game.phase === "combat" || game.phase === "event");
   const ox = shake ? Math.sin(game.time * 40) * 7 * shake : 0;
   const oy = shake ? Math.cos(game.time * 33) * 5 * shake : 0;
+  // @agent:hack-ui. Hack targeting only lasts while a launch is possible (fight over, power pulled, part spent...).
+  const hackOn = useHackAim((s) => s.on);
+  const hackReady = playerHackView(game)?.state === "ready";
+  useEffect(() => {
+    if (hackOn && !hackReady) setHackAim(false);
+  }, [hackOn, hackReady]);
+  const hackAiming = hackOn && hackReady;
   return (
     <div
-      className={`play${showTarget ? "" : " no-target"}${game.targeting ? " is-targeting" : ""}`}
+      className={`play${showTarget ? "" : " no-target"}${game.targeting || hackAiming ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}`}
       onContextMenu={(e) => {
         e.preventDefault();
+        // Hacking wiki: hack targeting "works much the same as targeting your weapons"; right click cancels both.
+        setHackAim(false);
         act((g) => cancelTargeting(g));
       }}
     >
@@ -257,8 +382,8 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         )}
         {game.paused && game.phase === "combat" ? <PauseStamp /> : null}
       </div>
-      {showTarget && game.enemy ? <TargetPanel game={game} /> : null}
-      <Dock game={game} />
+      {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} /> : null}
+      <Dock game={game} hackAiming={hackAiming} />
       {game.phase === "event" && game.event ? <EventModal game={game} /> : null}
       {game.phase === "store" ? <StoreBoard game={game} /> : null}
       {game.phase === "reward" && game.reward ? <RewardModal game={game} /> : null}
@@ -373,6 +498,7 @@ function Hud({ game }: { game: Game }) {
 function CrewRail({ game }: { game: Game }) {
   const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
   const air = shipOxygen(game.player);
+  const clones = playerCloneQueue(game);
   return (
     <aside className="crew-rail">
       <div className="air-readout">
@@ -409,6 +535,25 @@ function CrewRail({ game }: { game: Game }) {
           ) : null}
         </div>
       ))}
+      {/* Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon. Up to 3
+          portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
+          here under the live crew, head of the queue first. */}
+      {clones ? (
+        <div className="clone-queue" role="status" title="Clone Bay queue: first in line is revived first">
+          <p className="clone-queue-head">
+            <PixelIcon name="cradle" size={16} />
+            CLONING · {clones.seconds}s
+          </p>
+          <div className="clone-queue-faces">
+            {clones.shown.map((c) => (
+              <span key={c.id} className="clone-face" title={c.name}>
+                <Portrait crew={c} />
+              </span>
+            ))}
+            {clones.more > 0 ? <span className="clone-more">+{clones.more}</span> : null}
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
 }
@@ -459,10 +604,30 @@ function aimMarks(game: Game): AimMark[] {
   });
 }
 
-function TargetPanel({ game }: { game: Game }) {
+/**
+ * @agent:hack-ui. The player's hacking reticle on the enemy hull: the latched drone, or the room being aimed at.
+ * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
+ */
+function hackMarkOf(game: Game): HackMark | null {
+  const view = playerHackView(game);
+  if (!view || !view.room || !game.enemy) return null;
+  if (view.state === "pulse") return { room: view.room, phase: "pulse", left: view.left };
+  if (view.latched) return { room: view.room, phase: "latched", left: 0 };
+  // @agent:hack-rules. A launch queued while paused, or a drone still in flight: the reticle sits on the aim.
+  if (view.state === "queued" || view.state === "flying") return { room: view.room, phase: "aim", left: 0 };
+  return null;
+}
+
+function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const enemy = game.enemy;
   if (!enemy) return null;
   const escape = enemyEscapeView(game);
+  // @agent:hack-ui. Hacking wiki, "Overview" (passive effects): "Room vision and max-level Sensors information on the
+  // system." "If the targeted system is Piloting or Engines, the ship name on the top right corner is replaced with
+  // text that states the current Evasion of the enemy ship" (only "if the Hacking system is powered": hackVision).
+  const vision = hackVision(game);
+  const hack = playerHackView(game);
+  const hackMark = hackMarkOf(game);
   // Cloaking: "When an enemy ship is cloaked, you lose vision of its interior unless your crew… is aboard".
   const veil = enemy.kits.veil;
   const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
@@ -475,11 +640,23 @@ function TargetPanel({ game }: { game: Game }) {
       <div className="target-head">
         <span className="target-flag">TARGET</span>
         <div>
-          <p>Class: {enemy.name}</p>
+          {vision?.evasion != null ? (
+            <p className="hack-evasion" title={`Hacking drone on ${hack?.label ?? vision.system}`}>
+              Evasion: {vision.evasion}%
+            </p>
+          ) : (
+            <p>Class: {enemy.name}</p>
+          )}
           <p>Relationship: Hostile</p>
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               {escape.stalled ? "FTL STALLED" : `FTL CHARGING · ${escape.left}s`}
+            </p>
+          ) : null}
+          {hack && (hack.latched || hack.state === "pulse") && hack.label ? (
+            <p className={`hack-line${hack.state === "pulse" ? " is-pulse" : ""}`} role="status">
+              HACKED · {hack.label.toUpperCase()}
+              {hack.state === "pulse" ? ` · ${Math.ceil(hack.left)}s` : ""}
             </p>
           ) : null}
           {clones ? (
@@ -491,7 +668,8 @@ function TargetPanel({ game }: { game: Game }) {
         </div>
       </div>
       {/* Documented hulls vary in width; tiles shrink so the widest still fits the panel. */}
-      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.min(48, Math.floor(300 / Math.max(1, enemy.cols)))}px` }}>
+      {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound (260 / rows). */}
+      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.min(48, Math.floor(300 / Math.max(1, enemy.cols)), Math.floor(260 / Math.max(1, enemy.rows)))}px` }}>
         <ShipView
           ship={enemy}
           crew={game.crew}
@@ -500,9 +678,11 @@ function TargetPanel({ game }: { game: Game }) {
           selectedId={null}
           ventMode={false}
           targetable
-          onRoom={(id) => act((g) => aim(g, id))}
+          onRoom={(id) => (hackAiming ? hackRoomClick(id) : act((g) => aim(g, id)))}
           onCrew={() => undefined}
           aims={aimMarks(game)}
+          hackMark={hackMark}
+          hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}
         />
         {cloaked ? <p className="cloak-tag">CLOAKED</p> : null}
       </div>
@@ -510,11 +690,30 @@ function TargetPanel({ game }: { game: Game }) {
         {SYS_ORDER.map((id) => {
           const sys = enemy.systems[id];
           if (sys.level <= 0 && sys.power <= 0) return null;
+          // @agent:flagship. The flagship's guns are four artillery systems, shown per room below.
+          if (id === "weapons" && enemy.flagship) return null;
           const shown = isMain(id) ? bars(sys, zoltanBars(game.crew, enemy, "enemy", id)) : sys.power;
+          // @agent:hack-ui. "max-level Sensors information on the system" under the drone. Sensors wiki, level 4:
+          // "enemy systems level, power usage, ion damage". Level 4 from the player's own Sensors gives it for all.
+          const full = vision?.system === id || playerSensorLevel(game) >= 4;
+          const tip = full
+            ? `${SYS_LABEL[id]}: power ${shown} of ${sys.level}${sys.ion.length ? `, ion ${sys.ion.length}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`
+            : `${SYS_LABEL[id]} ${shown}`;
           return (
-            <span key={id} title={`${SYS_LABEL[id]} ${shown}`}>
+            <span key={id} title={tip} className={vision?.system === id ? "is-hack-seen" : undefined}>
               <PixelIcon name={id} size={16} />
               <b>{shown}</b>
+            </span>
+          );
+        })}
+        {/* @agent:flagship. "Each located in its own room": one artillery chip per gun (wiki/flagship-systems.ts). */}
+        {artilleryView(enemy).map((a) => {
+          const name = WEAPONS[a.defId]?.name ?? a.defId;
+          return (
+            <span key={a.room} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? `, ion ${a.ion}` : ""}`}>
+              <PixelIcon name="weapons" size={16} />
+              <small>{name.replace(/^Boss /, "").slice(0, 3).toUpperCase()}</small>
+              <b>{a.bars}</b>
             </span>
           );
         })}
@@ -522,7 +721,11 @@ function TargetPanel({ game }: { game: Game }) {
           const kit = enemy.kits[id];
           if (!kit) return null;
           return (
-            <span key={id} title={`${KIT_LABEL[id]} ${kit.level}`} className={kit.on ? "is-on" : undefined}>
+            <span
+              key={id}
+              title={`${KIT_LABEL[id]} ${kit.level}${vision?.system === id ? " (hacking drone)" : ""}`}
+              className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : ""].filter(Boolean).join(" ") || undefined}
+            >
               <PixelIcon name={id} size={16} />
               <b>{kit.level}</b>
             </span>
@@ -533,8 +736,10 @@ function TargetPanel({ game }: { game: Game }) {
   );
 }
 
-function Dock({ game }: { game: Game }) {
+function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
+  // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
+  const hackedKit = hackedPlayerKit(game);
   return (
     <footer className="dock">
       <div className="power-dock">
@@ -566,6 +771,7 @@ function Dock({ game }: { game: Game }) {
                     act((g) => reverseSlotAuto(g, w.uid));
                     return;
                   }
+                  setHackAim(false);
                   act((g) => armWeapon(g, w.uid));
                 }}
                 onContextMenu={(e) => {
@@ -655,13 +861,26 @@ function Dock({ game }: { game: Game }) {
           {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {
             const kit = game.player.kits[id];
             if (!kit) return null;
+            if (id === "spike") return <HackOrb key={id} game={game} aiming={hackAiming} hacked={hackedKit?.id === id ? hackedKit.phase : null} />;
+            // Hacking wiki, "Overview" (Cloaking): "ends an active cloak, and prevents the enemy from entering cloak".
+            const cloakLocked = id === "veil" && playerCloakHacked(game);
+            // A kit with no room on the player ship still carries the latched drone; mark its orb instead
+            // (Hacking wiki: "Launches a hacking drone that attaches to the enemy ship").
+            const hacked = hackedKit?.id === id ? hackedKit.phase : null;
+            const tip = cloakLocked
+              ? `${KIT_LABEL[id]}: hacked, cannot cloak`
+              : hacked
+                ? `${KIT_LABEL[id]}: hacking drone attached${hacked === "pulse" ? " (pulse)" : ""}`
+                : KIT_LABEL[id];
             return (
               <button
                 key={id}
                 type="button"
-                className={`sub-orb${kit.on ? " is-on" : ""}`}
-                aria-label={KIT_LABEL[id]}
-                title={KIT_LABEL[id]}
+                className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+                data-kit={id}
+                aria-label={tip}
+                title={tip}
+                disabled={cloakLocked}
                 onClick={() => {
                   if (id === "veil") act((g) => startVeil(g));
                   else if (id === "cell") act((g) => startCell(g));
@@ -680,6 +899,113 @@ function Dock({ game }: { game: Game }) {
         <span className="dock-label">SUBSYSTEMS</span>
       </div>
     </footer>
+  );
+}
+
+/**
+ * @agent:hack-ui. The player's Hacking orb with its status card. Hacking wiki, "Choosing your hacking target": "With
+ * power in the hacking system, click on the hacking drone icon, then click an enemy system room. If the enemy has a
+ * Zoltan Shield, you must destroy it first; if they are cloaked, you must wait for the cloak to end." "This costs one
+ * drone part". Once attached, the same icon starts "the hacking pulse" (4 / 7 / 10 s, then 20 s cooldown).
+ * INVENTED: the +/- power buttons (kits have no reactor column in this dock).
+ */
+function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked: "flying" | "latched" | "pulse" | null }) {
+  const view = playerHackView(game);
+  if (!view) return null;
+  const fight = game.phase === "combat" && !!game.enemy;
+  const status = hackStatus(view, aiming);
+  const usable = aiming || view.state === "ready" || view.state === "latched" || view.state === "queued";
+  const verb = view.latched
+    ? "start the hacking pulse"
+    : aiming
+      ? "cancel hack targeting"
+      : view.state === "queued"
+        ? "cancel the queued launch"
+        : "aim the hacking drone";
+  const tip = `Hacking ${view.power}/${view.level}: ${status.toLowerCase()}${usable ? `. Click or H to ${verb}` : ""}`;
+  return (
+    <div className={`hack-pod is-${aiming ? "aiming" : view.state}`}>
+      {fight ? (
+        <div className="hack-card" role="status">
+          <span className="hack-card-title">
+            <PixelIcon name="spike" size={12} />
+            HACKING
+            {view.pulse > 0 ? <span className="hack-card-pulse">{view.pulse}s pulse</span> : null}
+          </span>
+          <span className="hack-card-state">{status}</span>
+          {view.state === "pulse" ? (
+            <i className="hack-meter" aria-hidden="true">
+              <i style={{ width: `${Math.max(0, Math.min(1, view.left / Math.max(1, view.pulse))) * 100}%` }} />
+            </i>
+          ) : view.state === "flying" ? (
+            <i className={`hack-meter is-fly${view.stunned || view.power < 1 ? " is-held" : ""}`} aria-hidden="true">
+              <i style={{ width: `${view.progress * 100}%` }} />
+            </i>
+          ) : view.state === "cooldown" ? (
+            <i className="hack-meter is-cool" aria-hidden="true">
+              <i style={{ width: `${Math.max(0, Math.min(1, 1 - view.cool / 20)) * 100}%` }} />
+            </i>
+          ) : null}
+          <span className="hack-card-row">
+            {(view.state === "queued" || view.state === "flying") && view.label ? (
+              <span className="hack-card-target">
+                <PixelIcon name="target" size={12} />
+                {view.label}
+                <em>{view.state === "queued" ? "queued" : "in flight"}</em>
+              </span>
+            ) : view.latched ? (
+              <span className="hack-card-target">
+                <PixelIcon name="target" size={12} />
+                {view.label}
+                <em>locked</em>
+              </span>
+            ) : (
+              <span className={`hack-card-cost${view.parts < 1 ? " is-short" : ""}`} title="Each launch costs one drone part">
+                <PixelIcon name="parts" size={12} />1 of {view.parts}
+              </span>
+            )}
+          </span>
+        </div>
+      ) : null}
+      <span className="hack-power">
+        <button type="button" aria-label="Remove power from Hacking" title="Remove power" disabled={view.power <= 0} onClick={() => act((g) => lowerSpikePower(g))}>
+          <PixelIcon name="minus" size={12} />
+        </button>
+        <button
+          type="button"
+          aria-label="Add power to Hacking"
+          title="Add power"
+          disabled={view.power >= view.level || sparePower(game.player) < 1}
+          onClick={() => act((g) => raiseSpikePower(g))}
+        >
+          <PixelIcon name="plus" size={12} />
+        </button>
+      </span>
+      <button
+        type="button"
+        className={`sub-orb hack-orb${aiming ? " is-aiming" : ""}${view.state === "pulse" ? " is-on" : ""}${usable ? " is-usable" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+        data-kit="spike"
+        aria-label={tip}
+        aria-pressed={aiming}
+        title={tip}
+        onClick={(e) => {
+          e.stopPropagation();
+          hackIconClick();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setHackAim(false);
+        }}
+      >
+        <i className="sub-bars" aria-hidden="true">
+          {Array.from({ length: Math.max(view.level, 1) }, (_, n) => (
+            <b key={n} className={n < view.power ? "on" : ""} />
+          ))}
+        </i>
+        <PixelIcon name="spike" size={16} />
+      </button>
+    </div>
   );
 }
 
@@ -1010,6 +1336,7 @@ function CruiserArticle({
           <WikiLines
             lines={layout.lines}
             onRun={() => {
+              if (!isUnlocked(layout.id)) return; // @agent:unlocks. A locked layout does not start from its wiki article.
               unlockAudio();
               useGame.getState().newRun(layout.id);
             }}
@@ -1113,7 +1440,8 @@ function MapScreen({ game }: { game: Game }) {
             const linked = here?.links.includes(b.id) ?? false;
             const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
             const swallowed = b.col < game.fleet;
-            const tag = b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
+            // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
+            const tag = b.quest && !b.resolved ? "QUEST" : b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
             return (
               <button
                 key={b.id}
@@ -1127,10 +1455,10 @@ function MapScreen({ game }: { game: Game }) {
             );
           })}
           {game.beacons.map((b) => {
-            const tag = b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
+            const tag = b.quest && !b.resolved ? "QUEST" : b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
             if (!tag || b.id === game.here) return null;
             return (
-              <span key={`tag-${b.id}`} className="jump-tag" style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}>
+              <span key={`tag-${b.id}`} className={`jump-tag${tag === "QUEST" ? " is-quest" : ""}`} style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}>
                 {tag}
               </span>
             );

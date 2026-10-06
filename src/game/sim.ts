@@ -45,26 +45,52 @@ import {
   hackHoldsWeapons,
   hackLocksDoor,
   spikeEvadeZero,
+  hackBlocksManning,
+  hackRepairScale,
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
-import { clearEnemyLeash, heldByEnemy, sideOf } from "./extras/leash.ts";
+import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { tickEnemyBoarding } from "./extras/sling.ts";
+import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
+// @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
+import { shotHitsDrone } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
+import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
+import { repairSkillMult } from "./wiki/skills.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { hullById } from "./hulls.ts";
-import { layoutFor } from "./layouts.ts";
+import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, citedOwns, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
+import {
+  applyFlagshipSystems,
+  carryCrew,
+  firePowerSurge,
+  artilleryGun,
+  flagshipChargeSeconds,
+  flagshipPowerMask,
+  hurtArtillery,
+  ionArtillery,
+  flagshipRooms,
+  flagshipSeats,
+  rememberFlagship,
+  resumeCrew,
+  surgeRearm,
+  surgeWarning,
+  SURGE_STUN_S,
+  takeFlagshipMemo,
+  tickFlagship,
+} from "./wiki/flagship-systems.ts";
 import {
   citedAsb,
   citedAsbShot,
@@ -81,7 +107,12 @@ import { SECTOR_TYPES } from "./wiki/sectors.ts";
 import { escapePlan, eventSlugOf } from "./wiki/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import { surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
+// @agent:filler. Documented events for plain beacons.
+import { emptyEvent, fillerChoiceDisabled, fillerChoose, fillerEvent } from "./wiki/filler-events.ts";
+// @agent:quests. Quest markers, quest-beacon events, page win rewards and "gotaway" results (wiki/quests.ts).
+import { pageGotAway, pageWin, placeQueuedQuests, questAfterCited, questChoiceDisabled, questEvent } from "./wiki/quests.ts";
 import { pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
+import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
   Beacon,
   Crew,
@@ -440,6 +471,10 @@ function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId)
   // INFERRED: fire, oxygen at or below 5%, or a boarder cancels manning. The fetched pages do not number that.
   const r = roomWith(ship, system);
   if (!r) return false;
+  // @agent:flagship. The Rebel Flagship: the artillery rooms "cannot be manned, despite containing crew".
+  if (system === "weapons" && ship.flagship) return false;
+  // @agent:hacking. Hacking, "Overview": a system with an attached hacking drone "cannot be manned" (extras/spike.ts).
+  if (hackBlocksManning(g, ship, system)) return false;
   if (r.fire > 0 || r.o2 <= 5) return false;
   const foes = g.crew.some(
     (c) => c.aboard === aboard && sideOf(c) !== (aboard === "player" ? "player" : "enemy") && c.room === r.id && c.hp > 0 && c.path.length === 0,
@@ -586,6 +621,9 @@ export function enemyEscapeView(g: Game): { left: number; stalled: boolean } | n
 }
 
 export function powerMask(ship: Ship, bonus = 0): boolean[] {
+  // @agent:flagship. Flagship artillery has no shared Weapons pool (wiki/flagship-systems.ts flagshipPowerMask).
+  const artillery = flagshipPowerMask(ship);
+  if (artillery) return artillery;
   let pool = bars(ship.systems.weapons, bonus);
   return ship.weapons.map((w) => {
     const cost = WEAPONS[w.defId]?.power ?? 1;
@@ -922,13 +960,15 @@ export function toggleWeapon(g: Game, weaponUid: string) {
 }
 
 export function choiceDisabled(g: Game, id: string): string | null {
-  if (id === "asteroid-skirt" && g.fuel < 1) return "Need 1 fuel";
-  if (id === "deserter-pay" && g.scrap < 15) return "Need 15 scrap";
+  // @agent:filler. Rolled prices on filler cards (refugee trades, the fuel gift, the terraformers' delay).
+  const filler = fillerChoiceDisabled(g, id);
+  if (filler) return filler;
   // Engi cache: Transaction 2 subtract_missiles.
   if (id === "engi-cache-trap" && g.missiles < 2) return "Need 2 missiles";
   const cited = citedChoiceDisabled(g, id);
   if (cited) return cited;
-  return null;
+  // @agent:quests. Blue-option requirements and prices on quest cards (wiki/quests.ts).
+  return questChoiceDisabled(g, id);
 }
 
 export function toggleAuto(g: Game, weaponUid: string) {
@@ -1240,7 +1280,8 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     const r = roomById(ship, shot.targetRoom);
     if (r?.system) {
-      applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+      // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
+      if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
       log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
     }
     sfx(g, "ion");
@@ -1294,7 +1335,8 @@ function strikeRoom(
   if (r.kit) hurtKit(ship, r.kit, damage);
   if (r.system) {
     if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
-    else hurtSystem(ship, r.system, damage, zoltanBars(g.crew, ship, aboard, "shields"));
+    // @agent:flagship. A flagship artillery room is its own system: only that gun slows (wiki/flagship-systems.ts).
+    else if (!hurtArtillery(ship, r.id, damage)) hurtSystem(ship, r.system, damage, zoltanBars(g.crew, ship, aboard, "shields"));
   }
   // Bomb (Weapons) lead: bombs deal no hull damage. System damage above still lands.
   // Crew damage on a bomb is often its own figure (BOMB_GAPS). This still uses 15 per system point from Weapons, "Weapons: general information".
@@ -1318,6 +1360,12 @@ function strikeRoom(
   // INFERRED: a hit starts one fire, stacked to 3. The fetched pages do not number that cap.
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
   if (shot.breachChance > 0 && rand(g) < shot.breachChance) r.breach += 1;
+  // @agent:flagship. Stage-3 Power Surge lasers: "20% stun" (wiki/flagship-systems.ts SURGE_STUN_S, INFERRED 3 s).
+  if ((shot.stunChance ?? 0) > 0 && rand(g) < (shot.stunChance ?? 0)) {
+    for (const c of g.crew) {
+      if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.stun = Math.max(c.stun ?? 0, SURGE_STUN_S);
+    }
+  }
   floatAt(g, `−${damage}`, playerHurt ? 74 : 26, 30);
   sfx(g, "hit");
   if (playerHurt) {
@@ -1331,24 +1379,6 @@ function strikeRoom(
   } else {
     log(g, `Their ${r.title} takes ${damage}.`);
   }
-}
-
-// INVENTED: target weights. Weapons and shields 6, piloting 4, engines 3, oxygen 2, else 1.
-function weightedRoom(g: Game, ship: Ship): string {
-  const weights = ship.rooms.map((r) => {
-    if (r.system === "weapons" || r.system === "shields") return 6;
-    if (r.system === "pilot") return 4;
-    if (r.system === "engines") return 3;
-    if (r.system === "oxygen") return 2;
-    return 1;
-  });
-  const total = weights.reduce((a, b) => a + b, 0);
-  let roll = rand(g) * total;
-  for (let i = 0; i < ship.rooms.length; i++) {
-    roll -= weights[i];
-    if (roll <= 0) return ship.rooms[i].id;
-  }
-  return ship.rooms[0].id;
 }
 
 function chargeSide(
@@ -1365,15 +1395,21 @@ function chargeSide(
   ship.weapons.forEach((w, i) => {
     const def = WEAPONS[w.defId];
     if (!def || !mask[i]) return;
-    if (from === "enemy" && !w.target) w.target = weightedRoom(g, g.player);
+    // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
+    if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
     if (frozen) return;
-    w.charge = Math.min(1, w.charge + dt / (def.charge * mult));
+    // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
+    w.charge = Math.min(1, w.charge + dt / ((flagshipChargeSeconds(ship, w) ?? def.charge) * mult));
     // Weapon Control, Overview: enemy guns always fire when charged. Player autofire is the all-weapons
     // setting, reversed per slot by Ctrl. INVENTED: a player gun aimed while charging fires the moment it is
     // ready, and launch() drops that room afterwards unless the slot is on autofire.
     // Cloaking, "Enemy AI and Cloaking": a cloaked enemy that chose to hold fire keeps its charge until the cloak ends.
     if (from === "enemy" && enemyHoldsFire(g)) return;
-    if (w.charge >= 1 && w.target) launch(g, from, w);
+    if (w.charge >= 1 && w.target) {
+      // wiki/targeting.ts, INFERRED: an enemy gun re-aims every volley, as it fires (a missile with no ammo keeps its room).
+      if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
+      launch(g, from, w);
+    }
   });
 }
 
@@ -1467,6 +1503,18 @@ function armDoors(ship: Ship, level: number) {
  */
 export const REPAIR_SECONDS = 12.5;
 
+/** Fire removed per second by one untrained Human: 1 (repair) × 1.2 (fire) × 1 (skill) × 8% = 0.096 of a fire. */
+export const FIRE_FIGHT_SHARE = 0.096;
+
+/**
+ * One crew member's repair pace: race repair multiplier × repair skill. Skills, "Repair skill": "Level 1 (Green) | 10%
+ * faster repair", "Level 2 (Gold) | 20% faster repair" (wiki/skills.ts REPAIR_SKILL_MULT), and "Repair skill and racial
+ * aptitude for repairs also apply to fire-fighting". Used for systems, kit rooms, breaches, and fires.
+ */
+export function repairPace(c: Crew): number {
+  return kinOf(c.kin ?? "plain").repair * repairSkillMult(rankOf(c, "repair"));
+}
+
 function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const o2 = mainBars(g, ship, aboard, "oxygen");
   const mult = o2 <= 0 ? 0 : o2 === 1 ? 1 : o2 === 2 ? 4 : 7;
@@ -1510,6 +1558,8 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const withUs = (c: Crew) => sideOf(c) === friends;
     const pals = present.filter((c) => withUs(c) && (c.stun ?? 0) <= 0);
     const foes = present.filter((c) => !withUs(c));
+    // @agent:flagship. A flagship artillery room's own gun state (wiki/flagship-systems.ts), else null.
+    const gun = artilleryGun(ship, r.id);
     // Augmentations, "Slug Repair Gel": every breached player room, at 75% of regular crew repair speed, stacked on the same counter.
     if (aboard === "player" && r.breach > 0 && g.augments.includes("gel")) r.breachFix += 0.75 * dt;
     if (pals.length && foes.length) {
@@ -1533,25 +1583,32 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         bumpXp(g, c, "combat", dt);
       }
     } else if (r.fire > 0 && pals.length) {
-      // INFERRED: each other crew member removes 0.45 fire per second.
-      // Rockmen and Crystal, "Race characteristics": 167% and 83% of that share. Fire Suppression is not scaled.
+      // Template:Crew races (comparison), fire-fighting note: "to put out a fire, in percent per second (a fire
+      // starts with 100% health): crewRepairMult * crewFireMult * repairSkillMult * 8", crewFireMult 1.2 for most
+      // crew. FIRE_FIGHT_SHARE is that for an untrained Human. Rockmen and Crystal, "Race characteristics": 167% and
+      // 83% of it (2.0/1.2 and 1.0/1.2). repairSkillMult is the Skills "Repair skill" table (repairPace).
+      // Fire Suppression is not scaled.
       let rate = 0;
       for (const c of pals) {
         const kin = c.kin ?? "plain";
         const scale = kin === "stone" ? rockExtinguishScale() : kin === "shard" ? crystalExtinguishScale() : 1;
-        rate += 0.45 * scale;
+        rate += FIRE_FIGHT_SHARE * repairPace(c) * scale;
       }
       r.fire = Math.max(0, r.fire - rate * dt);
       // Fires: 2.128 HP per second per fire. kin.fireTaken is 0 for a fire-immune lineage.
       for (const c of pals) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
-    } else if (pals.length && r.breach > 0 && r.system && ship.systems[r.system].damage <= 0) {
-      r.breachFix += pals.reduce((sum, c) => sum + kinOf(c.kin ?? "plain").repair, 0) * dt;
-      for (const c of pals) bumpXp(g, c, "repair", dt);
+    } else if (pals.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
+      // Skills: "It takes 12.5 seconds for an untrained Human to repair one system bar, or to repair a breach"; skill speeds both.
+      r.breachFix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt;
+      // Skills: "sealing hull breaches provides no experience", so no bumpXp here.
     } else if (pals.length && r.kit && (ship.kits[r.kit]?.damage ?? 0) > 0 && r.o2 > 5) {
       // Same crew repair as a system room (REPAIR_SECONDS). An enemy re-powers each bar it fixes:
       // its reactor is sized to its capacity (enemy-gen.ts).
       const kit = ship.kits[r.kit]!;
-      kit.fix = (kit.fix ?? 0) + pals.reduce((sum, c) => sum + kinOf(c.kin ?? "plain").repair, 0) * dt;
+      // @agent:hacking. Hacking, "Overview": "Repair speed of the system is halved" under a hacking drone (spike.ts).
+      kit.fix =
+        (kit.fix ?? 0) +
+        pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.kit);
       for (const c of pals) bumpXp(g, c, "repair", dt);
       if (kit.fix >= REPAIR_SECONDS) {
         kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
@@ -1559,9 +1616,12 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         if (ship === g.enemy) kit.power = kit.level - kit.damage;
         log(g, `${r.title} repaired.`);
       }
-    } else if (pals.length && r.system && ship.systems[r.system].damage > 0 && r.o2 > 5) {
-      const sys = ship.systems[r.system];
-      sys.fix += pals.reduce((sum, c) => sum + kinOf(c.kin ?? "plain").repair, 0) * dt;
+    } else if (pals.length && r.system && (gun ?? ship.systems[r.system]).damage > 0 && r.o2 > 5) {
+      // @agent:flagship. Artillery rooms repair their own gun ("the Flagship crew can contest your boarding and repair
+      // damage to those weapons"); every other room its system.
+      const sys = gun ?? ship.systems[r.system];
+      // @agent:hacking. Hacking, "Overview": "Repair speed of the system is halved" under a hacking drone (spike.ts).
+      sys.fix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.system);
       for (const c of pals) bumpXp(g, c, "repair", dt);
       if (sys.fix >= REPAIR_SECONDS) {
         sys.damage = Math.max(0, sys.damage - 1);
@@ -1670,7 +1730,8 @@ function environment(g: Game, dt: number) {
         ion: 0,
         fireChance: asb.fireChance,
         breachChance: asb.breachChance,
-        targetRoom: weightedRoom(g, g.player),
+        // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
+        targetRoom: randomRoom(g, g.player),
         wait: 0.15,
         t: 0,
         duration: 1.1,
@@ -1685,29 +1746,20 @@ function environment(g: Game, dt: number) {
 function bossThink(g: Game, dt: number) {
   // "Global behavior": the surge exists on the second and third stage only.
   // "Power Surge": the wait is a random 20–30s. The two shots below are INVENTED; the page describes a surge, not this burst.
+  // @agent:flagship. Endless missiles, surge drones in flight, and the AI takeover (wiki/flagship-systems.ts).
+  if (g.enemy?.flagship) tickFlagship(g, dt);
   if (!g.enemy || g.beacons.find((b) => b.id === g.here)?.kind !== "boss") return;
   if (g.ramStage < 2) return;
   g.bossSurge -= dt;
+  // "A warning sounds exactly 5 seconds before the surge begins."
+  surgeWarning(g, g.enemy, g.bossSurge);
   if (g.bossSurge > 0) return;
   g.bossSurge = rollSurge(g.ramStage, rand(g)) ?? 25;
-  log(g, "Power surge.");
+  surgeRearm(g.enemy);
   sfx(g, "alarm");
-  for (let i = 0; i < 2; i++) {
-    g.shots.push({
-      id: uid(g),
-      kind: "laser",
-      from: "enemy",
-      damage: 1,
-      ion: 0,
-      fireChance: 0.1,
-      breachChance: 0,
-      targetRoom: weightedRoom(g, g.player),
-      wait: 0.4 + i * 0.35,
-      t: 0,
-      duration: 0.7,
-      label: "Surge",
-    });
-  }
+  // @agent:flagship. The two INVENTED lasers are gone: stage 2 deploys the printed surge drones, stage 3 fires
+  // "7 laser shots simultaneously" or restores the Zoltan Shield every 4th surge (wiki/flagship-systems.ts).
+  firePowerSurge(g, g.enemy);
 }
 
 // INVENTED: two boarders, Hook and Barb, after the timer set in startCombat.
@@ -1803,6 +1855,9 @@ function advanceRam(g: Game) {
   g.ramStage = next;
   // "Global behavior": hull and system damage are repaired when the next stage starts.
   for (const sys of Object.values(enemy.systems)) sys.damage = 0;
+  // @agent:flagship. "At the end of the first and second stage, the Flagship will lose a part of its hull along with
+  // the rooms, systems, and weapons in the corresponding location." New rooms also clear "Breach and fire".
+  flagshipStage(g, enemy, next);
   citedEnemy(g, "boss", enemy, g.crew);
   // The Rebel Flagship: a high scrap reward at sector 1 value. Stage 3 is the victory path and pays none.
   const band = flagshipStageScrap(g.difficulty);
@@ -1826,6 +1881,8 @@ function lose(g: Game, reason: "hull" | "crew") {
 
 function winCombat(g: Game) {
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
+  // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
+  const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
   g.kills += 1;
   // Mind Control: an enemy hold ends with the fight.
   clearEnemyLeash(g);
@@ -1854,6 +1911,15 @@ function winCombat(g: Game) {
     sfx(g, "win");
     const taken = g.beacons.find((x) => x.id === g.here);
     if (taken) taken.resolved = true;
+    return;
+  }
+  fightUnlock(g, g.fightEvent); // @agent:unlocks. A ship-unlocking page's fight won (Rebel shipyard: "You unlock the Federation Cruiser.").
+  // @agent:quests. An event page that prints its own destroyed / crew-killed reward pays that instead of the default
+  // salvage below, and may open a follow-up card (wiki/quests.ts PAGE_WINS).
+  if (!g.pending && pageWin(g, g.fightEvent, deadCrew)) {
+    const won = g.beacons.find((x) => x.id === g.here);
+    if (won) won.resolved = true;
+    g.fightEvent = null;
     return;
   }
   const band = SCRAP_MEDIUM[Math.min(7, Math.max(0, g.sector - 1))];
@@ -1946,8 +2012,9 @@ function addCrew(g: Game) {
  * Wiki page "The Rebel Flagship" sets this hull's numbers through citedEnemy.
  * MISMATCH and INVENTED: the two-row grid and the starting loadout below are placeholders that
  * citedEnemy overwrites where the page prints a value.
+ * @agent:flagship. The grid is now swapped for the traced stage-1 rooms by flagshipStage before the crew boards.
  */
-function makeFlagship(g: Game): { ship: Ship; crew: Crew[] } {
+function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
   const rooms: Room[] = [
     room({ id: "e-shields", title: "Shields", system: "shields", x: 0, y: 0, w: 2, h: 1 }),
     room({ id: "e-weapons", title: "Weapons", system: "weapons", x: 2, y: 0, w: 2, h: 1 }),
@@ -1972,10 +2039,49 @@ function makeFlagship(g: Game): { ship: Ship; crew: Crew[] } {
     kits: {},
     parts: 0,
   };
-  // "The Rebel Flagship", "1st Stage" / "General": the crew is Human. citedEnemy adds the printed count.
-  const crew: Crew[] = ["e-pilot", "e-weapons", "e-shields"].map((roomId) => enemyCrew(g, "plain", "Human", roomId));
+  // @agent:flagship. Retreat memory ("Global behavior"): a boss fight left during stage 2 or 3 resumes at that stage
+  // with only the surviving crew; hull, systems, fire, and breaches come back fresh (wiki/flagship-systems.ts).
+  const memo = boss ? takeFlagshipMemo(g) : null;
+  if (memo) {
+    flagshipStage(g, ship, memo.stage);
+    const kept = resumeCrew(ship, memo);
+    citedEnemy(g, "boss", ship, kept);
+    return { ship, crew: kept };
+  }
+  // @agent:flagship. The placeholder grid above is replaced by the traced stage-1 cutaway and its systems.
+  flagshipStage(g, ship, 1);
+  // "The Rebel Flagship", "1st Stage" / "General": the crew is Human, one seat each (wiki/flagship-systems.ts).
+  const crew: Crew[] = flagshipSeats(g.difficulty === "hard").map((roomId) => enemyCrew(g, "plain", "Human", roomId));
   citedEnemy(g, "boss", ship, crew);
   return { ship, crew };
+}
+
+/**
+ * @agent:flagship. Put a Rebel Flagship stage on `ship`: the traced rooms and door bars (wiki/flagship-layout.ts,
+ * Hard links on Hard), the stage's kits, drone parts, and boarding plan, then move crew aboard onto the new rooms.
+ * "Global behavior": "Hull and system damage of the Rebel Flagship will be repaired on the next stage. Breach and fire
+ * will also be cleared." citedEnemy then sets the printed hull, reactor, and levels.
+ */
+function flagshipStage(g: Game, ship: Ship, stage: 1 | 2 | 3) {
+  const laid = flagshipRooms(stage, g.difficulty === "hard");
+  const old = ship.rooms;
+  ship.rooms = laid.rooms.map((r) => room(r));
+  ship.doors = addDoors(ship.rooms, laid.marks);
+  ship.doorMarks = laid.marks;
+  ship.cols = laid.cols;
+  ship.rows = laid.rows;
+  // INFERRED: ion locks clear with the system damage.
+  for (const sys of Object.values(ship.systems)) {
+    sys.damage = 0;
+    sys.ion = [];
+    sys.fix = 0;
+  }
+  if (stage > 1) clearEnemyLeash(g);
+  applyFlagshipSystems(ship, stage);
+  if (stage > 1) carryCrew(g, old, ship);
+  armDoors(ship, doorLevel(g, ship, "enemy"));
+  // INFERRED: the stage-3 teleporter starts boarding 9 s in, as startCombat does for any boarding hull.
+  if (stage === 3) g.boardTimer = 9;
 }
 
 /** Enemy subsystem kits at their rolled level, fully powered. The extras modules read ship.kits on either hull. */
@@ -2003,7 +2109,8 @@ function enemyCrew(g: Game, kin: KinId, race: string, roomId: string): Crew {
  */
 function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: Crew[] } {
   // Cited event "second Rebel Flagship" (Rebel shipyard) is the flagship hull as well.
-  if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g);
+  // @agent:flagship. Only the Last Stand fight resumes a remembered stage (wiki/flagship-systems.ts takeFlagshipMemo).
+  if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g, tier === "boss");
   const ctx = { sector: g.sector, sectorName: g.sectorName, difficulty: g.difficulty };
   const r = () => rand(g);
   const picked = tier === "elite" ? { cls: pickElite(r), pirate: false } : pickEnemy(ctx, r, { ...requestFor(tier), event });
@@ -2051,6 +2158,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   );
   // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." wiki/surrender.ts.
   g.enemySurrender = surrenderPlan({ tier, event, faction: built.ship.faction, pirate: built.ship.pirate }, () => rand(g));
+  // @agent:quests. The page that started this fight, for its own win reward (wiki/quests.ts pageWin).
+  g.fightEvent = event ?? null;
   g.stalemate = null;
   g.enemy = built.ship;
   g.crew = g.crew.filter((c) => c.side === "player");
@@ -2079,8 +2188,10 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.asbT = 6;
   // INFERRED: a hull with a Crew Teleporter boards 9 seconds in.
   g.boardTimer = built.ship.boards ? 9 : 0;
-  g.bossSurge = tier === "boss" ? 12 : 0;
-  g.ramStage = tier === "boss" ? 1 : g.ramStage;
+  // @agent:flagship. A resumed boss fight starts at the remembered stage, with a fresh 20–30 s surge wait.
+  const bossStage = built.ship.flagship?.stage ?? 1;
+  g.bossSurge = tier === "boss" ? (bossStage > 1 ? (rollSurge(bossStage, rand(g)) ?? 25) : 12) : 0;
+  g.ramStage = tier === "boss" ? bossStage : g.ramStage;
   g.tutorial = g.kills === 0 && g.sector === 1;
   g.time = 0;
   if (g.armed == null) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
@@ -2243,6 +2354,9 @@ function makeMap(g: Game) {
   const names = ["Silt", "Hinge", "Marrow", "Kite", "Brine", "Cask", "Loom", "Vesper", "Nock", "Quarry", "Weld", "Pell"];
   let ni = 0;
   const middles = cols.flat().filter((b) => b !== start && b !== exit);
+  // @agent:beacon-mix. These KINDS rolls are placeholders: the sector name is not known yet here.
+  // stampCitedEvents (wiki/beacon-mix.ts) re-deals every free beacon by the Sectors page's "Beacons:" counts
+  // for any listed sector type, including stores. Only an unlisted sector name keeps this mix.
   // Stores, "Guaranteed stores": the count depends on sector type. Forcing one store is INFERRED.
   if (!middles.some((b) => b.kind === "store") && middles[0]) middles[0].kind = "store";
   for (const b of middles) {
@@ -2308,6 +2422,8 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       aux: 0,
     };
   }
+  // Kit rooms: Systems, "Each system occupies one predetermined room specific to the ship" (layouts.ts seatKits).
+  seatKits(ship);
   ship.shieldNow = Math.floor(ship.systems.shields.power / 2);
   g.player = ship;
   g.hullId = id;
@@ -2459,6 +2575,10 @@ export function commitJump(g: Game, id: string) {
   // Score, b: a rebel-held or about-to-be-held beacon does not count. The fleet column that would mark one is INVENTED, so this jump still counts.
   g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   onPlayerJump(g);
+  // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
+  leashOnLeave(g);
+  // @agent:flagship. Leaving the boss fight mid-stage: keep its stage and surviving crew (wiki/flagship-systems.ts).
+  rememberFlagship(g);
   // Drone Control, Shield Overcharger: a bubble created from none is lost on jump.
   dropOvercharged(g.player);
   // Zoltan Shield, lead: an FTL jump completely recharges the bubble.
@@ -2554,47 +2674,20 @@ function arrive(g: Game, b: Beacon) {
   g.event = eventFor(g, b);
 }
 
-// INVENTED: one scripted event (cache, mayday, dust well, rock field, wreck, deserter). Not a sector event list.
+// Plain beacons run documented events: wiki/filler-events.ts (Sectors, "Fallback events", and the EventList templates).
 function eventFor(g: Game, b: Beacon): Game["event"] {
   if (b.flag === "engi-cache") return engiCacheEvent();
   if (b.flag === "last-stand-repair") return lastStandRepairEvent();
+  // @agent:quests. A quest marker beacon runs its page's "Quest Marker" section (wiki/quests.ts).
+  const quest = questEvent(g, b);
+  if (quest) return quest;
   const cited = citedEvent(g, b);
   if (cited) return cited;
-  if (b.kind === "empty" || b.kind === "start") {
-    return {
-      title: b.name,
-      body: "The buoy answers with static and nothing else. A little scrap in the cradle.",
-      choices: [{ id: "empty-take", label: "Pocket it and go" }],
-    };
-  }
-  if (b.kind === "cache") {
-    return {
-      title: "Fuel cache",
-      body: "A bladder of reaction mass, still sealed, lashed to the buoy.",
-      choices: [{ id: "cache-take", label: "Take three fuel" }],
-    };
-  }
-  if (b.kind === "distress") {
-    return {
-      title: "Mayday",
-      body: "A tug is drifting with the hatch open. Someone is still on the circuit, voice thin.",
-      choices: [
-        { id: "distress-help", label: "Close and help" },
-        { id: "distress-skip", label: "Leave them. Keep two fuel from the sling." },
-      ],
-    };
-  }
-  if (b.kind === "nebula") {
-    return {
-      title: "Dust well",
-      body: "The nebula eats range. The line moves slower in here. Sensors paint ghosts.",
-      choices: [
-        { id: "nebula-drift", label: "Drift through" },
-        { id: "nebula-ping", label: "Ping the shadow" },
-      ],
-    };
-  }
+  // @agent:filler. Empty, distress, items, nebula and leftover event beacons: the documented list for the slot type.
+  const filler = fillerEvent(g, b);
+  if (filler) return filler;
   if (b.kind === "exit") {
+    // INVENTED: the exit text and the picket ("Exit beacon events" is EXIT_LIST, not wired).
     if (b.flag === "picket") {
       return {
         title: "Lane out",
@@ -2608,34 +2701,8 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
       choices: [{ id: "exit-leave", label: "Take the lane" }],
     };
   }
-  if (b.asteroid) {
-    return {
-      title: "Rock field",
-      body: "Stones tick the shield frequency. Something armed is using them as cover.",
-      choices: [
-        { id: "asteroid-push", label: "Push in" },
-        { id: "asteroid-skirt", label: g.fuel > 0 ? "Skirt it (1 fuel)" : "No fuel to skirt" },
-      ],
-    };
-  }
-  if (rand(g) < 0.5) {
-    return {
-      title: "Split wreck",
-      body: "A hull torn down the keel. The near compartments look empty. The far ones do not.",
-      choices: [
-        { id: "wreck-strip", label: "Strip the near plating" },
-        { id: "wreck-deep", label: "Cut deeper" },
-      ],
-    };
-  }
-  return {
-    title: "Deserter buoy",
-    body: "A voice offers a crate of missiles and no questions. The price is scrap. The other option is boarding them.",
-    choices: [
-      { id: "deserter-pay", label: "Pay 15 scrap for 3 missiles" },
-      { id: "deserter-fight", label: "Take the crate" },
-    ],
-  };
+  // Anything else (an unknown flag): the sector's empty beacon page, "Nothing happens."
+  return emptyEvent(g);
 }
 
 // Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8.
@@ -2712,6 +2779,19 @@ export function buy(g: Game, id: string) {
   log(g, `Bought ${item.name}.`);
 }
 
+/** @agent:quests. A quest result that "opens a store" at this beacon (wiki/quests.ts). */
+export function openStoreHere(g: Game) {
+  const b = hereBeacon(g);
+  if (b) {
+    b.kind = "store";
+    b.resolved = false;
+  }
+  g.event = null;
+  g.stock = rollStock(g);
+  g.phase = "store";
+  g.paused = true;
+}
+
 export function leaveStore(g: Game) {
   const b = hereBeacon(g);
   if (b) b.resolved = true;
@@ -2720,10 +2800,12 @@ export function leaveStore(g: Game) {
   g.paused = false;
 }
 
-// INVENTED: scrap, fuel, and fight payouts for that scripted event.
+// Event card choices. The exit and picket payouts are INVENTED; plain beacons run wiki/filler-events.ts.
 export function choose(g: Game, id: string) {
   // @agent:surrender. Accept or refuse an enemy's surrender offer (wiki/surrender.ts).
   if (surrenderChoose(g, id)) return;
+  // @agent:filler. Choices on the documented filler cards (wiki/filler-events.ts).
+  if (fillerChoose(g, id)) return;
   const b = hereBeacon(g);
   const resolve = () => {
     if (b) b.resolved = true;
@@ -2732,82 +2814,6 @@ export function choose(g: Game, id: string) {
     g.paused = false;
   };
   switch (id) {
-    case "empty-take":
-      addScrap(g, 4);
-      resolve();
-      break;
-    case "cache-take":
-      g.fuel += 3;
-      log(g, "Fuel bladder aboard.");
-      resolve();
-      break;
-    case "distress-skip":
-      g.fuel += 2;
-      resolve();
-      break;
-    case "distress-help":
-      g.pending = "crew";
-      if (b) b.resolved = false;
-      g.event = null;
-      startCombat(g, b?.tier || "pool");
-      break;
-    case "nebula-drift":
-      addScrap(g, 5);
-      resolve();
-      break;
-    case "nebula-ping":
-      if (rand(g) < 0.55) {
-        g.pending = "bonus:12";
-        g.event = null;
-        startCombat(g, "pool");
-      } else {
-        addScrap(g, 8);
-        log(g, "Just a reflection.");
-        resolve();
-      }
-      break;
-    case "asteroid-push":
-      g.event = null;
-      startCombat(g, b?.tier || "pool", true);
-      break;
-    case "asteroid-skirt":
-      if (g.fuel < 1) return;
-      g.fuel -= 1;
-      log(g, "You burn fuel around the field.");
-      resolve();
-      break;
-    case "wreck-strip":
-      addScrap(g, 12);
-      resolve();
-      break;
-    case "wreck-deep":
-      if (rand(g) < 0.5) {
-        addScrap(g, 22);
-        g.fuel += 1;
-        g.event = {
-          title: "Deep cache",
-          body: "Behind the ribs: scrap, and a fuel line that still holds pressure.",
-          choices: [{ id: "ack", label: "Haul it out" }],
-        };
-      } else {
-        g.event = null;
-        startCombat(g, "pool");
-      }
-      break;
-    case "deserter-pay":
-      if (g.scrap < 15) {
-        log(g, "Not enough scrap.");
-        return;
-      }
-      g.scrap -= 15;
-      g.missiles += 3;
-      resolve();
-      break;
-    case "deserter-fight":
-      g.pending = "bonus:10";
-      g.event = null;
-      startCombat(g, "pool");
-      break;
     case "exit-fight":
       g.pending = "exit-clear";
       g.event = null;
@@ -2852,7 +2858,7 @@ export function choose(g: Game, id: string) {
     default:
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
-        citedChoose(
+        const applied = citedChoose(
           {
             g,
             resolve,
@@ -2867,6 +2873,8 @@ export function choose(g: Game, id: string) {
           },
           id,
         );
+        // @agent:quests. A choice whose page adds a quest marker (wiki/quests.ts questAfterCited).
+        if (applied) questAfterCited(g, id);
         break;
       }
       resolve();
@@ -2914,6 +2922,8 @@ function nextSector(g: Game, name?: string) {
   stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
+  // @agent:quests. "Added a quest marker to the next sector!": placed after the sector's events (wiki/quests.ts).
+  placeQueuedQuests(g);
   g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   g.phase = "map";
   g.paused = false;
@@ -3010,6 +3020,9 @@ function stepShots(g: Game, dt: number) {
         log(g, "Their drone cut that shot down.");
         continue;
       }
+      // @agent:drones. Drone Control, Overview: drones "can be shot down by enemy fire if they are in direct line of
+      // fire, or can be destroyed by colliding with asteroids". A drone that takes the shot spends it.
+      if (shotHitsDrone(g, shot)) continue;
       applyImpact(g, shot);
     }
   }
@@ -3054,6 +3067,8 @@ export function step(g: Game, dt: number) {
   chargeSide(g, g.enemy, "enemy", h);
   wanderBoarders(g, h);
   boarders(g, h);
+  // @agent:crewai. Enemy crew aboard their own hull: stations, boarders, fires, repairs, healing (extras/crewai.ts).
+  tickEnemyCrewAi(g, h);
   environment(g, h);
   bossThink(g, h);
   const spool = ftlSeconds(g, g.player);
@@ -3068,6 +3083,8 @@ export function step(g: Game, dt: number) {
   if (g.enemyFlee >= 1 && g.enemy) {
     // INFERRED: crew still on the other hull are left behind. The engines page does not say this in one line.
     g.crew = g.crew.filter((c) => c.side === "player" && c.aboard === "player");
+    // @agent:hacking. INFERRED: an enemy hold ends when they jump away too (extras/leash.ts leashOnLeave).
+    leashOnLeave(g);
     // Rebel Fleet: letting a charging Rebel scout or auto-ship escape doubles the pursuit for one turn.
     if (g.enemyEscape?.pursuit) {
       g.pursuitDouble = true;
@@ -3080,6 +3097,8 @@ export function step(g: Game, dt: number) {
     g.phase = "map";
     g.asteroid = false;
     g.asb = false;
+    // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
+    pageGotAway(g, g.fightEvent);
   }
   stepShots(g, h);
   endCheck(g);
@@ -3141,6 +3160,8 @@ export function loadGame(): Game | null {
     if (!g.augments) g.augments = [];
     if (g.player.zoltan == null && g.hullId?.startsWith("zoltan-")) g.player.zoltan = 5;
     if (!g.player.kits) g.player.kits = {};
+    // Kit rooms: saves from before layouts.ts seatKits carry roomless player kits.
+    seatKits(g.player);
     if (g.player.parts == null) g.player.parts = 0;
     if (g.enemy) {
       if (!g.enemy.kits) g.enemy.kits = {};

@@ -212,6 +212,11 @@ describe("crystal lockdown", () => {
     step(g, 0.05);
     assert.equal(foe.room, "p-weapons");
     assert.deepEqual(foe.path, []);
+    // Send the boarder home: pirate crews now come from the sector's races (wiki/skills.ts), and a Rock boarder
+    // left in p-weapons kills the Crystal before the 38-second recharge check below.
+    foe.aboard = "enemy";
+    foe.room = g.enemy!.rooms[0].id;
+    foe.path = [];
 
     const interior = g.player.doors.find(
       (d) =>

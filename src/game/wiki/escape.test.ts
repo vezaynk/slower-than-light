@@ -61,6 +61,11 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
     for (const f of ["auto", "engi", "mantis", "zoltan", "crystal", "rock"]) assert.equal(row(f)[0], "never", f);
   });
 
+  it("uses an event page's own hull row (Pirate briber, 60% at 30-40%)", () => {
+    const p = escapePlan({ tier: "pool", faction: "rebel", pirate: true, event: "pirate-briber" }, () => 0);
+    assert.deepEqual([p.mode, p.chance, Math.round(p.threshold)], ["hull", 60, 30]);
+  });
+
   it("reads the event slug from a cited choice id", () => {
     assert.equal(eventSlugOf("c:auto-ship-warning:0"), "auto-ship-warning");
     assert.equal(eventSlugOf("engi-cache-trap"), undefined);
@@ -93,8 +98,13 @@ describe("escape in a fight", () => {
   it("stalls while their engines are down", () => {
     const g = createGame(4);
     startCombat(g, "fighter", false, "rebel-transport-ship");
-    g.enemy!.systems.engines.damage = g.enemy!.systems.engines.level;
-    run(g, 60);
+    // extras/crewai.ts sends enemy crew to repair Engines, so keep them broken every second.
+    // Every tick: a one-second gap lets a crew member mend a bar on some hulls (wiki/sector-hostiles.ts picks the class).
+    for (let i = 0; i < 60 * 30; i++) {
+      g.enemy!.systems.engines.damage = g.enemy!.systems.engines.level;
+      g.enemy!.systems.engines.fix = 0;
+      run(g, 1 / 30);
+    }
     assert.equal(g.enemyFlee, 0);
     assert.equal(g.phase, "combat");
   });

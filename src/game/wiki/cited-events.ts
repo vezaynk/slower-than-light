@@ -21,6 +21,13 @@ import { EXTRA_EVENTS as SLUG_EVENTS } from "./cited-events-slug.ts";
 import { EXTRA_EVENTS as SLUG_NEXT } from "./cited-events-slug-next.ts";
 import { EXTRA_EVENTS as ZOLTAN_EVENTS } from "./cited-events-zoltan.ts";
 import { EXTRA_EVENTS as ZOLTAN_NEXT } from "./cited-events-zoltan-next.ts";
+// @agent:surrender. Ship surrender Events pages; their random branches run in wiki/surrender.ts.
+import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
+// @agent:quests-a. Opening cards of the sector-special quest openers; their branches run in wiki/quests-a.ts.
+import { EXTRA_EVENTS as QUEST_A_PAGES } from "./quests-a-pages.ts";
+import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @agent:quests-b. Branches in wiki/quests-b.ts.
+// @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
+import { mixBeacons } from "./beacon-mix.ts";
 
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
@@ -710,9 +717,9 @@ const CORE_EVENTS: EventDef[] = [
             "k": "tier",
             "tier": "low"
           },
+          // @agent:quests. The page's quest marker is added after this choice (wiki/quests.ts questAfterCited).
           {
-            "k": "note",
-            "text": "The page's quest marker is not added."
+            "k": "nothing"
           }
         ]
       },
@@ -1425,9 +1432,9 @@ const CORE_EVENTS: EventDef[] = [
             "k": "tier",
             "tier": "medium"
           },
+          // @agent:quests. The page's quest marker is added after this choice (wiki/quests.ts questAfterCited).
           {
-            "k": "note",
-            "text": "The page's quest marker is not added."
+            "k": "nothing"
           }
         ]
       },
@@ -3028,9 +3035,9 @@ const CORE_EVENTS: EventDef[] = [
             "lo": 0,
             "hi": 2
           },
+          // @agent:quests. The page's quest marker is added after this choice (wiki/quests.ts questAfterCited).
           {
-            "k": "note",
-            "text": "The page's quest marker is not added."
+            "k": "nothing"
           }
         ]
       },
@@ -3249,6 +3256,11 @@ const EVENTS: EventDef[] = [
   ...PIRATE_NEXT,
   ...ZOLTAN_NEXT,
   ...MANTIS_ROCK,
+  // @agent:surrender.
+  ...SURRENDER_PAGES,
+  // @agent:quests-a.
+  ...QUEST_A_PAGES,
+  ...QUEST_B_PAGES, // @agent:quests-b.
 ];
 
 function band(g: Game, tier: "low" | "medium" | "high"): [number, number] {
@@ -3284,6 +3296,11 @@ export function citedOwns(id: string): boolean {
   return findChoice(id) != null;
 }
 
+// @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
+export function citedPagesFor(sectorName: string): readonly Readonly<EventDef>[] {
+  return EVENTS.filter((ev) => ev.sectors.includes(sectorName));
+}
+
 function matchEvent(b: Beacon): EventDef | null {
   for (const ev of EVENTS) {
     if (b.flag === ev.flag || b.flag === ev.slug) return ev;
@@ -3295,9 +3312,23 @@ function matchEvent(b: Beacon): EventDef | null {
 const PLACE_KIND = ["event", "empty", "distress", "nebula", "cache", "hostile"] as const;
 
 /** One beacon per cited page, only in a sector the page names. Does not touch a beacon that already has a flag. */
+/** Seeded order for one sector's events (FNV-1a over seed, sector and flag); keeps g.seed's rolls untouched. */
+function stampKey(g: Game, flag: string): number {
+  let h = 2166136261 ^ g.seed ^ (g.sector * 0x9e3779b1);
+  for (let i = 0; i < flag.length; i++) h = Math.imul(h ^ flag.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
 export function stampCitedEvents(g: Game) {
-  for (const ev of EVENTS) {
-    if (!ev.sectors.includes(g.sectorName)) continue;
+  // Placed in a per-run seeded order rather than table order: in table order the free beacons ran out
+  // before most of each sector's list (e.g. 11 of 56 Civilian Sector events), so later events never appeared.
+  const mine = EVENTS.filter((ev) => ev.sectors.includes(g.sectorName));
+  mine.sort((a, b) => stampKey(g, a.flag) - stampKey(g, b.flag));
+  // @agent:beacon-mix. Sectors, "Beacons:" lists: the free beacons are re-dealt by the sector's counts and
+  // this seeded order fills hostile/neutral/distress/items slots (wiki/beacon-mix.ts). The loop below only
+  // runs for a sector name the page does not list.
+  if (mixBeacons(g, mine)) return;
+  for (const ev of mine) {
     if (g.beacons.some((b) => b.flag === ev.flag)) continue;
     const pool = g.beacons.filter(
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store" && !b.flag,

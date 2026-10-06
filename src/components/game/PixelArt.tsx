@@ -1,5 +1,7 @@
 import { type ReactNode } from "react";
-import { layoutFor, roomClip } from "@/game/layouts";
+import { hullById } from "@/game/hulls";
+import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
+import type { KitId } from "@/game/types";
 import { DoorTicks } from "./DoorTicks";
 
 /**
@@ -177,9 +179,38 @@ const ROOM_COLOR: Record<string, string> = {
   "Mind Control": "#c49bff",
   Cloaking: "#8aa0c8",
   Drones: "#5ec8c8",
+  Artillery: "#ff9f6a",
+  "Backup Battery": "#e8d070",
   Hall: "#2c343c",
   Hold: "#3a342c",
 };
+
+/** Kit rooms carry a short tag in the cutaway, so a bought or starting kit's room reads at a glance. */
+const KIT_SHORT: Record<KitId, string> = {
+  veil: "CLOAK",
+  sling: "TELE",
+  spike: "HACK",
+  swarm: "DRONE",
+  leash: "MIND",
+  cradle: "CLONE",
+  cell: "BATT",
+  lance: "ARTY",
+  flak: "ARTY",
+};
+
+const KIT_TAG = {
+  position: "absolute",
+  inset: 0,
+  display: "grid",
+  placeItems: "center",
+  fontFamily: "inherit",
+  fontSize: 13,
+  letterSpacing: 0.5,
+  lineHeight: 1,
+  color: "#1b1714",
+  overflow: "hidden",
+  pointerEvents: "none",
+} as const;
 
 export function classOfPage(page: string): string {
   if (page.includes("Kestrel")) return "kestrel";
@@ -216,7 +247,10 @@ export function PixelHull({ kind, dim = false }: { kind: string; dim?: boolean }
 /** Room squares for one cruiser layout. Missing grids still show the hull. */
 export function PixelLayout({ id }: { id: string }) {
   const kind = id.replace(/-[a-c]$/, "");
-  const layout = layoutFor(id);
+  // Kit rooms: the hull's starting kits sit in their rooms (layouts.ts seatLayout), as they do in a fight.
+  const raw = layoutFor(id);
+  const kits = Object.keys(hullById(id)?.kits ?? {}) as KitId[];
+  const layout = raw ? seatLayout(raw, kits) : undefined;
   return (
     <div className="pixel-figure">
       <PixelHull kind={kind} />
@@ -245,6 +279,7 @@ export function PixelLayout({ id }: { id: string }) {
                 }}
               >
                 {clip ? <i className="pixel-fill" style={{ clipPath: clip, background: fill }} /> : null}
+                {room.kit ? <b style={KIT_TAG}>{KIT_SHORT[room.kit]}</b> : null}
                 <DoorTicks room={room} marks={layout.marks} />
               </i>
             );

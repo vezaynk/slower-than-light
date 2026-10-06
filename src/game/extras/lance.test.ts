@@ -72,15 +72,16 @@ describe("lance", () => {
     g.enemy.doors = [];
     const hull = g.enemy.hull;
     const bubble = g.enemy.shieldNow;
-    // Documented hulls differ (auto-ships have no oxygen room), so take any system room but weapons.
-    const room = g.enemy.rooms.find((r) => r.system && r.system !== "weapons");
+    // Documented hulls differ (auto-ships have no oxygen room), so take any system room but weapons and shields:
+    // wrecking shields would drop the bubble this test checks is untouched.
+    const room = g.enemy.rooms.find((r) => r.system && r.system !== "weapons" && r.system !== "shields");
     assert.ok(room?.system);
     g.enemy.systems[room.system].damage = g.enemy.systems[room.system].level;
     aimLance(g, room.id);
     tickLance(g, 0.1);
     assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.enemy.shieldNow, bubble);
-    assert.equal(g.enemy.systems.oxygen.damage, g.enemy.systems.oxygen.level);
+    assert.equal(g.enemy.systems[room.system].damage, g.enemy.systems[room.system].level);
   });
 
   it("rolls a ten percent fire chance per room", () => {

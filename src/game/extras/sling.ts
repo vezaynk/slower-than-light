@@ -1,4 +1,5 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
+import { seatKits } from "../layouts.ts";
 import { enemyEscapeView, kitBars, log, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
@@ -44,7 +45,9 @@ function blank(): Kit {
  * INFERRED: power must already equal the system level. The page never states a reactor-bar count.
  */
 function canRun(kit: Kit): boolean {
-  return kit.power >= kit.level && kit.level > 0 && kit.cool <= 0;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  // INFERRED: "full power" is every undamaged bar, and at least one must work.
+  return kitBars(kit) >= kit.level - (kit.damage ?? 0) && kitBars(kit) > 0 && kit.cool <= 0;
 }
 
 function arm(kit: Kit, target: string | null) {
@@ -94,6 +97,7 @@ export function installSling(g: Game) {
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
   g.player.kits.sling = blank();
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Teleporter fitted to the Lark.");
 }
 
@@ -116,7 +120,8 @@ export function upgradeSling(g: Game) {
 export function toggleSlingPower(g: Game) {
   const kit = sling(g);
   if (!kit) return;
-  if (kit.power < kit.level && sparePower(g.player) > 0) {
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) > 0) {
     kit.power += 1;
     return;
   }
@@ -130,7 +135,7 @@ export function toggleSlingPower(g: Game) {
 export function sendSling(g: Game, roomId: string) {
   const kit = sling(g);
   if (!kit) return;
-  if (kit.power < kit.level) {
+  if (!canRun(kit) && kit.cool <= 0) {
     log(g, "Teleporter has no power.");
     return;
   }
@@ -173,7 +178,7 @@ export function recallSling(g: Game) {
   const kit = sling(g);
   if (!kit) return;
   if (!canRun(kit)) {
-    if (kit.power < kit.level) log(g, "Teleporter has no power.");
+    if (kit.cool <= 0) log(g, "Teleporter has no power.");
     else if (kit.cool > 0) log(g, "Teleporter is still cooling.");
     return;
   }
@@ -185,7 +190,9 @@ export function recallSling(g: Game) {
   }
   for (const c of away) {
     c.aboard = "player";
-    c.room = "p-medbay";
+    // Kit room: Crew Teleporter, "Overview": "Retrieved crew that cannot fit in the teleporter room will be placed in
+    // adjacent room(s)". The medbay landing stays where there is one; hulls without a medbay room use the pads.
+    c.room = roomById(g.player, "p-medbay") ? "p-medbay" : (g.player.rooms.find((r) => r.kit === "sling")?.id ?? g.player.rooms[0].id);
     c.path = [];
     c.move = 0;
     if (mendOnSend(g)) c.hp = c.maxHp;

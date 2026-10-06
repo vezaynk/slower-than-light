@@ -3,12 +3,13 @@ import { describe, it } from "node:test";
 import { installAugment } from "../extras/augments.ts";
 import type { KinId } from "../extras/kin.ts";
 import { DRONE_COOLDOWN_S, deploy, swarmIntercept, tickSwarm, type SwarmKind } from "../extras/swarm.ts";
-import { createGame, startCombat, step } from "../sim.ts";
+import { FIRE_FIGHT_SHARE, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { crystalExtinguishScale } from "./cited-crystal-fire.ts";
 import { rockExtinguishScale } from "./cited-rock-fire.ts";
 
-const SHARE = 0.45;
+// Template:Crew races (comparison) fire-fighting formula for an untrained Human (sim.ts FIRE_FIGHT_SHARE).
+const SHARE = FIRE_FIGHT_SHARE;
 
 function fight(seed: number): Game {
   const g = createGame(seed);
@@ -105,7 +106,7 @@ function armEnemy(g: Game, kind: string, power: number) {
 }
 
 describe("Rock and Crystal extinguish shares", () => {
-  it("scales one crew member's 0.45 and leaves everyone else at 0.45", () => {
+  it("scales one crew member's share and leaves everyone else at the base share", () => {
     const human = fight(1);
     hold(human, "p-medbay", [{ id: "c-ada" }]);
     close(burn(human, "p-medbay"), SHARE);

@@ -1,4 +1,5 @@
-import { log } from "../sim.ts";
+import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 
 /** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. Also the store price to fit it. */
@@ -50,8 +51,43 @@ function arm(kit: Kit) {
 /** Wiki page "Backup Battery", sections "Overview" and "System Upgrades": 2 bars at level 1, 4 at level 2 while the cell is on. */
 export function cellBonus(ship: Ship): number {
   const kit = ship.kits.cell;
-  if (!kit?.on || !(kit.left > 0)) return 0;
-  return barsFor(kit.level);
+  // @agent:hacking. Hacking wiki, "Overview" (Backup Battery): "temporarily removes two regular power bars from
+  // reactor" (Kit.drained, set by spike.ts while the enemy's pulse is on it). It reaches the reactor through
+  // sim.ts sparePower -> batteryBonus, so it can go negative.
+  const drained = kit?.drained ?? 0;
+  if (!kit?.on || !(kit.left > 0)) return drained > 0 ? -drained : 0;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars). INFERRED: a damaged level supplies the bars of the level below it.
+  return barsFor(kit.level - (kit.damage ?? 0)) - drained;
+}
+
+/**
+ * @agent:hacking. Takes bars back off systems when a hack has shrunk the reactor below what is assigned.
+ * Hacking wiki, "Overview" (Backup Battery): "removes two regular power bars from reactor". Backup Battery wiki,
+ * "Overview": when bars leave, "This can cause activated systems such as Cloaking or Mind Control to deactivate".
+ * INVENTED: the order (subsystem kits first, then weapons, medbay, oxygen, engines, shields). The pages give none.
+ * Only runs while a drain is on, so an ordinary battery shutdown keeps its old behaviour.
+ */
+function shedDrained(g: Game, ship: Ship) {
+  const kit = ship.kits.cell;
+  if (!kit || !(kit.drained ?? 0)) return;
+  let over = -sparePower(ship);
+  for (const other of Object.values(ship.kits)) {
+    if (over <= 0) return;
+    if (!other || other.id === "cell" || other.power <= 0) continue;
+    const take = Math.min(other.power, over);
+    other.power -= take;
+    over -= take;
+    if (other.power <= 0 && other.on && (other.id === "veil" || other.id === "leash")) other.on = false;
+  }
+  for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
+    if (over <= 0) break;
+    const sys = ship.systems[id];
+    if (!sys || sys.power <= 0) continue;
+    const take = Math.min(sys.power, over);
+    sys.power -= take;
+    over -= take;
+  }
+  syncShields(ship, zoltanBars(g.crew, ship, "player", "shields"));
 }
 
 /** Wiki page "Backup Battery", section "System Upgrades": fit level 1 for 35. "Overview": no reactor energy is required, so power stays 0. */
@@ -63,6 +99,7 @@ export function installCell(g: Game) {
   }
   g.scrap -= INSTALL_COST;
   g.player.kits.cell = makeCell(1);
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Backup Battery fitted to the Lark.");
 }
 
@@ -86,6 +123,8 @@ export function startCell(g: Game) {
   const kit = g.player.kits.cell;
   if (!kit) return;
   if (kit.cool > 0 || running(kit)) return;
+  // Systems, "Damaged and destroyed systems": every level damaged is "completely unfunctional".
+  if ((kit.damage ?? 0) >= kit.level) return;
   arm(kit);
   log(g, "Backup Battery online.");
 }
@@ -138,6 +177,7 @@ function maybeEnemy(g: Game) {
  */
 export function tickCell(g: Game, dt: number) {
   stepKit(g, g.player.kits.cell, dt);
+  shedDrained(g, g.player);
   if (!g.enemy) return;
   stepKit(g, g.enemy.kits?.cell, dt);
   maybeEnemy(g);

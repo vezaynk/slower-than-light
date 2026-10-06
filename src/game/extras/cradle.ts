@@ -1,5 +1,7 @@
 import { kitBars, log, sparePower } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import { helixHolds } from "./moreaugs.ts";
+import { hackPulseOn } from "./spike.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
 
 /** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. */
@@ -35,7 +37,8 @@ function blankCradle(level: number): Kit {
 
 function poweredCradle(g: Game): Kit | null {
   const kit = g.player.kits.cradle;
-  if (!kit || kit.power < 1 || kit.level <= 0) return null;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (!kit || kitBars(kit) < 1 || kit.level <= 0) return null;
   return kit;
 }
 
@@ -53,6 +56,7 @@ export function installCradle(g: Game) {
   }
   g.scrap -= cost;
   g.player.kits.cradle = blankCradle(1);
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Clone Bay installed.");
 }
 
@@ -69,6 +73,8 @@ export function toggleCradlePower(g: Game) {
     return;
   }
   if (sparePower(g.player) < 1) return;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.level - (kit.damage ?? 0) < 1) return;
   kit.power = 1;
   kit.on = true;
 }
@@ -103,7 +109,9 @@ export function onCradleDeath(g: Game, crew: Crew): boolean {
   crew.hp = 0;
   crew.cloneIn = seconds;
   crew.cloneSeq = seq;
-  crew.room = "p-medbay";
+  // Kit room (layouts.ts seatKits): the clone appears in the Clone Bay room, which is the old medical room when the
+  // store swapped it in. Hulls without a medical room (Fed C, Slug C, Lanius B, ...) have no "p-medbay".
+  crew.room = g.player.rooms.find((r) => r.kit === "cradle")?.id ?? "p-medbay";
   crew.aboard = "player";
   crew.path = [];
   return true;
@@ -134,7 +142,10 @@ export function tickCradle(g: Game, dt: number) {
   const kit = g.player.kits.cradle;
   if (!kit) return;
   const queued = playerQueued(g);
-  if (!poweredCradle(g) || cradleOffline(kit)) {
+  // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Clone Bay: disables the clone bay. (Backup DNA Bank
+  // augmentation protects your crew from being erased)". INFERRED: disabled = offline for the pulse, so the queue stops
+  // and the 3-second loss below runs, which is exactly what the Backup DNA Bank note guards against.
+  if (!poweredCradle(g) || cradleOffline(kit) || hackPulseOn(g, g.player, "cradle")) {
     // Augmentations, "Crew Augmentations", Backup DNA Bank: an offline bay does not erase the copy.
     if (helixHolds(g)) return;
     if (!queued.length) {
@@ -285,7 +296,9 @@ function tickEnemyCradle(g: Game, dt: number) {
     kit.aux = 0;
     return;
   }
-  if (cradleOffline(kit)) {
+  // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Clone Bay: disables the clone bay." The row names no
+  // side, so the player's pulse on their Clone Bay does the same (spike.ts allows that target when they have one).
+  if (cradleOffline(kit) || (!!g.enemy && hackPulseOn(g, g.enemy, "cradle"))) {
     kit.aux += dt;
     if (kit.aux < 3) return;
     kit.aux = 0;
@@ -312,7 +325,8 @@ export function enemyCloneQueue(g: Game): { seconds: number; count: number; offl
   if (!kit) return null;
   const queued = enemyQueued(g);
   if (!queued.length) return null;
-  return { seconds: Math.ceil(queued[0].cloneIn ?? 0), count: queued.length, offline: cradleOffline(kit) };
+  const hacked = !!g.enemy && hackPulseOn(g, g.enemy, "cradle");
+  return { seconds: Math.ceil(queued[0].cloneIn ?? 0), count: queued.length, offline: cradleOffline(kit) || hacked };
 }
 
 /**

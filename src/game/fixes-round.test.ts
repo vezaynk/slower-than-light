@@ -55,3 +55,17 @@ describe("the player's own hacking", () => {
     assert.ok(evasionPercent(g, g.enemy!, "enemy") > 0);
   });
 });
+
+describe("drones on an FTL jump (Drone Control, Overview)", () => {
+  it("loses a deployed external drone, keeps a crew drone, and keeps the deploy delay", async () => {
+    const { onPlayerJump } = await import("./extras/index.ts");
+    const g = createGame(5);
+    g.player.kits.swarm = { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "striker", on: true, aux: 1, lost: 4 };
+    onPlayerJump(g);
+    assert.equal(g.player.kits.swarm.on, false);
+    assert.equal(g.player.kits.swarm.lost, 4);
+    g.player.kits.swarm = { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "patch", on: true, aux: 0 };
+    onPlayerJump(g);
+    assert.equal(g.player.kits.swarm.on, true);
+  });
+});

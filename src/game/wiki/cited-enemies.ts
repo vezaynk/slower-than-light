@@ -6,7 +6,9 @@ import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 /**
  * Adjust an already-built enemy hull with numbers the wiki states.
  * The room grid stays the one makeEnemy built. Do not invent a new grid.
- * Boss Laser and Boss Beam have no printed power, so they are not WeaponDefs.
+ * @agent:flagship. For the boss that grid is the traced cutaway (sim.ts flagshipStage, wiki/flagship-systems.ts).
+ * @agent:flagship. Boss Laser and Boss Beam are WeaponDefs now (wiki/flagship-weapons.ts), so every stage mounts its
+ * printed artillery.
  */
 export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): void {
   if (tier === "elite") {
@@ -33,7 +35,14 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
     if (!id || system.level == null) continue;
     ship.systems[id].level = system.level;
     // Piloting spends no reactor. Power matches the printed level.
-    if (id === "pilot") ship.systems[id].power = system.level;
+    // @agent:flagship. The Door System is a subsystem too ("1st Stage" / "Systems": "Door (3)").
+    if (id === "pilot" || id === "doors") ship.systems[id].power = system.level;
+  }
+  // @agent:flagship. A system the stage no longer lists "was lost in the previous battle" ("2nd stage" / "Systems").
+  for (const [name, id] of Object.entries(ON_HULL)) {
+    if (!id || phase.systems.some((system) => system.name === name)) continue;
+    ship.systems[id].level = 0;
+    ship.systems[id].power = 0;
   }
   const bars = artilleryBars(phase);
   if (bars != null) ship.systems.weapons.level = bars;
@@ -48,16 +57,20 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
  * Systems this hull already has a room for.
  * Door, cloaking, medbay, hacking, drones, teleporter, and mind control
  * are on the phase row and are not rooms makeEnemy built.
+ * @agent:flagship. The traced cutaway (wiki/flagship-systems.ts) now has Medbay and Door rooms, so those two are
+ * set here. Cloaking, Hacking, Drone, Teleporter, and Mind Control are kits set by applyFlagshipSystems.
  */
 const ON_HULL: Partial<Record<string, SysId>> = {
   Piloting: "pilot",
   Shields: "shields",
   Engines: "engines",
   Oxygen: "oxygen",
+  Medbay: "medbay",
+  Door: "doors",
 };
 
-/** Shields first, then the other mains. Guns take what the reactor has left. */
-const DRAW: SysId[] = ["shields", "engines", "oxygen", "weapons"];
+/** Shields first, then the other mains. Guns take what the reactor has left. @agent:flagship: Medbay added. */
+const DRAW: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
 
 function stageNow(g: Game, ship: Ship): 1 | 2 | 3 {
   // ram.ts: PHASE_BANDS is null, so phaseOf is not a counter. Every hull reads as 1.
@@ -68,6 +81,10 @@ function stageNow(g: Game, ship: Ship): 1 | 2 | 3 {
   if (g.phase === "combat" && g.enemy === ship && (g.ramStage === 2 || g.ramStage === 3)) {
     return g.ramStage;
   }
+  // @agent:flagship. A flagship built at a remembered stage (player retreated and came back, sim.ts makeFlagship)
+  // carries that stage on ship.flagship before it is in the fight.
+  const stage = ship.flagship?.stage;
+  if (stage === 2 || stage === 3) return stage;
   return 1;
 }
 
@@ -100,7 +117,7 @@ function mount(g: Game, names: string[]) {
   const weapons = [];
   for (const name of names) {
     const def = Object.values(WEAPONS).find((weapon) => weapon.name === name);
-    // Boss Laser and Boss Beam are absent: their pages print no power.
+    // @agent:flagship. All four boss guns resolve (Boss Laser / Boss Beam from wiki/flagship-weapons.ts).
     if (!def) continue;
     g.uid = (g.uid + 1) >>> 0;
     weapons.push({
@@ -132,6 +149,13 @@ function fund(ship: Ship) {
 }
 
 function armMounted(ship: Ship) {
+  // @agent:flagship. "The Flagship's 'weapons' are artillery systems, each located in its own room" and work "just
+  // like the Federation Cruiser artillery system": no shared Weapons power pool, so every mounted gun is armed.
+  // sim.ts powerMask / flagshipChargeSeconds run each on its own printed charge time.
+  if (ship.flagship) {
+    for (const weapon of ship.weapons) weapon.enabled = true;
+    return;
+  }
   const sys = ship.systems.weapons;
   let pool = Math.max(0, Math.min(sys.power, sys.level - sys.damage - sys.ion.length));
   for (const weapon of ship.weapons) {

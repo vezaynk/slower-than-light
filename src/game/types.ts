@@ -1,6 +1,7 @@
 import type { KinId } from "./extras/kin.ts";
 import type { EscapePlan } from "./wiki/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
+import type { FlagshipState } from "./wiki/flagship-systems.ts";
 
 export type SysId =
   | "shields"
@@ -140,6 +141,11 @@ export type Shot = {
   t: number;
   duration: number;
   label?: string;
+  /**
+   * @agent:flagship. Chance (0..1) to stun the crew in the struck room. Only the stage-3 Power Surge lasers set it
+   * ("The Rebel Flagship", "Final stage" / "Power Surge": "20% stun"); sim.ts strikeRoom rolls it.
+   */
+  stunChance?: number;
 };
 
 export type KitId =
@@ -186,14 +192,29 @@ export type Kit = {
   drones?: DroneUnit[];
   /** @agent:drones. Seconds the player's deployed drone is stunned (enemy Anti-Combat Drone). */
   stun?: number;
+  /** @agent:drones. Seconds elapsed in the player drone's current ion stun (swarm.ts ionHitsKit). Absent otherwise. */
+  ionT?: number;
+  /** @agent:drones. Seconds until the player can redeploy after a drone was destroyed (swarm.ts REDEPLOY_S). */
+  lost?: number;
   /** @agent:hacking. Enemy hacking drone: seconds of flight left. Absent while no drone is flying (extras/spike.ts). */
   hackFly?: number;
   /** @agent:hacking. Enemy hacking drone: the full flight time rolled at launch, for flight progress in the fx. */
   hackFlyTotal?: number;
   /** @agent:hacking. Enemy hacking drone: latched onto the player hull on `target`. */
   hackLatched?: boolean;
+  /**
+   * @agent:hacking. Backup Battery only: reactor bars an enemy Hacking pulse takes away right now (extras/spike.ts sets
+   * it, extras/cell.ts subtracts it). Hacking wiki, "Overview" (Backup Battery): "temporarily removes two regular power
+   * bars from reactor". Absent means 0.
+   */
+  drained?: number;
   /** @agent:hacking. Player crew id an enemy Mind Control hack is holding this pulse. */
   hackHeld?: string;
+  /**
+   * @agent:hack-rules. Player Hacking only: a launch picked while paused, committed on the next unpaused tick
+   * (extras/spike.ts). Hacking wiki, "Choosing your hacking target": "Once the game is unpaused, this choice is permanent".
+   */
+  hackQueued?: boolean;
 };
 
 /**
@@ -319,12 +340,40 @@ export type Ship = {
   pirate?: boolean;
   /** AI-Controlled Rebel Ships: "Automated ships are unmanned." Systems run without crew. */
   automated?: boolean;
+  /**
+   * @agent:hacking. Enemy hulls: the system or kit id the player's hacking drone is latched onto (extras/spike.ts).
+   * Hacking wiki, "Choosing your hacking target": "When the drone reaches the enemy ship, it latches onto the hull".
+   * Lives on the enemy ship, so it leaves with it. Absent while no player drone is attached.
+   */
+  hackDrone?: string;
+  /**
+   * @agent:hack-rules. Enemy hulls: the system or kit id the player's hacking drone is flying at (extras/spike.ts).
+   * Lives on the enemy ship so a drone still in flight is lost with it. Absent while no player drone is in flight.
+   */
+  hackFlying?: string;
   /** Enemy systems installed per the wiki that the sim does not run yet (drones, hacking, cloaking, …). */
   unwired?: { id: string; level: number }[];
   /** Enemy hull has a Crew Teleporter, so it can board. */
   boards?: boolean;
   /** Enemy Crew Teleporter plan for this fight (extras/sling.ts). Absent until the hull first acts on it. */
   boarding?: EnemyBoarding;
+  /** @agent:crewai. Enemy hulls: the crew AI's posts and tasks for this fight (extras/crewai.ts). Absent until it first plans. */
+  crewAi?: CrewAiState;
+  /** @agent:flagship. Rebel Flagship only: stage, Power Surge, and AI-takeover state (wiki/flagship-systems.ts). */
+  flagship?: FlagshipState;
+};
+
+/** @agent:crewai. One enemy crew task (extras/crewai.ts). `room` is the destination room id. */
+export type CrewAiTask = { kind: "heal" | "flee" | "shields" | "defend" | "fire" | "repair"; room: string };
+
+/** @agent:crewai. Enemy crew AI state on an enemy hull (extras/crewai.ts). */
+export type CrewAiState = {
+  /** Seconds until the next plan. */
+  t: number;
+  /** Crew id -> station room id the crew returns to when idle. */
+  post: Record<string, string>;
+  /** Crew id -> the task it is on. Absent means idle (at or walking to its post). */
+  task: Record<string, CrewAiTask>;
 };
 
 export type BeaconKind =
@@ -351,6 +400,11 @@ export type Beacon = {
   tier: string;
   flag: string;
   asteroid: boolean;
+  /**
+   * @agent:quests. Beacons, "Quest (marker) beacon": the quest this beacon holds (wiki/quests.ts QUESTS key).
+   * Drawn as 'QUEST' on the map from any distance. Absent on every other beacon.
+   */
+  quest?: string;
 };
 
 /** Between-sector chart. Names and colors come from the Sectors page. */
@@ -448,6 +502,11 @@ export type Game = {
   bossSurge: number;
   /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */
   ramStage: 1 | 2 | 3;
+  /**
+   * @agent:flagship. Rebel Flagship stage and surviving crew after the player jumps away mid-fight
+   * (wiki/flagship-systems.ts rememberFlagship). Absent before the first retreat and after a stage-1 retreat.
+   */
+  flagshipMemo?: import("./wiki/flagship-systems.ts").FlagshipMemo;
   flee: number;
   /** Enemy escape progress, 0 to 1, against enemyEscape.seconds. Moves only while enemyEscape.running. */
   enemyFlee: number;
@@ -475,6 +534,8 @@ export type Game = {
   routeHere: string;
   /** Hull chosen in the hangar. Restart uses it. */
   hullId?: string;
+  /** @agent:unlocks. Hull ids an event outcome unlocked this run (unlocks.ts grantUnlock). The store persists them. */
+  unlocked?: string[];
   /** Title TUTORIAL. Game Over uses the training sentence only for this run. */
   training: boolean;
   manual: boolean;
@@ -487,4 +548,31 @@ export type Game = {
   ramClock: number;
   /** Installed augments. Three is the cap. */
   augments: AugmentId[];
+  /**
+   * @agent:drones. Recent shots, rocks, and stray defense fire that struck an external drone (swarm.ts). Each entry
+   * ages in tickSwarm and drops after DRONE_BLAST_S, for a CombatFx burst at the orbit. Absent until the first hit.
+   */
+  droneBlasts?: DroneBlast[];
+  /** @agent:quests. Quests pushed to the next sector ("Added a quest marker to the next sector!"), wiki/quests.ts. */
+  questsNext?: string[];
+  /** @agent:quests. Slug of the event page that started the current fight (startCombat's `event`), for page win rewards. */
+  fightEvent?: string | null;
+};
+
+/** @agent:drones. One drone struck by a shot (swarm.ts noteBlast). */
+export type DroneBlast = {
+  /** Whose drone was struck. */
+  side: "player" | "enemy";
+  /** Schematic id of the drone. */
+  kind: string;
+  /** Enemy DroneUnit id; absent for the player's single drone. */
+  unitId?: string;
+  /** Which hull the drone orbits. */
+  at: "player-orbit" | "enemy-orbit";
+  /** What struck it. */
+  by: "shot" | "rock" | "defense";
+  /** "down" destroyed, "ion" stunned by an ion shot. */
+  result: "down" | "ion";
+  /** Seconds since the hit. */
+  age: number;
 };

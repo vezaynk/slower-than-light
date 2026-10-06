@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import {
   ACCEPT_ID,
   REFUSE_ID,
+  SCRIPTED_SURRENDERS,
   STALEMATE_FUEL,
   STALEMATE_SECONDS,
   rollSurrenderOffer,
@@ -192,5 +193,137 @@ describe("anti-stalemate (Enemy Ships, Note)", () => {
     g.enemyEscape!.mode = "never";
     run(g, STALEMATE_SECONDS + 5);
     assert.equal(g.phase, "combat");
+  });
+});
+
+describe("scripted surrenders (event pages)", () => {
+  /** A quiet fight started by the event `slug`, its hull already at the offer threshold. */
+  function eventFight(tier: string, slug: string, seed = 6): Game {
+    const g = createGame(seed);
+    g.player.weapons = [];
+    startCombat(g, tier, false, slug);
+    g.enemy!.weapons = [];
+    g.enemy!.boards = false;
+    g.boardTimer = 0;
+    g.enemyEscape!.mode = "never";
+    return g;
+  }
+  function offer(g: Game) {
+    g.enemySurrender!.chance = 100;
+    g.enemy!.hull = Math.max(1, Math.floor((g.enemy!.hullMax * (g.enemySurrender!.threshold - 1)) / 100));
+    run(g, 0.1);
+    assert.equal(g.phase, "event");
+  }
+
+  it("uses the page's chance and hull range instead of the faction row", () => {
+    const at = (slug: string, r: number) => {
+      const p = surrenderPlan({ tier: "pool", faction: "crystal", pirate: false, event: slug }, () => r);
+      return [p.chance, Math.round(p.threshold), p.event];
+    };
+    assert.deepEqual(at("crystal-fight-with-surrender-offer-human-crew", 0), [50, 30, "crystal-fight-with-surrender-offer-human-crew"]);
+    assert.deepEqual(at("crystal-fight-with-surrender-offer-hull-repairs", 1), [100, 40, "crystal-fight-with-surrender-offer-hull-repairs"]);
+    assert.deepEqual(at("pirate-briber", 0), [70, 30, "pirate-briber"]);
+    assert.deepEqual(at("remote-settlement", 0), [50, 20, "remote-settlement"]);
+    assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
+    assert.deepEqual(at("slug-home-nebula-surrender", 0), [100, 30, "slug-home-nebula-surrender"]);
+    assert.equal(SCRIPTED_SURRENDERS["slaver-friendly"].chance, 80);
+  });
+
+  it("never: the plural Rock pirates slugs, surrenderno pages, and Mantis ship-collectors' first fight", () => {
+    for (const slug of ["rock-pirates-fight", "rock-pirates-fight-near-sun", "rebel-transport-ship", "rebel-ship-warning", "mantis-ship-collectors"]) {
+      assert.equal(surrenderPlan({ tier: "pool", faction: "rebel", pirate: true, event: slug }, () => 0.5).chance, 0, slug);
+    }
+  });
+
+  it("startCombat hands the event slug to the plan", () => {
+    const g = eventFight("Pirate ship", "pirate-briber");
+    assert.equal(g.enemySurrender!.event, "pirate-briber");
+    assert.equal(g.enemySurrender!.chance, 70);
+  });
+
+  it("Human crew: a Human joins and the fight continues", () => {
+    const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
+    const crew = g.crew.filter((c) => c.side === "player").length;
+    offer(g);
+    assert.equal(g.event?.choices[0].label, "Accept their surrender.");
+    assert.equal(surrenderOfferView(g)?.crew, "Human");
+    const kills = g.kills;
+    choose(g, ACCEPT_ID);
+    assert.equal(g.phase, "combat");
+    assert.ok(g.enemy, "the fight continues");
+    assert.equal(g.kills, kills);
+    const mine = g.crew.filter((c) => c.side === "player");
+    assert.equal(mine.length, crew + 1);
+    assert.equal(mine[mine.length - 1].kin, "plain");
+    g.enemy!.hull -= 1;
+    run(g, 0.5);
+    assert.equal(g.phase, "combat", "no second offer");
+  });
+
+  it("hull repairs: low fuel and scrap plus 8 repairs, and the fight ends", () => {
+    const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-hull-repairs");
+    g.player.hull = g.player.hullMax - 12;
+    const fuel = g.fuel;
+    offer(g);
+    const o = surrenderOfferView(g)!;
+    assert.ok(o.fuel >= 1 && o.fuel <= 3);
+    assert.equal(o.missiles + o.parts, 0);
+    assert.equal(o.repairs, 8);
+    assert.ok(o.scrap > 0);
+    choose(g, ACCEPT_ID);
+    assert.equal(g.phase, "reward");
+    assert.equal(g.enemy, null);
+    assert.equal(g.player.hull, g.player.hullMax - 4);
+    assert.equal(g.fuel, fuel + o.fuel);
+  });
+
+  it("Pirate briber: high-tier Stuff", () => {
+    for (let seed = 1; seed < 12; seed++) {
+      const g = eventFight("Pirate ship", "pirate-briber", seed);
+      offer(g);
+      const o = surrenderOfferView(g)!;
+      assert.equal(o.tier, "high");
+      assert.equal([o.fuel, o.missiles, o.parts].filter((n) => n > 0).length, 2);
+      if (o.fuel) assert.ok(o.fuel >= 3 && o.fuel <= 6);
+      if (o.missiles) assert.ok(o.missiles >= 4 && o.missiles <= 8);
+      assert.equal(g.event?.choices[0].label, "Accept the more generous bribe and leave.");
+    }
+  });
+
+  it("Remote settlement: medium-tier Stuff", () => {
+    const g = eventFight("Pirate ship", "remote-settlement");
+    offer(g);
+    assert.equal(surrenderOfferView(g)!.tier, "medium");
+  });
+
+  it("Slaver: a crewmember and nothing else, and the fight ends", () => {
+    const g = eventFight("Pirate ship", "slaver-hostile");
+    const crew = g.crew.filter((c) => c.side === "player").length;
+    const before = { scrap: g.scrap, fuel: g.fuel };
+    offer(g);
+    const o = surrenderOfferView(g)!;
+    assert.ok(o.crew);
+    assert.equal(o.scrap + o.fuel + o.missiles + o.parts, 0);
+    choose(g, ACCEPT_ID);
+    assert.equal(g.phase, "reward");
+    assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
+    assert.deepEqual({ scrap: g.scrap, fuel: g.fuel }, before);
+  });
+
+  it("Slug Home Nebula: the Anti-Bio Beam", () => {
+    const g = eventFight("Slug ship", "slug-home-nebula-surrender");
+    offer(g);
+    assert.equal(surrenderOfferView(g)!.weapon, "antibio");
+    choose(g, ACCEPT_ID);
+    assert.ok(g.player.weapons.some((w) => w.defId === "antibio"));
+  });
+
+  it("a fight no event started keeps the generic Stuff cargo", () => {
+    const g = quietFight();
+    assert.equal(g.enemySurrender!.event, undefined);
+    offerNow(g);
+    const o = surrenderOfferView(g)!;
+    assert.equal(o.crew, undefined);
+    assert.equal(o.repairs, undefined);
   });
 });

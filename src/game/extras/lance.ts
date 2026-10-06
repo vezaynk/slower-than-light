@@ -1,5 +1,7 @@
 import type { Door, Game, Room, Ship } from "../types.ts";
-import { log, rand, sparePower } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
+import { kitBars, log, rand, sparePower } from "../sim.ts";
+import { hackPulseOn } from "./spike.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
 export const DISPLAY_NAME = "Artillery Beam";
@@ -64,6 +66,7 @@ export function installLance(g: Game): boolean {
     g.scrap -= INSTALL_COST;
   }
   g.player.kits.lance = blankKit();
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   return true;
 }
 
@@ -82,6 +85,8 @@ export function toggleLancePower(g: Game): void {
     return;
   }
   if (sparePower(g.player) < BARS) return;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.level - (kit.damage ?? 0) < BARS) return;
   kit.power = BARS;
   kit.on = true;
 }
@@ -143,18 +148,25 @@ function nick(g: Game, ship: Ship, room: Room): void {
  * Artillery Beam "Overview": a full charge fires on its own. The swipe still cannot be aimed; a room is chosen when the bar fills.
  * "Overview": powering off drains charge. INFERRED: a full bar empties in 2 seconds.
  * MISMATCH: no Zoltan Shield damage. "Overview" says 1 damage per each of the 2 ticks. This drill has no such shield.
- * MISMATCH: hacking does not cut this charge. "Overview" says a hack removes 4–7–10 seconds of progress.
+ * @agent:hacking. Under an enemy Hacking pulse on this kit the charge runs backwards at its own charge speed.
+ * Artillery Beam "Overview": "Hacking disruption reduces the charge progress only by 4-7-10 seconds." Hacking wiki,
+ * "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship weapons: drains charge (same effect as
+ * on weapons)", and on weapons "Draining speed is the same as speed as the base-level charging speed".
  */
 export function tickLance(g: Game, dt: number): void {
   const kit = g.player.kits.lance;
   if (!kit || !(dt > 0)) return;
-  if (kit.power < 1) {
+  if (kitBars(kit) < 1) {
     kit.aux = Math.max(0, kit.aux - dt / 2);
     return;
   }
   if (g.paused || g.phase !== "combat" || !g.enemy) return;
 
   const seconds = chargeSeconds(kit.level);
+  if (hackPulseOn(g, g.player, "lance")) {
+    kit.aux = Math.max(0, kit.aux - dt / seconds);
+    return;
+  }
   if (kit.aux < 1) kit.aux = Math.min(1, kit.aux + dt / seconds);
   if (kit.aux < 1) return;
   if (!kit.target) {

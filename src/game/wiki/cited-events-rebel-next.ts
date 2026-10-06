@@ -44,6 +44,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
           },
         ],
       },
+      // @agent:quests. "Reject his offer. You can never trust these Rebels." Its three results (the cache offer that can
+      // add a quest marker, boarders, the fight) run in wiki/quests.ts before citedChoose; this fx is what the table
+      // format can say about it.
+      {
+        id: "c:rebel-defector:1",
+        label: "Reject his offer. You can never trust these Rebels.",
+        fx: [{ k: "fight", tier: "Rebel ship" }],
+      },
     ],
   },
 ];

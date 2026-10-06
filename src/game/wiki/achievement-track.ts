@@ -9,7 +9,7 @@ import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
 import type { Difficulty, Game } from "../types.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
 
-const STORAGE_KEY = "ashwake-achievements-v1";
+const STORAGE_KEY = "stl-achievements-v1";
 
 type Rule = {
   id: string;

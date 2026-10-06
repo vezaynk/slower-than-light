@@ -350,7 +350,7 @@ export function PixelTitle() {
           ),
         )}
       </g>
-      {blit("ASHWAKE", 152 - textWidth("ASHWAKE", 1), 19, 1, "#f4f7f4", "banner")}
+      {blit("STL", 152 - textWidth("STL", 1), 19, 1, "#f4f7f4", "banner")}
     </svg>
   );
 }
@@ -540,8 +540,9 @@ function shipPixels(ship: (typeof FLEET)[number]) {
   return rects;
 }
 
-/** Title: planet and fleet on the left, the ASHWAKE mark and the menu on the right. */
+/** Title: planet and fleet on the left, the STL mark, the Slower Than Light subtitle and the menu on the right. */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
+  const subtitle = "SLOWER THAN LIGHT";
   const mark = "FAN PROJECT · INSPIRED BY FTL";
   const version = "v. 0.1";
   return (
@@ -554,7 +555,8 @@ export function PixelMenu({ continueReady }: { continueReady: boolean }) {
         <rect key={`p${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="2" height="2" fill={cell.fill} />
       ))}
       {FLEET.map((ship) => shipPixels(ship))}
-      {blit("ASHWAKE", TITLE_VIEW.w - MENU_RIGHT - textWidth("ASHWAKE", 4), 24, 4, "#f4f7f4", "logo")}
+      {blit("STL", TITLE_VIEW.w - MENU_RIGHT - textWidth("STL", 4), 24, 4, "#f4f7f4", "logo")}
+      {blit(subtitle, TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1), 58, 1, "#c8c8c8", "subtitle")}
       {TITLE_LINES.map((item, i) =>
         blit(
           item.label,

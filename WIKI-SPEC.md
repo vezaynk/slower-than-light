@@ -1,4 +1,4 @@
-# Ashwake wiki spec
+# STL: Slower Than Light wiki spec
 
 Source: latest-only public dump of ftl.fandom.com (`ftl.fandom.com-20261002-current.xml`, `pages.jsonl`). Namespace 0 articles are the rules. Namespace 6 file names are the layout pictures; the bytes stay in the dump. Namespace 10 templates and namespace 14 categories are used only where they state a mechanic (weapon tables, store stock, scrap tiers, crew comparison, event categories). No user page, talk page, message wall, forum, board, or blog thread was used.
 

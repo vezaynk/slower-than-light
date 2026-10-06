@@ -147,7 +147,7 @@ const ALL_SYS: SysId[] = [
   "doors",
 ];
 
-const SAVE_KEY = "ashwake-save-v1";
+const SAVE_KEY = "stl-save-v1";
 
 // INVENTED: seeded rng, ids, log lines, and floating text. No fetched page specifies them.
 // Score, s: wallet is what the player receives. eligible is what counts, defaulting to the wallet.

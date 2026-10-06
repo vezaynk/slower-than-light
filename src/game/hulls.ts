@@ -15,7 +15,7 @@ import { MANTIS_HULLS } from "./wiki/hulls-mantis.ts";
  * Scrap is not on these pages. The caller keeps the existing 10.
  *
  * @agent:unlocks. `unlock` is the page's line for the hangar lock card. The rules that gate START live in
- * unlocks.ts (pure) and unlock-store.ts (localStorage "ashwake:unlocks").
+ * unlocks.ts (pure) and unlock-store.ts (localStorage "stl:unlocks").
  */
 
 export type HullCrew = {

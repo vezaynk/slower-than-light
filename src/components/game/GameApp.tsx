@@ -289,9 +289,9 @@ export function GameApp() {
     window.addEventListener("keydown", onKey);
     document.addEventListener("visibilitychange", onVis);
     const w = window as unknown as {
-      __ashwake?: { game: () => Game; act: (fn: (g: Game) => void) => void };
+      __stl?: { game: () => Game; act: (fn: (g: Game) => void) => void };
     };
-    w.__ashwake = {
+    w.__stl = {
       game: () => useGame.getState().game,
       act: (fn) => useGame.getState().act(fn),
     };
@@ -1257,7 +1257,7 @@ function TitlePanel() {
   return (
     <div className="title-panel" onClick={(e) => e.stopPropagation()}>
       <p>CREDITS</p>
-      <p className="title-panel-body">Ashwake is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
+      <p className="title-panel-body">STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
       <p>v. 0.1</p>
     </div>
   );

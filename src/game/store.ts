@@ -61,8 +61,8 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
  * would leave the game loop ticking the old one while the screen shows a fresh, frozen one. So in dev
  * there is one store per page: a re-run keeps the run in progress and only swaps in the new actions.
  */
-type Shared = { __ashwakeStore?: UseBoundStore<StoreApi<Store>> };
-const shared = import.meta.env?.DEV ? (globalThis as Shared).__ashwakeStore : undefined;
+type Shared = { __stlStore?: UseBoundStore<StoreApi<Store>> };
+const shared = import.meta.env?.DEV ? (globalThis as Shared).__stlStore : undefined;
 
 export const useGame: UseBoundStore<StoreApi<Store>> =
   shared ??
@@ -73,4 +73,4 @@ export const useGame: UseBoundStore<StoreApi<Store>> =
   });
 
 if (shared) shared.setState(actions(shared.setState, shared.getState));
-if (import.meta.env?.DEV) (globalThis as Shared).__ashwakeStore = useGame;
+if (import.meta.env?.DEV) (globalThis as Shared).__stlStore = useGame;

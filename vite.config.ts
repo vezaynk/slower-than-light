@@ -143,7 +143,7 @@ function authPopupPlugin(): Plugin {
 }
 
 /**
- * Static GitHub Pages build: `PAGES_BASE=/ashwake/ npm run build:pages`. The game
+ * Static GitHub Pages build: `PAGES_BASE=/slower-than-light/ npm run build:pages`. The game
  * is client-only (SSR off in src/start.ts), so the SPA shell prerenders to a
  * plain index.html and no Nitro server is needed.
  */

@@ -12,14 +12,14 @@
  *    every ship (excluding the Lanius Cruiser). Do not have Layout C."
  *
  * The sim stays pure: an event outcome calls grantUnlock, which only writes `g.unlocked` on the run.
- * The store calls noteUnlocks after each step; that reads the run and writes localStorage ("ashwake:unlocks").
+ * The store calls noteUnlocks after each step; that reads the run and writes localStorage ("stl:unlocks").
  * Advanced Edition Content is always on in this build (Hangar.tsx header), so the C rule needs no AE check.
  */
 import { HULLS, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
 import { ACHIEVEMENTS } from "./wiki/achievements.ts";
 
-export const UNLOCKS_KEY = "ashwake:unlocks";
+export const UNLOCKS_KEY = "stl:unlocks";
 
 const DIFFICULTIES = ["easy", "normal", "hard"] as const;
 

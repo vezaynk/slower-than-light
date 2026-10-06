@@ -361,7 +361,7 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-const HIGH_KEY = "ashwake-high-score";
+const HIGH_KEY = "stl-high-score";
 
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
   if (game.outcome === "victory") {

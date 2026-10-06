@@ -191,7 +191,7 @@ describe("ship unlocks (Ships, Layouts)", () => {
   });
 });
 
-describe("unlock storage (ashwake:unlocks)", () => {
+describe("unlock storage (stl:unlocks)", () => {
   it("persists progress across runs and survives a reload", () => {
     const bag = memoryStorage();
     assert.equal(isUnlocked("engi-a"), false);

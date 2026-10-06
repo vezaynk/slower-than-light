@@ -4,7 +4,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "ASHWAKE";
+const APP_NAME = "STL: Slower Than Light";
 const BASE = import.meta.env.BASE_URL;
 
 export const Route = createRootRoute({

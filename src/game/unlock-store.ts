@@ -1,6 +1,6 @@
 /**
  * @agent:unlocks. Storage side of the ship unlock system (unlocks.ts holds the pure rules).
- * Keeps the unlock state in localStorage under "ashwake:unlocks", across runs. Every access is wrapped in try/catch;
+ * Keeps the unlock state in localStorage under "stl:unlocks", across runs. Every access is wrapped in try/catch;
  * a blocked or full storage keeps the in-memory copy for this session.
  *
  * Developer switch: "?unlockAll=1" on the page URL unlocks every layout (and persists it), the same as the

@@ -19,7 +19,7 @@ function laser(damage: number, room = "p-weapons"): Shot {
   };
 }
 
-describe("ashwake rules", () => {
+describe("stl rules", () => {
   it("starts with one shield layer and wiki evasion from engines plus manning", () => {
     const g = createGame(2);
     assert.equal(g.player.shieldNow, 1);

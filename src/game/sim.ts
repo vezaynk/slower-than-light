@@ -1283,13 +1283,18 @@ export function applyImpact(g: Game, shot: Shot) {
     // Beam (Weapons), "Beam targeting and damage mechanics": each shield layer cuts the room's damage by 1, and the beam does not pop a layer.
     // Hull Beam's systemless 2 is cut the same way, per room. A system room at 1 damage still skids off one layer.
     const reduce = ship.shieldNow;
+    // Beam (Weapons), Anti-Bio Beam and Fire Beam: Damage is "-".
+    // INFERRED: a dash is not a figure a shield layer can remove, so the room effect still lands.
+    // Regular shields are not popped. A damage number, even 1, is still cut by each layer.
+    const dashed = shot.damage <= 0;
     let landed = false;
     for (const id of shot.beamRooms ?? [shot.targetRoom]) {
       const room = roomById(ship, id);
       if (!room) continue;
-      const system = Math.max(0, shot.damage - reduce);
-      const hull = roomHull(shot, room, system, reduce);
-      if (system <= 0 && hull <= 0) continue;
+      const system = dashed ? 0 : Math.max(0, shot.damage - reduce);
+      const hull = dashed ? 0 : roomHull(shot, room, system, reduce);
+      const roomEffect = dashed && (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
+      if (system <= 0 && hull <= 0 && !roomEffect) continue;
       landed = true;
       strikeRoom(g, ship, aboard, id, system, shot, playerTarget, hull);
     }
@@ -1426,7 +1431,9 @@ function strikeRoom(
 ) {
   const r = roomById(ship, roomId);
   const hull = hullDamage;
-  if (!r || (damage <= 0 && hull <= 0)) return;
+  // A damage dash still reaches the room: Anti-Bio's crew HP, or a Fire Beam's fire roll.
+  const dashed = shot.kind === "beam" && shot.damage <= 0 && (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
+  if (!r || (damage <= 0 && hull <= 0 && !dashed)) return;
   if (damage > 0) {
     if (r.kit) hurtKit(ship, r.kit, damage);
     if (r.system) {

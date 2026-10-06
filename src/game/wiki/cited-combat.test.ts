@@ -256,3 +256,90 @@ describe("flagship stages inside the fight", () => {
     assert.equal(g.scrap, afterTwo);
   });
 });
+
+describe("beams with a damage dash", () => {
+  function quietEnemy() {
+    const g = createGame(8);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    enemy.systems.engines.power = 0;
+    enemy.shieldNow = 2;
+    enemy.zoltan = 0;
+    enemy.hull = 20;
+    const room = enemy.rooms.find((item) => item.system);
+    assert.ok(room?.system);
+    const elsewhere = enemy.rooms.find((item) => item.id !== room.id);
+    assert.ok(elsewhere);
+    for (const member of g.crew) {
+      if (member.room === room.id) member.room = elsewhere.id;
+    }
+    const crew = g.crew.find((member) => member.hp > 0);
+    assert.ok(crew);
+    crew.aboard = "enemy";
+    crew.room = room.id;
+    crew.hp = 100;
+    return { g, enemy, room, crew, sys: room.system };
+  }
+
+  it("deals Anti-Bio crew damage through regular shields and leaves the hull alone", () => {
+    const { g, enemy, room, crew, sys } = quietEnemy();
+    const before = enemy.systems[sys].damage;
+    applyImpact(
+      g,
+      shot({
+        kind: "beam",
+        from: "player",
+        damage: 0,
+        defId: "antibio",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+      }),
+    );
+    assert.equal(crew.hp, 40);
+    assert.equal(enemy.hull, 20);
+    assert.equal(enemy.shieldNow, 2);
+    assert.equal(enemy.systems[sys].damage, before);
+  });
+
+  it("still stops a 1-damage beam on one shield layer", () => {
+    const { g, enemy, room, crew } = quietEnemy();
+    enemy.shieldNow = 1;
+    applyImpact(
+      g,
+      shot({
+        kind: "beam",
+        from: "player",
+        damage: 1,
+        defId: "mini",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+      }),
+    );
+    assert.equal(crew.hp, 100);
+    assert.equal(enemy.hull, 20);
+    assert.equal(enemy.shieldNow, 1);
+    assert.match(g.log[0] ?? "", /skids off/);
+  });
+
+  it("lets a Fire Beam start a fire through shields without hull or crew damage", () => {
+    const { g, enemy, room, crew } = quietEnemy();
+    room.fire = 0;
+    applyImpact(
+      g,
+      shot({
+        kind: "beam",
+        from: "player",
+        damage: 0,
+        defId: "firebeam",
+        fireChance: 1,
+        targetRoom: room.id,
+        beamRooms: [room.id],
+      }),
+    );
+    assert.equal(room.fire, 1);
+    assert.equal(crew.hp, 100);
+    assert.equal(enemy.hull, 20);
+    assert.equal(enemy.shieldNow, 2);
+  });
+});

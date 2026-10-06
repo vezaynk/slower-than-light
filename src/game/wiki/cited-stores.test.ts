@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { BUNDLE_OTHER, BUNDLE_PATCH } from "../extras/swarm.ts";
 import { buy, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, WeaponInst } from "../types.ts";
 import { CITED_DRONES, CRYSTAL_SECTOR_WEAPONS, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
@@ -39,6 +40,7 @@ function ownEveryPricedSystem(g: Game) {
   g.player.kits.leash = kit("leash");
   g.player.kits.spike = kit("spike");
   g.player.kits.cell = kit("cell");
+  g.player.kits.swarm = kit("swarm", 2);
 }
 
 function kinds(g: Game) {
@@ -46,7 +48,7 @@ function kinds(g: Game) {
 }
 
 describe("cited stores", () => {
-  it("offers missing shields at 125, spends that scrap once, and does not offer Drone Control", () => {
+  it("offers missing shields at 125 and spends that scrap once", () => {
     const g = openStore(4, (game) => {
       game.player.systems.shields.level = 0;
       game.player.systems.shields.power = 2;
@@ -195,6 +197,54 @@ describe("cited stores", () => {
         false,
       );
     }
+  });
+
+  it("sells Drone Control at 75 with System Repair and at 85 with the other two schematics", () => {
+    assert.equal(BUNDLE_PATCH, 75);
+    assert.equal(BUNDLE_OTHER, 85);
+    const cases = [
+      { seed: 0, id: "sys-swarm-patch", detail: "System Repair Drone", cost: 75, target: "patch" },
+      { seed: 1, id: "sys-swarm-ward", detail: "Defense Drone Mark I", cost: 85, target: "ward" },
+      { seed: 2, id: "sys-swarm-striker", detail: "Combat Drone Mark I", cost: 85, target: "striker" },
+      { seed: -1, id: "sys-swarm-striker", detail: "Combat Drone Mark I", cost: 85, target: "striker" },
+    ];
+    for (const row of cases) {
+      const g = createGame(1);
+      ownEveryPricedSystem(g);
+      delete g.player.kits.swarm;
+      g.seed = row.seed;
+      const stock = citedStock(g);
+      assert.equal(g.seed, row.seed);
+      const item = stock.find((entry) => entry.ref === "swarm");
+      assert.ok(item, String(row.seed));
+      assert.equal(item.id, row.id);
+      assert.equal(item.name, "Drone Control");
+      assert.equal(item.cost, row.cost);
+      assert.match(item.detail, new RegExp(row.detail));
+      assert.equal(stock.filter((entry) => entry.kind === "drone").length, 0);
+      g.stock = stock;
+      g.scrap = row.cost - 1;
+      buy(g, item.id);
+      assert.equal(g.player.kits.swarm, undefined);
+      g.scrap = row.cost;
+      buy(g, item.id);
+      assert.equal(g.scrap, 0);
+      assert.equal(g.player.kits.swarm?.level, 2);
+      assert.equal(g.player.kits.swarm?.power, 0);
+      assert.equal(g.player.kits.swarm?.target, row.target);
+      assert.equal(g.player.kits.swarm?.on, false);
+      assert.equal(
+        g.player.rooms.some((room) => room.kit === "swarm"),
+        true,
+      );
+    }
+    const owned = createGame(1);
+    ownEveryPricedSystem(owned);
+    owned.seed = 0;
+    assert.equal(
+      citedStock(owned).some((item) => item.ref === "swarm"),
+      false,
+    );
   });
 
   it("adds 1, 2, or 3 slots from g.seed % 3 and does not advance the seed", () => {

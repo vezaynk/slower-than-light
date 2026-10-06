@@ -19,6 +19,7 @@ import { flagshipDronePower } from "../wiki/flagship-systems.ts";
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
  * A store bundle with a System Repair drone is 75. Any other bundled schematic is 85.
  * The naked 60 is not what a store charges, so installSwarm still refuses.
+ * cited-stores.ts sells the labeled bundles: 75 with System Repair, 85 otherwise.
  * There is no heading on that paragraph. "Overview" is the next heading, not its section.
  */
 export const INSTALL_SCRAP: number | null = null;

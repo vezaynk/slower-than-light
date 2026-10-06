@@ -13,7 +13,8 @@ import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
  * Template:Purchasable systems (WIKI-SPEC section 7):
  * Shields 125, Medbay 50, Clone Bay 50, Crew Teleporter 90, Cloaking 150,
  * Mind Control 75, Hacking 80, Sensors 40, Door System 60, Backup Battery 35.
- * Drone Control is printed as both 75 and 85 with no label on the split, so it is not offered.
+ * Drone Control is a bundle, not a row of this list: 75 with a System Repair Drone,
+ * 85 with a Defense Drone Mark I or a Combat Drone Mark I. The naked 60 is not a shelf price.
  * Artillery Beam and Flak Artillery have kit ids and no purchase price on that list.
  */
 
@@ -33,6 +34,20 @@ const SYSTEMS: readonly Offer[] = [
   { slot: "sys", ref: "doors", name: "Door System", cost: 60 },
   { slot: "kit", ref: "cell", name: "Backup Battery", cost: 35 },
 ];
+
+/**
+ * Drone Control, the paragraph above "Overview": a store purchase always includes one of
+ * System Repair Drone (75), Defense Drone Mark I (85), or Combat Drone Mark I (85).
+ * Template:Purchasable systems names the same split. The base 60 is not charged.
+ * INFERRED: g.seed % 3 picks which of the three, and the seed is not advanced.
+ * Template order puts Drone Control after Hacking, so the sort key is 6.5.
+ */
+const SWARM_BUNDLE = [
+  { schematic: "patch", label: "System Repair Drone", cost: 75 },
+  { schematic: "ward", label: "Defense Drone Mark I", cost: 85 },
+  { schematic: "striker", label: "Combat Drone Mark I", cost: 85 },
+] as const;
+const SWARM_SORT = 6.5;
 
 // Augmentations, the paragraph above "Offensive Augmentations": up to three augmentations.
 const AUGMENT_CAP = 3;
@@ -70,7 +85,7 @@ const CREW: readonly { ref: KinId; cost: number }[] = [
  * Drone Control prices that drone at 50. The template prices it at 60.
  * Two printed prices, so that schematic is not in this list.
  * Shield Overcharger + prints "Sells for: 30" and no purchase price, so it is not here.
- * Drone Control itself prints 75 and 85. It is not a schematic row.
+ * Drone Control itself is the system bundle below, not a schematic row.
  */
 export const CITED_DRONES: readonly { ref: string; name: string; cost: number }[] = [
   { ref: "striker", name: "Combat Drone Mark I", cost: 50 },
@@ -153,18 +168,36 @@ function systemRank(g: Game, row: Offer): number {
   return 3;
 }
 
+function swarmBundle(g: Game) {
+  return SWARM_BUNDLE[((g.seed % 3) + 3) % 3];
+}
+
+function hasSwarm(g: Game): boolean {
+  return (g.player.kits.swarm?.level ?? 0) > 0;
+}
+
 function systemItems(g: Game): StockItem[] {
-  const rows = SYSTEMS.filter((row) => !ownedSystem(g, row))
-    .map((row, index) => ({ row, index }))
-    .sort((a, b) => systemRank(g, a.row) - systemRank(g, b.row) || a.index - b.index)
-    .map((entry) => entry.row)
-    .slice(0, SLOT);
-  return rows.map((row) => ({
-    id: `sys-${row.ref}`,
+  const bundle = swarmBundle(g);
+  const rows = SYSTEMS.filter((row) => !ownedSystem(g, row)).map((row) => ({
+    row,
+    index: SYSTEMS.indexOf(row),
+  }));
+  if (!hasSwarm(g)) {
+    rows.push({
+      row: { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost },
+      index: SWARM_SORT,
+    });
+  }
+  rows.sort((a, b) => systemRank(g, a.row) - systemRank(g, b.row) || a.index - b.index);
+  return rows.slice(0, SLOT).map(({ row }) => ({
+    id: row.ref === "swarm" ? `sys-swarm-${bundle.schematic}` : `sys-${row.ref}`,
     kind: "system" as const,
     ref: row.ref,
     name: row.name,
-    detail: `Template:Purchasable systems. ${row.name} ${row.cost}.`,
+    detail:
+      row.ref === "swarm"
+        ? `Drone Control, the paragraph above Overview. Bundled with ${bundle.label}.`
+        : `Template:Purchasable systems. ${row.name} ${row.cost}.`,
     cost: row.cost,
     amount: 1,
   }));
@@ -247,6 +280,22 @@ function clearMedbay(g: Game) {
 }
 
 function grantSystem(g: Game, item: StockItem): boolean {
+  if (item.ref === "swarm") {
+    const schematic = SWARM_BUNDLE.find((row) => item.id === `sys-swarm-${row.schematic}`)?.schematic;
+    if (!schematic || hasSwarm(g)) return false;
+    // Same shape as installSwarmBundle. buy() spends the scrap. 2 levels, schematic selected, not deployed.
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: schematic,
+      on: false,
+      aux: 0,
+    };
+    return true;
+  }
   const row = SYSTEMS.find((offer) => offer.ref === item.ref);
   if (!row) return false;
   const medbayLevel = g.player.systems.medbay.level;

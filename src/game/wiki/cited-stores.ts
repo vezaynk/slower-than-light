@@ -468,6 +468,7 @@ export function citedSell(g: Game, id: string): boolean {
     if (g.armed === uid) {
       g.armed = null;
       g.targeting = false;
+      g.beamAnchor = null;
     }
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;

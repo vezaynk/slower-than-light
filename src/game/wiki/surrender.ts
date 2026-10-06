@@ -673,6 +673,7 @@ function openOffer(g: Game) {
   g.phase = "event";
   g.paused = true;
   g.targeting = false;
+  g.beamAnchor = null;
   // INVENTED: the hail text. The page gives no generic surrender line. A scripted surrender uses its page's text.
   g.event = scripted
     ? {

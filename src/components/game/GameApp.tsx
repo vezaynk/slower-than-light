@@ -75,7 +75,7 @@ import {
 } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { Crew, Game, KitId, SysId } from "@/game/types";
+import type { BeamLine, Crew, Game, KitId, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { FullscreenButton } from "./FullscreenButton";
@@ -594,6 +594,12 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   );
 }
 
+/** Queued player beam swipes. A powered gun keeps the segment it will fire. */
+function beamLinesOf(game: Game): BeamLine[] {
+  const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
+  return game.player.weapons.flatMap((w, i) => (w.beamLine && mask[i] ? [w.beamLine] : []));
+}
+
 /** Queued rooms for powered player guns. Numbers match the dock slots (1–4). */
 function aimMarks(game: Game): AimMark[] {
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
@@ -665,6 +671,9 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
               {clones.count > 1 ? ` +${clones.count - 1}` : ""}
             </p>
           ) : null}
+          {game.targeting && game.beamAnchor && !hackAiming ? (
+            <p className="beam-hint">Click the end of the beam</p>
+          ) : null}
         </div>
       </div>
       {/* Documented hulls vary in width; tiles shrink so the widest still fits the panel. */}
@@ -678,9 +687,11 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           selectedId={null}
           ventMode={false}
           targetable
-          onRoom={(id) => (hackAiming ? hackRoomClick(id) : act((g) => aim(g, id)))}
+          onRoom={(id, point) => (hackAiming ? hackRoomClick(id) : act((g) => aim(g, id, point)))}
           onCrew={() => undefined}
           aims={aimMarks(game)}
+          beamAnchor={game.targeting && !hackAiming ? game.beamAnchor : null}
+          beamLines={beamLinesOf(game)}
           hackMark={hackMark}
           hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}
         />

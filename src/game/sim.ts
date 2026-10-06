@@ -71,6 +71,7 @@ import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { hullById } from "./hulls.ts";
+import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, citedOwns, stampCitedEvents } from "./wiki/cited-events.ts";
@@ -121,6 +122,7 @@ import type {
   Crew,
   Difficulty,
   Door,
+  BeamPoint,
   DoorMark,
   Game,
   Kit,
@@ -897,9 +899,21 @@ export function orderCrew(g: Game, crewId: string, dest: string) {
  * Weapon Control, Overview: a left click or keys 1–4 activate the slot and it begins charging.
  * Clicking or pressing a slot that is already charging changes the cursor to targeting mode.
  */
+function stopTargeting(g: Game) {
+  g.targeting = false;
+  g.beamAnchor = null;
+}
+
+function dropQueued(w: WeaponInst) {
+  w.target = null;
+  w.beamLine = null;
+}
+
 export function armWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
+  // A fresh aim starts at the first click. An unfinished beam start does not carry over.
+  g.beamAnchor = null;
   if (!w.enabled) {
     w.enabled = true;
     g.armed = weaponUid;
@@ -912,8 +926,9 @@ export function armWeapon(g: Game, weaponUid: string) {
   sfx(g, "click");
 }
 
-export function aim(g: Game, roomId: string) {
+export function aim(g: Game, roomId: string, point?: BeamPoint) {
   // Weapon Control, Overview: a target room is confirmed by a left click while the cursor is targeting.
+  // Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the start and the second click fires.
   if (!g.targeting) return;
   if (!g.enemy || !roomById(g.enemy, roomId)) return;
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
@@ -922,10 +937,17 @@ export function aim(g: Game, roomId: string) {
   const w = g.player.weapons[index];
   if (!w) {
     log(g, "No weapon selected.");
-    g.targeting = false;
+    stopTargeting(g);
     return;
   }
   g.armed = w.uid;
+  const def = WEAPONS[w.defId];
+  if (def?.kind === "beam") {
+    aimBeam(g, w, !!mask[index], roomId, point ?? roomCenter(roomById(g.enemy, roomId)!));
+    return;
+  }
+  g.beamAnchor = null;
+  w.beamLine = null;
   w.target = roomId;
   const title = roomById(g.enemy, roomId)?.title ?? "room";
   if (mask[index] && w.charge >= 1) launch(g, "player", w);
@@ -934,6 +956,37 @@ export function aim(g: Game, roomId: string) {
     sfx(g, "click");
   }
   // INFERRED: confirming the room leaves targeting mode. The overview does not say the cursor stays.
+  stopTargeting(g);
+}
+
+/**
+ * Beam (Weapons), "Beam targeting and damage mechanics":
+ * "The first click sets the starting point... The second click fires the beam."
+ * "Even catching a room with the tiniest edge of a beam... will deal full hull and system damage."
+ * The segment is the two clicks. Printed length does not shorten it.
+ */
+function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point: BeamPoint) {
+  const enemy = g.enemy;
+  if (!enemy) return;
+  const name = WEAPONS[w.defId]?.name ?? "Beam";
+  const anchor = g.beamAnchor;
+  if (!anchor) {
+    g.beamAnchor = point;
+    const title = roomById(enemy, roomId)?.title ?? "room";
+    log(g, `${name} start on ${title}.`);
+    sfx(g, "click");
+    return;
+  }
+  const rooms = roomsOnSegment(enemy, anchor, point);
+  w.beamLine = { a: anchor, b: point };
+  w.target = rooms[0] ?? roomId;
+  g.beamAnchor = null;
+  const titles = (rooms.length > 0 ? rooms : [w.target]).map((id) => roomById(enemy, id)?.title ?? "room");
+  if (powered && w.charge >= 1) launch(g, "player", w);
+  else {
+    log(g, `${name} aimed across ${titles.join(", ")}.`);
+    sfx(g, "click");
+  }
   g.targeting = false;
 }
 
@@ -943,9 +996,9 @@ export function aim(g: Game, roomId: string) {
  */
 export function cancelTargeting(g: Game) {
   if (!g.targeting) return;
-  g.targeting = false;
+  stopTargeting(g);
   const w = g.player.weapons.find((x) => x.uid === g.armed);
-  if (w) w.target = null;
+  if (w) dropQueued(w);
   sfx(g, "click");
 }
 
@@ -954,7 +1007,7 @@ export function depowerWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
   w.enabled = false;
-  g.targeting = false;
+  stopTargeting(g);
   sfx(g, "click");
 }
 
@@ -1011,13 +1064,27 @@ export function toggleAuto(g: Game, weaponUid: string) {
   reverseSlotAuto(g, weaponUid);
 }
 
-// INFERRED: the swipe is the aimed room plus one neighbor. Weapons, "Beams" does not give this path.
-function beamRooms(ship: Ship, origin: string): string[] {
+/**
+ * Beam (Weapons): "Enemies target beams inefficiently, starting the beam in the centre of a room."
+ * INFERRED: the rest of that swipe is one door-neighbour. The player draws a segment instead.
+ */
+function enemyBeamRooms(ship: Ship, origin: string): string[] {
   const r = roomById(ship, origin);
   if (!r) return [origin];
   const list = neighbors(ship, origin);
   const prefer = list.find((id) => roomById(ship, id)?.system) ?? list[0];
   return prefer ? [origin, prefer] : [origin];
+}
+
+function beamSwipe(from: "player" | "enemy", ship: Ship, w: WeaponInst): string[] {
+  if (from === "player") {
+    if (w.beamLine) {
+      const rooms = roomsOnSegment(ship, w.beamLine.a, w.beamLine.b);
+      if (rooms.length > 0) return rooms;
+    }
+    return w.target ? [w.target] : [];
+  }
+  return enemyBeamRooms(ship, w.target ?? "");
 }
 
 function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
@@ -1028,12 +1095,14 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
   const ship = from === "player" ? g.player : g.enemy;
   const targetShip = from === "player" ? g.enemy : g.player;
   if (!ship || !targetShip) return;
+  const rooms = def.kind === "beam" ? beamSwipe(from, targetShip, w) : [w.target];
+  if (rooms.length === 0 || !rooms[0]) return;
   if (def.ammo) {
     if (from === "player") {
       if (g.missiles <= 0) {
         // A queued shot would retry every tick, so it says so once and a one-shot target is dropped.
         if (g.log[0] !== "No missiles.") log(g, "No missiles.");
-        if (!slotAutofire(g, w)) w.target = null;
+        if (!slotAutofire(g, w)) dropQueued(w);
         return;
       }
       if (!keepMissile(g)) g.missiles -= 1;
@@ -1044,7 +1113,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
   // Ion (Weapons), Chain Ion: the shot uses this step, then the step advances. A dry missile returns above.
   const step = w.chain ?? 0;
   const ion = chainIonAmount(w.defId, step) ?? def.ion;
-  const rooms = def.kind === "beam" ? beamRooms(targetShip, w.target) : [w.target];
+  const line = def.kind === "beam" && w.beamLine ? { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } } : undefined;
   const shots = def.kind === "beam" ? 1 : def.shots;
   for (let i = 0; i < shots; i++) {
     g.shots.push({
@@ -1057,6 +1126,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
       breachChance: def.breach,
       targetRoom: rooms[0],
       beamRooms: def.kind === "beam" ? rooms : undefined,
+      beamLine: line,
       defId: w.defId,
       wait: i * def.gap,
       t: 0,
@@ -1066,7 +1136,8 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
   const next = nextChainStep(w.defId, step);
   if (next != null) w.chain = next;
   // INVENTED: a manual gun fires its queued room once and then needs a new target. Autofire keeps the room.
-  if (from === "player" && !slotAutofire(g, w)) w.target = null;
+  // INFERRED: autofire repeats the drawn beam segment. A manual beam needs a new line.
+  if (from === "player" && !slotAutofire(g, w)) dropQueued(w);
   const sound = def.kind === "flak" ? "laser" : def.kind === "bomb" ? "missile" : def.kind === "laser" ? "laser" : def.kind;
   sfx(g, sound);
   veilBrokenByFire(g, from, def.kind);
@@ -2383,7 +2454,10 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   for (const w of g.player.weapons) {
     w.charge = 0;
     w.target = null;
+    w.beamLine = null;
   }
+  g.beamAnchor = null;
+  g.targeting = false;
   g.shots = [];
   g.phase = "combat";
   g.paused = false;
@@ -2790,6 +2864,7 @@ export function createGame(
     mode: "crew",
     armed: "w-line",
     targeting: false,
+    beamAnchor: null,
     autofireAll: false,
     ramId: null,
     ramClock: 2,
@@ -3501,7 +3576,7 @@ export function step(g: Game, dt: number) {
   if (g.paused || g.phase !== "combat" || !g.enemy) {
     // @agent:hacking. A latched enemy hacking drone leaves with its ship: clear the hacked-room and door marks.
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
-    if (g.phase !== "combat") g.targeting = false;
+    if (g.phase !== "combat") stopTargeting(g);
     // A single step never advances more than 0.05s, matching the combat body below.
     // Boarders with no enemy hull (beginBoarding) use the crew fight. A fire on the map stays in tickIdleFires.
     if (idleShip(g)) {
@@ -3602,6 +3677,7 @@ export function loadGame(): Game | null {
     g.manual = false;
     if (g.armed === undefined) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
     if (g.targeting == null) g.targeting = false;
+    if (g.beamAnchor == null) g.beamAnchor = null;
     if (g.autofireAll == null) {
       g.autofireAll = false;
       for (const w of g.player.weapons) {

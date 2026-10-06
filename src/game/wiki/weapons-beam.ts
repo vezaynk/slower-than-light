@@ -233,6 +233,11 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
     note: 'Beam (Weapons), "Beam targeting and damage mechanics": the damage of a beam is reduced by one for every shield layer. Beams do not deplete regular shield layers. A 2-damage Halberd Beam deals 1 damage per room through 1 shield layer. Damage to crew drones is halved. A drone that already has health and is in the room takes half the crew damage.',
   },
   {
+    id: "swipe",
+    // Beam (Weapons), "Beam targeting and damage mechanics".
+    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the starting point and the second click fires. Even a tiny edge of a room counts, and damage is applied when the beam first enters that room. The rooms are the ones the straight segment between those two clicks crosses. Printed beam length is not used to shorten the segment. Halberd\'s "3-4 rooms straight, 2-3 diagonally, 5 max" is not the room rule. Enemies still start in the centre of a room. INFERRED: an enemy swipe adds one door-neighbour.',
+  },
+  {
     id: "zoltan-shield",
     // Beam (Weapons), "Beams vs Zoltan Shields".
     note: 'Beam (Weapons), "Beams vs Zoltan Shields": first damage instance at 33% of the beam path, second at 80%. Beams that do no hull damage do 1 damage per instance. A Halberd Beam deals 4 damage (2 x 2 instances). A Fire Beam or Anti-Bio Beam deals 2 damage (1 x 2 instances).',

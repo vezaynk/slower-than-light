@@ -148,6 +148,24 @@ export function CombatFx() {
       const hull = (side: "player" | "enemy") => box(host.querySelector(`.hull[data-ship="${side}"]`));
       const room = (side: "player" | "enemy", id: string) =>
         box(host.querySelector(`.hull[data-ship="${side}"] [data-room="${CSS.escape(id)}"]`));
+      // Player beam: the flight follows the two clicks, in the same tile space as the hull grid.
+      const tileOnHull = (side: "player" | "enemy", p: { x: number; y: number }): Pt | null => {
+        const el = host.querySelector(`.hull[data-ship="${side}"]`);
+        const origin = box(el);
+        if (!el || !origin) return null;
+        const cs = getComputedStyle(el);
+        const tile = parseFloat(cs.getPropertyValue("--tile")) || 0;
+        const gap = parseFloat(cs.columnGap) || 0;
+        const padX = parseFloat(cs.paddingLeft) || 0;
+        const padY = parseFloat(cs.paddingTop) || 0;
+        if (!(tile > 0)) return null;
+        const cx = Math.floor(p.x);
+        const cy = Math.floor(p.y);
+        return {
+          x: origin.x + padX + cx * (tile + gap) + (p.x - cx) * tile,
+          y: origin.y + padY + cy * (tile + gap) + (p.y - cy) * tile,
+        };
+      };
 
       const live = g.phase === "combat" && !g.paused;
       const time = now / 1000;
@@ -461,9 +479,12 @@ export function CombatFx() {
         const ang = Math.atan2(to.y - from.y + (shot.kind === "missile" ? Math.cos(t * Math.PI) * -24 * Math.PI : 0), to.x - from.x);
 
         if (shot.kind === "beam") {
+          const hullSide = shot.from === "player" ? "enemy" : "player";
+          const endA = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.a) : null;
+          const endB = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.b) : null;
           const rooms = (shot.beamRooms ?? [shot.targetRoom]).map((id) => aimAt(shot, id)).filter((p): p is Pt => !!p);
-          const a = rooms[0] ?? to;
-          const b = rooms[rooms.length - 1] ?? to;
+          const a = endA && endB ? endA : (rooms[0] ?? to);
+          const b = endA && endB ? endB : (rooms[rooms.length - 1] ?? to);
           const sweep = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
           ctx.lineCap = "square";
           ctx.strokeStyle = color;

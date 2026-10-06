@@ -43,7 +43,7 @@ export const BOSS_LASER: WeaponDef = {
  * "Beam (Weapon)", ====Boss Beam====: "Artillery system: with 3 system levels maximum", "32.5s for level 1, 26s for
  * level 2, 19.5s for level 3", "Beam length: 100 (2.2 tiles diagonally)", "Deals 2 damage per room hit".
  * "The Rebel Flagship": "None of the Flagship weapons can stun." No fire or breach percent is printed for it.
- * sim.ts beamRooms sweeps the aimed room and one neighbour, which fits a 2.2-tile beam.
+ * An enemy Boss Beam still swipes the aimed room and one neighbour. A player beam uses the drawn segment.
  */
 export const BOSS_BEAM: WeaponDef = {
   id: "bossbeam",

@@ -143,6 +143,9 @@ describe("beam weapons", () => {
     assert.match(gap("antibio"), /beam length 140/);
     assert.match(gap("antibio"), /60 HP/);
     assert.match(gap("shield-layers"), /reduced by one for every shield layer/);
+    assert.match(gap("swipe"), /second click fires/);
+    assert.match(gap("swipe"), /not used to shorten/);
+    assert.match(gap("swipe"), /one door-neighbour/);
     assert.match(gap("zoltan-shield"), /33%/);
     assert.match(gap("zoltan-shield"), /80%/);
   });

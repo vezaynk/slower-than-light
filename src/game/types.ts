@@ -15,6 +15,12 @@ export type SysId =
 
 export type WeaponKind = "laser" | "missile" | "ion" | "beam" | "flak" | "bomb";
 
+/** A point on a hull grid, in tile units. The integer part is the cell. */
+export type BeamPoint = { x: number; y: number };
+
+/** Player beam swipe. Both ends are clicks on the enemy ship, in tile space. */
+export type BeamLine = { a: BeamPoint; b: BeamPoint };
+
 export type SystemState = {
   level: number;
   power: number;
@@ -124,6 +130,11 @@ export type WeaponInst = {
   autoInvert?: boolean;
   target: string | null;
   /**
+   * Drawn swipe, in the enemy hull's tile space. The rooms on this segment are the shot.
+   * Absent until the player has clicked both ends. Enemy beams do not set it.
+   */
+  beamLine?: BeamLine | null;
+  /**
    * Chain step. Absent is the first printed step.
    * Laser (Weapons): Chain Burst 16/13/10/7, Chain Vulcan 11.1 down to 1.1.
    * Ion (Weapons): Chain Ion deals 1, then 2, 3, and 4 ion. Its charge stays 14 seconds.
@@ -142,6 +153,8 @@ export type Shot = {
   breachChance: number;
   targetRoom: string;
   beamRooms?: string[];
+  /** Player swipe in the target hull's tile space. The flight draws this segment. */
+  beamLine?: BeamLine;
   /** Weapon id, when the shot was launched from a mount. Tests may set it. */
   defId?: string;
   wait: number;
@@ -508,6 +521,8 @@ export type Game = {
   armed: string | null;
   /** Weapon Control, Overview: the cursor is in targeting mode. */
   targeting: boolean;
+  /** First click of a player beam, in enemy tile space. Null until that click. */
+  beamAnchor: BeamPoint | null;
   /** Weapon Control, Overview: autofire for every weapon. A slot's autoInvert reverses that. */
   autofireAll: boolean;
   mode: "crew" | "vent";

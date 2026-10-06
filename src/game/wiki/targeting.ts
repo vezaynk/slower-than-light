@@ -14,8 +14,8 @@
  *   depending on the system - works only on Hard difficulty".
  * - Boarding: "On Hard game difficulty, when your crew is onboard enemy ship, your Teleporter system will be among the
  *   priority targets for enemy weapons."
- * - Beam (Weapons): "Enemies target beams inefficiently, starting the beam in the centre of a room." sim.ts beamRooms
- *   already starts the swipe in the aimed room, so enemy beams need nothing extra here.
+ * - Beam (Weapons): "Enemies target beams inefficiently, starting the beam in the centre of a room."
+ *   Enemy beams still start in that room and add one door-neighbour (INFERRED). A player beam uses the drawn segment.
  * - Cloaking: "the AI fires weapons as soon as they are ready". Environmental Hazards, Anti-Ship Batteries: the shot
  *   hits "a random room".
  * Those pages link the xftl "combat-ai" doc and a reddit post for detail; neither is in the wiki dump, so the

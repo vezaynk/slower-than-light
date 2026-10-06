@@ -1,6 +1,8 @@
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { pointInRoom } from "@/game/beam-line";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
-import type { Crew, Ship } from "@/game/types";
+import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
@@ -81,7 +83,11 @@ type Props = {
   selectedId: string | null;
   ventMode: boolean;
   targetable: boolean;
-  onRoom: (id: string) => void;
+  onRoom: (id: string, point?: BeamPoint) => void;
+  /** First click of a beam, in this hull's tile space. The next click is the end. */
+  beamAnchor?: BeamPoint | null;
+  /** Queued player swipes, drawn across this hull. */
+  beamLines?: BeamLine[];
   onCrew: (id: string) => void;
   aims?: AimMark[];
   /** @agent:hack-ui. The player's hacking drone reticle (enemy ship only). */
@@ -103,14 +109,38 @@ export function ShipView({
   aims = [],
   hackMark = null,
   hackPick,
+  beamAnchor = null,
+  beamLines = [],
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
   const cells = cellOwners(ship.rooms);
+  const hullRef = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState<BeamPoint | null>(null);
+  useEffect(() => {
+    if (!beamAnchor) setHover(null);
+  }, [beamAnchor]);
+  const strokes: { a: BeamPoint; b: BeamPoint; preview: boolean }[] = [
+    ...beamLines.map((line) => ({ a: line.a, b: line.b, preview: false })),
+    ...(beamAnchor && hover ? [{ a: beamAnchor, b: hover, preview: true }] : []),
+  ];
   return (
     <div
+      ref={hullRef}
       className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}`}
       data-ship={aboard}
+      onPointerMove={
+        beamAnchor
+          ? (e) => {
+              const hull = hullRef.current;
+              if (!hull) return;
+              const roomEl = (e.target as Element | null)?.closest?.("[data-room]") ?? null;
+              const next = pointOnHull(hull, ship, e.clientX, e.clientY, roomEl);
+              if (next) setHover(next);
+            }
+          : undefined
+      }
+      onPointerLeave={beamAnchor ? () => setHover(null) : undefined}
       style={{
         gridTemplateColumns: `repeat(${ship.cols}, var(--tile))`,
         gridTemplateRows: `repeat(${ship.rows}, var(--tile))`,
@@ -152,7 +182,10 @@ export function ShipView({
               type="button"
               className="room-hit"
               aria-label={(targetable ? "Target " : "Open ") + room.title}
-              onClick={() => onRoom(room.id)}
+              onClick={(e) => {
+                const f = frac(e.currentTarget, e.clientX, e.clientY);
+                onRoom(room.id, pointInRoom(room, f.x, f.y));
+              }}
             />
             <div className="room-body">
               <div className="room-name">{roomLabel(room.title, room.w)}</div>
@@ -233,6 +266,100 @@ export function ShipView({
         );
       })}
       <Mounts ship={ship} crew={crew} aboard={aboard} />
+      <BeamOverlay hullRef={hullRef} lines={strokes} />
     </div>
+  );
+}
+
+function frac(el: HTMLElement, clientX: number, clientY: number): { x: number; y: number } {
+  const rect = el.getBoundingClientRect();
+  return {
+    x: rect.width > 0 ? (clientX - rect.left) / rect.width : 0.5,
+    y: rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5,
+  };
+}
+
+function pointOnHull(hull: HTMLElement, ship: Ship, clientX: number, clientY: number, roomEl: Element | null): BeamPoint | null {
+  if (roomEl) {
+    const id = roomEl.getAttribute("data-room");
+    const room = ship.rooms.find((r) => r.id === id);
+    if (room) {
+      const f = frac(roomEl as HTMLElement, clientX, clientY);
+      return pointInRoom(room, f.x, f.y);
+    }
+  }
+  const rect = hull.getBoundingClientRect();
+  const cs = getComputedStyle(hull);
+  const tile = parseFloat(cs.getPropertyValue("--tile")) || 0;
+  const gap = parseFloat(cs.columnGap) || 0;
+  const padX = parseFloat(cs.paddingLeft) || 0;
+  const padY = parseFloat(cs.paddingTop) || 0;
+  if (!(tile > 0)) return null;
+  const pitch = tile + gap;
+  const localX = clientX - rect.left - padX;
+  const localY = clientY - rect.top - padY;
+  const cx = Math.floor(localX / pitch);
+  const cy = Math.floor(localY / pitch);
+  if (cx < 0 || cy < 0 || cx >= ship.cols || cy >= ship.rows) return null;
+  const fx = (localX - cx * pitch) / tile;
+  const fy = (localY - cy * pitch) / tile;
+  return { x: cx + Math.min(Math.max(fx, 0), 0.999999), y: cy + Math.min(Math.max(fy, 0), 0.999999) };
+}
+
+function BeamOverlay({
+  hullRef,
+  lines,
+}: {
+  hullRef: RefObject<HTMLDivElement | null>;
+  lines: { a: BeamPoint; b: BeamPoint; preview: boolean }[];
+}) {
+  const [box, setBox] = useState({ tile: 0, gap: 0, padX: 0, padY: 0 });
+  useLayoutEffect(() => {
+    const el = hullRef.current;
+    if (!el) return;
+    const read = () => {
+      const cs = getComputedStyle(el);
+      setBox({
+        tile: parseFloat(cs.getPropertyValue("--tile")) || 0,
+        gap: parseFloat(cs.columnGap) || 0,
+        padX: parseFloat(cs.paddingLeft) || 0,
+        padY: parseFloat(cs.paddingTop) || 0,
+      });
+    };
+    read();
+    const obs = new ResizeObserver(read);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hullRef, lines.length]);
+  if (!(box.tile > 0) || lines.length === 0) return null;
+  const to = (p: BeamPoint) => {
+    const cx = Math.floor(p.x);
+    const cy = Math.floor(p.y);
+    return {
+      x: box.padX + cx * (box.tile + box.gap) + (p.x - cx) * box.tile,
+      y: box.padY + cy * (box.tile + box.gap) + (p.y - cy) * box.tile,
+    };
+  };
+  return (
+    <svg className="beam-stroke" aria-hidden="true">
+      {lines.map((line, i) => {
+        const a = to(line.a);
+        const b = to(line.b);
+        const preview = line.preview ? " is-preview" : "";
+        return (
+          <g key={`${i}-${line.preview ? "p" : "s"}`}>
+            <line className={`beam-ink${preview}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+            <line
+              className={`beam-hot${preview}`}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
+              data-beam={line.preview ? "preview" : "set"}
+            />
+          </g>
+        );
+      })}
+    </svg>
   );
 }

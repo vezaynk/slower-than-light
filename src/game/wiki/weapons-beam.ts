@@ -198,7 +198,7 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "hullbeam",
-    note: 'Beam (Weapons), "Hull Beam": beam length 100 (2.2 tiles diagonally). 2 damage on systemless rooms. Crew damage 15 HP per room tile. WeaponDef stores only the 1 damage per room.',
+    note: 'Beam (Weapons), "Hull Beam": beam length 100 (2.2 tiles diagonally). 2 damage on systemless rooms, applied as hull damage. Each shield layer cuts that figure by one. Crew damage 15 HP per room tile. WeaponDef stores only the 1 damage per room.',
   },
   {
     id: "halberd",

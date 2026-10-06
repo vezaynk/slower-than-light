@@ -103,7 +103,7 @@ import {
   lastStandRepairEvent,
 } from "./wiki/cited-sectors.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
-import { citedCrewDamage, citedPierce } from "./wiki/cited-weapons.ts";
+import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 import { SECTOR_TYPES } from "./wiki/sectors.ts";
@@ -1280,15 +1280,22 @@ export function applyImpact(g: Game, shot: Shot) {
     if (bubble != null) noteZoltan(g, playerTarget);
     if (bubble === 0) return;
     // Zoltan Shield, lead: if the bubble breaks before the swipe ends, the beam continues against regular shields or hull.
+    // Beam (Weapons), "Beam targeting and damage mechanics": each shield layer cuts the room's damage by 1, and the beam does not pop a layer.
+    // Hull Beam's systemless 2 is cut the same way, per room. A system room at 1 damage still skids off one layer.
     const reduce = ship.shieldNow;
-    const dmg = Math.max(0, shot.damage - reduce);
-    if (dmg <= 0) {
+    let landed = false;
+    for (const id of shot.beamRooms ?? [shot.targetRoom]) {
+      const room = roomById(ship, id);
+      if (!room) continue;
+      const system = Math.max(0, shot.damage - reduce);
+      const hull = roomHull(shot, room, system, reduce);
+      if (system <= 0 && hull <= 0) continue;
+      landed = true;
+      strikeRoom(g, ship, aboard, id, system, shot, playerTarget, hull);
+    }
+    if (!landed) {
       log(g, "Beam skids off the shields.");
       sfx(g, "shield");
-      return;
-    }
-    for (const id of shot.beamRooms ?? [shot.targetRoom]) {
-      strikeRoom(g, ship, aboard, id, dmg, shot, playerTarget);
     }
     return;
   }
@@ -1354,7 +1361,28 @@ export function applyImpact(g: Game, shot: Shot) {
     return;
   }
 
-  strikeRoom(g, ship, aboard, shot.targetRoom, damage, shot, playerTarget);
+  const struck = roomById(ship, shot.targetRoom);
+  // A Zoltan leftover is already reduced. The empty-room figure replaces hull only when the system-room figure is intact.
+  const hull =
+    struck && systemlessHull(shot.defId) != null && damage === shot.damage
+      ? roomHull(shot, struck, damage, 0)
+      : damage;
+  strikeRoom(g, ship, aboard, shot.targetRoom, damage, shot, playerTarget, hull);
+}
+
+/**
+ * Hull damage for one room.
+ * systemDamage is the system-room figure after shield reduction (beams) or after a Zoltan leftover (other shots).
+ * shieldCut is how many shield layers already came off a beam. Other shots pass 0; a shield still up stops them earlier.
+ * A system or kit room keeps systemDamage. A systemless room uses the printed hull figure, cut by shieldCut for a beam.
+ * A Zoltan leftover (systemDamage !== shot.damage, and not a beam) is not raised again.
+ */
+function roomHull(shot: Shot, room: Room, systemDamage: number, shieldCut: number): number {
+  const listed = systemlessHull(shot.defId);
+  if (listed == null || room.system != null || room.kit) return systemDamage;
+  if (shot.kind === "beam") return Math.max(0, listed - shieldCut);
+  if (systemDamage !== shot.damage) return systemDamage;
+  return listed;
 }
 
 /**
@@ -1394,21 +1422,25 @@ function strikeRoom(
   damage: number,
   shot: Shot,
   playerHurt: boolean,
+  hullDamage = damage,
 ) {
   const r = roomById(ship, roomId);
-  if (!r || damage <= 0) return;
-  if (r.kit) hurtKit(ship, r.kit, damage);
-  if (r.system) {
-    if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
-    // @agent:flagship. A flagship artillery room is its own system: only that gun slows (wiki/flagship-systems.ts).
-    else if (!hurtArtillery(ship, r.id, damage)) hurtSystem(ship, r.system, damage, zoltanBars(g.crew, ship, aboard, "shields"));
+  const hull = hullDamage;
+  if (!r || (damage <= 0 && hull <= 0)) return;
+  if (damage > 0) {
+    if (r.kit) hurtKit(ship, r.kit, damage);
+    if (r.system) {
+      if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
+      // @agent:flagship. A flagship artillery room is its own system: only that gun slows (wiki/flagship-systems.ts).
+      else if (!hurtArtillery(ship, r.id, damage)) hurtSystem(ship, r.system, damage, zoltanBars(g.crew, ship, aboard, "shields"));
+    }
   }
   // Bomb (Weapons) lead: bombs deal no hull damage. System damage above still lands.
   // Crew damage on a bomb is often its own figure (BOMB_GAPS). This still uses 15 per system point from Weapons, "Weapons: general information".
-  if (shot.kind !== "bomb") {
+  if (shot.kind !== "bomb" && hull > 0) {
     const held = playerHurt && negateHull(g);
     const before = ship.hull;
-    if (!held) ship.hull = Math.max(0, ship.hull - damage);
+    if (!held) ship.hull = Math.max(0, ship.hull - hull);
     else log(g, "Rock Plating held the hull.");
     // Augmentations, Crystal Vengeance: 10 percent chance when the ship takes damage.
     // A shield pop and Rock Plating are not hull loss. One roll per drop.
@@ -1418,7 +1450,11 @@ function strikeRoom(
   }
   r.flash = 0.35;
   // Weapons, "Weapons: general information": each point of system damage deals 15 crew damage.
-  const crewHit = citedCrewDamage(shot, damage) ?? 15 * damage;
+  // Laser (Weapons), "Types of lasers": Hull Laser crew damage is not increased on a systemless room, so this uses `damage`, not hull.
+  // A beam's printed crew HP still applies when the room takes hull and the shield cut the system figure to 0.
+  // INFERRED: that room was hit. The beam page's crew line is not "per point of system damage".
+  const printed = citedCrewDamage(shot, damage);
+  const crewHit = printed != null ? printed : 15 * Math.max(0, damage);
   for (const c of g.crew) {
     if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.hp -= crewHit;
   }
@@ -1431,7 +1467,8 @@ function strikeRoom(
       if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.stun = Math.max(c.stun ?? 0, SURGE_STUN_S);
     }
   }
-  floatAt(g, `−${damage}`, playerHurt ? 74 : 26, 30);
+  const shown = hull > 0 ? hull : damage;
+  floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30);
   sfx(g, "hit");
   if (playerHurt) {
     g.trauma = Math.min(1, g.trauma + 0.48);
@@ -1442,7 +1479,7 @@ function strikeRoom(
       sfx(g, "alarm");
     }
   } else {
-    log(g, `Their ${r.title} takes ${damage}.`);
+    log(g, `Their ${r.title} takes ${shown}.`);
   }
 }
 

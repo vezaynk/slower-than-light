@@ -310,11 +310,11 @@ export const LASER_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "hullsmash",
-    note: 'Laser (Weapons), "Hull Smasher Laser": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2.',
+    note: 'Laser (Weapons), "Hull Smasher Laser": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2 hull damage. Crew damage is not increased. "Types of lasers" states both.',
   },
   {
     id: "hullsmash2",
-    note: 'Laser (Weapons), "Hull Smasher Laser Mark II": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2.',
+    note: 'Laser (Weapons), "Hull Smasher Laser Mark II": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2 hull damage. Crew damage is not increased. "Types of lasers" states both.',
   },
   {
     id: "chainlaser",

@@ -219,6 +219,8 @@ export const MISSILE_GAPS = {
   hullmissile: {
     // Wiki page "Missile (Weapons)", ===Hull Missile===.
     // "Damage per shot: 2 (to system rooms) or 4 (to systemless rooms)". damage stores 2.
+    // sim.ts applies 4 as hull damage. Crew stay on the system-room 2.
+    // INFERRED from Laser (Weapons), "Types of lasers": Hull Laser crew damage is not increased on a systemless room.
     systemlessDamage: 4,
     // "BUGGED: not considered a missile weapon for events." kind stays missile.
     countedAsMissileInEvents: false,

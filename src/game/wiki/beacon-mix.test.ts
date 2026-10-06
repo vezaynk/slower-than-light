@@ -23,7 +23,38 @@ const byDest = (dest: string): MixEvent => {
   throw new Error(dest);
 };
 
+function reachable(g: Game): number {
+  const start = g.beacons.find((b) => b.kind === "start");
+  if (!start) return 0;
+  const seen = new Set<string>();
+  const queue = [start.id];
+  while (queue.length) {
+    const id = queue.pop()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const b = g.beacons.find((x) => x.id === id);
+    if (!b) continue;
+    for (const next of b.links) if (!seen.has(next)) queue.push(next);
+  }
+  return seen.size;
+}
+
 describe("beacon mix (Sectors, Beacons lists)", () => {
+  it("places 19 to 24 beacons on the 6 by 4 grid, all reachable", () => {
+    const counts = new Set<number>();
+    for (let seed = 1; seed <= 80; seed++) {
+      const g = createGame(seed);
+      counts.add(g.beacons.length);
+      assert.ok(g.beacons.length >= 19 && g.beacons.length <= 24, `${seed} ${g.beacons.length}`);
+      assert.equal(g.beacons.filter((b) => b.kind === "start").length, 1);
+      assert.equal(g.beacons.filter((b) => b.kind === "exit").length, 1);
+      assert.equal(reachable(g), g.beacons.length);
+      assert.ok(g.beacons.every((b) => b.col >= 0 && b.col <= 5 && b.row >= 0 && b.row <= 3));
+      for (let col = 0; col <= 5; col++) assert.ok(g.beacons.some((b) => b.col === col), `${seed} col ${col}`);
+    }
+    assert.ok(counts.size > 1);
+  });
+
   it("lists every sector type the Sectors page gives beacon counts for", () => {
     assert.equal(Object.keys(SECTOR_MIX).length, 19);
     const civ = SECTOR_MIX["Civilian Sector"].find((l) => l.slot === "hostile");

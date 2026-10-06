@@ -1399,8 +1399,9 @@ function mapY(row: number) {
 function MapScreen({ game }: { game: Game }) {
   const here = game.beacons.find((b) => b.id === game.here);
   const maxCol = game.beacons.reduce((m, b) => Math.max(m, b.col), 0);
+  const maxRow = game.beacons.reduce((m, b) => Math.max(m, b.row), 0);
   const w = mapX(maxCol) + 40;
-  const h = mapY(2) + 36;
+  const h = mapY(maxRow) + 36;
   const pct = (n: number, total: number) => `${(n / total) * 100}%`;
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (

@@ -8,9 +8,9 @@ import { drawFiller, stampEmptyNebula, stampFiller, type FillerList } from "./fi
  * "Technical details of sector generation and events": every line draws a count between its min and max
  * (inclusive), and a sector's specific events (stores, homeworld events) sit at the top so they are always present.
  *
- * The page's sectors hold 19-24 beacons; makeMap here builds 10-15 free middles (INVENTED geometry, unchanged).
- * INFERRED: the drawn counts are scaled to the free beacons by largest remainder; named special events and
- * The Last Stand's repair stations keep their exact count, and a store line keeps at least one store.
+ * makeMap places the 19-24 beacons. INFERRED: the drawn counts are scaled to the free beacons (everything but
+ * the start and the exit) by largest remainder; named special events and The Last Stand's repair stations keep
+ * their exact count, and a store line keeps at least one store. Beacons left after the list take the neutral fallback.
  */
 
 export type Slot =
@@ -371,6 +371,8 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
       fill(b, line);
     }
   });
+  // Fallback events: a beacon still empty after the sector list takes the NEUTRAL list.
+  while (at < free.length) plain(free[at++], "event", "filler");
 
   function fill(b: Beacon, line: MixLine) {
     switch (line.slot) {

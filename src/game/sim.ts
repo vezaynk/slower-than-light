@@ -2400,52 +2400,98 @@ export function buildRoute(seed: number): SectorNode[] {
   return nodes;
 }
 
-// INVENTED: column counts, links, and kind mix. Sectors, "Technical details of sector generation and events" is a 6×4 grid from event lists.
-function makeMap(g: Game) {
+// Walk the old column map on g.seed. Later fights and stores still draw from that stream.
+// The exit picket is the one roll this returns; the 6×4 grid does not roll it again.
+function burnLegacyMap(g: Game): boolean {
   const last = g.sector >= 8 ? 4 : 6;
-  const cols: Beacon[][] = [];
+  const cols: Beacon["kind"][][] = [];
   for (let c = 0; c <= last; c++) {
     const n = c === 0 || c === last ? 1 : rand(g) < 0.5 ? 2 : 3;
-    const col: Beacon[] = [];
-    for (let i = 0; i < n; i++) {
-      const row = n === 1 ? 1 : n === 2 ? (i === 0 ? 0 : 2) : i;
-      const kind = c === 0 || c === last ? "empty" : KINDS[irand(g, KINDS.length)];
-      col.push({
-        id: `s${g.sector}-c${c}-n${i}`,
-        col: c,
-        row,
-        links: [],
-        kind,
-        visited: false,
-        resolved: false,
-        name: "Beacon",
-        tier: "pool",
-        flag: "",
-        asteroid: false,
-      });
-    }
+    const col: Beacon["kind"][] = [];
+    for (let i = 0; i < n; i++) col.push(c === 0 || c === last ? "empty" : KINDS[irand(g, KINDS.length)]);
     cols.push(col);
   }
   for (let c = 0; c < last; c++) {
-    for (const b of cols[c]) {
-      const next = [...cols[c + 1]].sort((a, d) => Math.abs(a.row - b.row) - Math.abs(d.row - b.row));
-      link(b, next[0]);
-      if (next[1] && rand(g) < 0.7) link(b, next[1]);
-    }
-    for (const n of cols[c + 1]) {
-      if (!cols[c].some((b) => b.links.includes(n.id))) {
-        const parent = [...cols[c]].sort((a, d) => Math.abs(a.row - n.row) - Math.abs(d.row - n.row))[0];
-        link(parent, n);
-      }
+    if (cols[c + 1].length < 2) continue;
+    for (let i = 0; i < cols[c].length; i++) rand(g);
+  }
+  const picket = g.sector < 8 && rand(g) < (g.sector === 1 ? 0.45 : 0.7);
+  const middles = cols.flat().slice(1, -1);
+  if (!middles.some((kind) => kind === "store") && middles.length) middles[0] = "store";
+  for (const kind of middles) if (kind === "event") rand(g);
+  return picket;
+}
+
+// Sectors, lead: a sector contains 19 to 24 beacons.
+// Technical details: the map is a 6×4 grid; each square has an 80% chance of a beacon, and a square stays
+// filled once too many squares are already empty. INFERRED: "too many" is 5, because 24 − 5 = 19.
+// INFERRED: an empty column gets one beacon, so the exit stays reachable. Adjacent squares (including diagonals)
+// are linked. The page's 165-pixel cutoff assumes a pixel jitter this map does not have; a beacon with no
+// neighbor in the next column still links to the nearest one there.
+function makeMap(g: Game) {
+  const seed0 = g.seed;
+  const picket = burnLegacyMap(g);
+  const roll = { seed: seed0 } as Game;
+  const COLS = 6;
+  const ROWS = 4;
+  const placed: { col: number; row: number }[] = [];
+  let empty = 0;
+  for (let col = 0; col < COLS; col++) {
+    for (let row = 0; row < ROWS; row++) {
+      if (empty >= 5 || rand(roll) < 0.8) placed.push({ col, row });
+      else empty += 1;
     }
   }
-  const start = cols[0][0];
+  for (let col = 0; col < COLS; col++) {
+    if (placed.some((p) => p.col === col)) continue;
+    placed.push({ col, row: 1 });
+  }
+  const beacons: Beacon[] = placed.map((p) => ({
+    id: `s${g.sector}-c${p.col}-r${p.row}`,
+    col: p.col,
+    row: p.row,
+    links: [],
+    kind: "empty",
+    visited: false,
+    resolved: false,
+    name: "Beacon",
+    tier: "pool",
+    flag: "",
+    asteroid: false,
+  }));
+  for (let i = 0; i < beacons.length; i++) {
+    for (let j = i + 1; j < beacons.length; j++) {
+      const a = beacons[i];
+      const b = beacons[j];
+      const dc = Math.abs(a.col - b.col);
+      const dr = Math.abs(a.row - b.row);
+      if (dc <= 1 && dr <= 1 && dc + dr > 0) link(a, b);
+    }
+  }
+  const inCol = (col: number) => beacons.filter((b) => b.col === col);
+  for (let col = 0; col < COLS - 1; col++) {
+    const here = inCol(col);
+    const next = inCol(col + 1);
+    for (const b of next) {
+      if (here.some((a) => a.links.includes(b.id))) continue;
+      const parent = [...here].sort((a, d) => Math.abs(a.row - b.row) - Math.abs(d.row - b.row))[0];
+      link(parent, b);
+    }
+    for (const a of here) {
+      if (next.some((b) => a.links.includes(b.id))) continue;
+      const child = [...next].sort((b, d) => Math.abs(b.row - a.row) - Math.abs(d.row - a.row))[0];
+      link(a, child);
+    }
+  }
+  const closest = (col: number) =>
+    [...inCol(col)].sort((a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row)[0];
+  const start = closest(0);
   start.kind = "start";
   start.visited = true;
   start.resolved = true;
   // INVENTED: beacon names Departure and Lane out.
   start.name = "Departure";
-  const exit = cols[last][0];
+  const exit = closest(COLS - 1);
   if (g.sector >= 8) {
     // Sectors, "The Last Stand": sector 8 and the Flagship on the right. The column fleet here is INVENTED; the page uses random takeover.
     exit.kind = "boss";
@@ -2457,14 +2503,16 @@ function makeMap(g: Game) {
     exit.kind = "exit";
     exit.name = "Lane out";
     // INVENTED: a picket on the exit. "Exit beacon events" is EXIT_LIST, not these odds.
-    if (rand(g) < (g.sector === 1 ? 0.45 : 0.7)) exit.flag = "picket";
+    // The flag is the roll burned with the old column map, so this grid does not draw it again.
+    if (picket) exit.flag = "picket";
     g.ramId = null;
     g.ramClock = 2;
   }
-  // INVENTED: beacon names.
+  // INVENTED: beacon names. Kind mix below is only the placeholder; a listed sector is re-dealt by beacon-mix.ts.
   const names = ["Silt", "Hinge", "Marrow", "Kite", "Brine", "Cask", "Loom", "Vesper", "Nock", "Quarry", "Weld", "Pell"];
   let ni = 0;
-  const middles = cols.flat().filter((b) => b !== start && b !== exit);
+  const middles = beacons.filter((b) => b !== start && b !== exit);
+  for (const b of middles) b.kind = KINDS[irand(roll, KINDS.length)];
   // @agent:beacon-mix. These KINDS rolls are placeholders: the sector name is not known yet here.
   // stampCitedEvents (wiki/beacon-mix.ts) re-deals every free beacon by the Sectors page's "Beacons:" counts
   // for any listed sector type, including stores. Only an unlisted sector name keeps this mix.
@@ -2476,11 +2524,15 @@ function makeMap(g: Game) {
     if (b.kind === "hostile" || b.kind === "event") {
       b.tier = tierFor(g, false);
     }
-    if (b.kind === "event") b.asteroid = rand(g) < 0.5;
+    if (b.kind === "event") b.asteroid = rand(roll) < 0.5;
     // INVENTED: distress ship tier.
     if (b.kind === "distress") b.tier = "pool";
   }
-  g.beacons = cols.flat();
+  // Start first, then later columns. A jump advances the fleet before the dive check, so the next
+  // listed beacon has to sit ahead of the column just left.
+  const ahead = middles.filter((b) => b.col > start.col).sort((a, b) => a.col - b.col || a.row - b.row);
+  const same = middles.filter((b) => b.col <= start.col).sort((a, b) => a.col - b.col || a.row - b.row);
+  g.beacons = [start, ...ahead, ...same, exit];
   g.here = start.id;
   g.fleet = 0;
   // INVENTED: sector name fallback.

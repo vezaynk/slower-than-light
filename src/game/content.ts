@@ -219,7 +219,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     blurb: "No hull damage. Two ion if it lands, which is two locked bars.",
   },
   // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.
-  // No hull damage is stated, so damage is 0. Effect: stuns crew in the room for 5 seconds. That stun is not a field.
+  // No hull damage is stated, so damage is 0. Boarding, "Stun effect": the room stun is 5 seconds (sim.ts).
   stunner: {
     id: "stunner",
     name: "Ion Stunner",
@@ -234,7 +234,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 35,
-    blurb: "No hull damage. One ion if it lands. The page's room stun is not simulated.",
+    blurb: "No hull damage. One ion if it lands. Stuns the room for 5 seconds.",
   },
   // Beam (Weapons), "Pike Beam": purchase price 55, power 2, charge 16 seconds, damage 1 per room.
   // The id `shear` is INVENTED. The display name is the wiki row those numbers match.

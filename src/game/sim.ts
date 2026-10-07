@@ -1804,24 +1804,31 @@ function zoltanBeamCost(shot: Shot): number {
 /** Bomb (Weapons), Stun Bomb: "stuns all enemy and player crew and drones in affected room for 15 seconds." */
 const STUN_BOMB_S = 15;
 
-function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
+/** Boarding, "Stun effect": "Ion Stunner (5 seconds stun)" on crew and drones in the room. */
+const ION_STUNNER_S = 5;
+
+function stunRoom(g: Game, roomId: string, aboard: "player" | "enemy", seconds: number) {
   for (const c of g.crew) {
     if (c.aboard !== aboard || c.room !== roomId || c.hp <= 0) continue;
-    c.stun = Math.max(c.stun ?? 0, STUN_BOMB_S);
+    c.stun = Math.max(c.stun ?? 0, seconds);
   }
   // A beam drone stores the last room it swiped. That drone is still in orbit, so the room stun skips it.
   const playerKit = g.player.kits.swarm;
   if (playerKit?.on && playerKit.hp != null && playerKit.room === roomId) {
     const onEnemy = playerKit.target === "ionintruder" || playerKit.target === "board";
-    if ((aboard === "enemy") === onEnemy) playerKit.stun = Math.max(playerKit.stun ?? 0, STUN_BOMB_S);
+    if ((aboard === "enemy") === onEnemy) playerKit.stun = Math.max(playerKit.stun ?? 0, seconds);
   }
   for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
     if (!unit.alive || unit.room !== roomId) continue;
     const spot = enemyDroneSpot(unit);
     if (aboard === "player" && spot?.at !== "player-room") continue;
     if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
-    unit.stun = Math.max(unit.stun ?? 0, STUN_BOMB_S);
+    unit.stun = Math.max(unit.stun ?? 0, seconds);
   }
+}
+
+function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
+  stunRoom(g, roomId, aboard, STUN_BOMB_S);
 }
 
 export function applyImpact(g: Game, shot: Shot) {
@@ -2086,6 +2093,9 @@ export function applyImpact(g: Game, shot: Shot) {
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
       log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
     }
+    // Boarding, "Stun effect": the Ion Stunner stuns crew and drones in the room for 5 seconds.
+    // A shield bubble already returned above, so that room stays clear, as with any other ion.
+    if (shot.defId === "stunner" && r) stunRoom(g, r.id, aboard, ION_STUNNER_S);
     sfx(g, "ion");
     if (r) r.flash = 0.25;
     return;

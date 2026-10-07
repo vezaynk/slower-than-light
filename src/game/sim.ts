@@ -2651,6 +2651,63 @@ export function repairPace(c: Crew): number {
   return kinOf(c.kin ?? "plain").repair * repairSkillMult(rankOf(c, "repair"));
 }
 
+/**
+ * Fires, "Dealing with fires", and Venting: a fire begins to die out once oxygen drops below 10%.
+ * "How long it takes for a fire or fires to die out is determined by a timer, ranging from 5 to 14 seconds."
+ * "The timer is affected by the number of adjacent fires ... and is governed by the formula: (5 - <number of adjacent fires>) * 0.48."
+ * No adjacent fires burn out from 2.08s (5 / 2.4) to 5.83s (14 / 2.4). Four adjacent fires reach 29.17s (14 / 0.48).
+ * INFERRED: the 5–14 timer is a whole number of seconds, inclusive, rolled once when oxygen first falls below 10%.
+ * INFERRED: progress advances by (5 - n) * 0.48 each second, so a later change in n changes the remaining time.
+ * INFERRED: n is clamped to 0..4. The page's worked maximum is 4, and a larger n would make the divisor 0 or negative.
+ * INFERRED: n counts other whole fires in this room, plus whole fires in rooms that share a door. Per-tile fires are not stored.
+ * INFERRED: a room with any fire counts as at least one. Oxygen back at 10% or more cancels the timer.
+ */
+type FireStarve = { budget: number; progress: number };
+const fireStarve = new WeakMap<Room, FireStarve>();
+
+export function fireStarveSeconds(timer: number, adjacent: number): number {
+  const n = Math.max(0, Math.min(4, Math.floor(adjacent)));
+  return timer / ((5 - n) * 0.48);
+}
+
+function wholeFires(fire: number): number {
+  if (!(fire > 0)) return 0;
+  return Math.max(1, Math.floor(fire));
+}
+
+/** Door-connected fires around this room, not counting one fire of its own. See starveFire. */
+export function adjacentFires(ship: Ship, room: Room): number {
+  let n = Math.max(0, wholeFires(room.fire) - 1);
+  const seen = new Set<string>();
+  for (const d of ship.doors) {
+    if (d.b === "void") continue;
+    const other = d.a === room.id ? d.b : d.b === room.id ? d.a : "";
+    if (!other || seen.has(other)) continue;
+    seen.add(other);
+    const next = roomById(ship, other);
+    if (next) n += wholeFires(next.fire);
+  }
+  return n;
+}
+
+function starveFire(g: Game, ship: Ship, room: Room, dt: number) {
+  if (!(room.fire > 0) || room.o2 >= 10) {
+    fireStarve.delete(room);
+    return;
+  }
+  let state = fireStarve.get(room);
+  if (!state) {
+    state = { budget: 5 + Math.floor(rand(g) * 10), progress: 0 };
+    fireStarve.set(room, state);
+  }
+  const n = Math.min(4, adjacentFires(ship, room));
+  state.progress += (5 - n) * 0.48 * dt;
+  if (state.progress >= state.budget) {
+    room.fire = 0;
+    fireStarve.delete(room);
+  }
+}
+
 function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const o2 = mainBars(g, ship, aboard, "oxygen");
   const mult = o2 <= 0 ? 0 : o2 === 1 ? 1 : o2 === 2 ? 4 : 7;
@@ -2677,7 +2734,7 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   }
   for (const r of ship.rooms) {
     r.o2 = Math.max(0, Math.min(100, r.o2));
-    if (r.o2 < 10) r.fire = 0;
+    starveFire(g, ship, r, dt);
   }
 }
 
@@ -4854,7 +4911,7 @@ function stepShots(g: Game, dt: number) {
 
 /**
  * Fires, lead: events start fires, and a fire spreads, consumes oxygen, and burns crew whether or not a fight is on.
- * This is the fire portion of airflow() and life() — oxygen 0.96%/s, death below 10%, extinguish, 2.128 HP/s, and
+ * This is the fire portion of airflow() and life() — oxygen 0.96%/s, the die-out timer below 10%, extinguish, 2.128 HP/s, and
  * spreadFire — on the player ship. Melee, repair, medbay, suffocation, door venting, and the oxygen-system refill
  * stay on the combat tick. System sabotage (0.08/s) stays on that tick too (extras/sabotage.ts).
  */
@@ -4863,11 +4920,11 @@ function tickIdleFires(g: Game, dt: number) {
   if (!ship.rooms.some((r) => r.fire > 0)) return;
   const aboard = "player" as const;
   // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
-  // Fires: fires "die out" once oxygen drops below 10%.
+  // Fires, "Dealing with fires": fires begin to die out once oxygen drops below 10%.
   for (const r of ship.rooms) {
     r.o2 -= 0.96 * r.fire * dt;
     r.o2 = Math.max(0, Math.min(100, r.o2));
-    if (r.o2 < 10) r.fire = 0;
+    starveFire(g, ship, r, dt);
   }
   const closedSlow = doorSpreadSlow(g, ship, aboard);
   for (const r of ship.rooms) {

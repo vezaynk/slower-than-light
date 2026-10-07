@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { FIRE_FIGHT_SHARE, createGame, step } from "./sim.ts";
+import { FIRE_FIGHT_SHARE, adjacentFires, createGame, fireStarveSeconds, step } from "./sim.ts";
 import type { Game, Room } from "./types.ts";
 
 /** Empty the fire room, shut every door, and keep the door console unmanned so spread uses the level-1 slow. */
@@ -92,7 +92,7 @@ describe("Fires outside a fight", () => {
     assert.ok(Math.abs(worker.hp - (100 - 2.128 * left * 0.05)) < 1e-6, `${worker.hp}`);
   });
 
-  it("dies below 10% oxygen and does not refill a quiet room", () => {
+  it("starts a die-out timer below 10% oxygen and does not refill a quiet room", () => {
     const g = createGame(4);
     const room = sealed(g, "p-oxygen");
     room.o2 = 10;
@@ -100,10 +100,71 @@ describe("Fires outside a fight", () => {
     const quiet = g.player.rooms.find((r) => r.id === "p-sensors")!;
     quiet.o2 = 80;
     quiet.fire = 0;
+    // Fires, "Dealing with fires": below 10% the fire waits out a 5–14s timer. No adjacent fires is 2.08–5.83s.
+    assert.equal(adjacentFires(g.player, room), 0);
     step(g, 0.05);
-    assert.equal(room.fire, 0);
+    assert.equal(room.fire, 1);
     assert.ok(Math.abs(room.o2 - (10 - 0.96 * 0.05)) < 1e-9);
     assert.equal(quiet.o2, 80);
+    const dt = 0.05;
+    let steps = 1;
+    while (room.fire > 0 && steps < 200) {
+      step(g, dt);
+      steps += 1;
+    }
+    const elapsed = steps * dt;
+    assert.equal(room.fire, 0);
+    assert.ok(elapsed + 1e-6 >= 5 / 2.4, `${elapsed}`);
+    assert.ok(elapsed - 14 / 2.4 <= dt + 1e-6, `${elapsed}`);
+  });
+
+  it("uses the printed die-out formula, and four adjacent fires hold past 10s", () => {
+    // Endpoints the page prints: 2.08, 5.83, and 29.17.
+    assert.ok(Math.abs(fireStarveSeconds(5, 0) - 5 / 2.4) < 1e-9);
+    assert.ok(Math.abs(fireStarveSeconds(14, 0) - 14 / 2.4) < 1e-9);
+    assert.ok(Math.abs(fireStarveSeconds(14, 4) - 14 / 0.48) < 1e-9);
+    // INFERRED: more than 4 adjacent fires stays on the printed maximum.
+    assert.equal(fireStarveSeconds(14, 9), fireStarveSeconds(14, 4));
+
+    const g = createGame(8);
+    const room = sealed(g, "p-oxygen");
+    room.o2 = 9;
+    room.fire = 1;
+    const neighborId = g.player.doors.find((d) => d.b !== "void" && (d.a === room.id || d.b === room.id));
+    assert.ok(neighborId);
+    const neighbor = g.player.rooms.find((r) => r.id === (neighborId.a === room.id ? neighborId.b : neighborId.a));
+    assert.ok(neighbor);
+    neighbor.fire = 4;
+    neighbor.o2 = 100;
+    const clear = g.player.rooms.find((r) => r.id !== room.id && r.id !== neighbor.id);
+    assert.ok(clear);
+    for (const c of g.crew) c.room = clear.id;
+    assert.ok(adjacentFires(g.player, room) >= 4);
+    const dt = 0.05;
+    let steps = 0;
+    while (room.fire > 0 && steps < 800) {
+      step(g, dt);
+      // Keep the neighbor lit. Its own oxygen drain is not the timer under test.
+      neighbor.fire = 4;
+      neighbor.o2 = 100;
+      steps += 1;
+    }
+    const elapsed = steps * dt;
+    assert.equal(room.fire, 0);
+    assert.ok(elapsed + 1e-6 >= 5 / 0.48, `${elapsed}`);
+    assert.ok(elapsed - 14 / 0.48 <= dt + 1e-6, `${elapsed}`);
+  });
+
+  it("drops the die-out timer when oxygen is back at 10% or more", () => {
+    const g = createGame(9);
+    const room = sealed(g, "p-oxygen");
+    room.o2 = 9;
+    room.fire = 1;
+    step(g, 1);
+    assert.equal(room.fire, 1);
+    room.o2 = 100;
+    for (let i = 0; i < 600; i++) step(g, 0.05);
+    assert.ok(room.fire > 0);
   });
 
   it("does not repair, heal, or suffocate on the map", () => {

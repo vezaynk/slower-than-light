@@ -503,7 +503,9 @@ function sideCrew(g: Game, side: "player" | "enemy", aboard: "player" | "enemy")
 }
 
 function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): boolean {
-  // INFERRED: fire, oxygen at or below 5%, or a boarder cancels manning. The fetched pages do not number that.
+  // Systems, the paragraph above "Main systems": "fires, breaches, and intruders prevent manning as well - the only exception to this are Auto-ships, which retain manning bonus for all their (sub-)systems unless the (sub-)systems are damaged."
+  // "If a system is affected by a breach but is not damaged ... it cannot be manned till the breach is sealed."
+  // INFERRED: oxygen at or below 5% also prevents manning, on every ship. The fetched pages do not number that.
   const r = roomWith(ship, system);
   if (!r) return false;
   // @agent:flagship. The Rebel Flagship: the artillery rooms "cannot be manned, despite containing crew".
@@ -513,11 +515,14 @@ function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId)
   // Zoltans: "The ion-lock status, preventing manning the system console, is not removed".
   // Systems, the paragraph above "Main systems": ionized systems cannot be manned. Auto-ships keep the bonus unless damaged.
   if (ship.systems[system].ion.length > 0 && !autoManning(ship)) return false;
-  if (r.fire > 0 || r.o2 <= 5) return false;
-  const foes = g.crew.some(
-    (c) => c.aboard === aboard && sideOf(c) !== (aboard === "player" ? "player" : "enemy") && c.room === r.id && c.hp > 0 && c.path.length === 0,
-  );
-  if (foes) return false;
+  if (r.o2 <= 5) return false;
+  if (!autoManning(ship)) {
+    if (r.fire > 0 || r.breach > 0) return false;
+    const foes = g.crew.some(
+      (c) => c.aboard === aboard && sideOf(c) !== (aboard === "player" ? "player" : "enemy") && c.room === r.id && c.hp > 0 && c.path.length === 0,
+    );
+    if (foes) return false;
+  }
   const friends = aboard === "player" ? "player" : "enemy";
   return g.crew.some(
     (c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0,

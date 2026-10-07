@@ -547,6 +547,46 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
   });
 });
 
+describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () => {
+  it("grants one point and spends one missile", () => {
+    const g = createGame(46);
+    startCombat(g, "scout");
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.player.rooms.find((r) => r.system === "weapons")!;
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const away = g.player.rooms.find((r) => r.id !== room.id && r.id !== bay.id)!;
+    const crew = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) if (c.side === "player") c.room = away.id;
+    crew.room = room.id;
+    crew.aboard = "player";
+    crew.path = [];
+    crew.stun = 0;
+    crew.leashed = undefined;
+    crew.skills = {};
+    room.fire = 0;
+    room.o2 = 100;
+    g.player.systems.weapons.level = 4;
+    g.player.systems.weapons.power = 4;
+    g.player.systems.weapons.damage = 0;
+    g.player.systems.weapons.ion = [];
+    g.player.weapons = [{ uid: "gun", defId: "smallbomb", charge: 0, enabled: true, autofire: false, target: null }];
+    g.missiles = 4;
+    g.armed = "gun";
+    g.targeting = true;
+    aim(g, bay.id);
+    assert.equal(g.player.weapons[0]!.own, true);
+    assert.equal(g.shots.length, 0);
+    assert.equal(crew.skills?.weapons ?? 0, 0);
+    g.player.weapons[0]!.charge = 1;
+    fireReady(g);
+    assert.equal(g.shots.length, 1);
+    assert.equal(g.shots[0]!.own, true);
+    assert.equal(g.shots[0]!.targetRoom, bay.id);
+    assert.equal(g.missiles, 3);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+  });
+});
+
 describe("Crew skills, Shields: an ion hit on the bubble ionizes shields", () => {
   it("puts the ion on shields, leaves the aimed room clear, and trains nothing", () => {
     const g = createGame(51);

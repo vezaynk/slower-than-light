@@ -560,6 +560,20 @@ describe("Crew skills: the next rank costs the same", () => {
   });
 });
 
+describe("Crew skills: one experience table except humans", () => {
+  it("gives every non-human the same requirement, and a human less", () => {
+    // Crew skills, lead: "All crew races require the same amount of experience to achieve the next skill level, except for humans".
+    const human = { kin: "plain" } as Crew;
+    const others = ["shell", "spark", "blade", "gel", "stone", "voidlung", "shard"] as const;
+    const skills: SkillName[] = ["pilot", "engines", "shields", "weapons", "repair", "combat"];
+    for (const skill of skills) {
+      const shared = xpNeedFor({ kin: "shell" } as Crew, skill);
+      for (const kin of others) assert.equal(xpNeedFor({ kin } as Crew, skill), shared);
+      assert.ok(xpNeedFor(human, skill) < shared);
+    }
+  });
+});
+
 describe("Crew skills: repair skill speed", () => {
   it("repairs 10 percent faster at level 1 and 20 percent faster at level 2", () => {
     // Crew skills, Repair skill: "Level 1 (Green) | 10% faster repair", "Level 2 (Gold) | 20% faster repair".

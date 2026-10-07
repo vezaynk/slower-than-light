@@ -65,7 +65,12 @@ export function isHuman(c: Crew): boolean {
   return c.kin === undefined || c.kin === "plain";
 }
 
-/** XP per rank for this crew member: the Human column for humans, XP_NEED for everyone else. */
+/**
+ * XP per rank for this crew member: the Human column for humans, one shared table for everyone else.
+ * Crew skills, lead: "All crew races require the same amount of experience to achieve the next skill level,
+ * except for humans who have slightly reduced skill points requirements."
+ * The shared table's numbers in content.ts stay INFERRED.
+ */
 export function xpNeedFor(c: Crew, skill: SkillName): number {
   return isHuman(c) ? HUMAN_XP_NEED[skill] : XP_NEED[skill];
 }

@@ -34,4 +34,18 @@ describe("cradle", () => {
     assert.equal(ada.cloned, true);
     assert.equal(g.log[0], "Clone Bay returned Ada Voss.");
   });
+
+  it("keeps 80 percent of a skill and loses one combat point", () => {
+    // Crew skills: 20% off every skill, and Combat loses 1 point rather than 20%.
+    const g = createGame(2);
+    g.player.kits.cradle = poweredKit();
+    const ada = g.crew.find((c) => c.name === "Ada Voss");
+    assert.ok(ada);
+    ada.hp = 0;
+    ada.skills = { repair: 100, combat: 10 };
+    assert.equal(onCradleDeath(g, ada), true);
+    tickCradle(g, ada.cloneIn ?? 0);
+    assert.equal(ada.skills?.repair, 80);
+    assert.equal(ada.skills?.combat, 9);
+  });
 });

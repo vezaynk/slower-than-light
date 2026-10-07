@@ -18,7 +18,8 @@ const JUMP_HEAL: Record<number, number> = { 1: 8, 2: 16, 3: 25 };
 
 /**
  * Wiki page "Clone Bay", "Overview": skills other than combat lose 20%.
- * Combat loses 1 point, not 20%.
+ * Crew skills, Skills table: "Cloned crew loses 20% of skill points in every skill
+ * (but loses only 1 skill point in Combat skill)."
  */
 const SKILL_KEEP = 0.8;
 

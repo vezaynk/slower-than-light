@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { CATALOG } from "../extras/augments.ts";
 import {
+  applyIon,
   bars,
   canJumpTo,
   commitJump,
@@ -112,6 +113,33 @@ describe("Zoltan power bar", () => {
     g.crew = g.crew.filter((c) => c.id !== "z-eng");
     g.crew.push(spark("p-pilot", "z-chair"));
     assert.equal(evasionPercent(g, g.player, "player"), 0);
+  });
+
+  it("does not man an ionized console, and further ion stops at 5", () => {
+    // Zoltans: "The ion-lock status, preventing manning the system console, is not removed,
+    // and ion damage can accumulate up to a maximum of 5".
+    const g = createGame(21);
+    g.player.systems.engines.level = 2;
+    g.player.systems.engines.power = 2;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.engines.ion = [5];
+    const pilot = g.crew.find((c) => c.room === "p-pilot");
+    assert.ok(pilot);
+    pilot.path = [];
+    const seated = g.crew.find((c) => c.room === "p-engines");
+    assert.ok(seated);
+    seated.room = "p-medbay";
+    seated.path = [];
+    g.crew.push(spark("p-engines", "z-ion"));
+    // Level 2 engines are 10. The Zoltan bar keeps that table. Ion blocks the engines manning +5. Piloting adds 5.
+    assert.equal(evasionPercent(g, g.player, "player"), 15);
+    g.player.systems.engines.ion = [];
+    assert.equal(evasionPercent(g, g.player, "player"), 20);
+    applyIon(g.player, "engines", 6);
+    assert.equal(g.player.systems.engines.ion.length, 5);
+    assert.ok(g.player.systems.engines.ion.every((t) => t === 5));
+    applyIon(g.player, "engines", 4);
+    assert.equal(g.player.systems.engines.ion.length, 5);
   });
 });
 

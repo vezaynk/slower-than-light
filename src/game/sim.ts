@@ -508,6 +508,9 @@ function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId)
   if (system === "weapons" && ship.flagship) return false;
   // @agent:hacking. Hacking, "Overview": a system with an attached hacking drone "cannot be manned" (extras/spike.ts).
   if (hackBlocksManning(g, ship, system)) return false;
+  // Zoltans: "The ion-lock status, preventing manning the system console, is not removed".
+  // Systems, the paragraph above "Main systems": ionized systems cannot be manned. Auto-ships keep the bonus unless damaged.
+  if (ship.systems[system].ion.length > 0 && !autoManning(ship)) return false;
   if (r.fire > 0 || r.o2 <= 5) return false;
   const foes = g.crew.some(
     (c) => c.aboard === aboard && sideOf(c) !== (aboard === "player" ? "player" : "enemy") && c.room === r.id && c.hp > 0 && c.path.length === 0,

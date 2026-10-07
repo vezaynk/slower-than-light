@@ -346,6 +346,36 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.ok(Math.abs(hurt("shell") / humanHurt - 0.5) < 1e-6);
     assert.ok(Math.abs(hurt("blade") / humanHurt - 1.5) < 1e-6);
   });
+
+  it("an untrained human finishes one system bar in 12.5 seconds", () => {
+    // Crew skills, Repair skill: "It takes 12.5 seconds for an untrained Human to repair one system bar".
+    const g = createGame(55);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    if (g.enemy?.kits.spike) {
+      g.enemy.kits.spike.on = false;
+      g.enemy.kits.spike.left = 0;
+      g.enemy.kits.spike.cool = 999;
+    }
+    if (g.enemy?.kits.sling) g.enemy.kits.sling.power = 0;
+    worker.kin = "plain";
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    room.fire = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    const s = g.player.systems[sys as keyof typeof g.player.systems];
+    s.damage = 1;
+    s.fix = 0;
+    let steps = 0;
+    while (s.damage > 0 && steps < 300) {
+      step(g, 0.05);
+      steps++;
+    }
+    assert.equal(s.damage, 0);
+    // Each combat step is 0.05s, so 250 steps is the printed 12.5 seconds.
+    assert.equal(steps, 250);
+  });
 });
 
 describe("Crew skills: sabotage damage ignores race", () => {

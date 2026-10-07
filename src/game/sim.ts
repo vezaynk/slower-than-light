@@ -2474,8 +2474,8 @@ function armDoors(ship: Ship, level: number) {
  * INFERRED: 12% per breach, 28% through an open airlock, and 40% of the difference through an open door. The Door System page does not give airflow rates.
  */
 /**
- * Template:Crew races (comparison), "Repair speed" note: "it takes 12.5 seconds for an untrained Human to
- * repair one system bar, or to repair a breach." Fix progress is crew-seconds scaled by each race's repair
+ * Template:Crew races (comparison), "Repair speed" note, and Crew skills, Repair skill: "It takes 12.5 seconds
+ * for an untrained Human to repair one system bar, or to repair a breach." Fix progress is crew-seconds scaled by each race's repair
  * multiplier, so a Human (×1) needs 12.5 and an Engi (×2) 6.25.
  */
 export const REPAIR_SECONDS = 12.5;

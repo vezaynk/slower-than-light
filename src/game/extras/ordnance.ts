@@ -28,7 +28,7 @@ export function bombIgnores(def: WeaponDef): boolean {
  * Flak (Weapons), "Flak Gun Mark I".
  * "When fired at 1x2 room: 44.21% in main room, 11.96% in each tile next to long sides, 3.63% in each tile next to short sides, 0.17% in each tile next to corners."
  * "When fired at 2x2 room: 84.08% in main room, 1.99% in each tile next to sides."
- * Targeting area radius 42 is not simulated as pixels. Additional fake flak is not spawned.
+ * Targeting area radius 42 is not simulated as pixels. Fake pellets do not use this split.
  * INFERRED: each of the three pellets rolls on its own. The page does not say they share one roll.
  * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
  * INFERRED: 44.21 + 4×11.96 + 2×3.63 + 4×0.17 = 99.99, so the last corner tile is 0.18%.
@@ -182,11 +182,22 @@ export function flak1Landing(rooms: readonly FlakRoom[], aimId: string, roll: nu
 }
 
 /**
+ * Flak (Weapons), "Flak Gun Mark I": Additional fake flak 3.
+ * "Understanding flak accuracy": fake flak cannot take down shields or deal damage, but can distract defense drones
+ * or collide with other projectiles.
+ * INVENTED: each fake pellet is a missile with damage 0 and this label. A flak shot drops a shield layer even at
+ * damage 0. A missile does not, and defense drones shoot missiles.
+ * The page does not print a kind, a damage number, or a label.
+ */
+export const FLAK1_FAKE = 3;
+export const FLAK1_FAKE_LABEL = "fake-flak";
+
+/**
  * Flak I and the Fire Bomb. Display names match those rows.
  */
 export const ORDNANCE: WeaponDef[] = [
   // Flak (Weapons), "Flak Gun Mark I": purchase price 65, power 2, charge 10 seconds, shots 3, damage per shot 1.
-  // That section also lists targeting radius 42 and 3 additional fake flak. Neither is a field here.
+  // That section also lists targeting radius 42. Additional fake flak is FLAK1_FAKE, spawned in launch, not a WeaponDef field.
   // Lead: flak never causes fires or breaches, so fire 0 and breach 0 are stated, not a missing percent.
   // INFERRED: gap 0 from the lead "all the shots arrive almost simultaneously". Ion 0. No missile cost is listed, so ammo is false.
   {

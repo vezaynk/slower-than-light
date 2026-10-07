@@ -127,7 +127,7 @@ import {
 import { asteroidIntervalSeconds } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
-import { flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
+import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
 import { advFlakAimRolls, advFlakLanding, flak2AimRolls, flak2Landing } from "./wiki/weapons-flak-crystal.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
@@ -1622,13 +1622,38 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const aimed = roomById(targetShip, rooms[0]);
   // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. Radius 31 is not a pixel sim.
   const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
-  // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim. Fake flak stays unspawned.
+  // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim.
   const flak1 = w.defId === "scatter" && aimed != null && flak1AimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim. Fake flak stays unspawned.
   const flak2 = w.defId === "flak2" && aimed != null && flak2AimRolls(aimed);
   // Flak (Weapons), Adv. Flak Gun: 1x2 and 2x2 room odds. Radius 40 is not a pixel sim. Fake flak stays unspawned.
   const advFlak = w.defId === "advflak" && aimed != null && advFlakAimRolls(aimed);
   const born: string[] = [];
+  if (w.defId === "scatter") {
+    // Flak (Weapons), Flak Gun Mark I: Additional fake flak 3.
+    // INFERRED: decoys are pushed first. A defense drone takes the first eligible shot.
+    // INFERRED: a fake pellet stays on the aimed room and does not roll the 1x2 split.
+    // INFERRED: flight matches the damaging pellets. The page does not print a separate time.
+    for (let i = 0; i < FLAK1_FAKE; i++) {
+      const id = uid(g);
+      born.push(id);
+      g.shots.push({
+        id,
+        kind: "missile",
+        from,
+        damage: 0,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: rooms[0],
+        defId: w.defId,
+        wait: 0,
+        t: 0,
+        duration: 0.7,
+        label: FLAK1_FAKE_LABEL,
+      });
+    }
+  }
   for (let i = 0; i < count; i++) {
     let targetRoom = rooms[0];
     let offRoom = false;

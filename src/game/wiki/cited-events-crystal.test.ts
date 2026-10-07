@@ -64,6 +64,7 @@ describe("cited crystal events", () => {
       "Crystal fight choice",
       "Pirate ship attacking Crystal",
       "Rebel fight (Crystal)",
+      "Boarders: Crystal",
     ]);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest));
@@ -78,7 +79,8 @@ describe("cited crystal events", () => {
       const stated = ev.choices.some((c) =>
         c.fx.some((fx) => fx.k === "res" || fx.k === "tier" || fx.k === "hull" || fx.k === "fleet" || fx.k === "fight"),
       );
-      assert.equal(stated, true);
+      // Boarders: Crystal states the boarder line and no resource or fight.
+      assert.equal(stated || ev.dest === "Boarders: Crystal", true);
     }
   });
 

@@ -106,4 +106,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    dest: "Boarders: Crystal",
+    slug: "boarders-crystal",
+    flag: "cited:boarders-crystal",
+    aliases: ["Boarders: Crystal"],
+    sectors: ["Hidden Crystal Worlds"],
+    body: "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
+    choices: [
+      {
+        id: "c:boarders-crystal:0",
+        label: "2-3 crystal boarders beam aboard your ship.",
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

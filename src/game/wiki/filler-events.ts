@@ -10,6 +10,7 @@ import {
   humanBoarders,
   mantisBoarders,
   rockBoarders,
+  crystalBoarders,
   joinCrew,
   payOffer,
   randomRace,
@@ -1122,6 +1123,14 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // INFERRED: the count is inclusive (between()). nebula=true is the beacon, not a new hazard. No ship.
   "c:boarders-rebels-in-nebula:0": (g) => {
     humanBoarders(g, 3, 4, "human boarders beam aboard your ship.");
+    beginBoarding(g);
+  },
+
+  // Boarders: Crystal. "2-3 crystal boarders beam aboard your ship."
+  // INFERRED: the count is inclusive (between()). unique=false is still the once-per-sector stamp.
+  // No ship. Not a crew grant.
+  "c:boarders-crystal:0": (g) => {
+    crystalBoarders(g, 2, 3);
     beginBoarding(g);
   },
 };

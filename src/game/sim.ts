@@ -568,6 +568,13 @@ export function noteWeaponManning(g: Game) {
   bumpXp(g, manningCrew(g, g.player, "player", "weapons"), "weapons", 1);
 }
 
+/**
+ * Crew skills, Weapons: "turning them off just after you receive the skill increment" drops the shot.
+ * The point stays. INFERRED: 0.15 seconds. The page prints no duration.
+ * Shorter than a beam flight (0.32s), so the shot has not landed.
+ */
+const MUZZLE_S = 0.15;
+
 function skillFight(g: Game): boolean {
   // Environmental Hazards, Asteroid Field: skill only while a fight with an enemy ship is still on.
   // Crew skills, Piloting and Shields: asteroids after that fight do not train.
@@ -1391,6 +1398,8 @@ export function depowerWeapon(g: Game, weaponUid: string) {
   // Weapon Control, Overview: ionized or hacked weapons cannot be depowered manually.
   if (weaponsPowerLocked(g)) return;
   w.enabled = false;
+  // Crew skills, Weapons: off just after the skill increment cancels that shot. The point stays.
+  cancelMuzzle(g, w);
   stopTargeting(g);
   sfx(g, "click");
 }
@@ -1451,7 +1460,41 @@ export function toggleWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w || weaponsPowerLocked(g)) return;
   w.enabled = !w.enabled;
+  if (!w.enabled) cancelMuzzle(g, w);
   sfx(g, "click");
+}
+
+/**
+ * Crew skills, Weapons: the skill point is already granted. Turning the weapon off drops the shot.
+ * INFERRED: one missile comes back, because that shot did not leave. A launch spends one.
+ * INFERRED: charge stays spent, and a chain step that already advanced stays advanced.
+ */
+function cancelMuzzle(g: Game, w: WeaponInst) {
+  const ids = w.muzzleShots;
+  const open = (w.muzzle ?? 0) > 0 && !!ids?.length;
+  w.muzzle = 0;
+  delete w.muzzleShots;
+  if (!open || !ids) return;
+  const keep = new Set(ids);
+  let dropped = 0;
+  g.shots = g.shots.filter((s) => {
+    if (!keep.has(s.id) || s.t >= 1) return true;
+    dropped += 1;
+    return false;
+  });
+  const def = WEAPONS[w.defId];
+  if (dropped > 0 && def?.ammo && !keepMissile(g)) g.missiles += 1;
+}
+
+function tickMuzzle(g: Game, dt: number) {
+  for (const w of g.player.weapons) {
+    if (!((w.muzzle ?? 0) > 0)) continue;
+    w.muzzle = (w.muzzle ?? 0) - dt;
+    if ((w.muzzle ?? 0) <= 0) {
+      w.muzzle = 0;
+      delete w.muzzleShots;
+    }
+  }
 }
 
 export function choiceDisabled(g: Game, id: string): string | null {
@@ -1535,6 +1578,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const aimed = roomById(targetShip, rooms[0]);
   // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. Radius 31 is not a pixel sim.
   const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
+  const born: string[] = [];
   for (let i = 0; i < count; i++) {
     let targetRoom = rooms[0];
     let offRoom = false;
@@ -1543,8 +1587,10 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       if (land.kind === "miss") offRoom = true;
       else if (land.kind === "room") targetRoom = land.roomId;
     }
+    const id = uid(g);
+    born.push(id);
     g.shots.push({
-      id: uid(g),
+      id,
       kind: def.kind,
       from,
       damage: def.damage,
@@ -1573,6 +1619,9 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   if (from === "player") {
     log(g, `${def.name} away.`);
     noteWeaponManning(g);
+    // Crew skills, Weapons: the increment lands as the shot starts. Turning the gun off drops these ids.
+    w.muzzle = MUZZLE_S;
+    w.muzzleShots = born;
   }
 }
 
@@ -4715,6 +4764,8 @@ export function step(g: Game, dt: number) {
   swapZoltanCooldown(g);
   // Crystal Lockdown: crew and drones already punched this tick. A melted room drops leftover coating hits.
   meltCoats(g);
+  // Crew skills, Weapons: the cancel window is game time, so a pause holds it.
+  tickMuzzle(g, h);
   chargeSide(g, g.player, "player", h);
   chargeSide(g, g.enemy, "enemy", h);
   wanderBoarders(g, h);

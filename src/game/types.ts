@@ -186,6 +186,13 @@ export type WeaponInst = {
    * Losing power resets this. A cloak pause does not.
    */
   chain?: number;
+  /**
+   * Crew skills, Weapons: seconds left to turn this gun off and drop the shot that just trained.
+   * INFERRED: 0.15. The page prints no duration. A beam flight is 0.32s, so the shot has not landed.
+   */
+  muzzle?: number;
+  /** Shot ids from the launch that opened `muzzle`. */
+  muzzleShots?: string[];
 };
 
 export type Shot = {

@@ -4,7 +4,7 @@ import { rollEnemy } from "./enemy-gen.ts";
 import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
-import { applyImpact, createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
+import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
 import type { Shot } from "./types.ts";
 import { WEAPONS, XP_NEED } from "./content.ts";
 import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
@@ -468,6 +468,82 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
     assert.equal(g.shots.length - before, 14);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     assert.equal(room.system, "weapons");
+  });
+});
+
+describe("Crew skills, Weapons: turning a gun off just after the increment drops the shot", () => {
+  function primed(seed: number, defId: string) {
+    const g = createGame(seed);
+    startCombat(g, "scout");
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.player.rooms.find((r) => r.system === "weapons")!;
+    const away = g.player.rooms.find((r) => r.id !== room.id)!;
+    const crew = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) if (c.side === "player") c.room = away.id;
+    crew.room = room.id;
+    crew.aboard = "player";
+    crew.path = [];
+    crew.stun = 0;
+    crew.leashed = undefined;
+    crew.skills = {};
+    room.fire = 0;
+    room.o2 = 100;
+    g.player.systems.weapons.level = 4;
+    g.player.systems.weapons.power = 4;
+    g.player.systems.weapons.damage = 0;
+    g.player.systems.weapons.ion = [];
+    g.player.weapons = [{ uid: "gun", defId, charge: 0, enabled: true, autofire: false, target: null }];
+    g.missiles = 3;
+    const target = g.enemy!.rooms[0]!.id;
+    g.armed = "gun";
+    g.targeting = true;
+    aim(g, target);
+    assert.equal(g.shots.length, 0);
+    g.player.weapons[0]!.charge = 1;
+    fireReady(g);
+    return { g, crew, target };
+  }
+
+  it("drops a three-shot volley, keeps the one point, and the next fire trains again", () => {
+    const { g, crew, target } = primed(43, "lineburst");
+    assert.equal(g.shots.length, 3);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    assert.equal(g.player.weapons[0]!.charge, 0);
+    depowerWeapon(g, "gun");
+    assert.equal(g.shots.length, 0);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    assert.equal(g.missiles, 3);
+    const w = g.player.weapons[0]!;
+    w.enabled = true;
+    w.charge = 1;
+    g.armed = "gun";
+    g.targeting = true;
+    aim(g, target);
+    assert.equal(g.shots.length, 3);
+    assert.equal(crew.skills?.weapons ?? 0, 2);
+  });
+
+  it("still drops the shot one tick later, and a missile spent for it comes back", () => {
+    const { g, crew } = primed(44, "artemis");
+    assert.equal(g.shots.length, 1);
+    assert.equal(g.missiles, 2);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    step(g, 0.05);
+    assert.equal(g.shots.length, 1);
+    toggleWeapon(g, "gun");
+    assert.equal(g.shots.length, 0);
+    assert.equal(g.missiles, 3);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+  });
+
+  it("leaves the shot once the window has passed", () => {
+    // INFERRED: 0.15s. Four 0.05s steps are past it. A laser flight is 0.7s, so the shot is still in the air.
+    const { g, crew } = primed(45, "spark");
+    assert.equal(g.shots.length, 1);
+    for (let i = 0; i < 4; i++) step(g, 0.05);
+    depowerWeapon(g, "gun");
+    assert.equal(g.shots.length, 1);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
   });
 });
 

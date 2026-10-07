@@ -128,6 +128,7 @@ import { asteroidIntervalSeconds } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
+import { flak2AimRolls, flak2Landing } from "./wiki/weapons-flak-crystal.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
@@ -1623,6 +1624,8 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim. Fake flak stays unspawned.
   const flak1 = w.defId === "scatter" && aimed != null && flak1AimRolls(aimed);
+  // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim. Fake flak stays unspawned.
+  const flak2 = w.defId === "flak2" && aimed != null && flak2AimRolls(aimed);
   const born: string[] = [];
   for (let i = 0; i < count; i++) {
     let targetRoom = rooms[0];
@@ -1633,6 +1636,10 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       else if (land.kind === "room") targetRoom = land.roomId;
     } else if (flak1) {
       const land = flak1Landing(targetShip.rooms, rooms[0], rand(g));
+      if (land.kind === "miss") offRoom = true;
+      else if (land.kind === "room") targetRoom = land.roomId;
+    } else if (flak2) {
+      const land = flak2Landing(targetShip.rooms, rooms[0], rand(g));
       if (land.kind === "miss") offRoom = true;
       else if (land.kind === "room") targetRoom = land.roomId;
     }

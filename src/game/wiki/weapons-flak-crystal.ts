@@ -1,4 +1,5 @@
 import type { WeaponDef } from "../content.ts";
+import { cellOccupied } from "../layouts.ts";
 
 /**
  * Unfitted rows from page titles "Flak (Weapons)" and "Crystal (Weapons)".
@@ -181,7 +182,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides.",
       "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners.",
     ],
-    note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 and 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are copied and not simulated.',
+    note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 and 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are applied by flak2Landing. Radius 55 is not simulated as pixels.',
   },
   {
     id: "flak-artillery",
@@ -214,3 +215,188 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
     note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
   },
 ];
+
+/**
+ * Flak (Weapons), "Flak Gun Mark II".
+ * "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides."
+ * "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners."
+ * Targeting area radius 55 is not simulated as pixels. Additional fake flak is not spawned.
+ * INFERRED: each of the seven pellets rolls on its own. The page does not say they share one roll.
+ * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
+ * INFERRED: 25.78 + 4×12.06 + 2×7.02 + 4×2.70 + 4×0.29 = 100.02, so the last outer long-side tile is 0.27%.
+ * INFERRED: "each tile after the tiles next to long sides" is the next tile outward from each of those four.
+ * INFERRED: a shape with no printed percent stays in the aimed room.
+ * INFERRED: a neighboring tile maps to the room whose floor contains that cell. An empty tile is a miss.
+ * INFERRED: long sides, then short sides, then corners, then the outer long-side tiles. Along a room, north then south, or west then east.
+ * INFERRED: a 2×2 lists sides before corners. Corner order is northwest, northeast, southwest, southeast.
+ */
+export type Flak2Room = {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  omit?: { x: number; y: number }[];
+};
+
+export type Flak2Land = { kind: "stay" } | { kind: "room"; roomId: string } | { kind: "miss" };
+
+type Tile = { x: number; y: number };
+
+/** 1×2 cuts in hundredths of a percent. The last outer tile fills the extra 0.02. */
+const FLAK2_NARROW = [2578, 1206, 1206, 1206, 1206, 702, 702, 270, 270, 270, 270, 29, 29, 29, 27];
+/** 2×2 cuts. 51.56 + 8×5.90 + 4×0.31 = 100. */
+const FLAK2_WIDE = [5156, 590, 590, 590, 590, 590, 590, 590, 590, 31, 31, 31, 31];
+
+function cutsOf(steps: readonly number[]): number[] {
+  const cuts: number[] = [];
+  let acc = 0;
+  for (const step of steps) {
+    acc += step;
+    cuts.push(acc / 10000);
+  }
+  return cuts;
+}
+
+export const FLAK2_NARROW_CUTS = cutsOf(FLAK2_NARROW);
+export const FLAK2_WIDE_CUTS = cutsOf(FLAK2_WIDE);
+
+function floorTiles(room: Flak2Room): Tile[] {
+  const out: Tile[] = [];
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) {
+      if (cellOccupied(room, x, y)) out.push({ x, y });
+    }
+  }
+  return out;
+}
+
+function twoTile(room: Flak2Room): [Tile, Tile] | null {
+  if (room.w * room.h !== 2) return null;
+  const tiles = floorTiles(room);
+  if (tiles.length !== 2) return null;
+  const [a, b] = tiles;
+  const straight = (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
+  return straight ? [a, b] : null;
+}
+
+function twoByTwo(room: Flak2Room): Tile[] | null {
+  if (room.w !== 2 || room.h !== 2) return null;
+  const tiles = floorTiles(room);
+  if (tiles.length !== 4) return null;
+  return tiles;
+}
+
+/** True when the shot must roll a printed Flak II split. */
+export function flak2AimRolls(room: Flak2Room): boolean {
+  return twoTile(room) != null || twoByTwo(room) != null;
+}
+
+function bandIndex(roll: number, cuts: readonly number[]): number {
+  for (let i = 0; i < cuts.length; i++) {
+    if (roll < cuts[i]) return i - 1;
+  }
+  return cuts.length - 2;
+}
+
+/** Long sides, short sides, then corners, around a straight two-tile room. */
+function narrowTiles(pair: [Tile, Tile]): Tile[] {
+  const [a, b] = pair;
+  if (a.y === b.y) {
+    const [left, right] = a.x < b.x ? [a, b] : [b, a];
+    return [
+      { x: left.x, y: left.y - 1 },
+      { x: right.x, y: right.y - 1 },
+      { x: left.x, y: left.y + 1 },
+      { x: right.x, y: right.y + 1 },
+      { x: left.x - 1, y: left.y },
+      { x: right.x + 1, y: right.y },
+      { x: left.x - 1, y: left.y - 1 },
+      { x: right.x + 1, y: right.y - 1 },
+      { x: left.x - 1, y: left.y + 1 },
+      { x: right.x + 1, y: right.y + 1 },
+    ];
+  }
+  const [top, bot] = a.y < b.y ? [a, b] : [b, a];
+  return [
+    { x: top.x - 1, y: top.y },
+    { x: bot.x - 1, y: bot.y },
+    { x: top.x + 1, y: top.y },
+    { x: bot.x + 1, y: bot.y },
+    { x: top.x, y: top.y - 1 },
+    { x: bot.x, y: bot.y + 1 },
+    { x: top.x - 1, y: top.y - 1 },
+    { x: top.x + 1, y: top.y - 1 },
+    { x: bot.x - 1, y: bot.y + 1 },
+    { x: bot.x + 1, y: bot.y + 1 },
+  ];
+}
+
+/** The next tile outward from each long-side tile. The page calls these the tiles after the long sides. */
+function outerLongTiles(pair: [Tile, Tile]): Tile[] {
+  const [a, b] = pair;
+  if (a.y === b.y) {
+    const [left, right] = a.x < b.x ? [a, b] : [b, a];
+    return [
+      { x: left.x, y: left.y - 2 },
+      { x: right.x, y: right.y - 2 },
+      { x: left.x, y: left.y + 2 },
+      { x: right.x, y: right.y + 2 },
+    ];
+  }
+  const [top, bot] = a.y < b.y ? [a, b] : [b, a];
+  return [
+    { x: top.x - 2, y: top.y },
+    { x: bot.x - 2, y: bot.y },
+    { x: top.x + 2, y: top.y },
+    { x: bot.x + 2, y: bot.y },
+  ];
+}
+
+/** Eight side tiles around a 2×2, then the four corners. */
+function wideTiles(room: Flak2Room): Tile[] {
+  const x = room.x;
+  const y = room.y;
+  return [
+    { x, y: y - 1 },
+    { x: x + 1, y: y - 1 },
+    { x, y: y + 2 },
+    { x: x + 1, y: y + 2 },
+    { x: x - 1, y },
+    { x: x - 1, y: y + 1 },
+    { x: x + 2, y },
+    { x: x + 2, y: y + 1 },
+    { x: x - 1, y: y - 1 },
+    { x: x + 2, y: y - 1 },
+    { x: x - 1, y: y + 2 },
+    { x: x + 2, y: y + 2 },
+  ];
+}
+
+function landOn(rooms: readonly Flak2Room[], aimId: string, tile: Tile): Flak2Land {
+  const hit = rooms.find((room) => cellOccupied(room, tile.x, tile.y));
+  if (!hit || hit.id === aimId) return hit ? { kind: "stay" } : { kind: "miss" };
+  return { kind: "room", roomId: hit.id };
+}
+
+/**
+ * Where one Flak II pellet lands. `roll` is used only for a 1×2 or a 2×2.
+ * Every other shape ignores `roll` and stays.
+ */
+export function flak2Landing(rooms: readonly Flak2Room[], aimId: string, roll: number): Flak2Land {
+  const aim = rooms.find((room) => room.id === aimId);
+  if (!aim) return { kind: "stay" };
+  const pair = twoTile(aim);
+  if (pair) {
+    const index = bandIndex(roll, FLAK2_NARROW_CUTS);
+    if (index < 0) return { kind: "stay" };
+    const tiles = [...narrowTiles(pair), ...outerLongTiles(pair)];
+    return landOn(rooms, aimId, tiles[index]);
+  }
+  if (twoByTwo(aim)) {
+    const index = bandIndex(roll, FLAK2_WIDE_CUTS);
+    if (index < 0) return { kind: "stay" };
+    return landOn(rooms, aimId, wideTiles(aim)[index]);
+  }
+  return { kind: "stay" };
+}

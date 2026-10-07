@@ -547,6 +547,24 @@ describe("Crew skills: human experience column", () => {
   });
 });
 
+describe("Crew skills: repair skill speed", () => {
+  it("repairs 10 percent faster at level 1 and 20 percent faster at level 2", () => {
+    // Crew skills, Repair skill: "Level 1 (Green) | 10% faster repair", "Level 2 (Gold) | 20% faster repair".
+    // INFERRED: "faster" is a rate multiplier, the reading the Shields section gives its own bonus.
+    const g = createGame(59);
+    const { worker } = lone(g);
+    const need = xpNeedFor(worker, "repair");
+    assert.equal(need, 16);
+    const pace = (xp: number) => {
+      worker.skills = { repair: xp };
+      return repairPace(worker);
+    };
+    assert.ok(Math.abs(pace(0) - 1) < 1e-9);
+    assert.ok(Math.abs(pace(need) - 1.1) < 1e-9);
+    assert.ok(Math.abs(pace(need * 2) - 1.2) < 1e-9);
+  });
+});
+
 describe("Crew skills: player crew start untrained", () => {
   it("starts every player crew member at skill level 0", () => {
     // Crew skills, lead: "All crew on every player ship start untrained, i.e. at skill level 0."

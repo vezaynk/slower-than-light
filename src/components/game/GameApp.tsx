@@ -12,7 +12,7 @@ import { CATALOG } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
 import { shipInDanger } from "@/game/extras/sling";
-import { reorderDroneSlots } from "@/game/extras/swarm";
+import { depowerDrone, reorderDroneSlots } from "@/game/extras/swarm";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
@@ -977,8 +977,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   data-tray="drones"
                   data-slot={index}
                   draggable={false}
-                  className={`gun-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                  aria-label={`${name} drone slot ${index + 1}`}
+                  className={`gun-slot${swarm?.idle && kind === swarm.target ? " is-dark" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                  aria-label={`${name} drone slot ${index + 1}${swarm?.idle && kind === swarm.target ? ". Depowered" : ""}`}
                   onPointerDown={(e) => drones.onPointerDown(index, e)}
                   onPointerMove={drones.onPointerMove}
                   onPointerUp={drones.onPointerUp}
@@ -986,6 +986,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   onContextMenu={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    act((g) => {
+                      depowerDrone(g);
+                    });
                   }}
                 >
                   {key ? <DroneArt kind={key} height={20} /> : null}

@@ -15,6 +15,7 @@ import {
   PATCH_HEAL,
   REDEPLOY_S,
   deploy,
+  depowerDrone,
   hurtRoomDrones,
   installSwarm,
   installSwarmBundle,
@@ -1057,5 +1058,35 @@ describe("on-board drone damage", () => {
     assert.equal(kit.hp, 125);
     assert.equal(board.hp, 142.5);
     assert.equal(board.alive, true);
+  });
+});
+
+describe("Zoltans drone depower", () => {
+  it("refuses while Zoltan power alone fully powers the deployed drone", () => {
+    // Zoltans: the drone cannot be manually de-powered while Zoltans fully power it solely by their power.
+    const g = createGame(3);
+    startCombat(g, "scout");
+    const kit = place(g, 0);
+    kit.zoltan = 2;
+    const parts = g.player.parts;
+    assert.equal(deploy(g, "ward"), true);
+    assert.equal(depowerDrone(g), false);
+    assert.equal(kit.on, true);
+    assert.equal(kit.idle, undefined);
+    assert.equal(g.player.parts, parts - 1);
+
+    kit.zoltan = 1;
+    assert.equal(depowerDrone(g), true);
+    assert.equal(kit.on, true);
+    assert.equal(kit.idle, true);
+    const spent = g.player.parts;
+    assert.equal(deploy(g, "ward"), true);
+    assert.equal(kit.idle, undefined);
+    assert.equal(g.player.parts, spent);
+
+    kit.zoltan = 2;
+    kit.power = 2;
+    assert.equal(depowerDrone(g), true);
+    assert.equal(kit.idle, true);
   });
 });

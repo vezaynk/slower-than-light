@@ -156,7 +156,7 @@ function fedBars(kit: Kit): number {
 }
 
 function powered(kit: Kit, kind: SwarmKind): boolean {
-  return kit.on && fedBars(kit) >= DRONE_POWER[kind];
+  return kit.on && !kit.idle && fedBars(kit) >= DRONE_POWER[kind];
 }
 
 function blank(): Kit {
@@ -220,6 +220,20 @@ export function toggleSwarmPower(g: Game): void {
   if (kit.power > 0) kit.power -= 1;
 }
 
+/**
+ * Zoltans: a deployed drone fully powered solely by Zoltan power cannot be manually de-powered.
+ * Manual control returns when that stops being true.
+ */
+export function depowerDrone(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit?.on || !kit.target) return false;
+  const need = isKind(kit.target) ? DRONE_POWER[kit.target] : SCHEMATIC_POWER[kit.target];
+  const zoltan = kit.zoltan ?? 0;
+  if (need != null && zoltan >= need && kit.power <= 0) return false;
+  kit.idle = true;
+  return true;
+}
+
 function setCooldown(kit: Kit, seconds: number) {
   // cool is the remaining lockout; aux mirrors it (Kit.aux is the drone shot cadence).
   kit.cool = seconds;
@@ -246,7 +260,10 @@ export function deploy(g: Game, kind: string): boolean {
   const cited =
     kind === "combat2" || kind === "ionintruder" || kind === "overcharger" || kind === "overchargerplus";
   if (!kit || (!isKind(kind) && !cited)) return false;
-  if (kit.on && kit.target === kind) return true;
+  if (kit.on && kit.target === kind) {
+    delete kit.idle;
+    return true;
+  }
   // @agent:drones. Drone Control, Overview: "If a drone is destroyed, there is a 10 second delay before it can be
   // deployed again (costing another part)." INFERRED: the player kit flies one drone, so that delay holds the whole
   // kit, whichever schematic is picked next. killPlayerDrone sets kit.lost.
@@ -260,6 +277,7 @@ export function deploy(g: Game, kind: string): boolean {
   }
   g.player.parts -= PART_COST;
   kit.on = true;
+  delete kit.idle;
   kit.target = kind;
   kit.path = [];
   kit.move = 0;

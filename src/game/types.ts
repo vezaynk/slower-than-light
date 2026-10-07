@@ -313,6 +313,12 @@ export type Kit = {
   loadout?: string[];
   /** @agent:drones. Enemy drones deployed this fight, one per loadout slot. Absent until the first combat tick. */
   drones?: DroneUnit[];
+  /**
+   * Player turned this deployed drone off.
+   * Zoltans: while Zoltan power alone fully powers the schematic, that switch does nothing.
+   * Absent means it is not manually depowered.
+   */
+  idle?: boolean;
   /** @agent:drones. Seconds the player's deployed drone is stunned (enemy Anti-Combat Drone). */
   stun?: number;
   /** @agent:drones. Seconds elapsed in the player drone's current ion stun (swarm.ts ionHitsKit). Absent otherwise. */

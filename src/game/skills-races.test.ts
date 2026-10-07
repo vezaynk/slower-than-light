@@ -469,6 +469,15 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     assert.equal(unit.alive, false);
     assert.equal(hero.skills?.combat ?? 0, 0);
   });
+
+  it("an enemy killing blow leaves that crew untrained", () => {
+    // Crew skills, lead: "the enemy ships crew is always untrained and cannot reach higher skill levels."
+    const { g, hero, foe } = duel();
+    hero.hp = 0.05;
+    step(g, 0.05);
+    assert.ok(hero.hp <= 0);
+    assert.equal(foe.skills?.combat ?? 0, 0);
+  });
 });
 
 describe("Crew skills, Weapons: artillery grants one point", () => {

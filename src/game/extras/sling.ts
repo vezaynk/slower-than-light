@@ -63,15 +63,17 @@ function livingOnLark(g: Game): Crew[] {
 }
 
 /**
- * Crew Teleporter wiki, "Overview": send as many crew as there are pads.
- * INFERRED: the cap is 2, from "Ships can have only 2-tile Teleporter rooms."
- * That sentence also names four-person rooms (Mantis B, Mantis C, Crystal B); this pick never uses 4.
+ * Crew Teleporter wiki, "Overview": "Can send as many crewmembers as teleporter pads are available."
+ * "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person teleporters"
+ * (Mantis B, Mantis C, Crystal B).
+ * INFERRED: one crew per tile, so a 2×2 room has four pads.
  * Selected crew go first (even the lone pilot). Otherwise medbay, then any room.
  * The only person in piloting stays put when someone else can go. The page states neither of those orders.
  */
 function pickCrew(g: Game): Crew[] {
   const living = livingOnLark(g);
   if (living.length === 0) return [];
+  const pads = padTiles(g.player).tiles;
 
   const pilots = living.filter((c) => c.room === "p-pilot");
   const lonePilot = pilots.length === 1 && living.length > 1 ? pilots[0] : null;
@@ -83,7 +85,7 @@ function pickCrew(g: Game): Crew[] {
   const medbay = living.filter((c) => c.room === "p-medbay");
   const rest = living.filter((c) => c.room !== "p-medbay");
   for (const c of [...medbay, ...rest]) {
-    if (picked.length >= 2) break;
+    if (picked.length >= pads) break;
     if (picked.includes(c)) continue;
     if (lonePilot && c === lonePilot && c !== selected) continue;
     picked.push(c);
@@ -130,7 +132,8 @@ export function toggleSlingPower(g: Game) {
 
 /**
  * Crew Teleporter wiki, "Overview": send crew onto the enemy ship, then the system cools down.
- * INFERRED: the pad count is 2 ("only 2-tile Teleporter rooms"). Cooldown seconds are under "System Upgrades".
+ * "Can send as many crewmembers as teleporter pads are available." A 2-tile room sends two.
+ * Mantis B, Mantis C, and Crystal B have four-person rooms. Cooldown seconds are under "System Upgrades".
  */
 export function sendSling(g: Game, roomId: string) {
   const kit = sling(g);

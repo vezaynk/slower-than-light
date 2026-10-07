@@ -122,6 +122,50 @@ describe("sling", () => {
     for (const c of overflow) assert.ok(neighbors.includes(c.room));
   });
 
+  it("sends four from a four-person teleporter and two from a 2-tile room", () => {
+    // Crew Teleporter: "Can send as many crewmembers as teleporter pads are available."
+    // "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person teleporters."
+    const sendCount = (hull: string, tiles: number) => {
+      const g = createGame(4, hull);
+      const pad = g.player.rooms.find((r) => r.kit === "sling");
+      assert.ok(pad);
+      assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), tiles);
+      const kit = g.player.kits.sling;
+      assert.ok(kit);
+      kit.power = Math.max(kit.power, 1);
+      if (g.player.kits.veil) {
+        g.player.kits.veil.on = false;
+        g.player.kits.veil.left = 0;
+      }
+      engage(g);
+      const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
+      assert.ok(source);
+      while (g.crew.filter((c) => c.side === "player" && c.hp > 0).length < 5) {
+        const n = g.crew.length;
+        g.crew.push({ ...source, id: `c-pad-${hull}-${n}`, name: `Pad ${n}`, room: source.room, path: [] });
+      }
+      sendSling(g, "e-weapons");
+      return g.crew.filter((c) => c.side === "player" && c.aboard === "enemy").length;
+    };
+    assert.equal(sendCount("mantis-b", 4), 4);
+    assert.equal(sendCount("mantis-c", 4), 4);
+    assert.equal(sendCount("crystal-b", 4), 4);
+
+    const g = createGame(4);
+    g.scrap = 200;
+    installSling(g);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
+    assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
+    kitOf(g).power = 1;
+    engage(g);
+    const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(source);
+    g.crew.push({ ...source, id: "c-pad-extra", name: "Extra", room: "p-medbay", path: [] });
+    sendSling(g, "e-weapons");
+    assert.equal(g.crew.filter((c) => c.side === "player" && c.aboard === "enemy").length, 2);
+  });
+
   it("does not clone crew left alive on the enemy ship, and still clones a crew already queued", () => {
     // Clone Bay, Overview: "Clone Bay will not revive your crew left on the enemy ship, whether you or the enemy jumps away."
     const g = createGame(1);

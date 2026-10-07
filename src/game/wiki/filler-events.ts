@@ -995,6 +995,15 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "c:refugee-comms-down:1": done,
   "c:empty-nebula-beacon:0": done,
+
+  // Boarders: Humans (Abandoned). fillerChoose runs before citedChoose, whose fx is nothing.
+  // "3-4 human boarders beam aboard your ship." No ship. After a Lanius fight, and on a repeat
+  // before another fight, they have Emergency Respirators. INFERRED: lastFaction is that fight.
+  "c:boarders-humans-abandoned:0": (g) => {
+    const lungs = g.lastFaction === "lanius";
+    humanBoarders(g, 3, 4, "human boarders beam aboard your ship.", lungs);
+    beginBoarding(g);
+  },
 };
 
 /** Choices whose id carries a rolled amount: refugee trades, the fuel gift, the terraformers' bribe. */

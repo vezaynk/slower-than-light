@@ -899,15 +899,30 @@ export function pageFight(g: Game, text: string, tier: string, slug: string, esc
 /**
  * "Destroyed cargo ship": "2-4 human boarders beam aboard your ship". INFERRED: each lands in a random room.
  * `line` replaces the crate sentence on pages that are not the cargo ambush (`${n} ${line}`).
+ * `lungs` is Boarders: Humans (Abandoned): Emergency Respirators after a Lanius fight.
  */
-export function humanBoarders(g: Game, lo: number, hi: number, line?: string) {
+export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lungs = false) {
   const n = between(g, [lo, hi]);
   const hp = kinOf("plain").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
-    g.crew.push({ id: "u" + g.uid.toString(36), name: "Human", side: "enemy", aboard: "player", hp, maxHp: hp, room, path: [], move: 0, think: 0, tone: 3, kin: "plain" });
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: "Human",
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin: "plain",
+      ...(lungs ? { lungs: true } : {}),
+    });
   }
   log(g, line ? `${n} ${line}` : `${n} boarders burst out of the crates.`);
 }

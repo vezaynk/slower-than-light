@@ -204,6 +204,9 @@ describe("augments", () => {
     theirs.leashed = 4;
     assert.equal(lungScale(g, yours), 0.5);
     assert.equal(lungScale(g, theirs), 1);
+    // Boarders: Humans (Abandoned): the augment is on the boarder, not the enemy hull.
+    theirs.lungs = true;
+    assert.equal(lungScale(g, theirs), 0.5);
   });
 
   it("puts player fires out by twice the tick and ignores the other hull", () => {
@@ -432,6 +435,26 @@ describe("Emergency Respirators", () => {
     stand(yours, "enemy", room.id);
     step(g, TICK);
     near(80 - yours.hp, FULL * 0.5);
+  });
+
+  it("halves a hungry human who has the respirators and not one who does not", () => {
+    const g = airlessFight(5);
+    g.augments = [];
+    const room = g.player.rooms.find((r) => r.system !== "medbay");
+    const elsewhere = g.player.rooms.find((r) => r.id !== room?.id);
+    assert.ok(room && elsewhere);
+    const foe = g.crew.filter((c) => c.side === "enemy");
+    assert.ok(foe.length >= 2);
+    for (const c of g.crew) if (c !== foe[0] && c !== foe[1] && c.room === room.id) c.room = elsewhere.id;
+    foe[0].kin = "plain";
+    foe[1].kin = "plain";
+    foe[0].lungs = true;
+    foe[1].lungs = undefined;
+    stand(foe[0], "player", room.id);
+    stand(foe[1], "player", room.id);
+    step(g, TICK);
+    near(80 - foe[0].hp, FULL * 0.5);
+    near(80 - foe[1].hp, FULL);
   });
 
   it("nets the printed airless medbay rates", () => {

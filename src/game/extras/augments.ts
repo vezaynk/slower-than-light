@@ -279,8 +279,11 @@ export function casingHolds(g: Game): boolean {
  * Oxygen: "halves the suffocation damage of your crew."
  * INFERRED: the half follows the crew member's own side, not a mind-control leash.
  * The Oxygen page leaves a mind-controlled enemy as an untested note. Enemy hulls do not carry this augment.
+ * Boarders: Humans (Abandoned) names the augment on those humans after a Lanius fight.
+ * INFERRED: that is this same half, on the boarder (`crew.lungs`), not an enemy-hull augment.
  */
 export function lungScale(g: Game, crew: Crew): number {
+  if (crew.lungs) return 0.5;
   if (crew.side !== "player" || !has(g, "lung")) return 1;
   return 0.5;
 }

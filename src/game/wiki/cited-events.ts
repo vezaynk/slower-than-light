@@ -3230,6 +3230,32 @@ const CORE_EVENTS: EventDef[] = [
         ]
       }
     ]
+  },
+  {
+    // Boarders: Humans (Abandoned). unique=false is one beacon (INFERRED: the same once-per-sector stamp).
+    // The page prints no button. The red line is the label (INFERRED). No ship (LRSmap=noship).
+    "dest": "Boarders: Humans (Abandoned)",
+    "slug": "boarders-humans-abandoned",
+    "flag": "cited:boarders-humans-abandoned",
+    "aliases": [
+      "Weak and hungry human boarders",
+      "Weak and hungry Human intruders"
+    ],
+    "sectors": [
+      "Abandoned Sector"
+    ],
+    "body": "An image of some weak and hungry humans comes onto your screen. \"Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force.\"",
+    "choices": [
+      {
+        "id": "c:boarders-humans-abandoned:0",
+        "label": "3-4 human boarders beam aboard your ship",
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
+      }
+    ]
   }
 ];
 

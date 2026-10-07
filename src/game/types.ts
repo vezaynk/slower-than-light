@@ -133,6 +133,11 @@ export type Crew = {
   stun?: number;
   /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
   lockCool?: number;
+  /**
+   * Boarders: Humans (Abandoned): these humans have Emergency Respirators.
+   * The note names the augment; the 50% is the printed half (INFERRED on the boarder, not a hull augment).
+   */
+  lungs?: boolean;
 };
 
 export type WeaponInst = {
@@ -695,6 +700,12 @@ export type Game = {
   questsNext?: string[];
   /** @agent:quests. Slug of the event page that started the current fight (startCombat's `event`), for page win rewards. */
   fightEvent?: string | null;
+  /**
+   * Boarders: Humans (Abandoned): faction of the last fight.
+   * A hungry-human beacon after a Lanius ship gives those boarders Emergency Respirators.
+   * INFERRED: remembered until the next startCombat, so a repeat before another fight still has it.
+   */
+  lastFaction?: string;
 };
 
 /** @agent:drones. One drone struck by a shot (swarm.ts noteBlast). */

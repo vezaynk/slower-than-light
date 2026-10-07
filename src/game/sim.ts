@@ -3029,6 +3029,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.enemySurrender = surrenderPlan({ tier, event, faction: built.ship.faction, pirate: built.ship.pirate }, () => rand(g));
   // @agent:quests. The page that started this fight, for its own win reward (wiki/quests.ts pageWin).
   g.fightEvent = event ?? null;
+  // Boarders: Humans (Abandoned): the last fight's faction. INFERRED: kept until the next fight.
+  g.lastFaction = built.ship.faction;
   g.stalemate = null;
   g.enemy = built.ship;
   g.crew = g.crew.filter((c) => c.side === "player");

@@ -13,6 +13,11 @@ const ACTIVE = 30;
 const COOL = 20;
 /** Wiki page "Backup Battery", section "Overview": the charger augment cuts cooldown to 10 seconds. Code id stays "tap". */
 const COOL_TAP = 10;
+/**
+ * Backup Battery, Overview: full ionization enters the maximum 25 second cooldown.
+ * The page's note on whether Battery Charger shortens that 25 is an HTML to-do, so the charger does not.
+ */
+const ION_MAX_COOL = 25;
 
 function makeCell(level: number): Kit {
   return {
@@ -128,6 +133,24 @@ export function cellOnJump(g: Game) {
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
   log(g, "Backup Battery is ready.");
+}
+
+/**
+ * Backup Battery, Overview: "If all system levels of the Backup Battery subsystem get ionized
+ * (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown."
+ * One hit whose ion is at least the subsystem level covers every level. A smaller hit does not.
+ * INFERRED: that comparison is the hit's own ion, not a stack of earlier hits. Two sources at once
+ * are the next printed sentence.
+ */
+export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
+  if (kit.level <= 0 || points < kit.level) return false;
+  kit.left = 0;
+  kit.on = false;
+  kit.aux = 0;
+  kit.power = 0;
+  kit.cool = ION_MAX_COOL;
+  log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
+  return true;
 }
 
 /** Wiki page "Backup Battery", section "Overview": start a 30s window if the Cell is idle and cooled. */

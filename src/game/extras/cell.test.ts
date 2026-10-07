@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, waitHere } from "../sim.ts";
-import { cellBonus, installCell, startCell, tickCell, upgradeCell } from "./cell.ts";
+import { applyImpact, applyPulsarPulse, createGame, waitHere } from "../sim.ts";
+import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { onPlayerJump } from "./index.ts";
-import type { Kit } from "../types.ts";
+import type { Kit, Shot } from "../types.ts";
 
 function pushCell(level = 1): Kit {
   return {
@@ -121,6 +121,79 @@ describe("cell", () => {
     g.fuel = 3;
     waitHere(g);
     assert.equal(g.player.kits.cell.cool, 12);
+  });
+
+  it("starts the 25s cooldown when one hit ionizes every level", () => {
+    const g = createGame(9);
+    g.phase = "map";
+    g.augments = ["tap"];
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), true);
+    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(cellBonus(g.player), 0);
+    assert.equal(g.log[0], "Backup Battery cooling.");
+    tickCell(g, 5);
+    assert.equal(g.player.kits.cell?.cool, 20);
+
+    g.player.kits.cell = pushCell(2);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
+    assert.equal(g.player.kits.cell?.on, true);
+    assert.equal(g.player.kits.cell?.cool, 0);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 2), true);
+    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(cellBonus(g.player), 0);
+  });
+
+  it("lets an ion bomb and a pulsar cover the battery", () => {
+    const g = createGame(10);
+    g.scrap = 85;
+    installCell(g);
+    upgradeCell(g);
+    const room = g.player.rooms.find((r) => r.kit === "cell");
+    assert.ok(room);
+    g.player.systems.engines.power = 0;
+    g.player.shieldNow = 0;
+    g.player.zoltan = 0;
+    startCell(g);
+    const bomb: Shot = {
+      id: "b",
+      kind: "bomb",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      defId: "stunbomb",
+      targetRoom: room.id,
+      wait: 0,
+      t: 1,
+      duration: 1,
+    };
+    applyImpact(g, bomb);
+    assert.notEqual(g.log[0], "Bomb missed the Lark.");
+    assert.equal(g.player.kits.cell?.on, true);
+    assert.equal(g.player.kits.cell?.cool, 0);
+    applyImpact(g, { ...bomb, defId: "ionbomb", ion: 4 });
+    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(g.log[0], "Backup Battery cooling.");
+
+    let pulsed = false;
+    for (let seed = 1; seed < 80 && !pulsed; seed++) {
+      const pulse = createGame(seed);
+      pulse.player.kits.cell = pushCell(2);
+      pulse.player.zoltan = 0;
+      pulse.player.systems.shields.power = 0;
+      startCell(pulse);
+      applyPulsarPulse(pulse);
+      pulsed = pulse.player.kits.cell?.cool === 25;
+    }
+    assert.equal(pulsed, true);
   });
 
   it("starts an enemy cell when spare power is tight", () => {

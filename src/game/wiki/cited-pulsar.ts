@@ -1,5 +1,8 @@
 import type { SysId } from "../types.ts";
 
+/** A pulsar pick. "cell" is the Backup Battery subsystem, which is not a SysId. */
+export type PulsarId = SysId | "cell";
+
 /**
  * Environmental Hazards, ==Pulsar==, and Zoltan Shield, lead.
  * Pirate fight near pulsar, Rebel fight near pulsar, and Lanius fight near pulsar
@@ -39,7 +42,7 @@ export function pulsarMainIon(power: number): number {
   return Math.floor(1 + 0.5 * Math.max(0, power));
 }
 
-export type PulsarPick = { id: SysId; points: number; powered: boolean };
+export type PulsarPick = { id: PulsarId; points: number; powered: boolean };
 
 /**
  * Environmental Hazards, Pulsar: two systems, and powered shields are always one of them.

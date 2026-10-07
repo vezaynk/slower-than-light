@@ -54,7 +54,7 @@ import {
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
-import { tickCell } from "./extras/cell.ts";
+import { ionOnCell, tickCell } from "./extras/cell.ts";
 import { relaxSling, tickEnemyBoarding } from "./extras/sling.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
@@ -112,6 +112,7 @@ import {
   pulsarCycleSeconds,
   pulsarMainIon,
   pulsarShieldSpend,
+  type PulsarPick,
 } from "./wiki/cited-pulsar.ts";
 import {
   eventHasFlare,
@@ -1765,6 +1766,8 @@ export function applyImpact(g: Game, shot: Shot) {
         if (held) log(g, "Reverse Ion Field shrugged that off.");
         else {
           if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+          // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
+          if (r.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
           if (r.system) {
             if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
               applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
@@ -1926,6 +1929,8 @@ export function applyImpact(g: Game, shot: Shot) {
     // Zoltans: ion damage interrupts Hacking. The cooldown matches the ion damage.
     // A room that only houses the kit still counts. Cloaking and Mind Control are left alone.
     if (r?.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+    // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
+    if (r?.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
@@ -2678,18 +2683,35 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
     );
     return;
   }
-  const picks = pickPulsarTargets(
-    ALL_SYS.map((id) => ({
-      id,
-      points: pulsarSystemIon(g, ship, aboard, id),
-      powered: id === "shields" && pulsarShieldsPowered(g, ship, aboard),
-    })),
-    () => rand(g),
-  );
+  // Environmental Hazards, Pulsar: subsystems take ion according to their level.
+  // Backup Battery, Overview: a pulsar is one way that subsystem gets ionized.
+  // INFERRED: damage lowers the figure the same way an un-manned subsystem does.
+  const pool: PulsarPick[] = ALL_SYS.map((id) => ({
+    id,
+    points: pulsarSystemIon(g, ship, aboard, id),
+    powered: id === "shields" && pulsarShieldsPowered(g, ship, aboard),
+  }));
+  const cell = ship.kits.cell;
+  if (cell && cell.level > 0) {
+    const points = Math.max(0, cell.level - (cell.damage ?? 0));
+    if (points > 0) pool.push({ id: "cell", points, powered: false });
+  }
+  const picks = pickPulsarTargets(pool, () => rand(g));
   if (picks.length === 0) return;
   const bonus = zoltanBars(g.crew, ship, aboard, "shields");
-  for (const hit of picks) applyIon(ship, hit.id, hit.points, bonus);
-  const names = picks.map((hit) => roomWith(ship, hit.id)?.title ?? hit.id).join(" and ");
+  for (const hit of picks) {
+    if (hit.id === "cell") {
+      if (cell) ionOnCell(g, cell, hit.points);
+      continue;
+    }
+    applyIon(ship, hit.id, hit.points, bonus);
+  }
+  const names = picks
+    .map((hit) => {
+      if (hit.id === "cell") return ship.rooms.find((r) => r.kit === "cell")?.title ?? "Backup Battery";
+      return roomWith(ship, hit.id)?.title ?? hit.id;
+    })
+    .join(" and ");
   log(g, aboard === "player" ? `The pulsar ionizes ${names}.` : `The pulsar ionizes their ${names}.`);
 }
 

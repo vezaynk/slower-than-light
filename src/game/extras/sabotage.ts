@@ -71,6 +71,7 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
     // INFERRED: r.fire is this tree's fire count (each new fire adds 1, spread adds 0.5, cap 3), so a fractional
     // value contributes proportionally. INFERRED: boarders held up by hostile crew pause, not reset, the bar.
     const working = defenders > 0 ? 0 : boarders;
+    // Crew skills, lead: "including inflicting sabotage damage to systems" is the same for every race.
     const rate = SABOTAGE_RATE * (working + Math.max(0, r.fire));
     if (rate <= 0) continue;
     r.sabotage = (r.sabotage ?? 0) + rate * dt;

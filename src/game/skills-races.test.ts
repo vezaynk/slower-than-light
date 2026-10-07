@@ -348,6 +348,40 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
   });
 });
 
+describe("Crew skills: sabotage damage ignores race", () => {
+  it("deals the same system damage for a Human, an Engi, and a Mantis", () => {
+    // Crew skills, lead: other jobs "are performed equally well by all crew races, including inflicting sabotage damage".
+    const progress = (kin: "plain" | "shell" | "blade") => {
+      const g = createGame(50);
+      startCombat(g, "scout");
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
+      const away = g.enemy!.rooms.find((r) => r.id !== room.id)!;
+      g.enemy!.systems[room.system!].damage = 0;
+      room.fire = 0;
+      room.sabotage = 0;
+      const hero = g.crew.find((c) => c.side === "player")!;
+      for (const c of g.crew) {
+        c.path = [];
+        if (c.id !== hero.id && c.room === room.id && c.aboard === "enemy") c.room = away.id;
+      }
+      hero.aboard = "enemy";
+      hero.room = room.id;
+      hero.path = [];
+      hero.stun = 0;
+      hero.leashed = undefined;
+      hero.kin = kin;
+      tickSabotage(g, 0.5);
+      return room.sabotage ?? 0;
+    };
+    const human = progress("plain");
+    assert.ok(human > 0);
+    assert.equal(progress("shell"), human);
+    assert.equal(progress("blade"), human);
+  });
+});
+
 describe("Crew skills: a repair drone cannot gain experience", () => {
   it("finishes a system bar and trains nobody", () => {
     // Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."

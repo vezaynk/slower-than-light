@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { classIdFor, pickEnemy, requestFor } from "../enemy-gen.ts";
-import { choiceDisabled, choose, commitJump, createGame, dropCrystalRestart, startCombat, step } from "../sim.ts";
+import { choiceDisabled, choose, commitJump, createGame, restartRun, startCombat, step, titleHandoff } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { SECTOR_TYPES } from "./sectors.ts";
 import { citedEvent, citedPagesFor, stampCitedEvents } from "./cited-events.ts";
@@ -232,16 +232,18 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("restarting in the Hidden Crystal Worlds starts in a Civilian sector and skips the sector map", () => {
-    const prev = createGame(2);
-    prev.sectorName = "Hidden Crystal Worlds";
+    const played = createGame(2);
+    played.sectorName = "Hidden Crystal Worlds";
+    played.phase = "defeat";
     const names = new Set<string>();
     for (let seed = 1; seed <= 16; seed++) {
-      const next = createGame(seed);
-      dropCrystalRestart(prev, next);
+      // Verdict RESTART calls restartRun with the run still on screen.
+      const next = restartRun(played, seed, played.hullId, played.difficulty);
       assert.equal(next.sector, 1);
       assert.equal(next.sectorName, "Civilian Sector");
       assert.equal(next.crystalRestart, true);
       assert.equal(next.sectorMap, false);
+      assert.equal(next.hullId, played.hullId);
       const exit = next.beacons.find((b) => b.kind === "exit");
       assert.ok(exit);
       next.here = exit.id;
@@ -259,19 +261,42 @@ describe("quest openers (quests-a)", () => {
     }
     assert.ok(names.size > 1);
 
+    // HANGAR replaces the screen with a title placeholder, then the next start reads the played run.
+    const handoff = titleHandoff(played);
+    assert.equal(handoff.title.phase, "title");
+    assert.equal(handoff.title.sectorName, "Civilian (Starting) Sector");
+    assert.ok(handoff.played);
+    const started = restartRun(handoff.played, 6, "kestrel-a");
+    assert.equal(started.sectorName, "Civilian Sector");
+    assert.equal(started.crystalRestart, true);
+    const startedExit = started.beacons.find((b) => b.kind === "exit");
+    assert.ok(startedExit);
+    started.here = startedExit.id;
+    started.phase = "map";
+    started.event = null;
+    choose(started, "exit-leave");
+    assert.equal(started.sectorMap, false);
+    assert.equal(started.sector, 2);
+
+    // The title placeholder is not a crystal restart.
+    const fromTitle = restartRun(handoff.title, 7);
+    assert.equal(fromTitle.sectorName, "Civilian (Starting) Sector");
+    assert.equal(fromTitle.crystalRestart, undefined);
+    const lane = fromTitle.beacons.find((b) => b.kind === "exit");
+    assert.ok(lane);
+    fromTitle.here = lane.id;
+    fromTitle.phase = "map";
+    fromTitle.event = null;
+    choose(fromTitle, "exit-leave");
+    assert.equal(fromTitle.sectorMap, true);
+    assert.equal(fromTitle.sector, 1);
+
     const plain = createGame(3);
-    const fresh = createGame(4);
-    dropCrystalRestart(plain, fresh);
+    plain.phase = "defeat";
+    const again = titleHandoff(plain);
+    const fresh = restartRun(again.played ?? again.title, 4);
     assert.equal(fresh.sectorName, "Civilian (Starting) Sector");
     assert.equal(fresh.crystalRestart, undefined);
-    const lane = fresh.beacons.find((b) => b.kind === "exit");
-    assert.ok(lane);
-    fresh.here = lane.id;
-    fresh.phase = "map";
-    fresh.event = null;
-    choose(fresh, "exit-leave");
-    assert.equal(fresh.sectorMap, true);
-    assert.equal(fresh.sector, 1);
   });
 
   it("Ruwen marks the Ancient device beacon in Rock Homeworlds, and another Crystal does not", () => {

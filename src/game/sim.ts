@@ -3862,6 +3862,33 @@ export function dropCrystalRestart(prev: Game, next: Game): void {
 }
 
 /**
+ * Sectors, Hidden Crystal Worlds. The verdict RESTART and the next hangar start both call this
+ * with the run the player was playing.
+ */
+export function restartRun(
+  prev: Game,
+  seed: number,
+  hullId?: string,
+  difficulty: Difficulty = "normal",
+  picks: CrewPick[] = [],
+): Game {
+  const next = createGame(seed || 1, hullId, difficulty, picks);
+  dropCrystalRestart(prev, next);
+  return next;
+}
+
+/**
+ * The title screen is a placeholder. The run the player was playing stays for restartRun.
+ * A screen that is already the title is not that run.
+ * INVENTED: the page names no remembered run. The title placeholder is not the crystal sector.
+ */
+export function titleHandoff(playedRun: Game): { played: Game | null; title: Game } {
+  const title = createGame(1);
+  title.phase = "title";
+  return { played: playedRun.phase === "title" ? null : playedRun, title };
+}
+
+/**
  * Sectors, Hidden Crystal Worlds: sector 2 is chosen randomly, and the Sector Map does not open.
  * INFERRED: an empty pool, which this sector number does not have, stays a Civilian sector.
  * INFERRED: the route marker moves to a same-name node in the arrived column, else the first node there. The page does not say where it sits.

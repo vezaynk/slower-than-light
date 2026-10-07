@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, noteRun } from "@/game/wiki/achievement-track";
-import { buy, createGame, leaveStore, repairHull, runScore } from "@/game/sim";
+import { buy, leaveStore, repairHull, runScore } from "@/game/sim";
 import { citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
 import { useGame } from "@/game/store";
 import type { Game, SectorNode } from "@/game/types";
@@ -400,9 +400,7 @@ function verdictCopy(game: Game): { title: string; body: string; score: boolean 
 }
 
 function goTitle(boot: "title" | "hangar") {
-  const next = createGame(1);
-  next.phase = "title";
-  useGame.setState((s) => ({ game: next, version: s.version + 1, boot }));
+  useGame.getState().toTitle(boot);
 }
 
 /** Victory.jpg, then Victory-0.jpg. Game Over uses the same button row. */
@@ -449,8 +447,7 @@ export function Verdict({ game }: { game: Game }) {
         <button
           type="button"
           onClick={() => {
-            const next = createGame((Date.now() ^ 0x9e3779b9) >>> 0 || 1, game.hullId, game.difficulty);
-            useGame.setState((s) => ({ game: next, version: s.version + 1 }));
+            useGame.getState().restartSame(game);
           }}
         >
           RESTART

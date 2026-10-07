@@ -220,7 +220,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Crew — partial — eight lineages in kin.ts from the race table. Several racial abilities are not fields.
 - [ ] Crew Member — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crew Members — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Crew Teleporter — partial — sling.ts on either hull, including Flagship stage 3. Pad count and several timings INFERRED. The stage-3 trip cap is INFERRED as unlimited.
+- [ ] Crew Teleporter — partial — sling.ts on either hull, including Flagship stage 3. Pad count and several timings INFERRED. The stage-3 trip cap is INFERRED as unlimited. When the ship is not in danger, that cooldown resets instantly. Combat, boarders, a solar flare, a pulsar, an asteroid field, or a hostile anti-ship battery still counts as danger.
 - [ ] Crew hiring station — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crew member — not-a-surface — same title as "Crew Member" with different capitalization
 - [ ] Crew members — not-a-surface — same title as "Crew Members" with different capitalization

@@ -2188,6 +2188,13 @@ function looseShard(g: Game) {
   const enemy = g.enemy;
   if (!enemy) return;
   const shot = { kind: "laser" as const, from: "player" as const, defId: "vengeance" };
+  // Augmentations, Crystal Vengeance, grey note: a friendly defense drone can shoot the shard down.
+  // INFERRED: that drone orbits this hull, so it is offered the shard before the enemy's drone.
+  // Friendly projectiles are not given a meeting point. No flight time is printed, so the shard still resolves now.
+  if (swarmIntercept(g, shot)) {
+    log(g, "Your defense drone shot the shard down.");
+    return;
+  }
   if (enemyDefenseIntercept(g, shot)) {
     log(g, "Their defense drone shot the shard down.");
     return;

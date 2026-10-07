@@ -309,12 +309,12 @@ function shoots(
   defender: "player" | "enemy",
 ): boolean {
   if (kind !== "ward" && kind !== "ward2") return false;
+  // Augmentations, Crystal Vengeance: defense drones can shoot the shard down.
+  // Grey note: a friendly defense drone can too. The shard is a neutral projectile like an asteroid.
+  // Mark I shoots asteroids, so both marks do, including a shard from this same ship.
+  if (shot.defId === "vengeance") return true;
   // Incoming only. The defending ship's own shots are not targets.
   if (shot.from === defender) return false;
-  // Augmentations, Crystal Vengeance: defense drones can shoot the shard down.
-  // The grey note calls it a neutral projectile like an asteroid. Mark I shoots asteroids, so both marks do.
-  // A friendly drone does not. That shoot-down is the grey [bugged] note, and it is not implemented.
-  if (shot.defId === "vengeance") return true;
   // Environmental Hazards, anti-ship battery: it cannot be shot down.
   if (shot.from === "env" && shot.kind === "missile") return false;
   // Defensive Drones > Defense Drone Mark I: missiles, hacking and boarding

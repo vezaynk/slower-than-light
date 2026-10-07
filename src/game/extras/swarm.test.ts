@@ -109,6 +109,66 @@ describe("swarm", () => {
     assert.equal(swarmIntercept(g, { kind: "ion", from: "enemy" }), true);
   });
 
+  it("a friendly defense drone shoots a Crystal Vengeance shard", () => {
+    for (const kind of ["ward", "ward2"] as const) {
+      const g = createGame(11);
+      const kit = place(g);
+      assert.equal(deploy(g, kind), true);
+      assert.equal(swarmIntercept(g, { kind: "laser", from: "player", defId: "vengeance" }), true);
+      assert.equal(kit.cool, DRONE_COOLDOWN_S[kind]);
+    }
+    const combat = createGame(12);
+    place(combat);
+    assert.equal(deploy(combat, "striker"), true);
+    assert.equal(swarmIntercept(combat, { kind: "laser", from: "player", defId: "vengeance" }), false);
+    assert.equal(combat.player.kits.swarm?.cool, 0);
+  });
+
+  it("spends that drone when a hull hit breaks off a shard", () => {
+    let saw = false;
+    for (let seed = 1; seed < 80 && !saw; seed++) {
+      const g = createGame(seed);
+      startCombat(g, "scout");
+      assert.ok(g.enemy);
+      g.asteroid = false;
+      g.asb = false;
+      for (const w of [...g.player.weapons, ...g.enemy.weapons]) w.enabled = false;
+      g.player.systems.engines.power = 0;
+      g.player.systems.shields.power = 0;
+      g.player.shieldNow = 0;
+      g.player.zoltan = 0;
+      g.player.hull = 40;
+      g.enemy.systems.engines.level = 0;
+      g.enemy.systems.engines.power = 0;
+      g.enemy.shieldNow = 0;
+      g.enemy.zoltan = 0;
+      g.augments = ["vengeance"];
+      place(g);
+      assert.equal(deploy(g, "ward"), true);
+      const hull = g.enemy.hull;
+      const room = g.player.rooms.find((item) => item.id === "p-weapons") ?? g.player.rooms[0];
+      assert.ok(room);
+      applyImpact(g, {
+        id: "hit",
+        kind: "laser",
+        from: "enemy",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: room.id,
+        wait: 0,
+        t: 1,
+        duration: 1,
+      });
+      if (g.log.some((line) => line === "Your defense drone shot the shard down.")) {
+        assert.equal(g.enemy.hull, hull);
+        saw = true;
+      }
+    }
+    assert.equal(saw, true);
+  });
+
   it("ward shoots flak and an environmental asteroid", () => {
     const g = createGame(5);
     place(g);

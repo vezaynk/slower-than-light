@@ -434,7 +434,7 @@ describe("Crystal Vengeance", () => {
     assert.equal(bubble.enemy!.shieldNow, 4);
   });
 
-  it("is shot down by an enemy defense drone and not by your own", () => {
+  it("is shot down by an enemy defense drone and by your own", () => {
     const mark1 = fight(23);
     mark1.enemy!.systems.engines.level = 0;
     mark1.enemy!.systems.shields.level = 0;
@@ -493,8 +493,8 @@ describe("Crystal Vengeance", () => {
     const own = fight(26);
     swarmKit(own, 2);
     assert.equal(deploy(own, "ward"), true);
-    assert.equal(swarmIntercept(own, { kind: "laser", from: "player", defId: "vengeance" }), false);
-    assert.equal(own.player.kits.swarm?.cool, 0);
+    assert.equal(swarmIntercept(own, { kind: "laser", from: "player", defId: "vengeance" }), true);
+    assert.equal(own.player.kits.swarm?.cool, DRONE_COOLDOWN_S.ward);
   });
 
   it("does not answer a hit on the enemy hull", () => {

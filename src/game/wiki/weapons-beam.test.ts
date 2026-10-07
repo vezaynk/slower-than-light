@@ -1,7 +1,39 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { applyImpact, createGame } from "../sim.ts";
+import type { Game, Shot } from "../types.ts";
 import { BEAM_CREW, BEAM_GAPS, BEAM_WEAPONS } from "./weapons-beam.ts";
+
+function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
+  return {
+    id: "beam-tick",
+    kind: "beam",
+    from: "enemy",
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    targetRoom: partial.beamRooms?.[0] ?? "p-weapons",
+    wait: 0,
+    t: 1,
+    duration: 1,
+    ...partial,
+  };
+}
+
+function quiet(seed = 4): Game {
+  const g = createGame(seed);
+  g.player.systems.engines.power = 0;
+  g.player.shieldNow = 0;
+  g.player.zoltan = 5;
+  return g;
+}
+
+function systemDamage(g: Game, roomId: string): number {
+  const room = g.player.rooms.find((item) => item.id === roomId);
+  assert.ok(room?.system);
+  return g.player.systems[room.system].damage;
+}
 
 const byId = Object.fromEntries(BEAM_WEAPONS.map((w) => [w.id, w]));
 
@@ -175,6 +207,52 @@ describe("beam weapons", () => {
     assert.match(boss, /19\.5s/);
     assert.match(boss, /Beam length 100/);
     assert.match(boss, /2 damage per room hit/);
+  });
+
+  it("spends a Zoltan Shield at 33% and 80% of the path, once each", () => {
+    const path = ["p-engines", "p-shields", "p-oxygen", "p-medbay"];
+    const held = quiet();
+    const hull = held.player.hull;
+    applyImpact(held, beamShot({ damage: 2, defId: "halberd", beamRooms: path }));
+    // Halberd: 2 damage times 2 instances. The bubble still has a point, so the hull is untouched.
+    assert.equal(held.player.zoltan, 1);
+    assert.equal(held.player.hull, hull);
+    for (const id of path) assert.equal(systemDamage(held, id), 0);
+
+    const fire = quiet();
+    applyImpact(fire, beamShot({ damage: 0, defId: "firebeam", fireChance: 1, beamRooms: path }));
+    assert.equal(fire.player.zoltan, 3);
+    assert.equal(fire.player.rooms.find((room) => room.id === "p-engines")?.fire ?? 0, 0);
+
+    const anti = quiet();
+    applyImpact(anti, beamShot({ damage: 0, defId: "antibio", beamRooms: path }));
+    assert.equal(anti.player.zoltan, 3);
+    assert.equal(anti.player.hull, hull);
+
+    // The second tick is at 80%. A 2-point bubble pays both 1-damage instances and breaks there.
+    // INFERRED equal slices: only the last quarter of a 4-room path is still ahead of 80%.
+    const tail = quiet();
+    tail.player.zoltan = 2;
+    applyImpact(tail, beamShot({ damage: 1, defId: "mini", beamRooms: path }));
+    assert.equal(tail.player.zoltan, 0);
+    assert.equal(systemDamage(tail, "p-engines"), 0);
+    assert.equal(systemDamage(tail, "p-shields"), 0);
+    assert.equal(systemDamage(tail, "p-oxygen"), 0);
+    assert.equal(systemDamage(tail, "p-medbay"), 1);
+
+    // Beam Drone 1 and Fire Drone have no second tick. The first tick breaks a 1-point bubble at 33%.
+    const drone = quiet();
+    drone.player.zoltan = 1;
+    applyImpact(drone, beamShot({ damage: 1, defId: "beam", label: "drone:beam1", beamRooms: path }));
+    assert.equal(drone.player.zoltan, 0);
+    assert.equal(systemDamage(drone, "p-engines"), 0);
+    assert.equal(systemDamage(drone, "p-shields"), 1);
+
+    const flame = quiet();
+    flame.player.zoltan = 4;
+    applyImpact(flame, beamShot({ damage: 1, defId: "fire", fireChance: 0.9, label: "drone:fire", beamRooms: path }));
+    assert.equal(flame.player.zoltan, 3);
+    assert.equal(flame.player.hull, hull);
   });
 
   it("cites Beam (Weapons) and each section heading", () => {

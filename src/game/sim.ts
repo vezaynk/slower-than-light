@@ -1792,13 +1792,41 @@ function noteZoltan(g: Game, playerHurt: boolean) {
 }
 
 /**
- * Zoltan Shield, lead: beams hit the bubble in 2 ticks, doubling base damage, and room count does not change that.
- * Zoltan Shield, lead: Anti-Bio Beam, Fire Beam, and Artillery Beam deal 2 damage in total.
+ * Beam (Weapons), "Beams vs Zoltan Shields": the first instance is at 33% of the path,
+ * the second at 80%. Beams that do no hull damage do 1 per instance.
  * Artillery Beam is not launched as a shot. lance.ts still skips this bubble.
  */
-function zoltanBeamCost(shot: Shot): number {
-  if (shot.defId === "antibio" || shot.defId === "firebeam") return 2;
-  return shot.damage * 2;
+const ZOLTAN_BEAM_FIRST = 0.33;
+const ZOLTAN_BEAM_SECOND = 0.8;
+
+function zoltanBeamInstance(shot: Shot): number {
+  if (shot.damage <= 0) return 1;
+  return shot.damage;
+}
+
+/**
+ * Beam (Weapons), "Beams vs Zoltan Shields": Beam Drone 1 and Fire Drone have no second tick.
+ * INFERRED: those two are defId "beam" or "fire", or a drone label that names fire or beam1.
+ * A drone label that does not name the kind still takes both ticks. swarm.ts spends the bubble
+ * on a drone swipe before this shot is built, so that path is not a second specification.
+ */
+function zoltanBeamTicks(shot: Shot): number {
+  if (shot.defId === "beam" || shot.defId === "fire") return 1;
+  const label = shot.label ?? "";
+  if (/drone:.*(fire|beam1|beam-1)/i.test(label)) return 1;
+  if (label.startsWith("drone:") && shot.fireChance >= 0.9) return 1;
+  return 2;
+}
+
+/**
+ * INFERRED: each room in the swipe is an equal slice of the path, in order.
+ * The page does not print a pixel clock. A room the beam has already left takes nothing.
+ * A room the beam is still inside, or enters later, takes the normal hit.
+ */
+function roomsAfterZoltanBreak(rooms: string[], brokeAt: number): string[] {
+  const n = rooms.length;
+  if (n === 0) return rooms;
+  return rooms.filter((_, i) => (i + 1) / n > brokeAt);
 }
 
 /** Bomb (Weapons), Stun Bomb: "stuns all enemy and player crew and drones in affected room for 15 seconds." */
@@ -1982,9 +2010,28 @@ export function applyImpact(g: Game, shot: Shot) {
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
       return;
     }
-    const bubble = spendZoltan(ship, zoltanBeamCost(shot));
-    if (bubble != null) noteZoltan(g, playerTarget);
-    if (bubble === 0) return;
+    // Beam (Weapons), "Beams vs Zoltan Shields": up to two instances, at 33% and 80% of the path.
+    // Room count does not change the instance. Zoltan Shield, lead: Hull Beam's systemless rooms do not raise it.
+    // If the bubble breaks while the beam is still firing, the rest of the path is a normal swipe.
+    const rooms = shot.beamRooms ?? [shot.targetRoom];
+    let openRooms = rooms;
+    if ((ship.zoltan ?? 0) > 0) {
+      const instance = zoltanBeamInstance(shot);
+      const marks = zoltanBeamTicks(shot) === 1 ? [ZOLTAN_BEAM_FIRST] : [ZOLTAN_BEAM_FIRST, ZOLTAN_BEAM_SECOND];
+      let brokeAt: number | null = null;
+      for (const at of marks) {
+        if ((ship.zoltan ?? 0) <= 0) break;
+        spendZoltan(ship, instance);
+        noteZoltan(g, playerTarget);
+        if ((ship.zoltan ?? 0) <= 0) {
+          brokeAt = at;
+          break;
+        }
+      }
+      if (brokeAt == null) return;
+      openRooms = roomsAfterZoltanBreak(rooms, brokeAt);
+      if (openRooms.length === 0) return;
+    }
     // Zoltan Shield, lead: if the bubble breaks before the swipe ends, the beam continues against regular shields or hull.
     // Beam (Weapons), "Beam targeting and damage mechanics": each shield layer cuts the room's damage by 1, and the beam does not pop a layer.
     // Hull Beam's systemless 2 is cut the same way, per room. A system room at 1 damage still skids off one layer.
@@ -1994,7 +2041,7 @@ export function applyImpact(g: Game, shot: Shot) {
     // Regular shields are not popped. A damage number, even 1, is still cut by each layer.
     const dashed = shot.damage <= 0;
     let landed = false;
-    for (const id of shot.beamRooms ?? [shot.targetRoom]) {
+    for (const id of openRooms) {
       const room = roomById(ship, id);
       if (!room) continue;
       const system = dashed ? 0 : Math.max(0, shot.damage - reduce);

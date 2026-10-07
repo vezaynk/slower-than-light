@@ -76,7 +76,7 @@ import { hullById } from "./hulls.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
-import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, stampCitedEvents } from "./wiki/cited-events.ts";
+import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -659,6 +659,30 @@ function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   const cap = engineLimit.get(g);
   if (cap == null) return bars;
   return Math.min(bars, cap);
+}
+
+/**
+ * Auto-ship carrying shield virus: "Fight an Auto-ship with your Shields halved" and "rounds down against you".
+ * INFERRED: the half is the bars the bubble rule reads, and it ends when that fight ends.
+ * The installed level stays. An enemy ship's shields are not cut.
+ */
+const shieldHalf = new WeakMap<Game, true>();
+
+export function halvePlayerShields(g: Game): void {
+  shieldHalf.set(g, true);
+  const cap = shieldCap(g, g.player, "player");
+  if (g.player.shieldNow > cap) g.player.shieldNow = cap;
+}
+
+function clearShieldHalf(g: Game): void {
+  shieldHalf.delete(g);
+}
+
+function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+  const bonus = zoltanBars(g.crew, ship, aboard, "shields");
+  if (aboard !== "player" || !shieldHalf.has(g)) return maxBubbles(ship, bonus);
+  const halved = Math.floor(bars(ship.systems.shields, bonus) / 2);
+  return Math.floor(halved / 2);
 }
 
 /** Engines evasion table, plus manning, plus Piloting autopilot (50% at level 2, 80% at level 3, minimum 2). */
@@ -3052,7 +3076,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
 }
 
 function shieldRegen(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
-  const cap = maxBubbles(ship, zoltanBars(g.crew, ship, aboard, "shields"));
+  const cap = shieldCap(g, ship, aboard);
   if (ship.shieldNow > cap) ship.shieldNow = cap;
   // @agent:hacking. Hacking, "Overview" (Shields): no recharge while an enemy pulse discharges them (extras/spike.ts).
   if (ship.shieldNow < cap && mainBars(g, ship, aboard, "shields") >= 2 && !hackHoldsShields(g, ship)) {
@@ -3511,6 +3535,8 @@ function lose(g: Game, reason: "hull" | "crew") {
 function winCombat(g: Game) {
   // Pirate engine hacker: the system is restored once that ship is destroyed or disabled.
   clearEngineLimit(g);
+  // Auto-ship carrying shield virus: the half is only for that fight.
+  clearShieldHalf(g);
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
   // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
   const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
@@ -3793,6 +3819,8 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
 export function startCombat(g: Game, tier: string, asteroid = false, event?: string) {
   // A later fight does not keep the pirate's engine cap. The choice sets it again after this returns.
   clearEngineLimit(g);
+  // A later fight does not keep the shield-virus half. The choice sets it again after this returns.
+  clearShieldHalf(g);
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
   const built = makeEnemy(g, tier, event);
@@ -4400,6 +4428,8 @@ export function commitJump(g: Game, id: string) {
   onPlayerJump(g);
   // INFERRED: jumping away restores the engines. The page prints the restore on a win.
   clearEngineLimit(g);
+  // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
+  clearShieldHalf(g);
   // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
   leashOnLeave(g);
   // @agent:flagship. Leaving the boss fight mid-stage: keep its stage and surviving crew (wiki/flagship-systems.ts).
@@ -4715,6 +4745,8 @@ export function choose(g: Game, id: string) {
               // Pirate engine hacker: "Engines limited to level 1." After startCombat, which clears the cap.
               const cap = citedEngineCap(id);
               if (cap != null) limitPlayerEngines(g, cap);
+              // Auto-ship carrying shield virus: "your Shields halved". After startCombat, which clears the half.
+              if (citedShieldHalf(id)) halvePlayerShields(g);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),
@@ -4783,6 +4815,8 @@ export function enterHiddenCrystal(g: Game) {
   g.jumps += 1;
   onPlayerJump(g);
   clearEngineLimit(g);
+  // INFERRED: leaving for the Hidden Crystal Worlds ends the shield-virus half.
+  clearShieldHalf(g);
   leashOnLeave(g);
   rememberFlagship(g);
   dropOvercharged(g.player);
@@ -5204,6 +5238,8 @@ export function step(g: Game, dt: number) {
     g.enemyEscape = null;
     // INFERRED: their escape ends the engine cap. The page prints the restore on a win.
     clearEngineLimit(g);
+    // INFERRED: their escape ends the shield-virus half. The page only prints the half for that fight.
+    clearShieldHalf(g);
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";

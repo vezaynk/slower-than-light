@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
 
@@ -238,5 +238,61 @@ describe("cited events", () => {
     assert.equal(shop.phase, "map");
     assert.equal(shop.player.parts, 0);
     assert.equal(shop.scrap, scrap + 12);
+  });
+});
+
+describe("Auto-ship carrying shield virus", () => {
+  it("halves player shield bars, rounding down, until that fight ends", () => {
+    const g = createGame(31);
+    g.sectorName = "Civilian Sector";
+    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+    assert.ok(b);
+    b.flag = "cited:auto-ship-carrying-shield-virus";
+    b.kind = "event";
+    b.name = "Auto-ship carrying shield virus";
+    g.here = b.id;
+    g.event = citedEvent(g, b);
+    g.phase = "event";
+    g.player.systems.shields.level = 4;
+    g.player.systems.shields.power = 4;
+    g.player.systems.shields.damage = 0;
+    g.player.systems.shields.ion = [];
+    g.player.shieldNow = 2;
+    choose(g, "c:auto-ship-carrying-shield-virus:0");
+    assert.equal(g.phase, "combat");
+    assert.ok(g.enemy);
+    for (const w of g.enemy.weapons) w.enabled = false;
+    if (g.enemy.kits.spike) {
+      g.enemy.kits.spike.on = false;
+      g.enemy.kits.spike.power = 0;
+    }
+    assert.equal(g.player.shieldNow, 1);
+    g.player.shieldNow = 2;
+    step(g, 0.05);
+    assert.equal(g.player.shieldNow, 1);
+    g.player.systems.shields.level = 2;
+    g.player.systems.shields.power = 2;
+    g.player.shieldNow = 1;
+    step(g, 0.05);
+    assert.equal(g.player.shieldNow, 0);
+    g.enemy.systems.shields.level = 4;
+    g.enemy.systems.shields.power = 4;
+    g.enemy.systems.shields.damage = 0;
+    g.enemy.systems.shields.ion = [];
+    g.enemy.shieldNow = 2;
+    step(g, 0.05);
+    assert.equal(g.enemy.shieldNow, 2);
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    for (const w of g.enemy.weapons) w.enabled = false;
+    g.player.systems.shields.level = 4;
+    g.player.systems.shields.power = 4;
+    g.player.systems.shields.damage = 0;
+    g.player.shieldNow = 2;
+    step(g, 0.05);
+    assert.equal(g.player.shieldNow, 2);
   });
 });

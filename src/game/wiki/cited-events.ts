@@ -38,6 +38,11 @@ export function citedEngineCap(id: string): number | null {
   return null;
 }
 
+/** Auto-ship carrying shield virus: "Fight an Auto-ship with your Shields halved" and "rounds down against you". */
+export function citedShieldHalf(id: string): boolean {
+  return id === "c:auto-ship-carrying-shield-virus:0";
+}
+
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
  * Engi cache stays in sim.ts. A page that only says "a random amount" is absent.
@@ -181,10 +186,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Auto-ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system-halving is not applied."
           }
         ]
       }

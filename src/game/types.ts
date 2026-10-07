@@ -58,6 +58,12 @@ export type Room = {
   venting: boolean;
   /** Seconds of crystal coating left. Absent means the room is not coated. */
   lock?: number;
+  /**
+   * Crystal Lockdown: this coating was already up when a hacking drone attached.
+   * When it melts, the room's doors are left with 4 hits. A pulse during the coating,
+   * or another lockdown, clears it.
+   */
+  lockHack?: boolean;
   /** Boarding, "Combat": sabotage bar (0..1) from boarders and fires. At 1 the room's system takes 1 damage. Absent means 0. */
   sabotage?: number;
   /**

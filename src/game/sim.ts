@@ -954,21 +954,82 @@ function coated(ship: Ship, id: string): boolean {
 }
 
 /**
+ * Crystal Lockdown: doors left when a coating that was up before the hacking drone attached melts.
+ * The page prints 4, "instead of the regular 10 hits on Hard difficulty".
+ * Door System, "Hits required to break a door": 10 is the Hard level-3 cell. blastHits keeps the Normal column.
+ */
+export const HACK_COAT_HITS = 4;
+
+function roomForHack(ship: Ship, systemId: string): Room | undefined {
+  return ship.rooms.find((room) => room.id === systemId || room.system === systemId || room.kit === systemId);
+}
+
+function doorsOf(ship: Ship, roomId: string): Door[] {
+  return ship.doors.filter((door) => door.b !== "void" && (door.a === roomId || door.b === roomId));
+}
+
+/** Hacking, "Overview": a latched drone makes this room's doors level-3 blast doors. */
+function hackLatchedOn(g: Game, ship: Ship, room: Room): boolean {
+  const id =
+    ship === g.player
+      ? g.enemy?.kits.spike?.hackLatched
+        ? g.enemy.kits.spike.target
+        : null
+      : ship === g.enemy
+        ? (g.enemy.hackDrone ?? null)
+        : null;
+  if (!id) return false;
+  return room.id === id || room.system === id || room.kit === id;
+}
+
+/**
  * Crystal, "Crystal Lockdown": the coating lasts 12 seconds and resets blast-door health.
  * Door System, "Hits required to break a door": that table is the health being reset.
  * The coating itself is COATED_DOOR_HITS, and the door level does not change it.
  * Airlocks are not coated.
+ * Hacking, "Overview": lockdown "completely restores" a hacked room's doors, which are level-3
+ * blast doors. Another lockdown clears the 4-hit mark and protects that health while the coating
+ * lasts (punches land on the coat, not on hp).
  */
 function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: string) {
   const room = roomById(ship, roomId);
   if (!room) return;
   room.lock = 12;
+  delete room.lockHack;
   const level = doorLevel(g, ship, aboard);
-  for (const door of ship.doors) {
-    if (door.b === "void") continue;
-    if (door.a !== roomId && door.b !== roomId) continue;
-    door.hp = blastHits(level);
+  const hits = hackLatchedOn(g, ship, room) ? blastHits(HACKED_DOOR_LEVEL) : blastHits(level);
+  for (const door of doorsOf(ship, roomId)) {
+    door.hp = hits;
     door.coat = COATED_DOOR_HITS;
+  }
+}
+
+/**
+ * Crystal Lockdown: "if a room is locked down before a hacking drone attaches to the system,
+ * then the room's doors take only 4 hits to be broken after the coating disappears".
+ * Hacking, "Overview", prints the same 4.
+ */
+export function noteHackLatchedDuringLock(ship: Ship, systemId: string) {
+  const room = roomForHack(ship, systemId);
+  if (!room || (room.lock ?? 0) <= 0) return;
+  room.lockHack = true;
+}
+
+/**
+ * Crystal Lockdown: "if a hacking drone attaches to the system and the disruption pulse is
+ * activated, then the doors retain their normal strength".
+ * INFERRED: the pulse has to start while the coating is still up. "Retain" is the strength
+ * the coating was holding, not a repair after the 4 hits are already left.
+ * Hacked doors are level 3. The page's 10 is the Hard cell. blastHits stays on the Normal column, so this is 12.
+ */
+export function noteHackPulseDuringLock(ship: Ship, systemId: string) {
+  const room = roomForHack(ship, systemId);
+  if (!room?.lockHack || (room.lock ?? 0) <= 0) return;
+  delete room.lockHack;
+  const hits = blastHits(HACKED_DOOR_LEVEL);
+  for (const door of doorsOf(ship, room.id)) {
+    if (door.stuck > 0) continue;
+    door.hp = hits;
   }
 }
 
@@ -1057,10 +1118,22 @@ function tickLockdown(g: Game, dt: number) {
   }
 }
 
-/** Crystal Lockdown: once the coating has melted, leftover coating hits go with it and the door stays as it is. */
+/**
+ * Crystal Lockdown: once the coating has melted, leftover coating hits go with it.
+ * A coating that was up before the hacking drone attached leaves 4 hits on that room's doors.
+ * A pulse during the coating, or another lockdown, already cleared that mark.
+ */
 function meltCoats(g: Game) {
   for (const ship of [g.player, g.enemy]) {
     if (!ship) continue;
+    for (const room of ship.rooms) {
+      if (!room.lockHack || (room.lock ?? 0) > 0) continue;
+      delete room.lockHack;
+      for (const door of doorsOf(ship, room.id)) {
+        if (door.stuck > 0) continue;
+        door.hp = HACK_COAT_HITS;
+      }
+    }
     for (const door of ship.doors) {
       if (door.b === "void" || !(door.coat != null && door.coat > 0)) continue;
       if (coated(ship, door.a) || coated(ship, door.b)) continue;
@@ -2175,6 +2248,7 @@ function tickDoors(ship: Ship, dt: number) {
 
 function armDoors(ship: Ship, level: number) {
   const hits = blastHits(level);
+  for (const room of ship.rooms) if (room.lockHack) delete room.lockHack;
   for (const d of ship.doors) {
     d.stuck = 0;
     d.hp = hits;

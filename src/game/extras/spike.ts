@@ -1,4 +1,4 @@
-import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -303,6 +303,8 @@ function startOwnPulse(g: Game, kit: Kit, seconds: number) {
   kit.cool = 0;
   const foe = g.enemy;
   if (!foe) return;
+  // Crystal Lockdown: a pulse during the coating keeps normal hacked-door strength.
+  if (kit.target) noteHackPulseDuringLock(foe, kit.target);
   // "Cloaking: ends an active cloak". As startEnemyPulse: the cloak then cools 20 s (Cloaking, "Overview").
   const veil = foe.kits.veil;
   if (kit.target === "veil" && veil?.on) {
@@ -333,6 +335,8 @@ function arriveOwn(g: Game, kit: Kit) {
   clearOwnFlight(g, kit);
   kit.target = target;
   foe.hackDrone = target;
+  // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The pulse below can cancel it.
+  noteHackLatchedDuringLock(foe, target);
   log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
   const seconds = pulseSeconds(fedBars(kit));
   if (seconds > 0 && !enemyPulseOn(g, ["spike"])) startOwnPulse(g, kit, seconds);
@@ -875,6 +879,8 @@ function arrive(g: Game, kit: Kit) {
   kit.hackFly = undefined;
   kit.hackFlyTotal = undefined;
   kit.hackLatched = true;
+  // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The later pulse can cancel it.
+  if (kit.target) noteHackLatchedDuringLock(g.player, kit.target);
   log(g, `Their hacking drone latches onto your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
 }
 
@@ -885,6 +891,8 @@ function startEnemyPulse(g: Game, kit: Kit) {
   kit.on = true;
   kit.left = seconds;
   kit.aux = 0;
+  // Crystal Lockdown: a pulse during the coating keeps normal hacked-door strength.
+  if (kit.target) noteHackPulseDuringLock(g.player, kit.target);
   // Hacking wiki, "Overview" (Cloaking): "ends an active cloak". INFERRED: the cloak then cools as it does after any
   // ended cloak (Cloaking, "Overview": 20 seconds).
   const veil = g.player.kits.veil;

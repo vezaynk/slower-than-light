@@ -113,6 +113,13 @@ describe("Zoltans ionized activation", () => {
     assert.ok((foe.leashed ?? 0) > 0);
 
     delete g.player.kits.sling.ion;
+    // Crew Teleporter: a send needs someone standing in the teleporter room.
+    const standing = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(standing);
+    const slingRoom = g.player.rooms.find((r) => r.kit === "sling") ?? g.player.rooms[0];
+    assert.ok(slingRoom);
+    standing.room = slingRoom.id;
+    standing.path = [];
     sendSling(g, pad);
     assert.ok(g.crew.some((c) => c.side === "player" && c.aboard === "enemy"));
 

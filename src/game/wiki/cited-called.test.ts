@@ -152,6 +152,13 @@ describe("Zoltan Shield Bypass", () => {
     assert.ok(pad);
     pad.power = pad.level;
     open.enemy!.zoltan = 4;
+    // Crew Teleporter: a send needs someone standing in the teleporter room.
+    const padRoom = open.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(padRoom);
+    const rider = open.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(rider);
+    rider.room = padRoom.id;
+    rider.path = [];
     sendSling(open, open.enemy!.rooms[0]!.id);
     assert.ok(open.crew.some((c) => c.side === "player" && c.aboard === "enemy"));
     assert.equal(open.enemy!.zoltan, 4);

@@ -64,31 +64,27 @@ function livingOnLark(g: Game): Crew[] {
 
 /**
  * Crew Teleporter wiki, "Overview": "Can send as many crewmembers as teleporter pads are available."
+ * "At least one crewmember must be standing on a teleport pad; other crew just need to be inside the room,
+ * but must be ordered to move to an unoccupied teleport pad." Crew walking through without a pad are not sent.
  * "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person teleporters"
  * (Mantis B, Mantis C, Crystal B).
- * INFERRED: one crew per tile, so a 2×2 room has four pads.
- * Selected crew go first (even the lone pilot). Otherwise medbay, then any room.
- * The only person in piloting stays put when someone else can go. The page states neither of those orders.
+ * INFERRED: one crew per tile. The sim has no pad slot inside a room, so standing means the teleporter room and an empty path.
+ * INFERRED: when more crew stand than pads, the selected crew take one first, then crew-array order.
  */
 function pickCrew(g: Game): Crew[] {
   const living = livingOnLark(g);
   if (living.length === 0) return [];
-  const pads = padTiles(g.player).tiles;
-
-  const pilots = living.filter((c) => c.room === "p-pilot");
-  const lonePilot = pilots.length === 1 && living.length > 1 ? pilots[0] : null;
-  const selected = g.selected ? (living.find((c) => c.id === g.selected) ?? null) : null;
-
+  const pad = padTiles(g.player);
+  if (!pad.id) return [];
+  const standing = living.filter((c) => c.room === pad.id && c.path.length === 0);
+  // Crew Teleporter: at least one crewmember must already be standing on a pad.
+  if (standing.length < 1) return [];
+  const selected = g.selected ? standing.find((c) => c.id === g.selected) : undefined;
   const picked: Crew[] = [];
   if (selected) picked.push(selected);
-
-  const medbay = living.filter((c) => c.room === "p-medbay");
-  const rest = living.filter((c) => c.room !== "p-medbay");
-  for (const c of [...medbay, ...rest]) {
-    if (picked.length >= pads) break;
-    if (picked.includes(c)) continue;
-    if (lonePilot && c === lonePilot && c !== selected) continue;
-    picked.push(c);
+  for (const c of standing) {
+    if (picked.length >= pad.tiles) break;
+    if (!picked.includes(c)) picked.push(c);
   }
   return picked;
 }

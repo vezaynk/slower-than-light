@@ -26,6 +26,18 @@ function kitOf(g: Game) {
   return kit;
 }
 
+/** Crew Teleporter: a send only takes crew standing in the teleporter room. */
+function stand(g: Game, ids?: string[]) {
+  const pad = g.player.rooms.find((r) => r.kit === "sling");
+  assert.ok(pad);
+  for (const c of g.crew) {
+    if (c.side !== "player" || c.hp <= 0) continue;
+    if (ids && !ids.includes(c.id)) continue;
+    c.room = pad.id;
+    c.path = [];
+  }
+}
+
 describe("sling", () => {
   it("sends one crew, recalls them, and loses anyone still over there", () => {
     const g = createGame(1);
@@ -45,7 +57,7 @@ describe("sling", () => {
       if (c !== ivo) c.hp = 0;
     }
     g.selected = ivo.id;
-    ivo.path = ["p-shields"];
+    stand(g, ["c-ivo"]);
 
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "enemy");
@@ -144,6 +156,7 @@ describe("sling", () => {
         const n = g.crew.length;
         g.crew.push({ ...source, id: `c-pad-${hull}-${n}`, name: `Pad ${n}`, room: source.room, path: [] });
       }
+      stand(g);
       sendSling(g, "e-weapons");
       return g.crew.filter((c) => c.side === "player" && c.aboard === "enemy").length;
     };
@@ -162,6 +175,7 @@ describe("sling", () => {
     const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(source);
     g.crew.push({ ...source, id: "c-pad-extra", name: "Extra", room: "p-medbay", path: [] });
+    stand(g);
     sendSling(g, "e-weapons");
     assert.equal(g.crew.filter((c) => c.side === "player" && c.aboard === "enemy").length, 2);
   });
@@ -189,6 +203,7 @@ describe("sling", () => {
     ada.hp = 0;
 
     g.selected = ivo.id;
+    stand(g, ["c-ivo"]);
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "enemy");
     assert.equal(ivo.hp, 100);
@@ -213,50 +228,38 @@ describe("sling", () => {
     assert.equal(g.crew.includes(ivo), false);
   });
 
-  it("keeps the lone pilot and prefers the selected crew, then medbay", () => {
+  it("sends only crew standing in the teleporter room, and not someone walking through", () => {
+    // Crew Teleporter: at least one crewmember must be standing on a pad.
+    // Crew that move through the room without a pad assignment are not teleported.
     const g = createGame(1);
     g.scrap = 90;
     installSling(g);
     const kit = kitOf(g);
     kit.power = 1;
     engage(g);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
 
     sendSling(g, "e-weapons");
-    assert.deepEqual(
-      g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id),
-      ["c-ivo", "c-nen"],
-    );
-    assert.equal(g.crew.find((c) => c.id === "c-ada")?.aboard, "player");
-
-    tickSling(g, 20);
-    recallSling(g);
-    tickSling(g, 20);
+    assert.equal(g.crew.every((c) => c.aboard === "player"), true);
+    assert.equal(kit.cool, 0);
 
     const ada = g.crew.find((c) => c.id === "c-ada");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
     const nen = g.crew.find((c) => c.id === "c-nen");
     assert.ok(ada && ivo && nen);
-    ada.room = "p-weapons";
-    ivo.room = "p-engines";
-    nen.room = "p-medbay";
+    ada.room = pad.id;
+    ada.path = ["p-shields"];
+    ivo.room = pad.id;
+    ivo.path = [];
+    nen.room = pad.id;
+    nen.path = [];
     sendSling(g, "e-weapons");
     assert.deepEqual(
-      g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id),
-      ["c-ada", "c-nen"],
+      g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id).sort(),
+      ["c-ivo", "c-nen"],
     );
-
-    tickSling(g, 20);
-    recallSling(g);
-    tickSling(g, 20);
-    ada.room = "p-pilot";
-    ivo.room = "p-engines";
-    nen.room = "p-weapons";
-    g.selected = "c-ada";
-    sendSling(g, "e-weapons");
-    assert.deepEqual(
-      g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id),
-      ["c-ada", "c-ivo"],
-    );
+    assert.equal(ada.aboard, "player");
   });
 
   it("charges 30 then 60, cools faster, and will not run underpowered", () => {
@@ -298,6 +301,7 @@ describe("sling", () => {
 
     kit.power = 3;
     kit.cool = 0;
+    stand(g);
     sendSling(g, "missing");
     assert.equal(kit.cool, 0);
     assert.equal(
@@ -343,6 +347,7 @@ describe("sling", () => {
       if (c !== ivo) c.hp = 0;
     }
     g.selected = ivo.id;
+    stand(g, ["c-ivo"]);
     sendSling(g, "e-weapons");
     assert.equal(kit.cool, 20);
     tickSling(g, 5);
@@ -387,6 +392,7 @@ describe("sling", () => {
       if (c !== ivo) c.hp = 0;
     }
     g.selected = ivo.id;
+    stand(g, ["c-ivo"]);
     g.enemy!.kits = { veil: cloak() };
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "player");

@@ -649,6 +649,11 @@ export type Game = {
   beaconsVisited: number;
   /** Sectors page chart. Empty until the exit beacon opens it. */
   sectorMap: boolean;
+  /**
+   * Sectors, Hidden Crystal Worlds: a restart while in that sector. This run's exit does not open the chart.
+   * INVENTED: the page names no saved flag.
+   */
+  crystalRestart?: boolean;
   route: SectorNode[];
   routeHere: string;
   /** Hull chosen in the hangar. Restart uses it. */

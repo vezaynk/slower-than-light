@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { classIdFor, pickEnemy, requestFor } from "../enemy-gen.ts";
-import { choiceDisabled, choose, commitJump, createGame, startCombat, step } from "../sim.ts";
+import { choiceDisabled, choose, commitJump, createGame, dropCrystalRestart, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { SECTOR_TYPES } from "./sectors.ts";
 import { citedEvent, citedPagesFor, stampCitedEvents } from "./cited-events.ts";
@@ -229,6 +229,49 @@ describe("quest openers (quests-a)", () => {
     assert.equal(last.sector, 8);
     assert.equal(last.sectorName, "The Last Stand");
     assert.equal(last.sectorMap, false);
+  });
+
+  it("restarting in the Hidden Crystal Worlds starts in a Civilian sector and skips the sector map", () => {
+    const prev = createGame(2);
+    prev.sectorName = "Hidden Crystal Worlds";
+    const names = new Set<string>();
+    for (let seed = 1; seed <= 16; seed++) {
+      const next = createGame(seed);
+      dropCrystalRestart(prev, next);
+      assert.equal(next.sector, 1);
+      assert.equal(next.sectorName, "Civilian Sector");
+      assert.equal(next.crystalRestart, true);
+      assert.equal(next.sectorMap, false);
+      const exit = next.beacons.find((b) => b.kind === "exit");
+      assert.ok(exit);
+      next.here = exit.id;
+      next.phase = "map";
+      next.event = null;
+      choose(next, "exit-leave");
+      assert.equal(next.sectorMap, false);
+      assert.equal(next.sector, 2);
+      assert.equal(next.crystalRestart, false);
+      assert.notEqual(next.sectorName, "Hidden Crystal Worlds");
+      assert.notEqual(next.sectorName, "Civilian (Starting) Sector");
+      const here = (next.route ?? []).find((n) => n.id === next.routeHere);
+      assert.equal(here?.col, 1);
+      names.add(next.sectorName);
+    }
+    assert.ok(names.size > 1);
+
+    const plain = createGame(3);
+    const fresh = createGame(4);
+    dropCrystalRestart(plain, fresh);
+    assert.equal(fresh.sectorName, "Civilian (Starting) Sector");
+    assert.equal(fresh.crystalRestart, undefined);
+    const lane = fresh.beacons.find((b) => b.kind === "exit");
+    assert.ok(lane);
+    fresh.here = lane.id;
+    fresh.phase = "map";
+    fresh.event = null;
+    choose(fresh, "exit-leave");
+    assert.equal(fresh.sectorMap, true);
+    assert.equal(fresh.sector, 1);
   });
 
   it("Ruwen marks the Ancient device beacon in Rock Homeworlds, and another Crystal does not", () => {

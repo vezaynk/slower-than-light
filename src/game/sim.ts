@@ -3690,6 +3690,12 @@ export function choose(g: Game, id: string) {
         leaveHiddenCrystal(g);
         break;
       }
+      // Sectors, Hidden Crystal Worlds: a restart from that sector does not open the Sector Map.
+      if (g.crystalRestart && g.sector === 1) {
+        g.crystalRestart = false;
+        blindSectorTwo(g);
+        break;
+      }
       openSectorMap(g);
       break;
     case "engi-cache-trap":
@@ -3830,6 +3836,43 @@ export function enterHiddenCrystal(g: Game) {
   g.pending = null;
   g.sectorMap = false;
   log(g, "Hidden Crystal Worlds.");
+}
+
+/**
+ * Sectors, Hidden Crystal Worlds: "Bug: restarting the game while staying in the Crystal sector will start
+ * the game in a Civilian sector without option to open the Sector Map at the exit beacon when pressing the
+ * "Next Sector" button on the Beacon Map, thus preventing the choice of a sector to jump to: the next sector
+ * 2 is chosen randomly by the game."
+ * A restart that is not in that sector leaves the new run alone.
+ */
+export function dropCrystalRestart(prev: Game, next: Game): void {
+  if (prev.sectorName !== "Hidden Crystal Worlds") return;
+  next.sectorName = "Civilian Sector";
+  // INFERRED: the starting-sector beacons are cleared so this map is the Civilian sector's list. The page does not say to keep both.
+  for (const b of next.beacons) {
+    if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
+    b.flag = "";
+    b.quest = undefined;
+    b.kind = "empty";
+    b.resolved = false;
+    b.visited = false;
+  }
+  next.crystalRestart = true;
+  stampCitedEvents(next);
+}
+
+/**
+ * Sectors, Hidden Crystal Worlds: sector 2 is chosen randomly, and the Sector Map does not open.
+ * INFERRED: an empty pool, which this sector number does not have, stays a Civilian sector.
+ * INFERRED: the route marker moves to a same-name node in the arrived column, else the first node there. The page does not say where it sits.
+ */
+function blindSectorTwo(g: Game) {
+  const pool = sectorPool(g, g.sector + 1);
+  nextSector(g, pool.length ? pool[irand(g, pool.length)] : "Civilian Sector");
+  const col = g.sector <= 1 ? 0 : g.sector - 1;
+  const nodes = (g.route ?? []).filter((n) => n.col === col);
+  const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
+  if (match) g.routeHere = match.id;
 }
 
 /**

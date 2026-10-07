@@ -458,6 +458,36 @@ describe("Crew skills: repair aptitude also fights fires", () => {
   });
 });
 
+describe("Crew skills: repair skill also fights fires", () => {
+  it("speeds fire-fighting by 10 percent, then 20 percent", () => {
+    // Crew skills, Repair skill: "Repair skill and racial aptitude for repairs also apply to fire-fighting."
+    // Level 1 is "10% faster repair" and level 2 is "20% faster repair".
+    const drop = (rank: 0 | 1 | 2) => {
+      const g = createGame(66);
+      const { worker, roomId, sys } = lone(g);
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      g.asteroid = false;
+      const need = xpNeedFor(worker, "repair");
+      assert.equal(need, 16);
+      worker.kin = "plain";
+      worker.skills = { repair: rank * need };
+      const room = g.player.rooms.find((r) => r.id === roomId)!;
+      g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+      room.breach = 0;
+      room.o2 = 100;
+      room.fire = 1;
+      step(g, 0.05);
+      return 1 - room.fire;
+    };
+    const base = drop(0);
+    assert.ok(base > 0);
+    assert.ok(Math.abs(drop(1) / base - 1.1) < 1e-6);
+    assert.ok(Math.abs(drop(2) / base - 1.2) < 1e-6);
+  });
+});
+
 describe("Crew skills: sabotage damage ignores race", () => {
   it("deals the same system damage for a Human, an Engi, and a Mantis", () => {
     // Crew skills, lead: other jobs "are performed equally well by all crew races, including inflicting sabotage damage".

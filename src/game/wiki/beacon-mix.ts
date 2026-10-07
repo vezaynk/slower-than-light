@@ -8,9 +8,10 @@ import { drawFiller, stampEmptyNebula, stampFiller, type FillerList } from "./fi
  * "Technical details of sector generation and events": every line draws a count between its min and max
  * (inclusive), and a sector's specific events (stores, homeworld events) sit at the top so they are always present.
  *
- * makeMap places the 19-24 beacons. INFERRED: the drawn counts are scaled to the free beacons (everything but
- * the start and the exit) by largest remainder; named special events and The Last Stand's repair stations keep
- * their exact count, and a store line keeps at least one store. Beacons left after the list take the neutral fallback.
+ * makeMap places the 19-24 beacons. Each line is rolled between its minimum and maximum, inclusive, then
+ * that many free beacons (everything but the start and the exit) are filled before the next line. Once those
+ * beacons are full, later lines are not placed. Nothing is scaled back to feed a later line, and a store roll
+ * of 0 stays 0. Beacons left after the list take the neutral fallback.
  */
 
 export type Slot =
@@ -256,27 +257,18 @@ function irand(g: Game, n: number): number {
   return Math.floor(rand(g) * n);
 }
 
-/** Largest remainder; `floor` lines keep at least that many. Exported for tests. */
-export function scaleCounts(counts: number[], room: number, floor: number[]): number[] {
-  const total = counts.reduce((a, b) => a + b, 0);
-  if (total <= room) return [...counts];
-  const quota = counts.map((c) => (c * room) / total);
-  const out = quota.map(Math.floor);
-  let left = room - out.reduce((a, b) => a + b, 0);
-  const order = quota.map((q, i) => i).sort((a, b) => quota[b] - out[b] - (quota[a] - out[a]) || a - b);
-  for (const i of order) {
-    if (left <= 0) break;
-    out[i] += 1;
-    left -= 1;
-  }
-  for (let i = 0; i < out.length; i++) {
-    while (out[i] < floor[i]) {
-      let big = -1;
-      for (let j = 0; j < out.length; j++) if (out[j] > floor[j] && (big < 0 || out[j] > out[big])) big = j;
-      if (big < 0) break;
-      out[big] -= 1;
-      out[i] += 1;
-    }
+/**
+ * Sectors, "Technical details of sector generation and events": each line is a minimum and a maximum, chosen
+ * inclusive, then the next line. "Once all beacons on the map have been assigned events, the process stops."
+ * An earlier line is not shrunk, and a later line is not given beacons that were never left.
+ */
+export function takeLines(rolls: number[], room: number): number[] {
+  const out: number[] = [];
+  let left = Math.max(0, room);
+  for (const n of rolls) {
+    const take = Math.min(Math.max(0, n), left);
+    out.push(take);
+    left -= take;
   }
   return out;
 }
@@ -314,23 +306,17 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
     const j = irand(r, i + 1);
     [free[i], free[j]] = [free[j], free[i]];
   }
-  const drawn = lines.map((l) => l.lo + irand(r, l.hi - l.lo + 1));
-  // Exact lines (special events, repair stations) are dealt first; the rest is scaled to what is left.
-  const exact = lines.map((l) => l.slot === "special" || l.slot === "repair");
-  let room = free.length;
-  const counts = drawn.map((n, i) => {
-    if (!exact[i]) return 0;
-    const take = Math.min(n, room);
-    room -= take;
-    return take;
-  });
-  const restIdx = lines.map((_, i) => i).filter((i) => !exact[i]);
-  const scaled = scaleCounts(
-    restIdx.map((i) => drawn[i]),
-    room,
-    restIdx.map((i) => (lines[i].slot === "store" && drawn[i] > 0 ? 1 : 0)),
-  );
-  restIdx.forEach((i, k) => (counts[i] = scaled[k]));
+  // Each line is chosen, then filled, before the next. A full map does not roll the lines after it.
+  const rolls: number[] = [];
+  let preview = free.length;
+  for (const l of lines) {
+    if (preview <= 0) break;
+    const n = l.lo + irand(r, l.hi - l.lo + 1);
+    rolls.push(n);
+    preview -= Math.min(n, preview);
+  }
+  const counts = takeLines(rolls, free.length);
+  while (counts.length < lines.length) counts.push(0);
 
   // Classify this sector's cited pages; a class with no slot here falls back to neutral (INFERRED).
   const slotsHere = new Set(lines.map((l, i) => (counts[i] > 0 ? l.slot : null)));

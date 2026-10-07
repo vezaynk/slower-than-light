@@ -2,15 +2,27 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { SECTOR_MIX, classifyEvent, scaleCounts, type MixEvent } from "./beacon-mix.ts";
+import { SECTOR_MIX, classifyEvent, takeLines, type MixEvent } from "./beacon-mix.ts";
 import { citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 
-/** A fresh map dealt as `name` (the sector-1 map, re-dealt under another sector name). */
+/**
+ * A fresh map dealt as `name`. createGame already stamped the starting sector onto these beacons.
+ * nextSector builds a new map and stamps once, so the starting flags are cleared first.
+ */
 function dealt(seed: number, name: string, sector = 4): Game {
   const g = createGame(seed);
   g.sector = sector;
   g.sectorName = name;
-  stampCitedEvents(g);
+  // createGame already stamped Civilian (Starting) Sector onto this map. A later sector is a new
+  // map; clear that stamp. The same name is already the one pass, and a second stamp would no-op.
+  if (name !== "Civilian (Starting) Sector") {
+    for (const b of g.beacons) {
+      if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
+      b.flag = "";
+      b.kind = "empty";
+    }
+    stampCitedEvents(g);
+  }
   return g;
 }
 
@@ -75,12 +87,12 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     assert.equal(classifyEvent(byDest("Deactivated Auto-ship")), "neutral");
   });
 
-  it("scales by largest remainder and keeps a floor", () => {
-    assert.deepEqual(scaleCounts([2, 3, 7], 20, [1, 0, 0]), [2, 3, 7]);
-    const s = scaleCounts([2, 2, 3, 1, 1, 7, 1, 5], 11, [1, 0, 0, 0, 0, 0, 0, 0]);
-    assert.equal(s.reduce((a, b) => a + b, 0), 11);
-    assert.ok(s[0] >= 1);
-    assert.deepEqual(scaleCounts([0, 10], 5, [1, 0]), [1, 4]);
+  it("fills each line in order and stops when the map is full", () => {
+    // Sectors, Technical details: min and max inclusive, then the next line, then stop.
+    assert.deepEqual(takeLines([2, 3, 7], 20), [2, 3, 7]);
+    assert.deepEqual(takeLines([2, 2, 3, 1, 1, 7, 1, 5], 11), [2, 2, 3, 1, 1, 2, 0, 0]);
+    assert.deepEqual(takeLines([0, 10], 5), [0, 5]);
+    assert.equal(takeLines([2, 2, 3, 1, 1, 7, 1, 5], 11).reduce((a, b) => a + b, 0), 11);
   });
 
   it("re-deals every free beacon, is deterministic per seed, and leaves start, exit and existing flags", () => {
@@ -102,6 +114,14 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         assert.equal(JSON.stringify(a.beacons), before);
       }
     }
+    // A beacon that already has a flag is not a free slot, so the deal leaves it.
+    const kept = createGame(3);
+    const mid = kept.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    if (!mid) throw new Error("no middle beacon");
+    mid.flag = "keep-me";
+    kept.sectorName = "Civilian Sector";
+    stampCitedEvents(kept);
+    assert.equal(kept.beacons.find((b) => b.id === mid.id)?.flag, "keep-me");
   });
 
   it("keeps a store, the special events, and plain hostile beacons for the sector's ship list", () => {
@@ -143,12 +163,27 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     assert.ok(hostile > neutral * 1.5, `${hostile} vs ${neutral}`);
   });
 
-  it("reaches every cited page of every sector in 200 seeds", () => {
+  it("reaches every cited page whose line still fits on the smallest map", () => {
+    // Sectors, Technical details: once the map is full the process stops, so a page from a
+    // later line can be absent. A line that still has room when every earlier line rolls its
+    // maximum does get events. INFERRED: a 19-beacon map keeps the start and the exit, so 17 remain.
+    const minFree = 17;
+    const hostileSlots = new Set(["hostile", "nebula-hostile", "storm", "boarder", "environment"]);
     for (const name of Object.keys(SECTOR_MIX)) {
-      const pages = citedPagesFor(name);
+      let prevMax = 0;
+      const guaranteed = new Set<string>();
+      for (const line of SECTOR_MIX[name]) {
+        if (prevMax < minFree && line.hi > 0) {
+          if (hostileSlots.has(line.slot)) guaranteed.add("hostile");
+          else if (line.slot === "neutral" || line.slot === "nebula-neutral") guaranteed.add("neutral");
+          else if (line.slot === "distress" || line.slot === "items") guaranteed.add(line.slot);
+        }
+        prevMax += line.hi;
+      }
+      const pages = citedPagesFor(name).filter((p) => guaranteed.has(classifyEvent(p)));
       const want = new Set(pages.map((p) => p.flag));
       const seen = new Set<string>();
-      for (let seed = 1; seed <= 200 && seen.size < pages.length; seed++) {
+      for (let seed = 1; seed <= 200 && seen.size < want.size; seed++) {
         for (const b of dealt(seed, name).beacons) if (want.has(b.flag)) seen.add(b.flag);
       }
       const missing = pages.filter((p) => !seen.has(p.flag)).map((p) => p.dest);

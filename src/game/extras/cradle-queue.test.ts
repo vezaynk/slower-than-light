@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, waitHere } from "../sim.ts";
-import { onCradleDeath, onCradleJump, tickCradle } from "./cradle.ts";
+import { deathAnimSeconds, onCradleDeath, onCradleJump, tickCradle } from "./cradle.ts";
 import type { Crew, Game, Kit } from "../types.ts";
 
 function poweredKit(level = 1): Kit {
@@ -25,14 +25,15 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
     kill(g, a);
     kill(g, b);
     assert.ok((a.cloneSeq ?? 0) < (b.cloneSeq ?? 0));
+    const wait = 12 + deathAnimSeconds(a.kin);
     tickCradle(g, 6);
-    assert.equal(a.cloneIn, 6);
-    assert.equal(b.cloneIn, 12, "waiting clone does not count down");
-    tickCradle(g, 6);
+    assert.equal(a.cloneIn, wait - 6);
+    assert.equal(b.cloneIn, 12 + deathAnimSeconds(b.kin), "waiting clone does not count down");
+    tickCradle(g, wait - 6);
     assert.equal(a.hp, a.maxHp);
     assert.equal(a.cloneSeq, undefined);
-    assert.equal(b.cloneIn, 12);
-    tickCradle(g, 12);
+    assert.equal(b.cloneIn, 12 + deathAnimSeconds(b.kin));
+    tickCradle(g, 12 + deathAnimSeconds(b.kin));
     assert.equal(b.hp, b.maxHp);
   });
 

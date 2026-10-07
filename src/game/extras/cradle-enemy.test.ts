@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "../sim.ts";
-import { enemyCloneHolds, enemyCloneQueue, onCradleDeath, tickCradle } from "./cradle.ts";
+import { deathAnimSeconds, enemyCloneHolds, enemyCloneQueue, onCradleDeath, tickCradle } from "./cradle.ts";
 import type { Crew, Game, Kit } from "../types.ts";
 
 /** First seed whose "Rebel ship" rolls a Clone Bay (enemy-gen.ts), so the room is the generated `e-clonebay`. */
@@ -49,10 +49,11 @@ describe("enemy clone bay", () => {
       victim.skills = { repair: 100, combat: 5 };
       victim.room = "somewhere";
       kill(g, victim);
-      assert.equal(victim.cloneIn, seconds);
+      const wait = seconds + deathAnimSeconds(victim.kin);
+      assert.equal(victim.cloneIn, wait);
       assert.equal(victim.room, "e-clonebay");
-      assert.deepEqual(enemyCloneQueue(g), { seconds, count: 1, offline: false });
-      tickCradle(g, seconds - 0.1);
+      assert.deepEqual(enemyCloneQueue(g), { seconds: Math.ceil(wait), count: 1, offline: false });
+      tickCradle(g, wait - 0.1);
       assert.equal(victim.hp, 0);
       tickCradle(g, 0.2);
       assert.equal(victim.hp, victim.maxHp);
@@ -71,10 +72,11 @@ describe("enemy clone bay", () => {
     const [a, b] = foes(g);
     kill(g, a);
     kill(g, b);
-    tickCradle(g, 12.05);
+    const wait = 12 + deathAnimSeconds(a.kin);
+    tickCradle(g, wait + 0.05);
     assert.equal(a.hp, a.maxHp);
     assert.equal(b.hp, 0);
-    assert.ok(Math.abs((b.cloneIn ?? 0) - 12) < 1e-9);
+    assert.ok(Math.abs((b.cloneIn ?? 0) - (12 + deathAnimSeconds(b.kin))) < 1e-9);
   });
 
   it("Clone Bay, Overview: with every enemy dead the fight continues while the bay works", () => {

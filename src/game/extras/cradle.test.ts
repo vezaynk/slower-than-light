@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
-import { onCradleDeath, tickCradle } from "./cradle.ts";
+import { deathAnimSeconds, onCradleDeath, tickCradle } from "./cradle.ts";
+import type { KinId } from "./kin.ts";
 import type { Kit } from "../types.ts";
 
 function poweredKit(level = 1): Kit {
@@ -47,5 +48,42 @@ describe("cradle", () => {
     tickCradle(g, ada.cloneIn ?? 0);
     assert.equal(ada.skills?.repair, 80);
     assert.equal(ada.skills?.combat, 9);
+  });
+
+  it("starts the clone timer after the printed death animation", () => {
+    // Clone Bay, Overview: animation, then the 12/9/7 system time.
+    const g = createGame(3);
+    g.player.kits.cradle = poweredKit(1);
+    const ada = g.crew.find((c) => c.name === "Ada Voss");
+    assert.ok(ada);
+    const pauses: [KinId | undefined, number][] = [
+      [undefined, 1.8],
+      ["plain", 1.8],
+      ["gel", 1.8],
+      ["voidlung", 1.8],
+      ["shell", 2],
+      ["stone", 2],
+      ["shard", 2],
+      ["blade", 1.7],
+      ["spark", 1.5],
+    ];
+    for (const [kin, pause] of pauses) {
+      ada.hp = 0;
+      ada.kin = kin;
+      ada.cloneIn = undefined;
+      ada.cloneSeq = undefined;
+      assert.equal(deathAnimSeconds(kin), pause);
+      assert.equal(onCradleDeath(g, ada), true);
+      assert.equal(ada.cloneIn, 12 + pause);
+      ada.cloneIn = undefined;
+      ada.cloneSeq = undefined;
+      ada.hp = ada.maxHp;
+    }
+    g.player.kits.cradle = poweredKit(2);
+    ada.hp = 0;
+    ada.kin = "spark";
+    ada.cloneIn = undefined;
+    assert.equal(onCradleDeath(g, ada), true);
+    assert.equal(ada.cloneIn, 9 + 1.5);
   });
 });

@@ -11,6 +11,27 @@ export const INSTALL_COST: number | null = 50;
 const CLONE_SECONDS: Record<number, number> = { 1: 12, 2: 9, 3: 7 };
 
 /**
+ * Clone Bay, Overview: cloning starts when the dying animation ends.
+ * 2 seconds for Rock, Crystal, and Engi; 1.8 for Humans, Slugs, and Lanius;
+ * 1.7 for Mantis; 1.5 for Zoltans.
+ * INFERRED: a body with no kin is a Human, the baseline row.
+ */
+const DEATH_ANIM: Record<string, number> = {
+  stone: 2,
+  shard: 2,
+  shell: 2,
+  plain: 1.8,
+  gel: 1.8,
+  voidlung: 1.8,
+  blade: 1.7,
+  spark: 1.5,
+};
+
+export function deathAnimSeconds(kin: string | undefined): number {
+  return DEATH_ANIM[kin ?? "plain"] ?? 1.8;
+}
+
+/**
  * Wiki page "Clone Bay", "System Upgrades": 8 / 16 / 25 HP flat per jump, not a percent of max health.
  * "Overview": the jump heal is passive and does not need power.
  */
@@ -94,9 +115,10 @@ function playerQueued(g: Game): Crew[] {
  * Wiki page "Clone Bay", section "System Upgrades": start a 12/9/7 second clone.
  * "Overview": "Multiple dead crewmembers can be queued for revival, one-by-one". cloneSeq is the queue slot, allocated
  * like the enemy path (one past the current tail).
- * INFERRED: a waiting clone's timer is preset to the full level time at death and only counts once it reaches the
- * head (tickCradle). The page does not say when a waiting clone's timer is set; an upgrade mid-queue keeps the old time.
- * INFERRED: the timer starts at death. "Overview" also has a death-animation delay (about 1.5–2s) that is not added.
+ * INFERRED: a waiting clone's timer is preset to the full level time plus that body's death animation, and only
+ * counts once it reaches the head (tickCradle). The page does not say when a waiting clone's timer is set; an
+ * upgrade mid-queue keeps the old time.
+ * Overview: the system timer starts when the dying animation ends, so both are on cloneIn.
  */
 export function onCradleDeath(g: Game, crew: Crew): boolean {
   if (crew.side === "enemy") return onEnemyCradleDeath(g, crew);
@@ -108,7 +130,7 @@ export function onCradleDeath(g: Game, crew: Crew): boolean {
   if (seconds == null) return false;
   const seq = playerQueued(g).reduce((top, c) => Math.max(top, c.cloneSeq ?? 0), 0) + 1;
   crew.hp = 0;
-  crew.cloneIn = seconds;
+  crew.cloneIn = seconds + deathAnimSeconds(crew.kin);
   crew.cloneSeq = seq;
   // Kit room (layouts.ts seatKits): the clone appears in the Clone Bay room, which is the old medical room when the
   // store swapped it in. Hulls without a medical room (Fed C, Slug C, Lanius B, ...) have no "p-medbay".
@@ -260,7 +282,7 @@ function enemyCradleRoom(g: Game): string | null {
  * enemy ship" when a ship jumps away, which is about jumping, not about dying aboard.
  * INFERRED: a death while the bay is destroyed still queues if enemy crew are alive (they may repair it); the
  * 3-second offline loss in tickEnemyCradle then decides. With no live crew left it is purged at once (Overview).
- * INFERRED: as for the player, the death-animation delay (1.5–2 s) is not added.
+ * Overview: the same death animation runs before an enemy clone's 12/9/7 seconds.
  */
 function onEnemyCradleDeath(g: Game, crew: Crew): boolean {
   const kit = enemyCradle(g);
@@ -271,7 +293,7 @@ function onEnemyCradleDeath(g: Game, crew: Crew): boolean {
   if (seconds == null || !room) return false;
   const seq = enemyQueued(g).reduce((top, c) => Math.max(top, c.cloneSeq ?? 0), 0) + 1;
   crew.hp = 0;
-  crew.cloneIn = seconds;
+  crew.cloneIn = seconds + deathAnimSeconds(crew.kin);
   crew.cloneSeq = seq;
   crew.room = room;
   crew.aboard = "enemy";

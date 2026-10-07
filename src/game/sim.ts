@@ -2528,6 +2528,7 @@ function doorSpreadSlow(g: Game, ship: Ship, aboard: "player" | "enemy"): number
  * after this moment's extinguishing. kin.fireTaken is 0 for a fire-immune lineage.
  */
 function fightFire(r: Room, pals: Crew[], dt: number) {
+  // Crew skills, lead: "putting out fires" does not grant experience. No bumpXp on this path.
   let rate = 0;
   for (const c of pals) {
     const kin = c.kin ?? "plain";

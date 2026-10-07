@@ -190,6 +190,21 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.equal(worker.skills?.repair ?? 0, 0);
   });
 
+  it("putting out a fire trains nothing", () => {
+    const g = createGame(25);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    room.fire = 0.001;
+    step(g, 0.05);
+    assert.equal(room.fire, 0);
+    assert.equal(worker.skills?.repair ?? 0, 0);
+  });
+
   it("grants one point when a kit bar finishes", () => {
     const g = createGame(24);
     const { worker, roomId, sys } = lone(g);

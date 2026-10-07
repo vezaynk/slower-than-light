@@ -59,7 +59,7 @@ import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
-import { hurtRoomDrones, shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
+import { enemyDroneSpot, hurtRoomDrones, shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
@@ -1669,10 +1669,17 @@ function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
     if (c.aboard !== aboard || c.room !== roomId || c.hp <= 0) continue;
     c.stun = Math.max(c.stun ?? 0, STUN_BOMB_S);
   }
+  // A beam drone stores the last room it swiped. That drone is still in orbit, so the room stun skips it.
   const playerKit = g.player.kits.swarm;
-  if (playerKit?.room === roomId) playerKit.stun = Math.max(playerKit.stun ?? 0, STUN_BOMB_S);
+  if (playerKit?.on && playerKit.hp != null && playerKit.room === roomId) {
+    const onEnemy = playerKit.target === "ionintruder" || playerKit.target === "board";
+    if ((aboard === "enemy") === onEnemy) playerKit.stun = Math.max(playerKit.stun ?? 0, STUN_BOMB_S);
+  }
   for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
     if (!unit.alive || unit.room !== roomId) continue;
+    const spot = enemyDroneSpot(unit);
+    if (aboard === "player" && spot?.at !== "player-room") continue;
+    if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
     unit.stun = Math.max(unit.stun ?? 0, STUN_BOMB_S);
   }
 }

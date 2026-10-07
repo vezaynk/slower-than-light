@@ -201,6 +201,7 @@ describe("bombs aimed at your own ship", () => {
       on: true,
       aux: 0,
       room: room.id,
+      hp: 25,
     };
     const enemy = g.enemy;
     assert.ok(enemy);
@@ -225,6 +226,15 @@ describe("bombs aimed at your own ship", () => {
           room: room.id,
           hp: 125,
         },
+        {
+          id: "ed-beam",
+          kind: "beam",
+          alive: true,
+          powered: true,
+          aux: 0,
+          cool: 0,
+          room: room.id,
+        },
       ],
     };
     const hull = g.player.hull;
@@ -236,6 +246,7 @@ describe("bombs aimed at your own ship", () => {
     assert.equal(crew[1].stun ?? 0, 0);
     assert.ok((g.player.kits.swarm.stun ?? 0) >= 15);
     assert.ok((enemy.kits.swarm.drones?.[0].stun ?? 0) >= 15);
+    assert.equal(enemy.kits.swarm.drones?.[1].stun ?? 0, 0);
     assert.equal(g.player.hull, hull);
     assert.equal(crew[0].hp, hp);
     assert.equal(g.player.shieldNow, 2);

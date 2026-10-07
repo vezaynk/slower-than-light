@@ -1028,6 +1028,23 @@ export function blastHits(level: number, difficulty: Difficulty = "normal"): num
 }
 
 /**
+ * Door System: "If the Door System level changes while a door is being attacked, the dealt damage is remembered
+ * and the current maximum and the leftover door strength changes proportionally (e.g. on Hard difficulty level 3
+ * provides 66% door strength increase over level 2)."
+ * Hard samples: level 2 hit 5 times (1 left of 6) needs 1 more hit after manning to level 3 (10).
+ * Level 2 hit 4 times (2 left) needs 3. Those are integer leftovers: floor(left * newMax / oldMax).
+ * INFERRED: the hit count uses integer division. A partial second of punching stays on that whole-hit scale.
+ * The page's third sample, level 3 hit 6 times then back to level 2, says 1 hit. This proportion is floor(4 * 6 / 10) = 2.
+ */
+export function scaleDoorLeft(left: number, oldMax: number, newMax: number): number {
+  if (!(oldMax > 0) || !(newMax > 0) || newMax === oldMax) return left;
+  return Math.floor((left * newMax) / oldMax);
+}
+
+/** Max the current door.hp was armed against. Absent means the next punch arms it. */
+const doorArmedMax = new WeakMap<Door, number>();
+
+/**
  * Crystal Lockdown: "at least 5 crew" punching from the start can break the door just before the
  * 12 second coating melts, and crew "make about one attack per second" (Door System, "Door strength").
  * INFERRED: 5 × 12 = 60 hits. The door level does not change this. One drone at two hits a second
@@ -2581,13 +2598,25 @@ function moveCrew(g: Game, dt: number) {
     if (door && !door.open && hostile && !leaving) {
       const level = hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, c.aboard);
       // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
-      if (door.hp <= 0) door.hp = blastHits(level, g.difficulty);
+      const max = blastHits(level, g.difficulty);
+      if (door.hp <= 0) {
+        door.hp = max;
+        if (max > 0) doorArmedMax.set(door, max);
+      } else if (max > 0) {
+        const armed = doorArmedMax.get(door);
+        if (armed == null) doorArmedMax.set(door, max);
+        else if (armed !== max) {
+          door.hp = scaleDoorLeft(door.hp, armed, max);
+          doorArmedMax.set(door, max);
+        }
+      }
       door.hp -= dt;
       if (door.hp > 0) continue;
       door.open = true;
       // Door System: "When broken, a door remains stuck open for 7 seconds".
       door.stuck = 7;
       door.hp = 0;
+      doorArmedMax.delete(door);
       log(g, "A door gives way.");
     }
     // INFERRED: 0.6s is the baseline walk. Crew table movement is a multiplier on that.

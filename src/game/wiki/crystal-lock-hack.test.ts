@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HACK_COAT_HITS, blastHits, createGame, lockdown, startCombat, step } from "../sim.ts";
+import { HACK_COAT_HITS, blastHits, createGame, lockdown, scaleDoorLeft, startCombat, step } from "../sim.ts";
 import { HACKED_DOOR_LEVEL } from "../extras/spike.ts";
 import type { Game, Kit, Room } from "../types.ts";
 
@@ -75,6 +75,43 @@ describe("door hits by difficulty", () => {
       assert.ok(doors.length > 0);
       assert.equal(doors[0]!.hp, hits);
     }
+  });
+});
+
+describe("door strength scales with the level", () => {
+  it("scales leftover hits with the new maximum", () => {
+    // Hard: level 2 is 6, level 3 is 10. Manning is that step up.
+    assert.equal(scaleDoorLeft(1, 6, 10), 1);
+    assert.equal(scaleDoorLeft(2, 6, 10), 3);
+    // The page's third sample says 1 hit. Integer proportion of 4 left out of 10, down to 6, is 2.
+    assert.equal(scaleDoorLeft(4, 10, 6), 2);
+  });
+
+  it("rescales a door already being broken when the level changes", () => {
+    const g = createGame(3);
+    g.difficulty = "hard";
+    startCombat(g, "scout");
+    calm(g);
+    g.player.systems.doors.level = 2;
+    g.player.systems.doors.power = 2;
+    g.player.systems.doors.damage = 0;
+    const door = g.player.doors.find((d) => d.b !== "void");
+    assert.ok(door);
+    door.open = false;
+    door.hp = 0;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    foe.aboard = "player";
+    foe.room = door.a;
+    foe.path = [door.b];
+    foe.hp = 100;
+    foe.stun = 0;
+    step(g, 0.05);
+    assert.ok(Math.abs(door.hp - (6 - 0.05)) < 1e-6, String(door.hp));
+    door.hp = 1;
+    g.player.systems.doors.level = 3;
+    step(g, 0.05);
+    assert.ok(Math.abs(door.hp - (1 - 0.05)) < 1e-6, String(door.hp));
   });
 });
 

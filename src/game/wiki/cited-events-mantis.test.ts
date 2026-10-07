@@ -82,6 +82,6 @@ describe("cited mantis events", () => {
       }
     }
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.deepEqual(dests, ["Mantis fight near sun", "Mantis ship-collectors"]);
+    assert.deepEqual(dests, ["Mantis fight near sun", "Mantis ship-collectors", "Boarders: Humans near sun"]);
   });
 });

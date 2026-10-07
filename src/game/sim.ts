@@ -4048,10 +4048,11 @@ function enemyAboard(g: Game): boolean {
  * Opens the crew fight only: phase combat, enemy stays null. The play view already ticks that phase.
  * `asb` is Abandoned station's planet-side battery. Environmental Hazards: warning 15–20s after the
  * fight starts, then the real shot 5–10s later. The roll happens only when that battery is on.
+ * `flare` is a Locations redgiant=true with no ship (Boarders: Humans near sun). The clock is armFlare.
  * INFERRED: the beacon is spent when they board, so the card does not reopen. Killing them is not a ship kill.
  * INVENTED: the log line when the last boarder dies (tickBoarding).
  */
-export function beginBoarding(g: Game, asb = false) {
+export function beginBoarding(g: Game, asb = false, flare = false) {
   if (!enemyAboard(g)) return;
   g.enemy = null;
   g.shots = [];
@@ -4071,6 +4072,11 @@ export function beginBoarding(g: Game, asb = false) {
   if (asb) armAsbClock(g, "warn");
   g.pulsar = false;
   g.flare = false;
+  // Boarders: Humans near sun: redgiant=true, LRSmap=noship+redgiant. No new flare numbers.
+  if (flare) {
+    g.flare = true;
+    armFlare(g);
+  }
   const b = g.beacons.find((x) => x.id === g.here);
   if (b && b.kind !== "boss") b.resolved = true;
   sfx(g, "alarm");
@@ -5249,7 +5255,8 @@ function idleShip(g: Game): boolean {
 /**
  * Player half of the combat tick with no enemy hull: airflow, doors, movement, melee and fires (life),
  * the same 0.08/s sabotage, boarders picking a new room, and the FTL spool. Repair and venting run because
- * this is a fight. The battery or an asteroid field is the only environment. No enemy guns, surrender, or winCombat.
+ * this is a fight. The battery, an asteroid field, a pulsar, or a red-giant flare is the environment.
+ * No enemy guns, surrender, or winCombat.
  */
 function tickBoarding(g: Game, dt: number) {
   g.time += dt;

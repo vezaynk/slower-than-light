@@ -1087,6 +1087,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);
   },
+
+  // Boarders: Humans near sun. "2-4 human boarders beam aboard your ship."
+  // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship.
+  "c:boarders-humans-near-sun:0": (g) => {
+    humanBoarders(g, 2, 4, "human boarders beam aboard your ship.");
+    beginBoarding(g, false, true);
+  },
 };
 
 /** Choices whose id carries a rolled amount: refugee trades, the fuel gift, the terraformers' bribe. */

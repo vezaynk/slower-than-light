@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 import type { Game, Kit, Ship } from "../types";
+import { deathAnimSeconds, onCradleDeath, tickCradle } from "./cradle.ts";
+import { onPlayerJump } from "./index.ts";
 import {
   installSling,
   onJumpSling,
@@ -72,6 +74,53 @@ describe("sling", () => {
     onJumpSling(g);
     assert.equal(ivo.hp, 0);
     assert.equal(g.log[0], "Ivo Park is lost on the other hull.");
+  });
+
+  it("does not clone crew left alive on the enemy ship, and still clones a crew already queued", () => {
+    // Clone Bay, Overview: "Clone Bay will not revive your crew left on the enemy ship, whether you or the enemy jumps away."
+    const g = createGame(1);
+    g.scrap = 200;
+    installSling(g);
+    const kit = kitOf(g);
+    kit.power = 1;
+    engage(g);
+    g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
+
+    const ada = g.crew.find((c) => c.id === "c-ada");
+    const ivo = g.crew.find((c) => c.id === "c-ivo");
+    const nen = g.crew.find((c) => c.id === "c-nen");
+    assert.ok(ada && ivo && nen);
+
+    // Nen already died and entered the queue. Ada is dead on the Lark and not queued yet. Ivo is still alive over there.
+    nen.hp = 0;
+    assert.equal(onCradleDeath(g, nen), true);
+    const queued = nen.cloneIn;
+    assert.equal(queued, 12 + deathAnimSeconds(nen.kin));
+    ada.hp = 0;
+
+    g.selected = ivo.id;
+    sendSling(g, "e-weapons");
+    assert.equal(ivo.aboard, "enemy");
+    assert.equal(ivo.hp, 100);
+    assert.equal(ada.aboard, "player");
+    assert.equal(nen.aboard, "player");
+
+    onPlayerJump(g);
+    assert.equal(ivo.hp, 0);
+    assert.equal(ivo.cloneIn, undefined);
+    assert.equal(g.crew.includes(ivo), false);
+    assert.equal(g.log.includes("Ivo Park is lost on the other hull."), true);
+
+    assert.equal(nen.cloneIn, queued);
+    assert.equal(g.crew.includes(nen), true);
+    assert.equal(ada.cloneIn, 12 + deathAnimSeconds(ada.kin));
+    assert.equal(g.crew.includes(ada), true);
+
+    g.enemy!.kits = {};
+    tickCradle(g, queued ?? 0);
+    assert.equal(nen.hp, nen.maxHp);
+    assert.equal(nen.cloneIn, undefined);
+    assert.equal(g.crew.includes(ivo), false);
   });
 
   it("keeps the lone pilot and prefers the selected crew, then medbay", () => {

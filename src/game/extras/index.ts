@@ -76,9 +76,16 @@ export function noteDeath(g: Game, c: Crew): boolean {
 export function onPlayerJump(g: Game) {
   // Backup Battery, Overview: an FTL jump clears the cooldown. Waiting does not.
   cellOnJump(g);
+  // Clone Bay, Overview: "Clone Bay will not revive your crew left on the enemy ship, whether you or the enemy jumps away."
+  // Crew Teleporter, Overview: onJumpSling then records that loss as 0 hp. Those crew were still alive, so they must not
+  // enter the queue. Crew who already died into it (hp already 0, cloneIn set) are not in this set and still clone.
+  // The parenthetical (crew aboard the destroyed Flagship in phase 1 and 2) is the stage change in sim.ts, which does not call onPlayerJump.
+  const leftAlive = new Set(
+    g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0).map((c) => c.id),
+  );
   onJumpSling(g);
   for (const c of g.crew) {
-    if (c.hp <= 0) onCradleDeath(g, c);
+    if (c.hp <= 0 && !leftAlive.has(c.id)) onCradleDeath(g, c);
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   onCradleJump(g);

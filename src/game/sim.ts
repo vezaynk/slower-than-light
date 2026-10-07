@@ -3709,6 +3709,38 @@ function mixSeed(seed: number, salt: number) {
   return (x ^ (x >>> 15)) >>> 0;
 }
 
+type SectorColour = "civilian" | "hostile" | "nebula";
+
+// Sectors lead, before the colour-coding paragraph: 48% green, 32% red, 20% purple.
+// INFERRED: green is the Civilian group, red is Hostile, and purple is Nebula.
+// The page names those three groups and those three colours and does not print the pairing.
+function sectorColour(unit: number): SectorColour {
+  if (unit < 0.48) return "civilian";
+  if (unit < 0.48 + 0.32) return "hostile";
+  return "nebula";
+}
+
+// INFERRED: if the rolled colour has no eligible sector, pick uniformly from the remaining eligible names.
+// The page does not say what happens then.
+function colourBag<T extends { group: string }>(pool: readonly T[], colour: SectorColour): readonly T[] {
+  const bag = pool.filter((entry) => entry.group === colour);
+  return bag.length > 0 ? bag : pool;
+}
+
+/**
+ * Sectors lead: colour first, then a uniform sector of that colour.
+ * One extra rand(g) versus a single irand over the whole list. The index is irand(g, bag.length).
+ */
+function colouredName(g: Game, names: readonly string[]): string {
+  const colour = sectorColour(rand(g));
+  const pool = names.map((name) => ({
+    name,
+    group: SECTOR_TYPES.find((sector) => sector.name === name)?.group ?? "",
+  }));
+  const choices = colourBag(pool, colour);
+  return choices[irand(g, choices.length)].name;
+}
+
 /** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
@@ -3737,11 +3769,19 @@ export function buildRoute(seed: number): SectorNode[] {
       return true;
     });
   for (let sector = 2; sector <= 7; sector++) {
-    const pool = poolFor(sector);
-    const a = pool[mixSeed(seed, sector * 2) % pool.length];
+    // INVENTED: independent mixSeed salts. The page does not print a seed formula.
+    // Colour and index stay on the seed, and this chart does not touch the game RNG.
+    const take = (slot: number, skip?: string) => {
+      // The other node in this column is already chosen. A repeatable sector stays eligible later, not twice here.
+      const pool = poolFor(sector).filter((s) => s.id !== skip);
+      const colourSalt = sector * 4 + slot * 2;
+      const colour = sectorColour(mixSeed(seed, colourSalt) / 4294967296);
+      const choices = colourBag(pool, colour);
+      return choices[mixSeed(seed, colourSalt + 1) % choices.length];
+    };
+    const a = take(0);
     if (ONCE_SECTOR.has(a.id)) used.add(a.id);
-    const rest = pool.filter((s) => s.id !== a.id);
-    const b = rest[mixSeed(seed, sector * 2 + 1) % rest.length];
+    const b = take(1, a.id);
     if (ONCE_SECTOR.has(b.id)) used.add(b.id);
     const col = sector - 1;
     nodes.push({ id: `sec-${col}-a`, name: a.name, group: groupOf(a.group), col, row: 0, links: [] });
@@ -4576,7 +4616,8 @@ export function titleHandoff(playedRun: Game): { played: Game | null; title: Gam
  */
 function blindSectorTwo(g: Game) {
   const pool = sectorPool(g, g.sector + 1);
-  nextSector(g, pool.length ? pool[irand(g, pool.length)] : "Civilian Sector");
+  // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
+  nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);
   const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
@@ -4591,7 +4632,8 @@ function leaveHiddenCrystal(g: Game) {
   if (g.sector >= 7) nextSector(g, "The Last Stand");
   else {
     const pool = sectorPool(g, g.sector + 1);
-    nextSector(g, pool.length ? pool[irand(g, pool.length)] : "Civilian Sector");
+    // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
+    nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
   }
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);

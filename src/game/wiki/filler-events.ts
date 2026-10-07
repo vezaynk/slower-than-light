@@ -47,7 +47,7 @@ import { citedPagesFor } from "./cited-events.ts";
  * pages no cited table has, in the cited-events-surrender.ts table format. They are not stamped by sector (no import
  * into cited-events.ts); their choices run in FILLER_CHOICES because most results are random (equal odds, INFERRED,
  * with {{DuplicateEvent|N}} counted N times) or open a follow-up card. Blue options, crew skills, drone schematics,
- * breaches, and map reveals are not granted, as in the other tables. A result that prints fires applies them.
+ * and map reveals are not granted, as in the other tables. A result that prints fires or a breach applies that hazard.
  */
 
 export type FillerRow = { dest: string; unique: boolean };
@@ -744,6 +744,22 @@ function rockFires(g: Game): string {
   return [bar, `${n === 1 ? "1 fire" : "2 fires"} in ${r.title}.`].filter(Boolean).join(" ");
 }
 
+/**
+ * Plasma storm incapacitated ships: "a breach to a random system."
+ * Trivia on that page: the hull-and-breach outcome "does not destroy any system."
+ * INFERRED: installed systems are equally likely. The breach opens in that system's room and spends no bar.
+ * A system with no room is skipped.
+ */
+function breachRandomSystem(g: Game): string {
+  const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
+  if (!ids.length) return "";
+  const id = ids[Math.min(ids.length - 1, Math.floor(rand(g) * ids.length))];
+  const room = g.player.rooms.find((r) => r.system === id);
+  if (!room) return "";
+  room.breach += 1;
+  return `A breach opens in ${room.title}.`;
+}
+
 /** "You lose a crewmember." Clone Bay: "The lost crewmember is revived" unless `noClone`. INFERRED: never the last one. */
 function loseCrew(g: Game, noClone = false): string {
   if (!noClone && g.player.kits.cradle) return "The lost crewmember is revived.";
@@ -983,9 +999,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:plasma-storm-incapacitated-ships:0": (g) => {
     const r = weighted(g, [["debris", 1], ["passenger", 1], ["tether", 1], ["schematic", 1], ["weapon", 1]] as const);
     if (r === "debris") {
-      // "4 hull damage, a breach to a random system" (breaches are not wired) "and ... high resources with some scrap".
+      // "4 hull damage, a breach to a random system" and high resources with some scrap.
+      // The breach does not destroy the system. The drone schematic on the other result stays ungranted.
       if (hurt(g, 4)) return;
-      show(g, "Despite your caution, the lack of detection equipment allows debris to crash into your ship, damaging the hull. You salvage what you can and prepare to jump before anything worse happens.", rollSurrenderOffer(g, "high", true), ["Hull damage: 4."]);
+      const breach = breachRandomSystem(g);
+      show(g, "Despite your caution, the lack of detection equipment allows debris to crash into your ship, damaging the hull. You salvage what you can and prepare to jump before anything worse happens.", rollSurrenderOffer(g, "high", true), ["Hull damage: 4.", breach]);
     } else if (r === "passenger") {
       show(g, "Within the ship graveyard you find one ship that seems relatively untouched. On board you find an unconscious passenger, and take them back to the ship. Once awake they offer to join your crew in thanks.", rollStandard(g, "low"), [gainCrew(g)]);
     } else if (r === "tether") {

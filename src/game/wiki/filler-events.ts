@@ -1117,6 +1117,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     humanBoarders(g, 2, 4, "human boarders beam aboard your ship.");
     beginBoarding(g);
   },
+
+  // Boarders: rebels in nebula. "3-4 human boarders beam aboard your ship."
+  // INFERRED: the count is inclusive (between()). nebula=true is the beacon, not a new hazard. No ship.
+  "c:boarders-rebels-in-nebula:0": (g) => {
+    humanBoarders(g, 3, 4, "human boarders beam aboard your ship.");
+    beginBoarding(g);
+  },
 };
 
 /** Choices whose id carries a rolled amount: refugee trades, the fuel gift, the terraformers' bribe. */

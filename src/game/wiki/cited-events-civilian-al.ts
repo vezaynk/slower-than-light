@@ -338,4 +338,30 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Boarders: rebels in nebula. The page prints no button. The red line is the label.
+  // "3-4 human boarders beam aboard your ship." nebula=true, LRSmap=noship+nebula, unique=true.
+  // Not a crew grant. No ship.
+  {
+    dest: "Boarders: rebels in nebula",
+    slug: "boarders-rebels-in-nebula",
+    flag: "cited:boarders-rebels-in-nebula",
+    aliases: ["Boarders: rebels in nebula"],
+    sectors: [
+      "Civilian Sector",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!",
+    choices: [
+      {
+        id: "c:boarders-rebels-in-nebula:0",
+        label: "3-4 human boarders beam aboard your ship.",
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

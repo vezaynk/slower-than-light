@@ -791,6 +791,33 @@ function upgradeOxygen(g: Game): string {
   return "Oxygen system upgraded.";
 }
 
+/** Terraforming scan, Improved Sensors level=2+. The page does not say whether damage drops it. INFERRED: the installed level. */
+function sensorsLevel(g: Game): number {
+  return g.player.systems.sensors?.level ?? 0;
+}
+
+/** Terraforming scan, Zoltan Crew. A dead Zoltan does not count. */
+function livingZoltan(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "spark");
+}
+
+/**
+ * Terraforming scan, Successful Scan, on the same page: oxygen upgrade, a Pirate ship, or the mold.
+ * The three results print no odds. INFERRED: equal. The blue options land here and skip the failed scan.
+ * "Set sensors to maximum" is that scan, not a permanent sensor upgrade.
+ */
+function successfulScan(g: Game) {
+  const r = weighted(g, [["oxygen", 1], ["pirate", 1], ["mold", 1]] as const);
+  if (r === "oxygen") show(g, "After a complete scan of the planet, you find no life. The team is grateful and ready to get to work. The station scientists have a unique talent for life support units and offer to upgrade your oxygen system as thanks.", undefined, [upgradeOxygen(g)]);
+  else if (r === "pirate") fight(g, "A complete scan of the planet reveals no life signs other than a single ship on the surface. The terraformers thank you for your help, and attempt to contact the ship. Just as you're about to jump away, the ship takes off and attacks, it's a pirate!", "Pirate ship", "terraforming-scan");
+  else {
+    card(g, "A complete scan of the planet reveals a simple mold as the only life present. The terraformers claim their terraforming plans are only hindered by intelligent life; they can begin their work.", [
+      { id: "s:terraforming-scan:stop", label: "Tell them to stop. Any life is valuable." },
+      { id: "s:terraforming-scan:leave", label: "Leave them to their work." },
+    ]);
+  }
+}
+
 /** Template:Drifting Refugee Ship (type=main): the four trade offers; "the actual trade offer is shown" first. */
 const REFUGEE_TRADES: { pay: "parts" | "fuel" | "missiles"; payR: [number, number]; get: "fuel" | "missiles" | "parts"; getR: [number, number] }[] = [
   { pay: "parts", payR: [1, 2], get: "fuel", getR: [5, 10] },
@@ -952,9 +979,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // ---- Terraforming scan ----
   "c:terraforming-scan:0": (g) => {
-    // Improved Sensors and Zoltan blue options are not wired.
     card(g, "\"Thank you! We need to scan this planet for life before we can begin terraforming, but our sensors can't get the necessary power to scan through this atmosphere. We've got a schedule to keep, any chance you could help?\"", [
       { id: "s:terraforming-scan:scan", label: "Attempt to scan the planet." },
+      { id: "s:terraforming-scan:sensors", label: "Set sensors to maximum and scan." },
+      { id: "s:terraforming-scan:zoltan", label: "Send your crewman to overcharge their systems." },
     ]);
   },
   "s:terraforming-scan:scan": (g) => {
@@ -962,16 +990,17 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       show(g, "It seems your sensors are no more powerful than the terraformer's. You apologize and continue on your way.");
       return;
     }
-    // Successful Scan: three results.
-    const r = weighted(g, [["oxygen", 1], ["pirate", 1], ["mold", 1]] as const);
-    if (r === "oxygen") show(g, "After a complete scan of the planet, you find no life. The team is grateful and ready to get to work. The station scientists have a unique talent for life support units and offer to upgrade your oxygen system as thanks.", undefined, [upgradeOxygen(g)]);
-    else if (r === "pirate") fight(g, "A complete scan of the planet reveals no life signs other than a single ship on the surface. The terraformers thank you for your help, and attempt to contact the ship. Just as you're about to jump away, the ship takes off and attacks, it's a pirate!", "Pirate ship", "terraforming-scan");
-    else {
-      card(g, "A complete scan of the planet reveals a simple mold as the only life present. The terraformers claim their terraforming plans are only hindered by intelligent life; they can begin their work.", [
-        { id: "s:terraforming-scan:stop", label: "Tell them to stop. Any life is valuable." },
-        { id: "s:terraforming-scan:leave", label: "Leave them to their work." },
-      ]);
-    }
+    successfulScan(g);
+  },
+  // Improved Sensors level 2+ goes straight to Successful Scan.
+  "s:terraforming-scan:sensors": (g) => {
+    if (sensorsLevel(g) < 2) return;
+    successfulScan(g);
+  },
+  // A living Zoltan goes straight to Successful Scan.
+  "s:terraforming-scan:zoltan": (g) => {
+    if (!livingZoltan(g)) return;
+    successfulScan(g);
   },
   "s:terraforming-scan:stop": (g) => {
     // "[ the actual trade offer is shown prior to making the choice ]": 15-25 scrap either way.
@@ -1124,6 +1153,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (m && g.fuel < Number(m[1])) return `Need ${m[1]} fuel`;
   m = id.match(/^s:terraforming-scan:pay:(\d+)$/);
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
+  if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
+  if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
   return null;
 }
 

@@ -314,7 +314,7 @@ export function emptyPageFor(sectorName: string, nebula = false): EmptyPage {
 
 export const FILLER_PAGES: CitedEventDef[] = [
   // ASTEROID_EXPLORE. Explore: fuel "high|3-6"; "medium|2-4 missiles" missiles and scrap; "medium|1 drone part"; a
-  // Pirate ship in an asteroid field; "5 hull damage"; nothing.
+  // Pirate ship in an asteroid field; "5 hull damage"; nothing. Scrap Recovery Arm mines high scrap.
   {
     dest: "Large asteroid field",
     slug: "large-asteroid-field",
@@ -330,6 +330,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
         fx: [{ k: "fight", tier: "Pirate ship", asteroid: true }],
       },
       { id: "c:large-asteroid-field:1", label: "Too dangerous. We'll just wait for the FTL to charge.", fx: [{ k: "nothing" }] },
+      // {{Blue Option|Scrap Recovery Arm|Attempt to mine the asteroids.}} High scrap only.
+      { id: "c:large-asteroid-field:2", label: "Attempt to mine the asteroids.", fx: [{ k: "note", text: "High scrap." }] },
     ],
   },
   // WRECKAGE_EVENT. Investigate: nothing ({{DuplicateEvent|4}}), nothing (Slug ship), medium resources with some scrap,
@@ -879,6 +881,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     } else show(g, "A brief exploration yields nothing of interest.");
   },
   "c:large-asteroid-field:1": done,
+  // Large asteroid field, Scrap Recovery Arm: "You receive high scrap." The arm must be fitted.
+  "c:large-asteroid-field:2": (g) => {
+    if (!g.augments.includes("hook")) return;
+    show(g, "You carefully extract as much usable material as possible from the nearest asteroids while waiting for the FTL to charge.", scrapOnly(g, "high"));
+  },
 
   // ---- Battlefield wreckage ----
   "c:battlefield-wreckage:0": (g) => {
@@ -1155,6 +1162,7 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
+  if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return "Needs a Scrap Recovery Arm";
   return null;
 }
 

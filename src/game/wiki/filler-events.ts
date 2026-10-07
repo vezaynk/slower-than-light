@@ -8,6 +8,7 @@ import {
   between,
   here,
   humanBoarders,
+  mantisBoarders,
   rockBoarders,
   joinCrew,
   payOffer,
@@ -1101,6 +1102,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:boarders-rockmen-near-sun:0": (g) => {
     rockBoarders(g, 2, 3);
     beginBoarding(g, false, true);
+  },
+
+  // Boarders: Mantis. "2-4 mantis boarders beam aboard your ship."
+  // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
+  "c:boarders-mantis:0": (g) => {
+    mantisBoarders(g, 2, 4);
+    beginBoarding(g);
   },
 };
 

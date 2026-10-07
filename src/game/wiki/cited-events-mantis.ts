@@ -1,7 +1,8 @@
 /**
  * Leftover Mantis pages. A choice is kept only when the opening result is one
- * stated amount or one named fight. Boarders: Humans near sun beams 2-4 humans
- * and is not a crew grant. Other boarder counts and branched rewards are not granted.
+ * stated amount or one named fight. Boarders: Humans near sun beams 2-4 humans.
+ * Boarders: Mantis beams 2-4 mantis. Neither is a crew grant.
+ * Other boarder counts and branched rewards are not granted.
  */
 
 export type CitedFx =
@@ -77,6 +78,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       {
         id: "c:boarders-humans-near-sun:0",
         label: "2-4 human boarders beam aboard your ship.",
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
+  {
+    // Boarders: Mantis. The page prints no button. The red line is the label.
+    // LRSmap=noship, unique=true. Not a crew grant.
+    dest: "Boarders: Mantis",
+    slug: "boarders-mantis",
+    flag: "cited:boarders-mantis",
+    aliases: ["Boarders: Mantis"],
+    sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
+    body: "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+    choices: [
+      {
+        id: "c:boarders-mantis:0",
+        label: "2-4 mantis boarders beam aboard your ship.",
         fx: [{ k: "nothing" }],
       },
     ],

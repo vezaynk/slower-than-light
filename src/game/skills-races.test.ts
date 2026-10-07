@@ -560,6 +560,19 @@ describe("Crew skills: the next rank costs the same", () => {
   });
 });
 
+describe("Crew skills: which skill costs the most", () => {
+  it("makes combat the cheapest, weapons the dearest, and piloting equal engines", () => {
+    // Crew skills, lead: "The Combat skill requires the least amount of experience for a level up, while the Weapons skill requires the most, and the Piloting and the Engines skills require the same exact amount".
+    for (const crew of [{ kin: "plain" } as Crew, { kin: "shell" } as Crew]) {
+      const need = (skill: SkillName) => xpNeedFor(crew, skill);
+      const values = (["pilot", "engines", "shields", "weapons", "repair", "combat"] as const).map(need);
+      assert.equal(need("pilot"), need("engines"));
+      assert.equal(need("combat"), Math.min(...values));
+      assert.equal(need("weapons"), Math.max(...values));
+    }
+  });
+});
+
 describe("Crew skills: one experience table except humans", () => {
   it("gives every non-human the same requirement, and a human less", () => {
     // Crew skills, lead: "All crew races require the same amount of experience to achieve the next skill level, except for humans".

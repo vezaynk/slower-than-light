@@ -375,6 +375,7 @@ export function mediumScrapBand(difficulty: Difficulty, sector: number): [number
 
 /**
  * Humans, "Race characteristics", column XP/level: Piloting 15, Engines 15, Shields 55, Weapons 65, Repair 18, Combat 8.
+ * Crew skills, lead: Combat costs the least, Weapons the most, and Piloting matches Engines.
  * skillRank treats the next rank as another XP/level of the same amount.
  */
 export const XP_NEED = {

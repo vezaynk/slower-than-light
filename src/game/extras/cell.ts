@@ -102,7 +102,8 @@ function shedDrained(g: Game, ship: Ship) {
  * Backup Battery, Overview: when the extra bars leave, they come off the reactor.
  * An active cloak or mind-control hold that loses its bar ends early.
  * INFERRED: kits lose bars before weapons, medbay, oxygen, engines, and shields.
- * The page names no order. A system already on cooldown keeps that cooldown.
+ * The page names no order.
+ * The same section: a bar locked into a system that is already cooling can still come off, and that cooldown stays.
  */
 function releaseCellBars(g: Game, ship: Ship, aboard: "player" | "enemy") {
   let over = -sparePower(ship);

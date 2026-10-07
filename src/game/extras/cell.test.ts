@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { applyImpact, applyPulsarPulse, createGame, sparePower, waitHere } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
+import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
 import type { Kit, Shot } from "../types.ts";
 
@@ -324,6 +325,34 @@ describe("cell", () => {
     assert.equal(guns.player.kits.cell?.cool, 0);
     assert.equal(guns.player.systems.weapons.power, 0);
     assert.equal(sparePower(guns.player), 0);
+  });
+
+  it("leaves a cooling cloak's cooldown alone when its battery bar is taken back", () => {
+    const g = createGame(16);
+    g.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    g.player.reactor = 1;
+    g.player.systems.engines.power = 1;
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    g.player.kits.veil = {
+      id: "veil",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 15,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    toggleVeilPower(g);
+    assert.equal(g.player.kits.veil.power, 1);
+    tickCell(g, 30);
+    assert.equal(g.player.kits.veil.on, false);
+    assert.equal(g.player.kits.veil.power, 0);
+    assert.equal(g.player.kits.veil.cool, 15);
+    assert.equal(g.player.systems.engines.power, 1);
+    assert.equal(g.player.kits.cell?.cool, 20);
   });
 
   it("starts an enemy cell when spare power is tight", () => {

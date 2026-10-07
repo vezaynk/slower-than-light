@@ -172,7 +172,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners.",
       "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides.",
     ],
-    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 and 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are copied and not simulated.',
+    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 and 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
   },
   {
     id: "flak2",
@@ -395,6 +395,52 @@ export function flak2Landing(rooms: readonly Flak2Room[], aimId: string, roll: n
   }
   if (twoByTwo(aim)) {
     const index = bandIndex(roll, FLAK2_WIDE_CUTS);
+    if (index < 0) return { kind: "stay" };
+    return landOn(rooms, aimId, wideTiles(aim)[index]);
+  }
+  return { kind: "stay" };
+}
+
+/**
+ * Flak (Weapons), "Adv. Flak Gun".
+ * "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners."
+ * "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides."
+ * Targeting area radius 40 is not simulated as pixels. Additional fake flak is not spawned.
+ * INFERRED: each of the three pellets rolls on its own. The page does not say they share one roll.
+ * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
+ * INFERRED: 48.74 + 4×11.51 + 2×2.57 + 4×0.02 = 100, so every printed 1×2 tile keeps its percent.
+ * INFERRED: 89.59 + 8×1.30 = 99.99, so the last side tile is 1.31%.
+ * INFERRED: a shape with no printed percent stays in the aimed room. An empty tile is a miss.
+ * INFERRED: the 2×2 line has no corners, so only the eight side tiles are rolled.
+ */
+/** 1×2 cuts in hundredths of a percent. The printed figures already sum to 100. */
+const ADV_NARROW = [4874, 1151, 1151, 1151, 1151, 257, 257, 2, 2, 2, 2];
+/** 2×2 cuts. The last side tile is 1.31 so the eight sides reach 100. */
+const ADV_WIDE = [8959, 130, 130, 130, 130, 130, 130, 130, 131];
+
+export const ADV_NARROW_CUTS = cutsOf(ADV_NARROW);
+export const ADV_WIDE_CUTS = cutsOf(ADV_WIDE);
+
+/** True when the shot must roll a printed Adv. Flak split. */
+export function advFlakAimRolls(room: Flak2Room): boolean {
+  return twoTile(room) != null || twoByTwo(room) != null;
+}
+
+/**
+ * Where one Adv. Flak pellet lands. `roll` is used only for a 1×2 or a 2×2.
+ * Every other shape ignores `roll` and stays.
+ */
+export function advFlakLanding(rooms: readonly Flak2Room[], aimId: string, roll: number): Flak2Land {
+  const aim = rooms.find((room) => room.id === aimId);
+  if (!aim) return { kind: "stay" };
+  const pair = twoTile(aim);
+  if (pair) {
+    const index = bandIndex(roll, ADV_NARROW_CUTS);
+    if (index < 0) return { kind: "stay" };
+    return landOn(rooms, aimId, narrowTiles(pair)[index]);
+  }
+  if (twoByTwo(aim)) {
+    const index = bandIndex(roll, ADV_WIDE_CUTS);
     if (index < 0) return { kind: "stay" };
     return landOn(rooms, aimId, wideTiles(aim)[index]);
   }

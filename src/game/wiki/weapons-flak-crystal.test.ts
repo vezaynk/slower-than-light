@@ -5,10 +5,14 @@ import { fileURLToPath } from "node:url";
 import { CHARGE_SECONDS, DAMAGE, PROJECTILES } from "../extras/flakart.ts";
 import { createGame, fireReady, rand, startCombat } from "../sim.ts";
 import {
+  ADV_NARROW_CUTS,
+  ADV_WIDE_CUTS,
   FLAK2_NARROW_CUTS,
   FLAK2_WIDE_CUTS,
   FLAK_CRYSTAL_GAPS,
   FLAK_CRYSTAL_WEAPONS,
+  advFlakAimRolls,
+  advFlakLanding,
   flak2AimRolls,
   flak2Landing,
   type Flak2Room,
@@ -312,5 +316,63 @@ describe("Flak II room odds", () => {
       assert.equal(shot.targetRoom, "dot");
       assert.equal(shot.offRoom, undefined);
     }
+  });
+});
+
+describe("Adv. Flak room odds", () => {
+  it("keeps the printed 1x2 and 2x2 cuts", () => {
+    // Flak (Weapons), Adv. Flak Gun. The last 2x2 side tile is 1.31 because the printed percents sum to 99.99.
+    assert.equal(ADV_NARROW_CUTS[0], 4874 / 10000);
+    assert.equal(ADV_NARROW_CUTS[4], (4874 + 1151 * 4) / 10000);
+    assert.equal(ADV_NARROW_CUTS[6], (4874 + 1151 * 4 + 257 * 2) / 10000);
+    assert.equal(ADV_NARROW_CUTS[ADV_NARROW_CUTS.length - 1], 1);
+    assert.equal(ADV_WIDE_CUTS[0], 8959 / 10000);
+    assert.equal(ADV_WIDE_CUTS[ADV_WIDE_CUTS.length - 1], 1);
+    assert.equal(advFlakAimRolls(narrow), true);
+    assert.equal(advFlakAimRolls({ id: "dot", x: 0, y: 0, w: 1, h: 1 }), false);
+  });
+
+  it("stays in a 1x2 on the main-room roll and steps onto a long side", () => {
+    assert.deepEqual(advFlakLanding([narrow, north], "aim", 4873 / 10000), { kind: "stay" });
+    assert.deepEqual(advFlakLanding([narrow, north], "aim", 4874 / 10000), { kind: "room", roomId: "north" });
+  });
+
+  it("stays in a 2x2 on the main-room roll and can leave through a side tile", () => {
+    assert.deepEqual(advFlakLanding([square, beside], "box", 8958 / 10000), { kind: "stay" });
+    assert.deepEqual(advFlakLanding([square, beside], "box", 8959 / 10000), { kind: "room", roomId: "beside" });
+    assert.deepEqual(advFlakLanding([square], "box", 0.999), { kind: "miss" });
+  });
+
+  it("uses those odds when Adv. Flak fires", () => {
+    const g = createGame(6);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    g.enemy.weapons = [];
+    const base = g.enemy.rooms[0];
+    g.enemy.rooms = [
+      { ...base, id: "n", x: 1, y: 1, w: 2, h: 1, omit: undefined },
+      { ...base, id: "north", title: "North", system: null, x: 1, y: 0, w: 2, h: 1, omit: undefined },
+    ];
+    g.player.systems.weapons.level = 1;
+    g.player.systems.weapons.power = 1;
+    g.player.weapons = [{ uid: "af", defId: "advflak", charge: 1, enabled: true, autofire: false, target: "n" }];
+    g.seed = 8;
+    const preview = createGame(1);
+    preview.seed = 8;
+    const rolls = [rand(preview), rand(preview), rand(preview)];
+    fireReady(g);
+    assert.equal(g.shots.length, 3);
+    const aim: Flak2Room[] = [
+      { id: "n", x: 1, y: 1, w: 2, h: 1 },
+      { id: "north", x: 1, y: 0, w: 2, h: 1 },
+    ];
+    g.shots.forEach((shot, i) => {
+      const land = advFlakLanding(aim, "n", rolls[i]);
+      assert.equal(shot.damage, 1);
+      assert.equal(shot.kind, "flak");
+      if (land.kind === "stay") assert.equal(shot.targetRoom, "n");
+      else if (land.kind === "room") assert.equal(shot.targetRoom, land.roomId);
+      else assert.equal(shot.offRoom, true);
+    });
   });
 });

@@ -989,6 +989,38 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
   log(g, `${n} rock boarders beam aboard your ship.`);
 }
 
+/**
+ * Mantis outcasts: "2-3 mantis boarders beam aboard your ship and you fight a Mantis Ship (default rewards)."
+ * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
+ * INFERRED: the count is an inclusive whole number from 2 to 3, and each boarder lands in a random player room,
+ * the same pattern as rockBoarders. INFERRED: the display name is "Mantis" because the page does not print names.
+ * HP is kinOf("blade").hp. No weapon, schematic, augment, crew reward, or scrap.
+ */
+export function mantisBoarders(g: Game, lo: number, hi: number) {
+  const n = between(g, [lo, hi]);
+  const hp = kinOf("blade").hp;
+  for (let i = 0; i < n; i++) {
+    const rooms = g.player.rooms;
+    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    g.uid = (g.uid + 1) >>> 0;
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: "Mantis",
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin: "blade",
+    });
+  }
+  log(g, `${n} mantis boarders beam aboard your ship.`);
+}
+
 function livingSlug(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
 }

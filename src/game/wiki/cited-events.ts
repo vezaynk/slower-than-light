@@ -30,7 +30,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { rockBoarders } from "./surrender.ts";
+import { mantisBoarders, rockBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -1404,10 +1404,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Mantis Ship"
-          },
-          {
-            "k": "note",
-            "text": "Boarders named on the page are not applied."
           }
         ]
       }
@@ -3493,6 +3489,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);
     if (id === "c:rock-fight-with-boarders-in-asteroid-field:0") rockBoarders(g, 1, 2);
+    // "2-3 mantis boarders beam aboard your ship" (Mantis outcasts).
+    // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    if (id === "c:mantis-outcasts:0") mantisBoarders(g, 2, 3);
     return true;
   }
   ctx.resolve();

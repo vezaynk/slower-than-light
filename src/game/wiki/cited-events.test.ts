@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
+import { kinOf } from "../extras/kin.ts";
 import { choose, chooseSector, commitJump, createGame, doorLevel, evasionPercent, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { onCradleDeath } from "../extras/cradle.ts";
@@ -318,6 +319,45 @@ function quietEnemy(g: ReturnType<typeof createGame>) {
     g.enemy.kits.spike.power = 0;
   }
 }
+
+describe("Mantis outcasts", () => {
+  it("beams 2-3 Mantis boarders aboard with the Mantis ship and grants nothing else", () => {
+    const seen = new Set<number>();
+    const hp = kinOf("blade").hp;
+    for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
+      const g = createGame(seed);
+      const scrap = g.scrap;
+      const fuel = g.fuel;
+      const missiles = g.missiles;
+      const parts = g.player.parts;
+      const weapons = g.player.weapons.map((w) => w.defId);
+      const augments = [...g.augments];
+      const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
+      const rooms = new Set(g.player.rooms.map((r) => r.id));
+      openCited(g, "Zoltan Controlled Sector", "cited:mantis-outcasts", "Mantis outcasts");
+      choose(g, "c:mantis-outcasts:0");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.enemy?.faction, "mantis");
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+      assert.ok(boarders.length >= 2 && boarders.length <= 3, String(boarders.length));
+      seen.add(boarders.length);
+      assert.ok(boarders.every((c) => c.name === "Mantis" && c.kin === "blade" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.equal(g.scrap, scrap);
+      assert.equal(g.fuel, fuel);
+      assert.equal(g.missiles, missiles);
+      assert.equal(g.player.parts, parts);
+      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(g.augments, augments);
+      assert.deepEqual(
+        g.crew.filter((c) => c.side === "player").map((c) => c.id),
+        crewIds,
+      );
+      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
+      assert.ok(g.log.some((line) => line === `${boarders.length} mantis boarders beam aboard your ship.`));
+    }
+    assert.deepEqual([...seen].sort(), [2, 3]);
+  });
+});
 
 describe("Slug hacker (choice)", () => {
   it("halves the chosen system, rounding down, until that fight ends", () => {

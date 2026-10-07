@@ -2733,6 +2733,7 @@ function shieldRegen(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number
   if (ship.shieldNow < cap && mainBars(g, ship, aboard, "shields") >= 2 && !hackHoldsShields(g, ship)) {
     const op = manningCrew(g, ship, aboard, "shields");
     // Crew skills, Shields skill: recharge rate ×1.1 / ×1.2 / ×1.3. An undamaged auto-ship keeps the untrained ×1.1.
+    // "with fully trained crew, recharge time is divided by 1.3 -- so a 2 seconds recharge is reduced to 1.54 seconds."
     const shields = ship.systems.shields;
     const rate = ship.automated && shields.level > 0 && shields.damage === 0
       ? SHIELD_RATE[0]

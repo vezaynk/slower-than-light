@@ -952,6 +952,64 @@ describe("Crew skills: a Basic Laser charge", () => {
   });
 });
 
+describe("Crew skills: a trained shield recharge", () => {
+  it("turns a 2 second recharge into 1.54 seconds", () => {
+    // Crew skills, Shields skill: "with fully trained crew, recharge time is divided by 1.3 -- so a 2 seconds recharge is reduced to 1.54 seconds."
+    const fill = (trained: boolean) => {
+      const g = createGame(61);
+      startCombat(g, "scout");
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      if (g.enemy?.kits.veil) {
+        g.enemy.kits.veil.on = false;
+        g.enemy.kits.veil.power = 0;
+      }
+      if (g.enemy?.kits.spike) {
+        g.enemy.kits.spike.on = false;
+        g.enemy.kits.spike.left = 0;
+        g.enemy.kits.spike.cool = 999;
+      }
+      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      g.augments = [];
+      g.asteroid = false;
+      g.player.systems.shields.level = 2;
+      g.player.systems.shields.power = 2;
+      g.player.systems.shields.damage = 0;
+      g.player.systems.shields.ion = [];
+      g.player.shieldNow = 0;
+      g.player.shieldCharge = 0;
+      const room = g.player.rooms.find((r) => r.system === "shields")!;
+      const away = g.player.rooms.find((r) => r.id !== room.id)!;
+      for (const c of g.crew) {
+        if (c.side !== "player") continue;
+        c.room = away.id;
+        c.path = [];
+        c.stun = 999;
+      }
+      if (trained) {
+        const crew = g.crew.find((c) => c.side === "player")!;
+        crew.room = room.id;
+        crew.kin = "plain";
+        crew.stun = 0;
+        crew.skills = { shields: xpNeedFor(crew, "shields") * 2 };
+        assert.equal(xpNeedFor(crew, "shields"), 50);
+      }
+      let steps = 0;
+      while (g.player.shieldNow < 1 && steps < 80) {
+        step(g, 0.05);
+        steps++;
+      }
+      return steps;
+    };
+    assert.equal(fill(false), 40);
+    const trained = fill(true);
+    const need = 2 / 1.3;
+    assert.ok((trained - 1) * 0.05 < need);
+    assert.ok(trained * 0.05 >= need);
+    assert.ok(Math.abs(need - 1.54) < 0.01);
+  });
+});
+
 describe("Crew skills, Weapons: turning a gun off just after the increment drops the shot", () => {
   function primed(seed: number, defId: string) {
     const g = createGame(seed);

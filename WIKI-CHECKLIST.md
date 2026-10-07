@@ -654,7 +654,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Lanius vessel in rich debris field — not-a-surface — same title as "Lanius Vessel in Rich Debris Field" with different capitalization
 - [ ] Lanius with Federation science craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lanius with docked science craft — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Large Asteroid Field — partial — Same card as dest "Large asteroid field" (filler-events.ts). Explore rolls fuel 3–6, missiles 2–4 plus medium scrap, 1 drone part plus medium scrap, a Pirate fight in an asteroid field, or nothing. The rock result deals 5 hull, 1 damage to a random system, and 1 damage with 1–2 fires on a random room. The second fire is a coin flip (INFERRED). A systemless room still burns.
+- [ ] Large Asteroid Field — partial — Same card as dest "Large asteroid field" (filler-events.ts). Explore rolls fuel 3–6, missiles 2–4 plus medium scrap, 1 drone part plus medium scrap, a Pirate fight in an asteroid field, or nothing. The rock result deals 5 hull, 1 damage to a random system, and 1 damage with 1–2 fires on a random room. The second fire is a coin flip (INFERRED). A systemless room still burns. A fitted Scrap Recovery Arm mines high scrap and nothing else. Without that augment the choice stays closed.
 - [ ] Large Convoy — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Large Trade Station — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Large asteroid field — not-a-surface — same title as "Large Asteroid Field" with different capitalization

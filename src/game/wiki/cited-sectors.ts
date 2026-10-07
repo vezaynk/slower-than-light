@@ -76,7 +76,7 @@ export function citedAsb(g: Game, here: Pick<Beacon, "kind" | "col"> | undefined
   return here.col < g.fleet;
 }
 
-/** Rebel Fleet: 3 hull and a breach. No fire figure is stated. The 14s timer is left where it was. */
+/** Rebel Fleet / Environmental Hazards: 3 hull and a breach. No fire figure is stated. The timer is environment(). */
 export function citedAsbShot(): { damage: number; breachChance: number; fireChance: number } {
   return { damage: 3, breachChance: 1, fireChance: 0 };
 }

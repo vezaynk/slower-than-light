@@ -622,7 +622,15 @@ export type Game = {
   asteroid: boolean;
   asb: boolean;
   asteroidT: number;
+  /** Seconds into the current anti-ship battery phase. */
   asbT: number;
+  /**
+   * Environmental Hazards, ==Anti-Ship Battery (ASB)==.
+   * "warn" is the 15–20s warning. "shot" is the 5–10s wait for the real projectile.
+   */
+  asbPhase: "warn" | "shot";
+  /** Seconds the current phase runs. 0 until that battery is armed. */
+  asbWait: number;
   boardTimer: number;
   bossSurge: number;
   /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */

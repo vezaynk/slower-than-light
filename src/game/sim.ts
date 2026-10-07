@@ -2531,8 +2531,17 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
-// INFERRED: rocks every 8s (1 damage, 5% breach) and artillery every 14s (1 damage, 15% fire, 10% breach).
-// Those intervals are not on the fetched pages.
+// INFERRED: rocks every 8s (1 damage, 5% breach). Asteroid numbers were not re-audited.
+// Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
+// then the real shot 5--10 seconds later. The cycle repeats until escape.
+// INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
+// Cosmetic fake projectiles have no count on the page, so they are not drawn.
+function armAsbClock(g: Game, phase: "warn" | "shot") {
+  g.asbPhase = phase;
+  g.asbT = 0;
+  g.asbWait = phase === "warn" ? 15 + rand(g) * 5 : 5 + rand(g) * 5;
+}
+
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
     g.asteroidT += dt;
@@ -2556,27 +2565,42 @@ function environment(g: Game, dt: number) {
     }
   }
   if (g.asb) {
+    // A save from before the phase clock has no wait. Arming here still rolls only while the battery is on.
+    if (!(g.asbWait > 0)) armAsbClock(g, "warn");
     g.asbT += dt;
-    if (g.asbT >= 14) {
-      g.asbT = 0;
-      const asb = citedAsbShot();
-      g.shots.push({
-        id: uid(g),
-        kind: "missile",
-        from: "env",
-        damage: asb.damage,
-        ion: 0,
-        fireChance: asb.fireChance,
-        breachChance: asb.breachChance,
-        // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
-        targetRoom: randomRoom(g, g.player),
-        wait: 0.15,
-        t: 0,
-        duration: 1.1,
-        label: "Artillery",
-      });
-      log(g, "Line artillery.");
-      sfx(g, "alarm");
+    if (g.asbT >= g.asbWait) {
+      if (g.asbPhase !== "shot") {
+        // INFERRED: the page prints these two lines beside the hazard art. Which one is the
+        // 15--20s warning is not stated. A hull already on the scope uses the fleet line.
+        log(
+          g,
+          g.enemy
+            ? "The Fleet's Anti-Ship Batteries are targeting you."
+            : "Planet-side anti-ship batteries are detected in this system.",
+        );
+        sfx(g, "alarm");
+        armAsbClock(g, "shot");
+      } else {
+        const asb = citedAsbShot();
+        g.shots.push({
+          id: uid(g),
+          kind: "missile",
+          from: "env",
+          damage: asb.damage,
+          ion: 0,
+          fireChance: asb.fireChance,
+          breachChance: asb.breachChance,
+          // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
+          targetRoom: randomRoom(g, g.player),
+          wait: 0.15,
+          t: 0,
+          duration: 1.1,
+          label: "Artillery",
+        });
+        log(g, "Line artillery.");
+        sfx(g, "alarm");
+        armAsbClock(g, "warn");
+      }
     }
   }
 }
@@ -3028,12 +3052,16 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.shipSheet = false;
   g.event = null;
   g.asteroid = asteroid;
-  // INFERRED: first rock at 3s, artillery at 6s, boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
+  // INFERRED: first rock at 3s, boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
   g.asteroidT = 3;
   const here = g.beacons.find((b) => b.id === g.here);
   // Rebel Fleet: not on a nebula beacon, and never on an Easy exit. Overtaken column is the existing test.
+  // Environmental Hazards: the warning roll happens only when the battery is actually armed.
   g.asb = citedAsb(g, here);
-  g.asbT = 6;
+  g.asbPhase = "warn";
+  g.asbT = 0;
+  g.asbWait = 0;
+  if (g.asb) armAsbClock(g, "warn");
   // INFERRED: a hull with a Crew Teleporter boards 9 seconds in.
   g.boardTimer = built.ship.boards ? 9 : 0;
   // @agent:flagship. A resumed boss fight starts at the remembered stage, with a fresh 20–30 s surge wait.
@@ -3057,8 +3085,8 @@ function enemyAboard(g: Game): boolean {
  * Destroyed cargo ship, Research station with no response, Abandoned station, Refugee comms down: boarders beam
  * aboard and no enemy ship is on the page. startCombat would delete them and put a hull on the scope.
  * Opens the crew fight only: phase combat, enemy stays null. The play view already ticks that phase.
- * `asb` is Abandoned station's planet-side battery. The first shot waits the same 6s startCombat uses; the 14s
- * interval stays the existing one.
+ * `asb` is Abandoned station's planet-side battery. Environmental Hazards: warning 15–20s after the
+ * fight starts, then the real shot 5–10s later. The roll happens only when that battery is on.
  * INFERRED: the beacon is spent when they board, so the card does not reopen. Killing them is not a ship kill.
  * INVENTED: the log line when the last boarder dies (tickBoarding).
  */
@@ -3076,7 +3104,10 @@ export function beginBoarding(g: Game, asb = false) {
   g.enemyEscape = null;
   g.enemySurrender = null;
   g.asb = asb;
-  if (asb) g.asbT = 6;
+  g.asbPhase = "warn";
+  g.asbT = 0;
+  g.asbWait = 0;
+  if (asb) armAsbClock(g, "warn");
   const b = g.beacons.find((x) => x.id === g.here);
   if (b && b.kind !== "boss") b.resolved = true;
   sfx(g, "alarm");
@@ -3444,6 +3475,8 @@ export function createGame(
     asb: false,
     asteroidT: 0,
     asbT: 0,
+    asbPhase: "warn",
+    asbWait: 0,
     boardTimer: 0,
     bossSurge: 0,
     ramStage: 1,

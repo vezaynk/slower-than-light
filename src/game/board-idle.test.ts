@@ -71,19 +71,38 @@ describe("Boarders with no enemy ship", () => {
     assert.equal(g.phase, "combat");
   });
 
-  it("fires the planet-side battery on the existing 14s timer", () => {
+  it("warns 15–20s in, then fires the planet-side battery 5–10s later", () => {
     const g = createGame(1);
+    for (const c of g.crew) c.think = 9999;
+    plant(g, "p-sensors");
     plant(g, "p-sensors");
     beginBoarding(g, true);
     assert.equal(g.asb, true);
-    assert.equal(g.asbT, 6);
-    for (let i = 0; i < 140; i++) step(g, 0.05);
-    assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
+    assert.equal(g.enemy, null);
+    assert.equal(g.asbPhase, "warn");
+    assert.ok(g.asbWait >= 15 && g.asbWait < 20);
+    let t = 0;
+    while (g.asbPhase === "warn" && t < 21) {
+      step(g, 0.05);
+      t += 0.05;
+    }
     assert.equal(g.phase, "combat");
-    for (let i = 0; i < 40; i++) step(g, 0.05);
+    assert.equal(g.asbPhase, "shot");
+    assert.ok(t >= 15 && t < 20.1);
+    assert.equal(g.log[0], "Planet-side anti-ship batteries are detected in this system.");
+    assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
+    assert.ok(g.asbWait >= 5 && g.asbWait < 10);
+    const shotAt = t + g.asbWait;
+    while (!g.shots.some((s) => s.label === "Artillery") && t < shotAt + 1) {
+      step(g, 0.05);
+      t += 0.05;
+    }
     assert.equal(g.shots.some((s) => s.label === "Artillery"), true);
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");
+    assert.equal(g.asbPhase, "warn");
+    assert.ok(g.asbWait >= 15 && g.asbWait < 20);
+    assert.ok(t >= 20 && t < 30.1);
   });
 
   it("braces 3-4 human boarders with no hull", () => {

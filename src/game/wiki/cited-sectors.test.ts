@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { SECTOR_NAMES } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, runScore, startCombat, waitHere } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, runScore, startCombat, step, waitHere } from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
 import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
 
@@ -221,6 +221,35 @@ describe("fleet advance and the anti-ship battery", () => {
     g.fleet = 3;
     startCombat(g, "scout");
     assert.equal(g.asb, false);
+  });
+
+  it("warns 15–20s after an overtaken fight, then waits 5–10s for the real shot", () => {
+    const g = createGame(2, "kestrel-a", "normal");
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.col = 0;
+    here.kind = "empty";
+    g.fleet = 2;
+    startCombat(g, "scout");
+    assert.equal(g.asb, true);
+    assert.equal(g.asbPhase, "warn");
+    assert.equal(g.asbT, 0);
+    assert.ok(g.asbWait >= 15 && g.asbWait < 20);
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy!.weapons) w.enabled = false;
+    g.player.hull = 40;
+    g.enemy!.hull = 40;
+    let t = 0;
+    while (g.asbPhase === "warn" && g.phase === "combat" && t < 21) {
+      step(g, 0.05);
+      t += 0.05;
+    }
+    assert.equal(g.phase, "combat");
+    assert.equal(g.asbPhase, "shot");
+    assert.ok(t >= 15 && t < 20.1);
+    assert.equal(g.log[0], "The Fleet's Anti-Ship Batteries are targeting you.");
+    assert.ok(g.asbWait >= 5 && g.asbWait < 10);
+    assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
   });
 });
 

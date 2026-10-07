@@ -110,6 +110,111 @@ describe("Skills, Repair skill: 10% / 20% faster repair", () => {
   });
 });
 
+describe("Crew skills, Repair skill: one point when a bar finishes", () => {
+  function quiet(g: Game) {
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+  }
+
+  it("grants nothing on a partial bar and one point when that bar finishes", () => {
+    const g = createGame(21);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    room.fire = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    const s = g.player.systems[sys as keyof typeof g.player.systems];
+    s.damage = 1;
+    s.fix = 0;
+    step(g, 0.05);
+    assert.ok(s.fix > 0 && s.fix < 12.5);
+    assert.equal(s.damage, 1);
+    assert.equal(worker.skills?.repair ?? 0, 0);
+    const helper = g.crew.find((c) => c.side === "player" && c.id !== worker.id);
+    assert.ok(helper);
+    assert.notEqual(helper.room, roomId);
+    s.fix = 12.49;
+    step(g, 0.05);
+    assert.equal(s.damage, 0);
+    assert.equal(worker.skills?.repair ?? 0, 1);
+    assert.equal(helper.skills?.repair ?? 0, 0);
+  });
+
+  it("gives the point to each crew still in the room", () => {
+    // INFERRED: the page names one finisher. Both stay, so both receive it.
+    const g = createGame(22);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    const helper = g.crew.find((c) => c.side === "player" && c.id !== worker.id)!;
+    helper.room = roomId;
+    helper.path = [];
+    helper.stun = 0;
+    helper.kin = "plain";
+    worker.skills = {};
+    helper.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    room.fire = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    const s = g.player.systems[sys as keyof typeof g.player.systems];
+    s.damage = 1;
+    s.fix = 12.49;
+    step(g, 0.05);
+    assert.equal(s.damage, 0);
+    assert.equal(worker.skills?.repair ?? 0, 1);
+    assert.equal(helper.skills?.repair ?? 0, 1);
+  });
+
+  it("sealing a breach trains nothing", () => {
+    const g = createGame(23);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+    room.fire = 0;
+    room.breach = 1;
+    room.breachFix = 12.49;
+    room.o2 = 100;
+    g.augments = [];
+    step(g, 0.05);
+    assert.equal(room.breach, 0);
+    assert.equal(worker.skills?.repair ?? 0, 0);
+  });
+
+  it("grants one point when a kit bar finishes", () => {
+    const g = createGame(24);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+    room.fire = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    room.kit = "veil";
+    g.player.kits.veil = {
+      id: "veil",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      damage: 1,
+      fix: 12.49,
+    };
+    step(g, 0.05);
+    assert.equal(g.player.kits.veil.damage ?? 0, 0);
+    assert.equal(worker.skills?.repair ?? 0, 1);
+  });
+});
+
 describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
   it("prints the table, with level 0 as default damage", () => {
     assert.deepEqual([...COMBAT_SKILL_MULT], [1, 1.1, 1.2]);

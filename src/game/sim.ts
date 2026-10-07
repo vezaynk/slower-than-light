@@ -546,7 +546,7 @@ function rankOf(c: Crew | undefined, skill: SkillName): 0 | 1 | 2 {
 }
 
 function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) {
-  // INFERRED: callers grant 1 point or dt. The fetched pages do not number skill gain.
+  // Printed events pass 1. Combat still passes dt until that skill's killing-blow rule lands.
   if (!c || amount <= 0 || c.side !== "player") return;
   if (!c.skills) c.skills = {};
   const before = rankOf(c, skill);
@@ -2586,11 +2586,15 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       kit.fix =
         (kit.fix ?? 0) +
         pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.kit);
-      for (const c of pals) bumpXp(g, c, "repair", dt);
       if (kit.fix >= REPAIR_SECONDS) {
         kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
         kit.fix = 0;
         if (ship === g.enemy) kit.power = kit.level - kit.damage;
+        // Crew skills, Repair skill: "one point of experience for completing the repairs of one system or
+        // subsystem level", "granted to the crew who performs the finishing repair animation." A partial bar grants none.
+        // INFERRED: each crew still in the room on that tick receives the point. The page names one finisher and
+        // tells helpers to leave, and it does not say the others get nothing if they stay.
+        for (const c of pals) bumpXp(g, c, "repair", 1);
         log(g, `${r.title} repaired.`);
       }
     } else if (pals.length && r.system && (gun ?? ship.systems[r.system]).damage > 0 && r.o2 > 5) {
@@ -2599,10 +2603,11 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       const sys = gun ?? ship.systems[r.system];
       // @agent:hacking. Hacking, "Overview": "Repair speed of the system is halved" under a hacking drone (spike.ts).
       sys.fix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.system);
-      for (const c of pals) bumpXp(g, c, "repair", dt);
       if (sys.fix >= REPAIR_SECONDS) {
         sys.damage = Math.max(0, sys.damage - 1);
         sys.fix = 0;
+        // Same one point as a kit bar, including a subsystem (pilot, sensors, doors) on this room.
+        for (const c of pals) bumpXp(g, c, "repair", 1);
         log(g, `${r.title} repaired.`);
         sfx(g, "click");
       }
@@ -3331,7 +3336,7 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
     reactor: spec.reactor,
     systems: systems(spec.systems),
     rooms,
-    doors: addDoors(rooms),
+    doors: addDoors(rooms, spec.marks),
     weapons: spec.weapons.map((defId) => enemyGun(g, defId)),
     ammo: spec.missiles,
     shieldNow: Math.floor(shields / 2),
@@ -3348,6 +3353,7 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
     unwired: spec.unwired,
     boards: spec.boards,
   };
+  if (spec.marks) ship.doorMarks = spec.marks;
   // @agent:drones. Hidden drone loadout. extras/swarm.ts deploys it on the first combat tick.
   if (ship.kits.swarm && spec.drones?.length) ship.kits.swarm.loadout = [...spec.drones];
   const crew = spec.crew.map((c) => enemyCrew(g, c.kin, c.race, c.room));

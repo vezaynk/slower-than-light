@@ -338,11 +338,12 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       foe.hp = foe.maxHp;
       foe.leashed = undefined;
       const before = foe.hp;
-      step(g, 0.05);
+      for (let i = 0; i < 40 && foe.hp === before; i++) step(g, 0.05);
       return before - foe.hp;
     };
     const humanHurt = hurt("plain");
-    assert.ok(humanHurt > 0);
+    // Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
+    assert.ok(humanHurt >= 3 && humanHurt <= 7);
     assert.ok(Math.abs(hurt("shell") / humanHurt - 0.5) < 1e-6);
     assert.ok(Math.abs(hurt("blade") / humanHurt - 1.5) < 1e-6);
   });
@@ -685,39 +686,45 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
   });
 
   it("a gold fighter deals 20% more and does not take 20% more", () => {
-    const g = createGame(11);
-    startCombat(g, "scout");
-    const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
-    assert.ok(room);
-    const away = g.player.rooms.find((r) => r.id !== room.id);
-    assert.ok(away);
-    const hero = g.crew.find((c) => c.side === "player" && c.hp > 0);
-    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
-    assert.ok(hero && foe);
-    for (const c of g.crew) {
-      if (c.id !== hero.id && c.id !== foe.id) c.room = away.id;
-      c.path = [];
-      c.think = 30;
-      c.stun = 0;
-    }
-    hero.room = room.id;
-    hero.aboard = "player";
-    hero.kin = "plain";
-    hero.skills = { combat: 14 };
-    hero.hp = hero.maxHp;
-    foe.room = room.id;
-    foe.aboard = "player";
-    foe.side = "enemy";
-    foe.kin = "plain";
-    foe.skills = {};
-    foe.hp = foe.maxHp;
-    foe.leashed = undefined;
-    const heroBefore = hero.hp;
-    const foeBefore = foe.hp;
-    step(g, 1);
-    const dealt = foeBefore - foe.hp;
-    const taken = heroBefore - hero.hp;
-    assert.ok(Math.abs(dealt / taken - 1.2) < 1e-6, `${dealt} vs ${taken}`);
+    const blow = (xp: number) => {
+      const g = createGame(11);
+      startCombat(g, "scout");
+      const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
+      assert.ok(room);
+      const away = g.player.rooms.find((r) => r.id !== room.id);
+      assert.ok(away);
+      const hero = g.crew.find((c) => c.side === "player" && c.hp > 0);
+      const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+      assert.ok(hero && foe);
+      for (const c of g.crew) {
+        if (c.id !== hero.id && c.id !== foe.id) c.room = away.id;
+        c.path = [];
+        c.think = 30;
+        c.stun = 0;
+      }
+      hero.room = room.id;
+      hero.aboard = "player";
+      hero.kin = "plain";
+      hero.skills = { combat: xp };
+      hero.hp = hero.maxHp;
+      foe.room = room.id;
+      foe.aboard = "player";
+      foe.side = "enemy";
+      foe.kin = "plain";
+      foe.skills = {};
+      foe.hp = foe.maxHp;
+      foe.leashed = undefined;
+      const foeBefore = foe.hp;
+      const heroBefore = hero.hp;
+      for (let i = 0; i < 40 && foe.hp === foeBefore; i++) step(g, 0.05);
+      return { dealt: foeBefore - foe.hp, taken: heroBefore - hero.hp };
+    };
+    const plain = blow(0);
+    const gold = blow(14);
+    // One blow. Skill multiplies damage dealt, not damage taken from an unskilled human.
+    assert.ok(plain.dealt >= 3 && plain.dealt <= 7);
+    assert.ok(Math.abs(gold.dealt / plain.dealt - 1.2) < 1e-6, `${gold.dealt} vs ${plain.dealt}`);
+    assert.ok(Math.abs(gold.taken - plain.taken) < 1e-9);
   });
 
   it("does not speed sabotage", () => {
@@ -779,17 +786,19 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
 
   it("grants nothing while both crew still stand, then one point for the killing blow", () => {
     const { g, hero, foe } = duel();
-    step(g, 0.05);
+    const before = foe.hp;
+    for (let i = 0; i < 40 && foe.hp === before; i++) step(g, 0.05);
     assert.ok(foe.hp > 0 && foe.hp < foe.maxHp);
     assert.equal(hero.skills?.combat ?? 0, 0);
     foe.hp = 0.05;
+    hero.swing = 1;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 1);
   });
 
-  it("gives the point to each attacker still striking", () => {
-    // INFERRED: the page names one final hit. Both are still striking, so both receive it.
+  it("gives the point to the crew whose blow lands", () => {
+    // Crew skills, Combat: "one point of experience for dealing the killing blow".
     const { g, hero, foe, room } = duel();
     const mate = g.crew.find((c) => c.side === "player" && c.id !== hero.id)!;
     mate.room = room.id;
@@ -797,16 +806,18 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     mate.kin = "plain";
     mate.skills = {};
     foe.hp = 0.05;
+    hero.swing = 1;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 1);
-    assert.equal(mate.skills?.combat ?? 0, 1);
+    assert.equal(mate.skills?.combat ?? 0, 0);
   });
 
   it("killing a cloned crew member trains nothing", () => {
     const { g, hero, foe } = duel();
     foe.cloned = true;
     foe.hp = 0.05;
+    hero.swing = 1;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 0);
@@ -919,6 +930,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     // Crew skills, lead: "the enemy ships crew is always untrained and cannot reach higher skill levels."
     const { g, hero, foe } = duel();
     hero.hp = 0.05;
+    foe.swing = 1;
     step(g, 0.05);
     assert.ok(hero.hp <= 0);
     assert.equal(foe.skills?.combat ?? 0, 0);

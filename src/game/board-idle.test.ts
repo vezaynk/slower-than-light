@@ -49,8 +49,11 @@ describe("Boarders with no enemy ship", () => {
     assert.equal(g.enemy, null);
     const before = boarder.hp;
     step(g, 0.05);
-    // One attacker at 6 HP/s. life() runs before the boarder can walk away.
-    assert.ok(before - boarder.hp > 0.2 && before - boarder.hp < 0.4);
+    // Boarding, Combat: the blow is "every few moments", not this first instant.
+    assert.equal(boarder.hp, before);
+    for (let i = 0; i < 40 && boarder.hp > 0; i++) step(g, 0.05);
+    // An unskilled human deals 3 to 7 HP per hit. This boarder had 0.2, so the blow finishes the fight.
+    assert.ok(before - boarder.hp >= 3 && before - boarder.hp <= 7);
     assert.equal(g.phase, "map");
     assert.equal(g.crew.some((c) => c.side === "enemy" && c.hp > 0), false);
     assert.equal(g.kills, kills);

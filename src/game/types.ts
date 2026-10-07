@@ -136,6 +136,11 @@ export type Crew = {
   cloneSeq?: number;
   /** Seconds this body cannot act. Hacking Stun sets this for the pulse. */
   stun?: number;
+  /**
+   * Seconds since this crew's last blow. Boarding, Combat: damage is per hit, "every few moments".
+   * INFERRED: the pause is 1 second. Absent means the pause has not started.
+   */
+  swing?: number;
   /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
   lockCool?: number;
   /**

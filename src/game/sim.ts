@@ -3114,34 +3114,33 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // Augmentations, "Slug Repair Gel": every breached player room, at 75% of regular crew repair speed, stacked on the same counter.
     if (aboard === "player" && r.breach > 0 && g.augments.includes("gel")) r.breachFix += 0.75 * dt;
     if (pals.length && foes.length) {
-      // INFERRED: 6 damage a second while trading blows. The wiki lists crew health, not this flat rate.
-      // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2). Level 0 is default.
-      const dps = 6;
-      // Crew skills, lead: "Mantis can kill faster" and "Engi are slow killers." kin.fight is that rate.
-      const dealt = (attacker: Crew) => combatSkillMult(rankOf(attacker, "combat"));
-      for (const c of foes) {
-        const before = c.hp;
-        const hit = pals.reduce(
-          (sum, p) => sum + (dps / foes.length) * dt * leashMult(p) * kinOf(p.kin ?? "plain").fight * dealt(p),
-          0,
-        );
-        c.hp -= hit;
+      // Boarding, Combat: "Every few moments, a crew will deal a random amount of damage to an enemy".
+      // "an unskilled human crew deals per hit is 3 to 7 HP, an average of 5 damage per hit."
+      // Template:Crew races (comparison): final_damage = skill_mult * damage_mult * mindControl_mult * damage.
+      // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2).
+      // INFERRED: the pause is 1 second. The page says "every few moments" and prints no seconds.
+      // INFERRED: the blow lands on the first living enemy in the room, rather than splitting across them.
+      const SWING_S = 1;
+      const strike = (attacker: Crew, targets: Crew[]) => {
+        attacker.swing = (attacker.swing ?? 0) + dt;
+        if ((attacker.swing ?? 0) < SWING_S) return;
+        attacker.swing -= SWING_S;
+        const target = targets.find((t) => t.hp > 0);
+        if (!target) return;
+        const before = target.hp;
+        const roll = 3 + Math.floor(rand(g) * 5);
+        target.hp -=
+          roll *
+          leashMult(attacker) *
+          kinOf(attacker.kin ?? "plain").fight *
+          combatSkillMult(rankOf(attacker, "combat"));
         // Crew skills, Combat: "one point of experience for dealing the killing blow to hostile crew".
         // "killing cloned crew or destroying onboard drones doesn't grant experience."
         // Drones are not in this crew loop, so breaking one grants nothing.
-        // INFERRED: every attacker still striking on that tick counts as the blow. The page names one final hit,
-        // and this sim has no per-crew swing order.
-        if (before > 0 && c.hp <= 0 && !c.cloned) for (const p of pals) noteCombatPoint(g, p);
-      }
-      for (const c of pals) {
-        const before = c.hp;
-        const incoming = foes.reduce(
-          (sum, f) => sum + (dps / pals.length) * dt * leashMult(f) * kinOf(f.kin ?? "plain").fight * dealt(f),
-          0,
-        );
-        c.hp -= incoming;
-        if (before > 0 && c.hp <= 0 && !c.cloned) for (const f of foes) noteCombatPoint(g, f);
-      }
+        if (before > 0 && target.hp <= 0 && !target.cloned) noteCombatPoint(g, attacker);
+      };
+      for (const p of pals) strike(p, foes);
+      for (const f of foes) strike(f, pals);
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
     } else if (pals.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {

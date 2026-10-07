@@ -88,14 +88,15 @@ describe("enemy mind control", () => {
       o.path = [];
       o.move = 0;
       o.hp = o.maxHp;
+      o.think = 30;
+      o.stun = 0;
     }
     const room = g.player.rooms.find((r) => r.id === pal.room)!;
     room.fire = 0;
     room.o2 = 100;
     g.paused = false;
     g.boardTimer = 999;
-    step(g, 0.05);
-    step(g, 0.05);
+    for (let i = 0; i < 40 && (pal.hp === pal.maxHp || c.hp === c.maxHp); i++) step(g, 0.05);
     assert.ok(pal.hp < pal.maxHp, "pal took hits");
     assert.ok(c.hp < c.maxHp, "held crew took hits");
   });

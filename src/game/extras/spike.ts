@@ -7,7 +7,7 @@ import { hackStuns } from "./moreaugs.ts";
 import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
-import type { Door, Game, Kit, KitId, Room, Ship, SysId, SystemState } from "../types.ts";
+import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId, SystemState } from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
 export const SPIKE_COST = 80;
@@ -306,7 +306,7 @@ function startOwnPulse(g: Game, kit: Kit, seconds: number) {
   const foe = g.enemy;
   if (!foe) return;
   // Crystal Lockdown: a pulse during the coating keeps normal hacked-door strength.
-  if (kit.target) noteHackPulseDuringLock(foe, kit.target);
+  if (kit.target) noteHackPulseDuringLock(foe, kit.target, g.difficulty);
   // "Cloaking: ends an active cloak". As startEnemyPulse: the cloak then cools 20 s (Cloaking, "Overview").
   const veil = foe.kits.veil;
   if (kit.target === "veil" && veil?.on) {
@@ -917,7 +917,7 @@ function startEnemyPulse(g: Game, kit: Kit) {
   kit.left = seconds;
   kit.aux = 0;
   // Crystal Lockdown: a pulse during the coating keeps normal hacked-door strength.
-  if (kit.target) noteHackPulseDuringLock(g.player, kit.target);
+  if (kit.target) noteHackPulseDuringLock(g.player, kit.target, g.difficulty);
   // Hacking wiki, "Overview" (Cloaking): "ends an active cloak". INFERRED: the cloak then cools as it does after any
   // ended cloak (Cloaking, "Overview": 20 seconds).
   const veil = g.player.kits.veil;
@@ -1189,15 +1189,15 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
  * them into temporary enemy level 3 blast doors" during a pulse on Doors. "Hacked doors are equivalent to level 3
  * blast doors; after being broken down they will 'heal' and close automatically in 7 seconds" (sim.ts sets the 7 s
  * `stuck`; this closes the door once it runs out). Airlocks are left alone, as in the player's own Doors pulse.
- * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except a 12 or a 4 already written
- * this tick by Crystal Lockdown.
+ * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except the printed
+ * level-3 cell for this difficulty, or the 4-hit Crystal Lockdown mark, already written this tick.
  */
 function syncDoors(g: Game, kit: Kit | undefined) {
   const ship = g.player;
   const live = !!kit && !!kit.hackLatched && operational(kit) && !!g.enemy;
   const all = live && running(kit!) && kit!.target === "doors";
   const room = live && kit!.target ? roomWith(ship, kit!.target as SysId)?.id : undefined;
-  lockHackedDoors(ship, all, room);
+  lockHackedDoors(ship, all, room, g.difficulty);
 }
 
 /**
@@ -1214,18 +1214,18 @@ function syncOwnDoors(g: Game, kit: Kit) {
     g.phase === "combat" && ship.hackDrone != null && kit.target != null && ship.hackDrone === kit.target && fedBars(kit) >= 1;
   const all = live && running(kit) && kit.target === "doors";
   const room = live && kit.target ? aimRoom(ship, kit.target)?.id : undefined;
-  lockHackedDoors(ship, all, room);
+  lockHackedDoors(ship, all, room, g.difficulty);
 }
 
-function lockHackedDoors(ship: Ship, all: boolean, room: string | undefined) {
+function lockHackedDoors(ship: Ship, all: boolean, room: string | undefined, difficulty: Difficulty = "normal") {
   for (const d of ship.doors) {
     const want = d.b !== "void" && (all || (!!room && (d.a === room || d.b === room)));
     if (want) {
       if (!d.hacked) {
         d.hacked = true;
-        // INFERRED: hp is cleared so moveCrew re-arms at level 3. Crystal Lockdown writes 12 or 4 on this same
-        // tick, before this sync; those two values stay.
-        if (d.hp !== blastHits(HACKED_DOOR_LEVEL) && d.hp !== HACK_COAT_HITS) d.hp = 0;
+        // INFERRED: hp is cleared so moveCrew re-arms at level 3. Crystal Lockdown writes the level-3
+        // cell for this difficulty, or 4, on this same tick, before this sync; those values stay.
+        if (d.hp !== blastHits(HACKED_DOOR_LEVEL, difficulty) && d.hp !== HACK_COAT_HITS) d.hp = 0;
       }
       if (d.stuck <= 0) d.open = false;
     } else if (d.hacked) {

@@ -941,7 +941,7 @@ function chewDoor(
   const home = aboard === "player" ? "player" : "enemy";
   if (hacked && side === "enemy" && !breakOwn) return "clear";
   if (!hacked && side === home && !breakOwn) return "clear";
-  const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard));
+  const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard), g.difficulty);
   if (hits <= 0) {
     door.open = true;
     door.stuck = 7;

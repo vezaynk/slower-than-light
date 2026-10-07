@@ -1007,11 +1007,22 @@ export function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): numb
   return Math.min(4, level);
 }
 
-/** Door System, "Hits required to break a door", Normal row: level 2 is 8, level 3 is 12, level 4 is 18. Easy and Hard are not implemented. */
-export function blastHits(level: number): number {
-  if (level >= 4) return 18;
-  if (level === 3) return 12;
-  if (level === 2) return 8;
+/**
+ * Door System, "Hits required to break a door".
+ * Columns are Hard, Normal, Easy. Level 2 is 6/8/12, level 3 is 10/12/16, level 4 is 15/18/20.
+ * Both hulls use the run's difficulty. The table starts at level 2.
+ */
+const DOOR_HITS: Record<Difficulty, { 2: number; 3: number; 4: number }> = {
+  hard: { 2: 6, 3: 10, 4: 15 },
+  normal: { 2: 8, 3: 12, 4: 18 },
+  easy: { 2: 12, 3: 16, 4: 20 },
+};
+
+export function blastHits(level: number, difficulty: Difficulty = "normal"): number {
+  const row = DOOR_HITS[difficulty] ?? DOOR_HITS.normal;
+  if (level >= 4) return row[4];
+  if (level === 3) return row[3];
+  if (level === 2) return row[2];
   return 0;
 }
 
@@ -1093,7 +1104,7 @@ function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: strin
   room.lock = 12;
   delete room.lockHack;
   const level = doorLevel(g, ship, aboard);
-  const hits = hackLatchedOn(g, ship, room) ? blastHits(HACKED_DOOR_LEVEL) : blastHits(level);
+  const hits = hackLatchedOn(g, ship, room) ? blastHits(HACKED_DOOR_LEVEL, g.difficulty) : blastHits(level, g.difficulty);
   for (const door of doorsOf(ship, roomId)) {
     door.hp = hits;
     door.coat = COATED_DOOR_HITS;
@@ -1116,13 +1127,13 @@ export function noteHackLatchedDuringLock(ship: Ship, systemId: string) {
  * activated, then the doors retain their normal strength".
  * INFERRED: the pulse has to start while the coating is still up. "Retain" is the strength
  * the coating was holding, not a repair after the 4 hits are already left.
- * Hacked doors are level 3. The page's 10 is the Hard cell. blastHits stays on the Normal column, so this is 12.
+ * Hacked doors are level 3. The printed cells are Hard 10, Normal 12, Easy 16.
  */
-export function noteHackPulseDuringLock(ship: Ship, systemId: string) {
+export function noteHackPulseDuringLock(ship: Ship, systemId: string, difficulty: Difficulty = "normal") {
   const room = roomForHack(ship, systemId);
   if (!room?.lockHack || (room.lock ?? 0) <= 0) return;
   delete room.lockHack;
-  const hits = blastHits(HACKED_DOOR_LEVEL);
+  const hits = blastHits(HACKED_DOOR_LEVEL, difficulty);
   for (const door of doorsOf(ship, room.id)) {
     if (door.stuck > 0) continue;
     door.hp = hits;
@@ -2563,7 +2574,7 @@ function moveCrew(g: Game, dt: number) {
     if (door && !door.open && hostile && !leaving) {
       const level = hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, c.aboard);
       // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
-      if (door.hp <= 0) door.hp = blastHits(level);
+      if (door.hp <= 0) door.hp = blastHits(level, g.difficulty);
       door.hp -= dt;
       if (door.hp > 0) continue;
       door.open = true;
@@ -2599,8 +2610,8 @@ function tickDoors(ship: Ship, dt: number) {
   }
 }
 
-function armDoors(ship: Ship, level: number) {
-  const hits = blastHits(level);
+function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") {
+  const hits = blastHits(level, difficulty);
   for (const room of ship.rooms) if (room.lockHack) delete room.lockHack;
   for (const d of ship.doors) {
     d.stuck = 0;
@@ -3537,7 +3548,7 @@ function flagshipStage(g: Game, ship: Ship, stage: 1 | 2 | 3) {
   if (stage > 1) clearEnemyLeash(g);
   applyFlagshipSystems(ship, stage);
   if (stage > 1) carryCrew(g, old, ship);
-  armDoors(ship, doorLevel(g, ship, "enemy"));
+  armDoors(ship, doorLevel(g, ship, "enemy"), g.difficulty);
   // INFERRED: the stage-3 teleporter starts boarding 9 s in, as startCombat does for any boarding hull.
   if (stage === 3) g.boardTimer = 9;
 }
@@ -3695,8 +3706,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.tutorial = g.kills === 0 && g.sector === 1;
   g.time = 0;
   if (g.armed == null) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
-  armDoors(g.player, doorLevel(g, g.player, "player"));
-  armDoors(built.ship, doorLevel(g, built.ship, "enemy"));
+  armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
+  armDoors(built.ship, doorLevel(g, built.ship, "enemy"), g.difficulty);
   log(g, `${built.ship.name} on the scope.`);
   sfx(g, "alarm");
 }
@@ -4239,7 +4250,7 @@ export function commitJump(g: Game, id: string) {
   g.asb = false;
   g.pulsar = false;
   g.flare = false;
-  armDoors(g.player, doorLevel(g, g.player, "player"));
+  armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   // Environmental Hazards: an overtaken nebula beacon carries an ion storm into the fight or the event.
   // The departing enemy is already gone, so only this hull sheds here. startCombat halves the new one.
   syncIonStorm(g);
@@ -4604,7 +4615,7 @@ export function enterHiddenCrystal(g: Game) {
   g.asb = false;
   g.pulsar = false;
   g.flare = false;
-  armDoors(g.player, doorLevel(g, g.player, "player"));
+  armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   makeMap(g);
   g.sectorName = "Hidden Crystal Worlds";
   stampEngiCache(g);

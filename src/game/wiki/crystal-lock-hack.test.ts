@@ -36,6 +36,48 @@ function advance(g: Game, seconds: number) {
   assert.ok(n < 20000);
 }
 
+describe("door hits by difficulty", () => {
+  it("uses the printed Hard, Normal, and Easy columns", () => {
+    assert.deepEqual(
+      [2, 3, 4].map((level) => blastHits(level, "hard")),
+      [6, 10, 15],
+    );
+    assert.deepEqual(
+      [2, 3, 4].map((level) => blastHits(level, "normal")),
+      [8, 12, 18],
+    );
+    assert.deepEqual(
+      [2, 3, 4].map((level) => blastHits(level, "easy")),
+      [12, 16, 20],
+    );
+    assert.equal(blastHits(1, "easy"), 0);
+    assert.equal(blastHits(2), 8);
+  });
+
+  it("coats a level-2 door from the run's column", () => {
+    for (const [difficulty, hits] of [
+      ["easy", 12],
+      ["hard", 6],
+    ] as const) {
+      const g = createGame(4, "crystal-a", difficulty);
+      startCombat(g, "scout");
+      calm(g);
+      g.player.systems.doors.level = 2;
+      g.player.systems.doors.damage = 0;
+      const room = g.player.rooms.find((r) => r.system === "weapons");
+      const crystal = g.crew.find((c) => c.kin === "shard" && c.hp > 0);
+      assert.ok(room && crystal);
+      crystal.room = room.id;
+      crystal.aboard = "player";
+      crystal.path = [];
+      assert.equal(lockdown(g, crystal.id), true);
+      const doors = interior(g, "player", room);
+      assert.ok(doors.length > 0);
+      assert.equal(doors[0]!.hp, hits);
+    }
+  });
+});
+
 describe("crystal lockdown and a hacking drone", () => {
   it("leaves 4 hits when the coating was up before the drone attached", () => {
     const g = createGame(4, "crystal-a");

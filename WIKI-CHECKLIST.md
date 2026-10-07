@@ -211,7 +211,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Civilized Trader — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Civilized trader — not-a-surface — same title as "Civilized Trader" with different capitalization
 - [ ] Clash of the Titans — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Cloaking — partial — veil.ts on either hull, including Flagship stage 1 at level 2. Power-bar count INFERRED.
+- [ ] Cloaking — partial — veil.ts on either hull, including Flagship stage 1 at level 2. Power-bar count INFERRED. A charged player weapon still fires at a cloaked enemy when your crew, a boarding drone, or a mind-controlled enemy crew member is aboard, and the charge itself stays frozen.
 - [ ] Clone Bay — partial — cradle.ts on either hull. Revive HP and power bar INFERRED. The Abandoned station quest card offers the DNA search when a Clone Bay is fitted. The calm result is weight 2 and the crazed boarder is weight 1. The filler copy of that station has no DNA option.
 - [ ] Clonebay — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Closed Mining Fields — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

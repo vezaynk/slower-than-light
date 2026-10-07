@@ -8,6 +8,7 @@ import {
   between,
   here,
   humanBoarders,
+  rockBoarders,
   joinCrew,
   payOffer,
   randomRace,
@@ -1092,6 +1093,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship.
   "c:boarders-humans-near-sun:0": (g) => {
     humanBoarders(g, 2, 4, "human boarders beam aboard your ship.");
+    beginBoarding(g, false, true);
+  },
+
+  // Boarders: Rockmen near sun. "2-3 rock boarders beam aboard your ship."
+  // INFERRED: the count is inclusive (between()). redgiant=true. No ship. Not a crew grant.
+  "c:boarders-rockmen-near-sun:0": (g) => {
+    rockBoarders(g, 2, 3);
     beginBoarding(g, false, true);
   },
 };

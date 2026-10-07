@@ -2,8 +2,8 @@
  * Rock pages whose opening outcome is one stated amount or one named fight.
  * A choice with several results is left out. Blue options, crew, map reveals,
  * and upgrades are not granted. Boarder counts are not granted except
- * Rock fight with boarders and Rock fight with boarders in asteroid field
- * (citedChoose, after the fight).
+ * Rock fight with boarders, Rock fight with boarders in asteroid field
+ * (citedChoose, after the fight), and Boarders: Rockmen near sun (2-3 rocks, no ship).
  */
 
 export type CitedFx =
@@ -194,6 +194,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
           // "Fight a Rock pirate ship (default rewards)."
           { k: "fight", tier: "Rock pirate ship" },
         ],
+      },
+    ],
+  },
+  {
+    // Boarders: Rockmen near sun. The page prints no button. The red line is the label.
+    // redgiant=true, LRSmap=noship+redgiant, unique=true. Not a crew grant.
+    dest: "Boarders: Rockmen near sun",
+    slug: "boarders-rockmen-near-sun",
+    flag: "cited:boarders-rockmen-near-sun",
+    aliases: ["Boarders: Rockmen near sun"],
+    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
+    body: "As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, \"Prepare to burn, fleshy meat-sack aliens!\"",
+    choices: [
+      {
+        id: "c:boarders-rockmen-near-sun:0",
+        label: "2-3 rock boarders beam aboard your ship.",
+        fx: [{ k: "nothing" }],
       },
     ],
   },

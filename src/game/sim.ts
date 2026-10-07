@@ -560,6 +560,14 @@ export function noteCombatPoint(g: Game, c: Crew) {
   bumpXp(g, c, "combat", 1);
 }
 
+/**
+ * Crew skills, Weapons: one point when a weapon fires, and one point when an artillery system fires.
+ * A multi-shot volley is one fire. The caller grants it once per trigger.
+ */
+export function noteWeaponManning(g: Game) {
+  bumpXp(g, manningCrew(g, g.player, "player", "weapons"), "weapons", 1);
+}
+
 function skillFight(g: Game): boolean {
   // Environmental Hazards, Asteroid Field: skill only while a fight with an enemy ship is still on.
   // Crew skills, Piloting and Shields: asteroids after that fight do not train.
@@ -1564,7 +1572,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   veilBrokenByFire(g, from, def.kind);
   if (from === "player") {
     log(g, `${def.name} away.`);
-    bumpXp(g, manningCrew(g, g.player, "player", "weapons"), "weapons", 1);
+    noteWeaponManning(g);
   }
 }
 

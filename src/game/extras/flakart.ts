@@ -1,4 +1,4 @@
-import { rand } from "../sim.ts";
+import { noteWeaponManning, rand } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
@@ -135,6 +135,8 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
     };
     g.shots.push(shot);
   }
+  // Crew skills, Weapons: one point when an artillery system fires. Seven shots are one fire.
+  if (from === "player") noteWeaponManning(g);
 }
 
 /**

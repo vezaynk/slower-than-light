@@ -1,6 +1,6 @@
 import type { Door, Game, Room, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { kitBars, log, rand, sparePower } from "../sim.ts";
+import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
@@ -185,5 +185,7 @@ export function tickLance(g: Game, dt: number): void {
   for (const room of rooms) nick(g, enemy, room);
   enemy.shieldNow = shieldNow;
   kit.aux = 0;
+  // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
+  noteWeaponManning(g);
   log(g, `${DISPLAY_NAME} cuts ${enemy.name}.`);
 }

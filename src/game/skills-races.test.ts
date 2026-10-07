@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy } from "./enemy-gen.ts";
+import { armFlak, tickFlak } from "./extras/flakart.ts";
+import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
 import { createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
 import { WEAPONS, XP_NEED } from "./content.ts";
@@ -408,6 +410,63 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     tickSabotage(g, 0.3);
     assert.equal(g.player.systems[room.system!].damage, 1);
     assert.equal(turned.skills?.combat ?? 0, 1);
+  });
+});
+
+describe("Crew skills, Weapons: artillery grants one point", () => {
+  function gunner(seed: number) {
+    const g = createGame(seed);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.player.rooms.find((r) => r.system === "weapons")!;
+    const away = g.player.rooms.find((r) => r.id !== room.id)!;
+    const crew = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) if (c.side === "player") c.room = away.id;
+    crew.room = room.id;
+    crew.aboard = "player";
+    crew.path = [];
+    crew.stun = 0;
+    crew.leashed = undefined;
+    crew.skills = {};
+    room.fire = 0;
+    room.o2 = 100;
+    return { g, crew, room, away };
+  }
+
+  it("grants one point when the artillery beam fires, and none while it is still charging", () => {
+    const { g, crew } = gunner(41);
+    g.player.kits.lance = {
+      id: "lance",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: g.enemy!.rooms[0]!.id,
+      on: true,
+      aux: 0.5,
+    };
+    tickLance(g, 0.1);
+    assert.equal(crew.skills?.weapons ?? 0, 0);
+    g.player.kits.lance.aux = 0.999;
+    tickLance(g, 0.1);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+  });
+
+  it("counts a seven-shot flak burst as one fire", () => {
+    const { g, crew, room, away } = gunner(42);
+    armFlak(g, 1);
+    g.player.kits.flak!.aux = 49.9;
+    const before = g.shots.length;
+    tickFlak(g, 0.2);
+    assert.equal(g.shots.length - before, 7);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    crew.room = away.id;
+    g.player.kits.flak!.aux = 49.9;
+    tickFlak(g, 0.2);
+    assert.equal(g.shots.length - before, 14);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    assert.equal(room.system, "weapons");
   });
 });
 

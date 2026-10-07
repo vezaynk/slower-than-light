@@ -897,6 +897,61 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
   });
 });
 
+describe("Crew skills: a Basic Laser charge", () => {
+  it("drops from 10 seconds unmanned to 8 seconds fully trained", () => {
+    // Crew skills, Weapons skill: "a Basic Laser improves from 10 seconds to 8 seconds."
+    const fill = (trained: boolean) => {
+      const g = createGame(60);
+      startCombat(g, "scout");
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      if (g.enemy?.kits.veil) {
+        g.enemy.kits.veil.on = false;
+        g.enemy.kits.veil.power = 0;
+      }
+      if (g.enemy?.kits.spike) {
+        g.enemy.kits.spike.on = false;
+        g.enemy.kits.spike.left = 0;
+        g.enemy.kits.spike.cool = 999;
+      }
+      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      g.augments = [];
+      g.asteroid = false;
+      g.player.systems.weapons.level = 1;
+      g.player.systems.weapons.power = 1;
+      g.player.systems.weapons.damage = 0;
+      g.player.systems.weapons.ion = [];
+      const room = g.player.rooms.find((r) => r.system === "weapons")!;
+      const away = g.player.rooms.find((r) => r.id !== room.id)!;
+      for (const c of g.crew) {
+        if (c.side !== "player") continue;
+        c.room = away.id;
+        c.path = [];
+        c.stun = 999;
+      }
+      if (trained) {
+        const crew = g.crew.find((c) => c.side === "player")!;
+        crew.room = room.id;
+        crew.kin = "plain";
+        crew.stun = 0;
+        crew.skills = { weapons: xpNeedFor(crew, "weapons") * 2 };
+        assert.equal(xpNeedFor(crew, "weapons"), 58);
+      }
+      g.player.weapons = [{ uid: "gun", defId: "spark", charge: 0, enabled: true, autofire: false, target: null }];
+      assert.equal(WEAPONS.spark.charge, 10);
+      let steps = 0;
+      while ((g.player.weapons[0]?.charge ?? 0) < 1 && steps < 250) {
+        step(g, 0.05);
+        steps++;
+      }
+      return steps;
+    };
+    // 200 steps of the 0.05s combat tick is 10 seconds. 8 seconds is 160 of those steps.
+    // 0.05 does not divide 8 in binary, so the trained bar crosses full on the next step.
+    assert.equal(fill(false), 200);
+    assert.equal(fill(true), 161);
+  });
+});
+
 describe("Crew skills, Weapons: turning a gun off just after the increment drops the shot", () => {
   function primed(seed: number, defId: string) {
     const g = createGame(seed);

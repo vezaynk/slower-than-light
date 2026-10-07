@@ -2327,6 +2327,7 @@ function chargeSide(
   const mask = powerMask(ship, zoltanBars(g.crew, ship, from, "weapons"));
   const gunner = manningCrew(g, ship, from, "weapons");
   // Crew skills, Weapons skill: charge time ×0.9 / ×0.85 / ×0.8. Level 0 is already 10% faster.
+  // "fully trained crew reduce charge time by 20% ... a Basic Laser improves from 10 seconds to 8 seconds."
   // AI-Controlled Rebel Ships: an undamaged Weapon Control keeps the untrained bonus. The Flagship's
   // artillery "cannot be manned", so that hull stays on the printed charge table.
   const weapons = ship.systems.weapons;

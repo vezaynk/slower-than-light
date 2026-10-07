@@ -199,7 +199,7 @@ describe("The Black Raven", () => {
   it("No -> challenge; declining still fights a Slug pirate with a guaranteed offer of high scrap", () => {
     const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
-    assert.deepEqual(g.event!.choices.map((c) => c.id), ["s:the-black-raven:accept", "s:the-black-raven:decline"]);
+    assert.deepEqual(g.event!.choices.map((c) => c.id), ["s:the-black-raven:accept", "s:the-black-raven:decline", "s:the-black-raven:duel"]);
     choose(g, "s:the-black-raven:decline");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy!.faction, "slug");

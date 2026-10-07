@@ -883,6 +883,8 @@ export function questChoose(g: Game, id: string): boolean {
 /** sim.ts choiceDisabled: a price or a blue-option requirement the ship does not meet. */
 export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:engi-fleet-discussion:2" && !hasEngi(g)) return "Needs an Engi crewmember";
+  // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
+  if (id === "s:the-black-raven:duel" && !hasSlug(g)) return "Needs a Slug crewmember";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
   if (id === "q:war-camp:firebomb" && g.missiles < 2) return "Need 2 missiles";
   if (id === "q:station:fuel4" && g.fuel < 4) return "Need 4 fuel";

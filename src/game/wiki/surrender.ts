@@ -927,6 +927,40 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
   log(g, line ? `${n} ${line}` : `${n} boarders burst out of the crates.`);
 }
 
+/**
+ * The Black Raven, Slugman Crew: "1-2 slug boarders beam aboard your ship."
+ * INFERRED: each lands in a random player room, the same as human boarders. Call this after startCombat,
+ * which drops enemy crew that were already aboard.
+ */
+function slugBoarders(g: Game, lo: number, hi: number) {
+  const n = between(g, [lo, hi]);
+  const hp = kinOf("gel").hp;
+  for (let i = 0; i < n; i++) {
+    const rooms = g.player.rooms;
+    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    g.uid = (g.uid + 1) >>> 0;
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: "Slug",
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin: "gel",
+    });
+  }
+  log(g, `${n} slug boarders beam aboard.`);
+}
+
+function livingSlug(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
+}
+
 function pick<T>(g: Game, items: T[]): T {
   return items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))];
 }
@@ -1025,13 +1059,30 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
 
   // ---- "The Black Raven", No. -> the challenge. Both answers fight the Black Raven. ----
-  // Not wired: the Slugman Crew blue option (duel of the mind), as in the other cited tables.
   // Trivia: "always a Slug Assault class": asked for by class (enemy-gen.ts classId), as a pirate (Captain Nights).
   "c:the-black-raven:0": (g) => {
     pageCard(g, "\"Well I have heard of you and I must see if you are as dangerousss as they say. I challenge you!\"", [
       { id: "s:the-black-raven:accept", label: "Accept his challenge." },
       { id: "s:the-black-raven:decline", label: "Decline." },
+      // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
+      { id: "s:the-black-raven:duel", label: "Engage in a duel of the mind." },
     ]);
+  },
+  // Two results, no odds. INFERRED: equal odds. The weapon is unnamed and is not granted. High scrap is.
+  // The stunned collapse prints no duration, so no stun is applied.
+  "s:the-black-raven:duel": (g) => {
+    if (!livingSlug(g)) return;
+    if (rand(g) < 0.5) {
+      pageFight(g, "Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"", "Slug Assault pirate ship", "the-black-raven");
+      slugBoarders(g, 1, 2);
+    } else {
+      const eligible = between(g, scrapBand(g, "high"));
+      pageResult(
+        g,
+        "His face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"",
+        { tier: "high", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 },
+      );
+    }
   },
   // INVENTED: the log line (the page goes straight to the fight).
   "s:the-black-raven:accept": (g) => {

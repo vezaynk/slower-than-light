@@ -43,6 +43,30 @@ describe("zoltan death burst", () => {
     );
   });
 
+  it("spares the holder's crew when the Zoltan was mind-controlled", () => {
+    // Zoltans, Race characteristics: "No damage to allies, if the exploding Zoltan was mind-controlled".
+    const g = createGame(6);
+    startCombat(g, "scout");
+    const spark = body({
+      id: "z",
+      name: "Zed",
+      side: "player",
+      room: "p-sensors",
+      kin: "spark",
+      hp: 0,
+      maxHp: 70,
+      leashed: 10,
+    });
+    const holder = body({ id: "holder", name: "Hold", side: "enemy", room: "p-sensors", hp: 100 });
+    const own = body({ id: "own", name: "Own", side: "player", room: "p-sensors", hp: 90 });
+    const far = body({ id: "far", name: "Far", side: "player", room: "p-doors", hp: 80 });
+    g.crew.push(spark, holder, own, far);
+    step(g, 0);
+    assert.equal(holder.hp, 100);
+    assert.equal(own.hp, 90);
+    assert.equal(far.hp, 80);
+  });
+
   it("does not burst when a human dies", () => {
     const g = createGame(2);
     startCombat(g, "scout");

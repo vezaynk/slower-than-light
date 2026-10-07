@@ -3096,13 +3096,16 @@ function reap(g: Game) {
   for (const c of dead) {
     if (noteDeath(g, c)) continue;
     // Wiki page "Zoltans", section "Race characteristics": death burst deals 15 HP to enemy crew in the same room.
+    // "No damage to allies, if the exploding Zoltan was mind-controlled."
+    // The holder's crew are those allies. The page does not name the Zoltan's own crew as a new target.
     // Wiki page "Zoltans", section "Race characteristics": a drone in that room loses 7.5 HP.
-    // Wiki page "Zoltans", section "Race characteristics": damage to allies while mind-controlled has no printed number, so it is not applied.
     if (c.kin === "spark") {
+      const leashed = (c.leashed ?? 0) > 0;
       for (const other of g.crew) {
         if (other.hp <= 0 || other.id === c.id) continue;
         if (other.room !== c.room || other.aboard !== c.aboard) continue;
         if (other.side === c.side) continue;
+        if (leashed && sideOf(other) === sideOf(c)) continue;
         other.hp -= 15;
       }
       zoltanBurstDrones(g, c);

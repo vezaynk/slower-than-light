@@ -768,6 +768,7 @@ function reactorUsed(ship: Ship): number {
 }
 
 export function sparePower(ship: Ship): number {
+  // Backup Battery, Overview: these bars can push the ship past the 25-bar reactor cap.
   return ship.reactor + batteryBonus(ship) - reactorUsed(ship);
 }
 

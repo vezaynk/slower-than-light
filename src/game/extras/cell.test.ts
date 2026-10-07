@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, applyPulsarPulse, createGame, sparePower, waitHere } from "../sim.ts";
+import { applyImpact, applyPulsarPulse, createGame, sparePower, upgrade, waitHere } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
@@ -353,6 +353,35 @@ describe("cell", () => {
     assert.equal(g.player.kits.veil.cool, 15);
     assert.equal(g.player.systems.engines.power, 1);
     assert.equal(g.player.kits.cell?.cool, 20);
+  });
+
+  it("lets the ship assign more than 25 bars while the battery is on", () => {
+    const g = createGame(17);
+    g.scrap = 100;
+    g.player.reactor = 25;
+    upgrade(g, "reactor");
+    assert.equal(g.player.reactor, 25);
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    g.player.systems.shields.power = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.weapons.power = 8;
+    g.player.systems.oxygen.power = 1;
+    assert.equal(sparePower(g.player), 0);
+    g.player.kits.cell = pushCell(2);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(sparePower(g.player), 4);
+    g.player.systems.oxygen.power = 3;
+    g.player.systems.medbay.power = 2;
+    assert.equal(sparePower(g.player), 0);
+    assert.equal(
+      g.player.systems.shields.power +
+        g.player.systems.engines.power +
+        g.player.systems.weapons.power +
+        g.player.systems.oxygen.power +
+        g.player.systems.medbay.power,
+      29,
+    );
   });
 
   it("starts an enemy cell when spare power is tight", () => {

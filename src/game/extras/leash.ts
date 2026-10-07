@@ -116,6 +116,25 @@ function durationOf(level: number): number {
   return DURATION_BY_LEVEL[levelOf(level)];
 }
 
+/**
+ * Backup Battery, Overview: losing the bar can end an active hold early.
+ * Mind Control, Overview: no ordinary cooldown is stated, so this end does not start a numbered wait.
+ * A hold that is already over is left alone.
+ */
+export function interruptLeash(g: Game, kit: Kit) {
+  if (!(kit.on && kit.left > 0)) return;
+  if (kitBars(kit) >= 1) return;
+  kit.left = 0;
+  kit.on = false;
+  kit.cool = 0;
+  const player = kit === g.player.kits.leash;
+  for (const c of g.crew) {
+    if (!c.leashed || c.leashed <= 0) continue;
+    if (player && c.side === "enemy") clearCrew(c);
+    if (!player && c.side === "player") clearCrew(c);
+  }
+}
+
 function clearCrew(c: Crew) {
   dropBoost(c);
   c.leashed = 0;

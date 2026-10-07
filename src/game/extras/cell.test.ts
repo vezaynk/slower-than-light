@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, applyPulsarPulse, createGame, waitHere } from "../sim.ts";
+import { applyImpact, applyPulsarPulse, createGame, sparePower, waitHere } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { onPlayerJump } from "./index.ts";
@@ -247,6 +247,83 @@ describe("cell", () => {
       pulsed = pulse.player.kits.cell?.cool === 25;
     }
     assert.equal(pulsed, true);
+  });
+
+  it("pulls the extra bars back when the window ends and ends a cloak or hold that used one", () => {
+    const g = createGame(13);
+    g.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    g.player.reactor = 1;
+    g.player.systems.engines.power = 1;
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    g.player.kits.veil = {
+      id: "veil",
+      level: 1,
+      power: 1,
+      left: 10,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
+    tickCell(g, 30);
+    assert.equal(g.player.kits.cell?.cool, 20);
+    assert.equal(g.player.kits.veil?.on, false);
+    assert.equal(g.player.kits.veil?.power, 0);
+    assert.equal(g.player.kits.veil?.cool, 20);
+    assert.equal(g.player.systems.engines.power, 1);
+    assert.equal(sparePower(g.player), 0);
+
+    const hold = createGame(14);
+    hold.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) hold.player.systems[id].power = 0;
+    hold.player.reactor = 1;
+    hold.player.systems.engines.power = 1;
+    hold.player.kits.cell = pushCell(1);
+    startCell(hold);
+    hold.player.kits.leash = {
+      id: "leash",
+      level: 1,
+      power: 1,
+      left: 14,
+      cool: 0,
+      target: "foe",
+      on: true,
+      aux: 0,
+    };
+    hold.crew.push({
+      id: "foe",
+      name: "Foe",
+      side: "enemy",
+      aboard: "enemy",
+      hp: 50,
+      maxHp: 50,
+      room: "e",
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      leashed: 14,
+    });
+    tickCell(hold, 30);
+    assert.equal(hold.player.kits.leash?.on, false);
+    assert.equal(hold.player.kits.leash?.cool, 0);
+    assert.equal(hold.player.kits.leash?.power, 0);
+    assert.equal(hold.crew.find((c) => c.id === "foe")?.leashed, undefined);
+    assert.equal(hold.player.systems.engines.power, 1);
+
+    const guns = createGame(15);
+    guns.phase = "map";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) guns.player.systems[id].power = 0;
+    guns.player.reactor = 0;
+    guns.player.systems.weapons.power = 2;
+    guns.player.kits.cell = pushCell(1);
+    startCell(guns);
+    tickCell(guns, 30);
+    assert.equal(guns.player.kits.cell?.cool, 0);
+    assert.equal(guns.player.systems.weapons.power, 0);
+    assert.equal(sparePower(guns.player), 0);
   });
 
   it("starts an enemy cell when spare power is tight", () => {

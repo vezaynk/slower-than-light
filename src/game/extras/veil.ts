@@ -38,6 +38,16 @@ function endVeil(kit: Kit) {
   kit.cool = COOLDOWN;
 }
 
+/**
+ * Backup Battery, Overview: losing the bar can end an active cloak and start its cooldown early.
+ * A cloak that is already cooling is left on that cooldown.
+ */
+export function interruptVeil(kit: Kit) {
+  if (!(kit.on && kit.left > 0)) return;
+  if (kitBars(kit) >= 1) return;
+  endVeil(kit);
+}
+
 function tickKit(kit: Kit | undefined, dt: number) {
   if (!kit) return;
   if (kit.on) {

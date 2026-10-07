@@ -1,6 +1,8 @@
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
+import { interruptLeash } from "./leash.ts";
 import { shipInDanger } from "./sling.ts";
+import { interruptVeil } from "./veil.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 
 /** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. Also the store price to fit it. */
@@ -96,6 +98,35 @@ function shedDrained(g: Game, ship: Ship) {
   syncShields(ship, zoltanBars(g.crew, ship, "player", "shields"));
 }
 
+/**
+ * Backup Battery, Overview: when the extra bars leave, they come off the reactor.
+ * An active cloak or mind-control hold that loses its bar ends early.
+ * INFERRED: kits lose bars before weapons, medbay, oxygen, engines, and shields.
+ * The page names no order. A system already on cooldown keeps that cooldown.
+ */
+function releaseCellBars(g: Game, ship: Ship, aboard: "player" | "enemy") {
+  let over = -sparePower(ship);
+  if (over <= 0) return;
+  for (const other of Object.values(ship.kits)) {
+    if (over <= 0) break;
+    if (!other || other.id === "cell" || other.power <= 0) continue;
+    const take = Math.min(other.power, over);
+    other.power -= take;
+    over -= take;
+    if (other.id === "veil") interruptVeil(other);
+    if (other.id === "leash") interruptLeash(g, other);
+  }
+  for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
+    if (over <= 0) break;
+    const sys = ship.systems[id];
+    if (!sys || sys.power <= 0) continue;
+    const take = Math.min(sys.power, over);
+    sys.power -= take;
+    over -= take;
+  }
+  syncShields(ship, zoltanBars(g.crew, ship, aboard, "shields"));
+}
+
 /** Wiki page "Backup Battery", section "System Upgrades": fit level 1 for 35. "Overview": no reactor energy is required, so power stays 0. */
 export function installCell(g: Game) {
   if (g.player.kits.cell) return;
@@ -152,6 +183,7 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
     kit.ionN = total;
   }
   if (total < kit.level) return false;
+  const wasRunning = kit.on && kit.left > 0;
   kit.left = 0;
   kit.on = false;
   kit.aux = 0;
@@ -159,6 +191,10 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
   kit.cool = ION_MAX_COOL;
   delete kit.ionAt;
   delete kit.ionN;
+  if (wasRunning) {
+    const ship = kit === g.player.kits.cell ? g.player : g.enemy;
+    if (ship) releaseCellBars(g, ship, ship === g.player ? "player" : "enemy");
+  }
   log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
   return true;
 }
@@ -195,6 +231,8 @@ function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {
     // INFERRED: that "you" is the player cell. An enemy cell still cools.
     if (player && !shipInDanger(g)) kit.cool = 0;
     else kit.cool = coolFor(g);
+    const ship = player ? g.player : g.enemy;
+    if (ship) releaseCellBars(g, ship, player ? "player" : "enemy");
   }
 }
 

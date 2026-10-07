@@ -46,6 +46,14 @@ describe("solar flare", () => {
     assert.ok((g.flareWait ?? 0) >= 28 && (g.flareWait ?? 0) < 34);
   });
 
+  it("arms the Rock war vessel Sun Quest Marker as a red-giant fight", () => {
+    // INFERRED: the Sun Quest Marker fight's event slug is "quest-rock-sun".
+    assert.equal(eventHasFlare("quest-rock-sun"), true);
+    const g = createGame(11);
+    startCombat(g, "Rock Assault (Elite)", false, "quest-rock-sun");
+    assert.equal(g.flare, true);
+  });
+
   it("warns 5 seconds ahead, then flares", () => {
     const g = createGame(8);
     startCombat(g, "Pirate ship", false, "mantis-fight-near-sun");

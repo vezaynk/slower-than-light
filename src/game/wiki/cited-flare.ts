@@ -4,6 +4,13 @@
  * Rock pirates fight near sun set redgiant=true on the Locations line.
  * Boarders: Humans near sun and Boarders: Rockmen near sun also set it, and they
  * are not a startCombat slug.
+ *
+ * Rock war vessel encounter, ==Sun Quest Marker==: the Locations / Long-Ranged
+ * Scanners mark on that fight is shipdetected=ship+redgiant, so it is a
+ * red-giant fight and the same flares arm. Printed: arrive dangerously close
+ * to an M-class star, then fight the Rock Assault (Elite) ship (escape countdown
+ * 32 seconds is not a flare number).
+ * INFERRED: that fight's existing event slug is "quest-rock-sun". The wiki does not print the slug.
  */
 
 const FLARE_EVENTS = new Set([
@@ -11,6 +18,8 @@ const FLARE_EVENTS = new Set([
   "mantis-fight-near-sun",
   "pirate-fight-near-sun",
   "rock-pirates-fight-near-sun",
+  // INFERRED: Sun Quest Marker slug. The wiki prints shipdetected=ship+redgiant, not this id.
+  "quest-rock-sun",
 ]);
 
 /** True when the cited event slug is one of those red-giant fights. */

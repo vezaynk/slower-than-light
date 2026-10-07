@@ -210,6 +210,62 @@ describe("enemy crew AI: health", () => {
   });
 });
 
+describe("enemy crew AI: hacked medbay", () => {
+  it("breaks out of a pulsed medbay instead of fighting", () => {
+    // Boarding, Medbay hacking: actively hacking makes the enemy leave rather than fight.
+    const g = fight();
+    const bay = room(g, "medbay");
+    const inside = foes(g).slice(0, 2);
+    for (const c of inside) c.room = bay.id;
+    board(g, bay.id);
+    pulseMedbay(g);
+    tickEnemyCrewAi(g, 0.05);
+    for (const c of inside) {
+      const task = g.enemy!.crewAi!.task[c.id];
+      assert.equal(task?.kind, "flee");
+      assert.notEqual(task?.room, bay.id);
+    }
+  });
+
+  it("stays when the medbay was locked down before the pulse", () => {
+    const g = fight();
+    const bay = room(g, "medbay");
+    bay.lock = 5;
+    const inside = foes(g).slice(0, 2);
+    for (const c of inside) c.room = bay.id;
+    board(g, bay.id);
+    pulseMedbay(g);
+    tickEnemyCrewAi(g, 0.05);
+    for (const c of inside) assert.notEqual(g.enemy!.crewAi?.task[c.id]?.kind, "flee");
+  });
+
+  it("keeps the lone phase-1 Flagship medbay crew in the fight", () => {
+    const g = fight();
+    const bay = room(g, "medbay");
+    const one = foes(g)[0];
+    const elsewhere = room(g, "weapons").id;
+    for (const c of foes(g)) c.room = c === one ? bay.id : elsewhere;
+    board(g, bay.id);
+    pulseMedbay(g);
+    g.enemy!.flagship = { stage: 1, warned: false, surge: [], lasers: 0, ai: false };
+    tickEnemyCrewAi(g, 0.05);
+    assert.notEqual(g.enemy!.crewAi!.task[one.id]?.kind, "flee");
+  });
+});
+
+function pulseMedbay(g: Game) {
+  g.player.kits.spike = {
+    id: "spike",
+    level: 2,
+    power: 2,
+    left: 7,
+    cool: 0,
+    target: "medbay",
+    on: true,
+    aux: 0,
+  };
+}
+
 describe("enemy crew AI: scope", () => {
   it("does nothing on an automated ship", () => {
     const g = fight();

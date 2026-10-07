@@ -38,6 +38,7 @@
  */
 import type { Crew, CrewAiState, CrewAiTask, Game, Room, Ship, SysId } from "../types.ts";
 import { bars } from "../sim.ts";
+import { hackPulseOn } from "./spike.ts";
 import { kinOf } from "./kin.ts";
 import { sideOf } from "./leash.ts";
 import { artilleryGun } from "../wiki/flagship-systems.ts";
@@ -135,6 +136,22 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
       continue;
     }
     if (t?.kind === "flee") delete ai.task[c.id];
+  }
+
+  // Boarding, "Hacking" / Medbay hacking use cases: "Enemy will try to break out of the room, rather than fight."
+  // A lockdown already on the room keeps them (they are not in `free`). "1 medbay crew on the phase 1 Flagship will fight no matter what."
+  // INFERRED: the way out is the nearest other room. The page does not name it.
+  const bay = ship.rooms.find((r) => r.system === "medbay");
+  if (bay && hackPulseOn(g, ship, "medbay")) {
+    const inside = crew.filter((c) => c.room === bay.id);
+    const holds = ship.flagship?.stage === 1 && inside.length === 1;
+    if (!holds) {
+      for (const c of free) {
+        if (c.room !== bay.id) continue;
+        const to = breakOut(ship, bay.id);
+        if (to) ai.task[c.id] = { kind: "flee", room: to };
+      }
+    }
   }
 
   // 2. Jobs on the hull, and which assigned crew still have a live one ("once assigned often do not change").
@@ -282,6 +299,23 @@ function unsafe(_ship: Ship, c: Crew, r: Room): boolean {
   // airless (sim.ts suffocation line); crew that do not suffocate (Lanius) stay.
   if (r.o2 <= 5 && c.hp < c.maxHp * AIR_FLEE_BELOW && kinOf(c.kin ?? "plain").suffocate > 0) return true;
   return false;
+}
+
+/** Nearest room other than the pulsed medbay. Boarding names the break-out and not the destination. */
+function breakOut(ship: Ship, bayId: string): string | undefined {
+  const d = distances(ship, bayId);
+  let best: string | undefined;
+  let bestD = Infinity;
+  for (const r of ship.rooms) {
+    if (r.id === bayId) continue;
+    const n = d.get(r.id);
+    if (n == null || n === 0 || coated(ship, r.id)) continue;
+    if (n < bestD) {
+      best = r.id;
+      bestD = n;
+    }
+  }
+  return best;
 }
 
 /** The nearest room that is safe for this crew member: a usable Medbay first, else any safe room. */

@@ -811,6 +811,7 @@ function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
   }
   if (held > zoltans) {
     const drop = held - zoltans;
+    // Backup Battery, Overview: additional bars interact with Zoltan power just like regular power bars.
     const take = Math.min(drop, Math.max(0, sparePower(ship)));
     box.power += take;
     held = zoltans;

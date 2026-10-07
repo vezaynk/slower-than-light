@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, applyPulsarPulse, createGame, sparePower, upgrade, waitHere } from "../sim.ts";
+import { applyImpact, applyPulsarPulse, createGame, settleZoltanPower, sparePower, upgrade, waitHere } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
-import type { Kit, Shot } from "../types.ts";
+import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
 
 function pushCell(level = 1): Kit {
   return {
@@ -353,6 +353,53 @@ describe("cell", () => {
     assert.equal(g.player.kits.veil.cool, 15);
     assert.equal(g.player.systems.engines.power, 1);
     assert.equal(g.player.kits.cell?.cool, 20);
+  });
+
+  it("counts battery bars as spare when a Zoltan leaves weapons", () => {
+    const g = createGame(18);
+    g.player.reactor = 30;
+    const sys = g.player.systems.weapons;
+    sys.level = 4;
+    sys.power = 4;
+    sys.damage = 0;
+    sys.ion = [];
+    delete sys.zoltanHeld;
+    const mount = (defId: string): WeaponInst => ({
+      uid: defId,
+      defId,
+      charge: 0,
+      enabled: true,
+      autofire: false,
+      target: null,
+    });
+    g.player.weapons = ["vulcan", "burst1", "charger"].map(mount);
+    const spark = (id: string): Crew => ({
+      id,
+      name: id,
+      side: "player",
+      aboard: "player",
+      hp: 70,
+      maxHp: 70,
+      room: "p-weapons",
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      kin: "spark",
+    });
+    g.crew.push(spark("za"), spark("zb"));
+    settleZoltanPower(g);
+    assert.equal(sys.power, 2);
+    g.player.reactor -= sparePower(g.player);
+    assert.equal(sparePower(g.player), 0);
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    assert.equal(sparePower(g.player), 2);
+    g.crew = g.crew.filter((c) => c.kin !== "spark");
+    settleZoltanPower(g);
+    assert.equal(sys.power, 4);
+    assert.equal(sys.zoltanHeld, undefined);
+    assert.equal(sparePower(g.player), 0);
   });
 
   it("lets the ship assign more than 25 bars while the battery is on", () => {

@@ -32,11 +32,17 @@ function enemyPilot(g: ReturnType<typeof createGame>) {
   return g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-pilot");
 }
 
+/** Sensors level 2 shows enemy crew. Mind Control, Overview: that view is required. */
+function see(g: ReturnType<typeof createGame>) {
+  g.player.systems.sensors.level = 2;
+}
+
 describe("leash", () => {
   it("leashes the enemy pilot for the level duration, then clears it", () => {
     const g = createGame(1);
     startCombat(g, "Rebel ship");
     const kit = pushKit(g, 1, 1);
+    see(g);
     const pilot = enemyPilot(g);
     assert.ok(pilot);
     const before = pilot.room;
@@ -70,6 +76,7 @@ describe("leash", () => {
     const mid = createGame(2);
     startCombat(mid, "Rebel ship");
     pushKit(mid, 2, 1);
+    see(mid);
     const gunner = mid.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
     assert.ok(gunner);
     startLeash(mid, gunner.id);
@@ -80,6 +87,7 @@ describe("leash", () => {
     const high = createGame(3);
     startCombat(high, "Rebel ship");
     pushKit(high, 3, 1);
+    see(high);
     const pilot = enemyPilot(high);
     assert.ok(pilot);
     startLeash(high, pilot.id);
@@ -125,5 +133,52 @@ describe("leash", () => {
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, undefined);
     assert.equal(pilot.side, "enemy");
+  });
+
+  it("does not leash an enemy crew member you cannot see, and does not spend the kit", () => {
+    const g = createGame(11);
+    startCombat(g, "Rebel ship");
+    const kit = pushKit(g, 1, 1);
+    g.player.systems.sensors.level = 0;
+    g.player.systems.sensors.power = 0;
+    const pilot = enemyPilot(g);
+    assert.ok(pilot);
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, undefined);
+    assert.equal(kit.on, false);
+    assert.equal(kit.left, 0);
+    assert.equal(kit.cool, 0);
+  });
+
+  it("a living Slug is enough view to leash when sensors are off", () => {
+    const g = createGame(12);
+    startCombat(g, "Rebel ship");
+    pushKit(g, 1, 1);
+    g.player.systems.sensors.level = 0;
+    const slug = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(slug);
+    slug.kin = "gel";
+    const pilot = enemyPilot(g);
+    assert.ok(pilot);
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, 14);
+  });
+
+  it("manning level-1 Sensors is enough view", () => {
+    const g = createGame(13);
+    startCombat(g, "Rebel ship");
+    pushKit(g, 1, 1);
+    g.player.systems.sensors.level = 1;
+    g.player.systems.sensors.power = 1;
+    const room = g.player.rooms.find((r) => r.system === "sensors");
+    const body = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(room && body);
+    body.room = room.id;
+    body.path = [];
+    body.aboard = "player";
+    const pilot = enemyPilot(g);
+    assert.ok(pilot);
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, 14);
   });
 });

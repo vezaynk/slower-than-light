@@ -14,6 +14,8 @@ function fight(seed: number): Game {
   assert.ok(g.enemy);
   g.enemy.zoltan = 0;
   g.player.zoltan = 0;
+  // Mind Control, Overview: the hold needs a view. Level 2 Sensors shows enemy crew.
+  g.player.systems.sensors.level = 2;
   return g;
 }
 

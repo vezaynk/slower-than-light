@@ -91,6 +91,10 @@ describe("Zoltans ionized activation", () => {
     assert.equal(g.player.parts, parts);
 
     g.player.kits.leash = kit("leash", 1);
+    // Mind Control, Overview: the hold needs a view. This test ions the Sensors room, so a living Slug is the view.
+    const watcher = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(watcher);
+    watcher.kin = "gel";
     strike("leash", 1);
     startLeash(g, foe.id);
     assert.equal(foe.leashed ?? 0, 0);

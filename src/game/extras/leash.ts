@@ -2,6 +2,7 @@ import { cooldownLocksPower, createGame, kitBars, kitIonLocked, log, noteZoltanK
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
+import { shipSight } from "./slug-sight.ts";
 
 // Combat setup stays on the sim. This module does not construct a game.
 void createGame;
@@ -284,6 +285,14 @@ export function startLeash(g: Game, crewId: string) {
     log(g, `${crew.name} is a Slug. Mind control does not take.`);
     return;
   }
+  // Mind Control, Overview: "Mind control requires view of enemy crew (Slug telepathy and Lifeform Scanners count)."
+  // shipSight is that view: a living Slug, a Lifeform Scanner on the same life-sign flag, Sensors at the level that
+  // shows enemy crew (manning raises it), and a hacked room. A bomb that lands is a later sentence and is not read here.
+  // Enemies do not use this function. "Enemies do not require vision to use Mind Control" stays on fireEnemyLeash.
+  if (!enemyCrewInView(g, crew)) {
+    log(g, "Mind Control has no view of that crew.");
+    return;
+  }
   // Zoltan Shield: mind control does not pass the bubble. Bypass lets it through and does not spend the bubble.
   // Crew who already boarded the player are on this side of the bubble.
   if (
@@ -324,6 +333,15 @@ function mindLevel(kit: Kit, base: number): number {
   // Systems: one ion point removes one power. INFERRED: that point takes one level the Zoltan does not fill.
   const locked = Math.min(ion, Math.max(0, bought - z));
   return Math.max(z > 0 ? Math.min(z, base) : 0, base - locked);
+}
+
+/**
+ * Mind Control, Overview: view of that enemy crew. Slug telepathy and a Lifeform Scanner are shipSight's life-sign flag.
+ * INFERRED: enemy crew already aboard your ship are in view. The page does not print that case.
+ */
+function enemyCrewInView(g: Game, crew: Crew): boolean {
+  if (shipSight(g).showCrew(crew)) return true;
+  return crew.aboard === "player";
 }
 
 function playerLevel(kit: Kit): number {

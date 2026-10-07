@@ -165,6 +165,8 @@ describe("Zoltan Shield Bypass", () => {
 
     const mind = fight(5);
     mind.enemy!.zoltan = 5;
+    // Mind Control, Overview: the hold needs a view. Level 2 Sensors shows the pilot.
+    mind.player.systems.sensors.level = 2;
     const pilot = ensureFoe(mind);
     mind.player.kits.leash = {
       id: "leash",

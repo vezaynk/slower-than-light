@@ -105,6 +105,8 @@ describe("enemy mind control", () => {
     g.player.kits.leash = kit(1);
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
     g.enemy!.zoltan = 0;
+    // Mind Control, Overview: the player's hold needs a view. Level 2 Sensors shows that crew.
+    g.player.systems.sensors.level = 2;
     startLeash(g, foe.id);
     assert.equal(foe.leashed, 14);
     tickLeash(g, 0.05);

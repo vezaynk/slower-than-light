@@ -661,6 +661,12 @@ export type Game = {
   asteroid: boolean;
   asb: boolean;
   asteroidT: number;
+  /**
+   * Environmental Hazards, Asteroid Field: seconds until the next rock.
+   * Scales with this ship's shield system level. 0 until that field is armed.
+   * The seconds are INFERRED.
+   */
+  asteroidWait?: number;
   /** Seconds into the current anti-ship battery phase. */
   asbT: number;
   /**

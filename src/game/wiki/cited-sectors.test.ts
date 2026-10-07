@@ -408,6 +408,7 @@ describe("ship info screen while in danger", () => {
     g.enemy.zoltan = undefined;
     g.player.kits.swarm = undefined;
     g.enemy.kits.swarm = undefined;
+    g.asteroidWait = 8;
     g.asteroidT = 7.96;
     const playerHull = g.player.hull;
     const enemyHull = g.enemy.hull;

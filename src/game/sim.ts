@@ -124,6 +124,7 @@ import {
   flareFireCount,
   placeFlareFires,
 } from "./wiki/cited-flare.ts";
+import { asteroidIntervalSeconds } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
@@ -2840,13 +2841,20 @@ function tickFlare(g: Game, dt: number) {
   }
 }
 
+function armAsteroid(g: Game) {
+  g.asteroidT = 0;
+  // Environmental Hazards, Asteroid Field: the wait follows this ship's shield system level.
+  // Ion or an empty power bar does not change that level, so a downed shield does not slow the rocks.
+  g.asteroidWait = asteroidIntervalSeconds(g.player.systems.shields.level, rand(g));
+}
+
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
+    if (!(g.asteroidWait > 0)) armAsteroid(g);
     g.asteroidT += dt;
-    if (g.asteroidT >= 8) {
-      g.asteroidT = 0;
+    if (g.asteroidT >= (g.asteroidWait ?? 0)) {
       // Environmental Hazards, Asteroid Field: the rock strikes this ship, and the enemy ship the same way.
-      // The 8 second gap, the 0.05 breach, and no fire are the existing roll. This sentence does not print a new one.
+      // The 0.05 breach and no fire are the existing roll. This sentence does not print a new one.
       const rock = (ship: Ship, at: "player" | "enemy") => {
         g.shots.push({
           id: uid(g),
@@ -2867,6 +2875,7 @@ function environment(g: Game, dt: number) {
       rock(g.player, "player");
       if (g.enemy) rock(g.enemy, "enemy");
       log(g, "Asteroid inbound.");
+      armAsteroid(g);
     }
   }
   if (g.asb) {
@@ -3379,8 +3388,11 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.shipSheet = false;
   g.event = null;
   g.asteroid = asteroid;
-  // INFERRED: first rock at 3s, boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
-  g.asteroidT = 3;
+  // Environmental Hazards, Asteroid Field: the first gap is the same random, shield-scaled interval.
+  // INFERRED: boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
+  g.asteroidT = 0;
+  g.asteroidWait = 0;
+  if (g.asteroid) armAsteroid(g);
   const here = g.beacons.find((b) => b.id === g.here);
   // Rebel Fleet: not on a nebula beacon, and never on an Easy exit. Overtaken column is the existing test.
   // Environmental Hazards: the warning roll happens only when the battery is actually armed.
@@ -3815,6 +3827,7 @@ export function createGame(
     asteroid: false,
     asb: false,
     asteroidT: 0,
+    asteroidWait: 0,
     asbT: 0,
     asbPhase: "warn",
     asbWait: 0,

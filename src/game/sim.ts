@@ -2662,7 +2662,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
     } else if (pals.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
-      // Skills: "It takes 12.5 seconds for an untrained Human to repair one system bar, or to repair a breach"; skill speeds both.
+      // Crew skills, Repair skill: "or to repair a breach" takes the same 12.5 seconds as one system bar. Skill speeds both.
       r.breachFix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt;
       // Skills: "sealing hull breaches provides no experience", so no bumpXp here.
     } else if (pals.length && r.kit && (ship.kits[r.kit]?.damage ?? 0) > 0 && r.o2 > 5) {

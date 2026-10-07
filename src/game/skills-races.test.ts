@@ -376,6 +376,36 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     // Each combat step is 0.05s, so 250 steps is the printed 12.5 seconds.
     assert.equal(steps, 250);
   });
+
+  it("an untrained human seals one breach in 12.5 seconds", () => {
+    // Crew skills, Repair skill: the same 12.5 seconds "to repair a breach."
+    const g = createGame(56);
+    const { worker, roomId, sys } = lone(g);
+    quiet(g);
+    if (g.enemy?.kits.spike) {
+      g.enemy.kits.spike.on = false;
+      g.enemy.kits.spike.left = 0;
+      g.enemy.kits.spike.cool = 999;
+    }
+    if (g.enemy?.kits.sling) g.enemy.kits.sling.power = 0;
+    g.augments = [];
+    worker.kin = "plain";
+    worker.skills = {};
+    const room = g.player.rooms.find((r) => r.id === roomId)!;
+    g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+    room.fire = 0;
+    room.breach = 1;
+    room.breachFix = 0;
+    room.o2 = 100;
+    let steps = 0;
+    while (room.breach > 0 && steps < 300) {
+      step(g, 0.05);
+      steps++;
+    }
+    assert.equal(room.breach, 0);
+    assert.equal(steps, 250);
+    assert.equal(worker.skills?.repair ?? 0, 0);
+  });
 });
 
 describe("Crew skills: sabotage damage ignores race", () => {

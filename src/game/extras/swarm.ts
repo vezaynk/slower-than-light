@@ -2146,7 +2146,8 @@ export function shotHitsDrone(g: Game, shot: Shot): boolean {
   const all = orbiters(g);
   if (!all.length) return false;
   let inWay: Orbiter[];
-  if (rock) inWay = all.filter((o) => o.at === "player-orbit");
+  // Environmental Hazards, Asteroid Field: a rock aimed at the enemy meets drones around that hull.
+  if (rock) inWay = all.filter((o) => o.at === (shot.at === "enemy" ? "enemy-orbit" : "player-orbit"));
   else {
     const outbound = droneShot(shot) ? null : `${shot.from}-orbit`;
     inWay = all.filter((o) => o.side === target && (o.at === `${target}-orbit` || o.at === outbound));

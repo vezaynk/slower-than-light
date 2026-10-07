@@ -1719,7 +1719,9 @@ function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
 export function applyImpact(g: Game, shot: Shot) {
   // Bomb (Weapons), lead: a bomb aimed at your own ship hits that hull. Every other shot hits the other one.
   const ownBomb = shot.kind === "bomb" && shot.own === true;
-  const playerTarget = ownBomb ? shot.from === "player" : shot.from !== "player";
+  // Environmental Hazards, Asteroid Field: the same rock also strikes the enemy ship.
+  const playerTarget =
+    shot.at === "enemy" ? false : shot.at === "player" ? true : ownBomb ? shot.from === "player" : shot.from !== "player";
   const ship = playerTarget ? g.player : g.enemy;
   if (!ship) return;
   // Missile (Weapons), ===Swarm Missiles===: a long-side tile with no room is not a hit.
@@ -2843,20 +2845,27 @@ function environment(g: Game, dt: number) {
     g.asteroidT += dt;
     if (g.asteroidT >= 8) {
       g.asteroidT = 0;
-      g.shots.push({
-        id: uid(g),
-        kind: "laser",
-        from: "env",
-        damage: 1,
-        ion: 0,
-        fireChance: 0,
-        breachChance: 0.05,
-        targetRoom: pick(g, g.player.rooms).id,
-        wait: 0.2,
-        t: 0,
-        duration: 0.8,
-        label: "Rock",
-      });
+      // Environmental Hazards, Asteroid Field: the rock strikes this ship, and the enemy ship the same way.
+      // The 8 second gap, the 0.05 breach, and no fire are the existing roll. This sentence does not print a new one.
+      const rock = (ship: Ship, at: "player" | "enemy") => {
+        g.shots.push({
+          id: uid(g),
+          kind: "laser",
+          from: "env",
+          at,
+          damage: 1,
+          ion: 0,
+          fireChance: 0,
+          breachChance: 0.05,
+          targetRoom: pick(g, ship.rooms).id,
+          wait: 0.2,
+          t: 0,
+          duration: 0.8,
+          label: "Rock",
+        });
+      };
+      rock(g.player, "player");
+      if (g.enemy) rock(g.enemy, "enemy");
       log(g, "Asteroid inbound.");
     }
   }
@@ -4485,11 +4494,13 @@ function stepShots(g: Game, dt: number) {
     shot.t += dt / shot.duration;
     if (shot.t >= 1) {
       // Drone Control, Defense Drone: one incoming shot per cooldown, before it lands.
-      if (shot.from !== "player" && swarmIntercept(g, shot)) {
+      // Environmental Hazards, Asteroid Field: a rock aimed at the enemy is their incoming shot.
+      const rockAtEnemy = shot.from === "env" && shot.label === "Rock" && shot.at === "enemy";
+      if (!rockAtEnemy && shot.from !== "player" && swarmIntercept(g, shot)) {
         log(g, "A drone cut that shot down.");
         continue;
       }
-      if (shot.from === "player" && enemyDefenseIntercept(g, shot)) {
+      if ((shot.from === "player" || rockAtEnemy) && enemyDefenseIntercept(g, shot)) {
         log(g, "Their drone cut that shot down.");
         continue;
       }

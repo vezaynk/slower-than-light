@@ -391,6 +391,38 @@ describe("ship info screen while in danger", () => {
     step(g, 0);
     assert.equal(g.shipSheet, false);
   });
+
+  it("sends the same asteroid at the enemy ship", () => {
+    const g = createGame(12);
+    startCombat(g, "scout", true);
+    assert.ok(g.enemy);
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy.weapons) w.enabled = false;
+    g.player.systems.engines.power = 0;
+    g.enemy.systems.engines.power = 0;
+    g.player.systems.shields.power = 0;
+    g.enemy.systems.shields.power = 0;
+    g.player.shieldNow = 0;
+    g.enemy.shieldNow = 0;
+    g.player.zoltan = undefined;
+    g.enemy.zoltan = undefined;
+    g.player.kits.swarm = undefined;
+    g.enemy.kits.swarm = undefined;
+    g.asteroidT = 7.96;
+    const playerHull = g.player.hull;
+    const enemyHull = g.enemy.hull;
+    step(g, 0.05);
+    const rocks = g.shots.filter((s) => s.label === "Rock");
+    assert.equal(rocks.length, 2);
+    const theirs = rocks.find((s) => s.at === "enemy");
+    const ours = rocks.find((s) => s.at === "player");
+    assert.ok(theirs && ours);
+    assert.ok(g.enemy.rooms.some((r) => r.id === theirs.targetRoom));
+    assert.ok(g.player.rooms.some((r) => r.id === ours.targetRoom));
+    for (let t = 0; t < 1.2 && g.phase === "combat"; t += 0.05) step(g, 0.05);
+    assert.equal(g.player.hull, playerHull - 1);
+    assert.equal(g.enemy.hull, enemyHull - 1);
+  });
 });
 
 describe("sector names left in place", () => {

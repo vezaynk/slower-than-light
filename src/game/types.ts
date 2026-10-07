@@ -187,6 +187,11 @@ export type Shot = {
   id: string;
   kind: WeaponKind;
   from: "player" | "enemy" | "env";
+  /**
+   * Environmental Hazards, Asteroid Field: an env shot aimed at one hull.
+   * Absent keeps the old rule, so an env shot still hits the player.
+   */
+  at?: "player" | "enemy";
   damage: number;
   ion: number;
   fireChance: number;

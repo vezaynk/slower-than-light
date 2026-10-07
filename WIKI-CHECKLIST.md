@@ -471,7 +471,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Flagship — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Flak (Weapon) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Flak (Weapons) — partial — src/game/content.ts — Flak I, Adv. Flak, and Flak II are in WEAPONS. Radius and fake pellets stay in gaps. Flak Artillery is a system.
-- [ ] Flak Artillery — partial — flakart.ts. Flight time and spread INFERRED.
+- [ ] Flak Artillery — partial — flakart.ts. Flight time and spread INFERRED. A Flak Artillery shot aimed at a 1x2 room stays there 60.90 percent of the time and otherwise lands on a long-side tile at 9.78 percent each, and a shot aimed at a 2x2 room always stays.
 - [ ] Forward Scout of Rebel Fleet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Forward scout of Rebel fleet — not-a-surface — same title as "Forward Scout of Rebel Fleet" with different capitalization
 - [ ] Free Drone Schematic — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.

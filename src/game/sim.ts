@@ -567,6 +567,7 @@ export function noteCombatPoint(g: Game, c: Crew) {
 
 /**
  * Crew skills, Weapons: one point when a weapon fires, and one point when an artillery system fires.
+ * "It doesn't matter whether it hits or misses, or whether it can do damage."
  * A multi-shot volley is one fire. The caller grants it once per trigger.
  */
 export function noteWeaponManning(g: Game) {

@@ -806,6 +806,16 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
     assert.equal(g.shots.length, 1);
     assert.equal(crew.skills?.weapons ?? 0, 1);
   });
+
+  it("grants one point as the shot leaves, hit or miss", () => {
+    // Crew skills, Weapons: "It doesn't matter whether it hits or misses, or whether it can do damage."
+    const { g, crew } = primed(52, "spark");
+    assert.equal(g.shots.length, 1);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+    for (let i = 0; i < 20 && g.shots.length; i++) step(g, 0.05);
+    assert.equal(g.shots.length, 0);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+  });
 });
 
 describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () => {

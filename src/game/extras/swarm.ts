@@ -1957,15 +1957,17 @@ function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
 }
 
 /**
- * Enemy Anti-Combat Drone: "Stuns combat drones attacking your ship" with "47.8% chance to destroy them during the
- * 5 seconds stun". Augmentations, "Defense Scrambler": an enemy Anti-Combat drone cannot acquire a target.
- * INFERRED: it only targets your orbiting combat drones (striker, beam, Mark II). Your boarding drone and Ion Intruder
- * have no flight in this sim, so it never sees them.
+ * Drone Control, Anti-Combat Drone: "Stuns Combat, Hacking, and Boarding drones with 47.8% chance to destroy them during the 5 seconds stun."
+ * Augmentations, "Defense Scrambler": an enemy Anti-Combat drone cannot acquire a target.
+ * Hacking drones are caught in flight by interceptIncomingDrone. This shot does not stun them.
+ * INFERRED: this sim has no separate flight clock on the player's boarding drone, so a deployed one is the target.
+ * Boarding Drone and Ion Intruder take the same acquire, cooldown, stun, and destroy roll as combat drones.
  */
 function enemyAntiCombat(g: Game, unit: DroneUnit) {
   if (g.augments.includes("scrambler") && scramblerBlocks("wardcut")) return;
   const kit = g.player.kits.swarm;
-  if (!kit?.on || !kit.target || !OFFENSIVE.has(kit.target) || (kit.stun ?? 0) > 0) return;
+  const kind = kit?.target;
+  if (!kit?.on || !kind || (!OFFENSIVE.has(kind) && !BOARDERS.has(kind)) || (kit.stun ?? 0) > 0) return;
   // "after the first shot it needs continuous power for 7 seconds to charge the next one".
   unit.cool = DRONE_COOLDOWN_S.wardcut;
   unit.fired = 0;

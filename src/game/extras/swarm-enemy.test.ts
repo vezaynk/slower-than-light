@@ -395,6 +395,62 @@ describe("enemy defensive drones", () => {
     }
     assert.ok(stunned > 0 && killed > 0, `${stunned} ${killed}`);
   });
+
+  it("an enemy Anti-Combat Drone stuns or destroys your boarding drone", () => {
+    const bars = DRONE_POWER.board;
+    assert.equal(bars, 3);
+    let stunned = 0;
+    let killed = 0;
+    for (let seed = 11; seed < 31; seed++) {
+      const g = quiet(seed);
+      g.player.kits.swarm = { id: "swarm", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.parts = 2;
+      assert.equal(deploy(g, "board"), true);
+      fleet(g, ["wardcut"], 1);
+      tickSwarm(g, 0.05);
+      tickSwarm(g, ACQUIRE_S + 0.01);
+      const kit = g.player.kits.swarm;
+      if (!kit.on) killed += 1;
+      else if ((kit.stun ?? 0) > ANTI_STUN_S - 1.1) stunned += 1;
+    }
+    assert.ok(stunned > 0 && killed > 0, `${stunned} ${killed}`);
+  });
+
+  it("a Defense Scrambler keeps an enemy Anti-Combat Drone off your boarding drone", () => {
+    const bars = DRONE_POWER.board;
+    const g = quiet(11);
+    g.augments = ["scrambler"];
+    g.player.kits.swarm = { id: "swarm", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.parts = 2;
+    assert.equal(deploy(g, "board"), true);
+    fleet(g, ["wardcut"], 1);
+    tickSwarm(g, 0.05);
+    tickSwarm(g, ACQUIRE_S + 0.01);
+    const kit = g.player.kits.swarm;
+    assert.equal(kit.on, true);
+    assert.equal(kit.target, "board");
+    assert.equal(kit.stun ?? 0, 0);
+  });
+
+  it("an enemy Anti-Combat Drone stuns or destroys your ion intruder", () => {
+    const bars = SCHEMATIC_POWER.ionintruder;
+    assert.equal(bars, 3);
+    let stunned = 0;
+    let killed = 0;
+    for (let seed = 11; seed < 31; seed++) {
+      const g = quiet(seed);
+      g.player.kits.swarm = { id: "swarm", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.parts = 2;
+      assert.equal(deploy(g, "ionintruder"), true);
+      fleet(g, ["wardcut"], 1);
+      tickSwarm(g, 0.05);
+      tickSwarm(g, ACQUIRE_S + 0.01);
+      const kit = g.player.kits.swarm;
+      if (!kit.on) killed += 1;
+      else if ((kit.stun ?? 0) > ANTI_STUN_S - 1.1) stunned += 1;
+    }
+    assert.ok(stunned > 0 && killed > 0, `${stunned} ${killed}`);
+  });
 });
 
 describe("enemy boarding drones", () => {

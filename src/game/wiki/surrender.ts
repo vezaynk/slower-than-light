@@ -928,6 +928,16 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
 }
 
 /**
+ * Boarders: Humans in plasma storm: "3-4 human boarders beam aboard your ship" with medium scrap and no enemy ship.
+ * Call this after the choice's medium scrap tier. INFERRED: the count is inclusive 3..4.
+ * beginBoarding opens the crew fight. startCombat would drop the boarders and put a hull on the scope.
+ */
+export function plasmaHumanBoarders(g: Game) {
+  humanBoarders(g, 3, 4, "human boarders beam aboard your ship.");
+  beginBoarding(g);
+}
+
+/**
  * The Black Raven, Slugman Crew: "1-2 slug boarders beam aboard your ship."
  * INFERRED: each lands in a random player room, the same as human boarders. Call this after startCombat,
  * which drops enemy crew that were already aboard.

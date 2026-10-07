@@ -30,7 +30,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { humanBoarders, mantisBoarders, rockBoarders, zoltanBoarders } from "./surrender.ts";
+import { humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -499,10 +499,6 @@ const CORE_EVENTS: EventDef[] = [
             "k": "tier",
             "tier": "medium",
             "resources": true
-          },
-          {
-            "k": "note",
-            "text": "Boarders named on the page are not applied."
           }
         ]
       }
@@ -3498,6 +3494,11 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "2-3 human boarders beam aboard your ship" (Rebel fight with boarders).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
+    return true;
+  }
+  // "3-4 human boarders beam aboard your ship" (Boarders: Humans in plasma storm). No enemy ship.
+  if (id === "c:boarders-humans-in-plasma-storm:0") {
+    plasmaHumanBoarders(g);
     return true;
   }
   ctx.resolve();

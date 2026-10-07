@@ -359,6 +359,50 @@ describe("Zoltan border police", () => {
   });
 });
 
+describe("Boarders: Humans in plasma storm", () => {
+  it("pays medium scrap and beams 3-4 human boarders aboard with no enemy ship", () => {
+    const seen = new Set<number>();
+    const hp = kinOf("plain").hp;
+    for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
+      const g = createGame(seed);
+      const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
+      const scrap = g.scrap;
+      const fuel = g.fuel;
+      const missiles = g.missiles;
+      const parts = g.player.parts;
+      const weapons = g.player.weapons.map((w) => w.defId);
+      const augments = [...g.augments];
+      const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
+      const kills = g.kills;
+      const rooms = new Set(g.player.rooms.map((r) => r.id));
+      openCited(g, "Civilian Sector", "cited:boarders-humans-in-plasma-storm", "Boarders: Humans in plasma storm");
+      choose(g, "c:boarders-humans-in-plasma-storm:0");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.enemy, null);
+      const gained = g.scrap - scrap;
+      assert.ok(gained >= lo && gained <= hi, String(gained));
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+      assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
+      seen.add(boarders.length);
+      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.equal(g.fuel, fuel);
+      assert.equal(g.missiles, missiles);
+      assert.equal(g.player.parts, parts);
+      assert.equal(g.kills, kills);
+      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(g.augments, augments);
+      assert.deepEqual(
+        g.crew.filter((c) => c.side === "player").map((c) => c.id),
+        crewIds,
+      );
+      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
+      assert.ok(g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`));
+      assert.ok(g.log.some((line) => line.startsWith("Medium scrap: ")));
+    }
+    assert.deepEqual([...seen].sort(), [3, 4]);
+  });
+});
+
 describe("Rebel fight with boarders", () => {
   it("beams 2-3 human boarders aboard with the Rebel ship and grants nothing else", () => {
     const seen = new Set<number>();

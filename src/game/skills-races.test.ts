@@ -532,6 +532,21 @@ describe("Crew skills: a repair drone cannot gain experience", () => {
   });
 });
 
+describe("Crew skills: human experience column", () => {
+  it("uses the printed parenthetical requirements", () => {
+    // Crew skills, Skills table: the value in parentheses is the human requirement.
+    const human = { kin: "plain" } as Crew;
+    assert.equal(xpNeedFor(human, "pilot"), 13);
+    assert.equal(xpNeedFor(human, "engines"), 13);
+    assert.equal(xpNeedFor(human, "shields"), 50);
+    assert.equal(xpNeedFor(human, "weapons"), 58);
+    assert.equal(xpNeedFor(human, "repair"), 16);
+    assert.equal(xpNeedFor(human, "combat"), 7);
+    assert.equal(skillRank(12, xpNeedFor(human, "pilot")), 0);
+    assert.equal(skillRank(13, xpNeedFor(human, "pilot")), 1);
+  });
+});
+
 describe("Crew skills: player crew start untrained", () => {
   it("starts every player crew member at skill level 0", () => {
     // Crew skills, lead: "All crew on every player ship start untrained, i.e. at skill level 0."

@@ -42,7 +42,7 @@ export function tickLanius(g: Game, dt: number) {
 }
 
 /**
- * Humans, "Race characteristics", "Human XP/level" column:
+ * Humans, "Race characteristics", "Human XP/level" column, and Crew skills, Skills table parentheses:
  * Piloting 13, Engines 13, Shields 50, Weapons 58, Repair 16, Combat 7.
  * These are the printed values. A flat 0.9 × XP_NEED would give 13.5, 49.5, 58.5,
  * 16.2, 7.2, and the page rounds them inconsistently, so the table is used as printed.

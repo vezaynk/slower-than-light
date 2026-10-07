@@ -357,10 +357,10 @@ export const PART_B: QuestPart = {
   },
 
   arrive: {
-    // Capture the ship, "Quest Marker". INVENTED: the button label.
+    // Capture the ship, "Quest Marker": "Fight a Pirate ship."
     "capture-ship": (g) => {
       card(g, "You find the ship that you were asked to capture intact. You're not sure why, but they stressed that it's of great importance that you kill the crew WITHOUT destroying the ship.", [
-        { id: "q:capture:fight", label: "Fight the Pirate ship." },
+        { id: "q:capture:fight", label: "Fight a Pirate ship." },
       ]);
     },
     // Template:Hidden federation base, "Federation Base Assist": the two Auto-ship variants (the existing
@@ -404,9 +404,9 @@ export const PART_B: QuestPart = {
         card(g, `${intro}\n\nYou find a severely damaged ship floating among some debris. The crew hails you, "I can't believe that cheap bastard sent someone after us! I thought we would freeze to death. If you help us complete the delivery, we'll share the reward and join your crew."`, choices);
       } else {
         // An arrival must leave a card (sim.ts eventFor falls through when questEvent returns no event), so the fight
-        // starts from a button. INVENTED: the button label.
+        // starts from a button. Merchant's request, Merchant's Investigation: "Fight a Pirate ship."
         card(g, `${intro}\n\nAfter a quick scan, you find a ship being chased by a pirate. This must be the missing delivery ship! You move in to rescue them.`, [
-          { id: "q:merchant:pirate", label: "Fight the Pirate ship." },
+          { id: "q:merchant:pirate", label: "Fight a Pirate ship." },
         ]);
       }
     },

@@ -196,6 +196,8 @@ describe("Capture the ship", () => {
     assert.ok(g.event!.body.includes(QUEST_ADDED));
     choose(g, "ack");
     assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
+    // Capture the ship, Quest Marker: "Fight a Pirate ship."
+    assert.equal(g.event!.choices.find((c) => c.id === "q:capture:fight")?.label, "Fight a Pirate ship.");
     choose(g, "q:capture:fight");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-capture-ship");
@@ -346,6 +348,8 @@ describe("Merchant's request", () => {
       choose(g, "ack");
       arrive(g, "merchant-investigation");
       if (ids(g)[0] === "q:merchant:pirate") {
+        // Merchant's request, Merchant's Investigation: "Fight a Pirate ship."
+        assert.equal(g.event!.choices.find((c) => c.id === "q:merchant:pirate")?.label, "Fight a Pirate ship.");
         choose(g, "q:merchant:pirate");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemySurrender!.chance, 0);

@@ -456,3 +456,121 @@ describe("drone order and enemy chargers", () => {
     assert.equal(fired(), 1);
   });
 });
+
+describe("swarm missiles", () => {
+  it("banks three shots at 7 seconds and spends one missile for the volley", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 5;
+    const w = g.player.weapons[0];
+    const room = g.enemy!.rooms[0].id;
+    const first = until(g, () => (w.loaded ?? 0) >= 1, 200);
+    assert.ok(first >= 125 && first <= 155, `first shot at ${first}`);
+    assert.equal(shotsOf(g, "swarmmissiles").length, 0);
+    const third = until(g, () => (w.loaded ?? 0) >= 3, 500);
+    assert.ok(third >= 250 && third <= 310, `rest of the bank at ${third}`);
+    assert.equal(w.loaded, 3);
+    assert.equal(w.charge, 0);
+    assert.equal(g.missiles, 5);
+    armWeapon(g, w.uid);
+    aim(g, room);
+    const volley = shotsOf(g, "swarmmissiles");
+    assert.equal(volley.length, 3);
+    assert.ok(volley.every((s) => s.damage === 1 && s.targetRoom === room));
+    assert.equal(w.loaded, 0);
+    assert.equal(g.missiles, 4);
+  });
+
+  it("fires one stored shot early and keeps the next shot's progress", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 3;
+    const w = g.player.weapons[0];
+    w.loaded = 1;
+    w.charge = 0.4;
+    armWeapon(g, w.uid);
+    aim(g, g.enemy!.rooms[0].id);
+    assert.equal(shotsOf(g, "swarmmissiles").length, 1);
+    assert.equal(g.missiles, 2);
+    assert.equal(w.loaded, 0);
+    assert.ok(Math.abs(w.charge - 0.4) < 1e-9);
+  });
+
+  it("autofire spends one missile per finished shot and does not bank", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 5;
+    toggleAutoAll(g);
+    const w = g.player.weapons[0];
+    const room = g.enemy!.rooms[0].id;
+    armWeapon(g, w.uid);
+    aim(g, room);
+    const fired = watch(g, "swarmmissiles");
+    const atFirst = until(g, () => fired() >= 1, 200);
+    assert.ok(atFirst >= 125 && atFirst <= 155, `first autofire at ${atFirst}`);
+    assert.equal(fired(), 1);
+    assert.equal(g.missiles, 4);
+    assert.equal(w.loaded ?? 0, 0);
+    const atSecond = until(g, () => fired() >= 2, 400);
+    assert.ok(atSecond >= 125, `second shot followed after ${atSecond}`);
+    assert.equal(fired(), 2);
+    assert.equal(g.missiles, 3);
+    assert.equal(w.loaded ?? 0, 0);
+  });
+
+  it("keeps a stored bank when the magazine is empty", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 0;
+    const w = g.player.weapons[0];
+    w.loaded = 2;
+    w.charge = 0.4;
+    armWeapon(g, w.uid);
+    aim(g, g.enemy!.rooms[0].id);
+    assert.equal(shotsOf(g, "swarmmissiles").length, 0);
+    assert.equal(w.loaded, 2);
+    assert.equal(g.missiles, 0);
+  });
+
+  it("primes one Swarm shot, and Pegasus still fires both missiles from one charge", () => {
+    const primed = createGame(4);
+    primed.augments = ["hot"];
+    feed(primed, 4, 4, ["swarmmissiles"]);
+    primed.player.weapons[0].charge = 0.2;
+    primeWeapons(primed);
+    assert.equal(primed.player.weapons[0].loaded, 1);
+    assert.equal(primed.player.weapons[0].charge, 0);
+
+    const g = fight(8);
+    parkGunners(g);
+    feed(g, 4, 4, ["pegasus"]);
+    g.missiles = 4;
+    const w = g.player.weapons[0];
+    armWeapon(g, w.uid);
+    aim(g, g.enemy!.rooms[0].id);
+    const at = until(g, () => shotsOf(g, "pegasus").length >= 1, 500);
+    assert.ok(at >= 380 && at <= 430, `pegasus at ${at}`);
+    assert.equal(shotsOf(g, "pegasus").length, 2);
+    assert.equal(g.missiles, 3);
+    assert.equal(w.loaded, undefined);
+  });
+
+  it("is not mounted on a generated enemy, and neither is Pegasus", () => {
+    assert.equal(enemyMayMount("swarmmissiles"), false);
+    assert.equal(enemyMayMount("pegasus"), false);
+    assert.equal(enemyMayMount("charger2"), true);
+    for (const names of Object.values(ENEMY_WEAPON_POOLS)) {
+      assert.equal(names.includes("Swarm Missiles"), false);
+      assert.equal(names.includes("Pegasus Missile"), false);
+    }
+    for (const cls of ENEMY_CLASSES) {
+      const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" }, seeded(cls.id.length + 9));
+      assert.equal(spec.weapons.includes("swarmmissiles"), false, cls.id);
+      assert.equal(spec.weapons.includes("pegasus"), false, cls.id);
+    }
+  });
+});

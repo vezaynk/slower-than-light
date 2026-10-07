@@ -222,7 +222,8 @@ export function primeWeapons(g: Game) {
   let primed = false;
   g.player.weapons.forEach((w, i) => {
     if (!w.enabled || !mask[i]) return;
-    // Ion (Weapons) / Laser (Weapons): Weapon Pre-Igniter primes one charger shot, not the bank.
+    // Augmentations, Weapon Pre-Igniter: "Only gives one charge to charge weapons, by default."
+    // That covers Ion Charger, the Laser Chargers, and Swarm Missiles. The pause-and-jump trick is not applied.
     if (chargerCap(w.defId) != null) {
       w.loaded = 1;
       w.charge = 0;

@@ -377,9 +377,12 @@ function roll(r: Range, sector: number, rand: () => number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/** Laser (Weapons), "Laser Charger (S)": "Enemies never use this weapon." */
+/**
+ * Laser (Weapons), "Laser Charger (S)": "Enemies never use this weapon."
+ * Missile (Weapons), Swarm Missiles and Pegasus Missile: "Enemies never use this weapon."
+ */
 export function enemyMayMount(id: string): boolean {
-  return id !== "chargers";
+  return id !== "chargers" && id !== "swarmmissiles" && id !== "pegasus";
 }
 
 /** Enemy weapon list from the faction pool, filling weapon power without going over. INFERRED: at most 4 guns. */

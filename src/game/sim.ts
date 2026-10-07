@@ -1888,8 +1888,12 @@ function strikeRoom(
   }
 }
 
-/** Ion Charger and the three Laser Chargers. `shots` on the def is the bank, not one volley of a normal gun. */
-const CHARGER_IDS = new Set(["ioncharger", "chargers", "charger", "charger2"]);
+/**
+ * Ion Charger, the three Laser Chargers, and Swarm Missiles.
+ * `shots` on the def is the bank, not one volley of a normal gun.
+ * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
+ */
+const CHARGER_IDS = new Set(["ioncharger", "chargers", "charger", "charger2", "swarmmissiles"]);
 
 /** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
@@ -1932,9 +1936,14 @@ function weaponReady(w: WeaponInst): boolean {
 
 /**
  * Ion (Weapons), Ion Charger, and Laser (Weapons), Laser Charger / (S) / Mark II.
+ * Missile (Weapons), Swarm Missiles uses the same bank: 7 seconds per stored shot, up to 3.
  * Each shot takes `def.charge` seconds. Manual aim fires the whole bank.
+ * A Swarm volley spends one missile, whether the bank is 1 or 3.
  * Autofire, and every enemy gun, fires one finished shot and does not bank.
+ * Swarm autofire spends one missile for that shot. It does not dump a stored bank as one volley.
+ * INFERRED: one stored Swarm shot leaves per tick. The page does not print a same-tick dump.
  * Losing power does not empty the bank. A cloak pause or a weapons hack holds it.
+ * The Swarm page does not print the offline keep. It follows the charger bank.
  */
 function tickCharger(
   g: Game,
@@ -1964,6 +1973,33 @@ function tickCharger(
   if (!auto) {
     absorbCharger(w, max);
     if (w.target && (w.loaded ?? 0) > 0) launch(g, from, w);
+    return;
+  }
+  // Missile (Weapons), Swarm Missiles: autofire "will fire a charge as soon as it is gained."
+  // That charge is its own volley and spends one missile. A stored bank is not one volley.
+  // INFERRED: one stored shot per tick. No target holds a single finished shot and does not bank.
+  if (w.defId === "swarmmissiles") {
+    if (!w.target) {
+      if (w.charge >= 1) w.charge = 1;
+      return;
+    }
+    const have = from === "player" ? g.missiles : ship.ammo;
+    if (have <= 0) {
+      // A dry magazine keeps the finished shots. It does not grow past the bank.
+      if ((w.loaded ?? 0) < max) absorbCharger(w, max);
+      else w.charge = 0;
+      return;
+    }
+    if ((w.loaded ?? 0) > 0) {
+      launch(g, from, w, 1);
+      return;
+    }
+    if (w.charge >= 1) {
+      w.charge -= 1;
+      const before = g.shots.length;
+      launch(g, from, w, 1);
+      if (g.shots.length === before) w.charge += 1;
+    }
     return;
   }
   // A bank already stored (autofire just turned on, or a cloak hold) leaves as one volley.

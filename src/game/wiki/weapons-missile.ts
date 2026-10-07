@@ -125,7 +125,8 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     power: 2,
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Charge time: 7 seconds per shot". charge is that per-shot time.
     charge: 7,
-    // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Shots: 1-3" and "up to three missiles". shots is that full volley, 3.
+    // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Shots: 1-3" and "up to three missiles".
+    // shots is the bank. sim.ts stores one shot every 7 seconds. A click fires the bank.
     shots: 3,
     // INFERRED: gap 0. Wiki page "Missile (Weapons)", ===Swarm Missiles=== gives no gap between the missiles.
     gap: 0,
@@ -229,10 +230,10 @@ export const MISSILE_GAPS = {
   },
   swarmmissiles: {
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===.
-    // "Shots: 1-3". shots stores the full volley, 3. "7 seconds per shot".
+    // "Shots: 1-3". shots stores the bank, 3. "7 seconds per shot". The bank runs in sim.ts.
     minShots: 1,
     maxShots: 3,
-    // "Targeting area radius: 31".
+    // "Targeting area radius: 31". The radius and the room percents are not applied.
     radius: 31,
     // "When fired at 1x2 room: 67.85% in main room, 8.04% in each tile next to long sides."
     aim1x2MainPercent: 67.85,

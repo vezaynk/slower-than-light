@@ -840,6 +840,62 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
   });
 });
 
+describe("Crew skills: combat skill and onboard drones", () => {
+  it("hits an onboard drone 20 percent harder when fully trained", () => {
+    // Crew skills, Combat skill: "Combat skill increases the damage dealt to crewmembers and onboard drones".
+    // Level 2 (Gold) is "20% more crew damage".
+    const drop = (trained: boolean) => {
+      const g = createGame(62);
+      startCombat(g, "scout");
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      const room = g.enemy!.rooms[0]!;
+      const hero = g.crew.find((c) => c.side === "player")!;
+      for (const c of g.crew) {
+        if (c.side === "player" && c.id !== hero.id) {
+          c.aboard = "player";
+          c.room = g.player.rooms[0]!.id;
+        }
+      }
+      hero.aboard = "enemy";
+      hero.room = room.id;
+      hero.path = [];
+      hero.stun = 0;
+      hero.leashed = undefined;
+      hero.kin = "plain";
+      hero.skills = trained ? { combat: xpNeedFor(hero, "combat") * 2 } : {};
+      if (trained) assert.equal(xpNeedFor(hero, "combat"), 7);
+      const unit = {
+        id: "crew-drone",
+        kind: "personnel" as const,
+        alive: true,
+        powered: true,
+        aux: 0,
+        cool: 0,
+        hp: 100,
+        room: room.id,
+      };
+      g.enemy!.kits.swarm = {
+        id: "swarm",
+        level: 2,
+        power: 2,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: true,
+        aux: 0,
+        loadout: ["personnel"],
+        drones: [unit],
+      };
+      step(g, 0.05);
+      return 100 - (unit.hp ?? 100);
+    };
+    const base = drop(false);
+    assert.ok(base > 0);
+    assert.ok(Math.abs(drop(true) / base - 1.2) < 1e-6);
+  });
+});
+
 describe("Crew skills, Weapons: artillery grants one point", () => {
   function gunner(seed: number) {
     const g = createGame(seed);

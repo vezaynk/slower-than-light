@@ -1231,7 +1231,7 @@ const BREAK_BAR_S = 6;
 /** INFERRED: sim.ts life() trades blows at 6 HP per second per crew member, times that crew's combat multiplier. */
 const MELEE_DPS = 6;
 
-/** Crew skills, Combat skill: the attacker's rank multiplies damage to an onboard drone. Level 0 stays ×1. */
+/** Crew skills, Combat skill: "increases the damage dealt to crewmembers and onboard drones". Level 0 stays ×1, level 2 is 20% more. */
 function crewCombat(c: Crew): number {
   return combatSkillMult(skillRank(c.skills?.combat ?? 0, xpNeedFor(c, "combat")));
 }

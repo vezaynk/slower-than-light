@@ -58,15 +58,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:rebel-fight-with-boarders:0",
         label: "Fight a Rebel ship",
         // "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)."
-        // Boarder counts are crew and are not granted.
         fx: [
           {
             k: "fight",
             tier: "Rebel ship",
-          },
-          {
-            k: "note",
-            text: "Boarders named on the page are not applied.",
           },
         ],
       },

@@ -106,9 +106,6 @@ describe("cited rebel events", () => {
     assert.equal(fleet.label, "Fight a Rebel ship");
     assert.deepEqual(fleet.fx, [{ k: "fight", tier: "Rebel ship" }]);
     const boarders = EXTRA_EVENTS[1].choices[0];
-    assert.deepEqual(boarders.fx, [
-      { k: "fight", tier: "Rebel ship" },
-      { k: "note", text: "Boarders named on the page are not applied." },
-    ]);
+    assert.deepEqual(boarders.fx, [{ k: "fight", tier: "Rebel ship" }]);
   });
 });

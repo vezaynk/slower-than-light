@@ -2726,9 +2726,14 @@ function chargeSide(
     drone.target === "ionintruder" &&
     typeof drone.room === "string" &&
     drone.room.length > 0;
-  // INFERRED: the player Boarding Drone never stores a room and has no space-flight timer in this sim,
-  // so a deployed board drone counts as onboard.
-  const boardAboard = !!drone?.on && drone.target === "board";
+  // Cloaking, "Overview": fire only if the boarding drone "is onboard the enemy ship".
+  // Same page: "Hacking and Boarding drones hold their position in space."
+  // A powered Boarding Drone with no room is still in space.
+  const boardAboard =
+    !!drone?.on &&
+    drone.target === "board" &&
+    typeof drone.room === "string" &&
+    drone.room.length > 0;
   const presence = crewAboard || ionAboard || boardAboard;
   ship.weapons.forEach((w, i) => {
     const def = WEAPONS[w.defId];

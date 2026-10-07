@@ -130,6 +130,55 @@ describe("cloaked enemy, charged player shot", () => {
     assert.notEqual(w.charge, 1);
   });
 
+  it("does not fire when a deployed boarding drone has no room", () => {
+    const g = cloakedFight();
+    const w = primeLaser(g, 1);
+    assert.equal(
+      g.crew.some((c) => c.hp > 0 && c.side === "player" && c.aboard === "enemy"),
+      false,
+    );
+    assert.equal(
+      g.crew.some((c) => c.hp > 0 && c.side === "enemy" && (c.leashed ?? 0) > 0),
+      false,
+    );
+    const before = playerShots(g);
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: "board",
+      on: true,
+      aux: 0,
+      hp: 125,
+    };
+    step(g, 0.05);
+    assert.equal(playerShots(g), before);
+    assert.equal(w.charge, 1);
+  });
+
+  it("fires when a boarding drone has boarded a room", () => {
+    const g = cloakedFight();
+    const w = primeLaser(g, 1);
+    const before = playerShots(g);
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: "board",
+      on: true,
+      aux: 0,
+      room: g.enemy!.rooms[0]!.id,
+      hp: 125,
+    };
+    step(g, 0.05);
+    assert.ok(playerShots(g) > before);
+    assert.notEqual(w.charge, 1);
+  });
+
   it("does not advance a partial charge while the enemy cloak is up", () => {
     const g = cloakedFight();
     assertNoPresence(g);

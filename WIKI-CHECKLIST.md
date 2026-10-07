@@ -668,7 +668,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Legendary thief KazaaakplethKilik — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Legendary thief KazaaakplethKilik Random Event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
 - [ ] Legendary thief KazaaakplethKilik random event — not-a-surface — same title as "Legendary Thief KazaaakplethKilik Random Event" with different capitalization
-- [ ] Lifeform Scanner — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Lifeform Scanner — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check. A fitted Lifeform Scanner reveals live enemy crew the way a Slug does, and it does not open room interiors.
 - [ ] Lone Lanius ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Long-Range Scanners — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Long-Ranged Scanners — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.

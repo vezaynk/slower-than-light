@@ -1096,7 +1096,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Rock Ship Being Mined by Lanius — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock Ships — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock Store — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Rock War Vessel Encounter — partial — Same card as dest "Rock war vessel encounter" (quests-a-pages.ts), Rock Homeworlds. Either answer places the sun marker. The fight is a Rock Assault (Elite) with a 32 s escape. The M-class star's heat is not a hazard. The shipyard arrival unlocks Rock A, grants Rock Plating, and repairs 29 hull.
+- [ ] Rock War Vessel Encounter — partial — Same card as dest "Rock war vessel encounter" (quests-a-pages.ts), Rock Homeworlds. Either answer places the sun marker. The fight is a Rock Assault (Elite) with a 32 s escape. The Sun Quest Marker fight is dangerously close to an M-class star, so that Rock Assault (Elite) fight starts solar flares. The shipyard arrival unlocks Rock A, grants Rock Plating, and repairs 29 hull.
 - [ ] Rock and Slug standoff — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock armoured transport — not-a-surface — same title as "Rock Armoured Transport" with different capitalization
 - [ ] Rock atheists — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.

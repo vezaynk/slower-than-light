@@ -7,11 +7,13 @@ import {
   enemySensorsHacked,
   hackPulseOn,
   installSpike,
+  launchEnemySpike,
   launchSpike,
   playerHackView,
   queueSpike,
   spikeRoomTargetable,
   armSpike,
+  tickEnemySpike,
   tickSpike,
   toggleSpikePower,
 } from "./spike.ts";
@@ -156,6 +158,41 @@ describe("hack rules: drone flight", () => {
     assert.ok(down > 0 && stun > 0, `${down} / ${stun}`);
   });
 
+  it("holds in space while the enemy is cloaked, then finishes the flight", () => {
+    // Cloaking, Overview: hacking drones hold their position in space until the cloak is over.
+    const g = fight();
+    assert.equal(armSpike(g, "shields"), true);
+    assert.equal(launchSpike(g), true);
+    const k = g.player.kits.spike!;
+    const before = k.hackFly;
+    g.enemy!.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    flyAll(g, 1);
+    assert.equal(k.hackFly, before);
+    assert.equal(g.enemy!.hackDrone, undefined);
+    g.enemy!.kits.veil.on = false;
+    g.enemy!.kits.veil.left = 0;
+    flyAll(g, 3.1);
+    assert.equal(g.enemy!.hackDrone, "shields");
+  });
+
+  it("holds an enemy hacking drone while the player is cloaked", () => {
+    const g = fight();
+    g.enemy!.parts = 3;
+    g.enemy!.kits.spike = { id: "spike", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    assert.equal(launchEnemySpike(g), true);
+    const k = g.enemy!.kits.spike!;
+    const before = k.hackFly;
+    assert.ok(before != null && before > 0);
+    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    tickEnemySpike(g, 1);
+    assert.equal(k.hackFly, before);
+    assert.equal(k.hackLatched, undefined);
+    g.player.kits.veil.on = false;
+    g.player.kits.veil.left = 0;
+    tickEnemySpike(g, 3.1);
+    assert.equal(k.hackLatched, true);
+  });
+
   it("a Zoltan Shield raised during the flight breaks the drone on impact", () => {
     const g = fight();
     armSpike(g, "shields");
@@ -194,13 +231,16 @@ describe("hack rules: every listed target", () => {
     const g = fight();
     const veil = fit(g, "veil", 1);
     armSpike(g, "veil");
-    // "if they are cloaked, you must wait for the cloak to end": launch first, then they cloak mid-flight.
+    // Hacking: "if they are cloaked, you must wait for the cloak to end" is the launch.
+    // Cloaking, Overview: a drone already in space holds, so this latch happens after the cloak is down.
     assert.equal(launchSpike(g), true);
+    flyAll(g, 3.1);
+    assert.equal(g.enemy!.hackDrone, "veil");
     veil.on = true;
     veil.left = 10;
-    flyAll(g, 3.1);
+    tickSpike(g, 0.05);
     assert.equal(veil.on, false);
-    assert.equal(veil.cool, 20);
+    assert.equal(veil.left, 0);
     veil.on = true;
     veil.left = 5;
     tickSpike(g, 0.05);

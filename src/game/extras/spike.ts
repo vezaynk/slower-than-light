@@ -372,6 +372,9 @@ function tickOwnFlight(g: Game, kit: Kit, dt: number) {
     return;
   }
   if (!powered || stunned) return;
+  // Cloaking, Overview: "Hacking and Boarding drones hold their position in space.
+  // They will continue their move when the cloak is over." The enemy ship is the one cloaked.
+  if (veilBlocks(g, "player")) return;
   kit.hackFly = (kit.hackFly ?? 0) - dt;
   if (kit.hackFly <= 0) arriveOwn(g, kit);
 }
@@ -1289,8 +1292,9 @@ export function tickEnemySpike(g: Game, dt: number) {
     } else if (hit === "stun") {
       kit.stun = ANTI_STUN_S;
       log(g, "Your drone stuns their hacking drone.");
-    } else if (live && !stunned) {
+    } else if (live && !stunned && !veilBlocks(g, "enemy")) {
       // "Defense drones can be dodged by de-powering the hacking drone ..., which freezes the hacking drone in place".
+      // Cloaking, Overview: the drone also holds while the player ship it is flying to is cloaked, then continues.
       kit.hackFly -= dt;
       if (kit.hackFly <= 0) arrive(g, kit);
     }

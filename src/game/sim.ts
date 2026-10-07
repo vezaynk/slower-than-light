@@ -1698,7 +1698,7 @@ export function applyImpact(g: Game, shot: Shot) {
       bypassZoltan("bomb") === "pass";
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
     // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
-    // With the bypass, this takes the same path as a ship that has no bubble, and still does not invent system ion.
+    // With the bypass, Bomb (Weapons), Ion Bomb, still puts its ion on the room's system.
     // Augmentations, Reverse Ion Field: ion protection also covers a Zoltan Shield.
     // Zoltan Shield, lead: the pass-through bug names an ion projectile, so a resisted ion bomb stops.
     if ((ship.zoltan ?? 0) > 0 && !bombThrough && shot.damage <= 0 && shot.ion > 0) {
@@ -1732,6 +1732,24 @@ export function applyImpact(g: Game, shot: Shot) {
       }
       strikeRoom(g, ship, aboard, shot.targetRoom, left == null ? shot.damage : left, shot, playerTarget);
     } else {
+      // Bomb (Weapons), Ion Bomb: system damage 0, and 4 ion to the targeted system or subsystem.
+      // Crew damage is 0. "Low chance to stun" prints no percent, so that stun is not rolled.
+      if (shot.defId === "ionbomb" && shot.ion > 0) {
+        if (playerTarget && negateIon(g)) {
+          log(g, "Reverse Ion Field shrugged that off.");
+          return;
+        }
+        if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+        if (r.system) {
+          if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
+            applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+          }
+          log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
+        }
+        r.flash = 0.25;
+        sfx(g, "ion");
+        return;
+      }
       // Crystal, "Crystal Lockdown": the Crystal Lockdown Bomb is identical in its coating effect.
       if (shot.defId === "lockdown") {
         coatRoom(g, ship, aboard, r.id);

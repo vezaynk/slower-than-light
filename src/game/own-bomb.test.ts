@@ -144,4 +144,35 @@ describe("bombs aimed at your own ship", () => {
     assert.equal(g.player.weapons[0].target, enemyRoom.id);
     assert.equal(g.player.weapons[0].own, false);
   });
+
+  it("puts 4 ion on the targeted system, ignores shields and hull, and a bubble stops it", () => {
+    const g = createGame(14);
+    quiet(g);
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    enemy.systems.engines.power = 0;
+    const room = enemy.rooms.find((r) => r.system === "weapons") ?? enemy.rooms.find((r) => r.system);
+    assert.ok(room?.system);
+    enemy.systems.shields.level = 4;
+    enemy.systems.shields.power = 4;
+    enemy.shieldNow = 2;
+    const hull = enemy.hull;
+    const hp = g.crew.map((c) => c.hp);
+    applyImpact(g, bomb({ defId: "ionbomb", ion: 4, targetRoom: room.id }));
+    assert.equal(enemy.systems[room.system].ion.length, 4);
+    assert.equal(enemy.systems[room.system].damage, 0);
+    assert.equal(enemy.hull, hull);
+    assert.equal(enemy.shieldNow, 2);
+    assert.deepEqual(
+      g.crew.map((c) => c.hp),
+      hp,
+    );
+
+    enemy.zoltan = 5;
+    enemy.systems[room.system].ion = [];
+    applyImpact(g, bomb({ defId: "ionbomb", ion: 4, targetRoom: room.id }));
+    assert.equal(enemy.zoltan, 0);
+    assert.equal(enemy.systems[room.system].ion.length, 0);
+    assert.equal(enemy.hull, hull);
+  });
 });

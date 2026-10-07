@@ -1024,7 +1024,7 @@ function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
     (c) => c.aboard === "enemy" && c.room === kit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && !forPlayer(c),
   );
   if (!foes.length) return false;
-  kit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * crewCombat(c) * dt, 0);
+  kit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
   if (kit.hp > 0) return false;
   kit.hp = 0;
   kit.path = [];
@@ -1296,8 +1296,21 @@ export const BOARD_FLY_S = 3;
 /** INFERRED: mirrors sim.ts "one crew seals one system bar in 6 seconds". A boarding drone breaks one bar per 6 s of attacks. */
 const BREAK_BAR_S = 6;
 
-/** INFERRED: sim.ts life() trades blows at 6 HP per second per crew member, times that crew's combat multiplier. */
-const MELEE_DPS = 6;
+/**
+ * Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
+ * Crew skills, Combat skill: that hit also lands on onboard drones, times the combat rank.
+ * INFERRED: the pause is 1 second, the same mark as a crew blow. The page prints no seconds.
+ */
+function crewBlow(g: Game, c: Crew, dt: number): number {
+  c.swing = (c.swing ?? 0) + dt;
+  let total = 0;
+  while (c.swing >= 1) {
+    c.swing -= 1;
+    const roll = 3 + Math.floor(rand(g) * 5);
+    total += roll * kinOf(c.kin ?? "plain").fight * crewCombat(c);
+  }
+  return total;
+}
 
 /** Crew skills, Combat skill: "increases the damage dealt to crewmembers and onboard drones". Level 0 stays ×1, level 2 is 20% more. */
 function crewCombat(c: Crew): number {
@@ -1675,7 +1688,7 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
 }
 
 /**
- * Returns true when the drone died. Each non-stunned crew member fighting for the player hits it at MELEE_DPS × combat.
+ * Returns true when the drone died. Each non-stunned crew member fighting for the player hits it for 3 to 7, times combat skill.
  * Crew skills, lead: "destroying crew drones" does not grant experience. No noteCombatPoint on this death.
  */
 function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt: number): boolean {
@@ -1684,7 +1697,7 @@ function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt:
     (c) => c.aboard === aboard && c.room === unit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && forPlayer(c),
   );
   if (!foes.length) return false;
-  unit.hp -= foes.reduce((sum, c) => sum + MELEE_DPS * kinOf(c.kin ?? "plain").fight * crewCombat(c) * dt, 0);
+  unit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
   if (unit.hp > 0) return false;
   killUnit(g, unit, `Crew tore their ${unitName(unit.kind)} apart.`);
   return true;

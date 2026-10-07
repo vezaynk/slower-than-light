@@ -1072,11 +1072,11 @@ describe("Ion Intruder body", () => {
     foe.path = [];
     foe.stun = 0;
     foe.leashed = undefined;
-    // One untrained crew member hits at 6 HP per second. 125 / 6 is just over 20 seconds.
-    tickSwarm(g, 20);
+    // One untrained blow is 3 to 7 HP. 125 HP takes more than one blow, then the drone waits out the redeploy.
+    tickSwarm(g, 1);
     assert.equal(kit.on, true);
     assert.ok((kit.hp ?? 0) > 0);
-    tickSwarm(g, 1);
+    for (let i = 0; i < 80 && (kit.hp ?? 0) > 0; i++) tickSwarm(g, 1);
     assert.equal(kit.on, false);
     assert.equal(kit.hp, 0);
     assert.equal(kit.lost, REDEPLOY_S);
@@ -1109,8 +1109,9 @@ describe("Ion Intruder body", () => {
       tickSwarm(g, 1);
       return before - (kit.hp ?? 0);
     };
-    assert.ok(Math.abs(drop(0) - 6) < 1e-9);
-    assert.ok(Math.abs(drop(14) / drop(0) - 1.2) < 1e-9);
+    const plain = drop(0);
+    assert.ok(plain >= 3 && plain <= 7, String(plain));
+    assert.ok(Math.abs(drop(14) / plain - 1.2) < 1e-9);
   });
 });
 

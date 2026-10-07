@@ -890,8 +890,12 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.enemy!.rooms[0]!;
+    const away = g.enemy!.rooms.find((r) => r.id !== room.id)!;
     const hero = g.crew.find((c) => c.side === "player")!;
-    for (const c of g.crew) if (c.side === "player" && c.id !== hero.id) c.skills = {};
+    for (const c of g.crew) {
+      if (c.side === "enemy") c.room = away.id;
+      if (c.side === "player" && c.id !== hero.id) c.skills = {};
+    }
     hero.aboard = "enemy";
     hero.room = room.id;
     hero.path = [];
@@ -899,6 +903,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     hero.leashed = undefined;
     hero.skills = {};
     hero.kin = "plain";
+    hero.swing = 1;
     const unit = {
       id: "crew-drone",
       kind: "personnel",
@@ -984,7 +989,7 @@ describe("Crew skills: combat skill and onboard drones", () => {
         loadout: ["personnel"],
         drones: [unit],
       };
-      step(g, 0.05);
+      for (let i = 0; i < 40 && unit.hp === 100; i++) step(g, 0.05);
       return 100 - (unit.hp ?? 100);
     };
     const base = drop(false);

@@ -112,6 +112,14 @@ import {
   pulsarMainIon,
   pulsarShieldSpend,
 } from "./wiki/cited-pulsar.ts";
+import {
+  eventHasFlare,
+  FLARE_WARN_S,
+  flareCycleSeconds,
+  flareDamagesRoom,
+  flareFireCount,
+  placeFlareFires,
+} from "./wiki/cited-flare.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
@@ -2657,6 +2665,82 @@ function tickPulsar(g: Game, dt: number) {
   }
 }
 
+function armFlare(g: Game) {
+  g.flareT = 0;
+  g.flareWarned = false;
+  g.flareWait = flareCycleSeconds(rand(g));
+}
+
+function flareShieldsUp(ship: Ship): boolean {
+  // Environmental Hazards, Class-M Red Giant Star: a Zoltan Shield counts as shields up.
+  // Extra layers do not change the fire count, and the page does not spend the bubble.
+  return ship.shieldNow > 0 || (ship.zoltan ?? 0) > 0;
+}
+
+function flareHull(g: Game, ship: Ship, playerHurt: boolean) {
+  const held = playerHurt && negateHull(g);
+  const before = ship.hull;
+  if (!held) ship.hull = Math.max(0, ship.hull - 1);
+  else log(g, "Rock Plating held the hull.");
+  if (playerHurt && ship.hull < before && g.augments.includes("vengeance") && vengeanceFires(rand(g))) looseShard(g);
+}
+
+function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
+  const count = flareFireCount(flareShieldsUp(ship), rand(g));
+  const placed = placeFlareFires(count, ship.rooms.length, () => rand(g));
+  let rooms = 0;
+  for (let i = 0; i < ship.rooms.length; i++) {
+    const n = placed[i] ?? 0;
+    if (n <= 0) continue;
+    const room = ship.rooms[i];
+    if (!room) continue;
+    rooms += 1;
+    // INFERRED: fires still stack to the same cap of 3 used for weapon hits.
+    room.fire = Math.min(3, room.fire + n);
+    if (!flareDamagesRoom(n, rand(g))) continue;
+    const playerHurt = aboard === "player";
+    if ((room.system || room.kit) && playerHurt && negateSystem(g)) {
+      log(g, "Titanium System Casing held the system.");
+    } else {
+      if (room.system) hurtSystem(ship, room.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
+      if (room.kit) hurtKit(ship, room.kit, 1);
+    }
+    // The page names hull and system damage. It does not name crew damage.
+    flareHull(g, ship, playerHurt);
+  }
+  if (rooms > 0) {
+    log(
+      g,
+      aboard === "player"
+        ? `A solar flare lights ${rooms} rooms. Hull ${ship.hull}.`
+        : `A solar flare lights ${rooms} of their rooms.`,
+    );
+  }
+}
+
+/** One solar flare against both hulls. Environmental Hazards, Class-M Red Giant Star. */
+export function applyFlarePulse(g: Game) {
+  flareOne(g, g.player, "player");
+  if (g.enemy) flareOne(g, g.enemy, "enemy");
+}
+
+function tickFlare(g: Game, dt: number) {
+  if (!g.flare) return;
+  if (!((g.flareWait ?? 0) > 0)) armFlare(g);
+  g.flareT = (g.flareT ?? 0) + dt;
+  const wait = g.flareWait ?? 0;
+  if (!g.flareWarned && g.flareT >= wait - FLARE_WARN_S) {
+    g.flareWarned = true;
+    // Environmental Hazards, Class-M Red Giant Star: the danger line is the warning.
+    log(g, "Solar flares will light the ship on fire. Shields will reduce the effect.");
+    sfx(g, "alarm");
+  }
+  if (g.flareT >= wait) {
+    applyFlarePulse(g);
+    armFlare(g);
+  }
+}
+
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
     g.asteroidT += dt;
@@ -2719,6 +2803,7 @@ function environment(g: Game, dt: number) {
     }
   }
   tickPulsar(g, dt);
+  tickFlare(g, dt);
 }
 
 function bossThink(g: Game, dt: number) {
@@ -2871,6 +2956,7 @@ function winCombat(g: Game) {
   g.asteroid = false;
   g.asb = false;
   g.pulsar = false;
+  g.flare = false;
   g.boardTimer = 0;
   if (boss) {
     g.phase = "victory";
@@ -3187,6 +3273,12 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.pulsarWarned = false;
   g.pulsarWait = 0;
   if (g.pulsar) armPulsar(g);
+  // Auto-ship / Mantis / Pirate / Rock pirates fight near sun: Locations redgiant=true.
+  g.flare = eventHasFlare(event);
+  g.flareT = 0;
+  g.flareWarned = false;
+  g.flareWait = 0;
+  if (g.flare) armFlare(g);
   // INFERRED: a hull with a Crew Teleporter boards 9 seconds in.
   g.boardTimer = built.ship.boards ? 9 : 0;
   // @agent:flagship. A resumed boss fight starts at the remembered stage, with a fresh 20–30 s surge wait.
@@ -3234,6 +3326,7 @@ export function beginBoarding(g: Game, asb = false) {
   g.asbWait = 0;
   if (asb) armAsbClock(g, "warn");
   g.pulsar = false;
+  g.flare = false;
   const b = g.beacons.find((x) => x.id === g.here);
   if (b && b.kind !== "boss") b.resolved = true;
   sfx(g, "alarm");
@@ -3697,6 +3790,7 @@ export function commitJump(g: Game, id: string) {
   g.asteroid = false;
   g.asb = false;
   g.pulsar = false;
+  g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"));
   // Rebel Fleet: a beacon the column has already taken is a Rebel Elite. Sector 8 is not this column.
   if (g.sector < 8 && dest.col < g.fleet && !dest.resolved) {
@@ -4058,6 +4152,7 @@ export function enterHiddenCrystal(g: Game) {
   g.asteroid = false;
   g.asb = false;
   g.pulsar = false;
+  g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"));
   makeMap(g);
   g.sectorName = "Hidden Crystal Worlds";
@@ -4339,7 +4434,7 @@ function tickBoarding(g: Game, dt: number) {
   swapZoltanCooldown(g);
   tickPlayerSabotage(g, dt);
   wanderBoarders(g, dt);
-  if (g.asb || g.asteroid) environment(g, dt);
+  if (g.asb || g.asteroid || g.pulsar || g.flare) environment(g, dt);
   if (g.shots.length) stepShots(g, dt);
   const spool = ftlSeconds(g, g.player);
   if (spool) g.flee = Math.min(1, g.flee + dt / spool);
@@ -4444,6 +4539,7 @@ export function step(g: Game, dt: number) {
     g.asteroid = false;
     g.asb = false;
     g.pulsar = false;
+    g.flare = false;
     // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
     pageGotAway(g, g.fightEvent);
   }

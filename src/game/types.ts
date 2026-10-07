@@ -657,6 +657,17 @@ export type Game = {
   pulsarWait?: number;
   /** True after this cycle's warning has been logged. */
   pulsarWarned?: boolean;
+  /**
+   * Environmental Hazards, ==Class-M Red Giant Star==. True when the fight's event page sets redgiant=true.
+   * Absent on a save from before that clock, which is the same as off.
+   */
+  flare?: boolean;
+  /** Seconds into the current 28–34s flare cycle. */
+  flareT?: number;
+  /** Length of the current cycle. The warning is the last 5 seconds. 0 until armed. */
+  flareWait?: number;
+  /** True after this cycle's warning has been logged. */
+  flareWarned?: boolean;
   boardTimer: number;
   bossSurge: number;
   /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */

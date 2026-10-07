@@ -144,7 +144,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Automated rebel ship close to star — not-a-surface — same title as "Automated Rebel Ship Close to Star" with different capitalization
 - [ ] Automated refueling ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Avast, ye scurvy dogs! — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Backup Battery — partial — cell.ts. Enemy-start rule INVENTED.
+- [ ] Backup Battery — partial — cell.ts. Enemy-start rule INVENTED. If the ship is not in danger when the 30 seconds run out, the battery does not enter its cooldown. Combat, boarders, a solar flare, a pulsar, an asteroid field, or a hostile anti-ship battery still starts that cooldown. The 30 seconds keep counting on the map (INFERRED).
 - [ ] Backup DNA Bank — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Badly Damaged Lanius Craft — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Badly damaged Lanius craft — not-a-surface — same title as "Badly Damaged Lanius Craft" with different capitalization

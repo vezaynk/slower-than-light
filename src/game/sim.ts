@@ -593,6 +593,7 @@ function noteDodge(g: Game) {
   // Crew skills, Piloting: "one point of experience for each projectile dodged during combat."
   // "This includes asteroids, provided you are still in combat."
   // Engines: "one point of experience for each projectile evaded." A hit grants neither.
+  // "they are gained at different system consoles." The pilot's point is not the engineer's.
   // Crew skills, Piloting: "Skill is also not gained when your ship is cloaked."
   // Engines is trained the same way, with those same limits. Shields does not say this.
   const veil = g.player.kits.veil;

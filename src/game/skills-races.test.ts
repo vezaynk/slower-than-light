@@ -1534,6 +1534,81 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
   });
 });
 
+describe("Crew skills: piloting and engines are different consoles", () => {
+  it("gives the dodge to whoever is at that console", () => {
+    // Crew skills, lead: Piloting and Engines "are gained at different system consoles."
+    const g = createGame(67);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.level = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.pilot.damage = 0;
+    g.player.systems.shields.level = 2;
+    g.player.systems.shields.power = 2;
+    g.player.systems.shields.damage = 0;
+    g.player.shieldNow = 1;
+    const ada = g.crew.find((c) => c.id === "c-ada")!;
+    const ivo = g.crew.find((c) => c.id === "c-ivo")!;
+    const pilot = g.player.rooms.find((r) => r.system === "pilot")!;
+    const engines = g.player.rooms.find((r) => r.system === "engines")!;
+    const away = g.player.rooms.find((r) => r.id !== pilot.id && r.id !== engines.id)!;
+    for (const c of g.crew) if (c.side === "player") c.room = away.id;
+    ada.room = pilot.id;
+    ada.path = [];
+    ada.skills = {};
+    ivo.room = away.id;
+    ivo.path = [];
+    ivo.skills = {};
+    const dodge = () => {
+      g.player.hull = g.player.hullMax;
+      g.player.shieldNow = 1;
+      g.player.systems.pilot.damage = 0;
+      g.log.length = 0;
+      g.shots.push({
+        id: "poke-" + g.shots.length,
+        kind: "laser",
+        from: "enemy",
+        at: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: pilot.id,
+        wait: 0,
+        t: 0,
+        duration: 0.05,
+        label: "Pew",
+      });
+      step(g, 0.05);
+      return g.log[0] === "Shot missed the Lark.";
+    };
+    let solo = false;
+    for (let i = 0; i < 40 && !solo; i++) {
+      if (!dodge()) continue;
+      solo = true;
+      assert.equal(ada.skills?.pilot ?? 0, 1);
+      assert.equal(ada.skills?.engines ?? 0, 0);
+      assert.equal(ivo.skills?.engines ?? 0, 0);
+    }
+    assert.equal(solo, true);
+    ivo.room = engines.id;
+    let both = false;
+    for (let i = 0; i < 40 && !both; i++) {
+      const pilotBefore = ada.skills?.pilot ?? 0;
+      if (!dodge()) continue;
+      both = true;
+      assert.equal((ada.skills?.pilot ?? 0) - pilotBefore, 1);
+      assert.equal(ada.skills?.engines ?? 0, 0);
+      assert.equal(ivo.skills?.engines ?? 0, 1);
+    }
+    assert.equal(both, true);
+  });
+});
+
 describe("Crew skills, Piloting: an asteroid during the fight", () => {
   it("trains piloting and engines when a rock is dodged in combat", () => {
     // Crew skills, Piloting: "This includes asteroids, provided you are still in combat."

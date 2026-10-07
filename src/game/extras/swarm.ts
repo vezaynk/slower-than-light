@@ -593,6 +593,8 @@ function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): v
  * 0. Oxygen below 25% sends it to a damaged Oxygen system "over anything else".
  *    INFERRED: 25% is the average of the room oxygen readings. The sim has no single ship meter.
  * 1. A fire. A vented room's fire is ignored, and that room is skipped until the fire is gone.
+ *    A redeploy after destruction ignores fires in other rooms until Drone Control has no damage.
+ *    A fire in the room it already occupies still ranks. The dying animation is not applied.
  * 2. A damaged Shields system.
  * 3. A breach.
  * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
@@ -609,11 +611,11 @@ function shipAir(ship: Ship): number {
   return sum / ship.rooms.length;
 }
 
-function patchRank(ship: Ship, room: Room, air: number): number | null {
+function patchRank(ship: Ship, room: Room, air: number, here: string, skipRemote: boolean): number | null {
   if (air < PATCH_AIR && room.system === "oxygen" && ship.systems.oxygen.damage > 0) return 0;
   // "if a fire is in a vented room, it will be completely ignored" even when that room is damaged.
   if (room.venting && room.fire > 0) return null;
-  if (room.fire > 0) return 1;
+  if (room.fire > 0 && !(skipRemote && room.id !== here)) return 1;
   if (room.system === "shields" && ship.systems.shields.damage > 0) return 2;
   if (room.breach > 0) return 3;
   if (room.system && ship.systems[room.system].damage > 0) return 4;
@@ -622,11 +624,11 @@ function patchRank(ship: Ship, room: Room, air: number): number | null {
 }
 
 /** The room to work. Same id as `from` means stay. Null means nothing qualifies. */
-function patchTarget(ship: Ship, from: string): string | null {
+function patchTarget(ship: Ship, from: string, skipRemote: boolean): string | null {
   const air = shipAir(ship);
   let best: { id: string; rank: number; steps: number } | null = null;
   for (const room of ship.rooms) {
-    const rank = patchRank(ship, room, air);
+    const rank = patchRank(ship, room, air, from, skipRemote);
     if (rank == null) continue;
     const steps = room.id === from ? 0 : (route(ship, from, room.id)?.length ?? -1);
     if (steps < 0) continue;
@@ -647,6 +649,8 @@ type RepairBody = {
   home?: boolean;
   hold?: boolean;
   hp?: number;
+  /** Set on destruction. Cleared once Drone Control has no damage. */
+  coldFires?: boolean;
 };
 
 /** Drone Control, System Repair Drone: "Health: 25 HP". */
@@ -692,6 +696,20 @@ function noteRepairPower(body: RepairBody, ship: Ship, poweredNow: boolean): voi
   body.stick = here?.system ? here.id : undefined;
 }
 
+/**
+ * Drone Control, System Repair Drone: "A redeployed drone (i.e. after destruction) will ignore fires
+ * (in other rooms) till the Drone Control is fully repaired."
+ * Fully repaired is no damage on that system. The flag clears on the tick that sees it.
+ */
+function firesBlind(ship: Ship, body: RepairBody): boolean {
+  if (!body.coldFires) return false;
+  if ((ship.kits.swarm?.damage ?? 0) === 0) {
+    body.coldFires = undefined;
+    return false;
+  }
+  return true;
+}
+
 /** The room to work. A stuck system outranks patchTarget. Walking home takes no job. */
 function repairDest(ship: Ship, body: RepairBody): string | null {
   if (body.home) return null;
@@ -702,7 +720,7 @@ function repairDest(ship: Ship, body: RepairBody): string | null {
     body.stick = undefined;
   }
   if (!body.room) return null;
-  return patchTarget(ship, body.room);
+  return patchTarget(ship, body.room, firesBlind(ship, body));
 }
 
 /**
@@ -1389,6 +1407,7 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
     unit.aux = 0;
     unit.left = undefined;
   }
+  if (unit.kind === "patch") unit.coldFires = true;
   log(g, why);
 }
 
@@ -2056,6 +2075,7 @@ function killPlayerDrone(g: Game, why: string) {
   kit.stun = 0;
   kit.ionT = undefined;
   kit.lost = REDEPLOY_S;
+  if (kit.target === "patch") kit.coldFires = true;
   log(g, why);
 }
 

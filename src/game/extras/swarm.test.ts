@@ -15,6 +15,7 @@ import {
   PATCH_HEAL,
   REDEPLOY_S,
   deploy,
+  hurtRoomDrones,
   installSwarm,
   installSwarmBundle,
   swarmCombatShots,
@@ -649,6 +650,111 @@ describe("swarm", () => {
     tickSwarm(g, 0.01);
     assert.equal(enemy.systems[dest.system].damage, 0);
     assert.equal(patch.hp, 20);
+  });
+
+  it("a redeployed repair drone ignores fires in other rooms until Drone Control is repaired", () => {
+    const g = createGame(21);
+    place(g, 2);
+    assert.equal(deploy(g, "patch"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    const shields = g.player.rooms.find((room) => room.system === "shields");
+    const oxygen = g.player.rooms.find((room) => room.system === "oxygen");
+    assert.ok(weapons && shields && oxygen);
+    kit.damage = 1;
+    kit.room = weapons.id;
+    kit.path = [];
+    oxygen.fire = 1;
+    g.player.systems.shields.damage = 1;
+    tickSwarm(g, 0.01);
+    assert.equal(kit.path?.[kit.path.length - 1], oxygen.id);
+    assert.equal(kit.coldFires, undefined);
+
+    kit.hp = 1;
+    kit.room = weapons.id;
+    hurtRoomDrones(g, "player", weapons.id, 2);
+    assert.equal(kit.on, false);
+    assert.equal(kit.coldFires, true);
+    assert.equal(kit.lost, REDEPLOY_S);
+    kit.lost = 0;
+    assert.equal(deploy(g, "patch"), true);
+    assert.equal(kit.coldFires, true);
+    kit.room = weapons.id;
+    kit.path = [];
+    oxygen.fire = 1;
+    g.player.systems.shields.damage = 1;
+    tickSwarm(g, 0.01);
+    assert.equal(kit.path?.[kit.path.length - 1], shields.id);
+    assert.equal(oxygen.fire, 1);
+
+    g.player.systems.shields.damage = 0;
+    oxygen.fire = 0;
+    weapons.fire = 1;
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 1);
+    assert.ok(weapons.fire < 1);
+    assert.equal(kit.coldFires, true);
+
+    weapons.fire = 0;
+    oxygen.fire = 1;
+    kit.damage = 0;
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    assert.equal(kit.coldFires, undefined);
+    assert.equal(kit.path?.[kit.path.length - 1], oxygen.id);
+  });
+
+  it("an enemy repair drone keeps that same fire ignore after it is destroyed", () => {
+    const g = createGame(25);
+    place(g, 1);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    const start = enemy.rooms.find((room) => room.system && room.system !== "doors");
+    const dest = enemy.rooms.find((room) => room.system && room.id !== start?.id && room.system !== "doors");
+    const burn = enemy.rooms.find((room) => room.id !== start?.id && room.id !== dest?.id);
+    assert.ok(start && dest?.system && burn);
+    for (const door of enemy.doors) {
+      if (door.b !== "void") door.open = true;
+    }
+    const patch = unit({ id: "ed-cold", kind: "patch", hp: 1, room: start.id });
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+      damage: 1,
+      loadout: ["patch"],
+      drones: [patch],
+    };
+    enemy.parts = 3;
+    hurtRoomDrones(g, "enemy", start.id, 2);
+    assert.equal(patch.alive, false);
+    assert.equal(patch.coldFires, true);
+    patch.cool = 0;
+    enemy.systems[dest.system].damage = 1;
+    burn.fire = 1;
+    tickSwarm(g, 0.01);
+    assert.equal(patch.alive, true);
+    patch.room = start.id;
+    patch.path = [];
+    tickSwarm(g, 0.01);
+    assert.equal(patch.coldFires, true);
+    assert.equal(patch.path?.[patch.path.length - 1], dest.id);
+    assert.equal(burn.fire, 1);
+    enemy.kits.swarm.damage = 0;
+    patch.path = [];
+    patch.room = start.id;
+    tickSwarm(g, 0.01);
+    assert.equal(patch.coldFires, undefined);
+    assert.equal(patch.path?.[patch.path.length - 1], burn.id);
   });
 });
 

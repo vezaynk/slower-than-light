@@ -297,6 +297,11 @@ export type Kit = {
   ionT?: number;
   /** @agent:drones. Seconds until the player can redeploy after a drone was destroyed (swarm.ts REDEPLOY_S). */
   lost?: number;
+  /**
+   * System Repair Drone: set when that drone is destroyed. A redeploy ignores fires in other rooms
+   * until Drone Control has no damage. Absent means this deployment was not a rebuild.
+   */
+  coldFires?: boolean;
   /** Ion Intruder health while that schematic is deployed. Drone Control: "Health: 125 HP". */
   hp?: number;
   /**
@@ -372,6 +377,11 @@ export type DroneUnit = {
   home?: boolean;
   /** System Repair: saw a tick with no power, so the next powered tick reassesses. */
   hold?: boolean;
+  /**
+   * System Repair Drone: set when that drone is destroyed. A redeploy ignores fires in other rooms
+   * until Drone Control has no damage.
+   */
+  coldFires?: boolean;
   /** A blast door took damage since the last pulse. Consumed when the cooldown is skipped. */
   doorHit?: boolean;
   /** The door already counted for that skip. */

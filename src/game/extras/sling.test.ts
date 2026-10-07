@@ -189,4 +189,46 @@ describe("sling", () => {
     sendSling(g, "e-weapons");
     assert.equal(kit.cool, 15);
   });
+
+  it("resets the cooldown the moment the ship is not in danger", () => {
+    const g = createGame(1);
+    g.scrap = 200;
+    installSling(g);
+    const kit = kitOf(g);
+    kit.power = 1;
+    engage(g);
+    const ivo = g.crew.find((c) => c.id === "c-ivo");
+    assert.ok(ivo);
+    for (const c of g.crew) {
+      if (c !== ivo) c.hp = 0;
+    }
+    g.selected = ivo.id;
+    sendSling(g, "e-weapons");
+    assert.equal(kit.cool, 20);
+    tickSling(g, 5);
+    assert.equal(kit.cool, 15);
+
+    // Backup Battery's IN DANGER note: an asteroid field still counts, even off the combat phase.
+    g.phase = "map";
+    g.asteroid = true;
+    tickSling(g, 4);
+    assert.equal(kit.cool, 11);
+
+    g.asteroid = false;
+    g.pulsar = false;
+    g.flare = false;
+    g.asb = false;
+    const boarder = g.crew.find((c) => c.hp <= 0);
+    assert.ok(boarder);
+    boarder.hp = 40;
+    boarder.side = "enemy";
+    boarder.aboard = "player";
+    tickSling(g, 1);
+    assert.equal(kit.cool, 10);
+
+    boarder.hp = 0;
+    tickSling(g, 0);
+    assert.equal(kit.cool, 0);
+    assert.equal(g.log[0], "Teleporter is ready.");
+  });
 });

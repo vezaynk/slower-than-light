@@ -204,11 +204,36 @@ export function recallSling(g: Game) {
 }
 
 /**
+ * Backup Battery, Overview, the IN DANGER note: combat, being boarded, solar flares, pulsars,
+ * asteroid fields, and a hostile anti-ship battery.
+ * The Ship page's nebula and ion-storm banner is not that list.
+ */
+function shipInDanger(g: Game): boolean {
+  if (g.phase === "combat") return true;
+  if (g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0)) return true;
+  // INFERRED: g.asb is the hostile battery. The sim does not store a separate friendly battery.
+  return !!(g.asteroid || g.pulsar || g.flare || g.asb);
+}
+
+/**
+ * Crew Teleporter wiki, "Overview": "When your ship is not in danger, the cooldown is reset instantly."
+ * Only the player's teleporter. The enemy bullet list does not say this.
+ */
+export function relaxSling(g: Game) {
+  if (shipInDanger(g)) return;
+  const kit = sling(g);
+  if (!kit || kit.cool <= 0) return;
+  kit.cool = 0;
+  log(g, "Teleporter is ready.");
+}
+
+/**
  * Crew Teleporter wiki, "Overview": the system ionizes itself between uses.
- * "System Upgrades" sets that wait at 20, 15, or 10 seconds. This only counts the timer down.
- * The same heading says the cooldown resets instantly when the ship is not in danger; this tick does not do that.
+ * "System Upgrades" sets that wait at 20, 15, or 10 seconds. This only counts the timer down while in danger.
  */
 export function tickSling(g: Game, dt: number) {
+  relaxSling(g);
+  if (!shipInDanger(g)) return;
   const kit = sling(g);
   if (!kit || kit.cool <= 0) return;
   kit.cool -= dt;

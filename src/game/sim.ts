@@ -54,7 +54,7 @@ import {
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
-import { tickEnemyBoarding } from "./extras/sling.ts";
+import { relaxSling, tickEnemyBoarding } from "./extras/sling.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
@@ -4501,6 +4501,8 @@ function tickBoarding(g: Game, dt: number) {
 }
 
 export function step(g: Game, dt: number) {
+  // Crew Teleporter, Overview: the cooldown is already gone once the ship is not in danger.
+  relaxSling(g);
   g.trauma = Math.max(0, g.trauma - dt * 1.7);
   for (const f of g.floaters) f.life -= dt;
   g.floaters = g.floaters.filter((f) => f.life > 0);

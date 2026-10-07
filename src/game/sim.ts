@@ -563,6 +563,10 @@ function skillFight(g: Game): boolean {
 
 function noteDodge(g: Game) {
   if (!skillFight(g)) return;
+  // Crew skills, Piloting: "Skill is also not gained when your ship is cloaked."
+  // Engines is trained the same way, with those same limits. Shields does not say this.
+  const veil = g.player.kits.veil;
+  if (veil && veil.on && veil.left > 0 && veil.level > 0 && kitBars(veil) >= 1) return;
   const room = roomWith(g.player, "pilot");
   const pilot = g.crew.find(
     (c) => c.side === "player" && c.aboard === "player" && c.room === room?.id && c.hp > 0 && c.path.length === 0,

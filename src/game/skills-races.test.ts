@@ -258,6 +258,73 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
   });
 });
 
+describe("Crew skills, Piloting: a cloak does not train evasion", () => {
+  it("skips piloting and engines while cloaked, and still trains shields on a bubble hit", () => {
+    const g = createGame(6);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.power = 0;
+    g.enemy!.systems.engines.power = 0;
+    g.player.systems.shields.power = 2;
+    g.player.shieldNow = 1;
+    const ada = g.crew.find((c) => c.id === "c-ada");
+    const ivo = g.crew.find((c) => c.id === "c-ivo");
+    const nen = g.crew.find((c) => c.id === "c-nen");
+    assert.ok(ada && ivo && nen);
+    nen.room = "p-shields";
+    nen.path = [];
+    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    const poke = () => {
+      g.player.shieldNow = 1;
+      g.player.hull = g.player.hullMax;
+      g.shots.push({
+        id: "poke",
+        kind: "laser",
+        from: "enemy",
+        at: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: "p-shields",
+        wait: 0,
+        t: 0,
+        duration: 0.05,
+        label: "Pew",
+      });
+      step(g, 0.05);
+    };
+    let missed = false;
+    let hit = false;
+    for (let i = 0; i < 40 && !(missed && hit); i++) {
+      poke();
+      assert.equal(ada.skills?.pilot ?? 0, 0);
+      assert.equal(ivo.skills?.engines ?? 0, 0);
+      if (g.log[0] === "Shot missed the Lark.") missed = true;
+      else {
+        hit = true;
+        assert.ok((nen.skills?.shields ?? 0) > 0);
+      }
+    }
+    assert.equal(missed, true);
+    assert.equal(hit, true);
+
+    g.player.kits.veil.on = false;
+    g.player.kits.veil.left = 0;
+    g.player.systems.engines.level = 8;
+    g.player.systems.engines.power = 8;
+    let trained = false;
+    for (let i = 0; i < 40 && !trained; i++) {
+      poke();
+      if ((ada.skills?.pilot ?? 0) > 0 && (ivo.skills?.engines ?? 0) > 0) trained = true;
+    }
+    assert.equal(trained, true);
+  });
+});
+
 describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
   const pirateCls = ENEMY_CLASSES.find((c) => !!c.pirate || c.faction === "federation")!;
 

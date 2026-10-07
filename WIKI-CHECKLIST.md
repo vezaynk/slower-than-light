@@ -1071,7 +1071,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Research station with no response — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Resources — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Reverse Ion Field — partial — One copy gives a 50 percent chance to negate ion damage, and two or more stop every ion source including a pulsar. That protection also covers a Zoltan Shield. A resisted ion projectile still hits the room when regular shields are down. Purchase price 45 is on the catalog. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Rewards — partial — SCRAP_MEDIUM bands. Label INFERRED.
+- [ ] Rewards — partial — SCRAP_MEDIUM bands. Label INFERRED. A destroyed ship's default salvage is two low resources among fuel, missiles, and drone parts.
 - [ ] Robotic Warfare — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rock — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Rock Armoured Transport — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.

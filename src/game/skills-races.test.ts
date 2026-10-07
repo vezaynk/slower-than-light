@@ -1504,6 +1504,65 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
   });
 });
 
+describe("Crew skills, Piloting: an asteroid during the fight", () => {
+  it("trains piloting and engines when a rock is dodged in combat", () => {
+    // Crew skills, Piloting: "This includes asteroids, provided you are still in combat."
+    const g = createGame(64);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.level = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.pilot.damage = 0;
+    g.player.systems.shields.power = 2;
+    g.player.shieldNow = 1;
+    const ada = g.crew.find((c) => c.id === "c-ada")!;
+    const ivo = g.crew.find((c) => c.id === "c-ivo")!;
+    ada.room = "p-pilot";
+    ivo.room = "p-engines";
+    ada.path = [];
+    ivo.path = [];
+    ada.skills = {};
+    ivo.skills = {};
+    let misses = 0;
+    for (let i = 0; i < 40 && misses < 1; i++) {
+      const pilotBefore = ada.skills?.pilot ?? 0;
+      const enginesBefore = ivo.skills?.engines ?? 0;
+      g.player.shieldNow = 1;
+      g.player.hull = g.player.hullMax;
+      g.log.length = 0;
+      g.shots.push({
+        id: "rock-" + i,
+        kind: "laser",
+        from: "env",
+        at: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0.05,
+        targetRoom: "p-shields",
+        wait: 0,
+        t: 0,
+        duration: 0.05,
+        label: "Rock",
+      });
+      step(g, 0.05);
+      if (g.log[0] === "Shot missed the Lark.") {
+        misses++;
+        assert.equal((ada.skills?.pilot ?? 0) - pilotBefore, 1);
+        assert.equal((ivo.skills?.engines ?? 0) - enginesBefore, 1);
+      } else {
+        assert.equal(ada.skills?.pilot ?? 0, pilotBefore);
+        assert.equal(ivo.skills?.engines ?? 0, enginesBefore);
+      }
+    }
+    assert.equal(misses, 1);
+  });
+});
+
 describe("Crew skills, Shields: one point per bubble hit", () => {
   it("grants one shields point when a shot depletes the bubble, and none when it misses", () => {
     // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".

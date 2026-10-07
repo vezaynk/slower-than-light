@@ -112,13 +112,18 @@ function givinHerAll(g: Game): boolean {
 }
 
 /**
- * @agent:unlocks. "Manpower" — "Get to sector 5 without upgrading your reactor in the Zoltan Cruiser." INFERRED: reactor at
- * or below the layout's start. The page exempts event reactor upgrades; the run does not tell those apart, so one
- * blocks it here.
+ * Manpower: "Get to sector 5 without upgrading your reactor in the Zoltan Cruiser."
+ * "Events which feature offers to upgrade your reactor, advertised or not, do not count against this achievement."
+ * The upgrades tab is sim.ts upgrade. reactorEvent is the bars those offers added.
  */
+export function noteReactorEvent(g: Game): void {
+  g.reactorEvent = (g.reactorEvent ?? 0) + 1;
+}
+
 function manpower(g: Game): boolean {
   const hull = flying(g, "Zoltan Cruiser");
-  return !!hull && g.sector >= 5 && g.player.reactor <= hull.reactor;
+  if (!hull || g.sector < 5) return false;
+  return g.player.reactor - (g.reactorEvent ?? 0) <= hull.reactor;
 }
 
 /**

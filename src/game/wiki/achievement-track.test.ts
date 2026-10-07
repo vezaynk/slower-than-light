@@ -8,6 +8,7 @@ import {
   earnedIds,
   earnedNow,
   isTracked,
+  noteReactorEvent,
   noteRun,
   resetAchievementMemory,
   untrackedIds,
@@ -124,6 +125,17 @@ describe("achievement tracker", () => {
     assert.ok(earnedNow(fleet).includes("your-own-fleet"));
     assert.ok(earnedNow(fleet).includes("federation-victory-easy"));
     assert.equal(earnedNow(fleet).includes("federation-victory-normal"), false);
+  });
+
+  it("Manpower ignores an event reactor bar and counts an upgrades-tab bar", () => {
+    const g = createGame(1, "zoltan-a");
+    g.sector = 5;
+    assert.equal(earnedNow(g).includes("manpower"), true);
+    g.player.reactor += 1;
+    noteReactorEvent(g);
+    assert.equal(earnedNow(g).includes("manpower"), true);
+    g.player.reactor += 1;
+    assert.equal(earnedNow(g).includes("manpower"), false);
   });
 
   it("marks every other named achievement as not tracked", () => {

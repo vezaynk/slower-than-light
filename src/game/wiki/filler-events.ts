@@ -21,6 +21,7 @@ import {
   type SurrenderTier,
 } from "./surrender.ts";
 // Circular imports (beacon-mix -> here -> cited-events -> beacon-mix): only read inside functions, never at load.
+import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
 
@@ -1186,6 +1187,8 @@ function chooseRolled(g: Game, id: string): boolean {
       let note = "Could not upgrade the Reactor, it's maxed";
       if (upgradeCost("reactor", g.player.reactor) != null) {
         g.player.reactor += 1;
+        // Manpower: an event offer to upgrade the reactor does not count against the achievement.
+        noteReactorEvent(g);
         note = `Reactor ${g.player.reactor}.`;
       }
       show(g, "You give them the fuel. \"Thank you. Perhaps as payment our engineer can try to optimize your ship's reactor output?\"", undefined, [note]);

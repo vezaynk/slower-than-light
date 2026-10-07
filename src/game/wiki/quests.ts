@@ -34,6 +34,7 @@ import { xpNeedFor } from "../extras/lineage.ts";
 import { beginBoarding, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
+import { noteReactorEvent } from "./achievement-track.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
@@ -324,6 +325,8 @@ function arriveEscort(g: Game) {
     let note = "Could not upgrade the Reactor, it's maxed";
     if (upgradeCost("reactor", g.player.reactor) != null) {
       g.player.reactor += 1;
+      // Manpower: an event offer to upgrade the reactor does not count against the achievement.
+      noteReactorEvent(g);
       note = `Reactor ${g.player.reactor}.`;
     }
     result(g, "You arrive and the ship you were escorting jumps in behind you. \"Thanks for the help. We work at a nearby fusion power plant, we could try to improve your reactor's output as a form of compensation.\"", undefined, [note]);

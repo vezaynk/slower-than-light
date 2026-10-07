@@ -749,6 +749,11 @@ export type Game = {
   difficulty: Difficulty;
   /** Score page: scrap gained during the run. Starting scrap is not included. */
   scrapCollected: number;
+  /**
+   * Manpower: event offers that upgrade the reactor do not count against the achievement.
+   * Bars added by those offers. Absent means none. The upgrades tab does not add to this.
+   */
+  reactorEvent?: number;
   /** Score page: beacons visited. The starting beacon counts. */
   beaconsVisited: number;
   /** Sectors page chart. Empty until the exit beacon opens it. */

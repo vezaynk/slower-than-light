@@ -47,7 +47,7 @@ import { citedPagesFor } from "./cited-events.ts";
  * pages no cited table has, in the cited-events-surrender.ts table format. They are not stamped by sector (no import
  * into cited-events.ts); their choices run in FILLER_CHOICES because most results are random (equal odds, INFERRED,
  * with {{DuplicateEvent|N}} counted N times) or open a follow-up card. Blue options, crew skills, drone schematics,
- * fires, breaches and map reveals are not granted, as in the other tables.
+ * breaches, and map reveals are not granted, as in the other tables. A result that prints fires applies them.
  */
 
 export type FillerRow = { dest: string; unique: boolean };
@@ -723,6 +723,27 @@ function hurtRandomSystem(g: Game): string {
   return `System damage: ${id}.`;
 }
 
+/**
+ * Large asteroid field: "1 damage with 1-2 fires to a random room."
+ * INFERRED: every player room is equally likely. The 1 damage hits that room's system when it has a bar left.
+ * A systemless room still burns. The page prints 1-2 fires and not the odds. The second fire is a coin flip,
+ * the same as Fire Bomb.
+ */
+function rockFires(g: Game): string {
+  const rooms = g.player.rooms;
+  if (!rooms.length) return "";
+  const r = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
+  const sys = r.system ? g.player.systems[r.system] : undefined;
+  let bar = "";
+  if (sys && sys.level > 0 && sys.damage < sys.level) {
+    hurtSystem(g.player, r.system!, 1);
+    bar = `1 damage to ${r.system}.`;
+  }
+  const n = 1 + (rand(g) < 0.5 ? 1 : 0);
+  r.fire = Math.min(3, r.fire + n);
+  return [bar, `${n === 1 ? "1 fire" : "2 fires"} in ${r.title}.`].filter(Boolean).join(" ");
+}
+
 /** "You lose a crewmember." Clone Bay: "The lost crewmember is revived" unless `noClone`. INFERRED: never the last one. */
 function loseCrew(g: Game, noClone = false): string {
   if (!noClone && g.player.kits.cradle) return "The lost crewmember is revived.";
@@ -809,9 +830,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     else if (r === "parts") show(g, "You happen upon an abandoned mining site. A few mining drones were left behind and could be repurposed.", resource(g, "parts", [1, 1], "medium"));
     else if (r === "pirate") fight(g, "A pirate ship hiding behind one of the larger asteroids attacks you!", "Pirate ship", "large-asteroid-field", { asteroid: true });
     else if (r === "rocks") {
-      // "5 hull damage, 1 damage to a random system, 1 damage with 1-2 fires to a random room." Fires are not wired.
+      // Large asteroid field: "5 hull damage, 1 damage to a random system, 1 damage with 1-2 fires to a random room."
       if (hurt(g, 5)) return;
-      show(g, "The asteroid field proved more dangerous than expected. Some asteroids managed to get through your ship's defenses.", undefined, ["Hull damage: 5.", hurtRandomSystem(g)]);
+      show(g, "The asteroid field proved more dangerous than expected. Some asteroids managed to get through your ship's defenses.", undefined, ["Hull damage: 5.", hurtRandomSystem(g), rockFires(g)]);
     } else show(g, "A brief exploration yields nothing of interest.");
   },
   "c:large-asteroid-field:1": done,

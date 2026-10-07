@@ -646,6 +646,17 @@ export type Game = {
   asbPhase: "warn" | "shot";
   /** Seconds the current phase runs. 0 until that battery is armed. */
   asbWait: number;
+  /**
+   * Environmental Hazards, ==Pulsar==. True when the fight's event page sets pulsar=true.
+   * Absent on a save from before that clock, which is the same as off.
+   */
+  pulsar?: boolean;
+  /** Seconds into the current 11–18s pulsar cycle. */
+  pulsarT?: number;
+  /** Length of the current cycle. The warning is the last 5 seconds. 0 until armed. */
+  pulsarWait?: number;
+  /** True after this cycle's warning has been logged. */
+  pulsarWarned?: boolean;
   boardTimer: number;
   bossSurge: number;
   /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */

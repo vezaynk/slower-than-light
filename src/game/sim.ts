@@ -104,6 +104,14 @@ import {
   citedSector,
   lastStandRepairEvent,
 } from "./wiki/cited-sectors.ts";
+import {
+  eventHasPulsar,
+  pickPulsarTargets,
+  PULSAR_WARN_S,
+  pulsarCycleSeconds,
+  pulsarMainIon,
+  pulsarShieldSpend,
+} from "./wiki/cited-pulsar.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
@@ -2542,6 +2550,86 @@ function armAsbClock(g: Game, phase: "warn" | "shot") {
   g.asbWait = phase === "warn" ? 15 + rand(g) * 5 : 5 + rand(g) * 5;
 }
 
+function armPulsar(g: Game) {
+  g.pulsarT = 0;
+  g.pulsarWarned = false;
+  g.pulsarWait = pulsarCycleSeconds(rand(g));
+}
+
+/**
+ * Environmental Hazards, Pulsar: main systems use 1 + 0.5(power), rounded down.
+ * Power includes a Zoltan bar. Subsystems use their level. Door System, Manning:
+ * a body counts as one level higher, so a level-2 door with a body is the page's
+ * "level 3 doors ... take 3". Pilot and sensors have no printed manning level.
+ */
+export function pulsarSystemIon(g: Game, ship: Ship, aboard: "player" | "enemy", id: SysId): number {
+  const sys = ship.systems[id];
+  if (sys.level <= 0) return 0;
+  if (!isMain(id)) {
+    if (id === "doors") return doorLevel(g, ship, aboard);
+    return Math.max(0, sys.level - sys.damage);
+  }
+  return pulsarMainIon(bars(sys, zoltanBars(g.crew, ship, aboard, id)));
+}
+
+function pulsarShieldsPowered(g: Game, ship: Ship, aboard: "player" | "enemy"): boolean {
+  return bars(ship.systems.shields, zoltanBars(g.crew, ship, aboard, "shields")) > 0;
+}
+
+/** One pulsar pulse against both hulls. Zoltan Shield, lead, and Environmental Hazards, Pulsar. */
+export function applyPulsarPulse(g: Game) {
+  hitPulsar(g, g.player, "player");
+  if (g.enemy) hitPulsar(g, g.enemy, "enemy");
+}
+
+function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
+  const installed = ship.systems.shields.level > 0;
+  const bubble = ship.zoltan ?? 0;
+  // Zoltan Shield, lead: one layer blocks the pulse. A ship with no Shields system ignores the bubble.
+  // Reverse Ion Field is not applied.
+  if (installed && bubble > 0) {
+    const spend = pulsarShieldSpend(rand(g));
+    ship.zoltan = Math.max(0, bubble - spend);
+    log(
+      g,
+      aboard === "player"
+        ? `The pulsar drains the Zoltan Shield to ${ship.zoltan}.`
+        : `The pulsar drains their Zoltan Shield to ${ship.zoltan}.`,
+    );
+    return;
+  }
+  const picks = pickPulsarTargets(
+    ALL_SYS.map((id) => ({
+      id,
+      points: pulsarSystemIon(g, ship, aboard, id),
+      powered: id === "shields" && pulsarShieldsPowered(g, ship, aboard),
+    })),
+    () => rand(g),
+  );
+  if (picks.length === 0) return;
+  const bonus = zoltanBars(g.crew, ship, aboard, "shields");
+  for (const hit of picks) applyIon(ship, hit.id, hit.points, bonus);
+  const names = picks.map((hit) => roomWith(ship, hit.id)?.title ?? hit.id).join(" and ");
+  log(g, aboard === "player" ? `The pulsar ionizes ${names}.` : `The pulsar ionizes their ${names}.`);
+}
+
+function tickPulsar(g: Game, dt: number) {
+  if (!g.pulsar) return;
+  if (!((g.pulsarWait ?? 0) > 0)) armPulsar(g);
+  g.pulsarT = (g.pulsarT ?? 0) + dt;
+  const wait = g.pulsarWait ?? 0;
+  if (!g.pulsarWarned && g.pulsarT >= wait - PULSAR_WARN_S) {
+    g.pulsarWarned = true;
+    // Environmental Hazards, Pulsar: the danger line is the warning.
+    log(g, "Periodic waves of electromagnetic energy will disrupt your systems.");
+    sfx(g, "alarm");
+  }
+  if (g.pulsarT >= wait) {
+    applyPulsarPulse(g);
+    armPulsar(g);
+  }
+}
+
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
     g.asteroidT += dt;
@@ -2603,6 +2691,7 @@ function environment(g: Game, dt: number) {
       }
     }
   }
+  tickPulsar(g, dt);
 }
 
 function bossThink(g: Game, dt: number) {
@@ -2754,6 +2843,7 @@ function winCombat(g: Game) {
   g.shots = [];
   g.asteroid = false;
   g.asb = false;
+  g.pulsar = false;
   g.boardTimer = 0;
   if (boss) {
     g.phase = "victory";
@@ -3064,6 +3154,12 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.asbT = 0;
   g.asbWait = 0;
   if (g.asb) armAsbClock(g, "warn");
+  // Pirate / Rebel / Lanius fight near pulsar: Locations pulsar=true. Other fights stay quiet.
+  g.pulsar = eventHasPulsar(event);
+  g.pulsarT = 0;
+  g.pulsarWarned = false;
+  g.pulsarWait = 0;
+  if (g.pulsar) armPulsar(g);
   // INFERRED: a hull with a Crew Teleporter boards 9 seconds in.
   g.boardTimer = built.ship.boards ? 9 : 0;
   // @agent:flagship. A resumed boss fight starts at the remembered stage, with a fresh 20–30 s surge wait.
@@ -3110,6 +3206,7 @@ export function beginBoarding(g: Game, asb = false) {
   g.asbT = 0;
   g.asbWait = 0;
   if (asb) armAsbClock(g, "warn");
+  g.pulsar = false;
   const b = g.beacons.find((x) => x.id === g.here);
   if (b && b.kind !== "boss") b.resolved = true;
   sfx(g, "alarm");
@@ -3479,6 +3576,10 @@ export function createGame(
     asbT: 0,
     asbPhase: "warn",
     asbWait: 0,
+    pulsar: false,
+    pulsarT: 0,
+    pulsarWait: 0,
+    pulsarWarned: false,
     boardTimer: 0,
     bossSurge: 0,
     ramStage: 1,
@@ -3568,6 +3669,7 @@ export function commitJump(g: Game, id: string) {
   g.crew = g.crew.filter((c) => c.side === "player");
   g.asteroid = false;
   g.asb = false;
+  g.pulsar = false;
   armDoors(g.player, doorLevel(g, g.player, "player"));
   // Rebel Fleet: a beacon the column has already taken is a Rebel Elite. Sector 8 is not this column.
   if (g.sector < 8 && dest.col < g.fleet && !dest.resolved) {
@@ -3928,6 +4030,7 @@ export function enterHiddenCrystal(g: Game) {
   g.shots = [];
   g.asteroid = false;
   g.asb = false;
+  g.pulsar = false;
   armDoors(g.player, doorLevel(g, g.player, "player"));
   makeMap(g);
   g.sectorName = "Hidden Crystal Worlds";
@@ -4313,6 +4416,7 @@ export function step(g: Game, dt: number) {
     g.phase = "map";
     g.asteroid = false;
     g.asb = false;
+    g.pulsar = false;
     // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
     pageGotAway(g, g.fightEvent);
   }

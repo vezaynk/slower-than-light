@@ -703,8 +703,11 @@ function clearShieldHalf(g: Game): void {
  * Slug hacker (oxygen): "Fight a Slug ship with your Oxygen system offline."
  * INFERRED: offline oxygen produces nothing, so rooms use the unpowered drain. The installed level stays.
  * A Zoltan in the room does not keep production going. The cut ends when that fight ends.
+ * Slug hacker (medical): "Medbay / Clone Bay offline."
+ * INFERRED: the medbay room stops healing, and the clone bay does not queue, revive, or jump-heal.
+ * The installed levels stay. Copies already queued are kept. The cut ends when that fight ends.
  */
-const systemOff = new WeakMap<Game, Set<"doors" | "oxygen">>();
+const systemOff = new WeakMap<Game, Set<"doors" | "oxygen" | "medbay">>();
 
 export function shutPlayerDoors(g: Game): void {
   systemOff.set(g, new Set(["doors"]));
@@ -718,6 +721,11 @@ export function shutPlayerOxygen(g: Game): void {
   systemOff.set(g, new Set(["oxygen"]));
 }
 
+/** Slug hacker (medical): one shutdown covers "Medbay / Clone Bay offline." */
+export function shutPlayerMedical(g: Game): void {
+  systemOff.set(g, new Set(["medbay"]));
+}
+
 function clearSystemOff(g: Game): void {
   systemOff.delete(g);
 }
@@ -728,6 +736,11 @@ function doorsOff(g: Game, aboard: "player" | "enemy"): boolean {
 
 function oxygenOff(g: Game, aboard: "player" | "enemy"): boolean {
   return aboard === "player" && (systemOff.get(g)?.has("oxygen") ?? false);
+}
+
+/** Slug hacker (medical) reads this from the clone bay as well as the medbay room. */
+export function playerMedicalOff(g: Game): boolean {
+  return systemOff.get(g)?.has("medbay") ?? false;
 }
 
 function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
@@ -3128,7 +3141,14 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // Medbay page: level 1 equals the suffocation rate, so an airless level 1 bay negates a full-rate human
     // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
     // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.
-    if (mainBars(g, ship, aboard, "medbay") > 0 && r.system === "medbay" && r.fire <= 0 && foes.length === 0) {
+    // Slug hacker (medical): "Medbay / Clone Bay offline". The enemy medbay still heals.
+    if (
+      mainBars(g, ship, aboard, "medbay") > 0 &&
+      r.system === "medbay" &&
+      r.fire <= 0 &&
+      foes.length === 0 &&
+      !(aboard === "player" && playerMedicalOff(g))
+    ) {
       const powered = mainBars(g, ship, aboard, "medbay");
       const rate = powered >= 3 ? 19.2 : powered >= 2 ? 9.6 : 6.4;
       for (const c of pals) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
@@ -4825,6 +4845,8 @@ export function choose(g: Game, id: string) {
               const offline = citedSystemOff(id);
               if (offline?.includes("doors")) shutPlayerDoors(g);
               if (offline?.includes("oxygen")) shutPlayerOxygen(g);
+              // Slug hacker (medical): "Medbay / Clone Bay offline". Boarders named on the page are not spawned.
+              if (offline?.includes("medbay")) shutPlayerMedical(g);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),

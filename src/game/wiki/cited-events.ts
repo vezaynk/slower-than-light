@@ -51,10 +51,12 @@ export function citedShieldHalf(id: string): boolean {
 /**
  * Slug hacker (doors): "Fight a Slug ship with your Door System offline."
  * Slug hacker (oxygen): "Fight a Slug ship with your Oxygen system offline."
+ * Slug hacker (medical): "Medbay / Clone Bay offline."
  */
-export function citedSystemOff(id: string): Array<"doors" | "oxygen"> | null {
+export function citedSystemOff(id: string): Array<"doors" | "oxygen" | "medbay"> | null {
   if (id === "c:slug-hacker-doors:0") return ["doors"];
   if (id === "c:slug-hacker-oxygen:0") return ["oxygen"];
+  if (id === "c:slug-hacker-medical:0") return ["medbay"];
   return null;
 }
 
@@ -2971,10 +2973,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Slug ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system shutdown is not applied."
           },
           {
             "k": "note",

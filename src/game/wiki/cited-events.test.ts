@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
 import { choose, chooseSector, commitJump, createGame, doorLevel, evasionPercent, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
+import { onCradleDeath } from "../extras/cradle.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
 
 function beacon(name: string, flag = ""): Beacon {
@@ -475,5 +476,74 @@ describe("Slug hacker (oxygen)", () => {
     step(g, 0.05);
     const gained = again.o2 - held;
     assert.ok(gained > 0.2 && gained < 0.3, String(gained));
+  });
+});
+
+describe("Slug hacker (medical)", () => {
+  it("takes the Medbay and Clone Bay offline until that fight ends", () => {
+    const g = createGame(81);
+    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-medical", "Slug hacker (medical)");
+    g.player.systems.medbay.level = 3;
+    g.player.systems.medbay.power = 3;
+    g.player.systems.medbay.damage = 0;
+    g.player.systems.medbay.ion = [];
+    g.player.kits.cradle = {
+      id: "cradle",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
+    const bay = g.player.rooms.find((r) => r.system === "medbay");
+    assert.ok(bay);
+    const patient = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(patient);
+    patient.room = bay.id;
+    patient.aboard = "player";
+    patient.path = [];
+    patient.hp = Math.max(1, patient.maxHp - 20);
+    bay.fire = 0;
+    bay.o2 = 100;
+    const crewBefore = g.crew.filter((c) => c.side === "player").length;
+    choose(g, "c:slug-hacker-medical:0");
+    assert.equal(g.phase, "combat");
+    quietEnemy(g);
+    assert.ok(g.enemy);
+    for (const kit of Object.values(g.enemy.kits)) {
+      if (!kit) continue;
+      kit.power = 0;
+      kit.on = false;
+    }
+    assert.equal(g.player.systems.medbay.level, 3);
+    assert.equal(g.crew.filter((c) => c.side === "player").length, crewBefore);
+    patient.room = bay.id;
+    patient.path = [];
+    const hurt = patient.hp;
+    step(g, 0.05);
+    assert.equal(patient.hp, hurt);
+    patient.hp = 0;
+    assert.equal(onCradleDeath(g, patient), false);
+    assert.equal(patient.cloneIn, undefined);
+    patient.hp = patient.maxHp;
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    startCombat(g, "scout");
+    quietEnemy(g);
+    patient.room = bay.id;
+    patient.aboard = "player";
+    patient.path = [];
+    patient.hp = Math.max(1, patient.maxHp - 20);
+    bay.fire = 0;
+    bay.o2 = 100;
+    const held = patient.hp;
+    step(g, 0.05);
+    assert.ok(patient.hp > held);
+    patient.hp = 0;
+    assert.equal(onCradleDeath(g, patient), true);
+    assert.ok((patient.cloneIn ?? 0) > 0);
   });
 });

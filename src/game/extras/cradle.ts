@@ -1,4 +1,4 @@
-import { kitBars, log, sparePower } from "../sim.ts";
+import { kitBars, log, playerMedicalOff, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { helixHolds } from "./moreaugs.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -123,6 +123,8 @@ function playerQueued(g: Game): Crew[] {
 export function onCradleDeath(g: Game, crew: Crew): boolean {
   if (crew.side === "enemy") return onEnemyCradleDeath(g, crew);
   if (crew.side !== "player") return false;
+  // Slug hacker (medical): "Clone Bay offline". A death during that fight does not enter the queue.
+  if (playerMedicalOff(g)) return false;
   const kit = poweredCradle(g);
   if (!kit) return false;
   if ((crew.cloneIn ?? 0) > 0) return true;
@@ -164,6 +166,9 @@ export function tickCradle(g: Game, dt: number) {
   tickEnemyCradle(g, dt);
   const kit = g.player.kits.cradle;
   if (!kit) return;
+  // Slug hacker (medical): "Clone Bay offline".
+  // INFERRED: the queue pauses. The 3-second copy loss is the unpowered bay on the Clone Bay page, not this fight.
+  if (playerMedicalOff(g)) return;
   const queued = playerQueued(g);
   // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Clone Bay: disables the clone bay. (Backup DNA Bank
   // augmentation protects your crew from being erased)". INFERRED: disabled = offline for the pulse, so the queue stops
@@ -205,6 +210,8 @@ export function tickCradle(g: Game, dt: number) {
 export function onCradleJump(g: Game) {
   const kit = g.player.kits.cradle;
   if (!kit || kit.level <= 0) return;
+  // Slug hacker (medical): "Clone Bay offline". INFERRED: the passive jump heal waits too.
+  if (playerMedicalOff(g)) return;
   if (cradleDestroyed(kit)) return;
   const heal = JUMP_HEAL[kit.level];
   if (heal == null) return;

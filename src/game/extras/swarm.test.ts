@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { onPlayerJump } from "./index.ts";
 import { applyImpact, COATED_DOOR_HITS, createGame, startCombat } from "../sim.ts";
 import { COMBAT1_SPEED, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Shot } from "../types.ts";
@@ -501,6 +502,41 @@ describe("swarm", () => {
     off.power = 2;
     assert.equal(deploy(dropped, "hull"), true);
     assert.equal(dropped.player.parts, parts - 1);
+  });
+
+  it("returns the drone part when you jump after two Hull Repair points, and not after it breaks apart", () => {
+    const g = createGame(24);
+    place(g, 2);
+    g.player.hull = 4;
+    g.augments = ["recover"];
+    assert.equal(deploy(g, "hull"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    kit.left = 5;
+    kit.aux = 0;
+    tickSwarm(g, 6);
+    assert.equal(g.player.hull, 6);
+    assert.equal(kit.on, true);
+    assert.equal(g.player.parts, 1);
+    onPlayerJump(g);
+    assert.equal(g.player.parts, 2);
+    assert.equal(kit.on, false);
+
+    const done = createGame(25);
+    place(done, 2);
+    done.player.hull = 4;
+    done.augments = ["recover"];
+    assert.equal(deploy(done, "hull"), true);
+    const dead = done.player.kits.swarm;
+    assert.ok(dead);
+    dead.left = 3;
+    dead.aux = 0;
+    tickSwarm(done, 9);
+    assert.equal(done.player.hull, 7);
+    assert.equal(dead.on, false);
+    assert.equal(done.player.parts, 1);
+    onPlayerJump(done);
+    assert.equal(done.player.parts, 1);
   });
 
   it("sticks to the system it was standing in when power returns, then walks home", () => {

@@ -449,6 +449,12 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
       return;
     }
     kit.aux -= BEAM_INTERVAL_S;
+    // Zoltan Shield: Anti-Ship Beam Drone I deals 1 to the bubble. That swipe does not also cut the hull.
+    if ((enemy.zoltan ?? 0) > 0) {
+      enemy.zoltan = Math.max(0, (enemy.zoltan ?? 0) - SWIPE_ZOLTAN.beam);
+      log(g, `Your beam drone drains the Zoltan Shield to ${enemy.zoltan}.`);
+      continue;
+    }
     // Drone Control, Anti-Ship Beam Drone I: "the beam cannot penetrate shields at all".
     // Combat Drones (offensive drones): a swipe started while shields are up
     // deals no hull/system damage to that room.

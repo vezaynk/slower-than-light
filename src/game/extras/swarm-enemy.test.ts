@@ -225,6 +225,26 @@ describe("enemy offensive drones", () => {
     assert.ok(down.player.hull < before);
   });
 
+  it("beam, beam II, and the fire drone spend 1, 2, and 1 Zoltan Shield layers", () => {
+    const spend = (kind: string, left: number) => {
+      const g = quiet(26);
+      g.player.zoltan = 4;
+      g.player.shieldNow = 0;
+      fleet(g, [kind], 4);
+      const hull = g.player.hull;
+      tickSwarm(g, 0.05);
+      const unit = units(g)[0];
+      // One swipe. aux sits on that drone's interval, and the next tick crosses it once.
+      unit.aux = kind === "beam2" ? 3 * (15 / 11) : kind === "fire" ? 3 * (15 / 12) : 3;
+      tickSwarm(g, 0.05);
+      assert.equal(g.player.zoltan, left, kind);
+      assert.equal(g.player.hull, hull, kind);
+    };
+    spend("beam", 3);
+    spend("beam2", 2);
+    spend("fire", 3);
+  });
+
   it("stops when their Drone Control is destroyed, and repowers after repair without a part", () => {
     const g = quiet(7);
     const kit = fleet(g, ["striker"], 2, 4);

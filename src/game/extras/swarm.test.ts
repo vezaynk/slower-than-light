@@ -221,6 +221,25 @@ describe("swarm", () => {
     assert.ok(fires === 0 || fires === 1);
   });
 
+  it("a player beam drone spends one Zoltan Shield layer and does not cut hull on that swipe", () => {
+    const g = createGame(11);
+    place(g);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    g.enemy.zoltan = 2;
+    g.enemy.shieldNow = 0;
+    assert.equal(deploy(g, "beam"), true);
+    const hull = g.enemy.hull;
+    tickSwarm(g, 3);
+    assert.equal(g.enemy.zoltan, 1);
+    assert.equal(g.enemy.hull, hull);
+    tickSwarm(g, 3);
+    assert.equal(g.enemy.zoltan, 0);
+    assert.equal(g.enemy.hull, hull);
+    tickSwarm(g, 3);
+    assert.equal(g.enemy.hull, hull - 1);
+  });
+
   it("beam fire lands on some swipes and not others", () => {
     const g = createGame(11);
     place(g);

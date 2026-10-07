@@ -55,7 +55,7 @@ import {
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
-import { relaxSling, tickEnemyBoarding } from "./extras/sling.ts";
+import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
@@ -4443,6 +4443,10 @@ export function waitHere(g: Game) {
 }
 
 export function upgrade(g: Game, id: SysId | "reactor") {
+  // Ship, Reactor power: the upgrade menu is available when the ship is not IN DANGER.
+  // Environmental Hazards: a solar flare, an asteroid field, a pulsar, or an enemy anti-ship battery keeps it closed.
+  // Backup Battery: combat and boarders are that same screen. A nebula or an ion storm is not, with no fight and no boarders.
+  if (shipInDanger(g)) return;
   if (id === "reactor") {
     const cost = upgradeCost("reactor", g.player.reactor);
     if (cost == null || g.scrap < cost) return;
@@ -4578,6 +4582,9 @@ function tickBoarding(g: Game, dt: number) {
 }
 
 export function step(g: Game, dt: number) {
+  // Environmental Hazards: IN DANGER prevents opening the ship info screen.
+  // INFERRED: a screen already open closes when that danger starts. The page does not say it stays up.
+  if (shipInDanger(g)) g.shipSheet = false;
   // Crew Teleporter, Overview: the cooldown is already gone once the ship is not in danger.
   relaxSling(g);
   g.trauma = Math.max(0, g.trauma - dt * 1.7);

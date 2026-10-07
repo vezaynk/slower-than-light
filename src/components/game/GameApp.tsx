@@ -11,6 +11,7 @@ import {
 import { CATALOG } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
+import { shipInDanger } from "@/game/extras/sling";
 import { reorderDroneSlots } from "@/game/extras/swarm";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
@@ -408,6 +409,8 @@ function Hud({ game }: { game: Game }) {
   const spool = ftlSeconds(game, game.player);
   const charging = game.phase === "combat" && game.flee < 1;
   const ready = game.phase === "combat" && game.flee >= 1 && !game.picking;
+  // Environmental Hazards / Ship / Backup Battery: IN DANGER keeps the ship info screen closed.
+  const infoLocked = shipInDanger(game);
   return (
     <header className="hud">
       <div className="hud-left">
@@ -483,16 +486,29 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className="frame-btn"
           aria-label={game.picking ? "Back to the ship" : "Ship"}
+          title={infoLocked && !game.picking ? "In danger" : undefined}
+          disabled={infoLocked && !game.picking}
           onClick={() =>
             act((g) => {
               if (g.picking) g.picking = false;
-              else g.shipSheet = true;
+              else if (!shipInDanger(g)) g.shipSheet = true;
             })
           }
         >
           <PixelIcon name="ship" size={20} />
         </button>
-        <button type="button" className="frame-btn" aria-label="Upgrades" onClick={() => act((g) => { g.shipSheet = true; })}>
+        <button
+          type="button"
+          className="frame-btn"
+          aria-label="Upgrades"
+          title={infoLocked ? "In danger" : undefined}
+          disabled={infoLocked}
+          onClick={() =>
+            act((g) => {
+              if (!shipInDanger(g)) g.shipSheet = true;
+            })
+          }
+        >
           <PixelIcon name="upgrade" size={20} />
         </button>
         <FullscreenButton />

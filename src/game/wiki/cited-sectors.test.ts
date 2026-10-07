@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { SECTOR_NAMES } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, runScore, startCombat, step, waitHere } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, runScore, startCombat, step, upgrade, waitHere } from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
 import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
 
@@ -334,6 +334,62 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.equal(g.log[0], "The Fleet's Anti-Ship Batteries are targeting you.");
     assert.ok(g.asbWait >= 5 && g.asbWait < 10);
     assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
+  });
+});
+
+describe("ship info screen while in danger", () => {
+  it("refuses a reactor upgrade in a fight, a hazard, or with boarders, and still allows a storm", () => {
+    const g = createGame(3);
+    g.scrap = 200;
+    g.player.reactor = 8;
+    g.player.systems.engines.level = 1;
+    upgrade(g, "reactor");
+    assert.equal(g.player.reactor, 9);
+    assert.equal(g.scrap, 180);
+
+    const refuse = () => {
+      const scrap = g.scrap;
+      const reactor = g.player.reactor;
+      const engines = g.player.systems.engines.level;
+      upgrade(g, "reactor");
+      upgrade(g, "engines");
+      assert.equal(g.player.reactor, reactor);
+      assert.equal(g.player.systems.engines.level, engines);
+      assert.equal(g.scrap, scrap);
+    };
+
+    g.phase = "combat";
+    refuse();
+    g.shipSheet = true;
+    step(g, 0.05);
+    assert.equal(g.shipSheet, false);
+    g.phase = "map";
+
+    g.player.storm = true;
+    g.shipSheet = true;
+    upgrade(g, "reactor");
+    step(g, 0.05);
+    assert.equal(g.player.reactor, 10);
+    assert.equal(g.shipSheet, true);
+    g.player.storm = undefined;
+
+    for (const flag of ["asteroid", "pulsar", "flare", "asb"] as const) {
+      g[flag] = true;
+      g.shipSheet = true;
+      refuse();
+      step(g, 0.05);
+      assert.equal(g.shipSheet, false);
+      g[flag] = false;
+    }
+
+    const mate = g.crew.find((c) => c.side === "player");
+    assert.ok(mate);
+    g.crew.push({ ...mate, id: "boarder", side: "enemy", aboard: "player", hp: 10 });
+    g.shipSheet = true;
+    refuse();
+    // The boarder is not stepped: that fight can spend hull. The screen still closes.
+    step(g, 0);
+    assert.equal(g.shipSheet, false);
   });
 });
 

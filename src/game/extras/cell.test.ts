@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { applyImpact, applyPulsarPulse, createGame, settleZoltanPower, sparePower, syncIonStorm, upgrade, waitHere } from "../sim.ts";
 import { stormReactor } from "../wiki/cited-sectors.ts";
 import { seatKits } from "../layouts.ts";
-import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
+import { batteryPaint, batterySpareBars, cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
 import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
@@ -440,6 +440,31 @@ describe("cell", () => {
     syncIonStorm(g);
     assert.equal(g.player.storm, undefined);
     assert.equal(sparePower(g.player), 5 + 2 - 3);
+  });
+
+  it("marks bonus bars after the regular reactor bars", () => {
+    const g = createGame(21);
+    g.player.reactor = 5;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    g.player.systems.weapons.power = 5;
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    assert.equal(batterySpareBars(g.player), 2);
+    assert.equal(batteryPaint(g.player).systems.weapons, undefined);
+
+    g.player.systems.engines.power = 2;
+    const paint = batteryPaint(g.player);
+    assert.equal(batterySpareBars(g.player), 0);
+    assert.equal(paint.systems.weapons, 2);
+    assert.equal(paint.systems.engines, undefined);
+
+    g.player.systems.weapons.power = 1;
+    g.player.systems.engines.power = 2;
+    g.player.reactor = 1;
+    const split = batteryPaint(g.player);
+    assert.equal(split.systems.weapons, 1);
+    assert.equal(split.systems.engines, 1);
+    assert.equal(batterySpareBars(g.player), 0);
   });
 
   it("lets the ship assign more than 25 bars while the battery is on", () => {

@@ -69,6 +69,53 @@ export function cellBonus(ship: Ship): number {
 }
 
 /**
+ * Backup Battery, Overview: bonus bars are allocated after the regular reactor bars.
+ * INFERRED: the bars shedOverAssigned would pull first are the bonus bars.
+ * The page does not name which system shows them.
+ */
+export function batteryPaint(ship: Ship): {
+  systems: Partial<Record<"weapons" | "medbay" | "oxygen" | "engines" | "shields", number>>;
+  kits: Partial<Record<string, number>>;
+} {
+  const systems: Partial<Record<"weapons" | "medbay" | "oxygen" | "engines" | "shields", number>> = {};
+  const kits: Partial<Record<string, number>> = {};
+  const bonus = Math.max(0, cellBonus(ship));
+  const spare = Math.max(0, sparePower(ship));
+  let left = Math.min(bonus, Math.max(0, bonus - spare));
+  if (left <= 0) return { systems, kits };
+  for (const other of Object.values(ship.kits)) {
+    if (left <= 0) break;
+    if (!other || other.id === "cell" || other.power <= 0) continue;
+    const take = Math.min(other.power, left);
+    kits[other.id] = take;
+    left -= take;
+  }
+  for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
+    if (left <= 0) break;
+    const power = ship.systems[id].power;
+    if (power <= 0) continue;
+    const take = Math.min(power, left);
+    systems[id] = take;
+    left -= take;
+  }
+  return { systems, kits };
+}
+
+/** Unassigned Backup Battery bars. They still count as bonus power. */
+export function batterySpareBars(ship: Ship): number {
+  return Math.min(Math.max(0, cellBonus(ship)), Math.max(0, sparePower(ship)));
+}
+
+/** How many of this system's powered bars are Backup Battery bars, from the top of the stack. */
+export function batteryBarsOn(ship: Ship, id: string): number {
+  const paint = batteryPaint(ship);
+  if (id === "weapons" || id === "medbay" || id === "oxygen" || id === "engines" || id === "shields") {
+    return paint.systems[id] ?? 0;
+  }
+  return paint.kits[id] ?? 0;
+}
+
+/**
  * @agent:hacking. Takes bars back off systems when a hack has shrunk the reactor below what is assigned.
  * Hacking wiki, "Overview" (Backup Battery): "removes two regular power bars from reactor". Backup Battery wiki,
  * "Overview": when bars leave, "This can cause activated systems such as Cloaking or Mind Control to deactivate".

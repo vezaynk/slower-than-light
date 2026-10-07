@@ -232,6 +232,11 @@ button:disabled {
   border-color: var(--color-primary);
 }
 
+/* Backup Battery, Overview: bonus power is indicated by power bars with orange borders. */
+.bars i.on.is-battery {
+  border-color: #ff7a18;
+}
+
 .bars i.bad {
   background: var(--color-danger);
   border-color: var(--color-danger);
@@ -1264,6 +1269,22 @@ button:disabled {
   min-width: 16px;
 }
 
+/* Backup Battery, Overview: unassigned bonus bars keep the orange border. */
+.spare-bonus {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  align-self: flex-end;
+}
+
+.spare-bonus b {
+  display: block;
+  width: 14px;
+  height: 10px;
+  background: transparent;
+  border: 1px solid #ff7a18;
+}
+
 .power-stack {
   display: flex;
   flex-direction: column;
@@ -1289,6 +1310,11 @@ button:disabled {
 .power-col button.on {
   background: var(--color-ok);
   border-color: #b6ff6a;
+}
+
+/* Backup Battery, Overview: bonus power is indicated by power bars with orange borders. */
+.power-col button.on.is-battery {
+  border-color: #ff7a18;
 }
 
 .power-col button.is-zoltan {
@@ -1514,6 +1540,11 @@ button:disabled {
 .sub-bars b.on {
   background: var(--color-ok);
   border-color: #b6ff6a;
+}
+
+/* Backup Battery, Overview: bonus power is indicated by power bars with orange borders. */
+.sub-bars b.on.is-battery {
+  border-color: #ff7a18;
 }
 
 .door-pop {

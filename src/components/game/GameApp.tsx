@@ -10,7 +10,7 @@ import {
 } from "@/game/content";
 import { CATALOG } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
-import { installCell, startCell } from "@/game/extras/cell";
+import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
 import { reorderDroneSlots } from "@/game/extras/swarm";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
@@ -865,6 +865,13 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         <span className="spare-pip" title="Reactor bars not assigned">
           {sparePower(game.player)}
         </span>
+        {batterySpareBars(game.player) > 0 ? (
+          <i className="spare-bonus" aria-hidden="true" title="Backup Battery bars">
+            {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
+              <b key={i} />
+            ))}
+          </i>
+        ) : null}
         {MAIN_BARS.map((id) => (
           <PowerStack key={id} game={game} id={id} locked={id === "weapons" && weaponsPowerLocked(game)} />
         ))}
@@ -1052,7 +1059,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               >
                 <i className="sub-bars" aria-hidden="true">
                   {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-                    <b key={n} className={n < kit.power ? "on" : ""} />
+                    <b key={n} className={kitBarClass(game, id, kit.power, n)} />
                   ))}
                 </i>
                 <PixelIcon name={id} size={16} />
@@ -1164,7 +1171,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
       >
         <i className="sub-bars" aria-hidden="true">
           {Array.from({ length: Math.max(view.level, 1) }, (_, n) => (
-            <b key={n} className={n < view.power ? "on" : ""} />
+            <b key={n} className={kitBarClass(game, "spike", view.power, n)} />
           ))}
         </i>
         <PixelIcon name="spike" size={16} />
@@ -1180,6 +1187,7 @@ function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locke
   const capacity = Math.max(0, sys.level - sys.damage);
   const ionLocked = Math.min(sys.ion.length, capacity);
   const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
+  const painted = batteryBarsOn(game.player, id);
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
   return (
     <div className={`power-stack${locked ? " is-locked" : ""}`}>
@@ -1189,15 +1197,17 @@ function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locke
           const ionStart = sys.level - sys.ion.length;
           const dmgStart = ionStart - sys.damage;
           const cls =
-            i < green
-              ? "on"
-              : i < live
-                ? "is-zoltan"
-                : sys.ion.length > 0 && i >= ionStart
-                  ? "is-ion"
-                  : sys.damage > 0 && i >= dmgStart
-                    ? "is-dmg"
-                    : "";
+            i < green && i >= sys.power - painted
+              ? "on is-battery"
+              : i < green
+                ? "on"
+                : i < live
+                  ? "is-zoltan"
+                  : sys.ion.length > 0 && i >= ionStart
+                    ? "is-ion"
+                    : sys.damage > 0 && i >= dmgStart
+                      ? "is-dmg"
+                      : "";
           return (
             <button
               key={i}
@@ -1762,6 +1772,7 @@ function Manual({ onClose }: { onClose: () => void }) {
 /** INVENTED sheet buttons and the reactor blurb. Kit labels are wiki system names. */
 function ShipSheet({ game }: { game: Game }) {
   const free = sparePower(game.player);
+  const bonus = Math.max(0, cellBonus(game.player));
   return (
     <div className="overlay">
       <article className="sheet ftl-sheet">
@@ -1808,6 +1819,7 @@ function ShipSheet({ game }: { game: Game }) {
             level={game.player.reactor}
             power={game.player.reactor}
             max={game.player.reactor}
+            tail={bonus}
             cost={upgradeCost("reactor", game.player.reactor)}
             onUp={() => act((g) => upgrade(g, "reactor"))}
             onDown={null}
@@ -1824,6 +1836,7 @@ function ShipSheet({ game }: { game: Game }) {
                 level={sys.level}
                 power={isMain(id) ? sys.power : sys.level}
                 max={Math.max(0, sys.level - sys.damage - sys.ion.length)}
+                paint={isMain(id) ? batteryBarsOn(game.player, id) : 0}
                 cost={cost}
                 icon={id}
                 onUp={cost != null ? () => act((g) => upgrade(g, id)) : null}
@@ -1871,6 +1884,12 @@ function ShipSheet({ game }: { game: Game }) {
 }
 
 /** "Less" and "More" are INVENTED aria labels. */
+function kitBarClass(game: Game, id: string, power: number, n: number): string {
+  if (n >= power) return "";
+  const painted = batteryBarsOn(game.player, id);
+  return painted > 0 && n >= power - painted ? "on is-battery" : "on";
+}
+
 function PowerRow({
   name,
   blurb,
@@ -1881,6 +1900,8 @@ function PowerRow({
   onDown,
   onPlus,
   icon,
+  paint = 0,
+  tail = 0,
 }: {
   name: string;
   blurb: string;
@@ -1889,6 +1910,10 @@ function PowerRow({
   max: number;
   cost: number | null;
   icon?: IconName;
+  /** Highest powered bars that are Backup Battery bars. */
+  paint?: number;
+  /** Bonus bars drawn after the regular reactor bars. */
+  tail?: number;
   onUp: (() => void) | null;
   onDown: (() => void) | null;
   onPlus: (() => void) | null;
@@ -1900,8 +1925,13 @@ function PowerRow({
         {name}
       </span>
       <span className="bars" aria-hidden="true">
-        {Array.from({ length: Math.max(max, power, 1) }, (_, i) => (
-          <i key={i} className={i < power ? "on" : ""} />
+        {Array.from({ length: Math.max(max, power, 1) }, (_, i) => {
+          const on = i < power;
+          const battery = on && paint > 0 && i >= power - paint;
+          return <i key={i} className={battery ? "on is-battery" : on ? "on" : ""} />;
+        })}
+        {Array.from({ length: tail }, (_, i) => (
+          <i key={`bonus-${i}`} className="on is-battery" />
         ))}
       </span>
       <span className="mini">{blurb}</span>

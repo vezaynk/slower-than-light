@@ -547,6 +547,19 @@ describe("Crew skills: human experience column", () => {
   });
 });
 
+describe("Crew skills: the next rank costs the same", () => {
+  it("asks for the same experience to reach level 1 and level 2", () => {
+    // Crew skills, lead: "The amount of experience required to achieve skill level 1 and level 2 is exactly the same for a specific skill".
+    const human = { kin: "plain" } as Crew;
+    const need = xpNeedFor(human, "pilot");
+    assert.equal(need, 13);
+    assert.equal(skillRank(need - 1, need), 0);
+    assert.equal(skillRank(need, need), 1);
+    assert.equal(skillRank(need * 2 - 1, need), 1);
+    assert.equal(skillRank(need * 2, need), 2);
+  });
+});
+
 describe("Crew skills: repair skill speed", () => {
   it("repairs 10 percent faster at level 1 and 20 percent faster at level 2", () => {
     // Crew skills, Repair skill: "Level 1 (Green) | 10% faster repair", "Level 2 (Gold) | 20% faster repair".

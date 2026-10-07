@@ -387,6 +387,7 @@ export const XP_NEED = {
 } as const;
 
 export function skillRank(xp: number, need: number): 0 | 1 | 2 {
+  // Crew skills, lead: "The amount of experience required to achieve skill level 1 and level 2 is exactly the same for a specific skill".
   if (xp >= need * 2) return 2;
   if (xp >= need) return 1;
   return 0;

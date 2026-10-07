@@ -1,6 +1,6 @@
 import { WEAPONS, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { beginBoarding, hurtSystem, log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
 import {
@@ -1133,6 +1133,23 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     crystalBoarders(g, 2, 3);
     beginBoarding(g);
   },
+
+  // Boarders: Humans jammed sensors. "3-5 human boarders beam aboard your ship, and your Sensors are disabled."
+  // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
+  "c:boarders-humans-jammed-sensors:0": (g) => {
+    shutPlayerSensors(g);
+    humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
+    beginBoarding(g);
+  },
+
+  // Hacking blue option. "3-5 human boarders beam aboard your ship." Sensors flicker back on.
+  // "If you counter the jam, the Hacking system is not disabled."
+  "c:boarders-humans-jammed-sensors:1": (g) => {
+    if ((g.player.kits.spike?.level ?? 0) <= 0) return;
+    restorePlayerSensors(g);
+    humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
+    beginBoarding(g);
+  },
 };
 
 /** Choices whose id carries a rolled amount: refugee trades, the fuel gift, the terraformers' bribe. */
@@ -1217,6 +1234,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
   if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return "Needs a Scrap Recovery Arm";
+  // Boarders: Humans jammed sensors, {{Blue Option|Hacking System|...|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "c:boarders-humans-jammed-sensors:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   return null;
 }
 

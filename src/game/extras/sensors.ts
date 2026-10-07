@@ -1,4 +1,4 @@
-import { REPAIR_SECONDS, roomWith } from "../sim.ts";
+import { REPAIR_SECONDS, playerSensorsOff, roomWith } from "../sim.ts";
 import type { Game, Ship, SysId } from "../types.ts";
 
 /**
@@ -23,6 +23,8 @@ function sensorPct(fraction: number): number {
  * the information about your ship and crew." No enemy decision reads this (see spike.ts enemySensorsHacked).
  */
 export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+  // Boarders: Humans jammed sensors: "your Sensors are disabled" until the next jump.
+  if (aboard === "player" && playerSensorsOff(g)) return 0;
   const sys = ship.systems.sensors;
   let level = sys.level - sys.damage - sys.ion.length;
   const room = roomWith(ship, "sensors");

@@ -289,4 +289,31 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Boarders: Humans jammed sensors. LRSmap=noship, unique=true. Not a crew grant.
+    dest: "Boarders: Humans jammed sensors",
+    slug: "boarders-humans-jammed-sensors",
+    flag: "cited:boarders-humans-jammed-sensors",
+    aliases: ["Boarders: Humans jammed sensors"],
+    sectors: ["Pirate Controlled Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
+    body: "You catch a glimpse of a strange signal coming from a space station before your sensors shut off unexpectedly. As you discover that your sensors are being jammed, you hear hostiles beam onto your ship.",
+    choices: [
+      {
+        id: "c:boarders-humans-jammed-sensors:0",
+        label: "Continue...",
+        fx: [
+          // "3-5 human boarders beam aboard your ship, and your Sensors are disabled."
+          { k: "nothing" },
+        ],
+      },
+      {
+        id: "c:boarders-humans-jammed-sensors:1",
+        label: "Counter the remote hacking.",
+        fx: [
+          // "3-5 human boarders beam aboard your ship."
+          { k: "nothing" },
+        ],
+      },
+    ],
+  },
 ];

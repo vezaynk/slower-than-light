@@ -707,7 +707,7 @@ function clearShieldHalf(g: Game): void {
  * INFERRED: the medbay room stops healing, and the clone bay does not queue, revive, or jump-heal.
  * The installed levels stay. Copies already queued are kept. The cut ends when that fight ends.
  */
-const systemOff = new WeakMap<Game, Set<"doors" | "oxygen" | "medbay">>();
+const systemOff = new WeakMap<Game, Set<"doors" | "oxygen" | "medbay" | "sensors">>();
 
 export function shutPlayerDoors(g: Game): void {
   systemOff.set(g, new Set(["doors"]));
@@ -724,6 +724,26 @@ export function shutPlayerOxygen(g: Game): void {
 /** Slug hacker (medical): one shutdown covers "Medbay / Clone Bay offline." */
 export function shutPlayerMedical(g: Game): void {
   systemOff.set(g, new Set(["medbay"]));
+}
+
+/**
+ * Boarders: Humans jammed sensors: "your Sensors are disabled."
+ * Notes: functionality is not restored till you jump to another beacon.
+ * The installed level stays. clearSystemOff runs on an FTL jump.
+ */
+export function shutPlayerSensors(g: Game): void {
+  const set = systemOff.get(g) ?? new Set();
+  set.add("sensors");
+  systemOff.set(g, set);
+}
+
+/** The hacking counter: "Your Sensors flicker back on." */
+export function restorePlayerSensors(g: Game): void {
+  systemOff.get(g)?.delete("sensors");
+}
+
+export function playerSensorsOff(g: Game): boolean {
+  return systemOff.get(g)?.has("sensors") ?? false;
 }
 
 function clearSystemOff(g: Game): void {

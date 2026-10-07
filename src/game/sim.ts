@@ -52,7 +52,7 @@ import {
   ionHitsHack,
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
-import { clearBombSight, clearEnemyLeash, heldByEnemy, leashOnLeave, noteBombSight, sideOf } from "./extras/leash.ts";
+import { clearBombSight, clearEnemyLeash, heldByEnemy, ionOnLeash, leashOnLeave, noteBombSight, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
@@ -2186,6 +2186,8 @@ export function applyImpact(g: Game, shot: Shot) {
           if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
           // Zoltans: those four systems cannot be activated if they are ionized. An active cloak or hold is not ended here.
           ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
+          // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
+          if (r.kit === "leash" && ship.kits.leash) ionOnLeash(ship.kits.leash);
           // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
           if (r.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
           if (r.system) {
@@ -2389,6 +2391,8 @@ export function applyImpact(g: Game, shot: Shot) {
     // Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated if they are ionized.
     if (r?.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
     if (r) ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
+    // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
+    if (r?.kit === "leash" && ship.kits.leash) ionOnLeash(ship.kits.leash);
     // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
     if (r?.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
     if (r?.system) {

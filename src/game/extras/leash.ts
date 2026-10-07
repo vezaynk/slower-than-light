@@ -44,6 +44,19 @@ const DAMAGE_MULT_BY_LEVEL: Readonly<Record<number, number>> = {
 export const ION_MAX_COOLDOWN = 25;
 
 /**
+ * Mind Control, Overview: "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds."
+ * The ion timers are already on the kit, one per point, capped at 5.
+ * Every level is covered when that count is at least the bought level and the level is above 0.
+ * INFERRED: a later ion hit that still covers every level sets that cooldown to 25 again.
+ * An active hold is left running. Power is not cleared and the system is not shut down.
+ */
+export function ionOnLeash(kit: Kit): void {
+  if (kit.level <= 0) return;
+  if ((kit.ion?.length ?? 0) < kit.level) return;
+  kit.cool = ION_MAX_COOLDOWN;
+}
+
+/**
  * Mind Control wiki, "System Upgrades": level 2 is "+15 Health", level 3 is "+30 Health". Level 1 lists none.
  * "Upgrades increase the mind-control duration, health and combat damage of the affected crew."
  * Template:Crew races (comparison): "Maximum health: standard value. Can be temporarily increased by Mind Control
@@ -383,8 +396,9 @@ function capDuration(kit: Kit, level: number) {
 
 /**
  * Mind Control wiki, "Overview": the effect lasts the power-level duration, then ends.
- * INFERRED: cool is set to 0 when it ends. The page never states an ordinary cooldown.
- * It only states a 25 second maximum if fully ionized, and an instant reset after an FTL jump.
+ * The page states no ordinary cooldown, so a normal end leaves cool at 0.
+ * A positive cool is the ionized maximum and is not cleared here.
+ * An FTL jump resets cooldown (leashOnLeave).
  */
 export function tickLeash(g: Game, dt: number) {
   if (dt <= 0) return;
@@ -401,7 +415,6 @@ export function tickLeash(g: Game, dt: number) {
     if (level <= 0) {
       kit.left = 0;
       kit.on = false;
-      kit.cool = 0;
       for (const c of g.crew) {
         if (c.leashed && c.leashed > 0 && c.side === "enemy") clearCrew(c);
       }
@@ -411,7 +424,6 @@ export function tickLeash(g: Game, dt: number) {
     kit.left = Math.max(0, kit.left - dt);
     if (kit.left <= 0) {
       kit.on = false;
-      kit.cool = 0;
       for (const c of g.crew) {
         // The player's hold is on enemy crew only. Player crew held by the enemy run on the enemy's kit.
         if (c.leashed && c.leashed > 0 && c.side === "enemy") clearCrew(c);
@@ -428,14 +440,6 @@ export function tickLeash(g: Game, dt: number) {
 // ---------------------------------------------------------------------------------------------
 // Enemy Mind Control: the enemy's kit (enemy-gen.ts, room `e-mindcontrol`) controls player crew.
 // ---------------------------------------------------------------------------------------------
-
-/**
- * INFERRED: once an enemy hold ends, the enemy kit waits ION_MAX_COOLDOWN (25 s) before it fires again.
- * Mind Control wiki, "Overview" states no ordinary cooldown, only "If all system levels of Mind Control get
- * ionized, the system enters the maximum cooldown - 25 seconds." The maximum is used so the enemy cannot chain
- * holds back to back. The player path keeps its own 0.
- */
-export const ENEMY_COOLDOWN = ION_MAX_COOLDOWN;
 
 /**
  * Mind Control wiki, "Overview": "Slugs cannot be mind controlled."
@@ -459,14 +463,17 @@ function enemyKit(g: Game): Kit | undefined {
   return g.enemy?.kits.leash;
 }
 
-/** Ends the enemy's current hold on its kit and starts the cooldown. Crew are freed by the caller. */
+/**
+ * Ends the enemy's current hold. Mind Control, Overview states no ordinary cooldown, so this does not start a wait.
+ * Cool stays at 0 on a normal end. INFERRED: a 25 second ion cooldown already on the kit is not cleared here.
+ * Crew are freed by the caller.
+ */
 function endEnemyLeash(g: Game) {
   const kit = enemyKit(g);
   if (!kit || !kit.on) return;
   kit.on = false;
   kit.left = 0;
   kit.target = null;
-  kit.cool = ENEMY_COOLDOWN;
 }
 
 /**

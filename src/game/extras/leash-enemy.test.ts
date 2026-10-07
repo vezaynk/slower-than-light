@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, orderCrew, startCombat, step } from "../sim.ts";
 import {
-  ENEMY_COOLDOWN,
+  ION_MAX_COOLDOWN,
   clearEnemyLeash,
   fireEnemyLeash,
   heldByEnemy,
+  ionOnLeash,
   sideOf,
   startLeash,
   tickLeash,
@@ -56,9 +57,8 @@ describe("enemy mind control", () => {
       assert.equal(c.leashed, undefined);
       assert.equal(sideOf(c), "player");
       assert.equal(k.on, false);
-      assert.equal(k.cool, ENEMY_COOLDOWN);
-      // Off cooldown, it fires again.
-      tickLeash(g, ENEMY_COOLDOWN + 0.01);
+      assert.equal(k.cool, 0);
+      // No ordinary wait: the next tick may fire at once.
       tickLeash(g, 0.01);
       assert.ok(held(g));
     }
@@ -132,7 +132,7 @@ describe("enemy mind control", () => {
     assert.equal(sideOf(c), "player");
     const ek = g.enemy!.kits.leash!;
     assert.equal(ek.on, false);
-    assert.equal(ek.cool, ENEMY_COOLDOWN);
+    assert.equal(ek.cool, 0);
     assert.equal(g.player.kits.leash!.on, true);
   });
 
@@ -179,6 +179,69 @@ describe("enemy mind control", () => {
     assert.deepEqual(c.path, []);
     assert.equal(clearEnemyLeash(g), 1);
     assert.equal(heldByEnemy(c), false);
-    assert.equal(g.enemy!.kits.leash!.cool, ENEMY_COOLDOWN);
+    assert.equal(g.enemy!.kits.leash!.cool, 0);
+  });
+
+  it("ionOnLeash sets 25 only when every level is ionized and leaves the hold up", () => {
+    const g = fight(12, 3);
+    assert.equal(fireEnemyLeash(g), true);
+    const c = held(g)!;
+    const k = g.enemy!.kits.leash!;
+    const power = k.power;
+    const left = k.left;
+    const leashed = c.leashed;
+    k.ion = [5, 5];
+    ionOnLeash(k);
+    assert.equal(k.cool, 0, "ion shorter than the level");
+    k.ion = [5, 5, 5];
+    ionOnLeash(k);
+    assert.equal(k.cool, ION_MAX_COOLDOWN);
+    assert.equal(k.on, true);
+    assert.equal(k.power, power);
+    assert.equal(k.left, left);
+    assert.equal(heldByEnemy(c), true);
+    assert.equal(c.leashed, leashed);
+    // INFERRED: a later ion hit that still covers every level sets 25 again.
+    k.cool = 3;
+    k.ion = [5, 5, 5, 5];
+    ionOnLeash(k);
+    assert.equal(k.cool, ION_MAX_COOLDOWN);
+    assert.equal(k.on, true);
+    assert.equal(heldByEnemy(c), true);
+    const empty = kit(0);
+    empty.ion = [5];
+    ionOnLeash(empty);
+    assert.equal(empty.cool, 0, "level 0 is not every level");
+  });
+
+  it("a player hold ending does not clear an ion cooldown already set", () => {
+    const dropped = fight(13, 1);
+    dropped.player.kits.leash = kit(1, 1);
+    dropped.player.systems.sensors.level = 2;
+    const foe = dropped.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
+    startLeash(dropped, foe.id);
+    const low = dropped.player.kits.leash!;
+    low.ion = [5];
+    ionOnLeash(low);
+    assert.equal(low.cool, ION_MAX_COOLDOWN);
+    assert.equal(low.on, true);
+    tickLeash(dropped, 0.05);
+    assert.equal(low.on, false);
+    assert.equal(low.cool, ION_MAX_COOLDOWN);
+
+    const g = fight(14, 2);
+    g.player.kits.leash = kit(2, 1);
+    g.player.systems.sensors.level = 2;
+    const other = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
+    startLeash(g, other.id);
+    const pk = g.player.kits.leash!;
+    pk.zoltan = 1;
+    pk.ion = [5, 5];
+    ionOnLeash(pk);
+    assert.equal(pk.on, true);
+    assert.equal(pk.cool, ION_MAX_COOLDOWN);
+    tickLeash(g, 20);
+    assert.equal(pk.on, false);
+    assert.equal(pk.cool, ION_MAX_COOLDOWN);
   });
 });

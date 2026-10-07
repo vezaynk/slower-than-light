@@ -96,6 +96,8 @@ describe("Zoltans ionized activation", () => {
     assert.ok(watcher);
     watcher.kin = "gel";
     strike("leash", 1);
+    // Mind Control, Overview: ion that covers every level starts the 25 second cooldown.
+    assert.equal(g.player.kits.leash.cool, 25);
     startLeash(g, foe.id);
     assert.equal(foe.leashed ?? 0, 0);
 
@@ -109,6 +111,10 @@ describe("Zoltans ionized activation", () => {
     assert.equal(g.player.parts, parts - 1);
 
     delete g.player.kits.leash.ion;
+    // The 25 second cooldown is still running after the ion timers are cleared.
+    startLeash(g, foe.id);
+    assert.equal(foe.leashed ?? 0, 0);
+    g.player.kits.leash.cool = 0;
     startLeash(g, foe.id);
     assert.ok((foe.leashed ?? 0) > 0);
 

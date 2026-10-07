@@ -7,7 +7,9 @@ import { tickSabotage } from "./extras/sabotage.ts";
 import { tickSwarm } from "./extras/swarm.ts";
 import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
 import type { Shot } from "./types.ts";
-import { WEAPONS, XP_NEED } from "./content.ts";
+import { WEAPONS, XP_NEED, skillRank } from "./content.ts";
+import { xpNeedFor } from "./extras/lineage.ts";
+import type { SkillName } from "./types.ts";
 import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import type { Crew, Game } from "./types.ts";
@@ -294,6 +296,22 @@ describe("Crew skills: a repair drone cannot gain experience", () => {
     tickSwarm(g, 0.05);
     assert.equal(g.player.systems.weapons.damage, 0);
     assert.ok(g.crew.every((c) => (c.skills?.repair ?? 0) === 0));
+  });
+});
+
+describe("Crew skills: player crew start untrained", () => {
+  it("starts every player crew member at skill level 0", () => {
+    // Crew skills, lead: "All crew on every player ship start untrained, i.e. at skill level 0."
+    const g = createGame(38);
+    const yours = g.crew.filter((c) => c.side === "player");
+    assert.ok(yours.length >= 1);
+    const names: SkillName[] = ["pilot", "engines", "shields", "weapons", "repair", "combat"];
+    for (const c of yours) {
+      for (const skill of names) {
+        assert.equal(c.skills?.[skill] ?? 0, 0);
+        assert.equal(skillRank(c.skills?.[skill] ?? 0, xpNeedFor(c, skill)), 0);
+      }
+    }
   });
 });
 

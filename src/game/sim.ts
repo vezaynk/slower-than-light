@@ -419,6 +419,7 @@ function makePlayer(): Ship {
 }
 
 // INVENTED: Ada Voss, Ivo Park, and Nen Hale. Not a cruiser roster.
+// Crew skills, lead: "All crew on every player ship start untrained, i.e. at skill level 0."
 function starterCrew(): Crew[] {
   return [
     { id: "c-ada", name: "Ada Voss", side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-pilot", path: [], move: 0, think: 0, tone: 0 },

@@ -2664,7 +2664,13 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
  * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3.
  * Unpowered rooms fall at 1.2% per second.
  * Fires die below 10% oxygen. Suffocation is still the 5% check in life().
- * INFERRED: 12% per breach, 28% through an open airlock, and 40% of the difference through an open door. The Door System page does not give airflow rates.
+ * INFERRED: 12% per breach, and 40% of the difference through an open door. The Door System page does not give airflow rates.
+ * Oxygen, Overview: an open airlock instantly drains the O2 in the room it is opened in, and quickly drains
+ * connected rooms through opened doors. More airlocks drain farther rooms quicker. That drain surpasses
+ * several Lanius and breaches. The page prints no percent for the connected-room drain.
+ * INFERRED: the airlock room is set to 0 after the open-door share, so a neighbor cannot refill it this tick.
+ * That share is what moves oxygen toward each emptied room. No extra percent is added. Holding another
+ * airlock room at 0 is what reaches a farther room sooner.
  */
 /**
  * Template:Crew races (comparison), "Repair speed" note, and Crew skills, Repair skill: "It takes 12.5 seconds
@@ -2754,11 +2760,13 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
     r.o2 -= 0.96 * r.fire * dt;
   }
+  const vented: Room[] = [];
   for (const d of ship.doors) {
     if (!d.open) continue;
     if (d.b === "void") {
       const r = roomById(ship, d.a);
-      if (r) r.o2 -= 28 * dt;
+      // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in".
+      if (r) vented.push(r);
     } else {
       const a = roomById(ship, d.a);
       const b = roomById(ship, d.b);
@@ -2768,6 +2776,7 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       b.o2 += flow;
     }
   }
+  for (const r of vented) r.o2 = 0;
   for (const r of ship.rooms) {
     r.o2 = Math.max(0, Math.min(100, r.o2));
     starveFire(g, ship, r, dt);

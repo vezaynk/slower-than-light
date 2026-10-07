@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { FIRE_FIGHT_SHARE, adjacentFires, createGame, fireStarveSeconds, step } from "./sim.ts";
+import { FIRE_FIGHT_SHARE, adjacentFires, createGame, fireStarveSeconds, startCombat, step } from "./sim.ts";
 import type { Game, Room } from "./types.ts";
 
 /** Empty the fire room, shut every door, and keep the door console unmanned so spread uses the level-1 slow. */
@@ -213,5 +213,80 @@ describe("Fires outside a fight", () => {
     assert.equal(room.fire, 1);
     assert.equal(room.fireTick, 7);
     assert.equal(room.o2, 100);
+  });
+});
+
+/** Combat tick, doors shut, oxygen full. Airflow runs here; the map tick does not vent. */
+function ventFight(seed: number): Game {
+  const g = createGame(seed);
+  startCombat(g, "scout");
+  for (const w of [...g.player.weapons, ...(g.enemy?.weapons ?? [])]) w.enabled = false;
+  const swarm = g.enemy?.kits.swarm;
+  if (swarm) swarm.loadout = [];
+  for (const d of g.player.doors) d.open = false;
+  for (const r of g.player.rooms) {
+    r.o2 = 100;
+    r.fire = 0;
+    r.breach = 0;
+  }
+  return g;
+}
+
+function airlock(g: Game, roomId: string) {
+  const door = g.player.doors.find((d) => d.b === "void" && d.a === roomId);
+  assert.ok(door);
+  door.open = true;
+  return door;
+}
+
+function between(g: Game, a: string, b: string) {
+  const door = g.player.doors.find(
+    (d) => (d.a === a && d.b === b) || (d.a === b && d.b === a),
+  );
+  assert.ok(door);
+  door.open = true;
+  return door;
+}
+
+describe("Oxygen airlock", () => {
+  it("empties the room the airlock is opened in on that tick", () => {
+    const g = ventFight(11);
+    const room = g.player.rooms.find((r) => r.id === "p-oxygen")!;
+    const neighbor = g.player.rooms.find((r) => r.id === "p-medbay")!;
+    airlock(g, room.id);
+    step(g, 0.05);
+    assert.equal(room.o2, 0);
+    assert.equal(neighbor.o2, 100);
+  });
+
+  it("does not empty a connected room on that same tick", () => {
+    const g = ventFight(12);
+    const room = g.player.rooms.find((r) => r.id === "p-doors")!;
+    const next = g.player.rooms.find((r) => r.id === "p-sensors")!;
+    airlock(g, room.id);
+    between(g, room.id, next.id);
+    step(g, 0.05);
+    assert.equal(room.o2, 0);
+    assert.equal(next.o2, 100);
+    step(g, 0.05);
+    // INFERRED: the drop is the existing open-door share, 40% of the difference. The page prints no percent.
+    assert.ok(Math.abs(next.o2 - 98.06) < 1e-6, `${next.o2}`);
+  });
+
+  it("drains a farther room sooner when a second airlock is open", () => {
+    const far = (extra: boolean) => {
+      const g = ventFight(13);
+      airlock(g, "p-doors");
+      if (extra) airlock(g, "p-sensors");
+      between(g, "p-doors", "p-sensors");
+      between(g, "p-sensors", "p-weapons");
+      step(g, 0.05);
+      step(g, 0.05);
+      return g.player.rooms.find((r) => r.id === "p-weapons")!.o2;
+    };
+    const one = far(false);
+    const two = far(true);
+    assert.equal(one, 100);
+    assert.ok(two < one, `${two}`);
   });
 });

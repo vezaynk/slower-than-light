@@ -1011,7 +1011,8 @@ function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
       applyIon(enemy, room.system, INTRUDER.ion);
       for (const c of g.crew) {
         if (c.side !== "enemy" || c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
-        if ((c.leashed ?? 0) > 0) continue;
+        // Boarding, "Stun effect": stun only enemy units, including crew the player is mind-controlling.
+        // Drone Control, Ion Intruder: a friendly boarder stays free. side "player" is already skipped.
         c.stun = INTRUDER.stunSeconds;
       }
     }

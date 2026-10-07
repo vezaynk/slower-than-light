@@ -541,7 +541,9 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.ok(g.enemy!.rooms.some((room) => room.id === shot.targetRoom));
   });
 
-  it("pulses inside 8.2 to 10 seconds, ions a live system, and stuns only enemy crew", () => {
+  it("pulses inside 8.2 to 10 seconds, ions a live system, and stuns enemy crew including mind-controlled ones", () => {
+    // Boarding, "Stun effect": the Ion Intruder stuns enemy units, including those under the player's mind control, for 6 seconds.
+    // Drone Control, Ion Intruder: a friendly boarder is not stunned, even if that boarder is mind-controlled.
     const g = fight(33);
     swarmKit(g, 3);
     assert.equal(deploy(g, "ionintruder"), true);
@@ -572,6 +574,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     friend.room = room.id;
     friend.aboard = "enemy";
     friend.stun = 0;
+    friend.leashed = 8;
     enemy.systems[room.system].ion = [];
 
     tickSwarm(g, 8.19);
@@ -582,7 +585,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.equal(enemy.systems[room.system].ion.length, 3);
     assert.ok(enemy.systems[room.system].ion.every((point) => point === 5));
     assert.equal(foe.stun, 6);
-    assert.equal(other.stun, 0);
+    assert.equal(other.stun, 6);
     assert.equal(friend.stun, 0);
     // The pulse lands in this room, then a walk is queued. The room does not change in the same call.
     assert.equal(kit.room, room.id);

@@ -670,8 +670,27 @@ describe("Slug hacker (medical)", () => {
     bay.fire = 0;
     bay.o2 = 100;
     const crewBefore = g.crew.filter((c) => c.side === "player").length;
+    const scrap = g.scrap;
+    const fuel = g.fuel;
+    const missiles = g.missiles;
+    const parts = g.player.parts;
     choose(g, "c:slug-hacker-medical:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "slug");
+    const hp = kinOf("gel").hp;
+    const rooms = new Set(g.player.rooms.map((r) => r.id));
+    const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+    assert.equal(boarders.length, 2);
+    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "gel" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+    assert.equal(g.scrap, scrap);
+    assert.equal(g.fuel, fuel);
+    assert.equal(g.missiles, missiles);
+    assert.equal(g.player.parts, parts);
+    assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
+    assert.ok(g.log.some((line) => line === "2 slug boarders beam aboard your ship."));
+    const away = g.player.rooms.find((r) => r.id !== bay.id);
+    assert.ok(away);
+    for (const boarder of boarders) boarder.room = away.id;
     quietEnemy(g);
     assert.ok(g.enemy);
     for (const kit of Object.values(g.enemy.kits)) {

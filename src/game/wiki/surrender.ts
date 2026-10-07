@@ -939,10 +939,11 @@ export function plasmaHumanBoarders(g: Game) {
 
 /**
  * The Black Raven, Slugman Crew: "1-2 slug boarders beam aboard your ship."
+ * Slug hacker (medical): "2 slug boarders beam aboard your ship".
  * INFERRED: each lands in a random player room, the same as human boarders. Call this after startCombat,
- * which drops enemy crew that were already aboard.
+ * which drops enemy crew that were already aboard. `line` replaces the short log (`${n} ${line}`).
  */
-function slugBoarders(g: Game, lo: number, hi: number) {
+export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
   const n = between(g, [lo, hi]);
   const hp = kinOf("gel").hp;
   for (let i = 0; i < n; i++) {
@@ -964,7 +965,7 @@ function slugBoarders(g: Game, lo: number, hi: number) {
       kin: "gel",
     });
   }
-  log(g, `${n} slug boarders beam aboard.`);
+  log(g, line ? `${n} ${line}` : `${n} slug boarders beam aboard.`);
 }
 
 /**

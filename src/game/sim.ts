@@ -4874,7 +4874,7 @@ export function choose(g: Game, id: string) {
               const offline = citedSystemOff(id);
               if (offline?.includes("doors")) shutPlayerDoors(g);
               if (offline?.includes("oxygen")) shutPlayerOxygen(g);
-              // Slug hacker (medical): "Medbay / Clone Bay offline". Boarders named on the page are not spawned.
+              // Slug hacker (medical): "Medbay / Clone Bay offline". The two slug boarders spawn in citedChoose after this fight.
               if (offline?.includes("medbay")) shutPlayerMedical(g);
               // Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
               if (citedFriendlyAsb(id)) aidPlayerAsb(g);

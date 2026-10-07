@@ -16,6 +16,7 @@ import {
   primeWeapons,
   reveals,
   saveMissile,
+  scanMark,
   spoolRate,
   tickMedbot,
   tickSquall,
@@ -247,13 +248,63 @@ describe("augments", () => {
     assert.equal(g.fleet, 4);
   });
 
-  it("reveals every beacon kind only when glass is fitted", () => {
+  it("reveals ship presence only when glass is fitted", () => {
     const g = createGame(1);
     assert.equal(reveals(g, "hostile"), false);
     assert.equal(reveals(g, "empty"), false);
+    assert.equal(reveals(g, "store"), false);
+    assert.equal(reveals(g, "nebula"), false);
     g.augments = ["glass"];
-    assert.equal(reveals(g, "store"), true);
-    assert.equal(reveals(g, "nebula"), true);
+    assert.equal(reveals(g, "store"), false);
+    assert.equal(reveals(g, "empty"), false);
+    assert.equal(reveals(g, "nebula"), false);
+    assert.equal(reveals(g, "event"), false);
+    assert.equal(reveals(g, "cache"), false);
+    assert.equal(reveals(g, "exit"), false);
+    assert.equal(reveals(g, "start"), false);
+    assert.equal(reveals(g, "hostile"), true);
+    assert.equal(reveals(g, "distress"), true);
+    assert.equal(reveals(g, "boss"), true);
+  });
+
+  it("marks a hazard or a ship only while glass is fitted", () => {
+    const g = createGame(1);
+    const rock = { kind: "event" as const, asteroid: true, flag: "", name: "Silt" };
+    assert.equal(scanMark(g, rock).hazard, false);
+    assert.equal(scanMark(g, rock).ship, false);
+
+    g.augments = ["glass"];
+    assert.equal(scanMark(g, rock).hazard, true);
+    assert.equal(scanMark(g, rock).ship, false);
+
+    for (const flag of ["sun", "Red Giant", "PULSAR", "plasma storm", "Ion Storm", "asteroid field"]) {
+      const marked = scanMark(g, { kind: "empty", asteroid: false, flag, name: "Beacon" });
+      assert.equal(marked.hazard, true, flag);
+      assert.equal(marked.ship, false, flag);
+    }
+    const named = scanMark(g, { kind: "empty", asteroid: false, flag: "", name: "red giant" });
+    assert.equal(named.hazard, true);
+    assert.equal(named.ship, false);
+
+    const quiet = scanMark(g, { kind: "event", asteroid: false, flag: "", name: "Silt" });
+    assert.equal(quiet.hazard, false);
+    assert.equal(quiet.ship, false);
+
+    const nebula = { kind: "nebula" as const, asteroid: false, flag: "", name: "Nebula" };
+    assert.equal(scanMark(g, nebula).hazard, false);
+    assert.equal(scanMark(g, nebula).ship, false);
+
+    const hostile = { kind: "hostile" as const, asteroid: false, flag: "", name: "Picket" };
+    assert.equal(scanMark(g, hostile).ship, true);
+    assert.equal(scanMark(g, hostile).hazard, false);
+
+    const both = { kind: "distress" as const, asteroid: true, flag: "pulsar", name: "Flare" };
+    assert.deepEqual(scanMark(g, both), { ship: true, hazard: true });
+
+    g.augments = g.augments.filter((id) => id !== "glass");
+    assert.deepEqual(scanMark(g, both), { ship: false, hazard: false });
+    assert.deepEqual(scanMark(g, rock), { ship: false, hazard: false });
+    assert.equal(reveals(g, "hostile"), false);
   });
 
   it("spends the catalog cost, caps at 3, and refuses duplicates", () => {

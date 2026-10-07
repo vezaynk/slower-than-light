@@ -8,7 +8,7 @@ import {
   upgradeBlurb,
   upgradeCost,
 } from "@/game/content";
-import { CATALOG } from "@/game/extras/augments";
+import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
 import { shipInDanger } from "@/game/extras/sling";
@@ -1660,6 +1660,25 @@ function MapScreen({ game }: { game: Game }) {
               </span>
             );
           })}
+          {here && game.augments.includes("glass")
+            ? game.beacons.map((b) => {
+                // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
+                // Not the current beacon. Live from the fitted scanners; selling them hides the marks.
+                if (b.id === here.id || !here.links.includes(b.id)) return null;
+                const mark = scanMark(game, b);
+                const bits = [mark.ship ? "SHIP" : "", mark.hazard ? "HAZARD" : ""].filter(Boolean);
+                if (!bits.length) return null;
+                return (
+                  <span
+                    key={`scan-${b.id}`}
+                    className="jump-tag"
+                    style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h), transform: "translate(12px, -50%)" }}
+                  >
+                    {bits.join(" ")}
+                  </span>
+                );
+              })
+            : null}
         </div>
       </div>
       <div className="sector-key beacon-foot">

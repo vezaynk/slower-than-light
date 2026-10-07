@@ -124,7 +124,7 @@ export const CATALOG: Listing[] = [
   {
     id: "glass",
     name: "Long-Ranged Scanners",
-    detail: "Beacons show what is waiting there.",
+    detail: "Adjacent beacons show an environmental hazard and possible ship presence. Selling or swapping the scanners hides that again.",
     cost: 30,
   },
   // Augmentations, "FTL Augmentations", FTL Jammer. Store cost 30.
@@ -341,10 +341,50 @@ export function onNewSector(g: Game) {
   log(g, "Distraction Buoys. The fleet loses a jump.");
 }
 
-/** Augmentations, "Misc. Augmentations", Long-Ranged Scanners. INFERRED: every beacon kind is revealed, not only hazards and ship presence. */
+/**
+ * Augmentations, "Misc. Augmentations", Long-Ranged Scanners.
+ * "Reveal environmental hazards and possible ship presence of adjacent beacons."
+ * "If the scanners don't indicate a ship presence at a beacon, it may still result in a ship fight.
+ * Likewise, even if a ship is detected, there may be options to avoid a fight."
+ * False when glass is not fitted.
+ * INFERRED: possible ship presence is only "hostile", "distress", or "boss".
+ * INFERRED: "event", "store", "empty", "cache", "exit", "start", and "nebula" are not a ship.
+ */
+const SHIP_PRESENCE: readonly BeaconKind[] = ["hostile", "distress", "boss"];
+
 export function reveals(g: Game, beaconKind: BeaconKind): boolean {
-  void beaconKind;
-  return has(g, "glass");
+  if (!has(g, "glass")) return false;
+  return SHIP_PRESENCE.includes(beaconKind);
+}
+
+/**
+ * Augmentations, "Misc. Augmentations", Long-Ranged Scanners.
+ * "Work proactively and retroactively: adjacent beacons left far behind will also have the information
+ * revealed after acquiring the scanners, all previously revealed information won't be shown anymore if
+ * the scanners are sold (or swapped out)."
+ * Read live from the fitted augments. No revealed set is stored.
+ * "Environment hazards, which may occur due to some event choices after arrival at the beacon, are not shown."
+ * A nebula beacon kind is not an environmental hazard by itself.
+ * INFERRED: a hazard is beacon.asteroid === true, or flag or name containing
+ * "asteroid", "sun", "red giant", "pulsar", "plasma storm", or "ion storm" (case insensitive).
+ */
+const HAZARD_TEXT = ["asteroid", "sun", "red giant", "pulsar", "plasma storm", "ion storm"];
+
+function textHasHazard(text: string | undefined): boolean {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return HAZARD_TEXT.some((mark) => lower.includes(mark));
+}
+
+export function scanMark(
+  g: Game,
+  beacon: { kind: BeaconKind; asteroid?: boolean; flag?: string; name?: string },
+): { ship: boolean; hazard: boolean } {
+  if (!has(g, "glass")) return { ship: false, hazard: false };
+  return {
+    ship: reveals(g, beacon.kind),
+    hazard: beacon.asteroid === true || textHasHazard(beacon.flag) || textHasHazard(beacon.name),
+  };
 }
 
 /**

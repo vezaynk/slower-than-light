@@ -548,6 +548,7 @@ function rankOf(c: Crew | undefined, skill: SkillName): 0 | 1 | 2 {
 
 function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) {
   // Printed events pass 1.
+  // Crew skills, lead: "all races gain experience at the same rate (per job done)".
   // Crew skills, lead: "the enemy ships crew is always untrained and cannot reach higher skill levels."
   // Crew skills, lead: "your mind-controlled crew still gains skill points by performing the tasks."
   // A leashed crew member keeps side "player", so the point still lands.

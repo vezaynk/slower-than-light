@@ -266,6 +266,27 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.equal(sys.damage, 0);
     assert.equal(hero.skills?.repair ?? 0, 1);
   });
+
+  it("grants one repair point per finished bar to every race", () => {
+    // Crew skills, lead: "all races gain experience at the same rate (per job done)".
+    for (const kin of ["plain", "shell", "blade"] as const) {
+      const g = createGame(39);
+      const { worker, roomId, sys } = lone(g);
+      quiet(g);
+      worker.kin = kin;
+      worker.skills = {};
+      const room = g.player.rooms.find((r) => r.id === roomId)!;
+      room.fire = 0;
+      room.breach = 0;
+      room.o2 = 100;
+      const s = g.player.systems[sys as keyof typeof g.player.systems];
+      s.damage = 1;
+      s.fix = 12.49;
+      step(g, 0.05);
+      assert.equal(s.damage, 0, kin);
+      assert.equal(worker.skills?.repair ?? 0, 1, kin);
+    }
+  });
 });
 
 describe("Crew skills: a repair drone cannot gain experience", () => {

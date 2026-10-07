@@ -885,7 +885,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Plasma Storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma Storm Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma Storm Events — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Plasma Storm Incapacitated Ships — partial — Same card as dest "Plasma storm incapacitated ships" (filler-events.ts). Search rolls 4 hull plus high salvage, a passenger plus low scrap, a lost crewmember plus low scrap, medium scrap, or a weapon offer plus medium scrap. The breach on the debris result is not applied. The drone schematic is not granted.
+- [ ] Plasma Storm Incapacitated Ships — partial — Same card as dest "Plasma storm incapacitated ships" (filler-events.ts). Search rolls 4 hull and a breach on a random system's room plus high salvage, a passenger plus low scrap, a lost crewmember plus low scrap, medium scrap, or a weapon offer plus medium scrap. The breach does not damage that system. A system with no room is skipped (INFERRED). The drone schematic is not granted.
 - [ ] Plasma Storms — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma storm Auto-ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma storm automated scout — not-a-surface — same title as "Plasma Storm Automated Scout" with different capitalization

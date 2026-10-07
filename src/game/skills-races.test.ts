@@ -1027,12 +1027,13 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
     g.player.kits.flak!.aux = 49.9;
     const before = g.shots.length;
     tickFlak(g, 0.2);
-    assert.equal(g.shots.length - before, 7);
+    // Seven damaging shots plus seven fake pellets. Crew skills still counts the burst as one fire.
+    assert.equal(g.shots.length - before, 14);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     crew.room = away.id;
     g.player.kits.flak!.aux = 49.9;
     tickFlak(g, 0.2);
-    assert.equal(g.shots.length - before, 14);
+    assert.equal(g.shots.length - before, 28);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     assert.equal(room.system, "weapons");
   });

@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, rand, startCombat } from "../sim.ts";
-import type { Game } from "../types.ts";
+import { applyImpact, createGame, evasionPercent, rand, startCombat } from "../sim.ts";
+import type { Game, Shot } from "../types.ts";
+import { ACQUIRE_S, deploy, enemyDefenseIntercept, shotHitsDrone, swarmIntercept, tickSwarm } from "./swarm.ts";
 import {
   CHARGE_SECONDS,
   DAMAGE,
+  FAKE_FLAK,
+  FAKE_LABEL,
   FLAK_CUTS,
   POWER_BARS,
   PROJECTILES,
@@ -26,6 +29,43 @@ function fight(seed: number): Game {
   return g;
 }
 
+function realOf(shots: readonly Shot[]): Shot[] {
+  return shots.filter((shot) => shot.kind === "flak");
+}
+
+function fakeOf(shots: readonly Shot[]): Shot[] {
+  return shots.filter((shot) => shot.label === FAKE_LABEL);
+}
+
+/** One burst: 7 damaging flak, then the 7 decoys were pushed ahead of them. */
+function expectBurst(shots: readonly Shot[], from: "player" | "enemy" = "player"): void {
+  const reals = realOf(shots);
+  const fakes = fakeOf(shots);
+  assert.equal(reals.length, PROJECTILES);
+  assert.equal(fakes.length, FAKE_FLAK);
+  assert.equal(shots.length, PROJECTILES + FAKE_FLAK);
+  for (let i = 0; i < FAKE_FLAK; i++) assert.equal(shots[i]?.label, FAKE_LABEL);
+  for (const shot of fakes) {
+    assert.equal(shot.from, from);
+    assert.equal(shot.kind, "missile");
+    assert.equal(shot.damage, 0);
+    assert.equal(shot.ion, 0);
+    assert.equal(shot.fireChance, 0);
+    assert.equal(shot.breachChance, 0);
+    assert.equal(shot.offRoom, undefined);
+    assert.equal(shot.label, FAKE_LABEL);
+  }
+  for (const shot of reals) {
+    assert.equal(shot.from, from);
+    assert.equal(shot.damage, DAMAGE);
+    assert.equal(shot.kind, "flak");
+    assert.equal(shot.ion, 0);
+    assert.equal(shot.fireChance, 0);
+    assert.equal(shot.breachChance, 0);
+    assert.equal(shot.label, undefined);
+  }
+}
+
 describe("flak burst", () => {
   it("records the upgrade table and does not sell", () => {
     assert.equal(chargeFlakSeconds(1), 50);
@@ -36,6 +76,7 @@ describe("flak burst", () => {
     assert.deepEqual(UPGRADE_COSTS, { 2: 30, 3: 50, 4: 80 });
     assert.deepEqual(POWER_BARS, { 1: 1, 2: 2, 3: 3, 4: 4 });
     assert.equal(PROJECTILES, 7);
+    assert.equal(FAKE_FLAK, 7);
     assert.equal(DAMAGE, 1);
     assert.equal(SOLD_IN_STORES, false);
   });
@@ -49,7 +90,7 @@ describe("flak burst", () => {
     assert.equal(g.player.kits.flak?.aux, 0);
   });
 
-  it("holds the spool until the level clock, then pushes seven shots", () => {
+  it("holds the spool until the level clock, then pushes seven shots and seven fakes", () => {
     const g = fight(2);
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
@@ -57,18 +98,10 @@ describe("flak burst", () => {
     tickFlak(g, 49);
     assert.equal(g.shots.length, 0);
     tickFlak(g, 1);
-    assert.equal(g.shots.length, 7);
+    expectBurst(g.shots);
     assert.equal(g.enemy.hull, hull);
     const rooms = new Set(g.enemy.rooms.map((r) => r.id));
-    for (const shot of g.shots) {
-      assert.equal(shot.from, "player");
-      assert.equal(shot.damage, 1);
-      assert.equal(shot.kind, "flak");
-      assert.equal(shot.ion, 0);
-      assert.equal(shot.fireChance, 0);
-      assert.equal(shot.breachChance, 0);
-      assert.ok(rooms.has(shot.targetRoom));
-    }
+    for (const shot of g.shots) assert.ok(rooms.has(shot.targetRoom));
   });
 
   it("uses the shorter clocks at higher levels", () => {
@@ -79,7 +112,7 @@ describe("flak burst", () => {
       tickFlak(g, seconds - 1);
       assert.equal(g.shots.length, 0);
       tickFlak(g, 1);
-      assert.equal(g.shots.length, 7);
+      expectBurst(g.shots);
     }
   });
 
@@ -88,11 +121,11 @@ describe("flak burst", () => {
     armFlak(g, 4);
     tickFlak(g, 10);
     tickFlak(g, 10);
-    assert.equal(g.shots.length, 7);
-    tickFlak(g, 19);
-    assert.equal(g.shots.length, 7);
-    tickFlak(g, 1);
     assert.equal(g.shots.length, 14);
+    tickFlak(g, 19);
+    assert.equal(g.shots.length, 14);
+    tickFlak(g, 1);
+    assert.equal(g.shots.length, 28);
   });
 
   it("does not spool while paused, unarmed, or out of a fight", () => {
@@ -114,7 +147,7 @@ describe("flak burst", () => {
     tickFlak(g, 24);
     assert.equal(g.shots.length, 0);
     tickFlak(g, 1);
-    assert.equal(g.shots.length, 7);
+    assert.equal(g.shots.length, 14);
   });
 
   it("waits for an enemy hull, then spreads on the next tick", () => {
@@ -127,7 +160,7 @@ describe("flak burst", () => {
     assert.equal(g.shots.length, 0);
     g.enemy.rooms = rooms;
     tickFlak(g, 0.01);
-    assert.equal(g.shots.length, 7);
+    assert.equal(g.shots.length, 14);
   });
 
   it("keeps two fights on separate clocks", () => {
@@ -137,8 +170,108 @@ describe("flak burst", () => {
     armFlak(b, 1);
     tickFlak(a, 20);
     tickFlak(b, 20);
-    assert.equal(a.shots.length, 7);
+    assert.equal(a.shots.length, 14);
     assert.equal(b.shots.length, 0);
+  });
+
+  it("does not let a fake pellet drop a shield, a zoltan bubble, or hull", () => {
+    const g = fight(11);
+    assert.ok(g.enemy);
+    const base = g.enemy.rooms[0];
+    g.enemy.rooms = [{ ...base, id: "b", x: 0, y: 0, w: 2, h: 2, omit: undefined }];
+    g.enemy.systems.engines.level = 0;
+    g.enemy.systems.engines.power = 0;
+    if (g.enemy.kits.veil) g.enemy.kits.veil.on = false;
+    g.enemy.zoltan = 5;
+    g.enemy.shieldNow = 8;
+    const hull = g.enemy.hull;
+    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    armFlak(g, 1);
+    g.player.kits.flak!.aux = 50;
+    tickFlak(g, 0.01);
+    expectBurst(g.shots);
+    assert.equal(evasionPercent(g, g.enemy, "enemy"), 0);
+    const before = g.log.length;
+    for (const shot of fakeOf(g.shots)) applyImpact(g, shot);
+    assert.equal(g.enemy.shieldNow, 8);
+    assert.equal(g.enemy.zoltan, 5);
+    assert.equal(g.enemy.hull, hull);
+    assert.equal(g.log.slice(before).some((line) => line.toLowerCase().includes("swarm")), false);
+    g.enemy.zoltan = 0;
+    for (const shot of realOf(g.shots)) applyImpact(g, shot);
+    assert.equal(g.enemy.shieldNow, 1);
+    assert.equal(g.enemy.hull, hull);
+  });
+
+  it("lets a defense drone shoot a fake pellet", () => {
+    const g = fight(12);
+    assert.ok(g.enemy);
+    g.enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      loadout: ["ward"],
+    };
+    g.enemy.parts = 3;
+    tickSwarm(g, 0.05);
+    tickSwarm(g, ACQUIRE_S);
+    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    armFlak(g, 1);
+    g.player.kits.flak!.aux = 50;
+    tickFlak(g, 0.01);
+    const fake = fakeOf(g.shots)[0];
+    assert.ok(fake);
+    assert.equal(enemyDefenseIntercept(g, fake), true);
+    assert.equal(enemyDefenseIntercept(g, fake), false);
+
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    g.player.parts = 2;
+    assert.equal(deploy(g, "ward"), true);
+    const incoming: Shot = { ...fake, from: "enemy" };
+    assert.equal(swarmIntercept(g, incoming), true);
+  });
+
+  it("can meet a drone in the line of fire", () => {
+    let hits = 0;
+    for (let seed = 1; seed <= 250 && hits === 0; seed++) {
+      const g = fight(seed);
+      assert.ok(g.enemy);
+      g.enemy.kits.swarm = {
+        id: "swarm",
+        level: 2,
+        power: 2,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+        loadout: ["ward"],
+      };
+      g.enemy.parts = 3;
+      tickSwarm(g, 0.05);
+      if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+      armFlak(g, 1);
+      g.player.kits.flak!.aux = 50;
+      tickFlak(g, 0.01);
+      const fake = fakeOf(g.shots)[0];
+      assert.ok(fake);
+      if (shotHitsDrone(g, fake)) hits += 1;
+    }
+    assert.equal(hits, 1);
   });
 });
 
@@ -218,9 +351,16 @@ describe("flak room odds", () => {
     preview.seed = 4;
     const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
     tickFlak(g, 0.01);
-    assert.equal(g.shots.length, 7);
+    const reals = realOf(g.shots);
+    assert.equal(reals.length, 7);
+    assert.equal(fakeOf(g.shots).length, 7);
+    for (const shot of fakeOf(g.shots)) {
+      assert.equal(shot.damage, 0);
+      assert.equal(shot.targetRoom, "n");
+      assert.equal(shot.offRoom, undefined);
+    }
     const aim: FlakAimRoom = { id: "n", x: 1, y: 0, w: 1, h: 2 };
-    g.shots.forEach((shot, i) => {
+    reals.forEach((shot, i) => {
       const land = flakLanding([aim], "n", rolls[i]);
       assert.equal(shot.damage, 1);
       assert.equal(shot.targetRoom, "n");
@@ -241,11 +381,11 @@ describe("flak room odds", () => {
     g.seed = 4;
     tickFlak(g, 0.01);
     assert.equal(g.seed, 4);
-    assert.equal(g.shots.length, 7);
+    expectBurst(g.shots);
     for (const shot of g.shots) {
       assert.equal(shot.targetRoom, "b");
       assert.equal(shot.offRoom, undefined);
-      assert.equal(shot.damage, 1);
     }
+    for (const shot of realOf(g.shots)) assert.equal(shot.damage, 1);
   });
 });

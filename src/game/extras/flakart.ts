@@ -46,11 +46,24 @@ export const SOLD_IN_STORES = false;
 /**
  * Flak Artillery, Overview: "Automatically fires a 7-flak burst".
  * Wiki page "Flak (Weapons)", section "List of Flak weapons": Shots 7.
- * Wiki page "Flak (Weapons)", section "List of Flak weapons": Additional fake flak 7.
- * Wiki page "Flak (Weapons)", section "Understanding flak accuracy": fake flak cannot deal damage.
- * INFERRED: only those 7 damaging shots are pushed. The page does not say to omit the fake pellets.
+ * These are the damaging shots. The extra pellets are FAKE_FLAK.
  */
 export const PROJECTILES = 7;
+
+/**
+ * Wiki page "Flak (Weapons)", section "List of Flak weapons", ===Flak Artillery===: Additional fake flak 7.
+ * Wiki page "Flak (Weapons)", section "Understanding flak accuracy": "These are fake flak, which cannot
+ * take down shields or deal damage, but can distract defense drones or collide with other projectiles."
+ * That section also says fake flak causes MISS notices when the player's ship evades them.
+ * INVENTED: each fake pellet is a missile with damage 0 and this label. A flak shot drops a shield layer
+ * whenever the bubble is above pierce, even at damage 0. A missile does not drop a layer, and a hit with
+ * damage 0 deals nothing. Defense drones shoot missiles. A missile is a projectile the line-of-fire check
+ * can strike. offRoom is the swarm-miss flag, so these pellets do not set it.
+ * The page does not print a kind, a damage number, or a label for the fake pellets.
+ * INFERRED: this sim has no shot-versus-shot check, so the line-of-fire strike is the collision they get.
+ */
+export const FAKE_FLAK = 7;
+export const FAKE_LABEL = "fake-flak";
 
 /**
  * Flak Artillery, Overview: "does one damage to room that it hits."
@@ -119,6 +132,27 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   }
   kit.aux = 0;
   const targets = spreadRooms(g, rooms, PROJECTILES);
+  const born: Shot[] = [];
+  // INFERRED: decoys are pushed first. A defense drone takes the first eligible shot in the list.
+  // The page does not print which pellet it prefers.
+  // INFERRED: a fake pellet is aimed at a room in list order and does not roll the 1x2 split.
+  // That split is the damaging shot's landing. The page does not print a separate aim for fakes.
+  for (let i = 0; i < FAKE_FLAK; i++) {
+    born.push({
+      id: nextId(g),
+      kind: "missile",
+      from,
+      damage: 0,
+      ion: 0,
+      fireChance: 0,
+      breachChance: 0,
+      targetRoom: rooms[i % rooms.length].id,
+      wait: 0,
+      t: 0,
+      duration: FLIGHT_SECONDS,
+      label: FAKE_LABEL,
+    });
+  }
   for (let i = 0; i < PROJECTILES; i++) {
     const landed = targets[i];
     const shot: Shot = {
@@ -136,14 +170,15 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       t: 0,
       duration: FLIGHT_SECONDS,
     };
-    g.shots.push(shot);
+    born.push(shot);
   }
+  g.shots.push(...born);
   // Crew skills, Weapons: one point when an artillery system fires. Seven shots are one fire.
   if (from === "player") noteWeaponManning(g);
 }
 
 /**
- * Spools every fitted flak kit. At a full charge, pushes 7 shots of 1 damage.
+ * Spools every fitted flak kit. At a full charge, pushes 7 shots of 1 damage and 7 fake pellets.
  * Flak Artillery, Overview: fires when charge is complete, each shot at a room.
  */
 export function tickFlak(g: Game, dt: number): void {
@@ -157,7 +192,7 @@ export function tickFlak(g: Game, dt: number): void {
  * Flak (Weapons), ===Flak Artillery===.
  * "When fired at 1x2 room: 60.90% in main room, 9.78% in each tile next to long sides."
  * "When fired at 2x2 room: 100% in main room."
- * Targeting area radius 35 is not simulated as pixels. Additional fake flak is not spawned.
+ * Targeting area radius 35 is not simulated as pixels. Fake pellets do not use this split.
  * INFERRED: which room a shot is fired at is still a shuffled round-robin. The page does not print that order.
  * INFERRED: 60.90 + 4×9.78 = 100.02, so the last long-side tile is short the extra two hundredths.
  * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.

@@ -164,7 +164,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Blue Options — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans (Abandoned) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Boarders: Humans (Pirate) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: Humans (Pirate) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Three to five human boarders beam aboard your ship from Boarders: Humans (Pirate), with no enemy ship.
 - [ ] Boarders: Humans in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans in plasma storm — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Three or four human boarders beam aboard your ship when you take the medium scrap from Boarders: Humans in plasma storm.
 - [ ] Boarders: Humans jammed sensors — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

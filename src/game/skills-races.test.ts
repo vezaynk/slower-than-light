@@ -232,6 +232,37 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.equal(g.player.kits.veil.damage ?? 0, 0);
     assert.equal(worker.skills?.repair ?? 0, 1);
   });
+
+  it("a mind-controlled crew member still gains a repair point", () => {
+    // Crew skills, lead: "your mind-controlled crew still gains skill points by performing the tasks."
+    const g = createGame(36);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
+    const away = g.enemy!.rooms.find((r) => r.id !== room.id)!;
+    const sys = g.enemy!.systems[room.system!];
+    sys.damage = 1;
+    sys.fix = 12.49;
+    room.fire = 0;
+    room.breach = 0;
+    room.o2 = 100;
+    const hero = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) {
+      c.path = [];
+      c.skills = {};
+      if (c.id !== hero.id && c.aboard === "enemy" && c.room === room.id) c.room = away.id;
+    }
+    hero.aboard = "enemy";
+    hero.room = room.id;
+    hero.path = [];
+    hero.stun = 0;
+    hero.leashed = 10;
+    hero.kin = "plain";
+    step(g, 0.05);
+    assert.equal(sys.damage, 0);
+    assert.equal(hero.skills?.repair ?? 0, 1);
+  });
 });
 
 describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {

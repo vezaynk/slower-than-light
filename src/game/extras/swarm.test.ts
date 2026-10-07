@@ -420,12 +420,51 @@ describe("swarm", () => {
     assert.equal(hp(), before - 6);
     assert.equal(g.enemy.shieldNow, shields);
     assert.equal(g.enemy.hull, hull);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit?.room);
+    const landed = g.enemy.rooms.find((r) => r.id === kit.room);
+    assert.ok(landed);
+    assert.ok(landed.breach >= 1);
     assert.equal(
       Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0),
       bars,
     );
     tickSwarm(g, 1);
     assert.equal(hp(), before - 12);
+  });
+
+  it("holds in space while the enemy is cloaked, then breaches and hits for 6", () => {
+    const g = createGame(13);
+    place(g);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    assert.equal(deploy(g, "board"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    const shields = g.enemy.shieldNow;
+    const hull = g.enemy.hull;
+    const hp = () =>
+      g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").reduce((sum, c) => sum + c.hp, 0);
+    const before = hp();
+    const breachBefore = g.enemy.rooms.reduce((sum, r) => sum + r.breach, 0);
+    tickSwarm(g, 2);
+    assert.equal(hp(), before);
+    assert.equal(kit.room, undefined);
+    assert.equal(
+      g.enemy.rooms.reduce((sum, r) => sum + r.breach, 0),
+      breachBefore,
+    );
+    g.enemy.kits.veil.on = false;
+    tickSwarm(g, 1);
+    assert.equal(hp(), before - 6);
+    assert.equal(typeof kit.room, "string");
+    assert.ok(kit.room);
+    const room = g.enemy.rooms.find((r) => r.id === kit.room);
+    assert.ok(room);
+    assert.ok(room.breach >= 1);
+    assert.equal(g.enemy.shieldNow, shields);
+    assert.equal(g.enemy.hull, hull);
   });
 
   it("board damages a system for 6 when no enemy crew are left and still ignores shields", () => {

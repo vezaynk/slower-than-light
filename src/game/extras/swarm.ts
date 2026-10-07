@@ -118,6 +118,8 @@ const BEAM_FIRE = 10 / 100;
  * Door System, Door strength: "They make about one attack per second with slightly randomized timing."
  * Boarding Drones > Boarding Drone gives no attack interval.
  * INFERRED: a flat 1 second. The slight randomization is not applied.
+ * Boarding Drone prints "Speed: 18 (when moving through space)". Flight seconds are unprinted,
+ * so this interval is still the arrival.
  */
 const BOARD_INTERVAL_S = 1;
 
@@ -506,7 +508,27 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
   }
 }
 
+/** Crew rooms first, otherwise a system room, otherwise any room. Same rule as the hit below. */
+function boardLanding(g: Game, enemy: Ship): Room | undefined {
+  const alive = g.crew.filter(
+    (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && enemy.rooms.some((r) => r.id === c.room),
+  );
+  if (alive.length > 0) {
+    const rooms = enemy.rooms.filter((r) => alive.some((c) => c.room === r.id));
+    return rooms[Math.floor(rand(g) * rooms.length)];
+  }
+  const systems = enemy.rooms.filter((r) => r.system);
+  const pool = systems.length > 0 ? systems : enemy.rooms;
+  return pool[Math.floor(rand(g) * pool.length)];
+}
+
 function tickBoard(g: Game, kit: Kit, dt: number) {
+  // Cloaking, Overview: "Hacking and Boarding drones hold their position in space. They will continue their move when the cloak is over."
+  // Drone Control, Boarding Drones: "They cannot board a cloaked ship."
+  // Boarding Drone prints "Speed: 18 (when moving through space)". Flight seconds are unprinted, so BOARD_INTERVAL_S is still the arrival.
+  // The timer does not advance while the drone holds in space.
+  if (!kit.room && veilBlocks(g, "player")) return;
+
   kit.aux += dt;
   while (kit.aux >= BOARD_INTERVAL_S) {
     const enemy = g.enemy;
@@ -516,8 +538,9 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
     }
     kit.aux -= BOARD_INTERVAL_S;
     // Zoltan Shield: a boarding drone is destroyed on contact and does not damage the bubble.
+    // Contact is this arrival, before a room is chosen. No room, no breach, no crew or system hit.
     // Bypass still says launch-then-destroyed. The fitted path reads that row. It is never "pass".
-    if ((enemy.zoltan ?? 0) > 0) {
+    if (!kit.room && (enemy.zoltan ?? 0) > 0) {
       const via = g.augments.includes("bypass") ? bypassZoltan("board") : "destroyed";
       if (via !== "pass") {
         kit.on = false;
@@ -526,25 +549,26 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       }
     }
     // Drone Control, Boarding Drones: "They ignore regular shields".
-    // shieldNow is not read and is not reduced. Boarding Drones > Boarding Drone
-    // boards and attacks crew and systems inside.
-    const alive = g.crew.filter(
-      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && enemy.rooms.some((r) => r.id === c.room),
-    );
+    // shieldNow is not read and is not reduced. Hull is not changed.
+    // "When deployed, Boarding Drones fly to the enemy ship, breach the hull and attack crew and systems inside."
+    if (!kit.room) {
+      const landed = boardLanding(g, enemy);
+      if (!landed) continue;
+      kit.room = landed.id;
+      // INFERRED: the page says "breach the hull" and does not print a count of 1.
+      if (landed.breach < 1) landed.breach = 1;
+    }
+    const room = enemy.rooms.find((r) => r.id === kit.room);
+    if (!room) continue;
+    // Later ticks stay in this room. Crew here, otherwise this room's system. kit.room is not cleared.
+    const alive = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id);
     if (alive.length > 0) {
-      const rooms = enemy.rooms.filter((r) => alive.some((c) => c.room === r.id));
-      const room = rooms[Math.floor(rand(g) * rooms.length)];
-      if (!room) continue;
-      const inRoom = alive.filter((c) => c.room === room.id);
-      const crew = inRoom[Math.floor(rand(g) * inRoom.length)];
+      const crew = alive[Math.floor(rand(g) * alive.length)];
       if (!crew) continue;
       crew.hp -= BOARD_HIT;
       continue;
     }
-    const systems = enemy.rooms.filter((r) => r.system);
-    const pool = systems.length > 0 ? systems : enemy.rooms;
-    const room = pool[Math.floor(rand(g) * pool.length)];
-    if (!room?.system) continue;
+    if (!room.system) continue;
     const sys = enemy.systems[room.system];
     const roomLeft = sys.level - sys.damage;
     if (roomLeft <= 0) continue;

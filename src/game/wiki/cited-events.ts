@@ -29,6 +29,8 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
+// Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
+import { rockBoarders } from "./surrender.ts";
 
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
@@ -3480,6 +3482,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);
+    // "1-3 rock boarders beam aboard your ship" (Rock fight with boarders).
+    // INFERRED: inclusive 1..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);
     return true;
   }
   ctx.resolve();

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { kinOf } from "../extras/kin.ts";
+import { choose, createGame } from "../sim.ts";
+import type { Game } from "../types.ts";
 import { EXTRA_EVENTS } from "./cited-events-rock.ts";
+import { citedEvent } from "./cited-events.ts";
 
 const TITLES = [
   "Ancient device",
@@ -104,5 +108,91 @@ describe("cited rock events", () => {
     }
     assert.equal(fights, EXTRA_EVENTS.reduce((n, ev) => n + ev.choices.filter((c) => c.fx.some((fx) => fx.k === "fight")).length, 0));
     assert.equal(numbers, 0);
+  });
+});
+
+function arrive(seed: number, dest: string): Game {
+  const g = createGame(seed);
+  g.sectorName = "Rock Controlled Sector";
+  const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
+  const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store")!;
+  b.flag = ev.flag;
+  b.kind = "event";
+  b.name = ev.dest;
+  g.here = b.id;
+  g.event = citedEvent(g, b);
+  g.phase = "event";
+  return g;
+}
+
+describe("Rock fight with boarders", () => {
+  it("beams 1-3 Rock boarders aboard after the Rock ship fight and grants nothing else", () => {
+    const seen = new Set<number>();
+    const hp = kinOf("stone").hp;
+    for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
+      const g = arrive(seed, "Rock fight with boarders");
+      const scrap = g.scrap;
+      const fuel = g.fuel;
+      const missiles = g.missiles;
+      const parts = g.player.parts;
+      const weapons = g.player.weapons.map((w) => w.defId);
+      const augments = [...g.augments];
+      const kits = JSON.stringify(g.player.kits);
+      const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
+      const rooms = new Set(g.player.rooms.map((r) => r.id));
+      g.crew.push({
+        id: "planted",
+        name: "Planted",
+        side: "enemy",
+        aboard: "player",
+        hp: 1,
+        maxHp: 1,
+        room: g.player.rooms[0]?.id ?? "p-medbay",
+        path: [],
+        move: 0,
+        think: 0,
+        tone: 3,
+        kin: "plain",
+      });
+      choose(g, "c:rock-fight-with-boarders:0");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.enemy?.faction, "rock");
+      assert.equal(g.enemy?.pirate, false);
+      assert.equal(g.asteroid, false);
+      assert.equal(g.fightEvent, "rock-fight-with-boarders");
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+      assert.ok(boarders.length >= 1 && boarders.length <= 3, String(boarders.length));
+      seen.add(boarders.length);
+      assert.ok(boarders.every((c) => c.name === "Rock" && c.kin === "stone" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.equal(boarders.some((c) => c.id === "planted"), false);
+      assert.equal(g.scrap, scrap);
+      assert.equal(g.fuel, fuel);
+      assert.equal(g.missiles, missiles);
+      assert.equal(g.player.parts, parts);
+      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(g.augments, augments);
+      assert.equal(JSON.stringify(g.player.kits), kits);
+      assert.deepEqual(
+        g.crew.filter((c) => c.side === "player").map((c) => c.id),
+        crewIds,
+      );
+      assert.equal(g.log.some((line) => line.includes("Boarder counts are not applied")), false);
+      assert.ok(g.log.some((line) => line === `${boarders.length} rock boarders beam aboard your ship.`));
+    }
+    assert.deepEqual([...seen].sort(), [1, 2, 3]);
+  });
+
+  it("leaves the asteroid-field note in place and does not spawn those boarders", () => {
+    const field = EXTRA_EVENTS.find((e) => e.dest === "Rock fight with boarders in asteroid field")!;
+    assert.deepEqual(field.choices[0].fx.find((fx) => fx.k === "note"), { k: "note", text: "Boarder counts are not applied." });
+    const plain = EXTRA_EVENTS.find((e) => e.dest === "Rock fight with boarders")!;
+    assert.equal(plain.choices[0].fx.some((fx) => fx.k === "note"), false);
+    const g = arrive(3, "Rock fight with boarders in asteroid field");
+    choose(g, "c:rock-fight-with-boarders-in-asteroid-field:0");
+    assert.equal(g.phase, "combat");
+    assert.equal(g.asteroid, true);
+    assert.equal(g.enemy?.faction, "rock");
+    assert.equal(g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 0);
+    assert.ok(g.log.some((line) => line.includes("Boarder counts are not applied.")));
   });
 });

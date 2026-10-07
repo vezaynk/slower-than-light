@@ -271,6 +271,7 @@ describe("enemy hacking: pulse effects", () => {
     veil.left = 5;
     tickEnemySpike(g, 0.1);
     assert.equal(veil.on, false);
+    assert.equal(veil.cool, 20);
   });
 
   it("ends the player's own hack and blocks a launch", () => {

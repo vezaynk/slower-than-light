@@ -477,11 +477,13 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
   switch (kit.target) {
     case "veil": {
       // "Cloaking: ends an active cloak, and prevents the enemy from entering cloak." The end is startOwnPulse; a cloak
-      // started during the pulse is cancelled at once. INFERRED (as applyEnemyPulse): that cancel costs no cooldown.
+      // started during the pulse is cancelled at once.
+      // Cloaking, Overview: "Hacking pulse ends an active cloak and puts the Cloaking system on full (20 seconds) cooldown."
       const veil = enemy.kits.veil;
       if (veil?.on) {
         veil.on = false;
         veil.left = 0;
+        veil.cool = CLOAK_COOLDOWN;
       }
       return;
     }
@@ -1122,11 +1124,12 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
     }
     case "veil": {
       // "Cloaking: ... prevents the enemy from entering cloak." A cloak started during the pulse is cancelled.
-      // INFERRED: that cancel costs no cooldown, as if the button had been greyed out.
+      // Cloaking, Overview: "Hacking pulse ends an active cloak and puts the Cloaking system on full (20 seconds) cooldown."
       const veil = ship.kits.veil;
       if (veil?.on) {
         veil.on = false;
         veil.left = 0;
+        veil.cool = CLOAK_COOLDOWN;
       }
       return;
     }

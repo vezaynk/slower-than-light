@@ -247,6 +247,23 @@ describe("hack rules: every listed target", () => {
     assert.equal(veil.on, false);
   });
 
+  it("Cloaking: a cloak turned on during the pulse ends on the full 20 second cooldown", () => {
+    const g = fight();
+    const veil = fit(g, "veil", 1);
+    pulsing(g, "veil");
+    veil.on = true;
+    veil.left = 5;
+    veil.cool = 0;
+    tickSpike(g, 0.05);
+    assert.equal(veil.on, false);
+    assert.equal(veil.left, 0);
+    assert.equal(veil.cool, 20);
+    veil.on = false;
+    veil.cool = 0;
+    tickSpike(g, 0.05);
+    assert.equal(veil.cool, 0);
+  });
+
   it("Backup Battery: shuts it down onto cooldown and drains two bars for the pulse", () => {
     const g = fight();
     const cell = fit(g, "cell", 1, { on: true, left: 10 });

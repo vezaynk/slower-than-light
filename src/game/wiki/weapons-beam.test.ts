@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { applyImpact, createGame } from "../sim.ts";
+import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { BEAM_CREW, BEAM_GAPS, BEAM_WEAPONS } from "./weapons-beam.ts";
 
@@ -253,6 +253,48 @@ describe("beam weapons", () => {
     applyImpact(flame, beamShot({ damage: 1, defId: "fire", fireChance: 0.9, label: "drone:fire", beamRooms: path }));
     assert.equal(flame.player.zoltan, 3);
     assert.equal(flame.player.hull, hull);
+  });
+
+  it("hits a ship that would dodge every other shot", () => {
+    // Beam (Weapons) and Weapons, "Beams": "They are the only weapons that never miss."
+    const g = createGame(3);
+    startCombat(g, "scout");
+    const ship = g.enemy;
+    assert.ok(ship);
+    ship.systems.engines.level = 8;
+    ship.systems.engines.power = 8;
+    ship.systems.engines.damage = 0;
+    ship.systems.pilot.level = Math.max(1, ship.systems.pilot.level);
+    ship.systems.pilot.damage = 0;
+    ship.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    const engines = ship.rooms.find((r) => r.system === "engines");
+    const pilot = ship.rooms.find((r) => r.system === "pilot");
+    const crew = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0);
+    if (engines && crew[0]) {
+      crew[0].room = engines.id;
+      crew[0].path = [];
+    }
+    if (pilot && crew[1]) {
+      crew[1].room = pilot.id;
+      crew[1].path = [];
+    }
+    assert.equal(evasionPercent(g, ship, "enemy"), 100);
+    ship.shieldNow = 0;
+    ship.zoltan = 0;
+    const room = ship.rooms.find((r) => r.system === "weapons") ?? ship.rooms[0];
+    assert.ok(room);
+    const before = ship.hull;
+    applyImpact(
+      g,
+      beamShot({ damage: 1, from: "player", targetRoom: room.id, beamRooms: [room.id], defId: "mini" }),
+    );
+    assert.equal(ship.hull, before - 1);
+    applyImpact(g, {
+      ...beamShot({ damage: 1, from: "player", targetRoom: room.id, defId: "burst1" }),
+      kind: "laser",
+      beamRooms: undefined,
+    });
+    assert.equal(ship.hull, before - 1);
   });
 
   it("cites Beam (Weapons) and each section heading", () => {

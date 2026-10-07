@@ -2247,14 +2247,8 @@ export function applyImpact(g: Game, shot: Shot) {
   const missed = rand(g) * 100 < evade;
 
   if (shot.kind === "beam") {
-    // Weapons, "Beams": a beam never misses, and each layer cuts damage by 1. This miss roll is INVENTED.
-    // @agent:drones. Anti-Ship Beam Drone I: "fast and 100% accurate". A drone beam (label "drone:…", swarm.ts) skips it.
-    if (missed && !shot.label?.startsWith("drone:")) {
-      if (playerTarget) noteDodge(g);
-      log(g, playerTarget ? "Beam missed the Lark." : "Their hull slipped the beam.");
-      floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
-      return;
-    }
+    // Beam (Weapons) and Weapons, "Beams": "They are the only weapons that never miss."
+    // Shields and a Zoltan Shield still block. The evade draw above is not a miss.
     // Beam (Weapons), "Beams vs Zoltan Shields": up to two instances, at 33% and 80% of the path.
     // Room count does not change the instance. Zoltan Shield, lead: Hull Beam's systemless rooms do not raise it.
     // If the bubble breaks while the beam is still firing, the rest of the path is a normal swipe.

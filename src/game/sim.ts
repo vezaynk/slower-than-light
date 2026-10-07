@@ -699,9 +699,12 @@ function clearShieldHalf(g: Game): void {
  * Slug hacker (doors): "Fight a Slug ship with your Door System offline."
  * The page restores systems when that ship is destroyed or its crew are dead.
  * INFERRED: offline is a door level of 0 and no remote open or close. The installed level stays.
- * Open flags stay as they were. The half ends when that fight ends.
+ * Open flags stay as they were. The cut ends when that fight ends.
+ * Slug hacker (oxygen): "Fight a Slug ship with your Oxygen system offline."
+ * INFERRED: offline oxygen produces nothing, so rooms use the unpowered drain. The installed level stays.
+ * A Zoltan in the room does not keep production going. The cut ends when that fight ends.
  */
-const systemOff = new WeakMap<Game, Set<"doors">>();
+const systemOff = new WeakMap<Game, Set<"doors" | "oxygen">>();
 
 export function shutPlayerDoors(g: Game): void {
   systemOff.set(g, new Set(["doors"]));
@@ -711,12 +714,20 @@ export function shutPlayerDoors(g: Game): void {
   }
 }
 
+export function shutPlayerOxygen(g: Game): void {
+  systemOff.set(g, new Set(["oxygen"]));
+}
+
 function clearSystemOff(g: Game): void {
   systemOff.delete(g);
 }
 
 function doorsOff(g: Game, aboard: "player" | "enemy"): boolean {
   return aboard === "player" && (systemOff.get(g)?.has("doors") ?? false);
+}
+
+function oxygenOff(g: Game, aboard: "player" | "enemy"): boolean {
+  return aboard === "player" && (systemOff.get(g)?.has("oxygen") ?? false);
 }
 
 function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
@@ -2896,6 +2907,8 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   let o2 = mainBars(g, ship, aboard, "oxygen");
   // Slug hacker (choice): "Oxygen system halved" and "rounds down against you".
   if (aboard === "player" && systemHalf.get(g)?.has("oxygen")) o2 = Math.floor(o2 / 2);
+  // Slug hacker (oxygen): "Oxygen system offline". Production is none, so the unpowered drain below applies.
+  if (oxygenOff(g, aboard)) o2 = 0;
   const mult = o2 <= 0 ? 0 : o2 === 1 ? 1 : o2 === 2 ? 4 : 7;
   for (const r of ship.rooms) {
     if (o2 > 0) r.o2 += 1.2 * mult * dt;
@@ -4808,7 +4821,10 @@ export function choose(g: Game, id: string) {
               const halves = citedSystemHalf(id);
               if (halves) halvePlayerSystems(g, halves);
               // Slug hacker (doors): "Door System offline". After startCombat, which clears it.
-              if (citedSystemOff(id)?.includes("doors")) shutPlayerDoors(g);
+              // Slug hacker (oxygen): "Oxygen system offline".
+              const offline = citedSystemOff(id);
+              if (offline?.includes("doors")) shutPlayerDoors(g);
+              if (offline?.includes("oxygen")) shutPlayerOxygen(g);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),

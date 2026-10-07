@@ -431,3 +431,49 @@ describe("Slug hacker (doors)", () => {
     assert.ok(doorLevel(g, g.player, "player") >= 2);
   });
 });
+
+describe("Slug hacker (oxygen)", () => {
+  it("takes the Oxygen system offline until that fight ends", () => {
+    const g = createGame(71);
+    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-oxygen", "Slug hacker (oxygen)");
+    g.player.systems.oxygen.level = 2;
+    g.player.systems.oxygen.power = 2;
+    g.player.systems.oxygen.damage = 0;
+    g.player.systems.oxygen.ion = [];
+    choose(g, "c:slug-hacker-oxygen:0");
+    assert.equal(g.phase, "combat");
+    quietEnemy(g);
+    assert.equal(g.player.systems.oxygen.level, 2);
+    for (const d of g.player.doors) d.open = false;
+    for (const r of g.player.rooms) {
+      r.o2 = 50;
+      r.fire = 0;
+      r.breach = 0;
+    }
+    const room = g.player.rooms[0];
+    assert.ok(room);
+    const before = room.o2;
+    step(g, 0.05);
+    const lost = before - room.o2;
+    // Unpowered drain is 1.2% per second. Level 2 would refill at four times the one-bar rate.
+    assert.ok(lost > 0.04 && lost < 0.1, String(lost));
+    assert.ok(g.enemy);
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    startCombat(g, "scout");
+    quietEnemy(g);
+    for (const d of g.player.doors) d.open = false;
+    for (const r of g.player.rooms) {
+      r.o2 = 50;
+      r.fire = 0;
+      r.breach = 0;
+    }
+    const again = g.player.rooms[0];
+    assert.ok(again);
+    const held = again.o2;
+    step(g, 0.05);
+    const gained = again.o2 - held;
+    assert.ok(gained > 0.2 && gained < 0.3, String(gained));
+  });
+});

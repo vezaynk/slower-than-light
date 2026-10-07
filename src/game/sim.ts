@@ -130,7 +130,7 @@ import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 import { SECTOR_TYPES } from "./wiki/sectors.ts";
-import { escapePlan, eventSlugOf } from "./wiki/escape.ts";
+import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import { surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
 // @agent:filler. Documented events for plain beacons.
@@ -3325,6 +3325,18 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),
   );
+  const arrived = hereBeacon(g);
+  // Environmental Hazards, Anti-Ship Battery: last fuel into an overtaken nebula or its exit. The Elite runs at 90s.
+  // dive:1 is the jump into the fleet. A waiting dive is dive:4 and is not this sentence.
+  if (
+    g.pending === "dive:1" &&
+    g.fuel <= 0 &&
+    arrived &&
+    arrived.col < g.fleet &&
+    (arrived.kind === "nebula" || arrived.kind === "exit")
+  ) {
+    g.enemyEscape = overtakenArrivalEscape();
+  }
   // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." wiki/surrender.ts.
   g.enemySurrender = surrenderPlan({ tier, event, faction: built.ship.faction, pirate: built.ship.pirate }, () => rand(g));
   // @agent:quests. The page that started this fight, for its own win reward (wiki/quests.ts pageWin).

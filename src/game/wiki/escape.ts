@@ -65,6 +65,16 @@ export const OUT_OF_FUEL_WAIT_SECONDS = 80;
 export const LAST_FUEL_SECONDS = 90;
 
 /**
+ * Environmental Hazards, Anti-Ship Battery: 0 fuel after a jump to an overtaken nebula, or that nebula's exit.
+ * The enemy runs at 90 seconds. Enemy Ships leaves Rebel Elites out of the general last-fuel rule (INFERRED there).
+ * This page prints the timer for this arrival, so the Elite runs here.
+ * INFERRED: kind "exit" is that nebula exit. An exit is not also marked nebula.
+ */
+export function overtakenArrivalEscape(): EscapePlan {
+  return plan("start", LAST_FUEL_SECONDS);
+}
+
+/**
  * Enemy Ships, "Surrender/escape values for ships of various factions with 'Default rewards'":
  * Slug ("JELLY") 50% at 30-40% hull; Lanius ("LANIUS_SHIP") 80% at 20-40%; Pirate ("PIRATE") 50% at 20-40%;
  * Rebel ("REBEL") 50% at 30-40%. The page warns the percent may really be hull points scaled by sector.

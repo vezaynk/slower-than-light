@@ -271,6 +271,42 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.equal(jumped.asb, false);
   });
 
+  it("runs the elite for 90 seconds after a last-fuel jump into an overtaken nebula", () => {
+    const jumpTo = (seed: number, kind: "nebula" | "exit" | "empty", fuel: number) => {
+      const g = createGame(seed);
+      g.phase = "map";
+      g.fuel = fuel;
+      g.fleet = 4;
+      const from = g.beacons.find((beacon) => beacon.id === g.here);
+      const dest = g.beacons.find((beacon) => beacon.id !== g.here);
+      assert.ok(from && dest);
+      dest.kind = kind;
+      dest.col = 1;
+      dest.resolved = false;
+      if (!from.links.includes(dest.id)) from.links.push(dest.id);
+      commitJump(g, dest.id);
+      return g;
+    };
+    const nebula = jumpTo(8, "nebula", 1);
+    assert.equal(nebula.fuel, 0);
+    assert.equal(nebula.player.storm, true);
+    assert.equal(nebula.asb, false);
+    assert.equal(nebula.enemyEscape?.mode, "start");
+    assert.equal(nebula.enemyEscape?.seconds, 90);
+
+    const fueled = jumpTo(9, "nebula", 3);
+    assert.equal(fueled.fuel, 2);
+    assert.equal(fueled.enemyEscape?.mode, "never");
+
+    const empty = jumpTo(10, "empty", 1);
+    assert.equal(empty.enemyEscape?.mode, "never");
+
+    const exit = jumpTo(11, "exit", 1);
+    assert.equal(exit.player.storm, undefined);
+    assert.equal(exit.enemyEscape?.mode, "start");
+    assert.equal(exit.enemyEscape?.seconds, 90);
+  });
+
   it("warns 15–20s after an overtaken fight, then waits 5–10s for the real shot", () => {
     const g = createGame(2, "kestrel-a", "normal");
     const here = g.beacons.find((b) => b.id === g.here);

@@ -35,6 +35,7 @@ import { beginBoarding, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
+import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
 import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
 import type { EscapePlan } from "./escape.ts";
@@ -452,6 +453,9 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "q:store-rescue:avoid", label: "Avoid a fight." },
       ]);
       break;
+    case RUWEN_ENTRY:
+      // Ancient device: the QUEST tag does not replace the card. eventFor falls through to that page.
+      return null;
     default: {
       // @agent:quests-a. Quest-opener modules.
       const arrive = fromParts("arrive", b.quest);

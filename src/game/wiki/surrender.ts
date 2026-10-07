@@ -20,6 +20,7 @@ import type { Crew, Difficulty, Game } from "../types.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { addQuest, questChoose } from "./quests.ts";
+import { markRuwenEntry } from "./ruwen-entry.ts";
 
 export type SurrenderTier = "low" | "medium" | "high";
 
@@ -617,6 +618,8 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
     kin,
     ...(skills ? { skills: { ...skills } } : {}),
   });
+  // Ancient device: gaining Ruwen turns that Rock Homeworlds beacon into a quest beacon.
+  markRuwenEntry(g);
   return true;
 }
 

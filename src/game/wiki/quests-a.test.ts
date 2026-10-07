@@ -230,6 +230,67 @@ describe("quest openers (quests-a)", () => {
     assert.equal(last.sectorMap, false);
   });
 
+  it("Ruwen marks the Ancient device beacon in Rock Homeworlds, and another Crystal does not", () => {
+    const quiet = createGame(4);
+    quiet.sector = 5;
+    quiet.sectorName = "Rock Homeworlds";
+    quiet.crew = quiet.crew.filter((c) => c.side === "player").slice(0, 2);
+    assert.ok(joinCrew(quiet, "Crystal", "Sera"));
+    stampCitedEvents(quiet);
+    const plain = quiet.beacons.find((b) => b.flag === "cited:ancient-device");
+    assert.ok(plain);
+    assert.equal(plain.quest, undefined);
+    assert.equal(plain.name, "Ancient device");
+    assert.ok(joinCrew(quiet, "Crystal", "Ruwen"));
+    assert.equal(plain.quest, "ruwen-entry");
+    assert.equal(plain.flag, "cited:ancient-device");
+    assert.equal(plain.name, "Ancient device");
+
+    const dead = createGame(5);
+    dead.sector = 5;
+    dead.sectorName = "Rock Homeworlds";
+    dead.crew = dead.crew.filter((c) => c.side === "player").slice(0, 2);
+    assert.ok(joinCrew(dead, "Crystal", "Ruwen"));
+    const body = dead.crew.find((c) => c.name === "Ruwen");
+    assert.ok(body);
+    body.hp = 0;
+    stampCitedEvents(dead);
+    const unmarked = dead.beacons.find((b) => b.flag === "cited:ancient-device");
+    assert.ok(unmarked);
+    assert.equal(unmarked.quest, undefined);
+
+    const g = createGame(6);
+    g.sector = 5;
+    g.sectorName = "Civilian Sector";
+    g.crew = g.crew.filter((c) => c.side === "player").slice(0, 2);
+    const stray = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit")!;
+    stray.flag = "cited:ancient-device";
+    assert.ok(joinCrew(g, "Crystal", "Ruwen"));
+    assert.equal(stray.quest, undefined);
+    stray.flag = "";
+
+    g.sectorName = "Rock Homeworlds";
+    stampCitedEvents(g);
+    const entry = g.beacons.find((b) => b.flag === "cited:ancient-device");
+    assert.ok(entry);
+    assert.equal(entry.quest, "ruwen-entry");
+    assert.equal(entry.flag, "cited:ancient-device");
+    assert.equal(entry.name, "Ancient device");
+
+    const start = g.beacons.find((b) => b.kind === "start")!;
+    g.here = start.id;
+    g.phase = "map";
+    g.event = null;
+    g.fuel = 5;
+    g.fleet = 0;
+    if (!start.links.includes(entry.id)) start.links.push(entry.id);
+    commitJump(g, entry.id);
+    assert.equal(g.phase, "event");
+    assert.match(g.event!.body, /ancient device/i);
+    assert.ok(g.event!.choices.some((c) => c.id === "c:ancient-device:2"));
+    assert.equal(entry.quest, "ruwen-entry");
+  });
+
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {

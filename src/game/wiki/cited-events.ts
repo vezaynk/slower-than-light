@@ -28,6 +28,7 @@ import { EXTRA_EVENTS as QUEST_A_PAGES } from "./quests-a-pages.ts";
 import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @agent:quests-b. Branches in wiki/quests-b.ts.
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
+import { markRuwenEntry } from "./ruwen-entry.ts";
 
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
@@ -3327,7 +3328,10 @@ export function stampCitedEvents(g: Game) {
   // @agent:beacon-mix. Sectors, "Beacons:" lists: the free beacons are re-dealt by the sector's counts and
   // this seeded order fills hostile/neutral/distress/items slots (wiki/beacon-mix.ts). The loop below only
   // runs for a sector name the page does not list.
-  if (mixBeacons(g, mine)) return;
+  if (mixBeacons(g, mine)) {
+    markRuwenEntry(g);
+    return;
+  }
   for (const ev of mine) {
     if (g.beacons.some((b) => b.flag === ev.flag)) continue;
     const pool = g.beacons.filter(
@@ -3344,6 +3348,7 @@ export function stampCitedEvents(g: Game) {
     spot.asteroid = false;
     spot.name = ev.dest;
   }
+  markRuwenEntry(g);
 }
 
 export function citedEvent(_g: Game, b: Beacon): GameEvent | null {

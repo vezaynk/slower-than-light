@@ -1021,6 +1021,38 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
   log(g, `${n} mantis boarders beam aboard your ship.`);
 }
 
+/**
+ * Zoltan border police: "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)."
+ * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
+ * INFERRED: the count is an inclusive whole number from 3 to 4, and each boarder lands in a random player room,
+ * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
+ * HP is kinOf("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
+ */
+export function zoltanBoarders(g: Game, lo: number, hi: number) {
+  const n = between(g, [lo, hi]);
+  const hp = kinOf("spark").hp;
+  for (let i = 0; i < n; i++) {
+    const rooms = g.player.rooms;
+    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    g.uid = (g.uid + 1) >>> 0;
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: "Zoltan",
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin: "spark",
+    });
+  }
+  log(g, `${n} zoltan boarders beam aboard your ship.`);
+}
+
 function livingSlug(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
 }

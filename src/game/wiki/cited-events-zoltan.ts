@@ -144,7 +144,6 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           // "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)."
           { k: "fight", tier: "Zoltan ship" },
-          { k: "note", text: "Boarders named on the page are not applied." },
         ],
       },
     ],

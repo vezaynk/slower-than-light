@@ -30,7 +30,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { mantisBoarders, rockBoarders } from "./surrender.ts";
+import { mantisBoarders, rockBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -3492,6 +3492,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "2-3 mantis boarders beam aboard your ship" (Mantis outcasts).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:mantis-outcasts:0") mantisBoarders(g, 2, 3);
+    // "3-4 zoltan boarders beam aboard your ship" (Zoltan border police).
+    // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
+    if (id === "c:zoltan-border-police:0") zoltanBoarders(g, 3, 4);
     return true;
   }
   ctx.resolve();

@@ -320,6 +320,45 @@ function quietEnemy(g: ReturnType<typeof createGame>) {
   }
 }
 
+describe("Zoltan border police", () => {
+  it("beams 3-4 Zoltan boarders aboard with the Zoltan ship and grants nothing else", () => {
+    const seen = new Set<number>();
+    const hp = kinOf("spark").hp;
+    for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
+      const g = createGame(seed);
+      const scrap = g.scrap;
+      const fuel = g.fuel;
+      const missiles = g.missiles;
+      const parts = g.player.parts;
+      const weapons = g.player.weapons.map((w) => w.defId);
+      const augments = [...g.augments];
+      const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
+      const rooms = new Set(g.player.rooms.map((r) => r.id));
+      openCited(g, "Zoltan Controlled Sector", "cited:zoltan-border-police", "Zoltan border police");
+      choose(g, "c:zoltan-border-police:0");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.enemy?.faction, "zoltan");
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+      assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
+      seen.add(boarders.length);
+      assert.ok(boarders.every((c) => c.name === "Zoltan" && c.kin === "spark" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.equal(g.scrap, scrap);
+      assert.equal(g.fuel, fuel);
+      assert.equal(g.missiles, missiles);
+      assert.equal(g.player.parts, parts);
+      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(g.augments, augments);
+      assert.deepEqual(
+        g.crew.filter((c) => c.side === "player").map((c) => c.id),
+        crewIds,
+      );
+      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
+      assert.ok(g.log.some((line) => line === `${boarders.length} zoltan boarders beam aboard your ship.`));
+    }
+    assert.deepEqual([...seen].sort(), [3, 4]);
+  });
+});
+
 describe("Mantis outcasts", () => {
   it("beams 2-3 Mantis boarders aboard with the Mantis ship and grants nothing else", () => {
     const seen = new Set<number>();

@@ -171,7 +171,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Boarders: Humans near sun — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Two to four human boarders beam aboard your ship from Boarders: Humans near sun, with no enemy ship, and the red giant arms the flare clock.
 - [ ] Boarders: Mantis — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event. Two to four mantis boarders beam aboard your ship from Boarders: Mantis, with no enemy ship.
 - [ ] Boarders: Rockmen near sun — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event. Two or three rock boarders beam aboard your ship from Boarders: Rockmen near sun, with no enemy ship, and the red giant arms the flare clock.
-- [ ] Boarders: rebels in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Boarders: rebels in nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event. Three or four human boarders beam aboard your ship from Boarders: rebels in nebula, with no enemy ship.
 - [ ] Boarders in Nebula — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders in Plasma Storm — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders in nebula — not-a-surface — same title as "Boarders in Nebula" with different capitalization

@@ -816,7 +816,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Orbiting Small Platform — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Orbiting refueling platform — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Orbiting small platform — not-a-surface — same title as "Orbiting Small Platform" with different capitalization
-- [ ] Oxygen — partial — At 5% or less, crew lose 6.4 HP per second. Emergency Respirators halves that for the player's own crew, including boarders. A level 1 medbay's 6.4 heal negates a full-rate human in that room. Venting rates in sim are INFERRED.
+- [ ] Oxygen — partial — At 5% or less, crew lose 6.4 HP per second. Emergency Respirators halves that for the player's own crew, including boarders. A level 1 medbay's 6.4 heal negates a full-rate human in that room. Venting rates in sim are INFERRED. An open airlock empties the oxygen in that room on the same tick, and a second open airlock drains a farther room sooner.
 - [ ] Patches — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Phase Shift — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Piloting — partial — autopilot percents are in upgrade blurbs. Not re-audited against the page this pass.

@@ -1,5 +1,5 @@
 import { noteWeaponManning, rand } from "../sim.ts";
-import { seatKits } from "../layouts.ts";
+import { cellOccupied, seatKits } from "../layouts.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
 
@@ -120,6 +120,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   kit.aux = 0;
   const targets = spreadRooms(g, rooms, PROJECTILES);
   for (let i = 0; i < PROJECTILES; i++) {
+    const landed = targets[i];
     const shot: Shot = {
       id: nextId(g),
       kind: "flak",
@@ -128,7 +129,9 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       ion: 0,
       fireChance: 0,
       breachChance: 0,
-      targetRoom: targets[i],
+      targetRoom: landed.roomId,
+      // INFERRED: an empty long-side tile is not a room. offRoom makes the impact deal nothing.
+      offRoom: landed.offRoom ? true : undefined,
       wait: 0,
       t: 0,
       duration: FLIGHT_SECONDS,
@@ -151,12 +154,107 @@ export function tickFlak(g: Game, dt: number): void {
 }
 
 /**
- * Flak Artillery, Overview: each shot is targeted at a random room.
- * INFERRED: a shuffled round-robin spreads the seven across the enemy hull
- * instead of stacking them. Pixel radius is not simulated.
- * Wiki page "Flak (Weapons)", section "Flak weapons table": radius 35*.
+ * Flak (Weapons), ===Flak Artillery===.
+ * "When fired at 1x2 room: 60.90% in main room, 9.78% in each tile next to long sides."
+ * "When fired at 2x2 room: 100% in main room."
+ * Targeting area radius 35 is not simulated as pixels. Additional fake flak is not spawned.
+ * INFERRED: which room a shot is fired at is still a shuffled round-robin. The page does not print that order.
+ * INFERRED: 60.90 + 4×9.78 = 100.02, so the last long-side tile is short the extra two hundredths.
+ * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
+ * INFERRED: a shape with no printed percent stays in the aimed room.
+ * INFERRED: a long-side tile maps to the room whose floor contains that cell. The page does not print the map.
+ * INFERRED: a long-side tile with no room is a miss, not a hit on the aimed room.
+ * INFERRED: the four long-side percents are equal, ordered north then south, or west then east, along the room.
  */
-function spreadRooms(g: Game, rooms: { id: string }[], count: number): string[] {
+/** Printed percents, in hundredths of a percent: 60.90, then four steps of 9.78. The last step stops at 100. */
+const BOUNDS = [6090, 6090 + 978, 6090 + 978 * 2, 6090 + 978 * 3];
+export const FLAK_CUTS = BOUNDS.map((n) => n / 10000);
+
+export type FlakAimRoom = {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  omit?: { x: number; y: number }[];
+};
+
+export type FlakLand = { kind: "stay" } | { kind: "room"; roomId: string } | { kind: "miss" };
+
+type Tile = { x: number; y: number };
+
+function floorTiles(room: FlakAimRoom): Tile[] {
+  const out: Tile[] = [];
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) {
+      if (cellOccupied(room, x, y)) out.push({ x, y });
+    }
+  }
+  return out;
+}
+
+/** Two floor tiles that share an edge. A 2×2 and every other shape return null. */
+function twoTile(room: FlakAimRoom): [Tile, Tile] | null {
+  if (room.w * room.h !== 2) return null;
+  const tiles = floorTiles(room);
+  if (tiles.length !== 2) return null;
+  const [a, b] = tiles;
+  const straight = (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
+  return straight ? [a, b] : null;
+}
+
+/** True only when the shot must roll the printed 1×2 split. A 2×2 does not roll. */
+export function flakAimRolls(room: FlakAimRoom): boolean {
+  return twoTile(room) != null;
+}
+
+/** -1 is the main room. 0..3 are the long-side tiles. The last tile runs to 1. */
+function sideIndex(roll: number): number {
+  if (roll < FLAK_CUTS[0]) return -1;
+  if (roll < FLAK_CUTS[1]) return 0;
+  if (roll < FLAK_CUTS[2]) return 1;
+  if (roll < FLAK_CUTS[3]) return 2;
+  return 3;
+}
+
+function longSideTiles(pair: [Tile, Tile]): [Tile, Tile, Tile, Tile] {
+  const [a, b] = pair;
+  if (a.y === b.y) {
+    const [left, right] = a.x < b.x ? [a, b] : [b, a];
+    return [
+      { x: left.x, y: left.y - 1 },
+      { x: right.x, y: right.y - 1 },
+      { x: left.x, y: left.y + 1 },
+      { x: right.x, y: right.y + 1 },
+    ];
+  }
+  const [top, bot] = a.y < b.y ? [a, b] : [b, a];
+  return [
+    { x: top.x - 1, y: top.y },
+    { x: bot.x - 1, y: bot.y },
+    { x: top.x + 1, y: top.y },
+    { x: bot.x + 1, y: bot.y },
+  ];
+}
+
+/**
+ * Where one artillery pellet lands. `roll` is used only for a two-tile room.
+ * A 2×2 and every unprinted shape ignore `roll` and stay.
+ */
+export function flakLanding(rooms: readonly FlakAimRoom[], aimId: string, roll: number): FlakLand {
+  const aim = rooms.find((room) => room.id === aimId);
+  if (!aim) return { kind: "stay" };
+  const pair = twoTile(aim);
+  if (!pair) return { kind: "stay" };
+  const index = sideIndex(roll);
+  if (index < 0) return { kind: "stay" };
+  const tile = longSideTiles(pair)[index];
+  const hit = rooms.find((room) => cellOccupied(room, tile.x, tile.y));
+  if (!hit || hit.id === aimId) return hit ? { kind: "stay" } : { kind: "miss" };
+  return { kind: "room", roomId: hit.id };
+}
+
+function spreadRooms(g: Game, rooms: readonly FlakAimRoom[], count: number): { roomId: string; offRoom: boolean }[] {
   const ids = rooms.map((room) => room.id);
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.floor(rand(g) * (i + 1));
@@ -164,8 +262,19 @@ function spreadRooms(g: Game, rooms: { id: string }[], count: number): string[] 
     ids[i] = ids[j];
     ids[j] = tmp;
   }
-  const out: string[] = [];
-  for (let n = 0; n < count; n++) out.push(ids[n % ids.length]);
+  const out: { roomId: string; offRoom: boolean }[] = [];
+  for (let n = 0; n < count; n++) {
+    const aim = ids[n % ids.length];
+    const room = rooms.find((item) => item.id === aim);
+    if (!room || !flakAimRolls(room)) {
+      out.push({ roomId: aim, offRoom: false });
+      continue;
+    }
+    const land = flakLanding(rooms, aim, rand(g));
+    if (land.kind === "miss") out.push({ roomId: aim, offRoom: true });
+    else if (land.kind === "room") out.push({ roomId: land.roomId, offRoom: false });
+    else out.push({ roomId: aim, offRoom: false });
+  }
   return out;
 }
 

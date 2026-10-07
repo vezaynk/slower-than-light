@@ -1,17 +1,21 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat } from "../sim.ts";
+import { createGame, rand, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
 import {
   CHARGE_SECONDS,
   DAMAGE,
+  FLAK_CUTS,
   POWER_BARS,
   PROJECTILES,
   SOLD_IN_STORES,
   UPGRADE_COSTS,
   armFlak,
   chargeFlakSeconds,
+  flakAimRolls,
+  flakLanding,
   tickFlak,
+  type FlakAimRoom,
 } from "./flakart.ts";
 
 function fight(seed: number): Game {
@@ -56,7 +60,6 @@ describe("flak burst", () => {
     assert.equal(g.shots.length, 7);
     assert.equal(g.enemy.hull, hull);
     const rooms = new Set(g.enemy.rooms.map((r) => r.id));
-    const aimed = new Set<string>();
     for (const shot of g.shots) {
       assert.equal(shot.from, "player");
       assert.equal(shot.damage, 1);
@@ -65,10 +68,7 @@ describe("flak burst", () => {
       assert.equal(shot.fireChance, 0);
       assert.equal(shot.breachChance, 0);
       assert.ok(rooms.has(shot.targetRoom));
-      aimed.add(shot.targetRoom);
     }
-    // Seven pellets cover every room when the hull has seven or fewer, and seven distinct rooms otherwise.
-    assert.equal(aimed.size, Math.min(7, g.enemy.rooms.length));
   });
 
   it("uses the shorter clocks at higher levels", () => {
@@ -139,5 +139,113 @@ describe("flak burst", () => {
     tickFlak(b, 20);
     assert.equal(a.shots.length, 7);
     assert.equal(b.shots.length, 0);
+  });
+});
+
+const bp = (n: number) => n / 10000;
+
+const narrow: FlakAimRoom = { id: "n", x: 1, y: 0, w: 1, h: 2 };
+const west: FlakAimRoom = { id: "w", x: 0, y: 0, w: 1, h: 1 };
+const east: FlakAimRoom = { id: "e", x: 2, y: 0, w: 1, h: 2 };
+const vertical = [narrow, west, east];
+
+const wide: FlakAimRoom = { id: "n", x: 0, y: 1, w: 2, h: 1 };
+const northL: FlakAimRoom = { id: "nl", x: 0, y: 0, w: 1, h: 1 };
+const northR: FlakAimRoom = { id: "nr", x: 1, y: 0, w: 1, h: 1 };
+const southL: FlakAimRoom = { id: "sl", x: 0, y: 2, w: 1, h: 1 };
+const horizontal = [wide, northL, northR, southL];
+
+describe("flak room odds", () => {
+  it("keeps a 1x2 shot in the room under 60.90 percent", () => {
+    assert.equal(FLAK_CUTS[0], 6090 / 10000);
+    assert.equal(FLAK_CUTS[1], (6090 + 978) / 10000);
+    assert.equal(FLAK_CUTS[2], (6090 + 978 * 2) / 10000);
+    assert.equal(FLAK_CUTS[3], (6090 + 978 * 3) / 10000);
+    assert.equal(flakAimRolls(narrow), true);
+    assert.deepEqual(flakLanding(vertical, "n", 0), { kind: "stay" });
+    assert.deepEqual(flakLanding(vertical, "n", bp(6089)), { kind: "stay" });
+  });
+
+  it("puts the other 1x2 shots on the four long-side tiles at 9.78 percent", () => {
+    assert.deepEqual(flakLanding(vertical, "n", FLAK_CUTS[0]), { kind: "room", roomId: "w" });
+    assert.deepEqual(flakLanding(vertical, "n", bp(6090 + 978 - 1)), { kind: "room", roomId: "w" });
+    // The east room covers both tiles on that side. The second west tile is empty.
+    assert.deepEqual(flakLanding(vertical, "n", FLAK_CUTS[1]), { kind: "miss" });
+    assert.deepEqual(flakLanding(vertical, "n", FLAK_CUTS[2]), { kind: "room", roomId: "e" });
+    assert.deepEqual(flakLanding(vertical, "n", FLAK_CUTS[3]), { kind: "room", roomId: "e" });
+    assert.deepEqual(flakLanding(vertical, "n", bp(9999)), { kind: "room", roomId: "e" });
+  });
+
+  it("uses the same split on a 2x1, north then south", () => {
+    // INFERRED: the wiki prints the 1x2 line only. A 2x1 is that rectangle turned.
+    assert.equal(flakAimRolls(wide), true);
+    assert.deepEqual(flakLanding(horizontal, "n", FLAK_CUTS[0]), { kind: "room", roomId: "nl" });
+    assert.deepEqual(flakLanding(horizontal, "n", FLAK_CUTS[1]), { kind: "room", roomId: "nr" });
+    assert.deepEqual(flakLanding(horizontal, "n", FLAK_CUTS[2]), { kind: "room", roomId: "sl" });
+    assert.deepEqual(flakLanding(horizontal, "n", FLAK_CUTS[3]), { kind: "miss" });
+  });
+
+  it("keeps a 2x2 shot in that room and does not treat the roll as a split", () => {
+    const box: FlakAimRoom = { id: "b", x: 0, y: 0, w: 2, h: 2 };
+    assert.equal(flakAimRolls(box), false);
+    assert.deepEqual(flakLanding([box, west], "b", 0), { kind: "stay" });
+    assert.deepEqual(flakLanding([box, west], "b", 0.99), { kind: "stay" });
+  });
+
+  it("leaves shapes with no printed percent on the aimed room", () => {
+    // INFERRED: the wiki prints no percent for these shapes.
+    const one: FlakAimRoom = { id: "o", x: 0, y: 0, w: 1, h: 1 };
+    const three: FlakAimRoom = { id: "t", x: 0, y: 0, w: 3, h: 1 };
+    const punched: FlakAimRoom = { id: "p", x: 0, y: 0, w: 2, h: 2, omit: [{ x: 1, y: 1 }] };
+    assert.equal(flakAimRolls(one), false);
+    assert.equal(flakAimRolls(three), false);
+    assert.equal(flakAimRolls(punched), false);
+    assert.deepEqual(flakLanding([one, three, punched], "o", 0.99), { kind: "stay" });
+    assert.deepEqual(flakLanding([one, three, punched], "t", 0.1), { kind: "stay" });
+    assert.deepEqual(flakLanding([one, three, punched], "p", 0.5), { kind: "stay" });
+  });
+
+  it("rolls each pellet of a burst aimed at one 1x2 room", () => {
+    const g = fight(2);
+    assert.ok(g.enemy);
+    const base = g.enemy.rooms[0];
+    g.enemy.rooms = [{ ...base, id: "n", x: 1, y: 0, w: 1, h: 2, omit: undefined }];
+    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    armFlak(g, 1);
+    g.player.kits.flak!.aux = 50;
+    g.seed = 4;
+    const preview = createGame(0);
+    preview.seed = 4;
+    const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
+    tickFlak(g, 0.01);
+    assert.equal(g.shots.length, 7);
+    const aim: FlakAimRoom = { id: "n", x: 1, y: 0, w: 1, h: 2 };
+    g.shots.forEach((shot, i) => {
+      const land = flakLanding([aim], "n", rolls[i]);
+      assert.equal(shot.damage, 1);
+      assert.equal(shot.targetRoom, "n");
+      assert.equal(shot.offRoom, land.kind === "miss" ? true : undefined);
+    });
+    assert.ok(rolls.some((roll) => roll < FLAK_CUTS[0]));
+    assert.ok(rolls.some((roll) => roll >= FLAK_CUTS[0]));
+  });
+
+  it("does not roll a lone 2x2 room", () => {
+    const g = fight(2);
+    assert.ok(g.enemy);
+    const base = g.enemy.rooms[0];
+    g.enemy.rooms = [{ ...base, id: "b", x: 0, y: 0, w: 2, h: 2, omit: undefined }];
+    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    armFlak(g, 1);
+    g.player.kits.flak!.aux = 50;
+    g.seed = 4;
+    tickFlak(g, 0.01);
+    assert.equal(g.seed, 4);
+    assert.equal(g.shots.length, 7);
+    for (const shot of g.shots) {
+      assert.equal(shot.targetRoom, "b");
+      assert.equal(shot.offRoom, undefined);
+      assert.equal(shot.damage, 1);
+    }
   });
 });

@@ -225,7 +225,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Crew member — not-a-surface — same title as "Crew Member" with different capitalization
 - [ ] Crew members — not-a-surface — same title as "Crew Members" with different capitalization
 - [ ] Crew races — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Crew skills — partial — Combat skill multiplies the attacker's hand-to-hand damage by 1, 1.1, or 1.2 and does not scale sabotage. Piloting, engines evasion, engines FTL, weapons charge, and shields recharge use the printed tables. A non-flagship automated ship keeps the level-0 manning bonus; ion does not remove it, and system damage does. Flagship artillery stays on the printed charge table unless a gunner is there. XP thresholds in content.ts stay INFERRED.
+- [ ] Crew skills — partial — Combat skill multiplies the attacker's hand-to-hand damage by 1, 1.1, or 1.2 and does not scale sabotage. Piloting, engines evasion, engines FTL, weapons charge, and shields recharge use the printed tables. A non-flagship automated ship keeps the level-0 manning bonus; ion does not remove it, and system damage does. Flagship artillery stays on the printed charge table unless a gunner is there. XP thresholds in content.ts stay INFERRED. A cloak blocks piloting and engines experience, and a shield bubble hit still trains.
 - [ ] Crewmembers — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed Pirate — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crushed pirate — not-a-surface — same title as "Crushed Pirate" with different capitalization

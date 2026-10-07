@@ -2479,7 +2479,9 @@ export const REPAIR_SECONDS = 12.5;
 export const FIRE_FIGHT_SHARE = 0.096;
 
 /**
- * One crew member's repair pace: race repair multiplier × repair skill. Skills, "Repair skill": "Level 1 (Green) | 10%
+ * One crew member's repair pace: race repair multiplier × repair skill.
+ * Crew skills, lead: "Engi can finish repairs faster" and "Mantis complete the repairs slower."
+ * Skills, "Repair skill": "Level 1 (Green) | 10%
  * faster repair", "Level 2 (Gold) | 20% faster repair" (wiki/skills.ts REPAIR_SKILL_MULT), and "Repair skill and racial
  * aptitude for repairs also apply to fire-fighting". Used for systems, kit rooms, breaches, and fires.
  */
@@ -2627,6 +2629,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       // INFERRED: 6 damage a second while trading blows. The wiki lists crew health, not this flat rate.
       // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2). Level 0 is default.
       const dps = 6;
+      // Crew skills, lead: "Mantis can kill faster" and "Engi are slow killers." kin.fight is that rate.
       const dealt = (attacker: Crew) => combatSkillMult(rankOf(attacker, "combat"));
       for (const c of foes) {
         const before = c.hp;

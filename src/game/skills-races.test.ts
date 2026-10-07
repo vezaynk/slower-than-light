@@ -287,6 +287,65 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       assert.equal(worker.skills?.repair ?? 0, 1, kin);
     }
   });
+
+  it("an Engi repairs faster and a Mantis kills faster", () => {
+    // Crew skills, lead: "Mantis can kill faster and Engi can finish repairs faster."
+    // "The inverse is also true: Engi are slow killers and Mantis complete the repairs slower."
+    const fix = (kin: "plain" | "shell" | "blade") => {
+      const g = createGame(48);
+      const { worker, roomId, sys } = lone(g);
+      quiet(g);
+      worker.kin = kin;
+      worker.skills = {};
+      const room = g.player.rooms.find((r) => r.id === roomId)!;
+      room.fire = 0;
+      room.breach = 0;
+      room.o2 = 100;
+      const s = g.player.systems[sys as keyof typeof g.player.systems];
+      s.damage = 1;
+      s.fix = 0;
+      step(g, 0.05);
+      return s.fix;
+    };
+    const humanFix = fix("plain");
+    assert.ok(Math.abs(fix("shell") / humanFix - 2) < 1e-6);
+    assert.ok(Math.abs(fix("blade") / humanFix - 0.5) < 1e-6);
+
+    const hurt = (kin: "plain" | "shell" | "blade") => {
+      const g = createGame(49);
+      startCombat(g, "scout");
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms[0]!;
+      const away = g.player.rooms.find((r) => r.id !== room.id)!;
+      const hero = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
+      const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0)!;
+      for (const c of g.crew) {
+        if (c.id !== hero.id && c.id !== foe.id) c.room = away.id;
+        c.path = [];
+        c.think = 30;
+        c.stun = 0;
+        c.skills = {};
+      }
+      hero.room = room.id;
+      hero.aboard = "player";
+      hero.kin = kin;
+      hero.hp = hero.maxHp;
+      foe.room = room.id;
+      foe.aboard = "player";
+      foe.kin = "plain";
+      foe.hp = foe.maxHp;
+      foe.leashed = undefined;
+      const before = foe.hp;
+      step(g, 0.05);
+      return before - foe.hp;
+    };
+    const humanHurt = hurt("plain");
+    assert.ok(humanHurt > 0);
+    assert.ok(Math.abs(hurt("shell") / humanHurt - 0.5) < 1e-6);
+    assert.ok(Math.abs(hurt("blade") / humanHurt - 1.5) < 1e-6);
+  });
 });
 
 describe("Crew skills: a repair drone cannot gain experience", () => {

@@ -671,7 +671,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Lifeform Scanner — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check. A fitted Lifeform Scanner reveals live enemy crew the way a Slug does, and it does not open room interiors.
 - [ ] Lone Lanius ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Long-Range Scanners — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Long-Ranged Scanners — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Long-Ranged Scanners — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check. Fitted Long-Ranged Scanners show an environmental hazard and possible ship presence on adjacent beacons, and selling them hides that again.
 - [ ] Loss of Cabin Pressure — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lumbering Zoltan Freighter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Lumbering Zoltan freighter — not-a-surface — same title as "Lumbering Zoltan Freighter" with different capitalization

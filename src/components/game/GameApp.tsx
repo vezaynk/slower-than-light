@@ -18,6 +18,7 @@ import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDi
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil } from "@/game/extras/veil";
 import { enemyCloneQueue } from "@/game/extras/cradle";
+import { sensorSystemDetail } from "@/game/extras/sensors";
 import { shipSight } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
 import { hackedPlayerKit, playerCloneQueue } from "@/game/ui-views";
@@ -742,11 +743,13 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           // @agent:flagship. The flagship's guns are four artillery systems, shown per room below.
           if (id === "weapons" && enemy.flagship) return null;
           const shown = isMain(id) ? bars(sys, zoltanBars(game.crew, enemy, "enemy", id)) : sys.power;
-          // @agent:hack-ui. "max-level Sensors information on the system" under the drone. Sensors wiki, level 4:
-          // "enemy systems level, power usage, ion damage". Level 4 from the player's own Sensors gives it for all.
+          // @agent:hack-ui. "max-level Sensors information on the system" under the drone. Sensors, "Overview":
+          // level 4 adds enemy systems level, power usage, ion damage/cooldown, repair/sabotage progress.
+          // sensorSystemDetail is that line. It does not add Hacking, Cloaking, Mind Control, or Clone Bay timers.
+          // Below level 4, and off the hacked system, the chip stays the short power count.
           const full = vision?.system === id || playerSensorLevel(game) >= 4;
           const tip = full
-            ? `${SYS_LABEL[id]}: power ${shown} of ${sys.level}${sys.ion.length ? `, ion ${sys.ion.length}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`
+            ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? " (hacking drone)" : ""}`
             : `${SYS_LABEL[id]} ${shown}`;
           return (
             <span key={id} title={tip} className={vision?.system === id ? "is-hack-seen" : undefined}>

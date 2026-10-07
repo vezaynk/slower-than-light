@@ -1,5 +1,14 @@
-import { roomWith } from "../sim.ts";
-import type { Game, Ship } from "../types.ts";
+import { REPAIR_SECONDS, roomWith } from "../sim.ts";
+import type { Game, Ship, SysId } from "../types.ts";
+
+/**
+ * Display percent for the level-4 line. INFERRED: rounded and clamped to 0..100.
+ * That clamp is wording only. It does not change repair or sabotage.
+ */
+function sensorPct(fraction: number): number {
+  if (!Number.isFinite(fraction)) return 0;
+  return Math.max(0, Math.min(100, Math.round(fraction * 100)));
+}
 
 /**
  * Wiki sensor level: installed bars, minus damage and ion, plus one if manned.
@@ -41,4 +50,21 @@ export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): nu
   // @agent:flagship. The Rebel Flagship: "limits Sensors functionality capping them at level 2" (player's sensors).
   if (aboard === "player" && g.phase === "combat" && g.enemy?.flagship) level = Math.min(level, 2);
   return Math.max(0, Math.min(4, level));
+}
+
+/**
+ * Enemy system line shown at Sensors level 4 (the caller also uses it for the one hacked system).
+ * Sensors, "Overview": "Sensors level 4 additionally provide the information on enemy systems level, power usage, ion damage/cooldown, repair/sabotage progress."
+ * Sensors, "System Upgrades", level 4: "(Additionally) See enemy systems level, power usage, ion damage, cooldown, repair and sabotage progress."
+ * Sensors, "Overview": "Level 4 Sensors 'limitation': they do not show the remaining duration time of active Hacking, Cloaking, Mind Control, or Clone Bay progress and crew quantity in the cloning queue."
+ * Those timers are not on this line.
+ * INFERRED: the wiki does not print the tooltip wording. The sentence is system level, powered bars (`shownPower`), ion-point count, seconds left on each ion point, repair percent, sabotage percent.
+ * INFERRED: repair percent is fix / REPAIR_SECONDS (the printed 12.5s bar). Sabotage percent is that system's room bar, 0..1, and a missing bar is 0.
+ */
+export function sensorSystemDetail(ship: Ship, id: SysId, label: string, shownPower: number): string {
+  const sys = ship.systems[id];
+  const sabotage = roomWith(ship, id)?.sabotage ?? 0;
+  const repair = sensorPct(REPAIR_SECONDS > 0 ? sys.fix / REPAIR_SECONDS : 0);
+  const cooldown = sys.ion.length === 0 ? "none" : sys.ion.map((s) => `${s.toFixed(1)}s`).join(" / ");
+  return `${label}: level ${sys.level}, power ${shownPower} of ${sys.level}, ion ${sys.ion.length}, cooldown ${cooldown}, repair ${repair}%, sabotage ${sensorPct(sabotage)}%`;
 }

@@ -160,6 +160,11 @@ export function sendSling(g: Game, roomId: string) {
     log(g, "Their Zoltan Shield blocks the teleporter.");
     return;
   }
+  // Crew Teleporter: a cloaked enemy ship, or the player's own cloak, blocks the send. Cooldown stays put.
+  if (cloakBlocksTeleport(g)) {
+    log(g, "Cloaking blocks the teleporter.");
+    return;
+  }
   for (const c of crew) {
     c.aboard = "enemy";
     c.room = roomId;
@@ -192,6 +197,13 @@ export function recallSling(g: Game) {
   const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0 && !heldByEnemy(c));
   if (away.length < 1) {
     log(g, "No one to pull back.");
+    return;
+  }
+  // Crew Teleporter: "Does not retrieve crew from a cloaked ship" is the hack pulse.
+  // Cloaking, Overview: a cloak that is still up after the crew are dead still blocks this retrieve,
+  // and "Friendly crew cannot be teleported to or from an enemy ship" during the player's own cloak.
+  if (cloakBlocksTeleport(g)) {
+    log(g, "Cloaking blocks the teleporter.");
     return;
   }
   for (const c of away) {
@@ -370,10 +382,16 @@ function zoltanBlocks(g: Game): boolean {
 
 /**
  * Crew Teleporter: "Cloaking prevents hostile crew from teleporting onto or from the opposing ship
- * (e.g. ... enemy crew cannot teleport onto or from a cloaked player ship)."
+ * (e.g. player's crew cannot teleport onto or from a cloaked enemy ship, enemy crew cannot teleport
+ * onto or from a cloaked player ship)."
+ * Cloaking, Overview: during an active cloak, "Friendly crew cannot be teleported to or from an enemy ship."
+ * Boarding: "you cannot teleport crew onto or from the ship during the cloak."
+ * A partial enemy with no kits (tests) is not cloaked. veilBlocks reads enemy.kits.
  */
-function playerCloaked(g: Game): boolean {
-  return veilBlocks(g, "enemy");
+function cloakBlocksTeleport(g: Game): boolean {
+  if (g.enemy?.kits && veilBlocks(g, "player")) return true;
+  if (g.player.kits && veilBlocks(g, "enemy")) return true;
+  return false;
 }
 
 /**
@@ -418,8 +436,9 @@ function goHome(ship: Ship, b: EnemyBoarding, c: Crew) {
  * - "When the enemy ship has three or more completely broken systems." Everyone.
  * INFERRED: a recall is a teleporter use, so it needs working bars and no cooldown, and starts the
  * cooldown. Basis, "Hacking pulse and Crew Teleporter": a forced recall puts "the system on cooldown if
- * anyone was successfully recalled". Zoltan Shields and the player's cloak block it ("Zoltan Shields
- * block teleportation"; cloaking blocks teleporting "onto or from a cloaked player ship").
+ * anyone was successfully recalled". Zoltan Shields and either cloak block it ("Zoltan Shields
+ * block teleportation"; cloaking blocks teleporting onto or from the opposing ship, and a cloak also
+ * holds that ship's own crew).
  * "(note that this does not apply ... to the boarders carried over from previous beacons)": only crew this
  * teleporter sent this fight (b.away) are ever recalled.
  */
@@ -437,7 +456,7 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
     pull = crew.filter((c) => hurt.some((h) => h.room === c.room));
   }
   if (!pull.length) return;
-  if (!ready(kit) || zoltanBlocks(g) || playerCloaked(g)) return;
+  if (!ready(kit) || zoltanBlocks(g) || cloakBlocksTeleport(g)) return;
   for (const c of pull) {
     c.aboard = "enemy";
     c.room = PADS;
@@ -566,7 +585,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
   }
   if (recallWeather(g, ship)) return;
   formParty(g, ship, b);
-  // INFERRED: a player cloak holds the party on the pads (the page names no step-off for cloaking).
-  if (playerCloaked(g)) return;
+  // INFERRED: either cloak holds the party on the pads (the page names no step-off for cloaking).
+  if (cloakBlocksTeleport(g)) return;
   sendParty(g, ship, kit, b);
 }

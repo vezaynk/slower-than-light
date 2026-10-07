@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
-import type { Game, Ship } from "../types";
+import { createGame, startCombat } from "../sim.ts";
+import type { Game, Kit, Ship } from "../types";
 import {
   installSling,
   onJumpSling,
   recallSling,
   sendSling,
+  tickEnemyBoarding,
   tickSling,
   toggleSlingPower,
   upgradeSling,
@@ -231,4 +232,113 @@ describe("sling", () => {
     assert.equal(kit.cool, 0);
     assert.equal(g.log[0], "Teleporter is ready.");
   });
+
+  it("refuses a send and a recall while the enemy is cloaked, and while the player is cloaked", () => {
+    // Crew Teleporter: player's crew cannot teleport onto or from a cloaked enemy ship.
+    // Cloaking, Overview: friendly crew cannot be teleported to or from an enemy ship during your own cloak.
+    const g = createGame(1);
+    g.scrap = 200;
+    installSling(g);
+    const kit = kitOf(g);
+    kit.power = 1;
+    engage(g);
+    const ivo = g.crew.find((c) => c.id === "c-ivo");
+    assert.ok(ivo);
+    for (const c of g.crew) {
+      if (c !== ivo) c.hp = 0;
+    }
+    g.selected = ivo.id;
+    g.enemy!.kits = { veil: cloak() };
+    sendSling(g, "e-weapons");
+    assert.equal(ivo.aboard, "player");
+    assert.equal(kit.cool, 0);
+    assert.equal(g.log[0], "Cloaking blocks the teleporter.");
+
+    g.enemy!.kits.veil!.on = false;
+    g.enemy!.kits.veil!.left = 0;
+    sendSling(g, "e-weapons");
+    assert.equal(ivo.aboard, "enemy");
+    assert.equal(kit.cool, 20);
+    kit.cool = 0;
+    g.enemy!.kits.veil = cloak();
+    recallSling(g);
+    assert.equal(ivo.aboard, "enemy");
+    assert.equal(kit.cool, 0);
+    assert.equal(g.log[0], "Cloaking blocks the teleporter.");
+
+    g.enemy!.kits.veil!.on = false;
+    g.enemy!.kits.veil!.left = 0;
+    g.player.kits.veil = cloak();
+    recallSling(g);
+    assert.equal(ivo.aboard, "enemy");
+    assert.equal(kit.cool, 0);
+    g.player.kits.veil.on = false;
+    g.player.kits.veil.left = 0;
+    recallSling(g);
+    assert.equal(ivo.aboard, "player");
+    assert.equal(kit.cool, 20);
+
+    kit.cool = 0;
+    g.player.kits.veil = cloak();
+    sendSling(g, "e-weapons");
+    assert.equal(ivo.aboard, "player");
+    assert.equal(kit.cool, 0);
+  });
+
+  it("holds an enemy boarding party while that enemy is cloaked", () => {
+    // Cloaking, Overview: friendly crew cannot be teleported to or from an enemy ship.
+    // Crew Teleporter already blocks them when the player is the one cloaked.
+    const g = mantisBoarder();
+    g.boardTimer = 0;
+    tickEnemyBoarding(g, 0.01);
+    const party = (g.enemy!.boarding?.party ?? []).map((id) => g.crew.find((c) => c.id === id)!);
+    assert.ok(party.length > 0);
+    for (const c of party) {
+      c.room = "e-teleporter";
+      c.path = [];
+      c.move = 0;
+    }
+    const pad = g.enemy!.kits.sling!;
+    pad.cool = 0;
+    g.enemy!.kits.veil = cloak();
+    tickEnemyBoarding(g, 0.01);
+    assert.ok(party.every((c) => c.aboard === "enemy"));
+    assert.equal(pad.cool, 0);
+
+    g.enemy!.kits.veil.on = false;
+    g.enemy!.kits.veil.left = 0;
+    tickEnemyBoarding(g, 0.01);
+    assert.ok(party.every((c) => c.aboard === "player"));
+
+    for (const c of party) c.hp = c.maxHp * 0.1;
+    pad.cool = 0;
+    g.enemy!.kits.veil = cloak();
+    tickEnemyBoarding(g, 0.01);
+    assert.ok(party.every((c) => c.aboard === "player"));
+    assert.equal(pad.cool, 0);
+    g.enemy!.kits.veil.on = false;
+    g.enemy!.kits.veil.left = 0;
+    tickEnemyBoarding(g, 0.01);
+    assert.ok(party.every((c) => c.aboard === "enemy"));
+    assert.ok(pad.cool > 0);
+  });
 });
+
+function cloak(): Kit {
+  return { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+}
+
+function mantisBoarder(): Game {
+  for (let seed = 1; seed < 500; seed++) {
+    const g = createGame(seed);
+    startCombat(g, "Mantis ship");
+    const crew = g.crew.filter((c) => c.side === "enemy" && c.hp > 0);
+    if (!g.enemy?.kits.sling || crew.length < 3) continue;
+    g.enemy.weapons = [];
+    g.player.weapons = [];
+    g.enemyEscape = null;
+    g.player.zoltan = 0;
+    return g;
+  }
+  throw new Error("no Mantis ship with a teleporter");
+}

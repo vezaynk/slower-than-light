@@ -101,16 +101,25 @@ if (import.meta.env?.DEV) (globalThis as Shared).__stlStore = useGame;
 
 /**
  * Verdict RESTART. WikiViews calls this with the run still on screen.
- * Sectors, Hidden Crystal Worlds: restartSame reads that run, not the title placeholder.
+ * Sectors, Hidden Crystal Worlds: newRun applies dropCrystalRestart to that run, not the title placeholder.
  */
 export function verdictRestart(game: Game): void {
-  useGame.getState().restartSame(game);
+  const onScreen = game.phase === "title" ? (useGame.getState().played ?? game) : game;
+  useGame.setState({
+    game: onScreen,
+    played: onScreen.phase === "title" ? null : onScreen,
+  });
+  useGame.getState().newRun(onScreen.hullId, onScreen.difficulty);
 }
 
 /**
  * Verdict HANGAR, MAIN MENU, and QUIT. WikiViews calls this.
- * The title screen is a placeholder. The run the player was playing stays on the store.
+ * The run on screen is kept before the title placeholder replaces it, so the next hangar start
+ * (newRun) still applies dropCrystalRestart to a Hidden Crystal Worlds game-over.
+ * INVENTED: the page names no remembered run. The title placeholder is not the crystal sector.
  */
 export function goTitle(boot: "title" | "hangar"): void {
+  const onScreen = useGame.getState().game;
+  if (onScreen.phase !== "title") useGame.setState({ played: onScreen });
   useGame.getState().toTitle(boot);
 }

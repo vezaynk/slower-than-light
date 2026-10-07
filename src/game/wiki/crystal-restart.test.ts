@@ -1,16 +1,23 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose } from "../sim.ts";
+import { choose, createGame, enterHiddenCrystal, startCombat, step } from "../sim.ts";
 import { goTitle, useGame, verdictRestart } from "../store.ts";
 import type { Game } from "../types.ts";
 
-function crystalRun(): Game {
-  const played = useGame.getState().game;
-  // The verdict screen is this object. The store may still be holding the title placeholder.
-  const fresh = structuredClone(played);
-  fresh.sectorName = "Hidden Crystal Worlds";
-  fresh.phase = "defeat";
-  return fresh;
+/** A fight the sim ends. Hull at 0 during combat is the shipped defeat, not an assigned phase. */
+function loseFight(g: Game): Game {
+  startCombat(g, "fight");
+  g.player.hull = 0;
+  step(g, 0.05);
+  assert.equal(g.phase, "defeat");
+  return g;
+}
+
+function crystalGameOver(): Game {
+  const g = createGame(2);
+  enterHiddenCrystal(g);
+  assert.equal(g.sectorName, "Hidden Crystal Worlds");
+  return loseFight(g);
 }
 
 function leaveExit(g: Game) {
@@ -25,14 +32,14 @@ function leaveExit(g: Game) {
 describe("crystal sector restart", () => {
   it("restarting in the Hidden Crystal Worlds starts in a Civilian sector and skips the sector map", () => {
     const realNow = Date.now;
-    const played = crystalRun();
+    const played = crystalGameOver();
+    assert.equal(played.sectorName, "Hidden Crystal Worlds");
     const names = new Set<string>();
     try {
-      // The store still shows the title placeholder. RESTART is handed the run on the verdict.
-      assert.equal(useGame.getState().game.sectorName, "Civilian (Starting) Sector");
       for (let n = 1; n <= 16; n++) {
+        useGame.setState({ game: played, played: null, boot: "title" });
         Date.now = () => n * 1000;
-        verdictRestart(played);
+        verdictRestart(useGame.getState().game);
         const next = useGame.getState().game;
         assert.notEqual(next, played);
         assert.equal(next.sector, 1);
@@ -74,9 +81,8 @@ describe("crystal sector restart", () => {
       assert.equal(started.sector, 2);
 
       // A finished run that was not the crystal sector still opens the chart.
-      const plain = structuredClone(played);
-      plain.sectorName = "Civilian (Starting) Sector";
-      plain.phase = "defeat";
+      const plain = loseFight(createGame(3));
+      assert.equal(plain.sectorName, "Civilian (Starting) Sector");
       useGame.setState({ game: plain, played: null, boot: "title" });
       goTitle("hangar");
       assert.equal(useGame.getState().played, plain);

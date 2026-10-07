@@ -2063,6 +2063,12 @@ export function applyImpact(g: Game, shot: Shot) {
       // Crew skills, Shields: "Ion projectiles, when blocked by shields, ionize the Shields system,
       // preventing manning the system and getting the skill points." The aimed room stays clear.
       applyIon(ship, "shields", Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+      // Ion (Weapons), Ion Stunner: "this includes crew in the shields room if the shields themselves were hit".
+      // The Ion Stunner still stuns the Shields room.
+      if (shot.defId === "stunner") {
+        const shields = roomWith(ship, "shields");
+        if (shields) stunRoom(g, shields.id, aboard, ION_STUNNER_S);
+      }
     } else if (playerTarget && skillFight(g)) {
       // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".
       // "asteroids will not provide training unless you are still in combat." A rock during the fight still does.

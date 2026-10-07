@@ -322,4 +322,57 @@ describe("ion stunner", () => {
     assert.equal(crew[0].stun ?? 0, 0);
     assert.equal(g.player.kits.swarm.stun ?? 0, 0);
   });
+
+  it("stuns Shields-room crew and drones when a bubble blocks the shot", () => {
+    // Ion (Weapons), Ion Stunner: "this includes crew in the shields room if the shields themselves were hit".
+    const g = createGame(16);
+    quiet(g);
+    const weapons = g.player.rooms.find((r) => r.system === "weapons");
+    const shields = g.player.rooms.find((r) => r.system === "shields");
+    assert.ok(weapons?.system && shields);
+    const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+    assert.ok(crew.length >= 2);
+    crew[0].room = weapons.id;
+    crew[0].aboard = "player";
+    crew[0].stun = 0;
+    crew[1].room = shields.id;
+    crew[1].aboard = "player";
+    crew[1].hp = Math.max(1, crew[1].hp);
+    crew[1].stun = 0;
+    g.player.shieldNow = 1;
+    g.player.systems.shields.ion = [];
+    g.player.systems.weapons.ion = [];
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "patch",
+      on: true,
+      aux: 0,
+      room: shields.id,
+      hp: 25,
+    };
+    const shot: Shot = {
+      id: "stunner-shot",
+      kind: "ion",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      wait: 0,
+      t: 1,
+      duration: 1,
+      defId: "stunner",
+      targetRoom: weapons.id,
+    };
+    applyImpact(g, shot);
+    assert.equal(crew[1].stun, 5);
+    assert.equal(g.player.kits.swarm.stun, 5);
+    assert.equal(g.player.systems.shields.ion.length, 1);
+    assert.equal(g.player.systems.weapons.ion.length, 0);
+    assert.equal(crew[0].stun ?? 0, 0);
+  });
 });

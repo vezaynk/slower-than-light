@@ -8,7 +8,8 @@ import { WEAPONS } from "./content.ts";
 import type { KinId } from "./extras/kin.ts";
 import { rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
-import type { Difficulty, KitId, SysId } from "./types.ts";
+import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
+import { ENEMY_LAYOUTS } from "./wiki/enemy-layouts.ts";
 import {
   ENEMY_CLASSES,
   ENEMY_DRONES,
@@ -21,7 +22,17 @@ import {
 // @agent:sector-hostiles. Documented / derived hostile encounters per sector type.
 import { sectorHostiles } from "./wiki/sector-hostiles.ts";
 
-export type EnemyRoomSpec = { id: string; title: string; system: SysId | null; kit?: KitId; x: number; y: number; w: number; h: number };
+export type EnemyRoomSpec = {
+  id: string;
+  title: string;
+  system: SysId | null;
+  kit?: KitId;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  omit?: { x: number; y: number }[];
+};
 
 export type EnemySpec = {
   classId: string;
@@ -40,6 +51,8 @@ export type EnemySpec = {
   rooms: EnemyRoomSpec[];
   cols: number;
   rows: number;
+  /** Orange bars from a traced interior. Absent for the two classes with no picture. */
+  marks?: DoorMark[];
   weapons: string[];
   missiles: number;
   crew: { kin: KinId; race: string; room: string }[];
@@ -409,7 +422,10 @@ function arm(pool: string[], power: number, rand: () => number): string[] {
   return out;
 }
 
-/** INFERRED layout: the pages show layouts only as pictures. Two rows of rooms, one per installed system. */
+/**
+ * INFERRED layout for Engi Hacker and Crystal Outrider, the two classes with no interior picture.
+ * Two rows, one room per installed system.
+ */
 function layout(installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
   const big = new Set<EnemySystem>(["shields", "weapons", "engines", "medbay", "clonebay", "teleporter", "drones"]);
   const rooms: EnemyRoomSpec[] = [];
@@ -422,6 +438,133 @@ function layout(installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: numbe
     rowX[y] += w;
   });
   return { rooms, cols: Math.max(rowX[0], rowX[1]), rows: 2 };
+}
+
+const STEP: Record<DoorMark["side"], [number, number]> = {
+  n: [0, -1],
+  e: [1, 0],
+  s: [0, 1],
+  w: [-1, 0],
+};
+
+/** Rooms linked by an interior bar. The largest set is the hull a crew member can walk. */
+function mainComponent(rooms: { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] }[], marks: DoorMark[]): Set<number> {
+  const parent = rooms.map((_, i) => i);
+  const find = (a: number): number => {
+    let at = a;
+    while (parent[at] !== at) {
+      parent[at] = parent[parent[at]];
+      at = parent[at];
+    }
+    return at;
+  };
+  const union = (a: number, b: number) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[rb] = ra;
+  };
+  const at = new Map<string, number>();
+  const cells = new Map<number, number>();
+  rooms.forEach((r, i) => {
+    const skip = new Set((r.omit ?? []).map((c) => `${c.x},${c.y}`));
+    let n = 0;
+    for (let y = r.y; y < r.y + r.h; y++) {
+      for (let x = r.x; x < r.x + r.w; x++) {
+        if (skip.has(`${x},${y}`)) continue;
+        at.set(`${x},${y}`, i);
+        n += 1;
+      }
+    }
+    cells.set(i, n);
+  });
+  for (const mark of marks) {
+    const a = at.get(`${mark.x},${mark.y}`);
+    if (a == null) continue;
+    const [dx, dy] = STEP[mark.side];
+    const b = at.get(`${mark.x + dx},${mark.y + dy}`);
+    if (b == null || b === a) continue;
+    union(a, b);
+  }
+  const count = new Map<number, { rooms: number; cells: number }>();
+  for (let i = 0; i < rooms.length; i++) {
+    const root = find(i);
+    const row = count.get(root) ?? { rooms: 0, cells: 0 };
+    row.rooms += 1;
+    row.cells += cells.get(i) ?? 0;
+    count.set(root, row);
+  }
+  let best = 0;
+  let bestRooms = -1;
+  let bestCells = -1;
+  for (const [root, row] of count) {
+    if (row.rooms > bestRooms || (row.rooms === bestRooms && row.cells > bestCells)) {
+      best = root;
+      bestRooms = row.rooms;
+      bestCells = row.cells;
+    }
+  }
+  const main = new Set<number>();
+  for (let i = 0; i < rooms.length; i++) if (find(i) === best) main.add(i);
+  return main;
+}
+
+/**
+ * Seat this fight's systems into the traced boxes.
+ * A room whose icon is installed keeps that system. Clone Bay and Medbay share one pictured room:
+ * INFERRED, the installed one takes the other's box. An icon that did not roll becomes a hall.
+ * INFERRED: a system with no icon sits in an empty hall of the largest connected interior,
+ * largest hall first, then nearer the nose. A class that rolls more systems than rooms
+ * gains a 1×1 past the traced columns. Pictured walls are not given extra doors.
+ */
+function seatTrace(classId: string, installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks: DoorMark[] } | null {
+  const laid = ENEMY_LAYOUTS[classId];
+  if (!laid) return null;
+  const have = new Set(installed);
+  const taken = new Set<EnemySystem>();
+  const claim = (pictured: EnemySystem | null): EnemySystem | null => {
+    if (!pictured || taken.has(pictured)) return null;
+    if (have.has(pictured)) return pictured;
+    if (pictured === "medbay" && have.has("clonebay") && !have.has("medbay")) return "clonebay";
+    if (pictured === "clonebay" && have.has("medbay") && !have.has("clonebay")) return "medbay";
+    return null;
+  };
+  let hall = 0;
+  const rooms: EnemyRoomSpec[] = laid.rooms.map((r) => {
+    const system = claim(r.system);
+    const omit = r.omit?.length ? r.omit : undefined;
+    const box = { x: r.x, y: r.y, w: r.w, h: r.h, ...(omit ? { omit } : {}) };
+    if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
+    taken.add(system);
+    const kit = KIT[system];
+    return { id: `e-${system}`, title: TITLE[system], system: RUN[system] ?? null, ...(kit ? { kit } : {}), ...box };
+  });
+  const main = mainComponent(rooms, laid.marks);
+  const empties = rooms
+    .map((room, index) => ({ room, index }))
+    .filter((row) => row.room.system == null && row.room.kit == null)
+    .sort((a, b) => {
+      const ca = main.has(a.index) ? 0 : 1;
+      const cb = main.has(b.index) ? 0 : 1;
+      return ca - cb || b.room.w * b.room.h - a.room.w * a.room.h || a.room.y - b.room.y || a.room.x - b.room.x;
+    });
+  let at = 0;
+  let cols = laid.cols;
+  for (const id of installed) {
+    if (taken.has(id)) continue;
+    const kit = KIT[id];
+    const slot = empties[at++];
+    if (slot) {
+      slot.room.id = `e-${id}`;
+      slot.room.title = TITLE[id];
+      slot.room.system = RUN[id] ?? null;
+      if (kit) slot.room.kit = kit;
+    } else {
+      rooms.push({ id: `e-${id}`, title: TITLE[id], system: RUN[id] ?? null, ...(kit ? { kit } : {}), x: cols, y: 0, w: 1, h: 1 });
+      cols += 1;
+    }
+    taken.add(id);
+  }
+  return { rooms, cols, rows: laid.rows, marks: laid.marks };
 }
 
 const STATION: EnemySystem[] = ["pilot", "weapons", "shields", "engines"];
@@ -455,7 +598,9 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     else if (kit) kits[kit] = level;
     else unwired.push({ id, level });
   }
-  const { rooms, cols, rows } = layout(installed.map(([id]) => id));
+  const ids = installed.map(([id]) => id);
+  const traced = seatTrace(cls.id, ids);
+  const { rooms, cols, rows } = traced ?? layout(ids);
   const hullRange = ctx.difficulty === "easy" && cls.easyHull ? cls.easyHull : cls.hull;
   const crewCount = roll(cls.crew, ctx.sector, rand);
   const races: string[] = [];
@@ -492,6 +637,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     rooms,
     cols,
     rows,
+    ...(traced ? { marks: traced.marks } : {}),
     weapons: arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand),
     missiles: cls.missiles,
     crew,

@@ -67,7 +67,8 @@ describe("flak burst", () => {
       assert.ok(rooms.has(shot.targetRoom));
       aimed.add(shot.targetRoom);
     }
-    assert.equal(aimed.size, g.enemy.rooms.length);
+    // Seven pellets cover every room when the hull has seven or fewer, and seven distinct rooms otherwise.
+    assert.equal(aimed.size, Math.min(7, g.enemy.rooms.length));
   });
 
   it("uses the shorter clocks at higher levels", () => {

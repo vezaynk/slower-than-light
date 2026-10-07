@@ -210,6 +210,10 @@ describe("swarm", () => {
     g.enemy.shieldNow = 0;
     assert.equal(deploy(g, "beam"), true);
     const hull = g.enemy.hull;
+    // The swipe picks one room. A traced hull has halls, so pin the swipe to a system room.
+    const systemRoom = g.enemy.rooms.find((r) => r.system);
+    assert.ok(systemRoom?.system);
+    g.enemy.rooms = [systemRoom];
     tickSwarm(g, 1.5);
     assert.equal(g.enemy.hull, hull);
     tickSwarm(g, 1.5);

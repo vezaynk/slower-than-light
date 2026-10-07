@@ -5,7 +5,7 @@
  * Ranges are printed as [low, high]. "systems" are always installed, "optional" sometimes.
  * Missiles: Enemy Ships, "Missile and drone stocks" (10, or 6 / 14 for the ships that section names).
  * Pools: each page's "Weapons" section ("can have any of the following weapons"), wiki spellings.
- * Layouts are pictures on those pages; no room coordinates are copied.
+ * Pictured interiors are traced in enemy-layouts.ts. The bitmaps are not copied.
  */
 
 export type Range = [number, number];

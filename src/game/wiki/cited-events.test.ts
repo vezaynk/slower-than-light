@@ -547,3 +547,44 @@ describe("Slug hacker (medical)", () => {
     assert.ok((patient.cloneIn ?? 0) > 0);
   });
 });
+
+describe("Lanius fight with friendly ASB support", () => {
+  it("fires the Anti-Ship Battery at the other ship", () => {
+    const g = createGame(91);
+    openCited(g, "Abandoned Sector", "cited:lanius-fight-with-friendly-asb-support", "Lanius fight with friendly ASB support");
+    choose(g, "c:lanius-fight-with-friendly-asb-support:0");
+    assert.equal(g.phase, "combat");
+    quietEnemy(g);
+    assert.equal(g.asb, true);
+    assert.ok(g.asbWait > 0);
+    assert.ok(g.enemy);
+    g.asbT = g.asbWait;
+    step(g, 0.05);
+    assert.equal(g.asbPhase, "shot");
+    g.asbT = g.asbWait;
+    const hull = g.player.hull;
+    step(g, 0.05);
+    const shot = g.shots.find((s) => s.from === "env" && s.label === "Artillery");
+    assert.ok(shot);
+    assert.equal(shot.at, "enemy");
+    assert.equal(shot.damage, 3);
+    assert.equal(shot.breachChance, 1);
+    assert.ok(g.enemy.rooms.some((r) => r.id === shot.targetRoom));
+    assert.equal(g.player.hull, hull);
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    startCombat(g, "scout");
+    quietEnemy(g);
+    g.shots = [];
+    g.asb = true;
+    g.asbPhase = "shot";
+    g.asbWait = 0.01;
+    g.asbT = 0.01;
+    step(g, 0.05);
+    const later = g.shots.find((s) => s.from === "env" && s.label === "Artillery");
+    assert.ok(later);
+    assert.equal(later.at, undefined);
+    assert.ok(g.player.rooms.some((r) => r.id === later.targetRoom));
+  });
+});

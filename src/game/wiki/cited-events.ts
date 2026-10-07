@@ -60,6 +60,11 @@ export function citedSystemOff(id: string): Array<"doors" | "oxygen" | "medbay">
   return null;
 }
 
+/** Lanius fight with friendly ASB support: "Anti-Ship Battery on your side." */
+export function citedFriendlyAsb(id: string): boolean {
+  return id === "c:lanius-fight-with-friendly-asb-support:0";
+}
+
 export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons" | "engines"> | null {
   if (id === "c:slug-hacker-choice:0") return ["shields"];
   if (id === "c:slug-hacker-choice:1") return ["oxygen"];
@@ -933,10 +938,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Lanius ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's anti-ship battery is not applied."
           }
         ]
       }

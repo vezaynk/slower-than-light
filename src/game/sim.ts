@@ -76,7 +76,7 @@ import { hullById } from "./hulls.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
-import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
+import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -728,6 +728,23 @@ export function shutPlayerMedical(g: Game): void {
 
 function clearSystemOff(g: Game): void {
   systemOff.delete(g);
+}
+
+/**
+ * Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
+ * INFERRED: that battery is the Environmental Hazards shot, aimed at the other ship.
+ * The event does not print a separate warning or a damage figure.
+ */
+const friendlyAsb = new WeakMap<Game, true>();
+
+export function aidPlayerAsb(g: Game): void {
+  friendlyAsb.set(g, true);
+  g.asb = true;
+  if (!(g.asbWait > 0)) armAsbClock(g, "warn");
+}
+
+function clearFriendlyAsb(g: Game): void {
+  friendlyAsb.delete(g);
 }
 
 function doorsOff(g: Game, aboard: "player" | "enemy"): boolean {
@@ -3444,31 +3461,40 @@ function environment(g: Game, dt: number) {
       if (g.asbPhase !== "shot") {
         // INFERRED: the page prints these two lines beside the hazard art. Which one is the
         // 15--20s warning is not stated. A hull already on the scope uses the fleet line.
+        // Lanius fight with friendly ASB support: the ally line is INFERRED. The event does not print it.
         log(
           g,
-          g.enemy
-            ? "The Fleet's Anti-Ship Batteries are targeting you."
-            : "Planet-side anti-ship batteries are detected in this system.",
+          friendlyAsb.has(g)
+            ? "The planetary battery is aiming at the other ship."
+            : g.enemy
+              ? "The Fleet's Anti-Ship Batteries are targeting you."
+              : "Planet-side anti-ship batteries are detected in this system.",
         );
         sfx(g, "alarm");
         armAsbClock(g, "shot");
       } else {
         const asb = citedAsbShot();
-        g.shots.push({
-          id: uid(g),
-          kind: "missile",
-          from: "env",
-          damage: asb.damage,
-          ion: 0,
-          fireChance: asb.fireChance,
-          breachChance: asb.breachChance,
-          // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
-          targetRoom: randomRoom(g, g.player),
-          wait: 0.15,
-          t: 0,
-          duration: 1.1,
-          label: "Artillery",
-        });
+        // Lanius fight with friendly ASB support: the same shot hits the other ship.
+        const helping = friendlyAsb.has(g) && !!g.enemy;
+        const hull = helping ? g.enemy : g.player;
+        if (hull) {
+          g.shots.push({
+            id: uid(g),
+            kind: "missile",
+            from: "env",
+            damage: asb.damage,
+            ion: 0,
+            fireChance: asb.fireChance,
+            breachChance: asb.breachChance,
+            // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
+            targetRoom: randomRoom(g, hull),
+            ...(helping ? { at: "enemy" as const } : {}),
+            wait: 0.15,
+            t: 0,
+            duration: 1.1,
+            label: "Artillery",
+          });
+        }
         log(g, "Line artillery.");
         sfx(g, "alarm");
         armAsbClock(g, "warn");
@@ -3625,6 +3651,7 @@ function winCombat(g: Game) {
   // Auto-ship carrying shield virus: the half is only for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearFriendlyAsb(g);
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
   // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
   const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
@@ -3910,6 +3937,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   // A later fight does not keep the shield-virus half. The choice sets it again after this returns.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearFriendlyAsb(g);
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
   const built = makeEnemy(g, tier, event);
@@ -4520,6 +4548,7 @@ export function commitJump(g: Game, id: string) {
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearFriendlyAsb(g);
   // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
   leashOnLeave(g);
   // @agent:flagship. Leaving the boss fight mid-stage: keep its stage and surviving crew (wiki/flagship-systems.ts).
@@ -4847,6 +4876,8 @@ export function choose(g: Game, id: string) {
               if (offline?.includes("oxygen")) shutPlayerOxygen(g);
               // Slug hacker (medical): "Medbay / Clone Bay offline". Boarders named on the page are not spawned.
               if (offline?.includes("medbay")) shutPlayerMedical(g);
+              // Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
+              if (citedFriendlyAsb(id)) aidPlayerAsb(g);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),
@@ -4918,6 +4949,7 @@ export function enterHiddenCrystal(g: Game) {
   // INFERRED: leaving for the Hidden Crystal Worlds ends the shield-virus half.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearFriendlyAsb(g);
   leashOnLeave(g);
   rememberFlagship(g);
   dropOvercharged(g.player);
@@ -5342,6 +5374,7 @@ export function step(g: Game, dt: number) {
     // INFERRED: their escape ends the shield-virus half. The page only prints the half for that fight.
     clearShieldHalf(g);
     clearSystemOff(g);
+    clearFriendlyAsb(g);
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";

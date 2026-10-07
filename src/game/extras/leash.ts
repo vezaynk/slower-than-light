@@ -314,11 +314,30 @@ export function startLeash(g: Game, crewId: string) {
  * unpowered is level 0 and damage (`kit.damage`, sim hurtKit) knocks levels off the bought level. Upgrades never
  * lower `kit.level`; damage and depowering are the only decreases this tree has.
  */
+function mindLevel(kit: Kit, base: number): number {
+  const bought = Math.max(0, kit.level - (kit.damage ?? 0));
+  const z = Math.min(Math.max(0, kit.zoltan ?? 0), bought);
+  const ion = kit.ion?.length ?? 0;
+  if (ion <= 0 || base <= 0) return base;
+  // Zoltans: "Mind Control system with a Zoltan will not shutdown if it gets ionized by external factors."
+  // "system power levels not filled with zoltan power can get ionize, thus, reducing the maximum MC effect and duration".
+  // Systems: one ion point removes one power. INFERRED: that point takes one level the Zoltan does not fill.
+  const locked = Math.min(ion, Math.max(0, bought - z));
+  return Math.max(z > 0 ? Math.min(z, base) : 0, base - locked);
+}
+
 function playerLevel(kit: Kit): number {
-  // Zoltans: a Zoltan bar keeps Mind Control up when ion or a depower has removed the reactor bar.
-  // Bars the Zoltan does not cover still drop through kit.power. There is no player cooldown.
-  if (kit.power < 1 && (kit.zoltan ?? 0) < 1) return 0;
-  return Math.max(0, kit.level - (kit.damage ?? 0));
+  // Zoltans: a Zoltan bar keeps Mind Control up when a depower has removed the reactor bar.
+  // INFERRED: the player kit is one on/off bar, so any power or Zoltan keeps the bought level until ion lands.
+  const bought = Math.max(0, kit.level - (kit.damage ?? 0));
+  const base = kit.power < 1 && (kit.zoltan ?? 0) < 1 ? 0 : bought;
+  return mindLevel(kit, base);
+}
+
+/** INFERRED: the printed duration row for the level that remains is the new maximum. */
+function capDuration(kit: Kit, level: number) {
+  const cap = durationOf(level);
+  if (kit.left > cap) kit.left = cap;
 }
 
 /**
@@ -337,6 +356,17 @@ export function tickLeash(g: Game, dt: number) {
   const kit = g.player.kits.leash;
   if (!kit) return;
   if (kit.left > 0) {
+    const level = playerLevel(kit);
+    if (level <= 0) {
+      kit.left = 0;
+      kit.on = false;
+      kit.cool = 0;
+      for (const c of g.crew) {
+        if (c.leashed && c.leashed > 0 && c.side === "enemy") clearCrew(c);
+      }
+      return;
+    }
+    capDuration(kit, level);
     kit.left = Math.max(0, kit.left - dt);
     if (kit.left <= 0) {
       kit.on = false;
@@ -347,7 +377,7 @@ export function tickLeash(g: Game, dt: number) {
       }
     } else {
       const held = g.crew.find((c) => c.id === kit.target);
-      if (held && held.side === "enemy") stripIfDropped(held, playerLevel(kit));
+      if (held && held.side === "enemy") stripIfDropped(held, level);
     }
     return;
   }
@@ -530,14 +560,21 @@ function tickEnemyLeash(g: Game, dt: number) {
   if (!kit) return;
   if (kit.on) {
     const held = g.crew.find((c) => c.id === kit.target);
-    kit.left = Math.max(0, kit.left - dt);
-    if (kit.left <= 0 || kitBars(kit) < 1 || !held || !heldByEnemy(held) || held.hp <= 0) {
+    const level = mindLevel(kit, kitBars(kit));
+    if (level <= 0 || kit.left <= 0 || !held || !heldByEnemy(held) || held.hp <= 0) {
       clearEnemyLeash(g);
       if (held && held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
       return;
     }
+    capDuration(kit, level);
+    kit.left = Math.max(0, kit.left - dt);
+    if (kit.left <= 0) {
+      clearEnemyLeash(g);
+      if (held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
+      return;
+    }
     // "Combat damage bonus and health boost are removed if the system level is decreased": working bars are its level.
-    stripIfDropped(held, kitBars(kit));
+    stripIfDropped(held, level);
     huntFor(g, held);
     return;
   }

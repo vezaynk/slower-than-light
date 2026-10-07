@@ -449,4 +449,60 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
     tickLeash(g, 0.05);
     assert.equal(foe.leashBoost, undefined);
   });
+
+  it("stays up under external ion when a Zoltan fills a bar, at a lower level", () => {
+    // Zoltans: "Mind Control system with a Zoltan will not shutdown if it gets ionized by external factors."
+    // Unfilled levels still ionize, which reduces the maximum effect and duration.
+    const g = createGame(44);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    if (g.enemy.kits.leash) g.enemy.kits.leash.cool = 999;
+    const room = g.enemy.rooms[0]?.id ?? "e-pilot";
+    const foe = spark(room, "foe", "enemy");
+    foe.leashed = 28;
+    foe.leashBoost = 30;
+    foe.maxHp = 100;
+    foe.hp = 100;
+    g.crew.push(foe);
+    g.player.kits.leash = {
+      id: "leash",
+      level: 3,
+      power: 1,
+      zoltan: 1,
+      on: true,
+      left: 28,
+      cool: 0,
+      target: foe.id,
+      aux: 0,
+      ion: [5, 5],
+    };
+    tickLeash(g, 0.05);
+    assert.equal(g.player.kits.leash.on, true);
+    assert.ok((foe.leashed ?? 0) > 0);
+    assert.equal(foe.leashBoost, undefined);
+    assert.ok(Math.abs(g.player.kits.leash.left - (14 - 0.05)) < 1e-9);
+
+    const bare = createGame(45);
+    startCombat(bare, "scout");
+    assert.ok(bare.enemy);
+    if (bare.enemy.kits.leash) bare.enemy.kits.leash.cool = 999;
+    const other = spark(bare.enemy.rooms[0]?.id ?? "e-pilot", "other", "enemy");
+    other.leashed = 28;
+    bare.crew.push(other);
+    bare.player.kits.leash = {
+      id: "leash",
+      level: 3,
+      power: 1,
+      zoltan: 0,
+      on: true,
+      left: 28,
+      cool: 0,
+      target: other.id,
+      aux: 0,
+      ion: [5, 5, 5],
+    };
+    tickLeash(bare, 0.05);
+    assert.equal(bare.player.kits.leash.on, false);
+    assert.equal(other.leashed ?? 0, 0);
+  });
 });

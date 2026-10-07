@@ -2430,11 +2430,12 @@ function moveCrew(g: Game, dt: number) {
     }
     const door = findDoor(ship, c.room, next);
     // Mind Control, "Overview": "Mind-controlled crew can freely pass through blast doors". Leashed crew never break doors.
-    // @agent:hacking. Hacking, "Overview": hacked doors are "locked for hostile crew, but friendly crew can pass
-    // through freely" (the hacked ship's crew must break them; the hacker's walk through). extras/spike.ts.
+    // Boarding, "Doors": a hacked room's doors block that ship's crew and let boarders and mind-controlled crew through.
+    // Hacking, "Overview": "locked for hostile crew, but friendly crew can pass through freely."
+    const shipSide = c.aboard === "player" ? "player" : "enemy";
+    const ownCrew = c.side === shipSide;
     const hacked = !!door && hackLocksDoor(g, ship, door);
-    const hostile =
-      (c.leashed ?? 0) <= 0 && (hacked ? c.side === "player" : c.side !== (c.aboard === "player" ? "player" : "enemy"));
+    const hostile = (c.leashed ?? 0) <= 0 && (hacked ? ownCrew : !ownCrew);
     // Coat hits stay up through this tick after the 12 seconds hit 0, so the last punches still land.
     const coatShut = !!door && door.b !== "void" && !door.open && (door.coat ?? 0) > 0;
     const leaving = coated(ship, c.room) || coatShut;

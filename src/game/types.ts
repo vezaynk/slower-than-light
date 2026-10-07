@@ -87,8 +87,8 @@ export type Door = {
   /** Seconds a broken door stays stuck open. */
   stuck: number;
   /**
-   * @agent:hacking. Player doors only: locked by an enemy hack (extras/spike.ts). Hacking, "Overview":
-   * "Hacked doors are equivalent to level 3 blast doors" for the hacked ship's crew.
+   * @agent:hacking. Locked by a hack (extras/spike.ts). Hacking, "Overview": "Hacked doors are equivalent to
+   * level 3 blast doors" for the hacked ship's crew. Boarding, "Doors": boarders and mind-controlled crew pass.
    */
   hacked?: boolean;
 };

@@ -1,4 +1,4 @@
-import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -444,7 +444,8 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
     return;
   }
   if (kit.target === "doors") {
-    // Hacking wiki, "Overview" (Door System): doors lock for the pulse. The page also says level-3 blast doors and a 7 second heal; those numbers are not used here.
+    // Hacking wiki, "Overview" (Door System): a Doors pulse locks every door. Level-3 health and who may walk
+    // are syncOwnDoors (Boarding, "Doors"), same as the enemy hack's syncDoors. The 7 second heal is door.stuck.
     for (const door of enemy.doors) {
       if (door.b === "void" || door.stuck > 0) continue;
       door.open = false;
@@ -651,6 +652,7 @@ export function tickSpike(g: Game, dt: number) {
     // INFERRED: a drone that latched this tick starts its pulse clock on the next one.
     if (running(kit)) {
       syncOwnPulse(g, kit);
+      syncOwnDoors(g, kit);
       return;
     }
   }
@@ -668,6 +670,7 @@ export function tickSpike(g: Game, dt: number) {
     if (rest > 0) kit.cool = Math.max(0, kit.cool - rest);
   } else if (kit.cool > 0) kit.cool = Math.max(0, kit.cool - dt);
   syncOwnPulse(g, kit);
+  syncOwnDoors(g, kit);
 }
 
 /**
@@ -1168,19 +1171,42 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
  * them into temporary enemy level 3 blast doors" during a pulse on Doors. "Hacked doors are equivalent to level 3
  * blast doors; after being broken down they will 'heal' and close automatically in 7 seconds" (sim.ts sets the 7 s
  * `stuck`; this closes the door once it runs out). Airlocks are left alone, as in the player's own Doors pulse.
- * INFERRED: hp is cleared on lock and on release, so sim.ts moveCrew re-arms it at the right level on the next hit.
+ * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except a 12 or a 4 already written
+ * this tick by Crystal Lockdown.
  */
 function syncDoors(g: Game, kit: Kit | undefined) {
   const ship = g.player;
   const live = !!kit && !!kit.hackLatched && operational(kit) && !!g.enemy;
   const all = live && running(kit!) && kit!.target === "doors";
   const room = live && kit!.target ? roomWith(ship, kit!.target as SysId)?.id : undefined;
+  lockHackedDoors(ship, all, room);
+}
+
+/**
+ * Boarding, "Doors": "Doors of a hacked system room function as level 3 blast doors (regardless of the ship's door
+ * system level) and allow unimpeded movement of boarders and mind-controlled crew, but block the ship's crew movement."
+ * Hacking, "Overview": the lock holds while the drone is attached and Hacking is powered. A Doors pulse locks every
+ * door (the enemy hack's syncDoors already does this on the player hull).
+ */
+function syncOwnDoors(g: Game, kit: Kit) {
+  const ship = g.enemy;
+  if (!ship) return;
+  const live =
+    g.phase === "combat" && ship.hackDrone != null && kit.target != null && ship.hackDrone === kit.target && fedBars(kit) >= 1;
+  const all = live && running(kit) && kit.target === "doors";
+  const room = live && kit.target ? aimRoom(ship, kit.target)?.id : undefined;
+  lockHackedDoors(ship, all, room);
+}
+
+function lockHackedDoors(ship: Ship, all: boolean, room: string | undefined) {
   for (const d of ship.doors) {
     const want = d.b !== "void" && (all || (!!room && (d.a === room || d.b === room)));
     if (want) {
       if (!d.hacked) {
         d.hacked = true;
-        d.hp = 0;
+        // INFERRED: hp is cleared so moveCrew re-arms at level 3. Crystal Lockdown writes 12 or 4 on this same
+        // tick, before this sync; those two values stay.
+        if (d.hp !== blastHits(HACKED_DOOR_LEVEL) && d.hp !== HACK_COAT_HITS) d.hp = 0;
       }
       if (d.stuck <= 0) d.open = false;
     } else if (d.hacked) {
@@ -1323,9 +1349,10 @@ export function playerCloakHacked(g: Game): boolean {
   return enemyPulseOn(g, ["veil"]);
 }
 
-/** sim.ts moveCrew: this player door is an enemy-hacked level-3 blast door (see syncDoors). */
+/** sim.ts moveCrew: this door is a hacked level-3 blast door (syncDoors on the player hull, syncOwnDoors on the enemy). */
 export function hackLocksDoor(g: Game, ship: Ship, door: Door): boolean {
-  return ship === g.player && !!door.hacked && !!g.enemy;
+  if (!door.hacked || !g.enemy) return false;
+  return ship === g.player || ship === g.enemy;
 }
 
 /**

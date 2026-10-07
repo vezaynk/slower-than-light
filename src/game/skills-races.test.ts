@@ -4,7 +4,8 @@ import { rollEnemy } from "./enemy-gen.ts";
 import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
-import { createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
+import { applyImpact, createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
+import type { Shot } from "./types.ts";
 import { WEAPONS, XP_NEED } from "./content.ts";
 import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
@@ -467,6 +468,42 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
     assert.equal(g.shots.length - before, 14);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     assert.equal(room.system, "weapons");
+  });
+});
+
+describe("Crew skills, Shields: an ion hit on the bubble ionizes shields", () => {
+  it("puts the ion on shields, leaves the aimed room clear, and trains nothing", () => {
+    const g = createGame(51);
+    startCombat(g, "scout");
+    g.player.systems.engines.power = 0;
+    g.player.systems.shields.level = 4;
+    g.player.systems.shields.power = 4;
+    g.player.shieldNow = 2;
+    g.player.systems.shields.ion = [];
+    g.player.systems.weapons.ion = [];
+    const shields = g.player.rooms.find((r) => r.system === "shields")!;
+    const nen = g.crew.find((c) => c.id === "c-nen")!;
+    nen.room = shields.id;
+    nen.path = [];
+    nen.skills = {};
+    const shot: Shot = {
+      id: "ion",
+      kind: "ion",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      targetRoom: "p-weapons",
+      wait: 0,
+      t: 1,
+      duration: 1,
+    };
+    applyImpact(g, shot);
+    assert.equal(g.player.shieldNow, 1);
+    assert.equal(g.player.systems.shields.ion.length, 1);
+    assert.equal(g.player.systems.weapons.ion.length, 0);
+    assert.equal(nen.skills?.shields ?? 0, 0);
   });
 });
 

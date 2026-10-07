@@ -1967,7 +1967,11 @@ export function applyImpact(g: Game, shot: Shot) {
   if (shot.kind !== "missile" && ship.shieldNow > pierce) {
     ship.shieldNow -= 1;
     ship.shieldCharge = 0;
-    if (playerTarget && shot.kind !== "ion" && skillFight(g)) {
+    if (shot.kind === "ion") {
+      // Crew skills, Shields: "Ion projectiles, when blocked by shields, ionize the Shields system,
+      // preventing manning the system and getting the skill points." The aimed room stays clear.
+      applyIon(ship, "shields", Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+    } else if (playerTarget && skillFight(g)) {
       bumpXp(g, manningCrew(g, g.player, "player", "shields"), "shields", 1);
     }
     sfx(g, "shield");

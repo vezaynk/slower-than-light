@@ -816,6 +816,13 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
     assert.equal(g.shots.length, 0);
     assert.equal(crew.skills?.weapons ?? 0, 1);
   });
+
+  it("counts a three-shot burst as one fire", () => {
+    // Crew skills, Weapons: "Volleys of multi-shot weapons such as burst lasers count as a single fire".
+    const { g, crew } = primed(54, "lineburst");
+    assert.equal(g.shots.length, 3);
+    assert.equal(crew.skills?.weapons ?? 0, 1);
+  });
 });
 
 describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () => {

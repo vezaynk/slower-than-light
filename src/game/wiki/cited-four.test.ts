@@ -129,16 +129,16 @@ describe("Rock and Crystal extinguish shares", () => {
     close(burn(both, "p-medbay"), SHARE + SHARE * rockExtinguishScale());
   });
 
-  it("keeps Fire Suppression at 2 per second on top of a Rock", () => {
+  it("keeps Fire Suppression at Crystal speed on top of a Rock", () => {
     const empty = fight(5);
     empty.augments = ["squall"];
     hold(empty, "p-medbay", []);
-    close(burn(empty, "p-medbay"), 2);
+    close(burn(empty, "p-medbay"), FIRE_FIGHT_SHARE * crystalExtinguishScale());
 
     const rock = fight(6);
     rock.augments = ["squall"];
     hold(rock, "p-medbay", [{ id: "c-ada", kin: "stone" }]);
-    close(burn(rock, "p-medbay"), 2 + SHARE * rockExtinguishScale());
+    close(burn(rock, "p-medbay"), FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * rockExtinguishScale());
   });
 });
 

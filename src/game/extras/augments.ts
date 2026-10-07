@@ -1,5 +1,6 @@
-import { bars, chargerCap, log, powerMask, rand, zoltanBars } from "../sim.ts";
+import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game } from "../types.ts";
+import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
 
@@ -289,14 +290,17 @@ export function lungScale(g: Game, crew: Crew): number {
 }
 
 /**
- * Augmentations, "Defensive Augmentations", Fire Suppression.
- * INFERRED: 2 fire-units per second. The page says fires go out at Crystal crew speed and does not give this rate.
+ * Augmentations, "Defensive Augmentations", Fire Suppression:
+ * "Puts out all fires at once, at the same speed as a Crystal crew (slightly slower than a Human)."
+ * That Crystal rate is FIRE_FIGHT_SHARE * crystalExtinguishScale(), on every burning player room.
+ * Crew in the room keep their own extinguish. This rate is not scaled by a Rock or by repair skill.
+ * The enemy hull is ignored.
  */
 export function tickSquall(g: Game, dt: number) {
   if (has(g, "squall")) {
     for (const room of g.player.rooms) {
       if (room.fire <= 0) continue;
-      room.fire = Math.max(0, room.fire - dt * 2);
+      room.fire = Math.max(0, room.fire - dt * FIRE_FIGHT_SHARE * crystalExtinguishScale());
     }
   }
   tickMedbot(g, dt);

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat, step } from "../sim.ts";
+import { createGame, FIRE_FIGHT_SHARE, startCombat, step } from "../sim.ts";
 import type { AugmentId, Crew, Kit, WeaponInst } from "../types.ts";
+import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import {
   CATALOG,
   adjustScrapAmount,
@@ -210,7 +211,7 @@ describe("augments", () => {
     assert.equal(lungScale(g, theirs), 0.5);
   });
 
-  it("puts player fires out by twice the tick and ignores the other hull", () => {
+  it("puts player fires out at Crystal speed and ignores the other hull", () => {
     const g = createGame(1);
     g.player.rooms[0].fire = 1;
     g.player.rooms[1].fire = 0.1;
@@ -221,8 +222,10 @@ describe("augments", () => {
 
     g.augments = ["squall"];
     tickSquall(g, 0.25);
-    assert.equal(g.player.rooms[0].fire, 0.5);
-    assert.equal(g.player.rooms[1].fire, 0);
+    const drop = 0.25 * FIRE_FIGHT_SHARE * crystalExtinguishScale();
+    assert.equal(g.player.rooms[0].fire, 1 - drop);
+    assert.equal(g.player.rooms[1].fire, 0.1 - drop);
+    assert.ok(g.player.rooms[1].fire > 0);
     assert.equal(g.enemy.rooms[0].fire, 2);
   });
 

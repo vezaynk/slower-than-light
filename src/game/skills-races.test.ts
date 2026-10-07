@@ -1108,6 +1108,71 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
   });
 });
 
+describe("Crew skills, Shields: one point per bubble hit", () => {
+  it("grants one shields point when a shot depletes the bubble, and none when it misses", () => {
+    // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".
+    const g = createGame(53);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.level = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.shields.level = 2;
+    g.player.systems.shields.power = 2;
+    g.player.systems.shields.damage = 0;
+    g.player.shieldNow = 1;
+    const nen = g.crew.find((c) => c.id === "c-nen")!;
+    const shields = g.player.rooms.find((r) => r.system === "shields")!;
+    nen.room = shields.id;
+    nen.path = [];
+    nen.stun = 0;
+    nen.leashed = undefined;
+    nen.skills = {};
+    shields.fire = 0;
+    shields.o2 = 100;
+    for (const c of g.crew) if (c.id !== nen.id && c.room === shields.id) c.room = "p-pilot";
+    let hits = 0;
+    let misses = 0;
+    for (let i = 0; i < 80 && (hits < 2 || misses < 1); i++) {
+      const before = nen.skills?.shields ?? 0;
+      g.player.shieldNow = 1;
+      g.player.hull = g.player.hullMax;
+      g.log.length = 0;
+      g.shots.push({
+        id: "bubble-" + i,
+        kind: "laser",
+        from: "enemy",
+        at: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: shields.id,
+        wait: 0,
+        t: 0,
+        duration: 0.05,
+        label: "Pew",
+      });
+      step(g, 0.05);
+      const gained = (nen.skills?.shields ?? 0) - before;
+      if (g.log[0] === "Shot missed the Lark.") {
+        misses++;
+        assert.equal(gained, 0);
+        assert.equal(g.player.shieldNow, 1);
+      } else {
+        hits++;
+        assert.equal(g.player.shieldNow, 0);
+        assert.equal(gained, 1);
+      }
+    }
+    assert.ok(hits >= 2);
+    assert.ok(misses >= 1);
+  });
+});
+
 describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
   const pirateCls = ENEMY_CLASSES.find((c) => !!c.pirate || c.faction === "federation")!;
 

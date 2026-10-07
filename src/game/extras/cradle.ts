@@ -287,14 +287,25 @@ function enemyCradleRoom(g: Game): string | null {
  * one to be in the beginning of the cloning queue." System Upgrades: cloning takes 12 / 9 / 7 seconds.
  * INFERRED: an enemy boarder who dies aboard the player ship is cloned too. The page only excludes crew "left on the
  * enemy ship" when a ship jumps away, which is about jumping, not about dying aboard.
- * INFERRED: a death while the bay is destroyed still queues if enemy crew are alive (they may repair it); the
- * 3-second offline loss in tickEnemyCradle then decides. With no live crew left it is purged at once (Overview).
+ * Overview: "The fight will be over despite the enemy having an operational System Repair Drone being able to
+ * potentially repair the Clone Bay in time." A death while the bay is already destroyed does not enter the queue.
+ * "If the Clone Bay is destroyed while at least one enemy crew is alive, the crew dying animation must complete
+ * for the fight to be over." That wait is kit.left, and only when this death leaves no living enemy crew.
  * Overview: the same death animation runs before an enemy clone's 12/9/7 seconds.
  */
 function onEnemyCradleDeath(g: Game, crew: Crew): boolean {
   const kit = enemyCradle(g);
   if (!kit) return false;
   if ((crew.cloneIn ?? 0) > 0) return true;
+  // A repaired bay does not reopen a death that already missed the queue. kit.left is that animation.
+  if (cradleDestroyed(kit) || (!enemyLive(g) && kit.left > 0)) {
+    crew.hp = 0;
+    if (!enemyLive(g)) {
+      if (cradleDestroyed(kit)) kit.left = Math.max(kit.left, deathAnimSeconds(crew.kin));
+      purgeEnemyClones(g);
+    }
+    return false;
+  }
   const seconds = CLONE_SECONDS[kit.level];
   const room = enemyCradleRoom(g);
   if (seconds == null || !room) return false;
@@ -322,6 +333,12 @@ function onEnemyCradleDeath(g: Game, crew: Crew): boolean {
 function tickEnemyCradle(g: Game, dt: number) {
   const kit = enemyCradle(g);
   if (!kit) return;
+  // Overview: the dying animation must finish before a wrecked bay ends the fight. No revival during that wait.
+  if (!enemyLive(g) && kit.left > 0) {
+    purgeEnemyClones(g);
+    kit.left = Math.max(0, kit.left - dt);
+    return;
+  }
   if (purgeEnemyClones(g)) return;
   const queued = enemyQueued(g);
   if (!queued.length) {
@@ -372,6 +389,8 @@ export function enemyCloneHolds(g: Game): boolean {
   const kit = enemyCradle(g);
   if (!kit) return false;
   purgeEnemyClones(g);
+  // Overview: a wrecked bay still holds the fight until the last crew's dying animation ends.
+  if (!enemyLive(g) && kit.left > 0) return true;
   if (cradleDestroyed(kit)) return false;
   return enemyQueued(g).length > 0;
 }

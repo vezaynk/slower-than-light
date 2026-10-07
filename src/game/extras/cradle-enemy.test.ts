@@ -103,19 +103,36 @@ describe("enemy clone bay", () => {
     assert.equal(foes(g).length, 0);
   });
 
-  it("Clone Bay, Overview: a destroyed bay with live crew keeps the queue until the last one dies, then purges", () => {
+  it("Clone Bay, Overview: a destroyed bay does not queue a later death, and the dying animation holds the fight", () => {
     const g = cloneShip();
     const crew = foes(g);
     assert.ok(crew.length >= 2);
     const [first, ...rest] = crew;
+    const last = rest[rest.length - 1]!;
     kill(g, first);
     wreck(bay(g));
     assert.equal(enemyCloneHolds(g), false);
-    assert.ok((first.cloneIn ?? 0) > 0, "live crew could still repair it");
-    for (const c of rest) kill(g, c);
-    assert.ok(foes(g).every((c) => c.cloneIn == null), "queue purged instantly");
+    assert.ok((first.cloneIn ?? 0) > 0);
+    if (rest.length > 1) {
+      kill(g, rest[0]!);
+      assert.equal(rest[0]!.cloneIn, undefined);
+      assert.ok((first.cloneIn ?? 0) > 0);
+    }
+    kill(g, last);
+    assert.equal(last.cloneIn, undefined);
+    assert.ok(foes(g).every((c) => c.cloneIn == null));
+    const anim = deathAnimSeconds(last.kin);
+    assert.equal(bay(g).left, anim);
+    bay(g).damage = 0;
+    bay(g).power = bay(g).level;
     step(g, 0.05);
+    assert.equal(g.phase, "combat");
+    assert.equal(last.hp, 0);
+    assert.equal(last.cloneIn, undefined);
+    const ticks = Math.round(anim / 0.05);
+    for (let i = 0; i < ticks - 1; i++) step(g, 0.05);
     assert.notEqual(g.phase, "combat");
+    assert.equal(g.enemy, null);
   });
 
   it("Clone Bay, Overview: offline for 3 seconds loses the last clone queued", () => {

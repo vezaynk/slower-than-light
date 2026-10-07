@@ -3489,8 +3489,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);
     // "1-3 rock boarders beam aboard your ship" (Rock fight with boarders).
-    // INFERRED: inclusive 1..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    // "1-2 rock boarders beam aboard your ship" (Rock fight with boarders in asteroid field).
+    // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);
+    if (id === "c:rock-fight-with-boarders-in-asteroid-field:0") rockBoarders(g, 1, 2);
     return true;
   }
   ctx.resolve();

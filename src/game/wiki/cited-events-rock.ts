@@ -2,7 +2,8 @@
  * Rock pages whose opening outcome is one stated amount or one named fight.
  * A choice with several results is left out. Blue options, crew, map reveals,
  * and upgrades are not granted. Boarder counts are not granted except
- * Rock fight with boarders (citedChoose, after the fight).
+ * Rock fight with boarders and Rock fight with boarders in asteroid field
+ * (citedChoose, after the fight).
  */
 
 export type CitedFx =
@@ -128,7 +129,6 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." Locations: asteroidfield=true.
           { k: "fight", tier: "Rock ship", asteroid: true },
-          { k: "note", text: "Boarder counts are not applied." },
         ],
       },
     ],

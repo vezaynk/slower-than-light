@@ -3749,14 +3749,26 @@ function winCombat(g: Game) {
     eligible += extra;
     g.pending = null;
   }
-  // INFERRED: missile 34%, fuel 28%, weapon 16% or 12 scrap. Stores, "Resources" does not list defeat drops.
-  if (rand(g) < 0.34) {
-    g.missiles += 1;
-    notes.push("Missile salvaged.");
-  }
-  if (rand(g) < 0.28) {
-    g.fuel += 1;
-    notes.push("Fuel siphoned.");
+  // Rewards, "Standard": "T scrap + low resources (2 random resources among fuel, missiles, and drone parts)".
+  // Template:Default rewards (generic), "Destroying the ship": that bundle is medium scrap with resources.
+  // Template:Resources rewards, Low: fuel 1–3, missiles 1–2, drone parts 1.
+  // INFERRED: each draw is uniform across the three, and the same resource may be drawn twice.
+  // The roughly 3% bonus weapon, augmentation, or schematic is an unnamed grant and is not rolled here.
+  const resourceKinds = ["fuel", "missiles", "parts"] as const;
+  for (let draw = 0; draw < 2; draw++) {
+    const kind = resourceKinds[irand(g, resourceKinds.length)];
+    if (kind === "fuel") {
+      const n = 1 + irand(g, 3);
+      g.fuel += n;
+      notes.push(`Low fuel ${n}.`);
+    } else if (kind === "missiles") {
+      const n = 1 + irand(g, 2);
+      g.missiles += n;
+      notes.push(`Low missiles ${n}.`);
+    } else {
+      g.player.parts += 1;
+      notes.push("Low drone part 1.");
+    }
   }
   if (rand(g) < 0.16) {
     const owned = new Set(g.player.weapons.map((w) => w.defId));

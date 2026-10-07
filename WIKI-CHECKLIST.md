@@ -1130,7 +1130,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Rupturing Zoltan Freighter — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Rupturing Zoltan freighter — not-a-surface — same title as "Rupturing Zoltan Freighter" with different capitalization
 - [ ] Science craft docked with Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Score — partial — src/game/sim.ts — Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. The lit hangar button sets initial scrap to 30 / 10 / 0, and that scrap is not in s. Rebel-held beacons still count because the fleet column is INVENTED. Selling a weapon or augment adds that scrap to s.
+- [ ] Score — partial — src/game/sim.ts — Score, lead formula: (s + 10b + 20k) * D, rounded down. D is 1 / 1.25 / 1.5. The lit hangar button sets initial scrap to 30 / 10 / 0, and that scrap is not in s. Rebel-held beacons still count because the fleet column is INVENTED. Selling a weapon or augment adds that scrap to s. Accepting a surrender does not increase the ship-kill count, because that count is only ships defeated by reducing hull or crew to zero.
 - [ ] Scrap — partial — src/game/sim.ts — scrap is the spendable currency. Score s excludes starting scrap and the Scrap Recovery Arm bonus. Repair Arm does not reduce s.
 - [ ] Scrap Hoarder — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Scrap Recovery Arm — partial — src/game/extras/augments.ts — Misc. Augmentations: +10% is applied to the wallet and kept out of Score s. Rounded down.

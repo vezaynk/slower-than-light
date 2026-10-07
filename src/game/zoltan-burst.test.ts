@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { roomDroneHp, shownDroneHp } from "./extras/swarm.ts";
 import { createGame, startCombat, step } from "./sim.ts";
 import type { Crew, DroneUnit, Kit } from "./types.ts";
 
@@ -118,6 +119,17 @@ describe("zoltan death burst", () => {
     assert.equal(intruder.hp, 117.5);
     assert.equal(boarder.hp, 150);
     assert.equal(repair.hp, 17.5);
+    // Zoltans: shown health rounds down, so a full drone looks missing 8 while the stored loss stays 7.5.
+    assert.equal(shownDroneHp(intruder.hp), 117);
+    assert.equal(125 - shownDroneHp(intruder.hp), 8);
+    assert.equal(shownDroneHp(repair.hp), 17);
+    assert.equal(25 - shownDroneHp(repair.hp), 8);
+    assert.equal(shownDroneHp(boarder.hp), 150);
+    const shown = roomDroneHp(g.player, g)
+      .filter((mark) => mark.room === "p-sensors")
+      .map((mark) => mark.shown)
+      .sort((a, b) => a - b);
+    assert.deepEqual(shown, [17, 117]);
     assert.equal(orbiter.hp, undefined);
     assert.equal(orbiter.alive, true);
     assert.equal(fragile.alive, false);

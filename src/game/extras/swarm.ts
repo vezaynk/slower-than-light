@@ -1290,6 +1290,29 @@ const CREW_DRONES = new Set(["patch", "personnel"]);
 const ZOLTAN_DRONE_HP = 7.5;
 
 /**
+ * Zoltans, "Race characteristics": "full-HP drones will be shown missing 8 HP, however, a drone actually loses only
+ * 7.5 HP - it is how the game rounds down the decimal values". Stored health stays the fractional value.
+ */
+export function shownDroneHp(hp: number): number {
+  return Math.floor(hp);
+}
+
+/** Rooms on this hull that hold a drone with health, labeled with the rounded-down value. */
+export function roomDroneHp(ship: Ship, g: Game): { room: string; shown: number }[] {
+  const ids = new Set(ship.rooms.map((room) => room.id));
+  const out: { room: string; shown: number }[] = [];
+  const kit = g.player.kits.swarm;
+  if (kit?.on && kit.hp != null && kit.room && ids.has(kit.room)) {
+    out.push({ room: kit.room, shown: shownDroneHp(kit.hp) });
+  }
+  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+    if (!unit.alive || unit.hp == null || !unit.room || !ids.has(unit.room)) continue;
+    out.push({ room: unit.room, shown: shownDroneHp(unit.hp) });
+  }
+  return out;
+}
+
+/**
  * Zoltans, "Race characteristics": the death burst's drone damage, on a drone that already has health and is in the room.
  * Orbiting drones have no health field, so they are skipped. A drone at 0 or below is destroyed.
  */

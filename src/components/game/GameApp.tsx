@@ -12,7 +12,7 @@ import { CATALOG } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
 import { shipInDanger } from "@/game/extras/sling";
-import { depowerDrone, reorderDroneSlots } from "@/game/extras/swarm";
+import { depowerDrone, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
@@ -612,6 +612,7 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         }}
         onCrew={(id) => act((g) => selectCrew(g, id))}
         aims={aimMarks(game)}
+        droneHp={roomDroneHp(game.player, game)}
       />
       {intruders ? (
         <p className="intruder-warn">
@@ -730,6 +731,7 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           beamLines={beamLinesOf(game)}
           hackMark={hackMark}
           hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}
+          droneHp={roomDroneHp(enemy, game)}
         />
         {cloaked ? <p className="cloak-tag">CLOAKED</p> : null}
       </div>

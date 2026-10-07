@@ -98,6 +98,8 @@ type Props = {
   hackMark?: HackMark | null;
   /** @agent:hack-ui. In hack targeting: true for rooms the drone may be aimed at. */
   hackPick?: (roomId: string) => boolean;
+  /** Zoltans: drone health in this room, already rounded down. */
+  droneHp?: { room: string; shown: number }[];
 };
 
 export function ShipView({
@@ -117,6 +119,7 @@ export function ShipView({
   hackPick,
   beamAnchor = null,
   beamLines = [],
+  droneHp = [],
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
@@ -211,6 +214,13 @@ export function ShipView({
                   {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
                     <span>Ion</span>
                   ) : null}
+                  {droneHp
+                    .filter((mark) => mark.room === room.id)
+                    .map((mark, i) => (
+                      <span key={`drone-hp-${i}`} data-drone-hp={mark.shown} aria-label={`Drone health ${mark.shown}`}>
+                        {mark.shown}
+                      </span>
+                    ))}
                 </div>
               ) : null}
               {open ? (

@@ -1015,6 +1015,13 @@ function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
         // Drone Control, Ion Intruder: a friendly boarder stays free. side "player" is already skipped.
         c.stun = INTRUDER.stunSeconds;
       }
+      // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
+      // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
+      for (const unit of enemy.kits.swarm?.drones ?? []) {
+        const spot = enemyDroneSpot(unit);
+        if (spot?.at !== "enemy-room" || spot.room !== room.id) continue;
+        unit.stun = Math.max(unit.stun ?? 0, INTRUDER.stunSeconds);
+      }
     }
   }
   // "then moves to a different system". The walk is stepIntruderWalk. This pulse only chooses the rooms.
@@ -1885,6 +1892,18 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
         for (const c of g.crew) {
           if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0) continue;
           c.stun = Math.max(c.stun ?? 0, INTRUDER.stunSeconds);
+        }
+        // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
+        // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
+        const kit = g.player.kits.swarm;
+        if (
+          kit?.on &&
+          kit.hp != null &&
+          kit.room === room.id &&
+          kit.target !== "board" &&
+          kit.target !== "ionintruder"
+        ) {
+          kit.stun = Math.max(kit.stun ?? 0, INTRUDER.stunSeconds);
         }
         unit.fired = 0;
         log(g, held ? "Reverse Ion Field shrugged that off." : `Their ion intruder pulses the ${room.title}.`);

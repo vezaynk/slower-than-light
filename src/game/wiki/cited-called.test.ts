@@ -9,6 +9,7 @@ import {
   deploy,
   enemyDefenseIntercept,
   swarmIntercept,
+  tickEnemyDrones,
   tickSwarm,
 } from "../extras/swarm.ts";
 import { COMBAT2, orbitLegSeconds } from "./cited-combat2.ts";
@@ -576,6 +577,64 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     friend.stun = 0;
     friend.leashed = 8;
     enemy.systems[room.system].ion = [];
+    // No loadout: tickEnemyDrones returns before it can walk these drones off the pulsed room.
+    const bay = enemy.kits.swarm ?? {
+      id: "swarm" as const,
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    delete bay.loadout;
+    const personnel = {
+      id: "ed-personnel",
+      kind: "personnel",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      hp: 150,
+      room: room.id,
+      stun: 0,
+    };
+    const boardDrone = {
+      id: "ed-board",
+      kind: "board",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      fly: 0,
+      hp: 150,
+      room: room.id,
+      stun: 0,
+    };
+    const ionDrone = {
+      id: "ed-ion",
+      kind: "ionintruder",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      fly: 0,
+      hp: 125,
+      room: room.id,
+      stun: 0,
+    };
+    const striker = {
+      id: "ed-striker",
+      kind: "striker",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      stun: 0,
+    };
+    bay.drones = [personnel, boardDrone, ionDrone, striker];
+    enemy.kits.swarm = bay;
 
     tickSwarm(g, 8.19);
     assert.equal(enemy.systems[room.system].ion.length, 0);
@@ -587,6 +646,11 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.equal(foe.stun, 6);
     assert.equal(other.stun, 6);
     assert.equal(friend.stun, 0);
+    assert.equal(personnel.stun, 6);
+    assert.equal(personnel.ionT, undefined);
+    assert.equal(boardDrone.stun, 0);
+    assert.equal(ionDrone.stun, 0);
+    assert.equal(striker.stun, 0);
     // The pulse lands in this room, then a walk is queued. The room does not change in the same call.
     assert.equal(kit.room, room.id);
     assert.ok((kit.path ?? []).length > 0);
@@ -647,5 +711,102 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     tickSwarm(frozen, 4);
     assert.equal(ionSum(frozen), 0);
     assert.ok(Math.abs(cold.aux - 8) < 1e-9);
+  });
+
+  it("stuns a hostile interior drone for 6 seconds and leaves boarding drones and ion intruders free", () => {
+    // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
+    // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
+    const g = createGame(9);
+    startCombat(g, "scout");
+    const room = g.player.rooms.find((item) => item.system === "weapons");
+    assert.ok(room?.system);
+    const sys = g.player.systems[room.system];
+    if (sys.damage >= sys.level) sys.level = sys.damage + 1;
+    const friend = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    const boarder = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(friend && boarder);
+    friend.room = room.id;
+    friend.aboard = "player";
+    friend.stun = 0;
+    boarder.room = room.id;
+    boarder.aboard = "player";
+    boarder.stun = 0;
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "personnel",
+      on: true,
+      aux: 0,
+      hp: 150,
+      room: room.id,
+      stun: 0,
+    };
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    const boardUnit = {
+      id: "ed-board",
+      kind: "board",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      fly: 0,
+      room: room.id,
+      hp: 150,
+      left: 1000,
+      stun: 0,
+    };
+    const otherIon = {
+      id: "ed-ion-2",
+      kind: "ionintruder",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      fly: 0,
+      room: room.id,
+      hp: 125,
+      left: 1000,
+      stun: 0,
+    };
+    enemy.parts = 8;
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 9,
+      power: 9,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+      loadout: ["ionintruder"],
+      drones: [
+        {
+          id: "ed-ion",
+          kind: "ionintruder",
+          alive: true,
+          powered: true,
+          aux: 0,
+          cool: 0,
+          fly: 0,
+          room: room.id,
+          hp: 125,
+          left: 0.01,
+          stun: 0,
+        },
+        boardUnit,
+        otherIon,
+      ],
+    };
+    tickEnemyDrones(g, 0.02);
+    assert.equal(g.player.kits.swarm.stun, 6);
+    assert.equal(g.player.kits.swarm.ionT, undefined);
+    assert.equal(boardUnit.stun, 0);
+    assert.equal(otherIon.stun, 0);
+    assert.equal(friend.stun, 6);
+    assert.equal(boarder.stun, 0);
   });
 });

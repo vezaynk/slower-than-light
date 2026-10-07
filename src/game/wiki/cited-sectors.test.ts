@@ -223,6 +223,54 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.equal(g.asb, false);
   });
 
+  it("removes the nebula when an out-of-fuel wait is overtaken, and keeps the storm on a jump", () => {
+    const waiting = createGame(4);
+    waiting.phase = "map";
+    waiting.fuel = 0;
+    waiting.fleet = 0;
+    const spot = waiting.beacons.find((beacon) => beacon.id === waiting.here);
+    assert.ok(spot);
+    spot.kind = "nebula";
+    spot.col = 0;
+    spot.resolved = false;
+    waitHere(waiting);
+    assert.equal(spot.cleared, true);
+    assert.equal(waiting.player.storm, undefined);
+    assert.equal(waiting.asb, true);
+    assert.equal(waiting.phase, "combat");
+    assert.equal(waiting.pending, "dive:4");
+
+    const fueled = createGame(6);
+    fueled.phase = "map";
+    fueled.fuel = 3;
+    fueled.fleet = 0;
+    const home = fueled.beacons.find((beacon) => beacon.id === fueled.here);
+    assert.ok(home);
+    home.kind = "nebula";
+    home.col = 0;
+    waitHere(fueled);
+    assert.equal(home.cleared, undefined);
+    assert.equal(fueled.player.storm, true);
+    assert.equal(fueled.phase, "map");
+
+    const jumped = createGame(5);
+    jumped.phase = "map";
+    jumped.fuel = 1;
+    jumped.fleet = 4;
+    const from = jumped.beacons.find((beacon) => beacon.id === jumped.here);
+    const dest = jumped.beacons.find((beacon) => beacon.id !== jumped.here);
+    assert.ok(from && dest);
+    dest.kind = "nebula";
+    dest.col = 1;
+    dest.resolved = false;
+    if (!from.links.includes(dest.id)) from.links.push(dest.id);
+    commitJump(jumped, dest.id);
+    assert.equal(jumped.fuel, 0);
+    assert.equal(dest.cleared, undefined);
+    assert.equal(jumped.player.storm, true);
+    assert.equal(jumped.asb, false);
+  });
+
   it("warns 15–20s after an overtaken fight, then waits 5–10s for the real shot", () => {
     const g = createGame(2, "kestrel-a", "normal");
     const here = g.beacons.find((b) => b.id === g.here);

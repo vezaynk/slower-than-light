@@ -553,6 +553,11 @@ export type Beacon = {
   flag: string;
   asteroid: boolean;
   /**
+   * Environmental Hazards, Anti-Ship Battery: an out-of-fuel wait that the fleet overtakes removes the nebula environment.
+   * The beacon kind stays nebula. Absent means that environment is still there.
+   */
+  cleared?: boolean;
+  /**
    * @agent:quests. Beacons, "Quest (marker) beacon": the quest this beacon holds (wiki/quests.ts QUESTS key).
    * Drawn as 'QUEST' on the map from any distance. Absent on every other beacon.
    */

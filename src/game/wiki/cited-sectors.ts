@@ -67,11 +67,11 @@ export function citedFleetAdvance(g: Game, beacon: Pick<Beacon, "kind">): number
 /**
  * Rebel Fleet / Environmental Hazards: the battery is not on a nebula beacon, and never on an Easy exit.
  * The overtaken-column test is the one startCombat already used.
- * Out of fuel and waiting on a taken nebula is not decided here: no field records that wait.
+ * Anti-Ship Battery: an out-of-fuel wait that the fleet overtakes removes the nebula, so the battery is present.
  */
-export function citedAsb(g: Game, here: Pick<Beacon, "kind" | "col"> | undefined): boolean {
+export function citedAsb(g: Game, here: Pick<Beacon, "kind" | "col" | "cleared"> | undefined): boolean {
   if (!here) return false;
-  if (here.kind === "nebula") return false;
+  if (here.kind === "nebula" && !here.cleared) return false;
   if (g.difficulty === "easy" && here.kind === "exit") return false;
   return here.col < g.fleet;
 }
@@ -87,9 +87,10 @@ export function stormReactor(reactor: number): number {
 /**
  * Environmental Hazards, Plasma/ion Storm: a nebula beacon the fleet has overtaken always has an ion storm.
  * An exit beacon cannot. INFERRED: only that always-case is used. The page does not say which other nebula beacons have one.
+ * Environmental Hazards, Anti-Ship Battery: a nebula cleared by an out-of-fuel wait has no storm.
  */
-export function ionStormBeacon(beacon: Pick<Beacon, "kind" | "col"> | undefined, fleet: number): boolean {
-  if (!beacon || beacon.kind !== "nebula") return false;
+export function ionStormBeacon(beacon: Pick<Beacon, "kind" | "col" | "cleared"> | undefined, fleet: number): boolean {
+  if (!beacon || beacon.kind !== "nebula" || beacon.cleared) return false;
   return beacon.col < fleet;
 }
 

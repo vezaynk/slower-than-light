@@ -4406,8 +4406,12 @@ export function waitHere(g: Game) {
   if (g.phase !== "map") return;
   const b = hereBeacon(g);
   // Stores, "Fuel": waiting advances the rebels like a jump, slower in a nebula.
+  const wasPast = !!b && b.col < g.fleet;
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
   else g.fleet += pursuit(g, b ? citedFleetAdvance(g, b) : 1);
+  // Environmental Hazards, Anti-Ship Battery: waiting out of fuel when the fleet overtakes a nebula removes that environment.
+  // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
+  if (b && !wasPast && b.col < g.fleet && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
   syncIonStorm(g);
   log(g, "You hold. The line advances.");
   onCradleJump(g); // Clone Bay, "Overview": waiting applies the jump heal (extras/cradle.ts)

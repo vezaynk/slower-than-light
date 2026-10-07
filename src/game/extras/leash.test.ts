@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, sparePower, startCombat } from "../sim.ts";
+import { applyImpact, createGame, evasionPercent, sparePower, startCombat } from "../sim.ts";
+import type { Game, Shot } from "../types.ts";
 import {
   INSTALL_COST,
   installLeash,
@@ -181,4 +182,104 @@ describe("leash", () => {
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, 14);
   });
+
+  // Mind Control, Overview: "teleporting a bomb that doesn't miss a targeted room".
+  // INFERRED: only that room, only a player bomb, and it stays open through a later cloak until the next fight.
+  it("opens the targeted room when a player bomb does not miss", () => {
+    const g = createGame(21);
+    startCombat(g, "Rebel ship");
+    const kit = pushKit(g, 1, 1);
+    g.player.systems.sensors.level = 0;
+    g.player.systems.sensors.power = 0;
+    assert.ok(g.enemy);
+    g.enemy.systems.engines.level = 0;
+    g.enemy.systems.engines.power = 0;
+    assert.equal(evasionPercent(g, g.enemy, "enemy"), 0);
+    const pilot = enemyPilot(g);
+    assert.ok(pilot);
+    const other = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room !== pilot.room);
+    assert.ok(other);
+    applyImpact(g, roomBomb(other.room));
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, undefined);
+    assert.equal(kit.on, false);
+    applyImpact(g, roomBomb(pilot.room, "enemy"));
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, undefined);
+    applyImpact(g, roomBomb(pilot.room));
+    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    startLeash(g, pilot.id);
+    assert.equal(pilot.leashed, 14);
+    kit.on = false;
+    kit.left = 0;
+    kit.target = null;
+    startCombat(g, "Rebel ship");
+    g.player.systems.sensors.level = 0;
+    g.player.systems.sensors.power = 0;
+    const again = enemyPilot(g);
+    assert.ok(again);
+    startLeash(g, again.id);
+    assert.equal(again.leashed, undefined);
+    g.player.systems.sensors.level = 2;
+    g.player.systems.sensors.power = 2;
+    startLeash(g, again.id);
+    assert.equal(again.leashed, 14);
+  });
+
+  it("does not open a room when the bomb misses", () => {
+    const g = createGame(22);
+    startCombat(g, "Rebel ship");
+    const kit = pushKit(g, 1, 1);
+    g.player.systems.sensors.level = 0;
+    g.player.systems.sensors.power = 0;
+    assert.ok(g.enemy);
+    forceEnemyEvade(g);
+    assert.equal(evasionPercent(g, g.enemy, "enemy"), 100);
+    const crew = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.kin !== "gel");
+    assert.ok(crew);
+    applyImpact(g, roomBomb(crew.room));
+    startLeash(g, crew.id);
+    assert.equal(crew.leashed, undefined);
+    assert.equal(kit.on, false);
+    assert.equal(kit.left, 0);
+  });
 });
+
+function roomBomb(targetRoom: string, from: "player" | "enemy" = "player"): Shot {
+  return {
+    id: "s",
+    kind: "bomb",
+    from,
+    at: from === "enemy" ? "enemy" : undefined,
+    damage: 0,
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    wait: 0,
+    t: 1,
+    duration: 1,
+    targetRoom,
+    defId: "healburst",
+  };
+}
+
+function forceEnemyEvade(g: Game) {
+  const hull = g.enemy!;
+  hull.systems.engines.level = 8;
+  hull.systems.engines.power = 8;
+  hull.systems.engines.damage = 0;
+  hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
+  hull.systems.pilot.damage = 0;
+  hull.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  const engines = hull.rooms.find((r) => r.system === "engines");
+  const pilot = hull.rooms.find((r) => r.system === "pilot");
+  const crew = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0);
+  if (engines && crew[0]) {
+    crew[0].room = engines.id;
+    crew[0].path = [];
+  }
+  if (pilot && crew[1]) {
+    crew[1].room = pilot.id;
+    crew[1].path = [];
+  }
+}

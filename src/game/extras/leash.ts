@@ -287,7 +287,8 @@ export function startLeash(g: Game, crewId: string) {
   }
   // Mind Control, Overview: "Mind control requires view of enemy crew (Slug telepathy and Lifeform Scanners count)."
   // shipSight is that view: a living Slug, a Lifeform Scanner on the same life-sign flag, Sensors at the level that
-  // shows enemy crew (manning raises it), and a hacked room. A bomb that lands is a later sentence and is not read here.
+  // shows enemy crew (manning raises it), and a hacked room.
+  // "teleporting a bomb that doesn't miss a targeted room" is bombRoomOpen.
   // Enemies do not use this function. "Enemies do not require vision to use Mind Control" stays on fireEnemyLeash.
   if (!enemyCrewInView(g, crew)) {
     log(g, "Mind Control has no view of that crew.");
@@ -339,9 +340,31 @@ function mindLevel(kit: Kit, base: number): number {
  * Mind Control, Overview: view of that enemy crew. Slug telepathy and a Lifeform Scanner are shipSight's life-sign flag.
  * INFERRED: enemy crew already aboard your ship are in view. The page does not print that case.
  */
+/**
+ * Rooms a player bomb opened. Mind Control, Overview: "teleporting a bomb that doesn't miss a targeted room".
+ * INFERRED: the room stays open until the next fight. The page prints no duration.
+ */
+const bombRooms = new WeakMap<Game, Set<string>>();
+
+export function noteBombSight(g: Game, aboard: "player" | "enemy", roomId: string): void {
+  const key = `${aboard}:${roomId}`;
+  const open = bombRooms.get(g);
+  if (open) open.add(key);
+  else bombRooms.set(g, new Set([key]));
+}
+
+export function clearBombSight(g: Game): void {
+  bombRooms.delete(g);
+}
+
+function bombRoomOpen(g: Game, aboard: "player" | "enemy", roomId: string): boolean {
+  return bombRooms.get(g)?.has(`${aboard}:${roomId}`) ?? false;
+}
+
 function enemyCrewInView(g: Game, crew: Crew): boolean {
   if (shipSight(g).showCrew(crew)) return true;
-  return crew.aboard === "player";
+  if (crew.aboard === "player") return true;
+  return bombRoomOpen(g, crew.aboard, crew.room);
 }
 
 function playerLevel(kit: Kit): number {

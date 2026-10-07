@@ -52,7 +52,7 @@ import {
   ionHitsHack,
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
-import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
+import { clearBombSight, clearEnemyLeash, heldByEnemy, leashOnLeave, noteBombSight, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
@@ -1986,6 +1986,10 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     const r = roomById(ship, shot.targetRoom);
     if (!r) return;
+    // Mind Control, Overview: "teleporting a bomb that doesn't miss a targeted room".
+    // INFERRED: only the player's bomb, and the room stays open for this fight.
+    // A Zoltan Shield that then stops the payload is not a miss. An enemy bomb does not open a room.
+    if (shot.from === "player") noteBombSight(g, aboard, r.id);
     // Augmentations, Zoltan Shield Bypass: a player bomb passes the bubble and does not spend it.
     // Enemy bombs stay blocked. The enemy has no augment list.
     const bombThrough =
@@ -3789,6 +3793,8 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
 export function startCombat(g: Game, tier: string, asteroid = false, event?: string) {
   // A later fight does not keep the pirate's engine cap. The choice sets it again after this returns.
   clearEngineLimit(g);
+  // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
+  clearBombSight(g);
   const built = makeEnemy(g, tier, event);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See wiki/escape.ts.
   g.enemyEscape = escapePlan(

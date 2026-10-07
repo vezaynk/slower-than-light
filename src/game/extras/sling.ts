@@ -177,10 +177,31 @@ export function sendSling(g: Game, roomId: string) {
   log(g, `Teleporter sends ${crew.map((c) => c.name).join(" and ")}.`);
 }
 
+/** Squares of floor. Crew Teleporter: a 2-tile room, or a four-person room on Mantis B, Mantis C, and Crystal B. */
+function padTiles(ship: Ship): { id: string; tiles: number } {
+  const pad = ship.rooms.find((r) => r.kit === "sling");
+  if (!pad) return { id: ship.rooms[0]?.id ?? "", tiles: 1 };
+  // INFERRED: one crew per tile. The page pairs "2-tile" rooms with "four-person" rooms and does not say "one per tile".
+  return { id: pad.id, tiles: Math.max(1, pad.w * pad.h - (pad.omit?.length ?? 0)) };
+}
+
+/** Door-adjacent rooms, skipping space. INFERRED: door-list order is the fill order. The page does not name one. */
+function padNeighbors(ship: Ship, id: string): string[] {
+  const out: string[] = [];
+  for (const d of ship.doors) {
+    if (d.b === "void") continue;
+    const other = d.a === id ? d.b : d.b === id ? d.a : "";
+    if (other && roomById(ship, other) && !out.includes(other)) out.push(other);
+  }
+  return out;
+}
+
 /**
  * Crew Teleporter wiki, "Overview": bring crew back, then cool down ("System Upgrades" for the seconds).
- * The heading says "Can retrieve up to 4 crew"; this pull has no cap of 4.
- * They are always set down in the medbay. The page says overflow crew go to adjacent rooms and does not name the medbay.
+ * "Can retrieve up to 4 crew from the enemy ship".
+ * INFERRED: the first four in crew-array order come back. The page does not say which four.
+ * "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+ * INFERRED: overflow fills adjacent rooms in door order. With no adjacent room they stay on the pad.
  */
 export function recallSling(g: Game) {
   const kit = sling(g);
@@ -206,15 +227,19 @@ export function recallSling(g: Game) {
     log(g, "Cloaking blocks the teleporter.");
     return;
   }
-  for (const c of away) {
+  // Crew Teleporter: "Can retrieve up to 4 crew from the enemy ship".
+  const coming = away.slice(0, 4);
+  const pad = padTiles(g.player);
+  const neighbors = padNeighbors(g.player, pad.id);
+  coming.forEach((c, i) => {
     c.aboard = "player";
-    // Kit room: Crew Teleporter, "Overview": "Retrieved crew that cannot fit in the teleporter room will be placed in
-    // adjacent room(s)". The medbay landing stays where there is one; hulls without a medbay room use the pads.
-    c.room = roomById(g.player, "p-medbay") ? "p-medbay" : (g.player.rooms.find((r) => r.kit === "sling")?.id ?? g.player.rooms[0].id);
+    // Crew Teleporter: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+    if (i < pad.tiles || neighbors.length === 0) c.room = pad.id;
+    else c.room = neighbors[Math.min(i - pad.tiles, neighbors.length - 1)]!;
     c.path = [];
     c.move = 0;
     if (mendOnSend(g)) c.hp = c.maxHp;
-  }
+  });
   arm(kit, null);
   log(g, "Teleporter pulls them back.");
 }

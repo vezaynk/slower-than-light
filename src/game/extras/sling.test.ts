@@ -63,7 +63,8 @@ describe("sling", () => {
     assert.equal(kit.cool, 0);
     recallSling(g);
     assert.equal(ivo.aboard, "player");
-    assert.equal(ivo.room, "p-medbay");
+    // Crew Teleporter: a retrieved crewmember fits in the 2-tile teleporter room.
+    assert.equal(ivo.room, g.player.rooms.find((r) => r.kit === "sling")?.id);
     assert.deepEqual(ivo.path, []);
     assert.equal(kit.cool, 20);
 
@@ -74,6 +75,51 @@ describe("sling", () => {
     onJumpSling(g);
     assert.equal(ivo.hp, 0);
     assert.equal(g.log[0], "Ivo Park is lost on the other hull.");
+  });
+
+  it("retrieves at most four and seats the rest of them in an adjacent room", () => {
+    // Crew Teleporter: "Can retrieve up to 4 crew from the enemy ship".
+    // "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+    const g = createGame(1);
+    g.scrap = 200;
+    installSling(g);
+    const kit = kitOf(g);
+    kit.power = 1;
+    engage(g);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
+    assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
+    const neighbors = g.player.doors.flatMap((d) => {
+      if (d.b === "void") return [];
+      if (d.a === pad.id) return [d.b];
+      if (d.b === pad.id) return [d.a];
+      return [];
+    });
+    assert.ok(neighbors.length > 0);
+
+    const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(source);
+    g.crew.push({ ...source, id: "c-extra-1", name: "Extra One", path: [] });
+    g.crew.push({ ...source, id: "c-extra-2", name: "Extra Two", path: [] });
+    for (const c of g.crew) {
+      if (c.side !== "player" || c.hp <= 0) continue;
+      c.aboard = "enemy";
+      c.room = "e-weapons";
+      c.path = [];
+    }
+    const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy");
+    assert.equal(away.length, 5);
+
+    recallSling(g);
+    const back = g.crew.filter((c) => c.side === "player" && c.aboard === "player");
+    const still = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+    assert.equal(back.length, 4);
+    assert.equal(still.length, 1);
+    assert.equal(still[0]?.id, "c-extra-2");
+    assert.equal(back.filter((c) => c.room === pad.id).length, 2);
+    const overflow = back.filter((c) => c.room !== pad.id);
+    assert.equal(overflow.length, 2);
+    for (const c of overflow) assert.ok(neighbors.includes(c.room));
   });
 
   it("does not clone crew left alive on the enemy ship, and still clones a crew already queued", () => {

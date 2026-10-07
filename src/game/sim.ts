@@ -588,6 +588,8 @@ function skillFight(g: Game): boolean {
 
 function noteDodge(g: Game) {
   if (!skillFight(g)) return;
+  // Crew skills, Piloting: "one point of experience for each projectile dodged during combat."
+  // Engines: "one point of experience for each projectile evaded." A hit grants neither.
   // Crew skills, Piloting: "Skill is also not gained when your ship is cloaked."
   // Engines is trained the same way, with those same limits. Shields does not say this.
   const veil = g.player.kits.veil;

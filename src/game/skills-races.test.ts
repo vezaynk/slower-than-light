@@ -1029,6 +1029,73 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     }
     assert.equal(trained, true);
   });
+
+  it("grants one piloting point and one engines point for each dodge, and none for a hit", () => {
+    // Crew skills, Piloting: "one point of experience for each projectile dodged during combat."
+    // Engines: "one point of experience for each projectile evaded."
+    const g = createGame(51);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.level = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.pilot.damage = 0;
+    g.player.systems.shields.power = 2;
+    g.player.shieldNow = 1;
+    const ada = g.crew.find((c) => c.id === "c-ada")!;
+    const ivo = g.crew.find((c) => c.id === "c-ivo")!;
+    ada.room = "p-pilot";
+    ivo.room = "p-engines";
+    ada.path = [];
+    ivo.path = [];
+    ada.skills = {};
+    ivo.skills = {};
+    for (const c of g.crew) {
+      if (c.id !== ada.id && c.id !== ivo.id) c.skills = {};
+    }
+    let misses = 0;
+    let hits = 0;
+    for (let i = 0; i < 80 && (misses < 2 || hits < 1); i++) {
+      const pilotBefore = ada.skills?.pilot ?? 0;
+      const enginesBefore = ivo.skills?.engines ?? 0;
+      g.player.shieldNow = 1;
+      g.player.hull = g.player.hullMax;
+      // A shield hit logs nothing, so a previous miss would stay at the front of the log.
+      g.log.length = 0;
+      g.shots.push({
+        id: "poke-" + i,
+        kind: "laser",
+        from: "enemy",
+        at: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: "p-shields",
+        wait: 0,
+        t: 0,
+        duration: 0.05,
+        label: "Pew",
+      });
+      step(g, 0.05);
+      const pilot = ada.skills?.pilot ?? 0;
+      const engines = ivo.skills?.engines ?? 0;
+      if (g.log[0] === "Shot missed the Lark.") {
+        misses++;
+        assert.equal(pilot - pilotBefore, 1);
+        assert.equal(engines - enginesBefore, 1);
+      } else {
+        hits++;
+        assert.equal(pilot, pilotBefore);
+        assert.equal(engines, enginesBefore);
+      }
+    }
+    assert.ok(misses >= 2);
+    assert.ok(hits >= 1);
+  });
 });
 
 describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {

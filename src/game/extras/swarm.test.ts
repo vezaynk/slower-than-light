@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onPlayerJump } from "./index.ts";
 import { applyImpact, COATED_DOOR_HITS, createGame, startCombat } from "../sim.ts";
-import { COMBAT1_SPEED, orbitLegSeconds } from "../wiki/cited-combat2.ts";
+import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Shot } from "../types.ts";
 import {
   DRONE_COOLDOWN_S,
@@ -161,6 +161,43 @@ describe("swarm", () => {
     assert.equal(swarmCombatShots(g).length, 0);
   });
 
+  it("keeps orbiting a cloaked enemy and does not fire until the cloak drops", () => {
+    for (const kind of ["striker", "combat2"] as const) {
+      const g = createGame(kind === "striker" ? 61 : 62);
+      const kit = place(g, 4);
+      startCombat(g, "scout");
+      assert.ok(g.enemy);
+      assert.equal(deploy(g, kind), true);
+      const speed = kind === "combat2" ? COMBAT2.speed : COMBAT1_SPEED;
+      kit.heading = 0;
+      kit.bearing = 180;
+      kit.left = orbitLegSeconds(0, 180, speed);
+      kit.aux = 0;
+      g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+      const heading = kit.heading;
+      const bearing = kit.bearing;
+      g.shots = [];
+      tickSwarm(g, kit.left);
+      assert.equal(
+        g.shots.filter((s) => s.from === "player").length,
+        0,
+        kind,
+      );
+      assert.equal(swarmCombatShots(g).length, 0, kind);
+      assert.notEqual(kit.heading, heading, kind);
+      assert.notEqual(kit.bearing, bearing, kind);
+      g.enemy.kits.veil.on = false;
+      const next = kit.left ?? 0;
+      assert.ok(next > 0, kind);
+      tickSwarm(g, next);
+      assert.equal(
+        g.shots.filter((s) => s.from === "player").length,
+        1,
+        kind,
+      );
+    }
+  });
+
   it("deploy fails with 0 parts", () => {
     const g = createGame(7);
     const kit = place(g);
@@ -224,6 +261,39 @@ describe("swarm", () => {
     assert.equal(hurt.length, 1);
     const fires = g.enemy.rooms.reduce((sum, r) => sum + r.fire, 0);
     assert.ok(fires === 0 || fires === 1);
+  });
+
+  it("a beam drone does not cut a cloaked hull, and the swipe interval still runs", () => {
+    const g = createGame(64);
+    place(g);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    g.enemy.shieldNow = 0;
+    g.enemy.zoltan = 2;
+    const systemRoom = g.enemy.rooms.find((r) => r.system);
+    assert.ok(systemRoom?.system);
+    const system = systemRoom.system;
+    g.enemy.rooms = [systemRoom];
+    assert.equal(deploy(g, "beam"), true);
+    const kit = g.player.kits.swarm;
+    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    const hull = g.enemy.hull;
+    const damage = g.enemy.systems[system].damage;
+    tickSwarm(g, 3.1);
+    assert.equal(g.enemy.zoltan, 2);
+    assert.equal(g.enemy.hull, hull);
+    assert.equal(g.enemy.systems[system].damage, damage);
+    assert.ok(kit.aux > 0 && kit.aux < 1, `aux ${kit.aux}`);
+    g.enemy.zoltan = 0;
+    kit.aux = 0;
+    tickSwarm(g, 3.1);
+    assert.equal(g.enemy.hull, hull);
+    assert.equal(g.enemy.systems[system].damage, damage);
+    assert.equal(g.enemy.zoltan, 0);
+    assert.ok(kit.aux > 0 && kit.aux < 1, `aux ${kit.aux}`);
+    g.enemy.kits.veil.on = false;
+    tickSwarm(g, 3);
+    assert.equal(g.enemy.hull, hull - 1);
   });
 
   it("a player beam drone spends one Zoltan Shield layer and does not cut hull on that swipe", () => {

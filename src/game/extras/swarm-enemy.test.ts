@@ -18,7 +18,7 @@ import {
   ionHitsDrone,
   tickSwarm,
 } from "./swarm.ts";
-import { COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
+import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 
 const OFFENSIVE = ["striker", "combat2", "beam", "beam2", "fire", "board", "ionintruder"];
 
@@ -208,6 +208,38 @@ describe("enemy offensive drones", () => {
     assert.ok(unit.left < 4);
   });
 
+  it("a combat drone keeps orbiting a cloaked ship and does not shoot", () => {
+    const g = quiet(42);
+    fleet(g, ["striker"], 2);
+    dropPlayerShields(g);
+    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    tickSwarm(g, 0.05);
+    const unit = units(g)[0];
+    assert.ok(unit);
+    unit.heading = 0;
+    unit.bearing = 180;
+    unit.left = orbitLegSeconds(0, 180, COMBAT1_SPEED);
+    unit.aux = 0;
+    g.shots = [];
+    const heading = unit.heading;
+    const bearing = unit.bearing;
+    tickSwarm(g, unit.left);
+    assert.equal(
+      g.shots.filter((s) => s.from === "enemy").length,
+      0,
+    );
+    assert.notEqual(unit.heading, heading);
+    assert.notEqual(unit.bearing, bearing);
+    g.player.kits.veil.on = false;
+    const next = unit.left ?? 0;
+    assert.ok(next > 0);
+    tickSwarm(g, next);
+    assert.equal(
+      g.shots.filter((s) => s.from === "enemy").length,
+      1,
+    );
+  });
+
   it("a beam drone does nothing through shields and burns hull without them", () => {
     const up = quiet(6);
     fleet(up, ["beam"], 2);
@@ -243,6 +275,45 @@ describe("enemy offensive drones", () => {
     spend("beam", 3);
     spend("beam2", 2);
     spend("fire", 3);
+  });
+
+  it("a beam drone does not cut a cloaked hull, and the swipe interval still runs", () => {
+    const g = quiet(43);
+    dropPlayerShields(g);
+    g.player.zoltan = 0;
+    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 8, cool: 0, target: null, on: true, aux: 0 };
+    fleet(g, ["beam"], 2);
+    const hull = g.player.hull;
+    const bars = Object.values(g.player.systems).reduce((sum, sys) => sum + sys.damage, 0);
+    tickSwarm(g, 0.05);
+    const unit = units(g)[0];
+    assert.ok(unit);
+    unit.aux = 3;
+    g.shots = [];
+    tickSwarm(g, 0.05);
+    assert.ok(unit.aux > 0 && unit.aux < 1, `aux ${unit.aux}`);
+    assert.equal(
+      g.shots.filter((s) => s.from === "enemy").length,
+      0,
+    );
+    for (let i = 0; i < 12; i++) step(g, 0.05);
+    assert.equal(g.player.hull, hull);
+    assert.equal(g.player.zoltan, 0);
+    assert.equal(
+      Object.values(g.player.systems).reduce((sum, sys) => sum + sys.damage, 0),
+      bars,
+    );
+    g.player.zoltan = 4;
+    unit.aux = 0;
+    g.shots = [];
+    tickSwarm(g, 3.1);
+    assert.equal(g.player.zoltan, 4);
+    assert.equal(g.player.hull, hull);
+    assert.equal(
+      g.shots.filter((s) => s.from === "enemy").length,
+      0,
+    );
+    assert.ok(unit.aux > 0 && unit.aux < 1, `aux ${unit.aux}`);
   });
 
   it("stops when their Drone Control is destroyed, and repowers after repair without a part", () => {

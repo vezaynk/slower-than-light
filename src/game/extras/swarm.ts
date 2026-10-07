@@ -419,9 +419,20 @@ export function pickOrbitBearing(g: Game, from: number): number {
 type OrbitBody = { heading?: number; bearing?: number; left?: number; aux: number };
 
 /**
+ * Cloaking, Overview: "External combat drones move around the ship, attempting to attack but don't actually fire."
+ * The orbit leg already running (aux against left) and the swipe interval already running (aux) are that movement.
+ * Cloak does not add a duration and does not freeze those timers.
+ * veilBlocks(g, "player") is the enemy cloak. veilBlocks(g, "enemy") is the player cloak.
+ */
+function combatFireBlocked(g: Game, from: "player" | "enemy"): boolean {
+  return veilBlocks(g, from);
+}
+
+/**
  * Fly the current leg and fire once on arrival. A missing room holds the shot
- * where it is (cloaking, or no hull yet). The timer does not run while unpowered:
- * callers skip this until the bars cover the drone.
+ * where it is (no hull yet). A cloaked target does not: the leg still finishes,
+ * a new bearing is picked, and the fire callback withholds the shot.
+ * The timer does not run while unpowered: callers skip this until the bars cover the drone.
  */
 function flyCombatLaser(g: Game, body: OrbitBody, dt: number, speed: number, room: () => string | null, fire: (roomId: string) => void) {
   if (body.heading == null) body.heading = 0;
@@ -446,7 +457,10 @@ function flyCombatLaser(g: Game, body: OrbitBody, dt: number, speed: number, roo
 }
 
 function tickStriker(g: Game, kit: Kit, dt: number) {
-  flyCombatLaser(g, kit, dt, COMBAT1_SPEED, () => enemyRoom(g), (room) => pushStriker(g, room));
+  flyCombatLaser(g, kit, dt, COMBAT1_SPEED, () => enemyRoom(g), (room) => {
+    if (combatFireBlocked(g, "player")) return;
+    pushStriker(g, room);
+  });
 }
 
 function tickWardcut(g: Game, kit: Kit, dt: number) {
@@ -467,6 +481,7 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
       return;
     }
     kit.aux -= BEAM_INTERVAL_S;
+    if (combatFireBlocked(g, "player")) continue;
     // Zoltan Shield: Anti-Ship Beam Drone I deals 1 to the bubble. That swipe does not also cut the hull.
     if ((enemy.zoltan ?? 0) > 0) {
       enemy.zoltan = Math.max(0, (enemy.zoltan ?? 0) - SWIPE_ZOLTAN.beam);
@@ -844,7 +859,10 @@ function tickCombat2(g: Game, kit: Kit, dt: number) {
   // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
   // "Moves faster, and consequently has a higher rate of fire." The wait is the orbit leg.
   if (!kit.on || kit.power < COMBAT2.power) return;
-  flyCombatLaser(g, kit, dt, COMBAT2.speed, () => enemyRoom(g), (room) => pushStriker(g, room));
+  flyCombatLaser(g, kit, dt, COMBAT2.speed, () => enemyRoom(g), (room) => {
+    if (combatFireBlocked(g, "player")) return;
+    pushStriker(g, room);
+  });
 }
 
 function systemRooms(enemy: Ship): Room[] {
@@ -1661,12 +1679,9 @@ function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
     unit,
     dt,
     speed,
-    () => {
-      // INFERRED: Cloaking, Overview: "weapons cannot target a cloaked ship". The drone holds its charged shot.
-      if (veilBlocks(g, "enemy")) return null;
-      return randomOf(g, g.player.rooms)?.id ?? null;
-    },
+    () => randomOf(g, g.player.rooms)?.id ?? null,
     (roomId) => {
+      if (combatFireBlocked(g, "enemy")) return;
       unit.fired = 0;
       // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
       g.shots.push({
@@ -1704,12 +1719,13 @@ function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
   unit.aux += dt;
   while (unit.aux >= interval) {
     const ship = g.player;
-    const room = veilBlocks(g, "enemy") ? undefined : randomOf(g, ship.rooms);
+    const room = randomOf(g, ship.rooms);
     if (!room) {
       unit.aux = interval;
       return;
     }
     unit.aux -= interval;
+    if (combatFireBlocked(g, "enemy")) continue;
     unit.fired = 0;
     unit.room = room.id;
     if ((ship.zoltan ?? 0) > 0) {

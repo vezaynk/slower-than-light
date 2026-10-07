@@ -2391,6 +2391,27 @@ function chargeSide(
   const mult = skill / weaponBoost(g, from);
   // @agent:hacking. Hacking, "Overview" (Weapon Control): an enemy pulse drains and holds the player's weapons.
   const frozen = targetIsCloaked(g, from) || hackHoldsWeapons(g, from);
+  // Cloaking, "Overview": "Weapons and artillery systems stop charging and cannot target a cloaked ship.
+  // However, if your crew or boarding drone or mind-controlled enemy crew is onboard the enemy ship,
+  // you will be able to target and fire your charged weapons."
+  const crewAboard =
+    from === "player" &&
+    g.crew.some(
+      (c) =>
+        c.hp > 0 &&
+        c.aboard === "enemy" &&
+        (c.side === "player" || (c.side === "enemy" && (c.leashed ?? 0) > 0)),
+    );
+  const drone = from === "player" ? g.player.kits.swarm : undefined;
+  const ionAboard =
+    !!drone?.on &&
+    drone.target === "ionintruder" &&
+    typeof drone.room === "string" &&
+    drone.room.length > 0;
+  // INFERRED: the player Boarding Drone never stores a room and has no space-flight timer in this sim,
+  // so a deployed board drone counts as onboard.
+  const boardAboard = !!drone?.on && drone.target === "board";
+  const presence = crewAboard || ionAboard || boardAboard;
   ship.weapons.forEach((w, i) => {
     const def = WEAPONS[w.defId];
     if (!def) return;
@@ -2412,7 +2433,20 @@ function chargeSide(
     }
     // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
     if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
-    if (frozen) return;
+    if (frozen) {
+      // Charging stays stopped (no dt). A weapons hack still blocks the shot. Chargers already returned.
+      if (
+        from === "player" &&
+        targetIsCloaked(g, from) &&
+        !hackHoldsWeapons(g, from) &&
+        presence &&
+        w.charge >= 1 &&
+        w.target
+      ) {
+        launch(g, from, w);
+      }
+      return;
+    }
     // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
     const seconds = flagshipChargeSeconds(ship, w) ?? chainChargeSeconds(w.defId, w.chain ?? 0) ?? def.charge;
     w.charge = Math.min(1, w.charge + dt / (seconds * mult));

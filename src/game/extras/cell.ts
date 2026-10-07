@@ -119,6 +119,17 @@ export function upgradeCell(g: Game) {
   log(g, "Backup Battery level 2.");
 }
 
+/**
+ * Backup Battery, Overview: "Backup Battery's cooldown is immediately reset by an FTL jump."
+ * Waiting is a different path and does not call this.
+ */
+export function cellOnJump(g: Game) {
+  const kit = g.player.kits.cell;
+  if (!kit || kit.cool <= 0) return;
+  kit.cool = 0;
+  log(g, "Backup Battery is ready.");
+}
+
 /** Wiki page "Backup Battery", section "Overview": start a 30s window if the Cell is idle and cooled. */
 export function startCell(g: Game) {
   const kit = g.player.kits.cell;

@@ -13,7 +13,7 @@ import {
   spoolRate,
   tickSquall,
 } from "./augments.ts";
-import { cellBonus, tickCell } from "./cell.ts";
+import { cellBonus, cellOnJump, tickCell } from "./cell.ts";
 import { onCradleDeath, onCradleJump, tickCradle } from "./cradle.ts";
 import { tickLance } from "./lance.ts";
 import { tickFlak } from "./flakart.ts";
@@ -74,6 +74,8 @@ export function noteDeath(g: Game, c: Crew): boolean {
 }
 
 export function onPlayerJump(g: Game) {
+  // Backup Battery, Overview: an FTL jump clears the cooldown. Waiting does not.
+  cellOnJump(g);
   onJumpSling(g);
   for (const c of g.crew) {
     if (c.hp <= 0) onCradleDeath(g, c);

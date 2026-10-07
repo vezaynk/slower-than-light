@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
+import { createGame, waitHere } from "../sim.ts";
 import { cellBonus, installCell, startCell, tickCell, upgradeCell } from "./cell.ts";
+import { onPlayerJump } from "./index.ts";
 import type { Kit } from "../types.ts";
 
 function pushCell(level = 1): Kit {
@@ -105,6 +106,21 @@ describe("cell", () => {
     assert.equal(g.player.kits.cell?.cool, 20);
     startCell(g);
     assert.equal(cellBonus(g.player), 0);
+  });
+
+  it("resets a cooldown on an FTL jump and not when waiting", () => {
+    const g = createGame(8);
+    g.player.kits.cell = pushCell(1);
+    g.player.kits.cell.cool = 12;
+    onPlayerJump(g);
+    assert.equal(g.player.kits.cell.cool, 0);
+    assert.equal(g.log[0], "Backup Battery is ready.");
+
+    g.player.kits.cell.cool = 12;
+    g.phase = "map";
+    g.fuel = 3;
+    waitHere(g);
+    assert.equal(g.player.kits.cell.cool, 12);
   });
 
   it("starts an enemy cell when spare power is tight", () => {

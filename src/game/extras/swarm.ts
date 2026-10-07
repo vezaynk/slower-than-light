@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -1831,13 +1831,16 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
     if (room?.system) {
       const sys = ship.systems[room.system];
       if (sys.damage < sys.level) {
-        applyIon(ship, room.system, INTRUDER.ion, zoltanBars(g.crew, ship, "player", "shields"));
+        // Augmentations, Reverse Ion Field: "immunity to all sources of ion damage", including this pulse.
+        // INFERRED: Drone Control, Ion Intruder, prints the stun beside the ion damage, so a resist still stuns.
+        const held = negateIon(g);
+        if (!held) applyIon(ship, room.system, INTRUDER.ion, zoltanBars(g.crew, ship, "player", "shields"));
         for (const c of g.crew) {
           if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0) continue;
           c.stun = Math.max(c.stun ?? 0, INTRUDER.stunSeconds);
         }
         unit.fired = 0;
-        log(g, `Their ion intruder pulses the ${room.title}.`);
+        log(g, held ? "Reverse Ion Field shrugged that off." : `Their ion intruder pulses the ${room.title}.`);
       }
     }
     // "then moves to a different system". A shut blast door is broken on the walk, at DRONE_DOOR_HITS_PER_S.

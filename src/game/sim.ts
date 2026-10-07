@@ -148,6 +148,8 @@ import type {
   WeaponInst,
 } from "./types";
 
+export { negateIon };
+
 const ALL_SYS: SysId[] = [
   "shields",
   "engines",
@@ -1689,7 +1691,13 @@ export function applyImpact(g: Game, shot: Shot) {
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
     // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
     // With the bypass, this takes the same path as a ship that has no bubble, and still does not invent system ion.
+    // Augmentations, Reverse Ion Field: ion protection also covers a Zoltan Shield.
+    // Zoltan Shield, lead: the pass-through bug names an ion projectile, so a resisted ion bomb stops.
     if ((ship.zoltan ?? 0) > 0 && !bombThrough && shot.damage <= 0 && shot.ion > 0) {
+      if (playerTarget && negateIon(g)) {
+        log(g, "Reverse Ion Field shrugged that off.");
+        return;
+      }
       spendZoltan(ship, shot.ion * 2);
       noteZoltan(g, playerTarget);
       return;
@@ -1805,13 +1813,26 @@ export function applyImpact(g: Game, shot: Shot) {
     return;
   }
 
+  // Zoltan Shield, lead: a resisted ion projectile still hits the room when no regular shield bubble is up.
+  let ionPassthrough = false;
   if (shot.kind === "ion") {
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble.
     // The page does not say leftover ion reaches a system, so none is applied.
-    const bubble = spendZoltan(ship, Math.max(0, shot.ion) * 2);
-    if (bubble != null) {
-      noteZoltan(g, playerTarget);
-      return;
+    // Augmentations, Reverse Ion Field: one roll covers the bubble. Two copies always hold.
+    const bubbleUp = (ship.zoltan ?? 0) > 0 && shot.ion > 0;
+    if (bubbleUp && playerTarget && negateIon(g)) {
+      if (ship.shieldNow > 0) {
+        log(g, "Reverse Ion Field shrugged that off.");
+        return;
+      }
+      ionPassthrough = true;
+    }
+    if (!ionPassthrough) {
+      const bubble = spendZoltan(ship, Math.max(0, shot.ion) * 2);
+      if (bubble != null) {
+        noteZoltan(g, playerTarget);
+        return;
+      }
     }
   }
 
@@ -1844,7 +1865,7 @@ export function applyImpact(g: Game, shot: Shot) {
   if (shot.kind !== "missile" && pierce > 0 && ship.shieldNow > 0) ship.shieldNow = 0;
 
   if (shot.kind === "ion") {
-    if (playerTarget && negateIon(g)) {
+    if (playerTarget && !ionPassthrough && negateIon(g)) {
       log(g, "Reverse Ion Field shrugged that off.");
       return;
     }
@@ -2585,8 +2606,14 @@ export function applyPulsarPulse(g: Game) {
 function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
   const installed = ship.systems.shields.level > 0;
   const bubble = ship.zoltan ?? 0;
+  // Environmental Hazards, Pulsar: Reverse Ion Field acts against the entire pulse.
+  // Two or zero systems are ionized, never one. A resisted pulse does not spend the Zoltan Shield.
+  // Player augments only. The enemy has no augment list.
+  if (aboard === "player" && negateIon(g)) {
+    log(g, "Reverse Ion Field shrugged that off.");
+    return;
+  }
   // Zoltan Shield, lead: one layer blocks the pulse. A ship with no Shields system ignores the bubble.
-  // Reverse Ion Field is not applied.
   if (installed && bubble > 0) {
     const spend = pulsarShieldSpend(rand(g));
     ship.zoltan = Math.max(0, bubble - spend);

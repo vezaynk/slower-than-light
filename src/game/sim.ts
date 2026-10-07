@@ -2256,8 +2256,18 @@ function strikeRoom(
   // Weapons, "Weapons: general information": on-board drones take half of that crew damage.
   hurtRoomDrones(g, aboard, roomId, crewHit);
   // INFERRED: a hit starts one fire, stacked to 3. The fetched pages do not number that cap.
-  if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
-  if (shot.breachChance > 0 && rand(g) < shot.breachChance) r.breach += 1;
+  // Laser (Weapons), "Types of lasers": Heavy Lasers roll the 30% fire chance first,
+  // then the 30% breach chance only if that roll started no fire.
+  // INFERRED: the gate is defId heavy, heavy2, and heavypierce. Other weapons still roll both.
+  // A surge laser is hard-coded to 21% breach and has no defId, so it is not this gate.
+  // INFERRED: "no fires started" is the fire roll missing, not the room's existing fire count.
+  const heavyLaser = shot.defId === "heavy" || shot.defId === "heavy2" || shot.defId === "heavypierce";
+  let fireStarted = false;
+  if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
+    r.fire = Math.min(3, r.fire + 1);
+    fireStarted = true;
+  }
+  if (shot.breachChance > 0 && !(heavyLaser && fireStarted) && rand(g) < shot.breachChance) r.breach += 1;
   // @agent:flagship. Stage-3 Power Surge lasers: "20% stun" (wiki/flagship-systems.ts SURGE_STUN_S, INFERRED 3 s).
   if ((shot.stunChance ?? 0) > 0 && rand(g) < (shot.stunChance ?? 0)) {
     for (const c of g.crew) {

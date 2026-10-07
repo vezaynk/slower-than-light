@@ -299,6 +299,58 @@ describe("spike", () => {
     assert.notEqual(turned.room, shut.a, "mind-controlled crew passed the hacked door");
     assert.ok((turned.leashed ?? 0) > 0);
   });
+
+  it("opens a hacked room to that ship's crew when hacking is depowered, and shuts it when powered again", () => {
+    // Boarding, "Hacking": "A hacked room's doors can be manipulated - opened and closed for enemy movement -
+    // by de-powering and powering again the Hacking system when necessary."
+    const g = armed(2);
+    const enemy = g.enemy!;
+    g.player.weapons = [];
+    enemy.weapons = [];
+    enemy.drones = [];
+    enemy.automated = true;
+    enemy.systems.doors.level = 1;
+    enemy.systems.doors.damage = 0;
+    enemy.systems.doors.ion = [];
+    g.enemyEscape = null;
+    g.enemySurrender = null;
+    g.boardTimer = 0;
+    armSpike(g, "shields");
+    assert.equal(launchLanded(g), true);
+    const room = enemy.rooms.find((r) => r.system === "shields")!;
+    const door = enemy.doors.find((d) => d.b !== "void" && (d.a === room.id || d.b === room.id))!;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0)!;
+    const parked = enemy.rooms.find((r) => r.id !== door.a && r.id !== door.b);
+    for (const c of g.crew) {
+      if (c.side !== "enemy" || c === foe) continue;
+      c.path = [];
+      c.stun = 100;
+      if (parked) c.room = parked.id;
+    }
+    const kit = g.player.kits.spike!;
+    assert.equal(door.hacked, true);
+    kit.power = 0;
+    step(g, 0.05);
+    assert.equal(door.hacked, undefined);
+    foe.aboard = "enemy";
+    foe.room = door.a;
+    foe.path = [door.b];
+    foe.move = 0;
+    foe.stun = 0;
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.notEqual(foe.room, door.a, "depowered hack lets the ship's crew through");
+
+    kit.power = 1;
+    step(g, 0.05);
+    assert.equal(door.hacked, true);
+    assert.equal(door.open, false);
+    foe.room = door.a;
+    foe.path = [door.b];
+    foe.move = 0;
+    foe.stun = 0;
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.equal(foe.room, door.a, "powering the hack shuts the door on that crew");
+  });
 });
 
 describe("flagship artillery hack", () => {

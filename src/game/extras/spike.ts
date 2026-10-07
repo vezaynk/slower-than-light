@@ -1187,6 +1187,7 @@ function syncDoors(g: Game, kit: Kit | undefined) {
  * system level) and allow unimpeded movement of boarders and mind-controlled crew, but block the ship's crew movement."
  * Hacking, "Overview": the lock holds while the drone is attached and Hacking is powered. A Doors pulse locks every
  * door (the enemy hack's syncDoors already does this on the player hull).
+ * Boarding, "Hacking": de-powering opens those doors for that ship's crew, and powering again closes them.
  */
 function syncOwnDoors(g: Game, kit: Kit) {
   const ship = g.enemy;

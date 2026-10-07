@@ -210,11 +210,11 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "firebeam",
-    note: 'Beam (Weapons), "Fire Beam": beam length 140 (3.1 tiles diagonally). Deals 1 point of damage twice against Zoltan Shields. Crew damage is listed as "-". INFERRED: a damage dash is not a figure a shield layer removes, so the fire roll still lands through regular shields.',
+    note: 'Beam (Weapons), "Fire Beam": beam length 140 (3.1 tiles diagonally). Deals 1 point of damage twice against Zoltan Shields. Crew damage is listed as "-". Fires: "Fire beams can be blocked by a regular shield barrier (1 is enough)".',
   },
   {
     id: "antibio",
-    note: 'Beam (Weapons), "Anti-Bio Beam": beam length 140 (3.1 tiles diagonally). Crew damage 60 HP per room tile, which is not hull damage. Deals 1 point of damage twice against Zoltan Shields. INFERRED: a damage dash is not a figure a shield layer removes, so the 60 still lands through regular shields.',
+    note: 'Beam (Weapons), "Anti-Bio Beam": beam length 140 (3.1 tiles diagonally). Crew damage 60 HP per room tile, which is not hull damage. Deals 1 point of damage twice against Zoltan Shields. Beam (Weapons): "even one shield layer is enough to block most beam weapons."',
   },
   {
     id: "artillery-beam",

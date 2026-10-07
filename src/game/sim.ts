@@ -2254,10 +2254,17 @@ export function applyImpact(g: Game, shot: Shot) {
     // Beam (Weapons), "Beam targeting and damage mechanics": each shield layer cuts the room's damage by 1, and the beam does not pop a layer.
     // Hull Beam's systemless 2 is cut the same way, per room. A system room at 1 damage still skids off one layer.
     const reduce = ship.shieldNow;
-    // Beam (Weapons), Anti-Bio Beam and Fire Beam: Damage is "-".
-    // INFERRED: a dash is not a figure a shield layer can remove, so the room effect still lands.
-    // Regular shields are not popped. A damage number, even 1, is still cut by each layer.
+    // Fires: "Fire beams can be blocked by a regular shield barrier (1 is enough)".
+    // Beam (Weapons): "even one shield layer is enough to block most beam weapons."
+    // Anti-Bio and Fire Beam print damage "-". One regular layer blocks the fire roll and the 60 HP.
+    // Zoltan Shield damage is already spent above. Regular layers are not popped.
+    // A damage number, even 1, is still cut by each layer below.
     const dashed = shot.damage <= 0;
+    if (dashed && reduce > 0) {
+      log(g, "Beam skids off the shields.");
+      sfx(g, "shield");
+      return;
+    }
     let landed = false;
     for (const id of openRooms) {
       const room = roomById(ship, id);

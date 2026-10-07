@@ -282,24 +282,42 @@ describe("beams with a damage dash", () => {
     return { g, enemy, room, crew, sys: room.system };
   }
 
-  it("deals Anti-Bio crew damage through regular shields and leaves the hull alone", () => {
-    const { g, enemy, room, crew, sys } = quietEnemy();
-    const before = enemy.systems[sys].damage;
+  it("blocks an Anti-Bio Beam on one regular shield and lands the 60 when the bubble is down", () => {
+    const blocked = quietEnemy();
+    const before = blocked.enemy.systems[blocked.sys].damage;
     applyImpact(
-      g,
+      blocked.g,
       shot({
         kind: "beam",
         from: "player",
         damage: 0,
         defId: "antibio",
-        targetRoom: room.id,
-        beamRooms: [room.id],
+        targetRoom: blocked.room.id,
+        beamRooms: [blocked.room.id],
       }),
     );
-    assert.equal(crew.hp, 40);
-    assert.equal(enemy.hull, 20);
-    assert.equal(enemy.shieldNow, 2);
-    assert.equal(enemy.systems[sys].damage, before);
+    assert.equal(blocked.crew.hp, 100);
+    assert.equal(blocked.enemy.hull, 20);
+    assert.equal(blocked.enemy.shieldNow, 2);
+    assert.equal(blocked.enemy.systems[blocked.sys].damage, before);
+    assert.match(blocked.g.log[0] ?? "", /skids off/);
+
+    const open = quietEnemy();
+    open.enemy.shieldNow = 0;
+    applyImpact(
+      open.g,
+      shot({
+        kind: "beam",
+        from: "player",
+        damage: 0,
+        defId: "antibio",
+        targetRoom: open.room.id,
+        beamRooms: [open.room.id],
+      }),
+    );
+    assert.equal(open.crew.hp, 40);
+    assert.equal(open.enemy.hull, 20);
+    assert.equal(open.enemy.shieldNow, 0);
   });
 
   it("still stops a 1-damage beam on one shield layer", () => {
@@ -322,24 +340,45 @@ describe("beams with a damage dash", () => {
     assert.match(g.log[0] ?? "", /skids off/);
   });
 
-  it("lets a Fire Beam start a fire through shields without hull or crew damage", () => {
-    const { g, enemy, room, crew } = quietEnemy();
-    room.fire = 0;
+  it("blocks a Fire Beam on one regular shield and starts a fire when the bubble is down", () => {
+    const blocked = quietEnemy();
+    blocked.room.fire = 0;
     applyImpact(
-      g,
+      blocked.g,
       shot({
         kind: "beam",
         from: "player",
         damage: 0,
         defId: "firebeam",
         fireChance: 1,
-        targetRoom: room.id,
-        beamRooms: [room.id],
+        targetRoom: blocked.room.id,
+        beamRooms: [blocked.room.id],
       }),
     );
-    assert.equal(room.fire, 1);
-    assert.equal(crew.hp, 100);
-    assert.equal(enemy.hull, 20);
-    assert.equal(enemy.shieldNow, 2);
+    assert.equal(blocked.room.fire, 0);
+    assert.equal(blocked.crew.hp, 100);
+    assert.equal(blocked.enemy.hull, 20);
+    assert.equal(blocked.enemy.shieldNow, 2);
+    assert.match(blocked.g.log[0] ?? "", /skids off/);
+
+    const open = quietEnemy();
+    open.enemy.shieldNow = 0;
+    open.room.fire = 0;
+    applyImpact(
+      open.g,
+      shot({
+        kind: "beam",
+        from: "player",
+        damage: 0,
+        defId: "firebeam",
+        fireChance: 1,
+        targetRoom: open.room.id,
+        beamRooms: [open.room.id],
+      }),
+    );
+    assert.equal(open.room.fire, 1);
+    assert.equal(open.crew.hp, 100);
+    assert.equal(open.enemy.hull, 20);
+    assert.equal(open.enemy.shieldNow, 0);
   });
 });

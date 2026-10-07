@@ -2032,6 +2032,7 @@ export function applyImpact(g: Game, shot: Shot) {
       applyIon(ship, "shields", Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
     } else if (playerTarget && skillFight(g)) {
       // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".
+      // "asteroids will not provide training unless you are still in combat." A rock during the fight still does.
       bumpXp(g, manningCrew(g, g.player, "player", "shields"), "shields", 1);
     }
     sfx(g, "shield");

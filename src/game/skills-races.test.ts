@@ -1563,6 +1563,50 @@ describe("Crew skills, Piloting: an asteroid during the fight", () => {
   });
 });
 
+describe("Crew skills, Shields: an asteroid during the fight", () => {
+  it("trains shields when a rock depletes the bubble", () => {
+    // Crew skills, Shields: "asteroids will not provide training unless you are still in combat."
+    const g = createGame(65);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    g.asteroid = false;
+    g.player.systems.engines.power = 0;
+    g.player.systems.shields.level = 2;
+    g.player.systems.shields.power = 2;
+    g.player.systems.shields.damage = 0;
+    g.player.shieldNow = 1;
+    const nen = g.crew.find((c) => c.id === "c-nen")!;
+    const shields = g.player.rooms.find((r) => r.system === "shields")!;
+    const away = g.player.rooms.find((r) => r.id !== shields.id)!;
+    for (const c of g.crew) if (c.side === "player") c.room = away.id;
+    nen.room = shields.id;
+    nen.path = [];
+    nen.stun = 0;
+    nen.skills = {};
+    g.log.length = 0;
+    g.shots.push({
+      id: "rock",
+      kind: "laser",
+      from: "env",
+      at: "player",
+      damage: 1,
+      ion: 0,
+      fireChance: 0,
+      breachChance: 0.05,
+      targetRoom: shields.id,
+      wait: 0,
+      t: 0,
+      duration: 0.05,
+      label: "Rock",
+    });
+    step(g, 0.05);
+    assert.equal(g.player.shieldNow, 0);
+    assert.equal(nen.skills?.shields ?? 0, 1);
+  });
+});
+
 describe("Crew skills, Shields: one point per bubble hit", () => {
   it("grants one shields point when a shot depletes the bubble, and none when it misses", () => {
     // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".

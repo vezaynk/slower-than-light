@@ -186,7 +186,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Bulwark — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Bump Hulls with Mantis Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Bump hulls with Mantis ship — not-a-surface — same title as "Bump Hulls with Mantis Ship" with different capitalization
-- [ ] Capture the ship — partial — cited-events-quests-b.ts. Offer services is a decline. Teleporter, Fire Bomb, and Anti-Bio open the offer in quests-b.ts. The quest-marker button label is INVENTED. The anti-ship battery variants on the later assist fight are not wired.
+- [ ] Capture the ship — partial — cited-events-quests-b.ts. Offer services is a decline. Teleporter, Fire Bomb, and Anti-Bio open the offer in quests-b.ts. The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship. The anti-ship battery variants on the later assist fight are not wired.
 - [ ] Carnelian — partial — crystal-b in HULLS. Crystal Vengeance stays unfitted. Room grid is the shared player grid.
 - [ ] Cerenkov — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Chain Vulcan — partial — id vulcan is in WEAPONS. Charge steps are 11.1, 9.1, 7.1, 5.1, 3.1, then 1.1. Losing power resets the chain to 11.1. The 35.5s spin-up is the sum of the first five.
@@ -751,7 +751,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Medbay — partial — system exists. Upgrade row is a single price. Level 1 heals at 6.4, level 2 at 9.6, and level 3 at 19.2, including in an airless room. Level 1 nets zero for a full-rate human because suffocation is also 6.4. Levels 2 and 3 net-heal there without Emergency Respirators.
 - [ ] Mercenary — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mercenary work — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Merchant's Request — partial — Same card as dest "Merchant's request" (cited-events-quests-b.ts). Yes opens a delivery or an investigation in quests-b.ts. At the research station, brace, drag, and medbay level 2 each fight 3–4 human boarders with no ship. Drag can turn one crewmember. Beam turns one crewmember and does not board if that fails.
+- [ ] Merchant's Request — partial — Same card as dest "Merchant's request" (cited-events-quests-b.ts). Yes opens a delivery or an investigation in quests-b.ts. At the research station, brace, drag, and medbay level 2 each fight 3–4 human boarders with no ship. Drag can turn one crewmember. Beam turns one crewmember and does not board if that fails. The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
 - [ ] Merchant's request — not-a-surface — same title as "Merchant's Request" with different capitalization
 - [ ] Merchant Fuel Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Merchant Ship Docked with Lanius Transport — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

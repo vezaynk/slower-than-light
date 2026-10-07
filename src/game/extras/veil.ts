@@ -1,6 +1,6 @@
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { cooldownLocksPower, kitBars, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
+import { cooldownLocksPower, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -97,6 +97,8 @@ export function startVeil(g: Game) {
   const kit = g.player.kits.veil;
   if (!kit) return;
   noteZoltanKits(g);
+  // Zoltans: Cloaking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
+  if (kitIonLocked(kit)) return;
   if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
   kit.on = true;
   kit.left = 5 * kit.level;
@@ -115,7 +117,8 @@ export function tickVeil(g: Game, dt: number) {
   const kit = foe.kits.veil;
   tickKit(kit, dt);
   if (!kit || kit.on) return;
-  if (kit.power >= 1 && kit.cool <= 0) {
+  // Zoltans: an ionized Cloaking system cannot be activated.
+  if (kit.power >= 1 && kit.cool <= 0 && !kitIonLocked(kit)) {
     kit.on = true;
     kit.left = 5 * kit.level;
     kit.cool = 0;

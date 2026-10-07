@@ -1,6 +1,6 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { seatKits } from "../layouts.ts";
-import { cooldownLocksPower, enemyEscapeView, kitBars, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
+import { cooldownLocksPower, enemyEscapeView, kitBars, kitIonLocked, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
@@ -136,6 +136,8 @@ export function sendSling(g: Game, roomId: string) {
   const kit = sling(g);
   if (!kit) return;
   noteZoltanKits(g);
+  // Zoltans: the Crew Teleporter cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
+  if (kitIonLocked(kit)) return;
   if (!canRun(kit) && kit.cool <= 0) {
     log(g, "Teleporter has no power.");
     return;
@@ -179,6 +181,8 @@ export function recallSling(g: Game) {
   const kit = sling(g);
   if (!kit) return;
   noteZoltanKits(g);
+  // Zoltans: the Crew Teleporter cannot be activated if it is ionized.
+  if (kitIonLocked(kit)) return;
   if (!canRun(kit)) {
     if (kit.cool <= 0) log(g, "Teleporter has no power.");
     else if (kit.cool > 0) log(g, "Teleporter is still cooling.");
@@ -377,6 +381,8 @@ function playerCloaked(g: Game): boolean {
  * the system upgrade level." A use also needs the system working (at least one undamaged, powered bar).
  */
 function ready(kit: Kit): boolean {
+  // Zoltans: an ionized Crew Teleporter cannot be activated.
+  if (kitIonLocked(kit)) return false;
   return kitBars(kit) > 0 && kit.cool <= 0;
 }
 

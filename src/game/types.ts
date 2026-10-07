@@ -253,9 +253,14 @@ export type Kit = {
   power: number;
   /**
    * Living Zoltans in this kit's room. Stamped by noteZoltanKits. Not reactor power.
-   * Wiki page "Zoltans": one yellow bar, and it is not removed by ion. Kits have no ion track.
+   * Wiki page "Zoltans": one yellow bar, and it is not removed by ion.
    */
   zoltan?: number;
+  /**
+   * Seconds left on each ion point. Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter
+   * cannot be activated while any point remains. Same 5s point as a system, up to 5. Absent means none.
+   */
+  ion?: number[];
   /** Seconds of the active effect left. */
   left: number;
   /** Seconds until it can be started again. */

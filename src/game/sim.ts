@@ -1643,7 +1643,8 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
  * Working bars of a kit: reactor power plus one yellow bar per living Zoltan in its room.
  * Wiki page "Zoltans": subsystems are unaffected; these kits are not subsystems.
  * The yellow bar does not lower kit.power, and it cannot exceed the undamaged levels.
- * Kits have no ion track, so ion does not remove it. Pass `bonus` to override the stamp.
+ * Ion on Cloaking, Hacking, Mind Control, and the Crew Teleporter blocks activation and does not remove this bar.
+ * Pass `bonus` to override the stamp.
  */
 export function kitBars(kit: Kit | undefined, bonus?: number): number {
   if (!kit) return 0;
@@ -1737,6 +1738,25 @@ export function hurtSystem(ship: Ship, id: SysId, amount: number, shieldBonus = 
   const cap = capOf(sys);
   if (isMain(id) && sys.power > cap) sys.power = cap;
   syncShields(ship, shieldBonus);
+}
+
+/** Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated while any ion point remains. */
+const ACTIVATION_ION: ReadonlySet<string> = new Set(["veil", "spike", "leash", "sling"]);
+
+export function kitIonLocked(kit: { ion?: number[] } | undefined): boolean {
+  return (kit?.ion?.length ?? 0) > 0;
+}
+
+function ionOnActivationKit(ship: Ship, kitId: string | undefined, points: number) {
+  if (!kitId || !ACTIVATION_ION.has(kitId)) return;
+  const kit = ship.kits[kitId as KitId];
+  if (!kit) return;
+  // Same 5 seconds per point, up to 5, as applyIon. The page does not print a second duration.
+  if (!kit.ion) kit.ion = [];
+  for (let i = 0; i < points; i++) {
+    if (kit.ion.length >= 5) break;
+    kit.ion.push(5);
+  }
 }
 
 /** Systems and Template:In-game tips: one power off per ion point, locked 5 seconds per point, up to 5 ion points. */
@@ -1886,6 +1906,8 @@ export function applyImpact(g: Game, shot: Shot) {
         if (held) log(g, "Reverse Ion Field shrugged that off.");
         else {
           if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+          // Zoltans: those four systems cannot be activated if they are ionized. An active cloak or hold is not ended here.
+          ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
           // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
           if (r.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
           if (r.system) {
@@ -2053,8 +2075,10 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     const r = roomById(ship, shot.targetRoom);
     // Zoltans: ion damage interrupts Hacking. The cooldown matches the ion damage.
-    // A room that only houses the kit still counts. Cloaking and Mind Control are left alone.
+    // A room that only houses the kit still counts. An active cloak or mind-control hold is not ended here.
+    // Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated if they are ionized.
     if (r?.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+    if (r) ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
     // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
     if (r?.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
     if (r?.system) {
@@ -2761,6 +2785,14 @@ function tickIons(ship: Ship, dt: number) {
     const sys = ship.systems[id];
     if (!sys.ion.length) continue;
     sys.ion = sys.ion.map((t) => t - dt).filter((t) => t > 0.05);
+  }
+  if (!ship.kits) return;
+  for (const id of ACTIVATION_ION) {
+    const kit = ship.kits[id as KitId];
+    if (!kit?.ion?.length) continue;
+    const left = kit.ion.map((t) => t - dt).filter((t) => t > 0.05);
+    if (left.length) kit.ion = left;
+    else delete kit.ion;
   }
 }
 

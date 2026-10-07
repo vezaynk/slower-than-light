@@ -1,4 +1,4 @@
-import { cooldownLocksPower, createGame, kitBars, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -254,6 +254,8 @@ export function startLeash(g: Game, crewId: string) {
   const kit = g.player.kits.leash;
   if (!kit) return;
   noteZoltanKits(g);
+  // Zoltans: Mind Control cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
+  if (kitIonLocked(kit)) return;
   if (kitBars(kit) < 1) {
     log(g, "Mind Control has no power.");
     return;
@@ -457,6 +459,8 @@ function pickEnemyTarget(g: Game): Crew | null {
 export function fireEnemyLeash(g: Game): boolean {
   const kit = enemyKit(g);
   if (!kit || g.phase !== "combat") return false;
+  // Zoltans: an ionized Mind Control system cannot be activated.
+  if (kitIonLocked(kit)) return false;
   const bars = kitBars(kit);
   if (bars < 1 || kit.cool > 0 || kit.on) return false;
   const crew = pickEnemyTarget(g);

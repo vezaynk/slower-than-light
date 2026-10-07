@@ -1,4 +1,4 @@
-import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -191,6 +191,8 @@ export function launchSpike(g: Game): boolean {
   noteZoltanKits(g);
   // "this choice is permanent" (see below): a latched drone pins the target before it is checked.
   if (g.enemy.hackDrone != null && g.enemy.hackDrone !== kit.target) kit.target = g.enemy.hackDrone;
+  // Zoltans: Hacking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
+  if (kitIonLocked(kit)) return false;
   if (!kit.target || !isTarget(g, kit.target)) return false;
   const powered = fedBars(kit);
   if (powered < 1) return false;
@@ -837,6 +839,8 @@ export function launchEnemySpike(g: Game): boolean {
   const ship = g.enemy;
   const kit = enemyKit(g);
   if (!ship || !kit || g.phase !== "combat") return false;
+  // Zoltans: an ionized Hacking system cannot be activated.
+  if (kitIonLocked(kit)) return false;
   if (kit.hackLatched || kit.hackFly != null || kit.cool > 0) return false;
   if (!operational(kit) || ship.parts < 1) return false;
   if (playerBubble(g) || veilBlocks(g, "enemy")) return false;

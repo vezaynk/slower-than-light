@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, powerMask, startCombat, step } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
 
@@ -375,5 +375,31 @@ describe("Slug hacker (choice)", () => {
     assert.notEqual(guns.phase, "combat");
     startCombat(guns, "scout");
     assert.deepEqual(powerMask(guns.player), [true, true]);
+  });
+});
+
+describe("The Engi virus", () => {
+  it("halves Engines and Shields, rounding down, until that fight ends", () => {
+    const g = createGame(51);
+    openCited(g, "Engi Controlled Sector", "cited:the-engi-virus", "The Engi virus");
+    g.player.systems.shields.level = 4;
+    g.player.systems.shields.power = 4;
+    g.player.systems.shields.damage = 0;
+    g.player.systems.shields.ion = [];
+    g.player.shieldNow = 2;
+    g.player.systems.engines.level = 6;
+    g.player.systems.engines.power = 6;
+    g.player.systems.engines.damage = 0;
+    g.player.systems.engines.ion = [];
+    choose(g, "c:the-engi-virus:0");
+    assert.equal(g.phase, "combat");
+    quietEnemy(g);
+    assert.equal(g.player.shieldNow, 1);
+    const halved = evasionPercent(g, g.player, "player");
+    assert.ok(g.enemy);
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    assert.ok(evasionPercent(g, g.player, "player") > halved);
   });
 });

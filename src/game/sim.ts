@@ -654,7 +654,9 @@ function clearEngineLimit(g: Game): void {
 }
 
 function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
-  const bars = Math.min(8, mainBars(g, ship, aboard, "engines"));
+  let bars = Math.min(8, mainBars(g, ship, aboard, "engines"));
+  // The Engi virus: "Engines and Shields systems halved" and "rounds down against you".
+  if (aboard === "player" && systemHalf.get(g)?.has("engines")) bars = Math.floor(bars / 2);
   if (aboard !== "player") return bars;
   const cap = engineLimit.get(g);
   if (cap == null) return bars;
@@ -667,7 +669,7 @@ function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
  * INFERRED: the half is the bars that system reads, and it ends when that fight ends.
  * The installed level stays. An enemy ship is not cut.
  */
-type HalfId = "shields" | "oxygen" | "weapons";
+type HalfId = "shields" | "oxygen" | "weapons" | "engines";
 const systemHalf = new WeakMap<Game, Set<HalfId>>();
 const weaponHalfShips = new WeakMap<Ship, true>();
 

@@ -45,12 +45,15 @@ export function citedShieldHalf(id: string): boolean {
 
 /**
  * Slug hacker (choice): "Shields halved", "Oxygen system halved", or "Weapon Control halved".
+ * The Engi virus: "Engines and Shields systems halved".
  * Each tooltip says "rounds down against you".
  */
-export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons"> | null {
+export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons" | "engines"> | null {
   if (id === "c:slug-hacker-choice:0") return ["shields"];
   if (id === "c:slug-hacker-choice:1") return ["oxygen"];
   if (id === "c:slug-hacker-choice:2") return ["weapons"];
+  // The Engi virus: "Engines and Shields systems halved" and "rounds down against you".
+  if (id === "c:the-engi-virus:0") return ["engines", "shields"];
   return null;
 }
 
@@ -3083,10 +3086,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Engi ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system-halving is not applied."
           }
         ]
       },

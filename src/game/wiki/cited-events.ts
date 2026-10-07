@@ -44,6 +44,17 @@ export function citedShieldHalf(id: string): boolean {
 }
 
 /**
+ * Slug hacker (choice): "Shields halved", "Oxygen system halved", or "Weapon Control halved".
+ * Each tooltip says "rounds down against you".
+ */
+export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons"> | null {
+  if (id === "c:slug-hacker-choice:0") return ["shields"];
+  if (id === "c:slug-hacker-choice:1") return ["oxygen"];
+  if (id === "c:slug-hacker-choice:2") return ["weapons"];
+  return null;
+}
+
+/**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
  * Engi cache stays in sim.ts. A page that only says "a random amount" is absent.
  * Blue options, crew, map reveals, upgrades, and unnamed items are not granted.
@@ -2863,10 +2874,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Slug ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system-halving is not applied."
           }
         ]
       },
@@ -2877,10 +2884,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Slug ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system-halving is not applied."
           }
         ]
       },
@@ -2891,10 +2894,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Slug ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system-halving is not applied."
           }
         ]
       },

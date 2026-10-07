@@ -76,7 +76,7 @@ import { hullById } from "./hulls.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
-import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, stampCitedEvents } from "./wiki/cited-events.ts";
+import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, citedSystemHalf, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -663,24 +663,39 @@ function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
 
 /**
  * Auto-ship carrying shield virus: "Fight an Auto-ship with your Shields halved" and "rounds down against you".
- * INFERRED: the half is the bars the bubble rule reads, and it ends when that fight ends.
- * The installed level stays. An enemy ship's shields are not cut.
+ * Slug hacker (choice): the same cut on Shields, "Oxygen system halved", or "Weapon Control halved".
+ * INFERRED: the half is the bars that system reads, and it ends when that fight ends.
+ * The installed level stays. An enemy ship is not cut.
  */
-const shieldHalf = new WeakMap<Game, true>();
+type HalfId = "shields" | "oxygen" | "weapons";
+const systemHalf = new WeakMap<Game, Set<HalfId>>();
+const weaponHalfShips = new WeakMap<Ship, true>();
 
-export function halvePlayerShields(g: Game): void {
-  shieldHalf.set(g, true);
+function rememberWeaponHalf(g: Game): void {
+  if (systemHalf.get(g)?.has("weapons")) weaponHalfShips.set(g.player, true);
+  else weaponHalfShips.delete(g.player);
+}
+
+export function halvePlayerSystems(g: Game, ids: HalfId[]): void {
+  systemHalf.set(g, new Set(ids));
+  rememberWeaponHalf(g);
+  if (!ids.includes("shields")) return;
   const cap = shieldCap(g, g.player, "player");
   if (g.player.shieldNow > cap) g.player.shieldNow = cap;
 }
 
+export function halvePlayerShields(g: Game): void {
+  halvePlayerSystems(g, ["shields"]);
+}
+
 function clearShieldHalf(g: Game): void {
-  shieldHalf.delete(g);
+  systemHalf.delete(g);
+  weaponHalfShips.delete(g.player);
 }
 
 function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   const bonus = zoltanBars(g.crew, ship, aboard, "shields");
-  if (aboard !== "player" || !shieldHalf.has(g)) return maxBubbles(ship, bonus);
+  if (aboard !== "player" || !systemHalf.get(g)?.has("shields")) return maxBubbles(ship, bonus);
   const halved = Math.floor(bars(ship.systems.shields, bonus) / 2);
   return Math.floor(halved / 2);
 }
@@ -850,6 +865,13 @@ export function powerMask(ship: Ship, bonus = 0): boolean[] {
     r: full ? Math.min(green, Math.max(0, capacity - bonus)) : green,
     occupy: full,
   };
+  // Slug hacker (choice): "Weapon Control halved" and "rounds down against you".
+  // INFERRED: the bars in this pool, Zoltan bars included, are what is halved.
+  if (weaponHalfShips.has(ship)) {
+    const total = Math.floor((pool.z + pool.r) / 2);
+    pool.z = Math.min(pool.z, total);
+    pool.r = total - pool.z;
+  }
   return ship.weapons.map((w) => takePowerSlot(WEAPONS[w.defId]?.power ?? 1, w.enabled, pool));
 }
 
@@ -2841,7 +2863,9 @@ function starveFire(g: Game, ship: Ship, room: Room, dt: number) {
 }
 
 function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
-  const o2 = mainBars(g, ship, aboard, "oxygen");
+  let o2 = mainBars(g, ship, aboard, "oxygen");
+  // Slug hacker (choice): "Oxygen system halved" and "rounds down against you".
+  if (aboard === "player" && systemHalf.get(g)?.has("oxygen")) o2 = Math.floor(o2 / 2);
   const mult = o2 <= 0 ? 0 : o2 === 1 ? 1 : o2 === 2 ? 4 : 7;
   for (const r of ship.rooms) {
     if (o2 > 0) r.o2 += 1.2 * mult * dt;
@@ -4747,6 +4771,9 @@ export function choose(g: Game, id: string) {
               if (cap != null) limitPlayerEngines(g, cap);
               // Auto-ship carrying shield virus: "your Shields halved". After startCombat, which clears the half.
               if (citedShieldHalf(id)) halvePlayerShields(g);
+              // Slug hacker (choice): Shields, Oxygen, or Weapon Control, each halved. After startCombat clears it.
+              const halves = citedSystemHalf(id);
+              if (halves) halvePlayerSystems(g, halves);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),

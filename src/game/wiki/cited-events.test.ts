@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, startCombat, step } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, powerMask, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
 
@@ -294,5 +294,86 @@ describe("Auto-ship carrying shield virus", () => {
     g.player.shieldNow = 2;
     step(g, 0.05);
     assert.equal(g.player.shieldNow, 2);
+  });
+});
+
+function openCited(g: ReturnType<typeof createGame>, sector: string, flag: string, name: string) {
+  g.sectorName = sector;
+  const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+  assert.ok(b);
+  b.flag = flag;
+  b.kind = "event";
+  b.name = name;
+  g.here = b.id;
+  g.event = citedEvent(g, b);
+  g.phase = "event";
+}
+
+function quietEnemy(g: ReturnType<typeof createGame>) {
+  assert.ok(g.enemy);
+  for (const w of g.enemy.weapons) w.enabled = false;
+  if (g.enemy.kits.spike) {
+    g.enemy.kits.spike.on = false;
+    g.enemy.kits.spike.power = 0;
+  }
+}
+
+describe("Slug hacker (choice)", () => {
+  it("halves the chosen system, rounding down, until that fight ends", () => {
+    const shields = createGame(41);
+    openCited(shields, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    shields.player.systems.shields.level = 4;
+    shields.player.systems.shields.power = 4;
+    shields.player.systems.shields.damage = 0;
+    shields.player.systems.shields.ion = [];
+    shields.player.shieldNow = 2;
+    choose(shields, "c:slug-hacker-choice:0");
+    assert.equal(shields.phase, "combat");
+    assert.equal(shields.player.shieldNow, 1);
+
+    const air = createGame(42);
+    openCited(air, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    air.player.systems.oxygen.level = 2;
+    air.player.systems.oxygen.power = 2;
+    air.player.systems.oxygen.damage = 0;
+    air.player.systems.oxygen.ion = [];
+    const away = air.player.rooms.find((r) => r.system !== "oxygen");
+    assert.ok(away);
+    for (const c of air.crew) if (c.side === "player") c.room = away.id;
+    for (const d of air.player.doors) d.open = false;
+    for (const r of air.player.rooms) {
+      r.o2 = 50;
+      r.fire = 0;
+      r.breach = 0;
+    }
+    choose(air, "c:slug-hacker-choice:1");
+    quietEnemy(air);
+    const room = air.player.rooms[0];
+    assert.ok(room);
+    const before = room.o2;
+    step(air, 0.05);
+    const gained = room.o2 - before;
+    assert.ok(gained > 0.04 && gained < 0.1, String(gained));
+
+    const guns = createGame(43);
+    openCited(guns, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    guns.player.systems.weapons.level = 2;
+    guns.player.systems.weapons.power = 2;
+    guns.player.systems.weapons.damage = 0;
+    guns.player.systems.weapons.ion = [];
+    guns.player.weapons = [
+      { uid: "a", defId: "spark", charge: 0, enabled: true, autofire: false, target: null },
+      { uid: "b", defId: "spark", charge: 0, enabled: true, autofire: false, target: null },
+    ];
+    choose(guns, "c:slug-hacker-choice:2");
+    assert.equal(guns.phase, "combat");
+    assert.deepEqual(powerMask(guns.player), [true, false]);
+    quietEnemy(guns);
+    assert.ok(guns.enemy);
+    guns.enemy.hull = 0;
+    step(guns, 0.05);
+    assert.notEqual(guns.phase, "combat");
+    startCombat(guns, "scout");
+    assert.deepEqual(powerMask(guns.player), [true, true]);
   });
 });

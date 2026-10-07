@@ -572,12 +572,35 @@ function pulseTheirMind(g: Game, kit: Kit) {
 }
 
 /**
+ * Crew Teleporter, Overview: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+ * INFERRED: one crew per tile. The page pairs "2-tile" rooms with "four-person" rooms and does not say "one per tile".
+ * INFERRED: door-list order is the fill order. With no adjacent room they stay on the pad.
+ * INFERRED: a teleporter kit with no teleporter room uses the first room on that hull.
+ */
+function retrievedRoom(ship: Ship, index: number): string | undefined {
+  const pad = ship.rooms.find((r) => r.kit === "sling");
+  const id = pad?.id ?? ship.rooms[0]?.id;
+  if (!id) return undefined;
+  if (!pad) return id;
+  const tiles = Math.max(1, pad.w * pad.h - (pad.omit?.length ?? 0));
+  if (index < tiles) return id;
+  const neighbors: string[] = [];
+  for (const d of ship.doors) {
+    if (d.b === "void") continue;
+    const other = d.a === id ? d.b : d.b === id ? d.a : "";
+    if (other && ship.rooms.some((r) => r.id === other) && !neighbors.includes(other)) neighbors.push(other);
+  }
+  if (neighbors.length === 0) return id;
+  return neighbors[Math.min(index - tiles, neighbors.length - 1)];
+}
+
+/**
  * @agent:hack-rules. Hacking wiki, "Overview" (Crew Teleporter): "forcibly recalls hostile boarders, putting the system
  * on cooldown if anyone was successfully recalled." "Does not retrieve crew from a cloaked ship." "If one of your crew
  * is mind-controlled on your ship, hacking the enemy teleporter will not send the affected crew to the enemy ship!
  * Enemies will also not be recalled in this case, unless they enter the same room as your mind-controlled crew."
- * The enemy's boarders on the Lark go back to their pad room (the room with kit "sling", sling.ts PADS; INFERRED
- * fallback: the first enemy room). Teleporter cooldown 20 / 15 / 10 s by level (slingCooldown).
+ * Crew Teleporter, Overview: overflow past the teleporter room goes to an adjacent room. The hack sentence does not
+ * reprint "up to 4", so this recall is not capped. Teleporter cooldown 20 / 15 / 10 s by level (slingCooldown).
  */
 function pulseTheirSling(g: Game) {
   const foe = g.enemy;
@@ -590,14 +613,13 @@ function pulseTheirSling(g: Game) {
   );
   const pull = heldRooms.size ? away.filter((c) => heldRooms.has(c.room)) : away;
   if (!pull.length) return;
-  const land = roomOf(foe, "sling")?.id ?? foe.rooms[0]?.id;
-  if (!land) return;
-  for (const c of pull) {
+  if (!retrievedRoom(foe, 0)) return;
+  pull.forEach((c, i) => {
     c.aboard = "enemy";
-    c.room = land;
+    c.room = retrievedRoom(foe, i)!;
     c.path = [];
     c.move = 0;
-  }
+  });
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);
@@ -1023,21 +1045,21 @@ function pulseMind(g: Game, kit: Kit) {
  * anyone was successfully recalled." "Does not retrieve crew from a cloaked ship." "when your teleporter is hacked, it
  * will abduct enemy crew that you have mind-controlled on the enemy ship." Player crew the enemy holds stay put
  * (Mind Control: "A player cannot teleport own mind-controlled crew from the enemy ship").
- * INFERRED: recalled crew land in the player's medbay room, as sling.ts recallSling does.
+ * Crew Teleporter, Overview: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+ * The hack sentence does not reprint "up to 4", so this recall is not capped.
  */
 function pulseSling(g: Game) {
   const sling = g.player.kits.sling;
   if (!sling || veilBlocks(g, "player")) return;
   const away = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0 && sideOf(c) === "player");
   if (!away.length) return;
-  const land = roomWith(g.player, "medbay")?.id ?? g.player.rooms[0]?.id;
-  if (!land) return;
-  for (const c of away) {
+  if (!retrievedRoom(g.player, 0)) return;
+  away.forEach((c, i) => {
     c.aboard = "player";
-    c.room = land;
+    c.room = retrievedRoom(g.player, i)!;
     c.path = [];
     c.move = 0;
-  }
+  });
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);

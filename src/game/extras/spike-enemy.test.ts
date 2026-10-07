@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, evasionPercent, ftlSeconds, roomWith, startCombat, step } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import {
   enemyHackTargets,
@@ -312,13 +313,105 @@ describe("enemy hacking: pulse effects", () => {
   it("recalls the player's boarders and cools the teleporter", () => {
     const g = latched("sling");
     g.player.kits.sling = { id: "sling", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
     const crew = g.crew.find((c) => c.side === "player")!;
     crew.aboard = "enemy";
     crew.room = g.enemy!.rooms[0]!.id;
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
     assert.equal(crew.aboard, "player");
+    // Crew Teleporter: a retrieved crewmember fits in the teleporter room.
+    assert.equal(crew.room, pad.id);
     assert.equal(g.player.kits.sling!.cool, 15);
+  });
+
+  it("seats a hacked retrieve in the teleporter room and the overflow next door", () => {
+    // Crew Teleporter: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
+    // Hacking does not reprint "up to 4", so every hostile boarder comes back.
+    const g = latched("sling");
+    g.player.kits.sling = { id: "sling", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
+    assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
+    const neighbors = g.player.doors.flatMap((d) => {
+      if (d.b === "void") return [];
+      if (d.a === pad.id) return [d.b];
+      if (d.b === pad.id) return [d.a];
+      return [];
+    });
+    assert.ok(neighbors.length > 0);
+    const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(source);
+    while (g.crew.filter((c) => c.side === "player" && c.hp > 0).length < 5) {
+      const n = g.crew.length;
+      g.crew.push({ ...source, id: `c-hack-${n}`, name: `Hack ${n}`, path: [] });
+    }
+    for (const c of g.crew) {
+      if (c.side !== "player" || c.hp <= 0) continue;
+      c.aboard = "enemy";
+      c.room = g.enemy!.rooms[0]!.id;
+      c.path = [];
+    }
+    tickEnemySpike(g, 0.01);
+    tickEnemySpike(g, 0.1);
+    const back = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+    assert.equal(back.length, 5);
+    assert.equal(back.filter((c) => c.room === pad.id).length, 2);
+    const overflow = back.filter((c) => c.room !== pad.id);
+    assert.equal(overflow.length, 3);
+    for (const c of overflow) assert.ok(neighbors.includes(c.room));
+  });
+
+  it("lands their recalled boarders in their teleporter room, overflow adjacent", () => {
+    const g = fight(8);
+    g.enemy!.kits.spike!.cool = 999;
+    const foe = g.enemy!;
+    const pad = foe.rooms[0]!;
+    pad.kit = "sling";
+    pad.w = 2;
+    pad.h = 1;
+    delete pad.omit;
+    const next = foe.rooms.find((r) => r.id !== pad.id);
+    assert.ok(next);
+    if (!foe.doors.some((d) => (d.a === pad.id && d.b === next.id) || (d.b === pad.id && d.a === next.id))) {
+      foe.doors.unshift({ a: pad.id, b: next.id, open: true, hp: 0, stuck: 0 });
+    }
+    foe.kits.sling = { id: "sling", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const source = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(source);
+    while (g.crew.filter((c) => c.side === "enemy" && c.hp > 0).length < 3) {
+      const n = g.crew.length;
+      g.crew.push({ ...source, id: `e-hack-${n}`, name: `Foe ${n}`, path: [] });
+    }
+    for (const c of g.crew) {
+      if (c.side !== "enemy" || c.hp <= 0) continue;
+      c.aboard = "player";
+      c.room = g.player.rooms[0]!.id;
+      c.path = [];
+      delete c.leashed;
+    }
+    g.player.kits.spike = {
+      id: "spike",
+      level: 1,
+      power: 1,
+      left: 4,
+      cool: 0,
+      target: "sling",
+      on: true,
+      aux: 0,
+    };
+    tickSpike(g, 0.1);
+    const back = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0);
+    assert.equal(back.length, 3);
+    assert.equal(back.filter((c) => c.room === pad.id).length, 2);
+    // INFERRED: the first door in the list is the first adjacent room.
+    const neighbor = foe.doors.find((d) => d.b !== "void" && (d.a === pad.id || d.b === pad.id));
+    const beside = neighbor ? (neighbor.a === pad.id ? neighbor.b : neighbor.a) : "";
+    assert.equal(back.filter((c) => c.room === beside).length, 1);
+    assert.equal(foe.kits.sling!.cool, 20);
   });
 
   it("stuns the player's drone and may destroy it", () => {

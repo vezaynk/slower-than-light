@@ -54,7 +54,7 @@ import {
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
-import { ionOnCell, tickCell } from "./extras/cell.ts";
+import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
 import { relaxSling, tickEnemyBoarding } from "./extras/sling.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
@@ -103,7 +103,9 @@ import {
   citedBeaconCount,
   citedFleetAdvance,
   citedSector,
+  ionStormBeacon,
   lastStandRepairEvent,
+  stormReactor,
 } from "./wiki/cited-sectors.ts";
 import {
   eventHasPulsar,
@@ -769,7 +771,33 @@ function reactorUsed(ship: Ship): number {
 
 export function sparePower(ship: Ship): number {
   // Backup Battery, Overview: these bars can push the ship past the 25-bar reactor cap.
-  return ship.reactor + batteryBonus(ship) - reactorUsed(ship);
+  // Environmental Hazards, Plasma/ion Storm: the reactor is halved, rounded up.
+  // Zoltan bars sit in zoltanHeld, outside this pool. Backup Battery bars are added after the half.
+  const reactor = ship.storm ? stormReactor(ship.reactor) : ship.reactor;
+  return reactor + batteryBonus(ship) - reactorUsed(ship);
+}
+
+/**
+ * Environmental Hazards, Plasma/ion Storm: an overtaken nebula beacon halves the reactor.
+ * Power already assigned above that pool comes off on arrival. Enemy reactors are halved the same way.
+ * Backup Battery bars stay in the pool. Zoltan bars are not reactor power.
+ * INFERRED: removal uses the same order as a battery ending. The page names no order.
+ * INFERRED: only the always-overtaken nebula case. The page does not say which other nebula beacons have a storm.
+ */
+export function syncIonStorm(g: Game) {
+  const on = ionStormBeacon(hereBeacon(g), g.fleet);
+  const was = !!g.player.storm;
+  if (on) g.player.storm = true;
+  else delete g.player.storm;
+  if (g.enemy) {
+    if (on) g.enemy.storm = true;
+    else delete g.enemy.storm;
+  }
+  if (!on || was) return;
+  shedOverAssigned(g, g.player, "player");
+  if (g.enemy) shedOverAssigned(g, g.enemy, "enemy");
+  // Environmental Hazards, Plasma/ion Storm: the printed beacon warning.
+  log(g, "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.");
 }
 
 type ZoltanBox = {
@@ -3305,6 +3333,10 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.lastFaction = built.ship.faction;
   g.stalemate = null;
   g.enemy = built.ship;
+  if (g.player.storm) {
+    g.enemy.storm = true;
+    shedOverAssigned(g, g.enemy, "enemy");
+  }
   g.crew = g.crew.filter((c) => c.side === "player");
   // Mind Control: no hold from an earlier fight (fled or jumped away) carries into this one.
   clearEnemyLeash(g);
@@ -3861,6 +3893,9 @@ export function commitJump(g: Game, id: string) {
   g.pulsar = false;
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"));
+  // Environmental Hazards: an overtaken nebula beacon carries an ion storm into the fight or the event.
+  // The departing enemy is already gone, so only this hull sheds here. startCombat halves the new one.
+  syncIonStorm(g);
   // Rebel Fleet: a beacon the column has already taken is a Rebel Elite. Sector 8 is not this column.
   if (g.sector < 8 && dest.col < g.fleet && !dest.resolved) {
     g.pending = "dive:1";
@@ -4373,6 +4408,7 @@ export function waitHere(g: Game) {
   // Stores, "Fuel": waiting advances the rebels like a jump, slower in a nebula.
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
   else g.fleet += pursuit(g, b ? citedFleetAdvance(g, b) : 1);
+  syncIonStorm(g);
   log(g, "You hold. The line advances.");
   onCradleJump(g); // Clone Bay, "Overview": waiting applies the jump heal (extras/cradle.ts)
   // Rebel Fleet: out of fuel when they take your beacon. Destroying that Elite yields 4 fuel.

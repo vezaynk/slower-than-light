@@ -99,13 +99,15 @@ function shedDrained(g: Game, ship: Ship) {
 }
 
 /**
+ * Pulls assigned bars until spare power is no longer negative.
  * Backup Battery, Overview: when the extra bars leave, they come off the reactor.
  * An active cloak or mind-control hold that loses its bar ends early.
  * INFERRED: kits lose bars before weapons, medbay, oxygen, engines, and shields.
  * The page names no order.
  * The same section: a bar locked into a system that is already cooling can still come off, and that cooldown stays.
+ * Environmental Hazards, Plasma/ion Storm: arrival uses this same pull when the halved reactor is over-assigned.
  */
-function releaseCellBars(g: Game, ship: Ship, aboard: "player" | "enemy") {
+export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy") {
   let over = -sparePower(ship);
   if (over <= 0) return;
   for (const other of Object.values(ship.kits)) {
@@ -194,7 +196,7 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
   delete kit.ionN;
   if (wasRunning) {
     const ship = kit === g.player.kits.cell ? g.player : g.enemy;
-    if (ship) releaseCellBars(g, ship, ship === g.player ? "player" : "enemy");
+    if (ship) shedOverAssigned(g, ship, ship === g.player ? "player" : "enemy");
   }
   log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
   return true;
@@ -233,7 +235,7 @@ function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {
     if (player && !shipInDanger(g)) kit.cool = 0;
     else kit.cool = coolFor(g);
     const ship = player ? g.player : g.enemy;
-    if (ship) releaseCellBars(g, ship, player ? "player" : "enemy");
+    if (ship) shedOverAssigned(g, ship, player ? "player" : "enemy");
   }
 }
 

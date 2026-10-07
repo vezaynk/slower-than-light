@@ -76,6 +76,23 @@ export function citedAsb(g: Game, here: Pick<Beacon, "kind" | "col"> | undefined
   return here.col < g.fleet;
 }
 
+/**
+ * Environmental Hazards, Plasma/ion Storm: half-efficiency, rounded up.
+ * A reactor of 1 stays 1. A reactor of 5 becomes 3.
+ */
+export function stormReactor(reactor: number): number {
+  return Math.ceil(Math.max(0, reactor) / 2);
+}
+
+/**
+ * Environmental Hazards, Plasma/ion Storm: a nebula beacon the fleet has overtaken always has an ion storm.
+ * An exit beacon cannot. INFERRED: only that always-case is used. The page does not say which other nebula beacons have one.
+ */
+export function ionStormBeacon(beacon: Pick<Beacon, "kind" | "col"> | undefined, fleet: number): boolean {
+  if (!beacon || beacon.kind !== "nebula") return false;
+  return beacon.col < fleet;
+}
+
 /** Rebel Fleet / Environmental Hazards: 3 hull and a breach. No fire figure is stated. The timer is environment(). */
 export function citedAsbShot(): { damage: number; breachChance: number; fireChance: number } {
   return { damage: 3, breachChance: 1, fireChance: 0 };

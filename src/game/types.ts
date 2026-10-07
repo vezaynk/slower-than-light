@@ -450,6 +450,11 @@ export type Ship = {
   hull: number;
   hullMax: number;
   reactor: number;
+  /**
+   * Environmental Hazards, Plasma/ion Storm: this hull's reactor runs at half efficiency, rounded up.
+   * Backup Battery, Overview: the battery bars are not part of that half. Absent means the reactor is whole.
+   */
+  storm?: boolean;
   systems: Record<SysId, SystemState>;
   rooms: Room[];
   doors: Door[];

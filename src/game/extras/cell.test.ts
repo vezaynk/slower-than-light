@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, applyPulsarPulse, createGame, settleZoltanPower, sparePower, upgrade, waitHere } from "../sim.ts";
+import { applyImpact, applyPulsarPulse, createGame, settleZoltanPower, sparePower, syncIonStorm, upgrade, waitHere } from "../sim.ts";
+import { stormReactor } from "../wiki/cited-sectors.ts";
 import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
@@ -400,6 +401,45 @@ describe("cell", () => {
     assert.equal(sys.power, 4);
     assert.equal(sys.zoltanHeld, undefined);
     assert.equal(sparePower(g.player), 0);
+  });
+
+  it("halves the reactor in an overtaken nebula and leaves the battery whole", () => {
+    assert.equal(stormReactor(8), 4);
+    assert.equal(stormReactor(5), 3);
+    assert.equal(stormReactor(1), 1);
+    const g = createGame(19);
+    const beacon = g.beacons[2];
+    assert.ok(beacon);
+    beacon.kind = "nebula";
+    beacon.col = 2;
+    g.here = beacon.id;
+    g.fleet = 2;
+    g.player.reactor = 5;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    g.player.systems.weapons.power = 5;
+    syncIonStorm(g);
+    assert.equal(g.player.storm, undefined);
+    assert.equal(g.player.systems.weapons.power, 5);
+
+    g.fleet = 3;
+    syncIonStorm(g);
+    assert.equal(g.player.storm, true);
+    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(sparePower(g.player), 0);
+    assert.equal(
+      g.log[0],
+      "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.",
+    );
+
+    g.player.kits.cell = pushCell(1);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+    assert.equal(sparePower(g.player), 2);
+
+    beacon.kind = "exit";
+    syncIonStorm(g);
+    assert.equal(g.player.storm, undefined);
+    assert.equal(sparePower(g.player), 5 + 2 - 3);
   });
 
   it("lets the ship assign more than 25 bars while the battery is on", () => {

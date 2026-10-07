@@ -427,6 +427,48 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     assert.equal(g.player.systems[room.system!].damage, 1);
     assert.equal(turned.skills?.combat ?? 0, 1);
   });
+
+  it("destroying a crew drone trains nothing", () => {
+    const g = createGame(35);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.enemy!.rooms[0]!;
+    const hero = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) if (c.side === "player" && c.id !== hero.id) c.skills = {};
+    hero.aboard = "enemy";
+    hero.room = room.id;
+    hero.path = [];
+    hero.stun = 0;
+    hero.leashed = undefined;
+    hero.skills = {};
+    hero.kin = "plain";
+    const unit = {
+      id: "crew-drone",
+      kind: "personnel",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      hp: 0.2,
+      room: room.id,
+    };
+    g.enemy!.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+      loadout: ["personnel"],
+      drones: [unit],
+    };
+    step(g, 0.05);
+    assert.equal(unit.alive, false);
+    assert.equal(hero.skills?.combat ?? 0, 0);
+  });
 });
 
 describe("Crew skills, Weapons: artillery grants one point", () => {

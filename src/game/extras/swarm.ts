@@ -1581,7 +1581,10 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
   }
 }
 
-/** Returns true when the drone died. Each non-stunned crew member fighting for the player hits it at MELEE_DPS × combat. */
+/**
+ * Returns true when the drone died. Each non-stunned crew member fighting for the player hits it at MELEE_DPS × combat.
+ * Crew skills, lead: "destroying crew drones" does not grant experience. No noteCombatPoint on this death.
+ */
 function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt: number): boolean {
   if (!unit.room || unit.hp == null) return false;
   const foes = g.crew.filter(

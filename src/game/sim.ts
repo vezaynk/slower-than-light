@@ -1661,6 +1661,22 @@ function zoltanBeamCost(shot: Shot): number {
   return shot.damage * 2;
 }
 
+/** Bomb (Weapons), Stun Bomb: "stuns all enemy and player crew and drones in affected room for 15 seconds." */
+const STUN_BOMB_S = 15;
+
+function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
+  for (const c of g.crew) {
+    if (c.aboard !== aboard || c.room !== roomId || c.hp <= 0) continue;
+    c.stun = Math.max(c.stun ?? 0, STUN_BOMB_S);
+  }
+  const playerKit = g.player.kits.swarm;
+  if (playerKit?.room === roomId) playerKit.stun = Math.max(playerKit.stun ?? 0, STUN_BOMB_S);
+  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+    if (!unit.alive || unit.room !== roomId) continue;
+    unit.stun = Math.max(unit.stun ?? 0, STUN_BOMB_S);
+  }
+}
+
 export function applyImpact(g: Game, shot: Shot) {
   // Bomb (Weapons), lead: a bomb aimed at your own ship hits that hull. Every other shot hits the other one.
   const ownBomb = shot.kind === "bomb" && shot.own === true;
@@ -1734,18 +1750,21 @@ export function applyImpact(g: Game, shot: Shot) {
     } else {
       // Bomb (Weapons), Ion Bomb: system damage 0, and 4 ion to the targeted system or subsystem.
       // Crew damage is 0. "Low chance to stun" prints no percent, so that stun is not rolled.
-      if (shot.defId === "ionbomb" && shot.ion > 0) {
-        if (playerTarget && negateIon(g)) {
-          log(g, "Reverse Ion Field shrugged that off.");
-          return;
-        }
-        if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
-        if (r.system) {
-          if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
-            applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+      // Bomb (Weapons), Stun Bomb: 1 ion, and every crew member and drone in the room is stunned for 15 seconds.
+      if ((shot.defId === "ionbomb" || shot.defId === "stunbomb") && shot.ion > 0) {
+        // INFERRED: Reverse Ion Field negates the ion. The Stun Bomb's 15 second stun is printed beside it, so it still lands.
+        const held = playerTarget && negateIon(g);
+        if (held) log(g, "Reverse Ion Field shrugged that off.");
+        else {
+          if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+          if (r.system) {
+            if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
+              applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
+            }
+            log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
           }
-          log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
         }
+        if (shot.defId === "stunbomb") stunBombRoom(g, r.id, aboard);
         r.flash = 0.25;
         sfx(g, "ion");
         return;

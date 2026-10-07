@@ -417,7 +417,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Engi virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engines — present — src/game/content.ts — Engines, System Upgrades and FTL Drive charge time: evasion and the charge tables are what evasionPercent reads.
 - [ ] Environmental Hazard — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Environmental Hazards — partial — a nebula beacon advances the fleet by 0.5 outside a nebula sector and by 0.8 inside one. The anti-ship battery shot is 3 hull and a breach. A defense drone does not shoot it down. A Zoltan Shield does not take it; the hull does. It does not arm on a nebula beacon. The shot timer is still the old 14 seconds. Asteroid numbers were not re-audited.
+- [ ] Environmental Hazards — partial — a nebula beacon advances the fleet by 0.5 outside a nebula sector and by 0.8 inside one. The anti-ship battery shot is 3 hull and a breach. A defense drone does not shoot it down. A Zoltan Shield does not take it; the hull does. It does not arm on a nebula beacon. A warning lands 15–20 seconds after the fight starts, then the real shot 5–10 seconds later, and that cycle repeats until escape. The uniform roll is INFERRED. Cosmetic fake shots are not drawn. Asteroid numbers were not re-audited.
 - [ ] Escape Pod Floating Nearby — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Escape pod — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Escape pod floating nearby — not-a-surface — same title as "Escape Pod Floating Nearby" with different capitalization

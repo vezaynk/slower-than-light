@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyImpact, applyPulsarPulse, createGame, waitHere } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import { cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { onPlayerJump } from "./index.ts";
 import type { Kit, Shot } from "../types.ts";
@@ -147,6 +148,58 @@ describe("cell", () => {
     assert.equal(ionOnCell(g, g.player.kits.cell!, 2), true);
     assert.equal(g.player.kits.cell?.cool, 25);
     assert.equal(cellBonus(g.player), 0);
+  });
+
+  it("locks an activated level 2 battery when two 1-ion sources land together", () => {
+    const g = createGame(11);
+    g.phase = "combat";
+    g.player.kits.cell = pushCell(2);
+    startCell(g);
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
+    assert.equal(g.player.kits.cell?.on, true);
+    assert.equal(g.log[0], "Backup Battery online.");
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), true);
+    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(cellBonus(g.player), 0);
+
+    g.player.kits.cell = pushCell(2);
+    startCell(g);
+    g.time = 1;
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
+    g.time = 2;
+    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
+    assert.equal(g.player.kits.cell?.on, true);
+    assert.equal(g.player.kits.cell?.cool, 0);
+
+    const hit = createGame(12);
+    hit.player.kits.cell = pushCell(2);
+    seatKits(hit.player);
+    const room = hit.player.rooms.find((r) => r.kit === "cell");
+    assert.ok(room);
+    hit.player.systems.engines.power = 0;
+    hit.player.shieldNow = 0;
+    hit.player.zoltan = 0;
+    startCell(hit);
+    const bomb: Shot = {
+      id: "b",
+      kind: "bomb",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      defId: "stunbomb",
+      targetRoom: room.id,
+      wait: 0,
+      t: 1,
+      duration: 1,
+    };
+    applyImpact(hit, bomb);
+    assert.equal(hit.player.kits.cell?.on, true);
+    applyImpact(hit, { ...bomb, id: "b2" });
+    assert.equal(hit.player.kits.cell?.cool, 25);
+    assert.equal(hit.player.kits.cell?.on, false);
   });
 
   it("lets an ion bomb and a pulsar cover the battery", () => {

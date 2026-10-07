@@ -323,6 +323,15 @@ export type Kit = {
    * bars from reactor". Absent means 0.
    */
   drained?: number;
+  /**
+   * Backup Battery, Overview: ion points that arrived at `ionAt`.
+   * Two 1-ion sources at the same time cover a level 2 battery.
+   * INFERRED: a later game time does not add. The maximum gap is an HTML to-do, so this is not a numbered window.
+   * These are not a system ion track, and the page says that single point has no ion mark in the GUI.
+   */
+  ionAt?: number;
+  /** Points counted at `ionAt`. Absent means none. */
+  ionN?: number;
   /** @agent:hacking. Player crew id an enemy Mind Control hack is holding this pulse. */
   hackHeld?: string;
   /**

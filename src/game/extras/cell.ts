@@ -138,17 +138,27 @@ export function cellOnJump(g: Game) {
 /**
  * Backup Battery, Overview: "If all system levels of the Backup Battery subsystem get ionized
  * (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown."
- * One hit whose ion is at least the subsystem level covers every level. A smaller hit does not.
- * INFERRED: that comparison is the hit's own ion, not a stack of earlier hits. Two sources at once
- * are the next printed sentence.
+ * One hit whose ion is at least the subsystem level covers every level.
+ * The same section: one ion does not disrupt an activated level 2 battery, and two 1-ion sources
+ * at the same time do. INFERRED: the same game time is simultaneous. A later time does not add.
+ * The maximum gap is an HTML to-do, so it is not a numbered window.
  */
 export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
-  if (kit.level <= 0 || points < kit.level) return false;
+  if (kit.level <= 0 || points <= 0) return false;
+  let total = points;
+  if (points < kit.level) {
+    if (kit.ionAt === g.time) total = (kit.ionN ?? 0) + points;
+    kit.ionAt = g.time;
+    kit.ionN = total;
+  }
+  if (total < kit.level) return false;
   kit.left = 0;
   kit.on = false;
   kit.aux = 0;
   kit.power = 0;
   kit.cool = ION_MAX_COOL;
+  delete kit.ionAt;
+  delete kit.ionN;
   log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
   return true;
 }

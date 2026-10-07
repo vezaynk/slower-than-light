@@ -32,6 +32,12 @@ import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { rockBoarders } from "./surrender.ts";
 
+/** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
+export function citedEngineCap(id: string): number | null {
+  if (id === "c:pirate-engine-hacker:0") return 1;
+  return null;
+}
+
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
  * Engi cache stays in sim.ts. A page that only says "a random amount" is absent.

@@ -76,7 +76,7 @@ import { hullById } from "./hulls.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
-import { citedChoiceDisabled, citedChoose, citedEvent, citedOwns, stampCitedEvents } from "./wiki/cited-events.ts";
+import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -637,11 +637,35 @@ function autoSkillEvade(ship: Ship, engBars: number): number {
   return (enginesUp ? EVADE_SKILL[0] : 0) + (pilotUp ? EVADE_SKILL[0] : 0);
 }
 
+/**
+ * Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1."
+ * The page restores the system when that pirate is destroyed or disabled.
+ * INFERRED: the cap is the bars evasion and the FTL charge read, and it ends when the fight ends.
+ * A level already at 1 is unchanged, so that crew can still train.
+ */
+const engineLimit = new WeakMap<Game, number>();
+
+export function limitPlayerEngines(g: Game, level: number): void {
+  engineLimit.set(g, level);
+}
+
+function clearEngineLimit(g: Game): void {
+  engineLimit.delete(g);
+}
+
+function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+  const bars = Math.min(8, mainBars(g, ship, aboard, "engines"));
+  if (aboard !== "player") return bars;
+  const cap = engineLimit.get(g);
+  if (cap == null) return bars;
+  return Math.min(bars, cap);
+}
+
 /** Engines evasion table, plus manning, plus Piloting autopilot (50% at level 2, 80% at level 3, minimum 2). */
 export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   // Hacking, "Overview": "Piloting/Engines: reduces base evasion to 0 ... Does not affect evasion gained from Cloak."
   if (spikeEvadeZero(g, ship)) return Math.min(100, extraEvade(g, ship, aboard));
-  const eng = Math.min(8, mainBars(g, ship, aboard, "engines"));
+  const eng = engineBars(g, ship, aboard);
   const pilot = ship.systems.pilot;
   // An auto-ship's ionized piloting is still manned: ion is not system damage.
   const pilotHolds = functional(pilot) || (autoManning(ship) && pilot.damage === 0 && pilot.ion.length > 0 && pilot.level > 0);
@@ -675,7 +699,7 @@ export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"):
 
 /** Engines, "FTL Charge Times": unmanned table, or the manned skill row. A body in piloting is required. */
 export function ftlSeconds(g: Game, ship: Ship): number | null {
-  const eng = Math.min(8, mainBars(g, ship, "player", "engines"));
+  const eng = engineBars(g, ship, "player");
   if (eng <= 0) return null;
   if (!present(g, ship, "player", "pilot")) return null;
   // The player's own hack on the enemy's Engines/Piloting (ftlFrozen) stops THEIR drive, not this one; it is checked
@@ -3481,6 +3505,8 @@ function lose(g: Game, reason: "hull" | "crew") {
 }
 
 function winCombat(g: Game) {
+  // Pirate engine hacker: the system is restored once that ship is destroyed or disabled.
+  clearEngineLimit(g);
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
   // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
   const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
@@ -3761,6 +3787,8 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
 }
 
 export function startCombat(g: Game, tier: string, asteroid = false, event?: string) {
+  // A later fight does not keep the pirate's engine cap. The choice sets it again after this returns.
+  clearEngineLimit(g);
   const built = makeEnemy(g, tier, event);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See wiki/escape.ts.
   g.enemyEscape = escapePlan(
@@ -4364,6 +4392,8 @@ export function commitJump(g: Game, id: string) {
   // Score, b: a rebel-held or about-to-be-held beacon does not count. The fleet column that would mark one is INVENTED, so this jump still counts.
   g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   onPlayerJump(g);
+  // INFERRED: jumping away restores the engines. The page prints the restore on a win.
+  clearEngineLimit(g);
   // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
   leashOnLeave(g);
   // @agent:flagship. Leaving the boss fight mid-stage: keep its stage and surviving crew (wiki/flagship-systems.ts).
@@ -4676,6 +4706,9 @@ export function choose(g: Game, id: string) {
               g.event = null;
               // The event page that started the fight picks the escape rule (wiki/escape.ts).
               startCombat(g, tier, asteroid, eventSlugOf(id));
+              // Pirate engine hacker: "Engines limited to level 1." After startCombat, which clears the cap.
+              const cap = citedEngineCap(id);
+              if (cap != null) limitPlayerEngines(g, cap);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),
@@ -4743,6 +4776,7 @@ export function enterHiddenCrystal(g: Game) {
   g.player.shieldCharge = 0;
   g.jumps += 1;
   onPlayerJump(g);
+  clearEngineLimit(g);
   leashOnLeave(g);
   rememberFlagship(g);
   dropOvercharged(g.player);
@@ -5162,6 +5196,8 @@ export function step(g: Game, dt: number) {
     } else log(g, "They charged FTL and left.");
     g.enemy = null;
     g.enemyEscape = null;
+    // INFERRED: their escape ends the engine cap. The page prints the restore on a win.
+    clearEngineLimit(g);
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";

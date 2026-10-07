@@ -73,10 +73,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       {
         id: "c:pirate-engine-hacker:0",
         label: "Continue",
-        fx: [
-          { k: "fight", tier: "Pirate ship" },
-          { k: "note", text: "Engines limited to level 1 is not applied." },
-        ],
+        fx: [{ k: "fight", tier: "Pirate ship" }],
       },
     ],
   },

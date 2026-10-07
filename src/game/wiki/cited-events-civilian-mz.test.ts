@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { choose, createGame, evasionPercent, ftlSeconds, startCombat, step } from "../sim.ts";
+import { citedEvent } from "./cited-events.ts";
 import { EXTRA_EVENTS } from "./cited-events-civilian-mz.ts";
 
 const TITLES = [
@@ -133,5 +135,49 @@ describe("civilian M-Z cited events", () => {
         }
       });
     }
+  });
+});
+
+describe("Pirate engine hacker", () => {
+  it("limits evasion and the FTL charge to level 1, then restores them when that ship is destroyed", () => {
+    const g = createGame(4);
+    g.sectorName = "Civilian Sector";
+    const ev = EXTRA_EVENTS.find((e) => e.dest === "Pirate engine hacker");
+    assert.ok(ev);
+    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+    assert.ok(b);
+    b.flag = ev.flag;
+    b.kind = "event";
+    b.name = ev.dest;
+    g.here = b.id;
+    g.event = citedEvent(g, b);
+    g.phase = "event";
+    g.player.systems.engines.level = 5;
+    g.player.systems.engines.power = 5;
+    g.player.systems.engines.damage = 0;
+    choose(g, "c:pirate-engine-hacker:0");
+    assert.equal(g.phase, "combat");
+    assert.ok(g.enemy);
+    for (const w of g.enemy.weapons) w.enabled = false;
+    if (g.enemy.kits.spike) {
+      g.enemy.kits.spike.on = false;
+      g.enemy.kits.spike.power = 0;
+    }
+    if (g.enemy.kits.veil) g.enemy.kits.veil.on = false;
+    const high = evasionPercent(g, g.player, "player");
+    const highFtl = ftlSeconds(g, g.player);
+    g.player.systems.engines.level = 1;
+    g.player.systems.engines.power = 1;
+    assert.equal(evasionPercent(g, g.player, "player"), high);
+    assert.equal(ftlSeconds(g, g.player), highFtl);
+    g.player.systems.engines.level = 5;
+    g.player.systems.engines.power = 5;
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    const restored = evasionPercent(g, g.player, "player");
+    assert.ok(restored > high, `${restored} vs ${high}`);
+    startCombat(g, "scout");
+    assert.ok(evasionPercent(g, g.player, "player") > high);
   });
 });

@@ -555,7 +555,14 @@ function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) 
   if (after > before) log(g, `${c.name} — ${skill} rank ${after}.`);
 }
 
+function skillFight(g: Game): boolean {
+  // Environmental Hazards, Asteroid Field: skill only while a fight with an enemy ship is still on.
+  // Crew skills, Piloting and Shields: asteroids after that fight do not train.
+  return g.phase === "combat" && !!g.enemy;
+}
+
 function noteDodge(g: Game) {
+  if (!skillFight(g)) return;
   const room = roomWith(g.player, "pilot");
   const pilot = g.crew.find(
     (c) => c.side === "player" && c.aboard === "player" && c.room === room?.id && c.hp > 0 && c.path.length === 0,
@@ -1943,7 +1950,7 @@ export function applyImpact(g: Game, shot: Shot) {
   if (shot.kind !== "missile" && ship.shieldNow > pierce) {
     ship.shieldNow -= 1;
     ship.shieldCharge = 0;
-    if (playerTarget && shot.kind !== "ion") {
+    if (playerTarget && shot.kind !== "ion" && skillFight(g)) {
       bumpXp(g, manningCrew(g, g.player, "player", "shields"), "shields", 1);
     }
     sfx(g, "shield");
@@ -2651,7 +2658,7 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
-// INFERRED: rocks every 8s (1 damage, 5% breach). Asteroid numbers were not re-audited.
+// Asteroid breach stays 0.05 and fire stays 0. The interval is cited-asteroid.ts. Those seconds are INFERRED.
 // Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
 // then the real shot 5--10 seconds later. The cycle repeats until escape.
 // INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
@@ -2839,6 +2846,14 @@ function tickFlare(g: Game, dt: number) {
     applyFlarePulse(g);
     armFlare(g);
   }
+}
+
+function tickLingeringAsteroids(g: Game, dt: number) {
+  // Shields, Overview: the bubble still restores. The hazard page does not stop that after the fight.
+  shieldRegen(g, g.player, "player", dt);
+  environment(g, dt);
+  if (g.shots.length) stepShots(g, dt);
+  if (g.player.hull <= 0) lose(g, "hull");
 }
 
 function armAsteroid(g: Game) {
@@ -3068,7 +3083,7 @@ function winCombat(g: Game) {
   g.crew = g.crew.filter((c) => c.side === "player");
   g.enemy = null;
   g.shots = [];
-  g.asteroid = false;
+  // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
   g.asb = false;
   g.pulsar = false;
   g.flare = false;
@@ -4633,6 +4648,8 @@ export function step(g: Game, dt: number) {
         // Backup Battery, Overview: the window can run out once the fight is over.
         // INFERRED: those 30 seconds keep counting on the map. A fight still ticks the cell in tickExtras.
         if (g.phase !== "combat") tickCell(g, h);
+        // Environmental Hazards, Asteroid Field: the field stays after the enemy is gone, until the jump.
+        if (g.phase !== "combat" && g.asteroid) tickLingeringAsteroids(g, h);
       }
     }
     flushSfx(g.sfx);
@@ -4695,7 +4712,7 @@ export function step(g: Game, dt: number) {
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";
-    g.asteroid = false;
+    // Environmental Hazards, Asteroid Field: an escape does not stop the field. A jump does.
     g.asb = false;
     g.pulsar = false;
     g.flare = false;

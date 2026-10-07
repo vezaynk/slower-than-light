@@ -55,6 +55,13 @@ export type ShipSight = {
  * Sensors, "Overview": level 1 is your interior, level 2 adds the enemy interior, and
  * level 2 still shows enemy crew through a cloak. A nebula disables Sensors; a Slug still sees.
  * Cloaking: vision of a cloaked enemy returns while your crew is aboard.
+ * Augmentations, Lifeform Scanner: "Functions exactly like the slugs' ability to sense live crew."
+ * That ability is the Slugs race line "Reveals live enemy crew (drones are undetectable)."
+ * Revealing crew tokens without opening interiors is the reading of "sense live crew"
+ * versus the separate sentence "Grants vision of adjacent rooms' interior".
+ * The scanner is not standing in a room, so it only sets the life-sign flag.
+ * A nebula still disables Sensors. The scanner still reveals live enemy crew,
+ * because it works when sensors do not function.
  */
 export function shipSight(g: Game): ShipSight {
   const sensors = playerSensorLevel(g);
@@ -63,7 +70,8 @@ export function shipSight(g: Game): ShipSight {
   const hack = hackVision(g)?.room ?? null;
   const cloaked = enemyCloaked(g);
   const ownAboard = g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
-  const life = g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0);
+  const life =
+    g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0) || g.augments.includes("pulseeye");
 
   const interior = (aboard: "player" | "enemy", roomId: string): boolean => {
     if (aboard === "player") return sensors >= 1 || own.has(roomId);

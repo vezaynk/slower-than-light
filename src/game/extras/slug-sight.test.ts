@@ -30,6 +30,21 @@ function dark(g: Game) {
   g.player.systems.sensors.ion = [];
 }
 
+/** Sensors at 0, no living player Slug, one live enemy crew member. */
+function blindScout(seed: number): { g: Game; foe: Crew } {
+  const g = createGame(seed);
+  startCombat(g, "scout");
+  dark(g);
+  const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+  assert.ok(foe);
+  assert.equal(
+    g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0),
+    false,
+  );
+  assert.equal(playerSensorLevel(g), 0);
+  return { g, foe };
+}
+
 describe("Slug vision", () => {
   it("opens rooms that share an edge with the Slug, including a room whose door was removed", () => {
     const g = createGame(21);
@@ -112,5 +127,50 @@ describe("Slug vision", () => {
     const sight = shipSight(g);
     assert.equal(sight.interior("player", "p-engines"), false);
     assert.equal(sight.showCrew(foe), false);
+  });
+
+  // Augmentations, Lifeform Scanner: "Functions exactly like the slugs' ability to sense live crew."
+  // Slugs: "Reveals live enemy crew (drones are undetectable)."
+  // Revealing crew tokens without opening interiors is the reading of "sense live crew"
+  // versus the separate sentence "Grants vision of adjacent rooms' interior".
+  it("a fitted Lifeform Scanner reveals live enemy crew without opening that room", () => {
+    const { g, foe } = blindScout(30);
+    g.augments = ["pulseeye"];
+    const boarder = g.crew.find((c) => c.side === "player");
+    assert.ok(boarder);
+    boarder.aboard = "enemy";
+    boarder.room = g.enemy!.rooms.find((r) => r.id !== foe.room)?.id ?? foe.room;
+    const sight = shipSight(g);
+    assert.equal(sight.showCrew(foe), true);
+    assert.equal(sight.interior("enemy", foe.room), false);
+    assert.equal(sight.interior("player", "p-engines"), false);
+    assert.equal(sight.showCrew(boarder), false);
+    assert.equal(sight.showCrew({ ...foe, hp: 0 }), false);
+  });
+
+  it("without a Lifeform Scanner the same dark ship hides enemy crew", () => {
+    const { g, foe } = blindScout(27);
+    assert.equal(g.augments.includes("pulseeye"), false);
+    assert.equal(shipSight(g).showCrew(foe), false);
+  });
+
+  it("a nebula disables Sensors and a Lifeform Scanner still reveals live enemy crew", () => {
+    const g = createGame(28);
+    startCombat(g, "scout");
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.kind = "nebula";
+    g.player.systems.sensors.level = 3;
+    g.augments = ["pulseeye"];
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    assert.equal(
+      g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0),
+      false,
+    );
+    const sight = shipSight(g);
+    assert.equal(playerSensorLevel(g), 0);
+    assert.equal(sight.showCrew(foe), true);
+    assert.equal(sight.interior("enemy", foe.room), false);
   });
 });

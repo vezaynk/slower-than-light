@@ -527,7 +527,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Guides and Tips — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Guides and tips — not-a-surface — wiki process, not a game system
 - [ ] Hacking — partial — spike.ts on either hull, including Flagship stage 1 at level 3. Several timings INFERRED. Hacking the weapons system on a normal ship drains every gun. On a Flagship, hacking one artillery room drains that gun at its base charge, and the other guns keep charging. A shot or ion on one artillery room slows only that gun.
-- [ ] Hacking Stun — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
+- [ ] Hacking Stun — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check. Hacking Stun stuns crew and drones in the hacked room for the rest of the pulse, and someone who enters is stunned for the time still left.
 - [ ] Hazards — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Healing Burst — partial — Bomb (Weapons) row is in WEAPONS and fitted on Slug B. Hull damage is 0. A hit adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member, and does not spend a Zoltan Shield. It can still miss the enemy ship. Aiming it at your own ship is a control, and that shot does not miss.
 - [ ] Heavily Damaged Federation Ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.

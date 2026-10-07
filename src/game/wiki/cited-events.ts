@@ -48,6 +48,12 @@ export function citedShieldHalf(id: string): boolean {
  * The Engi virus: "Engines and Shields systems halved".
  * Each tooltip says "rounds down against you".
  */
+/** Slug hacker (doors): "Fight a Slug ship with your Door System offline." */
+export function citedSystemOff(id: string): Array<"doors"> | null {
+  if (id === "c:slug-hacker-doors:0") return ["doors"];
+  return null;
+}
+
 export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons" | "engines"> | null {
   if (id === "c:slug-hacker-choice:0") return ["shields"];
   if (id === "c:slug-hacker-choice:1") return ["oxygen"];
@@ -2936,10 +2942,6 @@ const CORE_EVENTS: EventDef[] = [
           {
             "k": "fight",
             "tier": "Slug ship"
-          },
-          {
-            "k": "note",
-            "text": "The page's system shutdown is not applied."
           }
         ]
       }

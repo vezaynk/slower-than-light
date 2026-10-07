@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
+import { choose, chooseSector, commitJump, createGame, doorLevel, evasionPercent, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
 
@@ -401,5 +401,33 @@ describe("The Engi virus", () => {
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
     assert.ok(evasionPercent(g, g.player, "player") > halved);
+  });
+});
+
+describe("Slug hacker (doors)", () => {
+  it("takes the Door System offline until that fight ends", () => {
+    const g = createGame(61);
+    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-doors", "Slug hacker (doors)");
+    g.player.systems.doors.level = 3;
+    g.player.systems.doors.damage = 0;
+    g.player.systems.doors.ion = [];
+    assert.ok(doorLevel(g, g.player, "player") >= 2);
+    const door = g.player.doors.find((d) => d.b !== "void");
+    assert.ok(door);
+    const open = door.open;
+    choose(g, "c:slug-hacker-doors:0");
+    assert.equal(g.phase, "combat");
+    quietEnemy(g);
+    assert.equal(doorLevel(g, g.player, "player"), 0);
+    assert.ok(g.enemy);
+    if (g.enemy.systems.doors.level > g.enemy.systems.doors.damage) {
+      assert.ok(doorLevel(g, g.enemy, "enemy") > 0);
+    }
+    toggleDoor(g, door.a, door.b);
+    assert.equal(door.open, open);
+    g.enemy.hull = 0;
+    step(g, 0.05);
+    assert.notEqual(g.phase, "combat");
+    assert.ok(doorLevel(g, g.player, "player") >= 2);
   });
 });

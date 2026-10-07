@@ -76,7 +76,7 @@ import { hullById } from "./hulls.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
-import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, citedSystemHalf, stampCitedEvents } from "./wiki/cited-events.ts";
+import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -695,6 +695,30 @@ function clearShieldHalf(g: Game): void {
   weaponHalfShips.delete(g.player);
 }
 
+/**
+ * Slug hacker (doors): "Fight a Slug ship with your Door System offline."
+ * The page restores systems when that ship is destroyed or its crew are dead.
+ * INFERRED: offline is a door level of 0 and no remote open or close. The installed level stays.
+ * Open flags stay as they were. The half ends when that fight ends.
+ */
+const systemOff = new WeakMap<Game, Set<"doors">>();
+
+export function shutPlayerDoors(g: Game): void {
+  systemOff.set(g, new Set(["doors"]));
+  for (const door of g.player.doors) {
+    door.hp = 0;
+    doorArmedMax.delete(door);
+  }
+}
+
+function clearSystemOff(g: Game): void {
+  systemOff.delete(g);
+}
+
+function doorsOff(g: Game, aboard: "player" | "enemy"): boolean {
+  return aboard === "player" && (systemOff.get(g)?.has("doors") ?? false);
+}
+
 function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   const bonus = zoltanBars(g.crew, ship, aboard, "shields");
   if (aboard !== "player" || !systemHalf.get(g)?.has("shields")) return maxBubbles(ship, bonus);
@@ -1074,6 +1098,8 @@ function findDoor(ship: Ship, a: string, b: string): Door | undefined {
 
 /** Door System, "Manning": a body on the console counts as one level higher, capped at 4. */
 export function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
+  // Slug hacker (doors): "Door System offline".
+  if (doorsOff(g, aboard)) return 0;
   const sys = ship.systems.doors;
   if (!functional(sys)) return 0;
   let level = Math.max(0, sys.level - sys.damage);
@@ -1255,7 +1281,8 @@ export function lockdownSelected(g: Game) {
  * INFERRED: a dead door system cannot do this. The page does not say Z bypasses a broken Door System.
  */
 export function openAllDoors(g: Game) {
-  if (!functional(g.player.systems.doors)) {
+  // Slug hacker (doors): an offline Door System cannot open every door.
+  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
     log(g, "Door control is dead.");
     return;
   }
@@ -1341,7 +1368,8 @@ function meltCoats(g: Game) {
 }
 
 export function toggleDoor(g: Game, a: string, b: string) {
-  if (!functional(g.player.systems.doors)) {
+  // Slug hacker (doors): an offline Door System cannot open or close a door.
+  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
     log(g, "Door control is dead.");
     return;
   }
@@ -3563,6 +3591,7 @@ function winCombat(g: Game) {
   clearEngineLimit(g);
   // Auto-ship carrying shield virus: the half is only for that fight.
   clearShieldHalf(g);
+  clearSystemOff(g);
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
   // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
   const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
@@ -3847,6 +3876,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   clearEngineLimit(g);
   // A later fight does not keep the shield-virus half. The choice sets it again after this returns.
   clearShieldHalf(g);
+  clearSystemOff(g);
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
   const built = makeEnemy(g, tier, event);
@@ -4456,6 +4486,7 @@ export function commitJump(g: Game, id: string) {
   clearEngineLimit(g);
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
+  clearSystemOff(g);
   // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
   leashOnLeave(g);
   // @agent:flagship. Leaving the boss fight mid-stage: keep its stage and surviving crew (wiki/flagship-systems.ts).
@@ -4776,6 +4807,8 @@ export function choose(g: Game, id: string) {
               // Slug hacker (choice): Shields, Oxygen, or Weapon Control, each halved. After startCombat clears it.
               const halves = citedSystemHalf(id);
               if (halves) halvePlayerSystems(g, halves);
+              // Slug hacker (doors): "Door System offline". After startCombat, which clears it.
+              if (citedSystemOff(id)?.includes("doors")) shutPlayerDoors(g);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),
@@ -4846,6 +4879,7 @@ export function enterHiddenCrystal(g: Game) {
   clearEngineLimit(g);
   // INFERRED: leaving for the Hidden Crystal Worlds ends the shield-virus half.
   clearShieldHalf(g);
+  clearSystemOff(g);
   leashOnLeave(g);
   rememberFlagship(g);
   dropOvercharged(g.player);
@@ -5269,6 +5303,7 @@ export function step(g: Game, dt: number) {
     clearEngineLimit(g);
     // INFERRED: their escape ends the shield-virus half. The page only prints the half for that fight.
     clearShieldHalf(g);
+    clearSystemOff(g);
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";

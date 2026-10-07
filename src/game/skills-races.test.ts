@@ -406,6 +406,28 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.equal(steps, 250);
     assert.equal(worker.skills?.repair ?? 0, 0);
   });
+
+  it("a Rock fights a fire at 1.67 and a Crystal at 0.83", () => {
+    // Crew skills, Repair skill: Rocks have a hidden 1.67 multiplier, Crystals a 0.83 multiplier.
+    const drop = (kin: "plain" | "stone" | "shard") => {
+      const g = createGame(58);
+      const { worker, roomId, sys } = lone(g);
+      quiet(g);
+      worker.kin = kin;
+      worker.skills = {};
+      const room = g.player.rooms.find((r) => r.id === roomId)!;
+      g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
+      room.breach = 0;
+      room.o2 = 100;
+      room.fire = 1;
+      step(g, 0.05);
+      return 1 - room.fire;
+    };
+    const human = drop("plain");
+    assert.ok(human > 0);
+    assert.ok(Math.abs(drop("stone") / human - 1.67) < 1e-6);
+    assert.ok(Math.abs(drop("shard") / human - 0.83) < 1e-6);
+  });
 });
 
 describe("Crew skills: sabotage damage ignores race", () => {

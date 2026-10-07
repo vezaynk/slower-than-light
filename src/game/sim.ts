@@ -2535,6 +2535,7 @@ function doorSpreadSlow(g: Game, ship: Ship, aboard: "player" | "enemy"): number
 /**
  * Template:Crew races (comparison), fire-fighting note, and Fires, "Dealing with fires": crew in the room put the
  * fire out. FIRE_FIGHT_SHARE is an untrained Human. Rockmen and Crystal scale by their printed fire-fighting bonus.
+ * Crew skills, Repair skill: Rocks have a hidden 1.67 multiplier, and Crystals a 0.83 multiplier.
  * Repair skill applies (repairPace). Fire Suppression is not scaled.
  * Fires, lead: "2.128 damage per second for each fire in a room" to non-immune crew. The damage uses the fire left
  * after this moment's extinguishing. kin.fireTaken is 0 for a fire-immune lineage.

@@ -1405,6 +1405,27 @@ function killUnit(g: Game, unit: DroneUnit, why: string) {
  * deployed" spends one). A destroyed drone waits REDEPLOY_S and then spends a part to deploy again.
  * INFERRED: the enemy always redeploys when it has the power and a part.
  */
+function slideList<T>(list: T[], from: number, to: number): boolean {
+  if (from === to || !Number.isInteger(from) || !Number.isInteger(to)) return false;
+  if (from < 0 || to < 0 || from >= list.length || to >= list.length) return false;
+  const [item] = list.splice(from, 1);
+  list.splice(to, 0, item);
+  return true;
+}
+
+/**
+ * Weapon Control, Overview: the same drag that reorders weapons reorders drones.
+ * The schematic list and the deployed units stay in one index. A kit with no list does nothing.
+ */
+export function reorderDroneSlots(kit: Kit, from: number, to: number) {
+  const loadout = kit.loadout;
+  if (!loadout) return;
+  const drones = kit.drones;
+  if (drones && drones.length !== loadout.length) return;
+  if (!slideList(loadout, from, to)) return;
+  if (drones) slideList(drones, from, to);
+}
+
 export function tickEnemyDrones(g: Game, dt: number) {
   const enemy = g.enemy;
   const kit = enemy?.kits.swarm;

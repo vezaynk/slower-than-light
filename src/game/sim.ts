@@ -867,9 +867,19 @@ function capOf(sys: SystemState): number {
   return Math.max(0, sys.level - sys.damage - sys.ion.length);
 }
 
+/**
+ * Weapon Control, Overview: "When ionized or actively hacked, the weapons cannot be
+ * powered or depowered manually." Any ion point counts, not only a full lock.
+ * An active hack is the pulse (hackHoldsWeapons), not a drone that has only latched.
+ */
+export function weaponsPowerLocked(g: Game): boolean {
+  return g.player.systems.weapons.ion.length > 0 || hackHoldsWeapons(g, "player");
+}
+
 export function powerUp(g: Game, id: SysId) {
   const sys = g.player.systems[id];
   if (!isMain(id)) return;
+  if (id === "weapons" && weaponsPowerLocked(g)) return;
   if (sparePower(g.player) <= 0) return;
   if (sys.power >= capOf(sys)) return;
   sys.power += 1;
@@ -880,6 +890,7 @@ export function powerUp(g: Game, id: SysId) {
 export function powerDown(g: Game, id: SysId) {
   const sys = g.player.systems[id];
   if (!isMain(id)) return;
+  if (id === "weapons" && weaponsPowerLocked(g)) return;
   if (sys.power <= 0) return;
   sys.power -= 1;
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
@@ -1126,6 +1137,9 @@ export function armWeapon(g: Game, weaponUid: string) {
   // A fresh aim starts at the first click. An unfinished beam start does not carry over.
   g.beamAnchor = null;
   if (!w.enabled) {
+    // Weapon Control, Overview: ionized or hacked weapons cannot be powered manually.
+    // A slot that is already on can still be aimed.
+    if (weaponsPowerLocked(g)) return;
     w.enabled = true;
     g.armed = weaponUid;
     g.targeting = false;
@@ -1167,7 +1181,9 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   w.own = def?.kind === "bomb" && !enemyRoom;
   w.target = roomId;
   const title = (enemyRoom ?? ownRoom)?.title ?? "room";
-  if (mask[index] && w.charge >= 1) launch(g, "player", w);
+  // Weapon Control, Overview: a hack pulse cannot fire, even with stored charger shots.
+  // Ion does not block a slot that still has power.
+  if (!hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
   else {
     log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}.`);
     sfx(g, "click");
@@ -1199,7 +1215,7 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
   w.target = rooms[0] ?? roomId;
   g.beamAnchor = null;
   const titles = (rooms.length > 0 ? rooms : [w.target]).map((id) => roomById(enemy, id)?.title ?? "room");
-  if (powered && w.charge >= 1) launch(g, "player", w);
+  if (powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
   else {
     log(g, `${name} aimed across ${titles.join(", ")}.`);
     sfx(g, "click");
@@ -1223,9 +1239,29 @@ export function cancelTargeting(g: Game) {
 export function depowerWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
+  // Weapon Control, Overview: ionized or hacked weapons cannot be depowered manually.
+  if (weaponsPowerLocked(g)) return;
   w.enabled = false;
   stopTargeting(g);
   sfx(g, "click");
+}
+
+/**
+ * Weapon Control, Overview: "Weapons order can be changed by dragging and dropping a selected weapon."
+ * "When ionized, the slot positions of the weapons can be changed." A hack pulse does not block it either.
+ * Slot 1 is index 0, the left end of the list.
+ */
+export function reorderWeapons(g: Game, from: number, to: number) {
+  if (!slide(g.player.weapons, from, to)) return;
+  sfx(g, "click");
+}
+
+function slide<T>(list: T[], from: number, to: number): boolean {
+  if (from === to || !Number.isInteger(from) || !Number.isInteger(to)) return false;
+  if (from < 0 || to < 0 || from >= list.length || to >= list.length) return false;
+  const [item] = list.splice(from, 1);
+  list.splice(to, 0, item);
+  return true;
 }
 
 /** Weapon Control, Overview: autofire for all weapons, or the opposite on one slot. */
@@ -1248,10 +1284,14 @@ export function toggleAutoAll(g: Game) {
 }
 
 export function fireReady(g: Game) {
+  if (hackHoldsWeapons(g, "player")) {
+    log(g, "Weapon Control is hacked.");
+    return;
+  }
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   let any = false;
   g.player.weapons.forEach((w, i) => {
-    if (!mask[i] || w.charge < 1 || !w.target) return;
+    if (!mask[i] || !w.target || !weaponReady(w)) return;
     launch(g, "player", w);
     any = true;
   });
@@ -1260,7 +1300,7 @@ export function fireReady(g: Game) {
 
 export function toggleWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
-  if (!w) return;
+  if (!w || weaponsPowerLocked(g)) return;
   w.enabled = !w.enabled;
   sfx(g, "click");
 }
@@ -1304,11 +1344,18 @@ function beamSwipe(from: "player" | "enemy", ship: Ship, w: WeaponInst): string[
   return enemyBeamRooms(ship, w.target ?? "");
 }
 
-function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
+function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: number) {
   // Weapons, "Missiles" and "Bombs": one ammunition per shot.
   // INFERRED: flight 0.7s, missiles and bombs 1.35s, beams 0.32s. "Weapons timing and travel times" lists no seconds.
   const def = WEAPONS[w.defId];
-  if (!def || w.charge < 1 || !w.target) return;
+  const cap = def ? chargerCap(w.defId) : null;
+  if (!def || !w.target) return;
+  // Weapon Control, Overview: actively hacked weapons cannot be fired, stored charges included.
+  if (hackHoldsWeapons(g, from)) return;
+  const count = cap == null ? (def.kind === "beam" ? 1 : def.shots) : Math.floor(volley ?? w.loaded ?? 0);
+  if (cap == null) {
+    if (w.charge < 1) return;
+  } else if (count < 1) return;
   const ship = from === "player" ? g.player : g.enemy;
   // Bomb (Weapons), lead: a bomb may be aimed at the shooter's own hull. Every other shot goes to the other hull.
   const targetShip = from === "player" && def.kind === "bomb" && w.own ? g.player : from === "player" ? g.enemy : g.player;
@@ -1327,13 +1374,16 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst) {
     } else if (ship.ammo <= 0) return;
     else ship.ammo -= 1;
   }
-  w.charge = 0;
+  // A charger keeps the in-progress shot. The bank is what leaves the barrel.
+  // Ion (Weapons) / Laser (Weapons): one click fires every stored shot. Autofire passes `volley` 1.
+  if (cap == null) w.charge = 0;
+  else if (volley == null) w.loaded = 0;
+  else if ((w.loaded ?? 0) > 0) w.loaded = Math.max(0, (w.loaded ?? 0) - count);
   // Ion (Weapons), Chain Ion: the shot uses this step, then the step advances. A dry missile returns above.
   const step = w.chain ?? 0;
   const ion = chainIonAmount(w.defId, step) ?? def.ion;
   const line = def.kind === "beam" && w.beamLine ? { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } } : undefined;
-  const shots = def.kind === "beam" ? 1 : def.shots;
-  for (let i = 0; i < shots; i++) {
+  for (let i = 0; i < count; i++) {
     g.shots.push({
       id: uid(g),
       kind: def.kind,
@@ -1838,6 +1888,101 @@ function strikeRoom(
   }
 }
 
+/** Ion Charger and the three Laser Chargers. `shots` on the def is the bank, not one volley of a normal gun. */
+const CHARGER_IDS = new Set(["ioncharger", "chargers", "charger", "charger2"]);
+
+/** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
+export function chargerCap(defId: string): number | null {
+  if (!CHARGER_IDS.has(defId)) return null;
+  const n = WEAPONS[defId]?.shots ?? 0;
+  return n > 0 ? n : null;
+}
+
+/**
+ * Bar shown in the dock and on the enemy charge row.
+ * A charger fills by stored shots plus the shot in progress. A full bank reads as a full bar.
+ */
+export function weaponChargeShown(w: WeaponInst): number {
+  const cap = chargerCap(w.defId);
+  const charge = Math.max(0, w.charge);
+  if (cap == null) return Math.min(1, charge);
+  const loaded = Math.max(0, w.loaded ?? 0);
+  const filling = loaded < cap ? Math.min(1, charge) : 0;
+  return Math.min(1, (loaded + filling) / cap);
+}
+
+/** Move finished charger time into the bank. A full bank drops leftover progress. */
+function absorbCharger(w: WeaponInst, max: number) {
+  let loaded = w.loaded ?? 0;
+  while (w.charge >= 1 && loaded < max) {
+    w.charge -= 1;
+    loaded += 1;
+  }
+  if (loaded >= max) w.charge = 0;
+  w.loaded = loaded;
+}
+
+/** True when a click or autofire tick may fire. Settles a finished charger shot into the bank first. */
+function weaponReady(w: WeaponInst): boolean {
+  const max = chargerCap(w.defId);
+  if (max == null) return w.charge >= 1;
+  absorbCharger(w, max);
+  return (w.loaded ?? 0) >= 1;
+}
+
+/**
+ * Ion (Weapons), Ion Charger, and Laser (Weapons), Laser Charger / (S) / Mark II.
+ * Each shot takes `def.charge` seconds. Manual aim fires the whole bank.
+ * Autofire, and every enemy gun, fires one finished shot and does not bank.
+ * Losing power does not empty the bank. A cloak pause or a weapons hack holds it.
+ */
+function tickCharger(
+  g: Game,
+  ship: Ship,
+  from: "player" | "enemy",
+  w: WeaponInst,
+  i: number,
+  def: (typeof WEAPONS)[string],
+  mask: boolean[],
+  frozen: boolean,
+  mult: number,
+  dt: number,
+) {
+  const max = chargerCap(w.defId);
+  if (max == null) return;
+  // Not a chain: going offline keeps the bank and the shot in progress.
+  if (!mask[i] || hackDrainsGun(g, from, w.defId)) return;
+  if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
+  if (frozen) return;
+  if ((w.loaded ?? 0) < max && def.charge > 0) w.charge += dt / (def.charge * mult);
+  // Cloaking: a cloaked enemy that holds fire keeps the charge. For a charger that means the bank grows.
+  if (from === "enemy" && enemyHoldsFire(g)) {
+    absorbCharger(w, max);
+    return;
+  }
+  const auto = from === "enemy" || slotAutofire(g, w);
+  if (!auto) {
+    absorbCharger(w, max);
+    if (w.target && (w.loaded ?? 0) > 0) launch(g, from, w);
+    return;
+  }
+  // A bank already stored (autofire just turned on, or a cloak hold) leaves as one volley.
+  if ((w.loaded ?? 0) > 0 && w.target) {
+    if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
+    launch(g, from, w);
+  }
+  while (w.charge >= 1 && w.target) {
+    if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
+    if (!w.target) break;
+    w.charge -= 1;
+    const before = g.shots.length;
+    launch(g, from, w, 1);
+    if (g.shots.length === before) break;
+  }
+  // No target: hold one finished shot in the bar. Do not start a bank.
+  if (!w.target && w.charge >= 1) w.charge = 1;
+}
+
 function chargeSide(
   g: Game,
   ship: Ship,
@@ -1867,6 +2012,10 @@ function chargeSide(
   ship.weapons.forEach((w, i) => {
     const def = WEAPONS[w.defId];
     if (!def) return;
+    if (chargerCap(w.defId) != null) {
+      tickCharger(g, ship, from, w, i, def, mask, frozen, mult, dt);
+      return;
+    }
     // Laser (Weapons): Chain Burst and Chain Vulcan "Charge time resets … if the weapon goes offline."
     // Partial charge is dropped, so the next charge is a full first step.
     // Ion (Weapons), Chain Ion: INFERRED the same reset. The section prints the ion climb, not the reset.

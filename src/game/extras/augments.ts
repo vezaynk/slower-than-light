@@ -1,4 +1,4 @@
-import { bars, log, powerMask, rand, zoltanBars } from "../sim.ts";
+import { bars, chargerCap, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game } from "../types.ts";
 
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
@@ -222,7 +222,11 @@ export function primeWeapons(g: Game) {
   let primed = false;
   g.player.weapons.forEach((w, i) => {
     if (!w.enabled || !mask[i]) return;
-    w.charge = 1;
+    // Ion (Weapons) / Laser (Weapons): Weapon Pre-Igniter primes one charger shot, not the bank.
+    if (chargerCap(w.defId) != null) {
+      w.loaded = 1;
+      w.charge = 0;
+    } else w.charge = 1;
     primed = true;
   });
   if (primed) log(g, "Weapon Pre-Igniter: weapons are charged.");

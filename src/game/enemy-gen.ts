@@ -377,14 +377,22 @@ function roll(r: Range, sector: number, rand: () => number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
+/** Laser (Weapons), "Laser Charger (S)": "Enemies never use this weapon." */
+export function enemyMayMount(id: string): boolean {
+  return id !== "chargers";
+}
+
 /** Enemy weapon list from the faction pool, filling weapon power without going over. INFERRED: at most 4 guns. */
 function arm(pool: string[], power: number, rand: () => number): string[] {
-  const ids = pool.map((n) => weaponIdForName(n)).filter((id): id is string => !!id && !!WEAPONS[id]);
+  const ids = pool
+    .map((n) => weaponIdForName(n))
+    .filter((id): id is string => !!id && !!WEAPONS[id] && enemyMayMount(id));
   const order = [...ids].sort(() => rand() - 0.5);
   const out: string[] = [];
   let left = power;
   for (const id of order) {
     if (out.length >= 4) break;
+    if (!enemyMayMount(id)) continue;
     const cost = WEAPONS[id].power;
     if (cost <= left) {
       out.push(id);

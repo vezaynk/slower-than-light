@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, unlockAudio } from "@/game/audio";
 import {
   SECTOR_NAMES,
@@ -11,6 +11,7 @@ import {
 import { CATALOG } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { installCell, startCell } from "@/game/extras/cell";
+import { reorderDroneSlots } from "@/game/extras/swarm";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
@@ -41,6 +42,7 @@ import {
   aim,
   armWeapon,
   cancelTargeting,
+  chargerCap,
   choiceDisabled,
   choose,
   chooseSector,
@@ -64,6 +66,7 @@ import {
   powerDown,
   powerMask,
   powerUp,
+  reorderWeapons,
   reverseSlotAuto,
   saveGame,
   selectCrew,
@@ -73,6 +76,8 @@ import {
   toggleDoor,
   togglePause,
   upgrade,
+  weaponChargeShown,
+  weaponsPowerLocked,
 } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
@@ -763,9 +768,11 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           {enemy.weapons.map((w) => {
             const name = WEAPONS[w.defId]?.name ?? w.defId;
             const pips = 7;
-            const filled = Math.round(Math.max(0, Math.min(1, w.charge)) * pips);
+            const filled = Math.round(weaponChargeShown(w) * pips);
+            const cap = chargerCap(w.defId);
+            const bank = cap != null ? `, ${w.loaded ?? 0} of ${cap} shots` : "";
             return (
-              <div key={w.uid} className="foe-charge">
+              <div key={w.uid} className="foe-charge" aria-label={`${name} charge${bank}`}>
                 <span className="foe-charge-name">{name}</span>
                 <span className="charge-pips" aria-hidden="true">
                   {Array.from({ length: pips }, (_, i) => (
@@ -781,8 +788,75 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
   );
 }
 
+function useTrayDrag(tray: string, onReorder: (from: number, to: number) => void) {
+  const drag = useRef<{ index: number; x: number; y: number; moved: boolean; pointer: number } | null>(null);
+  const skipClick = useRef(false);
+  const [from, setFrom] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+
+  function slotAt(x: number, y: number): number | null {
+    const node = document.elementFromPoint(x, y)?.closest(`[data-tray="${tray}"]`);
+    const raw = node?.getAttribute("data-slot");
+    if (raw == null || raw === "") return null;
+    const n = Number(raw);
+    return Number.isInteger(n) ? n : null;
+  }
+
+  function onPointerDown(index: number, e: ReactPointerEvent<HTMLButtonElement>) {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    drag.current = { index, x: e.clientX, y: e.clientY, moved: false, pointer: e.pointerId };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e: ReactPointerEvent<HTMLButtonElement>) {
+    const held = drag.current;
+    if (!held || held.pointer !== e.pointerId) return;
+    if (!held.moved && Math.hypot(e.clientX - held.x, e.clientY - held.y) < 6) return;
+    held.moved = true;
+    setFrom(held.index);
+    setOver(slotAt(e.clientX, e.clientY));
+  }
+
+  function onPointerUp(e: ReactPointerEvent<HTMLButtonElement>) {
+    const held = drag.current;
+    drag.current = null;
+    setFrom(null);
+    setOver(null);
+    if (!held?.moved) return;
+    skipClick.current = true;
+    // The click lands on whatever is under the cursor, which may be the slot dropped on.
+    const swallow = (ev: MouseEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      window.removeEventListener("click", swallow, true);
+    };
+    window.addEventListener("click", swallow, true);
+    const to = slotAt(e.clientX, e.clientY);
+    if (to == null || to === held.index) return;
+    onReorder(held.index, to);
+  }
+
+  function onClickCapture(e: { preventDefault: () => void; stopPropagation: () => void }) {
+    if (!skipClick.current) return;
+    skipClick.current = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  return { from, over, onPointerDown, onPointerMove, onPointerUp, onClickCapture };
+}
+
 function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
+  const guns = useTrayDrag("weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
+  const drones = useTrayDrag("drones", (from, to) =>
+    act((g) => {
+      const kit = g.player.kits.swarm;
+      if (kit) reorderDroneSlots(kit, from, to);
+    }),
+  );
+  const swarm = game.player.kits.swarm;
+  const droneSlots = swarm?.loadout?.length ? swarm.loadout : swarm?.target ? [swarm.target] : [];
   // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
   const hackedKit = hackedPlayerKit(game);
   return (
@@ -792,7 +866,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           {sparePower(game.player)}
         </span>
         {MAIN_BARS.map((id) => (
-          <PowerStack key={id} game={game} id={id} />
+          <PowerStack key={id} game={game} id={id} locked={id === "weapons" && weaponsPowerLocked(game)} />
         ))}
       </div>
       <div className="weapon-dock">
@@ -802,17 +876,28 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const live = w.enabled && mask[index];
             const auto = slotAutofire(game, w);
             const pips = 7;
-            const filled = Math.round(Math.max(0, Math.min(1, w.charge)) * pips);
+            const filled = Math.round(weaponChargeShown(w) * pips);
             const name = def?.name ?? w.defId;
+            const cap = chargerCap(w.defId);
+            const bank = cap != null ? ` ${w.loaded ?? 0} of ${cap} shots.` : "";
             const aimed = w.target
               ? (w.own ? game.player.rooms : game.enemy?.rooms)?.find((r) => r.id === w.target)?.title ?? null
               : null;
+            const dragging = guns.from === index;
+            const drop = guns.over === index && guns.from !== index;
             return (
               <button
                 key={w.uid}
                 type="button"
-                className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}`}
-                aria-label={`${name}. ${w.enabled ? "Powered" : "Depowered"}. ${auto ? "Autofire on" : "Autofire off"}.`}
+                data-tray="weapons"
+                data-slot={index}
+                draggable={false}
+                className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                aria-label={`${name}.${bank} ${w.enabled ? "Powered" : "Depowered"}. ${auto ? "Autofire on" : "Autofire off"}.`}
+                onPointerDown={(e) => guns.onPointerDown(index, e)}
+                onPointerMove={guns.onPointerMove}
+                onPointerUp={guns.onPointerUp}
+                onClickCapture={guns.onClickCapture}
                 onClick={(e) => {
                   if (e.ctrlKey || e.metaKey) {
                     act((g) => reverseSlotAuto(g, w.uid));
@@ -855,6 +940,38 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
           ))}
         </div>
+        {droneSlots.length > 0 ? (
+          <div className="gun-tray drone-tray">
+            {droneSlots.map((kind, index) => {
+              const key = droneKeyOf(kind);
+              const name = key ? DRONE_LOOKS[key].name : kind;
+              const dragging = drones.from === index;
+              const drop = drones.over === index && drones.from !== index;
+              return (
+                <button
+                  key={`${kind}-${index}`}
+                  type="button"
+                  data-tray="drones"
+                  data-slot={index}
+                  draggable={false}
+                  className={`gun-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                  aria-label={`${name} drone slot ${index + 1}`}
+                  onPointerDown={(e) => drones.onPointerDown(index, e)}
+                  onPointerMove={drones.onPointerMove}
+                  onPointerUp={drones.onPointerUp}
+                  onClickCapture={drones.onClickCapture}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  {key ? <DroneArt kind={key} height={20} /> : null}
+                  <span className="gun-name">{name}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
         <div className="dock-caption">
           <span className="dock-label">WEAPONS</span>
           <button
@@ -1056,7 +1173,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
   );
 }
 
-function PowerStack({ game, id }: { game: Game; id: SysId }) {
+function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locked?: boolean }) {
   const sys = game.player.systems[id];
   const cap = Math.max(0, sys.level - sys.damage - sys.ion.length);
   const slots = sys.level;
@@ -1065,7 +1182,7 @@ function PowerStack({ game, id }: { game: Game; id: SysId }) {
   const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
   return (
-    <div className="power-stack">
+    <div className={`power-stack${locked ? " is-locked" : ""}`}>
       <div className="power-col">
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
@@ -1087,6 +1204,7 @@ function PowerStack({ game, id }: { game: Game; id: SysId }) {
               type="button"
               className={cls}
               aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
+              aria-disabled={locked || undefined}
               onClick={() => {
                 if (i >= cap) return;
                 const next = i < sys.power ? i : i + 1;

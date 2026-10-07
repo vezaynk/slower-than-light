@@ -1,4 +1,4 @@
-import { bars, cooldownLocksPower, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { bars, chargerCap, cooldownLocksPower, evasionPercent, kitBars, log, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -1038,6 +1038,9 @@ function pulseSwarm(g: Game, kit: Kit, dt: number) {
 function drainGuns(weapons: Ship["weapons"], dt: number, only: string | null) {
   for (const w of weapons) {
     if (only && w.defId !== only) continue;
+    // Weapon Control, Overview: stored charger charges "cannot be removed by hacking disruptions".
+    // The in-progress shot is part of that store. Ordinary weapons still drain to just under a full bar.
+    if (chargerCap(w.defId) != null) continue;
     const seconds = WEAPONS[w.defId]?.charge;
     if (seconds == null || seconds <= 0) continue;
     w.charge = Math.min(0.99, Math.max(0, w.charge - dt / seconds));

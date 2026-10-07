@@ -132,7 +132,19 @@ export type Crew = {
 export type WeaponInst = {
   uid: string;
   defId: string;
+  /**
+   * Progress of the shot currently charging, from 0 to 1.
+   * A charger (Ion Charger, Laser Charger, Laser Charger (S), Laser Charger Mark II)
+   * uses this for one shot. The bank lives in `loaded`. Every other gun still fills
+   * one bar for its whole volley.
+   */
   charge: number;
+  /**
+   * Finished charger shots waiting to fire. Absent means 0.
+   * Ion (Weapons), Ion Charger, and Laser (Weapons), the three charger rows:
+   * each shot charges on its own, and a click fires however many are stored.
+   */
+  loaded?: number;
   enabled: boolean;
   autofire: boolean;
   /**

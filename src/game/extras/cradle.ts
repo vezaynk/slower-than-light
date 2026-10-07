@@ -167,6 +167,8 @@ export function tickCradle(g: Game, dt: number) {
   head.hp = head.maxHp;
   dropClone(head);
   restoreSkills(head);
+  // Crew skills, Combat: a body the bay returned is cloned crew. Killing it grants no combat experience.
+  head.cloned = true;
   log(g, `Clone Bay returned ${head.name}.`);
 }
 
@@ -316,6 +318,7 @@ function tickEnemyCradle(g: Game, dt: number) {
   head.aboard = "enemy";
   head.path = [];
   restoreSkills(head);
+  head.cloned = true;
   log(g, `Their Clone Bay returned ${head.name}.`);
 }
 

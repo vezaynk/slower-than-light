@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy } from "./enemy-gen.ts";
+import { tickSabotage } from "./extras/sabotage.ts";
 import { createGame, evasionPercent, repairPace, startCombat, step } from "./sim.ts";
 import { WEAPONS, XP_NEED } from "./content.ts";
 import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
@@ -280,6 +281,133 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
     });
     assert.ok(rates[0] > 0);
     assert.ok(Math.abs(rates[1] - rates[0]) < 1e-9);
+  });
+});
+
+describe("Crew skills, Combat skill: one point for a killing blow or one system level", () => {
+  function duel() {
+    const g = createGame(31);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms[0]!;
+    const away = g.player.rooms.find((r) => r.id !== room.id)!;
+    const hero = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0)!;
+    for (const c of g.crew) {
+      if (c.id !== hero.id && c.id !== foe.id) c.room = away.id;
+      c.path = [];
+      c.think = 30;
+      c.stun = 0;
+      c.skills = {};
+    }
+    hero.room = room.id;
+    hero.aboard = "player";
+    hero.kin = "plain";
+    hero.hp = hero.maxHp;
+    foe.room = room.id;
+    foe.aboard = "player";
+    foe.side = "enemy";
+    foe.kin = "plain";
+    foe.hp = foe.maxHp;
+    foe.leashed = undefined;
+    return { g, hero, foe, room };
+  }
+
+  it("grants nothing while both crew still stand, then one point for the killing blow", () => {
+    const { g, hero, foe } = duel();
+    step(g, 0.05);
+    assert.ok(foe.hp > 0 && foe.hp < foe.maxHp);
+    assert.equal(hero.skills?.combat ?? 0, 0);
+    foe.hp = 0.05;
+    step(g, 0.05);
+    assert.ok(foe.hp <= 0);
+    assert.equal(hero.skills?.combat ?? 0, 1);
+  });
+
+  it("gives the point to each attacker still striking", () => {
+    // INFERRED: the page names one final hit. Both are still striking, so both receive it.
+    const { g, hero, foe, room } = duel();
+    const mate = g.crew.find((c) => c.side === "player" && c.id !== hero.id)!;
+    mate.room = room.id;
+    mate.path = [];
+    mate.kin = "plain";
+    mate.skills = {};
+    foe.hp = 0.05;
+    step(g, 0.05);
+    assert.ok(foe.hp <= 0);
+    assert.equal(hero.skills?.combat ?? 0, 1);
+    assert.equal(mate.skills?.combat ?? 0, 1);
+  });
+
+  it("killing a cloned crew member trains nothing", () => {
+    const { g, hero, foe } = duel();
+    foe.cloned = true;
+    foe.hp = 0.05;
+    step(g, 0.05);
+    assert.ok(foe.hp <= 0);
+    assert.equal(hero.skills?.combat ?? 0, 0);
+  });
+
+  it("grants one point when a sabotage bar finishes, and nothing to a fire", () => {
+    const g = createGame(32);
+    startCombat(g, "scout");
+    g.crew = g.crew.filter((c) => c.side === "player");
+    const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
+    const sys = g.enemy!.systems[room.system!];
+    sys.damage = 0;
+    room.fire = 0;
+    room.sabotage = 0.99;
+    const hero = g.crew.find((c) => c.side === "player")!;
+    hero.aboard = "enemy";
+    hero.room = room.id;
+    hero.path = [];
+    hero.stun = 0;
+    hero.skills = {};
+    const bystander = g.crew.find((c) => c.side === "player" && c.id !== hero.id)!;
+    bystander.skills = {};
+    bystander.aboard = "player";
+    tickSabotage(g, 0.05);
+    assert.equal(sys.damage, 0);
+    assert.equal(hero.skills?.combat ?? 0, 0);
+    tickSabotage(g, 0.3);
+    assert.equal(sys.damage, 1);
+    assert.equal(hero.skills?.combat ?? 0, 1);
+    assert.equal(bystander.skills?.combat ?? 0, 0);
+
+    const burned = createGame(33);
+    startCombat(burned, "scout");
+    for (const c of burned.crew) c.skills = {};
+    const hot = burned.enemy!.rooms.find((r) => r.system && burned.enemy!.systems[r.system].level > 0)!;
+    burned.enemy!.systems[hot.system!].damage = 0;
+    hot.fire = 1;
+    hot.sabotage = 0.99;
+    for (const c of burned.crew) if (c.aboard === "enemy" && c.room === hot.id) c.room = burned.player.rooms[0]!.id;
+    tickSabotage(burned, 0.3);
+    assert.equal(burned.enemy!.systems[hot.system!].damage, 1);
+    assert.ok(burned.crew.every((c) => (c.skills?.combat ?? 0) === 0));
+  });
+
+  it("a mind-controlled crew member gains the point for damaging your system", () => {
+    const g = createGame(34);
+    startCombat(g, "scout");
+    const room = g.player.rooms.find((r) => r.system && g.player.systems[r.system].level > 0)!;
+    g.player.systems[room.system!].damage = 0;
+    room.fire = 0;
+    room.sabotage = 0.99;
+    const turned = g.crew.find((c) => c.side === "player")!;
+    for (const c of g.crew) {
+      c.skills = {};
+      if (c.id !== turned.id && c.room === room.id) c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
+    }
+    turned.aboard = "player";
+    turned.room = room.id;
+    turned.path = [];
+    turned.stun = 0;
+    turned.leashed = 10;
+    tickSabotage(g, 0.3);
+    assert.equal(g.player.systems[room.system!].damage, 1);
+    assert.equal(turned.skills?.combat ?? 0, 1);
   });
 });
 

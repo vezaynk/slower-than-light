@@ -31,6 +31,7 @@ describe("cradle", () => {
     assert.equal(ada.hp, 100);
     assert.equal(ada.skills?.repair, 80);
     assert.equal(ada.cloneIn, undefined);
+    assert.equal(ada.cloned, true);
     assert.equal(g.log[0], "Clone Bay returned Ada Voss.");
   });
 });

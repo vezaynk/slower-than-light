@@ -546,13 +546,18 @@ function rankOf(c: Crew | undefined, skill: SkillName): 0 | 1 | 2 {
 }
 
 function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) {
-  // Printed events pass 1. Combat still passes dt until that skill's killing-blow rule lands.
+  // Printed events pass 1.
   if (!c || amount <= 0 || c.side !== "player") return;
   if (!c.skills) c.skills = {};
   const before = rankOf(c, skill);
   c.skills[skill] = (c.skills[skill] ?? 0) + amount;
   const after = rankOf(c, skill);
   if (after > before) log(g, `${c.name} — ${skill} rank ${after}.`);
+}
+
+/** Crew skills, Combat: one printed point for a killing blow or one sabotaged system level. */
+export function noteCombatPoint(g: Game, c: Crew) {
+  bumpXp(g, c, "combat", 1);
 }
 
 function skillFight(g: Game): boolean {
@@ -2557,20 +2562,27 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       const dps = 6;
       const dealt = (attacker: Crew) => combatSkillMult(rankOf(attacker, "combat"));
       for (const c of foes) {
+        const before = c.hp;
         const hit = pals.reduce(
           (sum, p) => sum + (dps / foes.length) * dt * leashMult(p) * kinOf(p.kin ?? "plain").fight * dealt(p),
           0,
         );
         c.hp -= hit;
-        for (const p of pals) bumpXp(g, p, "combat", dt);
+        // Crew skills, Combat: "one point of experience for dealing the killing blow to hostile crew".
+        // "killing cloned crew or destroying onboard drones doesn't grant experience."
+        // Drones are not in this crew loop, so breaking one grants nothing.
+        // INFERRED: every attacker still striking on that tick counts as the blow. The page names one final hit,
+        // and this sim has no per-crew swing order.
+        if (before > 0 && c.hp <= 0 && !c.cloned) for (const p of pals) noteCombatPoint(g, p);
       }
       for (const c of pals) {
+        const before = c.hp;
         const incoming = foes.reduce(
           (sum, f) => sum + (dps / pals.length) * dt * leashMult(f) * kinOf(f.kin ?? "plain").fight * dealt(f),
           0,
         );
         c.hp -= incoming;
-        bumpXp(g, c, "combat", dt);
+        if (before > 0 && c.hp <= 0 && !c.cloned) for (const f of foes) noteCombatPoint(g, f);
       }
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
@@ -3336,6 +3348,7 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
     reactor: spec.reactor,
     systems: systems(spec.systems),
     rooms,
+    // Traced interiors pass the orange bars. The two picture-less classes leave marks unset.
     doors: addDoors(rooms, spec.marks),
     weapons: spec.weapons.map((defId) => enemyGun(g, defId)),
     ammo: spec.missiles,

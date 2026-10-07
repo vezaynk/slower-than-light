@@ -1,4 +1,4 @@
-import { hurtKit, hurtSystem, log, zoltanBars } from "../sim.ts";
+import { hurtKit, hurtSystem, log, noteCombatPoint, zoltanBars } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
 import { sideOf } from "./leash.ts";
 import { artilleryGun, hurtArtillery } from "../wiki/flagship-systems.ts";
@@ -19,15 +19,19 @@ export const SABOTAGE_RATE = 0.08;
  * enemy stops sabotaging and instead counts as a defender there.
  * INFERRED: a stunned boarder does not sabotage. A stunned defender still blocks sabotage (it is hostile crew in the room).
  */
-function sabotageCounts(g: Game, aboard: "player" | "enemy", r: Room): { boarders: number; defenders: number } {
+function sabotageCounts(g: Game, aboard: "player" | "enemy", r: Room): { boarders: number; defenders: number; striking: Crew[] } {
   let boarders = 0;
   let defenders = 0;
+  const striking: Crew[] = [];
   for (const c of g.crew as Crew[]) {
     if (c.aboard !== aboard || c.room !== r.id || c.hp <= 0 || c.path.length !== 0) continue;
     if (sideOf(c) === aboard) defenders++;
-    else if ((c.stun ?? 0) <= 0) boarders++;
+    else if ((c.stun ?? 0) <= 0) {
+      boarders++;
+      striking.push(c);
+    }
   }
-  return { boarders, defenders };
+  return { boarders, defenders, striking };
 }
 
 /** Level and damage of the room's system or kit, or null if the room houses nothing that can be sabotaged. */
@@ -50,7 +54,7 @@ function target(ship: Ship, r: Room): { level: number; damage: number } | null {
 
 function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) {
-    const { boarders, defenders } = sabotageCounts(g, aboard, r);
+    const { boarders, defenders, striking } = sabotageCounts(g, aboard, r);
     // Boarding, "Combat": "Sabotage progress is reset once there are no boarders or fires in the room."
     if (boarders === 0 && r.fire <= 0) {
       if (r.sabotage) r.sabotage = 0;
@@ -72,11 +76,17 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
     r.sabotage = (r.sabotage ?? 0) + rate * dt;
     if (r.sabotage < 1) continue;
     // Boarding, "Combat": "When the bar is filled, the system takes 1 damage".
+    // Crew skills, Combat: "one point of experience for ... damaging one system level" on "the sabotage tick".
+    // "Your mind-controlled crew also gains combat experience for damaging your ship systems."
+    // A fire can fill the bar and is not a crew member, so it grants nothing. A paused boarder is not the tick.
+    // INFERRED: each boarder still sabotaging on that tick receives the point. The page names one tick.
+    const credit = working > 0 ? striking : [];
     r.sabotage = 0;
     if (r.system) {
       if (!hurtArtillery(ship, r.id, 1)) hurtSystem(ship, r.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
     }
     else if (r.kit) hurtKit(ship, r.kit, 1);
+    for (const c of credit) noteCombatPoint(g, c);
     r.flash = Math.max(r.flash, 0.3);
     const after = target(ship, r);
     if (after && after.damage >= after.level) {

@@ -127,6 +127,11 @@ export type Crew = {
   leashBoost?: number;
   /** Seconds until a clone finishes. Set only while this body is waiting. */
   cloneIn?: number;
+  /**
+   * Crew skills, Combat: "killing cloned crew ... doesn't grant experience."
+   * Set when a Clone Bay returns this body. Absent means the original.
+   */
+  cloned?: boolean;
   /** Clone Bay queue position, either side (lower clones first, "one-by-one"). Set only while `cloneIn` is set. */
   cloneSeq?: number;
   /** Seconds this body cannot act. Hacking Stun sets this for the pulse. */

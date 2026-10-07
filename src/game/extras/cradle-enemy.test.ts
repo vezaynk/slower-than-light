@@ -61,6 +61,7 @@ describe("enemy clone bay", () => {
       // Clone Bay, Overview: 20% skill penalty, 1 point of combat.
       assert.equal(victim.skills?.repair, 80);
       assert.equal(victim.skills?.combat, 4);
+      assert.equal(victim.cloned, true);
       assert.equal(enemyCloneQueue(g), null);
     });
   }

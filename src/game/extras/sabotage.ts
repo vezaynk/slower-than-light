@@ -6,6 +6,7 @@ import { artilleryGun, hurtArtillery } from "../wiki/flagship-systems.ts";
 /**
  * Fires: "0.08 system damage per second for each fire in a room (same as a single boarder)".
  * Template:Crew races (comparison): "System sabotage damage is the same for all crew and cannot be increased".
+ * Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
  */
 export const SABOTAGE_RATE = 0.08;
 

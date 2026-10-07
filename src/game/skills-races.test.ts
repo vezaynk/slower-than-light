@@ -440,6 +440,43 @@ describe("Crew skills: sabotage damage ignores race", () => {
     assert.equal(progress("shell"), human);
     assert.equal(progress("blade"), human);
   });
+
+  it("one boarder breaks one bar in 12.5 seconds, skill and race aside", () => {
+    // Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
+    const steps = (kin: "plain" | "shell" | "blade", combat: number) => {
+      const g = createGame(57);
+      startCombat(g, "scout");
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
+      const away = g.enemy!.rooms.find((r) => r.id !== room.id)!;
+      const sys = g.enemy!.systems[room.system!];
+      sys.damage = 0;
+      room.fire = 0;
+      room.sabotage = 0;
+      const hero = g.crew.find((c) => c.side === "player")!;
+      for (const c of g.crew) {
+        c.path = [];
+        if (c.id !== hero.id && c.aboard === "enemy" && c.room === room.id) c.room = away.id;
+      }
+      hero.aboard = "enemy";
+      hero.room = room.id;
+      hero.path = [];
+      hero.stun = 0;
+      hero.leashed = undefined;
+      hero.kin = kin;
+      hero.skills = { combat };
+      let n = 0;
+      while (sys.damage === 0 && n < 300) {
+        tickSabotage(g, 0.05);
+        n++;
+      }
+      return n;
+    };
+    assert.equal(steps("plain", 0), 250);
+    assert.equal(steps("shell", 0), 250);
+    assert.equal(steps("blade", 14), 250);
+  });
 });
 
 describe("Crew skills: a repair drone cannot gain experience", () => {

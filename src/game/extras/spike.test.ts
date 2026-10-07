@@ -351,6 +351,146 @@ describe("spike", () => {
     for (let i = 0; i < 20; i++) step(g, 0.05);
     assert.equal(foe.room, door.a, "powering the hack shuts the door on that crew");
   });
+
+  it("stuns crew and drones in the hacked room for the rest of the pulse", () => {
+    // Augmentations, "Offensive Augmentations", Hacking Stun. Boarding, "Stun effect": the rest of the pulse.
+    const bare = armed(2);
+    const bareRoom = bare.enemy!.rooms.find((r) => r.system === "shields");
+    assert.ok(bareRoom);
+    const bareFoe = bare.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(bareFoe);
+    bareFoe.room = bareRoom.id;
+    bareFoe.aboard = "enemy";
+    bareFoe.stun = 0;
+    armSpike(bare, "shields");
+    assert.equal(launchLanded(bare), true);
+    tickSpike(bare, 1e-6);
+    assert.equal(bareFoe.stun ?? 0, 0);
+
+    const g = armed(2);
+    g.augments = ["stun"];
+    const enemy = g.enemy!;
+    const room = enemy.rooms.find((r) => r.system === "shields");
+    const other = enemy.rooms.find((r) => r.id !== room?.id);
+    assert.ok(room && other);
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    const boarder = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(foe && boarder);
+    foe.room = room.id;
+    foe.aboard = "enemy";
+    foe.stun = 0;
+    boarder.room = room.id;
+    boarder.aboard = "enemy";
+    boarder.side = "player";
+    boarder.stun = 0;
+    const walker = {
+      id: "walk-in",
+      name: "Walker",
+      side: "enemy" as const,
+      aboard: "enemy" as const,
+      hp: 50,
+      maxHp: 50,
+      room: other.id,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      stun: 0,
+    };
+    const parked = {
+      id: "stays-out",
+      name: "Stay",
+      side: "enemy" as const,
+      aboard: "enemy" as const,
+      hp: 50,
+      maxHp: 50,
+      room: other.id,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 1,
+      stun: 0,
+    };
+    g.crew.push(walker, parked);
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "ionintruder",
+      on: true,
+      aux: 0,
+      hp: 125,
+      room: room.id,
+      stun: 0,
+    };
+    const patch = {
+      id: "patch-1",
+      kind: "patch",
+      alive: true,
+      powered: true,
+      hp: 25,
+      room: room.id,
+      aux: 0,
+      cool: 0,
+      stun: 0,
+    };
+    const farDrone = {
+      id: "patch-far",
+      kind: "patch",
+      alive: true,
+      powered: true,
+      hp: 25,
+      room: other.id,
+      aux: 0,
+      cool: 0,
+      stun: 0,
+    };
+    const orbiter = {
+      id: "striker-1",
+      kind: "striker",
+      alive: true,
+      powered: true,
+      hp: 25,
+      room: room.id,
+      aux: 0,
+      cool: 0,
+      stun: 0,
+    };
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "patch",
+      on: true,
+      aux: 0,
+      drones: [patch, farDrone, orbiter],
+    };
+    armSpike(g, "shields");
+    assert.equal(launchLanded(g), true);
+    tickSpike(g, 1e-6);
+    const kit = g.player.kits.spike!;
+    assert.equal(foe.stun, 4);
+    assert.equal(boarder.stun, 4);
+    assert.equal(g.player.kits.swarm.stun, 4);
+    assert.equal(patch.stun, 4);
+    assert.ok(Math.abs(kit.left - 4) < 1e-5);
+    assert.equal(walker.stun, 0);
+    assert.equal(parked.stun, 0);
+    assert.equal(farDrone.stun, 0);
+    assert.equal(orbiter.stun, 0);
+    walker.room = room.id;
+    const left = kit.left;
+    tickSpike(g, 1e-6);
+    assert.equal(walker.stun, left);
+    assert.equal(walker.stun, kit.left + 1e-6);
+    assert.equal(parked.stun, 0);
+    assert.equal(farDrone.stun, 0);
+    assert.equal(orbiter.stun, 0);
+  });
 });
 
 describe("flagship artillery hack", () => {

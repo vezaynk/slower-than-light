@@ -6,7 +6,7 @@ import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
 import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
-import { ANTI_STUN_S, REDEPLOY_S, interceptIncomingDrone } from "./swarm.ts";
+import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
 import type { Door, Game, Kit, KitId, Room, Ship, SysId, SystemState } from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
@@ -397,13 +397,28 @@ export function spikeEvadeZero(g: Game, ship: Ship): boolean {
 function applyPulse(g: Game, kit: Kit, dt: number) {
   const enemy = g.enemy;
   if (!enemy || !kit.target) return;
-  // Augmentations, "Offensive Augmentations", Hacking Stun: crew in the pulsed room cannot act for the pulse.
+  // Augmentations, "Offensive Augmentations", Hacking Stun: crew and drones in the pulsed room cannot act for the pulse.
+  // Boarding, "Stun effect": anyone who enters mid-pulse is stunned for the time still left (kit.left). Not orbiting drones.
   if (hackStuns(g)) {
     const room = aimRoom(enemy, kit.target);
     if (room) {
       for (const c of g.crew) {
         if (c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
         c.stun = kit.left;
+      }
+      const interior = g.player.kits.swarm;
+      if (
+        interior?.on &&
+        interior.hp != null &&
+        interior.room === room.id &&
+        (interior.target === "ionintruder" || interior.target === "board")
+      ) {
+        interior.stun = Math.max(interior.stun ?? 0, kit.left);
+      }
+      for (const unit of enemy.kits.swarm?.drones ?? []) {
+        const spot = enemyDroneSpot(unit);
+        if (!spot || spot.at !== "enemy-room" || spot.room !== room.id) continue;
+        unit.stun = Math.max(unit.stun ?? 0, kit.left);
       }
     }
   }

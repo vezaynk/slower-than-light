@@ -320,4 +320,22 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Boarders: Humans in nebula. The page prints no button. The red line is the label.
+  // "2-4 human boarders beam aboard your ship." nebula=true, LRSmap=noship+nebula, unique=true.
+  // The page prints three intros; this card uses the first. Not a crew grant. No ship.
+  {
+    dest: "Boarders: Humans in nebula",
+    slug: "boarders-humans-in-nebula",
+    flag: "cited:boarders-humans-in-nebula",
+    aliases: ["Boarders: Humans in nebula"],
+    sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
+    body: "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!",
+    choices: [
+      {
+        id: "c:boarders-humans-in-nebula:0",
+        label: "2-4 human boarders beam aboard your ship.",
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

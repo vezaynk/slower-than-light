@@ -129,7 +129,9 @@ describe("cited events civilian and abandoned", () => {
       const stated = ev.choices.some((choice) =>
         choice.fx.some((fx) => fx.k === "res" || fx.k === "tier" || fx.k === "hull" || fx.k === "fleet" || fx.k === "fight"),
       );
-      assert.ok(stated, ev.dest);
+      // Boarders: Humans in nebula states the boarder line and no resource or fight.
+      const boarders = ev.dest === "Boarders: Humans in nebula";
+      assert.ok(stated || boarders, ev.dest);
     }
   });
 

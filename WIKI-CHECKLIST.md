@@ -323,7 +323,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Distress signal emitter consumed — not-a-surface — same title as "Distress Signal Emitter Consumed" with different capitalization
 - [ ] Distress signal from Slug ship under attack by Lanius — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Distress signal from Slug ship under attack by the Lanius — not-a-surface — same title as "Distress Signal from Slug Ship Under Attack by the Lanius" with different capitalization
-- [ ] Door System — partial — upgrade prices cited. Airflow percents in sim are INFERRED. Door hits follow the printed table: level 2 is 6, 8, or 12, level 3 is 10, 12, or 16, and level 4 is 15, 18, or 20, for Hard, Normal, and Easy.
+- [ ] Door System — partial — upgrade prices cited. Airflow percents in sim are INFERRED. Door hits follow the printed table: level 2 is 6, 8, or 12, level 3 is 10, 12, or 16, and level 4 is 15, 18, or 20, for Hard, Normal, and Easy. A damaged door's leftover hits scale with the new maximum when the Door System level changes, so on Hard a level-2 door with 1 hit left still needs 1 after manning and a door with 2 left needs 3.
 - [ ] Doors — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Drifting Debris — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Drifting Refugee Ship — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

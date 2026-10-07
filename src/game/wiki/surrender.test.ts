@@ -122,7 +122,7 @@ describe("surrender in a fight", () => {
     assert.equal(g.fuel, before.fuel + offer.fuel);
     assert.equal(g.missiles, before.missiles + offer.missiles);
     assert.equal(g.player.parts, before.parts + offer.parts);
-    assert.equal(g.kills, before.kills + 1);
+    assert.equal(g.kills, before.kills);
     assert.equal(g.reward?.scrap, offer.scrap);
     assert.equal(g.beacons.find((b) => b.id === g.here)?.resolved, true);
   });

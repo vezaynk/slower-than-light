@@ -832,8 +832,8 @@ export function surrenderChoose(g: Game, id: string): boolean {
     log(g, joined ? `A ${offer.crew} crewmember joins you. The fight continues.` : "No room aboard. The fight continues.");
     return true;
   }
-  // Accepting ends the fight with the offered cargo. INFERRED: it counts as a defeated ship for the run's kill count.
-  g.kills += 1;
+  // Score, k: "k = ships defeated by reducing hull or crew to zero. Defeating the flagship does NOT increase the count
+  // (none of the 3 phases)." Accepting ends the fight with the offered cargo; hull and crew were not reduced to zero.
   closeFight(g);
   const { weaponName, extras } = payOffer(g, offer, !!plan.event);
   // @agent:quests. The page's own after-accept text, and a quest marker its answer adds (wiki/quests.ts addQuest).

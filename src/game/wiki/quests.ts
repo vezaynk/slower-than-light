@@ -865,7 +865,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Slug Home Nebula surrender, "Let them live." -> "We don't want the weapon, we want information." (the `extra` answer).
   "s:slug-home-nebula-surrender:info": (g) => {
     if (!g.enemy) return;
-    g.kills += 1;
+    // Score, k: "k = ships defeated by reducing hull or crew to zero. Defeating the flagship does NOT increase the count
+    // (none of the 3 phases)." Letting them live and taking information does not reduce hull or crew to zero.
     closeFight(g);
     result(g, "You ask where they were delivering the weapon. \"By telling you we will probably die jussst as like as not... Oh well.\" They give you the coordinates of the a prototype cruiser's mobile construction platform.", undefined, [addQuest(g, "slug-platform")]);
   },

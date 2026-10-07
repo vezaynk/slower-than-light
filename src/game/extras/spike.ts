@@ -1047,12 +1047,25 @@ function pulseMind(g: Game, kit: Kit) {
  * (Mind Control: "A player cannot teleport own mind-controlled crew from the enemy ship").
  * Crew Teleporter, Overview: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
  * The hack sentence does not reprint "up to 4", so this recall is not capped.
+ * "Depowering a hacked Teleporter system will prevent sending your crew back by the enemy hacking pulse."
+ * "if you remove power from a hacked system with Zoltans, have the system on cooldown, and have spare reactor
+ * at the moment the hacking pulse occurs, it will redistribute the spare reactor back to the system and force
+ * the crew back to your ship (e.g. Teleporter-1 case)."
+ * INFERRED: a Zoltan counts while standing in the teleporter room, and the example puts one reactor bar back.
  */
 function pulseSling(g: Game) {
   const sling = g.player.kits.sling;
   if (!sling || veilBlocks(g, "player")) return;
   const away = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0 && sideOf(c) === "player");
   if (!away.length) return;
+  noteZoltanKits(g);
+  if (sling.power <= 0) {
+    // Depowered. The exception needs a Zoltan in the room, a cooldown, and spare reactor together.
+    const yellow = sling.zoltan ?? 0;
+    if (yellow <= 0 || sling.cool <= 0 || sparePower(g.player) <= 0) return;
+    const cap = Math.max(0, sling.level - (sling.damage ?? 0));
+    if (sling.power < cap) sling.power += 1;
+  }
   if (!retrievedRoom(g.player, 0)) return;
   away.forEach((c, i) => {
     c.aboard = "player";

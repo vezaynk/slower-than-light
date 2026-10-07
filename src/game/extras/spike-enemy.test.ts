@@ -414,6 +414,63 @@ describe("enemy hacking: pulse effects", () => {
     assert.equal(foe.kits.sling!.cool, 20);
   });
 
+  it("a depowered teleporter does not bring the boarders home", () => {
+    // Hacking: "Depowering a hacked Teleporter system will prevent sending your crew back".
+    const g = latched("sling");
+    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    const crew = g.crew.find((c) => c.side === "player")!;
+    crew.aboard = "enemy";
+    crew.room = g.enemy!.rooms[0]!.id;
+    tickEnemySpike(g, 0.01);
+    tickEnemySpike(g, 0.1);
+    assert.equal(crew.aboard, "enemy");
+    assert.equal(g.player.kits.sling!.cool, 0);
+    assert.equal(g.player.kits.sling!.power, 0);
+  });
+
+  it("a Zoltan in a depowered teleporter does not force the crew home without a cooldown", () => {
+    const g = latched("sling");
+    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
+    const home = g.crew.find((c) => c.side === "player")!;
+    home.kin = "spark";
+    home.aboard = "player";
+    home.room = pad.id;
+    const away = { ...home, id: "c-stay", name: "Stay", kin: "plain" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    g.crew.push(away);
+    g.player.reactor += 1;
+    tickEnemySpike(g, 0.01);
+    tickEnemySpike(g, 0.1);
+    assert.equal(away.aboard, "enemy");
+    assert.equal(g.player.kits.sling!.power, 0);
+    assert.equal(g.player.kits.sling!.cool, 0);
+  });
+
+  it("Zoltans, a cooldown, and spare reactor put one bar back and force the crew home", () => {
+    // Hacking: the Teleporter-1 case redistributes spare reactor and forces the crew back.
+    const g = latched("sling");
+    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 8, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    assert.ok(pad);
+    const home = g.crew.find((c) => c.side === "player")!;
+    home.kin = "spark";
+    home.aboard = "player";
+    home.room = pad.id;
+    const away = { ...home, id: "c-away", name: "Away", kin: "plain" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    g.crew.push(away);
+    g.player.reactor += 1;
+    tickEnemySpike(g, 0.01);
+    tickEnemySpike(g, 0.1);
+    assert.equal(away.aboard, "player");
+    assert.equal(away.room, pad.id);
+    assert.equal(g.player.kits.sling!.power, 1);
+    assert.equal(g.player.kits.sling!.cool, 20);
+  });
+
   it("stuns the player's drone and may destroy it", () => {
     let killed = 0;
     for (let seed = 1; seed <= 30; seed++) {

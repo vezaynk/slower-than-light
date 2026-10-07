@@ -233,7 +233,8 @@ export const MISSILE_GAPS = {
     // "Shots: 1-3". shots stores the bank, 3. "7 seconds per shot". The bank runs in sim.ts.
     minShots: 1,
     maxShots: 3,
-    // "Targeting area radius: 31". The radius and the room percents are not applied.
+    // "Targeting area radius: 31". swarm-aim.ts uses the printed room percents.
+    // The radius is not resimulated as pixels. Other room shapes have no printed percent.
     radius: 31,
     // "When fired at 1x2 room: 67.85% in main room, 8.04% in each tile next to long sides."
     aim1x2MainPercent: 67.85,

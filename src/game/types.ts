@@ -191,6 +191,11 @@ export type Shot = {
    * Absent means the other hull, which is every non-bomb shot.
    */
   own?: boolean;
+  /**
+   * Missile (Weapons), ===Swarm Missiles===: this shot's long-side tile is not a room.
+   * applyImpact deals nothing. Absent means the shot still aims at targetRoom.
+   */
+  offRoom?: boolean;
   wait: number;
   t: number;
   duration: number;

@@ -5,6 +5,7 @@ import { reorderDroneSlots, tickEnemyDrones } from "../extras/swarm.ts";
 import { enemyMayMount, rollEnemy } from "../enemy-gen.ts";
 import {
   aim,
+  applyImpact,
   applyIon,
   armWeapon,
   createGame,
@@ -21,8 +22,9 @@ import {
   weaponsPowerLocked,
   zoltanBars,
 } from "../sim.ts";
-import type { Crew, Game, Kit, WeaponInst } from "../types.ts";
+import type { Crew, Game, Kit, Room, WeaponInst } from "../types.ts";
 import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./enemy-ships.ts";
+import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
   return { uid: defId, defId, charge: 0, enabled: true, autofire: false, target: null, ...extra, uid: extra.uid ?? defId };
@@ -109,6 +111,26 @@ function until(g: Game, pred: () => boolean, limit: number): number {
     n += 1;
   }
   return n;
+}
+
+function retile(base: Room, id: string, x: number, y: number, w: number, h: number, system: Room["system"]): Room {
+  return { ...base, id, title: id, x, y, w, h, system, omit: undefined, kit: undefined };
+}
+
+/** Same step as sim.rand, without touching the game. Used only to pick a seed. */
+function sameRand(seed: number): number {
+  let a = seed | 0;
+  a = (a + 0x6d2b79f5) | 0;
+  let t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function findSeed(pred: (roll: number) => boolean): number {
+  for (let seed = 1; seed < 200000; seed++) {
+    if (pred(sameRand(seed))) return seed;
+  }
+  throw new Error("no seed");
 }
 
 function seeded(seed: number) {
@@ -572,5 +594,100 @@ describe("swarm missiles", () => {
       assert.equal(spec.weapons.includes("swarmmissiles"), false, cls.id);
       assert.equal(spec.weapons.includes("pegasus"), false, cls.id);
     }
+  });
+
+  it("does not roll a 2x2 or a 1x1", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 4;
+    const enemy = g.enemy!;
+    const base = enemy.rooms[0];
+    enemy.rooms = [retile(base, "box", 0, 0, 2, 2, "shields"), retile(base, "one", 3, 0, 1, 1, "pilot")];
+    const w = g.player.weapons[0];
+    w.loaded = 1;
+    const seed = g.seed;
+    armWeapon(g, w.uid);
+    aim(g, "box");
+    assert.equal(g.seed, seed);
+    assert.equal(shotsOf(g, "swarmmissiles")[0]?.targetRoom, "box");
+    assert.equal(shotsOf(g, "swarmmissiles")[0]?.offRoom, undefined);
+    g.shots = [];
+    w.loaded = 1;
+    armWeapon(g, w.uid);
+    aim(g, "one");
+    assert.equal(g.seed, seed);
+    assert.equal(shotsOf(g, "swarmmissiles")[0]?.targetRoom, "one");
+  });
+
+  it("scatters a 2x1 room with the launch roll", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 2;
+    const enemy = g.enemy!;
+    const base = enemy.rooms[0];
+    enemy.rooms = [retile(base, "n", 0, 1, 2, 1, "shields"), retile(base, "nl", 0, 0, 1, 1, "pilot")];
+    const w = g.player.weapons[0];
+    w.loaded = 1;
+    const seed = g.seed;
+    const land = swarmLanding(enemy.rooms, "n", sameRand(seed));
+    armWeapon(g, w.uid);
+    aim(g, "n");
+    const shot = shotsOf(g, "swarmmissiles")[0];
+    assert.ok(shot);
+    assert.notEqual(g.seed, seed);
+    if (land.kind === "miss") assert.equal(shot.offRoom, true);
+    else if (land.kind === "room") assert.equal(shot.targetRoom, land.roomId);
+    else assert.equal(shot.targetRoom, "n");
+  });
+
+  it("deals the long-side hit to that room, and an empty tile misses", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["swarmmissiles"]);
+    g.missiles = 4;
+    const enemy = g.enemy!;
+    const base = enemy.rooms[0];
+    enemy.rooms = [
+      retile(base, "n", 1, 0, 1, 2, "shields"),
+      retile(base, "w", 0, 0, 1, 1, "oxygen"),
+      retile(base, "e", 2, 0, 1, 2, "weapons"),
+    ];
+    enemy.shieldNow = 0;
+    enemy.zoltan = 0;
+    enemy.systems.engines.level = 0;
+    enemy.systems.engines.power = 0;
+    enemy.systems.weapons.damage = 0;
+    enemy.systems.shields.damage = 0;
+    enemy.systems.oxygen.damage = 0;
+    enemy.hull = 20;
+    const w = g.player.weapons[0];
+
+    g.seed = findSeed((roll) => roll >= SWARM_CUTS[2] && roll < SWARM_CUTS[3]);
+    w.loaded = 1;
+    armWeapon(g, w.uid);
+    aim(g, "n");
+    const hit = shotsOf(g, "swarmmissiles")[0];
+    assert.equal(hit.targetRoom, "e");
+    assert.equal(hit.offRoom, undefined);
+    applyImpact(g, hit);
+    assert.equal(enemy.systems.weapons.damage, 1);
+    assert.equal(enemy.systems.shields.damage, 0);
+    assert.equal(enemy.hull, 19);
+
+    g.shots = [];
+    g.seed = findSeed((roll) => roll >= SWARM_CUTS[1] && roll < SWARM_CUTS[2]);
+    w.loaded = 1;
+    armWeapon(g, w.uid);
+    aim(g, "n");
+    const miss = shotsOf(g, "swarmmissiles")[0];
+    assert.equal(miss.offRoom, true);
+    assert.equal(miss.targetRoom, "n");
+    applyImpact(g, miss);
+    assert.equal(enemy.hull, 19);
+    assert.equal(enemy.systems.shields.damage, 0);
+    assert.equal(enemy.systems.oxygen.damage, 0);
+    assert.equal(enemy.systems.weapons.damage, 1);
   });
 });

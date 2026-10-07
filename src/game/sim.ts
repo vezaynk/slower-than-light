@@ -106,6 +106,7 @@ import {
 } from "./wiki/cited-sectors.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
+import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 import { SECTOR_TYPES } from "./wiki/sectors.ts";
@@ -1383,7 +1384,17 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const step = w.chain ?? 0;
   const ion = chainIonAmount(w.defId, step) ?? def.ion;
   const line = def.kind === "beam" && w.beamLine ? { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } } : undefined;
+  const aimed = roomById(targetShip, rooms[0]);
+  // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. Radius 31 is not a pixel sim.
+  const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
   for (let i = 0; i < count; i++) {
+    let targetRoom = rooms[0];
+    let offRoom = false;
+    if (scatter) {
+      const land = swarmLanding(targetShip.rooms, rooms[0], rand(g));
+      if (land.kind === "miss") offRoom = true;
+      else if (land.kind === "room") targetRoom = land.roomId;
+    }
     g.shots.push({
       id: uid(g),
       kind: def.kind,
@@ -1392,11 +1403,12 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       ion,
       fireChance: def.fire,
       breachChance: def.breach,
-      targetRoom: rooms[0],
+      targetRoom,
       beamRooms: def.kind === "beam" ? rooms : undefined,
       beamLine: line,
       defId: w.defId,
       own: from === "player" && def.kind === "bomb" && w.own === true ? true : undefined,
+      offRoom: offRoom ? true : undefined,
       wait: i * def.gap,
       t: 0,
       duration: def.kind === "missile" || def.kind === "bomb" ? 1.35 : def.kind === "beam" ? 0.32 : 0.7,
@@ -1564,6 +1576,13 @@ export function applyImpact(g: Game, shot: Shot) {
   const playerTarget = ownBomb ? shot.from === "player" : shot.from !== "player";
   const ship = playerTarget ? g.player : g.enemy;
   if (!ship) return;
+  // Missile (Weapons), ===Swarm Missiles===: a long-side tile with no room is not a hit.
+  // INFERRED: that miss does not roll evasion and does not spend a Zoltan Shield.
+  if (shot.offRoom) {
+    log(g, playerTarget ? "The swarm missed the Lark." : "The swarm slipped past the room.");
+    floatAt(g, "MISS", playerTarget ? 72 : 28, 18);
+    return;
+  }
   const aboard: "player" | "enemy" = playerTarget ? "player" : "enemy";
   if (shot.kind === "bomb") {
     // Bomb (Weapons), lead: "Bombs can miss, but not when targeting your own ship."

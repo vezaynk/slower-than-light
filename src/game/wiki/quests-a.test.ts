@@ -7,6 +7,7 @@ import { SECTOR_TYPES } from "./sectors.ts";
 import { citedEvent, citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 import { addQuest } from "./quests.ts";
 import { EXTRA_EVENTS } from "./quests-a-pages.ts";
+import { markRuwenEntry } from "./ruwen-entry.ts";
 import { joinCrew } from "./surrender.ts";
 
 function here(g: Game): Beacon {
@@ -289,6 +290,14 @@ describe("quest openers (quests-a)", () => {
     assert.match(g.event!.body, /ancient device/i);
     assert.ok(g.event!.choices.some((c) => c.id === "c:ancient-device:2"));
     assert.equal(entry.quest, "ruwen-entry");
+
+    entry.quest = "other-quest";
+    markRuwenEntry(g);
+    assert.equal(entry.quest, "other-quest");
+    entry.quest = undefined;
+    entry.resolved = true;
+    markRuwenEntry(g);
+    assert.equal(entry.quest, undefined);
   });
 
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {

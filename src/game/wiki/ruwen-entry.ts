@@ -17,7 +17,9 @@ export function markRuwenEntry(g: Game): void {
   const alive = g.crew.some((c) => c.side === "player" && c.kin === "shard" && c.name === "Ruwen" && c.hp > 0);
   if (!alive) return;
   for (const b of g.beacons) {
+    // INFERRED: a beacon already visited is not marked again. The page prints no resolved check.
     if (b.flag !== "cited:ancient-device" || b.resolved) continue;
+    // INFERRED: a different quest already on this beacon stays. The page does not say to replace one.
     if (b.quest && b.quest !== RUWEN_ENTRY) continue;
     b.quest = RUWEN_ENTRY;
   }

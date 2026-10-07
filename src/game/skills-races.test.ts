@@ -4,6 +4,7 @@ import { rollEnemy } from "./enemy-gen.ts";
 import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
+import { tickSwarm } from "./extras/swarm.ts";
 import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
 import type { Shot } from "./types.ts";
 import { WEAPONS, XP_NEED } from "./content.ts";
@@ -262,6 +263,37 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     step(g, 0.05);
     assert.equal(sys.damage, 0);
     assert.equal(hero.skills?.repair ?? 0, 1);
+  });
+});
+
+describe("Crew skills: a repair drone cannot gain experience", () => {
+  it("finishes a system bar and trains nobody", () => {
+    // Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."
+    const g = createGame(37);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    for (const c of g.crew) c.skills = {};
+    const room = g.player.rooms.find((r) => r.system === "weapons")!;
+    room.fire = 0;
+    room.breach = 0;
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.weapons.fix = 12.49;
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "patch",
+      on: true,
+      aux: 0,
+      room: room.id,
+      path: [],
+    };
+    tickSwarm(g, 0.05);
+    assert.equal(g.player.systems.weapons.damage, 0);
+    assert.ok(g.crew.every((c) => (c.skills?.repair ?? 0) === 0));
   });
 });
 

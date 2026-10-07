@@ -560,6 +560,8 @@ function route(ship: Ship, from: string, to: string): string[] | null {
  * Skills: racial repair also scales fire-fighting, so the fire share uses that same ×2.
  * Inside the room the order is still fire, then a breach, then a system or kit.
  * Which room is patchRank. INFERRED: the drone is not crew, so low oxygen does not stop the work.
+ * Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."
+ * No bumpXp on this path.
  * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
  */
 function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {

@@ -208,7 +208,7 @@ export function recallSling(g: Game) {
  * asteroid fields, and a hostile anti-ship battery.
  * The Ship page's nebula and ion-storm banner is not that list.
  */
-function shipInDanger(g: Game): boolean {
+export function shipInDanger(g: Game): boolean {
   if (g.phase === "combat") return true;
   if (g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0)) return true;
   // INFERRED: g.asb is the hostile battery. The sim does not store a separate friendly battery.

@@ -54,6 +54,7 @@ import {
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearEnemyLeash, heldByEnemy, leashOnLeave, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
+import { tickCell } from "./extras/cell.ts";
 import { relaxSling, tickEnemyBoarding } from "./extras/sling.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
@@ -4520,7 +4521,12 @@ export function step(g: Game, dt: number) {
     if (idleShip(g)) {
       const h = Math.min(dt, 0.05);
       if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
-      else tickIdleFires(g, h);
+      else {
+        tickIdleFires(g, h);
+        // Backup Battery, Overview: the window can run out once the fight is over.
+        // INFERRED: those 30 seconds keep counting on the map. A fight still ticks the cell in tickExtras.
+        if (g.phase !== "combat") tickCell(g, h);
+      }
     }
     flushSfx(g.sfx);
     return;

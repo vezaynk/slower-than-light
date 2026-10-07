@@ -20,6 +20,7 @@ function pushCell(level = 1): Kit {
 describe("cell", () => {
   it("gives 2 bars for 30s then cools for 20", () => {
     const g = createGame(1);
+    g.phase = "combat";
     g.scrap = 35;
     installCell(g);
     assert.equal(g.scrap, 0);
@@ -39,6 +40,7 @@ describe("cell", () => {
 
   it("cools in 10s when augments include tap", () => {
     const g = createGame(2);
+    g.phase = "combat";
     g.augments = ["tap"];
     g.player.kits.cell = pushCell(1);
     startCell(g);
@@ -63,6 +65,7 @@ describe("cell", () => {
 
   it("does not start again until cool reaches 0", () => {
     const g = createGame(4);
+    g.phase = "combat";
     g.player.kits.cell = pushCell(1);
     startCell(g);
     tickCell(g, 30);
@@ -83,6 +86,25 @@ describe("cell", () => {
     startCell(g);
     tickCell(g, 0.5);
     assert.equal(cellBonus(g.player), 2);
+  });
+
+  it("stays ready when it runs out and the ship is not in danger", () => {
+    const g = createGame(7);
+    g.player.kits.cell = pushCell(1);
+    assert.equal(g.phase, "map");
+    startCell(g);
+    tickCell(g, 30);
+    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(g.player.kits.cell?.cool, 0);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+
+    // Backup Battery's IN DANGER note: an asteroid field still counts off the combat phase.
+    g.asteroid = true;
+    tickCell(g, 30);
+    assert.equal(g.player.kits.cell?.cool, 20);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 0);
   });
 
   it("starts an enemy cell when spare power is tight", () => {

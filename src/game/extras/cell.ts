@@ -1,5 +1,6 @@
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
+import { shipInDanger } from "./sling.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 
 /** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. Also the store price to fit it. */
@@ -129,7 +130,7 @@ export function startCell(g: Game) {
   log(g, "Backup Battery online.");
 }
 
-function stepKit(g: Game, kit: Kit | undefined, dt: number) {
+function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {
   if (!kit || dt <= 0) return;
   kit.power = 0;
   const wasRunning = running(kit);
@@ -145,7 +146,11 @@ function stepKit(g: Game, kit: Kit | undefined, dt: number) {
     kit.left = 0;
     kit.on = false;
     kit.aux = 0;
-    kit.cool = coolFor(g);
+    // Backup Battery, Overview: "If you are not IN DANGER and Backup Battery runs out, it becomes
+    // instantly available again - it doesn't enter its cooldown".
+    // INFERRED: that "you" is the player cell. An enemy cell still cools.
+    if (player && !shipInDanger(g)) kit.cool = 0;
+    else kit.cool = coolFor(g);
   }
 }
 
@@ -176,9 +181,9 @@ function maybeEnemy(g: Game) {
  * INVENTED: an enemy Cell starts when assigned bars already fill the reactor. The page does not describe that.
  */
 export function tickCell(g: Game, dt: number) {
-  stepKit(g, g.player.kits.cell, dt);
+  stepKit(g, g.player.kits.cell, dt, true);
   shedDrained(g, g.player);
   if (!g.enemy) return;
-  stepKit(g, g.enemy.kits?.cell, dt);
+  stepKit(g, g.enemy.kits?.cell, dt, false);
   maybeEnemy(g);
 }

@@ -554,3 +554,35 @@ describe("ion on external drones (Drone Control, Overview)", () => {
     assert.ok(destroyed > 0 && destroyed < 20, String(destroyed));
   });
 });
+
+describe("enemy Anti-Personnel Drone", () => {
+  it("deals an untrained human's 3 to 7 HP, after a pause", () => {
+    // Drone Control, Anti-Personnel Drone: "dealing the same damage as an untrained Human".
+    const g = quiet(4);
+    const kit = fleet(g, ["personnel"], 2, 2);
+    const hero = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
+    const room = g.enemy!.rooms[0]!;
+    hero.aboard = "enemy";
+    hero.room = room.id;
+    hero.path = [];
+    hero.hp = 100;
+    hero.stun = 0;
+    const unit: DroneUnit = {
+      id: "ap",
+      kind: "personnel",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      hp: 150,
+      room: room.id,
+    };
+    kit.drones = [unit];
+    kit.on = true;
+    tickSwarm(g, 0.05);
+    assert.equal(hero.hp, 100);
+    for (let i = 0; i < 40 && hero.hp === 100; i++) tickSwarm(g, 0.05);
+    const drop = 100 - hero.hp;
+    assert.ok(drop >= 3 && drop <= 7, String(drop));
+  });
+});

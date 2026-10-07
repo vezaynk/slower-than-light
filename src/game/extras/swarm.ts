@@ -1965,8 +1965,8 @@ function tickEnemyPatch(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
 
 /**
  * Anti-Personnel Drone aboard the enemy: "Attacks intruders, dealing the same damage as an untrained Human".
- * INFERRED: sim.ts melee rate (6 HP/s for a Human), split across intruders in its room, and it goes straight to
- * the first room holding an intruder.
+ * Boarding, Combat: that hit is 3 to 7 HP. INFERRED: the same 1 second pause as a crew blow. The page prints no seconds.
+ * INFERRED: the blow lands on the first living intruder in the room, and the drone goes straight to the first such room.
  */
 function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
   const intruders = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0 && forPlayer(c));
@@ -1975,8 +1975,13 @@ function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
     return;
   }
   if (!intruders.some((c) => c.room === unit.room)) unit.room = intruders[0].room;
-  const here = intruders.filter((c) => c.room === unit.room);
-  for (const c of here) c.hp -= (MELEE_DPS * dt) / here.length;
+  const here = intruders.filter((c) => c.room === unit.room && c.hp > 0);
+  const target = here[0];
+  if (!target) return;
+  unit.aux += dt;
+  if (unit.aux < 1) return;
+  unit.aux -= 1;
+  target.hp -= 3 + Math.floor(rand(g) * 5);
   unit.fired = 0;
 }
 

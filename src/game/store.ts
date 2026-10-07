@@ -1,10 +1,10 @@
 /** INVENTED session store for the open run. It encodes no wiki rule. */
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { noteRun } from "./wiki/achievement-track";
-import { noteUnlocks } from "./unlock-store"; // @agent:unlocks
-import { createGame, loadGame, restartRun, saveGame, step, titleHandoff } from "./sim";
-import type { CrewPick } from "./crew-look";
-import type { Difficulty, Game } from "./types";
+import { noteRun } from "./wiki/achievement-track.ts";
+import { noteUnlocks } from "./unlock-store.ts"; // @agent:unlocks
+import { createGame, loadGame, restartRun, saveGame, step, titleHandoff } from "./sim.ts";
+import type { CrewPick } from "./crew-look.ts";
+import type { Difficulty, Game } from "./types.ts";
 
 type Store = {
   version: number;
@@ -98,3 +98,19 @@ export const useGame: UseBoundStore<StoreApi<Store>> =
 
 if (shared) shared.setState(actions(shared.setState, shared.getState));
 if (import.meta.env?.DEV) (globalThis as Shared).__stlStore = useGame;
+
+/**
+ * Verdict RESTART. WikiViews calls this with the run still on screen.
+ * Sectors, Hidden Crystal Worlds: restartSame reads that run, not the title placeholder.
+ */
+export function verdictRestart(game: Game): void {
+  useGame.getState().restartSame(game);
+}
+
+/**
+ * Verdict HANGAR, MAIN MENU, and QUIT. WikiViews calls this.
+ * The title screen is a placeholder. The run the player was playing stays on the store.
+ */
+export function goTitle(boot: "title" | "hangar"): void {
+  useGame.getState().toTitle(boot);
+}

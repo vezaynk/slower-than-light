@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, noteRun } from "@/game/wiki/achievement-track";
 import { buy, leaveStore, repairHull, runScore } from "@/game/sim";
 import { citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
-import { useGame } from "@/game/store";
+import { goTitle, useGame, verdictRestart } from "@/game/store";
 import type { Game, SectorNode } from "@/game/types";
 import { WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
@@ -399,10 +399,6 @@ function verdictCopy(game: Game): { title: string; body: string; score: boolean 
   };
 }
 
-function goTitle(boot: "title" | "hangar") {
-  useGame.getState().toTitle(boot);
-}
-
 /** Victory.jpg, then Victory-0.jpg. Game Over uses the same button row. */
 export function Verdict({ game }: { game: Game }) {
   const won = game.phase === "victory";
@@ -446,9 +442,7 @@ export function Verdict({ game }: { game: Game }) {
       <div className="verdict-row">
         <button
           type="button"
-          onClick={() => {
-            useGame.getState().restartSame(game);
-          }}
+          onClick={() => verdictRestart(game)}
         >
           RESTART
         </button>

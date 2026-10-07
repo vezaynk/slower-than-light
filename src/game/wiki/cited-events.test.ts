@@ -320,6 +320,37 @@ function quietEnemy(g: ReturnType<typeof createGame>) {
   }
 }
 
+describe("crew entirely composed of Mantis", () => {
+  it("replaces any other race on the collector Fighter and the followed Mantis ship", () => {
+    const hp = kinOf("blade").hp;
+    let fighter = false;
+    let followed = false;
+    for (let seed = 1; seed <= 40 && (!fighter || !followed); seed++) {
+      const g = createGame(seed);
+      openCited(g, "Mantis Controlled Sector", "cited:mantis-ship-collectors", "Mantis ship-collectors");
+      choose(g, "c:mantis-ship-collectors:0");
+      const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
+      assert.ok(aboard.length > 0);
+      assert.ok(aboard.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+      assert.equal(g.log.some((line) => line.includes("Mantis crew is not applied")), false);
+      fighter = true;
+
+      const z = createGame(seed);
+      openCited(z, "Zoltan Controlled Sector", "cited:zoltan-ship-follows-mantis-ship", "Zoltan ship follows Mantis ship");
+      choose(z, "c:zoltan-ship-follows-mantis-ship:1");
+      assert.equal(z.phase, "combat");
+      assert.equal(z.asteroid, true);
+      assert.equal(z.enemy?.faction, "mantis");
+      const theirs = z.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
+      assert.ok(theirs.length > 0);
+      assert.ok(theirs.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+      assert.equal(z.log.some((line) => line.includes("Mantis crew is not applied")), false);
+      followed = true;
+    }
+    assert.equal(fighter && followed, true);
+  });
+});
+
 describe("Zoltan border police", () => {
   it("beams 3-4 Zoltan boarders aboard with the Zoltan ship and grants nothing else", () => {
     const seen = new Set<number>();

@@ -30,7 +30,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { allMantisCrew, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -3492,6 +3492,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
     if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
+    // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship).
+    if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1") allMantisCrew(g);
     return true;
   }
   // "3-4 human boarders beam aboard your ship" (Boarders: Humans in plasma storm). No enemy ship.

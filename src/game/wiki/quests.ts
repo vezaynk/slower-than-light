@@ -43,6 +43,7 @@ import {
   between,
   closeFight,
   here,
+  allMantisCrew,
   humanBoarders,
   joinCrew,
   NEVER_RUN,
@@ -692,8 +693,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:mantis-collectors:forget": (g) => result(g, "They're not worth the trouble. You prepare to leave."),
   // DONOR_MANTIS_CHASE2: "attempts to escape at 60% hull (12 seconds timer)". INFERRED: a certain attempt, like CHASE1.
-  // "Fight a Mantis Bomber" (enemy-gen classId). Not applied: "with crew entirely composed of Mantis".
-  "q:mantis-chase:fight": (g) => pageFight(g, "The Mantis Bomber moves in.", "Mantis Bomber", "quest-mantis-chase", hullRun(100, 60, 12)),
+  // "Fight a Mantis Bomber" with crew entirely composed of Mantis.
+  "q:mantis-chase:fight": (g) => {
+    pageFight(g, "The Mantis Bomber moves in.", "Mantis Bomber", "quest-mantis-chase", hullRun(100, 60, 12));
+    allMantisCrew(g);
+  },
 
   "q:loyalists:contact": (g) => {
     const r = pick(g, ["base", "supplies", "rescue"] as const);

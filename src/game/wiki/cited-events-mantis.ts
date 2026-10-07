@@ -54,7 +54,6 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Fight a Mantis Fighter",
         fx: [
           { k: "fight", tier: "Mantis Fighter" },
-          { k: "note", text: "The page's Mantis crew is not applied." },
         ],
       },
     ],

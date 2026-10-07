@@ -171,6 +171,7 @@ describe("Cited events that add a marker", () => {
     const g = atCited(createGame(5), "Mantis Controlled Sector", "Mantis ship-collectors");
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");
+    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "blade" && c.name === "Mantis"));
     assert.deepEqual([g.enemyEscape!.mode, g.enemyEscape!.chance, g.enemyEscape!.threshold, g.enemyEscape!.seconds], ["hull", 100, 50, 5]);
     g.enemyEscape!.running = true;
     g.enemyFlee = 1;
@@ -183,6 +184,7 @@ describe("Cited events that add a marker", () => {
     jumpTo(g, b);
     choose(g, "q:mantis-chase:fight");
     assert.equal(g.enemy!.faction, "mantis");
+    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "blade" && c.name === "Mantis"));
     assert.equal(g.enemySurrender!.chance, 100);
     assert.equal(g.enemyEscape!.threshold, 60);
     winByCrew(g);

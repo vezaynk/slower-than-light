@@ -1039,6 +1039,24 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
  * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
  * HP is kinOf("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
+/**
+ * "crew entirely composed of Mantis."
+ * Call this after startCombat. The class mix can still roll an Engi; this replaces that crew.
+ * INFERRED: only enemy crew aboard the enemy ship change. A Mantis already there keeps the health
+ * startCombat gave them. A converted crew member uses kinOf("blade") health. The display name is "Mantis".
+ */
+export function allMantisCrew(g: Game) {
+  const hp = kinOf("blade").hp;
+  for (const c of g.crew) {
+    if (c.side !== "enemy" || c.aboard !== "enemy") continue;
+    if (c.kin === "blade") continue;
+    c.kin = "blade";
+    c.name = "Mantis";
+    c.hp = hp;
+    c.maxHp = hp;
+  }
+}
+
 export function zoltanBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
   const hp = kinOf("spark").hp;

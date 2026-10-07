@@ -277,7 +277,6 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           // "Fight a Mantis ship with crew entirely composed of Mantis." Locations: asteroidfield=true.
           { k: "fight", tier: "Mantis ship", asteroid: true },
-          { k: "note", text: "The page's Mantis crew is not applied." },
         ],
       },
       {

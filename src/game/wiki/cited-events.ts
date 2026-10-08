@@ -3679,6 +3679,16 @@ const MANTIS_CHOICE_INTROS = [
   `You overhear Mantis comm chatter: "Agreed. Next ship is your turn. Good hunting." They don't see you yet.`,
 ];
 
+// Mantis ship attacking civilian. Five printed intros, no odds. INFERRED: equal.
+// Aid stays c:mantis-ship-attacking-civilian:0. Stay out stays :1. The stay-out flavor lines are not added here.
+const MANTIS_CIVILIAN_INTROS = [
+  "You spot a Mantis ship hunting in the distance.",
+  `A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, "Stay out of this human! Else you are next!"`,
+  "Local sensors pick up two ships engaged in a heated battle. It seems the Mantis military ship will surely defeat its prey.",
+  "A Mantis vessel flashes past your view-screen, weapons and engines at full. A tiny blip on the sensor readout marks its quarry.",
+  "You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4036,6 +4046,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: MANTIS_CHOICE_INTROS[between(g, [0, 5])]!,
       choices: [{ id: "c:mantis-fight-choice:0", label: "Attack the ship" }],
+    };
+  }
+  // Mantis ship attacking civilian. One of the five printed intros. Both printed choices stay.
+  if (ev.slug === "mantis-ship-attacking-civilian") {
+    return {
+      title: ev.dest,
+      body: MANTIS_CIVILIAN_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2794 |
+| Behaviors checked | 2795 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -587,6 +587,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Boarders: Humans (Abandoned)
   - [x] No playable control, number, layout, or rule.
   - [x] This event can occur on both of the sector's 1-2 boarder beacons.
+  - [x] The red line beams 3-4 human boarders aboard on arrival, and it is not a button.
 
 - [x] Boarders: Humans (Pirate)
   - [x] Three to five human boarders beam aboard your ship from Boarders: Humans (Pirate), with no enemy ship.

@@ -1111,6 +1111,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");
   },
+  // Rebel ship attacking civilians in Last Stand. "There's no time, get ready to jump." One printed result.
+  "c:rebel-ship-attacking-civilians-in-last-stand:1": (g) => {
+    result(g, "You try to block out the horrors of war and focus on your mission.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship in rich debris field. "Attempt to harvest some for yourself." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-in-rich-debris-field:0": (g) => {
     pageFight(g, "As you attempt to navigate the debris, you come too close to the Lanius ship - and they proceed to try to harvest you!", "Lanius ship", "lanius-ship-in-rich-debris-field");

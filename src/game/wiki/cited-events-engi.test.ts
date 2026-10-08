@@ -117,6 +117,7 @@ describe("cited Engi leftover events", () => {
         "Pirate fight (Engi)",
         "Rebel fight (Engi)",
         "Confused Mantis",
+        "Mantis fugitive",
       ],
     );
     for (const ev of EXTRA_EVENTS) {

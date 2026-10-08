@@ -1,5 +1,6 @@
 import { WEAPONS, XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
+import { kinOf } from "../extras/kin.ts";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
@@ -1074,6 +1075,31 @@ function hurt(g: Game, n: number): boolean {
   return true;
 }
 
+/**
+ * "1 damage to a random room" when the sentence prints no fire.
+ * INFERRED: that room's system loses one bar when a bar is left. A systemless room takes none.
+ */
+function roomBar(g: Game): string {
+  const rooms = g.player.rooms;
+  if (!rooms.length) return "";
+  const r = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
+  const sys = r.system ? g.player.systems[r.system] : undefined;
+  if (!sys || sys.level <= 0 || sys.damage >= sys.level) return "";
+  hurtSystem(g.player, r.system!, 1);
+  return `1 damage to ${r.system}.`;
+}
+
+/** Mantis fugitive, mantis-controlled Engi ship. INFERRED: the Engi hull's crew are Mantis. */
+function mantisControlled(g: Game) {
+  const hp = kinOf("blade").hp;
+  for (const c of g.crew) {
+    if (c.side !== "enemy" || c.aboard !== "enemy") continue;
+    c.kin = "blade";
+    c.hp = hp;
+    c.maxHp = hp;
+  }
+}
+
 /** "1 damage to a random system". INFERRED: one of the installed systems, equal odds. */
 function hurtRandomSystem(g: Game, amount = 1): string {
   const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
@@ -1799,6 +1825,35 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       ? "You salvage what you can from the ship. No lifeforms or ships are detected nearby."
       : "You begin the salvage operation but before long your crew warns you of an approaching ship. You hasten to leave before they get within firing range.";
     show(g, line, rollStandard(g));
+  },
+
+  // Mantis fugitive. Each list prints no odds. INFERRED: equal.
+  // The thanked Mantis is not named, so that crewmember is not added.
+  "c:mantis-fugitive:0": (g) => {
+    if (weighted(g, [["trap", 1], ["thanks", 1]] as const) === "trap") {
+      if (hurt(g, 5)) return;
+      const lines = ["Hull damage: 5.", hurtRandomSystem(g), roomBar(g)].filter(Boolean);
+      for (const line of lines) log(g, line);
+      fight(g, "It was a trap! The Mantis sabotages your ship before teleporting away.", "Engi ship", "mantis-fugitive");
+      mantisControlled(g);
+      return;
+    }
+    fight(g, "He expresses his thanks and prepares to help you fight his pursuer.", "Engi ship", "mantis-fugitive");
+  },
+  "c:mantis-fugitive:1": (g) => {
+    const r = weighted(g, [["scrap", 1], ["fire", 1], ["trap", 1]] as const);
+    if (r === "scrap") {
+      show(g, "The Engi captain is delighted, and quickly arranges for the transfer of the prisoner.", scrapOnly(g, "high"));
+      return;
+    }
+    if (r === "fire") {
+      if (hurt(g, 5)) return;
+      show(g, "Fury sparks in the eyes of the Mantis. He won't go easily, and causes serious damage before he can be captured.", scrapOnly(g, "high"), ["Hull damage: 5.", rockFires(g)]);
+      return;
+    }
+    fight(g, "The pursuing ship responds with a completely unintelligible message. The young Mantis jerks to attention and assumes a battle stance. It was a trap!", "Engi ship", "mantis-fugitive");
+    mantisBoarders(g, 1, 1);
+    mantisControlled(g);
   },
 
   // ---- Refugee / Refugee distress ----

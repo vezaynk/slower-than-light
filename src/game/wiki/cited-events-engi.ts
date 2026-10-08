@@ -133,4 +133,28 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Mantis fugitive. The sabotage, the bounty, and the Engi fight run in filler-events.ts.
+    // The thanked crewmember is not named, so that grant stays unwired.
+    dest: "Mantis fugitive",
+    slug: "mantis-fugitive",
+    flag: "cited:mantis-fugitive",
+    aliases: ["Mantis fugitive"],
+    sectors: ["Engi Controlled Sector", "Engi Homeworlds", "Mantis Controlled Sector", "Mantis Homeworlds"],
+    body: "You arrive just in time to see an unusually well-armed Engi ship destroying a small pirate craft. A teleporter signal is detected...intruder on deck!",
+    choices: [
+      {
+        id: "c:mantis-fugitive:0",
+        label: "Side with the fugitive and fight the Engi ship.",
+        // "Side with the fugitive and fight the Engi ship."
+        fx: [{ k: "fight", tier: "Engi ship" }],
+      },
+      {
+        id: "c:mantis-fugitive:1",
+        label: "Agree to offer up the Mantis in exchange for a bounty.",
+        // "Agree to offer up the Mantis in exchange for a bounty."
+        fx: [{ k: "note", text: "High scrap, hull and fire, or a boarder and an Engi ship." }],
+      },
+    ],
+  },
 ];

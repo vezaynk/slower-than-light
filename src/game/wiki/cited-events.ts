@@ -3724,6 +3724,18 @@ const CRYSTAL_FIGHT_INTROS = [
   "A barrage of rasps and clicks is broadcast over the comm; the universal translator understands little, but the words 'aliens', 'allowed' and 'no' come through quite clearly. You'll have to prove your right to be here in combat!",
 ];
 
+// Rebel fight among Rebel fleet. Seven printed intros, no odds. INFERRED: equal.
+// The fight stays c:rebel-fight-among-rebel-fleet:0. The low scrap and medium scrap payouts are not added here.
+const REBEL_FLEET_INTROS = [
+  "Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.",
+  "This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!",
+  "You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!",
+  "As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack.",
+  "Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!",
+  "What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!",
+  "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4113,6 +4125,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: CRYSTAL_FIGHT_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
+    };
+  }
+  // Rebel fight among Rebel fleet. One of the seven printed intros. The fight stays c:rebel-fight-among-rebel-fleet:0.
+  if (ev.slug === "rebel-fight-among-rebel-fleet") {
+    return {
+      title: ev.dest,
+      body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
+      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

@@ -31,7 +31,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-near-sun",
     aliases: ["Mantis fight near sun"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "Who knows why the Mantis would venture so close to a sun.",
+    body: "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?",
     choices: [
       {
         id: "c:mantis-fight-near-sun:0",

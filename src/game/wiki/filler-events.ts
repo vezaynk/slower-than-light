@@ -977,6 +977,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "unknown-disease-on-mining-colony") return diseaseCard(g, page);
   if (page.slug === "fire-on-research-station") return fireCard(g, page);
   if (page.slug === "pirate-ship-distress-trap") return trapCard(g, page);
+  if (page.slug === "abandoned-station") return abandonedStationCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1519,6 +1520,22 @@ const TRAP_INTRO = [
 function trapCard(g: Game, page: Page): GameEvent {
   const body = TRAP_INTRO[Math.min(TRAP_INTRO.length - 1, Math.floor(rand(g) * TRAP_INTRO.length))];
   return { title: page.dest, body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
+}
+
+// Abandoned station. The page prints three opening intros and no odds.
+// INFERRED: equal. Examine and stay stay the existing choices.
+const ABANDONED_STATION_INTROS = [
+  "You arrive to find what appears to be a colonized moon, however scans show it has been abandoned. You also detect an abandoned space station near the Beacon.",
+  "You find a small space station that appears to be abandoned.",
+  "This area shows signs of a battle some time ago. There are scattered remains of ships but one station appears to be intact.",
+];
+
+function abandonedStationCard(g: Game, page: Page): GameEvent {
+  return {
+    title: page.dest,
+    body: ABANDONED_STATION_INTROS[between(g, [0, 2])]!,
+    choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+  };
 }
 
 function moonCollapse(g: Game) {

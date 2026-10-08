@@ -957,6 +957,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:pirate-drones:nothing": (g) => pirateDroneNothing(g),
   // Three sibling results and no odds. INFERRED: equal. The system must already be installed.
   "q:pirate-drones:upgrade": (g) => pirateDroneUpgrade(g),
+  // Rebel checkpoint. Four contact results, no odds. INFERRED: equal.
+  "q:rebel-checkpoint:contact": (g) => rebelCheckpointContact(g),
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
@@ -1620,6 +1622,12 @@ export function questChoose(g: Game, id: string): boolean {
     payLaniusTrader(g, id);
     return true;
   }
+  const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
+  if (checkpoint) {
+    if (questChoiceDisabled(g, id)) return true;
+    rebelCheckpointBribe(g, Number(checkpoint[1]));
+    return true;
+  }
   const run = CHOICES[id] ?? fromParts("choices", id);
   if (!run) return false;
   if (questChoiceDisabled(g, id)) return true;
@@ -1675,6 +1683,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "q:pirate-drones:slug" && !hasSlug(g)) return "Needs a Slug crewmember";
   if (id === "q:pirate-drones:hack" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   if (id === "q:pirate-drones:upgrade" && (g.player.kits.swarm?.level ?? 0) <= 0) return "Needs Drone Control";
+  // Rebel checkpoint. The bribe amount is the one shown on the button.
+  const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
+  if (checkpoint && g.scrap < Number(checkpoint[1])) return `Need ${checkpoint[1]} scrap`;
   // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
   if (id === "q:engi-distress:scrap" && g.scrap < 25) return "Need 25 scrap";
   if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";
@@ -2080,6 +2091,45 @@ function pirateDroneUpgrade(g: Game) {
   if (kit.power > kit.level) kit.power = kit.level;
   log(g, `Scrap: -${cost}.`);
   result(g, `Drone Control at level ${level}.`, undefined, [`Scrap: -${cost}.`]);
+}
+
+const REBEL_CHECKPOINT_BRIBE = [
+  "These Rebels are easily swayed by the prospect of additional scrap. They release the civilian ships and everyone is free to go.",
+  "Like most Rebels, these are just men trying to get by in a rough galaxy. They take your scrap and let everyone continue their journeys.",
+  "As everyone currently awaiting inspection is human anyway, the Rebels let them go. They take your scrap and tell you to hurry along.",
+  "They eagerly accept your bribe, obviously revolutionaries are under paid. The civilian ships all begin to jump away.",
+];
+
+/** Rebel checkpoint. Transaction 10-15. The four texts have no odds. INFERRED: equal. Then the civilians. */
+function rebelCheckpointBribe(g: Game, n: number) {
+  if (!Number.isInteger(n) || n < 10 || n > 15 || g.scrap < n) return;
+  g.scrap -= n;
+  log(g, `Scrap: -${n}.`);
+  const text = pick(g, REBEL_CHECKPOINT_BRIBE);
+  card(g, `${text}\n\nScrap: -${n}.`, [{ id: "q:rebel-checkpoint:contact", label: "Contact the civilian ships." }]);
+}
+
+/** Contact the civilian ships. Four results and no odds. INFERRED: equal. */
+function rebelCheckpointContact(g: Game) {
+  const kind = pick(g, ["fight", "standard", "scrap", "nothing"] as const);
+  if (kind === "fight") {
+    pageFight(
+      g,
+      "One of the civilian ships contacts you and reveals they are Federation loyalists. An eavesdropping Rebel swoops in, destroys the ship, and turns to attack you!",
+      "Rebel ship",
+      "rebel-checkpoint",
+    );
+    return;
+  }
+  if (kind === "standard") {
+    result(g, "One of the civilian ships quietly teleports over a crate of Federation military supplies.", rollStandard(g, "low"));
+    return;
+  }
+  if (kind === "scrap") {
+    result(g, "Some of the civilians pool together their excess scrap to try to repay you for your help.", scrapOnly(g, "low"));
+    return;
+  }
+  result(g, "The civilians are grateful. However, none of them seem eager to be mistaken as Federation loyalists so they quickly jump away.", undefined, ["Nothing happens."]);
 }
 
 /** Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then the Crystal ship. */

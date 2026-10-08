@@ -3537,6 +3537,20 @@ const PIRATE_FIGHT_INTROS = [
   "You barely have time to register jump completion before your ship warns you of an incoming ship with weapons hot.",
 ];
 
+// Rebel checkpoint. Four intros and four hide labels, no odds. INFERRED: equal.
+const REBEL_CHECKPOINT_INTROS = [
+  "A rather large fleet of civilian ships are held up at this Beacon. It appears to be a Rebel checkpoint; everyone is being inspected for possible ties to the Federation. No one has noticed you yet.",
+  "Another Rebel checkpoint is monitoring this location. A number of civilian ships are awaiting inspection, any of them could be Federation loyalists. The Rebels haven't noticed you yet.",
+  "A Rebel space station and single fighter is monitoring this Beacon for Federation activity. A number of civilian ships are docked, awaiting inspection by the Rebels and possible detainment if they are Federation loyalists. The Rebels haven't noticed you yet.",
+  "It looks like this Beacon is home to a Rebel checkpoint. They're stopping and searching any ship that passes through. Civilians are being harassed, and Federation members are detained. The Rebels haven't noticed you yet.",
+];
+const REBEL_CHECKPOINT_HIDE = [
+  "Fly behind a moon and stay hidden.",
+  "Shut down all non-vital systems and stay hidden.",
+  "Stay quiet and hope they don't notice you.",
+  "Stay out of their way and charge your FTL drive.",
+];
+
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
@@ -3727,6 +3741,19 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "q:pirate-drones:hail", label: "Hail the ship." },
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
+      ],
+    };
+  }
+  // Rebel checkpoint. The bribe amount is a whole number from 10 to 15, shown on the button.
+  if (ev.slug === "rebel-checkpoint") {
+    const cost = between(g, [10, 15]);
+    return {
+      title: ev.dest,
+      body: REBEL_CHECKPOINT_INTROS[between(g, [0, 3])]!,
+      choices: [
+        { id: "c:rebel-checkpoint:0", label: "Fend for yourself, attack, and escape." },
+        { id: `q:rebel-checkpoint:bribe:${cost}`, label: `Bribe the Rebels to release the civilian ships. [${cost} scrap]` },
+        { id: "c:rebel-checkpoint:1", label: REBEL_CHECKPOINT_HIDE[between(g, [0, 3])]! },
       ],
     };
   }

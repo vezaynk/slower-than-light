@@ -638,6 +638,27 @@ const CHOICES: Record<string, (g: Game) => void> = {
       { id: "c:lanius-trader:3", label: "Decline" },
     ]);
   },
+  // Lanius trader with translator. "Decline but ask about their translation device."
+  "c:lanius-trader-with-translator:4": (g) => {
+    card(g, "\"Yes. It is quality. Our ship contains excess. Care to purchase?\"", [
+      { id: "q:lanius-translator:buy", label: "Purchase the translator for 40 scrap." },
+      { id: "q:lanius-translator:decline", label: "Decline again." },
+    ]);
+  },
+  // 40 scrap for a Lanius named Translator. The page prints no skill.
+  // INFERRED: a full crew of 8 does not pay the 40, because the crewmember does not come aboard.
+  "q:lanius-translator:buy": (g) => {
+    if (g.scrap < 40) return;
+    if (!joinCrew(g, "Lanius", "Translator")) {
+      result(g, "There is no room aboard for the new crewmember.");
+      return;
+    }
+    g.scrap -= 40;
+    result(g, "Your ships dock and you are more than a little surprised when the Lanius you spoke with boards your ship. It appears the 'device' you purchased was one of the beings that learned your language.", undefined, ["A Lanius crewmember named Translator joins you."]);
+  },
+  "q:lanius-translator:decline": (g) => {
+    result(g, "\"No matter. This one does not mind this ship.\" They pull away and you are left to wonder what it meant by that. Perhaps the translation device has not yet been perfected?", undefined, ["Nothing happens."]);
+  },
   // Lanius lone ship, "Try to contact the Lanius ship." The civilian warning, then one button.
   "c:lanius-lone-ship:2": (g) => {
     card(g, "You approach the ship without activating weapons and the civilian ship says, \"Don't go any closer! Just kill them!\" before hastily making their retreat.", [
@@ -1065,7 +1086,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
 };
 
-const LANIUS_TRADER_TAKE = /^q:lanius-trader:take:(fuel|missiles|parts):(\d+):(\d+)$/;
+const LANIUS_TRADER_TAKE = /^q:lanius-(?:trader|translator):take:(fuel|missiles|parts):(\d+):(\d+)$/;
 
 /** The shown Lanius trader offer. The page prints those amounts before the choice, so this does not roll again. */
 function payLaniusTrader(g: Game, id: string) {
@@ -1092,7 +1113,7 @@ function payLaniusTrader(g: Game, id: string) {
 
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
 export function questChoose(g: Game, id: string): boolean {
-  if (id.startsWith("q:lanius-trader:take:")) {
+  if (id.startsWith("q:lanius-trader:take:") || id.startsWith("q:lanius-translator:take:")) {
     if (!LANIUS_TRADER_TAKE.test(id)) return false;
     if (questChoiceDisabled(g, id)) return true;
     payLaniusTrader(g, id);
@@ -1120,6 +1141,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Lanius powered-down ship. Advanced Piloting prints level=2+. A dead Lanius does not count.
   if (id === "q:lanius-dormant:plunder" && !hasLanius(g)) return "Needs a Lanius crewmember";
   if (id === "q:lanius-dormant:autopilot" && (g.player.systems.pilot?.level ?? 0) < 2) return "Needs level 2 Piloting";
+  // Lanius trader with translator. Purchase the translator for 40 scrap.
+  if (id === "q:lanius-translator:buy" && g.scrap < 40) return "Need 40 scrap";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];

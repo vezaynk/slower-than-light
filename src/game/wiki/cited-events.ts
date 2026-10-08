@@ -3471,6 +3471,19 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Lanius trader with translator. Same one shown base trade. No better-band blue option.
+  if (ev.slug === "lanius-trader-with-translator") {
+    const offer = rollLaniusTrader(g, false);
+    return {
+      title: ev.dest,
+      body: laniusTraderOfferText(offer),
+      choices: [
+        { id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`, label: "Agree to the exchange." },
+        { id: "c:lanius-trader-with-translator:3", label: "Decline" },
+        { id: "c:lanius-trader-with-translator:4", label: "Decline but ask about their translation device." },
+      ],
+    };
+  }
   return {
     title: ev.dest,
     body: ev.body,

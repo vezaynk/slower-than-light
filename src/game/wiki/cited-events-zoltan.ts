@@ -209,7 +209,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-quest-primitives",
     aliases: ["Zoltan quest primitives"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.",
+    body: "You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.\n\nYou tap into their frequency and hear the Rebel captain yelling, \"We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!\"",
     choices: [
       {
         id: "c:zoltan-quest-primitives:0",

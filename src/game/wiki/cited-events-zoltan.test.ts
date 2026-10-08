@@ -106,7 +106,8 @@ describe("cited zoltan events", () => {
       assert.ok(ev.aliases.includes(ev.dest));
       // The printed Zoltan asteroid intro is 260 characters.
       // The printed Great Eye opening is 302 characters.
-      assert.ok(ev.body.length <= 310);
+      // Zoltan quest primitives opening is both printed sentences, 365 characters.
+      assert.ok(ev.body.length <= 370);
       assert.ok(ev.choices.length >= 1);
       const text = wiki.get(ev.dest);
       assert.ok(text, ev.dest);
@@ -114,7 +115,10 @@ describe("cited zoltan events", () => {
       assert.deepEqual(ev.sectors, names);
       for (const sector of ev.sectors) assert.ok(names.includes(sector), sector);
       const plain = normalizeWiki(text);
-      if (ev.body) assert.ok(plain.includes(ev.body), ev.body);
+      // A two-sentence opening is joined with a blank line. The wiki puts a list mark between them.
+      for (const part of ev.body.split("\n\n")) {
+        if (part) assert.ok(plain.includes(part), part);
+      }
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
         assert.ok(choice.fx.length >= 1);

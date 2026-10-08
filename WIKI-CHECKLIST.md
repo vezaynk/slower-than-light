@@ -746,7 +746,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Mantis ships battle for Rock freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization Waiting fights a Mantis ship whose Weapon Control is reduced by 2 or a normal Mantis ship, both wins pay medium scrap, ignoring them does nothing, a Repair Drone pays high scrap, and a Hull Repair Drone spends one drone part then fights that ship.
 - [ ] Mantis store — not-a-surface — same title as "Mantis Store" with different capitalization
 - [ ] Mantis venture close to sun — not-a-surface — same title as "Mantis Venture Close to Sun" with different capitalization
-- [ ] Mantis war camp — not-a-surface — same title as "Mantis War Camp" with different capitalization
+- [ ] Mantis war camp — not-a-surface — same title as "Mantis War Camp" with different capitalization. Pledging shows the printed thank-you sentence and still adds the quest marker.
 - [ ] Master of Patience — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Medbay — partial — system exists. Upgrade row is a single price. Level 1 heals at 6.4, level 2 at 9.6, and level 3 at 19.2, including in an airless room. Level 1 nets zero for a full-rate human because suffocation is also 6.4. Levels 2 and 3 net-heal there without Emergency Respirators.
 - [ ] Mercenary — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

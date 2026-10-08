@@ -4692,6 +4692,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:mantis-ship-with-rock-body-parts:0") ctx.note("No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!");
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-lone-ship:0") ctx.note("The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.");
+  // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
+  if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

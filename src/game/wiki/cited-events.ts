@@ -3796,6 +3796,16 @@ const LANIUS_CIVILIAN_INTROS = [
   "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
 ];
 
+// Slug fight in nebula. Five printed intros, no odds. INFERRED: equal.
+// The fight stays c:slug-fight-in-nebula:0. No nebula environment is added. Surrender stays the Slug row.
+const NEBULA_SLUG_INTROS = [
+  "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!",
+  "The Slug vessel you encounter here has obviously made a big score and is looking to test its new armaments. They picked the wrong ship to attack.",
+  `A Slug passenger ship hails: "Please, your worthy alien highnessesss, we are unarmed and sseeking asssylum." You approach cautiously, and weapons immediately spring from their hull!`,
+  "A Slug ship - a rogue, you suspect - approaches, but when he sees you're Federation he thinks better of the sneak attack and fires everything he has.",
+  "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!",
+];
+
 // Escort civilians. Three printed intros, no odds. INFERRED: equal.
 // Accept stays the low fuel and the quest marker. Decline stays nothing.
 const ESCORT_CIVILIAN_INTROS = [
@@ -4249,6 +4259,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Slug fight in nebula. One of the five printed intros. The fight stays c:slug-fight-in-nebula:0.
+  if (ev.slug === "slug-fight-in-nebula") {
+    return {
+      title: ev.dest,
+      body: NEBULA_SLUG_INTROS[between(g, [0, 4])]!,
+      choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
     };
   }
   // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.

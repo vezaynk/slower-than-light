@@ -2181,8 +2181,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // ---- Abandoned station ----
   "c:abandoned-station:0": (g) => {
-    const r = weighted(g, [["supplies", 2], ["pirates", 1], ["battery", 1], ["clone", 1], ["shell", 1]] as const);
-    if (r === "supplies") show(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
+    // DuplicateEvent|2 is the two printed supply lines. INFERRED: equal, so scrap stays twice as common.
+    const r = weighted(g, [["rest", 1], ["hull", 1], ["pirates", 1], ["battery", 1], ["clone", 1], ["shell", 1]] as const);
+    if (r === "rest") show(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
+    else if (r === "hull") show(g, "Upon closer inspection it appears to have a large portion of its hull destroyed. You take what few supplies you can find.", scrapOnly(g, "low"));
     else if (r === "pirates") {
       fight(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!", "Pirate ship", "abandoned-station");
       // "2 boarders beam aboard your ship" (surrender.ts humanBoarders, the same intruder kit).

@@ -2278,15 +2278,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // pirate ship, the battery with no ship, the cloning bay, and the empty shell. Race of the unnamed boarders is
   // INFERRED human (the pirate burst on this page already uses humanBoarders).
   "q:station:examine": (g) => {
+    // DuplicateEvent|2 is the two printed supply lines. INFERRED: equal, so scrap stays twice as common.
     const r = weighted(g, [
-      ["scrap", 2],
+      ["rest", 1],
+      ["hull", 1],
       ["pirate", 1],
       ["battery", 1],
       ["clone", 1],
       ["shell", 1],
-    ] as ["scrap" | "pirate" | "battery" | "clone" | "shell", number][]);
-    if (r === "scrap") {
+    ] as ["rest" | "hull" | "pirate" | "battery" | "clone" | "shell", number][]);
+    if (r === "rest") {
       result(g, "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.", scrapOnly(g, "low"));
+    } else if (r === "hull") {
+      result(g, "Upon closer inspection it appears to have a large portion of its hull destroyed. You take what few supplies you can find.", scrapOnly(g, "low"));
     } else if (r === "pirate") {
       pageFight(g, "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!", "Pirate ship", "quest-abandoned-station");
       humanBoarders(g, 2, 2);

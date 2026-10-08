@@ -248,10 +248,12 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.ok(home);
     home.kind = "nebula";
     home.col = 0;
+    const hull = fueled.player.hull;
     waitHere(fueled);
     assert.equal(home.cleared, undefined);
     assert.equal(fueled.player.storm, true);
     assert.equal(fueled.phase, "map");
+    assert.equal(fueled.player.hull, hull);
 
     const jumped = createGame(5);
     jumped.phase = "map";

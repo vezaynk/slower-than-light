@@ -5204,7 +5204,8 @@ export function continueReward(g: Game) {
   }
 }
 
-// Stores, "Fuel": waiting advances the rebels like a jump. INFERRED: two hull if their column has passed.
+// Stores and resources, "Fuel": an out-of-fuel wait advances the rebels the same distance as a jump.
+// That section does not deal hull damage.
 export function waitHere(g: Game) {
   if (g.phase !== "map") return;
   const b = hereBeacon(g);
@@ -5223,12 +5224,6 @@ export function waitHere(g: Game) {
     g.pending = "dive:4";
     startCombat(g, "elite", false);
     return;
-  }
-  if (b && b.col < g.fleet) {
-    g.player.hull = Math.max(1, g.player.hull - 2);
-    log(g, "Artillery walks the beacon. Hull scraped.");
-    sfx(g, "hit");
-    if (g.player.hull <= 10) g.lowHull = true;
   }
   sfx(g, "click");
 }

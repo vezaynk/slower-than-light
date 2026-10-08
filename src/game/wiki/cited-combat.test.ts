@@ -199,7 +199,7 @@ describe("fleet dive fuel", () => {
     const hull = waiting.player.hull;
     waitHere(waiting);
     assert.equal(waiting.phase, "map");
-    assert.equal(waiting.player.hull, Math.max(1, hull - 2));
+    assert.equal(waiting.player.hull, hull);
 
     const last = createGame(1);
     last.sector = 8;

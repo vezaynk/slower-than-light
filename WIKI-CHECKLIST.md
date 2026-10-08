@@ -162,7 +162,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Black Raven — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Black market weapons trader — not-a-surface — same title as "Black Market Weapons Trader" with different capitalization
 - [ ] Blue Options — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Boarders: Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event. Two or three crystal boarders beam aboard your ship from Boarders: Crystal, with no enemy ship.
+- [ ] Boarders: Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event. Two or three crystal boarders beam aboard your ship from Boarders: Crystal, with no enemy ship. At Boarders: Crystal, one of the three printed intros is shown.
 - [ ] Boarders: Humans (Abandoned) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Boarders: Humans (Pirate) — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Three to five human boarders beam aboard your ship from Boarders: Humans (Pirate), with no enemy ship.
 - [ ] Boarders: Humans in nebula — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event. Two to four human boarders beam aboard your ship from Boarders: Humans in nebula, with no enemy ship. At Boarders: Humans in nebula, one of the three printed intros is shown.

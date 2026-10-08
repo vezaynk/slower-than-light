@@ -3607,6 +3607,22 @@ const ROCK_BOARDER_ASTEROID_INTROS = [
   "Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.",
 ];
 
+// Lanius fight. Eleven printed intros, one repeated, no odds. INFERRED: equal, so the repeated line is twice as likely.
+// The fight stays c:lanius-fight:0. Default Lanius rewards are not a separate payout.
+const LANIUS_FIGHT_INTROS = [
+  `You receive a message on a wide band frequency, originating from an approaching Lanius ship. It appears not to be directed at you, but your translator does its best all the same: "... metallic opportunity... acquisition... by force..." Looks like you're in for a fight.`,
+  "Sensors indicate a small Lanius cruiser in the process of salvaging another small Lanius ship. Before you have a chance to wonder what caused them to turn on each other, the survivor notices you and moves in to attack.",
+  "Shortly after your arrival, a Lanius ship jumps near the beacon. It begins to move slowly toward you. You open wide band communication channels, attempting to make contact. However, it either ignores you or is unable to receive the messages. As they get closer you issue the order to charge weapons and find they do the same.",
+  "A military Lanius vessel stops repurposing an abandoned satellite as soon as you jump in. It blocks all hails and powers its weapons.",
+  "The beacon is surrounded by many tiny Lanius crafts, surely only capable of holding one occupant. Perhaps they are some kind of forward scout searching for 'metallic opportunities'? As you consider this, a much larger Lanius vessel moves in to engage you, and the scout ships scatter in all directions.",
+  "You arrive to see a well-armed Lanius craft preparing to salvage a badly damaged Rebel patrol ship. Noticing your arrival, the Lanius greedily moves in to intercept its second target of the day.",
+  "As you arrive in the system, your proximity alarm begins screaming: there is a Lanius ship right on top of you! Before you have a chance to hail, they open fire!",
+  "As you are getting your bearings, another ship suddenly arrives at the beacon - it's the Lanius, and they've marked your ship for salvage!",
+  "At first everything seems quiet, then your scanners pick up a ship approaching at high speed - the Lanius have detected your arrival and are powering up their weapons!",
+  "You have stumbled across a mining expedition - unfortunately, the miners are the Lanius, and they've chosen your ship as their target!",
+  "As you are getting your bearings, another ship suddenly arrives at the beacon - it's the Lanius, and they've marked your ship for salvage!",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3924,6 +3940,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ROCK_BOARDER_ASTEROID_INTROS[between(g, [0, 1])]!,
       choices: [{ id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" }],
+    };
+  }
+  // Lanius fight. One of the eleven printed intros, including the repeated line. The fight stays c:lanius-fight:0.
+  if (ev.slug === "lanius-fight") {
+    return {
+      title: ev.dest,
+      body: LANIUS_FIGHT_INTROS[between(g, [0, 10])]!,
+      choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

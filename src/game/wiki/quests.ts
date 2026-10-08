@@ -31,7 +31,7 @@ import { upgradeCost, WEAPONS } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
+import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
@@ -40,7 +40,7 @@ import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./c
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
 import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
-import type { EscapePlan } from "./escape.ts";
+import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 import {
   between,
   closeFight,
@@ -510,6 +510,29 @@ function arriveStation(g: Game) {
   }
 }
 
+/**
+ * Template:Hidden federation base, Federation Base Assist. Four arrival bullets, no odds.
+ * The two non-AE sentences are the same text, so they are one card: do not double that weight.
+ * INFERRED: equal among the three distinct cards (the header's equal-odds rule).
+ * Button labels the page does not print are INVENTED, in the style of "Fight the Auto-ship."
+ */
+export function arriveFedAssist(g: Game) {
+  const r = pick(g, ["auto", "asb", "wing"] as const);
+  if (r === "asb") {
+    card(g, "You arrive in the sector to see a small Federation outpost using their Anti-Ship Battery to fire at an automated drone. Debris from other ships is strewn around the area. It looks like the brunt of the battle is already over. You move in to assist.", [
+      { id: "q:fed-base:assist-asb", label: "Fight the Auto-ship." },
+    ]);
+  } else if (r === "wing") {
+    card(g, "You arrive in the sector to see the Federation outpost under fire from multiple Rebel ships. However, as you approach they get their Anti-Ship Battery online and disable two of the smaller ships. You swoop in to assist, taking down the wing leader.", [
+      { id: "q:fed-base:assist-wing", label: "Fight the Elite Rebel." },
+    ]);
+  } else {
+    card(g, "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!", [
+      { id: "q:fed-base:assist", label: "Fight the Auto-ship." },
+    ]);
+  }
+}
+
 /** Template:Hidden federation base. Five results; the fifth is "Federation Base Assist". */
 function arriveFedBase(g: Game) {
   const r = pick(g, ["schematic", "crew", "dock", "empty", "assist"] as const);
@@ -528,11 +551,7 @@ function arriveFedBase(g: Game) {
     if (sensors(g) >= 2 || g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan", label: "Run a second scan pass." });
     card(g, "You search near the coordinates given to you, but your search yields no results. Perhaps they were mistaken.", choices);
   } else {
-    // Federation Base Assist: two Auto-ship variants are wired. Not wired: the AE variants with a friendly Anti-Ship
-    // Battery (this game's battery only fires on the player), including the Elite Rebel one.
-    card(g, "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!", [
-      { id: "q:fed-base:assist", label: "Fight the Auto-ship." },
-    ]);
+    arriveFedAssist(g);
   }
 }
 
@@ -2402,6 +2421,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
   },
   "q:fed-base:assist": (g) => pageFight(g, "The automated drone turns on you.", "Auto-ship", "quest-fed-assist"),
+  // AE Auto-ship. "periodically" prints no seconds: aidPlayerAsb is the existing friendly battery.
+  "q:fed-base:assist-asb": (g) => {
+    pageFight(g, "You move in to assist.", "Auto-ship", "quest-fed-assist-asb");
+    aidPlayerAsb(g);
+  },
+  // AE Elite Rebel. {{SurrenderEscape(alt)|escapechance|REBEL_FEDERATION_PDS|dlcEventsOverwrite.xml|20|40-60|4-6}}
+  // escapechance is an escape attempt only (no surrender). 20 is the percent; 40-60 is hull percent.
+  // 4-6 is the template's actual-hull warning, not a timer, so the typical 15 seconds stays.
+  // INFERRED: the threshold is uniform inside 40..60, the same reading as escape.ts.
+  "q:fed-base:assist-wing": (g) => {
+    pageFight(g, "You swoop in to assist, taking down the wing leader.", "elite", "quest-fed-assist-wing", hullRun(20, 40 + rand(g) * 20, HULL_RUN_SECONDS));
+    aidPlayerAsb(g);
+  },
   "q:fed-assist:contact": (g) => {
     if (rand(g) < 0.5) {
       // "You receive a crewmember and a weapon with low scrap." The weapon is not named.
@@ -2409,6 +2441,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
     } else {
       result(g, "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"", rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
     }
+  },
+  // AE Auto-ship contact. The crewmember is unnamed: not granted.
+  "q:fed-assist-asb:contact": (g) => {
+    result(g, "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"", rollStandard(g, "high"), [repair(g, 7)]);
+  },
+  // AE Elite contact. The crewmember is unnamed: not granted. The footnote says that line's scrap is not awarded.
+  "q:fed-assist-wing:contact": (g) => {
+    result(g, "With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight.");
   },
 
   "q:thief:strip": (g) => {
@@ -3775,6 +3815,10 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Federation Base Assist (Auto-ship): "low scrap with resources", then one of two follow-ups.
   "quest-fed-assist": std("low", "low", "You scrap the wreckage.", "You scrap the wreckage.", [{ id: "q:fed-assist:contact", label: "Contact the Federation outpost." }]),
+  // AE Auto-ship. Destroyed, and INFERRED a crew-kill the template does not list, both use this sentence and low scrap.
+  "quest-fed-assist-asb": std("low", "low", "You scrap the wreckage.", "You scrap the wreckage.", [{ id: "q:fed-assist-asb:contact", label: "Contact the Federation outpost." }]),
+  // AE Elite Rebel. Destroyed is low scrap with resources; a crew kill is medium. Then the outpost contact.
+  "quest-fed-assist-wing": std("low", "medium", "You scrap the wreckage.", "With the crew dead, you scrap the ship.", [{ id: "q:fed-assist-wing:contact", label: "Contact the Federation outpost." }]),
 };
 
 /**
@@ -3811,6 +3855,10 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
   "quest-engi-real": (g) => result(g, "With the ship gone, you search through the abandoned base for any signs of their destination but find none."),
   "quest-engi-fake": (g) => result(g, "With the ship gone you search through the abandoned base for any signs of their destination but find none."),
   "quest-slug-interceptor": (g) => result(g, "The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..."),
+  // The mid-run sentence "After watching their squadron get destroyed, it looks like their leader is prepared to turn tail and run." has no separate card hook.
+  "quest-fed-assist-wing": (g) => {
+    card(g, "The Rebel ship jumped away.", [{ id: "q:fed-assist-wing:contact", label: "Contact the Federation outpost." }]);
+  },
   // Rebel ship warning. The escape already doubles pursuit (sim.ts). This card prints the page's sentence.
   "rebel-ship-warning": (g) => {
     card(

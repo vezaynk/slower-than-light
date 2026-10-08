@@ -258,10 +258,26 @@ describe("Encrypted federation signal", () => {
       }
       if (questBeacons(g, "fed-assist").length) {
         choose(g, "ack");
-        assert.ok(arrive(g, "fed-assist").includes("bombarded by an automated drone"));
-        choose(g, "q:fed-base:assist");
+        const body = arrive(g, "fed-assist");
+        const id = g.event!.choices[0]!.id;
+        if (body.includes("bombarded by an automated drone")) {
+          assert.equal(id, "q:fed-base:assist");
+          choose(g, id);
+          assert.equal(g.fightEvent, "quest-fed-assist");
+          assert.equal(g.asb, false);
+        } else if (body.includes("using their Anti-Ship Battery")) {
+          assert.equal(id, "q:fed-base:assist-asb");
+          choose(g, id);
+          assert.equal(g.fightEvent, "quest-fed-assist-asb");
+          assert.equal(g.asb, true);
+        } else {
+          assert.ok(body.includes("taking down the wing leader"));
+          assert.equal(id, "q:fed-base:assist-wing");
+          choose(g, id);
+          assert.equal(g.fightEvent, "quest-fed-assist-wing");
+          assert.equal(g.asb, true);
+        }
         assert.equal(g.phase, "combat");
-        assert.equal(g.fightEvent, "quest-fed-assist");
         return "assist";
       }
       if (body.startsWith("You find a small cache")) return "cache";

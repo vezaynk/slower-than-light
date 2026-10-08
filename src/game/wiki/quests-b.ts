@@ -24,6 +24,7 @@ import { beginBoarding, forgetCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import {
   addQuest,
+  arriveFedAssist,
   card,
   crew,
   hasTeleporter,
@@ -364,12 +365,9 @@ export const PART_B: QuestPart = {
         { id: "q:capture:fight", label: "Fight a Pirate ship." },
       ]);
     },
-    // Template:Hidden federation base, "Federation Base Assist": the two Auto-ship variants (the existing
-    // "q:fed-base:assist" fight in wiki/quests.ts). The AE Anti-Ship Battery variants are not wired there either.
+    // Template:Hidden federation base, "Federation Base Assist": the same three cards as arriveFedAssist.
     "fed-assist": (g) => {
-      card(g, "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!", [
-        { id: "q:fed-base:assist", label: "Fight the Auto-ship." },
-      ]);
+      arriveFedAssist(g);
     },
     // Merchant's request, "Merchant's Delivery": the station doesn't respond / responds.
     "merchant-delivery": (g) => {

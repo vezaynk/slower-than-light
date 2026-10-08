@@ -5062,6 +5062,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return true;
   // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-carrying-shield-virus:1") ctx.note("Your hacking system automatically counters the digital assault and you move in to fight the ship.");
+  // Rebel shipyard. "Look around." One printed warning, then the same second Flagship fight. No salvage is granted here.
+  if (id === "c:rebel-shipyard:0") ctx.note("Warning lights flash as scans identify the gigantic ship under construction - it's a second Rebel Flagship! This must be the secret shipyards where the first one was built, and you've accidentally stumbled across it! Even in its weakened state, the Rebel ship powers up... get ready, you've got a hell of a fight on your hands!");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

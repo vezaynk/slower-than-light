@@ -2440,6 +2440,19 @@ export const PAGE_WINS: Record<string, Win> = {
     }
     result(g, "There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!", scrapOnly(g, "low"));
   },
+  // Rebel fight among Federation and Rebel fleets. This page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.
+  // The two endings are separate printed results. Default salvage is not paid.
+  "rebel-fight-among-federation-and-rebel-fleets": (g, deadCrew) => {
+    if (deadCrew) {
+      result(
+        g,
+        "There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump.",
+        rollStandard(g, "medium"),
+      );
+      return;
+    }
+    result(g, "There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!", scrapOnly(g, "low"));
+  },
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
   "pirate-ships-in-plasma-storm": (g, deadCrew) => {

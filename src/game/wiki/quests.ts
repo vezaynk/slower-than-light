@@ -1196,6 +1196,24 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!", "Engi ship", "the-engi-virus");
     halvePlayerSystems(g, ["engines", "shields"]);
   },
+  // Slug hacker (choice). "Shields." One printed lead-in, then a Slug ship fight.
+  // The page halves Shields, rounding down. This handler returns before citedChoose, so the half is applied here.
+  "c:slug-hacker-choice:0": (g) => {
+    pageFight(g, `"Very good then!" Your shield power suddenly drops and they charge.`, "Slug ship", "slug-hacker-choice");
+    halvePlayerSystems(g, ["shields"]);
+  },
+  // Slug hacker (choice). "Oxygen." One printed lead-in, then a Slug ship fight.
+  // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
+  "c:slug-hacker-choice:1": (g) => {
+    pageFight(g, `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`, "Slug ship", "slug-hacker-choice");
+    halvePlayerSystems(g, ["oxygen"]);
+  },
+  // Slug hacker (choice). "Weapons." One printed lead-in, then a Slug ship fight.
+  // The page halves Weapon Control, rounding down. This handler returns before citedChoose, so the half is applied here.
+  "c:slug-hacker-choice:2": (g) => {
+    pageFight(g, `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`, "Slug ship", "slug-hacker-choice");
+    halvePlayerSystems(g, ["weapons"]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

@@ -911,7 +911,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "",
+    "body": "You stumble across a badly damaged Lanius craft. It jumps away as soon as it sees you. Looking around the area, you discover a number of destroyed Rebel automated ships. It must have been quite the fight. You scrap what remains.",
     "choices": [
       {
         "id": "c:free-scrap-with-resources-lanius:0",

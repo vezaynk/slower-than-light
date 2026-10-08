@@ -558,6 +558,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     result(g, "The Mantis ship sustained too much damage - there are no survivors. You gather what resources you can from the wreckage.", rollStandard(g, "medium"));
   },
+  // Lanius ship attacking Slug, "Contact the Slugs." Two results, no odds. INFERRED: equal.
+  "q:lanius-slug:contact": (g) => {
+    if (weighted(g, [["supplies", 1], ["nothing", 1]] as const) === "supplies") {
+      result(g, "The Slugs reluctantly thank you for your help, protest they had the whole situation under control, attempt to make you pay for them helping you, and an hour later, finally relent and give you some supplies.", rollStandard(g, "medium"));
+      return;
+    }
+    result(g, "The Slugs, taking advantage of the firefight, have fled the system. So much for gratitude.", undefined, ["Nothing happens."]);
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -1117,6 +1125,13 @@ export const PAGE_WINS: Record<string, Win> = {
       ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
       : "The ship explodes, leaving behind a collection of useful scrap material.";
     result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-mantis:contact", label: "Contact the Mantis." }]);
+  },
+  // Lanius ship attacking Slug. Both endings pay medium standard, then "Contact the Slugs."
+  "lanius-ship-attacking-slug": (g, deadCrew) => {
+    const text = deadCrew
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-slug:contact", label: "Contact the Slugs." }]);
   },
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {

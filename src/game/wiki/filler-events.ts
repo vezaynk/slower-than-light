@@ -1930,6 +1930,35 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "You decide it would be better to leave them be.", undefined, ["Nothing happens."]);
   },
 
+  // Mantis ships battle for Rock freighter. Two fights and no odds. INFERRED: equal.
+  // The weakened ship has Weapon Control reduced by 2. A ship with fewer bars loses only those bars. INFERRED.
+  "c:mantis-ships-battle-for-rock-freighter:0": (g) => {
+    const weak = weighted(g, [["weak", 1], ["full", 1]] as const) === "weak";
+    const text = weak
+      ? "The Mantis craft are both too busy slaughtering one another to notice you. Eventually the smaller ship gets the upper hand, but they must have blown a fuse in the assault and their weapons system is inoperable. Now is the time to attack!"
+      : "The Mantis craft may have their differences, but when it comes to you they are of one mind. The smaller ship suffers a power failure as it moves to engage, but the larger one lets off a volley of fire and moves in to attack!";
+    fight(g, text, "Mantis ship", "mantis-ships-battle-for-rock-freighter");
+    if (weak && g.enemy) hurtSystem(g.enemy, "weapons", 2);
+  },
+  "c:mantis-ships-battle-for-rock-freighter:1": (g) => {
+    show(g, "There's quite enough action here already - prepare for light speed.", undefined, ["Nothing happens."]);
+  },
+  // Repair Drone. High standard. Printed bug: no drone part is required when that reward includes drone parts.
+  // The unnamed standard bonus stays unwired.
+  "c:mantis-ships-battle-for-rock-freighter:2": (g) => {
+    if (!ownsDrone(g, "patch")) return;
+    const hull = g.player.hull;
+    const lines = g.log.slice();
+    payDronePart(g, rollStandard(g, "high"), "While the two Mantis fight you approach the Rock ship and send a repair drone through one of the many breaches. It fixes the ship up enough to make at least a single jump. You're surprised when, instead, they embark on a kamikaze run on the two Mantis, which results in the obliteration of all three!", hull, lines);
+  },
+  // Hull Repair Drone. One drone part, then a Mantis ship. The bug note is not on this choice.
+  "c:mantis-ships-battle-for-rock-freighter:3": (g) => {
+    if (!ownsDrone(g, "hull") || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    fight(g, "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you.", "Mantis ship", "mantis-ships-battle-for-rock-freighter");
+  },
+
   // Engi smashed ships. "a random amount of resources with some scrap."
   // Rewards Stuff includes an unnamed bonus item. That grant stays unwired.
   "c:engi-smashed-ships:2": (g) => {
@@ -2732,6 +2761,10 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
   // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
   if (id === "c:engi-smashed-ships:2" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
+  // Mantis ships battle for Rock freighter. INFERRED: the refusal line. The page names the drone and prints no sentence.
+  if (id === "c:mantis-ships-battle-for-rock-freighter:2" && !ownsDrone(g, "patch")) return "Needs a Repair Drone";
+  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && !ownsDrone(g, "hull")) return "Needs a Hull Repair Drone";
+  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && g.player.parts < 1) return "Need 1 drone part";
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.

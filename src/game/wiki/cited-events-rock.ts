@@ -267,4 +267,43 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Mantis ships battle for Rock freighter. The fights, the scrap, and the drone parts run in filler-events.ts.
+    dest: "Mantis ships battle for Rock freighter",
+    slug: "mantis-ships-battle-for-rock-freighter",
+    flag: "cited:mantis-ships-battle-for-rock-freighter",
+    aliases: [
+      "Mantis ships battle for Rock freighter",
+      "Mantis Ships Battle for Rock Freighter",
+      "Mantis ships battle for Rock Freighter",
+    ],
+    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
+    body: "A curious sight greets you at this beacon: a disabled Rock freighter drifts in space while two Mantis craft battle it out - presumably over who deserves the spoils.",
+    choices: [
+      {
+        id: "c:mantis-ships-battle-for-rock-freighter:0",
+        label: "Wait, then attack the surviving Mantis.",
+        // Two Mantis fights. One has Weapon Control reduced. No odds. INFERRED: equal.
+        fx: [{ k: "note", text: "A weakened Mantis ship, or a Mantis ship." }],
+      },
+      {
+        id: "c:mantis-ships-battle-for-rock-freighter:1",
+        label: "Ignore them.",
+        // "Nothing happens."
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+      {
+        id: "c:mantis-ships-battle-for-rock-freighter:2",
+        label: "Repair the Rock ship.",
+        // Repair Drone. High scrap. The printed drone-part bug stays in filler-events.ts.
+        fx: [{ k: "note", text: "High scrap." }],
+      },
+      {
+        id: "c:mantis-ships-battle-for-rock-freighter:3",
+        label: "Repair their hull.",
+        // Hull Repair Drone, then a Mantis ship.
+        fx: [{ k: "note", text: "A Mantis ship." }],
+      },
+    ],
+  },
 ];

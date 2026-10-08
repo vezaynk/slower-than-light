@@ -1046,6 +1046,10 @@ export const PAGE_WINS: Record<string, Win> = {
     }
     result(g, text, rollStandard(g, "medium"), extras);
   },
+  // Mantis ships battle for Rock freighter. Both endings pay medium standard. Default salvage is not paid.
+  "mantis-ships-battle-for-rock-freighter": (g) => {
+    result(g, "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.", rollStandard(g, "medium"));
+  },
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {
     const hail = deadCrew

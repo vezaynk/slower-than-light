@@ -1107,6 +1107,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-rock:0": (g) => {
     pageFight(g, "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.", "Lanius ship", "lanius-ship-attacking-rock");
   },
+  // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
+  "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
+    pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");
+  },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
     result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);

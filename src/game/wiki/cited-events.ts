@@ -3632,6 +3632,17 @@ const MANTIS_FIGHT_ENGI_INTROS = [
   "You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!",
 ];
 
+// Mantis fight in nebula. Five printed intros, no odds. INFERRED: equal.
+// The fight stays c:mantis-fight-in-nebula:0. Default Mantis rewards are not a separate payout.
+// The storm words are the printed lines. They do not arm an ion storm.
+const MANTIS_NEBULA_INTROS = [
+  "Nebulas are known to be popular Mantis hunting grounds. Information you would have done well to heed here.",
+  "You detect a Mantis expedition vessel returning home with its haul. So determined are they, in fact, that they don't wait to see if you're hostile before firing.",
+  `A Mantis ship, lost in the storm, hails you. "Sensors are out. We have no local telemetry. We will take yours." You detect a power increase in their weapons systems.`,
+  `A Mantis ship hails you through the storm: "These are sacred Urggghtnag clan hunting grounds. You are prey." Shields up!`,
+  "You notice a Mantis attack ship ducking between the clouds of swirling space stuff; it's hunting you. You try to get the jump and move in to attack.",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3965,6 +3976,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: MANTIS_FIGHT_ENGI_INTROS[between(g, [0, 3])]!,
       choices: [{ id: "c:mantis-fight-engi:0", label: "Fight a Mantis ship" }],
+    };
+  }
+  // Mantis fight in nebula. One of the five printed intros. The fight stays c:mantis-fight-in-nebula:0.
+  if (ev.slug === "mantis-fight-in-nebula") {
+    return {
+      title: ev.dest,
+      body: MANTIS_NEBULA_INTROS[between(g, [0, 4])]!,
+      choices: [{ id: "c:mantis-fight-in-nebula:0", label: "Fight a Mantis ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

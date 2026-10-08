@@ -1344,6 +1344,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     shutPlayerHacking(g);
     slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
   },
+  // Slug hacker (medical). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
+  // The page halves the Medbay, rounding down, and beams 2 slug boarders. Clone Bay stays online.
+  // This handler returns before citedChoose, so the Continue path's full medical shutdown does not run.
+  "c:slug-hacker-medical:2": (g) => {
+    if ((g.player.systems.medbay?.level ?? 0) < 2) return;
+    pageFight(g, "Fearing the imminent battle you desperately try to get the medbay working again. It's lights flicker back on and you turn to face the intruders.", "Slug ship", "slug-hacker-medical");
+    halvePlayerSystems(g, ["medbay"]);
+    slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
+  },
   // Legendary thief KazaaakplethKilik. "Attempt to hail him." One printed lead-in, then a Mantis ship fight.
   // The page prints "crew entirely composed of Mantis." This handler returns before citedChoose.
   "c:legendary-thief-kazaaakplethkilik:1": (g) => {
@@ -2150,6 +2159,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Slug hacker (medical). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-medical:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Slug hacker (medical). {{Blue Option|Improved Medbay|Try to squeeze some extra power to the system.|level=2+|shortreq=Medbay}}.
+  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
+  if (id === "c:slug-hacker-medical:2" && (g.player.systems.medbay?.level ?? 0) < 2) return "Needs level 2 Medbay";
   // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
   // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
   if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return "Needs a Mantis crewmember";

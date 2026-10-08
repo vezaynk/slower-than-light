@@ -3080,6 +3080,16 @@ const CORE_EVENTS: EventDef[] = [
             "tier": "Slug ship"
           }
         ]
+      },
+      {
+        "id": "c:slug-hacker-medical:2",
+        "label": "Try to squeeze some extra power to the system.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Slug ship"
+          }
+        ]
       }
     ]
   },

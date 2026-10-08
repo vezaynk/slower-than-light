@@ -461,7 +461,10 @@ export function zoltanBars(
 }
 
 function mainBars(g: Game, ship: Ship, aboard: "player" | "enemy", id: SysId): number {
-  return bars(ship.systems[id], zoltanBars(g.crew, ship, aboard, id));
+  let n = bars(ship.systems[id], zoltanBars(g.crew, ship, aboard, id));
+  // Slug hacker (medical), Improved Medbay: "Medbay system halved" and "rounds down against you".
+  if (aboard === "player" && id === "medbay" && systemHalf.get(g)?.has("medbay")) n = Math.floor(n / 2);
+  return n;
 }
 
 function neighbors(ship: Ship, id: string): string[] {
@@ -675,7 +678,7 @@ function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
  * INFERRED: the half is the bars that system reads, and it ends when that fight ends.
  * The installed level stays. An enemy ship is not cut.
  */
-type HalfId = "shields" | "oxygen" | "weapons" | "engines";
+type HalfId = "shields" | "oxygen" | "weapons" | "engines" | "medbay";
 const systemHalf = new WeakMap<Game, Set<HalfId>>();
 const weaponHalfShips = new WeakMap<Ship, true>();
 

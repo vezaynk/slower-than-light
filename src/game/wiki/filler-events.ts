@@ -1973,6 +1973,28 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, g.event?.body ?? TRAP_INTRO[0], "Pirate ship", "pirate-ship-distress-trap");
   },
 
+  // Escape pod. Three pry results, no odds. INFERRED: equal.
+  "c:escape-pod:0": (g) => {
+    show(g, "You send the pod back out the airlock. You're not stupid.");
+  },
+  "c:escape-pod:1": (g) => {
+    const r = weighted(g, [["boarder", 1], ["mantis", 1], ["human", 1]] as const);
+    if (r === "boarder") {
+      const note = loseCrew(g);
+      if (note) log(g, note);
+      mantisBoarders(g, 1, 1);
+      beginBoarding(g);
+      return;
+    }
+    if (r === "mantis") {
+      // The crewmember is not named. That grant stays unwired.
+      show(g, "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew.");
+      return;
+    }
+    // The crewmember is not named. That grant stays unwired.
+    show(g, "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time.");
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.

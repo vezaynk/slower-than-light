@@ -87,6 +87,7 @@ describe("cited mantis events", () => {
       "Mantis ship-collectors",
       "Boarders: Humans near sun",
       "Boarders: Mantis",
+      "Escape pod",
     ]);
   });
 });

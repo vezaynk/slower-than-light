@@ -99,4 +99,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Escape pod. Jettison does nothing. Prying it open is three results with no odds.
+    // The Mantis and the Human are not named, so those grants stay unwired. The boarder is not a crew grant.
+    dest: "Escape pod",
+    slug: "escape-pod",
+    flag: "cited:escape-pod",
+    aliases: ["Escape pod"],
+    sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
+    body: "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis.",
+    choices: [
+      { id: "c:escape-pod:0", label: "Jettison the pod.", fx: [{ k: "nothing" }] },
+      { id: "c:escape-pod:1", label: "Pry it open.", fx: [{ k: "note", text: "A Mantis boarder and a lost crewmember, or nothing." }] },
+    ],
+  },
 ];

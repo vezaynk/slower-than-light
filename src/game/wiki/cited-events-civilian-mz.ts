@@ -75,6 +75,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Continue",
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
+      {
+        id: "c:pirate-engine-hacker:1",
+        label: "Counter the remote hacking.",
+        fx: [{ k: "fight", tier: "Pirate ship" }],
+      },
     ],
   },
   /** "Fight a Pirate ship (default rewards)." */

@@ -1333,6 +1333,13 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const engines = g.enemy?.systems.engines;
     if (g.enemy && engines && engines.level > engines.damage) hurtSystem(g.enemy, "engines", engines.level - engines.damage);
   },
+  // Pirate engine hacker. "Counter the remote hacking." One printed lead-in, then a Pirate ship fight.
+  // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
+  // This handler returns before citedChoose, so the Continue path's engine cap does not apply.
+  "c:pirate-engine-hacker:1": (g) => {
+    pageFight(g, "Your Hacking System automatically counters the digital assault and you move in to fight the ship.", "Pirate ship", "pirate-engine-hacker");
+    shutPlayerHacking(g);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2116,6 +2123,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Mantis ship with Rock body parts. {{Blue Option|Rock Ship|Ram the bastards.|shortreq=Rock Plating}}.
   // INFERRED: the refusal line. The page names Rock Plating and does not print this sentence.
   if (id === "c:mantis-ship-with-rock-body-parts:3" && !g.augments.includes("keel")) return "Needs Rock Plating";
+  // Pirate engine hacker. {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "c:pirate-engine-hacker:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

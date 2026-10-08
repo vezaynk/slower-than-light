@@ -2445,7 +2445,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    "body": "A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.",
     "choices": [
       {
         "id": "c:refueling-platform:0",

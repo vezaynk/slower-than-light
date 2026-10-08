@@ -1144,6 +1144,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:crystal-fight-choice:1": (g) => {
     result(g, "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Destroyed cargo ship. "Leave it alone, this looks suspicious." One printed result.
+  "c:destroyed-cargo-ship:1": (g) => {
+    result(g, "You leave the cargo alone and prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

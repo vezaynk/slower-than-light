@@ -3580,6 +3580,7 @@ const ROCK_BOARDER_INTROS = [
 ];
 
 // Auto-ship fight. Nine printed intros, no odds. INFERRED: equal. The fight stays c:auto-ship-fight:0.
+// Auto-ship warning prints the same nine lines. That fight stays c:auto-ship-warning:0.
 const AUTO_SHIP_FIGHT_INTROS = [
   "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.",
   `Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.`,
@@ -4117,6 +4118,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
       choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
+    };
+  }
+  // Auto-ship warning. The page shares those nine intros. The fight stays c:auto-ship-warning:0.
+  if (ev.slug === "auto-ship-warning") {
+    return {
+      title: ev.dest,
+      body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
+      choices: [{ id: "c:auto-ship-warning:0", label: "Fight an Auto-ship that is running away" }],
     };
   }
   // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.

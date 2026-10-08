@@ -148,6 +148,9 @@ export const NO_SURRENDER_EVENTS = new Set([
   // Pirate ships in plasma storm: both cargo fights "never surrenders".
   "pirate-ships-in-plasma-storm",
   "pirate-ships-in-plasma-storm-ammo",
+  // Crystal fight choice, Engage the Rebel ship: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}.
+  // `|no` is "never runs away, never surrenders." Crystal ships already never run (NEVER_RUN).
+  "crystal-fight-choice",
 ]);
 
 /** What a scripted surrender hands over. Each kind is the page's own reward line, quoted on its row below. */

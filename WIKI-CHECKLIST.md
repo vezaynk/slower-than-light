@@ -1370,7 +1370,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Trade fuel for drone parts — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Trade resources — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Trade resources in nebula — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
-- [ ] Trade scrap for upgrades — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Trade scrap for upgrades — missing — events-0.ts: mechanic. Revision wikitext. An items beacon offers one installed system or the reactor at the printed scrap band, and a decline spends nothing.
 - [ ] Trader — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Trader in nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Trap Distress Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

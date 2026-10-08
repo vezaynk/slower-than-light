@@ -2506,6 +2506,23 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);
   },
+
+  // Slaver (hostile). {{Blue Option|Engines|Attempt to out-run the slaver ship.|level=6+}}.
+  // {{DuplicateEvent|2}} is the two get-away sentences, then one fight. INFERRED: those three printed results are equal.
+  // level=6+ means at least that installed level. Get away shows the printed sentence and does not append "Nothing happens."
+  "c:slaver-hostile:1": (g) => {
+    if ((g.player.systems.engines?.level ?? 0) < 6) return;
+    const r = weighted(g, [["divert", 1], ["pace", 1], ["fight", 1]] as const);
+    if (r === "divert") {
+      show(g, "You divert all available power to your engines and flee. You caught them off-guard, but they seem to be gaining on you. Luckily you are able to stay out of range long enough to charge the FTL drive.");
+      return;
+    }
+    if (r === "pace") {
+      show(g, "You fire up the engines and try to escape. Their slower ship is unable to keep pace; eventually it gives up and returns to the beacon to await an easier target.");
+      return;
+    }
+    fight(g, "You quickly fire up your engines and make a break for it. However, it seems to be in vain. They catch up to you effortlessly and power up their weapons.", "Pirate ship", "slaver-hostile");
+  },
 };
 
 /** Choices whose id carries a rolled amount: refugee trades, the fuel gift, the terraformers' bribe. */
@@ -2906,6 +2923,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Boarders: Humans jammed sensors, {{Blue Option|Hacking System|...|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:boarders-humans-jammed-sensors:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
+  if (id === "c:slaver-hostile:1" && (g.player.systems.engines?.level ?? 0) < 6) return "Needs Engines level 6";
   return null;
 }
 

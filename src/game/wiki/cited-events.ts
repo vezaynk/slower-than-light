@@ -2894,6 +2894,16 @@ const CORE_EVENTS: EventDef[] = [
             "tier": "Pirate ship"
           }
         ]
+      },
+      {
+        "id": "c:slaver-hostile:1",
+        "label": "Attempt to out-run the slaver ship.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Pirate ship"
+          }
+        ]
       }
     ]
   },

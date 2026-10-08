@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2808 |
+| Behaviors checked | 2809 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -412,6 +412,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A destroyed ship pays low scrap with resources, the ship runs from the start for 40 seconds, and an escape doubles Rebel Fleet pursuit.
   - [x] One of the nine printed intros shared with Auto-ship fight is shown before Fight an Auto-ship that is running away, which still fights a running Auto-ship.
   - [x] Fighting that ship shows the printed FTL sentence, and the 40 second pursuit stays.
+  - [x] The fight line starts the running Auto-ship on arrival, and it is not a button.
 
 - [ ] Auto-ship warning in nebula
   - [x] one beacon in a sector the page names, while a free beacon remains.

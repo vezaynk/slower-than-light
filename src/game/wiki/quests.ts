@@ -1182,6 +1182,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:crystal-ship-attacking-federation-loyalists:1": (g) => {
     result(g, "With the Federation ship distracting the guard, you are free to continue on your mission.", undefined, ["Nothing happens."]);
   },
+  // Engi smashed ships. "Attempt to help the ships by prying them apart." One printed lead-in, then an Engi ship fight.
+  "c:engi-smashed-ships:0": (g) => {
+    pageFight(g, "To your surprise, one of the Engi vessels attacks! One ship detaches itself, surprisingly still quite whole, and opens fire - it looks like it's somehow identified you as hostile!", "Engi ship", "engi-smashed-ships");
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

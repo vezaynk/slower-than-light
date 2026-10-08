@@ -63,6 +63,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
           { k: "fight", tier: "Mantis ship" },
         ],
       },
+      {
+        id: "c:mantis-ship-with-rock-body-parts:3",
+        label: "Ram the bastards.",
+        fx: [
+          // "Fight the Mantis ship (default rewards), whose engines are disabled."
+          { k: "fight", tier: "Mantis ship" },
+        ],
+      },
     ],
   },
   {

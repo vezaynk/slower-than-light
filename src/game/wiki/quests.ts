@@ -1325,6 +1325,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:mantis-ship-with-rock-body-parts:2": (g) => {
     pageFight(g, "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"", "Mantis ship", "mantis-ship-with-rock-body-parts");
   },
+  // Mantis ship with Rock body parts. "Ram the bastards." One printed lead-in, then a Mantis ship.
+  // The page says their engines are disabled. INFERRED: every installed engine bar is damaged. The page prints no bar count.
+  // This handler returns before citedChoose so the Rock Plating requirement can close the button.
+  "c:mantis-ship-with-rock-body-parts:3": (g) => {
+    pageFight(g, "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack.", "Mantis ship", "mantis-ship-with-rock-body-parts");
+    const engines = g.enemy?.systems.engines;
+    if (g.enemy && engines && engines.level > engines.damage) hurtSystem(g.enemy, "engines", engines.level - engines.damage);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2105,6 +2113,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Mantis ship with Rock body parts. {{Blue Option|Rock Crew|Put your Rock crewmember on the comm.}}.
   // INFERRED: the refusal line. A dead Rock does not count. The page names the crew and does not print this sentence.
   if (id === "c:mantis-ship-with-rock-body-parts:2" && !hasRock(g)) return "Needs a Rock crewmember";
+  // Mantis ship with Rock body parts. {{Blue Option|Rock Ship|Ram the bastards.|shortreq=Rock Plating}}.
+  // INFERRED: the refusal line. The page names Rock Plating and does not print this sentence.
+  if (id === "c:mantis-ship-with-rock-body-parts:3" && !g.augments.includes("keel")) return "Needs Rock Plating";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

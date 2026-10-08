@@ -3563,6 +3563,15 @@ const ROCK_FIGHT_INTROS = [
   "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
 ];
 
+// Pirate fight (Zoltan). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-zoltan:0.
+const ZOLTAN_PIRATE_INTROS = [
+  `"Emergency, all ships in range, we are under attack!" The frequency matches a nearby Zoltan ship; you move in on their pursuer. They take your intervention as a cue to jump away. Cowards.`,
+  "You jump just in time to witness a Zoltan ship's FTL drive overload. In their final moments they implore you not to get involved, but it's too late - their attacker is already upon you!",
+  "Despite their precautions, pirates have begun to harass the local Zoltan settlements across this sector. One such pirate spots your ship and moves in to attack.",
+  "A ship with pirate markings demand that you surrender. These are sad times when even Zoltan space is beset by pirates. You doubt these fools will be missed.",
+  "You spot a pirate ship looting a small Zoltan cruiser. They spot you and move in to attack before your FTL drive has a chance to recharge.",
+];
+
 // Rock pirates fight. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight:0.
 const ROCK_PIRATE_INTROS = [
   "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.",
@@ -3789,6 +3798,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Pirate fight (Zoltan). One of the five printed intros. The fight stays c:pirate-fight-zoltan:0.
+  if (ev.slug === "pirate-fight-zoltan") {
+    return {
+      title: ev.dest,
+      body: ZOLTAN_PIRATE_INTROS[between(g, [0, 4])]!,
+      choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
     };
   }
   // Rock pirates fight. One of the three printed intros. The fight stays c:rock-pirates-fight:0.

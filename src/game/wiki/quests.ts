@@ -781,6 +781,12 @@ function zoltanRaftHire(g: Game) {
   result(g, `He responds haughtily, "You would presume I would work under your command after such a display of... prowess? No, I must decline."`, undefined, ["Nothing happens."]);
 }
 
+/**
+ * Slug hacker (doors), the hacking counter. Both endings pay high scrap with resources.
+ * Continue does not set this, so a destroyed ship on that path stays medium.
+ */
+const doorsCounterWin = new WeakMap<Game, true>();
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1681,7 +1687,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // The page says "Hacking offline". The Door System stays online on this path.
   // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
   // This handler returns before citedChoose, so the Continue path's door shutdown does not run.
+  // Both endings on this path pay high scrap. Continue pays medium when the ship is destroyed.
   "c:slug-hacker-doors:1": (g) => {
+    doorsCounterWin.set(g, true);
     pageFight(g, "Your hacking system automatically counters the digital assault and you move in to fight the ship.", "Slug ship", "slug-hacker-doors");
     shutPlayerHacking(g);
   },
@@ -3212,6 +3220,29 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Slug hacker (doors). Continue: destroyed pays medium scrap with resources, a crew kill pays high.
+  // Counter the remote hacking: both endings pay high. The wiki's "[sic]" after "weapon system" is not shown.
+  "slug-hacker-doors": (g, deadCrew) => {
+    const counter = doorsCounterWin.get(g) === true;
+    doorsCounterWin.delete(g);
+    if (counter) {
+      result(
+        g,
+        deadCrew
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and their hacking module is destroyed. You collect what you can.",
+        rollStandard(g, "high"),
+      );
+      return;
+    }
+    result(
+      g,
+      deadCrew
+        ? "With their crew dead, their hacking system shuts down and your systems return to normal. You strip the ship."
+        : "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+      rollStandard(g, deadCrew ? "high" : "medium"),
+    );
+  },
   // Slug hacker (oxygen). Both endings pay medium scrap with resources.
   // The oxygen shutdown, the halved oxygen, and the hacking shutdown already end with the fight.
   "slug-hacker-oxygen": std(

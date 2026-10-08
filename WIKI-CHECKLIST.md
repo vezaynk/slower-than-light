@@ -1262,7 +1262,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Slug repair station — not-a-surface — same title as "Slug Repair Station" with different capitalization
 - [ ] Slug sabotage medical unit — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug sabotage oxygen system — not-a-surface — same title as "Slug Sabotage Oxygen System" with different capitalization
-- [ ] Slug ship boarding Rock ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Slug ship boarding Rock ship — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Engaging fights a Slug ship for medium scrap and then nothing or another medium from the freighter, or the Slugs back down, and ignoring them does nothing twice as often as it starts a Rock fight.
 - [ ] Slug store — not-a-surface — same title as "Slug Store" with different capitalization
 - [ ] Slug store ship — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug transport with military escort — not-a-surface — same title as "Slug Transport with Military Escort" with different capitalization

@@ -2085,7 +2085,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     } else show(g, "The seemingly docile creatures quickly turn violent when you reveal your hostile intentions. Their well-organized stampede forces you to draw weapons and make a rushed and shambolic retreat to the shuttle.");
   },
   "s:intelligent-ponies:leave": (g) => show(g, "This isn't the time for exobiology. You head back to the ship."),
-  "c:intelligent-ponies:1": done,
+  "c:intelligent-ponies:1": (g) => show(g, "You ignore the readings and prepare to move on.", undefined, ["Nothing happens."]),
 
   // ---- Abandoned station ----
   "c:abandoned-station:0": (g) => {

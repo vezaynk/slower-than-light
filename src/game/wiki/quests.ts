@@ -31,7 +31,7 @@ import { upgradeCost, WEAPONS } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
+import { beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
@@ -1289,6 +1289,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.scrap -= 35;
     result(g, `"I really am feeling generousss..." They take the scrap and leave.`, undefined, ["You avoided the fight."]);
   },
+  // Slug hacker (choice). "Counter any hack attempt." One printed lead-in, then a Slug ship fight.
+  // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
+  "c:slug-hacker-choice:4": (g) => {
+    pageFight(g, `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`, "Slug ship", "slug-hacker-choice");
+    shutPlayerHacking(g);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2054,6 +2060,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rock-ship-in-plasma-storm:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Slug drink. A dead Rock does not count. The button stays visible.
   if (id === "c:slug-drink:2" && !hasRock(g)) return "Needs a Rock crewmember";
+  // Slug hacker (choice). {{Blue Option|Hacking System|Counter any hack attempt.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "c:slug-hacker-choice:4" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

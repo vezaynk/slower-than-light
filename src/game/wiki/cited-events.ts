@@ -2969,6 +2969,16 @@ const CORE_EVENTS: EventDef[] = [
             "hi": 35
           }
         ]
+      },
+      {
+        "id": "c:slug-hacker-choice:4",
+        "label": "Counter any hack attempt.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Slug ship"
+          }
+        ]
       }
     ]
   },

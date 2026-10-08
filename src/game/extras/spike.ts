@@ -1,4 +1,4 @@
-import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, rand, roomWith, sparePower } from "../sim.ts";
+import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -198,6 +198,9 @@ export function armSpike(g: Game, systemId: string): boolean {
 export function launchSpike(g: Game): boolean {
   const kit = kitOf(g);
   if (!kit || !g.enemy) return false;
+  // Slug hacker (choice): "Hacking offline".
+  // INFERRED: a launch is refused. The installed level stays. The cut ends when that fight ends.
+  if (playerHackingOff(g)) return false;
   noteZoltanKits(g);
   // "this choice is permanent" (see below): a latched drone pins the target before it is checked.
   if (g.enemy.hackDrone != null && g.enemy.hackDrone !== kit.target) kit.target = g.enemy.hackDrone;

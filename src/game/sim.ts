@@ -713,7 +713,7 @@ function clearShieldHalf(g: Game): void {
  * INFERRED: the medbay room stops healing, and the clone bay does not queue, revive, or jump-heal.
  * The installed levels stay. Copies already queued are kept. The cut ends when that fight ends.
  */
-const systemOff = new WeakMap<Game, Set<"doors" | "oxygen" | "medbay" | "sensors">>();
+const systemOff = new WeakMap<Game, Set<"doors" | "oxygen" | "medbay" | "sensors" | "hacking">>();
 
 export function shutPlayerDoors(g: Game): void {
   systemOff.set(g, new Set(["doors"]));
@@ -750,6 +750,18 @@ export function restorePlayerSensors(g: Game): void {
 
 export function playerSensorsOff(g: Game): boolean {
   return systemOff.get(g)?.has("sensors") ?? false;
+}
+
+/**
+ * Slug hacker (choice): "Fight a Slug ship with your Hacking offline."
+ * INFERRED: a launch is refused. The installed level stays. The cut ends when that fight ends.
+ */
+export function shutPlayerHacking(g: Game): void {
+  systemOff.set(g, new Set(["hacking"]));
+}
+
+export function playerHackingOff(g: Game): boolean {
+  return systemOff.get(g)?.has("hacking") ?? false;
 }
 
 function clearSystemOff(g: Game): void {

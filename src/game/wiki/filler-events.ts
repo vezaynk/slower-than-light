@@ -2045,6 +2045,18 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     delayFleetOne(g);
     show(g, "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station.", rollStandard(g, "medium"), ["Rebel Fleet is delayed for 1 turn."]);
   },
+  // Lanius ship attacking civilian distress. Two results and no odds. INFERRED: equal.
+  // A fight pays the page's medium or high standard. Powering down skips that and opens the same contact.
+  "c:lanius-ship-attacking-civilian-distress:2": (g) => {
+    if (!livingKin(g, "voidlung")) return;
+    if (weighted(g, [["fight", 1], ["peace", 1]] as const) === "fight") {
+      fight(g, "The ship refuses all hails, even from one of its own kind. It appears to have gone completely rogue. Before you can react, it begins to target your ship. Prepare for a fight.", "Lanius ship", "lanius-ship-attacking-civilian-distress");
+      return;
+    }
+    card(g, "After a discussion that your translator fails to comprehend, the enemy ship powers down its weapons. You learn that your crewmember sucessfully reminded them of their treatise promising to leave the property of sentient aliens alone. If this is a widespread rule of this race, there appear to be many who disagree with it. You attempt to hail the civilian ship now that it's safe.", [
+      { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
+    ]);
+  },
 
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
@@ -2847,6 +2859,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:rock-mine:beam" && g.player.parts < 1) return "Need 1 drone part";
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
+  // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
+  if (id === "c:lanius-ship-attacking-civilian-distress:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;

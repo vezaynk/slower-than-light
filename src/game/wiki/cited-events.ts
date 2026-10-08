@@ -1097,7 +1097,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "",
+    "body": "You immediately do a short-range scan after arriving at the beacon. It appears to be coming from a small civilian vessel under fire from a Lanius ship. Not all Lanius are content with simply scavenging the wrecks of previous battles.",
     "choices": [
       {
         "id": "c:lanius-ship-attacking-civilian-distress:0",
@@ -1115,6 +1115,16 @@ const CORE_EVENTS: EventDef[] = [
         "fx": [
           {
             "k": "nothing"
+          }
+        ]
+      },
+      {
+        "id": "c:lanius-ship-attacking-civilian-distress:2",
+        "label": "Have your crew admonish their captain.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "A Lanius crewmember starts a fight or powers the ship down."
           }
         ]
       }

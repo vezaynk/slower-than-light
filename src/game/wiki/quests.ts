@@ -1034,6 +1034,14 @@ export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boole
   return true;
 }
 
+/** Lanius ship attacking civilian, and the distress page, print the same two endings. */
+function laniusCivilianWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "No more life signs detected on the Lanius ship. You hasten to contact the civilian ship."
+    : "The Lanius craft breaks apart. You hasten to contact the civilian ship.";
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }]);
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -1082,12 +1090,9 @@ export const PAGE_WINS: Record<string, Win> = {
     result(g, "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.", rollStandard(g, "medium"));
   },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
-  "lanius-ship-attacking-civilian": (g, deadCrew) => {
-    const text = deadCrew
-      ? "No more life signs detected on the Lanius ship. You hasten to contact the civilian ship."
-      : "The Lanius craft breaks apart. You hasten to contact the civilian ship.";
-    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }]);
-  },
+  // Lanius ship attacking civilian distress prints the same two endings and the same contact.
+  "lanius-ship-attacking-civilian": laniusCivilianWin,
+  "lanius-ship-attacking-civilian-distress": laniusCivilianWin,
   // Lanius ship attacking Rock. Both endings pay medium standard, then "Contact the Rockmen."
   "lanius-ship-attacking-rock": (g, deadCrew) => {
     const text = deadCrew

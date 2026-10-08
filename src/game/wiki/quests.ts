@@ -1226,6 +1226,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:federation-deserters:1": (g) => {
     result(g, "You send them a friendly warning regarding the armada of Rebel ships pursuing you, and then get underway lest they catch you up.", undefined, ["Nothing happens."]);
   },
+  // Rebel ship attacking refueling outpost. "Intervene to defend the outpost." One printed lead-in, then a Rebel ship fight.
+  // Never-escape and never-surrender stay on this fight slug.
+  "c:rebel-ship-attacking-refueling-outpost:0": (g) => {
+    pageFight(g, `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`, "Rebel ship", "rebel-ship-attacking-refueling-outpost");
+  },
   // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
     result(g, "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.", undefined, ["Nothing happens."]);

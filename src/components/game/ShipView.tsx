@@ -7,6 +7,7 @@ import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
+import { HullPlate } from "./HullPlate";
 import { PixelIcon } from "./PixelIcon";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
@@ -183,6 +184,11 @@ type Props = {
   hackPick?: (roomId: string) => boolean;
   /** Zoltans: drone health in this room, already rounded down. */
   droneHp?: { room: string; shown: number }[];
+  /** Hull plate id. Missing still draws, as faction or "rebel", id "ship". */
+  plateId?: string;
+  faction?: string;
+  pirate?: boolean;
+  facing?: "left" | "right";
 };
 
 export function ShipView({
@@ -203,6 +209,10 @@ export function ShipView({
   beamAnchor = null,
   beamLines = [],
   droneHp = [],
+  plateId,
+  faction,
+  pirate,
+  facing,
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
@@ -239,6 +249,15 @@ export function ShipView({
         gridTemplateRows: `repeat(${ship.rows}, var(--tile))`,
       }}
     >
+      <HullPlate
+        id={plateId ?? "ship"}
+        faction={faction ?? "rebel"}
+        pirate={pirate}
+        facing={facing ?? (aboard === "player" ? "right" : "left")}
+        cols={ship.cols}
+        rows={ship.rows}
+        rooms={ship.rooms}
+      />
       {ship.rooms.map((room) => {
         const open = seen ? seen(room.id) : true;
         const inRoom = showCrew

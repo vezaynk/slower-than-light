@@ -1141,8 +1141,8 @@ button:disabled {
   display: grid;
   place-items: center;
   position: relative;
-  container-type: inline-size;
-  overflow: auto;
+  container-type: size;
+  overflow: hidden;
 }
 
 .planet {
@@ -1182,7 +1182,8 @@ button:disabled {
 }
 
 .sky .hull {
-  --tile: clamp(16px, calc((100cqi - 32px) / 14), 48px);
+  /* One tile of hull plate sits outside the rooms, so the pitch fits cols+2 and rows+2. */
+  --tile: clamp(16px, min(calc(100cqi / 17 - 2px), calc(100cqh / 11 - 2px)), 44px);
   margin: auto;
   background: rgba(8, 12, 16, 0.55);
   padding: 6px;
@@ -1291,6 +1292,7 @@ button:disabled {
   place-items: center;
   min-height: 120px;
   padding: 8px;
+  overflow: hidden;
 }
 
 .target-systems {
@@ -2492,7 +2494,7 @@ button.gun-slot {
 .hangar .pixel-figure { grid-column: auto; grid-row: auto; align-self: stretch; flex: 1; min-height: 0; width: 100%; margin: 0; container-type: size; display: grid; place-items: center; }
 .hangar-stage .pixel-hull { display: none; }
 .hangar .room-grid {
-  width: min(100cqw, calc(100cqh * var(--ar)), 620px);
+  width: min(100cqw, calc((100cqh - 72px) * var(--ar)), 620px);
   margin: 0 auto;
   gap: 0;
   background: transparent;
@@ -2514,7 +2516,7 @@ button.gun-slot {
   background: #f3f1ea !important;
 }
 
-.hangar-bars { display: flex; justify-content: safe center; gap: 6px; flex: none; overflow-x: auto; padding-bottom: 2px; }
+.hangar-bars { position: relative; z-index: 2; display: flex; justify-content: safe center; gap: 6px; flex: none; overflow-x: auto; padding-bottom: 2px; }
 .hangar-bar {
   display: flex;
   flex-direction: column;

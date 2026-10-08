@@ -677,6 +677,9 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
       {(game.player.zoltan ?? 0) > 0 ? <div className="shield-aura zoltan-aura" /> : null}
       <ShipView
         ship={game.player}
+        plateId={game.hullId}
+        faction={(game.hullId ?? "kestrel").split("-")[0]}
+        facing="right"
         crew={game.crew}
         aboard="player"
         showCrew
@@ -790,11 +793,15 @@ function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Gam
           ) : null}
         </div>
       </div>
-      {/* Documented hulls vary in width; tiles shrink so the widest still fits the panel. */}
-      {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound (260 / rows). */}
-      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.min(48, Math.floor(300 / Math.max(1, enemy.cols)), Math.floor(260 / Math.max(1, enemy.rows)))}px` }}>
+      {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. */}
+      {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
+      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
         <ShipView
           ship={enemy}
+          plateId={enemy.flagship ? `flagship-${enemy.flagship.stage}` : enemy.classId}
+          faction={enemy.flagship ? "rebel" : enemy.faction}
+          pirate={enemy.pirate}
+          facing="left"
           crew={game.crew}
           aboard="enemy"
           showCrew

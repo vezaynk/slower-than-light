@@ -1,0 +1,22 @@
+.hull-plate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+}
+
+.room-grid {
+  position: relative;
+}
+
+.play .room,
+.pixel-room {
+  position: relative;
+  z-index: 1;
+}

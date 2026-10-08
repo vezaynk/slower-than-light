@@ -3,6 +3,7 @@ import { hullById } from "@/game/hulls";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
 import { DoorTicks } from "./DoorTicks";
+import { HullPlate } from "./HullPlate";
 
 /**
  * Original pixel drawings. Wiki bitmaps are not used.
@@ -265,6 +266,14 @@ export function PixelLayout({ id }: { id: string }) {
           }}
           aria-hidden="true"
         >
+          <HullPlate
+            id={id}
+            faction={id.split("-")[0]}
+            facing="right"
+            cols={layout.cols}
+            rows={layout.rows}
+            rooms={layout.rooms}
+          />
           {layout.rooms.map((room) => {
             const clip = roomClip(room);
             const fill = ROOM_COLOR[room.title] ?? "#2c343c";

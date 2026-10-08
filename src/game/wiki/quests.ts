@@ -1156,6 +1156,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:zoltan-ship-follows-mantis-ship:2": (g) => {
     result(g, "The Zoltan know their business better than most - best to leave them to it. You prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Zoltan wise man. "Mantis." One printed lead-in, then a Mantis ship whose crew are all Mantis.
+  "c:zoltan-wise-man:0": (g) => {
+    pageFight(g, `"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!`, "Mantis ship", "zoltan-wise-man");
+    allMantisCrew(g);
+  },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
     pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");

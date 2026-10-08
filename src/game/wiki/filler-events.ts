@@ -380,6 +380,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:rebel-fight-chance:0", label: "Go looking for the Rebel ship.", fx: [{ k: "fight", tier: "Rebel ship" }] },
       { id: "c:rebel-fight-chance:1", label: "No time to search, you prepare to jump away.", fx: [{ k: "nothing" }] },
       { id: "c:rebel-fight-chance:2", label: "Perform a scan of the area.", fx: [{ k: "fight", tier: "Rebel ship" }] },
+      { id: "c:rebel-fight-chance:3", label: "Pinpoint the Rebel's location.", fx: [{ k: "fight", tier: "Rebel ship" }] },
     ],
   },
   // REFUGEE_NO_DISTRESS, Template:Drifting Refugee Ship (type=main). Hail: a trade ({{DuplicateEvent|4}}); a Pirate
@@ -1744,6 +1745,16 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (sensorsLevel(g) < 2) return;
     fight(g, "You quickly find the rebel ship's location and move to intercept.", "Rebel ship", "rebel-fight-chance");
   },
+  // Rebel fight chance. {{Blue Option|Advanced Sensors|Pinpoint the Rebel's location.|level=3|shortreq=Sensors}}.
+  // One printed lead-in, then a Rebel ship whose engines are disabled.
+  // INFERRED: "disabled" damages every installed engine bar. The page prints no bar count.
+  // level=3 means at least that installed level.
+  "c:rebel-fight-chance:3": (g) => {
+    if (sensorsLevel(g) < 3) return;
+    fight(g, "You find the Rebel ship hiding on a nearby asteroid. You are able to get a shot off and permanently disable their engines before they notice you.", "Rebel ship", "rebel-fight-chance");
+    const engines = g.enemy?.systems.engines;
+    if (g.enemy && engines && engines.level > engines.damage) hurtSystem(g.enemy, "engines", engines.level - engines.damage);
+  },
 
   // Rebel fight chance in nebula. The chase lists three results and prints no odds. INFERRED: equal.
   "c:rebel-fight-chance-in-nebula:0": (g) => {
@@ -2850,6 +2861,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return "Needs Mind Control";
   // Rebel fight chance. Improved Sensors level=2. INFERRED: the refusal line. The page names the system and prints no sentence.
   if (id === "c:rebel-fight-chance:2" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
+  // Rebel fight chance. Advanced Sensors level=3. INFERRED: the refusal line. The page names the system and prints no sentence.
+  if (id === "c:rebel-fight-chance:3" && sensorsLevel(g) < 3) return "Needs Sensors level 3";
   // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
   // Advanced Sensors level=3 means at least that installed level.
   if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) return "Needs Sensors level 3";

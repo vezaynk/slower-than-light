@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { claimPadTile, interiorLinks, medicalLimit, roomCapacity } from "./crew-spots.ts";
+import { claimPadTile, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
 import {
   closeAllDoors,
@@ -322,5 +322,41 @@ describe("crew room orders", () => {
     assert.equal(ivo.aboard, "enemy");
     assert.equal(ada.aboard, "player");
     assert.equal(ivo.pad, undefined);
+  });
+});
+
+describe("manning terminal", () => {
+  it("puts the crew member who runs the system on the right-hand terminal", () => {
+    const g = createGame(4, "kestrel-a");
+    const engines = g.player.rooms.find((r) => r.id === "p-engines");
+    const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen");
+    const medbay = g.player.rooms.find((r) => r.id === "p-medbay");
+    const ivo = g.crew.find((c) => c.name === "Ivo Park");
+    const ada = g.crew.find((c) => c.name === "Ada Voss");
+    assert.ok(engines && oxygen && medbay && ivo && ada);
+    // Door System picture: "(console on the right)". Engines is 2×2 at (1, 2), so the top-right tile.
+    assert.deepEqual(roomConsole(engines, g.player), { x: 2, y: 2 });
+    assert.equal(roomConsole(oxygen, g.player), null);
+    assert.equal(roomConsole(medbay, g.player), null);
+    assert.equal(roomConsole({ ...engines, system: "weapons" }, { flagship: {} }), null);
+    assert.equal(roomCapacity(engines, "player", interiorLinks(g.player.doors, engines.id)), 4);
+
+    const alone = restSpot(engines, g.crew, ivo.id, "player", g.player);
+    assert.deepEqual(alone && { x: alone.x, y: alone.y, stack: alone.stack }, { x: 2, y: 2, stack: 0 });
+
+    ada.room = "p-engines";
+    ada.path = [];
+    const adaSpot = restSpot(engines, g.crew, ada.id, "player", g.player);
+    const ivoSpot = restSpot(engines, g.crew, ivo.id, "player", g.player);
+    assert.ok(adaSpot && ivoSpot);
+    assert.deepEqual({ x: adaSpot.x, y: adaSpot.y }, { x: 2, y: 2 });
+    assert.notDeepEqual({ x: ivoSpot.x, y: ivoSpot.y }, { x: 2, y: 2 });
+
+    ada.leashed = 10;
+    const back = restSpot(engines, g.crew, ivo.id, "player", g.player);
+    const held = restSpot(engines, g.crew, ada.id, "player", g.player);
+    assert.ok(back && held);
+    assert.deepEqual({ x: back.x, y: back.y }, { x: 2, y: 2 });
+    assert.notDeepEqual({ x: held.x, y: held.y }, { x: 2, y: 2 });
   });
 });

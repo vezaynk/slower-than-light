@@ -2090,6 +2090,32 @@ button.door-tick::before {
   box-shadow: inset 0 0 0 2px #d04028;
 }
 
+.room-console {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px;
+  box-sizing: border-box;
+}
+
+.room-console::before {
+  content: "";
+  width: 62%;
+  height: 36%;
+  min-width: 7px;
+  min-height: 5px;
+  background: #14120f;
+  border: 1px solid #8a7560;
+  box-shadow: inset 0 -2px 0 #24362e;
+}
+
+.room-console.is-on::before {
+  box-shadow: inset 0 -2px 0 #3ecf4a;
+}
+
 .pad-pip {
   position: absolute;
   z-index: 2;

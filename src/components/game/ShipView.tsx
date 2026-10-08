@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { pointInRoom } from "@/game/beam-line";
-import { assignStands, padCells, restSpot } from "@/game/crew-spots";
+import { assignStands, padCells, restSpot, roomConsole, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
@@ -86,7 +86,7 @@ function crewPlace(
   const step = walkStep(ship, c);
   if (step) {
     const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
-    const goal = dest ? (restSpot(dest, roster, c.id, c.aboard) ?? undefined) : undefined;
+    const goal = dest ? (restSpot(dest, roster, c.id, c.aboard, ship) ?? undefined) : undefined;
     // The last hop is drawn on its tile before the sim clears the path.
     const t = c.path.length === 1 ? arriveMove(c.move) : clamp01(c.move);
     const at = walkPose(ship, c.room, c.path, c.via, t, goal);
@@ -286,7 +286,7 @@ export function ShipView({
     const destId = c.path.length > 0 ? c.path[c.path.length - 1]! : c.room;
     const room = ship.rooms.find((r) => r.id === destId);
     if (!room) continue;
-    const spot = restSpot(room, here, c.id, c.aboard);
+    const spot = restSpot(room, here, c.id, c.aboard, ship);
     if (spot) stands.set(c.id, spot);
   }
   const standFor = (c: Crew) => {
@@ -294,7 +294,7 @@ export function ShipView({
       const room = ship.rooms.find((r) => r.id === c.room);
       if (room) {
         const local = here.filter((o) => o.room === c.room && ((o.stun ?? 0) > 0 || o.path.length === 0));
-        const spot = assignStands(room, local).get(c.id);
+        const spot = assignStands(room, local, { hull: ship, aboard }).get(c.id);
         if (spot) return spot;
       }
     }
@@ -475,6 +475,31 @@ export function ShipView({
                 </div>
               ) : null}
             </div>
+            {open
+              ? (() => {
+                  const cell = roomConsole(room, ship);
+                  if (!cell) return null;
+                  const manned = here.some((c) => {
+                    if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard) return false;
+                    const spot = stands.get(c.id);
+                    return !!spot && spot.stack === 0 && spot.x === cell.x && spot.y === cell.y;
+                  });
+                  return (
+                    <i
+                      className={"room-console" + (manned ? " is-on" : "")}
+                      data-console={`${cell.x},${cell.y}`}
+                      data-manned={manned ? "1" : "0"}
+                      aria-hidden="true"
+                      style={{
+                        left: `${((cell.x - room.x) / room.w) * 100}%`,
+                        top: `${((cell.y - room.y) / room.h) * 100}%`,
+                        width: `${100 / room.w}%`,
+                        height: `${100 / room.h}%`,
+                      }}
+                    />
+                  );
+                })()
+              : null}
             {room.kit === "sling"
               ? padCells(room).map((key) => {
                   const [xs, ys] = key.split(",");

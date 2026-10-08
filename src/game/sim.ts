@@ -1,6 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { hopLanding } from "./walk-path.ts";
-import { claimPadTile, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
+import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -539,10 +539,17 @@ function manningCrew(g: Game, ship: Ship, aboard: "player" | "enemy", system: Sy
   if (!manning(g, ship, aboard, system)) return undefined;
   const r = roomWith(ship, system);
   if (!r) return undefined;
+  // Crew skills: piloting and engines "are gained at different system consoles."
+  // The bonus belongs to the crew member standing on this room's terminal.
   const friends = aboard === "player" ? "player" : "enemy";
-  return g.crew.find(
-    (c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0,
+  const id = consoleOperator(
+    g.crew.filter((c) => sideOf(c) === friends),
+    r.id,
+    aboard,
   );
+  const c = id ? g.crew.find((x) => x.id === id) : undefined;
+  if (!c || c.path.length > 0 || c.room !== r.id) return undefined;
+  return c;
 }
 
 function present(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): boolean {
@@ -1611,7 +1618,7 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
   // A full room can still be crossed. It cannot be the place the walk ends.
   if (!mayStand(destRoom, g.crew, c.id, dest, c.aboard, c.aboard, interiorLinks(ship.doors, dest))) return "full";
   const here = roomById(ship, c.room);
-  const fromSpot = here ? restSpot(here, g.crew, c.id, c.aboard) : null;
+  const fromSpot = here ? restSpot(here, g.crew, c.id, c.aboard, ship) : null;
   claimFile(g, c, dest);
   claimPad(g, c, ship, dest);
   c.path = path;
@@ -3064,7 +3071,7 @@ function moveCrew(g: Game, dt: number) {
     c.move += (dt * pace) / 0.6;
     if (c.move >= 1) {
       const dest = roomById(ship, c.path[c.path.length - 1]!);
-      const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard) : null;
+      const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard, ship) : null;
       const landing = hopLanding(ship, c.room, c.path, c.via, spot ?? undefined);
       c.room = c.path.shift()!;
       c.move = 0;

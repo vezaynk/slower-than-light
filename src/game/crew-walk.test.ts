@@ -30,7 +30,7 @@ describe("crew orders outside a fight", () => {
     for (let i = 0; i < 20; i++) step(g, 0.05);
     assert.equal(ivo.room, "p-engines");
     assert.equal(ivo.move, 0);
-    assert.equal(ivo.via, "1,3");
+    assert.equal(ivo.via, "2,2");
   });
 
   it("carries the doorway into the next room", () => {
@@ -40,7 +40,7 @@ describe("crew orders outside a fight", () => {
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
     assert.ok(ivo);
     orderCrew(g, ivo.id, "p-medbay");
-    assert.equal(ivo.via, "1,3");
+    assert.equal(ivo.via, "2,2");
     assert.ok(ivo.path.length > 1);
     const from = ivo.room;
     const dest = g.player.rooms.find((r) => r.id === ivo.path[ivo.path.length - 1]);

@@ -516,7 +516,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "",
+    "body": "Crystal shards fly past your ship as soon as you jump. You scan to find the assailant and discover a Crystalline ship carrying a number of humans in it's cargo bay. It must be hunting the intruding ships!",
     "choices": [
       {
         "id": "c:crystal-fight-with-surrender-offer-human-crew:0",

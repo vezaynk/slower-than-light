@@ -338,14 +338,13 @@ function refuge(ship: Ship, c: Crew): string | undefined {
 }
 
 /**
- * INFERRED: a room "completely filled with fire". Fire in sim.ts is one 0..3 count per room, capped at 3, so a room
- * is full when the count reaches its floor tiles (3 for a 2x2 room, the cap). `minTiles` follows the wiki's sizes:
- * the plain give-up is stated for "a 2x2 room" (4 tiles); the breached leave for 2x2 and "a 2x1 room" (2 tiles).
- * A one-tile room never counts, so a single fire in it is still fought (the wiki names no 1x1 case).
+ * Fires, "Fires and enemy AI": "all four tiles have a flame" on a 2x2, and a breached 2x1 is the same.
+ * A room is full when the fire count reaches its floor tiles. `minTiles` is 4 for the plain give-up
+ * and 2 when a breach makes a 2x1 count. A one-tile room never counts (the wiki names no 1x1 case).
  */
 function fullFire(r: Room, minTiles = 2): boolean {
   const tiles = r.w * r.h - (r.omit?.length ?? 0);
-  return tiles >= minTiles && r.fire >= Math.min(3, tiles);
+  return tiles >= minTiles && r.fire >= tiles;
 }
 
 /** Rockmen (and any lineage that takes no fire damage) are immune. */

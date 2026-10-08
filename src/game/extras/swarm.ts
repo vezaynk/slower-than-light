@@ -1772,9 +1772,10 @@ function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
     }
     if (ship.shieldNow > 0) continue;
     if (unit.kind === "fire") {
-      // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe, 3 fires per room as elsewhere.
+      // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
+      // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
       if (rand(g) < FIRE_DRONE_FIRE) {
-        room.fire = Math.min(3, room.fire + 1);
+        room.fire = Math.min(4, room.fire + 1);
         log(g, `Their fire drone lights the ${room.title}.`);
       }
       continue;

@@ -167,7 +167,8 @@ describe("enemy crew AI: fires and repairs", () => {
     const g = fight();
     const big = g.enemy!.rooms.find((r) => r.system !== "shields" && r.w * r.h >= 2);
     assert.ok(big);
-    big.fire = 3;
+    const tiles = big.w * big.h - (big.omit?.length ?? 0);
+    big.fire = tiles;
     big.breach = 1;
     const jobs = jobsOn(g, g.enemy!);
     assert.ok(!jobs.some((j) => j.kind === "fire" && j.room === big.id));
@@ -177,6 +178,34 @@ describe("enemy crew AI: fires and repairs", () => {
       small.fire = 1;
       assert.ok(jobsOn(g, g.enemy!).some((j) => j.kind === "fire" && j.room === small.id));
     }
+  });
+
+  it("gives up a 2x2 only when all four tiles burn", () => {
+    const g = fight();
+    const big = g.enemy!.rooms.find((r) => r.system !== "shields" && r.system !== "medbay");
+    assert.ok(big);
+    big.w = 2;
+    big.h = 2;
+    big.omit = undefined;
+    big.breach = 0;
+    const c = foes(g)[0];
+    assert.ok(c);
+    c.kin = "plain";
+    c.hp = c.maxHp;
+    c.room = big.id;
+    const ai = (g.enemy!.crewAi ??= { t: 0, post: {}, task: {} });
+    big.fire = 3;
+    planCrew(g, g.enemy!, ai);
+    assert.notEqual(ai.task[c.id]?.kind, "flee");
+    big.fire = 4;
+    planCrew(g, g.enemy!, ai);
+    assert.equal(ai.task[c.id]?.kind, "flee");
+    c.kin = "stone";
+    planCrew(g, g.enemy!, ai);
+    assert.notEqual(ai.task[c.id]?.kind, "flee");
+    big.breach = 1;
+    planCrew(g, g.enemy!, ai);
+    assert.equal(ai.task[c.id]?.kind, "flee");
   });
 });
 

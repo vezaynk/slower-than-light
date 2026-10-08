@@ -106,7 +106,8 @@ function roomHit(g: Game, breach = false): string {
   const r = pick(g, rooms);
   const sys = r.system && g.player.systems[r.system];
   if (sys && sys.level > 0) hurtSystem(g.player, r.system!, 1);
-  r.fire = Math.min(3, r.fire + 1);
+  // Fires, "Fires and enemy AI": a room stacks to four flames. This hit still adds one.
+  r.fire = Math.min(4, r.fire + 1);
   if (breach) r.breach += 1;
   const line = breach ? "A fire and a breach break out." : "A fire breaks out.";
   log(g, line);

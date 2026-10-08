@@ -140,7 +140,8 @@ function cutLine(ship: Ship, origin: string): Room[] {
 
 /**
  * Artillery Beam "Overview": 1 hull damage and 1 system damage per room, and a 10% fire chance.
- * MISMATCH: code rolls 10% once per room and caps fire at 3. Wiki "Overview" says 10% in each tile it passes, and states no stack cap.
+ * MISMATCH: code rolls 10% once per room. Wiki "Overview" says 10% in each tile it passes.
+ * Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
  */
 function nick(g: Game, ship: Ship, room: Room): void {
   ship.hull -= 1;
@@ -149,7 +150,7 @@ function nick(g: Game, ship: Ship, room: Room): void {
     const sys = ship.systems[room.system];
     if (sys.damage < sys.level) sys.damage += 1;
   }
-  if (rand(g) < 0.1) room.fire = Math.min(3, room.fire + 1);
+  if (rand(g) < 0.1) room.fire = Math.min(4, room.fire + 1);
 }
 
 /**

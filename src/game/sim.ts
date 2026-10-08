@@ -2236,8 +2236,9 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Fire Bomb: guaranteed 1–2 fires. The page does not say how often it is 2, so the second fire is a coin flip. INFERRED.
-      if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(3, r.fire + 1);
-      if (shot.fireChance >= 1 && rand(g) < 0.5) r.fire = Math.min(3, r.fire + 1);
+      // Fires, "Fires and enemy AI": a 2x2 holds four flames, so the stack stops at 4.
+      if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(4, r.fire + 1);
+      if (shot.fireChance >= 1 && rand(g) < 0.5) r.fire = Math.min(4, r.fire + 1);
       r.flash = 0.35;
       log(g, playerTarget ? `Fire in ${r.title}.` : `Fire in their ${r.title}.`);
       sfx(g, "hit");
@@ -2511,7 +2512,7 @@ function strikeRoom(
   }
   // Weapons, "Weapons: general information": on-board drones take half of that crew damage.
   hurtRoomDrones(g, aboard, roomId, crewHit);
-  // INFERRED: a hit starts one fire, stacked to 3. The fetched pages do not number that cap.
+  // Fires, "Fires and enemy AI": a 2x2 holds four flames, so a hit stacks one fire up to 4.
   // Laser (Weapons), "Types of lasers": Heavy Lasers roll the 30% fire chance first,
   // then the 30% breach chance only if that roll started no fire.
   // INFERRED: the gate is defId heavy, heavy2, and heavypierce. Other weapons still roll both.
@@ -2520,7 +2521,7 @@ function strikeRoom(
   const heavyLaser = shot.defId === "heavy" || shot.defId === "heavy2" || shot.defId === "heavypierce";
   let fireStarted = false;
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
-    r.fire = Math.min(3, r.fire + 1);
+    r.fire = Math.min(4, r.fire + 1);
     fireStarted = true;
   }
   if (shot.breachChance > 0 && !(heavyLaser && fireStarted) && rand(g) < shot.breachChance) r.breach += 1;
@@ -3037,7 +3038,8 @@ function fightFire(r: Room, pals: Crew[], dt: number) {
 
 /**
  * Fires, lead: "Fires spread from tile to tile and can spread between rooms. The speed of fire spreading is randomised."
- * INFERRED: every 7s, 70% through an open door, else +0.5 fire, cap 3. The 15% oxygen gate is not on the fetched pages.
+ * INFERRED: every 7s, 70% through an open door, else +0.5 fire. The 15% oxygen gate is not on the fetched pages.
+ * Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
  * The external spread note the page links is not copied here. A closed door divides the tick (doorSpreadSlow).
  */
 function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number) {
@@ -3053,8 +3055,8 @@ function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number
   if (openNeigh && rand(g) < 0.7) {
     const nid = openNeigh.a === r.id ? (openNeigh.b as string) : openNeigh.a;
     const n = roomById(ship, nid);
-    if (n) n.fire = Math.min(3, n.fire + 1);
-  } else if (r.fire < 3) r.fire += 0.5;
+    if (n) n.fire = Math.min(4, n.fire + 1);
+  } else if (r.fire < 4) r.fire += 0.5;
 }
 
 /** Fires, lead: the same 2.128 HP/s hits boarders standing in the fire. Suffocation, when it applies, replaces this. */
@@ -3397,8 +3399,8 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
     const room = ship.rooms[i];
     if (!room) continue;
     rooms += 1;
-    // INFERRED: fires still stack to the same cap of 3 used for weapon hits.
-    room.fire = Math.min(3, room.fire + n);
+    // Fires, "Fires and enemy AI": a room stacks to four flames. The flare's own 1-or-2 count is unchanged.
+    room.fire = Math.min(4, room.fire + n);
     if (!flareDamagesRoom(n, rand(g))) continue;
     const playerHurt = aboard === "player";
     if ((room.system || room.kit) && playerHurt && negateSystem(g)) {

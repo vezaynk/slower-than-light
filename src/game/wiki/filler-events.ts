@@ -746,7 +746,8 @@ function rockFires(g: Game): string {
     bar = `1 damage to ${r.system}.`;
   }
   const n = 1 + (rand(g) < 0.5 ? 1 : 0);
-  r.fire = Math.min(3, r.fire + n);
+  // Fires, "Fires and enemy AI": a room stacks to four flames. This event still adds only its 1-2.
+  r.fire = Math.min(4, r.fire + n);
   return [bar, `${n === 1 ? "1 fire" : "2 fires"} in ${r.title}.`].filter(Boolean).join(" ");
 }
 

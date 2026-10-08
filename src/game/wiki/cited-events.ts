@@ -542,7 +542,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "",
+    "body": "A large convoy of lumbering civilian ships appears to be passing through this region. You show no hostile intentions, but they are taking no chances, immediately sending their escort to attack!",
     "choices": [
       {
         "id": "c:crystal-fight-with-surrender-offer-hull-repairs:0",

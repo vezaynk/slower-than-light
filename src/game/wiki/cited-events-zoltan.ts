@@ -30,7 +30,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-fight",
     aliases: ["Engi fight", "Engi fight (Zoltan)", "Zoltan Engi fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You jump into a debris field that used to be a Zoltan cruiser.",
+    body: "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails.",
     choices: [
       {
         id: "c:engi-fight:0",

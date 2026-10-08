@@ -89,7 +89,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "",
+    body: "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
     choices: [
       {
         id: "c:auto-ship-near-storage-station:0",

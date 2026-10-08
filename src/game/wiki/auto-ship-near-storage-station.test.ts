@@ -28,6 +28,7 @@ describe("Auto-ship near storage station", () => {
   it("attacking starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
+    assert.equal(g.event?.body, "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.");
     assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"), true);
     choose(g, "c:auto-ship-near-storage-station:0");
     assert.equal(g.phase, "combat");

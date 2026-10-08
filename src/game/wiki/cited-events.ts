@@ -3788,6 +3788,14 @@ const FEDERATION_FLEET_INTROS = [
   "You don't have any time to worry about the battle in the distance. The fight is coming to you really quickly!",
 ];
 
+// Lanius ship attacking civilian. Three printed intros, no odds. INFERRED: equal.
+// Attack stays c:lanius-ship-attacking-civilian:0. Avoid stays the nothing choice.
+const LANIUS_CIVILIAN_INTROS = [
+  `You immediately receive a message upon arrival, "Help! These metal bastards have gone crazy!" The communication originates from the hull of a partially dismantled ship which lies among a number of other destroyed ships. The violent Lanius ship responsible for this carnage is advancing on the survivors.`,
+  "You scan the area after arriving at this system. A Lanius ship is in fast pursuit of an unarmed civilian ship. It's hard to say if it's truly a threat since its weapons are not charging.",
+  "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
+];
+
 // Escort civilians. Three printed intros, no odds. INFERRED: equal.
 // Accept stays the low fuel and the quest marker. Decline stays nothing.
 const ESCORT_CIVILIAN_INTROS = [
@@ -4241,6 +4249,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
+  if (ev.slug === "lanius-ship-attacking-civilian") {
+    return {
+      title: ev.dest,
+      body: LANIUS_CIVILIAN_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Rebel fight among Federation and Rebel fleets. One of the six printed intros. The fight stays the existing choice.

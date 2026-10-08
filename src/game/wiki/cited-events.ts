@@ -3718,6 +3718,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Pirate ship selling drones. Hail, then dock. The unnamed schematic is not a button.
+  if (ev.slug === "pirate-ship-selling-drones") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        { id: "q:pirate-drones:hail", label: "Hail the ship." },
+        { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
+        { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
+      ],
+    };
+  }
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);

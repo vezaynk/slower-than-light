@@ -923,6 +923,40 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if ((g.player.systems.sensors?.level ?? 0) < 2) return;
     rockAtheistJoins(g, "The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.");
   },
+  // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
+  "q:pirate-drones:hail": (g) => {
+    card(g, `The ship responds "Yes, we have an extensive stock! Come aboard and see our wares!"`, [
+      { id: "q:pirate-drones:dock", label: "Dock with the ship." },
+      { id: "q:pirate-drones:leave", label: "This seems dangerous, leave." },
+      { id: "q:pirate-drones:slug", label: "Sir: We can dock, but I sense that we better plan on making a purchase..." },
+      { id: "q:pirate-drones:hack", label: "Disable their Weapon system before docking." },
+    ]);
+  },
+  // Slug blue: "Same as the first option." That option is Dock.
+  "q:pirate-drones:slug": (g) => {
+    if (!hasSlug(g)) return;
+    pirateDroneDock(g);
+  },
+  "q:pirate-drones:dock": (g) => pirateDroneDock(g),
+  "q:pirate-drones:leave": (g) => {
+    pageFight(
+      g,
+      "As soon as you start to reverse your ship, the pirate reveals hidden weaponry and sets off in pursuit. You'll have to fight him to escape!",
+      "Pirate ship",
+      "pirate-ship-selling-drones",
+    );
+  },
+  "q:pirate-drones:hack": (g) => {
+    if ((g.player.kits.spike?.level ?? 0) <= 0) return;
+    result(
+      g,
+      `You receive a hail as soon as your Hacking system finishes: "What have you done!? You can never trust a Federation ship! Here, take your 'standard toll'. I really should do business elsewhere, scum."`,
+      scrapOnly(g, "low"),
+    );
+  },
+  "q:pirate-drones:nothing": (g) => pirateDroneNothing(g),
+  // Three sibling results and no odds. INFERRED: equal. The system must already be installed.
+  "q:pirate-drones:upgrade": (g) => pirateDroneUpgrade(g),
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
@@ -1637,6 +1671,10 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:pirate-smuggler:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Rock atheists. Improved Sensors is level 2+. The button stays visible.
   if (id === "c:rock-atheists:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs level 2 Sensors";
+  // Pirate ship selling drones. A dead Slug does not count. Hacking and Drone Control must already be installed.
+  if (id === "q:pirate-drones:slug" && !hasSlug(g)) return "Needs a Slug crewmember";
+  if (id === "q:pirate-drones:hack" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  if (id === "q:pirate-drones:upgrade" && (g.player.kits.swarm?.level ?? 0) <= 0) return "Needs Drone Control";
   // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
   if (id === "q:engi-distress:scrap" && g.scrap < 25) return "Need 25 scrap";
   if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";
@@ -1960,6 +1998,88 @@ function rockAtheistPromise(g: Game) {
 function rockAtheistJoins(g: Game, text: string) {
   const joined = joinCrew(g, "Rock");
   result(g, text, undefined, [joined ? "A Rockman crewmember joins you." : "There is no room aboard for the new crewmember."]);
+}
+
+/** Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice. */
+function pirateDroneDock(g: Game) {
+  card(g, `A human in an exquisite suit meets you on board. "Welcome to my ship! We specialize in drones of all kinds, can I interest you in any?"`, [
+    { id: "c:pirate-ship-selling-drones:0", label: "Buy some Drone parts. [25 scrap]" },
+    { id: "q:pirate-drones:nothing", label: "Buy nothing." },
+    { id: "q:pirate-drones:upgrade", label: "Buy Drone Control system upgrade." },
+  ]);
+}
+
+/**
+ * Tooltip "1-2 fires or a breach". The page prints no odds.
+ * INFERRED: the two effects are equally likely. The second flame is a coin flip, the same as Fire Bomb.
+ */
+function salesmanMark(g: Game, room: { fire: number; breach: number; title: string }): string {
+  if (rand(g) < 0.5) {
+    const n = 1 + (rand(g) < 0.5 ? 1 : 0);
+    room.fire = Math.min(4, room.fire + n);
+    return n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`;
+  }
+  room.breach += 1;
+  return `A breach opens in ${room.title}.`;
+}
+
+/** 1 damage to that room's system when a bar is left, plus the tooltip's effect. */
+function salesmanRoom(g: Game, room: { fire: number; breach: number; title: string; system?: string }): string {
+  const bits: string[] = [];
+  const id = room.system;
+  const sys = id ? g.player.systems[id as "engines"] : undefined;
+  if (id && sys && sys.level > 0 && sys.damage < sys.level) {
+    hurtSystem(g.player, id as "engines", 1);
+    bits.push(`1 damage to ${id}.`);
+  }
+  bits.push(salesmanMark(g, room));
+  return bits.join(" ");
+}
+
+/** Buy nothing: 3 hull, engines, two random rooms, then a default Pirate ship fight. */
+function pirateDroneNothing(g: Game) {
+  const dead = damageHull(g, 3);
+  const engines = g.player.rooms.find((r) => r.system === "engines");
+  if (engines) salesmanRoom(g, engines);
+  else if ((g.player.systems.engines?.level ?? 0) > (g.player.systems.engines?.damage ?? 0)) {
+    hurtSystem(g.player, "engines", 1);
+  }
+  // INFERRED: every player room is equally likely, and the two draws are distinct when the ship has two rooms.
+  const rooms = g.player.rooms;
+  const first = pick(g, rooms);
+  const rest = rooms.filter((r) => r !== first);
+  const second = rest.length ? pick(g, rest) : first;
+  salesmanRoom(g, first);
+  salesmanRoom(g, second);
+  if (dead) return;
+  pageFight(
+    g,
+    `"Ah, I'm sorry to hear that! Pleasant journeys." Once back to the helm, a series of explosions rocks your ship. The pirate ship has powered its weapons! You receive a message, "You shouldn't waste people's time Captain!"`,
+    "Pirate ship",
+    "pirate-ship-selling-drones",
+  );
+}
+
+/**
+ * Buy Drone Control system upgrade. Three results, no odds. INFERRED: equal.
+ * The level is set to a whole number in the printed band. The scrap is a whole number in that result's band.
+ */
+function pirateDroneUpgrade(g: Game) {
+  const kit = g.player.kits.swarm;
+  if (!kit || kit.level <= 0) return;
+  const band = pick(g, [
+    { scrap: [15, 20] as [number, number], level: [2, 3] as [number, number] },
+    { scrap: [25, 33] as [number, number], level: [4, 5] as [number, number] },
+    { scrap: [50, 65] as [number, number], level: [6, 7] as [number, number] },
+  ]);
+  const cost = between(g, band.scrap);
+  if (g.scrap < cost) return;
+  const level = between(g, band.level);
+  g.scrap -= cost;
+  kit.level = level;
+  if (kit.power > kit.level) kit.power = kit.level;
+  log(g, `Scrap: -${cost}.`);
+  result(g, `Drone Control at level ${level}.`, undefined, [`Scrap: -${cost}.`]);
 }
 
 /** Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then the Crystal ship. */

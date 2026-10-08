@@ -232,7 +232,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-in-asteroid-field",
     aliases: ["Lanius fight in asteroid field"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off.",
     choices: [
       {
         id: "c:lanius-fight-in-asteroid-field:0",

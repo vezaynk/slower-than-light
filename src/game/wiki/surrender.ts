@@ -347,9 +347,10 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     refuse: "Surrender is not an option.",
   },
   // "Slug Home Nebula surrender": "surrender offer: 100% chance at 30-40% hull". "Let them live." -> "Accept the
-  // prototype weapon." -> "You receive Anti-Bio Beam." @agent:quests: the other branch, "We don't want the weapon, we
-  // want information." -> "A quest marker is added to your map.", is the `extra` answer (wiki/quests.ts). The Slug
-  // Cruiser unlock is the interceptor fight on that marker, not this offer (@agent:unlocks, wiki/quests.ts grantUnlock).
+  // prototype weapon." -> "You receive Anti-Bio Beam." The italic under that grant is `result` (surrenderChoose appends
+  // the weapon name). @agent:quests: the other branch, "We don't want the weapon, we want information." -> "A quest
+  // marker is added to your map.", is the `extra` answer (wiki/quests.ts). The Slug Cruiser unlock is the interceptor
+  // fight on that marker, not this offer (@agent:unlocks, wiki/quests.ts grantUnlock).
   "slug-home-nebula-surrender": {
     page: "Slug Home Nebula surrender",
     chance: 100,
@@ -359,6 +360,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     hail: "\"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?\" \"Take thisss newly developed weapon we're transporting...\"",
     accept: "Let them live. Accept the prototype weapon.",
     refuse: "We will not accept surrender!",
+    result: "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!",
     extra: { id: "s:slug-home-nebula-surrender:info", label: "Let them live. We don't want the weapon, we want information." },
   },
   // ---- @agent:surrender (pages wired by cited-events-surrender.ts; their fights start in PAGE_CHOICES below) ----

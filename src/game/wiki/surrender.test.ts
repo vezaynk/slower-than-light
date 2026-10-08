@@ -357,6 +357,9 @@ describe("scripted surrenders (event pages)", () => {
     offer(g);
     assert.equal(surrenderOfferView(g)!.weapon, "antibio");
     choose(g, ACCEPT_ID);
+    assert.equal(g.phase, "reward");
+    const note = g.reward?.note ?? "";
+    assert.ok(note.includes("This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!"));
     assert.ok(g.player.weapons.some((w) => w.defId === "antibio"));
   });
 

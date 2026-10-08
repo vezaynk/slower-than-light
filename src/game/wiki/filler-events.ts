@@ -358,7 +358,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
     ],
   },
   // DONOR_PLAGUE. Board: low scrap; a Human crewmember with low scrap; low scrap then "You lose a crewmember".
-  // Scrap: "a random amount of scrap".
+  // The sick card's Continue still loses that crewmember. Clone Bay has [no effect].
+  // Improved Medbay level=2+ is "Try to cure the disease." Scrap: "a random amount of scrap".
   {
     dest: "Plagued station",
     slug: "plagued-station",
@@ -1777,12 +1778,23 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       payOffer(g, offer, true);
       card(g, `All around you is the stench of death and decay. Suddenly, one of your crew bends over and starts retching violently. Some sort of disease must have wiped out this station. You pull back to the ship, but it looks like your crew member is not going to make it.\n\nScrap: ${offer.scrap}.`, [
         { id: "s:plagued-station:continue", label: "Continue..." },
+        // {{Blue Option|Improved Medbay|Try to cure the disease.|level=2+|shortreq=Medbay}}. The button stays on the card.
+        { id: "s:plagued-station:cure", label: "Try to cure the disease." },
       ]);
     }
   },
-  // "You lose a crewmember." Clone Bay: "[no effect] You stop your crew's clone from forming".
+  // "You lose a crewmember." Clone Bay has [no effect]. The page says "(Clone Bay)", any installed level, not level 2+.
   "s:plagued-station:continue": (g) => {
-    show(g, "Your crewmember insists you leave them behind, not wanting to endanger the rest of the crew. Knowing the truth of this, you hurry back to the ship.", undefined, [loseCrew(g, true)]);
+    const extras: string[] = [];
+    const note = loseCrew(g, true);
+    if (note) extras.push(note);
+    if (g.player.kits.cradle) extras.push("You stop your crew's clone from forming, knowing that the disease would follow into his next life.");
+    show(g, "Your crewmember insists you leave them behind, not wanting to endanger the rest of the crew. Knowing the truth of this, you hurry back to the ship.", undefined, extras);
+  },
+  // Improved Medbay level=2+. The page's next line is "Nothing happens." The low scrap was already paid on the disease card.
+  "s:plagued-station:cure": (g) => {
+    if (medbayLevel(g) < 2) return;
+    show(g, "Your advanced medical suite is able to isolate the cause of the problem and administer an antidote. That was a close one.");
   },
   "c:plagued-station:1": (g) => {
     show(g, "While waiting for the FTL drive to charge, you skirt around the edge of the station and collect some scrap.", scrapOnly(g));
@@ -2927,6 +2939,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:unknown-disease-on-mining-colony:2" && !livingKin(g, "stone")) return "Needs a Rock crewmember";
   if (id === "c:unknown-disease-on-mining-colony:3" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
   if (id === "c:unknown-disease-on-mining-colony:4" && medbayLevel(g) < 2) return "Needs a level 2 Medbay";
+  // Plagued station. Improved Medbay level=2+. INFERRED: the refusal line. The page names the system and prints no refusal sentence.
+  if (id === "s:plagued-station:cure" && medbayLevel(g) < 2) return "Needs a level 2 Medbay";
   if (id === "s:unknown-disease:medbot" && !g.augments.includes("medbot")) return "Needs Engi Med-bot Dispersal";
   // Fire on research station blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
   if (id === "c:fire-on-research-station:3" && !livingKin(g, "stone")) return "Needs a Rock crewmember";

@@ -567,7 +567,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Intelligent life form on planet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Intelligent life forms planet — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Intelligent lifeform on planet — not-a-surface — same title as "Intelligent Lifeform on Planet" with different capitalization
-- [ ] Intelligent ponies — partial — filler-events.ts opens talk, sell, and leave. Talk grants an Engi plus low scrap, or nothing. Sell loses a crewmember, or nothing. Equal odds are INFERRED.
+- [ ] Intelligent ponies — partial — filler-events.ts opens talk, sell, and leave. Talk grants an Engi plus low scrap, or nothing. Sell loses a crewmember, or nothing. Equal odds are INFERRED. Ignoring the readings shows the printed move-on sentence and nothing happens.
 - [ ] Intercept Comm Chatter from Mantis Ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Intercept comm chatter from Mantis ship — not-a-surface — same title as "Intercept Comm Chatter from Mantis Ship" with different capitalization
 - [ ] Ion (Weapons) — partial — Ion Blast, Ion Blast II, Heavy Ion, Ion Stunner, Ion Charger, Chain Ion, and Boss Ion are in WEAPONS. Boss Ion power is 3. Chain Ion deals 1, then 2, 3, and 4 ion on a 14 second charge. Losing power resets that streak (INFERRED). Ion Charger early fire stays a gap. A blocked Ion Stunner stuns crew and drones in the Shields room for 5 seconds, and the aimed room stays clear.

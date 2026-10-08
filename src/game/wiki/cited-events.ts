@@ -996,7 +996,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "",
+    "body": "The Mantis ship in this system looks like its distress beacon is malfunctioning... likely due to the Lanius ship mining their hull and sub-systems! It doesn't look like the Mantis ship will last much longer.",
     "choices": [
       {
         "id": "c:lanius-ship-attacking-mantis:0",

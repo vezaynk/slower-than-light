@@ -881,7 +881,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Pirate store — not-a-surface — same title as "Pirate Store" with different capitalization
 - [ ] Pirate toll — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. The printed greeting is shown before the pay and reject choices. Rejecting the offer shows the printed regret sentence and fights a Pirate ship. Paying the toll shows the printed friend sentence, spends 15 to 25 scrap, and the fight is avoided.
 - [ ] Pirate trap — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Plagued station — partial — filler-events.ts. Board rolls low scrap, a Human plus low scrap, or low scrap and a lost crewmember. Scrap-the-debris rolls a random scrap tier. This audit did not re-open the article.
+- [ ] Plagued station — partial — filler-events.ts. Board rolls low scrap, a Human plus low scrap, or low scrap and a lost crewmember. Scrap-the-debris rolls a random scrap tier. Continuing after the disease still loses that crewmember, a Clone Bay prints the stop-clone sentence, and a level 2 Medbay prints the antidote sentence instead.
 - [ ] Plasma Storm — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma Storm Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Plasma Storm Events — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

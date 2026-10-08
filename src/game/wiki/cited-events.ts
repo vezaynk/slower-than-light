@@ -3471,6 +3471,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Auto-ship near radar station. Combat Drone Mark I or II, or an Anti-Ship Beam Drone.
+  if (ev.slug === "auto-ship-near-radar-station") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:auto-ship-near-radar-station:2", label: "Send a drone to distract the automated ship." },
+      ],
+    };
+  }
   // Auto-ship near storage station in nebula. Cloaking, Improved Cloaking, Hacking, and Improved Hacking.
   if (ev.slug === "auto-ship-near-storage-station-in-nebula") {
     return {

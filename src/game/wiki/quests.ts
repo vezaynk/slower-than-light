@@ -714,6 +714,38 @@ const CHOICES: Record<string, (g: Game) => void> = {
     log(g, "Drone parts: -1.");
     storageInvestigate(g, "You successfully hack into the station and sever the connection to the automated ship, accessing the station completely undetected.");
   },
+  // Auto-ship near radar station. {{DuplicateEvent|2}} on the station, once on the fight.
+  // The two station sentences have no odds between them. INFERRED: equal. The part is spent either way.
+  // The map reveal inside Access the station is not wired.
+  "c:auto-ship-near-radar-station:2": (g) => {
+    if (!hasRadarCombat(g) || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    if (weighted(g, [["station", 2], ["fight", 1]] as const) === "fight") {
+      pageFight(g, "Before your drone has a chance to attack, the automated ship activates and shoots it down. It then detects your ship and moves in on your position.", "Auto-ship", "auto-ship-near-radar-station");
+      return;
+    }
+    const lead = pick(g, [
+      "Your combat drone attacks the automated ship and then retreats, luring it away. You quickly move up to the radar station to access it.",
+      "Your combat drone repeatedly fires at the automated ship. It can't break through its shields, but is at least enough of a distraction to allow you to access the radar station.",
+    ] as const);
+    autoRadarAccess(g, lead);
+  },
+  "q:auto-radar:hack": (g) => {
+    autoRadarAccess(g);
+  },
+  "q:auto-radar:leave": (g) => {
+    result(g, "You leave the station and prepare to jump.", undefined, ["Nothing happens."]);
+  },
+  // Hacking spends one drone part. The page prints one result: a one-turn fleet delay and a map download.
+  // The map reveal is not wired.
+  "q:auto-radar:drone": (g) => {
+    if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    g.fleet = Math.max(0, g.fleet - 1);
+    result(g, "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while. You also are able to download data about the surrounding beacons.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
+  },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
   // The weapon and the drone schematic are unnamed and not granted. The low scrap still is.
   "q:auto-storage:investigate": (g) => {
@@ -1241,6 +1273,11 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:auto-ship-near-storage-station-in-nebula:4" && g.player.parts < 1) return "Need 1 drone part";
   if (id === "c:auto-ship-near-storage-station-in-nebula:5" && (g.player.kits.spike?.level ?? 0) < 2) return "Needs level 2 Hacking";
   if (id === "c:auto-ship-near-storage-station-in-nebula:5" && g.player.parts < 1) return "Need 1 drone part";
+  // Auto-ship near radar station. Combat Drone is one of the four named schematics. Hacking spends 1 drone part.
+  if (id === "c:auto-ship-near-radar-station:2" && !hasRadarCombat(g)) return "Needs a Combat Drone";
+  if (id === "c:auto-ship-near-radar-station:2" && g.player.parts < 1) return "Need 1 drone part";
+  if (id === "q:auto-radar:drone" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  if (id === "q:auto-radar:drone" && g.player.parts < 1) return "Need 1 drone part";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
@@ -1390,6 +1427,51 @@ function storageInvestigate(g: Game, text: string) {
   card(g, text, STORAGE_INVESTIGATE);
 }
 
+/** Auto-ship near radar station. Combat Drone Mark I and II, and Anti-Ship Beam Drone I and II. */
+const RADAR_COMBAT = ["striker", "combat2", "beam", "beam2"];
+
+function hasRadarCombat(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  return !!kit && kit.level > 0 && RADAR_COMBAT.includes(kit.target ?? "");
+}
+
+const RADAR_AFTER: Choice[] = [
+  { id: "q:auto-radar:hack", label: "Attempt to manually hack into the station." },
+  { id: "q:auto-radar:leave", label: "Don't risk it. Leave the station." },
+  { id: "q:auto-radar:drone", label: "Use a drone to hack into the station." },
+];
+
+/** Destroyed pays medium scrap only. The page prints no crew-kill reward. */
+function autoRadarWin(g: Game, deadCrew: boolean) {
+  if (deadCrew) return false;
+  result(g, "You salvage what you can and approach the station. It is used to relay information to the Rebel Fleet. You could attempt to hack it to give the Rebels false information.", scrapOnly(g, "medium"), [], RADAR_AFTER);
+}
+
+/**
+ * Access the station. Four results, no odds. INFERRED: equal.
+ * The map sentence is flavor. This game has no map reveal.
+ */
+function autoRadarAccess(g: Game, lead = "") {
+  const kind = pick(g, ["delay", "map", "pursuit", "nothing"] as const);
+  let text: string;
+  const extras: string[] = [];
+  if (kind === "delay") {
+    g.fleet = Math.max(0, g.fleet - 1);
+    text = "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while.";
+    extras.push("The Rebel Fleet is delayed for 1 turn.");
+  } else if (kind === "map") {
+    text = "The firewalls prove too difficult to bypass. As you are about to disconnect, you stumble across unprotected information about the surrounding beacons. Your map is updated.";
+  } else if (kind === "pursuit") {
+    g.pursuitDouble = true;
+    text = "As you attempt to hack in, you set off a hidden alarm system. It seems that now the Rebels must surely be aware of your position! You hasten back to the ship to jump away.";
+    extras.push("Rebel Fleet pursuit is doubled for 1 jump.");
+  } else {
+    text = "You are unable to penetrate the computer's defenses. You give up and return to the ship.";
+    extras.push("Nothing happens.");
+  }
+  result(g, lead ? `${lead} ${text}` : text, undefined, extras);
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -1443,6 +1525,8 @@ export const PAGE_WINS: Record<string, Win> = {
   // The page prints no crew-kill reward.
   "auto-ship-near-storage-station": autoStorageWin,
   "auto-ship-near-storage-station-in-nebula": autoStorageWin,
+  // Auto-ship near radar station. Destroyed pays medium scrap only. The page prints no crew-kill reward.
+  "auto-ship-near-radar-station": autoRadarWin,
   // Auto-ship near sensor station. Destroyed pays low scrap only. The map reveal is not wired.
   // The page prints no crew-kill reward.
   "auto-ship-near-sensor-station": (g, deadCrew) => {

@@ -1161,6 +1161,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, `"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!`, "Mantis ship", "zoltan-wise-man");
     allMantisCrew(g);
   },
+  // Space station under construction. "Decline." One printed result.
+  "c:space-station-under-construction:1": (g) => {
+    result(g, `"I understand." Transmission has been cut.`, undefined, ["Nothing happens."]);
+  },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
     pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");

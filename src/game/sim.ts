@@ -125,7 +125,7 @@ import {
   flareFireCount,
   placeFlareFires,
 } from "./wiki/cited-flare.ts";
-import { asteroidIntervalSeconds } from "./wiki/cited-asteroid.ts";
+import { asteroidIntervalSeconds, asteroidSide } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
@@ -3253,7 +3253,7 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
-// Asteroid breach stays 0.05 and fire stays 0. The interval is cited-asteroid.ts. Those seconds are INFERRED.
+// Asteroid fire or breach is cited-asteroid.ts. The interval seconds are INFERRED.
 // Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
 // then the real shot 5--10 seconds later. The cycle repeats until escape.
 // INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
@@ -3464,8 +3464,10 @@ function environment(g: Game, dt: number) {
     g.asteroidT += dt;
     if (g.asteroidT >= (g.asteroidWait ?? 0)) {
       // Environmental Hazards, Asteroid Field: the rock strikes this ship, and the enemy ship the same way.
-      // The 0.05 breach and no fire are the existing roll. This sentence does not print a new one.
+      // "They have a small chance to cause a fire or a breach." Fires: one of a breach, fires, or neither.
+      // INFERRED: 5 percent each, so one rock does not start both (cited-asteroid.ts).
       const rock = (ship: Ship, at: "player" | "enemy") => {
+        const side = asteroidSide(rand(g));
         g.shots.push({
           id: uid(g),
           kind: "laser",
@@ -3473,8 +3475,8 @@ function environment(g: Game, dt: number) {
           at,
           damage: 1,
           ion: 0,
-          fireChance: 0,
-          breachChance: 0.05,
+          fireChance: side === "fire" ? 1 : 0,
+          breachChance: side === "breach" ? 1 : 0,
           targetRoom: pick(g, ship.rooms).id,
           wait: 0.2,
           t: 0,

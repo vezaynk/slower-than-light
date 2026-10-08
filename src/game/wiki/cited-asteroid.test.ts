@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { commitJump, continueReward, createGame, startCombat, step } from "../sim.ts";
-import { asteroidIntervalSeconds } from "./cited-asteroid.ts";
+import { asteroidIntervalSeconds, asteroidSide } from "./cited-asteroid.ts";
 
 describe("asteroid interval", () => {
   it("is random and shortens as the shield system level rises", () => {
@@ -93,6 +93,68 @@ describe("asteroid interval", () => {
     g.fuel = 3;
     commitJump(g, here.links[0]);
     assert.equal(g.asteroid, false);
+  });
+
+  it("gives a rock a small chance of a fire or a breach, not both", () => {
+    // Environmental Hazards, Asteroid Field: "They have a small chance to cause a fire or a breach."
+    // Fires: "asteroids (which can either cause a breach, or fires, or no additional effect)".
+    assert.equal(asteroidSide(0), "fire");
+    assert.equal(asteroidSide(0.049), "fire");
+    assert.equal(asteroidSide(0.05), "breach");
+    assert.equal(asteroidSide(0.099), "breach");
+    assert.equal(asteroidSide(0.1), "none");
+    const seen = new Set<string>();
+    for (let seed = 1; seed < 80 && seen.size < 3; seed++) {
+      const g = createGame(seed);
+      startCombat(g, "scout", true);
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      g.player.systems.engines.power = 0;
+      g.enemy!.systems.engines.power = 0;
+      g.asteroidWait = 0.05;
+      g.asteroidT = 0;
+      step(g, 0.05);
+      for (const shot of g.shots) {
+        if (shot.label !== "Rock") continue;
+        assert.ok(shot.fireChance === 0 || shot.fireChance === 1);
+        assert.ok(shot.breachChance === 0 || shot.breachChance === 1);
+        assert.ok(shot.fireChance + shot.breachChance <= 1);
+        seen.add(shot.fireChance === 1 ? "fire" : shot.breachChance === 1 ? "breach" : "none");
+      }
+    }
+    assert.deepEqual([...seen].sort(), ["breach", "fire", "none"]);
+  });
+
+  it("starts that fire or breach when the rock hits a room", () => {
+    const land = (want: "fire" | "breach") => {
+      for (let seed = 1; seed < 240; seed++) {
+        const g = createGame(seed);
+        startCombat(g, "scout", true);
+        for (const w of g.player.weapons) w.enabled = false;
+        for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+        g.player.systems.engines.power = 0;
+        g.player.systems.shields.power = 0;
+        g.player.shieldNow = 0;
+        if (g.player.kits.swarm) g.player.kits.swarm.loadout = [];
+        g.asteroidWait = 0.05;
+        g.asteroidT = 0;
+        step(g, 0.05);
+        const rock = g.shots.find(
+          (s) => s.label === "Rock" && s.at === "player" && (want === "fire" ? s.fireChance === 1 : s.breachChance === 1),
+        );
+        if (!rock) continue;
+        const room = g.player.rooms.find((r) => r.id === rock.targetRoom);
+        if (!room) continue;
+        const before = want === "fire" ? room.fire : room.breach;
+        // The rock waits 0.2s, then flies 0.8s. One long step only spends the wait.
+        for (let i = 0; i < 20; i++) step(g, 0.1);
+        const after = g.player.rooms.find((r) => r.id === rock.targetRoom);
+        if (after && (want === "fire" ? after.fire : after.breach) > before) return true;
+      }
+      return false;
+    };
+    assert.equal(land("fire"), true);
+    assert.equal(land("breach"), true);
   });
 
   it("keeps the field when the enemy escapes", () => {

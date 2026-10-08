@@ -15,3 +15,16 @@ export function asteroidIntervalSeconds(shieldLevel: number, roll: number): numb
   const t = Math.min(0.999999, Math.max(0, roll));
   return center * (0.75 + t * 0.5);
 }
+
+/**
+ * Environmental Hazards, ==Asteroid Field==: "They have a small chance to cause a fire or a breach."
+ * Fires: "asteroids (which can either cause a breach, or fires, or no additional effect)".
+ * INFERRED: each of those two effects is 5 percent. Fire is checked first, so one rock does not start both.
+ * The page prints no percent. 5 percent is the breach figure this shot already used.
+ */
+export function asteroidSide(roll: number): "fire" | "breach" | "none" {
+  const t = Math.min(0.999999, Math.max(0, roll));
+  if (t < 0.05) return "fire";
+  if (t < 0.1) return "breach";
+  return "none";
+}

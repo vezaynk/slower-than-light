@@ -478,7 +478,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Free Stuff — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Free Weapon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Free drone schematic — not-a-surface — same title as "Free Drone Schematic" with different capitalization
-- [ ] Free scrap with resources — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Free scrap with resources — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. One of the six printed intros is shown, then the medium scrap with resources.
 - [ ] Free scrap with resources (Engi) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Free scrap with resources (Lanius) — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Opening the beacon shows the printed damaged-craft sentence.
 - [ ] Free scrap with resources (Zoltan) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

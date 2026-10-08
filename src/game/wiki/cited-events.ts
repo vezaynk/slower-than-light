@@ -3563,6 +3563,13 @@ const ROCK_FIGHT_INTROS = [
   "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
 ];
 
+// Rock pirates fight. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight:0.
+const ROCK_PIRATE_INTROS = [
+  "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.",
+  "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!",
+  "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!",
+];
+
 // Rebel fight near pulsar. Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-near-pulsar:0.
 const REBEL_PULSAR_INTROS = [
   `A Rebel captain appears on the screen. "I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!"`,
@@ -3782,6 +3789,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Rock pirates fight. One of the three printed intros. The fight stays c:rock-pirates-fight:0.
+  if (ev.slug === "rock-pirates-fight") {
+    return {
+      title: ev.dest,
+      body: ROCK_PIRATE_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:rock-pirates-fight:0", label: "Fight a Rock pirate ship" }],
     };
   }
   // Rebel fight near pulsar. One of the three printed intros. The fight stays c:rebel-fight-near-pulsar:0.

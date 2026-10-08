@@ -1246,6 +1246,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:auto-ship-attacking-outpost:1": (g) => {
     result(g, "You steer clear of the conflict. The outpost receives a beating but the ship stops its attack before it's destroyed.", undefined, ["Nothing happens."]);
   },
+  // Auto-ship attacking civilian. "Stay out of it." One printed result.
+  "c:auto-ship-attacking-civilian:1": (g) => {
+    result(g, "The fight brings them out of your immediate scanning range.", undefined, ["Nothing happens."]);
+  },
   // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
     result(g, "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.", undefined, ["Nothing happens."]);

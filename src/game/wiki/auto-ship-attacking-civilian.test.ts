@@ -127,8 +127,10 @@ describe("Auto-ship attacking civilian", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:auto-ship-attacking-civilian:1");
-    assert.equal(g.phase, "map");
+    assert.equal(g.event?.body, "The fight brings them out of your immediate scanning range.\n\nNothing happens.");
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
   });
 });

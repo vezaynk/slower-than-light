@@ -321,7 +321,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-attacking-slug",
     aliases: ["Lanius ship attacking Slug"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.",
     choices: [
       {
         id: "c:lanius-ship-attacking-slug:0",

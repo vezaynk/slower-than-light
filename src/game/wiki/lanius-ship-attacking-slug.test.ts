@@ -28,6 +28,7 @@ describe("Lanius ship attacking Slug", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
+    assert.equal(g.event?.body, "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.");
     choose(g, "c:lanius-ship-attacking-slug:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-attacking-slug");

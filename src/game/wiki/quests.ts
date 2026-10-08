@@ -1539,6 +1539,17 @@ function autoRadarAccess(g: Game, lead = "") {
   result(g, lead ? `${lead} ${text}` : text, undefined, extras);
 }
 
+/** Pirate ship attacking civilian, and the Lanius variant. Destroyed is medium standard.
+ *  A crew kill is high. Then Contact the civilian ship. */
+function pirateCivilianWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."
+    : "The pirate ship breaks apart. You hasten to contact the civilian ship.";
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
+    { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
+  ]);
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -1632,17 +1643,11 @@ export const PAGE_WINS: Record<string, Win> = {
       { id: "q:lanius-civilian:contact", label: "Attempt to contact the civilian ship." },
     ]);
   },
-  // Pirate ship attacking civilian. Destroyed pays medium standard. A crew kill pays high.
-  // Then Contact the civilian ship. Template:Save the Civilian Ship is the same card.
-  // Stay out of it is the nothing choice.
-  "pirate-ship-attacking-civilian": (g, deadCrew) => {
-    const text = deadCrew
-      ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."
-      : "The pirate ship breaks apart. You hasten to contact the civilian ship.";
-    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
-      { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
-    ]);
-  },
+  // Pirate ship attacking civilian, and the Lanius variant. Destroyed pays medium standard.
+  // A crew kill pays high. Then Contact the civilian ship. Template:Save the Civilian Ship
+  // is the same card. Stay out / Avoid the conflict are the nothing choices.
+  "pirate-ship-attacking-civilian": pirateCivilianWin,
+  "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Auto-ship attacking outpost. Destroyed pays low standard, then the outpost pays medium standard.
   // The page prints no crew-kill reward. Avoid the conflict is the nothing choice.
   "auto-ship-attacking-outpost": (g, deadCrew) => {

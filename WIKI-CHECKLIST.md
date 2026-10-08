@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2807 |
+| Behaviors checked | 2808 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4681,6 +4681,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] One or two Rock boarders beam aboard your ship when you fight the Rock ship from Rock fight with boarders in asteroid field.
   - [x] One of the two printed intros is shown before that fight, which still starts inside an asteroid field.
+  - [x] The red line beams 1-2 rock boarders aboard and starts the Rock fight in an asteroid field on arrival, and it is not a button.
 
 - [x] Rock live mine
   - [x] same title as "Rock Live Mine" with different capitalization Evading always leaves the mine on the hull, defusing pays medium scrap or cuts a wire for medium scrap or 6 hull and a lost crewmember, a missile deals 4 hull and 1 system damage without spending a missile, a Beam Drone spends one drone part for low scrap, and level 5 engines outrun it.

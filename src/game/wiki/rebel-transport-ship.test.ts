@@ -25,6 +25,7 @@ describe("Rebel transport ship", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-transport-ship:0");
+    assert.ok(g.log.includes("You prepare to secure their cargo by force."));
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "rebel-transport-ship");
     assert.equal(g.enemy?.pirate, false);

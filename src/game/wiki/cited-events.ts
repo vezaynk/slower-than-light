@@ -4682,6 +4682,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     g.event = null;
     return true;
   }
+  // Rebel transport ship. "Demand the surrender of their goods." One printed lead-in, then the running Rebel fight.
+  if (id === "c:rebel-transport-ship:0") ctx.note("You prepare to secure their cargo by force.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

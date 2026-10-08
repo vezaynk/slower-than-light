@@ -1143,6 +1143,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     );
     allMantisCrew(g);
   },
+  // Zoltan ship follows Mantis ship. "Don't interfere." One printed result.
+  "c:zoltan-ship-follows-mantis-ship:2": (g) => {
+    result(g, "The Zoltan know their business better than most - best to leave them to it. You prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

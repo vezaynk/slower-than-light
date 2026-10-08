@@ -1,7 +1,7 @@
-import { WEAPONS, upgradeCost } from "../content.ts";
+import { WEAPONS, XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
-import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
+import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
 import {
   NEVER_RUN,
@@ -753,6 +753,32 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:fire-on-research-station:4", label: "Send your repair drone into the fire.", fx: [{ k: "note", text: "High scrap. The schematic is unnamed." }] },
     ],
   },
+  // STRANDED_BEACON. Go down: a survivor, or a man in a cave. No odds. INFERRED: equal.
+  // Invite: Charlie with 1 skill in one of the six stations. No odds. INFERRED: equal. The page names Charlie and not a race.
+  // Take him home is Template:ReturnSurvivor: high scrap, medium scrap, or 10 repairs. No odds. INFERRED: equal.
+  // Bring him back: a crewmember, Charlie, 5 hull and 1 system damage, or he collapses. No odds. INFERRED: equal.
+  // A level 2 medbay, a level 3 medbay, and a living Slug are blue options. The Slug's crewmember is not named.
+  {
+    dest: "Single life form on moon",
+    slug: "single-life-form-on-moon",
+    flag: "cited:single-life-form-on-moon",
+    aliases: ["Single life form on moon"],
+    sectors: [
+      "Abandoned Sector",
+      "Civilian Sector",
+      "Pirate Controlled Sector",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "It appears the distress beacon is coming from the surface of a nearby moon. Your sensors are picking up a single life form.",
+    choices: [
+      { id: "c:single-life-form-on-moon:0", label: "Go down to the surface to investigate.", fx: [{ k: "note", text: "Charlie, a crewmember, 5 hull, or scrap and repairs." }] },
+      { id: "c:single-life-form-on-moon:1", label: "Ignore the signal.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -1323,6 +1349,49 @@ function fireCard(g: Game, page: Page): GameEvent {
   return { title: page.dest, body: page.body, choices };
 }
 
+/** "1 skill" is skill rank 1. The stored amount is the printed experience for that rank. */
+const MOON_SKILLS = ["weapons", "shields", "pilot", "engines", "combat", "repair"] as const;
+
+function moonRank(name: SkillName): Crew["skills"] {
+  return { [name]: XP_NEED[name] };
+}
+
+function moonRanks(): Crew["skills"] {
+  const skills: Crew["skills"] = {};
+  for (const name of MOON_SKILLS) skills[name] = XP_NEED[name];
+  return skills;
+}
+
+function charlieJoins(g: Game, skills?: Crew["skills"]): string {
+  // The page names Charlie and not a race. An unnamed race is that sector's crew list.
+  return joinCrew(g, randomRace(g), "Charlie", skills) ? "Charlie joins you." : "There is no room aboard for Charlie.";
+}
+
+function clonebayLevel(g: Game): number {
+  return g.player.kits.cradle?.level ?? 0;
+}
+
+/** The cave. Blue options stay off until the ship meets the printed level. */
+function moonCave(g: Game) {
+  const choices = [
+    { id: "s:moon:bring", label: "Bring him back to your ship in hopes of finding some help for him." },
+    { id: "s:moon:leave", label: "Leave the madman to his ravings, he's not worth the risk." },
+  ];
+  // Template:Blue Option, "Requires level 2" and "Requires level 3". A higher medbay still meets the lower line.
+  const med = medbayLevel(g);
+  if (med >= 2) choices.push({ id: "s:moon:medbay2", label: "(Improved Medbay) Bring him to your medbay." });
+  if (med >= 3) choices.push({ id: "s:moon:medbay3", label: "(Advanced Medbay) Bring him to your medbay." });
+  if (livingKin(g, "gel")) choices.push({ id: "s:moon:slug", label: "Sir, allow me to assess his mental state." });
+  card(g, "You find a man living alone in a cave. From the appearance of his wrecked ship, it seems he's been here for many years. He looks healthy, but his mental state is questionable.", choices);
+}
+
+function moonCollapse(g: Game) {
+  const choices = [{ id: "s:moon:collapse-continue", label: "Continue..." }];
+  if (medbayLevel(g) >= 2) choices.push({ id: "s:moon:collapse-medbay", label: "(Improved Medbay) Quickly bring him to the medbay." });
+  if (clonebayLevel(g) >= 2) choices.push({ id: "s:moon:collapse-clone", label: "(Improved Clonebay) Quickly register him into the clonebay." });
+  card(g, "It seems he was in worse health than we first thought. He collapses on the trip up to the ship. It doesn't look like he's going to make it...", choices);
+}
+
 function diseaseCure(g: Game) {
   const choices = [{ id: "s:unknown-disease:continue", label: "Continue..." }];
   if (g.augments.includes("medbot")) {
@@ -1839,6 +1908,22 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "You send the repair drone in and it methodically puts out the fires. Once it has made some progress, the rest of your crew helps to secure the station. They offer you their sincere gratitude; the station would have surely been destroyed without your assistance. They transfer a small reward and an additional drone schematic.", scrapOnly(g, "high"));
   },
 
+  // Single life form on moon. Two scenes, no odds. INFERRED: equal.
+  "c:single-life-form-on-moon:0": (g) => {
+    const scene = weighted(g, [["colony", 1], ["cave", 1]] as const);
+    if (scene === "colony") {
+      card(g, "You find a colony that seems to have been recently attacked. Exploring the devastation, you find a lone survivor.", [
+        { id: "s:moon:invite", label: "Invite him to join your crew." },
+        { id: "s:moon:home", label: "Take him home to his family on a nearby planet in this system." },
+      ]);
+      return;
+    }
+    moonCave(g);
+  },
+  "c:single-life-form-on-moon:1": (g) => {
+    show(g, "Nothing happens.");
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1981,12 +2066,105 @@ function chooseRolled(g: Game, id: string): boolean {
     show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"));
     return true;
   }
+  if (id.startsWith("s:moon:")) return moonChoice(g, id);
+  return false;
+}
+
+const CHARLIE_POST: Record<(typeof MOON_SKILLS)[number], string> = {
+  weapons: "He states that he was a weapons operator before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+  shields: "He states that he was a shield operator before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+  pilot: "He states that he was a pilot before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+  engines: "He states that he was an engineer before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+  combat: "He states that he was an infantryman before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+  repair: "He states that he was a shipwright before being stranded. He happily offers his services for a time in exchange for \"getting off that rock\".",
+};
+
+/** Follow-ups on Single life form on moon. Each list has no odds. INFERRED: equal. */
+function moonChoice(g: Game, id: string): boolean {
+  if (id === "s:moon:invite") {
+    const skill = MOON_SKILLS[Math.min(MOON_SKILLS.length - 1, Math.floor(rand(g) * MOON_SKILLS.length))];
+    show(g, CHARLIE_POST[skill], undefined, [charlieJoins(g, moonRank(skill))]);
+    return true;
+  }
+  if (id === "s:moon:home") {
+    // Template:ReturnSurvivor, this page's three rewards.
+    const r = weighted(g, [["high", 1], ["medium", 1], ["hull", 1]] as const);
+    if (r === "high") {
+      show(g, "The family apparently owns one of the most valuable mining enterprises in the sector. For the safe return of his son, the patron of the family offers you a substantial reward.", scrapOnly(g, "high"));
+      return true;
+    }
+    if (r === "medium") {
+      show(g, "The survivor's family is of modest means, yet they manage to offer you a reward for your virtuous deed.", scrapOnly(g, "medium"));
+      return true;
+    }
+    const before = g.player.hull;
+    g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
+    const got = g.player.hull - before;
+    show(g, "Overjoyed with the return of their son, the family of the survivor arranges to repair your ship's hull as compensation.", undefined, [`Your ship receives ${got} repairs.`]);
+    return true;
+  }
+  if (id === "s:moon:bring") {
+    const r = weighted(g, [["lose", 1], ["charlie", 1], ["blast", 1], ["collapse", 1]] as const);
+    if (r === "lose") {
+      const note = loseCrew(g);
+      show(g, "Once back in orbit, the man turns increasingly violent. Eventually he turns on your crew and manages to kill one before you can subdue him.", undefined, note ? [note] : []);
+      return true;
+    }
+    if (r === "charlie") {
+      show(g, "He seems to improve immensely upon getting back to the ship. It might take a while for him to truly be well again, but until them he seems happy to serve as a member of your crew.", undefined, [charlieJoins(g)]);
+      return true;
+    }
+    if (r === "blast") {
+      if (hurt(g, 5)) return true;
+      show(g, "Being back in space terrifies him. He goes mad and nearly blows a hole in the side of your ship with a makeshift explosive in an attempt to \"escape this metal prison.\" He dies in the explosion.", undefined, ["Hull damage: 5.", hurtRandomSystem(g)]);
+      return true;
+    }
+    moonCollapse(g);
+    return true;
+  }
+  if (id === "s:moon:leave") {
+    show(g, "Nothing happens.");
+    return true;
+  }
+  if (id === "s:moon:medbay2" || id === "s:moon:collapse-medbay") {
+    if (medbayLevel(g) < 2) return true;
+    const text = id === "s:moon:medbay2"
+      ? "Once inside your medbay, the system is able to restore his body and undo some of the damage to his brain. Once awake he states, \"I feel almost like my old self again... Thank you. Please let me serve on your ship.\""
+      : "Your improved medbay was able to resuscitate him. After a short time he recovers greatly saying, \"I really thought I was a goner... I haven't eaten for days. Would you mind if I stayed on your ship?\"";
+    show(g, text, undefined, [charlieJoins(g)]);
+    return true;
+  }
+  if (id === "s:moon:medbay3") {
+    if (medbayLevel(g) < 3) return true;
+    show(g, "Once inside your advanced medbay, the system is able to identify and minimize the trauma associated with being alone for so long. Once awake he states, \"I don't know how to repay you, I feel 10 years younger... Let me serve on your ship.\"", undefined, [charlieJoins(g, moonRanks())]);
+    return true;
+  }
+  if (id === "s:moon:collapse-clone") {
+    if (clonebayLevel(g) < 2) return true;
+    show(g, "Your quick reaction allowed your Clonebay to revive him after he passes. After he steps out of the machine he states, \"How am I alive? Wasn't I just dying on some shuttle? Technology sure has changed.\"", undefined, [charlieJoins(g)]);
+    return true;
+  }
+  if (id === "s:moon:collapse-continue") {
+    show(g, "Nothing happens.");
+    return true;
+  }
+  if (id === "s:moon:slug") {
+    if (!livingKin(g, "gel")) return true;
+    const r = weighted(g, [["stay", 1], ["leave", 1]] as const);
+    if (r === "stay") {
+      // The crewmember is not named. That grant stays unwired.
+      show(g, "You bring the ship closer and the Slug, after a pause, says that the person is stable and with good intentions. You offer a position in your crew and it is graciously accepted.");
+      return true;
+    }
+    show(g, "You bring the ship closer. The Slug enters a trance-like state for 1 to 2 seconds, then quickly snaps out of it. He states, \"This person is clearly unstable. It is best we leave them alone.\"");
+    return true;
+  }
   return false;
 }
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -2030,6 +2208,11 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Fire on research station blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
   if (id === "c:fire-on-research-station:3" && !livingKin(g, "stone")) return "Needs a Rock crewmember";
   if (id === "c:fire-on-research-station:4" && !ownsDrone(g, "patch")) return "Needs a Repair Drone";
+  // Single life form on moon blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if ((id === "s:moon:medbay2" || id === "s:moon:collapse-medbay") && medbayLevel(g) < 2) return "Needs a level 2 Medbay";
+  if (id === "s:moon:medbay3" && medbayLevel(g) < 3) return "Needs a level 3 Medbay";
+  if (id === "s:moon:collapse-clone" && clonebayLevel(g) < 2) return "Needs a level 2 Clone Bay";
+  if (id === "s:moon:slug" && !livingKin(g, "gel")) return "Needs a Slug crewmember";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

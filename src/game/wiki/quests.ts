@@ -1632,6 +1632,17 @@ export const PAGE_WINS: Record<string, Win> = {
       { id: "q:lanius-civilian:contact", label: "Attempt to contact the civilian ship." },
     ]);
   },
+  // Pirate ship attacking civilian. Destroyed pays medium standard. A crew kill pays high.
+  // Then Contact the civilian ship. Template:Save the Civilian Ship is the same card.
+  // Stay out of it is the nothing choice.
+  "pirate-ship-attacking-civilian": (g, deadCrew) => {
+    const text = deadCrew
+      ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."
+      : "The pirate ship breaks apart. You hasten to contact the civilian ship.";
+    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
+      { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
+    ]);
+  },
   // Auto-ship attacking outpost. Destroyed pays low standard, then the outpost pays medium standard.
   // The page prints no crew-kill reward. Avoid the conflict is the nothing choice.
   "auto-ship-attacking-outpost": (g, deadCrew) => {

@@ -5092,6 +5092,11 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     plasmaHumanBoarders(g);
     return true;
   }
+  // Pirate toll. "Pay their toll." One printed result. The 15-25 scrap is already spent above. No fight.
+  if (id === "c:pirate-toll:0") {
+    citedResult(g, "\"You made the right decision, friend.\"", ["You avoid the fight."]);
+    return true;
+  }
   ctx.resolve();
   return true;
 }

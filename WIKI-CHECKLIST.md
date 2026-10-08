@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2796 |
+| Behaviors checked | 2797 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -617,6 +617,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Boarders: Mantis
   - [x] Two to four mantis boarders beam aboard your ship from Boarders: Mantis, with no enemy ship.
   - [x] At Boarders: Mantis, one of the three printed intros is shown.
+  - [x] The red line beams 2-4 mantis boarders aboard on arrival, and it is not a button.
 
 - [x] Boarders: Rockmen near sun
   - [x] Two or three rock boarders beam aboard your ship from Boarders: Rockmen near sun, with no enemy ship, and the red giant arms the flare clock.

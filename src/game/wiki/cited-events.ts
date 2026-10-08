@@ -3928,6 +3928,15 @@ const REBEL_FIGHT_INTROS = [
   "A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more.",
 ];
 
+// Rebel ship attacking civilians in Last Stand. Five printed intros, no odds. INFERRED: equal. Both choices stay.
+const LAST_STAND_CIVILIAN_INTROS = [
+  "A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!",
+  "Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?",
+  "There seems to be a small Federation colony under attack by a Rebel forward scout. Will you protect them?",
+  "A battle rages nearby between small fighters; apparently fighting over a space station. The Federation appears to be losing ships fast. Shall we assist them?",
+  "A civilian ship is broadcasting a request for assistance on a secure Federation channel. They are being harassed by Rebel scouts. Will you respond?",
+];
+
 const REBEL_CHECKPOINT_HIDE = [
   "Fly behind a moon and stay hidden.",
   "Shut down all non-vital systems and stay hidden.",
@@ -4472,6 +4481,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:lanius-trader-with-translator:3", label: "Decline" },
         { id: "c:lanius-trader-with-translator:4", label: "Decline but ask about their translation device." },
       ],
+    };
+  }
+  // Rebel ship attacking civilians in Last Stand. One of the five printed intros. Both choices stay.
+  if (ev.slug === "rebel-ship-attacking-civilians-in-last-stand") {
+    return {
+      title: ev.dest,
+      body: LAST_STAND_CIVILIAN_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   return {

@@ -151,8 +151,9 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     assert.equal(helper.skills?.repair ?? 0, 0);
   });
 
-  it("gives the point to each crew still in the room", () => {
-    // INFERRED: the page names one finisher. Both stay, so both receive it.
+  it("gives the point to one crewmember when a helper stays", () => {
+    // Crew skills: helpers are ordered to leave, and one dedicated crewmember finishes the bar.
+    // INFERRED: the first crew still in the room is that finisher.
     const g = createGame(22);
     const { worker, roomId, sys } = lone(g);
     quiet(g);
@@ -173,7 +174,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     step(g, 0.05);
     assert.equal(s.damage, 0);
     assert.equal(worker.skills?.repair ?? 0, 1);
-    assert.equal(helper.skills?.repair ?? 0, 1);
+    assert.equal(helper.skills?.repair ?? 0, 0);
   });
 
   it("sealing a breach trains nothing", () => {

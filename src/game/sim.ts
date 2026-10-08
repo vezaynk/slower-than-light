@@ -3192,9 +3192,9 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         if (ship === g.enemy) kit.power = kit.level - kit.damage;
         // Crew skills, Repair skill: "one point of experience for completing the repairs of one system or
         // subsystem level", "granted to the crew who performs the finishing repair animation." A partial bar grants none.
-        // INFERRED: each crew still in the room on that tick receives the point. The page names one finisher and
-        // tells helpers to leave, and it does not say the others get nothing if they stay.
-        for (const c of pals) bumpXp(g, c, "repair", 1);
+        // Helpers "are ordered to leave the room", so one crewmember receives the point.
+        // INFERRED: that crewmember is the first one still in the room. The page does not name who, when several stay.
+        if (pals[0]) bumpXp(g, pals[0], "repair", 1);
         log(g, `${r.title} repaired.`);
       }
     } else if (pals.length && r.system && (gun ?? ship.systems[r.system]).damage > 0 && r.o2 > 5) {
@@ -3206,8 +3206,8 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       if (sys.fix >= REPAIR_SECONDS) {
         sys.damage = Math.max(0, sys.damage - 1);
         sys.fix = 0;
-        // Same one point as a kit bar, including a subsystem (pilot, sensors, doors) on this room.
-        for (const c of pals) bumpXp(g, c, "repair", 1);
+        // Same one finisher as a kit bar, including a subsystem (pilot, sensors, doors) on this room.
+        if (pals[0]) bumpXp(g, pals[0], "repair", 1);
         log(g, `${r.title} repaired.`);
         sfx(g, "click");
       }

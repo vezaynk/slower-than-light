@@ -694,6 +694,33 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:crushed-pirate:3", label: "Have your drone cut the ship out.", fx: [{ k: "note", text: "Medium scrap with resources." }] },
     ],
   },
+  // DISTRESS_STATION_DISEASE. Send the crew: lose a crewmember and medium resources, or nothing. No odds. INFERRED: equal.
+  // Clone Bay has no effect. Ignore: nothing. A living Rock or Engi pays medium resources with some scrap.
+  // Medbay level 2 or more opens the cure. Continue pays that same reward. Engi Med-bot Dispersal pays high scrap.
+  // The weapon on that result is not named, so it is not granted.
+  {
+    dest: "Unknown disease on mining colony",
+    slug: "unknown-disease-on-mining-colony",
+    flag: "cited:unknown-disease-on-mining-colony",
+    aliases: ["Unknown disease on mining colony"],
+    sectors: [
+      "Civilian Sector",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+    ],
+    body: "You locate a nearby human mining colony where an unknown disease has spread virulently. They are setting up a quarantine to contain it but a riot has broken out.",
+    choices: [
+      { id: "c:unknown-disease-on-mining-colony:0", label: "Send in your crew to help control the crowds.", fx: [{ k: "note", text: "A crewmember and medium resources, or nothing." }] },
+      { id: "c:unknown-disease-on-mining-colony:1", label: "Ignore their request and move on.", fx: [{ k: "nothing" }] },
+      { id: "c:unknown-disease-on-mining-colony:2", label: "Send your Rock crew-member to prevent a riot.", fx: [{ k: "note", text: "Medium resources with some scrap." }] },
+      { id: "c:unknown-disease-on-mining-colony:3", label: "Send your Engi to calm down the infected.", fx: [{ k: "note", text: "Medium resources with some scrap." }] },
+      { id: "c:unknown-disease-on-mining-colony:4", label: "Use your medbay to help synthesize a cure.", fx: [{ k: "note", text: "Medium resources, or high scrap." }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -852,6 +879,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
   if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
   if (page.slug === "crushed-pirate") return pirateCard(g, page);
+  if (page.slug === "unknown-disease-on-mining-colony") return diseaseCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1063,6 +1091,15 @@ function ownsCuttingBeam(g: Game): boolean {
   });
 }
 
+function livingKin(g: Game, kin: string): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === kin);
+}
+
+/** Adv. Medbay, level=2+. INFERRED: the installed level, the same reading as Improved Sensors. */
+function medbayLevel(g: Game): number {
+  return g.player.systems.medbay?.level ?? 0;
+}
+
 /** A beam drone, not an Anti-Ship Fire Drone. The fitted schematic is kit.target, and a loadout entry counts. */
 function ownsBeamDrone(g: Game): boolean {
   const kit = g.player.kits.swarm;
@@ -1226,6 +1263,27 @@ function pirateCard(g: Game, page: Page): GameEvent {
     })
     .map((c) => ({ id: c.id, label: c.label }));
   return { title: page.dest, body: page.body, choices };
+}
+
+/** Rock, Engi, and a level-2 medbay stay off the card until the ship has them. */
+function diseaseCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices
+    .filter((c) => {
+      if (c.id === "c:unknown-disease-on-mining-colony:2") return livingKin(g, "stone");
+      if (c.id === "c:unknown-disease-on-mining-colony:3") return livingKin(g, "shell");
+      if (c.id === "c:unknown-disease-on-mining-colony:4") return medbayLevel(g) >= 2;
+      return true;
+    })
+    .map((c) => ({ id: c.id, label: c.label }));
+  return { title: page.dest, body: page.body, choices };
+}
+
+function diseaseCure(g: Game) {
+  const choices = [{ id: "s:unknown-disease:continue", label: "Continue..." }];
+  if (g.augments.includes("medbot")) {
+    choices.push({ id: "s:unknown-disease:medbot", label: "Use the Nano med-bots to accelerate the dispersal of the cure." });
+  }
+  card(g, "Your military-grade medical computers are easily able to isolate the cause of the virus, a previously unknown spore that was unearthed during excavations. You are quickly able to inform the colony's leaders of your success in reverse engineering a cure.", choices);
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
@@ -1671,6 +1729,35 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     payDronePart(g, rollStandard(g, "medium"), "You program the drone to work carefully around the trapped ship. In a short time it allows the ship to easily slip out of its cage. They thank you and offer some of the resources they have collected.", hull, lines);
   },
 
+  // Unknown disease. Two crew results, no odds. INFERRED: equal. Clone Bay does not revive them.
+  "c:unknown-disease-on-mining-colony:0": (g) => {
+    const r = weighted(g, [["lose", 1], ["nothing", 1]] as const);
+    if (r === "nothing") {
+      show(g, "Your crew tries to keep the crowds in line but the scene quickly turns ugly. Half-crazed with fear, the infected grab mining tools and push back at your crew, forcing them to retreat hastily. They barely get away without injury but the same can't be said for the colony's leaders. You quickly leave.");
+      return;
+    }
+    const extras: string[] = [];
+    const note = loseCrew(g, true);
+    if (note) extras.push(note);
+    if (g.player.kits.cradle) extras.push("As your crewman is still alive and working towards a cure, it would be against Federation regulation to create a clone to continue with you on your journey.");
+    show(g, "With the visible threat of your weapons, the infected become subdued enough for you to set up a rudimentary quarantine. However before you leave, one of your crew presents signs of infection. You have no choice but to leave them on the station in the hopes that they discover a cure quickly. You leave before more crew succumb.", rollSurrenderOffer(g, "medium", true), extras);
+  },
+  "c:unknown-disease-on-mining-colony:1": (g) => {
+    show(g, "Unfortunately your mission is too important and you're not willing to risk your crew. You prepare to move on.");
+  },
+  "c:unknown-disease-on-mining-colony:2": (g) => {
+    if (!livingKin(g, "stone")) return;
+    show(g, "It's unlikely the Rock's impressive immune system is susceptible to a human virus so you send it in. It is able to intimidate the workers long enough for the colony forces to set up a quarantine. Their leaders offer a reward and assure you they will try to find a cure as soon as possible.", rollSurrenderOffer(g, "medium", true));
+  },
+  "c:unknown-disease-on-mining-colony:3": (g) => {
+    if (!livingKin(g, "shell")) return;
+    show(g, "With no fear of catching the disease, your Engi crewmember helps reassure and organize the infected humans. Calmed by its extensive knowledge of human physiology, the infected submit to the quarantine in the hopes that a cure can be found soon. The colony leaders offer a reward for helping to prevent an ugly incident.", rollSurrenderOffer(g, "medium", true));
+  },
+  "c:unknown-disease-on-mining-colony:4": (g) => {
+    if (medbayLevel(g) < 2) return;
+    diseaseCure(g);
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1803,12 +1890,22 @@ function chooseRolled(g: Game, id: string): boolean {
     show(g, "They see reason and accept the offer. The station scientists have a unique talent for life support units and offer to upgrade your oxygen system as an apology for their behaviour.", undefined, [`Scrap: -${n}.`, upgradeOxygen(g)]);
     return true;
   }
+  if (id === "s:unknown-disease:continue") {
+    show(g, "\"Thank you so much! We don't have the funds to hire outside help and it would have taken our staff weeks to figure that out. Here, take this as payment!\"", rollSurrenderOffer(g, "medium", true));
+    return true;
+  }
+  if (id === "s:unknown-disease:medbot") {
+    if (!g.augments.includes("medbot")) return true;
+    // The weapon is unnamed. That grant stays unwired. High scrap is printed.
+    show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"));
+    return true;
+  }
   return false;
 }
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -1844,6 +1941,11 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Crushed pirate blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
   if (id === "c:crushed-pirate:2" && !ownsCuttingBeam(g)) return "Needs a beam weapon";
   if (id === "c:crushed-pirate:3" && !ownsBeamDrone(g)) return "Needs a beam drone";
+  // Unknown disease blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:unknown-disease-on-mining-colony:2" && !livingKin(g, "stone")) return "Needs a Rock crewmember";
+  if (id === "c:unknown-disease-on-mining-colony:3" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
+  if (id === "c:unknown-disease-on-mining-colony:4" && medbayLevel(g) < 2) return "Needs a level 2 Medbay";
+  if (id === "s:unknown-disease:medbot" && !g.augments.includes("medbot")) return "Needs Engi Med-bot Dispersal";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

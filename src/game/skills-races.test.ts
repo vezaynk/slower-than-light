@@ -1041,6 +1041,7 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
   it("counts a seven-shot flak burst as one fire", () => {
     const { g, crew, room, away } = gunner(42);
     armFlak(g, 1);
+    g.player.kits.flak!.power = 1;
     g.player.kits.flak!.aux = 49.9;
     const before = g.shots.length;
     tickFlak(g, 0.2);

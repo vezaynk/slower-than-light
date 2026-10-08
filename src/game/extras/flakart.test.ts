@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, createGame, evasionPercent, rand, startCombat } from "../sim.ts";
+import { applyImpact, createGame, evasionPercent, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { ACQUIRE_S, deploy, enemyDefenseIntercept, shotHitsDrone, swarmIntercept, tickSwarm } from "./swarm.ts";
 import {
@@ -17,6 +17,8 @@ import {
   chargeFlakSeconds,
   flakAimRolls,
   flakLanding,
+  lowerFlakPower,
+  raiseFlakPower,
   tickFlak,
   type FlakAimRoom,
 } from "./flakart.ts";
@@ -27,6 +29,14 @@ function fight(seed: number): Game {
   assert.ok(g.enemy);
   assert.ok(g.enemy.rooms.length >= 2);
   return g;
+}
+
+/** A fully powered kit. Charge time then matches the installed level: 50/40/30/20. */
+function armFed(g: Game, level: 1 | 2 | 3 | 4): void {
+  armFlak(g, level);
+  const kit = g.player.kits.flak;
+  assert.ok(kit);
+  kit.power = level;
 }
 
 function realOf(shots: readonly Shot[]): Shot[] {
@@ -94,7 +104,7 @@ describe("flak burst", () => {
     const g = fight(2);
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
-    armFlak(g, 1);
+    armFed(g, 1);
     tickFlak(g, 49);
     assert.equal(g.shots.length, 0);
     tickFlak(g, 1);
@@ -107,7 +117,7 @@ describe("flak burst", () => {
   it("uses the shorter clocks at higher levels", () => {
     for (const level of [2, 3, 4] as const) {
       const g = fight(level + 10);
-      armFlak(g, level);
+      armFed(g, level);
       const seconds = chargeFlakSeconds(level);
       tickFlak(g, seconds - 1);
       assert.equal(g.shots.length, 0);
@@ -118,7 +128,7 @@ describe("flak burst", () => {
 
   it("accumulates partial ticks and fires once", () => {
     const g = fight(5);
-    armFlak(g, 4);
+    armFed(g, 4);
     tickFlak(g, 10);
     tickFlak(g, 10);
     assert.equal(g.shots.length, 14);
@@ -138,7 +148,7 @@ describe("flak burst", () => {
     tickFlak(g, 50);
     assert.equal(g.shots.length, 0);
 
-    armFlak(g, 1);
+    armFed(g, 1);
     tickFlak(g, 25);
     g.paused = true;
     tickFlak(g, 100);
@@ -155,7 +165,7 @@ describe("flak burst", () => {
     assert.ok(g.enemy);
     const rooms = g.enemy.rooms;
     g.enemy.rooms = [];
-    armFlak(g, 1);
+    armFed(g, 1);
     tickFlak(g, 50);
     assert.equal(g.shots.length, 0);
     g.enemy.rooms = rooms;
@@ -166,8 +176,8 @@ describe("flak burst", () => {
   it("keeps two fights on separate clocks", () => {
     const a = fight(9);
     const b = fight(10);
-    armFlak(a, 4);
-    armFlak(b, 1);
+    armFed(a, 4);
+    armFed(b, 1);
     tickFlak(a, 20);
     tickFlak(b, 20);
     assert.equal(a.shots.length, 14);
@@ -186,7 +196,7 @@ describe("flak burst", () => {
     g.enemy.shieldNow = 8;
     const hull = g.enemy.hull;
     if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
-    armFlak(g, 1);
+    armFed(g, 1);
     g.player.kits.flak!.aux = 50;
     tickFlak(g, 0.01);
     expectBurst(g.shots);
@@ -221,7 +231,7 @@ describe("flak burst", () => {
     tickSwarm(g, 0.05);
     tickSwarm(g, ACQUIRE_S);
     if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
-    armFlak(g, 1);
+    armFed(g, 1);
     g.player.kits.flak!.aux = 50;
     tickFlak(g, 0.01);
     const fake = fakeOf(g.shots)[0];
@@ -264,7 +274,7 @@ describe("flak burst", () => {
       g.enemy.parts = 3;
       tickSwarm(g, 0.05);
       if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
-      armFlak(g, 1);
+      armFed(g, 1);
       g.player.kits.flak!.aux = 50;
       tickFlak(g, 0.01);
       const fake = fakeOf(g.shots)[0];
@@ -272,6 +282,109 @@ describe("flak burst", () => {
       if (shotHitsDrone(g, fake)) hits += 1;
     }
     assert.equal(hits, 1);
+  });
+
+  it("charges a level 4 kit with one bar on the 50 second clock", () => {
+    const g = fight(21);
+    armFlak(g, 4);
+    const kit = g.player.kits.flak;
+    assert.ok(kit);
+    kit.power = 1;
+    // A Zoltan stamp is not a reactor bar. One filled bar is still the 50s clock.
+    kit.zoltan = 1;
+    tickFlak(g, 20);
+    assert.equal(g.shots.length, 0);
+    assert.equal(kit.aux, 20);
+    tickFlak(g, 29);
+    assert.equal(g.shots.length, 0);
+    assert.equal(kit.aux, 49);
+    tickFlak(g, 1);
+    expectBurst(g.shots);
+  });
+
+  it("stops adding bars at the cap and removes one bar", () => {
+    const g = createGame(22);
+    armFlak(g, 2);
+    const kit = g.player.kits.flak;
+    assert.ok(kit);
+    const missing = 2 - sparePower(g.player);
+    if (missing > 0) g.player.reactor += missing;
+    raiseFlakPower(g);
+    raiseFlakPower(g);
+    assert.equal(kit.power, 2);
+    assert.equal(kit.on, true);
+    const spare = sparePower(g.player);
+    raiseFlakPower(g);
+    assert.equal(kit.power, 2);
+    assert.equal(sparePower(g.player), spare);
+    lowerFlakPower(g);
+    assert.equal(kit.power, 1);
+    lowerFlakPower(g);
+    assert.equal(kit.power, 0);
+    assert.equal(kit.on, false);
+
+    kit.level = 3;
+    kit.damage = 1;
+    const need = 2 - sparePower(g.player);
+    if (need > 0) g.player.reactor += need;
+    raiseFlakPower(g);
+    raiseFlakPower(g);
+    raiseFlakPower(g);
+    assert.equal(kit.power, 2);
+    g.player.reactor -= sparePower(g.player);
+    assert.ok(sparePower(g.player) < 1);
+    raiseFlakPower(g);
+    assert.equal(kit.power, 2);
+  });
+
+  it("drains a full bar in 2 seconds when off, unpowered, or destroyed", () => {
+    // Flak Artillery, Overview: "Powering off drains charge quickly."
+    // INFERRED: a full bar of the installed level empties in 2 seconds. The page prints no duration.
+    const emptied = (seed: number, level: 1 | 4, full: number, setup: (kit: NonNullable<Game["player"]["kits"]["flak"]>) => void) => {
+      const g = fight(seed);
+      armFlak(g, level);
+      const kit = g.player.kits.flak;
+      assert.ok(kit);
+      kit.aux = full;
+      setup(kit);
+      tickFlak(g, 1);
+      assert.equal(kit.aux, full / 2);
+      assert.equal(g.shots.length, 0);
+      tickFlak(g, 1);
+      assert.equal(kit.aux, 0);
+      assert.equal(g.shots.length, 0);
+    };
+    emptied(30, 1, 50, (kit) => {
+      kit.power = 0;
+      kit.on = true;
+    });
+    emptied(31, 4, 20, (kit) => {
+      kit.power = 4;
+      kit.on = false;
+    });
+    emptied(32, 4, 20, (kit) => {
+      kit.power = 4;
+      kit.on = true;
+      kit.damage = 4;
+    });
+
+    const paused = fight(33);
+    armFlak(paused, 4);
+    const held = paused.player.kits.flak;
+    assert.ok(held);
+    held.power = 0;
+    held.aux = 20;
+    paused.paused = true;
+    tickFlak(paused, 2);
+    assert.equal(held.aux, 20);
+
+    const idle = createGame(34);
+    armFlak(idle, 1);
+    const parked = idle.player.kits.flak;
+    assert.ok(parked);
+    parked.aux = 50;
+    tickFlak(idle, 2);
+    assert.equal(parked.aux, 50);
   });
 });
 
@@ -344,7 +457,7 @@ describe("flak room odds", () => {
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [{ ...base, id: "n", x: 1, y: 0, w: 1, h: 2, omit: undefined }];
     if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
-    armFlak(g, 1);
+    armFed(g, 1);
     g.player.kits.flak!.aux = 50;
     g.seed = 4;
     const preview = createGame(0);
@@ -376,7 +489,7 @@ describe("flak room odds", () => {
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [{ ...base, id: "b", x: 0, y: 0, w: 2, h: 2, omit: undefined }];
     if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
-    armFlak(g, 1);
+    armFed(g, 1);
     g.player.kits.flak!.aux = 50;
     g.seed = 4;
     tickFlak(g, 0.01);

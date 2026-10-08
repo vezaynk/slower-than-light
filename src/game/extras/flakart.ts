@@ -1,4 +1,4 @@
-import { noteWeaponManning, rand } from "../sim.ts";
+import { noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
@@ -73,9 +73,9 @@ export const DAMAGE = 1;
 
 /**
  * Wiki page "Flak (Weapons)", section "Flak weapons table": Power 1-4*.
- * Wiki page "Systems", section "Main systems": "More power means faster cooldown."
- * INFERRED: bars accepted equal the level, and that level's System Upgrades
- * charge time is the cooldown. Reactor bars are not taken off the hull.
+ * Template:Flak weapons, Flak Artillery: "Artillery system with a maximum of 4 system levels".
+ * Charge tooltip: charge time depends on the filled power level, 50/40/30/20.
+ * A Zoltan stamp is not a bar. Max bars are the level, minus damage.
  */
 export const POWER_BARS: Record<FlakLevel, number> = {
   1: 1,
@@ -104,18 +104,60 @@ export function armFlak(g: Game, level: FlakLevel): void {
   seatKits(g.player); // Kit room (layouts.ts): a fitted system takes its hull's room.
 }
 
+/** Filled bars cannot pass min(4, level) minus damage. A Zoltan stamp is not part of this cap. */
+function powerCap(kit: { level: number; damage?: number }): number {
+  const level = Math.max(0, Math.min(4, kit.level));
+  return Math.max(0, level - (kit.damage ?? 0));
+}
+
+function asFlakLevel(level: number): FlakLevel {
+  if (level >= 4) return 4;
+  if (level >= 3) return 3;
+  if (level >= 2) return 2;
+  return 1;
+}
+
+/** Reactor bars only, capped by level minus damage. Flak Artillery does not read Zoltan bars. */
+function fedBars(kit: Kit): number {
+  return Math.max(0, Math.min(kit.power, powerCap(kit)));
+}
+
+/**
+ * One reactor bar at a time, up to powerCap, and only when a spare reactor bar is free.
+ * Template:Flak weapons, Flak Artillery: power 1-4*, maximum of 4 system levels.
+ */
+export function raiseFlakPower(g: Game): void {
+  const kit = g.player.kits.flak;
+  if (!kit || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  kit.power += 1;
+  kit.on = true;
+}
+
+export function lowerFlakPower(g: Game): void {
+  const kit = g.player.kits.flak;
+  if (!kit || kit.power <= 0) return;
+  kit.power -= 1;
+  kit.on = kit.power > 0;
+}
+
 function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): void {
   const kit = ship.kits.flak;
-  if (!kit || !kit.on) return;
+  if (!kit) return;
   const other = from === "player" ? g.enemy : g.player;
-  const seconds = chargeFlakSeconds(kit.level as FlakLevel);
+  // Installed level's charge time. The power-off drain uses this, not the filled bars.
+  const seconds = chargeFlakSeconds(asFlakLevel(kit.level));
+  const fed = fedBars(kit);
   // Systems, "Damaged and destroyed systems": "A system with all its levels damaged is considered destroyed, i.e.
-  // completely unfunctional". Flak Artillery, Overview: "Powering off drains charge quickly". INFERRED: a destroyed
-  // flak drains like a powered-off one, a full charge in 2 seconds (as lance.ts).
-  if ((kit.damage ?? 0) >= kit.level) {
+  // completely unfunctional". Flak Artillery, Overview: "Powering off drains charge quickly".
+  // INFERRED: zero reactor bars, kit.on === false, or a destroyed flak drains the same way: a full bar of the
+  // installed level empties in 2 seconds.
+  if (!kit.on || fed < 1 || (kit.damage ?? 0) >= kit.level) {
     kit.aux = Math.max(0, kit.aux - (dt * seconds) / 2);
     return;
   }
+  // Template:Flak weapons, Flak Artillery: charge time depends on the system power level, not the installed level.
+  // 1 bar → 50s, 2 → 40s, 3 → 30s, 4 → 20s. A level-4 kit with 1 bar still takes 50.
+  const clock = chargeFlakSeconds(asFlakLevel(fed));
   // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship
   // weapons: drains charge (same effect as on weapons)"; on weapons "Draining speed is the same as speed as the
   // base-level charging speed". aux is seconds of charge, so it loses one second per second of pulse.
@@ -124,10 +166,10 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
     return;
   }
   kit.aux += dt;
-  if (kit.aux < seconds) return;
+  if (kit.aux < clock) return;
   const rooms = other?.rooms ?? [];
   if (rooms.length === 0) {
-    kit.aux = seconds;
+    kit.aux = clock;
     return;
   }
   kit.aux = 0;

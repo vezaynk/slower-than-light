@@ -14,6 +14,7 @@ import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } fr
 import { shipInDanger } from "@/game/extras/sling";
 import { depowerDrone, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { lowerLancePower, raiseLancePower } from "@/game/extras/lance";
+import { lowerFlakPower, raiseFlakPower } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
@@ -1923,6 +1924,26 @@ function ShipSheet({ game }: { game: Game }) {
                       className="icon-btn"
                       aria-label={`More ${KIT_LABEL[id]} · ${kit.level}`}
                       onClick={() => act((g) => raiseLancePower(g))}
+                    >
+                      <PixelIcon name="plus" />
+                    </button>
+                  </span>
+                ) : null}
+                {id === "flak" ? (
+                  <span className="mode-row">
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label={`Less ${KIT_LABEL[id]} · ${kit.level}`}
+                      onClick={() => act((g) => lowerFlakPower(g))}
+                    >
+                      <PixelIcon name="minus" />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label={`More ${KIT_LABEL[id]} · ${kit.level}`}
+                      onClick={() => act((g) => raiseFlakPower(g))}
                     >
                       <PixelIcon name="plus" />
                     </button>

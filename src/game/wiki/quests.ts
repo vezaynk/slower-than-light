@@ -3212,6 +3212,30 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Lanius fight with friendly ASB support. Destroyed pays medium scrap with resources.
+  // A crew kill pays high. After the fight, two results and no odds. INFERRED: equal.
+  // The battery shot itself stays on the fight. Default salvage is not paid.
+  "lanius-fight-with-friendly-asb-support": (g, deadCrew) => {
+    const text = deadCrew
+      ? "No more life signs detected on the Lanius ship. You decide to salvage it when the opportunity arises."
+      : "The ship breaks apart. You decide to salvage it when the opportunity arises.";
+    const tier = deadCrew ? "high" : "medium";
+    if (weighted(g, [["repair", 1], ["leave", 1]] as const) === "repair") {
+      result(
+        g,
+        `${text} After your skirmish, the fighting dies down and you're contacted by the planetary defense team. "Sorry you got caught up in that fight, stranger. No matter how many of these monsters we blow out of the sky, they just keep coming. We can patch up your ship for you."`,
+        rollStandard(g, tier),
+        [repair(g, 8)],
+      );
+      return;
+    }
+    result(
+      g,
+      `${text} You finish off your assailant with the help of the Anti-Ship Battery but the fight rages on in the distance. You'd best leave before you get dragged into it again.`,
+      rollStandard(g, tier),
+      ["Nothing happens."],
+    );
+  },
   // Auto-ship fight in plasma storm. Both fight paths print that destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The engines and cloaking escapes stay as they are.
   "auto-ship-fight-in-plasma-storm": (g, deadCrew) => {

@@ -100,7 +100,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rebel-fight-engi",
     aliases: ["Rebel fight (Engi)"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space.",
+    body: "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage.",
     choices: [
       {
         id: "c:rebel-fight-engi:0",

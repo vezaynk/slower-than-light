@@ -1076,6 +1076,42 @@ function hurt(g: Game, n: number): boolean {
   return true;
 }
 
+/** Cut the wire. Medium scrap, or 6 hull, a breached room, and a lost crewmember. Clone Bay brings them back. */
+function cutMineWire(g: Game) {
+  if (weighted(g, [["safe", 1], ["boom", 1]] as const) === "safe") {
+    show(g, "You open your eyes and everything is still where it was a moment ago. You did it!", scrapOnly(g, "medium"));
+    return;
+  }
+  if (hurt(g, 6)) return;
+  const note = loseCrew(g);
+  show(g, "The weapon detonates. Everything goes dark, the bridge illuminated by flames pouring from the hull, your bomb disposal volunteer spinning off toward a nearby sun. You put out the fires and prepare to move on.", undefined, ["Hull damage: 6.", roomBreach(g), note].filter(Boolean));
+}
+
+/** "1 damage with a breach to a random room."
+ * INFERRED: every player room is equally likely. The 1 damage hits that room's system when a bar is left.
+ * A systemless room still breaches.
+ */
+function roomBreach(g: Game): string {
+  const rooms = g.player.rooms;
+  if (!rooms.length) return "";
+  const r = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
+  const sys = r.system ? g.player.systems[r.system] : undefined;
+  let bar = "";
+  if (sys && sys.level > 0 && sys.damage < sys.level) {
+    hurtSystem(g.player, r.system!, 1);
+    bar = `1 damage to ${r.system}.`;
+  }
+  r.breach += 1;
+  return [bar, `A breach opens in ${r.title}.`].filter(Boolean).join(" ");
+}
+
+/** Beam Drone, not an Anti-Ship Fire Drone and not Beam Drone II. The fitted schematic is kit.target. */
+function ownsMineBeam(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit) return false;
+  return kit.target === "beam" || (kit.loadout ?? []).includes("beam");
+}
+
 /**
  * "1 damage to a random room" when the sentence prints no fire.
  * INFERRED: that room's system loses one bar when a bar is left. A systemless room takes none.
@@ -1959,6 +1995,45 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you.", "Mantis ship", "mantis-ships-battle-for-rock-freighter");
   },
 
+  // Rock live mine. The turning circle always fails. The defuse lists two results and prints no odds. INFERRED: equal.
+  "c:rock-live-mine:0": (g) => {
+    card(g, "The ship's turning circle proves too wide and the mine bites down onto the hull. You can hear it now, chewing through the armor.", [
+      { id: "s:rock-mine:defuse", label: "Send someone out there to defuse it." },
+      { id: "s:rock-mine:missile", label: "Attempt a controlled detonation using a missile." },
+      { id: "s:rock-mine:beam", label: "Use a drone to cut away the mine with a precision beam." },
+    ]);
+  },
+  "c:rock-live-mine:1": (g) => {
+    if ((g.player.systems.engines?.level ?? 0) < 5) return;
+    show(g, "It stresses the inertial dampeners, but you reverse course and outrun the mine. You prepare to jump off.", undefined, ["Nothing happens."]);
+  },
+  "s:rock-mine:defuse": (g) => {
+    if (weighted(g, [["scrap", 1], ["wires", 1]] as const) === "scrap") {
+      show(g, "Your crewmember dons a space suit and exits the airlock. They make quick work of the basic device and return inside to relief all round. The mine makes good scrap pickings too.", scrapOnly(g, "medium"));
+      return;
+    }
+    card(g, "Your crewmember dons a space suit and exits the airlock. When they open up the mine housing, though, they panic. The red wire or the blue?! 3... 2... 1...", [
+      { id: "s:rock-mine:red", label: "Red!" },
+      { id: "s:rock-mine:blue", label: "Blue!" },
+    ]);
+  },
+  // Both colors load Cut the wire. Two results and no odds. INFERRED: equal.
+  "s:rock-mine:red": (g) => cutMineWire(g),
+  "s:rock-mine:blue": (g) => cutMineWire(g),
+  // Trivia: the missile item type is misspelled, so the ammo is not spent. Hull Missile does not count.
+  "s:rock-mine:missile": (g) => {
+    if (!miningMissile(g)) return;
+    if (hurt(g, 4)) return;
+    show(g, "After drawing straws, a crewmember goes out to fix a modified warhead to the mine. You detonate the missile in a way that dislodges the mine. It blows up shortly after. The ship takes some damage in the blasts, but you're still sailing.", scrapOnly(g, "low"), ["Hull damage: 4.", hurtRandomSystem(g)]);
+  },
+  // Beam Drone. One drone part, then low scrap. The Anti-Ship Fire Drone does not count.
+  "s:rock-mine:beam": (g) => {
+    if (!ownsMineBeam(g) || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    show(g, "Carefully guided from the bridge, your beam drone removes the mine's grappling arms and sends it drifting off into space, where you shoot at it until it detonates at a safe distance.", scrapOnly(g, "low"), ["Drone parts: -1."]);
+  },
+
   // Engi smashed ships. "a random amount of resources with some scrap."
   // Rewards Stuff includes an unnamed bonus item. That grant stays unwired.
   "c:engi-smashed-ships:2": (g) => {
@@ -2765,6 +2840,11 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:mantis-ships-battle-for-rock-freighter:2" && !ownsDrone(g, "patch")) return "Needs a Repair Drone";
   if (id === "c:mantis-ships-battle-for-rock-freighter:3" && !ownsDrone(g, "hull")) return "Needs a Hull Repair Drone";
   if (id === "c:mantis-ships-battle-for-rock-freighter:3" && g.player.parts < 1) return "Need 1 drone part";
+  // Rock live mine. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:rock-live-mine:1" && (g.player.systems.engines?.level ?? 0) < 5) return "Needs Engines level 5";
+  if (id === "s:rock-mine:missile" && !miningMissile(g)) return "Needs a missile weapon";
+  if (id === "s:rock-mine:beam" && !ownsMineBeam(g)) return "Needs a Beam Drone";
+  if (id === "s:rock-mine:beam" && g.player.parts < 1) return "Need 1 drone part";
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.

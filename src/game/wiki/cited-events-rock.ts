@@ -306,4 +306,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Rock live mine. The bite, the wires, and the scrap run in filler-events.ts.
+    dest: "Rock live mine",
+    slug: "rock-live-mine",
+    flag: "cited:rock-live-mine",
+    aliases: ["Rock live mine", "Rock Live Mine"],
+    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
+    body: "The burnt out hull of a Rock mine layer drifts by. Behind the wreck drifts a live mine; an automated drone that drills into ships' hulls before exploding. It locks onto your ship's signature and heads your way!",
+    choices: [
+      {
+        id: "c:rock-live-mine:0",
+        label: "Attempt evasive maneuvers.",
+        // The mine bites down. Defuse it, detonate a missile, or cut it free.
+        fx: [{ k: "note", text: "The mine bites down." }],
+      },
+      {
+        id: "c:rock-live-mine:1",
+        label: "Reverse thrusters!",
+        // Improved Engines. "Nothing happens."
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+    ],
+  },
 ];

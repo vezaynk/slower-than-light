@@ -1295,6 +1295,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`, "Slug ship", "slug-hacker-choice");
     shutPlayerHacking(g);
   },
+  // Rebel ship attacking Crystal ship. "Ignore them." One printed result.
+  "c:rebel-ship-attacking-crystal-ship:2": (g) => {
+    result(g, "With the two ships engaged in combat, you sneak by unnoticed.", undefined, ["Nothing happens."]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

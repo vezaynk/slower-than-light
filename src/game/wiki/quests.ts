@@ -2372,6 +2372,11 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "You access the recent scans from the unguarded station. Your map has been updated with details of the surrounding area.", scrapOnly(g, "low"));
   },
+  // Auto-ship fight in nebula. The page prints medium scrap with resources on a destroyed ship and no crew-kill reward.
+  "auto-ship-fight-in-nebula": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
+  },
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "auto-ship-warning": (g, deadCrew) => {

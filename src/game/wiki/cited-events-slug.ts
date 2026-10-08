@@ -127,7 +127,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-fight-choice-in-nebula",
     aliases: ["Pirate fight choice in nebula"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance.",
+    body: "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider.",
     choices: [
       {
         id: "c:pirate-fight-choice-in-nebula:0",

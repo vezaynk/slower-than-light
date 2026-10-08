@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onPlayerJump } from "./index.ts";
-import { applyImpact, COATED_DOOR_HITS, createGame, startCombat } from "../sim.ts";
+import { applyImpact, COATED_DOOR_HITS, createGame, REPAIR_SECONDS, startCombat } from "../sim.ts";
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Ship, Shot } from "../types.ts";
 import {
@@ -1016,6 +1016,134 @@ describe("swarm", () => {
     tickSwarm(g, 0.01);
     assert.equal(patch.coldFires, undefined);
     assert.equal(patch.path?.[patch.path.length - 1], burn.id);
+  });
+
+  it("finishes the system bar already underway after a killing hit, then breaks apart", () => {
+    const g = createGame(27);
+    place(g, 2);
+    assert.equal(deploy(g, "patch"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    assert.ok(weapons);
+    kit.room = weapons.id;
+    kit.path = [];
+    kit.hp = 25;
+    const sys = g.player.systems.weapons;
+    sys.damage = 2;
+    sys.fix = REPAIR_SECONDS - 0.02;
+    hurtRoomDrones(g, "player", weapons.id, 60);
+    assert.equal(kit.on, true);
+    assert.equal(kit.dying, true);
+    assert.equal(kit.hp, 0);
+    assert.equal(sys.damage, 2);
+    assert.ok(sys.fix > 0);
+    hurtRoomDrones(g, "player", weapons.id, 60);
+    assert.equal(kit.on, true);
+    kit.power = 0;
+    tickSwarm(g, 0.02);
+    assert.equal(sys.damage, 1);
+    assert.equal(sys.fix, 0);
+    assert.equal(kit.on, false);
+    assert.equal(kit.dying, undefined);
+    assert.equal(kit.coldFires, true);
+    assert.equal(kit.lost, REDEPLOY_S);
+  });
+
+  it("dies at once in a fire or a breach and does not keep working that room", () => {
+    const fire = createGame(28);
+    place(fire, 2);
+    assert.equal(deploy(fire, "patch"), true);
+    const burning = fire.player.kits.swarm;
+    assert.ok(burning);
+    const weapons = fire.player.rooms.find((room) => room.system === "weapons");
+    assert.ok(weapons);
+    burning.room = weapons.id;
+    burning.path = [];
+    burning.hp = 25;
+    fire.player.systems.weapons.damage = 1;
+    fire.player.systems.weapons.fix = REPAIR_SECONDS / 2;
+    weapons.fire = 1;
+    hurtRoomDrones(fire, "player", weapons.id, 60);
+    assert.equal(burning.on, false);
+    assert.equal(burning.dying, undefined);
+    assert.equal(weapons.fire, 1);
+    assert.equal(fire.player.systems.weapons.fix, REPAIR_SECONDS / 2);
+
+    const breached = createGame(29);
+    place(breached, 2);
+    assert.equal(deploy(breached, "patch"), true);
+    const kit = breached.player.kits.swarm;
+    assert.ok(kit);
+    const shields = breached.player.rooms.find((room) => room.system === "shields");
+    assert.ok(shields);
+    kit.room = shields.id;
+    kit.path = [];
+    kit.hp = 25;
+    breached.player.systems.shields.damage = 1;
+    breached.player.systems.shields.fix = REPAIR_SECONDS / 2;
+    shields.breach = 1;
+    hurtRoomDrones(breached, "player", shields.id, 60);
+    assert.equal(kit.on, false);
+    assert.equal(kit.dying, undefined);
+    assert.equal(shields.breach, 1);
+    assert.equal(breached.player.systems.shields.fix, REPAIR_SECONDS / 2);
+  });
+
+  it("an enemy repair drone ignores the crew in the room until that one bar is finished", () => {
+    const g = createGame(30);
+    place(g, 1);
+    startCombat(g, "scout");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    const dest = enemy.rooms.find((room) => room.system && room.system !== "doors");
+    assert.ok(dest?.system);
+    const sys = enemy.systems[dest.system];
+    sys.damage = 2;
+    sys.fix = REPAIR_SECONDS - 2;
+    const patch = unit({ id: "ed-dying", kind: "patch", hp: 20, room: dest.id, powered: true });
+    enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+      loadout: ["patch"],
+      drones: [patch],
+    };
+    enemy.parts = 3;
+    hurtRoomDrones(g, "enemy", dest.id, 60);
+    assert.equal(patch.alive, true);
+    assert.equal(patch.dying, true);
+    assert.equal(patch.hp, 0);
+    g.crew.push({
+      id: "boarder",
+      name: "Human",
+      side: "player",
+      aboard: "enemy",
+      hp: 100,
+      maxHp: 100,
+      room: dest.id,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 1,
+    });
+    tickSwarm(g, 0.5);
+    assert.equal(patch.alive, true);
+    assert.equal(patch.dying, true);
+    assert.equal(sys.damage, 2);
+    assert.ok(sys.fix > REPAIR_SECONDS - 2);
+    tickSwarm(g, 0.5);
+    assert.equal(sys.damage, 1);
+    assert.equal(sys.fix, 0);
+    assert.equal(patch.alive, false);
+    assert.equal(patch.dying, undefined);
+    assert.equal(patch.coldFires, true);
+    assert.equal(patch.cool, REDEPLOY_S);
   });
 });
 

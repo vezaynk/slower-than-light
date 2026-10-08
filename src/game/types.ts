@@ -356,6 +356,11 @@ export type Kit = {
    * until Drone Control has no damage. Absent means this deployment was not a rebuild.
    */
   coldFires?: boolean;
+  /**
+   * System Repair Drone, dying animation. Drone Control: it briefly keeps repairing, preserves the
+   * bar already underway, and ignores intruders. Absent means it is not in that animation.
+   */
+  dying?: boolean;
   /** Ion Intruder health while that schematic is deployed. Drone Control: "Health: 125 HP". */
   hp?: number;
   /**
@@ -445,6 +450,11 @@ export type DroneUnit = {
    * until Drone Control has no damage.
    */
   coldFires?: boolean;
+  /**
+   * System Repair Drone, dying animation. Drone Control: it briefly keeps repairing, preserves the
+   * bar already underway, and ignores intruders. Absent means it is not in that animation.
+   */
+  dying?: boolean;
   /** A blast door took damage since the last pulse. Consumed when the cooldown is skipped. */
   doorHit?: boolean;
   /** The door already counted for that skip. */

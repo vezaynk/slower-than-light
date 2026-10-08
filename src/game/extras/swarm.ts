@@ -298,6 +298,7 @@ export function deploy(g: Game, kind: string): boolean {
   delete kit.stick;
   delete kit.home;
   delete kit.hold;
+  delete kit.dying;
   // A new flight starts at the nose. The first leg is chosen on the next tick.
   delete kit.heading;
   delete kit.bearing;
@@ -718,7 +719,7 @@ function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): v
  *    INFERRED: 25% is the average of the room oxygen readings. The sim has no single ship meter.
  * 1. A fire. A vented room's fire is ignored, and that room is skipped until the fire is gone.
  *    A redeploy after destruction ignores fires in other rooms until Drone Control has no damage.
- *    A fire in the room it already occupies still ranks. The dying animation is not applied.
+ *    A fire in the room it already occupies still ranks.
  * 2. A damaged Shields system.
  * 3. A breach.
  * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
@@ -775,6 +776,8 @@ type RepairBody = {
   hp?: number;
   /** Set on destruction. Cleared once Drone Control has no damage. */
   coldFires?: boolean;
+  /** Dying animation: one bar already underway, then the real destroy. */
+  dying?: boolean;
 };
 
 /** Drone Control, System Repair Drone: "Health: 25 HP". */
@@ -851,6 +854,90 @@ function repairDest(ship: Ship, body: RepairBody): string | null {
  * Healing needs any power in Drone Control, including one Zoltan bar, and does not require
  * this schematic's own power line. Only while idle in the drone bay. The rate is PATCH_HEAL.
  */
+/**
+ * Drone Control, System Repair Drone: "The drone will briefly continue to provide its service during its
+ * "dying" animation (e.g. preserves the repair progress, and even finishes the repairs while ignoring the intruders)."
+ * INFERRED: "briefly" prints no seconds, so the animation is the one system or kit bar already underway
+ * (fix > 0), not a later bar and not a linger after that bar drops. A fire or a breach is not this bar.
+ * The page's HTML to-do asks whether those continue, and it prints no rule.
+ */
+function barUnderway(ship: Ship, body: RepairBody): { room: Room; kind: "system" | "kit" } | null {
+  const room = body.room ? ship.rooms.find((item) => item.id === body.room) : undefined;
+  if (!room || room.fire > 0 || room.breach > 0) return null;
+  if (room.system) {
+    const sys = ship.systems[room.system];
+    if (sys && sys.damage > 0 && sys.fix > 0) return { room, kind: "system" };
+  }
+  const kit = room.kit ? ship.kits[room.kit] : undefined;
+  if (kit && (kit.damage ?? 0) > 0 && (kit.fix ?? 0) > 0) return { room, kind: "kit" };
+  return null;
+}
+
+/** True when the killing blow starts, or is already inside, that animation. The real destroy waits. */
+function holdDyingRepair(ship: Ship, body: RepairBody): boolean {
+  if (body.dying) return true;
+  if (!barUnderway(ship, body)) return false;
+  body.dying = true;
+  body.hp = 0;
+  body.path = [];
+  body.move = 0;
+  body.home = false;
+  body.stick = undefined;
+  return true;
+}
+
+/**
+ * Finish the one bar, then destroy. INFERRED: intruder hits, ion, and a power cut do not end it early.
+ * coldFires and the redeploy delay still apply on the destroy, not at the start of the animation.
+ */
+function tickDyingRepair(
+  g: Game,
+  ship: Ship,
+  body: RepairBody,
+  dt: number,
+  repowerKits: boolean,
+  finish: () => void,
+): void {
+  const job = barUnderway(ship, body);
+  if (!job) {
+    body.dying = undefined;
+    finish();
+    return;
+  }
+  const pace = kinOf("shell").repair;
+  if (job.kind === "system" && job.room.system) {
+    const sys = ship.systems[job.room.system];
+    const before = sys.damage;
+    sys.fix += pace * dt;
+    if (sys.fix >= REPAIR_SECONDS) {
+      sys.damage = Math.max(0, sys.damage - 1);
+      sys.fix = 0;
+    }
+    if (sys.damage < before) {
+      body.dying = undefined;
+      finish();
+    }
+    return;
+  }
+  const kit = job.room.kit ? ship.kits[job.room.kit] : undefined;
+  if (!kit) {
+    body.dying = undefined;
+    finish();
+    return;
+  }
+  const before = kit.damage ?? 0;
+  kit.fix = (kit.fix ?? 0) + pace * dt;
+  if (kit.fix >= REPAIR_SECONDS) {
+    kit.damage = Math.max(0, before - 1);
+    kit.fix = 0;
+    if (repowerKits) kit.power = kit.level - (kit.damage ?? 0);
+  }
+  if ((kit.damage ?? 0) < before) {
+    body.dying = undefined;
+    finish();
+  }
+}
+
 function maybeHealBay(ship: Ship, body: RepairBody, dt: number): void {
   const bay = droneBay(ship);
   if (!bay || body.room !== bay || body.home || (body.path?.length ?? 0) > 0) return;
@@ -1230,6 +1317,13 @@ export function tickSwarm(g: Game, dt: number) {
   // @agent:drones. The 10 second redeploy delay after a destroyed drone (deploy). It runs whether or not bars are fed.
   if (kit && (kit.lost ?? 0) > 0) kit.lost = Math.max(0, (kit.lost ?? 0) - dt);
   if (!kit?.target) return;
+  // System Repair dying animation runs even with no power and through a stun. The bar, not the hit, ends it.
+  if (kit.target === "patch" && kit.on && kit.dying) {
+    tickDyingRepair(g, g.player, kit, dt, false, () =>
+      killPlayerDrone(g, "Your repair drone finishes the bar and breaks apart."),
+    );
+    return;
+  }
   // @agent:drones. Drone Control, Anti-Combat Drone: an enemy one stunned this drone ("the 5 seconds stun").
   // An ion stun (ionHitsKit) also rolls Overview's 15% per second after the first.
   if ((kit.stun ?? 0) > 0) {
@@ -1559,6 +1653,7 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
   unit.stick = undefined;
   unit.home = undefined;
   unit.hold = undefined;
+  unit.dying = undefined;
   // Defensive Drones: "require approximately a second to acquire a target after being deployed".
   // Anti-Combat Drone: "Starts fully charged when first deployed", so after that second it fires at once.
   unit.cool = DEFENSIVE.has(unit.kind) ? ACQUIRE_S : 0;
@@ -1571,6 +1666,8 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
 }
 
 function killUnit(g: Game, unit: DroneUnit, why: string) {
+  if (unit.kind === "patch" && unit.alive && g.enemy && holdDyingRepair(g.enemy, unit)) return;
+  unit.dying = undefined;
   unit.alive = false;
   unit.powered = false;
   unit.cool = REDEPLOY_S;
@@ -1701,6 +1798,12 @@ function tickStun(g: Game, unit: DroneUnit, dt: number) {
 }
 
 function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
+  if (unit.kind === "patch" && unit.dying) {
+    tickDyingRepair(g, enemy, unit, dt, true, () =>
+      killUnit(g, unit, "Their repair drone finishes the bar and breaks apart."),
+    );
+    return;
+  }
   unit.fired = (unit.fired ?? Number.POSITIVE_INFINITY) + dt;
   if ((unit.stun ?? 0) > 0) {
     tickStun(g, unit, dt);
@@ -2272,6 +2375,8 @@ function ionBurnsOut(g: Game, before: number, after: number): boolean {
 function killPlayerDrone(g: Game, why: string) {
   const kit = g.player.kits.swarm;
   if (!kit) return;
+  if (kit.target === "patch" && kit.on && holdDyingRepair(g.player, kit)) return;
+  kit.dying = undefined;
   kit.on = false;
   kit.stun = 0;
   kit.ionT = undefined;

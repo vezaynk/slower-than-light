@@ -270,7 +270,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Crystalline Research Facility — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystalline Ship Carrying Humans — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Crystalline Ship Engaged with Rebel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Crystalline Ship Messaging About Rebels — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Crystalline Ship Messaging About Rebels — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Opening the beacon shows the printed havoc sentence.
 - [ ] Crystalline border guard — not-a-surface — same title as "Crystalline Border Guard" with different capitalization
 - [ ] Crystalline cache — not-a-surface — same title as "Crystalline Cache" with different capitalization
 - [ ] Crystalline men buried — not-a-surface — same title as "Crystalline Men Buried" with different capitalization

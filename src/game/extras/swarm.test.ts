@@ -400,7 +400,7 @@ describe("swarm", () => {
     assert.equal(g.enemy.hull, hull);
   });
 
-  it("board hits enemy crew through shields, once a second, for 6", () => {
+  it("board hits enemy crew through shields, once a second, for 3 to 7 HP", () => {
     const g = createGame(13);
     place(g);
     startCombat(g, "scout");
@@ -417,7 +417,9 @@ describe("swarm", () => {
     tickSwarm(g, 0.5);
     assert.equal(hp(), before);
     tickSwarm(g, 0.5);
-    assert.equal(hp(), before - 6);
+    // Boarding, Combat: "3 to 7 HP, an average of 5 damage per hit."
+    const once = before - hp();
+    assert.ok(once >= 3 && once <= 7, String(once));
     assert.equal(g.enemy.shieldNow, shields);
     assert.equal(g.enemy.hull, hull);
     const kit = g.player.kits.swarm;
@@ -430,10 +432,11 @@ describe("swarm", () => {
       bars,
     );
     tickSwarm(g, 1);
-    assert.equal(hp(), before - 12);
+    const twice = before - hp();
+    assert.ok(twice - once >= 3 && twice - once <= 7, String(twice - once));
   });
 
-  it("holds in space while the enemy is cloaked, then breaches and hits for 6", () => {
+  it("holds in space while the enemy is cloaked, then breaches and hits for 3 to 7 HP", () => {
     const g = createGame(13);
     place(g);
     startCombat(g, "scout");
@@ -457,7 +460,8 @@ describe("swarm", () => {
     );
     g.enemy.kits.veil.on = false;
     tickSwarm(g, 1);
-    assert.equal(hp(), before - 6);
+    const dealt = before - hp();
+    assert.ok(dealt >= 3 && dealt <= 7, String(dealt));
     assert.equal(typeof kit.room, "string");
     assert.ok(kit.room);
     const room = g.enemy.rooms.find((r) => r.id === kit.room);

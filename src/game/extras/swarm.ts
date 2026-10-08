@@ -124,13 +124,13 @@ const BEAM_FIRE = 10 / 100;
 const BOARD_INTERVAL_S = 1;
 
 /**
- * Drone Control, "Boarding Drones" > "Boarding Drone": health 150, and it attacks
- * crew and systems. No damage per hit is stated.
- * INFERRED: no DPS on that section, reused the fight's invented 6.
- * One attack deals that many hit points to a crew member, or that many
- * system damage bars when no enemy crew are left.
+ * Boarding, Combat: an unskilled human deals "3 to 7 HP, an average of 5 damage per hit."
+ * Drone Control, Boarding Drone, prints no hit damage, so the drone uses that range.
+ * INFERRED: each integer from 3 through 7 is equally likely. The average is the printed 5.
  */
-const BOARD_HIT = 6;
+function boardHit(g: Game): number {
+  return 3 + Math.floor(rand(g) * 5);
+}
 
 /** Drone Control, Overview: activating a drone that is not yet deployed will "spend one drone part". */
 const PART_COST = 1;
@@ -568,7 +568,7 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
     if (alive.length > 0) {
       const crew = alive[Math.floor(rand(g) * alive.length)];
       if (!crew) continue;
-      crew.hp -= BOARD_HIT;
+      crew.hp -= boardHit(g);
     }
     // No crew: system damage is accrueBar below, one bar per BREAK_BAR_S, not this blow.
   }
@@ -1905,7 +1905,7 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
   else tickEnemyBoard(g, unit, dt);
 }
 
-/** Boarding Drone: "Boards enemy ships and attacks enemy crew and systems". Crew blows stay 1 s / BOARD_HIT. One system bar is BREAK_BAR_S. */
+/** Boarding Drone: "Boards enemy ships and attacks enemy crew and systems". Crew blows stay one second for 3 to 7 HP. One system bar is BREAK_BAR_S. */
 function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
   const here0 = g.player.rooms.find((room) => room.id === unit.room);
   if (here0?.system) {
@@ -1925,7 +1925,7 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
     const foes = g.crew.filter((c) => c.aboard === "player" && c.room === here.id && c.hp > 0 && forPlayer(c));
     const crew = randomOf(g, foes);
     if (crew) {
-      crew.hp -= BOARD_HIT;
+      crew.hp -= boardHit(g);
       unit.fired = 0;
       continue;
     }

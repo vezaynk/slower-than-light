@@ -3777,6 +3777,17 @@ const REBEL_FLEET_INTROS = [
   "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.",
 ];
 
+// Rebel fight among Federation and Rebel fleets. Six printed intros, no odds. INFERRED: equal.
+// The fight stays c:rebel-fight-among-federation-and-rebel-fleets:0. Escape and the scrap payouts stay elsewhere.
+const FEDERATION_FLEET_INTROS = [
+  "You arrive in the middle of a raging battle. Both sides are taking heavy losses. A small squadron flies past and a fighter breaks off, moving toward your position.",
+  "Two fleets fight nearby. You try to skirt around the edges of the battle and keep out of weapons range, but a Rebel scout spots you and moves in.",
+  "It's hard to tell who is winning the nearby battle. Before you have a chance to figure it out, a fighter moves in to attack.",
+  "The sheer scale of the destruction in the distance is almost breath-taking. Unfortunately, your position as an independent observer doesn't last for long!",
+  "The destruction in the distance is almost awe-inspiring. However you're dragged back to reality as Sensors indicate you are under attack.",
+  "You don't have any time to worry about the battle in the distance. The fight is coming to you really quickly!",
+];
+
 // Escort civilians. Three printed intros, no odds. INFERRED: equal.
 // Accept stays the low fuel and the quest marker. Decline stays nothing.
 const ESCORT_CIVILIAN_INTROS = [
@@ -4230,6 +4241,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Rebel fight among Federation and Rebel fleets. One of the six printed intros. The fight stays the existing choice.
+  if (ev.slug === "rebel-fight-among-federation-and-rebel-fleets") {
+    return {
+      title: ev.dest,
+      body: FEDERATION_FLEET_INTROS[between(g, [0, 5])]!,
+      choices: [{ id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: "Fight a Rebel ship" }],
     };
   }
   // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.

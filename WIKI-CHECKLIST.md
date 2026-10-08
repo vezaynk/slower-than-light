@@ -308,7 +308,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Destroyed cargo ship — not-a-surface — same title as "Destroyed Cargo Ship" with different capitalization
 - [ ] Diplomatic Immunity — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Disabled Rock Transport — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Disabled Rock ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
+- [ ] Disabled Rock ship — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event. Stripping pays random scrap, a patrol may fight after that scrap, and leaving does nothing twice as often as it starts a Rock fight.
 - [ ] Disabled Rock transport — not-a-surface — same title as "Disabled Rock Transport" with different capitalization
 - [ ] Disintegration Ray — missing — events-3.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Distraction Buoys — partial — before sector 8, a fleet already at 0 skips its next advance. A fleet already ahead still loses one jump at sector start. The article was not re-opened, so other sentences on the page are not claimed.

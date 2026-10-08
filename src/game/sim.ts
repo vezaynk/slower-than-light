@@ -4247,6 +4247,14 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
   if (ship.kits.swarm && spec.drones?.length) ship.kits.swarm.loadout = [...spec.drones];
   const crew = spec.crew.map((c) => enemyCrew(g, c.kin, c.race, c.room));
   citedEnemy(g, tier, ship, crew);
+  // Slug hacker (oxygen): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
+  // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
+  // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
+  if (event === "slug-hacker-oxygen" && !ship.weapons.some((w) => w.defId === "firebeam" || w.defId === "cask")) {
+    const defId = rand(g) < 0.5 ? "firebeam" : "cask";
+    if (ship.weapons.length > 0) ship.weapons[0].defId = defId;
+    else ship.weapons.push(enemyGun(g, defId));
+  }
   return { ship, crew };
 }
 

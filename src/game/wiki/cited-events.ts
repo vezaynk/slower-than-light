@@ -3669,7 +3669,7 @@ const MANTIS_FIGHT_INTROS = [
 ];
 
 // Mantis fight choice. Six printed intros, no odds. INFERRED: equal.
-// The fight stays c:mantis-fight-choice:0. The other branches on that page are not added here.
+// Attack stays c:mantis-fight-choice:0. Conceal and cloaking are quests.ts.
 const MANTIS_CHOICE_INTROS = [
   "You're greeted by a rare sight: a Mantis ship that appears not to have noticed you.",
   "For once, you see the Mantis before they see you.",
@@ -4103,12 +4103,12 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:mantis-fight:0", label: "Fight a Mantis ship" }],
     };
   }
-  // Mantis fight choice. One of the six printed intros. The fight stays c:mantis-fight-choice:0.
+  // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
   if (ev.slug === "mantis-fight-choice") {
     return {
       title: ev.dest,
       body: MANTIS_CHOICE_INTROS[between(g, [0, 5])]!,
-      choices: [{ id: "c:mantis-fight-choice:0", label: "Attack the ship" }],
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Mantis ship attacking civilian. One of the five printed intros. Both printed choices stay.

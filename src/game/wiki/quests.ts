@@ -1030,6 +1030,35 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
     result(g, "You use your cloaking system to slip further into the nebula undetected.", undefined, ["Nothing happens."]);
   },
+  // Mantis fight choice. Conceal: {{DuplicateEvent|2}} on the fight, once on nothing.
+  // The printed OR is the two fight sentences. INFERRED: those two are equal inside the doubled result.
+  "c:mantis-fight-choice:1": (g) => {
+    const spotted = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
+    if (!spotted) {
+      result(g, "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely.", undefined, ["Nothing happens."]);
+      return;
+    }
+    const line = pick(g, [
+      "You power down non-essential systems in an attempt to remain unnoticed. It looks like they are about to leave when suddenly they turn and set course toward you, weapons powered.",
+      "Before you have a chance to slink away the Mantis ship notices you and powers up their weapons.",
+    ] as const);
+    pageFight(g, line, "Mantis ship", "mantis-fight-choice");
+  },
+  // Cloaking. {{DuplicateEvent|2}} on nothing, once on the fight.
+  // The printed OR is the two nothing sentences. INFERRED: those two are equal inside the doubled result.
+  "c:mantis-fight-choice:2": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    const away = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
+    if (away) {
+      const line = pick(g, [
+        "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey.",
+        "You quickly cloak the ship and move out of immediate scanning range. You appear to have gotten away undetected.",
+      ] as const);
+      result(g, line, undefined, ["Nothing happens."]);
+      return;
+    }
+    pageFight(g, "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.", "Mantis ship", "mantis-fight-choice");
+  },
   // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
   "c:mantis-ship-attacking-slug-ship:0": (g) => {
     pageFight(g, "You lock onto the Mantis ship and engage.", "Mantis ship", "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
@@ -1731,6 +1760,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Rebel fight choice in nebula. Cloaking, and Engines level 4+ on the caught follow-up.
   if (id === "c:rebel-fight-choice-in-nebula:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   if (id === "q:rebel-nebula:engines" && (g.player.systems.engines?.level ?? 0) < 4) return "Needs level 4 Engines";
+  // Mantis fight choice. Cloaking, any installed level.
+  if (id === "c:mantis-fight-choice:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.

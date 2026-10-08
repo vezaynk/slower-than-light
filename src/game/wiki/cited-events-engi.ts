@@ -54,6 +54,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
+      {
+        id: "c:mantis-fight-choice:1",
+        label: "Attempt to remain concealed",
+        // "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely."
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:mantis-fight-choice:2",
+        label: "Cloak to stay hidden.",
+        // "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey."
+        fx: [{ k: "nothing" }],
+      },
     ],
   },
   {

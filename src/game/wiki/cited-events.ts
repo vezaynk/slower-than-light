@@ -2977,7 +2977,8 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    // Slug drink. The printed hail.
+    "body": "A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. \"Now, most gracioussss captain, you must join me please in a drink to our alliance!\"",
     "choices": [
       {
         "id": "c:slug-drink:0",

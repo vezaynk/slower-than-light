@@ -3181,6 +3181,12 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
   },
+  // Auto-ship fight in plasma storm. Both fight paths print that destroyed line and medium scrap with resources.
+  // The page prints no crew-kill reward. The engines and cloaking escapes stay as they are.
+  "auto-ship-fight-in-plasma-storm": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
+  },
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "auto-ship-warning": (g, deadCrew) => {

@@ -3744,6 +3744,14 @@ const ESCORT_CIVILIAN_INTROS = [
   `"Hello," your communicator opens a hail from a nearby ship. "Our weapon systems are malfunctioning and we're too afraid of pirates to travel home unassisted. Can you escort us?"`,
 ];
 
+// Trade fuel for drone parts. Three printed intros, no odds. INFERRED: equal.
+// The trade stays lose 2-4 fuel for 1-3 drone parts. Reject stays nothing.
+const FUEL_FOR_DRONES_INTROS = [
+  `A nearby space station hails you. "Greetings! Your arrival is most fortuitous. We recently came across some extra drones. If you have some fuel, perhaps we can make a deal?"`,
+  `A strange vessel approaches. A digital message appears on your view-screen: "This is an automated merchant. Refill this vessel with fuel and it will supply you with drones."`,
+  `You arrive in the sector and are greeted by a science vessel waiting by the beacon. They hail you, "We find ourselves low on fuel and have a proposition."`,
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4148,6 +4156,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ESCORT_CIVILIAN_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Trade fuel for drone parts. One of the three printed intros. The trade and the reject stay the existing choices.
+  if (ev.slug === "trade-fuel-for-drone-parts") {
+    return {
+      title: ev.dest,
+      body: FUEL_FOR_DRONES_INTROS[between(g, [0, 2])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

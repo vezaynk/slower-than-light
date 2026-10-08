@@ -1281,7 +1281,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Smouldering Engi Research Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Smuggler — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Soundtrack — not-a-surface — wiki process, not a game system
-- [ ] Space Station Under Construction — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Space Station Under Construction — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Declining shows the printed cut-transmission sentence and nothing happens.
 - [ ] Space Station under Construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
 - [ ] Space station under construction — not-a-surface — same title as "Space Station Under Construction" with different capitalization
 - [ ] Special events crewmembers — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.

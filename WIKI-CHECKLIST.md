@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 935 |
-| Behaviors checked | 2790 |
-| Behaviors open | 544 |
+| Pages fully checked | 936 |
+| Behaviors checked | 2791 |
+| Behaviors open | 543 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -5508,7 +5508,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Sweet Revenge
   - [ ] The page states a mechanic and it is not a playable event.
 
-- [ ] System Repair Drone
+- [x] System Repair Drone
   - [x] Purchase 30, 1 power, 25 HP.
   - [x] It repairs systems, breaches, and fires at an Engi's pace: one bar or breach in 6.25 seconds, and a fire at twice a human's share.
   - [x] Low oxygen does not stop it (INFERRED).
@@ -5521,7 +5521,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The walking drone breaks a shut blast door at two hits a second (INFERRED).
   - [x] A redeployed drone ignores fires in other rooms until Drone Control has no damage.
   - [x] A fire in the room it already occupies is still fought.
-  - [ ] The dying animation is not applied.
+  - [x] During its dying animation it finishes the one system or kit bar already underway and ignores further intruder hits, and a fire or a breach still destroys it at once.
 
 - [x] Systems
   - [x] eight core systems plus nine kits.

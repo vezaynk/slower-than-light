@@ -1653,12 +1653,13 @@ function livingZoltan(g: Game): boolean {
  * The three results print no odds. INFERRED: equal. The blue options land here and skip the failed scan.
  * "Set sensors to maximum" is that scan, not a permanent sensor upgrade.
  */
-function successfulScan(g: Game) {
+function successfulScan(g: Game, lead?: string) {
+  const withLead = (text: string) => (lead ? `${lead}\n\n${text}` : text);
   const r = weighted(g, [["oxygen", 1], ["pirate", 1], ["mold", 1]] as const);
-  if (r === "oxygen") show(g, "After a complete scan of the planet, you find no life. The team is grateful and ready to get to work. The station scientists have a unique talent for life support units and offer to upgrade your oxygen system as thanks.", undefined, [upgradeOxygen(g)]);
-  else if (r === "pirate") fight(g, "A complete scan of the planet reveals no life signs other than a single ship on the surface. The terraformers thank you for your help, and attempt to contact the ship. Just as you're about to jump away, the ship takes off and attacks, it's a pirate!", "Pirate ship", "terraforming-scan");
+  if (r === "oxygen") show(g, withLead("After a complete scan of the planet, you find no life. The team is grateful and ready to get to work. The station scientists have a unique talent for life support units and offer to upgrade your oxygen system as thanks."), undefined, [upgradeOxygen(g)]);
+  else if (r === "pirate") fight(g, withLead("A complete scan of the planet reveals no life signs other than a single ship on the surface. The terraformers thank you for your help, and attempt to contact the ship. Just as you're about to jump away, the ship takes off and attacks, it's a pirate!"), "Pirate ship", "terraforming-scan");
   else {
-    card(g, "A complete scan of the planet reveals a simple mold as the only life present. The terraformers claim their terraforming plans are only hindered by intelligent life; they can begin their work.", [
+    card(g, withLead("A complete scan of the planet reveals a simple mold as the only life present. The terraformers claim their terraforming plans are only hindered by intelligent life; they can begin their work."), [
       { id: "s:terraforming-scan:stop", label: "Tell them to stop. Any life is valuable." },
       { id: "s:terraforming-scan:leave", label: "Leave them to their work." },
     ]);
@@ -2209,12 +2210,14 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       { id: "s:terraforming-scan:zoltan", label: "Send your crewman to overcharge their systems." },
     ]);
   },
+  // Attempt to scan. One of the two printed results. INFERRED: equal. The modulate line is only this success.
+  // Improved Sensors and a Zoltan go straight to Successful Scan and do not print it.
   "s:terraforming-scan:scan": (g) => {
     if (rand(g) < 0.5) {
       show(g, "It seems your sensors are no more powerful than the terraformer's. You apologize and continue on your way.");
       return;
     }
-    successfulScan(g);
+    successfulScan(g, "You find if you modulate the feedback signal of your sensors to just the right frequency, you're able to get through the atmosphere and perform a complete scan!");
   },
   // Improved Sensors level 2+ goes straight to Successful Scan.
   "s:terraforming-scan:sensors": (g) => {

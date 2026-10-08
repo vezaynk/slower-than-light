@@ -62,6 +62,7 @@ describe("Terraforming scan blue options", () => {
         assert.equal(sensors.enemy!.pirate, true);
       }
       if (sk === "oxygen") assert.equal(sensors.player.systems.oxygen.level, 2);
+      assert.equal(`${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes("modulate the feedback"), false);
 
       const zoltan = offer(seed + 200);
       zoltan.player.systems.sensors.level = 1;
@@ -74,6 +75,7 @@ describe("Terraforming scan blue options", () => {
       assert.notEqual(zk, "offer");
       seen.zoltan.add(zk);
       if (zk === "oxygen") assert.equal(zoltan.player.systems.oxygen.level, 2);
+      assert.equal(`${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes("modulate the feedback"), false);
     }
     assert.deepEqual([...seen.sensors].sort(), ["mold", "oxygen", "pirate"]);
     assert.deepEqual([...seen.zoltan].sort(), ["mold", "oxygen", "pirate"]);
@@ -87,8 +89,14 @@ describe("Terraforming scan blue options", () => {
       g.player.systems.sensors.level = 1;
       fillerChoose(g, SCAN);
       const k = kind(g);
-      if (k === "fail") failed = true;
-      else succeeded = true;
+      const shown = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
+      if (k === "fail") {
+        failed = true;
+        assert.equal(shown.includes("modulate the feedback"), false);
+      } else {
+        succeeded = true;
+        assert.equal(shown.includes("modulate the feedback signal"), true);
+      }
     }
     assert.ok(failed && succeeded);
   });

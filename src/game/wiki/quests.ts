@@ -673,6 +673,26 @@ const CHOICES: Record<string, (g: Game) => void> = {
     result(g, "Your improved sensors are able to remotely access and download the public radar station's local map data.");
   },
   // Crew Teleporter. The map reveal is not wired.
+  // Auto-ship fight in plasma storm. Engines 3-5. Two results, no odds. INFERRED: equal.
+  "c:auto-ship-fight-in-plasma-storm:1": (g) => {
+    const level = g.player.systems.engines?.level ?? 0;
+    if (level < 3 || level > 5) return;
+    if (pick(g, ["lose", "fight"] as const) === "fight") {
+      pageFight(g, "Despite your advanced engines you are unable to shake them; you turn and prepare for a fight.", "Auto-ship", "auto-ship-fight-in-plasma-storm");
+      return;
+    }
+    result(g, "You successfully lose the ship in the storm.", undefined, ["Nothing happens."]);
+  },
+  // Improved Engines, level 6+. Always lose the ship.
+  "c:auto-ship-fight-in-plasma-storm:2": (g) => {
+    if ((g.player.systems.engines?.level ?? 0) < 6) return;
+    result(g, "You successfully lose the ship in the storm.", undefined, ["Nothing happens."]);
+  },
+  // Cloaking. Always lose the ship. The page prints no drone-part cost.
+  "c:auto-ship-fight-in-plasma-storm:3": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    result(g, "By using your advanced cloaking system you easily lose your pursuer in the storm.", undefined, ["Nothing happens."]);
+  },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
@@ -1264,6 +1284,13 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Auto-ship near sensor station. Sensors level 3. A Crew Teleporter.
   if (id === "c:auto-ship-near-sensor-station:2" && sensors(g) < 3) return "Needs level 3 Sensors";
   if (id === "c:auto-ship-near-sensor-station:3" && !hasTeleporter(g)) return "Needs a Teleporter";
+  // Auto-ship fight in plasma storm. Engines 3-5, Engines 6+, and Cloaking.
+  if (id === "c:auto-ship-fight-in-plasma-storm:1") {
+    const level = g.player.systems.engines?.level ?? 0;
+    if (level < 3 || level > 5) return "Needs Engines level 3-5";
+  }
+  if (id === "c:auto-ship-fight-in-plasma-storm:2" && (g.player.systems.engines?.level ?? 0) < 6) return "Needs level 6 Engines";
+  if (id === "c:auto-ship-fight-in-plasma-storm:3" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.

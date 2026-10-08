@@ -3497,6 +3497,19 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Auto-ship fight in plasma storm. Engines 3-5, Engines 6+, and Cloaking.
+  if (ev.slug === "auto-ship-fight-in-plasma-storm") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:auto-ship-fight-in-plasma-storm:1", label: "Attempt to out-run it." },
+        { id: "c:auto-ship-fight-in-plasma-storm:2", label: "Attempt to out-run it." },
+        { id: "c:auto-ship-fight-in-plasma-storm:3", label: "Use your cloaking to escape." },
+      ],
+    };
+  }
   // Auto-ship near storage station. Cloaking is a blue option.
   if (ev.slug === "auto-ship-near-storage-station") {
     return {

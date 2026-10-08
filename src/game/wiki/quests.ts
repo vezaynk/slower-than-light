@@ -3309,6 +3309,14 @@ export const PAGE_WINS: Record<string, Win> = {
     "The Crystalline ship shatters and you pick what you can from the debris. Who knows how many people you've saved by stopping this ship.",
     "The crew of the enemy ship has been eliminated. You scrap what you can. Who knows how many people you've saved by stopping this ship.",
   ),
+  // Crystal fight with surrender offer (hull repairs). Both endings pay medium scrap with resources.
+  // The surrender's fuel and 8 repairs are a separate offer. This win does not repair the hull.
+  "crystal-fight-with-surrender-offer-hull-repairs": std(
+    "medium",
+    "medium",
+    "The Crystalline ship shatters and you pick what you can from the debris. The rest of the convoy used the time to put a significant amount of distance between you and them. Nothing left to do but jump.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can. The rest of the convoy used the time to put a significant amount of distance between you and them. Nothing left to do but jump.",
+  ),
   // Rebel ship attacking civilians in Last Stand. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the survivors.
   "rebel-ship-attacking-civilians-in-last-stand": std(

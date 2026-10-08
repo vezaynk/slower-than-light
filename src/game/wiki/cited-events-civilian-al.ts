@@ -24,7 +24,8 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
-  // Fight an Auto-ship.
+  // Auto-ship fight has no choice. Arrival applies this fight.
+  // "Fight an Auto-ship." unique=false.
   {
     dest: "Auto-ship fight",
     slug: "auto-ship-fight",

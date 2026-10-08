@@ -4419,7 +4419,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
     };
   }
-  // Auto-ship fight. One of the nine printed intros. The fight stays c:auto-ship-fight:0.
+  // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
+  // One of the nine printed intros. "Fight an Auto-ship." unique=false.
   if (ev.slug === "auto-ship-fight") {
     return {
       title: ev.dest,

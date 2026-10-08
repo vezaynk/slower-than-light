@@ -49,6 +49,7 @@ describe("Escape pod", () => {
         assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "blade").length, 1);
         assert.equal(players(g), crew - 1);
         assert.match(g.log.join(" "), /is lost/);
+        assert.ok(g.log.includes("The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt."));
       } else if (/god of mercy/.test(g.event?.body ?? "")) {
         mantis = true;
         assert.equal(players(g), crew);

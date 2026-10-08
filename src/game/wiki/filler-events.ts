@@ -2520,6 +2520,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:escape-pod:1": (g) => {
     const r = weighted(g, [["boarder", 1], ["mantis", 1], ["human", 1]] as const);
     if (r === "boarder") {
+      log(g, "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.");
       const note = loseCrew(g);
       if (note) log(g, note);
       mantisBoarders(g, 1, 1);

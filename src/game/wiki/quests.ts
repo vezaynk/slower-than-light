@@ -1320,6 +1320,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, "Your Mantis crew-member steps forward. He and KazaaakplethKilik perform a weird kind of alien haka. You, meanwhile, charge the battle systems.", "Mantis ship", "legendary-thief-kazaaakplethkilik");
     allMantisCrew(g);
   },
+  // Mantis ship with Rock body parts. "Put your Rock crewmember on the comm." One printed lead-in, then a Mantis ship.
+  // This handler returns before citedChoose so the Rock requirement can close the button.
+  "c:mantis-ship-with-rock-body-parts:2": (g) => {
+    pageFight(g, "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"", "Mantis ship", "mantis-ship-with-rock-body-parts");
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2097,6 +2102,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
   // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
   if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return "Needs a Mantis crewmember";
+  // Mantis ship with Rock body parts. {{Blue Option|Rock Crew|Put your Rock crewmember on the comm.}}.
+  // INFERRED: the refusal line. A dead Rock does not count. The page names the crew and does not print this sentence.
+  if (id === "c:mantis-ship-with-rock-body-parts:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

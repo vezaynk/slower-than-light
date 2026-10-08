@@ -2,7 +2,7 @@
 
 Pass 2 of the FTL wiki (`ftl.fandom.com`, namespace 0, 1380 pages) against `src/`.
 
-Each page is a check. Each nested line is one testable or observable behavior. A page is checked only when every behavior under it is checked. An open behavior is a rule the sim does not perform yet. A checked behavior is one the sim already performs, including a confirmed absence such as a shot that does not miss, a choice where nothing happens, or a page with no playable rule.
+Each page is a check. Each line nested under a page is one testable or observable behavior. A behavior that is only partly true keeps that sentence and has subchecks under it. A checked subcheck is the part the sim already performs. An open subcheck is the part it does not. A behavior is checked only when every subcheck under it is checked. A page is checked only when every behavior under it is checked. An open leaf is a rule the sim does not perform yet. A checked leaf is one the sim already performs, including a confirmed absence such as a shot that does not miss, a choice where nothing happens, or a page with no playable rule. Counts include only leaves: a box with nothing nested under it.
 
 Reactor bars in this code: only shields, engines, oxygen, medbay, weapons, and kits draw power. Piloting, doors, and sensors do not.
 
@@ -37,11 +37,11 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 942 |
-| Behaviors checked | 2700 |
-| Behaviors open | 536 |
+| Pages fully checked | 941 |
+| Behaviors checked | 2796 |
+| Behaviors open | 538 |
 
-Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
+Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
 The checklist is not complete while any behavior stays open. This was not a new pass of all 1380 pages.
 
@@ -177,6 +177,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Artillery Beam
   - [x] An Artillery Beam's power is its level from 1 to 4, and charge time follows the filled bars from 50 seconds at one down by ten seconds each to 20 at four.
@@ -219,6 +221,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Augmentations
   - [x] Purchasable rows are in extras/augments.ts.
@@ -377,6 +381,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] A destroyed ship pays medium scrap only, cloaking starts that fight or opens the station.
   - [ ] The station pays low scrap without the unnamed weapon or schematic, medium resources with some scrap, or nothing.
+    - [x] The station pays low scrap, medium resources with some scrap, or nothing.
+    - [ ] The unnamed weapon or schematic is not granted.
   - [x] The printed storage sentence is shown before those choices.
 
 - [ ] Auto-ship near storage station in nebula
@@ -423,6 +429,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Automated Rebel Scout Attacking Refueling Outpost
   - [x] No playable control, number, layout, or rule.
@@ -474,6 +482,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Badly Damaged Lanius Craft
   - [x] No playable control, number, layout, or rule.
@@ -486,12 +496,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Battery Charger
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Battle Royale
   - [ ] The page states a mechanic and it is not a playable event.
@@ -507,6 +521,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Beacons
   - [x] The map is a 6×4 grid of 19–24 beacons.
@@ -521,6 +537,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Beam (Weapons)
   - [x] Pike is id shear.
@@ -664,6 +682,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Bump Hulls with Mantis Ship
   - [x] No playable control, number, layout, or rule.
@@ -688,6 +708,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Chain Vulcan
   - [x] id vulcan is in WEAPONS.
@@ -1025,6 +1047,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Saving the Federation ship shows the printed intercept sentence and fights a Crystal ship.
   - [x] Preparing to leave shows the printed mission sentence and nothing happens.
   - [ ] A destroyed ship pays medium scrap with resources and a crew kill pays high scrap with resources, then contacting the Federation ship pays low scrap with resources without the unnamed crewmember, or a random amount of resources with some scrap.
+    - [x] A destroyed ship pays medium scrap with resources.
+    - [x] A crew kill pays high scrap with resources.
+    - [x] Contacting the Federation ship pays low scrap with resources, or a random amount of resources with some scrap.
+    - [ ] The unnamed crewmember is not granted.
 
 - [ ] Crystal ship convoy fight
   - [ ] The page states a mechanic and it is not a playable event.
@@ -1093,6 +1119,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Damaged Lanius Absorbing Jump Beacon
   - [x] No playable control, number, layout, or rule.
@@ -1248,6 +1276,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Drifting Debris
   - [x] No playable control, number, layout, or rule.
@@ -1365,6 +1395,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Drone Schematic
   - [x] No playable control, number, layout, or rule.
@@ -1377,12 +1409,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Drones
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Drones salesman
   - [ ] The page states a mechanic and it is not a playable event.
@@ -1483,6 +1519,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Engi Distress Call
   - [ ] The page states a mechanic and it is not a playable event.
@@ -1569,6 +1607,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
   - [ ] A destroyed ship pays low scrap with resources, a crew kill pays medium, the Rebel never runs or surrenders, 25 scrap does nothing or mounts Healing Burst and does not grant the unnamed drone schematic, and 40 scrap with 2 missiles and 2 fuel fits Engi Med-bot Dispersal.
+    - [x] A destroyed ship pays low scrap with resources.
+    - [x] A crew kill pays medium scrap.
+    - [x] The Rebel never runs or surrenders.
+    - [x] 25 scrap does nothing or mounts Healing Burst.
+    - [ ] The unnamed drone schematic is not granted.
+    - [x] 40 scrap with 2 missiles and 2 fuel fits Engi Med-bot Dispersal.
 
 - [x] Engi distress call
   - [x] same title as "Engi Distress Call" with different capitalization.
@@ -1722,6 +1766,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Events
   - [x] No playable control, number, layout, or rule.
@@ -1743,6 +1789,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] FTL: Advanced Edition
   - [ ] The page states a mechanic and it is not a playable event.
@@ -1761,12 +1809,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] FTL Recharge Booster
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] FTL haywire civilian ship escort
   - [x] No playable control, number, layout, or rule.
@@ -1779,6 +1831,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Federation Deserters
   - [x] one beacon in a sector the page names, while a free beacon remains.
@@ -1843,12 +1897,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Fire Suppression
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Fire chance
   - [x] No playable control, number, layout, or rule.
@@ -1880,6 +1938,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Flak (Weapon)
   - [x] No playable control, number, layout, or rule.
@@ -1981,6 +2041,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Fuel Auto-ship
   - [x] No playable control, number, layout, or rule.
@@ -2104,6 +2166,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
   - [x] Hacking Stun stuns crew and drones in the hacked room for the rest of the pulse, and someone who enters is stunned for the time still left.
 
 - [ ] Hazards
@@ -2169,12 +2233,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Human
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Human Boarders
   - [x] No playable control, number, layout, or rule.
@@ -2284,12 +2352,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Kruos
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] LRS
   - [ ] The page states a mechanic and it is not a playable event.
@@ -2313,6 +2385,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Lanius Distress Beacon Empty
   - [x] No playable control, number, layout, or rule.
@@ -2699,6 +2773,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
   - [x] A fitted Lifeform Scanner reveals live enemy crew the way a Slug does, and it does not open room interiors.
 
 - [x] Lone Lanius ship
@@ -2712,6 +2788,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
   - [x] Fitted Long-Ranged Scanners show an environmental hazard and possible ship presence on adjacent beacons, and selling them hides that again.
 
 - [x] Loss of Cabin Pressure
@@ -2744,6 +2822,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Manpower
   - [x] No playable control, number, layout, or rule.
@@ -2775,6 +2855,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Mantis Empty Beacon
   - [x] No playable control, number, layout, or rule.
@@ -2936,9 +3018,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Mantis fight with boarders (Zoltan)
   - [x] No playable control, number, layout, or rule.
 
-- [x] Mantis fugitive
+- [ ] Mantis fugitive
   - [x] same title as "Mantis Fugitive" with different capitalization.
-  - [x] Siding with him deals 5 hull, one system bar, and one room bar before a mantis-controlled Engi fight, or fights an Engi ship without adding the unnamed Mantis, and the bounty pays high scrap, that scrap with 5 hull and 1-2 fires, or one Mantis boarder.
+  - [ ] Siding with him deals 5 hull, one system bar, and one room bar before a mantis-controlled Engi fight, or fights an Engi ship without adding the unnamed Mantis, and the bounty pays high scrap, that scrap with 5 hull and 1-2 fires, or one Mantis boarder.
+    - [x] Siding with him deals 5 hull, one system bar, and one room bar before a mantis-controlled Engi fight, or fights an Engi ship.
+    - [ ] The unnamed Mantis is not added.
+    - [x] The bounty pays high scrap, that scrap with 5 hull and 1-2 fires, or one Mantis boarder.
 
 - [x] Mantis hunting Slugs
   - [x] same title as "Mantis Hunting Slugs" with different capitalization.
@@ -2982,6 +3067,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
   - [ ] Saving the Slugs pays medium scrap with resources, finishing them pays low scrap or a random standard reward and does not grant the unnamed augmentation, and destroying the Slug ship pays high scrap with resources.
+    - [x] Saving the Slugs pays medium scrap with resources.
+    - [x] Finishing them pays low scrap or a random standard reward.
+    - [ ] The unnamed augmentation is not granted.
+    - [x] Destroying the Slug ship pays high scrap with resources.
   - [x] At Mantis ship attacking Slug ship, the printed distress sentence is shown in full before the three existing choices.
 
 - [ ] Mantis ship attacking civilian
@@ -3120,6 +3209,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Missiles (Weapon)
   - [ ] The page states a mechanic and it is not a playable event.
@@ -3138,6 +3229,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Nebula Empty Beacon
   - [x] No playable control, number, layout, or rule.
@@ -3188,6 +3281,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] No Escape
   - [x] No playable control, number, layout, or rule.
@@ -3278,6 +3373,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Odd Moon
   - [ ] The page states a mechanic and it is not a playable event.
@@ -3511,6 +3608,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] A destroyed ship pays medium scrap with resources, a crew kill pays high.
   - [ ] Contacting the Crystal ship pays random resources, nothing, or no unnamed weapon.
+    - [x] Contacting the Crystal ship pays random resources, or nothing.
+    - [ ] No unnamed weapon is granted.
   - [x] At Pirate ship attacking Crystal, the printed opening sentence is shown in full before Attack the pirate, which still fights a pirate ship.
   - [x] Ignoring them shows the printed problems sentence and nothing happens.
   - [x] Attacking the pirate shows the printed chase sentence and starts a Pirate fight.
@@ -3663,6 +3762,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Powered-Down Lanius Vessel
   - [x] No playable control, number, layout, or rule.
@@ -3766,6 +3867,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Rebel AI Scout Carrying Shield Virus
   - [x] No playable control, number, layout, or rule.
@@ -4220,6 +4323,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Rebels Supplying Civilians
   - [ ] The page states a mechanic and it is not a playable event.
@@ -4232,12 +4337,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Red-Tail
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Red Giant
   - [x] No playable control, number, layout, or rule.
@@ -4385,6 +4494,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A resisted ion projectile still hits the room when regular shields are down.
   - [x] Purchase price 45 is on the catalog.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Rewards
   - [x] SCRAP_MEDIUM bands.
@@ -4399,6 +4510,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Rock Armoured Transport
   - [ ] The page states a mechanic and it is not a playable event.
@@ -4417,6 +4530,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Rock Deserters
   - [ ] The page states a mechanic and it is not a playable event.
@@ -4462,6 +4577,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Rock Ship Being Mined by Lanius
   - [x] No playable control, number, layout, or rule.
@@ -4654,6 +4771,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Sectors
   - [x] SECTOR_TYPES is in sectors.ts.
@@ -4711,6 +4830,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Listen rolls a pirate-convincing fight or a space-dock rescue marker (surrender.ts).
   - [x] Decline on the opening card does nothing.
   - [ ] Letting them live shows the printed thank-you sentence and pays medium scrap without the unnamed weapon.
+    - [x] Letting them live shows the printed thank-you sentence and pays medium scrap.
+    - [ ] The unnamed weapon is not granted.
 
 - [x] Settlement mercenary work
   - [x] same title as "Settlement Mercenary Work" with different capitalization.
@@ -4720,6 +4841,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Shields
   - [x] layer times cited.
@@ -4735,6 +4858,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Ship Achievements
   - [x] Same 51-row catalog as Achievements.
@@ -4863,6 +4988,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Kestrel A starts unlocked.
   - [x] Layout B needs 2 of 3 ship achievements.
   - [ ] Only 12 of 51 achievements are tracked, so most B and C layouts cannot be earned.
+    - [x] 12 of 51 achievements are tracked.
+    - [ ] The other 39 achievements are not tracked.
+    - [ ] Most Layout B and C layouts cannot be earned.
   - [x] Advanced Edition stays on.
   - [ ] The article was not re-opened.
 
@@ -4871,12 +4999,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Simo-H
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Single Life Form on Moon
   - [x] No playable control, number, layout, or rule.
@@ -4913,6 +5045,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Slug Boarding Rock Freighter
   - [x] No playable control, number, layout, or rule.
@@ -4934,6 +5068,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Slug Disable Door System
   - [x] No playable control, number, layout, or rule.
@@ -4955,12 +5091,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Slug Home Nebula Surrender
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Slug Home Nebula surrender
   - [x] one beacon in a sector the page names, while a free beacon remains.
@@ -5281,18 +5421,24 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Stealth Weapons
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Store
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Store (Crystal)
   - [x] No playable control, number, layout, or rule.
@@ -5356,6 +5502,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Sweet Revenge
   - [ ] The page states a mechanic and it is not a playable event.
@@ -5394,12 +5542,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Teleporter
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Terraforming federation team C12
   - [x] No playable control, number, layout, or rule.
@@ -5424,12 +5576,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] The Adjudicator
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Basilisk
   - [x] No playable control, number, layout, or rule.
@@ -5481,6 +5637,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Gila Monster
   - [x] No playable control, number, layout, or rule.
@@ -5490,6 +5648,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Kestrel Cruiser
   - [x] layouts A–C in hulls.ts (The Kestrel, Red-Tail, The Swallow).
@@ -5524,12 +5684,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] The Osprey
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Rebel Flagship
   - [x] Phase numbers in flagship.ts are applied on the traced cutaway (flagshipStage), not the leftover two-row grid.
@@ -5558,6 +5722,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Slug Cruiser
   - [x] Man of War mounts Dual Lasers, Anti-Bio Beam, and Breach Bomb I.
@@ -5577,12 +5743,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] The Swallow
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Theseus
   - [x] No playable control, number, layout, or rule.
@@ -5592,6 +5762,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The United Federation
   - [x] No playable control, number, layout, or rule.
@@ -5601,6 +5773,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] The Zoltan Cruiser
   - [x] Noether starts with two Ion Blasts and Pike Beam (id shear).
@@ -5619,12 +5793,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Torus
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Tough Little Ship
   - [ ] The page states a mechanic and it is not a playable event.
@@ -5765,6 +5943,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Weapons
   - [x] family rules cited in content.ts and ordnance.ts.
@@ -5784,6 +5964,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [ ] Zoltan "Great Eye"
   - [ ] The page states a mechanic and it is not a playable event.
@@ -5814,6 +5996,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
+    - [x] Paragraph audit is pass 2.
+    - [ ] This is not a full page check.
 
 - [x] Zoltan Empty Beacon
   - [x] No playable control, number, layout, or rule.
@@ -5987,6 +6171,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Leaving shows the printed drop-off sentence and nothing happens.
   - [x] Destroying the ship pays medium scrap with resources then hiring the Zoltan for 40 scrap adds one Zoltan or does nothing.
   - [ ] A crew kill pays high scrap with the unnamed augmentation not granted.
+    - [x] A crew kill pays high scrap.
+    - [ ] The unnamed augmentation is not granted.
 
 - [x] Zoltan science ship
   - [x] Same card as "Zoltan ship asks to dock" (cited-events-surrender.ts aliases).

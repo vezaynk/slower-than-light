@@ -2288,6 +2288,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Boarders: Humans jammed sensors. "3-5 human boarders beam aboard your ship, and your Sensors are disabled."
   // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
   "c:boarders-humans-jammed-sensors:0": (g) => {
+    log(g, "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!");
     shutPlayerSensors(g);
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);
@@ -2512,6 +2513,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "If you counter the jam, the Hacking system is not disabled."
   "c:boarders-humans-jammed-sensors:1": (g) => {
     if ((g.player.kits.spike?.level ?? 0) <= 0) return;
+    log(g, "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders.");
     restorePlayerSensors(g);
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);

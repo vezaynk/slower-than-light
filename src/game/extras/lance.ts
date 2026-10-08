@@ -1,6 +1,7 @@
 import type { Door, Game, Room, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
@@ -186,7 +187,10 @@ export function tickLance(g: Game, dt: number): void {
     kit.aux = Math.max(0, kit.aux - dt / seconds);
     return;
   }
-  if (kit.aux < 1) kit.aux = Math.min(1, kit.aux + dt / seconds);
+  // Artillery Beam, Overview: "Automated Re-loaders augmentations work." The system "cannot be manned
+  // to reduce the charge time", so crew skill stays out. Augmentations, Automated Re-loader: one copy
+  // divides cooldown by 1.1, and three raise firing rate by 30%. The unpowered drain stays dt/2.
+  if (kit.aux < 1) kit.aux = Math.min(1, kit.aux + (dt * feedRate(g, "player")) / seconds);
   if (kit.aux < 1) return;
   if (!kit.target) {
     const rooms = g.enemy.rooms;

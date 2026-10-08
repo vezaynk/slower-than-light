@@ -129,6 +129,47 @@ describe("lance", () => {
     assert.ok(g.enemy.hull < hull);
   });
 
+  it("divides the charge clock by the Automated Re-loader rate", () => {
+    // Artillery Beam, Overview: "Automated Re-loaders augmentations work."
+    // The same paragraph: the system cannot be manned to reduce the charge time.
+    // Augmentations, Automated Re-loader: one copy divides cooldown by 1.1; three raise firing rate by 30%.
+    const once = armed(60);
+    assert.ok(once.enemy);
+    const kit = once.player.kits.lance;
+    assert.ok(kit);
+    kit.aux = 0;
+    kit.target = null;
+    once.augments.push("feed");
+    const hull = once.enemy.hull;
+    tickLance(once, 50 / 1.1 - 0.05);
+    assert.equal(once.enemy.hull, hull);
+    assert.ok(kit.aux < 1);
+    tickLance(once, 0.1);
+    assert.ok(once.enemy.hull < hull);
+
+    const triple = armed(61);
+    assert.ok(triple.enemy);
+    const fast = triple.player.kits.lance;
+    assert.ok(fast);
+    fast.aux = 0;
+    fast.target = null;
+    triple.augments.push("feed", "feed", "feed");
+    const before = triple.enemy.hull;
+    tickLance(triple, 50 / 1.3 - 0.05);
+    assert.equal(triple.enemy.hull, before);
+    tickLance(triple, 0.1);
+    assert.ok(triple.enemy.hull < before);
+
+    const draining = armed(62);
+    const dark = draining.player.kits.lance;
+    assert.ok(dark);
+    dark.power = 0;
+    dark.aux = 1;
+    draining.augments.push("feed", "feed", "feed");
+    tickLance(draining, 0.2);
+    assert.equal(dark.aux, 0.9);
+  });
+
   it("mounts for free and records the wiki costs", () => {
     const g = createGame(7);
     assert.equal(INSTALL_COST, null);

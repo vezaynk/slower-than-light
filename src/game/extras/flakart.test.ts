@@ -386,6 +386,38 @@ describe("flak burst", () => {
     tickFlak(idle, 2);
     assert.equal(parked.aux, 50);
   });
+
+  it("divides the charge clock by the Automated Re-loader rate", () => {
+    // Flak Artillery, Overview: "Automated Re-loaders work."
+    // Augmentations, Automated Re-loader: one copy divides cooldown by 1.1; three raise firing rate by 30%.
+    const once = fight(40);
+    armFed(once, 1);
+    once.augments.push("feed");
+    tickFlak(once, 50 / 1.1 - 0.05);
+    assert.equal(once.shots.length, 0);
+    tickFlak(once, 0.1);
+    expectBurst(once.shots);
+
+    const triple = fight(41);
+    armFed(triple, 1);
+    triple.augments.push("feed", "feed", "feed");
+    tickFlak(triple, 50 / 1.3 - 0.05);
+    assert.equal(triple.shots.length, 0);
+    tickFlak(triple, 0.1);
+    expectBurst(triple.shots);
+
+    const draining = fight(42);
+    armFlak(draining, 1);
+    draining.augments.push("feed", "feed", "feed");
+    const kit = draining.player.kits.flak;
+    assert.ok(kit);
+    kit.power = 0;
+    kit.on = true;
+    kit.aux = 50;
+    tickFlak(draining, 1);
+    assert.equal(kit.aux, 25);
+    assert.equal(draining.shots.length, 0);
+  });
 });
 
 const bp = (n: number) => n / 10000;

@@ -1,5 +1,6 @@
 import { noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
+import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
 
@@ -165,7 +166,10 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
     kit.aux = Math.max(0, kit.aux - dt);
     return;
   }
-  kit.aux += dt;
+  // Flak Artillery, Overview: "Automated Re-loaders work." The system "cannot be manned", so crew skill
+  // does not shorten this clock. Augmentations, Automated Re-loader: one copy divides cooldown by 1.1,
+  // and three raise firing rate by 30%. The drain above stays on the printed clock.
+  kit.aux += dt * feedRate(g, from);
   if (kit.aux < clock) return;
   const rooms = other?.rooms ?? [];
   if (rooms.length === 0) {

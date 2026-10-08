@@ -261,7 +261,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-ship-follows-mantis-ship",
     aliases: ["Zoltan ship follows Mantis ship", "Zoltan Follows Mantis", "Zoltan follows Mantis"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field.",
+    body: "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, \"Your presence here will continue to be tolerated - but please, do not interfere.\"",
     choices: [
       {
         id: "c:zoltan-ship-follows-mantis-ship:0",

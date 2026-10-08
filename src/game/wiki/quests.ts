@@ -1119,6 +1119,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:zoltan-security-checkpoint:0": (g) => {
     pageFight(g, "Expecting resistance, their Energy Shield is raised and ready for combat.", "Zoltan ship", "zoltan-security-checkpoint");
   },
+  // Lanius ship in rich debris field. "Attack the vessel." One printed lead-in, then a Lanius ship fight.
+  "c:lanius-ship-in-rich-debris-field:1": (g) => {
+    pageFight(g, "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.", "Lanius ship", "lanius-ship-in-rich-debris-field");
+  },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
     result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);

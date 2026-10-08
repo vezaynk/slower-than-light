@@ -3713,7 +3713,7 @@ const ZOLTAN_FIGHT_INTROS = [
 ];
 
 // Crystal fight. Seven printed intros, no odds. INFERRED: equal.
-// The fight stays c:crystal-fight:0. The surrender lines on that page are not added here.
+// The fight stays c:crystal-fight:0. The unique surrender is surrender.ts.
 const CRYSTAL_FIGHT_INTROS = [
   "You arrive near a fleet of crystal ships, civilian or mercantile from the looks of them. You pause to scan one but they react immediately and send an escort to fight you off. Prepare to engage!",
   "You arrive at the Beacon and are immediately greeted by an automatic message or warning of some kind. The translator can't seem to discern its purpose but after a few short moments an alarm goes off and a hostile ship jumps in!",

@@ -153,6 +153,28 @@ export const NO_SURRENDER_EVENTS = new Set([
   "crystal-fight-choice",
 ]);
 
+/** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */
+const CRYSTAL_FIGHT_HAILS = [
+  "\"We yield, aliens. We have no wish to die fighting you.\"",
+  "\"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace.\"",
+  "They appear to be transmitting the universal signals for surrender. Will you let them go?",
+  "They message you, \"I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?\"",
+  "\"We cannot beat you, we surrender. Surely there is mercy wherever you come from.\"",
+];
+
+/** {{DuplicateEvent|3}} on the goods. The printed OR is the three sentences. INFERRED: equal inside that weight. */
+const CRYSTAL_FIGHT_GOODS = [
+  "\"Thank you. I hope our early aggression will not prevent a future accord between our peoples.\" They transfer some goods as a means of compensation.",
+  "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\".",
+  "\"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this.\"",
+];
+
+/** {{DuplicateEvent|2}} on nothing. The printed OR is the two sentences. INFERRED: equal inside that weight. */
+const CRYSTAL_FIGHT_NOTHING = [
+  "\"Thank you. We have misjudged you and will not forget your kindness.\" They leave without another word.",
+  "They respond, \"Good. I'm glad to hear that there are still those who value life throughout the galaxy.\" They abruptly cut communications and prepare to jump away.",
+];
+
 /** What a scripted surrender hands over. Each kind is the page's own reward line, quoted on its row below. */
 export type ScriptedReward =
   | { k: "crew"; race?: string }
@@ -190,6 +212,8 @@ export type ScriptedSurrender = {
   card?: { body: string; choices: { id: string; label: string }[] };
   /** @agent:quests. A third answer the page prints on the surrender card, handled in wiki/quests.ts. */
   extra?: { id: string; label: string };
+  /** Printed surrender lines with no odds. INFERRED: equal. One is shown instead of `hail`. */
+  hails?: string[];
 };
 
 /**
@@ -198,6 +222,20 @@ export type ScriptedSurrender = {
  * Each reward is only what the page names; nothing else is added.
  */
 export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
+  // Crystal fight. {{SurrenderEscape(alt)|surrenderofferchance*|CRYSTAL_SHIP|events_ships.xml|40|30-40|3-4}}.
+  // The template uses the 40% and the 30-40 hull. It does not print the trailing 3-4.
+  // Accept is a soldier (once), goods ({{DuplicateEvent|3}}), or nothing ({{DuplicateEvent|2}}). surrenderChoose.
+  "crystal-fight": {
+    page: "Crystal fight",
+    chance: 40,
+    low: 30,
+    high: 40,
+    reward: { k: "none" },
+    hails: CRYSTAL_FIGHT_HAILS,
+    hail: CRYSTAL_FIGHT_HAILS[0],
+    accept: "Accept their surrender.",
+    refuse: "Ignore them.",
+  },
   // "Crystal fight with surrender offer (Human crew)": CRYSTAL_HUNTER, {{SurrenderEscape(alt)|surrenderofferchance*|...|50|30-40}}.
   // "Accept their surrender." -> "You receive a Human crewmember and the fight continues." (ref: "The surrender is
   // lacking the usual tag to stop the fight").
@@ -702,10 +740,13 @@ function openOffer(g: Game) {
   g.targeting = false;
   g.beamAnchor = null;
   // INVENTED: the hail text. The page gives no generic surrender line. A scripted surrender uses its page's text.
+  const hail = scripted?.hails?.length
+    ? scripted.hails[Math.min(scripted.hails.length - 1, Math.floor(rand(g) * scripted.hails.length))]!
+    : scripted?.hail;
   g.event = scripted
     ? {
         title: "Surrender",
-        body: plan.offer.note ? `${scripted.hail} They offer: ${plan.offer.note}` : scripted.hail,
+        body: plan.offer.note ? `${hail} They offer: ${plan.offer.note}` : hail!,
         // @agent:surrender. A `forced` page ("no option or prompt to decline") shows only the accept choice.
         choices: [
           ...(scripted.forced
@@ -811,6 +852,47 @@ export function payOffer(g: Game, offer: SurrenderOffer, scripted: boolean): { w
   return { weaponName, extras };
 }
 
+function weightedPick<T>(g: Game, items: [T, number][]): T {
+  let roll = rand(g) * items.reduce((sum, [, w]) => sum + w, 0);
+  for (const [item, w] of items) {
+    roll -= w;
+    if (roll < 0) return item;
+  }
+  return items[items.length - 1]![0];
+}
+
+/**
+ * Crystal fight, Accept their surrender. Soldier once, goods {{DuplicateEvent|3}}, nothing {{DuplicateEvent|2}}.
+ * A random amount of resources is rollStandard with no tier.
+ */
+function crystalFightAccept(g: Game) {
+  const kind = weightedPick(g, [
+    ["soldier", 1],
+    ["goods", 3],
+    ["nothing", 2],
+  ] as ["soldier" | "goods" | "nothing", number][]);
+  if (kind === "soldier") {
+    pageCard(
+      g,
+      "What appears to be a young soldier pushes its way onto the vid screen, \"A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?\"",
+      [
+        { id: "s:crystal-fight:yes", label: "Yes." },
+        { id: "s:crystal-fight:no", label: "No." },
+      ],
+    );
+    g.paused = true;
+    return;
+  }
+  closeFight(g);
+  if (kind === "goods") {
+    const line = CRYSTAL_FIGHT_GOODS[Math.min(CRYSTAL_FIGHT_GOODS.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_GOODS.length))]!;
+    pageResult(g, line, rollStandard(g));
+    return;
+  }
+  const line = CRYSTAL_FIGHT_NOTHING[Math.min(CRYSTAL_FIGHT_NOTHING.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_NOTHING.length))]!;
+  pageResult(g, `${line}\n\nNothing happens.`);
+}
+
 /** choose() routes here first. Returns true when the id was a surrender choice. */
 export function surrenderChoose(g: Game, id: string): boolean {
   // @agent:quests. Quest-marker destinations, their follow-up cards, and the cited choices that start a quest branch.
@@ -835,7 +917,14 @@ export function surrenderChoose(g: Game, id: string): boolean {
     // present. The enemy indicator on the map will also disappear after jumping away."
     const b = here(g);
     if (b && b.kind !== "boss") b.resolved = true;
-    log(g, "Offer refused. They brace for more.");
+    // Crystal fight, Ignore them: "The fight continues."
+    log(g, plan.event === "crystal-fight" ? "You cut off communications and prepare to finish them off." : "Offer refused. They brace for more.");
+    return true;
+  }
+  // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.
+  if (plan.event === "crystal-fight") {
+    plan.accepted = true;
+    crystalFightAccept(g);
     return true;
   }
   const offer = plan.offer ?? rollSurrenderOffer(g);
@@ -1270,6 +1359,23 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:the-black-raven:decline": (g) => {
     pageFight(g, "\"I sssee... However you have no choice in the matter!\" They move in to attack.", "Slug Assault pirate ship", "the-black-raven");
+  },
+
+  // Crystal fight, Accept, Yes. A Crystal crewmember. The ship still holds at most 8 (INFERRED: the page prints no ninth).
+  "s:crystal-fight:yes": (g) => {
+    closeFight(g);
+    const joined = joinCrew(g, "Crystal");
+    pageResult(
+      g,
+      joined
+        ? "\"Great!\" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.\n\nYou receive a Crystal crewmember."
+        : "\"Great!\" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.\n\nThere is no room aboard for their crewmember.",
+    );
+  },
+  // Crystal fight, Accept, No. "a random amount of resources with some scrap."
+  "s:crystal-fight:no": (g) => {
+    closeFight(g);
+    pageResult(g, "\"I understand. We did try to kill you...\" They transfer some materials over before leaving.", rollStandard(g));
   },
 
   // ---- "Zoltan ship asks to dock", Dock with them. Two results on the page. ----

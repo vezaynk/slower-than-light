@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -43,5 +43,32 @@ describe("Pirate fight (Zoltan)", () => {
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-fight-zoltan");
     assert.equal(g.scrap, 10);
+  });
+
+  it("starts the Pirate ship on arrival and leaves no button", () => {
+    // The page has no choice. One of the five printed intros, then "Fight a Pirate ship."
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:pirate-fight-zoltan";
+    dest.name = "Pirate fight (Zoltan)";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.pirate, true);
+    assert.equal(g.fightEvent, "pirate-fight-zoltan");
+    assert.equal(g.fleet, 1);
+    assert.ok(INTROS.some((line) => g.log.includes(line)));
   });
 });

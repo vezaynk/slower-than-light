@@ -64,6 +64,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
+  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   {
     dest: "Pirate fight (Zoltan)",
     slug: "pirate-fight-zoltan",

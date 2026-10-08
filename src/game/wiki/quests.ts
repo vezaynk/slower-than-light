@@ -1184,6 +1184,87 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:refueling-platform-garbled-broadcast:1": (g) => {
     result(g, "You leave the platform alone, and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Refueling platform garbled broadcast. "Dock with the platform." The berth, then signal or the blast doors.
+  "c:refueling-platform-garbled-broadcast:2": (g) => {
+    card(g, "Your ship enters one of the refueling station berths, grateful for a rest.", [
+      { id: "s:garbled-dock:signal", label: "Signal for a refuel." },
+      { id: "s:garbled-dock:doors", label: "Secure your blast doors - best to be safe when docked." },
+    ]);
+  },
+  // "Signal for a refuel." Three results, no odds and no DuplicateEvent. INFERRED: equal, one of three.
+  "s:garbled-dock:signal": (g) => {
+    const kind = pick(g, ["abandoned", "trap", "breach"] as const);
+    if (kind === "abandoned") {
+      const n = between(g, [3, 5]);
+      g.fuel += n;
+      log(g, `Fuel: ${n}.`);
+      card(g, "No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.", [
+        { id: "s:garbled-dock:continue", label: "Continue..." },
+        { id: "s:garbled-dock:sensors2", label: "Run another scan at maximum sensitivity." },
+        { id: "s:garbled-dock:sensors3", label: "Run another scan at maximum sensitivity." },
+      ]);
+      return;
+    }
+    if (kind === "trap") {
+      if (damageHull(g, 3)) return;
+      hurtSystem(g.player, "engines", 3);
+      pageFight(g, "What seemed to be a brief respite turns into a Lanius trap... the first warning is an explosion from your engine room, followed moments later by detection of a Lanius ship at sensor range!", "Lanius ship", "refueling-platform-garbled-broadcast");
+      return;
+    }
+    // A breach in one room. INFERRED: every player room is equally likely. The page prints no system damage.
+    const rooms = g.player.rooms;
+    const hit = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
+    if (hit) hit.breach += 1;
+    pageFight(g, "Your ship's dash suddenly lights up with warnings - a hull breach! Lanius were on board the platform and are now on board your ship. A hidden cruiser comes into view!", "Lanius ship", "refueling-platform-garbled-broadcast");
+    const land = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
+    const hp = kinOf("voidlung").hp;
+    g.uid = (g.uid + 1) >>> 0;
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: "Lanius",
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room: land?.id ?? "p-medbay",
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin: "voidlung",
+    });
+    log(g, "1 lanius boarder beams aboard your ship.");
+  },
+  // Blast Doors, level 2+. questChoose already skips this when the requirement fails.
+  "s:garbled-dock:doors": (g) => {
+    if ((g.player.systems.doors?.level ?? 0) < 2) return;
+    g.fuel += 5;
+    log(g, "Fuel: 5.");
+    result(g, "Your reinforced doors save you from an attempted ambush by the Lanius, who cluster around the doors and hull, attempting to consume your ship. Coldly, you wipe them out one by one with your weapon array, then take control of the station and take its fuel reserves.");
+  },
+  // Abandoned follow-up. The page prints no italic before this line.
+  "s:garbled-dock:continue": (g) => {
+    result(g, "Nothing happens.");
+  },
+  // Improved Sensors, level 2. The button stays on the abandoned card. questChoose skips a ship that is short.
+  "s:garbled-dock:sensors2": (g) => {
+    if (sensors(g) < 2) return;
+    const n = between(g, [1, 3]);
+    g.fuel += n;
+    log(g, `Fuel: ${n}.`);
+    result(g, "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel.");
+  },
+  // Advanced Sensors, level 3. Same label as the level-2 scan. A level-3 ship may take either; neither is picked for it.
+  "s:garbled-dock:sensors3": (g) => {
+    if (sensors(g) < 3) return;
+    const fuel = between(g, [2, 3]);
+    const parts = between(g, [1, 3]);
+    g.fuel += fuel;
+    g.player.parts += parts;
+    log(g, `Fuel: ${fuel}.`);
+    log(g, `Drone parts: ${parts}.`);
+    result(g, "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel and drone parts.");
+  },
   // Refueling platform. "Ignore the refueling platform."
   // {{DuplicateEvent|2}} is Nothing happens, then one printed pirate-bait fight.
   // INFERRED: those three printed slots are weights 2 and 1. Nothing has no italic.
@@ -2225,6 +2306,15 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   }
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
   if (id === "s:the-black-raven:duel" && !hasSlug(g)) return "Needs a Slug crewmember";
+  // Refueling platform garbled broadcast. Blast Doors, level 2+.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "s:garbled-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return "Needs level 2 Door System";
+  // Improved Sensors, level 2. The scan stays on the abandoned card.
+  // INFERRED: the refusal line. The page names level 2 and does not print this sentence.
+  if (id === "s:garbled-dock:sensors2" && sensors(g) < 2) return "Needs Sensors level 2";
+  // Advanced Sensors, level 3.
+  // INFERRED: the refusal line. The page names level 3 and does not print this sentence.
+  if (id === "s:garbled-dock:sensors3" && sensors(g) < 3) return "Needs Sensors level 3";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
   if (id === "q:war-camp:firebomb" && g.missiles < 2) return "Need 2 missiles";
   if (id === "q:station:fuel4" && g.fuel < 4) return "Need 4 fuel";
@@ -2719,6 +2809,20 @@ function pirateGone(g: Game) {
   result(g, "The pirate's victim quickly jumps away before you have a chance to speak to them.", undefined, ["Nothing happens."]);
 }
 
+/** Refueling platform garbled broadcast. Both endings pay medium scrap with resources, then the station's fuel.
+ *  The extra fuel is inclusive 3-5 on top of whatever rollStandard already paid. No Investigate button. */
+function garbledBroadcastWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+    : "The ship explodes, leaving behind a collection of useful scrap material.";
+  const offer = rollStandard(g, "medium");
+  const extra = between(g, [3, 5]);
+  const line = `Fuel: ${extra}.`;
+  g.fuel += extra;
+  result(g, `${text}\n\nIt looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.`, offer, [line]);
+  log(g, line);
+}
+
 /** Pirate ship attacking civilian, and the Lanius variant. Destroyed is medium standard.
  *  A crew kill is high. Then Contact the civilian ship. */
 function pirateCivilianWin(g: Game, deadCrew: boolean) {
@@ -2944,6 +3048,9 @@ export const PAGE_WINS: Record<string, Win> = {
       : "The ship explodes, leaving behind a collection of useful scrap material.";
     result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-debris:investigate", label: "Investigate the debris." }]);
   },
+  // Refueling platform garbled broadcast. Every Lanius fight on the page, including the hail.
+  // Both endings pay medium scrap with resources, then 3-5 fuel from the station. Not default salvage.
+  "refueling-platform-garbled-broadcast": garbledBroadcastWin,
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {
     const hail = deadCrew

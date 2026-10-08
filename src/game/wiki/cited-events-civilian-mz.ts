@@ -468,6 +468,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Ignore the platform",
         fx: [{ k: "nothing" }],
       },
+      {
+        id: "c:refueling-platform-garbled-broadcast:2",
+        label: "Dock with the platform",
+        fx: [{ k: "nothing" }],
+      },
     ],
   },
   /** "Fight the pirate ship." */

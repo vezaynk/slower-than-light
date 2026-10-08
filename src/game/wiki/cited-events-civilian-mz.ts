@@ -130,7 +130,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Engi Homeworlds",
       "Pirate Controlled Sector",
     ],
-    body: "",
+    body: "A pirate ship was lying in wait inside this asteroid field. It immediately moves in to attack.",
     choices: [
       {
         id: "c:pirate-fight-in-asteroid-field:0",

@@ -2299,7 +2299,7 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Stronghold",
       "The Last Stand"
     ],
-    "body": "",
+    "body": "You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.",
     "choices": [
       {
         "id": "c:rebel-ship-attacking-refueling-outpost:0",

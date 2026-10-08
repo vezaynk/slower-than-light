@@ -849,6 +849,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!g.augments.includes("nav")) return;
     result(g, "We're receiving your transmission... Wow, I didn't know that chain-jumping was possible with this class of ship. We'll get back in a single jump! Thank you so much, please accept this.", rollStandard(g, "high"));
   },
+  // Auto-ship warning. One printed lead-in, then the running Auto-ship. Escape stays the 40 second pursuit row.
+  "c:auto-ship-warning:0": (g) => {
+    pageFight(g, "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!", "Auto-ship", "auto-ship-warning");
+  },
   // Pirate briber. Low scrap with resources. The static tier note does not pay the resources.
   "c:pirate-briber:0": (g) => {
     result(g, "\"Good choice, son. We've both come out of this richer.\"", rollStandard(g, "low"));

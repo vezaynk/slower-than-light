@@ -237,7 +237,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       {
         id: "c:lanius-fight-in-asteroid-field:0",
         label: "Fight a Lanius ship",
-        fx: [{ k: "fight", tier: "Lanius ship" }],
+        fx: [{ k: "fight", tier: "Lanius ship", asteroid: true }],
       },
     ],
   },

@@ -3301,6 +3301,14 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Crystal fight with surrender offer (Human crew). Both endings pay medium scrap with resources.
+  // The surrender human is a separate offer. This win does not grant a crewmember.
+  "crystal-fight-with-surrender-offer-human-crew": std(
+    "medium",
+    "medium",
+    "The Crystalline ship shatters and you pick what you can from the debris. Who knows how many people you've saved by stopping this ship.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can. Who knows how many people you've saved by stopping this ship.",
+  ),
   // Rebel ship attacking civilians in Last Stand. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the survivors.
   "rebel-ship-attacking-civilians-in-last-stand": std(

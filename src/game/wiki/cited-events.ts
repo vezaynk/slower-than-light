@@ -1,5 +1,6 @@
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
+import { adjustScrap } from "../extras/index.ts";
 import { EXTRA_EVENTS as AUTO_EVENTS } from "./cited-events-auto.ts";
 import { EXTRA_EVENTS as CIVILIAN_AL } from "./cited-events-civilian-al.ts";
 import { EXTRA_EVENTS as CIVILIAN_MZ } from "./cited-events-civilian-mz.ts";
@@ -2694,7 +2695,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "",
+    "body": "There is a black market hub here. You receive a message, \"These are dangerous times. If you have extra military-grade explosives, we'll gladly pay you for them.\"",
     "choices": [
       {
         "id": "c:sell-missiles-for-scrap:0",
@@ -3408,6 +3409,22 @@ function roll(ctx: CitedChoice, lo: number, hi: number): number {
   return lo + ctx.irand(hi - lo + 1);
 }
 
+/**
+ * Sell missiles for scrap: "Thank you, this will help greatly."
+ * Trivia on that page: Scrap Recovery Arm and Repair Arm change the scrap reward.
+ * The percents are Augmentations. This page does not print them.
+ */
+function sellMissileThanks(id: string): string | null {
+  if (
+    id === "c:sell-missiles-for-scrap:0" ||
+    id === "c:sell-missiles-for-scrap:1" ||
+    id === "c:sell-missiles-for-scrap:2"
+  ) {
+    return "\"Thank you, this will help greatly.\"";
+  }
+  return null;
+}
+
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
@@ -3425,6 +3442,16 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   for (const c of costs) spend(g, c.id, c.n);
   for (const gn of gains) {
+    const thanks = gn.id === "scrap" ? sellMissileThanks(id) : null;
+    if (thanks) {
+      // Score: Scrap Recovery Arm's bonus is not eligible. Repair Arm's cut stays in the eligible amount.
+      const got = adjustScrap(g, gn.n);
+      if (got > 0) g.scrap += got;
+      if (gn.n > 0) g.scrapCollected = (g.scrapCollected ?? 0) + gn.n;
+      ctx.note(thanks);
+      ctx.note(`You receive ${got} scrap.`);
+      continue;
+    }
     if (gn.id === "scrap") ctx.scrap(gn.n);
     else if (gn.id === "fuel") g.fuel += gn.n;
     else if (gn.id === "missiles") g.missiles += gn.n;

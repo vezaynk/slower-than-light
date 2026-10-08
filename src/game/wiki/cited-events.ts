@@ -3366,9 +3366,52 @@ function findChoice(id: string): ChoiceDef | null {
   return null;
 }
 
+type TradeRes = "fuel" | "missiles" | "parts";
+
+// Trade resources. The page prints six intros and four offers, and no odds.
+// INFERRED: each intro is equally likely, and each of the four offers is equally likely.
+const TRADE_RESOURCE_INTROS = [
+  `You arrive at a quiet spaceport and are immediately hailed by another ship at port with a "once in a lifetime deal!"`,
+  "You jump into a sector filled with civilian activity. Your scan the various advertisement channels while waiting for your FTL to charge, and are intrigued by a grey-market shipwright.",
+  "Your ship is flooded with advertisement transmissions from nearby merchants as soon as you arrive at this beacon. You arbitrarily pick one to examine in detail.",
+  "Despite the barren area, a trader has set up shop at this beacon. He presents his offer.",
+  "The beacon at first glance seems home to a junk yard. Upon closer inspection, it reveals itself to be a ramshackle market. One trader has a deal that catches your eye.",
+  "A pawn broker has set up shop at this obscure beacon. He might be offering something worth looking at.",
+];
+
+const TRADE_RESOURCE_OFFERS: { pay: TradeRes; cost: [number, number]; get: TradeRes; gain: [number, number] }[] = [
+  { pay: "parts", cost: [1, 2], get: "fuel", gain: [5, 10] },
+  { pay: "fuel", cost: [1, 2], get: "missiles", gain: [4, 5] },
+  { pay: "missiles", cost: [2, 3], get: "parts", gain: [2, 3] },
+  { pay: "missiles", cost: [2, 4], get: "fuel", gain: [4, 10] },
+];
+
+const TRADE_RESOURCES_TAKE = /^c:trade-resources:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
+
+function tradeNote(id: TradeRes, n: number): string {
+  const word = id === "fuel" ? "Fuel" : id === "missiles" ? "Missiles" : "Drone parts";
+  return `${word}: ${n}.`;
+}
+
+function tradeResourcesEvent(g: Game, title: string): GameEvent {
+  const intro = TRADE_RESOURCE_INTROS[between(g, [0, 5])]!;
+  const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
+  const cost = between(g, offer.cost);
+  const gain = between(g, offer.gain);
+  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
+  return {
+    title,
+    body: `${intro} ${sentence}`,
+    choices: [
+      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
+      { id: "c:trade-resources:4", label: "Ignore." },
+    ],
+  };
+}
+
 /** True when this id is one of the wired choices, including a price the ship cannot pay. */
 export function citedOwns(id: string): boolean {
-  return findChoice(id) != null;
+  return findChoice(id) != null || TRADE_RESOURCES_TAKE.test(id);
 }
 
 // @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
@@ -3603,6 +3646,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Trade resources. One rolled offer is shown before Trade or Ignore. Not the nebula page.
+  if (ev.slug === "trade-resources") return tradeResourcesEvent(g, ev.dest);
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);
@@ -3624,6 +3669,13 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
+  const take = TRADE_RESOURCES_TAKE.exec(id);
+  if (take) {
+    const pay = take[1] as TradeRes;
+    const cost = Number(take[2]);
+    if (stock(g, pay) < cost) return `Need ${cost} ${RES_WORD[pay]}`;
+    return null;
+  }
   const choice = findChoice(id);
   if (!choice) return null;
   for (const fx of choice.fx) {
@@ -3674,6 +3726,23 @@ function sellStationThanks(id: string): string | null {
 
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
+  const take = TRADE_RESOURCES_TAKE.exec(id);
+  if (take) {
+    const g = ctx.g;
+    const pay = take[1] as TradeRes;
+    const cost = Number(take[2]);
+    const get = take[3] as TradeRes;
+    const gain = Number(take[4]);
+    if (stock(g, pay) < cost) return false;
+    spend(g, pay, cost);
+    if (get === "fuel") g.fuel += gain;
+    else if (get === "missiles") g.missiles += gain;
+    else g.player.parts += gain;
+    ctx.note(tradeNote(pay, -cost));
+    ctx.note(tradeNote(get, gain));
+    ctx.resolve();
+    return true;
+  }
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;

@@ -123,8 +123,13 @@ describe("Lanius ship absorbing automated scout", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-absorbing-automated-scout:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "Whatever assistance the disabled scout could provide is not worth the risk of fighting another Lanius. You prepare to move on.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
   });
 });

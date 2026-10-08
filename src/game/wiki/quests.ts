@@ -1124,6 +1124,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-rock:1": (g) => {
     result(g, "As you make your escape, the Rockman's ship's engines explode, and you watch the Lanius ship slowly feed on the remains - and the crew.", undefined, ["Nothing happens."]);
   },
+  // Lanius ship absorbing automated scout. "Leave them alone." One printed result. Do not inspect the scout.
+  "c:lanius-ship-absorbing-automated-scout:1": (g) => {
+    result(g, "Whatever assistance the disabled scout could provide is not worth the risk of fighting another Lanius. You prepare to move on.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

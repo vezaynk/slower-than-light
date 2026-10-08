@@ -73,6 +73,7 @@ import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { hullById } from "./hulls.ts";
+import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
 import { roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
@@ -3779,7 +3780,7 @@ function winCombat(g: Game) {
       const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
       options = options.filter((w) => allowed.has(w.id));
     }
-    if (options.length && g.player.weapons.length < 3) {
+    if (options.length && g.player.weapons.length < weaponSlotCap(g)) {
       const def = pick(g, options);
       giveWeapon(g, def.id);
       notes.push(`${def.name} mounted.`);
@@ -3797,9 +3798,16 @@ function winCombat(g: Game) {
   if (b) b.resolved = true;
 }
 
-// INVENTED: three weapon slots.
+/**
+ * Cruiser pages print the count on the layout: "Weapons (N slots)" or "Slots: N Weapon".
+ * The Lark is not one of those hulls. INVENTED: three slots when no count is printed.
+ */
+export function weaponSlotCap(g: Game): number {
+  return printedWeaponSlots(g.hullId) ?? 3;
+}
+
 function giveWeapon(g: Game, defId: string) {
-  if (g.player.weapons.length >= 3) return;
+  if (g.player.weapons.length >= weaponSlotCap(g)) return;
   if (g.player.weapons.some((w) => w.defId === defId)) return;
   g.player.weapons.push({
     uid: uid(g),
@@ -4828,7 +4836,7 @@ export function buy(g: Game, id: string) {
     log(g, `Bought ${item.name}.`);
     return;
   }
-  if (item.kind === "weapon" && g.player.weapons.length >= 3) {
+  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g)) {
     log(g, "No free weapon slot.");
     return;
   }

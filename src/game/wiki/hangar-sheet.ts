@@ -6,7 +6,7 @@
  * Augmentations, and Unlock. A layout is Advanced Edition when its own lines
  * say so. Crystal and Lanius have no Layout C in the pages, so none is added.
  */
-import type { CruiserLayout, WikiLine } from "./layout-pages.ts";
+import { CRUISER_PAGES, type CruiserLayout, type WikiLine } from "./layout-pages.ts";
 
 export type HangarSystem = { name: string; level: number };
 
@@ -101,4 +101,15 @@ export function hangarSheet(layout: CruiserLayout): HangarSheet {
     unlock: unlock?.items ?? [],
     advanced: layoutNeedsAe(layout),
   };
+}
+
+const printedSlots = new Map<string, number | null>();
+for (const page of CRUISER_PAGES) {
+  for (const layout of page.layouts) printedSlots.set(layout.id, hangarSheet(layout).weaponSlots);
+}
+
+/** Cruiser layout lines: "Weapons (N slots)" or "Slots: N Weapon". Null when that id is not a layout. */
+export function printedWeaponSlots(hullId: string | undefined): number | null {
+  if (!hullId) return null;
+  return printedSlots.get(hullId) ?? null;
 }

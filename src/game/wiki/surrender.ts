@@ -15,7 +15,7 @@ import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { beginBoarding, log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, log, rand, startCombat, weaponSlotCap } from "../sim.ts";
 import type { Crew, Difficulty, Game } from "../types.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
@@ -480,7 +480,7 @@ export function between(g: Game, [lo, hi]: [number, number]): number {
  * rewards ... are random tier." "A successful 6% bonus item roll modifies the scrap part of the reward to match the
  * resources tier."
  * INFERRED: "random tier" is low, medium or high with equal odds; the two resources are different ones.
- * INFERRED: the bonus item is a weapon the ship does not own, and is dropped when all three slots are full.
+ * INFERRED: the bonus item is a weapon the ship does not own, and is dropped when the printed slot count is full.
  */
 export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = false): SurrenderOffer {
   // A scripted page can name the tier ("high ... resources with some scrap"); the draw is skipped then.
@@ -493,7 +493,7 @@ export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = fal
   });
   // `noBonus`: a page gift (not a surrender) that names its reward; the unnamed bonus item is not granted there.
   const bonus = !noBonus && rand(g) < 0.06;
-  if (bonus && g.player.weapons.length < 3) {
+  if (bonus && g.player.weapons.length < weaponSlotCap(g)) {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
     const options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
     if (options.length) offer.weapon = options[Math.min(options.length - 1, Math.floor(rand(g) * options.length))].id;
@@ -770,7 +770,7 @@ export function payOffer(g: Game, offer: SurrenderOffer, scripted: boolean): { w
   g.missiles += offer.missiles;
   g.player.parts += offer.parts;
   let weaponName: string | undefined;
-  if (offer.weapon && g.player.weapons.length < 3 && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
+  if (offer.weapon && g.player.weapons.length < weaponSlotCap(g) && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
     // Same slot rule and id scheme as sim.ts giveWeapon.
     g.uid = (g.uid + 1) >>> 0;
     g.player.weapons.push({ uid: "u" + g.uid.toString(36), defId: offer.weapon, charge: 0, enabled: false, autofire: false, target: null });

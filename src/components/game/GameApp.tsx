@@ -79,6 +79,7 @@ import {
   togglePause,
   upgrade,
   weaponChargeShown,
+  weaponSlotCap,
   weaponsPowerLocked,
 } from "@/game/sim";
 import { useGame } from "@/game/store";
@@ -964,7 +965,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               </button>
             );
           })}
-          {Array.from({ length: Math.max(0, 3 - game.player.weapons.length) }, (_, i) => (
+          {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
             <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
           ))}
         </div>

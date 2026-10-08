@@ -501,6 +501,33 @@ describe("Rebel fight with boarders", () => {
     }
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "2-3 human boarders beam aboard your ship" and a Rebel ship.
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:rebel-fight-with-boarders";
+    dest.name = "Rebel fight with boarders";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "rebel");
+    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+    assert.ok(humans.length >= 2 && humans.length <= 3, String(humans.length));
+    assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
+  });
 });
 
 describe("Mantis outcasts", () => {

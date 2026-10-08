@@ -5132,7 +5132,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
     // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:zoltan-border-police:0") zoltanBoarders(g, 3, 4);
-    // "2-3 human boarders beam aboard your ship" (Rebel fight with boarders).
+    // Rebel fight with boarders has no choice. Arrival calls this id.
+    // "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).

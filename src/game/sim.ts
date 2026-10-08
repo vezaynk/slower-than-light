@@ -5062,6 +5062,7 @@ function arrive(g: Game, b: Beacon) {
   // Resource amounts are not stated, so the existing tier note still withholds them.
   // Mantis outcasts: "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
   // Zoltan border police: "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
+  // Rebel fight with boarders: "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5074,7 +5075,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:boarders-rebels-in-nebula" ||
       b.flag === "cited:boarders-humans-in-plasma-storm" ||
       b.flag === "cited:mantis-outcasts" ||
-      b.flag === "cited:zoltan-border-police") &&
+      b.flag === "cited:zoltan-border-police" ||
+      b.flag === "cited:rebel-fight-with-boarders") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

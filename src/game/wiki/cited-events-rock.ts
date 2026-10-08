@@ -214,4 +214,34 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Disabled Rock ship. Strip, leave, and the Slug lookout run in filler-events.ts.
+    // Strip and the lookout pay a random amount of scrap. Leave prints DuplicateEvent|2 on nothing.
+    dest: "Disabled Rock ship",
+    slug: "disabled-rock-ship",
+    flag: "cited:disabled-rock-ship",
+    aliases: ["Disabled Rock ship"],
+    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
+    body: "You find a disabled rock transport floating near the beacon. You consider stripping it of useful parts but are uncertain why it's there in the first place.",
+    choices: [
+      {
+        id: "c:disabled-rock-ship:0",
+        label: "Strip the ship.",
+        // Random scrap, or that scrap and a Rock ship. No odds. INFERRED: equal.
+        fx: [{ k: "note", text: "Random scrap, or that scrap and a Rock ship." }],
+      },
+      {
+        id: "c:disabled-rock-ship:1",
+        label: "Leave it alone.",
+        // Nothing, or a Rock ship. The nothing result is printed twice.
+        fx: [{ k: "note", text: "Nothing, or a Rock ship." }],
+      },
+      {
+        id: "c:disabled-rock-ship:2",
+        label: "Check for lifeforms and keep a lookout for ships while looting the wreck.",
+        // Slug crew. Random scrap. The two sentences are printed as alternatives.
+        fx: [{ k: "note", text: "Random scrap." }],
+      },
+    ],
+  },
 ];

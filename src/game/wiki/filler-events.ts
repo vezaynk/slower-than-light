@@ -1561,6 +1561,15 @@ function refugeeHail(g: Game, slug: string) {
   }
 }
 
+function standardLines(offer: SurrenderOffer): string[] {
+  const lines: string[] = [];
+  if (offer.scrap) lines.push(`Scrap: ${offer.scrap}.`);
+  if (offer.fuel) lines.push(`Fuel: ${offer.fuel}.`);
+  if (offer.missiles) lines.push(`Missiles: ${offer.missiles}.`);
+  if (offer.parts) lines.push(`Drone parts: ${offer.parts}.`);
+  return lines;
+}
+
 /** Dense asteroid field distress, "Find remains of a ship". Both the search and Rock Plating open this card. */
 function asteroidRemains(g: Game) {
   card(g, "You find the decaying remains of some kind of ship coated with ice or crystal. You send some crew aboard to explore. Nearly everything is either destroyed or unidentifiable, but one of the weapons appears salvageable and there's a strange stasis pod that catches your eye. It looks like a massive asteroid is in a direct collision course with the derelict ship! You have to pull your crew out but they want to grab what they can first. What do they take?", [
@@ -1763,6 +1772,33 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
     const note = g.augments.length >= 3 ? "Three augments is the cap." : (g.augments.push("stasis"), "Damaged Stasis Pod.");
     show(g, "Your crew drags the pod back to your ship before the asteroid smashes into the ship, shattering through the crystal coating and destroying the ship. The pod appears to be functioning but you see nothing but shards of crystal inside. Perhaps someone else will know how to open it.", scrapOnly(g, "low"), [note]);
+  },
+
+  // Disabled Rock ship. Strip lists two results and prints no odds. INFERRED: equal.
+  // Leave prints the nothing result twice. The Slug lookout's two sentences are alternatives. INFERRED: equal.
+  "c:disabled-rock-ship:0": (g) => {
+    const offer = rollStandard(g);
+    if (weighted(g, [["patrol", 1], ["quiet", 1]] as const) === "patrol") {
+      payOffer(g, offer, true);
+      for (const line of standardLines(offer)) log(g, line);
+      fight(g, "A Rock patrol ship jumps in while you are salvaging the ship. They message you, \"Filthy pirates! Prepare to die!\" You doubt explaining your mission will convince them of your need.", "Rock ship", "disabled-rock-ship");
+      return;
+    }
+    show(g, "You salvage what you can from the ship. No one bothers you during the operation.", offer);
+  },
+  "c:disabled-rock-ship:1": (g) => {
+    if (weighted(g, [["nothing", 2], ["fight", 1]] as const) === "nothing") {
+      show(g, "The Rock people are not known for setting traps but you hasten to leave anyway.", undefined, ["Nothing happens."]);
+      return;
+    }
+    fight(g, "Before you have a chance to leave, a Rock patrol ship arrives and you intercept their comm chatter, \"...appears we've finally found them. Their killing spree ends now!\" Before you can plead your innocence they move in to attack.", "Rock ship", "disabled-rock-ship");
+  },
+  "c:disabled-rock-ship:2": (g) => {
+    if (!livingKin(g, "gel")) return;
+    const line = weighted(g, [["clear", 1], ["ship", 1]] as const) === "clear"
+      ? "You salvage what you can from the ship. No lifeforms or ships are detected nearby."
+      : "You begin the salvage operation but before long your crew warns you of an approaching ship. You hasten to leave before they get within firing range.";
+    show(g, line, rollStandard(g));
   },
 
   // ---- Refugee / Refugee distress ----
@@ -2529,6 +2565,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
   // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
   if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return "Needs Rock Plating";
+  // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.
+  if (id === "c:disabled-rock-ship:2" && !livingKin(g, "gel")) return "Needs a Slug crewmember";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

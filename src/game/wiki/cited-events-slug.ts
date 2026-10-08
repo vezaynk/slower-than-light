@@ -67,7 +67,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-in-nebula-slug",
     aliases: ["Mantis fight in nebula (Slug)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews.",
+    body: "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!",
     choices: [
       {
         id: "c:mantis-fight-in-nebula-slug:0",

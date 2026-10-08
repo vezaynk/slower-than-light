@@ -644,6 +644,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const line = addQuest(g, "slug-pirate-trap");
     result(g, "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.", undefined, [line]);
   },
+  // Slug comm tapping. "Ignore them." One printed result.
+  "c:slug-comm-tapping:1": (g) => {
+    result(g, "You have no interest in anything the Slugs could make business out of. Time to move on.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
   // Six results, no odds. The unnamed crewmember is not offered. INFERRED: the other five are equal.
   // The weapon is unnamed and not granted; only the low scrap is paid.

@@ -3796,6 +3796,14 @@ const LANIUS_CIVILIAN_INTROS = [
   "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
 ];
 
+// Pirate briber. Three printed intros, no odds. INFERRED: equal.
+// Accept stays c:pirate-briber:0. Attack stays c:pirate-briber:1.
+const PIRATE_BRIBER_INTROS = [
+  `You come across a pirate in hot pursuit of an unidentified ship. You quickly receive a transmission from the pirate: "Stay out of this fight and we'll make it worth your while."`,
+  "An unidentified ship is badly damaged and still being assaulted by a space pirate. The victim begins a distress message until the pirate cuts in and offers to split the bounty if you sit tight.",
+  `A missile shoots across your bow when the jump completes. Your scans quickly reveal a ship with pirate markings pursuing an unknown vessel. The pirate hails you: "Damn it, we weren't expecting company. Stay out of this and you could profit."`,
+];
+
 // Slug fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:slug-fight-in-nebula:0. No nebula environment is added. Surrender stays the Slug row.
 const NEBULA_SLUG_INTROS = [
@@ -4259,6 +4267,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Pirate briber. One of the three printed intros. Accept and Attack stay the existing choices.
+  if (ev.slug === "pirate-briber") {
+    return {
+      title: ev.dest,
+      body: PIRATE_BRIBER_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Slug fight in nebula. One of the five printed intros. The fight stays c:slug-fight-in-nebula:0.

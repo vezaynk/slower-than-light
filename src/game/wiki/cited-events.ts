@@ -3677,6 +3677,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "trade-resources") return tradeResourcesEvent(g, ev.dest);
   // Trade resources in nebula. One intro, then one rolled offer. Trade or Ignore. No scrap.
   if (ev.slug === "trade-resources-in-nebula") return tradeResourcesNebulaEvent(g, ev.dest);
+  // Pirate smuggler. {{Blue Option|Weapons|level=6+}}. The button stays visible.
+  if (ev.slug === "pirate-smuggler") {
+    return {
+      title: ev.dest,
+      body: "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons.",
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:pirate-smuggler:2", label: "Activate your advanced weapons threateningly." },
+      ],
+    };
+  }
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);

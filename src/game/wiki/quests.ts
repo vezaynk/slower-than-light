@@ -890,6 +890,22 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["Nothing happens."],
     );
   },
+  // Pirate smuggler. Weapon Control level 6+. Medium fuel (2-4) and medium scrap.
+  "c:pirate-smuggler:2": (g) => {
+    if ((g.player.systems.weapons?.level ?? 0) < 6) return;
+    card(g, "They hail you, \"There's no need for aggression... Perhaps this would convince you to look the other way?\"", [
+      { id: "q:pirate-smuggler:bribe", label: "Take their bribe." },
+      { id: "q:pirate-smuggler:attack", label: "Ignore their bribe and attack." },
+    ]);
+  },
+  "q:pirate-smuggler:bribe": (g) => {
+    const offer = scrapOnly(g, "medium");
+    offer.fuel = between(g, [2, 4]);
+    result(g, "You receive medium fuel and scrap.", offer);
+  },
+  "q:pirate-smuggler:attack": (g) => {
+    pageFight(g, "You power up your weapons and move in to engage.", "Pirate ship", "pirate-smuggler");
+  },
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
@@ -1600,6 +1616,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) return "Needs Mind Control";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
+  // Pirate smuggler. Improved Weapons is level 6+. The button stays visible.
+  if (id === "c:pirate-smuggler:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
   if (id === "q:engi-distress:scrap" && g.scrap < 25) return "Need 25 scrap";
   if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";

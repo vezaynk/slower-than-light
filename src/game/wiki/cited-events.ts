@@ -3623,6 +3623,15 @@ const LANIUS_FIGHT_INTROS = [
   "As you are getting your bearings, another ship suddenly arrives at the beacon - it's the Lanius, and they've marked your ship for salvage!",
 ];
 
+// Mantis fight (Engi). Four printed intros, no odds. INFERRED: equal.
+// The fight stays c:mantis-fight-engi:0. Default Mantis rewards are not a separate payout.
+const MANTIS_FIGHT_ENGI_INTROS = [
+  "A mixed radar signal turns out to be a Mantis attack ship scavenging the remains of an Engi carrier. They turn and fight.",
+  "You come across a Mantis raider taking pot shots at a defenceless Engi supply station. Discovering its weapons aren't much of a match for the station's armour, it turns on your ship. Battle stations!",
+  "The area looks clear, and you prepare to jump off, but a Mantis scout jumps in behind you! They're as surprised as you are, but their weapons are already online.",
+  "You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3948,6 +3957,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: LANIUS_FIGHT_INTROS[between(g, [0, 10])]!,
       choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
+    };
+  }
+  // Mantis fight (Engi). One of the four printed intros. The fight stays c:mantis-fight-engi:0.
+  if (ev.slug === "mantis-fight-engi") {
+    return {
+      title: ev.dest,
+      body: MANTIS_FIGHT_ENGI_INTROS[between(g, [0, 3])]!,
+      choices: [{ id: "c:mantis-fight-engi:0", label: "Fight a Mantis ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

@@ -50,7 +50,11 @@ describe("Pirate ship attacking civilian (Lanius) intro", () => {
     const stay = createGame(1);
     open(stay);
     choose(stay, "c:pirate-ship-attacking-civilian-lanius:1");
-    assert.equal(stay.phase, "map");
+    assert.equal(
+      stay.event?.body,
+      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.\n\nNothing happens.",
+    );
+    assert.equal(stay.phase, "event");
     assert.equal(stay.scrap, 10);
   });
 });

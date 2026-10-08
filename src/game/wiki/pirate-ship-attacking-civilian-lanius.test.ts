@@ -72,7 +72,12 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian-lanius:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
+    assert.notEqual(g.phase, "combat");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
   });

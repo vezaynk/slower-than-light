@@ -165,7 +165,10 @@ function nick(g: Game, ship: Ship, room: Room): void {
  * Artillery Beam "Overview": the beam pierces regular shields.
  * Artillery Beam "Overview": a full charge fires on its own. The swipe still cannot be aimed; a room is chosen when the bar fills.
  * "Overview": powering off drains charge. INFERRED: a full bar empties in 2 seconds.
- * MISMATCH: no Zoltan Shield damage. "Overview" says 1 damage per each of the 2 ticks. This drill has no such shield.
+ * Artillery Beam, Overview: "Deals 1 damage to Zoltan Shield per each of the 2 ticks."
+ * Zoltan Shield: Artillery Beam deals 2 damage in total, and that damage does not grow with rooms hit.
+ * A bubble that survives both ticks still protects the hull. Beam (Weapons) puts the ticks at 33% and 80%.
+ * INFERRED: this swipe has no drawn path, so a bubble that breaks still lets the cut rooms land.
  * @agent:hacking. Under an enemy Hacking pulse on this kit the charge runs backwards at its own charge speed.
  * Artillery Beam "Overview": "Hacking disruption reduces the charge progress only by 4-7-10 seconds." Hacking wiki,
  * "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship weapons: drains charge (same effect as
@@ -204,11 +207,18 @@ export function tickLance(g: Game, dt: number): void {
   const rooms = cutLine(enemy, kit.target);
   if (rooms.length === 0) return;
 
-  const shieldNow = enemy.shieldNow;
-  for (const room of rooms) nick(g, enemy, room);
-  enemy.shieldNow = shieldNow;
+  // Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total.
+  // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
+  const bubble = enemy.zoltan ?? 0;
+  if (bubble > 0) enemy.zoltan = Math.max(0, bubble - 2);
+  const held = bubble > 2;
+  if (!held) {
+    const shieldNow = enemy.shieldNow;
+    for (const room of rooms) nick(g, enemy, room);
+    enemy.shieldNow = shieldNow;
+  }
   kit.aux = 0;
   // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
   noteWeaponManning(g);
-  log(g, `${DISPLAY_NAME} cuts ${enemy.name}.`);
+  if (!held) log(g, `${DISPLAY_NAME} cuts ${enemy.name}.`);
 }

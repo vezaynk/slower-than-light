@@ -170,6 +170,35 @@ describe("lance", () => {
     assert.equal(dark.aux, 0.9);
   });
 
+  it("deals 2 Zoltan Shield damage and does not cut a fuller bubble", () => {
+    // Artillery Beam, Overview: 1 damage on each of the 2 ticks.
+    // Zoltan Shield: Artillery Beam deals 2 damage in total. The hull stays protected until the bubble is gone.
+    const held = armed(70);
+    assert.ok(held.enemy);
+    held.enemy.zoltan = 5;
+    const hull = held.enemy.hull;
+    const room = held.enemy.rooms.find((r) => r.system);
+    assert.ok(room?.system);
+    const broken = held.enemy.systems[room.system].damage;
+    aimLance(held, room.id);
+    tickLance(held, 0.1);
+    assert.equal(held.enemy.zoltan, 3);
+    assert.equal(held.enemy.hull, hull);
+    assert.equal(held.enemy.systems[room.system].damage, broken);
+    assert.equal(held.player.kits.lance?.aux, 0);
+
+    const open = armed(71);
+    assert.ok(open.enemy);
+    open.enemy.zoltan = 1;
+    const before = open.enemy.hull;
+    const target = open.enemy.rooms.find((r) => r.system);
+    assert.ok(target);
+    aimLance(open, target.id);
+    tickLance(open, 0.1);
+    assert.equal(open.enemy.zoltan, 0);
+    assert.ok(open.enemy.hull < before);
+  });
+
   it("mounts for free and records the wiki costs", () => {
     const g = createGame(7);
     assert.equal(INSTALL_COST, null);

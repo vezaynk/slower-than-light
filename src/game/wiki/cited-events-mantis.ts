@@ -47,7 +47,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-ship-collectors",
     aliases: ["Mantis ship-collectors"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "You are immediately hailed by an impressive-looking Mantis ship.",
+    body: "You are immediately hailed by an impressive-looking Mantis ship, \"Your ship would make a mighty fine prize. Prepare for battle!\"",
     choices: [
       {
         id: "c:mantis-ship-collectors:0",

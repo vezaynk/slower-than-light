@@ -2536,16 +2536,23 @@ function strikeRoom(
   // Fires, "Fires and enemy AI": a 2x2 holds four flames, so a hit stacks one fire up to 4.
   // Laser (Weapons), "Types of lasers": Heavy Lasers roll the 30% fire chance first,
   // then the 30% breach chance only if that roll started no fire.
-  // INFERRED: the gate is defId heavy, heavy2, and heavypierce. Other weapons still roll both.
+  // Missile (Weapons), lead: "A missile can either start 1-2 fires or cause a hull breach:
+  // the fire chance is rolled first, and if it fails, the hull breach chance is rolled next".
+  // INFERRED: the page does not split that 1-2, so a started fire flips a coin for the second flame.
+  // An environmental missile (the anti-ship battery) is not that weapon.
+  // INFERRED: the Heavy Laser gate is defId heavy, heavy2, and heavypierce. Other lasers still roll both.
   // A surge laser is hard-coded to 21% breach and has no defId, so it is not this gate.
   // INFERRED: "no fires started" is the fire roll missing, not the room's existing fire count.
   const heavyLaser = shot.defId === "heavy" || shot.defId === "heavy2" || shot.defId === "heavypierce";
+  const missile = shot.kind === "missile" && shot.from !== "env";
   let fireStarted = false;
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
     r.fire = Math.min(4, r.fire + 1);
     fireStarted = true;
+    if (missile && rand(g) < 0.5) r.fire = Math.min(4, r.fire + 1);
   }
-  if (shot.breachChance > 0 && !(heavyLaser && fireStarted) && rand(g) < shot.breachChance) r.breach += 1;
+  const exclusive = (heavyLaser || missile) && fireStarted;
+  if (shot.breachChance > 0 && !exclusive && rand(g) < shot.breachChance) r.breach += 1;
   // @agent:flagship. Stage-3 Power Surge lasers: "20% stun" (wiki/flagship-systems.ts SURGE_STUN_S, INFERRED 3 s).
   if ((shot.stunChance ?? 0) > 0 && rand(g) < (shot.stunChance ?? 0)) {
     for (const c of g.crew) {

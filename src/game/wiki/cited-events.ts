@@ -4708,6 +4708,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!");
   // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
   if (id === "c:slug-drink:0") ctx.note("The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.");
+  // Zoltan quest primitives. "Interfere - make first contact with the primitive aliens." One printed lead-in, then a Zoltan ship fight.
+  if (id === "c:zoltan-quest-primitives:0") ctx.note("The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

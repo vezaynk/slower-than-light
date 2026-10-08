@@ -1,0 +1,67 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { createGame } from "./sim.ts";
+import { walkCells, walkPoint } from "./walk-path.ts";
+
+const column = {
+  cols: 2,
+  rows: 5,
+  rooms: [
+    { id: "L", x: 0, y: 0, w: 1, h: 5 },
+    { id: "R", x: 1, y: 0, w: 1, h: 5 },
+  ],
+  doors: [{ a: "L", b: "R" as const }],
+};
+
+describe("walk path", () => {
+  it("crosses the only door instead of the two room centers", () => {
+    const ship = { ...column, doorMarks: [{ x: 0, y: 0, side: "e" as const }] };
+    const cells = walkCells(ship, "L", ["R"], undefined);
+    assert.deepEqual(cells, [
+      { x: 0, y: 4 },
+      { x: 0, y: 3 },
+      { x: 0, y: 2 },
+      { x: 0, y: 1 },
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+      { x: 1, y: 2 },
+      { x: 1, y: 3 },
+      { x: 1, y: 4 },
+    ]);
+    const mid = walkPoint(ship, "L", ["R"], undefined, 0.5);
+    assert.deepEqual(mid, { x: 1, y: 0.5 });
+    const crossed = cells!.findIndex((cell, i) => i > 0 && cell.x !== cells![i - 1].x);
+    assert.equal(cells![crossed].y, 0);
+    assert.equal(cells![crossed - 1].y, 0);
+  });
+
+  it("uses the nearest shared edge when the ship has no door bars", () => {
+    const cells = walkCells(column, "L", ["R"], undefined);
+    assert.deepEqual(cells, [
+      { x: 0, y: 4 },
+      { x: 1, y: 4 },
+    ]);
+  });
+
+  it("stays put when the rooms do not share a door", () => {
+    assert.equal(walkCells({ ...column, doors: [] }, "L", ["R"], undefined), null);
+  });
+
+  it("starts a Kestrel order on the standing tile and leaves through the door", () => {
+    const ship = createGame(4, "kestrel-a").player;
+    assert.ok(ship.doorMarks?.length);
+    const cells = walkCells(ship, "p-engines", ["p-oxygen"], undefined);
+    assert.deepEqual(cells, [
+      { x: 1, y: 3 },
+      { x: 1, y: 2 },
+      { x: 2, y: 2 },
+      { x: 2, y: 1 },
+      { x: 1, y: 1 },
+    ]);
+    const at = walkPoint(ship, "p-engines", ["p-oxygen"], undefined, 0);
+    assert.deepEqual(at, { x: 1.5, y: 3.5 });
+    const door = walkPoint(ship, "p-oxygen", ["p-a1"], "2,1", 0);
+    assert.deepEqual(door, { x: 2.5, y: 1.5 });
+  });
+});

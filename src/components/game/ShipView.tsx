@@ -3,6 +3,7 @@ import { pointInRoom } from "@/game/beam-line";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
+import { walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
@@ -398,8 +399,12 @@ export function ShipView({
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;
             const t = clamp01(c.move);
+            const at = walkPose(ship, c.room, c.path, c.via, t);
             const from = roomCenter(step.from, ship);
             const to = roomCenter(step.to, ship);
+            const left = at ? (at.x / ship.cols) * 100 : from.x + (to.x - from.x) * t;
+            const top = at ? (at.y / ship.rows) * 100 : from.y + (to.y - from.y) * t;
+            const faceLeft = at ? at.faceLeft : to.x < from.x;
             return (
               <CrewToken
                 key={c.id}
@@ -408,8 +413,8 @@ export function ShipView({
                 onCrew={onCrew}
                 pose="walk"
                 frame={Math.floor(t * 4) % 4}
-                className={"crew-walker" + (to.x < from.x ? " is-face-left" : "")}
-                style={{ left: `${from.x + (to.x - from.x) * t}%`, top: `${from.y + (to.y - from.y) * t}%` }}
+                className={"crew-walker" + (faceLeft ? " is-face-left" : "")}
+                style={{ left: `${left}%`, top: `${top}%` }}
               />
             );
           })}

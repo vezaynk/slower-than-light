@@ -114,6 +114,12 @@ export type Crew = {
   room: string;
   path: string[];
   move: number;
+  /**
+   * Tile "x,y" this body entered the current room through.
+   * Absent on a fresh order, so the sprite starts on the standing tile.
+   * Cleared when the walk finishes.
+   */
+  via?: string;
   think: number;
   tone: number;
   /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */

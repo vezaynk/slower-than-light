@@ -255,6 +255,7 @@ export function retarget(g: Game) {
     c.room = ally.room;
     c.path = [];
     c.move = 0;
+    delete c.via;
   }
 }
 
@@ -595,6 +596,7 @@ function huntFor(g: Game, c: Crew) {
   if (path && path.length) {
     c.path = path;
     c.move = 0;
+    delete c.via;
   }
 }
 

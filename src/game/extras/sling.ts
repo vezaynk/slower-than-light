@@ -374,6 +374,7 @@ function walkTo(ship: Ship, c: Crew, dest: string) {
   if (c.room === dest) {
     c.path = [];
     c.move = 0;
+    delete c.via;
     return;
   }
   if (c.path.length && c.path[c.path.length - 1] === dest) return;
@@ -381,6 +382,7 @@ function walkTo(ship: Ship, c: Crew, dest: string) {
   if (!path) return;
   c.path = path;
   c.move = 0;
+  delete c.via;
 }
 
 /**

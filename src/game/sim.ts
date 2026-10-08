@@ -1,4 +1,5 @@
 import { flushSfx } from "./audio.ts";
+import { hopLanding } from "./walk-path.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -1514,6 +1515,7 @@ export function orderCrew(g: Game, crewId: string, dest: string) {
   if (!path) return;
   c.path = path;
   c.move = 0;
+  delete c.via;
   g.selected = null;
   sfx(g, "click");
 }
@@ -2858,6 +2860,7 @@ function moveCrew(g: Game, dt: number) {
     // Crystal, "Crystal Lockdown": nobody enters a coated room.
     if (coated(ship, next)) {
       c.path = [];
+      delete c.via;
       continue;
     }
     const door = findDoor(ship, c.room, next);
@@ -2908,8 +2911,11 @@ function moveCrew(g: Game, dt: number) {
       kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
     c.move += (dt * pace) / 0.6;
     if (c.move >= 1) {
+      const landing = hopLanding(ship, c.room, c.path, c.via);
       c.room = c.path.shift()!;
       c.move = 0;
+      if (c.path.length && landing) c.via = `${landing.x},${landing.y}`;
+      else delete c.via;
     }
   }
 }
@@ -3654,6 +3660,7 @@ function wanderBoarders(g: Game, dt: number) {
     if (path && path.length) {
       c.path = path;
       c.move = 0;
+      delete c.via;
     }
     c.think = 4 + rand(g) * 3;
   }

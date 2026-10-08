@@ -413,6 +413,7 @@ function walk(ship: Ship, c: Crew, dest: string) {
     if (c.path.length) {
       c.path = [];
       c.move = 0;
+      delete c.via;
     }
     return;
   }
@@ -421,4 +422,5 @@ function walk(ship: Ship, c: Crew, dest: string) {
   if (!path) return;
   c.path = path;
   c.move = 0;
+  delete c.via;
 }

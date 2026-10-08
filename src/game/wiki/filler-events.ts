@@ -979,6 +979,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "pirate-ship-distress-trap") return trapCard(g, page);
   if (page.slug === "abandoned-station") return abandonedStationCard(g, page);
   if (page.slug === "rebel-fight-chance") return rebelChanceCard(g, page);
+  if (page.slug === "battlefield-wreckage") return wreckageCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1552,6 +1553,21 @@ function rebelChanceCard(g: Game, page: Page): GameEvent {
   return {
     title: page.dest,
     body: REBEL_CHANCE_INTROS[between(g, [0, 3])]!,
+    choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+  };
+}
+
+// Battlefield wreckage. The page prints two opening intros and no odds.
+// INFERRED: equal. Investigate, ignore, and the sensors scan stay the existing choices.
+const WRECKAGE_INTROS = [
+  "What at first seems to be a simple nebula is actually filled with a good amount of debris from a brutal exchange between several ships. Wreckage drifts by your screens and tumbles into the depths of the nebula to be lost to sight. It's hard to determine who the combatants were without closer investigation.",
+  "You have jumped into the aftermath of what seems to have been a brutal exchange between several ships. Wreckage drifts by your screens, and you can still see the remains of the dying ships sparking and breaking apart. It's hard to determine who the combatants were without closer investigation.",
+];
+
+function wreckageCard(g: Game, page: Page): GameEvent {
+  return {
+    title: page.dest,
+    body: WRECKAGE_INTROS[between(g, [0, 1])]!,
     choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
   };
 }

@@ -1172,6 +1172,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:refueling-platform-garbled-broadcast:1": (g) => {
     result(g, "You leave the platform alone, and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
+  "c:zoltan-ship-asks-to-dock:1": (g) => {
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

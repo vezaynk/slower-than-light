@@ -3009,7 +3009,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    "body": "A Slug ship hails you: \"We've detected some worrying radiation coming from your medical unit, perhaps you should take a look?\" As he signs off, your medical bay shuts off and their crew teleports aboard from a nearby station. They don't look like engineers.",
     "choices": [
       {
         "id": "c:slug-hacker-medical:0",

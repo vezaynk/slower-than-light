@@ -628,6 +628,32 @@ const CHOICES: Record<string, (g: Game) => void> = {
       { id: "c:lanius-trader:3", label: "Decline" },
     ]);
   },
+  // Lanius lone ship, "Try to contact the Lanius ship." The civilian warning, then one button.
+  "c:lanius-lone-ship:2": (g) => {
+    card(g, "You approach the ship without activating weapons and the civilian ship says, \"Don't go any closer! Just kill them!\" before hastily making their retreat.", [
+      { id: "q:lanius-lone:continue", label: "Ignore them and continue." },
+    ]);
+  },
+  // Three results, no odds. INFERRED: equal. The fight is default Lanius rewards, so there is no PAGE_WINS row.
+  "q:lanius-lone:continue": (g) => {
+    const kind = weighted(g, [["store", 1], ["fight", 1], ["nothing", 1]] as const);
+    if (kind === "store") {
+      log(g, "You ask what they want and the translator chirps their response, \"Explore. Assess trade potential.\" It appears to be a merchant ship attempting to make connections with the other races. The civilian must have simply been too scared to ask. You check what they have to sell at the moment.");
+      openStoreHere(g);
+      return;
+    }
+    if (kind === "fight") {
+      pageFight(g, "You ask what they are doing here but the translator clearly has problems with the request. The Lanius seem enraged for an indiscernible reason. They cut transmission and power their weapons. Looks like you'll have to fight after all!", "Lanius ship", "lanius-lone-ship");
+      return;
+    }
+    result(g, "You ask what they are doing here but the translator clearly has problems with the request. It chirps with their response, \"Expunge... Floral... Proposition...\" You try to clarify their answer but to no avail. Both you and the Lanius captain end the transmission despondently.", undefined, ["Nothing happens."]);
+  },
+  // {{Blue Option|Lanius Crew|Try to contact the ship.}} A dead Lanius does not count.
+  "c:lanius-lone-ship:3": (g) => {
+    if (!hasLanius(g)) return;
+    log(g, "Your crewmember opens a channel with them. It seems they are scouting for a merchant's guild which is seeking to establish connections with other sentient races. You suggest they invest research time into developing better translators and ask to see if they are selling anything at the moment.");
+    openStoreHere(g);
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -1041,6 +1067,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:lanius-ship-salvager:2" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // Lanius trader, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
   if (id === "c:lanius-trader:4" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  // Lanius lone ship, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  if (id === "c:lanius-lone-ship:3" && !hasLanius(g)) return "Needs a Lanius crewmember";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];

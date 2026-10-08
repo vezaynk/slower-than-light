@@ -276,6 +276,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Stay out of it",
         fx: [{ k: "nothing" }],
       },
+      {
+        id: "c:lanius-lone-ship:2",
+        label: "Try to contact the Lanius ship.",
+        fx: [{ k: "note", text: "Continuing may open a store, start a Lanius fight, or do nothing." }],
+      },
+      {
+        id: "c:lanius-lone-ship:3",
+        label: "Try to contact the ship.",
+        fx: [{ k: "note", text: "A Lanius crewmember opens a store." }],
+      },
     ],
   },
   // Scan the ship for lifeforms. Fight a Lanius ship.

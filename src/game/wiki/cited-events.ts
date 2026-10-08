@@ -3563,6 +3563,16 @@ const ROCK_FIGHT_INTROS = [
   "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
 ];
 
+// Rebel fight (Lanius). Six printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-lanius:0.
+const LANIUS_REBEL_INTROS = [
+  `You intercept discussions between a Rebel patrol and a human mining colony, "...we realize you're scared but all reports indicate the metal bastards target abandoned settlements only. If we relocated our fleets based on every request from backwater... wait, what's that..." Before you can react, the channel is cut and the Rebel ship moves in to attack.`,
+  `You arrive to see a number of Rebel ships attempting to dissuade Lanius scavenger ships from "acquiring" their forward station. A passing Rebel patrol ship spots you and moves in to intercept.`,
+  `A Rebel scout patrols near the beacon. "Hah! I knew you would try to sneak through this sector as soon as I heard it had become treacherous. Surrender!"`,
+  "You arrive at the beacon and notice a small Rebel ship chasing Lanius scavengers away from a wrecked Rebel battleship. As soon as the Rebel notices you and moves in to attack, the Lanius ships return to their prey like flies on garbage.",
+  `A Rebel messages you. "Who would have thought the most wanted ship in the quadrant would just happen by my station? Prepare to meet your maker."`,
+  "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
+];
+
 // Pirate fight (Lanius). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-lanius:0.
 const LANIUS_PIRATE_INTROS = [
   `An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."`,
@@ -3807,6 +3817,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Rebel fight (Lanius). One of the six printed intros. The fight stays c:rebel-fight-lanius:0.
+  if (ev.slug === "rebel-fight-lanius") {
+    return {
+      title: ev.dest,
+      body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
+      choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
     };
   }
   // Pirate fight (Lanius). One of the five printed intros. The fight stays c:pirate-fight-lanius:0.

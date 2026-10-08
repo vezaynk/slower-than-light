@@ -3009,7 +3009,10 @@ function rebelCheckpointContact(g: Game) {
   result(g, "The civilians are grateful. However, none of them seem eager to be mistaken as Federation loyalists so they quickly jump away.", undefined, ["Nothing happens."]);
 }
 
-/** Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then the Crystal ship. */
+/** Pirate ship attacking Crystal, and Mantis ship attacking Crystal.
+ * Both print the same destroyed and crew-kill sentences, then Template:Crystal Ship Saved.
+ * Destroyed pays medium standard. A crew kill pays high.
+ */
 function crystalPirateWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
     ? "With the crew dead you take as much salvage from the ship as possible."
@@ -3263,6 +3266,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "zoltan-retake-the-ship": zoltanRaftWin,
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
+  // Mantis ship attacking Crystal. The same two endings and the same Crystal ship contact.
+  "mantis-ship-attacking-crystal": crystalPirateWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
   "engi-distress-rebel-fight": engiDistressWin,
   // Rebel fight among Rebel fleet. The page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.

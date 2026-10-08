@@ -3527,6 +3527,16 @@ export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
   return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
 }
 
+// Pirate fight. The page prints five intros and then a default Pirate ship fight, and it prints no odds.
+// INFERRED: the five intros are equally likely.
+const PIRATE_FIGHT_INTROS = [
+  "As you jump into the system a pirate advances on your position. They are refusing all hails. Prepare for a fight.",
+  `Soon after arriving in the system you are hailed by a small cruiser. "What good fortune that we happen to run into each other. Nothing personal, but you have some information we need!"`,
+  `At first it appears you've arrived in an empty system, but a ship appears from behind a planet and hails you: "Haha! I am the dread pirate Tuco, prepare to die!"`,
+  `The only other ship at this beacon messages you: "Finally, after months of waiting, someone has fallen into our trap!"`,
+  "You barely have time to register jump completion before your ship warns you of an incoming ship with weapons hot.",
+];
+
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
@@ -3686,6 +3696,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         { id: "c:pirate-smuggler:2", label: "Activate your advanced weapons threateningly." },
       ],
+    };
+  }
+  // Pirate fight. One of the five printed intros. The fight stays c:pirate-fight:0.
+  if (ev.slug === "pirate-fight") {
+    return {
+      title: ev.dest,
+      body: PIRATE_FIGHT_INTROS[between(g, [0, 4])]!,
+      choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
     };
   }
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.

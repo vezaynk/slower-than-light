@@ -63,7 +63,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "",
+    body: "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
     choices: [
       {
         id: "c:auto-ship-fight-in-plasma-storm:0",

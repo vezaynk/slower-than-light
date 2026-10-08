@@ -20,6 +20,7 @@ describe("Auto-ship fight in plasma storm", () => {
   it("preparing to fight starts an Auto-ship", () => {
     const g = createGame(1);
     open(g);
+    assert.equal(g.event?.body, "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.");
     for (const n of [1, 2, 3]) {
       assert.equal(g.event?.choices.some((c) => c.id === `c:auto-ship-fight-in-plasma-storm:${n}`), true);
     }

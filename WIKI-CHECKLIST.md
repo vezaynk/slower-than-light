@@ -1387,7 +1387,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Unencrypted Communication Channel — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Unencrypted communication channel — not-a-surface — same title as "Unencrypted Communication Channel" with different capitalization
 - [ ] Unknown Disease on Mining Colony — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Unknown disease on mining colony — not-a-surface — same title as "Unknown Disease on Mining Colony" with different capitalization
+- [ ] Unknown disease on mining colony — not-a-surface — same title as "Unknown Disease on Mining Colony" with different capitalization. Sending the crew loses one crewmember and pays medium resources, or nothing, and a clone bay does not bring them back.
 - [ ] Venting — partial — room venting exists. Rates INFERRED.
 - [ ] We're in position! — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Weak and Hungry Human Intruders — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

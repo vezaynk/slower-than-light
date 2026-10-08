@@ -4724,6 +4724,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:zoltan-quest-primitives:1") ctx.note("These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.");
   // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
   if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note("You message the Crystalline ship your intentions and move in to intercept the Rebel ship.");
+  // Rebel ship attacking Crystal ship. "Attack the Crystalline ship." One printed lead-in, then a Crystal ship fight.
+  if (id === "c:rebel-ship-attacking-crystal-ship:1") ctx.note("You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

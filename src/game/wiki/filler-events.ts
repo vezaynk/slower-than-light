@@ -721,6 +721,38 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:unknown-disease-on-mining-colony:4", label: "Use your medbay to help synthesize a cure.", fx: [{ k: "note", text: "Medium resources, or high scrap." }] },
     ],
   },
+  // DISTRESS_STATION_FIRE. Send the crew: lose a crewmember and low scrap, or high scrap. No odds. INFERRED: equal.
+  // Clone Bay revives that crewmember. Docking: 4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap.
+  // INFERRED: equal. Leave: nothing. A living Rock pays high scrap. The augmentation is not named, so it is not installed.
+  // A Repair Drone pays high scrap. The schematic is not named, so it is not granted.
+  {
+    dest: "Fire on research station",
+    slug: "fire-on-research-station",
+    flag: "cited:fire-on-research-station",
+    aliases: ["Fire on research station"],
+    sectors: [
+      "Abandoned Sector",
+      "Civilian Sector",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "You find the source of the distress call, a small research station. It appears a small laboratory fire got out of control and is threatening to destroy the station. Their fire suppression system is not responding.",
+    choices: [
+      { id: "c:fire-on-research-station:0", label: "Send your crew in a shuttle to help put out the fire.", fx: [{ k: "note", text: "A crewmember and low scrap, or high scrap." }] },
+      { id: "c:fire-on-research-station:1", label: "Dock and try to rescue the survivors.", fx: [{ k: "note", text: "4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap." }] },
+      { id: "c:fire-on-research-station:2", label: "Leave.", fx: [{ k: "nothing" }] },
+      { id: "c:fire-on-research-station:3", label: "Send your Rock crew-member in.", fx: [{ k: "note", text: "High scrap. The augmentation is unnamed." }] },
+      { id: "c:fire-on-research-station:4", label: "Send your repair drone into the fire.", fx: [{ k: "note", text: "High scrap. The schematic is unnamed." }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -880,6 +912,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
   if (page.slug === "crushed-pirate") return pirateCard(g, page);
   if (page.slug === "unknown-disease-on-mining-colony") return diseaseCard(g, page);
+  if (page.slug === "fire-on-research-station") return fireCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1272,6 +1305,18 @@ function diseaseCard(g: Game, page: Page): GameEvent {
       if (c.id === "c:unknown-disease-on-mining-colony:2") return livingKin(g, "stone");
       if (c.id === "c:unknown-disease-on-mining-colony:3") return livingKin(g, "shell");
       if (c.id === "c:unknown-disease-on-mining-colony:4") return medbayLevel(g) >= 2;
+      return true;
+    })
+    .map((c) => ({ id: c.id, label: c.label }));
+  return { title: page.dest, body: page.body, choices };
+}
+
+/** A living Rock and a Repair Drone stay off the card until the ship has them. */
+function fireCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices
+    .filter((c) => {
+      if (c.id === "c:fire-on-research-station:3") return livingKin(g, "stone");
+      if (c.id === "c:fire-on-research-station:4") return ownsDrone(g, "patch");
       return true;
     })
     .map((c) => ({ id: c.id, label: c.label }));
@@ -1758,6 +1803,42 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     diseaseCure(g);
   },
 
+  // Fire on research station. Each pair has no odds. INFERRED: equal.
+  "c:fire-on-research-station:0": (g) => {
+    const r = weighted(g, [["lose", 1], ["scrap", 1]] as const);
+    if (r === "lose") {
+      const note = loseCrew(g);
+      show(g, "You send your crew into the station. Unfortunately as soon as they enter the fire breaches the station's fuel cell containment. You quickly try to dock and retrieve your crew but not before an unfortunate soul is lost in the inferno.", scrapOnly(g, "low"), note ? [note] : []);
+      return;
+    }
+    show(g, "Your crew valiantly keeps the fire at bay long enough to allow some of the scientists to escape, but it appears to be a losing battle. Before long you order the retreat. The few scientists they were able to save are distraught but grateful. You'll drop them off at the next station.", scrapOnly(g, "high"));
+  },
+  "c:fire-on-research-station:1": (g) => {
+    const r = weighted(g, [["blast", 1], ["jones", 1]] as const);
+    if (r === "blast") {
+      if (hurt(g, 4)) return;
+      show(g, "You locate the highest concentration of life forms and bring the ship alongside the station. Before you can begin to offload the survivors a huge blast splits the station apart. Your ship is thrown away and some debris pierces your hull. You watch helplessly as the last of the survivors are consumed in the collapse of the station.", scrapOnly(g, "low"), ["Hull damage: 4.", hurtRandomSystem(g)]);
+      return;
+    }
+    // The page names Dr. Jones and not a race. An unnamed race is that sector's crew list.
+    const race = randomRace(g);
+    const joined = joinCrew(g, race, "Dr. Jones");
+    show(g, "You pull up alongside the station and cut through their hull. You are able to rescue a few survivors but many more are lost. One of the survivors offers to join your crew and you offload the rest on a nearby station.", scrapOnly(g, "low"), [joined ? "Dr. Jones joins you." : "There is no room aboard for Dr. Jones."]);
+  },
+  "c:fire-on-research-station:2": (g) => {
+    show(g, "You coldly shut off communications and prepare to leave. Your crew seems upset but you assure them that nothing could have been done.");
+  },
+  "c:fire-on-research-station:3": (g) => {
+    if (!livingKin(g, "stone")) return;
+    // The augmentation is unnamed. That grant stays unwired. High scrap is printed.
+    show(g, "Your Rock soldier tears through the airlock directly into the fire. You've never seen someone that large move that fast. It disperses as much fire suppressant as possible into the heart of the blaze and eventually the fires start to die down. With most of the fire under control, the scientists are able to help secure the station. They offer you their sincere gratitude and a generous reward.", scrapOnly(g, "high"));
+  },
+  "c:fire-on-research-station:4": (g) => {
+    if (!ownsDrone(g, "patch")) return;
+    // The drone schematic is unnamed. That grant stays unwired. High scrap is printed.
+    show(g, "You send the repair drone in and it methodically puts out the fires. Once it has made some progress, the rest of your crew helps to secure the station. They offer you their sincere gratitude; the station would have surely been destroyed without your assistance. They transfer a small reward and an additional drone schematic.", scrapOnly(g, "high"));
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1946,6 +2027,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:unknown-disease-on-mining-colony:3" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
   if (id === "c:unknown-disease-on-mining-colony:4" && medbayLevel(g) < 2) return "Needs a level 2 Medbay";
   if (id === "s:unknown-disease:medbot" && !g.augments.includes("medbot")) return "Needs Engi Med-bot Dispersal";
+  // Fire on research station blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:fire-on-research-station:3" && !livingKin(g, "stone")) return "Needs a Rock crewmember";
+  if (id === "c:fire-on-research-station:4" && !ownsDrone(g, "patch")) return "Needs a Repair Drone";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

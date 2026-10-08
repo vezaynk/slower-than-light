@@ -2586,6 +2586,17 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
+  // Slaver (hostile). "Draw straws and send a crew-member over to the slavers."
+  // You lose a crewmember. Clone Bay [no effect]: the printed duplicate-law sentence, and they stay lost.
+  // INFERRED: never the last living crewmember (loseCrew).
+  "c:slaver-hostile:2": (g) => {
+    const note = loseCrew(g, true);
+    if (!note) return;
+    const extras = [note];
+    if (g.player.kits.cradle) extras.push("You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.");
+    show(g, "You lose a crewmember.", undefined, extras);
+  },
+
   // Slaver (hostile). {{Blue Option|Engines|Attempt to out-run the slaver ship.|level=6+}}.
   // {{DuplicateEvent|2}} is the two get-away sentences, then one fight. INFERRED: those three printed results are equal.
   // level=6+ means at least that installed level. Get away shows the printed sentence and does not append "Nothing happens."

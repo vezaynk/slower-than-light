@@ -2936,6 +2936,15 @@ const CORE_EVENTS: EventDef[] = [
     "body": "An especially well-armed pirate ship approaches you. \"Hand over one of your crew and the rest can go unharmed.\"",
     "choices": [
       {
+        "id": "c:slaver-hostile:2",
+        "label": "Draw straws and send a crew-member over to the slavers.",
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
+      },
+      {
         "id": "c:slaver-hostile:0",
         "label": "We will never surrender one of our crew to slavers!",
         "fx": [

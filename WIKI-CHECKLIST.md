@@ -562,7 +562,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] I hardly lifted a finger — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] I hardly lifted a finger (Achievement) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Improve Reactor for Supplies — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Improve reactor for supplies — not-a-surface — same title as "Improve Reactor for Supplies" with different capitalization
+- [ ] Improve reactor for supplies — not-a-surface — same title as "Improve Reactor for Supplies" with different capitalization. A convoy trades one shown bundle of missiles, drone parts, or fuel for one reactor bar, and a full reactor still takes the supplies.
 - [ ] Intelligent Lifeform on Planet — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Intelligent life form on planet — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Intelligent life forms planet — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.

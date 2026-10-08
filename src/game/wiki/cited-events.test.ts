@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
 import { kinOf } from "../extras/kin.ts";
-import { choose, chooseSector, commitJump, createGame, doorLevel, evasionPercent, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
+import { choose, chooseSector, closeAllDoors, commitJump, createGame, doorLevel, evasionPercent, openAllDoors, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { onCradleDeath } from "../extras/cradle.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
@@ -626,6 +626,22 @@ describe("Slug hacker (doors)", () => {
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
     assert.ok(doorLevel(g, g.player, "player") >= 2);
+  });
+});
+
+describe("Door System open and close", () => {
+  it("opens every door, then shuts them again", () => {
+    const g = createGame(3);
+    startCombat(g, "scout");
+    g.player.systems.doors.level = 2;
+    g.player.systems.doors.damage = 0;
+    g.player.systems.doors.ion = [];
+    for (const door of g.player.doors) door.open = false;
+    openAllDoors(g);
+    assert.ok(g.player.doors.some((door) => door.open));
+    closeAllDoors(g);
+    assert.ok(g.player.doors.every((door) => !door.open));
+    assert.ok(g.player.rooms.every((room) => !room.venting));
   });
 });
 

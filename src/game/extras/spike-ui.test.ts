@@ -77,6 +77,11 @@ describe("spike UI", () => {
     const bare = g.enemy!.rooms.find((r) => !r.system && !r.kit);
     if (bare) assert.equal(spikeRoomTargetable(g, bare.id), false);
     assert.equal(spikeRoomTargetable(g, "no-such-room"), false);
+    // Hacking wiki, "Overview": "A destroyed system cannot be actively hacked".
+    const shields = g.enemy!.systems.shields;
+    shields.damage = shields.level;
+    assert.equal(spikeRoomTargetable(g, roomFor(g, "shields")), false);
+    assert.equal(armSpike(g, "shields"), false);
   });
 
   it("walks ready -> pulse -> cooldown -> latched, with the part spent once", () => {

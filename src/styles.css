@@ -779,6 +779,7 @@ button:disabled {
 .air-readout,
 .dock-caption,
 .sub-row,
+.sub-pod,
 .target-systems {
   display: flex;
   align-items: center;
@@ -874,6 +875,40 @@ button:disabled {
   color: var(--color-fg);
 }
 
+.hud-shields {
+  font-size: 18px;
+}
+
+.count-chip.is-empty,
+.scrap-box.is-empty {
+  color: #ff4b4b;
+}
+
+.no-fuel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--font-hud);
+  font-size: clamp(28px, 6vw, 64px);
+  letter-spacing: 0.18em;
+  color: #ff4b4b;
+  text-shadow: 0 0 18px rgba(255, 40, 40, 0.65);
+}
+
+.door-all {
+  display: flex;
+  gap: 6px;
+}
+
+.dock-drones {
+  display: block;
+  margin-top: 4px;
+}
+
 .hud-right {
   align-items: flex-start;
 }
@@ -903,8 +938,40 @@ button:disabled {
   padding: 4px 8px;
 }
 
+.ftl-kicker {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
 .ftl-drive span {
   font-size: 20px;
+}
+
+.hud-alerts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 148px;
+}
+
+.danger-mark,
+.hazard-mark {
+  margin: 0;
+  font-family: var(--font-hud);
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-align: center;
+  color: #ff4b4b;
+}
+
+.danger-mark {
+  font-size: 18px;
+}
+
+.hazard-mark {
+  font-size: 13px;
 }
 
 .ftl-drive em {
@@ -963,6 +1030,25 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.sub-pod {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sub-power {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.crew-card.is-leashed {
+  box-shadow: inset 0 0 0 2px #b06cff;
 }
 
 .crew-card {
@@ -2544,6 +2630,44 @@ button.gun-slot {
   color: var(--color-fg);
 }
 
+.stage-slot > .beacon-map {
+  position: absolute;
+  z-index: 3;
+  left: 4%;
+  right: 4%;
+  top: 2%;
+  bottom: 2%;
+  height: auto;
+}
+
+.map-close,
+.map-wait {
+  position: absolute;
+  z-index: 4;
+  font-family: var(--font-hud);
+  letter-spacing: 0.08em;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+}
+
+.map-close {
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.map-wait {
+  top: 42%;
+  right: 0;
+  transform: translate(40%, -50%);
+  padding: 8px 12px;
+  font-size: 22px;
+}
+
 .beacon-map.sector-map .beacon {
   width: 11px;
   height: 11px;
@@ -2958,6 +3082,10 @@ button.gun-slot {
 
 .beacon-map.sector-map .beacon.is-over,
 .key-beacon.is-over { background: var(--color-danger); opacity: 1; }
+
+.beacon-map.sector-map .beacon.is-nebula:not(.is-over) { background: #9b6dff; }
+
+.sector-map .beacon.is-past { opacity: 0.35; }
 
 .beacon-legend { display: inline-flex; gap: 16px; margin-left: auto; }
 

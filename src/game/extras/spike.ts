@@ -101,6 +101,16 @@ function pulseSeconds(powered: number): number {
  */
 const KIT_TARGETS: readonly KitId[] = ["spike", "cradle", "veil", "sling", "leash", "swarm", "cell", "flak", "lance"];
 
+/** Hacking wiki, "Overview": "A destroyed system cannot be actively hacked". */
+function targetDestroyed(g: Game, id: string): boolean {
+  const ship = g.enemy;
+  if (!ship) return false;
+  const sys = ship.systems[id as SysId];
+  if (sys && sys.level > 0 && sys.damage >= sys.level) return true;
+  const kit = ship.kits[id as KitId];
+  return !!kit && kit.level > 0 && (kit.damage ?? 0) >= kit.level;
+}
+
 function isTarget(g: Game, id: string): boolean {
   // Each flagship artillery room is its own system. "weapons" would drain every gun.
   if (id === "weapons" && g.enemy?.flagship) return false;
@@ -168,7 +178,7 @@ export function toggleSpikePower(g: Game) {
 export function armSpike(g: Game, systemId: string): boolean {
   const kit = kitOf(g);
   if (!kit || running(kit)) return false;
-  if (!isTarget(g, systemId)) return false;
+  if (!isTarget(g, systemId) || targetDestroyed(g, systemId)) return false;
   // @agent:hack-rules. A drone already in flight is committed ("this choice is permanent").
   if (g.enemy?.hackFlying != null) return false;
   const latched = g.enemy?.hackDrone;
@@ -194,6 +204,8 @@ export function launchSpike(g: Game): boolean {
   // Zoltans: Hacking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return false;
   if (!kit.target || !isTarget(g, kit.target)) return false;
+  // Hacking wiki, "Overview": "A destroyed system cannot be actively hacked, but a hacking pulse started prior to the system destruction will not be interrupted."
+  if (targetDestroyed(g, kit.target) && !running(kit)) return false;
   const powered = fedBars(kit);
   if (powered < 1) return false;
   // @agent:hacking. Hacking wiki, "Choosing your hacking target": the drone "latches onto the hull and becomes
@@ -1558,7 +1570,8 @@ export function spikeAimId(g: Game, roomId: string): string | null {
   if (!room) return null;
   if (g.enemy?.flagship && FLAGSHIP_GUN[room.id]) return room.id;
   const id = room.system ?? room.kit;
-  return id && isTarget(g, id) ? id : null;
+  if (!id || !isTarget(g, id) || targetDestroyed(g, id)) return null;
+  return id;
 }
 
 export function spikeRoomTargetable(g: Game, roomId: string): boolean {

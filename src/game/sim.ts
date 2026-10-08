@@ -1362,6 +1362,26 @@ export function openAllDoors(g: Game) {
   sfx(g, "vent");
 }
 
+/**
+ * Door System: the close-all control next to open-all. Coated interior doors stay as they are, the same as a hand toggle.
+ * A dead Door System cannot do this.
+ */
+export function closeAllDoors(g: Game) {
+  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
+    log(g, "Door control is dead.");
+    return;
+  }
+  for (const door of g.player.doors) {
+    if (door.stuck > 0) continue;
+    if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b))) continue;
+    door.open = false;
+    if (door.b !== "void") continue;
+    const room = roomById(g.player, door.a);
+    if (room) room.venting = false;
+  }
+  sfx(g, "click");
+}
+
 function crystalInCloneBay(c: Crew, ship: Ship | null): boolean {
   if ((c.cloneIn ?? 0) > 0) return true;
   const room = ship ? roomById(ship, c.room) : undefined;

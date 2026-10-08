@@ -10,15 +10,16 @@ import {
 } from "@/game/content";
 import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
-import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell } from "@/game/extras/cell";
-import { shipInDanger } from "@/game/extras/sling";
+import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell, upgradeCell } from "@/game/extras/cell";
+import { recallSling, sendSling, shipInDanger, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
 import { depowerDrone, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { lowerLancePower, raiseLancePower } from "@/game/extras/lance";
 import { lowerFlakPower, raiseFlakPower } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
-import { startVeil } from "@/game/extras/veil";
+import { startVeil, toggleVeilPower, upgradeVeil } from "@/game/extras/veil";
+import { startLeash, toggleLeashPower, upgradeLeash } from "@/game/extras/leash";
 import { enemyCloneQueue } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
 import { shipSight } from "@/game/extras/slug-sight";
@@ -62,6 +63,7 @@ import {
   bars,
   maxBubbles,
   zoltanBars,
+  closeAllDoors,
   lockdown,
   lockdownSelected,
   openAllDoors,
@@ -79,6 +81,7 @@ import {
   toggleAutoAll,
   toggleDoor,
   togglePause,
+  waitHere,
   upgrade,
   weaponChargeShown,
   weaponSlotCap,
@@ -133,9 +136,25 @@ function act(fn: (g: Game) => void) {
  * system room."
  */
 const useHackAim = create<{ on: boolean }>(() => ({ on: false }));
+const useSlingAim = create<{ on: boolean }>(() => ({ on: false }));
+const useLeashAim = create<{ on: boolean }>(() => ({ on: false }));
 
 function setHackAim(on: boolean) {
   if (useHackAim.getState().on !== on) useHackAim.setState({ on });
+}
+
+function setSlingAim(on: boolean) {
+  if (useSlingAim.getState().on !== on) useSlingAim.setState({ on });
+}
+
+function setLeashAim(on: boolean) {
+  if (useLeashAim.getState().on !== on) useLeashAim.setState({ on });
+}
+
+function clearAims() {
+  setHackAim(false);
+  setSlingAim(false);
+  setLeashAim(false);
 }
 
 /**
@@ -164,7 +183,45 @@ function hackIconClick() {
   }
   if (view.state !== "ready") return;
   act((game) => cancelTargeting(game));
+  setSlingAim(false);
+  setLeashAim(false);
   setHackAim(true);
+}
+
+/** Crew Teleporter, "Overview": send onto a room, or bring the crew back when they are already aboard. */
+function slingIconClick() {
+  const g = useGame.getState().game;
+  const away = g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+  if (away) {
+    setSlingAim(false);
+    act((game) => recallSling(game));
+    return;
+  }
+  if (useSlingAim.getState().on) {
+    setSlingAim(false);
+    return;
+  }
+  act((game) => cancelTargeting(game));
+  setHackAim(false);
+  setLeashAim(false);
+  setSlingAim(true);
+}
+
+function slingRoomClick(roomId: string) {
+  act((game) => sendSling(game, roomId));
+  setSlingAim(false);
+}
+
+/** Mind Control, "Overview": click the system, then an enemy crewmember. Click again to leave aim. */
+function leashIconClick() {
+  if (useLeashAim.getState().on) {
+    setLeashAim(false);
+    return;
+  }
+  act((game) => cancelTargeting(game));
+  setHackAim(false);
+  setSlingAim(false);
+  setLeashAim(true);
 }
 
 /**
@@ -359,24 +416,31 @@ const MAIN_BARS: SysId[] = ["shields", "engines", "medbay", "oxygen", "weapons"]
 /** INVENTED: the combat, event, and pause screens are the layout guide. No wiki page specifies this chrome. */
 function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   const sector = game.sectorMap && game.phase !== "victory" && game.phase !== "defeat";
-  const chart = !sector && (game.phase === "map" || game.picking);
+  // File:NO_FUEL.png and File:3_store.jpg: the beacon chart is a panel over the ship, opened with JUMP.
+  const chart = !sector && game.picking && (game.phase === "map" || game.phase === "combat" || game.phase === "event");
   const showTarget = !!game.enemy && !chart && (game.phase === "combat" || game.phase === "event");
   const ox = shake ? Math.sin(game.time * 40) * 7 * shake : 0;
   const oy = shake ? Math.cos(game.time * 33) * 5 * shake : 0;
   // @agent:hack-ui. Hack targeting only lasts while a launch is possible (fight over, power pulled, part spent...).
   const hackOn = useHackAim((s) => s.on);
+  const slingOn = useSlingAim((s) => s.on);
+  const leashOn = useLeashAim((s) => s.on);
   const hackReady = playerHackView(game)?.state === "ready";
   useEffect(() => {
     if (hackOn && !hackReady) setHackAim(false);
-  }, [hackOn, hackReady]);
+    if ((slingOn || leashOn) && !game.enemy) {
+      setSlingAim(false);
+      setLeashAim(false);
+    }
+  }, [hackOn, hackReady, slingOn, leashOn, game.enemy]);
   const hackAiming = hackOn && hackReady;
   return (
     <div
-      className={`play${showTarget ? "" : " no-target"}${game.targeting || hackAiming ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}`}
+      className={`play${showTarget ? "" : " no-target"}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
       onContextMenu={(e) => {
         e.preventDefault();
         // Hacking wiki: hack targeting "works much the same as targeting your weapons"; right click cancels both.
-        setHackAim(false);
+        clearAims();
         act((g) => cancelTargeting(g));
       }}
     >
@@ -386,14 +450,13 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       <div className="stage-slot">
         {sector ? (
           <SectorChart game={game} />
-        ) : chart ? (
-          <MapScreen game={game} />
         ) : (
           <ShipStage game={game} shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined} />
         )}
+        {chart ? <MapScreen game={game} /> : null}
         {game.paused && game.phase === "combat" ? <PauseStamp /> : null}
       </div>
-      {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} /> : null}
+      {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} /> : null}
       <Dock game={game} hackAiming={hackAiming} />
       {game.phase === "event" && game.event ? <EventModal game={game} /> : null}
       {game.phase === "store" ? <StoreBoard game={game} /> : null}
@@ -425,12 +488,13 @@ function Hud({ game }: { game: Game }) {
               <i key={i} className={i < Math.round((game.player.hull / Math.max(1, game.player.hullMax)) * 30) ? "on" : ""} />
             ))}
           </div>
-          <div className="scrap-box" aria-label={`${game.scrap} scrap`}>
+          <div className={`scrap-box${game.scrap < 1 ? " is-empty" : ""}`} aria-label={`${game.scrap} scrap`}>
             <PixelIcon name="scrap" size={20} />
             <b>{game.scrap}</b>
           </div>
         </div>
         <div className="store-row">
+          <span className="hud-word hud-shields">SHIELDS</span>
           <span className="bubbles" aria-label={`${bubbles} shield bubbles`}>
             {Array.from({ length: cap }, (_, i) => (
               <i key={i} className={i < bubbles ? "on" : ""} />
@@ -443,15 +507,15 @@ function Hud({ game }: { game: Game }) {
               ))}
             </span>
           ) : null}
-          <span className="count-chip" aria-label={`${game.fuel} fuel`} title="Fuel">
+          <span className={`count-chip${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title="Fuel">
             <PixelIcon name="fuel" />
             {game.fuel}
           </span>
-          <span className="count-chip" aria-label={`${game.missiles} missiles`} title="Missiles">
+          <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title="Missiles">
             <PixelIcon name="missile" />
             {game.missiles}
           </span>
-          <span className="count-chip" aria-label={`${game.player.parts} drone parts`} title="Drone parts">
+          <span className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`} aria-label={`${game.player.parts} drone parts`} title="Drone parts">
             <PixelIcon name="parts" />
             {game.player.parts}
           </span>
@@ -460,14 +524,13 @@ function Hud({ game }: { game: Game }) {
       <div className="hud-right">
         <button
           type="button"
-          className={`ftl-drive${charging ? " is-charging" : ""}`}
+          className={`ftl-drive${charging ? " is-charging" : " is-ready"}`}
           disabled={game.phase === "combat" && game.flee < 1}
           title={spool == null ? "FTL needs a pilot or engines." : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`}
           onClick={() => {
-            if (game.phase === "map") return;
-            if (game.picking) {
+            if (game.phase === "map" || game.picking) {
               act((g) => {
-                g.picking = false;
+                g.picking = game.phase === "map" ? !g.picking : false;
               });
               return;
             }
@@ -478,14 +541,19 @@ function Hud({ game }: { game: Game }) {
             }
           }}
         >
-          <span>FTL Drive</span>
+          <span className="ftl-kicker">FTL Drive</span>
+          {charging ? null : <span>JUMP</span>}
           <span className="ftl-meter">
             <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : 1) * 100)}%` }} />
           </span>
-          <em>
-            {charging ? "CHARGING" : game.picking ? "CHART" : "READY"}
-          </em>
+          <em>{charging ? "CHARGING" : "READY"}</em>
         </button>
+        {shipInDanger(game) || game.pulsarWarned ? (
+          <div className="hud-alerts">
+            {shipInDanger(game) ? <p className="danger-mark" role="status">DANGER!</p> : null}
+            {game.pulsarWarned ? <p className="hazard-mark" role="status">ION PULSE IMMINENT!</p> : null}
+          </div>
+        ) : null}
         <button
           type="button"
           className="frame-btn"
@@ -530,15 +598,15 @@ function CrewRail({ game }: { game: Game }) {
       <div className="air-readout">
         <span title="Evasion">
           <PixelIcon name="evade" />
-          {evasionPercent(game, game.player, "player")}%
+          EVADE {evasionPercent(game, game.player, "player")}%
         </span>
         <span title="Oxygen">
           <PixelIcon name="oxygen" />
-          {air}%
+          OXYGEN {air}%
         </span>
       </div>
       {crew.map((c) => (
-        <div key={c.id} className={`crew-card${c.id === game.selected ? " is-selected" : ""}`}>
+        <div key={c.id} className={`crew-card${c.id === game.selected ? " is-selected" : ""}${(c.leashed ?? 0) > 0 ? " is-leashed" : ""}`}>
           <button type="button" className="crew-card-hit" onClick={() => act((g) => selectCrew(g, c.id))}>
             <Portrait crew={c} />
             <span>
@@ -548,6 +616,11 @@ function CrewRail({ game }: { game: Game }) {
               </i>
             </span>
           </button>
+          {(c.leashed ?? 0) > 0 ? (
+            <button type="button" className="lock-pip" aria-label="Free from mind control" onClick={() => act((g) => startLeash(g, c.id))}>
+              MC
+            </button>
+          ) : null}
           {c.kin === "shard" ? (
             <button
               type="button"
@@ -662,7 +735,7 @@ function hackMarkOf(game: Game): HackMark | null {
   return null;
 }
 
-function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
+function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Game; hackAiming: boolean; slingAiming: boolean; leashAiming: boolean }) {
   const enemy = game.enemy;
   if (!enemy) return null;
   const escape = enemyEscapeView(game);
@@ -728,8 +801,17 @@ function TargetPanel({ game, hackAiming }: { game: Game; hackAiming: boolean }) 
           selectedId={null}
           ventMode={false}
           targetable
-          onRoom={(id, point) => (hackAiming ? hackRoomClick(id) : act((g) => aim(g, id, point)))}
-          onCrew={() => undefined}
+          onRoom={(id, point) => {
+            if (hackAiming) hackRoomClick(id);
+            else if (slingAiming) slingRoomClick(id);
+            else act((g) => aim(g, id, point));
+          }}
+          onCrew={(id) => {
+            if (leashAiming) {
+              act((g) => startLeash(g, id));
+              setLeashAim(false);
+            }
+          }}
           aims={aimMarks(game)}
           beamAnchor={game.targeting && !hackAiming ? game.beamAnchor : null}
           beamLines={beamLinesOf(game)}
@@ -1006,6 +1088,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             })}
           </div>
         ) : null}
+        {swarm ? <span className="dock-label dock-drones">DRONES</span> : null}
         <div className="dock-caption">
           <span className="dock-label">WEAPONS</span>
           <button
@@ -1021,6 +1104,14 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
       <div className="sub-dock">
         {game.mode === "vent" ? (
           <div className="door-pop">
+            <div className="door-all">
+              <button type="button" onClick={() => act((g) => openAllDoors(g))}>
+                Open the doors
+              </button>
+              <button type="button" onClick={() => act((g) => closeAllDoors(g))}>
+                Close the doors
+              </button>
+            </div>
             {game.player.doors.map((d) => (
               <button key={`${d.a}-${d.b}`} type="button" onClick={() => act((g) => toggleDoor(g, d.a, d.b))}>
                 {doorLabel(game.player, d)}
@@ -1065,32 +1156,62 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             // A kit with no room on the player ship still carries the latched drone; mark its orb instead
             // (Hacking wiki: "Launches a hacking drone that attaches to the enemy ship").
             const hacked = hackedKit?.id === id ? hackedKit.phase : null;
+            const away = id === "sling" && game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
             const tip = cloakLocked
               ? `${KIT_LABEL[id]}: hacked, cannot cloak`
               : hacked
                 ? `${KIT_LABEL[id]}: hacking drone attached${hacked === "pulse" ? " (pulse)" : ""}`
-                : KIT_LABEL[id];
+                : id === "sling"
+                  ? away
+                    ? "Teleporter: recall crew"
+                    : "Teleporter: send crew"
+                  : id === "leash"
+                    ? "Mind Control: pick a crewmember"
+                    : KIT_LABEL[id];
+            const powered = id === "veil" || id === "sling" || id === "leash";
             return (
-              <button
-                key={id}
-                type="button"
-                className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
-                data-kit={id}
-                aria-label={tip}
-                title={tip}
-                disabled={cloakLocked}
-                onClick={() => {
-                  if (id === "veil") act((g) => startVeil(g));
-                  else if (id === "cell") act((g) => startCell(g));
-                }}
-              >
-                <i className="sub-bars" aria-hidden="true">
-                  {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-                    <b key={n} className={kitBarClass(game, id, kit.power, n)} />
-                  ))}
-                </i>
-                <PixelIcon name={id} size={16} />
-              </button>
+              <span key={id} className="sub-pod">
+                {powered ? (
+                  <button
+                    type="button"
+                    className="sub-power"
+                    aria-label={`${KIT_LABEL[id]} power`}
+                    onClick={() => {
+                      if (id === "veil") act((g) => toggleVeilPower(g));
+                      else if (id === "sling") act((g) => toggleSlingPower(g));
+                      else act((g) => toggleLeashPower(g));
+                    }}
+                  >
+                    <i className="sub-bars" aria-hidden="true">
+                      {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+                        <b key={n} className={kitBarClass(game, id, kit.power, n)} />
+                      ))}
+                    </i>
+                  </button>
+                ) : (
+                  <i className="sub-bars" aria-hidden="true">
+                    {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+                      <b key={n} className={kitBarClass(game, id, kit.power, n)} />
+                    ))}
+                  </i>
+                )}
+                <button
+                  type="button"
+                  className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+                  data-kit={id}
+                  aria-label={tip}
+                  title={tip}
+                  disabled={cloakLocked}
+                  onClick={() => {
+                    if (id === "veil") act((g) => startVeil(g));
+                    else if (id === "cell") act((g) => startCell(g));
+                    else if (id === "sling") slingIconClick();
+                    else if (id === "leash") leashIconClick();
+                  }}
+                >
+                  <PixelIcon name={id} size={16} />
+                </button>
+              </span>
             );
           })}
         </div>
@@ -1589,6 +1710,14 @@ function WikiLines({ lines, onRun }: { lines: WikiLine[]; onRun: () => void }) {
   return <>{blocks}</>;
 }
 
+function beaconMark(b: { quest?: string; resolved: boolean; kind: string; name: string; flag: string }): string {
+  if (b.quest && !b.resolved) return "QUEST";
+  if (b.kind === "store") return "STORE";
+  if (b.kind === "exit") return "EXIT";
+  if (b.kind === "distress" || /distress/i.test(`${b.name} ${b.flag}`)) return "DISTRESS";
+  return "";
+}
+
 function mapX(col: number) {
   return col === 0 ? 40 : 210 + (col - 1) * 82;
 }
@@ -1597,7 +1726,7 @@ function mapY(row: number) {
   return 44 + row * 96;
 }
 
-/** BEACON MAP: File:3 store.jpg. STORE and EXIT labels, SECTOR, CANCEL. */
+/** BEACON MAP: File:NO_FUEL.png. NO FUEL across the chart, WAIT, DISTRESS BEACON, SECTOR. STORE and EXIT labels stay. */
 function MapScreen({ game }: { game: Game }) {
   const here = game.beacons.find((b) => b.id === game.here);
   const maxCol = game.beacons.reduce((m, b) => Math.max(m, b.col), 0);
@@ -1609,6 +1738,23 @@ function MapScreen({ game }: { game: Game }) {
   return (
     <section className="sector-map beacon-map">
       <h2>BEACON MAP</h2>
+      <button
+        type="button"
+        className="map-close"
+        aria-label="Close"
+        onClick={() =>
+          act((g) => {
+            g.picking = false;
+          })
+        }
+      >
+        ×
+      </button>
+      {game.phase === "map" ? (
+        <button type="button" className="map-wait" onClick={() => act((g) => waitHere(g))}>
+          WAIT
+        </button>
+      ) : null}
       <div className="sector-board">
         <div className="sector-plot" style={{ aspectRatio: `${w} / ${h}`, ["--aspect" as string]: w / h }}>
           <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
@@ -1631,6 +1777,17 @@ function MapScreen({ game }: { game: Game }) {
                   );
                 }),
             )}
+            {game.fleet > 0 ? (
+              <line
+                x1={mapX(game.fleet) - 28}
+                y1={8}
+                x2={mapX(game.fleet) - 28}
+                y2={h - 8}
+                stroke="#e23a3a"
+                strokeWidth="3"
+                strokeDasharray="7 5"
+              />
+            ) : null}
             {here ? (
               <g transform={`translate(${mapX(here.col)} ${mapY(here.row)})`}>
                 <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
@@ -1644,12 +1801,13 @@ function MapScreen({ game }: { game: Game }) {
             const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
             const swallowed = b.col < game.fleet;
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
-            const tag = b.quest && !b.resolved ? "QUEST" : b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
+            const tag = beaconMark(b);
+            const nebula = b.kind === "nebula" && !b.cleared;
             return (
               <button
                 key={b.id}
                 type="button"
-                className={`beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
+                className={`beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
                 style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
                 disabled={!open || (game.phase === "combat" && game.flee < 1)}
                 aria-label={tag || "Beacon"}
@@ -1658,7 +1816,7 @@ function MapScreen({ game }: { game: Game }) {
             );
           })}
           {game.beacons.map((b) => {
-            const tag = b.quest && !b.resolved ? "QUEST" : b.kind === "store" ? "STORE" : b.kind === "exit" ? "EXIT" : "";
+            const tag = beaconMark(b);
             if (!tag || b.id === game.here) return null;
             return (
               <span key={`tag-${b.id}`} className={`jump-tag${tag === "QUEST" ? " is-quest" : ""}`} style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}>
@@ -1685,11 +1843,13 @@ function MapScreen({ game }: { game: Game }) {
                 );
               })
             : null}
+          {game.fuel < 1 ? <p className="no-fuel">NO FUEL</p> : null}
         </div>
       </div>
       <div className="sector-key beacon-foot">
         <span>SECTOR {game.sector}</span>
         {named ? <span>{named}</span> : null}
+        {here && beaconMark(here) === "DISTRESS" ? <span>DISTRESS BEACON</span> : null}
         <span className="beacon-legend">
           <span><i className="key-beacon is-linked" />Jump</span>
           <span><i className="key-beacon" />Beacon</span>
@@ -1740,6 +1900,7 @@ function SectorChart({ game }: { game: Game }) {
             )}
             {here ? (
               <g transform={`translate(${mapX(here.col)} ${mapY(here.row)})`}>
+                <circle r="16" fill="none" stroke="#e6d36a" strokeWidth="2" />
                 <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
                 <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
               </g>
@@ -1748,11 +1909,12 @@ function SectorChart({ game }: { game: Game }) {
           {nodes.map((b) => {
             if (b.id === game.routeHere) return null;
             const linked = here?.links.includes(b.id) ?? false;
+            const past = !!here && b.col < here.col;
             return (
               <button
                 key={b.id}
                 type="button"
-                className={`beacon is-${sectorTone(b.group)}${linked ? " is-linked" : ""}`}
+                className={`beacon is-${sectorTone(b.group)}${linked ? " is-linked" : ""}${past ? " is-past" : ""}`}
                 style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
                 disabled={!linked}
                 aria-label={b.name}
@@ -1909,6 +2071,22 @@ function ShipSheet({ game }: { game: Game }) {
                   </span>
                 ) : null}
                 <span className="mini">{kit.power > 0 ? `${kit.power} power` : "unpowered"}</span>
+                {id === "veil" || id === "sling" || id === "leash" || id === "cell" ? (
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() =>
+                      act((g) => {
+                        if (id === "veil") upgradeVeil(g);
+                        else if (id === "sling") upgradeSling(g);
+                        else if (id === "leash") upgradeLeash(g);
+                        else upgradeCell(g);
+                      })
+                    }
+                  >
+                    UPGRADE
+                  </button>
+                ) : null}
                 {id === "lance" ? (
                   <span className="mode-row">
                     <button

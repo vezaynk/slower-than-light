@@ -1533,6 +1533,12 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "You access the recent scans from the unguarded station. Your map has been updated with details of the surrounding area.", scrapOnly(g, "low"));
   },
+  // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
+  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
+  "auto-ship-warning": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "The ship breaks apart and you feel relief in the knowledge that you will hopefully still be one step ahead of the fleet.", rollStandard(g, "low"));
+  },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
   "lanius-ship-attacking-civilian": laniusCivilianWin,

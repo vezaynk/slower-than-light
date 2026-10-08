@@ -182,3 +182,27 @@ describe("Pirate engine hacker", () => {
     assert.ok(evasionPercent(g, g.player, "player") > high);
   });
 });
+
+describe("Rebel fight choice in nebula", () => {
+  it("prints the opening sentence, and attacking starts a Rebel fight", () => {
+    const g = createGame(1);
+    const b = g.beacons.find((x) => x.kind !== "start");
+    assert.ok(b);
+    b.flag = "cited:rebel-fight-choice-in-nebula";
+    b.name = "Rebel fight choice in nebula";
+    g.here = b.id;
+    g.event = citedEvent(g, b);
+    g.phase = "event";
+    assert.equal(
+      g.event?.body,
+      "Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you.",
+    );
+    assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight-choice-in-nebula:0"));
+    choose(g, "c:rebel-fight-choice-in-nebula:0");
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "rebel");
+    assert.equal(g.enemy?.pirate, false);
+    assert.equal(g.fightEvent, "rebel-fight-choice-in-nebula");
+    assert.equal(g.scrap, 10);
+  });
+});

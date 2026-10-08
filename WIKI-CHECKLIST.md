@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2814 |
+| Behaviors checked | 2815 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -333,6 +333,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] At Auto-ship fight in nebula, one of the five printed intros is shown before Fight an Auto-ship, which still fights an Auto-ship.
   - [x] A destroyed ship pays medium scrap with resources, and a crew kill is not a separate reward.
+  - [x] The fight line starts the Auto-ship on arrival, and it is not a button.
 
 - [ ] Auto-ship fight in plasma storm
   - [x] one beacon in a sector the page names, while a free beacon remains.

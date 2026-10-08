@@ -573,6 +573,40 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:refueling-station:3", label: "Ignore the station.", fx: [{ k: "nothing" }] },
     ],
   },
+  // HELP_MINERS. Five missiles: 10 hull, a reactor step, or 15-25 scrap. No odds. INFERRED: equal.
+  // Fifteen missiles: 15 hull and a reactor step, an unnamed augment, or 30-40 scrap and 5 hull.
+  // INFERRED: those three are equal. The augment is not named, so that result installs nothing.
+  // The reactor step size is not printed. INFERRED: one bar, and not past the reactor maximum.
+  // A missile weapon's launch offer does nothing and returns the non-blue choices.
+  // Hull Missile is not a missile weapon for events.
+  {
+    dest: "Asteroid mining colony",
+    slug: "asteroid-mining-colony",
+    flag: "cited:asteroid-mining-colony",
+    aliases: ["Asteroid mining colony"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+    ],
+    body: "You come across an asteroid mining colony. They message you immediately, saying, \"Greetings. Our supplies of mining explosives have run out ever since the Rebels blockaded this system. Do you have any extra explosives?\"",
+    choices: [
+      { id: "c:asteroid-mining-colony:0", label: "Offer to solve their problem by launching a missile.", fx: [{ k: "nothing" }] },
+      { id: "c:asteroid-mining-colony:1", label: "Give them the requested 5 missiles.", fx: [{ k: "res", id: "missiles", sign: -1, lo: 5, hi: 5 }] },
+      { id: "c:asteroid-mining-colony:2", label: "Give them 15 missiles.", fx: [{ k: "res", id: "missiles", sign: -1, lo: 15, hi: 15 }] },
+      { id: "c:asteroid-mining-colony:3", label: "Decline.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -727,6 +761,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "empty-nebula-beacon") return emptyCard(g, emptyPageFor("", true));
   if (page.slug === "friendly-ship-out-of-fuel" && FILLER_PAGES.includes(page as CitedEventDef)) return friendlyCard(g, page);
   if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
+  if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -900,6 +935,83 @@ function weighted<T>(g: Game, items: [T, number][]): T {
     if (roll < 0) return item;
   }
   return items[items.length - 1][0];
+}
+
+/** Missile (Weapons), Hull Missile: "BUGGED: not considered a missile weapon for events." */
+function miningMissile(g: Game): boolean {
+  return g.player.weapons.some((w) => w.defId !== "hullmissile" && WEAPONS[w.defId]?.kind === "missile");
+}
+
+function miningOffers(): { id: string; label: string }[] {
+  return [
+    { id: "c:asteroid-mining-colony:1", label: "Give them the requested 5 missiles." },
+    { id: "c:asteroid-mining-colony:2", label: "Give them 15 missiles." },
+    { id: "c:asteroid-mining-colony:3", label: "Decline." },
+  ];
+}
+
+/** The launch offer is a blue option. It is absent without a missile weapon. */
+function miningCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices
+    .filter((c) => c.id !== "c:asteroid-mining-colony:0" || miningMissile(g))
+    .map((c) => ({ id: c.id, label: c.label }));
+  return { title: page.dest, body: page.body, choices };
+}
+
+/**
+ * "Your ship reactor is upgraded." No step is printed. INFERRED: one bar.
+ * Template:Reactor power cost caps the reactor at 25. Past that, the missiles stay spent and the bar does not move.
+ */
+function bumpReactor(g: Game): string {
+  if (upgradeCost("reactor", g.player.reactor) == null) return "";
+  g.player.reactor += 1;
+  // Manpower: an event offer to upgrade the reactor does not count against the achievement.
+  noteReactorEvent(g);
+  return "Your ship reactor is upgraded.";
+}
+
+function payMiners(g: Game, base: number, hull: number): string[] {
+  const got = adjustScrap(g, base);
+  if (got > 0) g.scrap += got;
+  if (base > 0) g.scrapCollected = (g.scrapCollected ?? 0) + base;
+  g.player.hull = Math.min(g.player.hullMax, g.player.hull + hull);
+  const lines = [`You receive ${got} scrap.`];
+  if (hull > 0) lines.push(`Your ship receives ${hull} repairs.`);
+  return lines;
+}
+
+/** Asteroid mining colony. A shortfall leaves the card up. */
+function giveMiners(g: Game, n: 5 | 15) {
+  if (g.missiles < n) return;
+  g.missiles -= n;
+  if (n === 5) {
+    // No odds on the three results. INFERRED: equal.
+    const r = weighted(g, [["hull", 1], ["reactor", 1], ["scrap", 1]] as const);
+    if (r === "hull") {
+      g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
+      show(g, "They thank you and offer to have their engineers repair some of your ship's hull.", undefined, ["Your ship receives 10 repairs."]);
+    } else if (r === "reactor") {
+      const note = bumpReactor(g);
+      show(g, "They thank you and offer to have their engineers upgrade your reactor.", undefined, note ? [note] : []);
+    } else {
+      const base = between(g, [15, 25]);
+      show(g, "They thank you for your generosity and offer some scrap in exchange.", undefined, payMiners(g, base, 0));
+    }
+    return;
+  }
+  // No odds on the three results. INFERRED: equal.
+  // The augment result names no augment. That grant stays unwired.
+  const r = weighted(g, [["both", 1], ["augment", 1], ["scrap", 1]] as const);
+  if (r === "both") {
+    g.player.hull = Math.min(g.player.hullMax, g.player.hull + 15);
+    const note = bumpReactor(g);
+    show(g, "\"Wow. This will help our efforts considerably.\" They offer to have their engineers fix up your ship and upgrade your reactor.", undefined, ["Your ship receives 15 repairs.", note].filter(Boolean));
+  } else if (r === "augment") {
+    show(g, "\"Wow. This will help our efforts considerably. What could I offer for your troubles...\" After some time they deliver a ship Augment for installation on your ship.");
+  } else {
+    const base = between(g, [30, 40]);
+    show(g, "\"Wow. This will help our efforts considerably. Let me see what I can scrounge up to offer you.\" They deliver some scrap and have their team try to repair part of your hull.", undefined, payMiners(g, base, 5));
+  }
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
@@ -1269,6 +1381,17 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:refueling-station:2": (g) => buyFuel(g, 2, 1),
   "c:refueling-station:3": done,
 
+  // Asteroid mining colony. The launch "has no effect" and the non-blue choices return.
+  "c:asteroid-mining-colony:0": (g) => {
+    if (!miningMissile(g)) return;
+    card(g, "\"While I appreciate your enthusiasm, we have certain protocols for the use of explosives around the workplace. Launching a military grade weapon into our mines isn't exactly what I'd call 'union-friendly'.\"", miningOffers());
+  },
+  "c:asteroid-mining-colony:1": (g) => giveMiners(g, 5),
+  "c:asteroid-mining-colony:2": (g) => giveMiners(g, 15),
+  "c:asteroid-mining-colony:3": (g) => {
+    show(g, "\"I understand. Good luck out there. We'll try to make do with what we have.\"");
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1411,6 +1534,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:refueling-station:0" && g.scrap < 12) return "Need 12 scrap";
   if (id === "c:refueling-station:1" && g.scrap < 6) return "Need 6 scrap";
   if (id === "c:refueling-station:2" && g.scrap < 2) return "Need 2 scrap";
+  if (id === "c:asteroid-mining-colony:0" && !miningMissile(g)) return "Needs a missile weapon";
+  if (id === "c:asteroid-mining-colony:1" && g.missiles < 5) return "Need 5 missiles";
+  if (id === "c:asteroid-mining-colony:2" && g.missiles < 15) return "Need 15 missiles";
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
   if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return "Needs a Scrap Recovery Arm";

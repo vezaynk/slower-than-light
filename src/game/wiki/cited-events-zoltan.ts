@@ -84,7 +84,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-ships-in-plasma-storm",
     aliases: ["Pirate ships in plasma storm", "Plasma storm pirate ships", "Two pirate ships in plasma storm"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You spy two pirate ships lurking in the nebula here.",
+    body: "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.",
     choices: [
       {
         id: "c:pirate-ships-in-plasma-storm:0",

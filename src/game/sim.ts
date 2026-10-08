@@ -5056,6 +5056,7 @@ function arrive(g: Game, b: Beacon) {
   // Boarders: Humans (Pirate): "3-5 human boarders beam aboard your ship."
   // Boarders: Humans near sun: "2-4 human boarders beam aboard your ship." redgiant=true.
   // Boarders: Rockmen near sun: "2-3 rock boarders beam aboard your ship." redgiant=true.
+  // Boarders: Humans in nebula: "2-4 human boarders beam aboard your ship."
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5063,7 +5064,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:boarders-mantis" ||
       b.flag === "cited:boarders-humans-pirate" ||
       b.flag === "cited:boarders-humans-near-sun" ||
-      b.flag === "cited:boarders-rockmen-near-sun") &&
+      b.flag === "cited:boarders-rockmen-near-sun" ||
+      b.flag === "cited:boarders-humans-in-nebula") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

@@ -335,7 +335,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Boarders: Humans in nebula. The page prints no button. The red line is the label.
+  // Boarders: Humans in nebula. The page prints no button. The red line is the outcome, applied on arrival.
   // "2-4 human boarders beam aboard your ship." nebula=true, LRSmap=noship+nebula, unique=true.
   // The page prints three intros; this card uses the first. Not a crew grant. No ship.
   {

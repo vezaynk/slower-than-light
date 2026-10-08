@@ -86,12 +86,27 @@ export function stormReactor(reactor: number): number {
 }
 
 /**
+ * Rebel fight in plasma storm, Locations: plasmastorm=true.
+ * Trivia: in a Slug sector the beacon can sit outside a nebula, and the plasma storm is still there.
+ * Fleet pursuit stays the full non-nebula step because this does not change beacon.kind.
+ */
+function plasmaStormEvent(beacon: Pick<Beacon, "flag" | "name">): boolean {
+  return beacon.flag === "cited:rebel-fight-in-plasma-storm" || beacon.name === "Rebel fight in plasma storm";
+}
+
+/**
  * Environmental Hazards, Plasma/ion Storm: a nebula beacon the fleet has overtaken always has an ion storm.
  * An exit beacon cannot. INFERRED: only that always-case is used. The page does not say which other nebula beacons have one.
  * Environmental Hazards, Anti-Ship Battery: a nebula cleared by an out-of-fuel wait has no storm.
+ * Rebel fight in plasma storm still storms when the beacon is not a nebula and the fleet has not overtaken it.
  */
-export function ionStormBeacon(beacon: Pick<Beacon, "kind" | "col" | "cleared"> | undefined, fleet: number): boolean {
-  if (!beacon || beacon.kind !== "nebula" || beacon.cleared) return false;
+export function ionStormBeacon(
+  beacon: Pick<Beacon, "kind" | "col" | "cleared" | "flag" | "name"> | undefined,
+  fleet: number,
+): boolean {
+  if (!beacon || beacon.kind === "exit") return false;
+  if (plasmaStormEvent(beacon)) return true;
+  if (beacon.kind !== "nebula" || beacon.cleared) return false;
   return beacon.col < fleet;
 }
 

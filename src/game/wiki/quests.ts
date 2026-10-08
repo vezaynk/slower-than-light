@@ -721,6 +721,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-salvager:0": (g) => {
     pageFight(g, "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.", "Lanius ship", "lanius-ship-salvager");
   },
+  // Lanius ship salvager. "Leave them alone." One printed result.
+  "c:lanius-ship-salvager:1": (g) => {
+    result(g, "You ignore the ship and prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship salvager, {{Blue Option|Lanius Crew|Request some scrap.}}
   // Three results, no odds. INFERRED: equal. Medium scrap is scrap only, not scrap with resources.
   // The nested fight is default Lanius rewards: no PAGE_WINS row, so winCombat pays the default salvage.

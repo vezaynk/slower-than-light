@@ -48,12 +48,14 @@ describe("Lanius ship salvager", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("leaving spends nothing", () => {
+  it("leaving shows the printed jump sentence and nothing happens", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:1");
-    assert.equal(g.phase, "map");
+    assert.equal(g.event?.body, "You ignore the ship and prepare to jump.\n\nNothing happens.");
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.enemy, null);
   });
 
   it("requesting scrap needs a living Lanius", () => {

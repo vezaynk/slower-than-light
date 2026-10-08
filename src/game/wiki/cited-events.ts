@@ -3544,6 +3544,13 @@ const REBEL_CHECKPOINT_INTROS = [
   "A Rebel space station and single fighter is monitoring this Beacon for Federation activity. A number of civilian ships are docked, awaiting inspection by the Rebels and possible detainment if they are Federation loyalists. The Rebels haven't noticed you yet.",
   "It looks like this Beacon is home to a Rebel checkpoint. They're stopping and searching any ship that passes through. Civilians are being harassed, and Federation members are detained. The Rebels haven't noticed you yet.",
 ];
+// Pirate fight near pulsar. Three printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-near-pulsar:0.
+const PIRATE_PULSAR_INTROS = [
+  "Sensors go wild as a nearby pulsar is detected. While you are attempting to recalibrate the FTL drive, a pirate sneaks up on your ship, weapons charging. Prepare for a fight!",
+  "You arrive to find a pulsar dominating the view screen. You see a small silhouette pass in front of the star. Before you can ponder what it is, warning signals go off. It appears to be a ship in a firing trajectory!",
+  "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!",
+];
+
 // Rebel fight. Ten printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight:0.
 const REBEL_FIGHT_INTROS = [
   `Your ship is hailed. "We've found you at last. Prepare to die!"`,
@@ -3756,6 +3763,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Pirate fight near pulsar. One of the three printed intros. The fight stays c:pirate-fight-near-pulsar:0.
+  if (ev.slug === "pirate-fight-near-pulsar") {
+    return {
+      title: ev.dest,
+      body: PIRATE_PULSAR_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
     };
   }
   // Rebel fight. One of the ten printed intros. The fight stays c:rebel-fight:0.

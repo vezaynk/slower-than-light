@@ -3773,6 +3773,16 @@ const ROCK_SUN_BOARDER_INTROS = [
   "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
 ];
 
+// Boarders: Humans (Pirate). The page prints five intros and no odds.
+// INFERRED: equal. The boarders stay c:boarders-humans-pirate:0.
+const PIRATE_HUMAN_BOARDER_INTROS = [
+  `What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!"`,
+  `A heavily damaged ship is drifting near this beacon. You receive a communication: "Hello! Nice of you to drop by. As you can see, our ship has seen better days. Yours is looking quite nice, I think we might be taking it from you now." Intruders beam aboard.`,
+  "You detect life-signs actually on the beacon itself! A teleporter signal warns you but it's too late, they've beamed from the beacon onto your ship and seem intent on taking it over.",
+  "Your ship detects a faint distress signal on a nearby moon. As you approach the rock, warning lights flash as hostiles beam aboard the ship from some hidden location.",
+  "As you arrive, you become aware of a small Rebel outpost near the beacon. You are hardly able to bark an order before a small team is beamed aboard your ship. They must have been expecting you...",
+];
+
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
@@ -4745,6 +4755,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ROCK_SUN_BOARDER_INTROS[between(g, [0, 1])]!,
       choices: [{ id: "c:boarders-rockmen-near-sun:0", label: "2-3 rock boarders beam aboard your ship." }],
+    };
+  }
+  // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
+  if (ev.slug === "boarders-humans-pirate") {
+    return {
+      title: ev.dest,
+      body: PIRATE_HUMAN_BOARDER_INTROS[between(g, [0, 4])]!,
+      choices: [{ id: "c:boarders-humans-pirate:0", label: "3-5 human boarders beam aboard your ship." }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.

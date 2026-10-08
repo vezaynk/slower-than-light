@@ -1156,6 +1156,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:escort-civilians:1": (g) => {
     result(g, "\"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others.\"", undefined, ["Nothing happens."]);
   },
+  // Remote settlement. "Ignore them." One printed result.
+  "c:remote-settlement:1": (g) => {
+    result(g, "It's just not possible to save every civilian affected by this war. You prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

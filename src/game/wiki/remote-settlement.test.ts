@@ -40,11 +40,22 @@ describe("Remote settlement", () => {
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
   });
 
-  it("ignoring them stays out of combat", () => {
+  it("ignoring them shows the printed jump sentence and nothing happens", () => {
     const g = createGame(1);
+    const fuel = g.fuel;
+    const crew = g.crew.filter((c) => c.side === "player").length;
     open(g);
+    g.fleet = 5;
     choose(g, "c:remote-settlement:1");
-    assert.notEqual(g.phase, "combat");
+    assert.equal(
+      g.event?.body,
+      "It's just not possible to save every civilian affected by this war. You prepare to jump.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.fuel, fuel);
+    assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
+    assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
   });
 });

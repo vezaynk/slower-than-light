@@ -945,13 +945,16 @@ export function surrenderChoose(g: Game, id: string): boolean {
     if (b && b.kind !== "boss") b.resolved = true;
     // Crystal fight, Ignore them: "The fight continues."
     // Crystal fight with surrender offer (hull repairs), Finish them off: the fight continues.
+    // Crystal fight with surrender offer (Human crew), Finish them off: the fight continues.
     log(g, plan.event === "crystal-fight"
       ? "You cut off communications and prepare to finish them off."
       : plan.event === "the-black-raven"
         ? "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire."
         : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
           ? "They wanted to pick a fight with you so that's what they'll get."
-          : "Offer refused. They brace for more.");
+          : plan.event === "crystal-fight-with-surrender-offer-human-crew"
+            ? "Who knows how many humans will be saved if you kill them now."
+            : "Offer refused. They brace for more.");
     return true;
   }
   // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.
@@ -975,7 +978,15 @@ export function surrenderChoose(g: Game, id: string): boolean {
     const joined = offer.crew ? joinCrew(g, offer.crew) : false;
     g.phase = "combat";
     g.paused = false;
-    log(g, joined ? `A ${offer.crew} crewmember joins you. The fight continues.` : "No room aboard. The fight continues.");
+    if (joined && plan.event === "crystal-fight-with-surrender-offer-human-crew") {
+      log(g, "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.");
+      log(g, "You receive a Human crewmember and the fight continues.");
+    } else if (joined) {
+      log(g, `A ${offer.crew} crewmember joins you. The fight continues.`);
+    } else {
+      // INFERRED: the wiki page does not print this no-room sentence.
+      log(g, "No room aboard. The fight continues.");
+    }
     return true;
   }
   // Score, k: "k = ships defeated by reducing hull or crew to zero. Defeating the flagship does NOT increase the count

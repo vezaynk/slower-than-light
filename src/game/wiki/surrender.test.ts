@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame, startCombat, step } from "../sim.ts";
+import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import {
   ACCEPT_ID,
@@ -8,6 +8,7 @@ import {
   SCRIPTED_SURRENDERS,
   STALEMATE_FUEL,
   STALEMATE_SECONDS,
+  joinCrew,
   randomRace,
   rollScriptedOffer,
   rollSurrenderOffer,
@@ -245,7 +246,9 @@ describe("scripted surrenders (event pages)", () => {
 
   it("Human crew: a Human joins and the fight continues", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
-    const crew = g.crew.filter((c) => c.side === "player").length;
+    const before = g.crew.filter((c) => c.side === "player");
+    const crew = before.length;
+    const plain = before.filter((c) => c.kin === "plain").length;
     offer(g);
     assert.equal(g.event?.choices[0].label, "Accept their surrender.");
     assert.equal(surrenderOfferView(g)?.crew, "Human");
@@ -256,10 +259,36 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.kills, kills);
     const mine = g.crew.filter((c) => c.side === "player");
     assert.equal(mine.length, crew + 1);
+    assert.equal(mine.filter((c) => c.kin === "plain").length, plain + 1);
     assert.equal(mine[mine.length - 1].kin, "plain");
+    assert.ok(g.log.includes("They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free."));
+    assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
     g.enemy!.hull -= 1;
     run(g, 0.5);
     assert.equal(g.phase, "combat", "no second offer");
+  });
+
+  it("Human crew: refusing logs their line and the fight continues", () => {
+    const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
+    offer(g);
+    const crew = g.crew.filter((c) => c.side === "player").length;
+    choose(g, REFUSE_ID);
+    assert.equal(g.phase, "combat");
+    assert.ok(g.enemy);
+    assert.ok(g.log.includes("Who knows how many humans will be saved if you kill them now."));
+    assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
+  });
+
+  it("Human crew: a full ship keeps the fight going", () => {
+    const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
+    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
+    offer(g);
+    choose(g, ACCEPT_ID);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP);
+    // INFERRED fallback: the wiki page does not print a no-room sentence.
+    assert.ok(g.log.includes("No room aboard. The fight continues."));
+    assert.equal(g.log.includes("They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free."), false);
   });
 
   it("hull repairs: low fuel and scrap plus 8 repairs, and the fight ends", () => {

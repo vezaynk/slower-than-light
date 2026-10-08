@@ -1170,6 +1170,26 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:lanius-ship-in-rich-debris-field:3",
+        "label": "Engage the auto-pilot and safely harvest the debris.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "Improved Piloting at level 2 pays medium scrap with resources."
+          }
+        ]
+      },
+      {
+        "id": "c:lanius-ship-in-rich-debris-field:4",
+        "label": "Engage the auto-pilot and safely harvest the debris.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "Advanced Piloting at level 3 pays high scrap with resources."
+          }
+        ]
       }
     ]
   },

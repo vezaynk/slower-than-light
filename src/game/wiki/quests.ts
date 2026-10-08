@@ -566,6 +566,28 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     result(g, "The Slugs, taking advantage of the firefight, have fled the system. So much for gratitude.", undefined, ["Nothing happens."]);
   },
+  // Lanius ship in rich debris field. Improved Piloting level 2 and Advanced Piloting level 3.
+  "c:lanius-ship-in-rich-debris-field:3": (g) => {
+    if ((g.player.systems.pilot?.level ?? 0) < 2) return;
+    result(g, "With help from the computer, you are able to keep a comfortable distance between you and the Lanius ship, and you are able to gather resources from the debris field without conflict.", rollStandard(g, "medium"));
+  },
+  "c:lanius-ship-in-rich-debris-field:4": (g) => {
+    if ((g.player.systems.pilot?.level ?? 0) < 3) return;
+    result(g, "With help from the computer, you are able to keep a comfortable distance between you and the Lanius ship, and you gather a considerable amount of resources from the debris field without conflict.", rollStandard(g, "high"));
+  },
+  // Investigate the debris. Three results, no odds. INFERRED: equal.
+  "q:lanius-debris:investigate": (g) => {
+    const kind = weighted(g, [["high", 1], ["medium", 1], ["low", 1]] as const);
+    if (kind === "high") {
+      result(g, "It looks like you interrupted the Lanius before they had a chance to scavenge much from the debris, and you make off with a good haul.", rollStandard(g, "high"));
+      return;
+    }
+    if (kind === "medium") {
+      result(g, "The competitor gone, you proceed to investigate the field and scavenge what you can.", rollStandard(g, "medium"));
+      return;
+    }
+    result(g, "The competitor gone, you investigate the debris, but it looks as if the Lanius harvested much of it before you arrived.", rollStandard(g, "low"));
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -941,6 +963,9 @@ export function questChoose(g: Game, id: string): boolean {
 /** sim.ts choiceDisabled: a price or a blue-option requirement the ship does not meet. */
 export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:engi-fleet-discussion:2" && !hasEngi(g)) return "Needs an Engi crewmember";
+  // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
+  if (id === "c:lanius-ship-in-rich-debris-field:3" && (g.player.systems.pilot?.level ?? 0) < 2) return "Needs level 2 Piloting";
+  if (id === "c:lanius-ship-in-rich-debris-field:4" && (g.player.systems.pilot?.level ?? 0) < 3) return "Needs level 3 Piloting";
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
   if (id === "s:the-black-raven:duel" && !hasSlug(g)) return "Needs a Slug crewmember";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
@@ -1132,6 +1157,13 @@ export const PAGE_WINS: Record<string, Win> = {
       ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
       : "The ship explodes, leaving behind a collection of useful scrap material.";
     result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-slug:contact", label: "Contact the Slugs." }]);
+  },
+  // Lanius ship in rich debris field. Both fights pay medium standard, then "Investigate the debris."
+  "lanius-ship-in-rich-debris-field": (g, deadCrew) => {
+    const text = deadCrew
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-debris:investigate", label: "Investigate the debris." }]);
   },
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {

@@ -427,7 +427,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Rebel ship that is running away." */
+  /** Rebel ship warning has no choice. Arrival applies this fight. "Fight a Rebel ship that is running away." unique=true. */
   {
     dest: "Rebel ship warning",
     slug: "rebel-ship-warning",

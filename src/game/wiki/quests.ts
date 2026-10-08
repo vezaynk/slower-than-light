@@ -1936,7 +1936,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-federation-loyalists:0": (g) => {
     pageFight(g, "You power up your weapons and engage the Rebel ship.", "Rebel ship", "rebel-ship-attacking-federation-loyalists");
   },
-  // Rebel ship warning. "Fight a Rebel ship that is running away." One printed lead-in, then the running Rebel fight.
+  // Rebel ship warning has no choice. Arrival calls this id.
+  // "Fight a Rebel ship that is running away." One printed lead-in, then the running Rebel fight.
   "c:rebel-ship-warning:0": (g) => {
     pageFight(g, "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!", "Rebel ship", "rebel-ship-warning");
   },

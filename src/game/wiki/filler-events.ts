@@ -341,7 +341,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
     ],
   },
   // WRECKAGE_EVENT. Investigate: nothing ({{DuplicateEvent|4}}), nothing (Slug ship), medium resources with some scrap,
-  // a Mantis ship, a Rebel ship, a Zoltan ship.
+  // a Mantis ship, a Rebel ship, a Zoltan ship. Improved Sensors: that same medium salvage, and no fight.
+  // Advanced Sensors can grant an unnamed weapon and prints no odds. Left unwired.
   {
     dest: "Battlefield wreckage",
     slug: "battlefield-wreckage",
@@ -352,6 +353,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
     choices: [
       { id: "c:battlefield-wreckage:0", label: "Investigate the battlefield.", fx: [{ k: "fight", tier: "Rebel ship" }] },
       { id: "c:battlefield-wreckage:1", label: "Ignore the wreckage and continue on.", fx: [{ k: "nothing" }] },
+      // {{Blue Option|Improved Sensors|Use your Sensors to scan the wreckage.|level=2|shortreq=Sensors}}
+      { id: "c:battlefield-wreckage:2", label: "Use your Sensors to scan the wreckage.", fx: [{ k: "note", text: "Medium resources with some scrap." }] },
     ],
   },
   // DONOR_PLAGUE. Board: low scrap; a Human crewmember with low scrap; low scrap then "You lose a crewmember".
@@ -1705,6 +1708,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     else fight(g, "As you approach the wreckage, a Zoltan ship makes its arrival. It immediately mistakes you for one of the attackers, declares you as hostile aggressors in violation of Zoltan space, and opens fire!", "Zoltan ship", "battlefield-wreckage");
   },
   "c:battlefield-wreckage:1": done,
+  // Battlefield wreckage. {{Blue Option|Improved Sensors|Use your Sensors to scan the wreckage.|level=2|shortreq=Sensors}}.
+  // The only printed result. level=2 means at least that installed level. Not a fight, and no "Nothing happens."
+  // Advanced Sensors (level=3) can grant an unnamed weapon and prints no odds. Left unwired.
+  "c:battlefield-wreckage:2": (g) => {
+    if (sensorsLevel(g) < 2) return;
+    show(g, "You scan the battlefield, and with the aid of your Sensors, you are able to salvage a moderate amount of material from the wreckage. You prepare to jump.", rollSurrenderOffer(g, "medium", true));
+  },
 
   // ---- Plagued station ----
   "c:plagued-station:0": (g) => {
@@ -2876,6 +2886,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:confused-mantis:human" && !livingKin(g, "plain")) return "Needs a Human crewmember";
   if (id === "s:confused-mantis:mantis" && !livingKin(g, "blade")) return "Needs a Mantis crewmember";
   if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return "Needs Mind Control";
+  // Battlefield wreckage. Improved Sensors level=2. INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.
+  if (id === "c:battlefield-wreckage:2" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   // Rebel fight chance. Improved Sensors level=2. INFERRED: the refusal line. The page names the system and prints no sentence.
   if (id === "c:rebel-fight-chance:2" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   // Rebel fight chance. Advanced Sensors level=3. INFERRED: the refusal line. The page names the system and prints no sentence.

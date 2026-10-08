@@ -139,6 +139,8 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   if (ctx.event === "lanius-ship-in-rich-debris-field") return plan("never", 0);
   // Lanius fight with friendly ASB support. {{SurrenderEscape(alt)|no|LANIUS_BOARDERS_PDS}} prints never runs away. Surrender is already listed elsewhere.
   if (ctx.event === "lanius-fight-with-friendly-asb-support") return plan("never", 0);
+  // Rebel ship attacking refueling outpost. The page prints the ship doesn't try to escape. Surrender is already listed elsewhere.
+  if (ctx.event === "rebel-ship-attacking-refueling-outpost") return plan("never", 0);
   // Enemy Ships: out of fuel and WAIT, "all ships start running" at 80 seconds. The "No fuel: …" event
   // pages are the ones reached by waiting with no fuel, so their slug marks the rule.
   if (ctx.event?.startsWith("no-fuel-")) return plan("start", OUT_OF_FUEL_WAIT_SECONDS);

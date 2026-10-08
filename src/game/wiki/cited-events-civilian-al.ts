@@ -288,7 +288,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Scan the ship for lifeforms. Fight a Lanius ship.
+  // Scan the ship for lifeforms. Fight a Lanius ship. Power weapons and investigate are quest branches.
   {
     dest: "Lanius powered-down ship",
     slug: "lanius-powered-down-ship",
@@ -304,8 +304,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:lanius-powered-down-ship:1",
-        label: "Ignore the vessel",
-        fx: [{ k: "nothing" }],
+        label: "Power weapons to attack.",
+        fx: [{ k: "note", text: "They wake and fight, or stay silent." }],
+      },
+      {
+        id: "c:lanius-powered-down-ship:2",
+        label: "Investigate the vessel.",
+        fx: [{ k: "note", text: "Ignore, strip the hull, send a Lanius, or use level 2 piloting." }],
       },
     ],
   },

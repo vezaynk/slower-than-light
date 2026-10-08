@@ -279,6 +279,16 @@ function hasSlug(g: Game): boolean {
 function hasLanius(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "voidlung");
 }
+
+/** Lanius powered-down ship, "Investigate the vessel." Blue options stay visible when the ship cannot use them. */
+function investigateDormant(g: Game) {
+  card(g, "The vessel appears to be dormant. It is likely there are Lanius on board, but they may be in hibernation until the ship comes within range of new materials.", [
+    { id: "q:lanius-dormant:ignore", label: "Ignore the vessel." },
+    { id: "q:lanius-dormant:navigate", label: "Navigate carefully around the ship and strip what materials from the hull you can." },
+    { id: "q:lanius-dormant:plunder", label: "Send over a Lanius crewmember to plunder the ship of resources." },
+    { id: "q:lanius-dormant:autopilot", label: "Engage the autopilot to strip the ship safely." },
+  ]);
+}
 export function sensors(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
 }
@@ -653,6 +663,44 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!hasLanius(g)) return;
     log(g, "Your crewmember opens a channel with them. It seems they are scouting for a merchant's guild which is seeking to establish connections with other sentient races. You suggest they invest research time into developing better translators and ask to see if they are selling anything at the moment.");
     openStoreHere(g);
+  },
+  // Lanius powered-down ship. Fights stay on default Lanius rewards: no PAGE_WINS row.
+  // Power weapons: two results, no odds. INFERRED: equal.
+  "c:lanius-powered-down-ship:1": (g) => {
+    if (weighted(g, [["fight", 1], ["silent", 1]] as const) === "fight") {
+      pageFight(g, "You power up your weapons, and in response, the Lanius ship does the same! Prepare for a fight.", "Lanius ship", "lanius-powered-down-ship");
+      return;
+    }
+    card(g, "You power up your weapons, but don't get a response.", [
+      { id: "q:lanius-dormant:investigate", label: "Investigate the vessel." },
+      { id: "q:lanius-dormant:destroy", label: "Destroy and scrap it." },
+    ]);
+  },
+  "c:lanius-powered-down-ship:2": (g) => investigateDormant(g),
+  "q:lanius-dormant:investigate": (g) => investigateDormant(g),
+  "q:lanius-dormant:destroy": (g) => {
+    pageFight(g, "As soon as you lock your weapons onto their vessel, it awakens... they must have been in hibernation and were awoken by the danger!", "Lanius ship", "lanius-powered-down-ship");
+  },
+  "q:lanius-dormant:ignore": (g) => {
+    result(g, "Nothing happens.");
+  },
+  // Navigate carefully. Two results, no odds. INFERRED: equal. Low scrap is scrap only.
+  "q:lanius-dormant:navigate": (g) => {
+    if (weighted(g, [["fight", 1], ["scrap", 1]] as const) === "fight") {
+      pageFight(g, "As you drift toward the vessel, your piloting skill is unable to match your intent - the Lanius ship powers up, hungry for raw materials!", "Lanius ship", "lanius-powered-down-ship");
+      return;
+    }
+    result(g, "You clumsily manage to strip some hull plating before being forced to retreat or risk collision.", scrapOnly(g, "low"));
+  },
+  // {{Blue Option|Lanius Crew}}. Medium resources with some scrap (Rewards, Stuff). The unnamed bonus item is not granted.
+  "q:lanius-dormant:plunder": (g) => {
+    if (!hasLanius(g)) return;
+    result(g, "Your crewmember manages to salvage some resources without waking the hibernating crew.", rollSurrenderOffer(g, "medium", true));
+  },
+  // {{Blue Option|Advanced Piloting|level=2+}}. Medium scrap with resources.
+  "q:lanius-dormant:autopilot": (g) => {
+    if ((g.player.systems.pilot?.level ?? 0) < 2) return;
+    result(g, "The computer matches the rotation and speed of the target ship, and you take the opportunity to gather what residual scrap you can without awakening the Lanius crew. You get an excellent haul!", rollStandard(g, "medium"));
   },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
@@ -1069,6 +1117,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:lanius-trader:4" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // Lanius lone ship, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
   if (id === "c:lanius-lone-ship:3" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  // Lanius powered-down ship. Advanced Piloting prints level=2+. A dead Lanius does not count.
+  if (id === "q:lanius-dormant:plunder" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  if (id === "q:lanius-dormant:autopilot" && (g.player.systems.pilot?.level ?? 0) < 2) return "Needs level 2 Piloting";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];

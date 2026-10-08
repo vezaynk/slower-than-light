@@ -3796,6 +3796,16 @@ const LANIUS_CIVILIAN_INTROS = [
   "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
 ];
 
+// Lanius ship salvager. Five printed intros, no odds. INFERRED: equal.
+// Attack stays c:lanius-ship-salvager:0. Leave stays :1. The Lanius scrap request stays :2.
+const LANIUS_SALVAGER_INTROS = [
+  "You come across a single Lanius ship salvaging a small civilian craft. You cannot tell if they attacked the craft or just happened upon it.",
+  "There are remnants of a fierce battle here. Scattered among the hulks are small Lanius craft, slowly breaking apart the wrecks. One of the ships is close enough that you could probably attack it without immediately alerting the others.",
+  "When you arrive at the beacon you discover what must have been remnants of a large battle. However the vast majority of metal has been striped from the ships, only various plastic and other materials float in a ring around a planet. A lone Lanius ship moves between the wreckage looking for more salvage.",
+  "A small asteroid belt is near this jump beacon. It must be mineral-rich since a Lanius ship is docked on a large rock, slowly absorbing parts of it. You could probably get their attention pretty easily.",
+  "A Lanius ship is slowly salvaging what remains of a small research station. It's hard to say if it was abandoned or attacked by the Lanius.",
+];
+
 // The mercenary. Six printed intros, no odds. INFERRED: equal.
 // Delay stays c:the-mercenary:0. Fight stays :1. Decline stays :2.
 const MERCENARY_INTROS = [
@@ -4334,6 +4344,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: LANIUS_CIVILIAN_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Lanius ship salvager. One of the five printed intros. Attack, Leave, and the scrap request stay the existing choices.
+  if (ev.slug === "lanius-ship-salvager") {
+    return {
+      title: ev.dest,
+      body: LANIUS_SALVAGER_INTROS[between(g, [0, 4])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

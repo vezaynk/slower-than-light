@@ -2,6 +2,7 @@ import { noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
+import { veilBlocks } from "./veil.ts";
 import type { Game, Kit, Shot, Ship } from "../types.ts";
 
 /**
@@ -166,6 +167,9 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
     kit.aux = Math.max(0, kit.aux - dt);
     return;
   }
+  // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
+  // The <= 20 second exception is a beam trajectory. Flak Artillery is not that beam.
+  if (from === "player" && veilBlocks(g, "player")) return;
   // Flak Artillery, Overview: "Automated Re-loaders work." The system "cannot be manned", so crew skill
   // does not shorten this clock. Augmentations, Automated Re-loader: one copy divides cooldown by 1.1,
   // and three raise firing rate by 30%. The drain above stays on the printed clock.

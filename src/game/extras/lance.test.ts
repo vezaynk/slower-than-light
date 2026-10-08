@@ -213,6 +213,44 @@ describe("lance", () => {
     assert.ok(open.enemy.hull < before);
   });
 
+  it("stops charging at a cloaked ship unless the clock is 20 seconds", () => {
+    // Cloaking, Overview: artillery stops charging and cannot target a cloaked ship.
+    // Artillery Beam at system level 4 is the example that still fires, because that clock is 20 seconds.
+    const cloak = (g: Game) => {
+      assert.ok(g.enemy);
+      g.enemy.kits.veil = {
+        id: "veil",
+        level: 1,
+        power: 1,
+        left: 10,
+        cool: 0,
+        target: null,
+        on: true,
+        aux: 0,
+      };
+    };
+    const slow = armed(80);
+    cloak(slow);
+    const kit = slow.player.kits.lance;
+    assert.ok(kit);
+    kit.aux = 0;
+    kit.level = 1;
+    kit.power = 1;
+    tickLance(slow, 10);
+    assert.equal(kit.aux, 0);
+
+    const fast = armed(81);
+    cloak(fast);
+    const four = fast.player.kits.lance;
+    assert.ok(four && fast.enemy);
+    four.level = 4;
+    four.power = 4;
+    four.aux = 0;
+    const hull = fast.enemy.hull;
+    tickLance(fast, 20);
+    assert.ok(fast.enemy.hull < hull);
+  });
+
   it("mounts for free and records the wiki costs", () => {
     const g = createGame(7);
     assert.equal(INSTALL_COST, null);

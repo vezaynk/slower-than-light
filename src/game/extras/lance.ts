@@ -3,6 +3,7 @@ import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
+import { veilBlocks } from "./veil.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
 export const DISPLAY_NAME = "Artillery Beam";
@@ -199,6 +200,9 @@ export function tickLance(g: Game, dt: number): void {
     kit.aux = Math.max(0, kit.aux - dt / seconds);
     return;
   }
+  // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
+  // A beam whose charge time is <= 20 seconds still fires. The example is Artillery Beam at system level 4.
+  if (veilBlocks(g, "player") && seconds > 20) return;
   // Artillery Beam, Overview: "Automated Re-loaders augmentations work." The system "cannot be manned
   // to reduce the charge time", so crew skill stays out. Augmentations, Automated Re-loader: one copy
   // divides cooldown by 1.1, and three raise firing rate by 30%. The unpowered drain stays dt/2.

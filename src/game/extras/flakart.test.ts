@@ -418,6 +418,29 @@ describe("flak burst", () => {
     assert.equal(kit.aux, 25);
     assert.equal(draining.shots.length, 0);
   });
+
+  it("does not charge or fire while the enemy ship is cloaked", () => {
+    // Cloaking, Overview: artillery systems stop charging and cannot target a cloaked ship.
+    // The 20 second beam exception names Artillery Beam, not Flak Artillery.
+    const g = fight(43);
+    armFed(g, 4);
+    assert.ok(g.enemy);
+    g.enemy.kits.veil = {
+      id: "veil",
+      level: 1,
+      power: 1,
+      left: 10,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
+    const kit = g.player.kits.flak;
+    assert.ok(kit);
+    tickFlak(g, 20);
+    assert.equal(kit.aux, 0);
+    assert.equal(g.shots.length, 0);
+  });
 });
 
 const bp = (n: number) => n / 10000;

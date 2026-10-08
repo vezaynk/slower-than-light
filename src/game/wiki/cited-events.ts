@@ -3508,6 +3508,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Escort civilians FTL haywire. Advanced FTL Navigation uploads the route. Leading them stays the low scrap and the marker.
+  if (ev.slug === "escort-civilians-ftl-haywire") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:escort-civilians-ftl-haywire:2", label: "Have your navigation software calculate and upload route instructions to their ship." },
+      ],
+    };
+  }
   // Slug drink. Drink, and a Rock crewmember poses as captain. Refuse stays the fight.
   if (ev.slug === "slug-drink") {
     return {

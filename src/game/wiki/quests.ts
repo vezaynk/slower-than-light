@@ -784,6 +784,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!hasRock(g)) return;
     slugDrink(g, true);
   },
+  // Escort civilians FTL haywire. Advanced FTL Navigation. High scrap with resources. No quest marker.
+  "c:escort-civilians-ftl-haywire:2": (g) => {
+    if (!g.augments.includes("nav")) return;
+    result(g, "We're receiving your transmission... Wow, I didn't know that chain-jumping was possible with this class of ship. We'll get back in a single jump! Thank you so much, please accept this.", rollStandard(g, "high"));
+  },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
   "c:pirate-ship-attacking-civilian-distress:2": (g) => {
@@ -1400,6 +1405,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rock-ship-in-plasma-storm:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Slug drink. A dead Rock does not count. The button stays visible.
   if (id === "c:slug-drink:2" && !hasRock(g)) return "Needs a Rock crewmember";
+  // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
+  if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Auto-ship near storage station. Cloaking, any installed level.

@@ -30,7 +30,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-slug",
     aliases: ["Mantis fight (Slug)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You intercept comm chatter from an incoming Mantis ship.",
+    body: "You intercept comm chatter from an incoming Mantis ship. \"Look. This ship appears not to be owned by the squishy ones. Maybe they won't smell so bad when we cut them open.\" They move in on your position.",
     choices: [
       {
         id: "c:mantis-fight-slug:0",

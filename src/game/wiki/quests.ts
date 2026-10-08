@@ -908,6 +908,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:crystal-pirate:contact": (g) => crystalContact(g),
+  // Rock atheists. Two texts, no odds. INFERRED: equal. The fight marker sits under the second sentence; both charge.
+  "c:rock-atheists:0": (g) => {
+    const text = pick(g, [
+      "They barely hear out your appeals before yelling, \"These are the lies I sought to escape!\" Looks like they're charging weapons!",
+      "They listen to your appeals and whisper, \"Traitors to truth. You're no better than them!\" Chaos ensues.",
+    ]);
+    pageFight(g, text, "Rock ship", "rock-atheists");
+  },
+  // Promise. {{DuplicateEvent|2}} on nothing. The Rockman is one result.
+  "c:rock-atheists:1": (g) => rockAtheistPromise(g),
+  // Improved Sensors level 2+. A Rockman joins. No skill is printed.
+  "c:rock-atheists:2": (g) => {
+    if ((g.player.systems.sensors?.level ?? 0) < 2) return;
+    rockAtheistJoins(g, "The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.");
+  },
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
@@ -1620,6 +1635,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Pirate smuggler. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-smuggler:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
+  // Rock atheists. Improved Sensors is level 2+. The button stays visible.
+  if (id === "c:rock-atheists:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs level 2 Sensors";
   // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
   if (id === "q:engi-distress:scrap" && g.scrap < 25) return "Need 25 scrap";
   if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";
@@ -1924,6 +1941,25 @@ function crystalContact(g: Game) {
     return;
   }
   result(g, text, undefined, ["Nothing happens."]);
+}
+
+/**
+ * Rock atheists. {{DuplicateEvent|2}} on the refusal. The Rockman joins once.
+ * INFERRED: the refusal is twice as likely as the join.
+ */
+function rockAtheistPromise(g: Game) {
+  const join = weighted(g, [[false, 2], [true, 1]] as [boolean, number][]);
+  if (!join) {
+    result(g, "They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.", undefined, ["Nothing happens."]);
+    return;
+  }
+  rockAtheistJoins(g, "Your promises gain their attention and they agree to serve with you, for a while.");
+}
+
+/** The page names a Rockman and prints no skill. */
+function rockAtheistJoins(g: Game, text: string) {
+  const joined = joinCrew(g, "Rock");
+  result(g, text, undefined, [joined ? "A Rockman crewmember joins you." : "There is no room aboard for the new crewmember."]);
 }
 
 /** Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then the Crystal ship. */

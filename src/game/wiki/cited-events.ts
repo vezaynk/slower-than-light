@@ -3706,6 +3706,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
     };
   }
+  // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.
+  if (ev.slug === "rock-atheists") {
+    return {
+      title: ev.dest,
+      body: "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.",
+      choices: [
+        { id: "c:rock-atheists:0", label: "Tell them their god sent them here to join your crew." },
+        { id: "c:rock-atheists:1", label: "Promise to share with them the truths they've been denied." },
+        { id: "c:rock-atheists:2", label: "Show them to your data suite." },
+      ],
+    };
+  }
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);

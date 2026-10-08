@@ -31,7 +31,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { allMantisCrew, between, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { allMantisCrew, between, crystalBoarders, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -618,18 +618,30 @@ const CORE_EVENTS: EventDef[] = [
         "label": "Give them your flight plans",
         "fx": [
           {
-            "k": "fleet",
-            "n": 1,
-            "faster": true
-          },
-          {
-            "k": "tier",
-            "tier": "high"
+            "k": "nothing"
           }
         ]
       },
       {
         "id": "c:crystalline-ship-messaging-about-rebels:1",
+        "label": "Accept the scrap but give them false flight plans",
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
+      },
+      {
+        "id": "c:crystalline-ship-messaging-about-rebels:2",
+        "label": "Accept the scrap but give them falsified flight plans.",
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
+      },
+      {
+        "id": "c:crystalline-ship-messaging-about-rebels:3",
         "label": "Refuse",
         "fx": [
           {
@@ -4659,6 +4671,9 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   // Auto-ship carrying shield virus. Hacking, "Counter the remote hacking."
   // INFERRED: the refusal line. The page names Hacking and does not print the sentence.
   if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Crystalline ship messaging about Rebels. Distraction Buoys.
+  // INFERRED: the refusal line. The page names the augment and does not print the refusal sentence.
+  if (id === "c:crystalline-ship-messaging-about-rebels:2" && !g.augments.includes("falsebuoy")) return "Needs Distraction Buoys";
   const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;
@@ -4714,6 +4729,88 @@ function sellStationThanks(id: string): string | null {
   return null;
 }
 
+const CRYSTAL_PLANS = "c:crystalline-ship-messaging-about-rebels";
+const CRYSTAL_OUTRUN =
+  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
+const CRYSTAL_CRUISE =
+  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
+const CRYSTAL_LIE =
+  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
+const CRYSTAL_BUOY =
+  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
+const CRYSTAL_REFUSE =
+  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
+
+function citedResult(g: Game, sentence: string, paid: string[]) {
+  const title = g.beacons.find((b) => b.id === g.here)?.name ?? "Event";
+  g.event = {
+    title,
+    body: `${sentence}\n\n${paid.join(" ")}`,
+    choices: [{ id: "ack", label: "Continue" }],
+  };
+  g.phase = "event";
+  g.paused = true;
+}
+
+function highScrapNote(ctx: CitedChoice): string {
+  const [lo, hi] = band(ctx.g, "high");
+  const n = roll(ctx, lo, hi);
+  ctx.scrap(n);
+  const line = `High scrap: ${n}.`;
+  ctx.note(line);
+  return line;
+}
+
+/** Existing faster fx: one extra step, not a doubled column. */
+function doubledPursuit(ctx: CitedChoice): string {
+  ctx.g.fleet += 1;
+  const line = "Rebel Fleet pursuit is doubled for 1 jump.";
+  ctx.note(line);
+  return line;
+}
+
+function delayedPursuit(ctx: CitedChoice): string {
+  ctx.g.fleet = Math.max(0, ctx.g.fleet - 1);
+  const line = "Rebel Fleet pursuit is delayed for 1 jump.";
+  ctx.note(line);
+  return line;
+}
+
+/**
+ * Crystalline ship messaging about Rebels. Null when this id is some other card.
+ * False when Distraction Buoys are missing: nothing is paid and the card stays.
+ */
+function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
+  if (!id.startsWith(`${CRYSTAL_PLANS}:`)) return null;
+  const g = ctx.g;
+  if (id === `${CRYSTAL_PLANS}:0`) {
+    citedResult(g, CRYSTAL_OUTRUN, [highScrapNote(ctx), doubledPursuit(ctx)]);
+    return true;
+  }
+  if (id === `${CRYSTAL_PLANS}:1`) {
+    // Two results, no odds. INFERRED: equal.
+    if (ctx.irand(2) === 0) {
+      citedResult(g, CRYSTAL_CRUISE, [highScrapNote(ctx), delayedPursuit(ctx)]);
+      return true;
+    }
+    ctx.note(CRYSTAL_LIE);
+    ctx.fight("Crystal ship");
+    // INFERRED: the count is inclusive, and the call is after ctx.fight because startCombat drops enemy crew already aboard.
+    crystalBoarders(g, 1, 2);
+    return true;
+  }
+  if (id === `${CRYSTAL_PLANS}:2`) {
+    if (!g.augments.includes("falsebuoy")) return false;
+    citedResult(g, CRYSTAL_BUOY, [highScrapNote(ctx), delayedPursuit(ctx)]);
+    return true;
+  }
+  if (id === `${CRYSTAL_PLANS}:3`) {
+    citedResult(g, CRYSTAL_REFUSE, ["Nothing happens."]);
+    return true;
+  }
+  return null;
+}
+
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const take = tradeTake(id);
@@ -4736,6 +4833,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;
+  // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
+  const crystalPlans = crystallineRebelPlans(ctx, id);
+  if (crystalPlans !== null) return crystalPlans;
   const costs: { id: ResId; n: number }[] = [];
   const gains: { id: ResId; n: number }[] = [];
   for (const fx of choice.fx) {

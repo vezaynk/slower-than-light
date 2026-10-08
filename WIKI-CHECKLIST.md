@@ -728,7 +728,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Mantis fight near sun — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Mantis fight with boarders — not-a-surface — same title as "Mantis Fight with Boarders" with different capitalization
 - [ ] Mantis fight with boarders (Zoltan) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis fugitive — not-a-surface — same title as "Mantis Fugitive" with different capitalization
+- [ ] Mantis fugitive — not-a-surface — same title as "Mantis Fugitive" with different capitalization. Siding with him deals 5 hull, one system bar, and one room bar before a mantis-controlled Engi fight, or fights an Engi ship without adding the unnamed Mantis, and the bounty pays high scrap, that scrap with 5 hull and 1-2 fires, or one Mantis boarder.
 - [ ] Mantis hunting Slugs — not-a-surface — same title as "Mantis Hunting Slugs" with different capitalization
 - [ ] Mantis in Nebula — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis in nebula — not-a-surface — same title as "Mantis in Nebula" with different capitalization

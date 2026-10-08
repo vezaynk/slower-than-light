@@ -3220,6 +3220,14 @@ export const PAGE_WINS: Record<string, Win> = {
     "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
     "With their crew dead, their hacking system shuts down and your systems return to normal. You strip the ship.",
   ),
+  // Slug hacker (medical). Fight a Slug ship: both endings pay high scrap with resources.
+  // The medbay shutdown, the halved medbay, and the hacking shutdown already end with the fight.
+  "slug-hacker-medical": std(
+    "high",
+    "high",
+    "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+    "With their crew dead, you quickly shut off their hacking module and your systems return to normal. You strip the ship.",
+  ),
   // Lanius fight with friendly ASB support. Destroyed pays medium scrap with resources.
   // A crew kill pays high. After the fight, two results and no odds. INFERRED: equal.
   // The battery shot itself stays on the fight. Default salvage is not paid.

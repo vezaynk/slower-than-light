@@ -787,6 +787,12 @@ function zoltanRaftHire(g: Game) {
  */
 const doorsCounterWin = new WeakMap<Game, true>();
 
+/**
+ * Slug hacker (choice). All four fights share the event id, so the reward follows the choice.
+ * Shields: destroyed medium, crew kill high. Oxygen: both medium. Weapons and the hacking counter: both high.
+ */
+const choiceWin = new WeakMap<Game, "shields" | "oxygen" | "weapons" | "hack">();
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1638,19 +1644,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Slug hacker (choice). "Shields." One printed lead-in, then a Slug ship fight.
   // The page halves Shields, rounding down. This handler returns before citedChoose, so the half is applied here.
+  // Destroyed pays medium scrap with resources. A crew kill pays high.
   "c:slug-hacker-choice:0": (g) => {
+    choiceWin.set(g, "shields");
     pageFight(g, `"Very good then!" Your shield power suddenly drops and they charge.`, "Slug ship", "slug-hacker-choice");
     halvePlayerSystems(g, ["shields"]);
   },
   // Slug hacker (choice). "Oxygen." One printed lead-in, then a Slug ship fight.
   // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
+  // Both endings pay medium scrap with resources.
   "c:slug-hacker-choice:1": (g) => {
+    choiceWin.set(g, "oxygen");
     pageFight(g, `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`, "Slug ship", "slug-hacker-choice");
     halvePlayerSystems(g, ["oxygen"]);
   },
   // Slug hacker (choice). "Weapons." One printed lead-in, then a Slug ship fight.
   // The page halves Weapon Control, rounding down. This handler returns before citedChoose, so the half is applied here.
+  // Both endings pay high scrap with resources.
   "c:slug-hacker-choice:2": (g) => {
+    choiceWin.set(g, "weapons");
     pageFight(g, `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`, "Slug ship", "slug-hacker-choice");
     halvePlayerSystems(g, ["weapons"]);
   },
@@ -1663,7 +1675,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Slug hacker (choice). "Counter any hack attempt." One printed lead-in, then a Slug ship fight.
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
+  // Both endings pay high scrap with resources. The wiki's "[sic]" after "weapon system" is not shown.
   "c:slug-hacker-choice:4": (g) => {
+    choiceWin.set(g, "hack");
     pageFight(g, `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`, "Slug ship", "slug-hacker-choice");
     shutPlayerHacking(g);
   },
@@ -3220,6 +3234,53 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Slug hacker (choice). The four fights share this id. The choice sets the tier.
+  // No choice: the page prints no reward, so winCombat pays the default salvage.
+  "slug-hacker-choice": (g, deadCrew) => {
+    const path = choiceWin.get(g);
+    choiceWin.delete(g);
+    if (path === "shields") {
+      result(
+        g,
+        deadCrew
+          ? "With their crew dead, you quickly shut off their hacking module and your shields return to normal. You strip the ship."
+          : "The Slug ship breaks apart and your shields return to normal. You collect what you can.",
+        rollStandard(g, deadCrew ? "high" : "medium"),
+      );
+      return;
+    }
+    if (path === "oxygen") {
+      result(
+        g,
+        deadCrew
+          ? "With their crew dead, you quickly shut off their hacking module and your systems return to normal. You strip the ship."
+          : "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+        rollStandard(g, "medium"),
+      );
+      return;
+    }
+    if (path === "weapons") {
+      result(
+        g,
+        deadCrew
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and your weapon system returns to normal. You collect what you can.",
+        rollStandard(g, "high"),
+      );
+      return;
+    }
+    if (path === "hack") {
+      result(
+        g,
+        deadCrew
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and their hacking module is destroyed. You collect what you can.",
+        rollStandard(g, "high"),
+      );
+      return;
+    }
+    return false;
+  },
   // Slug hacker (doors). Continue: destroyed pays medium scrap with resources, a crew kill pays high.
   // Counter the remote hacking: both endings pay high. The wiki's "[sic]" after "weapon system" is not shown.
   "slug-hacker-doors": (g, deadCrew) => {

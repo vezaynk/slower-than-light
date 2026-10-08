@@ -1165,6 +1165,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:zoltan-wise-man:1": (g) => {
     pageFight(g, `"Do not be fooled, Federation, by a soft underbelly." You detect a wormhole opening up, and seconds later a Slug ship is attacking from the other direction!`, "Slug ship", "zoltan-wise-man");
   },
+  // Zoltan wise man. "Rockmen." One printed lead-in, then a Rock ship fight. The page does not say the crew are all Mantis.
+  "c:zoltan-wise-man:2": (g) => {
+    pageFight(g, `"A hardened foe for a hardened veteran." You detect a wormhole opening up, and a Rock ship appears with guns blazing. It appears they were in combat when they were thrust across space-time.`, "Rock ship", "zoltan-wise-man");
+  },
   // Space station under construction. "Decline." One printed result.
   "c:space-station-under-construction:1": (g) => {
     result(g, `"I understand." Transmission has been cut.`, undefined, ["Nothing happens."]);

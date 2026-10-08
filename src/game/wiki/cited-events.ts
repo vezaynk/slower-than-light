@@ -3388,6 +3388,18 @@ const TRADE_RESOURCE_OFFERS: { pay: TradeRes; cost: [number, number]; get: Trade
 
 const TRADE_RESOURCES_TAKE = /^c:trade-resources:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
 
+// Trade resources in nebula. One intro and the same four offers, and no odds.
+// INFERRED: each offer is equally likely. The numbers are rolled once and stay on Trade.
+const TRADE_RESOURCES_NEBULA_INTRO =
+  "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
+
+const TRADE_RESOURCES_NEBULA_TAKE =
+  /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
+
+function tradeTake(id: string): RegExpExecArray | null {
+  return TRADE_RESOURCES_TAKE.exec(id) ?? TRADE_RESOURCES_NEBULA_TAKE.exec(id);
+}
+
 function tradeNote(id: TradeRes, n: number): string {
   const word = id === "fuel" ? "Fuel" : id === "missiles" ? "Missiles" : "Drone parts";
   return `${word}: ${n}.`;
@@ -3409,9 +3421,24 @@ function tradeResourcesEvent(g: Game, title: string): GameEvent {
   };
 }
 
+function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
+  const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
+  const cost = between(g, offer.cost);
+  const gain = between(g, offer.gain);
+  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
+  return {
+    title,
+    body: `${TRADE_RESOURCES_NEBULA_INTRO} ${sentence}`,
+    choices: [
+      { id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
+      { id: "c:trade-resources-in-nebula:4", label: "Ignore." },
+    ],
+  };
+}
+
 /** True when this id is one of the wired choices, including a price the ship cannot pay. */
 export function citedOwns(id: string): boolean {
-  return findChoice(id) != null || TRADE_RESOURCES_TAKE.test(id);
+  return findChoice(id) != null || tradeTake(id) != null;
 }
 
 // @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
@@ -3648,6 +3675,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Trade resources. One rolled offer is shown before Trade or Ignore. Not the nebula page.
   if (ev.slug === "trade-resources") return tradeResourcesEvent(g, ev.dest);
+  // Trade resources in nebula. One intro, then one rolled offer. Trade or Ignore. No scrap.
+  if (ev.slug === "trade-resources-in-nebula") return tradeResourcesNebulaEvent(g, ev.dest);
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);
@@ -3669,7 +3698,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
-  const take = TRADE_RESOURCES_TAKE.exec(id);
+  const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;
     const cost = Number(take[2]);
@@ -3726,7 +3755,7 @@ function sellStationThanks(id: string): string | null {
 
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
-  const take = TRADE_RESOURCES_TAKE.exec(id);
+  const take = tradeTake(id);
   if (take) {
     const g = ctx.g;
     const pay = take[1] as TradeRes;

@@ -35,6 +35,23 @@ export function pointInRoom(
 }
 
 /**
+ * Integer cells the segment crosses, in the same order as the walk inside
+ * roomsOnSegment, including the two side cells when it passes through a grid corner.
+ * A cell is listed once. A step outside the grid is not a cell.
+ */
+export function cellsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): { x: number; y: number }[] {
+  const cells: { x: number; y: number }[] = [];
+  const seen = new Set<string>();
+  visitSegment(ship, a, b, (ix, iy) => {
+    const key = `${ix},${iy}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    cells.push({ x: ix, y: iy });
+  });
+  return cells;
+}
+
+/**
  * Rooms whose floor the segment from `a` to `b` touches, in the order the beam
  * enters them. A room is listed once. An omitted cell is hull, not floor.
  * A segment that passes through a grid corner also counts the two side cells:
@@ -54,12 +71,25 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
 
   const rooms: string[] = [];
   const seen = new Set<string>();
-  const add = (ix: number, iy: number) => {
-    if (ix < 0 || iy < 0 || ix >= ship.cols || iy >= ship.rows) return;
+  visitSegment(ship, a, b, (ix, iy) => {
     const id = owner.get(`${ix},${iy}`);
     if (!id || seen.has(id)) return;
     seen.add(id);
     rooms.push(id);
+  });
+  return rooms;
+}
+
+/** The grid walk roomsOnSegment and cellsOnSegment share. Bounds stay here so both see the same cells. */
+function visitSegment(
+  ship: BeamGrid,
+  a: BeamPoint,
+  b: BeamPoint,
+  visit: (ix: number, iy: number) => void,
+): void {
+  const add = (ix: number, iy: number) => {
+    if (ix < 0 || iy < 0 || ix >= ship.cols || iy >= ship.rows) return;
+    visit(ix, iy);
   };
 
   const dx = b.x - a.x;
@@ -71,7 +101,7 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
 
   if (!(Math.abs(dx) > 1e-12) && !(Math.abs(dy) > 1e-12)) {
     add(ix, iy);
-    return rooms;
+    return;
   }
 
   const stepX = dx > 0 ? 1 : dx < 0 ? -1 : 0;
@@ -103,5 +133,4 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
       tMaxY += tDeltaY;
     }
   }
-  return rooms;
 }

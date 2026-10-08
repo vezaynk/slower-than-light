@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
-import { aim, armWeapon, cancelTargeting, createGame, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
-import type { Room } from "./types.ts";
+import { cellsOnSegment, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
+import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
+import type { Room, Shot } from "./types.ts";
 
 function grid(rooms: BeamGrid["rooms"], cols: number, rows: number): BeamGrid {
   return { rooms, cols, rows };
@@ -208,5 +208,157 @@ describe("enemy beam aim", () => {
       );
       assert.equal(linked, true);
     }
+  });
+});
+
+describe("cells on a beam segment", () => {
+  it("hits the cells a short segment crosses and does not invent extra cells", () => {
+    const row = grid(
+      [cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0)],
+      3,
+      1,
+    );
+    assert.deepEqual(cellsOnSegment(row, { x: 0.5, y: 0.5 }, { x: 1.5, y: 0.5 }), [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ]);
+    assert.deepEqual(cellsOnSegment(row, { x: 0.2, y: 0.2 }, { x: 0.8, y: 0.4 }), [{ x: 0, y: 0 }]);
+
+    const ship = grid(
+      [cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)],
+      2,
+      2,
+    );
+    assert.deepEqual(cellsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 1.5, y: 1.5 }), [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+      { x: 1, y: 1 },
+    ]);
+  });
+});
+
+/** Occupied cells, lowest y then lowest x. Omit cells are skipped, matching cellOccupied. */
+function floorCells(room: Room): { x: number; y: number }[] {
+  const cells: { x: number; y: number }[] = [];
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) {
+      if (room.omit?.some((cell) => cell.x === x && cell.y === y)) continue;
+      cells.push({ x, y });
+    }
+  }
+  return cells;
+}
+
+/** A segment that stays inside one cell. */
+function across(cell: { x: number; y: number }): { a: { x: number; y: number }; b: { x: number; y: number } } {
+  return {
+    a: { x: cell.x + 0.25, y: cell.y + 0.5 },
+    b: { x: cell.x + 0.75, y: cell.y + 0.5 },
+  };
+}
+
+function impactShot(partial: Partial<Shot> & Pick<Shot, "kind" | "damage" | "targetRoom">): Shot {
+  return {
+    id: "tile",
+    from: "enemy",
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    wait: 0,
+    t: 1,
+    duration: 1,
+    ...partial,
+  };
+}
+
+describe("beam crew standing tile", () => {
+  // Mini Beam's printed crew damage is 15 HP. A 1-damage laser's usual crew damage is the same 15.
+  const usual = 15;
+
+  function seated() {
+    const g = createGame(1);
+    g.player.shieldNow = 0;
+    g.player.zoltan = 0;
+    g.player.systems.engines.power = 0;
+    const room = g.player.rooms.find((item) => item.id === "p-weapons");
+    assert.ok(room);
+    const floors = floorCells(room);
+    assert.ok(floors.length >= 2);
+    const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+    assert.ok(crew.length >= 2);
+    for (const c of crew) {
+      c.room = room.id;
+      c.path = [];
+      c.hp = 100;
+    }
+    assert.equal(evasionPercent(g, g.player, "player"), 0);
+    return { g, room, crew, stand: floors[0], other: floors[1] };
+  }
+
+  it("leaves crew HP unchanged when the beam crosses the room but misses the standing cell", () => {
+    const { g, room, crew, stand, other } = seated();
+    // INFERRED: standing cell is the room's first occupied cell, lowest y then lowest x.
+    const line = across(other);
+    assert.deepEqual(cellsOnSegment(g.player, line.a, line.b), [other]);
+    assert.equal(cellsOnSegment(g.player, line.a, line.b).some((cell) => cell.x === stand.x && cell.y === stand.y), false);
+    const hull = g.player.hull;
+    const damage = g.player.systems.weapons.damage;
+    applyImpact(
+      g,
+      impactShot({
+        kind: "beam",
+        damage: 1,
+        defId: "mini",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+        beamLine: line,
+      }),
+    );
+    for (const c of crew) assert.equal(c.hp, 100);
+    assert.equal(g.player.hull, hull - 1);
+    assert.equal(g.player.systems.weapons.damage, damage + 1);
+    assert.equal(room.fire, 0);
+    assert.equal(room.breach, 0);
+  });
+
+  it("deals the usual crew damage when the beam crosses the standing cell", () => {
+    const { g, room, crew, stand } = seated();
+    const line = across(stand);
+    assert.deepEqual(cellsOnSegment(g.player, line.a, line.b), [stand]);
+    applyImpact(
+      g,
+      impactShot({
+        kind: "beam",
+        damage: 1,
+        defId: "mini",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+        beamLine: line,
+      }),
+    );
+    for (const c of crew) assert.equal(c.hp, 100 - usual);
+  });
+
+  it("still damages every crew member when a beam only lists beamRooms", () => {
+    const { g, room, crew } = seated();
+    // INFERRED: no beamLine covers every tile of each listed room.
+    applyImpact(
+      g,
+      impactShot({
+        kind: "beam",
+        damage: 1,
+        defId: "mini",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+      }),
+    );
+    for (const c of crew) assert.equal(c.hp, 100 - usual);
+  });
+
+  it("still damages every crew member in the room with a non-beam shot", () => {
+    const { g, room, crew } = seated();
+    applyImpact(g, impactShot({ kind: "laser", damage: 1, targetRoom: room.id }));
+    for (const c of crew) assert.equal(c.hp, 100 - usual);
   });
 });

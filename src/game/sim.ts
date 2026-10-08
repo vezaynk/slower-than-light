@@ -74,8 +74,8 @@ import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
-import { roomCenter, roomsOnSegment } from "./beam-line.ts";
-import { layoutFor, seatKits } from "./layouts.ts";
+import { cellsOnSegment, roomCenter, roomsOnSegment } from "./beam-line.ts";
+import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
@@ -2464,6 +2464,20 @@ function looseShard(g: Game) {
   log(g, `A shard hits their hull. Hull ${enemy.hull}.`);
 }
 
+/**
+ * INFERRED: the wiki does not print which cell a crew stands on.
+ * First occupied cell of the room, lowest y then lowest x. Omit cells are hull.
+ */
+function standingCell(room: Room): { x: number; y: number } | null {
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) {
+      if (!cellOccupied(room, x, y)) continue;
+      return { x, y };
+    }
+  }
+  return null;
+}
+
 function strikeRoom(
   g: Game,
   ship: Ship,
@@ -2507,10 +2521,17 @@ function strikeRoom(
   // INFERRED: that room was hit. The beam page's crew line is not "per point of system damage".
   const printed = citedCrewDamage(shot, damage);
   const crewHit = printed != null ? printed : 15 * Math.max(0, damage);
+  // Weapons, "Weapons: general information": "beams only damage crew when hitting the tile the crew is standing on, while all the other weapons do damage to everyone in the room they hit."
+  // INFERRED: the wiki does not print which cell a crew stands on. It is this room's first occupied cell, lowest y then lowest x, skipping omit cells.
+  // INFERRED: a beam with no beamLine (enemy swipes, and shots that only set beamRooms) covers every tile of each listed room, so every crew member in the room is still hit.
+  const beamTiles = shot.kind === "beam" && shot.beamLine ? cellsOnSegment(ship, shot.beamLine.a, shot.beamLine.b) : null;
+  const stand = beamTiles ? standingCell(r) : null;
+  const onTile = !beamTiles || (stand != null && beamTiles.some((cell) => cell.x === stand.x && cell.y === stand.y));
   for (const c of g.crew) {
-    if (c.aboard === aboard && c.room === roomId && c.hp > 0) c.hp -= crewHit;
+    if (c.aboard === aboard && c.room === roomId && c.hp > 0 && onTile) c.hp -= crewHit;
   }
   // Weapons, "Weapons: general information": on-board drones take half of that crew damage.
+  // The tile sentence is about crew. On-board drone damage stays room-wide.
   hurtRoomDrones(g, aboard, roomId, crewHit);
   // Fires, "Fires and enemy AI": a 2x2 holds four flames, so a hit stacks one fire up to 4.
   // Laser (Weapons), "Types of lasers": Heavy Lasers roll the 30% fire chance first,

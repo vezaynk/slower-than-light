@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2803 |
+| Behaviors checked | 2804 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -3051,6 +3051,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
   - [x] Two or three Mantis boarders beam aboard your ship when you fight the Mantis ship from Mantis outcasts.
+  - [x] The red line beams 2-3 mantis boarders aboard and starts the Mantis fight on arrival, and it is not a button.
 
 - [ ] Mantis ship-collectors
   - [x] one beacon in a sector the page names, while a free beacon remains.

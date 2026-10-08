@@ -379,7 +379,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Engi Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Engi Distress Call — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Empty Beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Engi Fleet Discussion — partial — Same card as dest "Engi fleet discussion" (cited-events-surrender.ts), Engi Homeworlds only. A plain hail is declined. An Engi crewmember adds two quest markers. The marker fights are in quests.ts.
+- [ ] Engi Fleet Discussion — partial — Same card as dest "Engi fleet discussion" (cited-events-surrender.ts), Engi Homeworlds only. A plain hail is declined. Ignoring the fleet shows the printed wonder sentence and nothing happens. An Engi crewmember adds two quest markers. The marker fights are in quests.ts.
 - [ ] Engi Free Stuff — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Homeworlds — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi Mantis Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

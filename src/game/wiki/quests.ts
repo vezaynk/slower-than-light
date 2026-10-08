@@ -906,6 +906,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:pirate-smuggler:attack": (g) => {
     pageFight(g, "You power up your weapons and move in to engage.", "Pirate ship", "pirate-smuggler");
   },
+  // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
+  "q:crystal-pirate:contact": (g) => crystalContact(g),
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
@@ -1896,6 +1898,42 @@ function smuggleCargoWin(g: Game, deadCrew: boolean) {
   result(g, row.text, smugglePay(g, row.pay));
 }
 
+const CRYSTAL_CONTACT: Choice[] = [{ id: "q:crystal-pirate:contact", label: "Contact the Crystal ship." }];
+
+/**
+ * Template:Crystal Ship Saved. {{DuplicateEvent|2}} on the reward and on nothing. The printed OR is the two
+ * sentences. INFERRED: each sentence is one copy. The Crystal weapon is not named, so none is granted.
+ * A random amount of resources is rollStandard with no tier.
+ */
+const CRYSTAL_SAVED: [string, "stuff" | "nothing" | "weapon"][] = [
+  ["You contact the other ship, \"Thank you for your assistance. It's glad to know that not all of you foreigners are so barbaric. Take this as a reward.\"", "stuff"],
+  ["The Crystalline ship hails you, \"It's a good thing you came when you did. We appreciate the assistance. Please take this for your help.\"", "stuff"],
+  ["You contact the Crystalline ship to hear, \"It seems you have brought war to our doorstep. I hope you're not too surprised that we don't welcome you with open arms. I should kill you myself...\" They cut communications.", "nothing"],
+  ["The Crystalline ship messages you, \"You're the one that opened our sector to the outside, aren't you! Bastards, my home was just overrun by your 'Rebels'. Just leave us in peace!\" They quickly jump away.", "nothing"],
+  ["The Crystalline ship messages you, \"Thank you. We were not prepared for the savagery with which you aliens battle. We will give you one of our weapons if you intend on assisting our kind in the future.\"", "weapon"],
+];
+
+function crystalContact(g: Game) {
+  const [text, kind] = pick(g, CRYSTAL_SAVED);
+  if (kind === "stuff") {
+    result(g, text, rollStandard(g));
+    return;
+  }
+  if (kind === "weapon") {
+    result(g, text, undefined, ["You receive a Crystal weapon."]);
+    return;
+  }
+  result(g, text, undefined, ["Nothing happens."]);
+}
+
+/** Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then the Crystal ship. */
+function crystalPirateWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "With the crew dead you take as much salvage from the ship as possible."
+    : "The ship explodes and you scrap what you can.";
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], CRYSTAL_CONTACT);
+}
+
 const MANTIS_SLUG_AFTER: Choice[] = [
   { id: "q:mantis-slug:leave", label: "Leave them be." },
   { id: "q:mantis-slug:finish", label: "Finish them off." },
@@ -2078,6 +2116,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-smuggler": smuggleCargoWin,
   // Rebel transport ship. The same template. The 40 second run and the refusal to surrender stay in escape.ts and surrender.ts.
   "rebel-transport-ship": smuggleCargoWin,
+  // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
+  "pirate-ship-attacking-crystal": crystalPirateWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
   "engi-distress-rebel-fight": engiDistressWin,
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.

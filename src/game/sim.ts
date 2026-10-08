@@ -5073,6 +5073,7 @@ function arrive(g: Game, b: Beacon) {
   // Auto-ship fight in asteroid field: "Fight an Auto-ship." asteroidfield=true. unique=false.
   // Auto-ship fight in nebula: "Fight an Auto-ship." One of the five printed intros. nebula=true. unique=false.
   // Auto-ship fight near sun: "Fight an Auto-ship." redgiant=true. unique=true.
+  // Engi fight: "Fight an Engi ship (default rewards)." unique=true.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5096,7 +5097,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:auto-ship-fight-crystal" ||
       b.flag === "cited:auto-ship-fight-in-asteroid-field" ||
       b.flag === "cited:auto-ship-fight-in-nebula" ||
-      b.flag === "cited:auto-ship-fight-near-sun") &&
+      b.flag === "cited:auto-ship-fight-near-sun" ||
+      b.flag === "cited:engi-fight") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

@@ -24,6 +24,8 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
+  // Engi fight has no choice. Arrival calls c:engi-fight:0.
+  // "Fight an Engi ship (default rewards)." unique=true.
   {
     dest: "Engi fight",
     slug: "engi-fight",

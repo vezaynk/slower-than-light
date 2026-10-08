@@ -1503,7 +1503,7 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "",
+    "body": "You receive a request, \"All of our military ships have been destroyed or damaged during the rebellion. However, there have been reports of a Mantis war camp only a few jumps from us. Can you help?\"",
     "choices": [
       {
         "id": "c:mantis-war-camp:0",

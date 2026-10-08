@@ -295,7 +295,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-powered-down-ship",
     aliases: ["Lanius powered-down ship"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
     choices: [
       {
         id: "c:lanius-powered-down-ship:0",

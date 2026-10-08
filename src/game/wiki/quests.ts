@@ -745,6 +745,42 @@ function rebelSupplyWin(g: Game, deadCrew: boolean) {
   result(g, text, rollStandard(g, deadCrew ? "medium" : "low"), [], REBEL_SUPPLY_NEXT);
 }
 
+const ZOLTAN_RAFT_NEXT: Choice[] = [
+  { id: "s:zoltan-raft:go", label: "Let him go." },
+  { id: "s:zoltan-raft:hire", label: "Offer to hire him for 40 scrap." },
+];
+
+/**
+ * Zoltan retake the ship. Destroyed pays medium scrap with resources, then the hire.
+ * A crew kill pays high scrap. The augmentation is unnamed and is not granted.
+ */
+function zoltanRaftWin(g: Game, deadCrew: boolean) {
+  if (deadCrew) {
+    result(g, `The last pirate life-signs blink out and the Zoltan returns to his bridge. "Egalitarianism is a cornerstone of successful cohabitation. Please, enjoy the fruits of your labor."`, scrapOnly(g, "high"));
+    return;
+  }
+  result(
+    g,
+    "You salvage what you can from the ship.",
+    rollStandard(g, "medium"),
+    ["The Zoltan looks deeply dissatisfied with your aiming and demands to be dropped off at your earliest convenience."],
+    ZOLTAN_RAFT_NEXT,
+  );
+}
+
+/** Offer to hire him for 40 scrap. Two printed results, no odds. INFERRED: equal. */
+function zoltanRaftHire(g: Game) {
+  if (g.scrap < 40) return;
+  if (pick(g, ["accept", "refuse"] as const) === "accept") {
+    g.scrap -= 40;
+    log(g, "Scrap: -40.");
+    const joined = crew(g, "Zoltan");
+    result(g, `He responds defeatedly, "I suppose I have nowhere else to go without a ship. I accept your offer."`, undefined, ["Scrap: -40.", joined]);
+    return;
+  }
+  result(g, `He responds haughtily, "You would presume I would work under your command after such a display of... prowess? No, I must decline."`, undefined, ["Nothing happens."]);
+}
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1484,6 +1520,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:rebel-supply:leave": (g) => {
     rebelSupplyLeave(g);
+  },
+  "s:zoltan-raft:go": (g) => {
+    result(g, "Nothing happens.");
+  },
+  "s:zoltan-raft:hire": (g) => {
+    zoltanRaftHire(g);
   },
   // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
   "c:zoltan-ship-asks-to-dock:1": (g) => {
@@ -2526,6 +2568,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Refueling platform dock. Accept costs 5-10 scrap. Blast Doors are level 2+.
   // INFERRED: the refusal lines. The page prints the price and the system, not these sentences.
   if (id === "s:refuel-dock:accept" && g.scrap < 5) return "Need 5 scrap";
+  // Zoltan retake the ship. The hire costs 40 scrap.
+  // INFERRED: the refusal line. The page prints the price and does not print this sentence.
+  if (id === "s:zoltan-raft:hire" && g.scrap < 40) return "Need 40 scrap";
   if (id === "s:refuel-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return "Needs level 2 Door System";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
   if (id === "q:war-camp:firebomb" && g.missiles < 2) return "Need 2 missiles";
@@ -3157,6 +3202,7 @@ export const PAGE_WINS: Record<string, Win> = {
   // Rebel ship supplying civilians. Destroyed pays low scrap with resources. A crew kill pays medium.
   // Then steal the supplies or leave the civilians. Default salvage is not paid.
   "rebel-ship-supplying-civilians": rebelSupplyWin,
+  "zoltan-retake-the-ship": zoltanRaftWin,
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.

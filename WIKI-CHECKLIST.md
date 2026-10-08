@@ -293,7 +293,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Dangerous looking ship — not-a-surface — same title as "Dangerous Looking Ship" with different capitalization
 - [ ] Dangerous looking slug ship — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] De-Activated Rebel Automated Scout — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Deactivated Auto-ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Deactivated Auto-ship — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Downloading the data pays low scrap with resources or starts an Auto-ship fight, sensors level 3 either pays that same low scrap with resources or asks whether to try, and a yes uses the download, a no does nothing.
 - [ ] Deactivated Rebel Automated Scout — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Deactivated rebel automated scout — not-a-surface — same title as "Deactivated Rebel Automated Scout" with different capitalization
 - [ ] Debris Field Zoltan Cruiser — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.

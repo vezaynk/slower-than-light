@@ -2925,7 +2925,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    "body": "You are immediately hailed by a dangerous looking ship. \"I'm feeling generouss today. I shall allow you to choose your own death. Which do you like leasst: shields, oxygen, or weaponsss?\"",
     "choices": [
       {
         "id": "c:slug-hacker-choice:0",

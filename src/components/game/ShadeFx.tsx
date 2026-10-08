@@ -1,6 +1,7 @@
 /**
- * Picture-only bursts. Hull loss, a Zoltan shield breaking, a crew death, and a teleport
- * blink. The sim has already applied the damage; this canvas does not change it.
+ * Picture-only bursts. A destroyed ship breaks into its own tiles, a Zoltan shield
+ * shatters, a crew death puffs, and a teleport blinks. The sim has already applied
+ * the damage; this canvas does not change it.
  */
 import { useEffect, useRef } from "react";
 import { useGame } from "@/game/store";
@@ -19,6 +20,7 @@ type Chunk = {
   w: number;
   h: number;
 };
+type Piece = { x: number; y: number; w: number; h: number; color: string };
 type Oval = {
   x: number;
   y: number;
@@ -56,6 +58,7 @@ export function ShadeFx() {
     const ovals: Oval[] = [];
     const blinks: Blink[] = [];
     const cache: Partial<Record<Side, Box>> = {};
+    const plates: Partial<Record<Side, Piece[]>> = {};
     const crew = new Map<string, CrewSnap>();
     let seenPlayerHull = 0;
     let seenEnemyHull: number | null = null;
@@ -123,42 +126,87 @@ export function ShadeFx() {
         if (r.width < 1 || r.height < 1) return null;
         return { x: (r.left - base.left) / scale, y: (r.top - base.top) / scale, w: r.width / scale, h: r.height / scale };
       };
-      const hullBox = (side: Side): Box | null => {
-        const live = measure(host.querySelector(`.hull[data-ship="${side}"]`));
-        if (live) cache[side] = live;
-        return cache[side] ?? null;
+      const hullEl = (side: Side) => host.querySelector(`.hull[data-ship="${side}"]`);
+      const paintOf = (el: Element): string | null => {
+        const color = getComputedStyle(el).backgroundColor;
+        if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") return null;
+        return color;
+      };
+      const remember = (side: Side) => {
+        const hull = hullEl(side);
+        const live = measure(hull);
+        if (!live || !hull) return;
+        cache[side] = live;
+        const bits: Piece[] = [];
+        const add = (r: DOMRect, color: string) => {
+          if (r.width < 1 || r.height < 1) return;
+          bits.push({
+            x: (r.left - base.left) / scale,
+            y: (r.top - base.top) / scale,
+            w: r.width / scale,
+            h: r.height / scale,
+            color,
+          });
+        };
+        for (const rect of hull.querySelectorAll(".hull-plate rect")) {
+          add(rect.getBoundingClientRect(), rect.getAttribute("fill") || "#6a7078");
+        }
+        for (const room of hull.querySelectorAll(".room, .pixel-fill")) {
+          const color = paintOf(room);
+          if (color) add(room.getBoundingClientRect(), color);
+        }
+        if (bits.length) plates[side] = bits;
       };
       const roomBox = (side: Side, id: string): Box | null =>
         measure(host.querySelector(`.hull[data-ship="${side}"] [data-room="${CSS.escape(id)}"]`));
 
-      // React can drop the enemy hull on the same tick the sim sets hull to 0. Keep the last box.
-      hullBox("player");
-      hullBox("enemy");
+      // React can drop the enemy hull on the same tick the sim sets hull to 0. Keep the last tiles.
+      remember("player");
+      remember("enemy");
 
       const explode = (side: Side) => {
         const b = cache[side];
         if (!b) return;
         const cx = b.x + b.w / 2;
         const cy = b.y + b.h / 2;
-        const palette = [...ORANGE, ...WHITE, ...DARK];
-        for (let i = 0; i < 60; i++) {
-          const ang = (i / 60) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-          const dark = i % 3 === 2;
-          const hot = i % 3 === 1;
-          const inset = dark ? 0.12 + Math.random() * 0.35 : 0.2 + Math.random() * 0.7;
-          const speed = (dark ? 60 : hot ? 200 : 130) + Math.random() * (dark ? 70 : 140);
+        const bits = plates[side] ?? [];
+        for (const bit of bits) {
+          const px = bit.x + bit.w / 2;
+          const py = bit.y + bit.h / 2;
+          const dist = Math.hypot(px - cx, py - cy);
+          const ang = dist < 8 ? Math.random() * Math.PI * 2 : Math.atan2(py - cy, px - cx) + (Math.random() - 0.5) * 0.35;
+          const speed = 80 + Math.random() * 150 + dist * 0.4;
+          const life = 0.85 + Math.random() * 0.35;
           push({
-            x: cx + Math.cos(ang) * (b.w * 0.5 * inset),
-            y: cy + Math.sin(ang) * (b.h * 0.5 * inset),
+            x: bit.x,
+            y: bit.y,
             vx: Math.cos(ang) * speed,
             vy: Math.sin(ang) * speed,
-            life: 0.9,
-            max: 0.9,
-            color: palette[i % palette.length]!,
-            w: dark ? 5 + (i % 3) : hot ? 2 : 3 + (i % 2),
-            h: dark ? 4 + (i % 2) : hot ? 2 : 3,
+            life,
+            max: life,
+            color: bit.color,
+            w: Math.max(2, bit.w),
+            h: Math.max(2, bit.h),
           });
         }
+        const palette = [...ORANGE, ...WHITE, ...DARK];
+        for (let i = 0; i < 28; i++) {
+          const ang = (i / 28) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+          const hot = i % 3 === 1;
+          const speed = (hot ? 220 : 120) + Math.random() * 140;
+          push({
+            x: cx + (Math.random() - 0.5) * b.w * 0.35,
+            y: cy + (Math.random() - 0.5) * b.h * 0.35,
+            vx: Math.cos(ang) * speed,
+            vy: Math.sin(ang) * speed,
+            life: 0.7,
+            max: 0.7,
+            color: palette[i % palette.length]!,
+            w: hot ? 3 : 4 + (i % 3),
+            h: hot ? 3 : 4 + ((i + 1) % 3),
+          });
+        }
+        hullEl(side)?.classList.add("is-gone");
       };
 
       const shieldOval = (side: Side, life: number, spread: number, width: number, color: string) => {
@@ -215,6 +263,7 @@ export function ShadeFx() {
 
       const playerHull = g.player.hull;
       if (seenPlayerHull > 0 && playerHull <= 0) explode("player");
+      else if (playerHull > 0) hullEl("player")?.classList.remove("is-gone");
       seenPlayerHull = playerHull;
 
       const enemy = g.enemy;
@@ -222,6 +271,7 @@ export function ShadeFx() {
         if (enemyRef === enemy && seenEnemyHull != null && seenEnemyHull > 0 && enemy.hull <= 0) explode("enemy");
         else if (enemyRef && enemyRef !== enemy && seenEnemyHull != null && seenEnemyHull > 0 && enemyRef.hull <= 0) explode("enemy");
         seenEnemyHull = enemy.hull;
+        if (enemy.hull > 0) hullEl("enemy")?.classList.remove("is-gone");
         if (enemyRef === enemy) noteZ("enemy", seenEnemyZ, enemy.zoltan ?? 0);
         else if (enemyRef && seenEnemyZ > 0 && (enemyRef.zoltan ?? 0) === 0) shatter("enemy");
         seenEnemyZ = enemy.zoltan ?? 0;

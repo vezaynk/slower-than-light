@@ -4683,8 +4683,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
     if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
-    // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship).
-    if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1") allMantisCrew(g);
+    // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship; Legendary thief KazaaakplethKilik).
+    if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
     return true;
   }
   // "3-4 human boarders beam aboard your ship" (Boarders: Humans in plasma storm). No enemy ship.

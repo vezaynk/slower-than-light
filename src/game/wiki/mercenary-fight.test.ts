@@ -26,4 +26,18 @@ describe("The Mercenary fight", () => {
     assert.equal(g.scrap, 10);
     assert.ok(g.log.includes("Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle."));
   });
+
+  it("hiring shows the printed mask sentence and delays the fleet", () => {
+    const g = createGame(1);
+    open(g);
+    g.scrap = 40;
+    g.fleet = 6;
+    choose(g, "c:the-mercenary:0");
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /masks its jump signature/);
+    assert.match(g.event?.body ?? "", /delayed for 2 turns/);
+    assert.equal(g.fleet, 4);
+    assert.ok(g.scrap <= 30 && g.scrap >= 15, String(g.scrap));
+    assert.equal(g.enemy, null);
+  });
 });

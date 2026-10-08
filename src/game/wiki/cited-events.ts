@@ -5097,6 +5097,14 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     citedResult(g, "\"You made the right decision, friend.\"", ["You avoid the fight."]);
     return true;
   }
+  // The mercenary. "Hire the mercenary to delay the Rebels." One printed result. Scrap and the 2-turn delay are already applied.
+  if (id === "c:the-mercenary:0") {
+    const last = g.sector === 8 || g.sectorName === "The Last Stand";
+    citedResult(g, "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.", [
+      last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns.",
+    ]);
+    return true;
+  }
   ctx.resolve();
   return true;
 }

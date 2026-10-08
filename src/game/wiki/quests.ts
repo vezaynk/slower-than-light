@@ -1103,6 +1103,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:pirate-toll:1": (g) => {
     pageFight(g, "\"Too bad... You will regret this decision!\"", "Pirate ship", "pirate-toll");
   },
+  // Lanius ship attacking Rock. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
+  "c:lanius-ship-attacking-rock:0": (g) => {
+    pageFight(g, "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.", "Lanius ship", "lanius-ship-attacking-rock");
+  },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
     result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);

@@ -31,7 +31,7 @@ import { upgradeCost, WEAPONS } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { beginBoarding, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
+import { beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
@@ -52,6 +52,7 @@ import {
   pageCard,
   pageFight,
   payOffer,
+  zoltanBoarders,
   randomRace,
   rollStandard,
   rollSurrenderOffer,
@@ -808,6 +809,45 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.fleet = Math.max(0, g.fleet - 1);
     result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
   },
+  // Zoltan security checkpoint. Two results, no odds. INFERRED: equal.
+  "c:zoltan-security-checkpoint:1": (g) => {
+    if (pick(g, ["wanted", "pass"] as const) === "pass") {
+      result(g, "After a few moments of uncertainty, your crew is allowed to pass.", undefined, ["Nothing happens."]);
+      return;
+    }
+    card(g, "The Zoltan security staff board your ship and begin scanning the crew's faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! \"This person is wanted on five charges of Utter Villainy! Surrender them to us!\"", [
+      { id: "q:zoltan-checkpoint:give", label: "Give up your crewmember." },
+      { id: "q:zoltan-checkpoint:fight", label: "Refuse and fight." },
+    ]);
+  },
+  // Clone Bay has no effect. INFERRED: never the last crewmember.
+  "q:zoltan-checkpoint:give": (g) => {
+    const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+    const extras: string[] = [];
+    if (mine.length > 1) {
+      const lost = pick(g, mine);
+      g.crew = g.crew.filter((c) => c.id !== lost.id);
+      extras.push(`${lost.name} is lost.`);
+    }
+    if (g.player.kits.cradle) extras.push("Unfortunately your crewmember was taken away unharmed so your Clone Bay was unable to retrieve them.");
+    result(g, "It's a tough call, but Zoltan law holds sway here. Besides, that one always seemed a bit shifty.", undefined, extras);
+  },
+  // The scan fight is not the attack fight. Weapon Control is halved, and 2-4 Zoltan boarders come aboard.
+  "q:zoltan-checkpoint:fight": (g) => {
+    pageFight(g, "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!", "Zoltan ship", "zoltan-security-checkpoint-scan");
+    halvePlayerSystems(g, ["weapons"]);
+    zoltanBoarders(g, 2, 4);
+  },
+  // {{Blue Option|Slug Crew}}. Medium fuel, 2-4. A dead Slug does not count.
+  "c:zoltan-security-checkpoint:2": (g) => {
+    if (!hasSlug(g)) return;
+    zoltanCheckpointFuel(g, "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions.");
+  },
+  // {{Blue Option|Mind Control}}. Medium fuel, 2-4.
+  "c:zoltan-security-checkpoint:3": (g) => {
+    if ((g.player.kits.leash?.level ?? 0) <= 0) return;
+    zoltanCheckpointFuel(g, "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass.");
+  },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
   "c:pirate-ship-attacking-civilian-distress:2": (g) => {
@@ -1426,6 +1466,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:slug-drink:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
+  // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.
+  if (id === "c:zoltan-security-checkpoint:2" && !hasSlug(g)) return "Needs a Slug crewmember";
+  if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) return "Needs Mind Control";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Auto-ship near storage station. Cloaking, any installed level.
@@ -1649,6 +1692,14 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
   result(g, "The pirate explodes, leaving behind a substantial collection of useful scrap material. You go to examine the ship you just saved.", scrapOnly(g, pick(g, ["low", "medium", "high"])), [], PIRATE_GONE);
 }
 
+/** Zoltan security checkpoint. Medium fuel is 2-4. */
+function zoltanCheckpointFuel(g: Game, text: string) {
+  const n = between(g, [2, 4]);
+  g.fuel += n;
+  log(g, `Fuel: ${n}.`);
+  result(g, text, undefined, [`Fuel: ${n}.`]);
+}
+
 /** The pirate is gone. Five results, no odds. INFERRED: equal. */
 function pirateGone(g: Game) {
   const kind = pick(g, ["store", "repair", "rebel", "scrap", "nothing"] as const);
@@ -1785,6 +1836,10 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
+  // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
+  "zoltan-security-checkpoint-scan": (g, deadCrew) => {
+    result(g, "You scrap what you can and prepare to jump before the other guards arrive.", rollStandard(g, deadCrew ? "medium" : "low"));
+  },
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.
   "pirate-ship-attacking-civilian-distress": pirateCivilianWin,

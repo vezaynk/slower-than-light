@@ -3508,6 +3508,19 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Zoltan security checkpoint. Profiling, a Slug, and Mind Control. The attack stays the fight.
+  if (ev.slug === "zoltan-security-checkpoint") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:zoltan-security-checkpoint:1", label: "Submit to profiling." },
+        { id: "c:zoltan-security-checkpoint:2", label: "Have your Slug talk them into letting you go." },
+        { id: "c:zoltan-security-checkpoint:3", label: "Make the guards believe they have already checked your crew today." },
+      ],
+    };
+  }
   // Escort civilians FTL haywire. Advanced FTL Navigation uploads the route. Leading them stays the low scrap and the marker.
   if (ev.slug === "escort-civilians-ftl-haywire") {
     return {

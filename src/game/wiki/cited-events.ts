@@ -3658,6 +3658,15 @@ const FREE_SCRAP_WITH_RESOURCES_INTROS = [
   "You happen upon the remains of a space station. It has been mostly picked clean but there appears to be a few materials that will aid you in your mission.",
 ];
 
+// Slug fight in plasma storm. The page prints four intros and no odds.
+// INFERRED: equal. The fight stays c:slug-fight-in-plasma-storm:0.
+const SLUG_PLASMA_INTROS = [
+  "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures.",
+  "The Slug ship that descends into view as you enter the ion storm must have sensed your distress - defensive action!",
+  "You arrive in the middle of an ion storm. Slugs generally avoid these storms but you find one waiting in ambush. Prepare for a fight!",
+  "You find yourself stuck in the middle of an ion storm with a Slug ship just a short distance away, refusing all hails. You cautiously try to slip further into the clouds, but they turn suddenly to attack!",
+];
+
 // Free weapon. The page prints six intros and no odds.
 // INFERRED: equal. The gift stays c:free-weapon:0.
 const FREE_WEAPON_INTROS = [
@@ -4665,6 +4674,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: FREE_SCRAP_WITH_RESOURCES_INTROS[between(g, [0, 5])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Slug fight in plasma storm. One of the four printed intros. The fight stays c:slug-fight-in-plasma-storm:0.
+  if (ev.slug === "slug-fight-in-plasma-storm") {
+    return {
+      title: ev.dest,
+      body: SLUG_PLASMA_INTROS[between(g, [0, 3])]!,
+      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.

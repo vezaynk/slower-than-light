@@ -1561,6 +1561,14 @@ function refugeeHail(g: Game, slug: string) {
   }
 }
 
+/** Dense asteroid field distress, "Find remains of a ship". Both the search and Rock Plating open this card. */
+function asteroidRemains(g: Game) {
+  card(g, "You find the decaying remains of some kind of ship coated with ice or crystal. You send some crew aboard to explore. Nearly everything is either destroyed or unidentifiable, but one of the weapons appears salvageable and there's a strange stasis pod that catches your eye. It looks like a massive asteroid is in a direct collision course with the derelict ship! You have to pull your crew out but they want to grab what they can first. What do they take?", [
+    { id: "s:dense-asteroid-field-distress:weapon", label: "Take the weapon and any spare scrap." },
+    { id: "s:dense-asteroid-field-distress:pod", label: "Grab the stasis chamber." },
+  ]);
+}
+
 function parseTrade(id: string): { pay: "fuel" | "missiles" | "parts"; n: number; get: "fuel" | "missiles" | "parts"; m: number } | null {
   const m = id.match(/^s:refugee(?:-distress)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
   if (!m) return null;
@@ -1723,6 +1731,38 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:slocknog:leave": (g) => {
     show(g, "You close the frequency and continue jump prep. If this Slug is such a hero he'll find a way off that moon on his own.", undefined, ["Nothing happens."]);
+  },
+
+  // Dense asteroid field distress. Search lists three results and prints no odds. INFERRED: equal.
+  // The salvaged weapon is not named, so only the low scrap is paid.
+  "c:dense-asteroid-field-distress:0": (g) => {
+    const r = weighted(g, [["hit", 1], ["scrap", 1], ["remains", 1]] as const);
+    if (r === "hit") {
+      if (hurt(g, 5)) return;
+      if (g.player.systems.engines) hurtSystem(g.player, "engines", 1);
+      show(g, "You find what appears to be pieces of a derelict ship coated with ice or crystal. Before you have a chance to dock, a few asteroids get past your shields and partially damage your engines. You'll have to pull out!", undefined, ["Hull damage: 5.", "1 damage to engines."]);
+      return;
+    }
+    if (r === "scrap") {
+      show(g, "You find a pirate ship, damaged and abandoned. You salvage what you can and move on.", rollStandard(g));
+      return;
+    }
+    asteroidRemains(g);
+  },
+  "c:dense-asteroid-field-distress:1": (g) => {
+    show(g, "Discretion is the better part of valor. Better not risk it.", undefined, ["Nothing happens."]);
+  },
+  "c:dense-asteroid-field-distress:2": (g) => {
+    if (!g.augments.includes("keel")) return;
+    asteroidRemains(g);
+  },
+  "s:dense-asteroid-field-distress:weapon": (g) => {
+    show(g, "Your crew grabs what they can and returns to the ship before the asteroid hits. You take a look at what you've recovered once you move clear of the asteroid field.", scrapOnly(g, "low"));
+  },
+  "s:dense-asteroid-field-distress:pod": (g) => {
+    // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
+    const note = g.augments.length >= 3 ? "Three augments is the cap." : (g.augments.push("stasis"), "Damaged Stasis Pod.");
+    show(g, "Your crew drags the pod back to your ship before the asteroid smashes into the ship, shattering through the crystal coating and destroying the ship. The pod appears to be functioning but you see nothing but shards of crystal inside. Perhaps someone else will know how to open it.", scrapOnly(g, "low"), [note]);
   },
 
   // ---- Refugee / Refugee distress ----
@@ -2487,6 +2527,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
+  // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
+  if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return "Needs Rock Plating";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

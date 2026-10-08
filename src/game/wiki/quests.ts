@@ -662,6 +662,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Lanius ship absorbing automated scout. Two inspect results, no odds. INFERRED: equal.
   // "a random amount of scrap". The page notes lowercase "low" is treated as RANDOM.
   // INFERRED: low, medium, and high scrap only are equal. The map reveal is not wired.
+  // Auto-ship near sensor station. Sensors level 3. Two results, no odds. INFERRED: equal.
+  // The map reveal is not wired. The fight uses the same destroyed reward.
+  "c:auto-ship-near-sensor-station:2": (g) => {
+    if (sensors(g) < 3) return;
+    if (pick(g, ["fight", "map"] as const) === "fight") {
+      pageFight(g, "The automated ship must be remotely connected to the station; as soon as you attempt to log on, the ship activates and charges you.", "Auto-ship", "auto-ship-near-sensor-station");
+      return;
+    }
+    result(g, "Your improved sensors are able to remotely access and download the public radar station's local map data.");
+  },
+  // Crew Teleporter. The map reveal is not wired.
+  "c:auto-ship-near-sensor-station:3": (g) => {
+    if (!hasTeleporter(g)) return;
+    result(g, "Once on board, your crew is able to access and download the long-range scanner's archived information. Your map has been updated.");
+  },
   "q:lanius-scout:inspect": (g) => {
     const offer = scrapOnly(g, pick(g, ["low", "medium", "high"]));
     if (pick(g, ["map", "fleet"] as const) === "fleet") {
@@ -1155,6 +1170,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "q:lanius-dormant:autopilot" && (g.player.systems.pilot?.level ?? 0) < 2) return "Needs level 2 Piloting";
   // Lanius trader with translator. Purchase the translator for 40 scrap.
   if (id === "q:lanius-translator:buy" && g.scrap < 40) return "Need 40 scrap";
+  // Auto-ship near sensor station. Sensors level 3. A Crew Teleporter.
+  if (id === "c:auto-ship-near-sensor-station:2" && sensors(g) < 3) return "Needs level 3 Sensors";
+  if (id === "c:auto-ship-near-sensor-station:3" && !hasTeleporter(g)) return "Needs a Teleporter";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
@@ -1341,6 +1359,12 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect.
   "lanius-ship-absorbing-automated-scout": laniusScoutWin,
+  // Auto-ship near sensor station. Destroyed pays low scrap only. The map reveal is not wired.
+  // The page prints no crew-kill reward.
+  "auto-ship-near-sensor-station": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "You access the recent scans from the unguarded station. Your map has been updated with details of the surrounding area.", scrapOnly(g, "low"));
+  },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
   "lanius-ship-attacking-civilian": laniusCivilianWin,

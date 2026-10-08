@@ -3471,6 +3471,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Auto-ship near sensor station. Sensors level 3 and a Crew Teleporter are blue options.
+  if (ev.slug === "auto-ship-near-sensor-station") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:auto-ship-near-sensor-station:2", label: "Use your sensors to attempt to access the data." },
+        { id: "c:auto-ship-near-sensor-station:3", label: "Beam directly onto the station to try to avoid detection." },
+      ],
+    };
+  }
   // Lanius trader with translator. Same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);

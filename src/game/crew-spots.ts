@@ -78,6 +78,18 @@ export function medicalLimit(room: Box, side: "player" | "enemy", interiorDoors:
   return tiles <= 2 ? 2 : 4;
 }
 
+/**
+ * How many crew can stand here.
+ * Medbay and Clone Bay use the printed standing spots.
+ * INFERRED: every other room holds one crew member per floor tile. Clone Bay's
+ * "4-tile room ... only up to 3 standing crew" is the exception to that.
+ */
+export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors: number): number {
+  if (room.system === "medbay" || room.kit === "cradle") return medicalLimit(room, side, interiorDoors);
+  const tiles = floorCells(room).length;
+  return tiles > 0 ? tiles : 0;
+}
+
 export type StandSpot = { x: number; y: number; stack: number };
 
 type RosterCrew = {
@@ -106,6 +118,30 @@ export function restSpot(room: Box, crew: RosterCrew[], id: string, aboard?: str
     return c.path[c.path.length - 1] === dest;
   });
   return assignStands(room, roster).get(id) ?? null;
+}
+
+/**
+ * True when `id` can take a standing spot in `dest`.
+ * Crew already standing there, and crew whose walk ends there, fill the room.
+ * Someone only passing through does not.
+ */
+export function mayStand(
+  room: Box,
+  crew: RosterCrew[],
+  id: string,
+  dest: string,
+  aboard: string,
+  side: "player" | "enemy",
+  interiorDoors: number,
+): boolean {
+  const cap = roomCapacity(room, side, interiorDoors);
+  let held = 0;
+  for (const other of crew) {
+    if (other.id === id || other.hp <= 0 || other.aboard !== aboard) continue;
+    const there = other.path.length === 0 ? other.room === dest : other.path[other.path.length - 1] === dest;
+    if (there) held += 1;
+  }
+  return held < cap;
 }
 
 /** Idle crew in one room. A pad tile wins over the file order. Overflow stacks on the last tile. */

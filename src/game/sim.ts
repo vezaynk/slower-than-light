@@ -1,6 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { hopLanding } from "./walk-path.ts";
-import { claimPadTile, interiorLinks, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
+import { claimPadTile, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -1586,7 +1586,7 @@ function claimPad(g: Game, c: Crew, ship: Ship, dest: string) {
   else delete c.pad;
 }
 
-export type OrderResult = "ok" | "there" | "skip" | "mind" | "missing" | "coat" | "path";
+export type OrderResult = "ok" | "there" | "skip" | "mind" | "missing" | "coat" | "path" | "full";
 
 export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
   const c = g.crew.find((x) => x.id === crewId);
@@ -1594,7 +1594,8 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
   // Mind Control, "Overview": "you can't give them orders, rather they are under the AI control."
   if (heldByEnemy(c)) return "mind";
   const ship = c.aboard === "player" ? g.player : g.enemy;
-  if (!ship || !roomById(ship, dest)) return "missing";
+  const destRoom = ship ? roomById(ship, dest) : undefined;
+  if (!ship || !destRoom) return "missing";
   // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
   // A path that was already started can still finish, which is how a Crystal leaves as the coating forms.
   if (coated(ship, c.room) || coated(ship, dest)) return "coat";
@@ -1607,6 +1608,8 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
     claimPad(g, c, ship, dest);
     return "there";
   }
+  // A full room can still be crossed. It cannot be the place the walk ends.
+  if (!mayStand(destRoom, g.crew, c.id, dest, c.aboard, c.aboard, interiorLinks(ship.doors, dest))) return "full";
   const here = roomById(ship, c.room);
   const fromSpot = here ? restSpot(here, g.crew, c.id, c.aboard) : null;
   claimFile(g, c, dest);
@@ -1638,6 +1641,8 @@ export function orderSelected(g: Game, dest: string, aboard: "player" | "enemy")
   if (moved || !reason) return;
   if (reason === "mind") log(g, "You can't give them orders.");
   else if (reason === "coat") log(g, "The crystal coating blocks the way.");
+  // INFERRED: the pages print the spot counts, not this sentence.
+  else if (reason === "full") log(g, "That room is full.");
   else log(g, "They can't reach that room.");
 }
 
@@ -3833,7 +3838,12 @@ function wanderBoarders(g: Game, dt: number) {
       c.think = 4 + rand(g) * 3;
       continue;
     }
-    const options = g.player.rooms.filter((r) => r.system && !coated(g.player, r.id));
+    const options = g.player.rooms.filter(
+      (r) =>
+        r.system &&
+        !coated(g.player, r.id) &&
+        mayStand(r, g.crew, c.id, r.id, c.aboard, "player", interiorLinks(g.player.doors, r.id)),
+    );
     if (!options.length) {
       c.think = 4 + rand(g) * 3;
       continue;

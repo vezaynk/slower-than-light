@@ -36,6 +36,7 @@
  * Determinism and cost: one ship-wide plan every PLAN_S seconds, no random rolls (so the seed's rand(g) stream is
  * untouched), one BFS per crew member per plan over a hull of at most ~20 rooms.
  */
+import { interiorLinks, mayStand } from "../crew-spots.ts";
 import type { Crew, CrewAiState, CrewAiTask, Game, Room, Ship, SysId } from "../types.ts";
 import { bars } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -205,7 +206,7 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
     // An idle crew member does not walk home into a room that would hurt it, and a walk it is already on (for
     // example sling.ts sending a recalled boarder home) is left alone ("Pathing" above).
     if (!ai.task[c.id] && ((target && unsafe(ship, c, target)) || c.path.length)) continue;
-    walk(ship, c, dest);
+    walk(g, ship, c, dest);
   }
 }
 
@@ -408,7 +409,7 @@ function route(ship: Ship, from: string, to: string): string[] | null {
  * Point a crew member at a room through sim.ts moveCrew. A walk already headed there is left alone
  * (Boarding: "if the AI has decided to move somewhere, then it will often not change its mind until it gets there").
  */
-function walk(ship: Ship, c: Crew, dest: string) {
+function walk(g: Game, ship: Ship, c: Crew, dest: string) {
   if (c.room === dest) {
     if (c.path.length) {
       c.path = [];
@@ -418,6 +419,9 @@ function walk(ship: Ship, c: Crew, dest: string) {
     return;
   }
   if (c.path.length && c.path[c.path.length - 1] === dest) return;
+  const room = ship.rooms.find((r) => r.id === dest);
+  const hull = c.aboard === "player" ? "player" : "enemy";
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
   const path = route(ship, c.room, dest);
   if (!path) return;
   c.path = path;

@@ -1,5 +1,5 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
-import { padCells } from "../crew-spots.ts";
+import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
 import { cooldownLocksPower, enemyEscapeView, kitBars, kitIonLocked, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -378,7 +378,7 @@ function route(ship: Ship, from: string, to: string): string[] | null {
 }
 
 /** Sets a walk with the regular crew movement in sim.ts (moveCrew steps along c.path). */
-function walkTo(ship: Ship, c: Crew, dest: string) {
+function walkTo(g: Game, ship: Ship, c: Crew, dest: string) {
   if (c.room === dest) {
     c.path = [];
     c.move = 0;
@@ -386,6 +386,9 @@ function walkTo(ship: Ship, c: Crew, dest: string) {
     return;
   }
   if (c.path.length && c.path[c.path.length - 1] === dest) return;
+  const room = ship.rooms.find((r) => r.id === dest);
+  const hull = c.aboard === "player" ? "player" : "enemy";
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
   const path = route(ship, c.room, dest);
   if (!path) return;
   c.path = path;
@@ -455,10 +458,10 @@ function aliveById(g: Game, id: string): Crew | undefined {
  * (under the send threshold) goes to the medbay if the hull has one; anyone else returns to the station
  * they left. The page says the enemy pulls crew back "to heal" only in an editor comment.
  */
-function goHome(ship: Ship, b: EnemyBoarding, c: Crew) {
+function goHome(g: Game, ship: Ship, b: EnemyBoarding, c: Crew) {
   const medbay = ship.systems.medbay?.level > 0 ? ship.rooms.find((r) => r.system === "medbay") : undefined;
   const dest = c.hp < c.maxHp * SEND_HP && medbay ? medbay.id : (b.home[c.id] ?? c.room);
-  walkTo(ship, c, dest);
+  walkTo(g, ship, c, dest);
 }
 
 /**
@@ -497,7 +500,7 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
     c.path = [];
     c.move = 0;
     c.think = 0;
-    goHome(ship, b, c);
+    goHome(g, ship, b, c);
   }
   b.away = b.away.filter((id) => !pull.some((c) => c.id === id));
   kit.cool = cooldown(kit.level);
@@ -511,7 +514,7 @@ function recallWeather(g: Game, ship: Ship): boolean {
 }
 
 /**
- * INFERRED party size: up to 2 (the pads, "Ships can have only 2-tile Teleporter rooms"), keeping 1 crew
+ * INFERRED party size: up to 2 (the pads, "Ships can have only 2-tile Teleporter rooms"), and never more than the pad room can hold, keeping 1 crew
  * home when the hull has 3 or fewer aboard and 2 when it has 4 or more. The pilot always stays.
  * Basis: the Flagship "will send all its crew except for 1 or 2 crewmembers" (same section); the
  * regular "if ... the crew count allows" gives no number.
@@ -522,7 +525,9 @@ function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
   if (b.sent >= b.limit || b.away.length > 0 || b.party.length > 0) return;
   const home = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c));
   const keep = home.length >= 4 ? 2 : 1;
-  const size = Math.min(2, home.length - keep);
+  const padRoom = ship.rooms.find((r) => r.kit === "sling");
+  const spots = padRoom ? roomCapacity(padRoom, "enemy", interiorLinks(ship.doors, padRoom.id)) : 1;
+  const size = Math.min(2, spots, home.length - keep);
   if (size <= 0) return;
   const pilot = ship.rooms.find((r) => r.system === "pilot")?.id ?? "e-pilot";
   const picks = home
@@ -533,7 +538,7 @@ function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
   for (const c of picks) {
     // A crew member still walking back from an earlier trip keeps that station as home.
     b.home[c.id] = c.path.length ? c.path[c.path.length - 1] : c.room;
-    walkTo(ship, c, PADS);
+    walkTo(g, ship, c, PADS);
   }
   b.party = picks.map((c) => c.id);
 }
@@ -547,7 +552,7 @@ function sendParty(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   const party = b.party.map((id) => aliveById(g, id)).filter((c): c is Crew => !!c);
   if (!party.length) return;
   // Everyone keeps walking until they stand on the pads.
-  for (const c of party) if (c.room !== PADS && c.path.length === 0) walkTo(ship, c, PADS);
+  for (const c of party) if (c.room !== PADS && c.path.length === 0) walkTo(g, ship, c, PADS);
   if (!party.every((c) => c.room === PADS && c.path.length === 0)) return;
   if (!ready(kit)) return;
   const landing = g.player.rooms[Math.floor(rand(g) * g.player.rooms.length)]?.id;
@@ -595,7 +600,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
     const c = aliveById(g, id);
     if (!c || c.aboard !== "enemy") return false;
     if (leashed(c) || c.hp < c.maxHp * RECALL_HP) {
-      goHome(ship, b, c);
+      goHome(g, ship, b, c);
       return false;
     }
     return true;
@@ -610,7 +615,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
     if (b.party.length) {
       for (const id of b.party) {
         const c = aliveById(g, id);
-        if (c) goHome(ship, b, c);
+        if (c) goHome(g, ship, b, c);
       }
       b.party = [];
       log(g, "The Zoltan Shield stops the boarders.");

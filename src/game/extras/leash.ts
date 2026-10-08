@@ -1,3 +1,4 @@
+import { interiorLinks, mayStand } from "../crew-spots.ts";
 import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
@@ -593,11 +594,14 @@ function huntFor(g: Game, c: Crew) {
     g.crew.some((o) => o.id !== c.id && o.aboard === c.aboard && o.room === room && o.hp > 0 && sideOf(o) !== sideOf(c));
   if (prey(c.room)) return;
   const path = pathTo(ship, c.room, prey);
-  if (path && path.length) {
-    c.path = path;
-    c.move = 0;
-    delete c.via;
-  }
+  if (!path || !path.length) return;
+  const dest = path[path.length - 1]!;
+  const room = ship.rooms.find((r) => r.id === dest);
+  const hull = c.aboard === "player" ? "player" : "enemy";
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
+  c.path = path;
+  c.move = 0;
+  delete c.via;
 }
 
 /**

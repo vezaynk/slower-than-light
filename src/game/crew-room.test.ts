@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { claimPadTile, medicalLimit } from "./crew-spots.ts";
+import { claimPadTile, interiorLinks, medicalLimit, roomCapacity } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
 import {
   closeAllDoors,
@@ -164,6 +164,60 @@ describe("crew room orders", () => {
     assert.equal(g.selected, ivo.id);
   });
 
+  it("will not end a walk in a room that has no standing spot left", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
+    const ivo = g.crew.find((c) => c.name === "Ivo Park")!;
+    const nen = g.crew.find((c) => c.name === "Nen Hale")!;
+    const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen")!;
+    const medbay = g.player.rooms.find((r) => r.id === "p-medbay")!;
+    assert.equal(roomCapacity(oxygen, "player", interiorLinks(g.player.doors, oxygen.id)), 2);
+    const medCap = roomCapacity(medbay, "player", interiorLinks(g.player.doors, medbay.id));
+    assert.equal(medCap, medicalLimit(medbay, "player", interiorLinks(g.player.doors, medbay.id)));
+    assert.ok(medCap < medbay.w * medbay.h);
+
+    ada.room = "p-oxygen";
+    ada.path = [];
+    nen.room = "p-oxygen";
+    nen.path = [];
+    ivo.room = "p-engines";
+    ivo.path = [];
+    g.selected = ivo.id;
+    g.squad = [ivo.id];
+    orderSelected(g, "p-oxygen", "player");
+    assert.equal(orderCrew(g, ivo.id, "p-oxygen"), "full");
+    assert.deepEqual(ivo.path, []);
+    assert.equal(ivo.room, "p-engines");
+    assert.equal(g.log[0], "That room is full.");
+
+    const past = orderCrew(g, ivo.id, "p-medbay");
+    assert.equal(past, "ok");
+    assert.equal(ivo.path.at(-1), "p-medbay");
+    assert.notEqual(ivo.path.at(-1), "p-oxygen");
+
+    ivo.path = [];
+    ivo.move = 0;
+    const bodies = [ada, nen, ivo];
+    for (const c of bodies) {
+      c.room = "p-engines";
+      c.path = [];
+    }
+    const fillers = bodies.slice(0, medCap);
+    for (const c of fillers) {
+      c.room = "p-medbay";
+      c.path = [];
+    }
+    const extra = { ...ivo, id: "c-extra", name: "Extra", path: [] as string[], room: "p-engines" };
+    delete extra.pad;
+    g.crew.push(extra);
+    g.squad = [extra.id];
+    orderSelected(g, "p-medbay", "player");
+    assert.equal(extra.path.length, 0);
+    assert.equal(extra.room, "p-engines");
+    assert.equal(g.log[0], "That room is full.");
+  });
+
   it("lets a Crystal finish leaving a coated room through a shut door", () => {
     const g = createGame(9);
     g.phase = "map";
@@ -205,6 +259,14 @@ describe("crew room orders", () => {
     assert.equal(ivo.station, "p-pilot");
     assert.equal(nen.station, undefined);
     ivo.room = "p-engines";
+    for (const other of g.crew) {
+      if (other.id === ivo.id || other.side !== "player") continue;
+      other.station = "p-engines";
+      if (other.room === "p-pilot") {
+        other.room = "p-engines";
+        other.path = [];
+      }
+    }
     returnToStations(g);
     assert.equal(ivo.path[ivo.path.length - 1], "p-pilot");
     assert.equal(nen.aboard, "enemy");

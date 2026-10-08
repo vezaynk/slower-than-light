@@ -68,7 +68,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Engi Homeworlds",
       "Pirate Controlled Sector",
     ],
-    body: "",
+    body: "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.",
     choices: [
       {
         id: "c:pirate-engine-hacker:0",

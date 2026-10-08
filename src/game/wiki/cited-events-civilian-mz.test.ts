@@ -152,6 +152,7 @@ describe("Pirate engine hacker", () => {
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";
+    assert.equal(g.event?.body, "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.");
     g.player.systems.engines.level = 5;
     g.player.systems.engines.power = 5;
     g.player.systems.engines.damage = 0;

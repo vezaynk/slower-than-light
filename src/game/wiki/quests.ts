@@ -1604,6 +1604,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
   },
+  // Engi fleet discussion. "Ignore it and move on." One printed result.
+  "c:engi-fleet-discussion:1": (g) => {
+    result(g, "You can't help but wonder what they were discussing as you prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // {{Blue Option|Engi Crew|Have your Engi crewmember contact them.}}
   "c:engi-fleet-discussion:2": (g) => {
     if (!hasEngi(g)) return;

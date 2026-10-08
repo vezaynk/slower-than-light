@@ -29,6 +29,10 @@ describe("Auto-ship warning in nebula", () => {
   it("starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     const g = createGame(1);
     open(g);
+    assert.equal(
+      g.event?.body,
+      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
+    );
     assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-warning-in-nebula:0"), true);
     choose(g, "c:auto-ship-warning-in-nebula:0");
     assert.equal(g.phase, "combat");

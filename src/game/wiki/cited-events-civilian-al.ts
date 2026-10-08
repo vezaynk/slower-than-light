@@ -118,7 +118,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "",
+    body: "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
     choices: [
       {
         id: "c:auto-ship-warning-in-nebula:0",

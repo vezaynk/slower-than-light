@@ -5052,7 +5052,12 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
   const quest = questEvent(g, b);
   if (quest) return quest;
   const cited = citedEvent(g, b);
-  if (cited) return cited;
+  if (cited) {
+    // Slug hacker (doors), Trivia: "Upon jumping to this beacon event, doors will be stuck in a state they were in prior to the jump - unless the hack is countered."
+    // Open flags stay. Continue puts the shutdown back after startCombat. Countering does not.
+    if (b.flag === "cited:slug-hacker-doors") shutPlayerDoors(g);
+    return cited;
+  }
   // @agent:filler. Empty, distress, items, nebula and leftover event beacons: the documented list for the slot type.
   const filler = fillerEvent(g, b);
   if (filler) return filler;

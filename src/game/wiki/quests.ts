@@ -1160,6 +1160,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:federation-deserters:0": (g) => {
     pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");
   },
+  // Federation Deserters. "Leave them be." One printed result.
+  "c:federation-deserters:1": (g) => {
+    result(g, "You send them a friendly warning regarding the armada of Rebel ships pursuing you, and then get underway lest they catch you up.", undefined, ["Nothing happens."]);
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

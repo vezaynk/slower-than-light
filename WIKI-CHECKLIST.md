@@ -95,7 +95,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Anti-Ship Battery Firing on Lanius Ships — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Anti-ship battery firing on Lanius ships — not-a-surface — same title as "Anti-Ship Battery Firing on Lanius Ships" with different capitalization
 - [ ] Ariolimax — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Artillery Beam — partial — An Artillery Beam's power is its level from 1 to 4, and charge time follows the filled bars from 50 seconds at one down by ten seconds each to 20 at four. An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it.
+- [ ] Artillery Beam — partial — An Artillery Beam's power is its level from 1 to 4, and charge time follows the filled bars from 50 seconds at one down by ten seconds each to 20 at four. An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it. Each swipe deals 2 damage to a Zoltan Shield, and a bubble with points left still protects the hull.
 - [ ] Artillery Mastery — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Asteroid Field — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Asteroid Field Events — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.

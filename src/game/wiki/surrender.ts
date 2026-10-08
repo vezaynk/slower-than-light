@@ -1016,10 +1016,10 @@ export function pageCard(g: Game, body: string, choices: { id: string; label: st
 }
 
 /** Starts the page's fight. `escape` replaces the default escape plan when the page states its own. */
-export function pageFight(g: Game, text: string, tier: string, slug: string, escape?: EscapePlan) {
+export function pageFight(g: Game, text: string, tier: string, slug: string, escape?: EscapePlan, asteroid = false) {
   log(g, text);
   g.event = null;
-  startCombat(g, tier, false, slug);
+  startCombat(g, tier, asteroid, slug);
   if (escape) g.enemyEscape = escape;
 }
 

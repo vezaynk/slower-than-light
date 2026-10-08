@@ -1119,6 +1119,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-slug:1": (g) => {
     result(g, "You leave the Lanius ship alone, and prepare to jump to the next beacon.", undefined, ["Nothing happens."]);
   },
+  // Zoltan ship follows Mantis ship. "Interfere and save the Mantis ship." One printed lead-in, then a Zoltan ship fight in the asteroid field.
+  "c:zoltan-ship-follows-mantis-ship:0": (g) => {
+    pageFight(
+      g,
+      "Sometimes you have to bet on the underdog - even on the rare occasions that the underdog is a Mantis warship. You set off for the heart of the asteroid field and engage the Zoltan there.",
+      "Zoltan ship",
+      "zoltan-ship-follows-mantis-ship",
+      undefined,
+      true,
+    );
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

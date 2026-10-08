@@ -302,7 +302,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Defense Drones Don't Do D'anything! — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Defense Scrambler — partial — Sold for 80. An enemy Defense Drone I or II that is actually deployed does not shoot down a shot at the ship carrying it, and does not spend cooldown. The player's own defense drones still fire. Generated enemies leave the drone schematic undeployed. Anti-Combat is named by the block and still has no enemy-drone list to stun.
 - [ ] Dense Asteroid Field Distress Call — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Dense asteroid field distress — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Dense asteroid field distress — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event. Searching deals 5 hull and 1 engine damage, pays random scrap, or opens the remains, and Rock Plating skips to a Damaged Stasis Pod or low scrap.
 - [ ] Dense asteroid field distress call — not-a-surface — same title as "Dense Asteroid Field Distress Call" with different capitalization
 - [ ] Destroyed Cargo Ship — partial — Same card as dest "Destroyed cargo ship" (cited-events-surrender.ts). Bring aboard rolls medium supplies, low scrap, 2–4 boarders with no ship, or a Pirate fight with boarders. Killing the shipless boarders pays no scrap and is not a ship kill.
 - [ ] Destroyed cargo ship — not-a-surface — same title as "Destroyed Cargo Ship" with different capitalization

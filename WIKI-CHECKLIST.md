@@ -1240,7 +1240,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Slug disable Door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
 - [ ] Slug disable door system — not-a-surface — same title as "Slug Disable Door System" with different capitalization
 - [ ] Slug doors hacker — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug drink — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Drinking pays 10 repairs and a store or loses 25-35 scrap, and a living Rock crewmember is paid those repairs and a store or starts that Slug fight.
+- [ ] Slug drink — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Drinking pays 10 repairs and a store or loses 25-35 scrap, and a living Rock crewmember is paid those repairs and a store or starts that Slug fight. Refusing shows the printed offense sentence and starts a Slug fight.
 - [ ] Slug empty beacon — not-a-surface — same title as "Slug Empty Beacon" with different capitalization
 - [ ] Slug empty nebula beacon — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug exposed in open space — not-a-surface — same title as "Slug Exposed in Open Space" with different capitalization

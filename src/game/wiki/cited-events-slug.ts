@@ -46,7 +46,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-choice-in-nebula",
     aliases: ["Mantis fight choice in nebula"],
     sectors: ["Uncharted Nebula"],
-    body: "Navigating the fog blind, you practically bump hulls with a Mantis ship.",
+    body: "Navigating the fog blind, you practically bump hulls with a Mantis ship. They hail you: \"Pah! This transgression will be overlooked. Nebula, very dangerous. Next time, humans all die.\"",
     choices: [
       {
         id: "c:mantis-fight-choice-in-nebula:0",

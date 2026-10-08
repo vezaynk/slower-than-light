@@ -1572,6 +1572,15 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship breaks apart and you feel relief in the knowledge that you will hopefully still be one step ahead of the fleet.", rollStandard(g, "low"));
   },
+  // Auto-ship attacking civilian. Destroyed pays low standard, then Contact the civilian ship.
+  // Template:Save the Civilian Ship is the same card as the Lanius civilian contact.
+  // The page prints no crew-kill reward. Stay out of it is the nothing choice.
+  "auto-ship-attacking-civilian": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "The ship breaks apart. You hasten to contact the civilian ship.", rollStandard(g, "low"), [], [
+      { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
+    ]);
+  },
   // Auto-ship attacking outpost. Destroyed pays low standard, then the outpost pays medium standard.
   // The page prints no crew-kill reward. Avoid the conflict is the nothing choice.
   "auto-ship-attacking-outpost": (g, deadCrew) => {

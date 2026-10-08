@@ -857,6 +857,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!hasRock(g)) return;
     slugDrink(g, true);
   },
+  // Zoltan quest primitives. "Leave." One printed result.
+  "c:zoltan-quest-primitives:2": (g) => {
+    result(g, "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave.", undefined, ["Nothing happens."]);
+  },
   // Escort civilians FTL haywire. "Decline." One printed result. No quest marker.
   "c:escort-civilians-ftl-haywire:1": (g) => {
     result(g, "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.", undefined, ["Nothing happens."]);

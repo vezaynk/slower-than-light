@@ -789,6 +789,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!g.augments.includes("nav")) return;
     result(g, "We're receiving your transmission... Wow, I didn't know that chain-jumping was possible with this class of ship. We'll get back in a single jump! Thank you so much, please accept this.", rollStandard(g, "high"));
   },
+  // Pirate briber. Low scrap with resources. The static tier note does not pay the resources.
+  "c:pirate-briber:0": (g) => {
+    result(g, "\"Good choice, son. We've both come out of this richer.\"", rollStandard(g, "low"));
+  },
+  "q:pirate-briber:gone": (g) => {
+    pirateGone(g);
+  },
+  "q:pirate-briber:salvage": (g) => {
+    result(g, "You strip the ship of anything useful and leave its crew to hope help arrives.", rollStandard(g, "low"));
+  },
+  // No effect in The Last Stand.
+  "q:pirate-briber:delay": (g) => {
+    if (g.sector === 8 || g.sectorName === "The Last Stand") {
+      result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, ["No effect in The Last Stand."]);
+      return;
+    }
+    g.fleet = Math.max(0, g.fleet - 1);
+    result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
+  },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
   "c:pirate-ship-attacking-civilian-distress:2": (g) => {
@@ -1617,6 +1636,45 @@ function autoRadarAccess(g: Game, lead = "") {
   result(g, lead ? `${lead} ${text}` : text, undefined, extras);
 }
 
+/** Pirate briber. Continue is not printed. INVENTED label. The five victim results have no odds. INFERRED: equal. */
+const PIRATE_GONE: Choice[] = [{ id: "q:pirate-briber:gone", label: "Continue." }];
+
+/** Destroyed pays a random scrap-only amount. INFERRED: low, medium, and high are equal.
+ *  A crew kill pays medium standard. Then the victim. */
+function pirateBriberWin(g: Game, deadCrew: boolean) {
+  if (deadCrew) {
+    result(g, "The pirates are all dead, leaving the ship dead in space. You scrounge what you can from their ship before contacting its former prey.", rollStandard(g, "medium"), [], PIRATE_GONE);
+    return;
+  }
+  result(g, "The pirate explodes, leaving behind a substantial collection of useful scrap material. You go to examine the ship you just saved.", scrapOnly(g, pick(g, ["low", "medium", "high"])), [], PIRATE_GONE);
+}
+
+/** The pirate is gone. Five results, no odds. INFERRED: equal. */
+function pirateGone(g: Game) {
+  const kind = pick(g, ["store", "repair", "rebel", "scrap", "nothing"] as const);
+  if (kind === "store") {
+    log(g, "Thank you for the aid! I'm an arms dealer that usually only works with rebels, but considering the circumstances I'll make an exception.");
+    openStoreHere(g);
+    return;
+  }
+  if (kind === "repair") {
+    result(g, "Thank the heavens you showed up! We don't have much to offer as a reward, but our engineer should be proficient enough to patch your ship up a bit after that nasty fight.", undefined, [repair(g, 15)]);
+    return;
+  }
+  if (kind === "rebel") {
+    card(g, "Upon closer inspection, you realize the ship under attack was a Rebel scout! It's too damaged to put up much of a fight.", [
+      { id: "q:pirate-briber:salvage", label: "Destroy the ship and salvage it." },
+      { id: "q:pirate-briber:delay", label: "Use the leverage you gained by saving their lives to convince them to delay the pursuing fleet." },
+    ]);
+    return;
+  }
+  if (kind === "scrap") {
+    result(g, "You were too late. A hull breach deprived the crew of oxygen during your fight with the pirate. You salvage what you can.", scrapOnly(g, "medium"));
+    return;
+  }
+  result(g, "The pirate's victim quickly jumps away before you have a chance to speak to them.", undefined, ["Nothing happens."]);
+}
+
 /** Pirate ship attacking civilian, and the Lanius variant. Destroyed is medium standard.
  *  A crew kill is high. Then Contact the civilian ship. */
 function pirateCivilianWin(g: Game, deadCrew: boolean) {
@@ -1725,6 +1783,8 @@ export const PAGE_WINS: Record<string, Win> = {
   // A crew kill pays high. Then Contact the civilian ship. Template:Save the Civilian Ship
   // is the same card. Stay out / Avoid the conflict are the nothing choices.
   "pirate-ship-attacking-civilian": pirateCivilianWin,
+  // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
+  "pirate-briber": pirateBriberWin,
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.
   "pirate-ship-attacking-civilian-distress": pirateCivilianWin,
@@ -1854,6 +1914,10 @@ export function pageWin(g: Game, slug: string | null | undefined, deadCrew: bool
 
 /** "gotaway" results, keyed like PAGE_WINS. */
 const GOT_AWAY: Record<string, (g: Game) => void> = {
+  // Pirate briber. Escape pays no fight scrap. Then the victim.
+  "pirate-briber": (g) => {
+    card(g, "The pirate has abandoned pursuit of both you and its former prey. You attempt to hail the damaged ship.", PIRATE_GONE);
+  },
   // Lanius ship absorbing automated scout. Escape pays no fight scrap. Then inspect.
   "lanius-ship-absorbing-automated-scout": (g) => {
     card(g, "The Lanius ship has escaped. You move to inspect the automated Rebel ship that it was absorbing.", SCOUT_INSPECT);

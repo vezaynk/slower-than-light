@@ -42,7 +42,11 @@ describe("Rebel transport ship", () => {
     open(g);
     const fuel = g.fuel;
     choose(g, "c:rebel-transport-ship:1");
-    assert.notEqual(g.phase, "combat");
+    assert.equal(
+      g.event?.body,
+      "They stay outside your weapons range, and eventually jump away.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);
     assert.equal(g.enemy, null);

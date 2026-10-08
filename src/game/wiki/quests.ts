@@ -1290,6 +1290,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-shipyard:1": (g) => {
     result(g, "You feel the mission is the highest priority and it's too risky to stay in such a dangerous location.", undefined, ["Nothing happens."]);
   },
+  // Rebel transport ship. "Avoid the ship." One printed result.
+  "c:rebel-transport-ship:1": (g) => {
+    result(g, "They stay outside your weapons range, and eventually jump away.", undefined, ["Nothing happens."]);
+  },
   // Mantis ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Mantis ship fight.
   "c:mantis-ship-attacking-civilian:0": (g) => {
     pageFight(g, "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.", "Mantis ship", "mantis-ship-attacking-civilian");

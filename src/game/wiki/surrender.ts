@@ -145,6 +145,9 @@ export const NO_SURRENDER_EVENTS = new Set([
   "quest-slug-interceptor",
   // Mantis ship attacking Slug ship, the Slug fight: {{SurrenderEscape(alt)|no|SLUG_DISTRESS_MANTIS_SLUG}}.
   "mantis-ship-attacking-slug-ship-slug",
+  // Pirate ships in plasma storm: both cargo fights "never surrenders".
+  "pirate-ships-in-plasma-storm",
+  "pirate-ships-in-plasma-storm-ammo",
 ]);
 
 /** What a scripted surrender hands over. Each kind is the page's own reward line, quoted on its row below. */

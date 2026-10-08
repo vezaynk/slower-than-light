@@ -201,6 +201,14 @@ export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
   return { tier, scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 };
 }
 
+/** Rewards, "Fuel" / "Missiles": T of that resource and T scrap. Bands are the page tooltips. */
+function cargoAndScrap(g: Game, tier: "low" | "high", kind: "fuel" | "missiles"): SurrenderOffer {
+  const offer = scrapOnly(g, tier);
+  const band = kind === "fuel" ? (tier === "high" ? [3, 6] : [1, 3]) : tier === "high" ? [4, 8] : [1, 2];
+  offer[kind] = between(g, band as [number, number]);
+  return offer;
+}
+
 /** The result card: page text, what was paid, extras, and the next choices ("ack" by default). */
 export function result(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = [], choices: Choice[] = ACK) {
   const lines: string[] = [text];
@@ -793,6 +801,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Pirate briber. Low scrap with resources. The static tier note does not pay the resources.
   "c:pirate-briber:0": (g) => {
     result(g, "\"Good choice, son. We've both come out of this richer.\"", rollStandard(g, "low"));
+  },
+  // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
+  // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
+  "c:pirate-ships-in-plasma-storm:0": (g) => {
+    pageFight(
+      g,
+      "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!",
+      "Pirate ship",
+      "pirate-ships-in-plasma-storm",
+    );
+  },
+  // Ammunition cargo. A second fight slug so the missile table is not the fuel table.
+  "c:pirate-ships-in-plasma-storm:1": (g) => {
+    pageFight(
+      g,
+      "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!",
+      "Pirate ship",
+      "pirate-ships-in-plasma-storm-ammo",
+    );
   },
   "q:pirate-briber:gone": (g) => {
     pirateGone(g);
@@ -1884,6 +1911,21 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
+  // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
+  // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
+  "pirate-ships-in-plasma-storm": (g, deadCrew) => {
+    const text = deadCrew
+      ? "With the ship in one piece, you are able to salvage most of the fuel supplies before the ion storm clears and you have to jump away."
+      : "The ship obliterated, only scant fuel canisters can be scavenged from the wreckage before the ion storm clears and you have to jump away.";
+    result(g, text, cargoAndScrap(g, deadCrew ? "high" : "low", "fuel"));
+  },
+  // Destroyed: low missiles (1-2) and low scrap. Crew kill: high missiles (4-8) and high scrap.
+  "pirate-ships-in-plasma-storm-ammo": (g, deadCrew) => {
+    const text = deadCrew
+      ? "With the ship in one piece, you are able to salvage most of the ammunition before the ion storm clears and you have to jump away."
+      : "The ship obliterated, only scant ammunition crates can be scavenged from the wreckage before the ion storm clears and you have to jump away.";
+    result(g, text, cargoAndScrap(g, deadCrew ? "high" : "low", "missiles"));
+  },
   // Mantis ship attacking Slug ship. Saving the Slugs pays medium either way. Killing them pays high either way.
   "mantis-ship-attacking-slug-ship": (g) => {
     mantisSlugSaved(g);

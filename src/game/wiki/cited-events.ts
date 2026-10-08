@@ -3573,6 +3573,12 @@ const LANIUS_REBEL_INTROS = [
   "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
 ];
 
+// Rock fight with boarders. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-with-boarders:0.
+const ROCK_BOARDER_INTROS = [
+  "You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!",
+  "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3858,6 +3864,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
       choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
+  if (ev.slug === "rock-fight-with-boarders") {
+    return {
+      title: ev.dest,
+      body: ROCK_BOARDER_INTROS[between(g, [0, 1])]!,
+      choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

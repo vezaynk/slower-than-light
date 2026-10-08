@@ -21,6 +21,7 @@ describe("Lanius lone ship", () => {
   it("attacking starts a Lanius fight on default rewards", () => {
     const g = createGame(1);
     open(g);
+    assert.equal(g.event?.body, `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`);
     choose(g, "c:lanius-lone-ship:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-lone-ship");

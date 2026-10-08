@@ -264,7 +264,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-lone-ship",
     aliases: ["Lanius lone ship"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`,
     choices: [
       {
         id: "c:lanius-lone-ship:0",

@@ -3796,6 +3796,17 @@ const LANIUS_CIVILIAN_INTROS = [
   "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
 ];
 
+// The mercenary. Six printed intros, no odds. INFERRED: equal.
+// Delay stays c:the-mercenary:0. Fight stays :1. Decline stays :2.
+const MERCENARY_INTROS = [
+  "You find a mercenary for hire at this Beacon. Their unique skills can sometimes prove to be useful.",
+  `A mercenary hails you: "Greetings, friend! We've heard tell of your quest and are here to offer our valuable services."`,
+  `There's a ship with pirate markings orbiting the nearby planet. You receive his hail: "Anything is possible, for the right price"`,
+  `The captain of this ship claims he can provide "services" as long as you've got the scrap.`,
+  "Mercenaries are swarming the galaxy now, knowing that their less-than-legal services are in demand during this period of unrest. One is waiting at this beacon and hails you.",
+  `A ship hails you: "Good sir! It seems you're having some troubles with the Rebels. I'd like to help you, but I can't afford the upkeep required on this hunk of junk I'm flying... maybe we can come to an arrangement?"`,
+];
+
 // Rebel ship attacking Federation loyalists. Three printed intros, no odds. INFERRED: equal.
 // Aid stays c:rebel-ship-attacking-federation-loyalists:0. Escape stays :1.
 const REBEL_LOYALIST_INTROS = [
@@ -4275,6 +4286,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
+  if (ev.slug === "the-mercenary") {
+    return {
+      title: ev.dest,
+      body: MERCENARY_INTROS[between(g, [0, 5])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Rebel ship attacking Federation loyalists. One of the three printed intros. Aid and Escape stay the existing choices.

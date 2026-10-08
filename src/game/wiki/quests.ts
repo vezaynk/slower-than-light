@@ -968,6 +968,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:lanius-salvager:leave": (g) => {
     result(g, "You ignore their derisive tone and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Lanius trader. "Decline." One printed result. Also the second proposal's Decline, same id.
+  "c:lanius-trader:3": (g) => {
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
+  },
   // Lanius trader, {{Blue Option|Lanius Crew|Ask for an alternative trade.}}
   // A new roll of resource, cost, and scrap. INFERRED: the three better bands are equal.
   // The named Translator is the other page, not this one.

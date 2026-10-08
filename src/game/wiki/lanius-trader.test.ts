@@ -87,9 +87,10 @@ describe("Lanius trader", () => {
     const scrap = g.scrap;
     const fuel = g.fuel;
     choose(g, "c:lanius-trader:3");
-    assert.equal(g.phase, "map");
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
+    assert.equal(g.event?.body, "They leave without a word.\n\nNothing happens.");
   });
 
   it("a short offer stays closed", () => {

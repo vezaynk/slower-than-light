@@ -4566,6 +4566,22 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   if (pending.length) log(g, `Not fitted: ${pending.join(", ")}.`);
 }
 
+/** The cruiser a hangar tile shows: the same rooms, doors, weapons, and crew a run starts with. */
+export function hangarLoadout(id: string, picks: CrewPick[] = []): { ship: Ship; crew: Crew[] } {
+  const g = {
+    crew: [] as Crew[],
+    log: [] as string[],
+    player: makePlayer(),
+    fuel: 0,
+    missiles: 0,
+    augments: [] as string[],
+    armed: "",
+    hullId: id,
+  } as Game;
+  applyHull(g, id, picks);
+  return { ship: g.player, crew: g.crew.filter((c) => c.side === "player") };
+}
+
 export function createGame(
   seed = (Date.now() ^ 0x9e3779b9) >>> 0,
   hullId?: string,

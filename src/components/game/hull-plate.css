@@ -16,6 +16,7 @@
 }
 
 .play .room,
+.hangar-stage .room,
 .pixel-room {
   position: relative;
   z-index: 1;

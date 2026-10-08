@@ -1,14 +1,15 @@
 /**
  * Ship bay from the hangar screenshot: RENAME, the name plate, EASY / NORMAL / HARD,
  * START, SHIP, LIST, LAYOUT, TYPE, HIDE ROOMS, Available Achievements,
- * the cutaway, the system icons, CREW, WEAPONS, DRONES, AUGMENTATIONS.
+ * the same ship a fight draws (rooms, doors, weapons, crew), the system icons,
+ * CREW, WEAPONS, DRONES, AUGMENTATIONS.
  * Score, lead formula: the lit button sets initial scrap to 30, 10, or 0. The highlight starts on EASY.
  * Advanced Edition Content stays on. @agent:unlocks: every layout can be viewed; a locked one shows its unlock line and
  * START is off (unlocks.ts, unlock-store.ts). UNLOCK ALL / RESET LOCKS and ?unlockAll=1 are the developer switches.
  * Crew cards repeat the race counts on the layout line. INVENTED: CUSTOMIZE edits a name
  * and uniform per seat, and the run starts with exactly those crew (crew-look.ts).
  */
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { WEAPONS } from "@/game/content";
 import {
   NAME_MAX,
@@ -22,6 +23,8 @@ import {
 import type { KinId } from "@/game/extras/kin";
 import { droneKeyForName, weaponIdForName } from "@/game/gear-look";
 import { hullById } from "@/game/hulls";
+import { factionPaint } from "@/game/hull-plate";
+import { hangarLoadout } from "@/game/sim";
 import { iconForName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
@@ -35,7 +38,7 @@ import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { FullscreenButton } from "./FullscreenButton";
 import { PixelIcon } from "./PixelIcon";
-import { PixelLayout } from "./PixelArt";
+import { ShipView } from "./ShipView";
 
 type Letter = "A" | "B" | "C";
 type Difficulty = "EASY" | "NORMAL" | "HARD";
@@ -113,6 +116,7 @@ export function Hangar() {
   const seats = seatsOf(layout.id, sheet.crew);
   const [picks, setPicks] = useState<CrewPick[]>(() => defaultPicks(seats.length));
   const [editing, setEditing] = useState<number | null>(null);
+  const preview = useMemo(() => hangarLoadout(layout.id, picks), [layout.id, picks]);
 
   useEffect(() => {
     setName(sheet.defaultName);
@@ -250,7 +254,29 @@ export function Hangar() {
       </aside>
 
       <div className={`hangar-stage${hideRooms ? " is-bare" : ""}${locked ? " is-locked" : ""}`}>
-        <PixelLayout id={layout.id} />
+        <div
+          className="hangar-figure"
+          style={{
+            ["--cols" as string]: preview.ship.cols,
+            ["--rows" as string]: preview.ship.rows,
+            ["--hull-body" as string]: factionPaint(layout.id.split("-")[0]).body,
+          }}
+        >
+          <ShipView
+            ship={preview.ship}
+            crew={preview.crew}
+            aboard="player"
+            showCrew={!hideRooms}
+            selectedId={null}
+            ventMode={false}
+            targetable={false}
+            onRoom={() => {}}
+            onCrew={() => {}}
+            plateId={layout.id}
+            faction={layout.id.split("-")[0]}
+            facing="right"
+          />
+        </div>
         {locked ? (
           <div className="hangar-locked" role="note">
             <p className="hangar-locked-title">

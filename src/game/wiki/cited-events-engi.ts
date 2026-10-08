@@ -84,7 +84,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-fight-engi",
     aliases: ["Pirate fight (Engi)"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "The pirate you encounter here looks worn down, but hungry.",
+    body: "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!",
     choices: [
       {
         id: "c:pirate-fight-engi:0",

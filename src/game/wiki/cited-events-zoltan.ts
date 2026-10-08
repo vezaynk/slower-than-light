@@ -316,4 +316,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Zoltan Great Eye. The four pull results, including Healing Burst, run in filler-events.ts.
+    dest: "Zoltan Great Eye",
+    slug: "zoltan-great-eye",
+    flag: "cited:zoltan-great-eye",
+    aliases: ["Zoltan Great Eye"],
+    sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
+    body: "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye.",
+    choices: [
+      {
+        id: "c:zoltan-great-eye:0",
+        label: "Pull the ship in closer.",
+        // Four results, no odds. INFERRED: equal.
+        fx: [{ k: "note", text: "Lose a crewmember, a Zoltan ship, high scrap, or Healing Burst." }],
+      },
+      {
+        id: "c:zoltan-great-eye:1",
+        label: "Leave.",
+        // "Nothing happens."
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

@@ -1666,6 +1666,40 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight.", "Rebel ship", "rebel-fight-chance-in-nebula");
   },
 
+  // Zoltan Great Eye. Pulling closer lists four results and prints no odds. INFERRED: equal.
+  // Clone Bay has no effect. Healing Burst is named. A full weapon list is not installed (INFERRED: the page prints no full-slot sentence).
+  "c:zoltan-great-eye:0": (g) => {
+    const r = weighted(g, [["lose", 1], ["fight", 1], ["scrap", 1], ["heal", 1]] as const);
+    if (r === "lose") {
+      const extras = [];
+      if (g.player.kits.cradle) extras.push("You check your Cloning Bay but it lies dormant. Whatever just happened to your crewmember must be irreversible.");
+      const note = loseCrew(g, true);
+      if (note) extras.push(note);
+      show(g, "As you approach, a kaleidoscope of colours fills the view-screen and one of your crew begins to age rapidly in reverse, eventually disappearing into nothingness. Let's hope they've transcended physical existence, and not just been forced out of it.", undefined, extras);
+      return;
+    }
+    if (r === "fight") {
+      fight(g, "You approach the planet and wait, but nothing happens. The Zoltan hail: \"And in the coming times, when the monolith speaks not with a man he has no future and must be left wanting.\"", "Zoltan ship", "zoltan-great-eye");
+      return;
+    }
+    if (r === "scrap") {
+      show(g, "You approach the planet carefully, trying to keep your ship from breaking up in orbit. The monolith, whatever it is, must sense as much because the next thing you know you have enough scrap to patch up your damage and more besides!", scrapOnly(g, "high"));
+      return;
+    }
+    show(g, "As you approach, an ancient alien voice speaks to you: \"Your mission has brought you great battles, and great losses. This will help ease the pain.\" A few minutes later someone reports medical equipment has appeared on the ship!", {
+      tier: "low",
+      scrap: 0,
+      eligible: 0,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+      weapon: "healburst",
+    });
+  },
+  "c:zoltan-great-eye:1": (g) => {
+    show(g, "Your mission is to save the Federation, not discover new wonders around the galaxy. You prepare to jump.", undefined, ["Nothing happens."]);
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,

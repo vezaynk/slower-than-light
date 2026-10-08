@@ -325,6 +325,8 @@ const CORE_EVENTS: EventDef[] = [
       }
     ]
   },
+  // Auto-ship fight near sun has no choice. Arrival calls c:auto-ship-fight-near-sun:0.
+  // "Fight an Auto-ship." redgiant=true. unique=true.
   {
     "dest": "Auto-ship fight near sun",
     "slug": "auto-ship-fight-near-sun",

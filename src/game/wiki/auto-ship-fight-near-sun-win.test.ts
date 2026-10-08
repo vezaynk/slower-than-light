@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
+import { commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
@@ -53,5 +53,35 @@ describe("Auto-ship fight near sun", () => {
     assert.equal(pageWin(killed, "auto-ship-fight-near-sun", true), false);
     assert.equal(killed.scrap, 10);
     assert.equal(killed.phase, "event");
+  });
+
+  it("starts the Auto-ship near the star on arrival and leaves no button", () => {
+    // The page has no choice. "Fight an Auto-ship." redgiant=true.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:auto-ship-fight-near-sun";
+    dest.name = "Auto-ship fight near sun";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "auto");
+    assert.equal(g.fightEvent, "auto-ship-fight-near-sun");
+    assert.equal(g.asteroid, false);
+    assert.equal(g.flare, true);
+    assert.ok((g.flareWait ?? 0) >= 28 && (g.flareWait ?? 0) < 34);
+    assert.equal(g.fleet, 1);
+    assert.ok(g.log.includes("You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage."));
   });
 });

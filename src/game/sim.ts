@@ -5049,6 +5049,11 @@ function arrive(g: Game, b: Beacon) {
   g.phase = "event";
   g.paused = true;
   g.event = eventFor(g, b);
+  // Boarders: Humans (Abandoned): the page has no choice. The red line is the outcome,
+  // "3-4 human boarders beam aboard your ship", not a button.
+  if (b.flag === "cited:boarders-humans-abandoned" && g.event?.choices[0]) {
+    choose(g, g.event.choices[0].id);
+  }
 }
 
 // Plain beacons run documented events: wiki/filler-events.ts (Sectors, "Fallback events", and the EventList templates).

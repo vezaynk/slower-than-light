@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lungScale } from "../extras/augments.ts";
-import { choose, createGame, startCombat } from "../sim.ts";
+import { choose, commitJump, createGame, startCombat } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
@@ -48,6 +48,32 @@ describe("Boarders: Humans (Abandoned)", () => {
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.augments.includes("lung"), false);
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "3-4 human boarders beam aboard your ship."
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:boarders-humans-abandoned";
+    dest.name = "Boarders: Humans (Abandoned)";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy, null);
+    const humans = boarded(g);
+    assert.ok(humans.length >= 3 && humans.length <= 4, String(humans.length));
   });
 
   it("gives Emergency Respirators after a Lanius fight, including a repeat before another fight", () => {

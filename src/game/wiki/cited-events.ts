@@ -3422,7 +3422,7 @@ const CORE_EVENTS: EventDef[] = [
   {
     // Boarders: Humans (Abandoned). Locations unique=false. Template:Locations: "This event can occur multiple times per sector."
     // Abandoned Sector, Beacons: "1-2 boarders" — both beacons can be this event (beacon-mix.ts).
-    // The page prints no button. The red line is the label (INVENTED). No ship (LRSmap=noship).
+    // The page prints no button. The red line is the outcome, applied on arrival. No ship (LRSmap=noship).
     "dest": "Boarders: Humans (Abandoned)",
     "slug": "boarders-humans-abandoned",
     "flag": "cited:boarders-humans-abandoned",

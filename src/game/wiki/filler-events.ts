@@ -514,6 +514,33 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:refugee-comms-down:1", label: "Ignore the ship.", fx: [{ k: "nothing" }] },
     ],
   },
+  // TRADER_UPGRADES. Inquire offers one of Oxygen, Piloting, Door System, Sensors, or the reactor.
+  // alsooccur=exit stays with the unwired exit list. The items row is Template:EventList ITEMS.
+  {
+    dest: "Trade scrap for upgrades",
+    slug: "trade-scrap-for-upgrades",
+    flag: "cited:trade-scrap-for-upgrades",
+    aliases: ["Trade scrap for upgrades"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+    ],
+    body: "You pick up an automated message from a nearby space station. There appears to be a local shipwright that can perform emergency work on military ships.",
+    choices: [
+      { id: "c:trade-scrap-for-upgrades:0", label: "Inquire about their specialty.", fx: [{ k: "note", text: "One printed upgrade offer." }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -613,9 +640,61 @@ function friendlyCard(g: Game, page: Page): GameEvent {
   };
 }
 
+/**
+ * Trade scrap for upgrades. The intro "can be any of the following".
+ * INFERRED: the four printed texts are equally likely.
+ */
+const TRADE_INTROS = [
+  "You pick up an automated message from a nearby space station. There appears to be a local shipwright that can perform emergency work on military ships.",
+  "There are a number of privately owned ship construction platforms in the area. You find one that has a slot open for some immediate work.",
+  "You receive a message from a small refugee convoy, \"Hail. We'd like to help you on your mission but don't have much to offer. If you have extra metal perhaps we could work on your ship?\"",
+  "You are immediately hailed by a mobile docking platform upon arrival, \"Welcome to Uncle Joe's Fix-it Shop! Need a tune-up? We got you covered!\"",
+];
+
+type TradeId = "oxygen" | "pilot" | "doors" | "sensors" | "reactor";
+
+type TradeOffer = { id: TradeId; name: string; lo: number; hi: number; next: number };
+
+/**
+ * Trade scrap for upgrades. Each specialty is a result of inquiring, with a scrap band for the level already owned.
+ * Trivia: a missing subsystem is not offered, and a system already at its maximum is not offered.
+ * The reactor band is 15-25, and the reactor cannot pass 25. The page does not say the reactor step is one bar.
+ * INFERRED: that step is one bar, the same unit as the 25-bar cap.
+ * INFERRED: the specialties that can still be bought are equally likely. No odds are printed.
+ */
+function tradeOffers(g: Game): TradeOffer[] {
+  const out: TradeOffer[] = [];
+  const sys = (id: Exclude<TradeId, "reactor">, name: string, bands: Record<number, [number, number]>) => {
+    const level = g.player.systems[id]?.level ?? 0;
+    const band = bands[level];
+    if (!band) return;
+    out.push({ id, name, lo: band[0], hi: band[1], next: level + 1 });
+  };
+  sys("oxygen", "Oxygen", { 1: [15, 20], 2: [25, 40] });
+  sys("pilot", "Piloting", { 1: [8, 15], 2: [25, 40] });
+  sys("doors", "Door System", { 1: [8, 15], 2: [25, 40] });
+  sys("sensors", "Sensors", { 1: [10, 20], 2: [35, 45] });
+  if (upgradeCost("reactor", g.player.reactor) != null) out.push({ id: "reactor", name: "reactor", lo: 15, hi: 25, next: g.player.reactor + 1 });
+  return out;
+}
+
+function tradeIntro(g: Game, page: Page): GameEvent {
+  const text = TRADE_INTROS[Math.min(TRADE_INTROS.length - 1, Math.floor(rand(g) * TRADE_INTROS.length))];
+  return { title: page.dest, body: text, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
+}
+
+function tradeOfferText(o: TradeOffer): string {
+  if (o.id === "reactor") return "They offer to upgrade your reactor in exchange for some scrap.";
+  if (o.id === "oxygen") return "They offer to upgrade your Oxygen system in exchange for some scrap.";
+  if (o.id === "pilot") return "They offer to upgrade your Piloting subsystem in exchange for some scrap.";
+  if (o.id === "doors") return "They offer to upgrade your Door subsystem in exchange for some scrap.";
+  return "They offer to upgrade your Sensors subsystem in exchange for some scrap.";
+}
+
 function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "empty-nebula-beacon") return emptyCard(g, emptyPageFor("", true));
   if (page.slug === "friendly-ship-out-of-fuel" && FILLER_PAGES.includes(page as CitedEventDef)) return friendlyCard(g, page);
+  if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1144,6 +1223,23 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
+  // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
+  // when every listed system is missing or already at the printed maximum and the reactor is at 25.
+  // INFERRED: that empty case uses the decline's "Nothing happens" line.
+  "c:trade-scrap-for-upgrades:0": (g) => {
+    const list = tradeOffers(g);
+    if (!list.length) {
+      show(g, "You thank them but prepare to move on.");
+      return;
+    }
+    const o = list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
+    const cost = between(g, [o.lo, o.hi]);
+    card(g, tradeOfferText(o), [
+      { id: `s:trade-scrap-for-upgrades:agree:${o.id}:${cost}`, label: `Agree to the exchange. [${cost} scrap]` },
+      { id: "s:trade-scrap-for-upgrades:decline", label: "Decline." },
+    ]);
+  },
+
   // Hacking blue option. "3-5 human boarders beam aboard your ship." Sensors flicker back on.
   // "If you counter the jam, the Hacking system is not disabled."
   "c:boarders-humans-jammed-sensors:1": (g) => {
@@ -1196,6 +1292,35 @@ function chooseRolled(g: Game, id: string): boolean {
     }
     return true;
   }
+  m = id.match(/^s:trade-scrap-for-upgrades:agree:(oxygen|pilot|doors|sensors|reactor):(\d+)$/);
+  if (m) {
+    const idSys = m[1] as TradeId;
+    const cost = Number(m[2]);
+    const offer = tradeOffers(g).find((o) => o.id === idSys);
+    if (!offer || cost < offer.lo || cost > offer.hi || g.scrap < cost) return true;
+    g.scrap -= cost;
+    if (idSys === "reactor") {
+      g.player.reactor += 1;
+      // Manpower: an event offer to upgrade the reactor does not count against the achievement.
+      noteReactorEvent(g);
+      show(g, "You let their team on board and after a short time they finish their work.", undefined, [`You lose ${cost} scrap and your ship reactor is upgraded.`]);
+      return true;
+    }
+    const sys = g.player.systems[idSys];
+    sys.level += 1;
+    // Store upgrade powers a subsystem to its new level. The page does not say the new bar starts powered.
+    // INFERRED: piloting, doors, and sensors take that same step.
+    if (idSys !== "oxygen") sys.power = sys.level;
+    const line = idSys === "sensors"
+      ? `You lose ${cost} scrap and your Sensors are upgraded to level ${sys.level}.`
+      : `You lose ${cost} scrap and your ${idSys === "oxygen" ? "Oxygen system" : idSys === "pilot" ? "Piloting" : "Door System"} is upgraded to level ${sys.level}.`;
+    show(g, "You let their team on board and after a short time they finish their work.", undefined, [line]);
+    return true;
+  }
+  if (id === "s:trade-scrap-for-upgrades:decline") {
+    show(g, "You thank them but prepare to move on.");
+    return true;
+  }
   m = id.match(/^s:terraforming-scan:(bribe|pay):(\d+)$/);
   if (m) {
     const n = Number(m[2]);
@@ -1214,7 +1339,7 @@ function chooseRolled(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -1234,6 +1359,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   let m = id.match(/^s:friendly-ship-out-of-fuel:give:(\d+)$/);
   if (m && g.fuel < Number(m[1])) return `Need ${m[1]} fuel`;
   m = id.match(/^s:terraforming-scan:pay:(\d+)$/);
+  if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
+  m = id.match(/^s:trade-scrap-for-upgrades:agree:(?:oxygen|pilot|doors|sensors|reactor):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";

@@ -3796,6 +3796,14 @@ const LANIUS_CIVILIAN_INTROS = [
   "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
 ];
 
+// Rebel ship attacking Federation loyalists. Three printed intros, no odds. INFERRED: equal.
+// Aid stays c:rebel-ship-attacking-federation-loyalists:0. Escape stays :1.
+const REBEL_LOYALIST_INTROS = [
+  "Upon arriving at this beacon, you detect a distress call. Local scans reveal that a Federation transport is under attack from a Rebel scout!",
+  "You immediately notice a Rebel ship chasing what appears to be a civilian transport. However you are detecting chatter on an encrypted Federation channel... That transport is carrying Federation loyalists!",
+  "Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!",
+];
+
 // Pirate briber. Three printed intros, no odds. INFERRED: equal.
 // Accept stays c:pirate-briber:0. Attack stays c:pirate-briber:1.
 const PIRATE_BRIBER_INTROS = [
@@ -4267,6 +4275,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Rebel ship attacking Federation loyalists. One of the three printed intros. Aid and Escape stay the existing choices.
+  if (ev.slug === "rebel-ship-attacking-federation-loyalists") {
+    return {
+      title: ev.dest,
+      body: REBEL_LOYALIST_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Pirate briber. One of the three printed intros. Accept and Attack stay the existing choices.

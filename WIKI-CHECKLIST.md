@@ -411,7 +411,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Engi ship attacked by Mantis ship — partial — quests-b.ts rolls a Mantis fight or a Mantis-crewed Engi ship with 1–2 boarders. The later weapon and drone-schematic lines pay low scrap only. The unnamed item is not granted.
 - [ ] Engi ship distress call — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Engi ship under attack by Rebel — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Engi smashed ships — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Engi smashed ships — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Winning pays nothing, and an Engi crewmember is paid random resources with some scrap.
 - [ ] Engi store — not-a-surface — same title as "Engi Store" with different capitalization
 - [ ] Engi surrender — not-a-surface — same title as "Engi Surrender" with different capitalization
 - [ ] Engi virus — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.

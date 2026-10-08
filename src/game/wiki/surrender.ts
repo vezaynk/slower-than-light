@@ -143,6 +143,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   "quest-slug-pirate-trap-cache",
   "quest-slug-platform",
   "quest-slug-interceptor",
+  // Mantis ship attacking Slug ship, the Slug fight: {{SurrenderEscape(alt)|no|SLUG_DISTRESS_MANTIS_SLUG}}.
+  "mantis-ship-attacking-slug-ship-slug",
 ]);
 
 /** What a scripted surrender hands over. Each kind is the page's own reward line, quoted on its row below. */

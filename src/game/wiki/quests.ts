@@ -809,6 +809,20 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.fleet = Math.max(0, g.fleet - 1);
     result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
   },
+  // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
+  "c:mantis-ship-attacking-slug-ship:0": (g) => {
+    pageFight(g, "You lock onto the Mantis ship and engage.", "Mantis ship", "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
+  },
+  // The Slug fight must not use the Mantis win. It does not surrender or escape.
+  "c:mantis-ship-attacking-slug-ship:1": (g) => {
+    pageFight(g, "You move to finish what the Mantis have started.", "Slug ship", "mantis-ship-attacking-slug-ship-slug", { ...NEVER_RUN });
+  },
+  "q:mantis-slug:leave": (g) => {
+    result(g, "These wretches aren't worth fighting. Time to spin up and jump off.", undefined, ["Nothing happens."]);
+  },
+  "q:mantis-slug:finish": (g) => {
+    mantisSlugFinish(g);
+  },
   // Zoltan security checkpoint. Two results, no odds. INFERRED: equal.
   "c:zoltan-security-checkpoint:1": (g) => {
     if (pick(g, ["wanted", "pass"] as const) === "pass") {
@@ -1692,6 +1706,40 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
   result(g, "The pirate explodes, leaving behind a substantial collection of useful scrap material. You go to examine the ship you just saved.", scrapOnly(g, pick(g, ["low", "medium", "high"])), [], PIRATE_GONE);
 }
 
+const MANTIS_SLUG_AFTER: Choice[] = [
+  { id: "q:mantis-slug:leave", label: "Leave them be." },
+  { id: "q:mantis-slug:finish", label: "Finish them off." },
+];
+
+/** Mantis ship attacking Slug ship. Both endings pay medium standard, then the Slug vessel. */
+function mantisSlugSaved(g: Game) {
+  result(
+    g,
+    "The Mantis defeated, you contact the weakened Slug vessel. \"You ssseee,\" they begin, \"we are are most grateful, but, that is, we do not currently have the liquid asssets to reward you at this time.\"",
+    rollStandard(g, "medium"),
+    [],
+    MANTIS_SLUG_AFTER,
+  );
+}
+
+/** Finish them off. Two results, no odds. INFERRED: equal. The augmentation is not named, so none is granted.
+ *  The loot is a random standard reward. INFERRED: low, medium, and high are equal. */
+function mantisSlugFinish(g: Game) {
+  if (pick(g, ["augment", "loot"] as const) === "augment") {
+    result(
+      g,
+      "The Slug captain hails you: \"A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported.\" You allow them to leave with their lives.",
+      scrapOnly(g, "low"),
+    );
+    return;
+  }
+  result(
+    g,
+    "It doesn't look like they can stand much more damage. After a few shots their ship breaks apart and you move in to loot the remains.",
+    rollStandard(g, pick(g, ["low", "medium", "high"])),
+  );
+}
+
 /** Zoltan security checkpoint. Medium fuel is 2-4. */
 function zoltanCheckpointFuel(g: Game, text: string) {
   const n = between(g, [2, 4]);
@@ -1836,6 +1884,13 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
+  // Mantis ship attacking Slug ship. Saving the Slugs pays medium either way. Killing them pays high either way.
+  "mantis-ship-attacking-slug-ship": (g) => {
+    mantisSlugSaved(g);
+  },
+  "mantis-ship-attacking-slug-ship-slug": (g) => {
+    result(g, "At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis.", rollStandard(g, "high"));
+  },
   // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
   "zoltan-security-checkpoint-scan": (g, deadCrew) => {
     result(g, "You scrap what you can and prepare to jump before the other guards arrive.", rollStandard(g, deadCrew ? "medium" : "low"));

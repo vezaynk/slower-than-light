@@ -2351,7 +2351,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
-  // Boarders: Crystal. "2-3 crystal boarders beam aboard your ship."
+  // Boarders: Crystal. The page has no choice. Arrival calls this id so the red line
+  // "2-3 crystal boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). unique=false: Template:Locations says this event can occur multiple times per sector.
   // No ship. Not a crew grant.
   "c:boarders-crystal:0": (g) => {

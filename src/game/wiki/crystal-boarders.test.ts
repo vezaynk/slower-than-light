@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
@@ -62,5 +62,32 @@ describe("Boarders: Crystal", () => {
       assert.equal(g.kills, kills);
     }
     assert.ok(seen.has(2) && seen.has(3), [...seen].sort().join(","));
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "2-3 crystal boarders beam aboard your ship."
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:boarders-crystal";
+    dest.name = DEST;
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy, null);
+    const crystals = boarded(g);
+    assert.ok(crystals.length >= 2 && crystals.length <= 3, String(crystals.length));
+    assert.ok(crystals.every((c) => c.name === "Crystal"));
   });
 });

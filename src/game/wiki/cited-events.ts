@@ -4722,6 +4722,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:zoltan-quest-primitives:0") ctx.note("The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.");
   // Zoltan quest primitives. "Protect the aliens' way of life - Attack the Rebel ship." One printed lead-in, then a Rebel ship fight.
   if (id === "c:zoltan-quest-primitives:1") ctx.note("These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.");
+  // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
+  if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note("You message the Crystalline ship your intentions and move in to intercept the Rebel ship.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

@@ -541,6 +541,38 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:trade-scrap-for-upgrades:0", label: "Inquire about their specialty.", fx: [{ k: "note", text: "One printed upgrade offer." }] },
     ],
   },
+  // REFUEL_STATION. Each buy is a fixed scrap cost for a fixed fuel amount. Ignore does nothing.
+  {
+    dest: "Refueling station",
+    slug: "refueling-station",
+    flag: "cited:refueling-station",
+    aliases: ["Refueling station"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Hidden Crystal Worlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "A ship re-fueling station is stationed at this beacon. We can purchase fuel here.",
+    choices: [
+      { id: "c:refueling-station:0", label: "Buy 6 Fuel for 12 Scrap.", fx: [{ k: "res", id: "scrap", sign: -1, lo: 12, hi: 12 }, { k: "res", id: "fuel", sign: 1, lo: 6, hi: 6 }] },
+      { id: "c:refueling-station:1", label: "Buy 3 Fuel for 6 Scrap.", fx: [{ k: "res", id: "scrap", sign: -1, lo: 6, hi: 6 }, { k: "res", id: "fuel", sign: 1, lo: 3, hi: 3 }] },
+      { id: "c:refueling-station:2", label: "Buy 1 Fuel for 2 Scrap.", fx: [{ k: "res", id: "scrap", sign: -1, lo: 2, hi: 2 }, { k: "res", id: "fuel", sign: 1, lo: 1, hi: 1 }] },
+      { id: "c:refueling-station:3", label: "Ignore the station.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -868,6 +900,14 @@ function weighted<T>(g: Game, items: [T, number][]): T {
     if (roll < 0) return item;
   }
   return items[items.length - 1][0];
+}
+
+/** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
+function buyFuel(g: Game, cost: number, fuel: number) {
+  if (g.scrap < cost) return;
+  g.scrap -= cost;
+  g.fuel += fuel;
+  show(g, "\"Thank you for your business.\"", undefined, [`You receive ${fuel} fuel.`]);
 }
 
 function upgradeOxygen(g: Game): string {
@@ -1223,6 +1263,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
+  // Refueling station. "Buy 6 Fuel for 12 Scrap", "Buy 3 Fuel for 6 Scrap", "Buy 1 Fuel for 2 Scrap".
+  "c:refueling-station:0": (g) => buyFuel(g, 12, 6),
+  "c:refueling-station:1": (g) => buyFuel(g, 6, 3),
+  "c:refueling-station:2": (g) => buyFuel(g, 2, 1),
+  "c:refueling-station:3": done,
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1362,6 +1408,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
   m = id.match(/^s:trade-scrap-for-upgrades:agree:(?:oxygen|pilot|doors|sensors|reactor):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
+  if (id === "c:refueling-station:0" && g.scrap < 12) return "Need 12 scrap";
+  if (id === "c:refueling-station:1" && g.scrap < 6) return "Need 6 scrap";
+  if (id === "c:refueling-station:2" && g.scrap < 2) return "Need 2 scrap";
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
   if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return "Needs a Scrap Recovery Arm";

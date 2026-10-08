@@ -43,10 +43,17 @@ describe("Escort civilians intro", () => {
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;
     open(g);
+    g.fleet = 5;
     choose(g, "c:escort-civilians:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "\"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others.\"\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);
+    assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
   });
 });

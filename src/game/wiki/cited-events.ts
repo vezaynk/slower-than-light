@@ -3663,6 +3663,13 @@ export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
   return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
 }
 
+// Lanius trader. The page prints three intros and no odds. INFERRED: equal.
+const LANIUS_TRADER_INTROS = [
+  "Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, \"Metal sufficient. Request exchange.\" It appears there are some Lanius who wish sociable interaction with other races.",
+  "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
+  "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
+];
+
 export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
   return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
 }
@@ -4181,9 +4188,11 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (!ev) return null;
   if (ev.slug === "lanius-trader") {
     const offer = rollLaniusTrader(g, false);
+    // The offer is rolled first so the shown trade stays on the same draws. The intro uses the next draw.
+    const intro = LANIUS_TRADER_INTROS[between(g, [0, 2])]!;
     return {
       title: ev.dest,
-      body: laniusTraderOfferText(offer),
+      body: `${intro}\n\n${laniusTraderOfferText(offer)}`,
       choices: [
         { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
         { id: "c:lanius-trader:3", label: "Decline" },

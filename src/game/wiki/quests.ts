@@ -1156,6 +1156,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:zoltan-ship-follows-mantis-ship:2": (g) => {
     result(g, "The Zoltan know their business better than most - best to leave them to it. You prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
+  "c:federation-deserters:0": (g) => {
+    pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

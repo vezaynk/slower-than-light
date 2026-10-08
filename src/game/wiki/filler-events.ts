@@ -607,6 +607,35 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:asteroid-mining-colony:3", label: "Decline.", fx: [{ k: "nothing" }] },
     ],
   },
+  // TRADER_UPGRADES_EXCHANGE. One of three supply bundles, shown before the choice. No odds. INFERRED: equal.
+  // Each band is inclusive. A maxed reactor still takes the supplies and gains no bar.
+  // The reactor step size is not printed. INFERRED: one bar, and not past 25.
+  {
+    dest: "Improve reactor for supplies",
+    slug: "improve-reactor-for-supplies",
+    flag: "cited:improve-reactor-for-supplies",
+    aliases: ["Improve reactor for supplies"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+    ],
+    body: "You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.",
+    choices: [
+      { id: "c:improve-reactor-for-supplies:0", label: "Agree to the trade.", fx: [{ k: "note", text: "One printed supply bundle." }] },
+      { id: "c:improve-reactor-for-supplies:1", label: "Respectfully decline.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -762,6 +791,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "friendly-ship-out-of-fuel" && FILLER_PAGES.includes(page as CitedEventDef)) return friendlyCard(g, page);
   if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
   if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
+  if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1012,6 +1042,51 @@ function giveMiners(g: Game, n: 5 | 15) {
     const base = between(g, [30, 40]);
     show(g, "\"Wow. This will help our efforts considerably. Let me see what I can scrounge up to offer you.\" They deliver some scrap and have their team try to repair part of your hull.", undefined, payMiners(g, base, 5));
   }
+}
+
+const SUPPLY_INTROS = [
+  "\"You look like a military vessel. We're trying to get back to our homes alive. I'm an engineer by trade and could try to improve your reactor if you have any extra supplies.\"",
+  "You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.",
+];
+
+/** Missiles, drone parts, fuel. A 0-wide band stays 0. */
+const SUPPLY_BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
+  { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
+  { missiles: [0, 2], parts: [2, 3], fuel: [0, 0] },
+  { missiles: [0, 2], parts: [0, 2], fuel: [2, 3] },
+];
+
+function supplyLegal(missiles: number, parts: number, fuel: number): boolean {
+  return SUPPLY_BUNDLES.some((b) =>
+    missiles >= b.missiles[0] && missiles <= b.missiles[1]
+    && parts >= b.parts[0] && parts <= b.parts[1]
+    && fuel >= b.fuel[0] && fuel <= b.fuel[1],
+  );
+}
+
+function supplyPrice(missiles: number, parts: number, fuel: number): string {
+  const bits: string[] = [];
+  if (missiles) bits.push(`${missiles} missiles`);
+  if (parts) bits.push(`${parts} drone parts`);
+  if (fuel) bits.push(`${fuel} fuel`);
+  return bits.join(", ");
+}
+
+/** The bundle is rolled when the card opens, so the price is on the button. */
+function supplyCard(g: Game, page: Page): GameEvent {
+  const intro = SUPPLY_INTROS[Math.min(SUPPLY_INTROS.length - 1, Math.floor(rand(g) * SUPPLY_INTROS.length))];
+  const bundle = SUPPLY_BUNDLES[Math.min(SUPPLY_BUNDLES.length - 1, Math.floor(rand(g) * SUPPLY_BUNDLES.length))];
+  const missiles = between(g, bundle.missiles);
+  const parts = between(g, bundle.parts);
+  const fuel = between(g, bundle.fuel);
+  return {
+    title: page.dest,
+    body: intro,
+    choices: [
+      { id: `s:improve-reactor-for-supplies:agree:${missiles}:${parts}:${fuel}`, label: `Agree to the trade. [${supplyPrice(missiles, parts, fuel)}]` },
+      { id: "c:improve-reactor-for-supplies:1", label: "Respectfully decline." },
+    ],
+  };
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
@@ -1392,6 +1467,17 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "\"I understand. Good luck out there. We'll try to make do with what we have.\"");
   },
 
+  // Improve reactor for supplies. The static agree button opens the priced card.
+  "c:improve-reactor-for-supplies:0": (g) => {
+    const ev = supplyCard(g, pageBySlug("improve-reactor-for-supplies")!);
+    g.event = ev;
+    g.phase = "event";
+    g.paused = true;
+  },
+  "c:improve-reactor-for-supplies:1": (g) => {
+    show(g, "You decide you need what supplies you have.");
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1490,6 +1576,27 @@ function chooseRolled(g: Game, id: string): boolean {
     show(g, "You thank them but prepare to move on.");
     return true;
   }
+  m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
+  if (m) {
+    const missiles = Number(m[1]);
+    const parts = Number(m[2]);
+    const fuel = Number(m[3]);
+    // Notes: a maxed reactor does not prevent the trade. The supplies are still lost.
+    if (!supplyLegal(missiles, parts, fuel)) return true;
+    if (g.missiles < missiles || g.player.parts < parts || g.fuel < fuel) return true;
+    g.missiles -= missiles;
+    g.player.parts -= parts;
+    g.fuel -= fuel;
+    const note = bumpReactor(g);
+    const lines = [
+      missiles ? `Missiles: -${missiles}.` : "",
+      parts ? `Drone parts: -${parts}.` : "",
+      fuel ? `Fuel: -${fuel}.` : "",
+      note,
+    ].filter(Boolean);
+    show(g, "You make the exchange and their team comes on board to try to improve your reactor.", undefined, lines);
+    return true;
+  }
   m = id.match(/^s:terraforming-scan:(bribe|pay):(\d+)$/);
   if (m) {
     const n = Number(m[2]);
@@ -1508,7 +1615,7 @@ function chooseRolled(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -1537,6 +1644,15 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:asteroid-mining-colony:0" && !miningMissile(g)) return "Needs a missile weapon";
   if (id === "c:asteroid-mining-colony:1" && g.missiles < 5) return "Need 5 missiles";
   if (id === "c:asteroid-mining-colony:2" && g.missiles < 15) return "Need 15 missiles";
+  m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
+  if (m) {
+    const missiles = Number(m[1]);
+    const parts = Number(m[2]);
+    const fuel = Number(m[3]);
+    if (g.missiles < missiles) return `Need ${missiles} missiles`;
+    if (g.player.parts < parts) return `Need ${parts} drone parts`;
+    if (g.fuel < fuel) return `Need ${fuel} fuel`;
+  }
   if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return "Needs a Zoltan crewmember";
   if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return "Needs a Scrap Recovery Arm";

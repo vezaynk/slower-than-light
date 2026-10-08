@@ -83,7 +83,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-ship-attacking-slug-ship",
     aliases: ["Mantis ship attacking Slug ship"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider.",
+    body: "The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: \"Please, we'll give you all we have if you sssave ussss!\"",
     choices: [
       {
         id: "c:mantis-ship-attacking-slug-ship:0",

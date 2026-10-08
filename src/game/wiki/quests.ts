@@ -523,6 +523,21 @@ function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
   else card(g, text ? `${text}\n\n${body}` : body, choices);
 }
 
+/** Deactivated Auto-ship, "Attempt to download the ship's data stores." Two results, no odds.
+ *  INFERRED: equal. The sector map reveal is not wired. */
+function deactivatedDownload(g: Game) {
+  if (pick(g, ["data", "fight"] as const) === "fight") {
+    pageFight(
+      g,
+      "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!",
+      "Auto-ship",
+      "deactivated-auto-ship",
+    );
+    return;
+  }
+  result(g, "You are able to pull all of the ship's data about this sector. Your map has been updated.", rollStandard(g, "low"));
+}
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -692,6 +707,29 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:auto-ship-fight-in-plasma-storm:3": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
     result(g, "By using your advanced cloaking system you easily lose your pursuer in the storm.", undefined, ["Nothing happens."]);
+  },
+  // Deactivated Auto-ship. Download, two results, no odds. INFERRED: equal. The map reveal is not wired.
+  "c:deactivated-auto-ship:1": (g) => {
+    deactivatedDownload(g);
+  },
+  // Sensors level 3. Two results, no odds. INFERRED: equal. The map reveal is not wired.
+  "c:deactivated-auto-ship:2": (g) => {
+    if (sensors(g) < 3) return;
+    if (pick(g, ["safe", "standby"] as const) === "safe") {
+      result(g, "Your improved sensors indicate that it's safe to hack into the drone. You upload its map data to your navigation system and strip the ship of useful materials.", rollStandard(g, "low"));
+      return;
+    }
+    card(g, "Your improved sensors indicate the ship is on standby, ready to activate at a moment's notice. Will you still attempt to access the ship's data?", [
+      { id: "q:deactivated-auto:yes", label: "Yes." },
+      { id: "q:deactivated-auto:no", label: "No." },
+    ]);
+  },
+  // Standby "Yes." reuses the download's two results.
+  "q:deactivated-auto:yes": (g) => {
+    deactivatedDownload(g);
+  },
+  "q:deactivated-auto:no": (g) => {
+    result(g, "You leave the ship alone and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
@@ -1291,6 +1329,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   }
   if (id === "c:auto-ship-fight-in-plasma-storm:2" && (g.player.systems.engines?.level ?? 0) < 6) return "Needs level 6 Engines";
   if (id === "c:auto-ship-fight-in-plasma-storm:3" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
+  // Deactivated Auto-ship. Sensors level 3. The button stays visible.
+  if (id === "c:deactivated-auto-ship:2" && sensors(g) < 3) return "Needs level 3 Sensors";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.

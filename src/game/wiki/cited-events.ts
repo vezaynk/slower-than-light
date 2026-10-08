@@ -3497,6 +3497,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Deactivated Auto-ship. Download, and Sensors level 3. The strip choice is already on the card.
+  if (ev.slug === "deactivated-auto-ship") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        { id: "c:deactivated-auto-ship:1", label: "Attempt to download the ship's data stores." },
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:deactivated-auto-ship:2", label: "Remotely scan the ship." },
+      ],
+    };
+  }
   // Auto-ship fight in plasma storm. Engines 3-5, Engines 6+, and Cloaking.
   if (ev.slug === "auto-ship-fight-in-plasma-storm") {
     return {

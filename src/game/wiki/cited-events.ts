@@ -4704,6 +4704,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:remote-settlement:0") ctx.note("\"You asked for it!\" They pull away from the planet and move in to engage.");
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
+  // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
+  if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

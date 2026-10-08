@@ -185,6 +185,7 @@ describe("Settlement mercenary work", () => {
       assert.equal(g.event!.choices[1].label, "Forget your promise, they die!");
       const before = g.scrap;
       choose(g, ACCEPT_ID);
+      assert.equal(g.reward!.note, "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\"");
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       assert.ok(g.reward!.scrap > 0 && g.scrap - before === g.reward!.scrap);
       assert.ok(g.reward!.scrap >= Math.floor(lo * 0.5) && g.reward!.scrap <= hi * 2);

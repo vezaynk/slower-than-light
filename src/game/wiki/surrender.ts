@@ -378,6 +378,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Settlement mercenary work", Accept: SQUAT_PIRATE_MERCENARY "(surrenders at 30-40% hull)"; the Category page:
   // "only the fight with a Pirate ship ... has a guaranteed surrender offer". "Let them live and then return to the
   // settlement." -> "You receive a weapon with medium scrap." The weapon is not named: only the medium scrap is paid.
+  // The italic is the return to the settlement; the unnamed weapon is still not granted.
   "settlement-mercenary-work": {
     page: "Settlement mercenary work",
     chance: 100,
@@ -387,6 +388,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     hail: "They hail your ship saying, \"You win! We're not cut out for this!\"",
     accept: "Let them live and then return to the settlement.",
     refuse: "Forget your promise, they die!",
+    result: "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\"",
   },
   // "The Black Raven", Trivia: "proposes a surrender offer when its hull integrity falls down to 30-40%". The page
   // gives no percent chance; INFERRED 100% (a scripted surrender, listed in Category:Ship surrender Events).

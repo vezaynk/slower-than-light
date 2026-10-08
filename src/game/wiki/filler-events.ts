@@ -1101,6 +1101,13 @@ function mantisControlled(g: Game) {
   }
 }
 
+/** "Rebel Fleet is delayed for 1 turn." The Engi cache moves the column back by its printed count. */
+function delayFleetOne(g: Game) {
+  // INFERRED: a fleet already at column 0 stays there.
+  g.fleet = Math.max(0, g.fleet - 1);
+  log(g, "Rebel Fleet is delayed for 1 turn.");
+}
+
 /** Rock and Slug standoff: "1 damage to each of 2 random systems".
  * INFERRED: two different installed systems when two exist.
  */
@@ -1904,6 +1911,30 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "Nothing happens.");
   },
 
+  // Lanius ship absorbing rebel base. Three results and no odds. INFERRED: equal.
+  // The fight pays default rewards, not up front.
+  "c:lanius-ship-absorbing-rebel-base:0": (g) => {
+    const r = weighted(g, [["delay", 1], ["fight", 1], ["nothing", 1]] as const);
+    if (r === "delay") {
+      delayFleetOne(g);
+      show(g, "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. They thank you for the tip and prepare to jump in the direction you came. That will hopefully delay the fleet. You scrap what remains of the Rebel station.", rollStandard(g, "medium"), ["Rebel Fleet is delayed for 1 turn."]);
+      return;
+    }
+    if (r === "fight") {
+      fight(g, "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. You're not certain if you were misunderstood but they appear to scoff at your suggestion. Most ships continue what they were doing but a single ship moves to fight you.", "Lanius ship", "lanius-ship-absorbing-rebel-base-fight");
+      return;
+    }
+    show(g, "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. However, either the translation device has failed or they're simply not interested. They cut the channel and continue to absorb the ships.", undefined, ["Nothing happens."]);
+  },
+  "c:lanius-ship-absorbing-rebel-base:1": (g) => {
+    show(g, "You decide it would be better to leave them be.", undefined, ["Nothing happens."]);
+  },
+  "c:lanius-ship-absorbing-rebel-base:2": (g) => {
+    if (!livingKin(g, "voidlung")) return;
+    delayFleetOne(g);
+    show(g, "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station.", rollStandard(g, "medium"), ["Rebel Fleet is delayed for 1 turn."]);
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,
@@ -2692,6 +2723,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
+  // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
+  if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;

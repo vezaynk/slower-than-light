@@ -1,7 +1,7 @@
 /**
  * Lanius candidate pages. Redirects have no opening choice.
- * The three event pages branch, or only grant an unnamed item or a blue option.
- * Nothing here is one stated outcome, so nothing is exported.
+ * Lanius ship absorbing rebel base runs its branches in filler-events.ts.
+ * An unnamed augmentation stays unwired.
  */
 
 export type CitedFx =
@@ -23,4 +23,34 @@ export type CitedEventDef = {
   choices: { id: string; label: string; fx: CitedFx[] }[];
 };
 
-export const EXTRA_EVENTS: CitedEventDef[] = [];
+export const EXTRA_EVENTS: CitedEventDef[] = [
+  {
+    // Lanius ship absorbing rebel base. The delay, the fight, and the Lanius crew run in filler-events.ts.
+    dest: "Lanius ship absorbing rebel base",
+    slug: "lanius-ship-absorbing-rebel-base",
+    flag: "cited:lanius-ship-absorbing-rebel-base",
+    aliases: ["Lanius ship absorbing rebel base"],
+    sectors: ["Abandoned Sector"],
+    body: "You notice a number of Lanius ships absorbing a forward Rebel base and its automated scouts. They don't seem to be aggressive. Perhaps their desire for metal could prove to be useful?",
+    choices: [
+      {
+        id: "c:lanius-ship-absorbing-rebel-base:0",
+        label: "Try to use them to delay the Rebels.",
+        // "Medium scrap, a Lanius ship, or nothing."
+        fx: [{ k: "note", text: "Medium scrap and a fleet delay, a Lanius ship, or nothing." }],
+      },
+      {
+        id: "c:lanius-ship-absorbing-rebel-base:1",
+        label: "Leave them alone.",
+        // "Nothing happens."
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+      {
+        id: "c:lanius-ship-absorbing-rebel-base:2",
+        label: "Try to use them to delay the Rebels.",
+        // "Lanius crew. Medium scrap and a fleet delay."
+        fx: [{ k: "note", text: "Medium scrap and a fleet delay." }],
+      },
+    ],
+  },
+];

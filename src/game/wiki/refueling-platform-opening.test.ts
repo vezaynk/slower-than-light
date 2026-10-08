@@ -18,7 +18,7 @@ function open(g: Game) {
 }
 
 describe("Refueling platform opening", () => {
-  it("prints the platform sentence and keeps the accept choice", () => {
+  it("prints the platform sentence and keeps the dock choice", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Refueling platform");
@@ -26,6 +26,6 @@ describe("Refueling platform opening", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, createGame(1).fuel);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:refueling-platform:0" && c.label === "Accept it"));
+    assert.ok(g.event?.choices.some((c) => c.id === "c:refueling-platform:0" && c.label === "Dock with the refueling platform."));
   });
 });

@@ -2469,21 +2469,10 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:refueling-platform:0",
-        "label": "Accept it",
+        "label": "Dock with the refueling platform.",
         "fx": [
           {
-            "k": "res",
-            "id": "scrap",
-            "sign": -1,
-            "lo": 5,
-            "hi": 10
-          },
-          {
-            "k": "res",
-            "id": "fuel",
-            "sign": 1,
-            "lo": 5,
-            "hi": 5
+            "k": "nothing"
           }
         ]
       },

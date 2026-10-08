@@ -641,6 +641,29 @@ function deactivatedDownload(g: Game) {
   result(g, "You are able to pull all of the ship's data about this sector. Your map has been updated.", rollStandard(g, "low"));
 }
 
+/** Refueling platform dock. 3 damage to engines. `fires` is the ignite result's 1-2 fires. */
+function refuelEngines(g: Game, fires: boolean) {
+  hurtSystem(g.player, "engines", 3);
+  if (!fires) return;
+  const room = g.player.rooms.find((r) => r.system === "engines");
+  if (!room) return;
+  // The fire icon says 1-2 fires and prints no odds. INFERRED: the second flame is a coin flip.
+  const n = 1 + (rand(g) < 0.5 ? 1 : 0);
+  room.fire = Math.min(4, room.fire + n);
+  log(g, n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`);
+}
+
+/** The berth that is already a Pirate ship. 3 hull, 3 engine damage, then the default Pirate fight. No fires. */
+function refuelAmbush(g: Game) {
+  const text = "The refueling station welcomes you into one of its berths, and as you hail them, there is an explosion from your engine room! While assessing the damage, you detect a Pirate Ship closing fast!";
+  if (damageHull(g, 3)) {
+    log(g, text);
+    return;
+  }
+  refuelEngines(g, false);
+  pageFight(g, text, "Pirate ship", "refueling-platform");
+}
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1276,6 +1299,96 @@ const CHOICES: Record<string, (g: Game) => void> = {
       return;
     }
     pageFight(g, "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!", "Pirate ship", "refueling-platform");
+  },
+  // Refueling platform. "Dock with the refueling platform." Five printed results and no odds.
+  // INFERRED: equal, one of five. The offer's price is rolled on accept.
+  "c:refueling-platform:0": (g) => {
+    const kind = pick(g, ["offer", "steal", "ignite", "staff", "ambush"] as const);
+    if (kind === "offer") {
+      card(g, "The platform makes an offer.", [
+        { id: "s:refuel-dock:accept", label: "Accept it." },
+        { id: "s:refuel-dock:reject", label: "Reject it." },
+      ]);
+      return;
+    }
+    if (kind === "steal") {
+      card(g, "The automated platform seems to be damaged. You can likely steal as much fuel as remains.", [
+        { id: "s:refuel-dock:steal", label: "Steal it." },
+        { id: "s:refuel-dock:values", label: "War doesn't justify abandoning one's values. You leave it alone." },
+      ]);
+      return;
+    }
+    if (kind === "ignite") {
+      card(g, "The platform seems to be malfunctioning and could ignite at any moment.", [
+        { id: "s:refuel-dock:quick", label: "Quickly dock and refuel." },
+        { id: "s:refuel-dock:berth", label: "Give the station a wide berth and carry on." },
+      ]);
+      return;
+    }
+    if (kind === "staff") {
+      card(g, "You dock and signal the fuel station's staff to begin refueling.", [
+        { id: "s:refuel-dock:wait", label: "Wait for them to finish." },
+        { id: "s:refuel-dock:doors", label: "Seal your blast doors, one can never be too careful when docked." },
+      ]);
+      return;
+    }
+    refuelAmbush(g);
+  },
+  "s:refuel-dock:accept": (g) => {
+    const n = between(g, [5, 10]);
+    if (g.scrap < n) return;
+    g.scrap -= n;
+    g.fuel += 5;
+    log(g, `Scrap: -${n}.`);
+    log(g, "Fuel: 5.");
+    result(g, "You receive 5 fuel.", undefined, [`Scrap: -${n}.`, "Fuel: 5."]);
+  },
+  "s:refuel-dock:reject": (g) => {
+    result(g, "Nothing happens.");
+  },
+  "s:refuel-dock:steal": (g) => {
+    const n = between(g, [3, 5]);
+    g.fuel += n;
+    log(g, `Fuel: ${n}.`);
+    result(g, "If you take the fuel at least it won't fall into the hands of the Rebels. You breach the containment and access what remains of the fuel reserves.", undefined, [`Fuel: ${n}.`]);
+  },
+  "s:refuel-dock:values": (g) => {
+    result(g, "Nothing happens.");
+  },
+  // Quickly dock. Two printed results and no odds. INFERRED: equal.
+  "s:refuel-dock:quick": (g) => {
+    if (pick(g, ["safe", "boom"] as const) === "safe") {
+      g.fuel += 5;
+      log(g, "Fuel: 5.");
+      result(g, "You're able to safely refuel and get clear before the station explodes.", undefined, ["Fuel: 5."]);
+      return;
+    }
+    const text = "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
+    log(g, text);
+    if (damageHull(g, 3)) return;
+    refuelEngines(g, true);
+    // The page says lose 3 fuel. INFERRED: fuel does not go below zero.
+    const lost = Math.min(g.fuel, 3);
+    g.fuel -= lost;
+    log(g, `Fuel: -${lost}.`);
+    result(g, text, undefined, [`Fuel: -${lost}.`]);
+  },
+  "s:refuel-dock:berth": (g) => {
+    result(g, "You pull away from the station. After a short time a few silent explosions cause the depressurized tanks to implode.", undefined, ["Nothing happens."]);
+  },
+  "s:refuel-dock:wait": (g) => {
+    log(g, "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!");
+    if (damageHull(g, 3)) return;
+    hurtSystem(g.player, "engines", 3);
+    // "2-4 boarders". The race is not named. INFERRED: human, the same as the pirate burst on Abandoned station.
+    humanBoarders(g, 2, 4, "boarders beam aboard your ship.");
+    beginBoarding(g);
+  },
+  "s:refuel-dock:doors": (g) => {
+    if ((g.player.systems.doors?.level ?? 0) < 2) return;
+    g.fuel += 5;
+    log(g, "Fuel: 5.");
+    result(g, "Pirates hidden on the station are confounded by your security locks, turning an attempted ambush into a fish-in-a-barrel firefight. You take control of the station and take its fuel reserves.", undefined, ["Fuel: 5."]);
   },
   // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
   "c:zoltan-ship-asks-to-dock:1": (g) => {
@@ -2315,6 +2428,10 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Advanced Sensors, level 3.
   // INFERRED: the refusal line. The page names level 3 and does not print this sentence.
   if (id === "s:garbled-dock:sensors3" && sensors(g) < 3) return "Needs Sensors level 3";
+  // Refueling platform dock. Accept costs 5-10 scrap. Blast Doors are level 2+.
+  // INFERRED: the refusal lines. The page prints the price and the system, not these sentences.
+  if (id === "s:refuel-dock:accept" && g.scrap < 5) return "Need 5 scrap";
+  if (id === "s:refuel-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return "Needs level 2 Door System";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";
   if (id === "q:war-camp:firebomb" && g.missiles < 2) return "Need 2 missiles";
   if (id === "q:station:fuel4" && g.fuel < 4) return "Need 4 fuel";

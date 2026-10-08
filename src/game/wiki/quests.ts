@@ -275,6 +275,9 @@ function hasEngi(g: Game): boolean {
 function hasSlug(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
 }
+function hasLanius(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "voidlung");
+}
 export function sensors(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
 }
@@ -587,6 +590,31 @@ const CHOICES: Record<string, (g: Game) => void> = {
       return;
     }
     result(g, "The competitor gone, you investigate the debris, but it looks as if the Lanius harvested much of it before you arrived.", rollStandard(g, "low"));
+  },
+  // Lanius ship salvager, {{Blue Option|Lanius Crew|Request some scrap.}}
+  // Three results, no odds. INFERRED: equal. Medium scrap is scrap only, not scrap with resources.
+  // The nested fight is default Lanius rewards: no PAGE_WINS row, so winCombat pays the default salvage.
+  "c:lanius-ship-salvager:2": (g) => {
+    if (!hasLanius(g)) return;
+    const kind = weighted(g, [["share", 1], ["scoff", 1], ["low", 1]] as const);
+    if (kind === "share") {
+      result(g, "Your crew hails their ship, wondering if they have any extra salvage. Their crew seems happy to share.", scrapOnly(g, "medium"));
+      return;
+    }
+    if (kind === "scoff") {
+      card(g, "They scoff at your crewmember's request and utter something that was translated as, \"Get your own, lazy solder.\"", [
+        { id: "q:lanius-salvager:attack", label: "Attack the ship." },
+        { id: "q:lanius-salvager:leave", label: "Leave." },
+      ]);
+      return;
+    }
+    result(g, "Your crewmember hails them, asking if they have any extra scrap. They state that they are extremely low and cannot spare any.", undefined, ["Nothing happens."]);
+  },
+  "q:lanius-salvager:attack": (g) => {
+    pageFight(g, "You move in and power up your weapons. Detecting the threat, they stop what they were doing and prepare for a fight.", "Lanius ship", "lanius-ship-salvager");
+  },
+  "q:lanius-salvager:leave": (g) => {
+    result(g, "You ignore their derisive tone and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
@@ -966,6 +994,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
   if (id === "c:lanius-ship-in-rich-debris-field:3" && (g.player.systems.pilot?.level ?? 0) < 2) return "Needs level 2 Piloting";
   if (id === "c:lanius-ship-in-rich-debris-field:4" && (g.player.systems.pilot?.level ?? 0) < 3) return "Needs level 3 Piloting";
+  // Lanius ship salvager, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  if (id === "c:lanius-ship-salvager:2" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
   if (id === "s:the-black-raven:duel" && !hasSlug(g)) return "Needs a Slug crewmember";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";

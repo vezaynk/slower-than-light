@@ -1224,6 +1224,16 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:lanius-ship-salvager:2",
+        "label": "Request some scrap.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "A Lanius crewmember may receive medium scrap only, a scoff, or nothing."
+          }
+        ]
       }
     ]
   },

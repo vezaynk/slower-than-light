@@ -216,6 +216,38 @@ const ENGI_DISTRESS_AFTER: Choice[] = [
   { id: "q:engi-distress:nothing", label: "Give them nothing." },
 ];
 
+/**
+ * Rebel ship attacking civilians in Last Stand. Contact the survivors. Three results, no odds. INFERRED: equal.
+ * Supplies are Rewards, "Stuff", medium: two resources in the printed medium bands, plus low scrap.
+ * The page names no weapon, so the Stuff bonus item is not granted.
+ */
+function lastStandSurvivors(g: Game) {
+  const kind = pick(g, ["repair", "supplies", "thanks"] as const);
+  if (kind === "repair") {
+    result(
+      g,
+      `You are hailed, "Thank you! It's not much but we can repair a bit of damage before you jump off into the war. Good luck!"`,
+      undefined,
+      [repair(g, 8)],
+    );
+    return;
+  }
+  if (kind === "supplies") {
+    result(
+      g,
+      `The survivors send a message, "Thanks for the support, I don't know how much longer we could have held on. Take some supplies, we probably won't need them at this point."`,
+      rollSurrenderOffer(g, "medium", true),
+    );
+    return;
+  }
+  result(
+    g,
+    "The people you rescued were primarily refugees fleeing the conflict. They offer you their sincere gratitude.",
+    undefined,
+    ["Nothing happens."],
+  );
+}
+
 /** Engi distress Rebel fight, destroyed low standard or a crew kill medium, then the Engi ask for help. */
 function engiDistressWin(g: Game, deadCrew: boolean) {
   result(
@@ -1824,6 +1856,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-civilians-in-last-stand:1": (g) => {
     result(g, "You try to block out the horrors of war and focus on your mission.", undefined, ["Nothing happens."]);
   },
+  // Rebel ship attacking civilians in Last Stand. "Contact the survivors." Three results, no odds. INFERRED: equal.
+  // The supplies line is Rewards, Stuff: medium resources and low scrap. The page names no bonus item, so none is granted.
+  "q:last-stand-survivors:contact": (g) => lastStandSurvivors(g),
   // Lanius ship in rich debris field. "Attempt to harvest some for yourself." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-in-rich-debris-field:0": (g) => {
     pageFight(g, "As you attempt to navigate the debris, you come too close to the Lanius ship - and they proceed to try to harvest you!", "Lanius ship", "lanius-ship-in-rich-debris-field");
@@ -3265,6 +3300,15 @@ export const PAGE_WINS: Record<string, Win> = {
     "The Crystalline ship shatters and you pick what you can from the debris.",
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
+  ),
+  // Rebel ship attacking civilians in Last Stand. Destroyed pays medium scrap with resources.
+  // A crew kill pays high. Then contact the survivors.
+  "rebel-ship-attacking-civilians-in-last-stand": std(
+    "medium",
+    "high",
+    "With the Rebel ship destroyed you are free to contact their would-be victim.",
+    "With the Rebel ship defeated you quickly salvage what you can and move to contact their prey.",
+    [{ id: "q:last-stand-survivors:contact", label: "Contact the survivors." }],
   ),
   // Rebel ship attacking refueling outpost. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the outpost.

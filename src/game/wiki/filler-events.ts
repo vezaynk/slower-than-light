@@ -2279,7 +2279,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // ---- Refugee comms down ----
   "c:refugee-comms-down:0": (g) => {
     const r = weighted(g, [["cannibals", 1], ["freezer", 1], ["supplies", 1], ["boarders", 1], ["ghost", 1]] as const);
-    if (r === "cannibals") show(g, "As you investigate the ship, you are attacked by the now-cannibalistic crew! Driven mad by lack of food, they have turned to feeding on each other. As you fight your way off the ship, one of your crew falls to the crazed attackers, and you are forced to leave them behind or else lose your entire ship.", undefined, [loseCrew(g)]);
+    if (r === "cannibals") {
+      // Clone Bay revives them. The page prints that waiting sentence, then "The lost crewmember is revived."
+      const extras = [loseCrew(g)];
+      if (g.player.kits.cradle) extras.unshift("Your abandoned crewmember is waiting on the ship when you return, trying not to dwell on the fate of his previous incarnation.");
+      show(g, "As you investigate the ship, you are attacked by the now-cannibalistic crew! Driven mad by lack of food, they have turned to feeding on each other. As you fight your way off the ship, one of your crew falls to the crazed attackers, and you are forced to leave them behind or else lose your entire ship.", undefined, extras);
+    }
     else if (r === "freezer") show(g, "It looks as if the ship ran out of fuel, and the crew ran out of food not long after. Despite the grisly scene that remains, you find one surviving crewman locked in the freezer, almost perfectly preserved and apparently overlooked by the starving crew.", undefined, [gainCrew(g)]);
     else if (r === "supplies") show(g, "The ship is completely abandoned. It looks like it ran out of fuel... and the crew ran out of food not long after. Despite the grisly scene that remains, you are able to scavenge some supplies from the cargo hold.", resource(g, "missiles", [2, 4], "medium"));
     else if (r === "boarders") {

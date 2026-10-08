@@ -130,7 +130,10 @@ describe("Cited events that add a marker", () => {
       const fuel = g.fuel;
       choose(g, "c:escort-civilians:0");
       assert.ok(g.fuel > fuel && g.fuel <= fuel + 3);
-      assert.equal(g.event!.body, QUEST_ADDED);
+      assert.equal(
+        g.event!.body,
+        `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"\n\n${QUEST_ADDED}`,
+      );
       choose(g, "ack");
       const [b] = questBeacons(g, "escort");
       jumpTo(g, b);

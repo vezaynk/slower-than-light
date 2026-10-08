@@ -220,6 +220,16 @@ const CORE_EVENTS: EventDef[] = [
             "tier": "Auto-ship"
           }
         ]
+      },
+      {
+        "id": "c:auto-ship-carrying-shield-virus:1",
+        "label": "Counter the remote hacking.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Auto-ship"
+          }
+        ]
       }
     ]
   },
@@ -4629,6 +4639,9 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
   if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs Sensors level 2";
   if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
+  // Auto-ship carrying shield virus. Hacking, "Counter the remote hacking."
+  // INFERRED: the refusal line. The page names Hacking and does not print the sentence.
+  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;
@@ -4810,6 +4823,11 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note("You message the Crystalline ship your intentions and move in to intercept the Rebel ship.");
   // Rebel ship attacking Crystal ship. "Attack the Crystalline ship." One printed lead-in, then a Crystal ship fight.
   if (id === "c:rebel-ship-attacking-crystal-ship:1") ctx.note("You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.");
+  // Auto-ship carrying shield virus. "Counter the remote hacking." Without Hacking the arrival card stays open.
+  // citedChoose does not read citedChoiceDisabled, so this returns before the fight note and the fight.
+  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return true;
+  // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
+  if (id === "c:auto-ship-carrying-shield-virus:1") ctx.note("Your hacking system automatically counters the digital assault and you move in to fight the ship.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

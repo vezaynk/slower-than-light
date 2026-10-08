@@ -5063,6 +5063,9 @@ export function choose(g: Game, id: string) {
               if (offline?.includes("oxygen")) shutPlayerOxygen(g);
               // Slug hacker (medical): "Medbay / Clone Bay offline". The two slug boarders spawn in citedChoose after this fight.
               if (offline?.includes("medbay")) shutPlayerMedical(g);
+              // Auto-ship carrying shield virus: "Fight an Auto-ship with your Hacking offline."
+              // After startCombat, which clears system-off. This choice does not halve shields.
+              if (id === "c:auto-ship-carrying-shield-virus:1") shutPlayerHacking(g);
               // Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
               if (citedFriendlyAsb(id)) aidPlayerAsb(g);
             },

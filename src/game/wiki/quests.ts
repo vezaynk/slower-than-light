@@ -1174,6 +1174,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:crystal-ship-attacking-federation-loyalists:0": (g) => {
     pageFight(g, "It doesn't look like the Fed ship can stand much more pressure. You fly in and intercept the Crystalline ship.", "Crystal ship", "crystal-ship-attacking-federation-loyalists");
   },
+  // Zoltan retake the ship. "Leave." One printed result.
+  "c:zoltan-retake-the-ship:1": (g) => {
+    result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
+  },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
     pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");

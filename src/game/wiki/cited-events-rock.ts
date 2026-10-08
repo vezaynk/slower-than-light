@@ -130,6 +130,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
+    // Rock fight with boarders in asteroid field. The page prints no button. The red line is the outcome, applied on arrival.
+    // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true. unique=true.
     dest: "Rock fight with boarders in asteroid field",
     slug: "rock-fight-with-boarders-in-asteroid-field",
     flag: "cited:rock-fight-with-boarders-in-asteroid-field",

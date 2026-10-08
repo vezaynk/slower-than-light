@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -46,5 +46,34 @@ describe("Rock fight with boarders in asteroid field", () => {
     assert.ok(boarders.length >= 1 && boarders.length <= 2);
     assert.equal(g.crew.filter((c) => c.side === "player").length, before);
     assert.equal(g.scrap, 10);
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:rock-fight-with-boarders-in-asteroid-field";
+    dest.name = "Rock fight with boarders in asteroid field";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "rock");
+    assert.equal(g.asteroid, true);
+    assert.equal(g.fightEvent, "rock-fight-with-boarders-in-asteroid-field");
+    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "stone" && c.aboard === "player");
+    assert.ok(rocks.length >= 1 && rocks.length <= 2, String(rocks.length));
+    assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
   });
 });

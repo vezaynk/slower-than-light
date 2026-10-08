@@ -1184,6 +1184,18 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:refueling-platform-garbled-broadcast:1": (g) => {
     result(g, "You leave the platform alone, and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Refueling platform. "Ignore the refueling platform."
+  // {{DuplicateEvent|2}} is Nothing happens, then one printed pirate-bait fight.
+  // INFERRED: those three printed slots are weights 2 and 1. Nothing has no italic.
+  // This handler returns before citedChoose, so the choice fx does not also start a fight.
+  "c:refueling-platform:1": (g) => {
+    const r = weighted(g, [["nothing", 2], ["fight", 1]] as const);
+    if (r === "nothing") {
+      result(g, "Nothing happens.");
+      return;
+    }
+    pageFight(g, "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!", "Pirate ship", "refueling-platform");
+  },
   // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
   "c:zoltan-ship-asks-to-dock:1": (g) => {
     result(g, "They leave without a word.", undefined, ["Nothing happens."]);

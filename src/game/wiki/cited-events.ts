@@ -2476,6 +2476,16 @@ const CORE_EVENTS: EventDef[] = [
             "hi": 5
           }
         ]
+      },
+      {
+        "id": "c:refueling-platform:1",
+        "label": "Ignore the refueling platform.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Pirate ship"
+          }
+        ]
       }
     ]
   },

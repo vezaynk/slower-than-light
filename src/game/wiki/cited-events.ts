@@ -3508,6 +3508,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Rock ship in plasma storm. A Rock crewmember leads them out.
+  if (ev.slug === "rock-ship-in-plasma-storm") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:rock-ship-in-plasma-storm:2", label: "Offer to lead them out of the nebula." },
+      ],
+    };
+  }
   // Deactivated Auto-ship. Download, and Sensors level 3. The strip choice is already on the card.
   if (ev.slug === "deactivated-auto-ship") {
     return {

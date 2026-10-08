@@ -279,6 +279,9 @@ function hasSlug(g: Game): boolean {
 function hasLanius(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "voidlung");
 }
+function hasRock(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "stone");
+}
 
 /** Lanius powered-down ship, "Investigate the vessel." Blue options stay visible when the ship cannot use them. */
 function investigateDormant(g: Game) {
@@ -730,6 +733,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:deactivated-auto:no": (g) => {
     result(g, "You leave the ship alone and prepare to jump.", undefined, ["Nothing happens."]);
+  },
+  // Rock ship in plasma storm. A living Rock crewmember. High standard. The map is not involved.
+  "c:rock-ship-in-plasma-storm:2": (g) => {
+    if (!hasRock(g)) return;
+    result(g, "The rock grudgingly transfer control of their helm to you and you steer them to a thinner part of the nebula. They're not sure what to think, but transfer over some supplies all the same.", rollStandard(g, "high"));
   },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
@@ -1343,6 +1351,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:auto-ship-fight-in-plasma-storm:3" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Deactivated Auto-ship. Sensors level 3. The button stays visible.
   if (id === "c:deactivated-auto-ship:2" && sensors(g) < 3) return "Needs level 3 Sensors";
+  // Rock ship in plasma storm. A dead Rock does not count. The button stays visible.
+  if (id === "c:rock-ship-in-plasma-storm:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Auto-ship near storage station. Cloaking, any installed level.

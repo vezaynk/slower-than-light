@@ -3592,6 +3592,14 @@ const AUTO_SHIP_FIGHT_INTROS = [
   "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!",
 ];
 
+// Rebel fight with boarders. Four printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-with-boarders:0.
+const REBEL_BOARDER_INTROS = [
+  `You receive a message from a nearby Rebel station, "You have a lot of guts passing through our space, I'll give you that." He turns giving an order, "Kill their crew, I want that ship intact."`,
+  `Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, "Ready to die? I sure am ready to get a promotion!"`,
+  `Incoming message, "Hello Captain," says a Rebel in an officer's garb. "How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient."`,
+  `You receive a message on a low-band channel. "You're surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!`,
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3893,6 +3901,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
       choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
+    };
+  }
+  // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
+  if (ev.slug === "rebel-fight-with-boarders") {
+    return {
+      title: ev.dest,
+      body: REBEL_BOARDER_INTROS[between(g, [0, 3])]!,
+      choices: [{ id: "c:rebel-fight-with-boarders:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

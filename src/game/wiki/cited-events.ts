@@ -794,7 +794,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "",
+    "body": "For a moment you assume it's a glitch, but no... you've found a Federation military ship! They hail you and, after some probing, reveal that they deserted the Federation fleet before stumbling into this sector while seeking refuge.",
     "choices": [
       {
         "id": "c:federation-deserters:0",

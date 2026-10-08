@@ -999,6 +999,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
       "pirate-ships-in-plasma-storm-ammo",
     );
   },
+  // Pirate ships in plasma storm. "Let them leave." One printed result.
+  "c:pirate-ships-in-plasma-storm:2": (g) => {
+    result(g, "Sometimes discretion is the better part of valor.", undefined, ["Nothing happens."]);
+  },
   "q:pirate-briber:gone": (g) => {
     pirateGone(g);
   },

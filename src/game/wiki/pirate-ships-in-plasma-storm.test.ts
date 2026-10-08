@@ -31,9 +31,14 @@ describe("Pirate ships in plasma storm", () => {
   it("lets them leave, and each cargo fight is a pirate that never surrenders", () => {
     const leave = createGame(1);
     open(leave);
+    const fuelBefore = leave.fuel;
+    leave.fleet = 5;
     choose(leave, "c:pirate-ships-in-plasma-storm:2");
-    assert.equal(leave.phase, "map");
+    assert.equal(leave.event?.body, "Sometimes discretion is the better part of valor.\n\nNothing happens.");
+    assert.equal(leave.phase, "event");
     assert.equal(leave.scrap, 10);
+    assert.equal(leave.fuel, fuelBefore);
+    assert.equal(leave.fleet, 5);
     assert.equal(leave.enemy, null);
 
     const fuel = createGame(2);

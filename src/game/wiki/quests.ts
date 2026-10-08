@@ -853,6 +853,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:pirate-briber:0": (g) => {
     result(g, "\"Good choice, son. We've both come out of this richer.\"", rollStandard(g, "low"));
   },
+  // Pirate briber. "Try to be a hero. Attack the pirate." One printed lead-in, then a Pirate ship fight.
+  "c:pirate-briber:1": (g) => {
+    pageFight(g, "The pirate ship stops its pursuit and locks weapons onto your ship.", "Pirate ship", "pirate-briber");
+  },
   // Engi distress Rebel fight. {{SurrenderEscape(alt)|no}}: never runs away, never surrenders.
   "c:engi-distress-rebel-fight:0": (g) => {
     pageFight(

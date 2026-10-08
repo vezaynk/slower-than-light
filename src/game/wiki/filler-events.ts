@@ -2316,7 +2316,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
-  // Boarders: Humans near sun. "2-4 human boarders beam aboard your ship."
+  // Boarders: Humans near sun. The page has no choice. Arrival calls this id so the red line
+  // "2-4 human boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship.
   "c:boarders-humans-near-sun:0": (g) => {
     humanBoarders(g, 2, 4, "human boarders beam aboard your ship.");

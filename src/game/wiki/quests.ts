@@ -1844,6 +1844,58 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
   result(g, "The pirate explodes, leaving behind a substantial collection of useful scrap material. You go to examine the ship you just saved.", scrapOnly(g, pick(g, ["low", "medium", "high"])), [], PIRATE_GONE);
 }
 
+/**
+ * Template:Pirate Smuggler / Rebel Transport. The weapon, drone schematic, and crewmember are not named,
+ * so none is granted. The map sentence is not a reveal.
+ * {{DuplicateEvent|2}} counts that result twice. The printed OR is the two sentences. INFERRED: those two
+ * sentences are equal, and the other results are one each. A random scrap amount is low, medium, or high
+ * scrap only, equal, because the page's code note says the lowercase "low" is treated as RANDOM.
+ */
+type SmugglePay =
+  | { k: "scrap"; tier: SurrenderTier }
+  | { k: "standard"; tier: SurrenderTier }
+  | { k: "random" }
+  | { k: "parts" };
+
+function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
+  if (pay.k === "random") return scrapOnly(g, pick(g, ["low", "medium", "high"]));
+  if (pay.k === "standard") return rollStandard(g, pay.tier);
+  if (pay.k === "parts") {
+    const offer = scrapOnly(g, "medium");
+    // Template tooltip: medium drone parts is 1 drone part, plus medium scrap.
+    offer.parts = 1;
+    return offer;
+  }
+  return scrapOnly(g, pay.tier);
+}
+
+const SMUGGLE_HULL: [{ text: string; pay: SmugglePay }, number][] = [
+  [{ text: "You search the ship and discover that its cargo was new military-grade weaponry! It was somehow undamaged in the fight and can easily be mounted on the ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "The ship was transporting weaponry. You find a piece still intact, despite the battle.", pay: { k: "random" } }, 1],
+  [{ text: "Searching the remains, you find that the cargo was military-grade Drone Schematics! You bring them aboard to install in your ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "You detect faint life signatures from an intact piece of the hull. They were transporting prisoners, and the sole survivor offers to join your crew, as a first step on his path to get revenge.", pay: { k: "standard", tier: "low" } }, 1],
+  [{ text: "This ship's cargo was not salvageable. However, they seem to have been surveying the region; they possess detailed maps and data. You download what you can to the ship's map.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "The ship was carrying military supplies. You pick up anything that looks salvageable from the debris.", pay: { k: "standard", tier: "high" } }, 1],
+  [{ text: "The debris implies that the ship was carrying Drone Schematics, but unfortunately nothing remains. You do find functioning Drone Parts, however.", pay: { k: "parts" } }, 1],
+  [{ text: "The ship was apparently transporting weaponry; however, nothing seems to have survived the battle.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "From the bits and pieces you find, you decide that this ship was gathering information. Nothing seems useful.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "The ship appears to have been transporting prisoners. Unfortunately they were all killed in the battle. You salvage what you can.", pay: { k: "standard", tier: "low" } }, 1],
+  [{ text: "You search the remains of the ship, but only come across blueprints and debris from broken machinery. A shame, but you take what scrap you can salvage.", pay: { k: "standard", tier: "low" } }, 1],
+];
+
+const SMUGGLE_CREW: [{ text: string; pay: SmugglePay }, number][] = [
+  [{ text: "With the crew dead, you search the ship. You find military-grade weaponry and take what looks most useful.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "Searching the remains you find that the cargo was military-grade Drone Schematics! You bring them aboard to install on your ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+  [{ text: "The ship refuses to fight, but you still detect life signatures. Apparently this was a prisoner transport. The single survivor offers to join your crew in exchange for their freedom.", pay: { k: "scrap", tier: "high" } }, 1],
+  [{ text: "This ship was apparently carrying information about the surrounding beacons. You download what you can to the ship's map, and scrap the rest of the ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+];
+
+/** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
+function smuggleCargoWin(g: Game, deadCrew: boolean) {
+  const row = weighted(g, deadCrew ? SMUGGLE_CREW : SMUGGLE_HULL);
+  result(g, row.text, smugglePay(g, row.pay));
+}
+
 const MANTIS_SLUG_AFTER: Choice[] = [
   { id: "q:mantis-slug:leave", label: "Leave them be." },
   { id: "q:mantis-slug:finish", label: "Finish them off." },
@@ -2022,6 +2074,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
+  // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon, schematic, and crew are not granted.
+  "pirate-smuggler": smuggleCargoWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
   "engi-distress-rebel-fight": engiDistressWin,
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.

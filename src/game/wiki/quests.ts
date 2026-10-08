@@ -1178,6 +1178,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:crystal-ship-attacking-federation-loyalists:0": (g) => {
     pageFight(g, "It doesn't look like the Fed ship can stand much more pressure. You fly in and intercept the Crystalline ship.", "Crystal ship", "crystal-ship-attacking-federation-loyalists");
   },
+  // Crystal ship attacking Federation loyalists. "Prepare to leave." One printed result.
+  "c:crystal-ship-attacking-federation-loyalists:1": (g) => {
+    result(g, "With the Federation ship distracting the guard, you are free to continue on your mission.", undefined, ["Nothing happens."]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

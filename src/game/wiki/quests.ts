@@ -1095,6 +1095,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-civilian-distress:0": (g) => {
     pageFight(g, "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.", "Lanius ship", "lanius-ship-attacking-civilian-distress");
   },
+  // The Mercenary. "Fight the ship." One printed lead-in, then a Pirate ship fight.
+  "c:the-mercenary:1": (g) => {
+    pageFight(g, "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.", "Pirate ship", "the-mercenary");
+  },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
     result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);

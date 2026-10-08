@@ -793,6 +793,13 @@ const doorsCounterWin = new WeakMap<Game, true>();
  */
 const choiceWin = new WeakMap<Game, "shields" | "oxygen" | "weapons" | "hack">();
 
+/**
+ * Rebel ship attacking Crystal ship, "Attack the Rebel."
+ * That path pays medium or high, then contact. Attacking the Crystalline ship does not set this,
+ * so that fight stays on default rewards.
+ */
+const rebelCrystalBones = new WeakMap<Game, true>();
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1681,10 +1688,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`, "Slug ship", "slug-hacker-choice");
     shutPlayerHacking(g);
   },
+  // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
+  // Destroyed pays medium scrap with resources. A crew kill pays high. Both use the same sentence.
+  // Then "You contact the Crystal ship." This handler returns before citedChoose.
+  // Attacking the Crystalline ship stays on default rewards and is not this map.
+  "c:rebel-ship-attacking-crystal-ship:0": (g) => {
+    rebelCrystalBones.set(g, true);
+    pageFight(
+      g,
+      "You message the Crystalline ship your intentions and move in to intercept the Rebel ship.",
+      "Rebel ship",
+      "rebel-ship-attacking-crystal-ship",
+    );
+  },
   // Rebel ship attacking Crystal ship. "Ignore them." One printed result.
   "c:rebel-ship-attacking-crystal-ship:2": (g) => {
     result(g, "With the two ships engaged in combat, you sneak by unnoticed.", undefined, ["Nothing happens."]);
   },
+  // Rebel ship attacking Crystal ship. Template:Crystal Ship Saved. The Crystal weapon is not named.
+  "q:rebel-crystal:contact": (g) => crystalContact(g),
   // Slug hacker (oxygen). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
   // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
   "c:slug-hacker-oxygen:1": (g) => {
@@ -3234,6 +3256,20 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Rebel ship attacking Crystal ship. Attack the Rebel: both endings share the bones sentence.
+  // Destroyed pays medium scrap with resources. A crew kill pays high. Then contact the Crystal ship.
+  // Attack the Crystalline ship does not set the map, so winCombat pays the default salvage.
+  "rebel-ship-attacking-crystal-ship": (g, deadCrew) => {
+    if (rebelCrystalBones.get(g) !== true) return false;
+    rebelCrystalBones.delete(g);
+    result(
+      g,
+      "The Rebels destroyed, you pick the bones of their ship.",
+      rollStandard(g, deadCrew ? "high" : "medium"),
+      [],
+      [{ id: "q:rebel-crystal:contact", label: "You contact the Crystal ship." }],
+    );
+  },
   // Zoltan wise man. After the fight, both endings contact him and then he implodes.
   // Destroyed pays low scrap with resources, then high. A crew kill pays medium, then high.
   // The page nests the two rewards and prints no choice, so both are paid on this card.

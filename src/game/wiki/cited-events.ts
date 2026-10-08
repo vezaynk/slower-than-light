@@ -3680,7 +3680,7 @@ const MANTIS_CHOICE_INTROS = [
 ];
 
 // Mantis ship attacking civilian. Five printed intros, no odds. INFERRED: equal.
-// Aid stays c:mantis-ship-attacking-civilian:0. Stay out stays :1. The stay-out flavor lines are not added here.
+// Aid stays c:mantis-ship-attacking-civilian:0. Stay out stays :1. The three stay-out sentences are quests.ts.
 const MANTIS_CIVILIAN_INTROS = [
   "You spot a Mantis ship hunting in the distance.",
   `A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, "Stay out of this human! Else you are next!"`,

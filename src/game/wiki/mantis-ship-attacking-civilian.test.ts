@@ -124,7 +124,8 @@ describe("Mantis ship attacking civilian", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:1");
-    assert.equal(g.phase, "map");
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
   });

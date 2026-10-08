@@ -1059,6 +1059,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     pageFight(g, "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.", "Mantis ship", "mantis-fight-choice");
   },
+  // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
+  "c:mantis-ship-attacking-civilian:1": (g) => {
+    const line = pick(g, [
+      "Smoking, the civilian ship limps on. You set your sights on the future.",
+      "The noise of the FTL spinning up almost drowns out the explosions. Almost.",
+      "You let them pass and try not to think about it.",
+    ] as const);
+    result(g, line, undefined, ["Nothing happens."]);
+  },
   // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
   "c:mantis-ship-attacking-slug-ship:0": (g) => {
     pageFight(g, "You lock onto the Mantis ship and engage.", "Mantis ship", "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
@@ -2374,7 +2383,7 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Mantis ship attacking civilian. Destroyed and a crew kill both pay medium standard,
   // then Attempt to contact the civilian ship. Template:Save the Civilian Ship is the
-  // same card as the Lanius civilian contact. Stay out of it is the nothing choice.
+  // same card as the Lanius civilian contact. Stay out of it is three sentences in CHOICES.
   "mantis-ship-attacking-civilian": (g, deadCrew) => {
     const text = deadCrew
       ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."

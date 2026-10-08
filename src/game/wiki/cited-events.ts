@@ -2605,7 +2605,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Uncharted Nebula"
     ],
-    "body": "",
+    "body": "A rock armoured transport nearby looks to have lost its bearings, but when you hail they grow suspicious: \"Whatever life-form you are, we find you repugnant. We seek no aid. Leave. Now.\"",
     "choices": [
       {
         "id": "c:rock-ship-in-plasma-storm:0",

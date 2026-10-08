@@ -3544,6 +3544,20 @@ const REBEL_CHECKPOINT_INTROS = [
   "A Rebel space station and single fighter is monitoring this Beacon for Federation activity. A number of civilian ships are docked, awaiting inspection by the Rebels and possible detainment if they are Federation loyalists. The Rebels haven't noticed you yet.",
   "It looks like this Beacon is home to a Rebel checkpoint. They're stopping and searching any ship that passes through. Civilians are being harassed, and Federation members are detained. The Rebels haven't noticed you yet.",
 ];
+// Rebel fight. Ten printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight:0.
+const REBEL_FIGHT_INTROS = [
+  `Your ship is hailed. "We've found you at last. Prepare to die!"`,
+  "A small Rebel ship is docked at a small station. You try to lay low but it spots you. Power up the weapons!",
+  "A Rebel ship has been patrolling this region. As soon as you arrive it begins its assault.",
+  `A Rebel ship hails you: "Federation scum! We've waited a long time for this!"`,
+  `You receive a transmission: "Sorry sir, this is nothing personal but we're under orders." The Rebel ship's weapons go hot.`,
+  "By the time you notice the Rebel ship behind the beacon, it's too late to avoid a fight.",
+  `A Rebel ship hails. "We did not fight a war to let a single Federation ship shatter our dreams of a better galaxy!" He locks weapons.`,
+  `A Rebel ship approaches cautiously. "Personally," says the captain, "I'd have stuck with the Federation. But I'm a soldier, sir, and I'm no use without a war to fight. Raise your shields!"`,
+  `You're hailed by a Rebel ship: "When the rebellion is complete you'll see the safer world we provide. Well, you won't, but you get the point." They arm weapons.`,
+  "A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more.",
+];
+
 const REBEL_CHECKPOINT_HIDE = [
   "Fly behind a moon and stay hidden.",
   "Shut down all non-vital systems and stay hidden.",
@@ -3742,6 +3756,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Rebel fight. One of the ten printed intros. The fight stays c:rebel-fight:0.
+  if (ev.slug === "rebel-fight") {
+    return {
+      title: ev.dest,
+      body: REBEL_FIGHT_INTROS[between(g, [0, 9])]!,
+      choices: [{ id: "c:rebel-fight:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rebel checkpoint. The bribe amount is a whole number from 10 to 15, shown on the button.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ENEMY_RUNNABLE, SCHEMATIC_POWER, enemyParts, rollDrones } from "../enemy-gen.ts";
 import { createGame, startCombat, step } from "../sim.ts";
-import type { DroneUnit, Game } from "../types.ts";
+import type { DroneUnit, Game, Ship } from "../types.ts";
 import { ENEMY_DRONES } from "../wiki/enemy-ships.ts";
 import {
   ACQUIRE_S,
@@ -21,6 +21,44 @@ import {
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 
 const OFFENSIVE = ["striker", "combat2", "beam", "beam2", "fire", "board", "ionintruder"];
+
+/** Fewest interior doors to another system that still has a bar. */
+function nearestSystem(ship: Ship, from: string): string[] {
+  const linked = (id: string) => {
+    const out: string[] = [];
+    for (const door of ship.doors) {
+      if (door.b === "void") continue;
+      if (door.a === id) out.push(door.b);
+      else if (door.b === id) out.push(door.a);
+    }
+    return out;
+  };
+  const dist = new Map<string, number>([[from, 0]]);
+  const queue = [from];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const next of linked(cur)) {
+      if (dist.has(next)) continue;
+      dist.set(next, (dist.get(cur) ?? 0) + 1);
+      queue.push(next);
+    }
+  }
+  let best = Infinity;
+  const tied: string[] = [];
+  for (const room of ship.rooms) {
+    if (room.id === from || !room.system) continue;
+    const sys = ship.systems[room.system];
+    if (!sys || sys.damage >= sys.level) continue;
+    const steps = dist.get(room.id);
+    if (steps == null) continue;
+    if (steps < best) {
+      best = steps;
+      tied.length = 0;
+      tied.push(room.id);
+    } else if (steps === best) tied.push(room.id);
+  }
+  return tied;
+}
 
 /** A quiet fight: no guns, no rocks, no fleet, no teleporter. */
 function quiet(seed: number): Game {
@@ -494,6 +532,29 @@ describe("enemy boarding drones", () => {
     assert.equal(bars(), damage);
     tickSwarm(g, 0.1);
     assert.equal(bars(), damage + 1);
+  });
+
+  it("moves to the nearest system room once that system is destroyed and the room is empty", () => {
+    const g = quiet(21);
+    fleet(g, ["board"], 3);
+    tickSwarm(g, 0.05);
+    tickSwarm(g, BOARD_FLY_S + 0.1);
+    const unit = units(g)[0];
+    assert.ok(unit?.room);
+    const from = unit.room;
+    const room = g.player.rooms.find((r) => r.id === from);
+    assert.ok(room?.system);
+    const sys = g.player.systems[room.system];
+    sys.damage = sys.level;
+    const guard = g.crew.find((c) => c.aboard === "player" && c.hp > 0);
+    assert.ok(guard);
+    guard.room = from;
+    tickSwarm(g, 1);
+    assert.equal(unit.room, from);
+    guard.hp = 0;
+    tickSwarm(g, 0.05);
+    assert.notEqual(unit.room, from);
+    assert.ok(nearestSystem(g.player, from).includes(unit.room!));
   });
 
   it("an Ion Intruder ionizes a player system", () => {

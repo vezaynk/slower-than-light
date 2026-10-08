@@ -563,7 +563,6 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
     }
     const room = enemy.rooms.find((r) => r.id === kit.room);
     if (!room) continue;
-    // Later ticks stay in this room. Crew here, otherwise this room's system. kit.room is not cleared.
     const alive = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id);
     if (alive.length > 0) {
       const crew = alive[Math.floor(rand(g) * alive.length)];
@@ -573,6 +572,12 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
     // No crew: system damage is accrueBar below, one bar per BREAK_BAR_S, not this blow.
   }
   if (boarded) sabotagePlayerBoard(g, kit, dt);
+  // Boarding, "Boarding Drones": stay until the system is destroyed and no hostile crew remain, then the nearest system room.
+  if (boarded && g.enemy) {
+    stepFinishedBoard(g, g.enemy, kit, (roomId) =>
+      g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === roomId),
+    );
+  }
 }
 
 /** One enemy system bar per BREAK_BAR_S while the drone is already aboard and no enemy crew are in the room. */
@@ -622,6 +627,47 @@ function route(ship: Ship, from: string, to: string): string[] | null {
     }
   }
   return null;
+}
+
+/**
+ * Boarding, "Boarding Drones": "The Boarding Drone will stay in a room until it the system is destroyed and there is
+ * no hostile crew, then it will move to attack the nearest system room".
+ * INFERRED: nearest is the fewest interior doors. A system that is already destroyed is not a target.
+ * INFERRED: equal door counts are an even draw. No walk time is printed, so the move is immediate.
+ */
+function nearestWorkingSystem(g: Game, ship: Ship, from: string): Room | undefined {
+  let best = Infinity;
+  const tied: Room[] = [];
+  for (const room of ship.rooms) {
+    if (room.id === from || !room.system) continue;
+    const sys = ship.systems[room.system];
+    if (!sys || sys.damage >= sys.level) continue;
+    const path = route(ship, from, room.id);
+    if (!path) continue;
+    if (path.length < best) {
+      best = path.length;
+      tied.length = 0;
+      tied.push(room);
+    } else if (path.length === best) tied.push(room);
+  }
+  return randomOf(g, tied);
+}
+
+function stepFinishedBoard(
+  g: Game,
+  ship: Ship,
+  holder: { room?: string; fix?: number },
+  blocked: (roomId: string) => boolean,
+) {
+  if (!holder.room) return;
+  const room = ship.rooms.find((item) => item.id === holder.room);
+  if (!room?.system || blocked(room.id)) return;
+  const sys = ship.systems[room.system];
+  if (!sys || sys.damage < sys.level) return;
+  const next = nearestWorkingSystem(g, ship, room.id);
+  if (!next) return;
+  holder.room = next.id;
+  holder.fix = 0;
 }
 
 /**
@@ -1930,20 +1976,11 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
       continue;
     }
     const sys = here.system ? g.player.systems[here.system] : null;
-    if (here.system && sys && sys.damage < sys.level) {
-      unit.fired = 0;
-      continue;
-    }
-    // INFERRED: nothing left here, so it moves to another working system. Room-to-room walking is not modelled.
-    const next = randomOf(
-      g,
-      playerSystemRooms(g).filter((room) => room.id !== here.id && g.player.systems[room.system!].damage < g.player.systems[room.system!].level),
-    );
-    if (next) {
-      unit.room = next.id;
-      unit.fix = 0;
-    }
+    if (here.system && sys && sys.damage < sys.level) unit.fired = 0;
   }
+  stepFinishedBoard(g, g.player, unit, (roomId) =>
+    g.crew.some((c) => c.aboard === "player" && c.room === roomId && c.hp > 0 && forPlayer(c)),
+  );
 }
 
 /**

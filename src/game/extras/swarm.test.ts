@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { onPlayerJump } from "./index.ts";
 import { applyImpact, COATED_DOOR_HITS, createGame, startCombat } from "../sim.ts";
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
-import type { DroneUnit, Game, Kit, Shot } from "../types.ts";
+import type { DroneUnit, Game, Kit, Ship, Shot } from "../types.ts";
 import {
   DRONE_COOLDOWN_S,
   DRONE_DOOR_HITS_PER_S,
@@ -23,6 +23,44 @@ import {
   swarmIntercept,
   tickSwarm,
 } from "./swarm.ts";
+
+/** Fewest interior doors to another system that still has a bar. Mirrors swarm.ts nearestWorkingSystem. */
+function nearestSystem(ship: Ship, from: string): string[] {
+  const linked = (id: string) => {
+    const out: string[] = [];
+    for (const door of ship.doors) {
+      if (door.b === "void") continue;
+      if (door.a === id) out.push(door.b);
+      else if (door.b === id) out.push(door.a);
+    }
+    return out;
+  };
+  const dist = new Map<string, number>([[from, 0]]);
+  const queue = [from];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const next of linked(cur)) {
+      if (dist.has(next)) continue;
+      dist.set(next, (dist.get(cur) ?? 0) + 1);
+      queue.push(next);
+    }
+  }
+  let best = Infinity;
+  const tied: string[] = [];
+  for (const room of ship.rooms) {
+    if (room.id === from || !room.system) continue;
+    const sys = ship.systems[room.system];
+    if (!sys || sys.damage >= sys.level) continue;
+    const steps = dist.get(room.id);
+    if (steps == null) continue;
+    if (steps < best) {
+      best = steps;
+      tied.length = 0;
+      tied.push(room.id);
+    } else if (steps === best) tied.push(room.id);
+  }
+  return tied;
+}
 
 function place(g: Game, power = 3): Kit {
   const kit: Kit = {
@@ -499,6 +537,32 @@ describe("swarm", () => {
     assert.equal(g.enemy.shieldNow, 4);
     assert.equal(g.enemy.hull, hull);
     assert.equal(friend.hp, friendHp);
+  });
+
+  it("moves to the nearest system room once that system is destroyed and no enemy crew remain", () => {
+    const g = createGame(18);
+    place(g);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    assert.equal(deploy(g, "board"), true);
+    tickSwarm(g, 1);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit?.room);
+    const from = kit.room;
+    const room = g.enemy.rooms.find((r) => r.id === from);
+    assert.ok(room?.system);
+    const sys = g.enemy.systems[room.system];
+    sys.damage = sys.level;
+    const guard = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(guard);
+    guard.room = from;
+    guard.aboard = "enemy";
+    tickSwarm(g, 1);
+    assert.equal(kit.room, from);
+    for (const c of g.crew) if (c.side === "enemy" && c.room === from) c.hp = 0;
+    tickSwarm(g, 0.05);
+    assert.notEqual(kit.room, from);
+    assert.ok(nearestSystem(g.enemy, from).includes(kit.room!));
   });
 
   it("an underpowered board does not attack", () => {

@@ -271,7 +271,8 @@ const CORE_EVENTS: EventDef[] = [
         "fx": [
           {
             "k": "fight",
-            "tier": "Auto-ship"
+            "tier": "Auto-ship",
+            "asteroid": true
           }
         ]
       }

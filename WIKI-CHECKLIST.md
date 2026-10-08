@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2698 |
+| Behaviors checked | 2699 |
 | Behaviors open | 536 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -2620,6 +2620,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] One shown trade pays the printed fuel, missile, or drone band, and 40 scrap hires a Lanius named Translator.
   - [x] Opening the beacon shows the printed merchant sentence before that trade.
+  - [x] Declining the trade shows the printed leave sentence and spends nothing.
 
 - [x] Lanius vessel in rich debris field
   - [x] same title as "Lanius Vessel in Rich Debris Field" with different capitalization.

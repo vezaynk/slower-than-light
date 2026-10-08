@@ -44,6 +44,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Mantis fight (Zoltan) has no choice. Arrival calls c:mantis-fight-zoltan:0.
+  // "Fight a Mantis ship (default rewards)." unique=true.
   {
     dest: "Mantis fight (Zoltan)",
     slug: "mantis-fight-zoltan",

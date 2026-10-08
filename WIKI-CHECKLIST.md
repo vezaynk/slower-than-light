@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2806 |
+| Behaviors checked | 2807 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4672,6 +4672,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] One to three Rock boarders beam aboard your ship when you fight the Rock ship from Rock fight with boarders.
   - [x] One of the two printed intros is shown before that fight.
+  - [x] The red line beams 1-3 rock boarders aboard and starts the Rock fight on arrival, and it is not a button.
 
 - [ ] Rock fight with boarders in asteroid field
   - [x] one beacon in a sector the page names, while a free beacon remains.

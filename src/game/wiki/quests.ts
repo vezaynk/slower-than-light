@@ -1071,6 +1071,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:pirate-ship-attacking-civilian:1": (g) => {
     result(g, "The fight brings them out of your immediate scanning range. After a time the distress calls stop.", undefined, ["Nothing happens."]);
   },
+  // Pirate ship attacking civilian distress. "Aid the civilian ship." One printed lead-in, then a Pirate ship fight.
+  "c:pirate-ship-attacking-civilian-distress:0": (g) => {
+    pageFight(g, "You power up your weapons and engage the pirate ship.", "Pirate ship", "pirate-ship-attacking-civilian-distress");
+  },
   // Pirate ship attacking civilian distress. The distress page's stay-out line.
   "c:pirate-ship-attacking-civilian-distress:1": (g) => {
     result(g, "The fight brings them out of your immediate scanning range; however, after a time the distress calls stop.", undefined, ["Nothing happens."]);

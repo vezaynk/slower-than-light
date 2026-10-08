@@ -815,6 +815,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     result(g, "The civilian ship wisely made a fast retreat while you distracted the hostile ship.", undefined, ["Nothing happens."]);
   },
+  // Crystal ship attacking Federation loyalists, "You contact the Federation ship."
+  // Two results and no odds. INFERRED: equal.
+  // The crewmember is unnamed and not granted. Low scrap with resources still is.
+  // "a random amount of resources with some scrap" is Rewards, Stuff. The unnamed bonus item is not granted.
+  "q:crystal-loyalists:contact": (g) => {
+    if (weighted(g, [["survivor", 1], ["materials", 1]] as const) === "survivor") {
+      result(
+        g,
+        "The ship looks battered and ready to break apart. You quickly move in to help rescue the survivors, but it looks like only one person made it. They offer to join your crew as thanks.",
+        rollStandard(g, "low"),
+      );
+      return;
+    }
+    result(
+      g,
+      "\"Thank you! We heard you jumped into an unknown sector and we figured it would be a safe enough place to hide from the Rebels. We were wrong!\" They transfer some excess materials for your trouble.",
+      rollSurrenderOffer(g, undefined, true),
+    );
+  },
   // Lanius ship attacking Rock, "Contact the Rockmen." Two results, no odds. INFERRED: equal.
   "q:lanius-rock:contact": (g) => {
     if (weighted(g, [["scrap", 1], ["nothing", 1]] as const) === "scrap") {
@@ -3181,6 +3200,15 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
   },
+  // Crystal ship attacking Federation loyalists. Destroyed pays medium scrap with resources.
+  // A crew kill pays high. Then "You contact the Federation ship." Default salvage is not paid.
+  "crystal-ship-attacking-federation-loyalists": std(
+    "medium",
+    "high",
+    "The Crystalline ship shatters and you pick what you can from the debris.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can.",
+    [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
+  ),
   // Auto-ship fight in plasma storm. Both fight paths print that destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The engines and cloaking escapes stay as they are.
   "auto-ship-fight-in-plasma-storm": (g, deadCrew) => {

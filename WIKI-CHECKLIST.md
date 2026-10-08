@@ -1414,7 +1414,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Zoltan Fight — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Fight with Boarders — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Follows Mantis — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Zoltan Great Eye — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Pulling closer loses a crewmember, fights a Zoltan ship, pays high scrap, or mounts Healing Burst, and a clone bay does not bring that crewmember back.
+- [ ] Zoltan Great Eye — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Pulling closer loses a crewmember, fights a Zoltan ship, pays high scrap, or mounts Healing Burst, and a clone bay does not bring that crewmember back. At Zoltan Great Eye, the printed italic is shown in full before Pull the ship in closer and Leave.
 - [ ] Zoltan Homeworlds — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Life Raft — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Zoltan Mantis fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

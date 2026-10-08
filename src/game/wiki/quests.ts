@@ -946,6 +946,63 @@ export function std(destroyed: SurrenderTier, killed: SurrenderTier, textD: stri
   return (g, deadCrew) => result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? killed : destroyed), [], then);
 }
 
+/** Rock and Slug standoff. "Your ship reactor is upgraded." No step is printed. INFERRED: one bar.
+ * Template:Reactor power cost caps the reactor at 25. Past that the bar does not move.
+ */
+function eventReactor(g: Game): string {
+  if (upgradeCost("reactor", g.player.reactor) == null) return "";
+  g.player.reactor += 1;
+  noteReactorEvent(g);
+  return "Your ship reactor is upgraded.";
+}
+
+function offerLines(g: Game, offer: SurrenderOffer): string[] {
+  const paid = payOffer(g, offer, true);
+  const got: string[] = [];
+  if (offer.scrap) got.push(`Scrap: ${offer.scrap}.`);
+  if (offer.fuel) got.push(`Fuel: ${offer.fuel}.`);
+  if (offer.missiles) got.push(`Missiles: ${offer.missiles}.`);
+  if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
+  if (paid.weaponName) got.push(`${paid.weaponName}.`);
+  got.push(...paid.extras);
+  for (const line of got) log(g, line);
+  return got;
+}
+
+/** The grateful Slug captain. Three results and no odds. INFERRED: equal. */
+export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []) {
+  const kind = weighted(g, [["free", 1], ["price", 1], ["thanks", 1]] as const);
+  if (kind === "free") {
+    const note = eventReactor(g);
+    result(g, `${lead} The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!`, undefined, [...extras, note].filter(Boolean));
+    return;
+  }
+  if (kind === "price") {
+    const n = between(g, [10, 15]);
+    const tail = extras.length ? ` ${extras.join(" ")}` : "";
+    card(g, `${lead} The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price.${tail}`, [
+      { id: `s:rock-slug:upgrade:${n}`, label: `Agree to the price. [${n} scrap]` },
+      { id: "s:rock-slug:decline", label: "Decline the offer." },
+    ]);
+    return;
+  }
+  result(g, `${lead} The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission.`, undefined, [...extras, "Nothing happens."]);
+}
+
+/** Transaction 10-15 subtract_scrap. The amount is the one shown on the choice. */
+export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boolean {
+  if (!Number.isInteger(n) || n < 10 || n > 15 || g.scrap < n) return true;
+  g.scrap -= n;
+  log(g, `Scrap: -${n}.`);
+  if (kind === "debt") {
+    slugCaptainGrateful(g, "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful.", [`Scrap: -${n}.`]);
+    return true;
+  }
+  const note = eventReactor(g);
+  result(g, "You let their team on board and after a short time they finish their work.", undefined, [`Scrap: -${n}.`, note].filter(Boolean));
+  return true;
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -988,6 +1045,13 @@ export const PAGE_WINS: Record<string, Win> = {
       extras.push(line, "Nothing happens.");
     }
     result(g, text, rollStandard(g, "medium"), extras);
+  },
+  // Rock and Slug standoff. Destroyed pays low standard. A crew kill pays medium. Then the Slug captain.
+  "rock-and-slug-standoff": (g, deadCrew) => {
+    const text = deadCrew
+      ? "With the Rock crew dead, you scrap the ship for supplies."
+      : "With the Rock Ship destroyed, you take the time to collect what little scrap remains.";
+    slugCaptainGrateful(g, text, offerLines(g, rollStandard(g, deadCrew ? "medium" : "low")));
   },
   // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
   "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {

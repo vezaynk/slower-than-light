@@ -25,6 +25,7 @@ import {
 import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
+import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -1100,6 +1101,23 @@ function mantisControlled(g: Game) {
   }
 }
 
+/** Rock and Slug standoff: "1 damage to each of 2 random systems".
+ * INFERRED: two different installed systems when two exist.
+ */
+function twoSystems(g: Game): string {
+  const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
+  const pool = [...ids];
+  const lines: string[] = [];
+  for (let n = 0; n < 2 && pool.length; n++) {
+    const i = Math.min(pool.length - 1, Math.floor(rand(g) * pool.length));
+    const id = pool.splice(i, 1)[0]!;
+    hurtSystem(g.player, id, 1);
+    lines.push(`1 damage to ${id}.`);
+    log(g, `1 damage to ${id}.`);
+  }
+  return lines.join(" ");
+}
+
 /** "1 damage to a random system". INFERRED: one of the installed systems, equal odds. */
 function hurtRandomSystem(g: Game, amount = 1): string {
   const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
@@ -1873,6 +1891,19 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, "After the Slugs board the ship, you are surprised to see the Rock ship spring to life and decimate the other ship. They message you, \"Pathetic. You are either a coward or an ally of the Slugs. Either way, you don't deserve to live.\"", "Rock ship", "slug-ship-boarding-rock-ship-rock");
   },
 
+  // Rock and Slug standoff. The debt is 10-15 scrap, shown on the button. Demand lists three results and prints no odds. INFERRED: equal.
+  "c:rock-and-slug-standoff:0": (g) => {
+    const debt = between(g, [10, 15]);
+    card(g, "The Slug captain explains that they upgraded the Rock ship's reactor and now the 'thick boulder heads' are refusing to pay for the work done. The Rock Captain says the 'slime balls' did a poor job that is not worth their agreed upon price.", [
+      { id: `s:rock-slug:debt:${debt}`, label: `Offer to pay off the Rock debt. [${debt} scrap]` },
+      { id: "s:rock-slug:demand", label: "Demand the Rock ship pay the agreed upon price." },
+      { id: "s:rock-slug:leave", label: "You have better things to attend to, leave them." },
+    ]);
+  },
+  "c:rock-and-slug-standoff:1": (g) => {
+    show(g, "Nothing happens.");
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,
@@ -2419,6 +2450,32 @@ function chooseRolled(g: Game, id: string): boolean {
     show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"));
     return true;
   }
+  let rock = id.match(/^s:rock-slug:(debt|upgrade):(\d+)$/);
+  if (rock) return rockSlugPay(g, rock[1] === "debt" ? "debt" : "upgrade", Number(rock[2]));
+  if (id === "s:rock-slug:decline") {
+    show(g, "You break communications and prepare to move on.", undefined, ["Nothing happens."]);
+    return true;
+  }
+  if (id === "s:rock-slug:leave") {
+    show(g, "Nothing happens.");
+    return true;
+  }
+  if (id === "s:rock-slug:demand") {
+    // Agree, a Rock fight, or the explosion. No odds. INFERRED: equal.
+    const r = weighted(g, [["pay", 1], ["fight", 1], ["boom", 1]] as const);
+    if (r === "pay") {
+      slugCaptainGrateful(g, "With much grumbling, the Rock Captain agrees to pay the price.");
+      return true;
+    }
+    if (r === "fight") {
+      fight(g, "Apparently the Rock Captain was more annoyed than you thought, they shut off all communication and turn on you, the 'slime balls' defender.", "Rock ship", "rock-and-slug-standoff");
+      return true;
+    }
+    if (hurt(g, 5)) return true;
+    const sys = twoSystems(g);
+    show(g, "A massive explosion emanates from the Rock Ship, shattering its hull and sending debris on an unavoidable collision course to your ship. Seems like that reactor upgrade was poorly done after all, and the Slugs took the opportunity to jump away.", undefined, [sys].filter(Boolean));
+    return true;
+  }
   if (id.startsWith("s:moon:")) return moonChoice(g, id);
   if (id.startsWith("s:confused-mantis:")) return confusedMantisChoice(g, id);
   return false;
@@ -2576,7 +2633,7 @@ function moonChoice(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -2635,6 +2692,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
+  // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
+  m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
+  if (m && g.scrap < Number(m[1])) return `Need ${m[1]} scrap`;
   // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
   if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return "Needs Rock Plating";
   // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.

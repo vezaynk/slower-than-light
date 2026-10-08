@@ -244,4 +244,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Rock and Slug standoff. The debt, the demand, and the Slug captain run in filler-events.ts and quests.ts.
+    dest: "Rock and Slug standoff",
+    slug: "rock-and-slug-standoff",
+    flag: "cited:rock-and-slug-standoff",
+    aliases: ["Rock and Slug standoff"],
+    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
+    body: "You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand.",
+    choices: [
+      {
+        id: "c:rock-and-slug-standoff:0",
+        label: "Hail them to see what's wrong.",
+        // "The Slug captain explains the unpaid reactor work."
+        fx: [{ k: "note", text: "Pay the debt, demand payment, or leave." }],
+      },
+      {
+        id: "c:rock-and-slug-standoff:1",
+        label: "Leave them be.",
+        // "Nothing happens."
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+    ],
+  },
 ];

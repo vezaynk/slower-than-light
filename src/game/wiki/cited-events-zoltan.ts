@@ -136,7 +136,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-border-police",
     aliases: ["Zoltan border police", "Zoltan Border Police"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "A team of border police beam on board.",
+    body: "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!",
     choices: [
       {
         id: "c:zoltan-border-police:0",

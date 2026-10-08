@@ -3700,6 +3700,14 @@ const PIRATE_CIVILIAN_INTROS = [
   "You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.",
 ];
 
+// Pirate ship attacking civilian (Lanius). Three printed intros, no odds. INFERRED: equal.
+// Attack stays c:pirate-ship-attacking-civilian-lanius:0. Avoid stays :1.
+const LANIUS_PIRATE_CIVILIAN_INTROS = [
+  `You discover an abandoned mining facility in the process of being 'acquired' by the Lanius. However, you immediately receive a call from a civilian transport vessel, "Help! We were trying to escape before the Lanius came only to be caught by pirates!" You see a lone pirate ship boarding the civilian craft.`,
+  "A pirate ship emerges from hiding after you and another ship jump into the area. Sensors show the pirates ran a quick scan of your ship's weapon system before flying off to pursue the unarmed civilian ship.",
+  `A pirate ship is firing on the small ships docked at a refueling station. They are broadcasting on a wide band channel. You catch the captain's rant mid-speed, "...saw you trading with those damned scavengers. I'll show you what happens when you try and undercut the Red Giant gang!"`,
+];
+
 // Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
 const ZOLTAN_FIGHT_INTROS = [
@@ -4124,6 +4132,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: PIRATE_CIVILIAN_INTROS[between(g, [0, 5])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Pirate ship attacking civilian (Lanius). One of the three printed intros. Both printed choices stay.
+  if (ev.slug === "pirate-ship-attacking-civilian-lanius") {
+    return {
+      title: ev.dest,
+      body: LANIUS_PIRATE_CIVILIAN_INTROS[between(g, [0, 2])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

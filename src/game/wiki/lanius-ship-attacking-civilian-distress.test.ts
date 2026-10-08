@@ -61,7 +61,12 @@ describe("Lanius ship attacking civilian distress", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-civilian-distress:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
+    assert.notEqual(g.phase, "combat");
     assert.equal(g.scrap, 10);
   });
 

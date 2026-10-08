@@ -1075,6 +1075,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-civilian:1": (g) => {
     result(g, "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.", undefined, ["Nothing happens."]);
   },
+  // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
+  "c:lanius-ship-attacking-civilian-distress:1": (g) => {
+    result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);
+  },
   // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
   "c:mantis-ship-attacking-civilian:1": (g) => {
     const line = pick(g, [

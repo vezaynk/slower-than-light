@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 936 |
-| Behaviors checked | 2791 |
-| Behaviors open | 543 |
+| Pages fully checked | 937 |
+| Behaviors checked | 2792 |
+| Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -691,12 +691,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Bump hulls with Mantis ship
   - [x] same title as "Bump Hulls with Mantis Ship" with different capitalization.
 
-- [ ] Capture the ship
+- [x] Capture the ship
   - [x] cited-events-quests-b.ts.
   - [x] Offer services is a decline.
   - [x] Teleporter, Fire Bomb, and Anti-Bio open the offer in quests-b.ts.
   - [x] The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
-  - [ ] The anti-ship battery variants on the later assist fight are not wired.
+  - [x] The later assist fight can be an Auto-ship or an Elite Rebel with a friendly Anti-Ship Battery, the Elite escapes at 20 percent from 40-60 percent hull, and the unnamed crewmember is not granted.
 
 - [ ] Carnelian
   - [x] crystal-b in HULLS.

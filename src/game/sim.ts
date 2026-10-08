@@ -5076,6 +5076,7 @@ function arrive(g: Game, b: Beacon) {
   // Engi fight: "Fight an Engi ship (default rewards)." unique=true.
   // Mantis fight (Zoltan): "Fight a Mantis ship (default rewards)." unique=true.
   // Pirate fight (Zoltan): "Fight a Pirate ship (default rewards)." One of the five printed intros. unique=false.
+  // Crystal fight: "Fight a Crystal ship (default rewards)." One of the seven printed intros. unique=false.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5102,7 +5103,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:auto-ship-fight-near-sun" ||
       b.flag === "cited:engi-fight" ||
       b.flag === "cited:mantis-fight-zoltan" ||
-      b.flag === "cited:pirate-fight-zoltan") &&
+      b.flag === "cited:pirate-fight-zoltan" ||
+      b.flag === "cited:crystal-fight") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

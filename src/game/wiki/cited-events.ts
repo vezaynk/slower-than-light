@@ -4535,7 +4535,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
     };
   }
-  // Crystal fight. One of the seven printed intros. The fight stays c:crystal-fight:0.
+  // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
+  // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
   if (ev.slug === "crystal-fight") {
     return {
       title: ev.dest,

@@ -24,6 +24,8 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
+  // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
+  // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
   {
     dest: "Crystal fight",
     slug: "crystal-fight",

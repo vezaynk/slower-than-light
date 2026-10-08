@@ -402,6 +402,8 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     hail: "\"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame.\"",
     accept: "Accept his surrender.",
     refuse: "Ignore him and attack.",
+    // "He transfers over the goods and starts to repair his ship." The unnamed weapon stays ungranted.
+    result: "He transfers over the goods and starts to repair his ship.",
   },
   // "Zoltan ship asks to dock" (old title "Zoltan science ship"), ZOLTAN_SCIENCE_DOCK: "Enemy ship has 50% chance to
   // surrender at 30-40% hull". -> "You receive a Zoltan crewmember and low scrap with resources." Trivia: "there is
@@ -941,7 +943,11 @@ export function surrenderChoose(g: Game, id: string): boolean {
     const b = here(g);
     if (b && b.kind !== "boss") b.resolved = true;
     // Crystal fight, Ignore them: "The fight continues."
-    log(g, plan.event === "crystal-fight" ? "You cut off communications and prepare to finish them off." : "Offer refused. They brace for more.");
+    log(g, plan.event === "crystal-fight"
+      ? "You cut off communications and prepare to finish them off."
+      : plan.event === "the-black-raven"
+        ? "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire."
+        : "Offer refused. They brace for more.");
     return true;
   }
   // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.
@@ -1417,13 +1423,18 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   "s:the-black-raven:duel": (g) => {
     if (!livingSlug(g)) return;
     if (rand(g) < 0.5) {
-      pageFight(g, "Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"", "Slug Assault pirate ship", "the-black-raven");
+      pageFight(
+        g,
+        "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You can only wonder what is happening. After a short time your comrade grunts in pain and collapses onto the floor, stunned. Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"",
+        "Slug Assault pirate ship",
+        "the-black-raven",
+      );
       slugBoarders(g, 1, 2);
     } else {
       const eligible = between(g, scrapBand(g, "high"));
       pageResult(
         g,
-        "His face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"",
+        "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious.\n\nHis face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"",
         { tier: "high", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 },
       );
     }

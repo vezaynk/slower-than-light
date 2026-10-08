@@ -60,6 +60,7 @@ describe("The Black Raven mind duel", () => {
         assert.equal(g.enemy!.faction, "slug");
         assert.ok(g.enemy!.pirate);
         assert.equal(g.fightEvent, "the-black-raven");
+        assert.ok(g.log.some((line) => line.includes("grunts in pain and collapses onto the floor, stunned.")));
         assert.equal(g.scrap, scrap);
         assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
       } else {
@@ -69,6 +70,7 @@ describe("The Black Raven mind duel", () => {
         assert.equal(slugsAboard(g).length, 0);
         assert.ok(g.scrap > scrap);
         assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+        assert.match(g.event!.body, /shakes off the daze and appears victorious/);
         assert.match(g.event!.body, /concedes his defeat/);
         assert.doesNotMatch(g.event!.body, /weapon/i);
       }

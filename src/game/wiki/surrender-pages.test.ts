@@ -210,7 +210,20 @@ describe("The Black Raven", () => {
     assert.equal(g.event!.choices[0].label, "Accept his surrender.");
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
+    assert.equal(g.reward!.note, "He transfers over the goods and starts to repair his ship.");
     assert.ok(g.reward!.scrap > 0);
+    assert.equal(g.player.weapons.length, createGame(5).player.weapons.length);
+  });
+
+  it("ignoring his surrender logs the printed cut-off sentence and the fight continues", () => {
+    const g = arrive(5, "Slug Home Nebula", "The Black Raven");
+    choose(g, "c:the-black-raven:0");
+    choose(g, "s:the-black-raven:decline");
+    forceOffer(g);
+    choose(g, REFUSE_ID);
+    assert.equal(g.phase, "combat");
+    assert.ok(g.log.some((line) => line.includes("There is no need to be....")));
+    assert.equal(g.enemy!.faction, "slug");
   });
 });
 

@@ -177,6 +177,15 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
 /** Hostile-group slots: a hostile cited event or a plain hostile beacon (sector-hostiles via enemy-gen). */
 const HOSTILE_SLOTS = new Set<Slot>(["hostile", "nebula-hostile", "storm", "boarder", "environment"]);
 
+/**
+ * unique=false boarder pages. Template:Locations: "This event can occur multiple times per sector."
+ * The sector's "1-2 boarders" line is that list, so both beacons can be the same event.
+ */
+const REPEAT_BOARDERS: Record<string, string> = {
+  "Abandoned Sector": "Boarders: Humans (Abandoned)",
+  "Hidden Crystal Worlds": "Boarders: Crystal",
+};
+
 // ---- Classification -------------------------------------------------------------------------------------------
 
 export type EventClass = "hostile" | "neutral" | "distress" | "items";
@@ -331,9 +340,8 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
   const specials = lines.flatMap((l) => (l.event ? [l.event] : []));
   for (const ev of events) {
     if (specials.some((name) => specialMatch(ev, name)) || g.beacons.some((b) => b.flag === ev.flag)) continue;
-    // Boarders: Humans (Abandoned), Locations unique=false. Template:Locations: "This event can occur multiple times per sector."
-    // Abandoned Sector, Beacons: "1-2 boarders". It fills that line, including both beacons, and is not also a one-shot neutral.
-    if (ev.dest === "Boarders: Humans (Abandoned)") continue;
+    // unique=false boarder page for this sector. It fills the boarders line, including both beacons, and is not also a one-shot neutral.
+    if (ev.dest === REPEAT_BOARDERS[g.sectorName]) continue;
     const c = classifyEvent(ev);
     queue[has(c) ? c : "neutral"].push(ev);
   }
@@ -417,14 +425,13 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         // Left as an unflagged event beacon: the quest stamp that runs after stampCitedEvents may claim it.
         setKind(b, "event");
         return;
-      case "boarder":
-        // Abandoned Sector, Beacons: "1-2 boarders". Boarders: Humans (Abandoned) is unique=false, so the same
-        // event fills every beacon of this line. Template:Locations: "This event can occur multiple times per sector."
-        if (g.sectorName === "Abandoned Sector") {
-          const ev = events.find((e) => e.dest === "Boarders: Humans (Abandoned)");
-          if (ev) return place(b, ev);
-        }
+      case "boarder": {
+        // "1-2 boarders". A unique=false page fills every beacon of this line.
+        const name = REPEAT_BOARDERS[g.sectorName];
+        const ev = name ? events.find((e) => e.dest === name) : undefined;
+        if (ev) return place(b, ev);
         return hostileBeacon();
+      }
       default:
         return hostileBeacon();
     }

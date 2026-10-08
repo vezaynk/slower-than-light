@@ -107,8 +107,10 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         );
         assert.equal(a.beacons.filter((x) => x.kind === "start").length, 1);
         const flags = a.beacons.map((x) => x.flag).filter((f) => f.startsWith("cited:"));
-        // Boarders: Humans (Abandoned) is unique=false, so Abandoned Sector may stamp that flag twice.
-        const repeatable = name === "Abandoned Sector" ? "cited:boarders-humans-abandoned" : "";
+        // unique=false boarder pages may stamp the same flag on both beacons of the 1-2 line.
+        const repeatable =
+          name === "Abandoned Sector" ? "cited:boarders-humans-abandoned" :
+          name === "Hidden Crystal Worlds" ? "cited:boarders-crystal" : "";
         const once = flags.filter((f) => f !== repeatable);
         assert.equal(new Set(once).size, once.length, name);
         // Running the stamp again does not re-deal.
@@ -145,17 +147,23 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     }
   });
 
-  it("Abandoned Sector can place Boarders: Humans (Abandoned) on both boarder beacons", () => {
+  it("unique=false boarder events can fill both beacons of the 1-2 line", () => {
     // Template:Locations unique=false: "This event can occur multiple times per sector."
-    // Abandoned Sector, Beacons: "1-2 boarders".
-    let twice = 0;
-    for (let seed = 1; seed <= 40; seed++) {
-      const g = dealt(seed, "Abandoned Sector");
-      const n = g.beacons.filter((b) => b.flag === "cited:boarders-humans-abandoned").length;
-      assert.ok(n >= 1 && n <= 2, `${seed} ${n}`);
-      if (n === 2) twice++;
+    // Abandoned Sector and Hidden Crystal Worlds, Beacons: "1-2 boarders".
+    const cases = [
+      ["Abandoned Sector", "cited:boarders-humans-abandoned", 1],
+      ["Hidden Crystal Worlds", "cited:boarders-crystal", 0],
+    ] as const;
+    for (const [sector, flag, floor] of cases) {
+      let twice = 0;
+      for (let seed = 1; seed <= 60; seed++) {
+        const g = dealt(seed, sector);
+        const n = g.beacons.filter((b) => b.flag === flag).length;
+        assert.ok(n >= floor && n <= 2, `${sector} ${seed} ${n}`);
+        if (n === 2) twice++;
+      }
+      assert.ok(twice > 0, `${sector} never placed the event twice`);
     }
-    assert.ok(twice > 0, "a 1-2 line never rolled 2");
   });
 
   it("gives The Last Stand its 3 repair stations and 1 store", () => {

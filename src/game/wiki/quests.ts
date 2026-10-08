@@ -1238,6 +1238,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-refueling-outpost:0": (g) => {
     pageFight(g, `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`, "Rebel ship", "rebel-ship-attacking-refueling-outpost");
   },
+  // Auto-ship attacking outpost. "Intervene to defend the outpost." One printed lead-in, then an Auto-ship fight.
+  "c:auto-ship-attacking-outpost:0": (g) => {
+    pageFight(g, "Detecting the higher threat, the automated ship moves in to engage your ship.", "Auto-ship", "auto-ship-attacking-outpost");
+  },
   // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
     result(g, "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.", undefined, ["Nothing happens."]);

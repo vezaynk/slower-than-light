@@ -716,6 +716,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     result(g, "The competitor gone, you investigate the debris, but it looks as if the Lanius harvested much of it before you arrived.", rollStandard(g, "low"));
   },
+  // Lanius ship salvager. "Attack the ship." One printed lead-in, then a Lanius ship fight.
+  // The nested scoff attack prints "were doing". This choice prints "are doing".
+  "c:lanius-ship-salvager:0": (g) => {
+    pageFight(g, "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.", "Lanius ship", "lanius-ship-salvager");
+  },
   // Lanius ship salvager, {{Blue Option|Lanius Crew|Request some scrap.}}
   // Three results, no odds. INFERRED: equal. Medium scrap is scrap only, not scrap with resources.
   // The nested fight is default Lanius rewards: no PAGE_WINS row, so winCombat pays the default salvage.

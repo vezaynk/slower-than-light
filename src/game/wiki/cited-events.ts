@@ -3658,6 +3658,17 @@ const FREE_SCRAP_WITH_RESOURCES_INTROS = [
   "You happen upon the remains of a space station. It has been mostly picked clean but there appears to be a few materials that will aid you in your mission.",
 ];
 
+// Free weapon. The page prints six intros and no odds.
+// INFERRED: equal. The gift stays c:free-weapon:0.
+const FREE_WEAPON_INTROS = [
+  "Holy crap! A weapon is just floating in space!",
+  "You inform a nearby station of your flight from the Rebels. They offer to outfit your ship with a weapon and wish you well.",
+  "A settlement still loyal to the Federation hails your ship. They have prepared a weapon to aid your escape from the Rebels.",
+  "As soon as you arrive a small Mantis ship detaches from a wreck and jumps away. You must have interrupted their salvage operation because you find a weapon ready to be installed!",
+  `A small merchant ship messages you, "Underground Federation comm channels are all talking about your 'secret' mission. Let us install a weapon to help. Good luck!"`,
+  "Debris from a battle is scattered around this system. A few pieces bounce against your ship. You passively scan them and discover there is a functioning weapon among them!",
+];
+
 // Rebel checkpoint. Four intros and four hide labels, no odds. INFERRED: equal.
 const REBEL_CHECKPOINT_INTROS = [
   "A rather large fleet of civilian ships are held up at this Beacon. It appears to be a Rebel checkpoint; everyone is being inspected for possible ties to the Federation. No one has noticed you yet.",
@@ -4653,6 +4664,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: FREE_SCRAP_WITH_RESOURCES_INTROS[between(g, [0, 5])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.
+  if (ev.slug === "free-weapon") {
+    return {
+      title: ev.dest,
+      body: FREE_WEAPON_INTROS[between(g, [0, 5])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

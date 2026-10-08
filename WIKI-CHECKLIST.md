@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2699 |
+| Behaviors checked | 2700 |
 | Behaviors open | 536 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5250,6 +5250,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Space station under construction
   - [x] same title as "Space Station Under Construction" with different capitalization.
   - [x] Offering help shows the printed supplies sentence and still adds the quest marker.
+  - [x] Refusing to sell the Lanius shows the printed pity sentence and pays medium scrap.
 
 - [ ] Special events crewmembers
   - [ ] The page states a mechanic and it is not a playable event.

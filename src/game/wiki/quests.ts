@@ -1315,6 +1315,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, "Your hacking system automatically counters the digital assault and you move in to fight the ship.", "Slug ship", "slug-hacker-oxygen");
     shutPlayerHacking(g);
   },
+  // Slug hacker (doors). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
+  // The page says "Hacking offline". The Door System stays online on this path.
+  // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
+  // This handler returns before citedChoose, so the Continue path's door shutdown does not run.
+  "c:slug-hacker-doors:1": (g) => {
+    pageFight(g, "Your hacking system automatically counters the digital assault and you move in to fight the ship.", "Slug ship", "slug-hacker-doors");
+    shutPlayerHacking(g);
+  },
   // Slug hacker (medical). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
   // The page beams 2 slug boarders and says "Hacking offline". Medbay stays online on this path.
   // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
@@ -2124,6 +2132,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Slug hacker (oxygen). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-oxygen:2" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Slug hacker (doors). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "c:slug-hacker-doors:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   // Slug hacker (medical). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-medical:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";

@@ -673,6 +673,35 @@ const CHOICES: Record<string, (g: Game) => void> = {
     result(g, "Your improved sensors are able to remotely access and download the public radar station's local map data.");
   },
   // Crew Teleporter. The map reveal is not wired.
+  // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
+  "c:auto-ship-near-storage-station:2": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if (pick(g, ["fight", "station"] as const) === "fight") {
+      pageFight(g, "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!", "Auto-ship", "auto-ship-near-storage-station");
+      return;
+    }
+    card(g, "The ship patrols wide around the area, successfully approaching the station while avoiding detection.", [
+      { id: "q:auto-storage:investigate", label: "Investigate the station." },
+    ]);
+  },
+  // Template:Investigate the station. Four results, no odds. INFERRED: equal.
+  // The weapon and the drone schematic are unnamed and not granted. The low scrap still is.
+  "q:auto-storage:investigate": (g) => {
+    const kind = pick(g, ["weapon", "schematic", "resources", "nothing"] as const);
+    if (kind === "weapon") {
+      result(g, "The station is a storage site for military grade weapons. You find one that can be easily attached to the ship.", scrapOnly(g, "low"));
+      return;
+    }
+    if (kind === "schematic") {
+      result(g, "The station was apparently designed to outfit Rebel ships with Drone Systems. You find a functioning Schematic.", scrapOnly(g, "low"));
+      return;
+    }
+    if (kind === "resources") {
+      result(g, "The station is a storage site for various resources. You salvage everything possible.", rollSurrenderOffer(g, "medium", true));
+      return;
+    }
+    result(g, "The station was either abandoned or stripped clean. It seems to have lain unused for quite some time. You find nothing useful.", undefined, ["Nothing happens."]);
+  },
   "c:auto-ship-near-sensor-station:3": (g) => {
     if (!hasTeleporter(g)) return;
     result(g, "Once on board, your crew is able to access and download the long-range scanner's archived information. Your map has been updated.");
@@ -1173,6 +1202,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Auto-ship near sensor station. Sensors level 3. A Crew Teleporter.
   if (id === "c:auto-ship-near-sensor-station:2" && sensors(g) < 3) return "Needs level 3 Sensors";
   if (id === "c:auto-ship-near-sensor-station:3" && !hasTeleporter(g)) return "Needs a Teleporter";
+  // Auto-ship near storage station. Cloaking, any installed level.
+  if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
@@ -1359,6 +1390,14 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect.
   "lanius-ship-absorbing-automated-scout": laniusScoutWin,
+  // Auto-ship near storage station. Destroyed pays medium scrap only, then the station.
+  // The page prints no crew-kill reward.
+  "auto-ship-near-storage-station": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "You salvage what you can from the broken ship.", scrapOnly(g, "medium"), [], [
+      { id: "q:auto-storage:investigate", label: "Investigate the station." },
+    ]);
+  },
   // Auto-ship near sensor station. Destroyed pays low scrap only. The map reveal is not wired.
   // The page prints no crew-kill reward.
   "auto-ship-near-sensor-station": (g, deadCrew) => {

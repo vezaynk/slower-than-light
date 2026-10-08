@@ -3471,6 +3471,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Auto-ship near storage station. Cloaking is a blue option.
+  if (ev.slug === "auto-ship-near-storage-station") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:auto-ship-near-storage-station:2", label: "Attempt to cloak and access the cache." },
+      ],
+    };
+  }
   // Auto-ship near sensor station. Sensors level 3 and a Crew Teleporter are blue options.
   if (ev.slug === "auto-ship-near-sensor-station") {
     return {

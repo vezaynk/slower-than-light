@@ -375,7 +375,9 @@ export function GameApp() {
       acc += dt;
       saveAcc += dt;
       const g = useGame.getState().game;
-      const live = g.phase === "combat" && !g.paused;
+      // Outside a fight the clock still has to run while someone is walking, or the sprite never leaves the room center.
+      const walking = !g.paused && g.crew.some((c) => c.hp > 0 && c.path.length > 0);
+      const live = (g.phase === "combat" && !g.paused) || walking;
       let steps = 0;
       while (acc >= 1 / 30 && steps < 4) {
         useGame.getState().tick(1 / 30);

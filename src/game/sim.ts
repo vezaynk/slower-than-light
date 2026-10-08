@@ -5476,6 +5476,8 @@ export function step(g: Game, dt: number) {
       if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
       else {
         tickIdleFires(g, h);
+        // A room order is taken on the map. Without this step the walker stays on the current room's center.
+        moveCrew(g, h);
         // Backup Battery, Overview: the window can run out once the fight is over.
         // INFERRED: those 30 seconds keep counting on the map. A fight still ticks the cell in tickExtras.
         if (g.phase !== "combat") tickCell(g, h);

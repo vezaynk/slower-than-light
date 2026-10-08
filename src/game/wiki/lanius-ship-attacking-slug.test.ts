@@ -86,11 +86,16 @@ describe("Lanius ship attacking Slug", () => {
     assert.equal(nothing, true);
   });
 
-  it("leaving spends nothing", () => {
+  it("leaving shows the printed jump sentence and spends nothing", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-slug:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "You leave the Lanius ship alone, and prepare to jump to the next beacon.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.enemy, null);
   });
 });

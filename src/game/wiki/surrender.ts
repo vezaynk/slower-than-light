@@ -122,6 +122,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   "pirate-ship-attacking-civilian-distress",
   // Lanius ship attacking civilian distress. {{SurrenderEscape(alt)|no|LANIUS_CIVILIAN}} prints never surrenders. Escape is not this line.
   "lanius-ship-attacking-civilian-distress",
+  // Lanius ship attacking civilian. {{SurrenderEscape(alt)|no|LANIUS_CIVILIAN}} prints never surrenders. Escape is not this line.
+  "lanius-ship-attacking-civilian",
   "rebel-fight-among-rebel-fleet",
   "rebel-fight-among-federation-and-rebel-fleets",
   "rebel-ship-attacking-crystal-ship",

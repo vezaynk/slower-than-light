@@ -3061,7 +3061,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Civilian Sector"
     ],
-    "body": "",
+    "body": "You come across a space station under construction. You receive a message from their command tower, \"Greetings. We recently lost contact with a cargo ship that was set to deliver more construction materials. Could you help us figure out what happened to them?\"",
     "choices": [
       {
         "id": "c:space-station-under-construction:0",

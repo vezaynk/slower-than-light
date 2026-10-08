@@ -243,7 +243,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-security-checkpoint",
     aliases: ["Zoltan security checkpoint", "Zoltan Security Checkpoint"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon.",
+    body: "You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. \"Traveling vessel, you will submit to crew profiling to identify fugitives of the empire.\"",
     choices: [
       {
         id: "c:zoltan-security-checkpoint:0",

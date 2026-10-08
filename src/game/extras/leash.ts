@@ -1,4 +1,4 @@
-import { cooldownLocksPower, createGame, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -553,7 +553,7 @@ export function fireEnemyLeash(g: Game): boolean {
   kit.target = crew.id;
   crew.path = [];
   crew.move = 0;
-  if (g.selected === crew.id) g.selected = null;
+  forgetCrew(g, crew.id);
   log(g, `${crew.name} is under their mind control.`);
   return true;
 }

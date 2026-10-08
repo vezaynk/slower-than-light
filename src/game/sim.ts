@@ -1,5 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { hopLanding } from "./walk-path.ts";
+import { claimPadTile, interiorLinks, medicalLimit, padCells } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -1363,9 +1364,19 @@ export function lockdownSelected(g: Game) {
  * Crystal, "Crystal Lockdown": Z opens every door at once and overrides the coating, including for a suffocation trap.
  * INFERRED: a dead door system cannot do this. The page does not say Z bypasses a broken Door System.
  */
+/**
+ * Systems: any ion damage on the Door System blocks the buttons, the hotkeys, and a click on a door.
+ * A broken or offline system, including a slug hack that takes doors offline, blocks them too.
+ * `functional` still treats a partial ion as a working system. This is stricter than that.
+ */
+export function playerDoorsLocked(g: Game): boolean {
+  const sys = g.player.systems.doors;
+  return sys.ion.length > 0 || !functional(sys) || doorsOff(g, "player");
+}
+
 export function openAllDoors(g: Game) {
   // Slug hacker (doors): an offline Door System cannot open every door.
-  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
+  if (playerDoorsLocked(g)) {
     log(g, "Door control is dead.");
     return;
   }
@@ -1383,7 +1394,7 @@ export function openAllDoors(g: Game) {
  * A dead Door System cannot do this.
  */
 export function closeAllDoors(g: Game) {
-  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
+  if (playerDoorsLocked(g)) {
     log(g, "Door control is dead.");
     return;
   }
@@ -1472,7 +1483,8 @@ function meltCoats(g: Game) {
 
 export function toggleDoor(g: Game, a: string, b: string) {
   // Slug hacker (doors): an offline Door System cannot open or close a door.
-  if (!functional(g.player.systems.doors) || doorsOff(g, "player")) {
+  // Systems: any ion on the Door System blocks a click the same way.
+  if (playerDoorsLocked(g)) {
     log(g, "Door control is dead.");
     return;
   }
@@ -1492,32 +1504,159 @@ export function toggleVent(g: Game, roomId: string) {
   toggleDoor(g, roomId, "void");
 }
 
-export function selectCrew(g: Game, id: string) {
-  g.selected = g.selected === id ? null : id;
+/** Ids in the current selection. An older save with only `selected` still counts that one. */
+export function selectedIds(g: Game): string[] {
+  const ids = g.squad ?? (g.selected ? [g.selected] : []);
+  return ids.filter((id) => g.crew.some((c) => c.id === id));
+}
+
+/** Drop one id from the selection. Mind control and a crew who changes sides use this. */
+export function forgetCrew(g: Game, id: string) {
+  if (g.squad) g.squad = g.squad.filter((x) => x !== id);
+  if (g.selected !== id) return;
+  g.selected = g.squad && g.squad.length ? g.squad[g.squad.length - 1]! : null;
+}
+
+/**
+ * Left click selects one crew member. Clicking the only selected id clears the selection.
+ * Shift-click toggles that id inside the group. The last id stays `selected` for lockdown.
+ */
+export function selectCrew(g: Game, id: string, how: "replace" | "toggle" = "replace") {
+  const cur = selectedIds(g);
+  if (how === "toggle") {
+    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    g.squad = next;
+    g.selected = next.length ? next[next.length - 1]! : null;
+  } else if (cur.length === 1 && cur[0] === id) {
+    g.squad = [];
+    g.selected = null;
+  } else {
+    g.squad = [id];
+    g.selected = id;
+  }
   g.mode = "crew";
 }
 
-export function orderCrew(g: Game, crewId: string, dest: string) {
-  const c = g.crew.find((x) => x.id === crewId);
-  if (!c || c.side !== "player" || c.hp <= 0) return;
-  // Mind Control, "Overview": "you can't give them orders, rather they are under the AI control."
-  if (heldByEnemy(c)) return;
-  const ship = c.aboard === "player" ? g.player : g.enemy;
-  if (!ship || !roomById(ship, dest)) return;
-  // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
-  // A path that was already started can still finish, which is how a Crystal leaves as the coating forms.
-  if (coated(ship, c.room) || coated(ship, dest)) return;
-  if (c.room === dest && c.path.length === 0) {
-    g.selected = null;
+/** Drag box and the select-all key. Only living player crew are kept. */
+export function selectCrewIds(g: Game, ids: string[]) {
+  const next: string[] = [];
+  for (const id of ids) {
+    const c = g.crew.find((x) => x.id === id);
+    if (!c || c.side !== "player" || c.hp <= 0) continue;
+    if (!next.includes(id)) next.push(id);
+  }
+  g.squad = next;
+  g.selected = next.length ? next[next.length - 1]! : null;
+  g.mode = "crew";
+}
+
+function destinedFor(c: Crew, dest: string): boolean {
+  return c.hp > 0 && (c.room === dest || (c.path.length > 0 && c.path[c.path.length - 1] === dest));
+}
+
+/** Boarding party management: the next body sent to this room stands behind whoever is already going there. */
+function claimFile(g: Game, c: Crew, dest: string) {
+  let max = -1;
+  for (const other of g.crew) {
+    if (other.id === c.id || !destinedFor(other, dest)) continue;
+    max = Math.max(max, other.file ?? 0);
+  }
+  c.file = max + 1;
+}
+
+/**
+ * Crew Teleporter: ordering into the teleporter room takes the first free pad.
+ * No free pad still walks them in, but they are not standing on a pad.
+ * An order anywhere else clears the pad.
+ */
+function claimPad(g: Game, c: Crew, ship: Ship, dest: string) {
+  const room = roomById(ship, dest);
+  if (!room || room.kit !== "sling") {
+    delete c.pad;
     return;
   }
+  const taken = new Set<string>();
+  for (const other of g.crew) {
+    if (other.id === c.id || !other.pad || !destinedFor(other, dest)) continue;
+    taken.add(other.pad);
+  }
+  if (c.pad && !taken.has(c.pad) && padCells(room).includes(c.pad)) return;
+  const tile = claimPadTile(room, taken);
+  if (tile) c.pad = tile;
+  else delete c.pad;
+}
+
+export type OrderResult = "ok" | "there" | "skip" | "mind" | "missing" | "coat" | "path";
+
+export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
+  const c = g.crew.find((x) => x.id === crewId);
+  if (!c || c.side !== "player" || c.hp <= 0) return "skip";
+  // Mind Control, "Overview": "you can't give them orders, rather they are under the AI control."
+  if (heldByEnemy(c)) return "mind";
+  const ship = c.aboard === "player" ? g.player : g.enemy;
+  if (!ship || !roomById(ship, dest)) return "missing";
+  // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
+  // A path that was already started can still finish, which is how a Crystal leaves as the coating forms.
+  if (coated(ship, c.room) || coated(ship, dest)) return "coat";
   const path = bfs(ship, c.room, dest);
-  if (!path) return;
+  if (!path) return "path";
+  if (path.length === 0) {
+    c.path = [];
+    c.move = 0;
+    delete c.via;
+    claimPad(g, c, ship, dest);
+    return "there";
+  }
+  claimFile(g, c, dest);
+  claimPad(g, c, ship, dest);
   c.path = path;
   c.move = 0;
   delete c.via;
-  g.selected = null;
   sfx(g, "click");
+  return "ok";
+}
+
+/**
+ * Right-click moves every selected crew member who is on that hull.
+ * One refusal is logged when nobody moved. The selection stays so the refused crew are still visible.
+ */
+export function orderSelected(g: Game, dest: string, aboard: "player" | "enemy") {
+  const ids = g.squad ? g.squad.slice() : g.selected ? [g.selected] : [];
+  let moved = false;
+  let reason: OrderResult | null = null;
+  for (const id of ids) {
+    const c = g.crew.find((x) => x.id === id);
+    if (!c || c.aboard !== aboard) continue;
+    const result = orderCrew(g, id, dest);
+    if (result === "ok" || result === "there") moved = true;
+    else if (result !== "skip" && !reason) reason = result;
+  }
+  if (moved || !reason) return;
+  if (reason === "mind") log(g, "You can't give them orders.");
+  else if (reason === "coat") log(g, "The crystal coating blocks the way.");
+  else log(g, "They can't reach that room.");
+}
+
+/**
+ * INFERRED from the controls list: / remembers where each living player crew member
+ * is standing on the player ship. Return orders them back. No duration is printed.
+ */
+export function saveStations(g: Game) {
+  let n = 0;
+  for (const c of g.crew) {
+    if (c.side !== "player" || c.hp <= 0 || c.aboard !== "player") continue;
+    c.station = c.room;
+    n += 1;
+  }
+  if (n > 0) log(g, "Stations saved.");
+}
+
+/** INFERRED: Return sends saved crew back only while they are still on the player ship. */
+export function returnToStations(g: Game) {
+  for (const c of g.crew) {
+    if (c.side !== "player" || c.hp <= 0 || c.aboard !== "player" || !c.station) continue;
+    orderCrew(g, c.id, c.station);
+  }
 }
 
 /**
@@ -2874,13 +3013,17 @@ function moveCrew(g: Game, dt: number) {
     // Coat hits stay up through this tick after the 12 seconds hit 0, so the last punches still land.
     const coatShut = !!door && door.b !== "void" && !door.open && (door.coat ?? 0) > 0;
     const leaving = coated(ship, c.room) || coatShut;
+    // Crystal Lockdown: "if timed correctly, a room can be coated with crystals while a Crystal crew is leaving it."
+    // A Crystal who already has a path out finishes that exit even when the door is shut.
+    // Anyone else punches the coating. A new order into or out of the room is still refused.
+    const crystalExit = c.kin === "shard" && coated(ship, c.room) && !coated(ship, next);
     // Crystal Lockdown: a shut coated door is punched at the crew's one attack per second.
     // Airlocks are not coated. Entering a coated room is refused above, before this punch.
-    if (leaving && door && !door.open && door.b !== "void") {
+    if (leaving && door && !door.open && door.b !== "void" && !crystalExit) {
       const result = punchCoat(door, dt);
       if (result === "broke") log(g, "A door gives way.");
       if (result === "held") continue;
-    } else if (leaving && door && !door.open) continue;
+    } else if (leaving && door && !door.open && !crystalExit) continue;
     if (door && !door.open && hostile && !leaving) {
       const level = hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, c.aboard);
       // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
@@ -3170,6 +3313,10 @@ function autoRepair(ship: Ship, room: Room, dt: number) {
   }
 }
 
+function byFile(a: Crew, b: Crew): number {
+  return (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
@@ -3181,6 +3328,12 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const withUs = (c: Crew) => sideOf(c) === friends;
     const pals = present.filter((c) => withUs(c) && (c.stun ?? 0) <= 0);
     const foes = present.filter((c) => !withUs(c));
+    // Medbay and Clone Bay standing spots. Idle crew past the cap do not repair or count as standing.
+    // Fights, fire-fighting, and suffocation still use every idle body.
+    const spotRoom = r.system === "medbay" || r.kit === "cradle";
+    const fixing = spotRoom
+      ? pals.slice().sort(byFile).slice(0, medicalLimit(r, aboard, interiorLinks(ship.doors, r.id)))
+      : pals;
     // @agent:flagship. A flagship artillery room's own gun state (wiki/flagship-systems.ts), else null.
     const gun = artilleryGun(ship, r.id);
     // Augmentations, "Slug Repair Gel": every breached player room, at 75% of regular crew repair speed, stacked on the same counter.
@@ -3192,7 +3345,13 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2).
       // INFERRED: the pause is 1 second. The page says "every few moments" and prints no seconds.
       // INFERRED: the blow lands on the first living enemy in the room, rather than splitting across them.
+      // Boarding party management: once someone has been ordered, the lowest file (first sent back) is that first body.
+      // Rooms where nobody has a file keep array order.
       const SWING_S = 1;
+      const filed = pals.some((c) => c.file != null) || foes.some((c) => c.file != null);
+      const seq = (list: Crew[]) => (filed ? list.slice().sort(byFile) : list);
+      const palsHit = seq(pals);
+      const foesHit = seq(foes);
       const strike = (attacker: Crew, targets: Crew[]) => {
         attacker.swing = (attacker.swing ?? 0) + dt;
         if ((attacker.swing ?? 0) < SWING_S) return;
@@ -3211,22 +3370,22 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         // Drones are not in this crew loop, so breaking one grants nothing.
         if (before > 0 && target.hp <= 0 && !target.cloned) noteCombatPoint(g, attacker);
       };
-      for (const p of pals) strike(p, foes);
-      for (const f of foes) strike(f, pals);
+      for (const p of palsHit) strike(p, foesHit);
+      for (const f of foesHit) strike(f, palsHit);
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
-    } else if (pals.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
+    } else if (fixing.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
       // Crew skills, Repair skill: "or to repair a breach" takes the same 12.5 seconds as one system bar. Skill speeds both.
-      r.breachFix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt;
+      r.breachFix += fixing.reduce((sum, c) => sum + repairPace(c), 0) * dt;
       // Skills: "sealing hull breaches provides no experience", so no bumpXp here.
-    } else if (pals.length && r.kit && (ship.kits[r.kit]?.damage ?? 0) > 0 && r.o2 > 5) {
+    } else if (fixing.length && r.kit && (ship.kits[r.kit]?.damage ?? 0) > 0 && r.o2 > 5) {
       // Same crew repair as a system room (REPAIR_SECONDS). An enemy re-powers each bar it fixes:
       // its reactor is sized to its capacity (enemy-gen.ts).
       const kit = ship.kits[r.kit]!;
       // @agent:hacking. Hacking, "Overview": "Repair speed of the system is halved" under a hacking drone (spike.ts).
       kit.fix =
         (kit.fix ?? 0) +
-        pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.kit);
+        fixing.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.kit);
       if (kit.fix >= REPAIR_SECONDS) {
         kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
         kit.fix = 0;
@@ -3235,20 +3394,20 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         // subsystem level", "granted to the crew who performs the finishing repair animation." A partial bar grants none.
         // Helpers "are ordered to leave the room", so one crewmember receives the point.
         // INFERRED: that crewmember is the first one still in the room. The page does not name who, when several stay.
-        if (pals[0]) bumpXp(g, pals[0], "repair", 1);
+        if (fixing[0]) bumpXp(g, fixing[0], "repair", 1);
         log(g, `${r.title} repaired.`);
       }
-    } else if (pals.length && r.system && (gun ?? ship.systems[r.system]).damage > 0 && r.o2 > 5) {
+    } else if (fixing.length && r.system && (gun ?? ship.systems[r.system]).damage > 0 && r.o2 > 5) {
       // @agent:flagship. Artillery rooms repair their own gun ("the Flagship crew can contest your boarding and repair
       // damage to those weapons"); every other room its system.
       const sys = gun ?? ship.systems[r.system];
       // @agent:hacking. Hacking, "Overview": "Repair speed of the system is halved" under a hacking drone (spike.ts).
-      sys.fix += pals.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.system);
+      sys.fix += fixing.reduce((sum, c) => sum + repairPace(c), 0) * dt * hackRepairScale(g, ship, r.system);
       if (sys.fix >= REPAIR_SECONDS) {
         sys.damage = Math.max(0, sys.damage - 1);
         sys.fix = 0;
         // Same one finisher as a kit bar, including a subsystem (pilot, sensors, doors) on this room.
-        if (pals[0]) bumpXp(g, pals[0], "repair", 1);
+        if (fixing[0]) bumpXp(g, fixing[0], "repair", 1);
         log(g, `${r.title} repaired.`);
         sfx(g, "click");
       }
@@ -3274,7 +3433,25 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     ) {
       const powered = mainBars(g, ship, aboard, "medbay");
       const rate = powered >= 3 ? 19.2 : powered >= 2 ? 9.6 : 6.4;
-      for (const c of pals) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
+      // Idle crew heal only up to the standing spots. Crew ordered through the room heal while they are in it,
+      // which is how a 2-spot corner bay heals a third and fourth body.
+      const through = g.crew.filter(
+        (c) =>
+          c.aboard === aboard &&
+          c.room === r.id &&
+          c.hp > 0 &&
+          c.path.length > 0 &&
+          withUs(c) &&
+          (c.stun ?? 0) <= 0,
+      );
+      const healing: Crew[] = [];
+      const seen = new Set<string>();
+      for (const c of [...fixing, ...through]) {
+        if (seen.has(c.id)) continue;
+        seen.add(c.id);
+        healing.push(c);
+      }
+      for (const c of healing) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
     }
     // Oxygen: at 5% or less, crew lose 6.4 HP per second, scaled per crew (Emergency Respirators, then kin).
     if (r.o2 <= 5) {
@@ -3689,7 +3866,10 @@ function reap(g: Game) {
     if (c.side === "player") log(g, `${c.name} is gone.`);
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
-  if (g.selected && !g.crew.some((c) => c.id === g.selected)) g.selected = null;
+  if (g.squad) g.squad = g.squad.filter((id) => g.crew.some((c) => c.id === id));
+  if (g.selected && !g.crew.some((c) => c.id === g.selected)) {
+    g.selected = g.squad && g.squad.length ? g.squad[g.squad.length - 1]! : null;
+  }
 }
 
 function endCheck(g: Game) {

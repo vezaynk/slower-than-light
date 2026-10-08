@@ -1,4 +1,4 @@
-/* Walkers are positioned on the hull. Standing crew stay in the room row. */
+/* Every crew sprite is positioned on the hull, walking or standing on a floor tile. */
 .hull {
   position: relative;
 }
@@ -18,6 +18,10 @@
   margin: 0;
   transform: translate(-50%, -50%);
   pointer-events: auto;
+}
+
+.token.is-sprite {
+  position: relative;
 }
 
 .crew-walkers .token.crew-walker.is-face-left {

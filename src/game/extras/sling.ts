@@ -1,4 +1,5 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
+import { padCells } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
 import { cooldownLocksPower, enemyEscapeView, kitBars, kitIonLocked, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -68,15 +69,15 @@ function livingOnLark(g: Game): Crew[] {
  * but must be ordered to move to an unoccupied teleport pad." Crew walking through without a pad are not sent.
  * "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person teleporters"
  * (Mantis B, Mantis C, Crystal B).
- * INFERRED: one crew per tile. The sim has no pad slot inside a room, so standing means the teleporter room and an empty path.
- * INFERRED: when more crew stand than pads, the selected crew take one first, then crew-array order.
+ * INFERRED: one crew per floor tile. A pad is that tile's "x,y" on the crew member.
+ * INFERRED: when more crew stand on pads than the room holds, the selected crew take one first, then crew-array order.
  */
 function pickCrew(g: Game): Crew[] {
   const living = livingOnLark(g);
   if (living.length === 0) return [];
   const pad = padTiles(g.player);
   if (!pad.id) return [];
-  const standing = living.filter((c) => c.room === pad.id && c.path.length === 0);
+  const standing = living.filter((c) => c.room === pad.id && c.path.length === 0 && !!c.pad);
   // Crew Teleporter: at least one crewmember must already be standing on a pad.
   if (standing.length < 1) return [];
   const selected = g.selected ? standing.find((c) => c.id === g.selected) : undefined;
@@ -169,6 +170,8 @@ export function sendSling(g: Game, roomId: string) {
     c.room = roomId;
     c.path = [];
     c.move = 0;
+    delete c.pad;
+    delete c.via;
     // Augmentations, "Crew Augmentations", Reconstructive Teleport: a send heals to full.
     if (mendOnSend(g)) c.hp = c.maxHp;
   }
@@ -230,6 +233,8 @@ export function recallSling(g: Game) {
   const coming = away.slice(0, 4);
   const pad = padTiles(g.player);
   const neighbors = padNeighbors(g.player, pad.id);
+  const padRoom = roomById(g.player, pad.id);
+  const cells = padRoom ? padCells(padRoom) : [];
   coming.forEach((c, i) => {
     c.aboard = "player";
     // Crew Teleporter: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
@@ -237,6 +242,9 @@ export function recallSling(g: Game) {
     else c.room = neighbors[Math.min(i - pad.tiles, neighbors.length - 1)]!;
     c.path = [];
     c.move = 0;
+    delete c.via;
+    if (c.room === pad.id && i < cells.length) c.pad = cells[i];
+    else delete c.pad;
     if (mendOnSend(g)) c.hp = c.maxHp;
   });
   arm(kit, null);

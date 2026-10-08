@@ -533,10 +533,49 @@ button:disabled {
   box-shadow: inset 3px 2px 0 #1a120c, inset 1px 7px 0 #1a120c;
 }
 
-.token.is-selected,
 .room.is-hot {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
+}
+
+.room.is-dest {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.token.is-selected {
+  outline: none;
+}
+
+.token.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  pointer-events: none;
+  background:
+    linear-gradient(#f4fff8, #f4fff8) top left / 4px 1px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top left / 1px 4px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / 4px 1px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / 1px 4px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / 4px 1px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / 1px 4px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / 4px 1px no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / 1px 4px no-repeat;
+}
+
+.crew-hp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  background: #1a120c;
+  pointer-events: none;
+}
+
+.crew-hp b {
+  display: block;
+  height: 100%;
+  background: #3ecf4a;
 }
 
 .room.is-fire { background: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface)); }
@@ -1202,6 +1241,10 @@ button:disabled {
   background: var(--color-room);
   border: 2px solid #6d6862;
   box-shadow: inset 0 0 0 1px #f7f4ee;
+}
+
+.play .room.is-dest {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 .play .room.is-lock {
@@ -2019,9 +2062,56 @@ button.gun-slot {
   pointer-events: none;
 }
 
+button.door-tick {
+  pointer-events: auto;
+  padding: 0;
+  border: 0;
+  min-height: 0;
+  display: block;
+}
+
+button.door-tick::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
 .door-tick.is-open {
   background: transparent;
   box-shadow: inset 0 0 0 2px #e07020;
+}
+
+.door-tick.is-dead {
+  background: #d04028;
+}
+
+.door-tick.is-open.is-dead {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px #d04028;
+}
+
+.pad-pip {
+  position: absolute;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  background: #3a4038;
+  pointer-events: none;
+}
+
+.pad-pip.is-live {
+  background: #3ecf4a;
+}
+
+.crew-drag {
+  position: absolute;
+  z-index: 6;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  border: 1px solid #f4fff8;
+  background: rgba(244, 255, 248, 0.12);
+  pointer-events: none;
 }
 
 .unlock-board {

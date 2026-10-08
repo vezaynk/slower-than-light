@@ -67,15 +67,20 @@ import {
   lockdown,
   lockdownSelected,
   openAllDoors,
-  orderCrew,
+  orderSelected,
   patchAll,
+  playerDoorsLocked,
   powerDown,
   powerMask,
   powerUp,
   reorderWeapons,
   reverseSlotAuto,
+  returnToStations,
   saveGame,
+  saveStations,
   selectCrew,
+  selectCrewIds,
+  selectedIds,
   slotAutofire,
   sparePower,
   toggleAutoAll,
@@ -321,6 +326,40 @@ export function GameApp() {
       if (e.code === "KeyZ" && plain) {
         e.preventDefault();
         act((game) => openAllDoors(game));
+        return;
+      }
+      const crewPhase = g.phase === "combat" || g.phase === "map";
+      // Door System: X closes every door, including one that just finished its stuck-open timer.
+      if (e.code === "KeyX" && plain && crewPhase) {
+        e.preventDefault();
+        act((game) => closeAllDoors(game));
+        return;
+      }
+      // Configure controls: Q selects every crew member. F1–F8 select crew 1–8, including a mind-controlled one.
+      if (e.code === "KeyQ" && plain && crewPhase) {
+        e.preventDefault();
+        act((game) => selectCrewIds(game, game.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.id)));
+        return;
+      }
+      const fn = /^F([1-8])$/.exec(e.code);
+      if (fn && plain && crewPhase) {
+        e.preventDefault();
+        const n = Number(fn[1]) - 1;
+        act((game) => {
+          const body = game.crew.filter((c) => c.side === "player" && c.hp > 0)[n];
+          if (body) selectCrewIds(game, [body.id]);
+        });
+        return;
+      }
+      // INFERRED: / saves stations. Return sends those crew back while they are on the player ship.
+      if (e.code === "Slash" && plain && crewPhase) {
+        e.preventDefault();
+        act((game) => saveStations(game));
+        return;
+      }
+      if ((e.code === "Enter" || e.code === "NumpadEnter") && plain && crewPhase) {
+        e.preventDefault();
+        act((game) => returnToStations(game));
         return;
       }
       const digit = /^Digit([1-9])$/.exec(e.code);
@@ -610,8 +649,12 @@ function CrewRail({ game }: { game: Game }) {
         </span>
       </div>
       {crew.map((c) => (
-        <div key={c.id} className={`crew-card${c.id === game.selected ? " is-selected" : ""}${(c.leashed ?? 0) > 0 ? " is-leashed" : ""}`}>
-          <button type="button" className="crew-card-hit" onClick={() => act((g) => selectCrew(g, c.id))}>
+        <div key={c.id} className={`crew-card${selectedIds(game).includes(c.id) ? " is-selected" : ""}${(c.leashed ?? 0) > 0 ? " is-leashed" : ""}`}>
+          <button
+            type="button"
+            className="crew-card-hit"
+            onClick={(e) => act((g) => selectCrew(g, c.id, e.shiftKey ? "toggle" : "replace"))}
+          >
             <Portrait crew={c} />
             <span>
               <strong>{c.name}</strong>
@@ -661,6 +704,13 @@ function CrewRail({ game }: { game: Game }) {
   );
 }
 
+function crewOn(game: Game, aboard: "player" | "enemy"): boolean {
+  return selectedIds(game).some((id) => {
+    const c = game.crew.find((x) => x.id === id);
+    return !!c && c.side === "player" && c.hp > 0 && c.aboard === aboard;
+  });
+}
+
 function bombAiming(game: Game): boolean {
   if (!game.targeting) return false;
   const w = game.player.weapons.find((item) => item.uid === game.armed);
@@ -688,13 +738,24 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         seen={(id) => sight.interior("player", id)}
         crewLit={(c) => sight.showCrew(c)}
         selectedId={game.selected}
+        selectedIds={selectedIds(game)}
         ventMode={game.mode === "vent"}
         targetable={bombAiming(game)}
+        markDest={crewOn(game, "player")}
+        doorsDead={playerDoorsLocked(game)}
         onRoom={(id) => {
-          if (game.selected) act((g) => orderCrew(g, game.selected!, id));
-          else if (game.targeting) act((g) => aim(g, id));
+          if (game.targeting) act((g) => aim(g, id));
         }}
-        onCrew={(id) => act((g) => selectCrew(g, id))}
+        onRoomMenu={(id) => {
+          if (crewOn(game, "player")) act((g) => orderSelected(g, id, "player"));
+          else {
+            clearAims();
+            act((g) => cancelTargeting(g));
+          }
+        }}
+        onCrew={(id, shift) => act((g) => selectCrew(g, id, shift ? "toggle" : "replace"))}
+        onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
+        onDoor={(a, b) => act((g) => toggleDoor(g, a, b))}
         aims={aimMarks(game)}
         droneHp={roomDroneHp(game.player, game)}
       />
@@ -809,20 +870,33 @@ function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Gam
           showCrew
           seen={(id) => sight.interior("enemy", id)}
           crewLit={(c) => sight.showCrew(c)}
-          selectedId={null}
+          selectedId={game.selected}
+          selectedIds={selectedIds(game)}
           ventMode={false}
           targetable
+          markDest={crewOn(game, "enemy")}
           onRoom={(id, point) => {
             if (hackAiming) hackRoomClick(id);
             else if (slingAiming) slingRoomClick(id);
             else act((g) => aim(g, id, point));
           }}
-          onCrew={(id) => {
+          onRoomMenu={(id) => {
+            if (crewOn(game, "enemy")) act((g) => orderSelected(g, id, "enemy"));
+            else {
+              clearAims();
+              act((g) => cancelTargeting(g));
+            }
+          }}
+          onCrew={(id, shift) => {
             if (leashAiming) {
               act((g) => startLeash(g, id));
               setLeashAim(false);
+              return;
             }
+            const body = game.crew.find((c) => c.id === id);
+            if (body?.side === "player") act((g) => selectCrew(g, id, shift ? "toggle" : "replace"));
           }}
+          onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
           aims={aimMarks(game)}
           beamAnchor={game.targeting && !hackAiming ? game.beamAnchor : null}
           beamLines={beamLinesOf(game)}
@@ -1977,7 +2051,7 @@ function Manual({ onClose }: { onClose: () => void }) {
             <li>Fuel starts at 16. Every jump, including a retreat, burns 1. A store sells fuel. Scrap starts at 10.</li>
             <li>The hangar launches the cruiser layouts whose wiki pages listed a loadout. Pictures from those pages are not used.</li>
             <li>Sector 8 is the Flagship. It moves every two of your jumps.</li>
-            <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. Click a weapon's number to give its power back.</li>
+            <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. Click a weapon's number to give its power back. Right-click a room to send the selected crew. Drag or Shift-click to select several. Q selects every crew member, and F1–F8 select one. X closes every door. / saves stations and Return sends them back.</li>
           </ul>
         </div>
         <button type="button" className="btn-primary" onClick={onClose}>

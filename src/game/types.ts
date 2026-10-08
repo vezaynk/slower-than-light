@@ -120,6 +120,21 @@ export type Crew = {
    * Cleared when the walk finishes.
    */
   via?: string;
+  /**
+   * Boarding party management: place in the destination room. Lower stands at the front
+   * and is struck first. Set when this body is ordered. Absent sorts as 0.
+   */
+  file?: number;
+  /**
+   * Teleporter pad "x,y" this body was ordered onto.
+   * Absent means they were not given a pad, so a send leaves them behind.
+   */
+  pad?: string;
+  /**
+   * INFERRED from the controls list (Save Stations / Return to Stations).
+   * The room this crew member was standing in on the player ship when stations were saved.
+   */
+  station?: string;
   think: number;
   tone: number;
   /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */
@@ -672,6 +687,11 @@ export type Game = {
   shots: Shot[];
   log: string[];
   selected: string | null;
+  /**
+   * Player crew in the current selection. The last id is `selected` (lockdown, teleporter preference).
+   * Absent on an older save means only `selected` is selected.
+   */
+  squad?: string[];
   /** Weapon currently receiving a target click. */
   armed: string | null;
   /** Weapon Control, Overview: the cursor is in targeting mode. */

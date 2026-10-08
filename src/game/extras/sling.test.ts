@@ -4,6 +4,7 @@ import { createGame, startCombat } from "../sim.ts";
 import type { Game, Kit, Ship } from "../types";
 import { deathAnimSeconds, onCradleDeath, tickCradle } from "./cradle.ts";
 import { onPlayerJump } from "./index.ts";
+import { claimPadTile } from "../crew-spots.ts";
 import {
   installSling,
   onJumpSling,
@@ -26,15 +27,21 @@ function kitOf(g: Game) {
   return kit;
 }
 
-/** Crew Teleporter: a send only takes crew standing in the teleporter room. */
+/** Crew Teleporter: a send only takes crew standing on a pad. Extra bodies in the room get no pad. */
 function stand(g: Game, ids?: string[]) {
   const pad = g.player.rooms.find((r) => r.kit === "sling");
   assert.ok(pad);
+  const taken = new Set<string>();
   for (const c of g.crew) {
     if (c.side !== "player" || c.hp <= 0) continue;
     if (ids && !ids.includes(c.id)) continue;
     c.room = pad.id;
     c.path = [];
+    const tile = claimPadTile(pad, taken);
+    if (tile) {
+      c.pad = tile;
+      taken.add(tile);
+    } else delete c.pad;
   }
 }
 
@@ -250,10 +257,13 @@ describe("sling", () => {
     assert.ok(ada && ivo && nen);
     ada.room = pad.id;
     ada.path = ["p-shields"];
+    delete ada.pad;
     ivo.room = pad.id;
     ivo.path = [];
+    ivo.pad = claimPadTile(pad, new Set()) ?? undefined;
     nen.room = pad.id;
     nen.path = [];
+    nen.pad = claimPadTile(pad, new Set(ivo.pad ? [ivo.pad] : [])) ?? undefined;
     sendSling(g, "e-weapons");
     assert.deepEqual(
       g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id).sort(),

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { installAugment } from "../extras/augments.ts";
 import { startLeash } from "../extras/leash.ts";
+import { claimPadTile } from "../crew-spots.ts";
 import { recallSling, sendSling, installSling, tickSling } from "../extras/sling.ts";
 import { armSpike, installSpike, launchSpike, toggleSpikePower } from "../extras/spike.ts";
 import {
@@ -159,6 +160,7 @@ describe("Zoltan Shield Bypass", () => {
     assert.ok(rider);
     rider.room = padRoom.id;
     rider.path = [];
+    rider.pad = claimPadTile(padRoom, new Set()) ?? undefined;
     sendSling(open, open.enemy!.rooms[0]!.id);
     assert.ok(open.crew.some((c) => c.side === "player" && c.aboard === "enemy"));
     assert.equal(open.enemy!.zoltan, 4);

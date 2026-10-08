@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { startLeash } from "../extras/leash.ts";
+import { claimPadTile } from "../crew-spots.ts";
 import { sendSling } from "../extras/sling.ts";
 import { launchSpike } from "../extras/spike.ts";
 import { startVeil } from "../extras/veil.ts";
@@ -126,6 +127,7 @@ describe("Zoltans ionized activation", () => {
     assert.ok(slingRoom);
     standing.room = slingRoom.id;
     standing.path = [];
+    standing.pad = claimPadTile(slingRoom, new Set()) ?? undefined;
     sendSling(g, pad);
     assert.ok(g.crew.some((c) => c.side === "player" && c.aboard === "enemy"));
 

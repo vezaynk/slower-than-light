@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { pointInRoom } from "@/game/beam-line";
+import { assignStands, padCells } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
@@ -75,6 +76,25 @@ function walkStep(ship: Ship, c: Crew) {
   return { from, to };
 }
 
+/** Sprite center as a percent of the hull. Walkers follow the door path. Idle crew use their floor tile. */
+function crewPercent(
+  ship: Ship,
+  c: Crew,
+  spot: { x: number; y: number } | undefined,
+): { x: number; y: number } | null {
+  const step = walkStep(ship, c);
+  if (step) {
+    const t = clamp01(c.move);
+    const at = walkPose(ship, c.room, c.path, c.via, t);
+    if (at) return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100 };
+    const from = roomCenter(step.from, ship);
+    const to = roomCenter(step.to, ship);
+    return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+  }
+  if (!spot) return null;
+  return { x: ((spot.x + 0.5) / ship.cols) * 100, y: ((spot.y + 0.5) / ship.rows) * 100 };
+}
+
 /** Standing, alive, not stunned, sharing a room with a living crew of the other effective side. */
 function meleeIds(list: Crew[]): Set<string> {
   const ids = new Set<string>();
@@ -88,16 +108,18 @@ function meleeIds(list: Crew[]): Set<string> {
 
 function CrewToken({
   crew: c,
-  selectedId,
+  picked,
   onCrew,
+  onPlace,
   pose,
   frame,
   className,
   style,
 }: {
   crew: Crew;
-  selectedId: string | null;
-  onCrew: (id: string) => void;
+  picked: boolean;
+  onCrew: (id: string, shift: boolean) => void;
+  onPlace?: (roomId: string) => void;
   pose: CrewPose;
   frame: number;
   className?: string;
@@ -105,26 +127,36 @@ function CrewToken({
 }) {
   const leashed = (c.leashed ?? 0) > 0;
   const stunned = pose !== "walk" && c.path.length === 0 && (c.stun ?? 0) > 0;
+  const hp = Math.max(0, Math.min(100, (c.hp / Math.max(1, c.maxHp)) * 100));
   return (
     <button
       type="button"
       className={
         "token is-sprite" +
-        (c.id === selectedId ? " is-selected" : "") +
+        (picked ? " is-selected" : "") +
         (leashed ? ` is-leashed leashed-by-${c.side === "player" ? "enemy" : "player"}` : "") +
         (stunned ? " is-stunned" : "") +
         (className ? ` ${className}` : "")
       }
       style={style}
+      data-crew={c.id}
       aria-label={leashed ? `${c.name} (mind-controlled)` : c.name}
       title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
-      aria-pressed={c.id === selectedId}
+      aria-pressed={picked}
       onClick={(e) => {
         e.stopPropagation();
-        onCrew(c.id);
+        onCrew(c.id, e.shiftKey);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onPlace?.(c.room);
       }}
     >
       <CrewFace crew={c} pose={pose} frame={frame} />
+      <span className="crew-hp" aria-hidden="true">
+        <b style={{ width: `${hp}%` }} />
+      </span>
     </button>
   );
 }
@@ -170,14 +202,25 @@ type Props = {
   /** Crew still drawn when their room is closed. Slug life signs use this. */
   crewLit?: (c: Crew) => boolean;
   selectedId: string | null;
+  /** Group selection. Absent means only `selectedId`. */
+  selectedIds?: string[];
   ventMode: boolean;
   targetable: boolean;
   onRoom: (id: string, point?: BeamPoint) => void;
+  /** Right-click a room to move the crew who can walk on this hull. */
+  onRoomMenu?: (id: string) => void;
+  /** Drag box. The ids are every living crew member whose sprite fell inside it. */
+  onDragCrew?: (ids: string[]) => void;
+  /** Light the room under the pointer while someone who can walk here is selected. */
+  markDest?: boolean;
+  /** Player door bars. Absent leaves the bars as decoration. */
+  onDoor?: (a: string, b: string) => void;
+  doorsDead?: boolean;
   /** First click of a beam, in this hull's tile space. The next click is the end. */
   beamAnchor?: BeamPoint | null;
   /** Queued player swipes, drawn across this hull. */
   beamLines?: BeamLine[];
-  onCrew: (id: string) => void;
+  onCrew: (id: string, shift?: boolean) => void;
   aims?: AimMark[];
   /** @agent:hack-ui. The player's hacking drone reticle (enemy ship only). */
   hackMark?: HackMark | null;
@@ -200,9 +243,15 @@ export function ShipView({
   seen,
   crewLit,
   selectedId,
+  selectedIds,
   ventMode,
   targetable,
   onRoom,
+  onRoomMenu,
+  onDragCrew,
+  markDest,
+  onDoor,
+  doorsDead,
   onCrew,
   aims = [],
   hackMark = null,
@@ -219,8 +268,18 @@ export function ShipView({
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
   const fighting = meleeIds(here);
   const cells = cellOwners(ship.rooms);
+  const picked = new Set(selectedIds ?? (selectedId ? [selectedId] : []));
+  const stands = new Map<string, { x: number; y: number; stack: number }>();
+  for (const room of ship.rooms) {
+    const idle = here.filter((c) => c.room === room.id && walkStep(ship, c) === null);
+    for (const [id, spot] of assignStands(room, idle)) stands.set(id, spot);
+  }
   const hullRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const swallowClick = useRef(false);
   const [hover, setHover] = useState<BeamPoint | null>(null);
+  const [destRoom, setDestRoom] = useState<string | null>(null);
+  const [dragBox, setDragBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   useEffect(() => {
     if (!beamAnchor) setHover(null);
   }, [beamAnchor]);
@@ -233,18 +292,73 @@ export function ShipView({
       ref={hullRef}
       className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}`}
       data-ship={aboard}
-      onPointerMove={
-        beamAnchor
-          ? (e) => {
-              const hull = hullRef.current;
-              if (!hull) return;
-              const roomEl = (e.target as Element | null)?.closest?.("[data-room]") ?? null;
-              const next = pointOnHull(hull, ship, e.clientX, e.clientY, roomEl);
-              if (next) setHover(next);
-            }
-          : undefined
-      }
-      onPointerLeave={beamAnchor ? () => setHover(null) : undefined}
+      onPointerDown={(e) => {
+        if (e.button !== 0 || !onDragCrew) return;
+        const t = e.target as Element | null;
+        if (t?.closest(".token, .door-tick, .mount")) return;
+        dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+      }}
+      onPointerMove={(e) => {
+        const hull = hullRef.current;
+        if (!hull) return;
+        const roomEl = (e.target as Element | null)?.closest?.("[data-room]") ?? null;
+        if (beamAnchor) {
+          const next = pointOnHull(hull, ship, e.clientX, e.clientY, roomEl);
+          if (next) setHover(next);
+        }
+        if (markDest) setDestRoom(roomEl?.getAttribute("data-room") ?? null);
+        const drag = dragRef.current;
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) > 6) {
+          drag.moved = true;
+          hull.setPointerCapture(e.pointerId);
+        }
+        if (!drag.moved) return;
+        const rect = hull.getBoundingClientRect();
+        const x1 = Math.min(drag.x, e.clientX) - rect.left;
+        const y1 = Math.min(drag.y, e.clientY) - rect.top;
+        const x2 = Math.max(drag.x, e.clientX) - rect.left;
+        const y2 = Math.max(drag.y, e.clientY) - rect.top;
+        setDragBox({ left: x1, top: y1, width: Math.max(0, x2 - x1), height: Math.max(0, y2 - y1) });
+      }}
+      onPointerUp={(e) => {
+        const drag = dragRef.current;
+        if (!drag) return;
+        dragRef.current = null;
+        setDragBox(null);
+        if (!drag.moved || !onDragCrew) return;
+        swallowClick.current = true;
+        const hull = hullRef.current;
+        if (!hull) return;
+        const rect = hull.getBoundingClientRect();
+        const x1 = Math.min(drag.x, e.clientX);
+        const y1 = Math.min(drag.y, e.clientY);
+        const x2 = Math.max(drag.x, e.clientX);
+        const y2 = Math.max(drag.y, e.clientY);
+        const ids: string[] = [];
+        for (const c of here) {
+          const open = seen ? seen(c.room) : true;
+          if (!open && !(crewLit?.(c) ?? false)) continue;
+          const at = crewPercent(ship, c, stands.get(c.id));
+          if (!at) continue;
+          const px = rect.left + (at.x / 100) * rect.width;
+          const py = rect.top + (at.y / 100) * rect.height;
+          if (px >= x1 && px <= x2 && py >= y1 && py <= y2) ids.push(c.id);
+        }
+        onDragCrew(ids);
+      }}
+      onPointerLeave={() => {
+        if (beamAnchor) setHover(null);
+        if (!dragRef.current?.moved) setDestRoom(null);
+      }}
+      onClickCapture={(e) => {
+        if (!swallowClick.current) return;
+        swallowClick.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       style={{
         gridTemplateColumns: `repeat(${ship.cols}, var(--tile))`,
         gridTemplateRows: `repeat(${ship.rows}, var(--tile))`,
@@ -261,11 +375,6 @@ export function ShipView({
       />
       {ship.rooms.map((room) => {
         const open = seen ? seen(room.id) : true;
-        const inRoom = showCrew
-          ? here.filter((c) => c.room === room.id && (open || (crewLit?.(c) ?? false)))
-          : [];
-        const standing = inRoom.filter((c) => walkStep(ship, c) === null);
-        const hot = inRoom.some((c) => c.id === selectedId);
         const clip = roomClip(room);
         const pick = hackPick ? hackPick(room.id) : null;
         const drone = hackMark && hackMark.room === room.id ? hackMark : null;
@@ -282,7 +391,7 @@ export function ShipView({
               (room.venting ? " is-vent" : "") +
               (room.o2 <= 10 ? " is-low" : "") +
               ((room.lock ?? 0) > 0 ? " is-lock" : "") +
-              (hot ? " is-hot" : "") +
+              (markDest && destRoom === room.id ? " is-dest" : "") +
               (open ? "" : " is-unseen") +
               (targetable ? " is-aim" : "") +
               // @agent:hacking. An enemy hacking drone on this room's system (extras/spike.ts, Room.hacked).
@@ -303,6 +412,12 @@ export function ShipView({
               onClick={(e) => {
                 const f = frac(e.currentTarget, e.clientX, e.clientY);
                 onRoom(room.id, pointInRoom(room, f.x, f.y));
+              }}
+              onContextMenu={(e) => {
+                if (!onRoomMenu) return;
+                e.preventDefault();
+                e.stopPropagation();
+                onRoomMenu(room.id);
               }}
             />
             <div className="room-body">
@@ -333,31 +448,38 @@ export function ShipView({
                   <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${room.o2}%` }} />
                 </div>
               ) : null}
-              {showCrew ? (
-                <div className="crew-row">
-                  {standing.map((c) => {
-                    const pose: CrewPose = fighting.has(c.id) ? "fight" : "idle";
-                    const frame = pose === "fight" ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4 : 0;
-                    return (
-                      <CrewToken
-                        key={c.id}
-                        crew={c}
-                        selectedId={selectedId}
-                        onCrew={onCrew}
-                        pose={pose}
-                        frame={frame}
-                      />
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
+            {room.kit === "sling"
+              ? padCells(room).map((key) => {
+                  const [xs, ys] = key.split(",");
+                  const x = Number(xs) - room.x;
+                  const y = Number(ys) - room.y;
+                  const live = (ship.kits.sling?.power ?? 0) > 0;
+                  return (
+                    <i
+                      key={key}
+                      className={"pad-pip" + (live ? " is-live" : "")}
+                      style={{
+                        left: `${((x + 0.5) / room.w) * 100}%`,
+                        top: `${((y + 0.5) / room.h) * 100}%`,
+                      }}
+                    />
+                  );
+                })
+              : null}
             {room.hacked ? (
               <div className="hack-mark" aria-label={room.hacked === "pulse" ? "Hacked: pulse" : "Hacking drone attached"}>
                 <i className="hack-drone" aria-hidden="true" />
               </div>
             ) : null}
-            <DoorTicks room={room} marks={ship.doorMarks} doors={ship.doors} cells={cells} />
+            <DoorTicks
+              room={room}
+              marks={ship.doorMarks}
+              doors={ship.doors}
+              cells={cells}
+              onToggle={onDoor}
+              doorsDead={doorsDead}
+            />
             {drone ? (
               <div
                 className={`hack-reticle is-${drone.phase}`}
@@ -394,32 +516,46 @@ export function ShipView({
       {showCrew ? (
         <div className="crew-walkers">
           {here.map((c) => {
-            const step = walkStep(ship, c);
-            if (!step) return null;
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;
-            const t = clamp01(c.move);
-            const at = walkPose(ship, c.room, c.path, c.via, t);
-            const from = roomCenter(step.from, ship);
-            const to = roomCenter(step.to, ship);
-            const left = at ? (at.x / ship.cols) * 100 : from.x + (to.x - from.x) * t;
-            const top = at ? (at.y / ship.rows) * 100 : from.y + (to.y - from.y) * t;
-            const faceLeft = at ? at.faceLeft : to.x < from.x;
+            const step = walkStep(ship, c);
+            const spot = stands.get(c.id);
+            const at = crewPercent(ship, c, spot);
+            if (!at) return null;
+            const faceLeft = step
+              ? (walkPose(ship, c.room, c.path, c.via, clamp01(c.move))?.faceLeft ??
+                roomCenter(step.to, ship).x < roomCenter(step.from, ship).x)
+              : false;
+            const pose: CrewPose = step ? "walk" : fighting.has(c.id) ? "fight" : "idle";
+            const frame = step
+              ? Math.floor(clamp01(c.move) * 4) % 4
+              : pose === "fight"
+                ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4
+                : 0;
+            const nudge = spot && !step ? spot.stack * 4 : 0;
             return (
               <CrewToken
                 key={c.id}
                 crew={c}
-                selectedId={selectedId}
+                picked={picked.has(c.id)}
                 onCrew={onCrew}
-                pose="walk"
-                frame={Math.floor(t * 4) % 4}
+                onPlace={onRoomMenu}
+                pose={pose}
+                frame={frame}
                 className={"crew-walker" + (faceLeft ? " is-face-left" : "")}
-                style={{ left: `${left}%`, top: `${top}%` }}
+                style={{
+                  left: `${at.x}%`,
+                  top: `${at.y}%`,
+                  transform: faceLeft
+                    ? `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px)) scaleX(-1)`
+                    : `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px))`,
+                }}
               />
             );
           })}
         </div>
       ) : null}
+      {dragBox ? <div className="crew-drag" style={dragBox} /> : null}
       <BeamOverlay hullRef={hullRef} lines={strokes} />
     </div>
   );

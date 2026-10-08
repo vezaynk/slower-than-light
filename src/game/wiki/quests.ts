@@ -2076,6 +2076,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-briber": pirateBriberWin,
   // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon, schematic, and crew are not granted.
   "pirate-smuggler": smuggleCargoWin,
+  // Rebel transport ship. The same template. The 40 second run and the refusal to surrender stay in escape.ts and surrender.ts.
+  "rebel-transport-ship": smuggleCargoWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
   "engi-distress-rebel-fight": engiDistressWin,
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.

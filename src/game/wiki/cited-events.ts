@@ -3700,6 +3700,18 @@ const PIRATE_CIVILIAN_INTROS = [
   "You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.",
 ];
 
+// Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
+// The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
+const ZOLTAN_FIGHT_INTROS = [
+  `A Zoltan ship makes contact. "The nature of the day is rotational. The fever is emaciated. The reason is-" They've caught some nasty deep space dementia. Before you can consider finding help for them, they open fire.`,
+  "You're surprised when a stationary Zoltan ship opens fire. It appears there are aggressive pugilists even among the 'enlightened'.",
+  `You receive a message, "This area is off limits. Submit your ship to processing." It's only one guard ship in a lonely beacon. You decide to fight your way out.`,
+  "You discover a number of Zoltan civilian ships fighting off pirates. Unfortunately one ship mistakes your purpose and moves in to attack! They are refusing all communication; you have no choice but to fight.",
+  "Like many areas in Zoltan space, the residents of this sector prepared well for Galactic war. The military here seem to have given up reasoning with foreigners, preferring instead to attack on sight!",
+  "A Zoltan ship is waiting at this beacon. They request your identification, but radiation from the sun in this system is disrupting your communications. They take your silence for aggression and move in to attack.",
+  `The Zoltan ship patrolling this area hails you: "This area is off limits. Secrecy is vital." They power their weapons.`,
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4073,6 +4085,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: PIRATE_CIVILIAN_INTROS[between(g, [0, 5])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Zoltan fight. One of the seven printed intros. The fight stays c:zoltan-fight:0.
+  if (ev.slug === "zoltan-fight") {
+    return {
+      title: ev.dest,
+      body: ZOLTAN_FIGHT_INTROS[between(g, [0, 6])]!,
+      choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

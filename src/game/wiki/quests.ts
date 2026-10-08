@@ -3016,6 +3016,12 @@ export const PAGE_WINS: Record<string, Win> = {
     if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
     result(g, "The ship breaks apart and you quickly salvage what you can.", rollStandard(g, "low"), extras);
   },
+  // Auto-ship carrying shield virus. Both fights (Continue and the hacking counter) use this slug.
+  // Destroyed pays medium scrap with resources. The page prints no crew-kill reward.
+  "auto-ship-carrying-shield-virus": (g, deadCrew) => {
+    if (deadCrew) return false;
+    result(g, "The ship explodes, leaving behind a collection of useful scrap material.", rollStandard(g, "medium"));
+  },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
   "lanius-ship-attacking-civilian": laniusCivilianWin,

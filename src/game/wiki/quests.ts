@@ -1111,6 +1111,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");
   },
+  // Lanius ship attacking Mantis. "Leave the Mantis to their fate." One printed result.
+  "c:lanius-ship-attacking-mantis:1": (g) => {
+    result(g, "The Mantis ship is quickly overcome by the Lanius vessel, and you move away as the Lanius feed on the remains.", undefined, ["Nothing happens."]);
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

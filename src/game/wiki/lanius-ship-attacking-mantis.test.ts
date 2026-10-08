@@ -97,11 +97,16 @@ describe("Lanius ship attacking Mantis", () => {
     assert.equal(wreck, true);
   });
 
-  it("leaving spends nothing", () => {
+  it("leaving shows the printed remains sentence and spends nothing", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-mantis:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "The Mantis ship is quickly overcome by the Lanius vessel, and you move away as the Lanius feed on the remains.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.enemy, null);
   });
 });

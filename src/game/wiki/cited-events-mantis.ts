@@ -73,7 +73,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\"",
+    body: "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!",
     choices: [
       {
         id: "c:boarders-humans-near-sun:0",

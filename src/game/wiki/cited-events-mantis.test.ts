@@ -62,7 +62,8 @@ describe("cited mantis events", () => {
       assert.ok(allowed.has(ev.dest), ev.dest);
       assert.equal(ev.slug, slugOf(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
-      assert.ok(ev.body.length <= 240);
+      // The printed near-sun boarders opening is 250 characters.
+      assert.ok(ev.body.length <= 260);
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
       });

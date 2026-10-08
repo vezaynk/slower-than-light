@@ -513,6 +513,33 @@ describe("Mantis outcasts", () => {
     }
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "2-3 mantis boarders beam aboard your ship" and a Mantis ship.
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:mantis-outcasts";
+    dest.name = "Mantis outcasts";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "mantis");
+    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "blade" && c.aboard === "player");
+    assert.ok(mantis.length >= 2 && mantis.length <= 3, String(mantis.length));
+    assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
+  });
 });
 
 describe("Slug hacker (choice)", () => {

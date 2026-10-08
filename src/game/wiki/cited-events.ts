@@ -5124,7 +5124,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);
     if (id === "c:rock-fight-with-boarders-in-asteroid-field:0") rockBoarders(g, 1, 2);
-    // "2-3 mantis boarders beam aboard your ship" (Mantis outcasts).
+    // Mantis outcasts has no choice. Arrival calls this id.
+    // "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:mantis-outcasts:0") mantisBoarders(g, 2, 3);
     // "3-4 zoltan boarders beam aboard your ship" (Zoltan border police).

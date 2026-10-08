@@ -3508,6 +3508,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Slug drink. Drink, and a Rock crewmember poses as captain. Refuse stays the fight.
+  if (ev.slug === "slug-drink") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        { id: "c:slug-drink:1", label: "Drink." },
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:slug-drink:2", label: "Have your Rockman pose as captain." },
+      ],
+    };
+  }
   // Rock ship in plasma storm. A Rock crewmember leads them out.
   if (ev.slug === "rock-ship-in-plasma-storm") {
     return {

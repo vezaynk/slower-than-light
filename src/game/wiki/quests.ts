@@ -283,6 +283,42 @@ function hasRock(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "stone");
 }
 
+/** Slug drink. Two results and no odds. INFERRED: equal. A Rock's trap is the fight; the drink's trap loses 25–35 scrap. */
+function slugDrink(g: Game, rock: boolean) {
+  if (pick(g, ["trust", "trap"] as const) === "trust") {
+    const note = repair(g, 10);
+    log(
+      g,
+      rock
+        ? "Even if there was something malicious in the drink, you doubt it would affect the Rock digestive system. The Slug casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares."
+        : "You take a cautious gulp. It's foul, but doesn't do any lasting damage. It's a thousand to one chance, but this Slug actually seems to be trustworthy. He casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares.",
+    );
+    log(g, note);
+    openStoreHere(g);
+    return;
+  }
+  if (rock) {
+    pageFight(
+      g,
+      "Your crewmember is able to identify a heavy anaesthetic contained in the flask when he feels slightly drowsy (the Rock digestion system is very robust). His ruse discovered, the Slug immediately returns to his ship and opens fire.",
+      "Slug ship",
+      "slug-drink",
+    );
+    return;
+  }
+  // INFERRED: scrap does not go below zero.
+  const n = between(g, [25, 35]);
+  const lost = Math.min(g.scrap, n);
+  g.scrap -= lost;
+  log(g, `Scrap: -${lost}.`);
+  result(
+    g,
+    "You take one gulp and wake up with the rest of the crew in the cargo hold... which contains noticeably less scrap than before.",
+    undefined,
+    [`Scrap: -${lost}.`],
+  );
+}
+
 /** Lanius powered-down ship, "Investigate the vessel." Blue options stay visible when the ship cannot use them. */
 function investigateDormant(g: Game) {
   card(g, "The vessel appears to be dormant. It is likely there are Lanius on board, but they may be in hibernation until the ship comes within range of new materials.", [
@@ -738,6 +774,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rock-ship-in-plasma-storm:2": (g) => {
     if (!hasRock(g)) return;
     result(g, "The rock grudgingly transfer control of their helm to you and you steer them to a thinner part of the nebula. They're not sure what to think, but transfer over some supplies all the same.", rollStandard(g, "high"));
+  },
+  // Slug drink. Two results, no odds. INFERRED: equal.
+  "c:slug-drink:1": (g) => {
+    slugDrink(g, false);
+  },
+  // {{Blue Option|Rock Crew|Have your Rockman pose as captain.}} A dead Rock does not count.
+  "c:slug-drink:2": (g) => {
+    if (!hasRock(g)) return;
+    slugDrink(g, true);
   },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
@@ -1353,6 +1398,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:deactivated-auto-ship:2" && sensors(g) < 3) return "Needs level 3 Sensors";
   // Rock ship in plasma storm. A dead Rock does not count. The button stays visible.
   if (id === "c:rock-ship-in-plasma-storm:2" && !hasRock(g)) return "Needs a Rock crewmember";
+  // Slug drink. A dead Rock does not count. The button stays visible.
+  if (id === "c:slug-drink:2" && !hasRock(g)) return "Needs a Rock crewmember";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Auto-ship near storage station. Cloaking, any installed level.

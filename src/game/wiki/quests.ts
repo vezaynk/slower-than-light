@@ -3478,6 +3478,14 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
   },
+  // Rebel ship warning. Both endings pay medium scrap with resources.
+  // The 40 second run and doubled pursuit stay in wiki/escape.ts.
+  "rebel-ship-warning": std(
+    "medium",
+    "medium",
+    "Their ship breaks apart and you are relieved to know that you are still one step ahead of the fleet.",
+    "Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet.",
+  ),
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "auto-ship-warning": (g, deadCrew) => {
@@ -3740,6 +3748,14 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
   "quest-engi-real": (g) => result(g, "With the ship gone, you search through the abandoned base for any signs of their destination but find none."),
   "quest-engi-fake": (g) => result(g, "With the ship gone you search through the abandoned base for any signs of their destination but find none."),
   "quest-slug-interceptor": (g) => result(g, "The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..."),
+  // Rebel ship warning. The escape already doubles pursuit (sim.ts). This card prints the page's sentence.
+  "rebel-ship-warning": (g) => {
+    card(
+      g,
+      "The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!\n\nRebel Fleet pursuit is doubled.",
+      [{ id: "ack", label: "Continue" }],
+    );
+  },
 };
 
 /** sim.ts step, right after an enemy escapes. Opens the page's "gotaway" card; the beacon is spent either way. */

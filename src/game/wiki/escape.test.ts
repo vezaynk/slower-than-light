@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat, step, waitHere } from "../sim.ts";
+import { choose, createGame, startCombat, step, waitHere } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { HULL_RUN_SECONDS, LAST_FUEL_SECONDS, OUT_OF_FUEL_WAIT_SECONDS, escapePlan, eventSlugOf } from "./escape.ts";
 
@@ -114,6 +114,9 @@ describe("escape in a fight", () => {
     g.player.weapons = [];
     startCombat(g, "scout", false, "rebel-ship-warning");
     run(g, 45);
+    assert.match(g.event?.body ?? "", /The scout jumps away/);
+    assert.match(g.event?.body ?? "", /Rebel Fleet pursuit is doubled/);
+    choose(g, "ack");
     assert.equal(g.phase, "map");
     assert.equal(g.pursuitDouble, true);
     const before = g.fleet;

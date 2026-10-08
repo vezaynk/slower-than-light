@@ -3234,6 +3234,19 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Zoltan wise man. After the fight, both endings contact him and then he implodes.
+  // Destroyed pays low scrap with resources, then high. A crew kill pays medium, then high.
+  // The page nests the two rewards and prints no choice, so both are paid on this card.
+  "zoltan-wise-man": (g, deadCrew) => {
+    const lead = deadCrew
+      ? "You salvage the ship and contact the wise man."
+      : "You salvage the remains and contact the wise man.";
+    const rage =
+      "When he sees you have emerged victorious, the Zoltan wise man enters a rage. Rifts threaten to tear space apart until, instead, the Zoltan implodes, sending a blast wave of scrap and salvage dragged here from distant worlds in your direction.";
+    const first = rollStandard(g, deadCrew ? "medium" : "low");
+    const second = rollStandard(g, "high");
+    result(g, `${lead}\n\n${rage}`, first, offerLines(g, second));
+  },
   // Slug hacker (choice). The four fights share this id. The choice sets the tier.
   // No choice: the page prints no reward, so winCombat pays the default salvage.
   "slug-hacker-choice": (g, deadCrew) => {

@@ -1214,6 +1214,13 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`, "Slug ship", "slug-hacker-choice");
     halvePlayerSystems(g, ["weapons"]);
   },
+  // Slug hacker (choice). "Offer 35 scrap to leave you alone." One printed result. The page spends 35 scrap.
+  // This handler returns before citedChoose, so the scrap is spent here.
+  "c:slug-hacker-choice:3": (g) => {
+    if (g.scrap < 35) return;
+    g.scrap -= 35;
+    result(g, `"I really am feeling generousss..." They take the scrap and leave.`, undefined, ["You avoided the fight."]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

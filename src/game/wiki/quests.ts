@@ -1148,6 +1148,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:destroyed-cargo-ship:1": (g) => {
     result(g, "You leave the cargo alone and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Pirate ship attacking Crystal. "Ignore them." One printed result.
+  "c:pirate-ship-attacking-crystal:1": (g) => {
+    result(g, "You assume the Crystalline ship can handle itself. You have enough of your own problems.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

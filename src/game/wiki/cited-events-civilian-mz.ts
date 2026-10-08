@@ -423,7 +423,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "",
+    body: "You stumble across a forward scout of the Rebel fleet.",
     choices: [
       {
         id: "c:rebel-ship-warning:0",

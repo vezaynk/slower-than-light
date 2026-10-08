@@ -3817,6 +3817,16 @@ const MERCENARY_INTROS = [
   `A ship hails you: "Good sir! It seems you're having some troubles with the Rebels. I'd like to help you, but I can't afford the upkeep required on this hunk of junk I'm flying... maybe we can come to an arrangement?"`,
 ];
 
+// Rebel ship supplying civilians. Five printed intros, no odds. INFERRED: equal.
+// Attack stays c:rebel-ship-supplying-civilians:0. Leave stays :1. The steal choice is not added.
+const REBEL_SUPPLY_INTROS = [
+  "You stumble across a Rebel ship distributing supplies to local civilian colonies. It's probably not anything military grade, but every little bit helps...",
+  "You find a Rebel combat ship that has been reassigned as an emergency supply vessel. The local civilians are apparently in need of help, and the Rebels are rising to the occasion.",
+  "The Rebels in this system are doing supply runs for the local space stations. These civilians have likely been out of supply for months due to the war and are in desperate need.",
+  "Civilian colonists loyal to the Rebel cause are present on a nearby planet. It looks like they are currently receiving a supply shipment. Could be useful.",
+  "Because of the war, thousands of colonists have had their supply lines disrupted and have found themselves in dire straits. It seems in this system, the Rebels are sympathetic and are distributing what little supplies they can spare.",
+];
+
 // Rebel ship attacking Federation loyalists. Three printed intros, no odds. INFERRED: equal.
 // Aid stays c:rebel-ship-attacking-federation-loyalists:0. Escape stays :1.
 const REBEL_LOYALIST_INTROS = [
@@ -4312,6 +4322,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MERCENARY_INTROS[between(g, [0, 5])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Rebel ship supplying civilians. One of the five printed intros. Attack and Leave stay the existing choices.
+  if (ev.slug === "rebel-ship-supplying-civilians") {
+    return {
+      title: ev.dest,
+      body: REBEL_SUPPLY_INTROS[between(g, [0, 4])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

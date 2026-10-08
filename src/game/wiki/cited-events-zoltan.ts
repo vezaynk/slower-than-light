@@ -172,7 +172,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-fight-in-asteroid-field",
     aliases: ["Zoltan fight in asteroid field"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "",
+    body: "You arrive in an asteroid field and are greeted by a Zoltan guard, \"By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing.\" You don't have time for this.",
     choices: [
       {
         id: "c:zoltan-fight-in-asteroid-field:0",

@@ -342,6 +342,9 @@ function hasLanius(g: Game): boolean {
 function hasRock(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "stone");
 }
+function hasMantis(g: Game): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "blade");
+}
 
 /** Slug drink. Two results and no odds. INFERRED: equal. A Rock's trap is the fight; the drink's trap loses 25–35 scrap. */
 function slugDrink(g: Game, rock: boolean) {
@@ -1311,6 +1314,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, "Your hacking system automatically counters the digital assault and you move in to fight the ship.", "Slug ship", "slug-hacker-oxygen");
     shutPlayerHacking(g);
   },
+  // Legendary thief KazaaakplethKilik. "Attempt to hail him." One printed lead-in, then a Mantis ship fight.
+  // The page prints "crew entirely composed of Mantis." This handler returns before citedChoose.
+  "c:legendary-thief-kazaaakplethkilik:1": (g) => {
+    pageFight(g, "Your Mantis crew-member steps forward. He and KazaaakplethKilik perform a weird kind of alien haka. You, meanwhile, charge the battle systems.", "Mantis ship", "legendary-thief-kazaaakplethkilik");
+    allMantisCrew(g);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2085,6 +2094,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Slug hacker (oxygen). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-oxygen:2" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
+  // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
+  if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return "Needs a Mantis crewmember";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

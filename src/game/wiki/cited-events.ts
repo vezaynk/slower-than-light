@@ -1429,6 +1429,16 @@ const CORE_EVENTS: EventDef[] = [
             "tier": "Mantis ship"
           }
         ]
+      },
+      {
+        "id": "c:legendary-thief-kazaaakplethkilik:1",
+        "label": "Attempt to hail him.",
+        "fx": [
+          {
+            "k": "fight",
+            "tier": "Mantis ship"
+          }
+        ]
       }
     ]
   },

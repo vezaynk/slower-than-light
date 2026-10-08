@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
@@ -70,4 +70,51 @@ describe("Auto-ship warning", () => {
     assert.equal(killed.scrap, 10);
     assert.equal(killed.phase, "event");
   });
+
+  it("starts the running Auto-ship on arrival and leaves no button", () => {
+    // The page has no choice. "Fight an Auto-ship that is running away."
+    // The red line doubles pursuit only if the scout gets away.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:auto-ship-warning";
+    dest.name = "Auto-ship warning";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "auto");
+    assert.equal(g.enemy?.pirate, false);
+    assert.equal(g.fightEvent, "auto-ship-warning");
+    // A normal jump advances the fleet by one. Doubled pursuit is the escape, not this arrival.
+    assert.equal(g.fleet, 1);
+    assert.equal(g.enemyEscape?.mode, "start");
+    assert.equal(g.enemyEscape?.seconds, 40);
+    assert.equal(g.enemyEscape?.running, true);
+    assert.equal(g.enemyEscape?.pursuit, true);
+    assert.ok(g.log.includes("The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!"));
+    assert.ok(g.log.some((line) => INTROS.includes(line)));
+  });
 });
+
+const INTROS = [
+  "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.",
+  `Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.`,
+  "A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.",
+  "The AI of a nearby small Rebel scout immediately identifies you as a threat and engages.",
+  "A Rebel ship moves in to engage. You attempt to open communications, but realize the futility of that action when you see the ship is run by an AI.",
+  "This must be one of the Rebels' unmanned scout ships. Looks like there's no way around a fight.",
+  "Another unmanned ship patrols this area. You prepare the ship for combat.",
+  "This beacon is being patrolled by a unmanned scout. A fight is unavoidable.",
+  "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!",
+];

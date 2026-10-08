@@ -4427,7 +4427,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
     };
   }
-  // Auto-ship warning. The page shares those nine intros. The fight stays c:auto-ship-warning:0.
+  // Auto-ship warning has no choice. Arrival calls c:auto-ship-warning:0.
+  // The page shares those nine intros. "Fight an Auto-ship that is running away."
+  // The red line is the escape: Rebel Fleet pursuit is doubled. unique=true.
   if (ev.slug === "auto-ship-warning") {
     return {
       title: ev.dest,

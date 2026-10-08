@@ -5065,6 +5065,7 @@ function arrive(g: Game, b: Beacon) {
   // Rebel fight with boarders: "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
   // Rock fight with boarders: "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
   // Rock fight with boarders in asteroid field: "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
+  // Auto-ship warning: "Fight an Auto-ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5080,7 +5081,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:zoltan-border-police" ||
       b.flag === "cited:rebel-fight-with-boarders" ||
       b.flag === "cited:rock-fight-with-boarders" ||
-      b.flag === "cited:rock-fight-with-boarders-in-asteroid-field") &&
+      b.flag === "cited:rock-fight-with-boarders-in-asteroid-field" ||
+      b.flag === "cited:auto-ship-warning") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

@@ -139,5 +139,47 @@ describe("pulsar", () => {
     assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 2);
     g.player.systems.pilot.level = 2;
     assert.equal(pulsarSystemIon(g, g.player, "player", "pilot"), 2);
+    // Environmental Hazards, Pulsar: ion follows the system level. Damage is not subtracted.
+    g.player.systems.pilot.damage = 1;
+    assert.equal(pulsarSystemIon(g, g.player, "player", "pilot"), 2);
+    g.player.systems.doors.damage = 1;
+    assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 2);
+    for (const c of g.crew) c.room = "p-doors";
+    assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 3);
+    // Sensors, Manning: one level above the upgrade, capped at 4. Damage stays out of the figure.
+    g.player.systems.sensors.level = 2;
+    g.player.systems.sensors.damage = 1;
+    for (const c of g.crew) c.room = "p-sensors";
+    assert.equal(pulsarSystemIon(g, g.player, "player", "sensors"), 3);
+    for (const c of g.crew) c.room = "p-pilot";
+    assert.equal(pulsarSystemIon(g, g.player, "player", "sensors"), 2);
+  });
+
+  it("ionizes a damaged Backup Battery at its system level", () => {
+    const g = createGame(11);
+    startCombat(g, "scout");
+    g.player.zoltan = 0;
+    for (const id of Object.keys(g.player.systems) as SysId[]) {
+      g.player.systems[id].level = 0;
+      g.player.systems[id].power = 0;
+      g.player.systems[id].damage = 0;
+    }
+    if (g.enemy) {
+      g.enemy.zoltan = 0;
+      for (const id of Object.keys(g.enemy.systems) as SysId[]) g.enemy.systems[id].level = 0;
+    }
+    g.player.kits.cell = {
+      id: "cell",
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      damage: 1,
+    };
+    applyPulsarPulse(g);
+    assert.equal(g.player.kits.cell?.cool, 25);
   });
 });

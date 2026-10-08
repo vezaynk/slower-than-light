@@ -3302,16 +3302,18 @@ function armPulsar(g: Game) {
 
 /**
  * Environmental Hazards, Pulsar: main systems use 1 + 0.5(power), rounded down.
- * Power includes a Zoltan bar. Subsystems use their level. Door System, Manning:
- * a body counts as one level higher, so a level-2 door with a body is the page's
- * "level 3 doors ... take 3". Pilot and sensors have no printed manning level.
+ * Power includes a Zoltan bar.
+ * "Subsystems will take ion damage according to their system level, including the
+ * temporary upgrade level from crew manning them." Damage is not in that sentence.
+ * Door System, Manning, and Sensors, Manning: one level above the upgrade, and the
+ * 4th level is only reached by manning. Piloting prints no temporary level.
  */
 export function pulsarSystemIon(g: Game, ship: Ship, aboard: "player" | "enemy", id: SysId): number {
   const sys = ship.systems[id];
   if (sys.level <= 0) return 0;
   if (!isMain(id)) {
-    if (id === "doors") return doorLevel(g, ship, aboard);
-    return Math.max(0, sys.level - sys.damage);
+    if ((id === "doors" || id === "sensors") && manning(g, ship, aboard, id)) return Math.min(4, sys.level + 1);
+    return sys.level;
   }
   return pulsarMainIon(bars(sys, zoltanBars(g.crew, ship, aboard, id)));
 }
@@ -3348,9 +3350,9 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
     );
     return;
   }
-  // Environmental Hazards, Pulsar: subsystems take ion according to their level.
+  // Environmental Hazards, Pulsar: subsystems take ion according to their system level.
   // Backup Battery, Overview: a pulsar is one way that subsystem gets ionized.
-  // INFERRED: damage lowers the figure the same way an un-manned subsystem does.
+  // Damage is not subtracted. The battery's system level is the figure, not the bars left.
   const pool: PulsarPick[] = ALL_SYS.map((id) => ({
     id,
     points: pulsarSystemIon(g, ship, aboard, id),
@@ -3358,8 +3360,7 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
   }));
   const cell = ship.kits.cell;
   if (cell && cell.level > 0) {
-    const points = Math.max(0, cell.level - (cell.damage ?? 0));
-    if (points > 0) pool.push({ id: "cell", points, powered: false });
+    pool.push({ id: "cell", points: cell.level, powered: false });
   }
   const picks = pickPulsarTargets(pool, () => rand(g));
   if (picks.length === 0) return;

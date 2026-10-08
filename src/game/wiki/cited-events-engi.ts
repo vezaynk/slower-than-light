@@ -117,7 +117,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:confused-mantis",
     aliases: ["Confused Mantis"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel.",
+    body: "As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: \"Strange bug. Can you assist in debugging?\"",
     choices: [
       {
         id: "c:confused-mantis:0",

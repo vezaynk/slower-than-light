@@ -214,7 +214,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    // Boarders: Rockmen near sun. The page prints no button. The red line is the label.
+    // Boarders: Rockmen near sun. The page prints no button. The red line is the outcome, applied on arrival.
     // redgiant=true, LRSmap=noship+redgiant, unique=true. Not a crew grant.
     dest: "Boarders: Rockmen near sun",
     slug: "boarders-rockmen-near-sun",

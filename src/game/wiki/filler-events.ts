@@ -2324,8 +2324,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g, false, true);
   },
 
-  // Boarders: Rockmen near sun. "2-3 rock boarders beam aboard your ship."
-  // INFERRED: the count is inclusive (between()). redgiant=true. No ship. Not a crew grant.
+  // Boarders: Rockmen near sun. The page has no choice. Arrival calls this id so the red line
+  // "2-3 rock boarders beam aboard your ship." is the outcome, not a button.
+  // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship. Not a crew grant.
   "c:boarders-rockmen-near-sun:0": (g) => {
     rockBoarders(g, 2, 3);
     beginBoarding(g, false, true);

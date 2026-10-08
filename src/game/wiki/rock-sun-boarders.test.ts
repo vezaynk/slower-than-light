@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
@@ -63,5 +63,34 @@ describe("Boarders: Rockmen near sun", () => {
       assert.equal(g.kills, kills);
     }
     assert.ok(seen.has(2) && seen.has(3), [...seen].sort().join(","));
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "2-3 rock boarders beam aboard your ship." redgiant=true.
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:boarders-rockmen-near-sun";
+    dest.name = DEST;
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy, null);
+    assert.equal(g.flare, true);
+    assert.ok((g.flareWait ?? 0) >= 28 && (g.flareWait ?? 0) < 34);
+    const rocks = boarded(g);
+    assert.ok(rocks.length >= 2 && rocks.length <= 3, String(rocks.length));
+    assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
   });
 });

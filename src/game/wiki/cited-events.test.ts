@@ -391,6 +391,33 @@ describe("Zoltan border police", () => {
     }
     assert.deepEqual([...seen].sort(), [3, 4]);
   });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship.
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:zoltan-border-police";
+    dest.name = "Zoltan border police";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "zoltan");
+    const zoltan = g.crew.filter((c) => c.side === "enemy" && c.kin === "spark" && c.aboard === "player");
+    assert.ok(zoltan.length >= 3 && zoltan.length <= 4, String(zoltan.length));
+    assert.ok(g.log.some((line) => line.includes("zoltan boarders beam aboard your ship.")));
+  });
 });
 
 describe("Boarders: Humans in plasma storm", () => {

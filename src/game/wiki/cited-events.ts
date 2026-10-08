@@ -5128,7 +5128,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:mantis-outcasts:0") mantisBoarders(g, 2, 3);
-    // "3-4 zoltan boarders beam aboard your ship" (Zoltan border police).
+    // Zoltan border police has no choice. Arrival calls this id.
+    // "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
     // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:zoltan-border-police:0") zoltanBoarders(g, 3, 4);
     // "2-3 human boarders beam aboard your ship" (Rebel fight with boarders).

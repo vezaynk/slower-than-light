@@ -1545,6 +1545,21 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship breaks apart and you feel relief in the knowledge that you will hopefully still be one step ahead of the fleet.", rollStandard(g, "low"));
   },
+  // Auto-ship attacking outpost. Destroyed pays low standard, then the outpost pays medium standard.
+  // The page prints no crew-kill reward. Avoid the conflict is the nothing choice.
+  "auto-ship-attacking-outpost": (g, deadCrew) => {
+    if (deadCrew) return false;
+    const more = rollStandard(g, "medium");
+    payOffer(g, more, true);
+    const extras = [
+      "The outpost hails you after the scout was destroyed, \"Thanks for the help. We've been harassed non-stop by those scouts. Take this on the house.\"",
+    ];
+    if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
+    if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
+    if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
+    if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
+    result(g, "The ship breaks apart and you quickly salvage what you can.", rollStandard(g, "low"), extras);
+  },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
   "lanius-ship-attacking-civilian": laniusCivilianWin,

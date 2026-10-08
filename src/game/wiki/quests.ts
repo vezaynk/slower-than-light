@@ -1116,6 +1116,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-attacking-rock:0": (g) => {
     pageFight(g, "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.", "Lanius ship", "lanius-ship-attacking-rock");
   },
+  // Lanius ship attacking Rock. "Leave the Rockmen to their fate." One printed result.
+  "c:lanius-ship-attacking-rock:1": (g) => {
+    result(g, "As you make your escape, the Rockman's ship's engines explode, and you watch the Lanius ship slowly feed on the remains - and the crew.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

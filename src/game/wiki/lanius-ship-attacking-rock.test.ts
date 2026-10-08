@@ -89,7 +89,12 @@ describe("Lanius ship attacking Rock", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-rock:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "As you make your escape, the Rockman's ship's engines explode, and you watch the Lanius ship slowly feed on the remains - and the crew.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.enemy, null);
   });
 });

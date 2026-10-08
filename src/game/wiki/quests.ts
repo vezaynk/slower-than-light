@@ -1168,6 +1168,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:pirate-smuggler:1": (g) => {
     result(g, "It jumps away after a time.", undefined, ["Nothing happens."]);
   },
+  // Refueling platform garbled broadcast. "Ignore the platform." One printed result.
+  "c:refueling-platform-garbled-broadcast:1": (g) => {
+    result(g, "You leave the platform alone, and prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

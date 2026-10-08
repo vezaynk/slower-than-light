@@ -10,6 +10,8 @@ import {
   aimLance,
   installLance,
   tickLance,
+  lowerLancePower,
+  raiseLancePower,
   toggleLancePower,
 } from "./lance.ts";
 
@@ -158,5 +160,112 @@ describe("lance", () => {
     assert.ok(sparePower(g.player) < 1);
     toggleLancePower(g);
     assert.equal(kit.power, 0);
+  });
+
+  it("level 2 with one bar charges on the 50 second clock", () => {
+    const g = armed(9);
+    assert.ok(g.enemy);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 2;
+    kit.power = 1;
+    kit.aux = 0;
+    const hull = g.enemy.hull;
+    tickLance(g, 25);
+    assert.equal(kit.aux, 25 / 50);
+    assert.equal(g.enemy.hull, hull);
+  });
+
+  it("level 2 with two bars charges on the 40 second clock", () => {
+    const g = armed(10);
+    assert.ok(g.enemy);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 2;
+    kit.power = 2;
+    kit.aux = 0;
+    const hull = g.enemy.hull;
+    tickLance(g, 25);
+    assert.equal(kit.aux, 25 / 40);
+    assert.equal(g.enemy.hull, hull);
+  });
+
+  it("a stamped zoltan bar counts as one power level and does not change reactor power", () => {
+    const g = armed(14);
+    assert.ok(g.enemy);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 2;
+    kit.power = 1;
+    kit.zoltan = 1;
+    kit.aux = 0;
+    tickLance(g, 25);
+    assert.equal(kit.power, 1);
+    assert.equal(kit.aux, 25 / 40);
+  });
+
+  it("level 4 with four bars charges in 20 seconds and three bars charge in 30", () => {
+    const g = createGame(11);
+    assert.equal(installLance(g), true);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 4;
+    const missing = 4 - sparePower(g.player);
+    if (missing > 0) g.player.reactor += missing;
+    assert.ok(sparePower(g.player) >= 4);
+    toggleLancePower(g);
+    toggleLancePower(g);
+    toggleLancePower(g);
+    toggleLancePower(g);
+    assert.equal(kit.power, 4);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    kit.aux = 0;
+    const hull = g.enemy.hull;
+    tickLance(g, 10);
+    assert.equal(kit.aux, 10 / 20);
+    kit.power = 3;
+    kit.aux = 0;
+    tickLance(g, 15);
+    assert.equal(kit.aux, 15 / 30);
+    assert.equal(g.enemy.hull, hull);
+  });
+
+  it("damage 1 on a level 3 beam caps power at 2", () => {
+    const g = createGame(12);
+    assert.equal(installLance(g), true);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 3;
+    kit.damage = 1;
+    const missing = 3 - sparePower(g.player);
+    if (missing > 0) g.player.reactor += missing;
+    assert.ok(sparePower(g.player) >= 2);
+    toggleLancePower(g);
+    toggleLancePower(g);
+    assert.equal(kit.power, 2);
+    assert.ok(sparePower(g.player) >= 1);
+    toggleLancePower(g);
+    assert.ok(kit.power <= 2);
+    assert.notEqual(kit.power, 3);
+  });
+
+  it("the more control stops at the cap and the less control removes a bar", () => {
+    const g = createGame(13);
+    assert.equal(installLance(g), true);
+    const kit = g.player.kits.lance;
+    assert.ok(kit);
+    kit.level = 2;
+    const missing = 2 - sparePower(g.player);
+    if (missing > 0) g.player.reactor += missing;
+    raiseLancePower(g);
+    raiseLancePower(g);
+    assert.equal(kit.power, 2);
+    const spare = sparePower(g.player);
+    raiseLancePower(g);
+    assert.equal(kit.power, 2);
+    assert.equal(sparePower(g.player), spare);
+    lowerLancePower(g);
+    assert.equal(kit.power, 1);
   });
 });

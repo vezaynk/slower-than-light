@@ -31,10 +31,13 @@ export const UPGRADE_COSTS: Record<number, number> = {
 };
 
 /**
- * INFERRED: one reactor bar. Artillery Beam "Overview" states no power cost.
- * MISMATCH: code has 1 bar at every level. Wiki page "Beam (Weapons)", section "Beam weapons table": power 1-4*.
+ * Template:Beam weapons, Artillery Beam row: power {{tooltip|1-4*|Artillery system with a maximum of 4 system levels}}.
+ * Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
  */
-const BARS = 1;
+function powerCap(kit: { level: number; damage?: number }): number {
+  const level = Math.max(0, Math.min(4, kit.level));
+  return Math.max(0, level - (kit.damage ?? 0));
+}
 
 function chargeSeconds(level: number): number {
   const lv = Math.min(4, Math.max(1, Math.floor(level)));
@@ -71,24 +74,32 @@ export function installLance(g: Game): boolean {
 }
 
 /**
- * One reactor bar, or off. Unpowered charge does not advance.
+ * One reactor bar at a time, up to powerCap. Unpowered charge does not advance.
  * Artillery Beam "Overview": no console, so it cannot be manned to shorten the charge.
- * INFERRED: one reactor bar. Artillery Beam "Overview" states no power cost. Wiki page "Beam (Weapons)", section "Beam weapons table": power 1-4*.
  * "Overview": powering off drains the charge. The page says "quickly" and gives no seconds, so a full bar empties in 2s. INFERRED.
  */
+export function raiseLancePower(g: Game): void {
+  const kit = g.player.kits.lance;
+  if (!kit || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  kit.power += 1;
+  kit.on = true;
+}
+
+export function lowerLancePower(g: Game): void {
+  const kit = g.player.kits.lance;
+  if (!kit || kit.power <= 0) return;
+  kit.power -= 1;
+  kit.on = kit.power > 0;
+}
+
 export function toggleLancePower(g: Game): void {
   const kit = g.player.kits.lance;
   if (!kit) return;
-  if (kit.power >= BARS) {
-    kit.power = 0;
-    kit.on = false;
+  if (kit.power < powerCap(kit) && sparePower(g.player) >= 1) {
+    raiseLancePower(g);
     return;
   }
-  if (sparePower(g.player) < BARS) return;
-  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
-  if (kit.level - (kit.damage ?? 0) < BARS) return;
-  kit.power = BARS;
-  kit.on = true;
+  lowerLancePower(g);
 }
 
 /** MISMATCH: code stores a chosen enemy room. Artillery Beam "Overview" says the beam swipe cannot be controlled. */
@@ -142,7 +153,12 @@ function nick(g: Game, ship: Ship, room: Room): void {
 }
 
 /**
- * Charges while a bar is fed, on the "System Upgrades" clock for the installed level.
+ * Charges on the power-level clock. Zero bars drain.
+ * Beam (Weapons), Artillery Beam: "More power means faster cooldown."
+ * "Charge time (depends on the system power level): 50s for level 1, reduced by 10 seconds
+ * for each level above 1 to a minimum of 20s for level 4."
+ * Working bars are kitBars: reactor power plus a Zoltan bar already stamped on the kit.
+ * The Zoltan bar counts as a power level and does not change kit.power.
  * On completion, hull and system damage are applied directly so shield layers are neither popped nor subtracted.
  * Artillery Beam "Overview": the beam pierces regular shields.
  * Artillery Beam "Overview": a full charge fires on its own. The swipe still cannot be aimed; a room is chosen when the bar fills.
@@ -156,13 +172,15 @@ function nick(g: Game, ship: Ship, room: Room): void {
 export function tickLance(g: Game, dt: number): void {
   const kit = g.player.kits.lance;
   if (!kit || !(dt > 0)) return;
-  if (kitBars(kit) < 1) {
+  const fed = kitBars(kit);
+  if (fed < 1) {
     kit.aux = Math.max(0, kit.aux - dt / 2);
     return;
   }
   if (g.paused || g.phase !== "combat" || !g.enemy) return;
 
-  const seconds = chargeSeconds(kit.level);
+  // Beam (Weapons), Artillery Beam: the clock is the filled power level, not the installed level.
+  const seconds = chargeSeconds(fed);
   if (hackPulseOn(g, g.player, "lance")) {
     kit.aux = Math.max(0, kit.aux - dt / seconds);
     return;

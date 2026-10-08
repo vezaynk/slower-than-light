@@ -3737,8 +3737,9 @@ function winCombat(g: Game) {
   let scrap = adjustScrap(g, eligible);
   const notes: string[] = [];
   if (g.pending === "crew") {
+    const before = g.crew.filter((c) => c.side === "player").length;
     addCrew(g);
-    notes.push("A survivor comes aboard.");
+    if (g.crew.filter((c) => c.side === "player").length > before) notes.push("A survivor comes aboard.");
     g.pending = null;
   } else if (g.pending === "exit-clear") {
     g.pending = null;
@@ -3819,12 +3820,15 @@ function giveWeapon(g: Game, defId: string) {
   });
 }
 
-// INVENTED: a fifth crew pays 15 scrap instead, and a new hire starts at 80 HP.
+/**
+ * Crew, and Ship: a player ship carries a maximum of 8 crewmembers.
+ * A 9th is not added. Relieving someone already aboard is not drawn.
+ * Template:Crew races (comparison), Humans: maximum health 100.
+ */
+export const CREW_CAP = 8;
+
 function addCrew(g: Game) {
-  if (g.crew.filter((c) => c.side === "player").length >= 5) {
-    addScrap(g, 15);
-    return;
-  }
+  if (g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return;
   const used = new Set(g.crew.map((c) => c.name));
   const name = CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
   g.crew.push({
@@ -3832,7 +3836,7 @@ function addCrew(g: Game) {
     name,
     side: "player",
     aboard: "player",
-    hp: 80,
+    hp: 100,
     maxHp: 100,
     room: "p-medbay",
     path: [],

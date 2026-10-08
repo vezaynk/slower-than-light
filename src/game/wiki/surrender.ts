@@ -15,7 +15,7 @@ import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { beginBoarding, log, rand, startCombat, weaponSlotCap } from "../sim.ts";
+import { CREW_CAP, beginBoarding, log, rand, startCombat, weaponSlotCap } from "../sim.ts";
 import type { Crew, Difficulty, Game } from "../types.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
@@ -595,8 +595,8 @@ export function randomRace(g: Game): string {
  * @agent:quests: `name` and `skills` for a page's named crewmember (Kazaaak); exported for wiki/quests.ts.
  */
 export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["skills"]): boolean {
-  // INVENTED in sim.ts addCrew: five crew at most.
-  if (g.crew.filter((c) => c.side === "player").length >= 5) return false;
+  // Crew: "can carry a maximum of 8 crewmembers." A 9th is not added.
+  if (g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return false;
   const kin = RACES.find(([r]) => r === race)?.[1] ?? "plain";
   const used = new Set(g.crew.map((c) => c.name));
   const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";

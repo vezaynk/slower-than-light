@@ -3579,6 +3579,19 @@ const ROCK_BOARDER_INTROS = [
   "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!",
 ];
 
+// Auto-ship fight. Nine printed intros, no odds. INFERRED: equal. The fight stays c:auto-ship-fight:0.
+const AUTO_SHIP_FIGHT_INTROS = [
+  "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.",
+  `Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.`,
+  "A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.",
+  "The AI of a nearby small Rebel scout immediately identifies you as a threat and engages.",
+  "A Rebel ship moves in to engage. You attempt to open communications, but realize the futility of that action when you see the ship is run by an AI.",
+  "This must be one of the Rebels' unmanned scout ships. Looks like there's no way around a fight.",
+  "Another unmanned ship patrols this area. You prepare the ship for combat.",
+  "This beacon is being patrolled by a unmanned scout. A fight is unavoidable.",
+  "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -3872,6 +3885,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ROCK_BOARDER_INTROS[between(g, [0, 1])]!,
       choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
+    };
+  }
+  // Auto-ship fight. One of the nine printed intros. The fight stays c:auto-ship-fight:0.
+  if (ev.slug === "auto-ship-fight") {
+    return {
+      title: ev.dest,
+      body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
+      choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

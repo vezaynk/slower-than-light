@@ -2348,7 +2348,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
-  // Boarders: rebels in nebula. "3-4 human boarders beam aboard your ship."
+  // Boarders: rebels in nebula. The page has no choice. Arrival calls this id so the red line
+  // "3-4 human boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). nebula=true is the beacon, not a new hazard. No ship.
   "c:boarders-rebels-in-nebula:0": (g) => {
     humanBoarders(g, 3, 4, "human boarders beam aboard your ship.");

@@ -983,6 +983,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
       { id: "c:lanius-trader:3", label: "Decline" },
     ]);
   },
+  // Lanius trader with translator. "Decline." One printed result.
+  "c:lanius-trader-with-translator:3": (g) => {
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
+  },
   // Lanius trader with translator. "Decline but ask about their translation device."
   "c:lanius-trader-with-translator:4": (g) => {
     card(g, "\"Yes. It is quality. Our ship contains excess. Care to purchase?\"", [

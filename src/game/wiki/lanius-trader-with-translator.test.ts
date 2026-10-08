@@ -66,9 +66,16 @@ describe("Lanius trader with translator", () => {
   it("declining spends nothing", () => {
     const g = createGame(1);
     open(g);
+    const fuel = g.fuel;
+    const missiles = g.missiles;
+    const parts = g.player.parts;
     choose(g, "c:lanius-trader-with-translator:3");
-    assert.equal(g.phase, "map");
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.fuel, fuel);
+    assert.equal(g.missiles, missiles);
+    assert.equal(g.player.parts, parts);
+    assert.equal(g.event?.body, "They leave without a word.\n\nNothing happens.");
   });
 
   it("40 scrap buys a Lanius named Translator with no skill", () => {

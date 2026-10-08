@@ -3766,6 +3766,13 @@ const CRYSTAL_BOARDER_INTROS = [
   `You pick up chatter from a nearby ship, "Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens." Scanners indicate a remote teleporter was just used.`,
 ];
 
+// Boarders: Rockmen near sun. The page prints two intros and no odds.
+// INFERRED: equal. The boarders stay c:boarders-rockmen-near-sun:0.
+const ROCK_SUN_BOARDER_INTROS = [
+  `As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"`,
+  "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
+];
+
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
@@ -4730,6 +4737,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: CRYSTAL_BOARDER_INTROS[between(g, [0, 2])]!,
       choices: [{ id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." }],
+    };
+  }
+  // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
+  if (ev.slug === "boarders-rockmen-near-sun") {
+    return {
+      title: ev.dest,
+      body: ROCK_SUN_BOARDER_INTROS[between(g, [0, 1])]!,
+      choices: [{ id: "c:boarders-rockmen-near-sun:0", label: "2-3 rock boarders beam aboard your ship." }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.

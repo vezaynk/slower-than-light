@@ -3708,6 +3708,16 @@ const LANIUS_PIRATE_CIVILIAN_INTROS = [
   `A pirate ship is firing on the small ships docked at a refueling station. They are broadcasting on a wide band channel. You catch the captain's rant mid-speed, "...saw you trading with those damned scavengers. I'll show you what happens when you try and undercut the Red Giant gang!"`,
 ];
 
+// Pirate fight in nebula. Five printed intros, no odds. INFERRED: equal.
+// The fight stays c:pirate-fight-in-nebula:0. Default rewards. No nebula environment is added.
+const NEBULA_PIRATE_INTROS = [
+  "As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online.",
+  `A pirate ship pulls out of the ether and hails: "You know what I love about this part of the galaxy? The explorers! You always carry such fine loot." They lock weapons.`,
+  "As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers.",
+  "A hostile vessel descends from out of the nebula. Combat stations!",
+  "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!",
+];
+
 // Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
 const ZOLTAN_FIGHT_INTROS = [
@@ -4013,6 +4023,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: PIRATE_FIGHT_INTROS[between(g, [0, 4])]!,
       choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
+    };
+  }
+  // Pirate fight in nebula. One of the five printed intros. The fight stays c:pirate-fight-in-nebula:0.
+  if (ev.slug === "pirate-fight-in-nebula") {
+    return {
+      title: ev.dest,
+      body: NEBULA_PIRATE_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.

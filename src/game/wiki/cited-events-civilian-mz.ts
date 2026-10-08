@@ -502,7 +502,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "",
+    body: `You see a small station fitted with hundreds of Repair drones. You receive an automated message, "We don't know who you are and we don't care, but this is the right place for some ship repair!"`,
     choices: [
       {
         id: "c:repair-station:0",

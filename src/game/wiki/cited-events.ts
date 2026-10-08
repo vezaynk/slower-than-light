@@ -3689,6 +3689,17 @@ const MANTIS_CIVILIAN_INTROS = [
   "You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!",
 ];
 
+// Pirate ship attacking civilian. Six printed intros, no odds. INFERRED: equal.
+// Aid stays c:pirate-ship-attacking-civilian:0. Stay out stays :1.
+const PIRATE_CIVILIAN_INTROS = [
+  "You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency.",
+  "Scanners indicate that a battle is taking place nearby. It seems that someone is under attack by space pirates.",
+  "You detect two ships, one chasing the other... Scanners show the pursuer is a pirate!",
+  "There are only two ships within range and they seem to be engaged in battle. One of them has the markings of a space pirate.",
+  `You arrive at the next beacon only to immediately be hailed by a small shuttle. "Help us! We are being attacked by pirates!"`,
+  "You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.",
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4053,6 +4064,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MANTIS_CIVILIAN_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Pirate ship attacking civilian. One of the six printed intros. Both printed choices stay.
+  if (ev.slug === "pirate-ship-attacking-civilian") {
+    return {
+      title: ev.dest,
+      body: PIRATE_CIVILIAN_INTROS[between(g, [0, 5])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

@@ -4686,6 +4686,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:rebel-transport-ship:0") ctx.note("You prepare to secure their cargo by force.");
   // Lanius ship absorbing automated scout. "Fight the ship." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-ship-absorbing-automated-scout:0") ctx.note("You power up your weapons, which quickly gets the attention of the ship.");
+  // Mantis ship attacking Crystal. "Attack the Mantis." One printed lead-in, then a Mantis ship fight.
+  if (id === "c:mantis-ship-attacking-crystal:0") ctx.note("You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

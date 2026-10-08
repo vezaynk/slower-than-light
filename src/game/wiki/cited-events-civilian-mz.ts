@@ -532,6 +532,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 40, hi: 40 },
           { k: "hull", n: 20 },
+          { k: "note", text: "\"Thank you for your business, no refunds!\"" },
         ],
       },
       {
@@ -540,6 +541,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 20, hi: 20 },
           { k: "hull", n: 10 },
+          { k: "note", text: "\"Thank you for your business, no refunds!\"" },
         ],
       },
       {
@@ -548,6 +550,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 10, hi: 10 },
           { k: "hull", n: 5 },
+          { k: "note", text: "\"Thank you for your business, no refunds!\"" },
         ],
       },
       {

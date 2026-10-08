@@ -1299,6 +1299,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-crystal-ship:2": (g) => {
     result(g, "With the two ships engaged in combat, you sneak by unnoticed.", undefined, ["Nothing happens."]);
   },
+  // Slug hacker (oxygen). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
+  // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
+  "c:slug-hacker-oxygen:1": (g) => {
+    pageFight(g, "Thankfully your improved subsystem is able to counter their hacking enough to keep the life support barely functional. That should keep you alive at least...", "Slug ship", "slug-hacker-oxygen");
+    halvePlayerSystems(g, ["oxygen"]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);
@@ -2067,6 +2073,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Slug hacker (choice). {{Blue Option|Hacking System|Counter any hack attempt.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-choice:4" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Slug hacker (oxygen). {{Blue Option|Improved Oxygen|...|level=2+|shortreq=Oxygen}}.
+  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
+  if (id === "c:slug-hacker-oxygen:1" && (g.player.systems.oxygen?.level ?? 0) < 2) return "Needs level 2 Oxygen";
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return "Needs Adv. FTL Navigation";
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.

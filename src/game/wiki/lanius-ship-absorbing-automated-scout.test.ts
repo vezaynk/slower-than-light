@@ -38,6 +38,7 @@ describe("Lanius ship absorbing automated scout", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-absorbing-automated-scout:0");
+    assert.ok(g.log.includes("You power up your weapons, which quickly gets the attention of the ship."));
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-absorbing-automated-scout");
     assert.equal(g.enemy?.faction, "lanius");

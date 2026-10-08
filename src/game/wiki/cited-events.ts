@@ -31,7 +31,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { allMantisCrew, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { allMantisCrew, between, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -3424,9 +3424,53 @@ export function stampCitedEvents(g: Game) {
   markRuwenEntry(g);
 }
 
-export function citedEvent(_g: Game, b: Beacon): GameEvent | null {
+export type LaniusTraderRes = "fuel" | "missiles" | "parts";
+export type LaniusTraderOffer = { res: LaniusTraderRes; cost: number; scrap: number };
+
+// Lanius trader. One offer is shown before the choice. Three resources, no odds. INFERRED: equal.
+// Base scrap is 15-30 fuel, 20-40 missiles, 20-40 drone parts. A Lanius asks again for 20-35, 25-50, and 25-50.
+const LANIUS_TRADER_BASE: Record<LaniusTraderRes, [number, number]> = {
+  fuel: [15, 30],
+  missiles: [20, 40],
+  parts: [20, 40],
+};
+const LANIUS_TRADER_BETTER: Record<LaniusTraderRes, [number, number]> = {
+  fuel: [20, 35],
+  missiles: [25, 50],
+  parts: [25, 50],
+};
+
+export function rollLaniusTrader(g: Game, better: boolean): LaniusTraderOffer {
+  const kinds: LaniusTraderRes[] = ["fuel", "missiles", "parts"];
+  const res = kinds[between(g, [0, 2])]!;
+  const [lo, hi] = (better ? LANIUS_TRADER_BETTER : LANIUS_TRADER_BASE)[res];
+  return { res, cost: between(g, [3, 7]), scrap: between(g, [lo, hi]) };
+}
+
+export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
+  const word = offer.res === "parts" ? "drone parts" : offer.res;
+  return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
+}
+
+export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
+  return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
+}
+
+export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
+  if (ev.slug === "lanius-trader") {
+    const offer = rollLaniusTrader(g, false);
+    return {
+      title: ev.dest,
+      body: laniusTraderOfferText(offer),
+      choices: [
+        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
+        { id: "c:lanius-trader:3", label: "Decline" },
+        { id: "c:lanius-trader:4", label: "Ask for an alternative trade." },
+      ],
+    };
+  }
   return {
     title: ev.dest,
     body: ev.body,

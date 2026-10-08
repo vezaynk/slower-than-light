@@ -36,6 +36,7 @@ import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts"
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
+import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
 import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
@@ -616,6 +617,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:lanius-salvager:leave": (g) => {
     result(g, "You ignore their derisive tone and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Lanius trader, {{Blue Option|Lanius Crew|Ask for an alternative trade.}}
+  // A new roll of resource, cost, and scrap. INFERRED: the three better bands are equal.
+  // The named Translator is the other page, not this one.
+  "c:lanius-trader:4": (g) => {
+    if (!hasLanius(g)) return;
+    const offer = rollLaniusTrader(g, true);
+    card(g, `After a short discussion you do not understand, the trader comes back with a second proposal.\n\n${laniusTraderOfferText(offer)}`, [
+      { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
+      { id: "c:lanius-trader:3", label: "Decline" },
+    ]);
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -979,8 +991,39 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
 };
 
+const LANIUS_TRADER_TAKE = /^q:lanius-trader:take:(fuel|missiles|parts):(\d+):(\d+)$/;
+
+/** The shown Lanius trader offer. The page prints those amounts before the choice, so this does not roll again. */
+function payLaniusTrader(g: Game, id: string) {
+  const m = LANIUS_TRADER_TAKE.exec(id);
+  if (!m) return;
+  const res = m[1] as "fuel" | "missiles" | "parts";
+  const cost = Number(m[2]);
+  const scrap = Number(m[3]);
+  const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
+  if (have < cost) return;
+  if (res === "fuel") g.fuel -= cost;
+  else if (res === "missiles") g.missiles -= cost;
+  else g.player.parts -= cost;
+  g.scrap += scrap;
+  g.scrapCollected = (g.scrapCollected ?? 0) + scrap;
+  log(g, "After the exchange is complete they leave without a word.");
+  log(g, `Scrap: ${scrap}.`);
+  const b = here(g);
+  if (b) b.resolved = true;
+  g.event = null;
+  g.phase = "map";
+  g.paused = false;
+}
+
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
 export function questChoose(g: Game, id: string): boolean {
+  if (id.startsWith("q:lanius-trader:take:")) {
+    if (!LANIUS_TRADER_TAKE.test(id)) return false;
+    if (questChoiceDisabled(g, id)) return true;
+    payLaniusTrader(g, id);
+    return true;
+  }
   const run = CHOICES[id] ?? fromParts("choices", id);
   if (!run) return false;
   if (questChoiceDisabled(g, id)) return true;
@@ -996,6 +1039,15 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:lanius-ship-in-rich-debris-field:4" && (g.player.systems.pilot?.level ?? 0) < 3) return "Needs level 3 Piloting";
   // Lanius ship salvager, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
   if (id === "c:lanius-ship-salvager:2" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  // Lanius trader, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  if (id === "c:lanius-trader:4" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  const trader = LANIUS_TRADER_TAKE.exec(id);
+  if (trader) {
+    const res = trader[1];
+    const cost = Number(trader[2]);
+    const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
+    if (have < cost) return `Need ${cost} ${res === "parts" ? "drone parts" : res}`;
+  }
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
   if (id === "s:the-black-raven:duel" && !hasSlug(g)) return "Needs a Slug crewmember";
   if (id === "q:war-camp:missile" && g.missiles < 1) return "Need 1 missiles";

@@ -3211,7 +3211,7 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "",
+    "body": "You pick up a Zoltan life raft floating in space. Its inhabitant asks you to retake his ship from the pirates who recently commandeered it. \"I'm certain it is clear,\" he concludes, \"that you must not destroy my vessel in the process.\"",
     "choices": [
       {
         "id": "c:zoltan-retake-the-ship:0",

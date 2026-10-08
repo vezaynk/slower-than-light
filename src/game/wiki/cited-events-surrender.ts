@@ -73,6 +73,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
+      {
+        id: "c:destroyed-cargo-ship:2",
+        label: "Run an advanced scan on the boxes.",
+        // Advanced Sensors level=2+. Three scan results: surrender.ts PAGE_CHOICES.
+        fx: [{ k: "note", text: "Scan the boxes." }],
+      },
+      {
+        id: "c:destroyed-cargo-ship:3",
+        label: "Run an advanced scan on the boxes.",
+        // Long-Ranged Scanners. The same three scan results: surrender.ts PAGE_CHOICES.
+        fx: [{ k: "note", text: "Scan the boxes." }],
+      },
     ],
   },
   {

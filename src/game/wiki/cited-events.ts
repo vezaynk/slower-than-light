@@ -4625,6 +4625,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
+  // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
+  // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
+  if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs Sensors level 2";
+  if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;

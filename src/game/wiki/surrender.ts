@@ -1257,6 +1257,32 @@ function pick<T>(g: Game, items: T[]): T {
 
 export const NEVER_RUN: EscapePlan = { mode: "never", seconds: 0, chance: 0, threshold: 0, rolled: false, running: false, pursuit: false };
 
+/**
+ * Destroyed cargo ship, "Scan the boxes". Three results and no odds. INFERRED: equal.
+ * 20-35 scrap is the printed transaction, not a scrap tier. Medium is scrap with resources.
+ */
+function cargoScan(g: Game) {
+  const r = pick(g, ["dull", "supplies", "ambush"] as const);
+  if (r === "dull") {
+    const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: between(g, [20, 35]), fuel: 0, missiles: 0, parts: 0 };
+    offer.scrap = adjustScrap(g, offer.eligible);
+    pageResult(g, "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.", offer);
+    return;
+  }
+  if (r === "supplies") {
+    pageResult(
+      g,
+      "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.",
+      rollStandard(g, "medium"),
+    );
+    return;
+  }
+  pageCard(g, "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.", [
+    { id: "s:destroyed-cargo-ship:destroy", label: "Destroy the crates to prevent another ship from falling victim." },
+    { id: "s:destroyed-cargo-ship:leave", label: "Leave it alone and prepare to jump." },
+  ]);
+}
+
 export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   // ---- "Engi surrender" (no fight: the ship surrenders on arrival) ----
   // Explain that you're friendly. Two results: "Nothing happens." / "You receive a random amount of scrap with resources."
@@ -1302,6 +1328,32 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       );
       humanBoarders(g, 2, 4);
     }
+  },
+
+  // Destroyed cargo ship. Advanced Sensors level=2+ and Long-Ranged Scanners both open "Scan the boxes".
+  // Three results, no odds. INFERRED: equal. The life-signature result is a follow-up card, not a reward.
+  "c:destroyed-cargo-ship:2": (g) => {
+    if ((g.player.systems.sensors?.level ?? 0) < 2) return;
+    cargoScan(g);
+  },
+  "c:destroyed-cargo-ship:3": (g) => {
+    if (!g.augments.includes("glass")) return;
+    cargoScan(g);
+  },
+  "s:destroyed-cargo-ship:destroy": (g) => {
+    // SurrenderEscape(alt) escape+surrender PIRATE: 50% escape at 20-40% hull and 50% surrender at 30-40% hull.
+    // Those are the Pirate default rows. A new slug keeps the bring-aboard 100% offer off this fight.
+    // The template's 2-4 and 3-4 are its actual-hull warning, the same reading as the other Pirate rows.
+    pageFight(
+      g,
+      "You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, \"You will pay for that!\"",
+      "Pirate ship",
+      "destroyed-cargo-ship-scan",
+    );
+  },
+  "s:destroyed-cargo-ship:leave": (g) => {
+    // The page prints no italic before "Nothing happens."
+    pageResult(g, "Nothing happens.");
   },
 
   // ---- "Settlement mercenary work", Listen to their offer. Two offers on the page. ----

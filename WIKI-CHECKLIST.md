@@ -705,7 +705,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Mantis Ships Battle for Rock Freighter — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Store — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis Venture Close to Sun — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Mantis War Camp — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Mantis War Camp — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Opening the beacon shows the printed request sentence.
 - [ ] Mantis attacking Crystal — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis attacking Crystal ship — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Mantis attacking Engi station — not-a-surface — same title as "Mantis Attacking Engi Station" with different capitalization

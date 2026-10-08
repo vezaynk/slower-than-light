@@ -547,6 +547,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     result(g, "The Rockmen give an awkwardly-translated message that seems to indicate something about gratitude. They then jump away without another word.", undefined, ["Nothing happens."]);
   },
+  // Lanius ship attacking Mantis, "Contact the Mantis." Two results, no odds. INFERRED: equal.
+  // Rewards, Missiles: "T missiles & T scrap." The page tooltip prints medium as 2-4 missiles.
+  "q:lanius-mantis:contact": (g) => {
+    if (weighted(g, [["missiles", 1], ["wreck", 1]] as const) === "missiles") {
+      const offer = scrapOnly(g, "medium");
+      offer.missiles = between(g, [2, 4]);
+      result(g, "The Mantis hiss and click, angry at being saved, and angry at themselves for needing to be saved. They part ways with some scrap metal that is no longer attached to their hull and a few missiles they can no longer use.", offer);
+      return;
+    }
+    result(g, "The Mantis ship sustained too much damage - there are no survivors. You gather what resources you can from the wreckage.", rollStandard(g, "medium"));
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -1099,6 +1110,13 @@ export const PAGE_WINS: Record<string, Win> = {
       ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
       : "The ship explodes, leaving behind a collection of useful scrap material.";
     result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-rock:contact", label: "Contact the Rockmen." }]);
+  },
+  // Lanius ship attacking Mantis. Both endings pay medium standard, then "Contact the Mantis."
+  "lanius-ship-attacking-mantis": (g, deadCrew) => {
+    const text = deadCrew
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-mantis:contact", label: "Contact the Mantis." }]);
   },
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {

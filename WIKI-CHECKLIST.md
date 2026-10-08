@@ -443,7 +443,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] FTL haywire civilian ship escort — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] FTL iPad Edition — not-a-surface — wiki process, not a game system
 - [ ] Federation Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
-- [ ] Federation Deserters — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Federation Deserters — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. Opening the beacon shows the printed glitch sentence.
 - [ ] Federation Fleet — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Federation Fleet and Rebel Fleet Fight — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Federation Science-Craft Docked with Lanius — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

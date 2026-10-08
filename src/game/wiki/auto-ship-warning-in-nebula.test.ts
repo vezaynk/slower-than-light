@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
@@ -73,5 +73,37 @@ describe("Auto-ship warning in nebula", () => {
     assert.equal(pageWin(killed, "auto-ship-warning-in-nebula", true), false);
     assert.equal(killed.scrap, 10);
     assert.equal(killed.phase, "event");
+  });
+
+  it("starts the running Auto-ship on arrival and leaves no button", () => {
+    // The page has no choice. "Fight an Auto-ship that is running away."
+    // The red line doubles pursuit only if the scout gets away.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:auto-ship-warning-in-nebula";
+    dest.name = "Auto-ship warning in nebula";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "auto");
+    assert.equal(g.fightEvent, "auto-ship-warning-in-nebula");
+    assert.equal(g.fleet, 1);
+    assert.equal(g.enemyEscape?.mode, "start");
+    assert.equal(g.enemyEscape?.seconds, 40);
+    assert.equal(g.enemyEscape?.running, true);
+    assert.equal(g.enemyEscape?.pursuit, true);
+    assert.ok(g.log.includes("It appears that an automated Rebel scout was positioned within the nebula to warn of your passing."));
   });
 });

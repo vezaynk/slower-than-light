@@ -103,7 +103,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Fight an Auto-ship that is running away.
+  // Auto-ship warning in nebula has no choice. Arrival applies this fight.
+  // "Fight an Auto-ship that is running away." unique=true. nebula=true.
   {
     dest: "Auto-ship warning in nebula",
     slug: "auto-ship-warning-in-nebula",

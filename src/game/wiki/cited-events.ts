@@ -260,6 +260,8 @@ const CORE_EVENTS: EventDef[] = [
       }
     ]
   },
+  // Auto-ship fight in asteroid field has no choice. Arrival calls c:auto-ship-fight-in-asteroid-field:0.
+  // "Fight an Auto-ship." asteroidfield=true. unique=false.
   {
     "dest": "Auto-ship fight in asteroid field",
     "slug": "auto-ship-fight-in-asteroid-field",

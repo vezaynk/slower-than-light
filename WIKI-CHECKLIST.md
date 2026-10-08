@@ -743,7 +743,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Mantis ship doesn't see you — not-a-surface — same title as "Mantis Ship Doesn't See You" with different capitalization
 - [ ] Mantis ship with Rock body parts — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
 - [ ] Mantis ships battle for Rock Freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
-- [ ] Mantis ships battle for Rock freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization
+- [ ] Mantis ships battle for Rock freighter — not-a-surface — same title as "Mantis Ships Battle for Rock Freighter" with different capitalization Waiting fights a Mantis ship whose Weapon Control is reduced by 2 or a normal Mantis ship, both wins pay medium scrap, ignoring them does nothing, a Repair Drone pays high scrap, and a Hull Repair Drone spends one drone part then fights that ship.
 - [ ] Mantis store — not-a-surface — same title as "Mantis Store" with different capitalization
 - [ ] Mantis venture close to sun — not-a-surface — same title as "Mantis Venture Close to Sun" with different capitalization
 - [ ] Mantis war camp — not-a-surface — same title as "Mantis War Camp" with different capitalization

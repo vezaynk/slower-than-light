@@ -2107,7 +2107,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     } else show(g, "As you approach it becomes clear that the station is simply an empty shell. It has been stripped of useful materials long ago.");
   },
   "s:abandoned-station:scrap": (g) => show(g, "You take what you can and prepare to move on.", scrapOnly(g, "low")),
-  "c:abandoned-station:1": done,
+  // Abandoned station. "Stay near the Beacon." One printed result.
+  "c:abandoned-station:1": (g) => show(g, "You decide it's not worth the time to examine.", undefined, ["Nothing happens."]),
 
   // ---- Terraforming scan ----
   "c:terraforming-scan:0": (g) => {

@@ -1169,6 +1169,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:space-station-under-construction:1": (g) => {
     result(g, `"I understand." Transmission has been cut.`, undefined, ["Nothing happens."]);
   },
+  // Crystal ship attacking Federation loyalists. "Save the Federation ship." One printed lead-in, then a Crystal ship fight.
+  // {{SurrenderEscape(alt)|no|CRYSTAL_FED}} is not this line.
+  "c:crystal-ship-attacking-federation-loyalists:0": (g) => {
+    pageFight(g, "It doesn't look like the Fed ship can stand much more pressure. You fly in and intercept the Crystalline ship.", "Crystal ship", "crystal-ship-attacking-federation-loyalists");
+  },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
     pageFight(g, "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.", "Federation ship", "federation-deserters");

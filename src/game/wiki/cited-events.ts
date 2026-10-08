@@ -3668,6 +3668,17 @@ const MANTIS_FIGHT_INTROS = [
   `A youthful-looking Mantis captain hails. "You, prey, must know. Your death, Kaaazthwak's final kill before maturity. Kaaazthwak pay respects." Seems respects in Mantis culture are paid with lasers.`,
 ];
 
+// Mantis fight choice. Six printed intros, no odds. INFERRED: equal.
+// The fight stays c:mantis-fight-choice:0. The other branches on that page are not added here.
+const MANTIS_CHOICE_INTROS = [
+  "You're greeted by a rare sight: a Mantis ship that appears not to have noticed you.",
+  "For once, you see the Mantis before they see you.",
+  "When they see the Mantis warship waiting in ambush at your intended coordinates, your crew is relieved to note you've jumped someway off the mark.",
+  `You overhear Mantis comm chatter: "Negative, I have killed more humans!" You gulp noticeably, but luckily they don't see you yet.`,
+  `You overhear Mantis comm chatter: "The one on the right is starting to rot. Take him down. Take off his fingers. Put him out of the airlock." They certainly don't seem to be friendly...`,
+  `You overhear Mantis comm chatter: "Agreed. Next ship is your turn. Good hunting." They don't see you yet.`,
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4017,6 +4028,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: MANTIS_FIGHT_INTROS[between(g, [0, 19])]!,
       choices: [{ id: "c:mantis-fight:0", label: "Fight a Mantis ship" }],
+    };
+  }
+  // Mantis fight choice. One of the six printed intros. The fight stays c:mantis-fight-choice:0.
+  if (ev.slug === "mantis-fight-choice") {
+    return {
+      title: ev.dest,
+      body: MANTIS_CHOICE_INTROS[between(g, [0, 5])]!,
+      choices: [{ id: "c:mantis-fight-choice:0", label: "Attack the ship" }],
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

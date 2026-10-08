@@ -39,9 +39,14 @@ describe("Pirate ship attacking civilian distress", () => {
     const out = createGame(1);
     open(out);
     choose(out, "c:pirate-ship-attacking-civilian-distress:1");
-    assert.equal(out.phase, "map");
+    assert.equal(out.phase, "event");
+    assert.equal(
+      out.event?.body,
+      "The fight brings them out of your immediate scanning range; however, after a time the distress calls stop.\n\nNothing happens.",
+    );
     assert.equal(out.scrap, 10);
     assert.equal(out.fleet, 5);
+    assert.notEqual(out.phase, "combat");
   });
 
   it("a destroyed ship pays medium scrap, and a crew kill pays high, then the contact", () => {

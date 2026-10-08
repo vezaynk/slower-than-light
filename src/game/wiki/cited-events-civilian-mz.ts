@@ -172,7 +172,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Engi Homeworlds",
       "Pirate Controlled Sector",
     ],
-    body: "",
+    body: "This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage.",
     choices: [
       {
         id: "c:pirate-fight-near-sun:0",

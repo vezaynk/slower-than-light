@@ -965,6 +965,30 @@ export const PAGE_WINS: Record<string, Win> = {
   "rebel-ship-attacking-federation-loyalists": std("medium", "medium", "With the ship destroyed, you quickly collect useful resources.", "With the crew of the Rebel ship dead, you salvage what you can.", [
     { id: "q:loyalists:contact", label: "Contact the Federation ship." },
   ]),
+  // Slug ship boarding Rock ship: both endings pay medium scrap, then the freighter.
+  // The nothing result is printed twice. The two sentences are alternatives. INFERRED: equal.
+  "slug-ship-boarding-rock-ship": (g, deadCrew) => {
+    const text = deadCrew
+      ? "With the Slugs no longer a threat, you strip the ship and return to the Rockmen."
+      : "With the Slug ship destroyed, you retrieve some scrap and return to the Rock ship.";
+    const extras: string[] = [];
+    if (weighted(g, [["nothing", 2], ["abandoned", 1]] as const) === "abandoned") {
+      const more = rollStandard(g, "medium");
+      payOffer(g, more, true);
+      extras.push("It appears the Rock ship was long since abandoned. You strip what you can from it.");
+      if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
+      if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
+      if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
+      if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
+      for (const line of extras.slice(1)) log(g, line);
+    } else {
+      const line = weighted(g, [["left", 1], ["thanks", 1]] as const) === "left"
+        ? "It appears that the Rock ship left during your battle. You doubt they could have been more ungrateful for your assistance."
+        : "After the battle the Rock ship hails you. Their captain simply says, \"Thanks.\" and jumps away. That's pretty gracious of them, considering the Rockmen's reputation.";
+      extras.push(line, "Nothing happens.");
+    }
+    result(g, text, rollStandard(g, "medium"), extras);
+  },
   // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
   "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {
     if (!deadCrew) {

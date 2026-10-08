@@ -287,4 +287,28 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Slug ship boarding Rock ship. Engage, the back-down, and the ignore run in filler-events.ts.
+    // The win scrap and the Rock freighter run in quests.ts. The arrival nebula stays unwired.
+    dest: "Slug ship boarding Rock ship",
+    slug: "slug-ship-boarding-rock-ship",
+    flag: "cited:slug-ship-boarding-rock-ship",
+    aliases: ["Slug ship boarding Rock ship"],
+    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
+    body: "You arrive to find a Slug ship in the middle of boarding a disabled Rock freighter.",
+    choices: [
+      {
+        id: "c:slug-ship-boarding-rock-ship:0",
+        label: "Engage the Slug ship.",
+        // "Fight a Slug ship."
+        fx: [{ k: "fight", tier: "Slug ship" }],
+      },
+      {
+        id: "c:slug-ship-boarding-rock-ship:1",
+        label: "Ignore them.",
+        // "Fight a Rock ship."
+        fx: [{ k: "note", text: "Nothing, or a Rock ship." }],
+      },
+    ],
+  },
 ];

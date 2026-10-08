@@ -1856,6 +1856,23 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     mantisControlled(g);
   },
 
+  // Slug ship boarding Rock ship. Engage lists a fight and a back-down and prints no odds. INFERRED: equal.
+  // Ignore prints the nothing result twice.
+  "c:slug-ship-boarding-rock-ship:0": (g) => {
+    if (weighted(g, [["fight", 1], ["down", 1]] as const) === "fight") {
+      fight(g, "You charge weapons and the Slugs quickly change course to meet your charge.", "Slug ship", "slug-ship-boarding-rock-ship");
+      return;
+    }
+    show(g, "You charge your weapons and the Slugs immediately back down. When you return to the freighter, the Rockmen have already repaired the worst of their damage and jump away without another word.", undefined, ["Nothing happens."]);
+  },
+  "c:slug-ship-boarding-rock-ship:1": (g) => {
+    if (weighted(g, [["nothing", 2], ["fight", 1]] as const) === "nothing") {
+      show(g, "You have no desire to provoke Slugs in their own territory. You leave them alone.", undefined, ["Nothing happens."]);
+      return;
+    }
+    fight(g, "After the Slugs board the ship, you are surprised to see the Rock ship spring to life and decimate the other ship. They message you, \"Pathetic. You are either a coward or an ally of the Slugs. Either way, you don't deserve to live.\"", "Rock ship", "slug-ship-boarding-rock-ship-rock");
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,

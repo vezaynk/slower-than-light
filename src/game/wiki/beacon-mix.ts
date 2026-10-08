@@ -203,6 +203,7 @@ const LIST_DISTRESS = [
   "Fire on research station", "Crushed pirate", "Escort civilians FTL haywire", "Friendly ship out of fuel",
   "Pirate ship attacking civilian distress", "Rebel ship attacking Federation loyalists", "Refugee distress",
   "Refugee comms down", "Single life form on moon", "Pirate ship distress trap",
+  "Slug ship boarding Rock ship",
 ];
 /** Template:EventList ITEMS (and OVERRIDE_ITEMS, same rows). */
 const LIST_ITEMS = [

@@ -105,7 +105,8 @@ describe("cited zoltan events", () => {
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.aliases.includes(ev.dest));
       // The printed Zoltan asteroid intro is 260 characters.
-      assert.ok(ev.body.length <= 280);
+      // The printed Great Eye opening is 302 characters.
+      assert.ok(ev.body.length <= 310);
       assert.ok(ev.choices.length >= 1);
       const text = wiki.get(ev.dest);
       assert.ok(text, ev.dest);

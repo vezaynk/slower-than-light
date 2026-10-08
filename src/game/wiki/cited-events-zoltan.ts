@@ -323,7 +323,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-great-eye",
     aliases: ["Zoltan Great Eye"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye.",
+    body: "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye. A Zoltan elder hails you from the planet. \"Through luck or intent, you have discovered the Great Eye. Look into its depths and receive your just deserts.\"",
     choices: [
       {
         id: "c:zoltan-great-eye:0",

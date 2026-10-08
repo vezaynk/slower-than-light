@@ -3742,6 +3742,14 @@ const REBEL_BOARDER_INTROS = [
   `You receive a message on a low-band channel. "You're surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!`,
 ];
 
+// Boarders: Mantis. The page prints three intros and no odds.
+// INFERRED: equal. The boarders stay c:boarders-mantis:0.
+const MANTIS_BOARDER_INTROS = [
+  "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+  "Your world, all of a sudden, changes. The Mantis are on board your ship.",
+  "You hear a grating rattle and a soft clicking. You reach for your pistol.",
+];
+
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
@@ -4682,6 +4690,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: SLUG_PLASMA_INTROS[between(g, [0, 3])]!,
       choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
+    };
+  }
+  // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
+  if (ev.slug === "boarders-mantis") {
+    return {
+      title: ev.dest,
+      body: MANTIS_BOARDER_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:boarders-mantis:0", label: "2-4 mantis boarders beam aboard your ship." }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.

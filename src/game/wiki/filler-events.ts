@@ -1634,6 +1634,38 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "c:rebel-fight-chance:1": done,
 
+  // Rebel fight chance in nebula. The chase lists three results and prints no odds. INFERRED: equal.
+  "c:rebel-fight-chance-in-nebula:0": (g) => {
+    show(g, "You try and stay out of sight. You doubt they saw you.", undefined, ["Nothing happens."]);
+  },
+  "c:rebel-fight-chance-in-nebula:1": (g) => {
+    const r = weighted(g, [["fight", 1], ["double", 1], ["none", 1]] as const);
+    if (r === "fight") {
+      fight(g, "You follow their vapour trails and surf onto their six o' clock, weapons hot.", "Rebel ship", "rebel-fight-chance-in-nebula");
+      return;
+    }
+    if (r === "double") {
+      // "Rebel Fleet pursuit is doubled." No jump count is printed. INFERRED: the current fleet position doubles, the same step as cited-events.ts fx double.
+      g.fleet *= 2;
+      show(g, "You get disoriented in the nebula and lose your bearings completely. It takes some time to get back to the beacon. It's likely the fleet has had time to advance closer to your position.", undefined, ["Rebel Fleet pursuit is doubled."]);
+      return;
+    }
+    show(g, "Without sensors you can't maintain a lock for long. The rebels slip away.", undefined, ["Nothing happens."]);
+  },
+  // Advanced Sensors level=3: at least that level. Long-Ranged Scanners and Lifeform Scanner each start the same Rebel fight.
+  "c:rebel-fight-chance-in-nebula:2": (g) => {
+    if (sensorsLevel(g) < 3) return;
+    fight(g, "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range.", "Rebel ship", "rebel-fight-chance-in-nebula");
+  },
+  "c:rebel-fight-chance-in-nebula:3": (g) => {
+    if (!g.augments.includes("glass")) return;
+    fight(g, "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range.", "Rebel ship", "rebel-fight-chance-in-nebula");
+  },
+  "c:rebel-fight-chance-in-nebula:4": (g) => {
+    if (!g.augments.includes("pulseeye")) return;
+    fight(g, "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight.", "Rebel ship", "rebel-fight-chance-in-nebula");
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,
@@ -2390,6 +2422,11 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:confused-mantis:human" && !livingKin(g, "plain")) return "Needs a Human crewmember";
   if (id === "s:confused-mantis:mantis" && !livingKin(g, "blade")) return "Needs a Mantis crewmember";
   if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return "Needs Mind Control";
+  // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Advanced Sensors level=3 means at least that installed level.
+  if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) return "Needs Sensors level 3";
+  if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
+  if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

@@ -222,4 +222,45 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Rebel fight chance in nebula. The chase, the doubled pursuit, and the scanner fights run in filler-events.ts.
+    dest: "Rebel fight chance in nebula",
+    slug: "rebel-fight-chance-in-nebula",
+    flag: "cited:rebel-fight-chance-in-nebula",
+    aliases: ["Rebel fight chance in nebula"],
+    sectors: ["Slug Controlled Nebula", "Slug Home Nebula", "Uncharted Nebula"],
+    body: "You spot a rebel ship in the nebula ahead and stay off their radar. Try to engage?",
+    choices: [
+      {
+        id: "c:rebel-fight-chance-in-nebula:0",
+        label: "Stay hidden.",
+        // "Nothing happens."
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:rebel-fight-chance-in-nebula:1",
+        label: "Prepare to chase them!",
+        // Chase. A Rebel ship, doubled pursuit, or nothing. No odds. INFERRED: equal.
+        fx: [{ k: "note", text: "A Rebel ship, doubled pursuit, or nothing." }],
+      },
+      {
+        id: "c:rebel-fight-chance-in-nebula:2",
+        label: "Try to track them as you move to engage.",
+        // "Fight a Rebel ship (default rewards)."
+        fx: [{ k: "fight", tier: "Rebel ship" }],
+      },
+      {
+        id: "c:rebel-fight-chance-in-nebula:3",
+        label: "Try to track them as you move to engage.",
+        // "Fight a Rebel ship (default rewards)."
+        fx: [{ k: "fight", tier: "Rebel ship" }],
+      },
+      {
+        id: "c:rebel-fight-chance-in-nebula:4",
+        label: "Use their life signatures to follow.",
+        // "Fight a Rebel ship (default rewards)."
+        fx: [{ k: "fight", tier: "Rebel ship" }],
+      },
+    ],
+  },
 ];

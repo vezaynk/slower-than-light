@@ -1418,7 +1418,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Mantis Homeworlds"
     ],
-    "body": "",
+    "body": "You cross paths with a Mantis ship that looks to have had dozens of layers of armor-plating added over what must have been a hundred year career. Its captain is legendary thief KazaaakplethKilik. Your crew look frightened.",
     "choices": [
       {
         "id": "c:legendary-thief-kazaaakplethkilik:0",

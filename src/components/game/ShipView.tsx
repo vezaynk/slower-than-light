@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { pointInRoom } from "@/game/beam-line";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
-import { CrewFace } from "./CrewSprite";
+import { CrewFace, type CrewPose } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
@@ -42,6 +42,89 @@ const SHORT: Record<string, string> = {
 function roomLabel(title: string, wide: number) {
   if (wide > 1) return title;
   return SHORT[title.toLowerCase()] ?? title.slice(0, 5);
+}
+
+/** Leashed crew fight for the other side (sim sideOf). */
+function effectiveSide(c: Crew): "player" | "enemy" {
+  if ((c.leashed ?? 0) > 0) return c.side === "player" ? "enemy" : "player";
+  return c.side;
+}
+
+function clamp01(n: number): number {
+  if (n < 0) return 0;
+  if (n > 1) return 1;
+  return n;
+}
+
+/** Room center as a percent of the hull, from the room box not the gap. */
+function roomCenter(room: { x: number; y: number; w: number; h: number }, ship: Ship) {
+  return {
+    x: ((room.x + room.w / 2) / ship.cols) * 100,
+    y: ((room.y + room.h / 2) / ship.rows) * 100,
+  };
+}
+
+/** Walking crew are drawn once, between this room and path[0]. Stun holds them in the room. */
+function walkStep(ship: Ship, c: Crew) {
+  if (c.hp <= 0 || c.path.length === 0 || (c.stun ?? 0) > 0) return null;
+  const from = ship.rooms.find((r) => r.id === c.room);
+  const to = ship.rooms.find((r) => r.id === c.path[0]);
+  if (!from || !to) return null;
+  return { from, to };
+}
+
+/** Standing, alive, not stunned, sharing a room with a living crew of the other effective side. */
+function meleeIds(list: Crew[]): Set<string> {
+  const ids = new Set<string>();
+  for (const c of list) {
+    if (c.path.length > 0 || (c.stun ?? 0) > 0) continue;
+    const side = effectiveSide(c);
+    if (list.some((o) => o.id !== c.id && o.room === c.room && effectiveSide(o) !== side)) ids.add(c.id);
+  }
+  return ids;
+}
+
+function CrewToken({
+  crew: c,
+  selectedId,
+  onCrew,
+  pose,
+  frame,
+  className,
+  style,
+}: {
+  crew: Crew;
+  selectedId: string | null;
+  onCrew: (id: string) => void;
+  pose: CrewPose;
+  frame: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const leashed = (c.leashed ?? 0) > 0;
+  const stunned = pose !== "walk" && c.path.length === 0 && (c.stun ?? 0) > 0;
+  return (
+    <button
+      type="button"
+      className={
+        "token is-sprite" +
+        (c.id === selectedId ? " is-selected" : "") +
+        (leashed ? ` is-leashed leashed-by-${c.side === "player" ? "enemy" : "player"}` : "") +
+        (stunned ? " is-stunned" : "") +
+        (className ? ` ${className}` : "")
+      }
+      style={style}
+      aria-label={leashed ? `${c.name} (mind-controlled)` : c.name}
+      title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
+      aria-pressed={c.id === selectedId}
+      onClick={(e) => {
+        e.stopPropagation();
+        onCrew(c.id);
+      }}
+    >
+      <CrewFace crew={c} pose={pose} frame={frame} />
+    </button>
+  );
 }
 
 /**
@@ -123,6 +206,7 @@ export function ShipView({
 }: Props) {
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
+  const fighting = meleeIds(here);
   const cells = cellOwners(ship.rooms);
   const hullRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<BeamPoint | null>(null);
@@ -157,10 +241,11 @@ export function ShipView({
     >
       {ship.rooms.map((room) => {
         const open = seen ? seen(room.id) : true;
-        const occupants = showCrew
+        const inRoom = showCrew
           ? here.filter((c) => c.room === room.id && (open || (crewLit?.(c) ?? false)))
           : [];
-        const hot = occupants.some((c) => c.id === selectedId);
+        const standing = inRoom.filter((c) => walkStep(ship, c) === null);
+        const hot = inRoom.some((c) => c.id === selectedId);
         const clip = roomClip(room);
         const pick = hackPick ? hackPick(room.id) : null;
         const drone = hackMark && hackMark.room === room.id ? hackMark : null;
@@ -230,24 +315,20 @@ export function ShipView({
               ) : null}
               {showCrew ? (
                 <div className="crew-row">
-                  {occupants.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={`token is-sprite${c.id === selectedId ? " is-selected" : ""}${
-                        (c.leashed ?? 0) > 0 ? ` is-leashed leashed-by-${c.side === "player" ? "enemy" : "player"}` : ""
-                      }`}
-                      aria-label={(c.leashed ?? 0) > 0 ? `${c.name} (mind-controlled)` : c.name}
-                      title={(c.leashed ?? 0) > 0 ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
-                      aria-pressed={c.id === selectedId}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCrew(c.id);
-                      }}
-                    >
-                      <CrewFace crew={c} />
-                    </button>
-                  ))}
+                  {standing.map((c) => {
+                    const pose: CrewPose = fighting.has(c.id) ? "fight" : "idle";
+                    const frame = pose === "fight" ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4 : 0;
+                    return (
+                      <CrewToken
+                        key={c.id}
+                        crew={c}
+                        selectedId={selectedId}
+                        onCrew={onCrew}
+                        pose={pose}
+                        frame={frame}
+                      />
+                    );
+                  })}
                 </div>
               ) : null}
             </div>
@@ -290,6 +371,31 @@ export function ShipView({
         );
       })}
       <Mounts ship={ship} crew={crew} aboard={aboard} />
+      {showCrew ? (
+        <div className="crew-walkers">
+          {here.map((c) => {
+            const step = walkStep(ship, c);
+            if (!step) return null;
+            const open = seen ? seen(c.room) : true;
+            if (!open && !(crewLit?.(c) ?? false)) return null;
+            const t = clamp01(c.move);
+            const from = roomCenter(step.from, ship);
+            const to = roomCenter(step.to, ship);
+            return (
+              <CrewToken
+                key={c.id}
+                crew={c}
+                selectedId={selectedId}
+                onCrew={onCrew}
+                pose="walk"
+                frame={Math.floor(t * 4) % 4}
+                className={"crew-walker" + (to.x < from.x ? " is-face-left" : "")}
+                style={{ left: `${from.x + (to.x - from.x) * t}%`, top: `${from.y + (to.y - from.y) * t}%` }}
+              />
+            );
+          })}
+        </div>
+      ) : null}
       <BeamOverlay hullRef={hullRef} lines={strokes} />
     </div>
   );

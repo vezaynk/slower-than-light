@@ -1,3 +1,4 @@
+import "./room-motion.css";
 import type { CSSProperties } from "react";
 import type { Door, DoorMark } from "@/game/types";
 

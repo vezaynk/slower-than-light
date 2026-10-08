@@ -1,0 +1,45 @@
+/* Walkers are positioned on the hull. Standing crew stay in the room row. */
+.hull {
+  position: relative;
+}
+
+.crew-walkers {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+
+.crew-walkers .token.crew-walker {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.crew-walkers .token.crew-walker.is-face-left {
+  transform: translate(-50%, -50%) scaleX(-1);
+}
+
+.token.is-stunned .crew-sprite {
+  transform-origin: 50% 80%;
+  animation: crew-stun-wobble 0.32s steps(2, end) infinite;
+}
+
+@keyframes crew-stun-wobble {
+  from {
+    transform: translateX(-1px) rotate(-7deg);
+  }
+  to {
+    transform: translateX(1px) rotate(7deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .token.is-stunned .crew-sprite {
+    animation: none;
+  }
+}

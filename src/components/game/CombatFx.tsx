@@ -14,15 +14,63 @@ import { enemyHackView, playerHackView } from "@/game/extras/spike";
 // @agent:flagship. Stage-2 Power Surge drones (read-only view).
 import { surgeDroneView } from "@/game/wiki/flagship-systems";
 import { useGame } from "@/game/store";
-import type { DroneUnit, Shot } from "@/game/types";
+import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
-type Spark = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
+type Spark = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  max: number;
+  color: string;
+  size: number;
+  /** Per-frame velocity scale. Default 0.92. Flak shards stay near 1 so they keep moving. */
+  drag?: number;
+  /** Extra px/s on y, not scaled by drag. Negative rises. */
+  lift?: number;
+};
+/** Filled or outlined pixel rect, or a tiny laser ring of rects. Grows from the centre. */
+type Mark = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  life: number;
+  max: number;
+  color: string;
+  fill: boolean;
+  grow?: number;
+  width?: number;
+  ring?: boolean;
+};
+/** Beam afterimage: the stroke from the last frame it was drawn. */
+type Scorch = { a: Pt; b: Pt; life: number; max: number; color: string };
+/** Short white-hot laser streak along the shot angle. */
+type Streak = { x: number; y: number; ang: number; len: number; life: number; max: number; color: string };
 /** `side` / `slot`: @agent:flagship floater stagger (simultaneous numbers over one hull take separate slots). */
 type Text = { text: string; x: number; y: number; life: number; color: string; side?: "player" | "enemy"; slot?: number };
-type Seen = { at: Pt; color: string; kind: Shot["kind"] };
+type Seen = {
+  at: Pt;
+  color: string;
+  kind: Shot["kind"];
+  ang: number;
+  /** Hull the shot is aimed at. Floaters use the same split (x > 50 is the player). */
+  side: "player" | "enemy";
+  roomId: string;
+  seg?: { a: Pt; b: Pt };
+};
 type Ring = { box: Box; life: number; color?: string };
+type Claim = { text: "SHIELD" | "MISS" | "HIT"; side: "player" | "enemy" };
+
+/** Same hull rule as applyImpact: `at` wins, an own bomb stays on the shooter, everything else crosses. */
+function targetSide(shot: Shot): "player" | "enemy" {
+  if (shot.at === "player" || shot.at === "enemy") return shot.at;
+  if (shot.kind === "bomb" && shot.own === true) return shot.from === "player" ? "player" : "enemy";
+  return shot.from === "player" ? "enemy" : "player";
+}
 
 /** Drones that fly at the enemy. The rest hold station around the player hull. */
 const OUTBOUND = new Set<DroneKey>(["striker", "striker2", "beam", "beam2", "fire", "board", "intruder", "personnel"]);
@@ -111,8 +159,15 @@ export function CombatFx() {
     const sparks: Spark[] = [];
     const texts: Text[] = [];
     const rings: Ring[] = [];
+    const marks: Mark[] = [];
+    const scorches: Scorch[] = [];
+    const streaks: Streak[] = [];
     const seen = new Map<string, Seen>();
     const seenFloaters = new Set<string>();
+    /** Drone blasts have no id. Keyed until that entry leaves `g.droneBlasts`. */
+    const seenBlast = new Set<string>();
+    /** Last canvas point per drone, so a kill this tick still bursts on the orbit. */
+    const droneMem = new Map<string, Pt>();
     /** Shot progress as of the last sim tick, to smooth between 30 Hz ticks. */
     const tickT = new Map<string, { t: number; at: number }>();
     /** Player Zoltan Shield last frame, to spot an enemy beam drone draining it. */
@@ -479,8 +534,9 @@ export function CombatFx() {
         const x = from.x + (to.x - from.x) * t;
         const arc = shot.kind === "missile" ? Math.sin(t * Math.PI) * -24 : 0;
         const y = from.y + (to.y - from.y) * t + arc;
-        seen.set(shot.id, { at: to, color, kind: shot.kind });
         const ang = Math.atan2(to.y - from.y + (shot.kind === "missile" ? Math.cos(t * Math.PI) * -24 * Math.PI : 0), to.x - from.x);
+        const rec: Seen = { at: to, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom };
+        seen.set(shot.id, rec);
 
         if (shot.kind === "beam") {
           const hullSide = shot.from === "player" ? "enemy" : "player";
@@ -490,6 +546,9 @@ export function CombatFx() {
           const a = endA && endB ? endA : (rooms[0] ?? to);
           const b = endA && endB ? endB : (rooms[rooms.length - 1] ?? to);
           const sweep = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+          // The stroke this frame. When the shot leaves, the scorch uses this segment, not a point.
+          rec.seg = { a: from, b: sweep };
+          rec.at = sweep;
           ctx.lineCap = "square";
           ctx.strokeStyle = color;
           ctx.globalAlpha = 0.35;
@@ -560,14 +619,171 @@ export function CombatFx() {
       }
 
       // Shots that left the list this frame landed, were dodged, or were shot down.
+      // Floaters that just appeared (not yet drawn) say which of those was a shield, a miss, or a hit.
+      // They carry no room id: x > 50 is the player hull, matching targetSide. One claim per shot, in order.
+      const gone: Seen[] = [];
       for (const [id, s] of seen) {
         if (alive.has(id)) continue;
         seen.delete(id);
         tickT.delete(id);
         if (g.phase !== "combat") continue;
-        const strong = s.kind === "missile" || s.kind === "bomb";
-        burst(s.at, s.color, strong ? 18 : 10, strong ? 120 : 80);
-        burst(s.at, "#ffffff", 4, 50);
+        gone.push(s);
+      }
+      const fresh: Claim[] = [];
+      for (const f of g.floaters) {
+        if (seenFloaters.has(f.id)) continue;
+        fresh.push({
+          text: f.text === "SHIELD" ? "SHIELD" : f.text === "MISS" ? "MISS" : "HIT",
+          side: f.x > 50 ? "player" : "enemy",
+        });
+      }
+      const queues: Record<"player" | "enemy", Claim[]> = { player: [], enemy: [] };
+      for (const side of ["player", "enemy"] as const) {
+        const n = gone.filter((s) => s.side === side).length;
+        const q = fresh.filter((c) => c.side === side);
+        // A beam can print several damage numbers. Drop extra HITs so they don't consume the next shot's claim.
+        while (q.length > n) {
+          const hits = q.filter((c) => c.text === "HIT").length;
+          if (hits <= 1) break;
+          q.splice(q.findIndex((c) => c.text === "HIT"), 1);
+        }
+        queues[side] = q;
+      }
+      const missPuff = (at: Pt) => {
+        for (let i = 0; i < 4; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const v = 24 * (0.45 + Math.random());
+          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.18, max: 0.18, color: "#ffffff", size: 2 });
+        }
+      };
+      const shieldSpark = (at: Pt) => {
+        sparks.push({ x: at.x, y: at.y, vx: 0, vy: 0, life: 0.16, max: 0.16, color: "#ffffff", size: 2 });
+        for (let i = 0; i < 3; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const v = 34 * (0.4 + Math.random());
+          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.22, max: 0.22, color: "#6cc4ff", size: 2 });
+        }
+      };
+      const kindImpact = (s: Seen) => {
+        if (s.kind === "laser") {
+          streaks.push({ x: s.at.x, y: s.at.y, ang: s.ang, len: 16, life: 0.16, max: 0.16, color: s.color });
+          for (let i = 0; i < 6; i++) {
+            const a = s.ang + (Math.random() - 0.5) * 0.85;
+            const v = 78 * (0.35 + Math.random() * 0.9);
+            sparks.push({
+              x: s.at.x,
+              y: s.at.y,
+              vx: Math.cos(a) * v,
+              vy: Math.sin(a) * v,
+              life: 0.3,
+              max: 0.3,
+              color: i < 2 ? "#ffffff" : s.color,
+              size: 2,
+            });
+          }
+          marks.push({ x: s.at.x, y: s.at.y, w: 8, h: 8, life: 0.22, max: 0.22, color: "#ffffff", fill: false, grow: 22, ring: true });
+          return;
+        }
+        if (s.kind === "ion") {
+          const blue = token("--color-ion", "#8ecbff");
+          marks.push({ x: s.at.x, y: s.at.y, w: 14, h: 14, life: 0.14, max: 0.14, color: blue, fill: true });
+          marks.push({ x: s.at.x, y: s.at.y, w: 4, h: 4, life: 0.14, max: 0.14, color: "#ffffff", fill: true });
+          marks.push({ x: s.at.x, y: s.at.y, w: 12, h: 12, life: 0.4, max: 0.4, color: blue, fill: false, grow: 78, width: 2 });
+          for (let i = 0; i < 5; i++) {
+            const a = (i / 5) * Math.PI * 2;
+            const v = 110 * (0.45 + Math.random() * 0.7);
+            sparks.push({
+              x: s.at.x,
+              y: s.at.y,
+              vx: Math.cos(a) * v,
+              vy: Math.sin(a) * v,
+              life: 0.2,
+              max: 0.2,
+              color: i % 2 ? "#ffffff" : blue,
+              size: 2,
+              drag: 0.84,
+            });
+          }
+          return;
+        }
+        if (s.kind === "missile") {
+          marks.push({ x: s.at.x, y: s.at.y, w: 18, h: 18, life: 0.7, max: 0.7, color: "#ff6a1a", fill: true, grow: 16 });
+          marks.push({ x: s.at.x, y: s.at.y, w: 10, h: 10, life: 0.7, max: 0.7, color: "#ffc14a", fill: true, grow: 6 });
+          marks.push({ x: s.at.x, y: s.at.y, w: 4, h: 4, life: 0.35, max: 0.35, color: "#fff6e0", fill: true });
+          for (let i = 0; i < 7; i++) {
+            sparks.push({
+              x: s.at.x + (Math.random() - 0.5) * 8,
+              y: s.at.y + (Math.random() - 0.5) * 6,
+              vx: (Math.random() - 0.5) * 14,
+              vy: -8 - Math.random() * 18,
+              life: 0.75,
+              max: 0.75,
+              color: i % 2 ? "#8e969c" : "#c5ccd1",
+              size: 3 + (i % 2),
+              drag: 0.97,
+              lift: -26,
+            });
+          }
+          return;
+        }
+        if (s.kind === "bomb") {
+          const box = room(s.side, s.roomId);
+          const rect = box && box.w > 2 && box.h > 2 ? box : { x: s.at.x - 18, y: s.at.y - 18, w: 36, h: 36 };
+          const at = { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+          marks.push({ x: at.x, y: at.y, w: rect.w, h: rect.h, life: 0.26, max: 0.26, color: "#fff1c9", fill: true });
+          burst(at, s.color, 18, 120);
+          burst(at, "#ffffff", 4, 50);
+          return;
+        }
+        if (s.kind === "beam") {
+          const a = s.seg?.a ?? s.at;
+          const b = s.seg?.b ?? s.at;
+          scorches.push({ a, b, life: 0.42, max: 0.42, color: s.color });
+          burst(a, s.color, 5, 70);
+          burst(b, s.color, 5, 70);
+          burst(a, "#ffffff", 2, 36);
+          burst(b, "#ffffff", 2, 36);
+          return;
+        }
+        // Flak (the tumbling chunk): square shards that keep their velocity.
+        for (let i = 0; i < 7; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const v = 60 + Math.random() * 70;
+          sparks.push({
+            x: s.at.x,
+            y: s.at.y,
+            vx: Math.cos(a) * v,
+            vy: Math.sin(a) * v,
+            life: 0.55,
+            max: 0.55,
+            color: i % 2 ? s.color : "#d9c7a2",
+            size: i % 3 === 0 ? 4 : 3,
+            drag: 0.99,
+          });
+        }
+      };
+      for (let i = 0; i < gone.length; i++) {
+        const s = gone[i];
+        const q = queues[s.side];
+        const claim = q.shift();
+        if (claim?.text === "MISS") {
+          missPuff(s.at);
+          continue;
+        }
+        // Shield ring is pushed with the floater below. A pure shield hit skips the hull burst.
+        // A damage number still queued for this shot (no later shot on that hull) keeps the kind impact.
+        if (claim?.text === "SHIELD") {
+          shieldSpark(s.at);
+          const later = gone.slice(i + 1).some((o) => o.side === s.side);
+          if (later || !q.some((c) => c.text === "HIT")) continue;
+        }
+        kindImpact(s);
+      }
+      for (const side of ["player", "enemy"] as const) {
+        const target = hull(side);
+        if (!target) continue;
+        const at = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
+        for (const c of queues[side]) if (c.text === "MISS") missPuff(at);
       }
 
       for (const f of g.floaters) {
@@ -599,14 +815,135 @@ export function CombatFx() {
       }
       if (seenFloaters.size > 64) for (const id of [...seenFloaters].slice(0, 32)) seenFloaters.delete(id);
 
+      // Drone hits. g.droneBlasts has no id; one burst the first time a key shows up.
+      // Age already past 0.15 means a reload, not a hit this moment, so it does not replay.
+      if (g.phase !== "combat") droneMem.clear();
+      else {
+        for (const [id, p] of enemyDroneAt) droneMem.set(`e:${id}`, p);
+        for (const [k, p] of droneAt) droneMem.set(`p:${k}`, p);
+      }
+      const liveBlasts = new Set<string>();
+      const blasts: DroneBlast[] = g.droneBlasts ?? [];
+      for (const b of blasts) {
+        const key = `${b.side}:${b.unitId ?? b.kind}:${b.result}`;
+        if (liveBlasts.has(key)) continue;
+        liveBlasts.add(key);
+        if (seenBlast.has(key)) continue;
+        seenBlast.add(key);
+        if (b.age > 0.15 || g.phase !== "combat") continue;
+        let at: Pt | null = null;
+        if (b.unitId) at = enemyDroneAt.get(b.unitId) ?? droneMem.get(`e:${b.unitId}`) ?? null;
+        if (!at && b.side === "player") {
+          const k = droneKeyOf(b.kind);
+          if (k) at = droneAt.get(k) ?? droneMem.get(`p:${k}`) ?? null;
+        }
+        if (!at) {
+          const around = hull(b.at === "player-orbit" ? "player" : "enemy");
+          if (around) at = { x: around.x + around.w / 2, y: around.y + around.h / 2 };
+        }
+        if (!at) continue;
+        if (b.result === "ion") {
+          marks.push({ x: at.x, y: at.y, w: 10, h: 10, life: 0.18, max: 0.18, color: token("--color-ion", "#8ecbff"), fill: true });
+          continue;
+        }
+        burst(at, "#ff7a22", 18, 120);
+        burst(at, "#ffffff", 4, 50);
+        marks.push({ x: at.x, y: at.y, w: 16, h: 16, life: 0.35, max: 0.35, color: "#ff7a22", fill: true, grow: 28 });
+      }
+      for (const key of seenBlast) if (!liveBlasts.has(key)) seenBlast.delete(key);
+
+      for (let i = scorches.length - 1; i >= 0; i--) {
+        const s = scorches[i];
+        if (live) s.life -= dt;
+        if (s.life <= 0) {
+          scorches.splice(i, 1);
+          continue;
+        }
+        const dx = s.b.x - s.a.x;
+        const dy = s.b.y - s.a.y;
+        const steps = Math.max(1, Math.round(Math.hypot(dx, dy) / 4));
+        const alpha = Math.max(0, s.life / s.max);
+        for (let k = 0; k <= steps; k++) {
+          const u = k / steps;
+          const x = Math.round(s.a.x + dx * u);
+          const y = Math.round(s.a.y + dy * u);
+          ctx.globalAlpha = alpha * 0.85;
+          ctx.fillStyle = s.color;
+          ctx.fillRect(x - 2, y - 2, 5, 5);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(x - 1, y - 1, 2, 2);
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      for (let i = marks.length - 1; i >= 0; i--) {
+        const m = marks[i];
+        if (live) m.life -= dt;
+        if (m.life <= 0) {
+          marks.splice(i, 1);
+          continue;
+        }
+        const grown = (m.grow ?? 0) * (m.max - m.life);
+        const alpha = Math.max(0, m.life / m.max);
+        ctx.globalAlpha = m.fill ? alpha * (m.w > 24 ? 0.72 : 0.92) : alpha;
+        if (m.ring) {
+          const r = (m.w + grown) / 2;
+          ctx.fillStyle = m.color;
+          for (let n = 0; n < 8; n++) {
+            const a = (n / 8) * Math.PI * 2;
+            ctx.fillRect(Math.round(m.x + Math.cos(a) * r) - 1, Math.round(m.y + Math.sin(a) * r) - 1, 2, 2);
+          }
+          continue;
+        }
+        const w = m.w + grown;
+        const h = m.h + grown;
+        const x0 = Math.round(m.x - w / 2);
+        const y0 = Math.round(m.y - h / 2);
+        const rw = Math.max(1, Math.round(w));
+        const rh = Math.max(1, Math.round(h));
+        ctx.fillStyle = m.color;
+        if (m.fill) {
+          ctx.fillRect(x0, y0, rw, rh);
+          continue;
+        }
+        const t = m.width ?? 2;
+        ctx.fillRect(x0, y0, rw, t);
+        ctx.fillRect(x0, y0 + rh - t, rw, t);
+        ctx.fillRect(x0, y0, t, rh);
+        ctx.fillRect(x0 + rw - t, y0, t, rh);
+      }
+      ctx.globalAlpha = 1;
+
+      for (let i = streaks.length - 1; i >= 0; i--) {
+        const s = streaks[i];
+        if (live) s.life -= dt;
+        if (s.life <= 0) {
+          streaks.splice(i, 1);
+          continue;
+        }
+        ctx.globalAlpha = Math.max(0, s.life / s.max);
+        for (let n = 0; n < 6; n++) {
+          const k = -s.len * (n / 5);
+          const x = Math.round(s.x + Math.cos(s.ang) * k);
+          const y = Math.round(s.y + Math.sin(s.ang) * k);
+          const hot = n < 4;
+          ctx.fillStyle = hot ? "#ffffff" : s.color;
+          ctx.fillRect(x - 1, y - 1, n === 0 ? 3 : 2, n === 0 ? 3 : 2);
+        }
+      }
+      ctx.globalAlpha = 1;
+
       for (let i = sparks.length - 1; i >= 0; i--) {
         const p = sparks[i];
         if (live) {
           p.life -= dt;
           p.x += p.vx * dt;
           p.y += p.vy * dt;
-          p.vx *= 0.92;
-          p.vy *= 0.92;
+          if (p.lift) p.y += p.lift * dt;
+          const drag = p.drag ?? 0.92;
+          p.vx *= drag;
+          p.vy *= drag;
         }
         if (p.life <= 0) {
           sparks.splice(i, 1);

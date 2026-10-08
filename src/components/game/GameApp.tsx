@@ -92,6 +92,7 @@ import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
 import type { BeamLine, Crew, Game, KitId, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
+import { ShadeFx } from "./ShadeFx";
 import { FullscreenButton } from "./FullscreenButton";
 import { CrewFace } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
@@ -446,6 +447,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     >
       <Hud game={game} />
       <CombatFx />
+      <ShadeFx />
       <CrewRail game={game} />
       <div className="stage-slot">
         {sector ? (

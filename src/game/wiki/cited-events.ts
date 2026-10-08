@@ -209,7 +209,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Civilian Sector"
     ],
-    "body": "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
+    "body": "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.",
     "choices": [
       {
         "id": "c:auto-ship-carrying-shield-virus:0",

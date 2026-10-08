@@ -233,6 +233,8 @@ const CORE_EVENTS: EventDef[] = [
       }
     ]
   },
+  // Auto-ship fight (Crystal) has no choice. Arrival calls c:auto-ship-fight-crystal:0.
+  // "Fight an Auto-ship." unique=true.
   {
     "dest": "Auto-ship fight (Crystal)",
     "slug": "auto-ship-fight-crystal",

@@ -3373,7 +3373,8 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     result(g, "The ship explodes, leaving behind a substantial collection of useful scrap material.", rollStandard(g, "medium"));
   },
-  // Auto-ship fight (Crystal). The page prints the same destroyed line and medium scrap with resources.
+  // Auto-ship fight (Crystal) has no choice. Arrival calls this fight.
+  // The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward.
   "auto-ship-fight-crystal": (g, deadCrew) => {
     if (deadCrew) return false;

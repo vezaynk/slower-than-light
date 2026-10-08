@@ -5069,6 +5069,7 @@ function arrive(g: Game, b: Beacon) {
   // Rebel ship warning: "Fight a Rebel ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival.
   // Auto-ship warning in nebula: "Fight an Auto-ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival. nebula=true.
   // Auto-ship fight: "Fight an Auto-ship." Destroying it pays medium scrap with resources. unique=false.
+  // Auto-ship fight (Crystal): "Fight an Auto-ship." The scout sentence is the card body. unique=true.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5088,7 +5089,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:auto-ship-warning" ||
       b.flag === "cited:rebel-ship-warning" ||
       b.flag === "cited:auto-ship-warning-in-nebula" ||
-      b.flag === "cited:auto-ship-fight") &&
+      b.flag === "cited:auto-ship-fight" ||
+      b.flag === "cited:auto-ship-fight-crystal") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

@@ -248,7 +248,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-near-pulsar",
     aliases: ["Lanius fight near pulsar"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses.",
     choices: [
       {
         id: "c:lanius-fight-near-pulsar:0",

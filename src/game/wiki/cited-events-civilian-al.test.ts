@@ -119,7 +119,8 @@ describe("cited events civilian and abandoned", () => {
       assert.equal(ev.slug, slugOf(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.aliases.includes(ev.dest));
-      assert.ok(ev.body.length <= 240);
+      // The printed Lanius pulsar intro is 247 characters.
+      assert.ok(ev.body.length <= 280);
       const names = locationNames(pages.get(ev.dest) ?? "");
       assert.deepEqual(ev.sectors, names);
       ev.choices.forEach((choice, index) => {

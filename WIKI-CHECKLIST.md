@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2696 |
+| Behaviors checked | 2697 |
 | Behaviors open | 536 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4965,6 +4965,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs.
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
+  - [x] Accepting the prototype weapon shows the printed odd-beam sentence and still grants the Anti-Bio Beam.
 
 - [x] Slug Home nebula surrender
   - [x] same title as "Slug Home Nebula Surrender" with different capitalization.

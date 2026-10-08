@@ -3758,6 +3758,14 @@ const NEBULA_HUMAN_BOARDER_INTROS = [
   "You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!",
 ];
 
+// Boarders: Crystal. The page prints three intros and no odds.
+// INFERRED: equal. The boarders stay c:boarders-crystal:0.
+const CRYSTAL_BOARDER_INTROS = [
+  "You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off.",
+  "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
+  `You pick up chatter from a nearby ship, "Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens." Scanners indicate a remote teleporter was just used.`,
+];
+
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
@@ -4714,6 +4722,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: NEBULA_HUMAN_BOARDER_INTROS[between(g, [0, 2])]!,
       choices: [{ id: "c:boarders-humans-in-nebula:0", label: "2-4 human boarders beam aboard your ship." }],
+    };
+  }
+  // Boarders: Crystal. One of the three printed intros. The boarders stay c:boarders-crystal:0.
+  if (ev.slug === "boarders-crystal") {
+    return {
+      title: ev.dest,
+      body: CRYSTAL_BOARDER_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.

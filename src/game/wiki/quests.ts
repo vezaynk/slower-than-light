@@ -1190,6 +1190,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:the-engi-virus:1": (g) => {
     pageFight(g, "The Engi be damned, no one threatens your ship. You prepare for a fight!", "Engi ship", "the-engi-virus");
   },
+  // The Engi virus. "Hold on! Let us try to purge the system code!" One printed lead-in, then an Engi ship fight.
+  // The page halves Engines and Shields, rounding down. This handler returns before citedChoose, so the half is applied here.
+  "c:the-engi-virus:0": (g) => {
+    pageFight(g, "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!", "Engi ship", "the-engi-virus");
+    halvePlayerSystems(g, ["engines", "shields"]);
+  },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
     result(g, "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.", undefined, ["Nothing happens."]);

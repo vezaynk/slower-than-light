@@ -1050,7 +1050,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Refugee (Zoltan) — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee Ship Trading for Scrap — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee Ship with Communications Down — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Refugee comms down — partial — filler-events.ts rolls a lost crewmember, a gained crewmember, 2–4 missiles plus medium scrap, nothing, or 2–4 human boarders with no ship. Killing those boarders pays no scrap and is not a ship kill.
+- [ ] Refugee comms down — partial — filler-events.ts rolls a lost crewmember, a gained crewmember, 2–4 missiles plus medium scrap, nothing, or 2–4 human boarders with no ship. Killing those boarders pays no scrap and is not a ship kill. The cannibal loss still removes that crewmember, and a Clone Bay prints the waiting sentence and revives them.
 - [ ] Refugee distress — partial — filler-events.ts hail uses the same five results as Refugee: a shown trade, a Pirate ambush, a Zoltan fight, a pirate bait fight, or a Slug fight.
 - [ ] Refugee distress (Pirate) — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Refugee distress (Slug) — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

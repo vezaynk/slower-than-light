@@ -521,7 +521,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] General Store — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] General store — not-a-surface — same title as "General Store" with different capitalization
 - [ ] Giant Alien Spiders — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
-- [ ] Giant alien spiders — not-a-surface — same title as "Giant Alien Spiders" with different capitalization
+- [ ] Giant alien spiders — not-a-surface — same title as "Giant Alien Spiders" with different capitalization. Sending the crew loses one crewmember or pays high resources with some scrap, a fitted Anti-Personnel Drone or Boarding Drone spends one drone part unless the reward includes drone parts, and an Anti-Bio Beam pays high resources with some scrap.
 - [ ] Givin' her all she's got, Captain! — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Glaive Beam — partial — Fitted on Stealth B. Beam length and shield profile stay in gaps. Cloak power 0 is INFERRED so the 4-power gun fits reactor 7.
 - [ ] Guides and Tips — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

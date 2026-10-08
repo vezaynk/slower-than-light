@@ -636,6 +636,36 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:improve-reactor-for-supplies:1", label: "Respectfully decline.", fx: [{ k: "nothing" }] },
     ],
   },
+  // DISTRESS_INFESTATION. Send the crew: lose a crewmember, or high resources with some scrap. No odds. INFERRED: equal.
+  // Leave them alone: nothing. Anti-Personnel Drone: 1 drone part, medium resources with some scrap.
+  // Boarding Drone: 1 drone part, low scrap with resources. The breach flavor names no hull number.
+  // Both drone costs skip the part when the reward includes drone parts. That is the two-of-three resource draw.
+  // Anti-Bio Beam: high resources with some scrap. The unnamed bonus item is not granted.
+  {
+    dest: "Giant alien spiders",
+    slug: "giant-alien-spiders",
+    flag: "cited:giant-alien-spiders",
+    aliases: ["Giant alien spiders"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+    ],
+    body: "You find a number of ships fleeing from a small space station. You hail them, asking what's wrong: \"Help! We're being overrun by some sort of giant alien spiders!\"",
+    choices: [
+      { id: "c:giant-alien-spiders:0", label: "Send the crew to help! Giant alien spiders are no joke.", fx: [{ k: "note", text: "A crewmember, or high resources with some scrap." }] },
+      { id: "c:giant-alien-spiders:1", label: "Leave them alone.", fx: [{ k: "nothing" }] },
+      { id: "c:giant-alien-spiders:2", label: "Send your battle drone in to help.", fx: [{ k: "note", text: "Medium resources with some scrap." }] },
+      { id: "c:giant-alien-spiders:3", label: "Launch a Boarding drone into the station.", fx: [{ k: "note", text: "Low scrap with resources." }] },
+      { id: "c:giant-alien-spiders:4", label: "Use the beam to pick off the spiders.", fx: [{ k: "note", text: "High resources with some scrap." }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -792,6 +822,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
   if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
   if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
+  if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -980,6 +1011,17 @@ function miningOffers(): { id: string; label: string }[] {
   ];
 }
 
+/** The fitted schematic is kit.target. A loadout entry counts the same way. */
+function ownsDrone(g: Game, kind: string): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit) return false;
+  return kit.target === kind || (kit.loadout ?? []).includes(kind);
+}
+
+function ownsAntiBio(g: Game): boolean {
+  return g.player.weapons.some((w) => w.defId === "antibio");
+}
+
 /** The launch offer is a blue option. It is absent without a missile weapon. */
 function miningCard(g: Game, page: Page): GameEvent {
   const choices = page.choices
@@ -1087,6 +1129,39 @@ function supplyCard(g: Game, page: Page): GameEvent {
       { id: "c:improve-reactor-for-supplies:1", label: "Respectfully decline." },
     ],
   };
+}
+
+/** Blue options stay off the card until that drone or the Anti-Bio Beam is fitted. */
+function spiderCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices
+    .filter((c) => {
+      if (c.id === "c:giant-alien-spiders:2") return ownsDrone(g, "personnel");
+      if (c.id === "c:giant-alien-spiders:3") return ownsDrone(g, "board");
+      if (c.id === "c:giant-alien-spiders:4") return ownsAntiBio(g);
+      return true;
+    })
+    .map((c) => ({ id: c.id, label: c.label }));
+  return { title: page.dest, body: page.body, choices };
+}
+
+/**
+ * Anti-Personnel and Boarding drone costs. The page's bug skips the part when the rolled reward
+ * includes drone parts. adjustScrap may already have healed, so a refused roll puts that back.
+ */
+function spiderDrone(g: Game, kind: "personnel" | "board", body: string) {
+  if (!ownsDrone(g, kind)) return;
+  const hull = g.player.hull;
+  const lines = g.log.slice();
+  const offer = kind === "personnel" ? rollSurrenderOffer(g, "medium", true) : rollStandard(g, "low");
+  if (offer.parts <= 0) {
+    if (g.player.parts < 1) {
+      g.player.hull = hull;
+      g.log = lines;
+      return;
+    }
+    g.player.parts -= 1;
+  }
+  show(g, body, offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
@@ -1478,6 +1553,30 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "You decide you need what supplies you have.");
   },
 
+  // Giant alien spiders. Two crew results, no odds. INFERRED: equal.
+  "c:giant-alien-spiders:0": (g) => {
+    const r = weighted(g, [["lose", 1], ["reward", 1]] as const);
+    if (r === "lose") {
+      const note = loseCrew(g);
+      show(g, "Your crew boards the station, cautiously moving between corridors. Suddenly a man-sized arachnid bursts from a vent in the ceiling, followed by countless more. You fight your way back to the airlock and are forced to leave before accounting for all crew members. Not everybody made it back.", undefined, note ? [note] : []);
+      return;
+    }
+    show(g, "Your crew slowly creeps up on a cluster of the creatures from behind. Without warning, the giant arachnids turn and charge. However, your team stays in control and before long you've beaten them back. They are thrilled with your success and offer you a reward.", rollSurrenderOffer(g, "high", true));
+  },
+  "c:giant-alien-spiders:1": (g) => {
+    show(g, "You can't risk fighting some unknown alien on every backwater station you come across. You prepare to jump.");
+  },
+  "c:giant-alien-spiders:2": (g) => {
+    spiderDrone(g, "personnel", "You pull up alongside the station and release the drone through the airlock. Within a short time the majority of the creatures are dead, with only a little collateral damage. They express their most sincere gratitude.");
+  },
+  "c:giant-alien-spiders:3": (g) => {
+    spiderDrone(g, "board", "You launch the drone and it crashes through their hull, leaving a huge breach. You watch as the drone tears through the creatures while debris and dead bodies fly out of the breach. The owners of the station are less than effusive when they thank you, and offer only a meager payment. Maybe it's a good time to leave...");
+  },
+  "c:giant-alien-spiders:4": (g) => {
+    if (!ownsAntiBio(g)) return;
+    show(g, "You instruct them to drop their shields and you are able to kill the creatures without damaging the station. \"The monsters just started bursting into flame as we watched. What a terrifying weapon... Here, take this for your help, friend.\"", rollSurrenderOffer(g, "high", true));
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1644,6 +1743,10 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:asteroid-mining-colony:0" && !miningMissile(g)) return "Needs a missile weapon";
   if (id === "c:asteroid-mining-colony:1" && g.missiles < 5) return "Need 5 missiles";
   if (id === "c:asteroid-mining-colony:2" && g.missiles < 15) return "Need 15 missiles";
+  // Giant alien spiders blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:giant-alien-spiders:2" && !ownsDrone(g, "personnel")) return "Needs an Anti-Personnel Drone";
+  if (id === "c:giant-alien-spiders:3" && !ownsDrone(g, "board")) return "Needs a Boarding Drone";
+  if (id === "c:giant-alien-spiders:4" && !ownsAntiBio(g)) return "Needs an Anti-Bio Beam";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

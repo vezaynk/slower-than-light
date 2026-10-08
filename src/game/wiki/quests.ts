@@ -1046,6 +1046,13 @@ export const PAGE_WINS: Record<string, Win> = {
     }
     result(g, text, rollStandard(g, "medium"), extras);
   },
+  // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
+  "engi-smashed-ships": (g, deadCrew) => {
+    const hail = deadCrew
+      ? "With the ship disabled, the remaining Engi hails you frantically and explains the situation to you."
+      : "With the ship destroyed, the remaining Engi hails you frantically and explains the situation to you.";
+    result(g, `${hail} Apparently, you interrupted the equivalent of a "consolidation" of two ships that were using each other's parts to construct a new vessel. The Engi were not truly hostile, their targeting computers had not finished adjusting. There's nothing to be done about it now. You leave the remains for the surviving ship.`, undefined, ["Nothing happens."]);
+  },
   // Rock and Slug standoff. Destroyed pays low standard. A crew kill pays medium. Then the Slug captain.
   "rock-and-slug-standoff": (g, deadCrew) => {
     const text = deadCrew

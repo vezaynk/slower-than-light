@@ -723,6 +723,16 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:engi-smashed-ships:2",
+        "label": "Have your Engi crewmember hail the vessel and assess the damage.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "Random resources with some scrap."
+          }
+        ]
       }
     ]
   },

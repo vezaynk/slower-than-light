@@ -1929,6 +1929,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-absorbing-rebel-base:1": (g) => {
     show(g, "You decide it would be better to leave them be.", undefined, ["Nothing happens."]);
   },
+
+  // Engi smashed ships. "a random amount of resources with some scrap."
+  // Rewards Stuff includes an unnamed bonus item. That grant stays unwired.
+  "c:engi-smashed-ships:2": (g) => {
+    if (!livingKin(g, "shell")) return;
+    show(g, "Your Engi crewmember refuses. In a halting use of adjectives and nouns, followed by some animated holographic aids, the Engi explains the ships are using each other to, loosely translated, \"achieve a union.\" For some reason, this consolidation of ship matter sounds embarrassing and personal. You elect to leave the two Engi ships to their \"business.\" After questioning your Engi crewmember, however, you do manage to salvage what scrap parts you can from the perimeter, even though you feel slightly dirty for doing so.", rollSurrenderOffer(g, undefined, true));
+  },
   "c:lanius-ship-absorbing-rebel-base:2": (g) => {
     if (!livingKin(g, "voidlung")) return;
     delayFleetOne(g);
@@ -2723,6 +2730,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
   if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
+  // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
+  if (id === "c:engi-smashed-ships:2" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.

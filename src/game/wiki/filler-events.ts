@@ -1700,6 +1700,31 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "Your mission is to save the Federation, not discover new wonders around the galaxy. You prepare to jump.", undefined, ["Nothing happens."]);
   },
 
+  // Slocknog. Hire costs 55 scrap. The page says the skills are shown and prints no numbers, so none are stored.
+  // "when you arrive there will be a nebula environment" stays unwired: there is no separate per-fight nebula here.
+  "c:slocknog:0": (g) => {
+    if (g.scrap < 55) return;
+    if (!joinCrew(g, "Slug", "Slocknog")) {
+      show(g, "There is no room aboard for Slocknog.");
+      return;
+    }
+    g.scrap -= 55;
+    show(g, "You receive a Slug crewmember named Slocknog.", undefined, ["Scrap: -55."]);
+  },
+  "c:slocknog:1": (g) => {
+    card(g, "You power up the FTL, at which point the Slug sends an urgent plea. \"Please, I ssee you are a sssly captain. You have an advantage. Very well. I will join your crew - but please remove me from this rock!\"", [
+      { id: "s:slocknog:rescue", label: "Rescue him." },
+      { id: "s:slocknog:leave", label: "Leave him." },
+    ]);
+  },
+  "s:slocknog:rescue": (g) => {
+    const note = joinCrew(g, "Slug", "Slocknog") ? "Slocknog joins you." : "There is no room aboard for Slocknog.";
+    show(g, "When he sees the shuttle headed for his position the Slug thanks you with what looks like sincerity. He readily joins your crew.", undefined, [note]);
+  },
+  "s:slocknog:leave": (g) => {
+    show(g, "You close the frequency and continue jump prep. If this Slug is such a hero he'll find a way off that moon on his own.", undefined, ["Nothing happens."]);
+  },
+
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,
@@ -2461,6 +2486,7 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) return "Needs Sensors level 3";
   if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
   if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
+  if (id === "c:slocknog:0" && g.scrap < 55) return "Need 55 scrap";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

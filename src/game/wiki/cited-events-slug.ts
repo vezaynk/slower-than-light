@@ -263,4 +263,28 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Slocknog. The hire, the free rescue, and the leave run in filler-events.ts.
+    // The page says the skills are shown and prints none, so none are stored.
+    dest: "Slocknog",
+    slug: "slocknog",
+    flag: "cited:slocknog",
+    aliases: ["Slocknog"],
+    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
+    body: "You detect life signs on a nearby moon - a lone Slug marooned on its surface.",
+    choices: [
+      {
+        id: "c:slocknog:0",
+        label: "Hire Slocknog.",
+        // "Hire Slocknog."
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:slocknog:1",
+        label: "Ignore Slocknog.",
+        // "Ignore Slocknog."
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

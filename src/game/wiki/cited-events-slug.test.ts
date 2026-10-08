@@ -99,7 +99,7 @@ describe("EXTRA_EVENTS slug list", () => {
         assert.ok(choice.label.length > 0);
         assert.ok(choice.fx.length > 0);
       });
-      assert.ok(event.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
+      if (event.dest !== "Slocknog") assert.ok(event.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
   });
 

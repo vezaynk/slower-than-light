@@ -2984,7 +2984,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
+    "body": "There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!",
     "choices": [
       {
         "id": "c:slug-hacker-doors:0",

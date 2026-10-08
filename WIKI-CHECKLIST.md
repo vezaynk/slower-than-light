@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 941 |
-| Behaviors checked | 2796 |
-| Behaviors open | 538 |
+| Pages fully checked | 935 |
+| Behaviors checked | 2790 |
+| Behaviors open | 544 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -663,9 +663,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A Stun Bomb puts 1 ion on that system and stuns every crew member and drone in the room for 15 seconds.
   - [x] A Zoltan Shield spends 2 and stops it.
 
-- [x] Bravais
+- [ ] Bravais
   - [x] crystal-a in HULLS.
-  - [x] Crystal Vengeance stays unfitted.
+  - [ ] Crystal Vengeance stays unfitted.
   - [x] Room grid is the shared player grid.
 
 - [x] Brutal Exchange Between Several Ships
@@ -698,9 +698,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
   - [ ] The anti-ship battery variants on the later assist fight are not wired.
 
-- [x] Carnelian
+- [ ] Carnelian
   - [x] crystal-b in HULLS.
-  - [x] Crystal Vengeance stays unfitted.
+  - [ ] Crystal Vengeance stays unfitted.
   - [x] Room grid is the shared player grid.
 
 - [ ] Cerenkov
@@ -3184,11 +3184,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Fitted on Stealth A and Stealth C.
   - [x] Purchase price is 0 because the page says it sells and cannot be bought.
 
-- [x] Missile (Weapons)
+- [ ] Missile (Weapons)
   - [x] src/game/content.ts — the wiki missile rows are in WEAPONS.
   - [x] A Hull Missile deals 4 hull damage on a systemless room.
   - [x] Crew stay on the system-room 2 (INFERRED).
-  - [x] Dart stays INVENTED.
+  - [ ] Dart stays INVENTED.
   - [x] Boss Missile power is 4.
   - [x] Swarm Missiles stores one shot every 7 seconds, up to 3.
   - [x] A click fires that bank and spends one missile.
@@ -5601,16 +5601,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The collapse prints no stun duration, so none is applied.
   - [x] The mind duel shows the printed collapse or victory sentence, accepting his surrender shows the printed transfer sentence, and ignoring him shows the printed cut-off sentence.
 
-- [x] The Crystal Cruiser
+- [ ] The Crystal Cruiser
   - [x] Bravais and Carnelian are in HULLS.
-  - [x] Crystal Vengeance stays unfitted.
+  - [ ] Crystal Vengeance stays unfitted.
   - [x] Room grid is the shared player grid.
   - [x] Unlocks are labels.
 
-- [x] The Engi Cruiser
+- [ ] The Engi Cruiser
   - [x] Torus, Vortex, Tetragon in hulls.ts.
   - [x] Torus starts with Engi Med-bot Dispersal.
-  - [x] Drone Reactor Booster, the second repair drone, and Defense Scrambler stay unfitted.
+  - [ ] Drone Reactor Booster, the second repair drone, and Defense Scrambler stay unfitted.
 
 - [ ] The Engi Virus
   - [x] one beacon in a sector the page names, while a free beacon remains.
@@ -5732,11 +5732,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Ariolimax starts with Chain Burst Laser.
   - [x] All three start with Slug Repair Gel.
 
-- [x] The Stealth Cruiser
+- [ ] The Stealth Cruiser
   - [x] Nesasio starts with Dual Lasers and Mini Beam.
   - [x] DA-SR 12 starts with the Glaive Beam and cloak power 0 (INFERRED).
   - [x] Simo-H starts with Laser Charger (S) and Mini Beam.
-  - [x] Shield Overcharger + and Anti-Drone stay unfitted.
+  - [ ] Shield Overcharger + and Anti-Drone stay unfitted.
 
 - [ ] The Stormwalker
   - [x] Title string is in src/.

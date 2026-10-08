@@ -4696,6 +4696,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
   // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
   if (id === "c:crystal-fight-choice:0") ctx.note("Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!");
+  // Lanius powered-down ship. "Scan the ship for lifeforms." One printed lead-in, then a Lanius ship fight.
+  if (id === "c:lanius-powered-down-ship:0") ctx.note("As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

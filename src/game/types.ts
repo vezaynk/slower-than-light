@@ -115,9 +115,9 @@ export type Crew = {
   path: string[];
   move: number;
   /**
-   * Tile "x,y" this body entered the current room through.
-   * Absent on a fresh order, so the sprite starts on the standing tile.
-   * Cleared when the walk finishes.
+   * Tile "x,y" the sprite starts this hop from.
+   * A fresh order records the tile they were standing on. Later hops record the doorway.
+   * Absent means the front standing tile. Cleared when the walk finishes.
    */
   via?: string;
   /**

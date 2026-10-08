@@ -1,6 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { hopLanding } from "./walk-path.ts";
-import { claimPadTile, interiorLinks, medicalLimit, padCells } from "./crew-spots.ts";
+import { claimPadTile, interiorLinks, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -1607,11 +1607,15 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
     claimPad(g, c, ship, dest);
     return "there";
   }
+  const here = roomById(ship, c.room);
+  const fromSpot = here ? restSpot(here, g.crew, c.id, c.aboard) : null;
   claimFile(g, c, dest);
   claimPad(g, c, ship, dest);
   c.path = path;
   c.move = 0;
-  delete c.via;
+  // Leave from the tile they are standing on. The hop replaces this with the doorway.
+  if (fromSpot) c.via = `${fromSpot.x},${fromSpot.y}`;
+  else delete c.via;
   sfx(g, "click");
   return "ok";
 }
@@ -3054,7 +3058,9 @@ function moveCrew(g: Game, dt: number) {
       kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
     c.move += (dt * pace) / 0.6;
     if (c.move >= 1) {
-      const landing = hopLanding(ship, c.room, c.path, c.via);
+      const dest = roomById(ship, c.path[c.path.length - 1]!);
+      const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard) : null;
+      const landing = hopLanding(ship, c.room, c.path, c.via, spot ?? undefined);
       c.room = c.path.shift()!;
       c.move = 0;
       if (c.path.length && landing) c.via = `${landing.x},${landing.y}`;

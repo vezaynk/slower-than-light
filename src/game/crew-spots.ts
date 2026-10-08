@@ -80,6 +80,34 @@ export function medicalLimit(room: Box, side: "player" | "enemy", interiorDoors:
 
 export type StandSpot = { x: number; y: number; stack: number };
 
+type RosterCrew = {
+  id: string;
+  file?: number;
+  pad?: string;
+  room: string;
+  path: string[];
+  hp: number;
+  aboard?: string;
+};
+
+/**
+ * The tile this crew member stands on once the walk ends.
+ * Everyone idle in the destination, and everyone whose path ends there, keeps a slot,
+ * so the last step of the walk is the same tile they occupy at rest.
+ */
+export function restSpot(room: Box, crew: RosterCrew[], id: string, aboard?: string): StandSpot | null {
+  const self = crew.find((c) => c.id === id);
+  if (!self || self.hp <= 0) return null;
+  const dest = self.path.length > 0 ? self.path[self.path.length - 1]! : self.room;
+  const roster = crew.filter((c) => {
+    if (c.hp <= 0) return false;
+    if (aboard != null && c.aboard !== aboard) return false;
+    if (c.path.length === 0) return c.room === dest;
+    return c.path[c.path.length - 1] === dest;
+  });
+  return assignStands(room, roster).get(id) ?? null;
+}
+
 /** Idle crew in one room. A pad tile wins over the file order. Overflow stacks on the last tile. */
 export function assignStands(
   room: Box,

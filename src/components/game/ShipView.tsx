@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { pointInRoom } from "@/game/beam-line";
-import { assignStands, padCells } from "@/game/crew-spots";
+import { assignStands, padCells, restSpot } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
-import { walkPose } from "@/game/walk-path";
+import { arriveMove, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
@@ -77,22 +77,34 @@ function walkStep(ship: Ship, c: Crew) {
 }
 
 /** Sprite center as a percent of the hull. Walkers follow the door path. Idle crew use their floor tile. */
-function crewPercent(
+function crewPlace(
   ship: Ship,
+  roster: Crew[],
   c: Crew,
   spot: { x: number; y: number } | undefined,
-): { x: number; y: number } | null {
+): { x: number; y: number; faceLeft: boolean } | null {
   const step = walkStep(ship, c);
   if (step) {
-    const t = clamp01(c.move);
-    const at = walkPose(ship, c.room, c.path, c.via, t);
-    if (at) return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100 };
+    const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
+    const goal = dest ? (restSpot(dest, roster, c.id, c.aboard) ?? undefined) : undefined;
+    // The last hop is drawn on its tile before the sim clears the path.
+    const t = c.path.length === 1 ? arriveMove(c.move) : clamp01(c.move);
+    const at = walkPose(ship, c.room, c.path, c.via, t, goal);
+    if (at) return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100, faceLeft: at.faceLeft };
     const from = roomCenter(step.from, ship);
     const to = roomCenter(step.to, ship);
-    return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+      faceLeft: to.x < from.x,
+    };
   }
   if (!spot) return null;
-  return { x: ((spot.x + 0.5) / ship.cols) * 100, y: ((spot.y + 0.5) / ship.rows) * 100 };
+  return {
+    x: ((spot.x + 0.5) / ship.cols) * 100,
+    y: ((spot.y + 0.5) / ship.rows) * 100,
+    faceLeft: false,
+  };
 }
 
 /** Standing, alive, not stunned, sharing a room with a living crew of the other effective side. */
@@ -270,10 +282,24 @@ export function ShipView({
   const cells = cellOwners(ship.rooms);
   const picked = new Set(selectedIds ?? (selectedId ? [selectedId] : []));
   const stands = new Map<string, { x: number; y: number; stack: number }>();
-  for (const room of ship.rooms) {
-    const idle = here.filter((c) => c.room === room.id && walkStep(ship, c) === null);
-    for (const [id, spot] of assignStands(room, idle)) stands.set(id, spot);
+  for (const c of here) {
+    const destId = c.path.length > 0 ? c.path[c.path.length - 1]! : c.room;
+    const room = ship.rooms.find((r) => r.id === destId);
+    if (!room) continue;
+    const spot = restSpot(room, here, c.id, c.aboard);
+    if (spot) stands.set(c.id, spot);
   }
+  const standFor = (c: Crew) => {
+    if ((c.stun ?? 0) > 0 && c.path.length > 0) {
+      const room = ship.rooms.find((r) => r.id === c.room);
+      if (room) {
+        const local = here.filter((o) => o.room === c.room && ((o.stun ?? 0) > 0 || o.path.length === 0));
+        const spot = assignStands(room, local).get(c.id);
+        if (spot) return spot;
+      }
+    }
+    return stands.get(c.id);
+  };
   const hullRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const swallowClick = useRef(false);
@@ -341,7 +367,7 @@ export function ShipView({
         for (const c of here) {
           const open = seen ? seen(c.room) : true;
           if (!open && !(crewLit?.(c) ?? false)) continue;
-          const at = crewPercent(ship, c, stands.get(c.id));
+          const at = crewPlace(ship, here, c, standFor(c));
           if (!at) continue;
           const px = rect.left + (at.x / 100) * rect.width;
           const py = rect.top + (at.y / 100) * rect.height;
@@ -519,16 +545,13 @@ export function ShipView({
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;
             const step = walkStep(ship, c);
-            const spot = stands.get(c.id);
-            const at = crewPercent(ship, c, spot);
+            const spot = standFor(c);
+            const at = crewPlace(ship, here, c, spot);
             if (!at) return null;
-            const faceLeft = step
-              ? (walkPose(ship, c.room, c.path, c.via, clamp01(c.move))?.faceLeft ??
-                roomCenter(step.to, ship).x < roomCenter(step.from, ship).x)
-              : false;
+            const faceLeft = at.faceLeft;
             const pose: CrewPose = step ? "walk" : fighting.has(c.id) ? "fight" : "idle";
             const frame = step
-              ? Math.floor(clamp01(c.move) * 4) % 4
+              ? Math.floor((c.path.length === 1 ? arriveMove(c.move) : clamp01(c.move)) * 4) % 4
               : pose === "fight"
                 ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4
                 : 0;

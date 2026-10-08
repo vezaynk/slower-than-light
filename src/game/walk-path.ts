@@ -1,10 +1,11 @@
+import { standCells } from "./crew-spots.ts";
 import type { DoorMark, DoorSide } from "./types.ts";
 
 /**
  * Cells a walking sprite crosses inside the rooms the sim already chose.
  * One hop still lasts the sim's room time. The line follows door tiles
  * from the standing cell, or from the doorway just used, and ends on the
- * destination's standing cell on the last hop.
+ * destination's at-rest tile on the last hop.
  */
 
 export type WalkRoom = {
@@ -55,26 +56,14 @@ function owners(ship: WalkShip): Map<string, string> {
   return at;
 }
 
-/** Floor tile closest to where a standing crew token sits, bottom center. Lower x, then lower y, breaks a tie. */
+/** Front at-rest tile: the bottom row, then the left side. A lone crew member stands here. */
 export function standCell(room: WalkRoom): WalkCell | null {
-  let best: WalkCell | null = null;
-  let bestD = Infinity;
-  const tx = room.x + room.w / 2;
-  const ty = room.y + room.h - 0.5;
-  for (let y = room.y; y < room.y + room.h; y++) {
-    for (let x = room.x; x < room.x + room.w; x++) {
-      if (room.omit?.some((cell) => cell.x === x && cell.y === y)) continue;
-      const d = (x + 0.5 - tx) ** 2 + (y + 0.5 - ty) ** 2;
-      const closer = d < bestD - 1e-9;
-      const tie =
-        Math.abs(d - bestD) <= 1e-9 && best !== null && (x < best.x || (x === best.x && y < best.y));
-      if (closer || tie || best === null) {
-        bestD = d;
-        best = { x, y };
-      }
-    }
-  }
-  return best;
+  return standCells(room)[0] ?? null;
+}
+
+function onFloor(room: WalkRoom, cell: WalkCell): boolean {
+  if (cell.x < room.x || cell.y < room.y || cell.x >= room.x + room.w || cell.y >= room.y + room.h) return false;
+  return !room.omit?.some((omit) => omit.x === cell.x && omit.y === cell.y);
 }
 
 function doorPairs(ship: WalkShip): Set<string> {
@@ -204,7 +193,13 @@ function startKey(own: Map<string, string>, room: WalkRoom, via?: string): strin
 }
 
 /** Tiles of this hop, including the doorway and the destination stand on the last room. */
-export function walkCells(ship: WalkShip, roomId: string, path: string[], via?: string): WalkCell[] | null {
+export function walkCells(
+  ship: WalkShip,
+  roomId: string,
+  path: string[],
+  via?: string,
+  goal?: WalkCell,
+): WalkCell[] | null {
   if (!path.length) return null;
   const own = owners(ship);
   const byId = new Map(ship.rooms.map((room) => [room.id, room]));
@@ -212,7 +207,7 @@ export function walkCells(ship: WalkShip, roomId: string, path: string[], via?: 
   const next = byId.get(path[0]);
   const last = byId.get(path[path.length - 1]);
   if (!current || !next || !last) return null;
-  const stand = standCell(last);
+  const stand = goal && onFloor(last, goal) ? goal : standCell(last);
   const from = startKey(own, current, via);
   if (!stand || !from) return null;
   const finalKey = key(stand.x, stand.y);
@@ -260,6 +255,15 @@ function sample(cells: WalkCell[], move: number): { x: number; y: number } {
   return { x: a.x + 0.5 + (b.x - a.x) * f, y: a.y + 0.5 + (b.y - a.y) * f };
 }
 
+/**
+ * Paint clock for the last hop. The sim clears the path on the tick `move` hits 1,
+ * and the ship redraws about every 80ms, so that exact pose is never shown.
+ * A hop is 0.6s, so the sprite is already on the last tile for the final stretch.
+ */
+export function arriveMove(move: number): number {
+  return Math.min(1, clamp01(move) / 0.72);
+}
+
 /** Point in tile space (cell centers are x+0.5, y+0.5). `move` is the sim's 0..1 hop clock. */
 export function walkPoint(
   ship: WalkShip,
@@ -267,15 +271,16 @@ export function walkPoint(
   path: string[],
   via: string | undefined,
   move: number,
+  goal?: WalkCell,
 ): { x: number; y: number } | null {
-  const cells = walkCells(ship, roomId, path, via);
+  const cells = walkCells(ship, roomId, path, via, goal);
   if (!cells?.length) return null;
   return sample(cells, move);
 }
 
 /** Landing tile of the current hop. The walker stores it so the next room starts on the same cell. */
-export function hopLanding(ship: WalkShip, roomId: string, path: string[], via?: string): WalkCell | null {
-  const cells = walkCells(ship, roomId, path, via);
+export function hopLanding(ship: WalkShip, roomId: string, path: string[], via?: string, goal?: WalkCell): WalkCell | null {
+  const cells = walkCells(ship, roomId, path, via, goal);
   if (!cells?.length) return null;
   return cells[cells.length - 1];
 }
@@ -286,17 +291,23 @@ export function walkPose(
   path: string[],
   via: string | undefined,
   move: number,
+  goal?: WalkCell,
 ): { x: number; y: number; faceLeft: boolean } | null {
-  const cells = walkCells(ship, roomId, path, via);
+  const cells = walkCells(ship, roomId, path, via, goal);
   if (!cells?.length) return null;
   const at = sample(cells, move);
   const steps = cells.length - 1;
   const along = clamp01(move) * steps;
   const begin = Math.min(cells.length - 1, Math.ceil(along - 1e-6));
   for (let i = begin; i < cells.length; i++) {
-    const cx = cells[i].x + 0.5;
+    const cx = cells[i]!.x + 0.5;
     if (cx < at.x - 0.01) return { ...at, faceLeft: true };
     if (cx > at.x + 0.01) return { ...at, faceLeft: false };
+  }
+  if (cells.length >= 2) {
+    const prev = cells[cells.length - 2]!;
+    const last = cells[cells.length - 1]!;
+    if (prev.x !== last.x) return { ...at, faceLeft: prev.x > last.x };
   }
   return { ...at, faceLeft: false };
 }

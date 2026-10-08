@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "./sim.ts";
-import { walkCells, walkPoint } from "./walk-path.ts";
+import { arriveMove, standCell, walkCells, walkPoint } from "./walk-path.ts";
 
 const column = {
   cols: 2,
@@ -63,5 +63,27 @@ describe("walk path", () => {
     assert.deepEqual(at, { x: 1.5, y: 3.5 });
     const door = walkPoint(ship, "p-oxygen", ["p-a1"], "2,1", 0);
     assert.deepEqual(door, { x: 2.5, y: 1.5 });
+  });
+
+  it("stands a lone crew on the bottom-left tile", () => {
+    assert.deepEqual(standCell({ id: "W", x: 0, y: 0, w: 3, h: 1 }), { x: 0, y: 0 });
+  });
+
+  it("ends on the requested floor tile", () => {
+    const cells = walkCells(column, "L", ["R"], undefined, { x: 1, y: 0 });
+    assert.deepEqual(cells!.at(-1), { x: 1, y: 0 });
+    const fallback = walkCells(column, "L", ["R"], undefined, { x: 9, y: 9 });
+    assert.deepEqual(fallback!.at(-1), { x: 1, y: 4 });
+  });
+
+  it("holds the last tile before the hop clock finishes", () => {
+    const cells = walkCells(column, "L", ["R"], undefined)!;
+    const end = cells[cells.length - 1]!;
+    assert.equal(arriveMove(0), 0);
+    assert.equal(arriveMove(0.72), 1);
+    const held = walkPoint(column, "L", ["R"], undefined, arriveMove(0.9));
+    assert.deepEqual(held, { x: end.x + 0.5, y: end.y + 0.5 });
+    const mid = walkPoint(column, "L", ["R"], undefined, 0.5);
+    assert.notDeepEqual(mid, held);
   });
 });

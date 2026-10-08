@@ -2326,6 +2326,19 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
   "engi-distress-rebel-fight": engiDistressWin,
+  // Rebel fight among Rebel fleet. The page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.
+  // The two endings are separate printed results. Default salvage is not paid.
+  "rebel-fight-among-rebel-fleet": (g, deadCrew) => {
+    if (deadCrew) {
+      result(
+        g,
+        "There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump.",
+        rollStandard(g, "medium"),
+      );
+      return;
+    }
+    result(g, "There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!", scrapOnly(g, "low"));
+  },
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
   "pirate-ships-in-plasma-storm": (g, deadCrew) => {

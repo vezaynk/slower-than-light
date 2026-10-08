@@ -5049,13 +5049,18 @@ function arrive(g: Game, b: Beacon) {
   g.phase = "event";
   g.paused = true;
   g.event = eventFor(g, b);
-  // Boarders: Humans (Abandoned) and Boarders: Crystal: neither page has a choice.
-  // The red line is the outcome ("3-4 human boarders beam aboard your ship",
-  // "2-3 crystal boarders beam aboard your ship"), not a button.
+  // These pages have no choice. The red line is the outcome, not a button.
+  // Boarders: Humans (Abandoned): "3-4 human boarders beam aboard your ship".
+  // Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
+  // Boarders: Mantis: "2-4 mantis boarders beam aboard your ship."
+  // The printed intro is the card body, logged because the fight replaces the card.
   if (
-    (b.flag === "cited:boarders-humans-abandoned" || b.flag === "cited:boarders-crystal") &&
+    (b.flag === "cited:boarders-humans-abandoned" ||
+      b.flag === "cited:boarders-crystal" ||
+      b.flag === "cited:boarders-mantis") &&
     g.event?.choices[0]
   ) {
+    if (g.event.body) log(g, g.event.body);
     choose(g, g.event.choices[0].id);
   }
 }

@@ -2330,7 +2330,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g, false, true);
   },
 
-  // Boarders: Mantis. "2-4 mantis boarders beam aboard your ship."
+  // Boarders: Mantis. The page has no choice. Arrival calls this id so the red line
+  // "2-4 mantis boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
   "c:boarders-mantis:0": (g) => {
     mantisBoarders(g, 2, 4);

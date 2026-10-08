@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
@@ -62,5 +62,33 @@ describe("Boarders: Mantis", () => {
       assert.equal(g.kills, kills);
     }
     assert.ok(seen.has(2) && seen.has(4), [...seen].sort().join(","));
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "2-4 mantis boarders beam aboard your ship."
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:boarders-mantis";
+    dest.name = DEST;
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy, null);
+    const mantis = boarded(g);
+    assert.ok(mantis.length >= 2 && mantis.length <= 4, String(mantis.length));
+    assert.ok(mantis.every((c) => c.name === "Mantis"));
+    assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
   });
 });

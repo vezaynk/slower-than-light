@@ -83,7 +83,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    // Boarders: Mantis. The page prints no button. The red line is the label.
+    // Boarders: Mantis. The page prints no button. The red line is the outcome, applied on arrival.
     // LRSmap=noship, unique=true. Not a crew grant.
     dest: "Boarders: Mantis",
     slug: "boarders-mantis",

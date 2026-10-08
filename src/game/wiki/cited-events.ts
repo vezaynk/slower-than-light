@@ -3563,6 +3563,13 @@ const ROCK_FIGHT_INTROS = [
   "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
 ];
 
+// Rebel fight near pulsar. Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-near-pulsar:0.
+const REBEL_PULSAR_INTROS = [
+  `A Rebel captain appears on the screen. "I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!"`,
+  "A small rebel research station overlooks a pulsating star. Before you can react a Rebel ship spots you and moves in to attack.",
+  "You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight.",
+];
+
 // Rebel fight. Ten printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight:0.
 const REBEL_FIGHT_INTROS = [
   `Your ship is hailed. "We've found you at last. Prepare to die!"`,
@@ -3775,6 +3782,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Rebel fight near pulsar. One of the three printed intros. The fight stays c:rebel-fight-near-pulsar:0.
+  if (ev.slug === "rebel-fight-near-pulsar") {
+    return {
+      title: ev.dest,
+      body: REBEL_PULSAR_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock fight. One of the eight printed intros. The fight stays c:rock-fight:0.

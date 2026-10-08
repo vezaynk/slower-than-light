@@ -26,4 +26,19 @@ describe("Mantis ship attacking Crystal", () => {
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.scrap, 10);
   });
+
+  it("ignoring them prints the low-profile sentence and nothing happens", () => {
+    const g = createGame(1);
+    open(g);
+    g.fleet = 5;
+    choose(g, "c:mantis-ship-attacking-crystal:1");
+    assert.equal(
+      g.event?.body,
+      "You try to keep a low profile and quickly prepare to jump.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.scrap, 10);
+    assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
+  });
 });

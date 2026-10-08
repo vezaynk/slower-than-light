@@ -1128,6 +1128,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-absorbing-automated-scout:1": (g) => {
     result(g, "Whatever assistance the disabled scout could provide is not worth the risk of fighting another Lanius. You prepare to move on.", undefined, ["Nothing happens."]);
   },
+  // Mantis ship attacking Crystal. "Ignore them." One printed result.
+  "c:mantis-ship-attacking-crystal:1": (g) => {
+    result(g, "You try to keep a low profile and quickly prepare to jump.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
     pageFight(g, "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!", "Lanius ship", "lanius-ship-attacking-mantis");

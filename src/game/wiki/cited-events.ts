@@ -4812,6 +4812,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
+  // Space station under construction. {{Blue Option|Lanius Crew|Offer to have your crewmember help.}}
+  // The button stays visible. Selling that crewmember grants an unnamed augmentation, so that choice is not added.
+  if (ev.slug === "space-station-under-construction") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:space-station-under-construction:2", label: "Offer to have your crewmember help." },
+      ],
+    };
+  }
   return {
     title: ev.dest,
     body: ev.body,

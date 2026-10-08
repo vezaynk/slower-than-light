@@ -1674,6 +1674,23 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:space-station-under-construction:1": (g) => {
     result(g, `"I understand." Transmission has been cut.`, undefined, ["Nothing happens."]);
   },
+  // Space station under construction. {{Blue Option|Lanius Crew}}. Two printed sentences, then the refusal.
+  // "Ask your crew if they agree" loses that crewmember and grants an unnamed augmentation, so it stays unwired.
+  "c:space-station-under-construction:2": (g) => {
+    if (!hasLanius(g)) return;
+    card(
+      g,
+      `"Interesting. So this metal man can help us make some of these unique parts out of scrap? That would be a huge help." Your crewmember checks over the blueprints and quickly converts some of their base metal sheets into the specialized parts.\n\n"Amazing! This robot thing could save us a ton of time. Could I buy it off you?"`,
+      [{ id: "q:station:nosale", label: "Our crew is not for sale." }],
+    );
+  },
+  "q:station:nosale": (g) => {
+    result(
+      g,
+      "A pity. In terms of payment, here's some of the scrap metal we don't need, now that we've got the necessary parts.",
+      scrapOnly(g, "medium"),
+    );
+  },
   // Crystal ship attacking Federation loyalists. "Save the Federation ship." One printed lead-in, then a Crystal ship fight.
   // {{SurrenderEscape(alt)|no|CRYSTAL_FED}} is not this line.
   "c:crystal-ship-attacking-federation-loyalists:0": (g) => {
@@ -2588,6 +2605,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:lanius-ship-salvager:2" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // Lanius trader, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
   if (id === "c:lanius-trader:4" && !hasLanius(g)) return "Needs a Lanius crewmember";
+  // Space station under construction, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  if (id === "c:space-station-under-construction:2" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // Lanius lone ship, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
   if (id === "c:lanius-lone-ship:3" && !hasLanius(g)) return "Needs a Lanius crewmember";
   // Lanius powered-down ship. Advanced Piloting prints level=2+. A dead Lanius does not count.

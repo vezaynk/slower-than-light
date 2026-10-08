@@ -40,6 +40,14 @@
   #root {
     background: var(--color-bg);
     color: var(--color-fg);
+    overscroll-behavior: none;
+  }
+
+  html {
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
   }
 
   body {
@@ -61,10 +69,21 @@
   }
 }
 
-/* Fixed 1280x720 screen from Screen.tsx, scaled by --fit and centred in black bars. */
+/* Fixed 1280x720 screen from Screen.tsx, scaled by --fit and centred in black bars.
+   Top/left/width/height are set from the visual viewport so iOS chrome does not clip it. */
 .viewport {
   position: fixed;
   inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: manipulation;
+}
+
+html.is-immersive,
+html.is-immersive body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
   overflow: hidden;
   background: #000;
 }
@@ -3031,6 +3050,76 @@ button.gun-slot {
 .title-fs { position: absolute; left: 16px; top: 16px; z-index: 3; }
 
 .hangar .hangar-fs { width: 48px; padding: 0; display: grid; place-items: center; }
+
+/* iOS Home Screen steps (FullscreenButton). Fixed inside the scaled screen. */
+.fs-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.fs-guide-card {
+  width: min(640px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  text-align: left;
+}
+
+.fs-guide-card h2 {
+  font-family: var(--font-hud);
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.fs-guide-card p,
+.fs-guide-card li {
+  font-family: var(--font-hud);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+.fs-guide-card ol {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fs-guide-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  vertical-align: -4px;
+  image-rendering: auto;
+}
+
+.fs-guide-url {
+  margin: 0;
+  padding: 8px 10px;
+  border: 2px solid var(--color-line-dim);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.4;
+  word-break: break-all;
+  user-select: text;
+}
+
+.fs-guide-card .btn-ghost {
+  align-self: flex-start;
+}
 
 /* Enemy escape readout (enemyEscapeView): only while they are trying to jump away. */
 

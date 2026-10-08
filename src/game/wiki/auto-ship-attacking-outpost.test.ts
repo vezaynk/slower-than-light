@@ -73,8 +73,13 @@ describe("Auto-ship attacking outpost", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:auto-ship-attacking-outpost:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "You steer clear of the conflict. The outpost receives a beating but the ship stops its attack before it's destroyed.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
   });
 });

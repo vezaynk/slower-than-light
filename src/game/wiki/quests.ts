@@ -2725,6 +2725,7 @@ export function questAfterCited(g: Game, id: string) {
     // Mantis war camp, Pledge. The dump prints the italic reply, then the marker line.
     // Medium scrap is already applied by citedChoose; the card does not print a count.
     // Space station under construction, Offer your help. Supplies are already applied; the card does not print a count.
+    // Escort civilians FTL haywire, Lead them. Low scrap is already applied; the card does not print a count.
     const body =
       id === "c:escort-civilians:0"
         ? `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"\n\n${line}`
@@ -2732,7 +2733,9 @@ export function questAfterCited(g: Game, id: string) {
           ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."\n\n${line}`
           : id === "c:space-station-under-construction:0"
             ? `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."\n\n${line}`
-            : line;
+            : id === "c:escort-civilians-ftl-haywire:0"
+              ? `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."\n\n${line}`
+              : line;
     // A short card so the marker line is seen; "ack" goes back to the map (the beacon is already resolved).
     g.event = { title: here(g)?.name ?? "Event", body, choices: ACK };
     g.phase = "event";

@@ -179,6 +179,12 @@ describe("Cited events that add a marker", () => {
           `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."\n\n${QUEST_ADDED}`,
         );
       }
+      if (id === "c:escort-civilians-ftl-haywire:0") {
+        assert.equal(
+          g.event!.body,
+          `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."\n\n${QUEST_ADDED}`,
+        );
+      }
     }
   });
 

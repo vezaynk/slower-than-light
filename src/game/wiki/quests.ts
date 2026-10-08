@@ -1806,6 +1806,16 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
     result(g, "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.", undefined, ["Nothing happens."]);
   },
+  // Rebel ship attacking refueling outpost. "Contact the outpost." Medium fuel (tooltip 2-4) and medium scrap.
+  "q:refuel-outpost:contact": (g) => {
+    const offer = scrapOnly(g, "medium");
+    offer.fuel = between(g, [2, 4]);
+    result(
+      g,
+      `The outpost hails you, "The pompous bastards expected free service just because they defeated the Federation. Take this for the help."`,
+      offer,
+    );
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");
@@ -3255,6 +3265,15 @@ export const PAGE_WINS: Record<string, Win> = {
     "The Crystalline ship shatters and you pick what you can from the debris.",
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
+  ),
+  // Rebel ship attacking refueling outpost. Destroyed pays medium scrap with resources.
+  // A crew kill pays high. Then contact the outpost.
+  "rebel-ship-attacking-refueling-outpost": std(
+    "medium",
+    "high",
+    "The ship breaks apart and you quickly salvage what you can.",
+    "With the crew dead you quickly salvage what you can.",
+    [{ id: "q:refuel-outpost:contact", label: "Contact the outpost." }],
   ),
   // Rebel ship attacking Crystal ship. Attack the Rebel: both endings share the bones sentence.
   // Destroyed pays medium scrap with resources. A crew kill pays high. Then contact the Crystal ship.

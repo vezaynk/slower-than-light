@@ -137,6 +137,9 @@ export const NO_SURRENDER_EVENTS = new Set([
   "quest-engi-final",
   "quest-mantis-war-camp",
   "quest-store-rescue",
+  // Lanius ship absorbing automated scout: {{SurrenderEscape(alt)|escapechance|...|80|20-40|2-4}}.
+  // escapechance is an escape attempt only. The 2-4 is the hull tooltip, not a timer.
+  "lanius-ship-absorbing-automated-scout",
   "quest-slug-pirate-trap-cache",
   "quest-slug-platform",
   "quest-slug-interceptor",

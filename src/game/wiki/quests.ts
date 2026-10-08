@@ -659,6 +659,18 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:lanius-translator:decline": (g) => {
     result(g, "\"No matter. This one does not mind this ship.\" They pull away and you are left to wonder what it meant by that. Perhaps the translation device has not yet been perfected?", undefined, ["Nothing happens."]);
   },
+  // Lanius ship absorbing automated scout. Two inspect results, no odds. INFERRED: equal.
+  // "a random amount of scrap". The page notes lowercase "low" is treated as RANDOM.
+  // INFERRED: low, medium, and high scrap only are equal. The map reveal is not wired.
+  "q:lanius-scout:inspect": (g) => {
+    const offer = scrapOnly(g, pick(g, ["low", "medium", "high"]));
+    if (pick(g, ["map", "fleet"] as const) === "fleet") {
+      g.fleet = Math.max(0, g.fleet - 1);
+      result(g, "You find the ship has a built-in method of warning the Rebel fleet of contact with your ship. You feed it some false data about your ship's whereabouts that should keep the fleet off your tail for a time.", offer, ["The Rebel Fleet is delayed for 1 turn."]);
+      return;
+    }
+    result(g, "You are able to retrieve a significant amount of data about the surrounding beacons from the scout before you scrap it.", offer);
+  },
   // Lanius lone ship, "Try to contact the Lanius ship." The civilian warning, then one button.
   "c:lanius-lone-ship:2": (g) => {
     card(g, "You approach the ship without activating weapons and the civilian ship says, \"Don't go any closer! Just kill them!\" before hastily making their retreat.", [
@@ -1270,6 +1282,16 @@ function laniusCivilianWin(g: Game, deadCrew: boolean) {
   result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }]);
 }
 
+const SCOUT_INSPECT: Choice[] = [{ id: "q:lanius-scout:inspect", label: "Inspect the automated ship." }];
+
+/** Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect. */
+function laniusScoutWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "No more life signs detected on the Lanius ship. You move to inspect the automated Rebel ship that it was absorbing."
+    : "The Lanius craft breaks apart. You move to inspect the automated Rebel ship that it was absorbing.";
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], SCOUT_INSPECT);
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -1317,6 +1339,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "mantis-ships-battle-for-rock-freighter": (g) => {
     result(g, "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.", rollStandard(g, "medium"));
   },
+  // Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect.
+  "lanius-ship-absorbing-automated-scout": laniusScoutWin,
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
   "lanius-ship-attacking-civilian": laniusCivilianWin,
@@ -1428,6 +1452,10 @@ export function pageWin(g: Game, slug: string | null | undefined, deadCrew: bool
 
 /** "gotaway" results, keyed like PAGE_WINS. */
 const GOT_AWAY: Record<string, (g: Game) => void> = {
+  // Lanius ship absorbing automated scout. Escape pays no fight scrap. Then inspect.
+  "lanius-ship-absorbing-automated-scout": (g) => {
+    card(g, "The Lanius ship has escaped. You move to inspect the automated Rebel ship that it was absorbing.", SCOUT_INSPECT);
+  },
   // Mantis ship-collectors: "After them!" -> quest marker / "Forget it." -> nothing.
   "mantis-ship-collectors": (g) => {
     card(g, "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want.", [

@@ -209,6 +209,55 @@ function cargoAndScrap(g: Game, tier: "low" | "high", kind: "fuel" | "missiles")
   return offer;
 }
 
+const ENGI_DISTRESS_AFTER: Choice[] = [
+  { id: "q:engi-distress:scrap", label: "Give them 25 scrap." },
+  { id: "q:engi-distress:supplies", label: "Give them 40 scrap, 2 missiles and 2 fuel." },
+  { id: "q:engi-distress:nothing", label: "Give them nothing." },
+];
+
+/** Engi distress Rebel fight, destroyed low standard or a crew kill medium, then the Engi ask for help. */
+function engiDistressWin(g: Game, deadCrew: boolean) {
+  result(
+    g,
+    "The rebels destroyed, you pick the bones of their ship and wait for the small Engi ship to catch up. The Engi vessel turns out to be very poorly equipped - barely a runabout, really. They're trying to outrun the rebels, and need all the help they can get.",
+    rollStandard(g, deadCrew ? "medium" : "low"),
+    [],
+    ENGI_DISTRESS_AFTER,
+  );
+}
+
+/** Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed and not granted. */
+function engiDistressGift(g: Game) {
+  if (g.scrap < 25) return;
+  g.scrap -= 25;
+  log(g, "Scrap: -25.");
+  const r = pick(g, ["nothing", "heal", "schematic"] as const);
+  if (r === "heal") {
+    result(
+      g,
+      "The Engies are grateful. They don't have any supplies or weapons to spare, but they do send over a self-teleporting med-bot disperser they hope they won't need.",
+      { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "healburst" },
+      ["Scrap: -25."],
+    );
+    return;
+  }
+  if (r === "schematic") {
+    result(
+      g,
+      "The Engies are grateful. They don't have much by way of supplies but they do offer a drone schematic for your use.",
+      undefined,
+      ["Scrap: -25."],
+    );
+    return;
+  }
+  result(
+    g,
+    "The words they use are \"Need = fulfilled\", but you take it for gratitude. They take the next jump in their long journey home.",
+    undefined,
+    ["Nothing else happens.", "Scrap: -25."],
+  );
+}
+
 /** The result card: page text, what was paid, extras, and the next choices ("ack" by default). */
 export function result(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = [], choices: Choice[] = ACK) {
   const lines: string[] = [text];
@@ -257,6 +306,8 @@ const AUG_NAMES: Partial<Record<AugmentId, string>> = {
   casing: "Titanium System Casing",
   gel: "Slug Repair Gel",
   pheromone: "Mantis Pheromones",
+  // Engi distress Rebel fight prints this name for the med-bot augment.
+  medbot: "Engi Med-bot Dispersal",
   // @agent:quests-a.
   keel: "Rock Plating",
   vengeance: "Crystal Vengeance",
@@ -801,6 +852,43 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Pirate briber. Low scrap with resources. The static tier note does not pay the resources.
   "c:pirate-briber:0": (g) => {
     result(g, "\"Good choice, son. We've both come out of this richer.\"", rollStandard(g, "low"));
+  },
+  // Engi distress Rebel fight. {{SurrenderEscape(alt)|no}}: never runs away, never surrenders.
+  "c:engi-distress-rebel-fight:0": (g) => {
+    pageFight(
+      g,
+      "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!",
+      "Rebel Ship",
+      "engi-distress-rebel-fight",
+      { ...NEVER_RUN },
+    );
+  },
+  // Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed and not granted.
+  "q:engi-distress:scrap": (g) => {
+    engiDistressGift(g);
+  },
+  "q:engi-distress:supplies": (g) => {
+    if (g.scrap < 40 || g.missiles < 2 || g.fuel < 2) return;
+    g.scrap -= 40;
+    g.missiles -= 2;
+    g.fuel -= 2;
+    log(g, "Scrap: -40.");
+    log(g, "Missiles: -2.");
+    log(g, "Fuel: -2.");
+    result(
+      g,
+      "They wouldn't get more than a few jumps with that load-out. You provide them with all the munitions and supplies they should need for the journey home. \"Generosity magnitude unpredicted. Well-being syntax error [value too high]. Accept this token.\"",
+      undefined,
+      [grantAug(g, "medbot"), "Scrap: -40.", "Missiles: -2.", "Fuel: -2."],
+    );
+  },
+  "q:engi-distress:nothing": (g) => {
+    result(
+      g,
+      "Engi can't feel fear, so they bear you no ill will when you explain you're unwilling to help. They set off on their journey and you do the same.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
@@ -1512,6 +1600,11 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) return "Needs Mind Control";
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
+  // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
+  if (id === "q:engi-distress:scrap" && g.scrap < 25) return "Need 25 scrap";
+  if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";
+  if (id === "q:engi-distress:supplies" && g.missiles < 2) return "Need 2 missiles";
+  if (id === "q:engi-distress:supplies" && g.fuel < 2) return "Need 2 fuel";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.
@@ -1911,6 +2004,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
+  // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.
+  "engi-distress-rebel-fight": engiDistressWin,
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
   "pirate-ships-in-plasma-storm": (g, deadCrew) => {

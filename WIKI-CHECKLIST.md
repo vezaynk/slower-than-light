@@ -1063,7 +1063,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Repair Arm — partial — src/game/extras/augments.ts — the 15% cut and the 2 hull repair run only while the hull is not already full. Score s is not reduced by the cut.
 - [ ] Repair Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Repair Station in Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Repair station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Repair station — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. The printed station sentence is shown before the repair choices.
 - [ ] Repair station in Last Stand — not-a-surface — same title as "Repair Station in Last Stand" with different capitalization
 - [ ] Research Station Near Pulsar — not-a-surface — events-1.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Research Station near Pulsar — not-a-surface — same title as "Research Station Near Pulsar" with different capitalization

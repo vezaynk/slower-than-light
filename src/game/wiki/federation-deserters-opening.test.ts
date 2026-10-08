@@ -19,13 +19,13 @@ function open(g: Game) {
 }
 
 describe("Federation deserters opening", () => {
-  it("shows the printed opening sentence and keeps both choices", () => {
+  it("shows the printed opening sentence and keeps the three printed choices", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
-      ["c:federation-deserters:0", "c:federation-deserters:1"],
+      ["c:federation-deserters:2", "c:federation-deserters:0", "c:federation-deserters:1"],
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

@@ -819,6 +819,26 @@ const CORE_EVENTS: EventDef[] = [
     "body": "For a moment you assume it's a glitch, but no... you've found a Federation military ship! They hail you and, after some probing, reveal that they deserted the Federation fleet before stumbling into this sector while seeking refuge.",
     "choices": [
       {
+        "id": "c:federation-deserters:2",
+        "label": "Offer supplies.",
+        "fx": [
+          {
+            "k": "res",
+            "id": "scrap",
+            "sign": -1,
+            "lo": 15,
+            "hi": 25
+          },
+          {
+            "k": "res",
+            "id": "fuel",
+            "sign": -1,
+            "lo": 1,
+            "hi": 3
+          }
+        ]
+      },
+      {
         "id": "c:federation-deserters:0",
         "label": "Attack the traitors",
         "fx": [
@@ -5103,6 +5123,17 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     citedResult(g, "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.", [
       last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns.",
     ]);
+    return true;
+  }
+  // Federation deserters. "Offer supplies." 15-25 scrap and 1-3 fuel are already spent.
+  // "The current sector map is revealed." This beacon chart has no hidden nodes, so that line uncovers none.
+  // sectorMap is the between-sector chart and stays untouched.
+  if (id === "c:federation-deserters:2") {
+    citedResult(
+      g,
+      "You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! \"The Federation fleet's still standing - get there while you can!\"",
+      ["The current sector map is revealed."],
+    );
     return true;
   }
   ctx.resolve();

@@ -167,6 +167,12 @@ describe("Cited events that add a marker", () => {
       const g = atCited(createGame(3), sector, dest);
       choose(g, id);
       assert.equal(questBeacons(g, quest).length, 1, dest);
+      if (id === "c:mantis-war-camp:0") {
+        assert.equal(
+          g.event!.body,
+          `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."\n\n${QUEST_ADDED}`,
+        );
+      }
     }
   });
 

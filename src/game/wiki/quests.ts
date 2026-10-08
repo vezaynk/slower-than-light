@@ -2722,10 +2722,14 @@ export function questAfterCited(g: Game, id: string) {
     const line = addQuest(g, quest);
     // Escort civilians, Accept. The dump prints the italic reply, then the marker line.
     // Fuel (1-3) is already applied by citedChoose; the card does not print a count.
+    // Mantis war camp, Pledge. The dump prints the italic reply, then the marker line.
+    // Medium scrap is already applied by citedChoose; the card does not print a count.
     const body =
       id === "c:escort-civilians:0"
         ? `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"\n\n${line}`
-        : line;
+        : id === "c:mantis-war-camp:0"
+          ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."\n\n${line}`
+          : line;
     // A short card so the marker line is seen; "ack" goes back to the map (the beacon is already resolved).
     g.event = { title: here(g)?.name ?? "Event", body, choices: ACK };
     g.phase = "event";

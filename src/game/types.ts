@@ -784,6 +784,11 @@ export type Game = {
   ramId: string | null;
   /** Jumps remaining before that ship moves. */
   ramClock: number;
+  /**
+   * The Rebel Flagship: flagship jumps already spent while it is on the Federation base.
+   * INFERRED: the jump that lands there is not one of those three.
+   */
+  ramAtBase?: number;
   /** Installed augments. Three is the cap. */
   augments: AugmentId[];
   /**

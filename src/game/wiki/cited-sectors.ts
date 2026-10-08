@@ -23,7 +23,8 @@ export function citedSector(g: Game): void {
   if (need <= 0) return;
   for (const b of g.beacons) {
     if (need <= 0) break;
-    if (b.flag === REPAIR_FLAG || b.flag === "engi-cache") continue;
+    // Sectors, "The Last Stand": the Federation base is its own beacon, not a repair station.
+    if (b.flag === REPAIR_FLAG || b.flag === "engi-cache" || b.flag === "fed-base") continue;
     if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store") continue;
     b.flag = REPAIR_FLAG;
     b.name = REPAIR_NAME;

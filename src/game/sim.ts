@@ -4382,6 +4382,23 @@ function makeMap(g: Game) {
   const ahead = middles.filter((b) => b.col > start.col).sort((a, b) => a.col - b.col || a.row - b.row);
   const same = middles.filter((b) => b.col <= start.col).sort((a, b) => a.col - b.col || a.row - b.row);
   g.beacons = [start, ...ahead, ...same, exit];
+  // Sectors, "The Last Stand": the base spawns slightly to the right of the centre.
+  // INFERRED: on this 0–5 grid that is column 3, the beacon nearest the middle row.
+  // The Rebel Flagship: the trip is 6, 8, or 10 turns. This grid links every adjacent
+  // square, so a step that gets closer arrives in fewer turns than that. The total is not applied.
+  if (g.sector >= 8) {
+    const seat = g.beacons
+      .filter((b) => b !== exit && b.col === 3)
+      .sort((a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row)[0];
+    if (seat) {
+      seat.flag = "fed-base";
+      seat.kind = "empty";
+      seat.name = "Federation Base";
+      seat.tier = "";
+      seat.asteroid = false;
+      seat.resolved = false;
+    }
+  }
   g.here = start.id;
   g.fleet = 0;
   // INVENTED: sector name fallback.
@@ -4644,6 +4661,7 @@ export function commitJump(g: Game, id: string) {
       if (g.ramClock <= 0) {
         stepRam(g, ram);
         g.ramClock = 2;
+        if (g.phase === "defeat") return;
       }
     }
     const now = g.beacons.find((b) => b.id === g.here);
@@ -4661,19 +4679,33 @@ export function commitJump(g: Game, id: string) {
   arrive(g, dest);
 }
 
-// Sectors, "The Last Stand": the Flagship jumps every two player jumps. INFERRED: it steps to the nearest beacon. The name Wake is INVENTED.
+// Sectors, "The Last Stand": the Flagship jumps every two player jumps, toward the base.
+// The Rebel Flagship: three consecutive turns on the base end the game in a Rebel victory.
+// The name Wake is INVENTED. The log line is not printed.
 function stepRam(g: Game, ram: Beacon) {
-  const here = g.beacons.find((b) => b.id === g.here);
-  if (!here) return;
+  const base = g.beacons.find((b) => b.flag === "fed-base");
+  const span = (a: Beacon, b: Beacon) => Math.abs(a.col - b.col) + Math.abs(a.row - b.row);
+  if (base && ram.id === base.id) {
+    g.ramAtBase = (g.ramAtBase ?? 0) + 1;
+    if (g.ramAtBase >= 3) {
+      g.phase = "defeat";
+      g.outcome = "rebel";
+      g.paused = true;
+      g.picking = false;
+      g.sectorMap = false;
+      sfx(g, "die");
+      clearSave();
+    }
+    return;
+  }
+  if (!base) return;
   const options = ram.links
     .map((id) => g.beacons.find((b) => b.id === id))
-    .filter((b): b is Beacon => !!b && b.col <= ram.col && b.id !== ram.id);
+    .filter((b): b is Beacon => !!b && b.id !== ram.id && span(b, base) < span(ram, base));
   if (!options.length) return;
-  const next = [...options].sort((a, b) => {
-    const da = Math.abs(a.col - here.col) + Math.abs(a.row - here.row);
-    const db = Math.abs(b.col - here.col) + Math.abs(b.row - here.row);
-    return da - db;
-  })[0];
+  // INFERRED: among beacons strictly closer to the base, take the closest.
+  const next = [...options].sort((a, b) => span(a, base) - span(b, base) || a.col - b.col || a.row - b.row)[0];
+  g.ramAtBase = 0;
   ram.kind = "empty";
   ram.name = "Wake";
   ram.tier = "";
@@ -4682,7 +4714,7 @@ function stepRam(g: Game, ram: Beacon) {
   next.tier = "boss";
   next.resolved = false;
   g.ramId = next.id;
-  log(g, `The Flagship jumps toward ${next.name === "Flagship" ? "your lane" : next.name}.`);
+  log(g, "The Flagship jumps toward the Federation base.");
 }
 
 function arrive(g: Game, b: Beacon) {

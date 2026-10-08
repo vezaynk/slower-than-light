@@ -3551,6 +3551,18 @@ const PIRATE_PULSAR_INTROS = [
   "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!",
 ];
 
+// Rock fight. Eight printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight:0.
+const ROCK_FIGHT_INTROS = [
+  "You encounter a Rock vessel and attempt to open trading frequencies, but they take it as an act of cultural transgression and open fire.",
+  "You jump into the middle of a Rock excavation project on a nearby moon. Unimpressed with your intrusion they move to defend themselves!",
+  `You intercept chatter from an approaching Rock ship: "Weapons, moving in to engage, arm the tubes." There is no talking to these guys.`,
+  "As you jump in, a vast figure appears on the view-screen. The Rock captain rubs the green, moss-like appendage on his chin and then orders his crew to open fire.",
+  `It looks quiet, but you realize your computer is being scanned. A hidden Rock vessel hails you: "Why do you fill your computer with lies?! These are not the holy words!" Before you can interject they open fire.`,
+  "You notice a Rock ship performing combat exercises. However, they quickly change their course to engage your ship. They apparently treat unregistered alien ships as handy target practice.",
+  "A loud 'thud' resounds through the ship after jump completion - you've just shunted a Rock fighter and he's already preparing to fire!",
+  "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
+];
+
 // Rebel fight. Ten printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight:0.
 const REBEL_FIGHT_INTROS = [
   `Your ship is hailed. "We've found you at last. Prepare to die!"`,
@@ -3763,6 +3775,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
+    };
+  }
+  // Rock fight. One of the eight printed intros. The fight stays c:rock-fight:0.
+  if (ev.slug === "rock-fight") {
+    return {
+      title: ev.dest,
+      body: ROCK_FIGHT_INTROS[between(g, [0, 7])]!,
+      choices: [{ id: "c:rock-fight:0", label: "Fight a Rock ship" }],
     };
   }
   // Pirate fight near pulsar. One of the three printed intros. The fight stays c:pirate-fight-near-pulsar:0.

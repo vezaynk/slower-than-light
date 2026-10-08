@@ -1130,6 +1130,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
       true,
     );
   },
+  // Zoltan ship follows Mantis ship. "Interfere and help the Zoltan ship." One printed lead-in, then a Mantis ship fight in the asteroid field.
+  // The page prints "crew entirely composed of Mantis." allMantisCrew replaces any other race after the fight starts.
+  "c:zoltan-ship-follows-mantis-ship:1": (g) => {
+    pageFight(
+      g,
+      "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.",
+      "Mantis ship",
+      "zoltan-ship-follows-mantis-ship",
+      undefined,
+      true,
+    );
+    allMantisCrew(g);
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

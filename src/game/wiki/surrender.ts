@@ -273,7 +273,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   },
   // "Crystal fight with surrender offer (hull repairs)": CRYSTAL_CONVOY, "surrenderofferchance100", 30-40.
   // "Stop the fight." -> "You receive low (1-3 fuel) fuel and scrap, and your ship receives 8 repairs."
-  // Rewards, "Fuel": "T fuel & T scrap" (low fuel and low scrap).
+  // Rewards, "Fuel": "T fuel & T scrap" (low fuel and low scrap). The two printed sentences are the result.
   "crystal-fight-with-surrender-offer-hull-repairs": {
     page: "Crystal fight with surrender offer (hull repairs)",
     chance: 100,
@@ -283,6 +283,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     hail: "Their ship seems severely damaged and they look to be reconsidering the fight. Should you power down your weapons and explain that you mean no threat?",
     accept: "Stop the fight.",
     refuse: "Finish them off.",
+    result: "They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships.",
   },
   // "Pirate briber": "(has 70% chance to surrender at 30-40% hull)". "Accept the more generous bribe and leave." ->
   // "You receive high (fuel: 3-6 ; missiles: 4-8 ; drone parts: 1-2) resources with some scrap" (Rewards#Stuff).
@@ -943,11 +944,14 @@ export function surrenderChoose(g: Game, id: string): boolean {
     const b = here(g);
     if (b && b.kind !== "boss") b.resolved = true;
     // Crystal fight, Ignore them: "The fight continues."
+    // Crystal fight with surrender offer (hull repairs), Finish them off: the fight continues.
     log(g, plan.event === "crystal-fight"
       ? "You cut off communications and prepare to finish them off."
       : plan.event === "the-black-raven"
         ? "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire."
-        : "Offer refused. They brace for more.");
+        : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
+          ? "They wanted to pick a fight with you so that's what they'll get."
+          : "Offer refused. They brace for more.");
     return true;
   }
   // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.

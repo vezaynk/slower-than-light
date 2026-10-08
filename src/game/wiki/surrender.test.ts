@@ -277,6 +277,17 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.enemy, null);
     assert.equal(g.player.hull, g.player.hullMax - 4);
     assert.equal(g.fuel, fuel + o.fuel);
+    const note = g.reward?.note ?? "";
+    assert.ok(note.includes("They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships."));
+  });
+
+  it("hull repairs: refusing logs their line and the fight continues", () => {
+    const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-hull-repairs");
+    offer(g);
+    choose(g, REFUSE_ID);
+    assert.equal(g.phase, "combat");
+    assert.ok(g.enemy);
+    assert.ok(g.log.includes("They wanted to pick a fight with you so that's what they'll get."));
   });
 
   it("Pirate briber: high-tier Stuff", () => {

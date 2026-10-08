@@ -3212,6 +3212,14 @@ export const PAGE_WINS: Record<string, Win> = {
     "The crew of the enemy ship has been eliminated. You scrap what you can.",
     [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
+  // Slug hacker (oxygen). Both endings pay medium scrap with resources.
+  // The oxygen shutdown, the halved oxygen, and the hacking shutdown already end with the fight.
+  "slug-hacker-oxygen": std(
+    "medium",
+    "medium",
+    "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+    "With their crew dead, their hacking system shuts down and your systems return to normal. You strip the ship.",
+  ),
   // Lanius fight with friendly ASB support. Destroyed pays medium scrap with resources.
   // A crew kill pays high. After the fight, two results and no odds. INFERRED: equal.
   // The battery shot itself stays on the fight. Default salvage is not paid.

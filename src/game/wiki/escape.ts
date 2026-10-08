@@ -105,6 +105,9 @@ const EVENT_HULL_ROWS: Record<string, { chance: number; low: number; high: numbe
   // "Pirate smuggler", Fight the Pirate ship: "(enemy ship starts to escape at 30-40% hull with 35 seconds countdown timer)".
   // INFERRED: no percent is printed, so the run always begins once hull is in that range.
   "pirate-smuggler": { chance: 100, low: 30, high: 40, seconds: 35 },
+  // Rebel ship attacking civilians in Last Stand. {{SurrenderEscape|escape|BOSS_SCOUT_RESCUE|events_boss.xml|50|40-80|4-8}}
+  // prints 50% at 40-80% hull. The 4-8 is the template's actual-hull warning, not a timer, so the typical 15 seconds stays.
+  "rebel-ship-attacking-civilians-in-last-stand": { chance: 50, low: 40, high: 80 },
 };
 
 export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {

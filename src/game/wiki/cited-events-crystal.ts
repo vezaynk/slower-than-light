@@ -71,7 +71,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-ship-attacking-crystal",
     aliases: ["Pirate ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "A pirate ship jumps in right after you arrive at the beacon.",
+    body: "A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed.",
     choices: [
       {
         id: "c:pirate-ship-attacking-crystal:0",

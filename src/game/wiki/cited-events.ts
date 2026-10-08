@@ -3497,6 +3497,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Pirate ship attacking civilian distress. Improved Weapons is Weapon Control level 6+.
+  if (ev.slug === "pirate-ship-attacking-civilian-distress") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:pirate-ship-attacking-civilian-distress:2", label: "Fire a warning shot from your strongest weapon." },
+      ],
+    };
+  }
   // Deactivated Auto-ship. Download, and Sensors level 3. The strip choice is already on the card.
   if (ev.slug === "deactivated-auto-ship") {
     return {

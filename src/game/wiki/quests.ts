@@ -731,6 +731,18 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:deactivated-auto:no": (g) => {
     result(g, "You leave the ship alone and prepare to jump.", undefined, ["Nothing happens."]);
   },
+  // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
+  // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
+  "c:pirate-ship-attacking-civilian-distress:2": (g) => {
+    if ((g.player.systems.weapons?.level ?? 0) < 6) return;
+    if (pick(g, ["fight", "leave"] as const) === "fight") {
+      pageFight(g, "Detecting the greater threat (and potential reward), they turn and engage your ship.", "Pirate ship", "pirate-ship-attacking-civilian-distress");
+      return;
+    }
+    card(g, "It seems the pirate wasn't looking for a fight with someone who could fight back. They leave and you move to contact the civilian ship.", [
+      { id: "q:lanius-civilian:contact", label: "Contact the civilian ship." },
+    ]);
+  },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
@@ -1331,6 +1343,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:auto-ship-fight-in-plasma-storm:3" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Deactivated Auto-ship. Sensors level 3. The button stays visible.
   if (id === "c:deactivated-auto-ship:2" && sensors(g) < 3) return "Needs level 3 Sensors";
+  // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
+  if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return "Needs level 6 Weapons";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.
@@ -1648,6 +1662,8 @@ export const PAGE_WINS: Record<string, Win> = {
   // is the same card. Stay out / Avoid the conflict are the nothing choices.
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
+  // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.
+  "pirate-ship-attacking-civilian-distress": pirateCivilianWin,
   // Auto-ship attacking outpost. Destroyed pays low standard, then the outpost pays medium standard.
   // The page prints no crew-kill reward. Avoid the conflict is the nothing choice.
   "auto-ship-attacking-outpost": (g, deadCrew) => {

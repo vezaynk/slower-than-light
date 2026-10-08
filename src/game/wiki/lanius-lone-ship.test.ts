@@ -30,12 +30,19 @@ describe("Lanius lone ship", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("staying out spends nothing", () => {
+  it("staying out shows the printed escape sentence and nothing happens", () => {
     const g = createGame(1);
     open(g);
+    g.fleet = 5;
     choose(g, "c:lanius-lone-ship:1");
-    assert.equal(g.phase, "map");
+    assert.equal(
+      g.event?.body,
+      "You ignore the ship's pleas and watch as it hastily escapes. Oddly, the Lanius ship makes no move to chase it. You wonder if they were ever a threat at all.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
+    assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
   });
 
   it("contacting continues into a store, a default fight, or nothing", () => {

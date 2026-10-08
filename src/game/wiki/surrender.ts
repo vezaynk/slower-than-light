@@ -169,6 +169,9 @@ export const NO_SURRENDER_EVENTS = new Set([
   "pirate-engine-hacker",
   // Slug hacker (oxygen). The page prints the enemy ship doesn't surrender. Escape is already handled elsewhere.
   "slug-hacker-oxygen",
+  // Crystal ship attacking Federation loyalists. {{SurrenderEscape(alt)|no|CRYSTAL_FED}} prints never surrenders.
+  // Crystal ships already never run. The page prints no percent.
+  "crystal-ship-attacking-federation-loyalists",
 ]);
 
 /** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */

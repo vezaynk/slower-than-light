@@ -3573,6 +3573,13 @@ const LANIUS_REBEL_INTROS = [
   "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
 ];
 
+// Rock fight in asteroid field. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-in-asteroid-field:0.
+const ROCK_ASTEROID_INTROS = [
+  "A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!",
+  "A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.",
+  `The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.`,
+];
+
 // Rebel fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-slug:0.
 const SLUG_REBEL_INTROS = [
   "As you arrive at the beacon, a hostile ship immediately registers on your scanners. You didn't expect to see Rebels extending their reach into Slug territory. Charge the weapons!",
@@ -3839,6 +3846,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
       choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Rock fight in asteroid field. One of the three printed intros. The fight stays c:rock-fight-in-asteroid-field:0.
+  if (ev.slug === "rock-fight-in-asteroid-field") {
+    return {
+      title: ev.dest,
+      body: ROCK_ASTEROID_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: "Fight a Rock ship" }],
     };
   }
   // Rebel fight (Slug). One of the three printed intros. The fight stays c:rebel-fight-slug:0.

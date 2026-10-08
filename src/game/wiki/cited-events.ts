@@ -3736,6 +3736,14 @@ const REBEL_FLEET_INTROS = [
   "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.",
 ];
 
+// Escort civilians. Three printed intros, no odds. INFERRED: equal.
+// Accept stays the low fuel and the quest marker. Decline stays nothing.
+const ESCORT_CIVILIAN_INTROS = [
+  `After a short time you receive a message, "Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed."`,
+  `There is a single ship at this beacon. They hail you, "We could really use some help. Our FTL navigation system is shot. Can you help us get to a nearby station where they can patch us up?"`,
+  `"Hello," your communicator opens a hail from a nearby ship. "Our weapon systems are malfunctioning and we're too afraid of pirates to travel home unassisted. Can you escort us?"`,
+];
+
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
   "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
@@ -4133,6 +4141,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.
+  if (ev.slug === "escort-civilians") {
+    return {
+      title: ev.dest,
+      body: ESCORT_CIVILIAN_INTROS[between(g, [0, 2])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.

@@ -487,9 +487,13 @@ describe("enemy boarding drones", () => {
     assert.ok(room.breach >= 1);
     // Clear the room so the drone works on the system.
     for (const c of g.crew) if (c.room === room.id && c.aboard === "player") c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
-    const damage = Object.values(g.player.systems).reduce((sum, s) => sum + s.damage, 0);
-    for (let i = 0; i < 40; i++) tickSwarm(g, 0.5);
-    assert.ok(Object.values(g.player.systems).reduce((sum, s) => sum + s.damage, 0) > damage);
+    const bars = () => Object.values(g.player.systems).reduce((sum, s) => sum + s.damage, 0);
+    const damage = bars();
+    // Crew skills, Combat skill: one bar in 12.5 seconds. The breach tick does not count.
+    tickSwarm(g, 12.4);
+    assert.equal(bars(), damage);
+    tickSwarm(g, 0.1);
+    assert.equal(bars(), damage + 1);
   });
 
   it("an Ion Intruder ionizes a player system", () => {

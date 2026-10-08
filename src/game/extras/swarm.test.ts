@@ -467,7 +467,7 @@ describe("swarm", () => {
     assert.equal(g.enemy.hull, hull);
   });
 
-  it("board damages a system for 6 when no enemy crew are left and still ignores shields", () => {
+  it("board breaks one system bar in 12.5 seconds when no enemy crew are left and still ignores shields", () => {
     const g = createGame(14);
     place(g);
     startCombat(g, "scout");
@@ -482,16 +482,16 @@ describe("swarm", () => {
     g.crew = g.crew.filter((c) => c.side !== "enemy");
     assert.equal(deploy(g, "board"), true);
     const hull = g.enemy.hull;
+    const bars = () => Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0);
+    // Crew skills, Combat skill: 12.5 seconds per bar. The arrival second is still flight.
     tickSwarm(g, 0.5);
-    assert.equal(
-      Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0),
-      0,
-    );
+    assert.equal(bars(), 0);
     tickSwarm(g, 0.5);
-    assert.equal(
-      Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0),
-      6,
-    );
+    assert.equal(bars(), 0);
+    tickSwarm(g, 12.4);
+    assert.equal(bars(), 0);
+    tickSwarm(g, 0.1);
+    assert.equal(bars(), 1);
     assert.equal(g.enemy.shieldNow, 4);
     assert.equal(g.enemy.hull, hull);
     assert.equal(friend.hp, friendHp);

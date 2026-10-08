@@ -528,6 +528,8 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
   // Boarding Drone prints "Speed: 18 (when moving through space)". Flight seconds are unprinted, so BOARD_INTERVAL_S is still the arrival.
   // The timer does not advance while the drone holds in space.
   if (!kit.room && veilBlocks(g, "player")) return;
+  // Sabotage starts the tick after the breach. The arrival tick is still flight.
+  const boarded = !!kit.room;
 
   kit.aux += dt;
   while (kit.aux >= BOARD_INTERVAL_S) {
@@ -555,6 +557,7 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       const landed = boardLanding(g, enemy);
       if (!landed) continue;
       kit.room = landed.id;
+      kit.fix = 0;
       // INFERRED: the page says "breach the hull" and does not print a count of 1.
       if (landed.breach < 1) landed.breach = 1;
     }
@@ -566,14 +569,24 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       const crew = alive[Math.floor(rand(g) * alive.length)];
       if (!crew) continue;
       crew.hp -= BOARD_HIT;
-      continue;
     }
-    if (!room.system) continue;
-    const sys = enemy.systems[room.system];
-    const roomLeft = sys.level - sys.damage;
-    if (roomLeft <= 0) continue;
-    sys.damage += Math.min(BOARD_HIT, roomLeft);
+    // No crew: system damage is accrueBar below, one bar per BREAK_BAR_S, not this blow.
   }
+  if (boarded) sabotagePlayerBoard(g, kit, dt);
+}
+
+/** One enemy system bar per BREAK_BAR_S while the drone is already aboard and no enemy crew are in the room. */
+function sabotagePlayerBoard(g: Game, kit: Kit, dt: number) {
+  const enemy = g.enemy;
+  if (!enemy || !kit.room) return;
+  const room = enemy.rooms.find((r) => r.id === kit.room);
+  if (!room?.system) return;
+  const blocked = g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id);
+  if (blocked) return;
+  const sys = enemy.systems[room.system];
+  if (!sys || sys.damage >= sys.level) return;
+  if (!accrueBar(kit, dt)) return;
+  sys.damage += 1;
 }
 
 function linked(ship: Ship, id: string): string[] {
@@ -1293,8 +1306,19 @@ const UNIT_HP: Record<string, number> = { board: 150, ionintruder: INTRUDER_HP, 
  */
 export const BOARD_FLY_S = 3;
 
-/** INFERRED: mirrors sim.ts "one crew seals one system bar in 6 seconds". A boarding drone breaks one bar per 6 s of attacks. */
-const BREAK_BAR_S = 6;
+/**
+ * Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
+ * INFERRED: a boarding drone breaks one bar in that same time. Drone Control prints no separate duration.
+ */
+export const BREAK_BAR_S = 12.5;
+
+/** One system bar when the drone has spent BREAK_BAR_S sabotaging. Overflow on that tick is dropped, as crew sabotage drops it. */
+function accrueBar(holder: { fix?: number }, dt: number): boolean {
+  holder.fix = (holder.fix ?? 0) + dt;
+  if (holder.fix < BREAK_BAR_S) return false;
+  holder.fix = 0;
+  return true;
+}
 
 /**
  * Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
@@ -1881,8 +1905,18 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
   else tickEnemyBoard(g, unit, dt);
 }
 
-/** Boarding Drone: "Boards enemy ships and attacks enemy crew and systems". Attacks at the same 1 s / 6 HP as yours. */
+/** Boarding Drone: "Boards enemy ships and attacks enemy crew and systems". Crew blows stay 1 s / BOARD_HIT. One system bar is BREAK_BAR_S. */
 function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
+  const here0 = g.player.rooms.find((room) => room.id === unit.room);
+  if (here0?.system) {
+    const foes0 = g.crew.filter((c) => c.aboard === "player" && c.room === here0.id && c.hp > 0 && forPlayer(c));
+    const sys0 = g.player.systems[here0.system];
+    if (foes0.length === 0 && sys0 && sys0.damage < sys0.level && accrueBar(unit, dt)) {
+      breakPlayerBar(g, here0.system);
+      unit.fired = 0;
+      log(g, `Their boarding drone wrecks the ${here0.title}.`);
+    }
+  }
   unit.aux += dt;
   while (unit.aux >= BOARD_INTERVAL_S) {
     unit.aux -= BOARD_INTERVAL_S;
@@ -1897,13 +1931,7 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
     }
     const sys = here.system ? g.player.systems[here.system] : null;
     if (here.system && sys && sys.damage < sys.level) {
-      unit.fix = (unit.fix ?? 0) + BOARD_INTERVAL_S;
       unit.fired = 0;
-      if (unit.fix >= BREAK_BAR_S) {
-        unit.fix = 0;
-        breakPlayerBar(g, here.system);
-        log(g, `Their boarding drone wrecks the ${here.title}.`);
-      }
       continue;
     }
     // INFERRED: nothing left here, so it moves to another working system. Room-to-room walking is not modelled.

@@ -47,6 +47,7 @@ import {
   here,
   allMantisCrew,
   humanBoarders,
+  slugBoarders,
   joinCrew,
   NEVER_RUN,
   pageCard,
@@ -1314,6 +1315,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, "Your hacking system automatically counters the digital assault and you move in to fight the ship.", "Slug ship", "slug-hacker-oxygen");
     shutPlayerHacking(g);
   },
+  // Slug hacker (medical). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
+  // The page beams 2 slug boarders and says "Hacking offline". Medbay stays online on this path.
+  // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
+  // This handler returns before citedChoose, so the Continue path's medical shutdown and boarders do not run.
+  "c:slug-hacker-medical:1": (g) => {
+    pageFight(g, "You are able to undo the damage of their remote hacking satellite but it's taking everything your hacking system has. Time to take out the enemy the old fashioned way.", "Slug ship", "slug-hacker-medical");
+    shutPlayerHacking(g);
+    slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
+  },
   // Legendary thief KazaaakplethKilik. "Attempt to hail him." One printed lead-in, then a Mantis ship fight.
   // The page prints "crew entirely composed of Mantis." This handler returns before citedChoose.
   "c:legendary-thief-kazaaakplethkilik:1": (g) => {
@@ -2114,6 +2124,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Slug hacker (oxygen). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:slug-hacker-oxygen:2" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  // Slug hacker (medical). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  if (id === "c:slug-hacker-medical:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
   // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
   // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
   if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return "Needs a Mantis crewmember";

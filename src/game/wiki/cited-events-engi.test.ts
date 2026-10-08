@@ -116,6 +116,7 @@ describe("cited Engi leftover events", () => {
         "Mantis ship attacking civilian",
         "Pirate fight (Engi)",
         "Rebel fight (Engi)",
+        "Confused Mantis",
       ],
     );
     for (const ev of EXTRA_EVENTS) {
@@ -145,7 +146,7 @@ describe("cited Engi leftover events", () => {
           assert.ok(sentence.toLowerCase().includes(step.tier.toLowerCase()));
         }
       });
-      assert.ok(ev.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
+      if (ev.dest !== "Confused Mantis") assert.ok(ev.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
   });
 });

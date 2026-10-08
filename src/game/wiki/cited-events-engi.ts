@@ -110,4 +110,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Confused Mantis. The branches, Robert Smith, and the engine upgrade run in filler-events.ts.
+    dest: "Confused Mantis",
+    slug: "confused-mantis",
+    flag: "cited:confused-mantis",
+    aliases: ["Confused Mantis"],
+    sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
+    body: "As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel.",
+    choices: [
+      {
+        id: "c:confused-mantis:0",
+        label: "Listen to their problem.",
+        // "Listen to their problem."
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:confused-mantis:1",
+        label: "Explain that you can't do any programming and leave.",
+        // "Explain that you can't do any programming and leave."
+        fx: [{ k: "nothing" }],
+      },
+    ],
+  },
 ];

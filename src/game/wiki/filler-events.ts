@@ -1452,6 +1452,41 @@ function buyFuel(g: Game, cost: number, fuel: number) {
   show(g, "\"Thank you for your business.\"", undefined, [`You receive ${fuel} fuel.`]);
 }
 
+/** The page says the engines are upgraded and prints no step. INFERRED: one level. A maxed system stays put. */
+function bumpEngines(g: Game): string {
+  const sys = g.player.systems.engines;
+  if (!sys || sys.level <= 0 || upgradeCost("engines", sys.level) == null) return "The engines cannot take the upgrade.";
+  sys.level += 1;
+  return "Engines upgraded.";
+}
+
+function robertJoins(g: Game): string {
+  return joinCrew(g, "Mantis", "Robert Smith") ? "Robert Smith joins you." : "There is no room aboard for Robert Smith.";
+}
+
+function ownsMindControl(g: Game): boolean {
+  return (g.player.kits.leash?.level ?? 0) > 0;
+}
+
+/** Confused Mantis, after listening. Blue options stay off until the ship has them. */
+function confusedMantisCard(g: Game) {
+  const choices = [
+    { id: "s:confused-mantis:shuttle", label: "Send a shuttle with an away team to help." },
+    { id: "s:confused-mantis:leave", label: "Leave them, a cornered Mantis is too dangerous." },
+  ];
+  if (livingKin(g, "plain")) choices.push({ id: "s:confused-mantis:human", label: "Send your human crewmember to communicate with the Mantis." });
+  if (livingKin(g, "blade")) choices.push({ id: "s:confused-mantis:mantis", label: "Send your Mantis crewmember to communicate with the Mantis." });
+  if (ownsMindControl(g)) choices.push({ id: "s:confused-mantis:mind", label: "Use your Mind control system to calm him down." });
+  card(g, "Found malfunctioning Mantis. Believes it is human. Will receive input only from human. Danger Evaluation: Extremely High. Provide assistance.", choices);
+}
+
+function mantisColony(g: Game) {
+  card(g, "The colony is a mining operation that specializes in FTL fuel. Robert's family, the head engineers, are excited to see him, and very grateful for his return. Apparently he ran away to 'join the Federation' like his older brother, but was never accepted onto a ship.", [
+    { id: "s:confused-mantis:hire", label: "Offer him a position on your ship." },
+    { id: "s:confused-mantis:engines", label: "Ask if they can take a look at your engines." },
+  ]);
+}
+
 function upgradeOxygen(g: Game): string {
   const sys = g.player.systems.oxygen;
   if (!sys || sys.level <= 0 || upgradeCost("oxygen", sys.level) == null) return "The oxygen system cannot take the upgrade.";
@@ -1995,6 +2030,14 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time.");
   },
 
+  // Confused Mantis. Listening opens the assistance card. Leaving spends nothing.
+  "c:confused-mantis:0": (g) => {
+    confusedMantisCard(g);
+  },
+  "c:confused-mantis:1": (g) => {
+    show(g, "Nothing happens.");
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -2138,6 +2181,65 @@ function chooseRolled(g: Game, id: string): boolean {
     return true;
   }
   if (id.startsWith("s:moon:")) return moonChoice(g, id);
+  if (id.startsWith("s:confused-mantis:")) return confusedMantisChoice(g, id);
+  return false;
+}
+
+/** Confused Mantis follow-ups. The shuttle's three results have no odds. INFERRED: equal. */
+function confusedMantisChoice(g: Game, id: string): boolean {
+  if (id === "s:confused-mantis:shuttle") {
+    const r = weighted(g, [["home", 1], ["lose", 1], ["nothing", 1]] as const);
+    if (r === "home") {
+      // The printed next step is Return him home, on this same page.
+      card(g, "After an hour of convincing, the Mantis finally calms down and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there.", [
+        { id: "s:confused-mantis:return", label: "Return him home." },
+      ]);
+      return true;
+    }
+    if (r === "lose") {
+      const revived = !!g.player.kits.cradle;
+      const note = loseCrew(g);
+      const extras = revived ? ["Your crew's clone is waiting when you return to the ship."] : [];
+      if (note) extras.push(note);
+      show(g, "The cornered and frightened Mantis attacks as soon as you approach. One of your crew is eviscerated before the rest are able to stop him. The Engi apologize for your loss.", undefined, extras);
+      return true;
+    }
+    show(g, "The cornered and frightened Mantis attacks as soon as you approach. You're able to subdue him and leave him at a Mantis colony in a neighboring system. They don't seem pleased or grateful at his return.", undefined, ["Nothing happens."]);
+    return true;
+  }
+  if (id === "s:confused-mantis:human") {
+    if (!livingKin(g, "plain")) return true;
+    card(g, "The Mantis is grateful to see 'another human', and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there.", [
+      { id: "s:confused-mantis:return", label: "Return him home." },
+    ]);
+    return true;
+  }
+  if (id === "s:confused-mantis:return") {
+    mantisColony(g);
+    return true;
+  }
+  if (id === "s:confused-mantis:leave") {
+    show(g, "Nothing happens.");
+    return true;
+  }
+  if (id === "s:confused-mantis:mantis") {
+    if (!livingKin(g, "blade")) return true;
+    show(g, "The Mantis is terrified at the sight of your crewmember. He immediately attacks his Engi rescuers, and your crewmember is forced to kill him. The Engi are grateful for your help and offer a small reward.", rollStandard(g, "low"));
+    return true;
+  }
+  if (id === "s:confused-mantis:mind") {
+    if (!ownsMindControl(g)) return true;
+    show(g, "The Mantis calms down and communicates thanks to the Engi and yourself for helping. He requests to be dropped off at a nearby planet, at the human colony where he was raised. They are grateful for his return and offer a reward.", rollStandard(g, "medium"));
+    return true;
+  }
+  if (id === "s:confused-mantis:hire") {
+    show(g, "He graciously accepts, having always wanted to serve in the Federation.", undefined, [robertJoins(g)]);
+    return true;
+  }
+  if (id === "s:confused-mantis:engines") {
+    show(g, "They are happy to take a look, and are able to offer some suggestions for improvements.", undefined, [bumpEngines(g)]);
+    return true;
+  }
   return false;
 }
 
@@ -2235,7 +2337,7 @@ function moonChoice(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -2284,6 +2386,10 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:moon:medbay3" && medbayLevel(g) < 3) return "Needs a level 3 Medbay";
   if (id === "s:moon:collapse-clone" && clonebayLevel(g) < 2) return "Needs a level 2 Clone Bay";
   if (id === "s:moon:slug" && !livingKin(g, "gel")) return "Needs a Slug crewmember";
+  // Confused Mantis blue options. INFERRED: the refusal line. The page names the crew or system and prints no sentence.
+  if (id === "s:confused-mantis:human" && !livingKin(g, "plain")) return "Needs a Human crewmember";
+  if (id === "s:confused-mantis:mantis" && !livingKin(g, "blade")) return "Needs a Mantis crewmember";
+  if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return "Needs Mind Control";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

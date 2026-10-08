@@ -165,6 +165,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   // Crystal fight choice, Engage the Rebel ship: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}.
   // `|no` is "never runs away, never surrenders." Crystal ships already never run (NEVER_RUN).
   "crystal-fight-choice",
+  // Pirate engine hacker. The page prints the ship ("PIRATE_NO_ESCAPE") doesn't surrender. Escape is already handled elsewhere.
+  "pirate-engine-hacker",
 ]);
 
 /** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */

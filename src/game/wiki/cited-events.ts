@@ -3573,6 +3573,13 @@ const LANIUS_REBEL_INTROS = [
   "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
 ];
 
+// Pirate fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-slug:0.
+const SLUG_PIRATE_INTROS = [
+  "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous.",
+  `"We knew anyone foolish enough to try and sneak through a Slug nebula would stick to open space. Yield your goods and we may let you live." You cut the transmission in lieu of a response.`,
+  "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire.",
+];
+
 // Pirate fight (Lanius). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-lanius:0.
 const LANIUS_PIRATE_INTROS = [
   `An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."`,
@@ -3825,6 +3832,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
       choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Pirate fight (Slug). One of the three printed intros. The fight stays c:pirate-fight-slug:0.
+  if (ev.slug === "pirate-fight-slug") {
+    return {
+      title: ev.dest,
+      body: SLUG_PIRATE_INTROS[between(g, [0, 2])]!,
+      choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
     };
   }
   // Pirate fight (Lanius). One of the five printed intros. The fight stays c:pirate-fight-lanius:0.

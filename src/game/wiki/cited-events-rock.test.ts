@@ -224,3 +224,20 @@ describe("Rock fight with boarders", () => {
     assert.deepEqual([...seen].sort(), [1, 2]);
   });
 });
+
+describe("Mantis ship with Rock body parts", () => {
+  it("prints the hunter sentence and keeps the attack", () => {
+    const g = createGame(1);
+    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
+    assert.ok(b);
+    b.flag = "cited:mantis-ship-with-rock-body-parts";
+    b.name = "Mantis ship with Rock body parts";
+    g.here = b.id;
+    g.event = citedEvent(g, b);
+    assert.equal(
+      g.event?.body,
+      "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.",
+    );
+    assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:0"));
+  });
+});

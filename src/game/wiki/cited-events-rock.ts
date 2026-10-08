@@ -37,7 +37,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Mantis ship Rock body parts",
     ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "A Mantis ship here is adorned with Rock body parts.",
+    body: "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.",
     choices: [
       {
         id: "c:mantis-ship-with-rock-body-parts:0",

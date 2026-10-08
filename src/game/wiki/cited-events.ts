@@ -4727,12 +4727,12 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Lanius trader with translator. Same one shown base trade. No better-band blue option.
+  // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
     const offer = rollLaniusTrader(g, false);
     return {
       title: ev.dest,
-      body: laniusTraderOfferText(offer),
+      body: `A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"\n\n${laniusTraderOfferText(offer)}`,
       choices: [
         { id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`, label: "Agree to the exchange." },
         { id: "c:lanius-trader-with-translator:3", label: "Decline" },

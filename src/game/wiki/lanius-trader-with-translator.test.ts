@@ -34,13 +34,18 @@ function inBand(n: number, lo: number, hi: number) {
   assert.ok(n >= lo && n <= hi, `${n} not in ${lo}-${hi}`);
 }
 
+const HAIL =
+  "A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. \"Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?\"";
+
 describe("Lanius trader with translator", () => {
-  it("shows one base offer and agreeing pays those amounts", () => {
+  it("shows the printed hail, then one base offer, and agreeing pays those amounts", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
-      const got = offer(g.event?.body ?? "");
+      const body = g.event?.body ?? "";
+      assert.ok(body.startsWith(`${HAIL}\n\n`), body);
+      const got = offer(body);
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.deepEqual(

@@ -5119,7 +5119,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);
-    // "1-3 rock boarders beam aboard your ship" (Rock fight with boarders).
+    // Rock fight with boarders has no choice. Arrival calls this id.
+    // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
     // "1-2 rock boarders beam aboard your ship" (Rock fight with boarders in asteroid field).
     // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);

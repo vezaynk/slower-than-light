@@ -110,6 +110,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
+    // Rock fight with boarders. The page prints no button. The red line is the outcome, applied on arrival.
+    // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." unique=true.
     dest: "Rock fight with boarders",
     slug: "rock-fight-with-boarders",
     flag: "cited:rock-fight-with-boarders",

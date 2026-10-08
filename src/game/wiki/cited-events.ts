@@ -704,7 +704,7 @@ const CORE_EVENTS: EventDef[] = [
       "Engi Controlled Sector",
       "Engi Homeworlds"
     ],
-    "body": "",
+    "body": "What appeared to be a single damaged ship is in fact two ships that have smashed into each other... there is a flurry of comm signals and damage, and it's hard to determine what occurred. The vessels appear to be... Engi? They look locked together by the impact and can't free themselves.",
     "choices": [
       {
         "id": "c:engi-smashed-ships:0",

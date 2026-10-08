@@ -271,7 +271,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:slocknog",
     aliases: ["Slocknog"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You detect life signs on a nearby moon - a lone Slug marooned on its surface.",
+    body: "You detect life signs on a nearby moon - a lone Slug marooned on its surface. \"Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum.\"",
     choices: [
       {
         id: "c:slocknog:0",

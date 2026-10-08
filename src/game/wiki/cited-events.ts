@@ -4694,6 +4694,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:lanius-lone-ship:0") ctx.note("The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.");
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
+  // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
+  if (id === "c:crystal-fight-choice:0") ctx.note("Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

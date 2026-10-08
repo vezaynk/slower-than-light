@@ -666,6 +666,34 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:giant-alien-spiders:4", label: "Use the beam to pick off the spiders.", fx: [{ k: "note", text: "High resources with some scrap." }] },
     ],
   },
+  // DISTRESS_TRAPPED_MINER. Shooting the rocks: 2 hull, 2 system damage, and low scrap, or medium scrap with resources.
+  // No odds. INFERRED: equal. Looting: medium scrap with resources, or a Pirate ship. INFERRED: equal.
+  // A beam that is not Anti-Bio or Fire, including Artillery Beam, pays medium scrap with resources.
+  // A beam drone that is not an Anti-Ship Fire Drone spends 1 part for the same reward, with the drone-part bug.
+  {
+    dest: "Crushed pirate",
+    slug: "crushed-pirate",
+    flag: "cited:crushed-pirate",
+    aliases: ["Crushed pirate"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+    ],
+    body: "You arrive at the distress beacon near a small asteroid belt and find a ship with pirate markings partially crushed between two large rocks. It must have been illegally mining the belt without proper equipment.",
+    choices: [
+      { id: "c:crushed-pirate:0", label: "Try to dislodge the ship by shooting at the rocks.", fx: [{ k: "note", text: "2 hull, 2 system damage, and low scrap, or medium scrap with resources." }] },
+      { id: "c:crushed-pirate:1", label: "Destroy and loot the ship. They're just pirates.", fx: [{ k: "note", text: "Medium scrap with resources, or a Pirate ship." }] },
+      { id: "c:crushed-pirate:2", label: "Carefully cut the ship out.", fx: [{ k: "note", text: "Medium scrap with resources." }] },
+      { id: "c:crushed-pirate:3", label: "Have your drone cut the ship out.", fx: [{ k: "note", text: "Medium scrap with resources." }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -823,6 +851,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
   if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
   if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
+  if (page.slug === "crushed-pirate") return pirateCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -928,12 +957,15 @@ function hurt(g: Game, n: number): boolean {
 }
 
 /** "1 damage to a random system". INFERRED: one of the installed systems, equal odds. */
-function hurtRandomSystem(g: Game): string {
+function hurtRandomSystem(g: Game, amount = 1): string {
   const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
   if (!ids.length) return "";
   const id = ids[Math.min(ids.length - 1, Math.floor(rand(g) * ids.length))];
-  hurtSystem(g.player, id, 1);
-  return `System damage: ${id}.`;
+  const before = g.player.systems[id]?.damage ?? 0;
+  hurtSystem(g.player, id, amount);
+  if (amount === 1) return `System damage: ${id}.`;
+  const applied = (g.player.systems[id]?.damage ?? 0) - before;
+  return applied ? `${applied} damage to ${id}.` : "";
 }
 
 /**
@@ -1020,6 +1052,22 @@ function ownsDrone(g: Game, kind: string): boolean {
 
 function ownsAntiBio(g: Game): boolean {
   return g.player.weapons.some((w) => w.defId === "antibio");
+}
+
+/** Crushed pirate: Anti-Bio Beam and Fire Beam are excluded. Artillery Beam is the lance kit. */
+function ownsCuttingBeam(g: Game): boolean {
+  if ((g.player.kits.lance?.level ?? 0) > 0) return true;
+  return g.player.weapons.some((w) => {
+    const def = WEAPONS[w.defId];
+    return def?.kind === "beam" && w.defId !== "antibio" && w.defId !== "firebeam";
+  });
+}
+
+/** A beam drone, not an Anti-Ship Fire Drone. The fitted schematic is kit.target, and a loadout entry counts. */
+function ownsBeamDrone(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit) return false;
+  return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "beam" || kind === "beam2");
 }
 
 /** The launch offer is a blue option. It is absent without a missile weapon. */
@@ -1145,14 +1193,10 @@ function spiderCard(g: Game, page: Page): GameEvent {
 }
 
 /**
- * Anti-Personnel and Boarding drone costs. The page's bug skips the part when the rolled reward
- * includes drone parts. adjustScrap may already have healed, so a refused roll puts that back.
+ * The drone-part bug: no part is required when the rolled reward includes drone parts.
+ * adjustScrap may already have healed, so a refused roll puts that hull and log back.
  */
-function spiderDrone(g: Game, kind: "personnel" | "board", body: string) {
-  if (!ownsDrone(g, kind)) return;
-  const hull = g.player.hull;
-  const lines = g.log.slice();
-  const offer = kind === "personnel" ? rollSurrenderOffer(g, "medium", true) : rollStandard(g, "low");
+function payDronePart(g: Game, offer: SurrenderOffer, body: string, hull: number, lines: string[]) {
   if (offer.parts <= 0) {
     if (g.player.parts < 1) {
       g.player.hull = hull;
@@ -1162,6 +1206,26 @@ function spiderDrone(g: Game, kind: "personnel" | "board", body: string) {
     g.player.parts -= 1;
   }
   show(g, body, offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
+}
+
+function spiderDrone(g: Game, kind: "personnel" | "board", body: string) {
+  if (!ownsDrone(g, kind)) return;
+  const hull = g.player.hull;
+  const lines = g.log.slice();
+  const offer = kind === "personnel" ? rollSurrenderOffer(g, "medium", true) : rollStandard(g, "low");
+  payDronePart(g, offer, body, hull, lines);
+}
+
+/** Blue options stay off the card until a cutting beam or a beam drone is fitted. */
+function pirateCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices
+    .filter((c) => {
+      if (c.id === "c:crushed-pirate:2") return ownsCuttingBeam(g);
+      if (c.id === "c:crushed-pirate:3") return ownsBeamDrone(g);
+      return true;
+    })
+    .map((c) => ({ id: c.id, label: c.label }));
+  return { title: page.dest, body: page.body, choices };
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
@@ -1577,6 +1641,36 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, "You instruct them to drop their shields and you are able to kill the creatures without damaging the station. \"The monsters just started bursting into flame as we watched. What a terrifying weapon... Here, take this for your help, friend.\"", rollSurrenderOffer(g, "high", true));
   },
 
+  // Crushed pirate. Each pair of results has no odds. INFERRED: equal.
+  "c:crushed-pirate:0": (g) => {
+    const r = weighted(g, [["shock", 1], ["free", 1]] as const);
+    if (r === "shock") {
+      if (hurt(g, 2)) return;
+      show(g, "You take a few careful shots but you expose a mineral patch in the rock that reacts violently with your weapon. A shockwave forces you back as debris pelts against your hull. When you regain control you find there is not much left of the ship.", scrapOnly(g, "low"), ["Hull damage: 2.", hurtRandomSystem(g, 2)]);
+      return;
+    }
+    show(g, "You fire a few volleys into the rock and it starts to shudder and break apart. Without shields the pirate ship takes a beating but eventually pulls free. They thank you for your assistance.", rollStandard(g, "medium"));
+  },
+  "c:crushed-pirate:1": (g) => {
+    const r = weighted(g, [["loot", 1], ["fight", 1]] as const);
+    if (r === "loot") {
+      show(g, "You decide the pirate is not worth saving and fire a few volleys into their hull causing the ship to depressurize and break apart. You move in to loot the remains.", rollStandard(g, "medium"));
+      return;
+    }
+    // Fight a Pirate ship (default rewards). The PIRATE surrender and escape rows are that faction's plan.
+    fight(g, "You decide the pirate is not worth saving and fire a few volleys into their hull. Before you can scrap the remains another pirate ship flashes on your radar. Perhaps they saw your deed, or perhaps they want to claim the spoils for themselves, but for whatever reason, they're charging weapons!", "Pirate ship", "crushed-pirate");
+  },
+  "c:crushed-pirate:2": (g) => {
+    if (!ownsCuttingBeam(g)) return;
+    show(g, "You use your beam to make a few precision cuts in the asteroid. The ship gives a quick burst of thrust and the rock crumbles away. They thank you and offer some of the resources they have collected.", rollStandard(g, "medium"));
+  },
+  "c:crushed-pirate:3": (g) => {
+    if (!ownsBeamDrone(g)) return;
+    const hull = g.player.hull;
+    const lines = g.log.slice();
+    payDronePart(g, rollStandard(g, "medium"), "You program the drone to work carefully around the trapped ship. In a short time it allows the ship to easily slip out of its cage. They thank you and offer some of the resources they have collected.", hull, lines);
+  },
+
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing
   // when every listed system is missing or already at the printed maximum and the reactor is at 25.
   // INFERRED: that empty case uses the decline's "Nothing happens" line.
@@ -1747,6 +1841,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:giant-alien-spiders:2" && !ownsDrone(g, "personnel")) return "Needs an Anti-Personnel Drone";
   if (id === "c:giant-alien-spiders:3" && !ownsDrone(g, "board")) return "Needs a Boarding Drone";
   if (id === "c:giant-alien-spiders:4" && !ownsAntiBio(g)) return "Needs an Anti-Bio Beam";
+  // Crushed pirate blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:crushed-pirate:2" && !ownsCuttingBeam(g)) return "Needs a beam weapon";
+  if (id === "c:crushed-pirate:3" && !ownsBeamDrone(g)) return "Needs a beam drone";
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

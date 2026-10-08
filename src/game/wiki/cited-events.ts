@@ -2599,7 +2599,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "",
+    "body": "You see a civilian space station with heavy damage. You receive a message, \"We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra.\"",
     "choices": [
       {
         "id": "c:sell-drone-parts-for-scrap:0",
@@ -3411,16 +3411,24 @@ function roll(ctx: CitedChoice, lo: number, hi: number): number {
 
 /**
  * Sell missiles for scrap: "Thank you, this will help greatly."
- * Trivia on that page: Scrap Recovery Arm and Repair Arm change the scrap reward.
- * The percents are Augmentations. This page does not print them.
+ * Sell drone parts for scrap: "Thank you for your business."
+ * Trivia on both pages: Scrap Recovery Arm and Repair Arm change the scrap reward.
+ * The percents are Augmentations. These pages do not print them.
  */
-function sellMissileThanks(id: string): string | null {
+function sellStationThanks(id: string): string | null {
   if (
     id === "c:sell-missiles-for-scrap:0" ||
     id === "c:sell-missiles-for-scrap:1" ||
     id === "c:sell-missiles-for-scrap:2"
   ) {
     return "\"Thank you, this will help greatly.\"";
+  }
+  if (
+    id === "c:sell-drone-parts-for-scrap:0" ||
+    id === "c:sell-drone-parts-for-scrap:1" ||
+    id === "c:sell-drone-parts-for-scrap:2"
+  ) {
+    return "\"Thank you for your business.\"";
   }
   return null;
 }
@@ -3442,7 +3450,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   for (const c of costs) spend(g, c.id, c.n);
   for (const gn of gains) {
-    const thanks = gn.id === "scrap" ? sellMissileThanks(id) : null;
+    const thanks = gn.id === "scrap" ? sellStationThanks(id) : null;
     if (thanks) {
       // Score: Scrap Recovery Arm's bonus is not eligible. Repair Arm's cut stays in the eligible amount.
       const got = adjustScrap(g, gn.n);

@@ -83,7 +83,10 @@ describe("cited events", () => {
     assert.equal(g.player.parts, 0);
     assert.equal(g.scrap, 52);
     assert.equal(g.scrapCollected, 12);
-    assert.deepEqual(paid.scrapCalls, [12]);
+    // The station applies the scrap itself so Scrap Recovery Arm and Repair Arm can change it.
+    assert.deepEqual(paid.scrapCalls, []);
+    assert.ok(paid.notes.includes("\"Thank you for your business.\""));
+    assert.ok(paid.notes.includes("You receive 12 scrap."));
     assert.equal(g.phase, "map");
   });
 

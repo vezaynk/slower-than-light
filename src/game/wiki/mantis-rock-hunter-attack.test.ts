@@ -26,4 +26,19 @@ describe("Mantis ship with Rock body parts", () => {
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.scrap, 10);
   });
+
+  it("ignoring them prints the wait sentence and nothing happens", () => {
+    const g = createGame(1);
+    open(g);
+    g.fleet = 5;
+    choose(g, "c:mantis-ship-with-rock-body-parts:1");
+    assert.equal(
+      g.event?.body,
+      "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure.\n\nNothing happens.",
+    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.scrap, 10);
+    assert.equal(g.fleet, 5);
+    assert.equal(g.enemy, null);
+  });
 });

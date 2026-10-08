@@ -516,6 +516,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const line = addQuest(g, "slug-pirate-trap");
     result(g, "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.", undefined, [line]);
   },
+  // Lanius ship attacking Rock, "Contact the Rockmen." Two results, no odds. INFERRED: equal.
+  "q:lanius-rock:contact": (g) => {
+    if (weighted(g, [["scrap", 1], ["nothing", 1]] as const) === "scrap") {
+      result(g, "The Rockman ship jumped away during the battle, but it left much of its hull and spare parts floating behind - you salvage what you can, and prepare to jump.", rollStandard(g, "medium"));
+      return;
+    }
+    result(g, "The Rockmen give an awkwardly-translated message that seems to indicate something about gratitude. They then jump away without another word.", undefined, ["Nothing happens."]);
+  },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     result(g, "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"");
@@ -1049,6 +1057,13 @@ export const PAGE_WINS: Record<string, Win> = {
   // Mantis ships battle for Rock freighter. Both endings pay medium standard. Default salvage is not paid.
   "mantis-ships-battle-for-rock-freighter": (g) => {
     result(g, "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.", rollStandard(g, "medium"));
+  },
+  // Lanius ship attacking Rock. Both endings pay medium standard, then "Contact the Rockmen."
+  "lanius-ship-attacking-rock": (g, deadCrew) => {
+    const text = deadCrew
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-rock:contact", label: "Contact the Rockmen." }]);
   },
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {

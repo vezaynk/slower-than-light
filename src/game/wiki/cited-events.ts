@@ -3573,6 +3573,12 @@ const LANIUS_REBEL_INTROS = [
   "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
 ];
 
+// Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
+const ROCK_PIRATE_SUN_INTROS = [
+  "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
+  `A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.`,
+];
+
 // Rock pirates fight in asteroid field. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-in-asteroid-field:0.
 const ROCK_PIRATE_ASTEROID_INTROS = [
   "Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.",
@@ -3852,6 +3858,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
       choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
+    };
+  }
+  // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.
+  if (ev.slug === "rock-pirates-fight-near-sun") {
+    return {
+      title: ev.dest,
+      body: ROCK_PIRATE_SUN_INTROS[between(g, [0, 1])]!,
+      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: "Fight a Rock pirate ship" }],
     };
   }
   // Rock pirates fight in asteroid field. One of the two printed intros. The fight stays c:rock-pirates-fight-in-asteroid-field:0.

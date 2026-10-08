@@ -4706,6 +4706,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
   // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
   if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!");
+  // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
+  if (id === "c:slug-drink:0") ctx.note("The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.");
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);

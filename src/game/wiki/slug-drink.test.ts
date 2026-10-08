@@ -39,6 +39,7 @@ describe("Slug drink", () => {
     const fight = createGame(3);
     open(fight);
     choose(fight, "c:slug-drink:0");
+    assert.ok(fight.log.includes("The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire."));
     assert.equal(fight.phase, "combat");
     assert.equal(fight.fightEvent, "slug-drink");
     assert.equal(fight.enemy?.faction, "slug");

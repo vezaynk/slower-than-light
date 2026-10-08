@@ -1202,7 +1202,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Slug — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Slug Boarding Rock Freighter — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Captain Invites You to a Drink — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Slug Comm Tapping — partial — Same card as dest "Slug comm tapping" (cited-events-surrender.ts). Tap adds a quest marker. Ignore does nothing. The marker fight is in quests.ts.
+- [ ] Slug Comm Tapping — partial — Same card as dest "Slug comm tapping" (cited-events-surrender.ts). Tap adds a quest marker. Ignoring them shows the printed move-on sentence and nothing happens. The marker fight is in quests.ts.
 - [ ] Slug Controlled Nebula — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Slug Cruiser — partial — Title string is in src/. The article was not re-opened, so this is not present. the exact title string occurs in src/. Paragraph audit is pass 2; this is not a full page check.
 - [ ] Slug Disable Door System — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.

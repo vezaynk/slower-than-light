@@ -216,7 +216,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-distress",
     aliases: ["Lanius fight distress"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel.",
     choices: [
       {
         id: "c:lanius-fight-distress:0",

@@ -379,6 +379,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
     choices: [
       { id: "c:rebel-fight-chance:0", label: "Go looking for the Rebel ship.", fx: [{ k: "fight", tier: "Rebel ship" }] },
       { id: "c:rebel-fight-chance:1", label: "No time to search, you prepare to jump away.", fx: [{ k: "nothing" }] },
+      { id: "c:rebel-fight-chance:2", label: "Perform a scan of the area.", fx: [{ k: "fight", tier: "Rebel ship" }] },
     ],
   },
   // REFUGEE_NO_DISTRESS, Template:Drifting Refugee Ship (type=main). Hail: a trade ({{DuplicateEvent|4}}); a Pirate
@@ -1737,6 +1738,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     } else show(g, "You spend some time looking but your scanners cannot pick up any trace of the Rebel ship. You prepare to move on.");
   },
   "c:rebel-fight-chance:1": done,
+  // Rebel fight chance. {{Blue Option|Improved Sensors|Perform a scan of the area.|level=2|shortreq=Sensors}}.
+  // One printed lead-in, then a Rebel ship. level=2 means at least that installed level.
+  "c:rebel-fight-chance:2": (g) => {
+    if (sensorsLevel(g) < 2) return;
+    fight(g, "You quickly find the rebel ship's location and move to intercept.", "Rebel ship", "rebel-fight-chance");
+  },
 
   // Rebel fight chance in nebula. The chase lists three results and prints no odds. INFERRED: equal.
   "c:rebel-fight-chance-in-nebula:0": (g) => {
@@ -2841,6 +2848,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:confused-mantis:human" && !livingKin(g, "plain")) return "Needs a Human crewmember";
   if (id === "s:confused-mantis:mantis" && !livingKin(g, "blade")) return "Needs a Mantis crewmember";
   if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return "Needs Mind Control";
+  // Rebel fight chance. Improved Sensors level=2. INFERRED: the refusal line. The page names the system and prints no sentence.
+  if (id === "c:rebel-fight-chance:2" && sensorsLevel(g) < 2) return "Needs Sensors level 2";
   // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
   // Advanced Sensors level=3 means at least that installed level.
   if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) return "Needs Sensors level 3";

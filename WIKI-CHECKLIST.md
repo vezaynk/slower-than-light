@@ -1059,7 +1059,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Refugee ship with communications down — not-a-surface — same title as "Refugee Ship with Communications Down" with different capitalization
 - [ ] Refugee with communications down — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Remote Settlement — not-a-surface — events-2.ts: no-mechanic. Revision wikitext. Not a playable event.
-- [ ] Remote settlement — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction.
+- [ ] Remote settlement — partial — one beacon in a sector the page names, while a free beacon remains. A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs. Crew, a map reveal, an upgrade, and an unnamed item are not granted. A fight uses a documented class of the named faction. At Remote settlement, the printed blockade hail is shown before Attack the pirate and Ignore them, and the Fire Beam and Fire Bomb schematic rewards are not granted.
 - [ ] Repair Arm — partial — src/game/extras/augments.ts — the 15% cut and the 2 hull repair run only while the hull is not already full. Score s is not reduced by the cut.
 - [ ] Repair Station — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Repair Station in Last Stand — not-a-surface — events-0.ts: no-mechanic. Revision wikitext. Not a playable event.

@@ -3036,7 +3036,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    "body": "The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!",
     "choices": [
       {
         "id": "c:slug-hacker-oxygen:0",

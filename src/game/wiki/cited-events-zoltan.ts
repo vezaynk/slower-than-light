@@ -190,7 +190,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-free-augment",
     aliases: ["Zoltan free augment", "Zoltan Academy Free Augment", "Zoltan academy free augment"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "A Zoltan academy sits docked just outside the beacon perimeter.",
+    body: "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you.",
     choices: [
       {
         id: "c:zoltan-free-augment:0",

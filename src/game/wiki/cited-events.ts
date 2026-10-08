@@ -2368,7 +2368,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Rebel Stronghold"
     ],
-    "body": "",
+    "body": "You arrive at the beacon to find yourself in a huge Rebel shipyard, scaffolding and construction drones filling the sector! The entire system looks devoted to ship construction, the nearby planets and moons ruthlessly mined to harvest resources for a ship of immense size...",
     "choices": [
       {
         "id": "c:rebel-shipyard:0",

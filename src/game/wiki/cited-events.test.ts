@@ -98,7 +98,7 @@ describe("cited events", () => {
     assert.deepEqual([lo, hi], [12, 19]);
     const ev = citedEvent(g, beacon("Free scrap with resources", "cited:free-scrap-with-resources"));
     assert.ok(ev);
-    assert.equal(ev.body, "");
+    assert.notEqual(ev.body, "");
     assert.equal(ev.choices.length, 1);
     const id = ev.choices[0].id;
     const weapons = g.player.weapons.map((w) => w.defId).join(",");

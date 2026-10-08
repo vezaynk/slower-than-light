@@ -3635,6 +3635,17 @@ const PIRATE_FIGHT_INTROS = [
   "You barely have time to register jump completion before your ship warns you of an incoming ship with weapons hot.",
 ];
 
+// Free scrap with resources. The page prints six intros and no odds.
+// INFERRED: equal. The gift stays c:free-scrap-with-resources:0.
+const FREE_SCRAP_WITH_RESOURCES_INTROS = [
+  "You arrive in a system and immediately discover a pirate ship nearby. Strangely, scans indicate there are no lifeforms aboard. You salvage anything useful, but find no clue as to the whereabouts of the former crew.",
+  "Not much remains in this abandoned system; however, scans reveal a nearby mining platform with some salvageable materials.",
+  "As you arrive in the system you are hailed by a loyalist settlement. Upon learning of your quest, they offer you supplies.",
+  "Debris from a forgotten battle still orbits the gas giant in this system. Some of it still might be usable.",
+  `You receive a message from a nearby station, "A Federation cruiser jumping into Rebel territory? Quite the bold move." You quickly move to arm the weapons but he continues, "Lucky for you we're not all in support of the Rebellion. Perhaps these supplies will help you get to friendlier space alive."`,
+  "You happen upon the remains of a space station. It has been mostly picked clean but there appears to be a few materials that will aid you in your mission.",
+];
+
 // Rebel checkpoint. Four intros and four hide labels, no odds. INFERRED: equal.
 const REBEL_CHECKPOINT_INTROS = [
   "A rather large fleet of civilian ships are held up at this Beacon. It appears to be a Rebel checkpoint; everyone is being inspected for possible ties to the Federation. No one has noticed you yet.",
@@ -4622,6 +4633,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: LAST_STAND_CIVILIAN_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Free scrap with resources. One of the six printed intros. The gift stays c:free-scrap-with-resources:0.
+  if (ev.slug === "free-scrap-with-resources") {
+    return {
+      title: ev.dest,
+      body: FREE_SCRAP_WITH_RESOURCES_INTROS[between(g, [0, 5])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

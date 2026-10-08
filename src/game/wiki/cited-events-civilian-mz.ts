@@ -439,7 +439,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refueling-platform-garbled-broadcast",
     aliases: ["Refueling platform garbled broadcast"],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message.",
     choices: [
       {
         id: "c:refueling-platform-garbled-broadcast:0",

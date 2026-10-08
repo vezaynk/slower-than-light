@@ -216,7 +216,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Clonebay — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Closed Mining Fields — not-a-surface — events-3.ts: no-mechanic. Revision wikitext. Not a playable event.
 - [ ] Closed mining fields — not-a-surface — same title as "Closed Mining Fields" with different capitalization
-- [ ] Confused Mantis — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event.
+- [ ] Confused Mantis — missing — events-0.ts: mechanic. Revision wikitext. Not a playable event. Sending help returns Robert Smith or loses a crewmember, and a Mantis or Mind Control pays the printed scrap.
 - [ ] Crew — partial — eight lineages in kin.ts from the race table. Several racial abilities are not fields. A player ship carries at most eight crewmembers.
 - [ ] Crew Member — missing — events-1.ts: mechanic. Revision wikitext. Not a playable event.
 - [ ] Crew Members — missing — events-2.ts: mechanic. Revision wikitext. Not a playable event.

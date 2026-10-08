@@ -4527,7 +4527,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Zoltan fight. One of the seven printed intros. The fight stays c:zoltan-fight:0.
+  // Zoltan fight has no choice. Arrival calls c:zoltan-fight:0.
+  // One of the seven printed intros. "Fight a Zoltan ship (default rewards)." unique=false.
   if (ev.slug === "zoltan-fight") {
     return {
       title: ev.dest,

@@ -154,6 +154,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Zoltan fight has no choice. Arrival calls c:zoltan-fight:0.
+  // One of the seven printed intros. "Fight a Zoltan ship (default rewards)." unique=false.
   {
     dest: "Zoltan fight",
     slug: "zoltan-fight",

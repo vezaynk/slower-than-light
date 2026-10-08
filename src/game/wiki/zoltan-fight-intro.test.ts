@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -50,5 +50,33 @@ describe("Zoltan fight intro", () => {
     assert.equal(g.fightEvent, "zoltan-fight");
     assert.equal(g.crew.filter((c) => c.side === "player").length, before);
     assert.equal(g.scrap, 10);
+  });
+
+  it("starts the Zoltan ship on arrival and leaves no button", () => {
+    // The page has no choice. One of the seven printed intros, then "Fight a Zoltan ship."
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:zoltan-fight";
+    dest.name = "Zoltan fight";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "zoltan");
+    assert.equal(g.enemy?.pirate, false);
+    assert.equal(g.fightEvent, "zoltan-fight");
+    assert.equal(g.fleet, 1);
+    assert.ok(INTROS.some((line) => g.log.includes(line)));
   });
 });

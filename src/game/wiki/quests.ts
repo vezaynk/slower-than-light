@@ -1067,6 +1067,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     pageFight(g, "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.", "Mantis ship", "mantis-fight-choice");
   },
+  // Pirate ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Pirate ship fight.
+  "c:pirate-ship-attacking-civilian:0": (g) => {
+    pageFight(g, "You power up your weapons and engage the pirate ship.", "Pirate ship", "pirate-ship-attacking-civilian");
+  },
   // Pirate ship attacking civilian. "Stay out of it." One printed result.
   "c:pirate-ship-attacking-civilian:1": (g) => {
     result(g, "The fight brings them out of your immediate scanning range. After a time the distress calls stop.", undefined, ["Nothing happens."]);

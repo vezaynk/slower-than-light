@@ -173,6 +173,12 @@ describe("Cited events that add a marker", () => {
           `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."\n\n${QUEST_ADDED}`,
         );
       }
+      if (id === "c:space-station-under-construction:0") {
+        assert.equal(
+          g.event!.body,
+          `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."\n\n${QUEST_ADDED}`,
+        );
+      }
     }
   });
 

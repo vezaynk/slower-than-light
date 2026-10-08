@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { cellOccupied } from "../layouts.ts";
 import { createGame, log, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
 import {
@@ -86,17 +87,30 @@ describe("lance", () => {
     assert.equal(g.enemy.systems[room.system].damage, g.enemy.systems[room.system].level);
   });
 
-  it("rolls a ten percent fire chance per room", () => {
+  it("rolls a ten percent fire chance for each tile the swipe passes", () => {
+    // Artillery Beam, Overview: 10% in each tile it passes.
+    // INFERRED: with no drawn path, that is every occupied tile of the cut room.
     const g = armed(4);
     assert.ok(g.enemy);
     g.enemy.doors = [];
     const room = g.enemy.rooms[0];
+    room.w = 2;
+    room.h = 1;
+    room.omit = undefined;
     aimLance(g, room.id);
+    let tiles = 0;
+    for (let y = room.y; y < room.y + room.h; y++) {
+      for (let x = room.x; x < room.x + room.w; x++) {
+        if (cellOccupied(room, x, y)) tiles += 1;
+      }
+    }
+    assert.equal(tiles, 2);
     const saved = g.seed;
-    const roll = rand(g);
+    let fires = 0;
+    for (let i = 0; i < tiles; i++) if (rand(g) < 0.1) fires += 1;
     g.seed = saved;
     tickLance(g, 0.1);
-    assert.equal(room.fire, roll < 0.1 ? 1 : 0);
+    assert.equal(room.fire, Math.min(4, fires));
   });
 
   it("does not charge without a reactor bar, and a stored charge drains", () => {

@@ -1,5 +1,5 @@
 import type { Door, Game, Room, Ship } from "../types.ts";
-import { seatKits } from "../layouts.ts";
+import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -140,9 +140,10 @@ function cutLine(ship: Ship, origin: string): Room[] {
 }
 
 /**
- * Artillery Beam "Overview": 1 hull damage and 1 system damage per room, and a 10% fire chance.
- * MISMATCH: code rolls 10% once per room. Wiki "Overview" says 10% in each tile it passes.
- * Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
+ * Artillery Beam "Overview": 1 hull damage and 1 system damage per room, and a 10% fire chance
+ * in each tile the beam passes. Fires, "Fires and enemy AI": the stack stops at 4.
+ * INFERRED: the uncontrolled swipe passes every occupied tile of each cut room. The page does not
+ * print that path, and the two-room cap above is still not the printed length.
  */
 function nick(g: Game, ship: Ship, room: Room): void {
   ship.hull -= 1;
@@ -151,7 +152,15 @@ function nick(g: Game, ship: Ship, room: Room): void {
     const sys = ship.systems[room.system];
     if (sys.damage < sys.level) sys.damage += 1;
   }
-  if (rand(g) < 0.1) room.fire = Math.min(4, room.fire + 1);
+  let tiles = 0;
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) {
+      if (cellOccupied(room, x, y)) tiles += 1;
+    }
+  }
+  for (let i = 0; i < tiles; i++) {
+    if (rand(g) < 0.1) room.fire = Math.min(4, room.fire + 1);
+  }
 }
 
 /**

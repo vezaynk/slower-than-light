@@ -5139,7 +5139,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
     return true;
   }
-  // "3-4 human boarders beam aboard your ship" (Boarders: Humans in plasma storm). No enemy ship.
+  // Boarders: Humans in plasma storm has no choice. Arrival calls this id.
+  // "3-4 human boarders beam aboard your ship" and medium scrap with resources. No enemy ship.
+  // Resource amounts are not stated.
   if (id === "c:boarders-humans-in-plasma-storm:0") {
     plasmaHumanBoarders(g);
     return true;

@@ -491,7 +491,7 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "",
+    "body": "You find two heavily damaged ships floating nearby, the remains of a battle. You begin to harvest some usable debris when you hear the sounds of someone beaming aboard followed by the shouts of a boarding party.",
     "choices": [
       {
         "id": "c:boarders-humans-in-plasma-storm:0",

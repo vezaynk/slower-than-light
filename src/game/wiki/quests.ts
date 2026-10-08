@@ -853,6 +853,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (!hasRock(g)) return;
     slugDrink(g, true);
   },
+  // Escort civilians FTL haywire. "Decline." One printed result. No quest marker.
+  "c:escort-civilians-ftl-haywire:1": (g) => {
+    result(g, "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.", undefined, ["Nothing happens."]);
+  },
   // Escort civilians FTL haywire. Advanced FTL Navigation. High scrap with resources. No quest marker.
   "c:escort-civilians-ftl-haywire:2": (g) => {
     if (!g.augments.includes("nav")) return;

@@ -48,10 +48,15 @@ describe("Escort civilians FTL haywire", () => {
     const out = createGame(1);
     open(out);
     choose(out, "c:escort-civilians-ftl-haywire:1");
-    assert.equal(out.phase, "map");
+    assert.equal(
+      out.event?.body,
+      "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.\n\nNothing happens.",
+    );
+    assert.equal(out.phase, "event");
     assert.equal(out.scrap, 10);
     assert.equal(out.beacons.some((b) => b.quest === "escort"), false);
     assert.equal(out.fleet, 5);
+    assert.equal(out.enemy, null);
   });
 
   it("Advanced FTL Navigation pays high scrap with resources and adds no marker", () => {

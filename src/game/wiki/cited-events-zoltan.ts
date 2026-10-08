@@ -118,7 +118,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-fight-in-nebula",
     aliases: ["Rock fight in nebula", "Zoltan Rock fight in nebula"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police.",
+    body: "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!",
     choices: [
       {
         id: "c:rock-fight-in-nebula:0",

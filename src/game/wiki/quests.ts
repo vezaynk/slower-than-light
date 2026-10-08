@@ -1322,6 +1322,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:pirate-ship-attacking-civilian-distress:1": (g) => {
     result(g, "The fight brings them out of your immediate scanning range; however, after a time the distress calls stop.", undefined, ["Nothing happens."]);
   },
+  // Pirate ship attacking civilian (Lanius). "Attack the pirate." One printed lead-in, then a Pirate ship fight.
+  "c:pirate-ship-attacking-civilian-lanius:0": (g) => {
+    pageFight(g, "You charge the weapons, which quickly gets the pirate ship's attention.", "Pirate ship", "pirate-ship-attacking-civilian-lanius");
+  },
   // Pirate ship attacking civilian (Lanius). "Avoid the conflict." One printed result.
   "c:pirate-ship-attacking-civilian-lanius:1": (g) => {
     result(g, "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.", undefined, ["Nothing happens."]);

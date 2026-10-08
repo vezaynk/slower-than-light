@@ -107,7 +107,10 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         );
         assert.equal(a.beacons.filter((x) => x.kind === "start").length, 1);
         const flags = a.beacons.map((x) => x.flag).filter((f) => f.startsWith("cited:"));
-        assert.equal(new Set(flags).size, flags.length, name);
+        // Boarders: Humans (Abandoned) is unique=false, so Abandoned Sector may stamp that flag twice.
+        const repeatable = name === "Abandoned Sector" ? "cited:boarders-humans-abandoned" : "";
+        const once = flags.filter((f) => f !== repeatable);
+        assert.equal(new Set(once).size, once.length, name);
         // Running the stamp again does not re-deal.
         const before = JSON.stringify(a.beacons);
         stampCitedEvents(a);
@@ -140,6 +143,19 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       }
       assert.ok(plain > 0, name);
     }
+  });
+
+  it("Abandoned Sector can place Boarders: Humans (Abandoned) on both boarder beacons", () => {
+    // Template:Locations unique=false: "This event can occur multiple times per sector."
+    // Abandoned Sector, Beacons: "1-2 boarders".
+    let twice = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const g = dealt(seed, "Abandoned Sector");
+      const n = g.beacons.filter((b) => b.flag === "cited:boarders-humans-abandoned").length;
+      assert.ok(n >= 1 && n <= 2, `${seed} ${n}`);
+      if (n === 2) twice++;
+    }
+    assert.ok(twice > 0, "a 1-2 line never rolled 2");
   });
 
   it("gives The Last Stand its 3 repair stations and 1 store", () => {

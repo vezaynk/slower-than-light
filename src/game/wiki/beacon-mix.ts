@@ -331,6 +331,9 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
   const specials = lines.flatMap((l) => (l.event ? [l.event] : []));
   for (const ev of events) {
     if (specials.some((name) => specialMatch(ev, name)) || g.beacons.some((b) => b.flag === ev.flag)) continue;
+    // Boarders: Humans (Abandoned), Locations unique=false. Template:Locations: "This event can occur multiple times per sector."
+    // Abandoned Sector, Beacons: "1-2 boarders". It fills that line, including both beacons, and is not also a one-shot neutral.
+    if (ev.dest === "Boarders: Humans (Abandoned)") continue;
     const c = classifyEvent(ev);
     queue[has(c) ? c : "neutral"].push(ev);
   }
@@ -414,13 +417,23 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         // Left as an unflagged event beacon: the quest stamp that runs after stampCitedEvents may claim it.
         setKind(b, "event");
         return;
-      default: {
-        // Hostile group. INFERRED split: every other hostile slot (the 1st, 3rd, ...) takes a hostile cited page,
-        // the rest are plain hostile beacons whose ship comes from the sector's hostile list (enemy-gen.ts).
-        const cited = hostileSeen.n++ % 2 === 0 ? take("hostile") : undefined;
-        if (cited) return place(b, cited);
-        setKind(b, "hostile");
-      }
+      case "boarder":
+        // Abandoned Sector, Beacons: "1-2 boarders". Boarders: Humans (Abandoned) is unique=false, so the same
+        // event fills every beacon of this line. Template:Locations: "This event can occur multiple times per sector."
+        if (g.sectorName === "Abandoned Sector") {
+          const ev = events.find((e) => e.dest === "Boarders: Humans (Abandoned)");
+          if (ev) return place(b, ev);
+        }
+        return hostileBeacon();
+      default:
+        return hostileBeacon();
+    }
+    function hostileBeacon() {
+      // Hostile group. INFERRED split: every other hostile slot (the 1st, 3rd, ...) takes a hostile cited page,
+      // the rest are plain hostile beacons whose ship comes from the sector's hostile list (enemy-gen.ts).
+      const cited = hostileSeen.n++ % 2 === 0 ? take("hostile") : undefined;
+      if (cited) return place(b, cited);
+      setKind(b, "hostile");
     }
   }
   return true;

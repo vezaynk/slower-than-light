@@ -516,6 +516,29 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const line = addQuest(g, "slug-pirate-trap");
     result(g, "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.", undefined, [line]);
   },
+  // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
+  // Six results, no odds. The unnamed crewmember is not offered. INFERRED: the other five are equal.
+  // The weapon is unnamed and not granted; only the low scrap is paid.
+  "q:lanius-civilian:contact": (g) => {
+    const kind = weighted(g, [["weapon", 1], ["repair", 1], ["medium", 1], ["low", 1], ["nothing", 1]] as const);
+    if (kind === "weapon") {
+      result(g, "They respond, \"It's a good thing you came when you did; we'd be dead now otherwise. I'm a shipwright and I'd like to help you like you helped me.\" The captain offers to install a piece of equipment on your ship.", scrapOnly(g, "low"));
+      return;
+    }
+    if (kind === "repair") {
+      result(g, "\"This sector has become increasingly dangerous for friends of the Federation. I think my crew can patch up some of your hull damage as thanks.\"", undefined, [repair(g, 5)]);
+      return;
+    }
+    if (kind === "medium") {
+      result(g, "Apparently the ship that was being assaulted was a science vessel. They thank you for saving them and offer a small reward.", rollStandard(g, "medium"));
+      return;
+    }
+    if (kind === "low") {
+      result(g, "It seems the crew did not survive the assault. You take what you can from the remains of the ship.", rollStandard(g, "low"));
+      return;
+    }
+    result(g, "The civilian ship wisely made a fast retreat while you distracted the hostile ship.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking Rock, "Contact the Rockmen." Two results, no odds. INFERRED: equal.
   "q:lanius-rock:contact": (g) => {
     if (weighted(g, [["scrap", 1], ["nothing", 1]] as const) === "scrap") {
@@ -1057,6 +1080,13 @@ export const PAGE_WINS: Record<string, Win> = {
   // Mantis ships battle for Rock freighter. Both endings pay medium standard. Default salvage is not paid.
   "mantis-ships-battle-for-rock-freighter": (g) => {
     result(g, "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.", rollStandard(g, "medium"));
+  },
+  // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
+  "lanius-ship-attacking-civilian": (g, deadCrew) => {
+    const text = deadCrew
+      ? "No more life signs detected on the Lanius ship. You hasten to contact the civilian ship."
+      : "The Lanius craft breaks apart. You hasten to contact the civilian ship.";
+    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }]);
   },
   // Lanius ship attacking Rock. Both endings pay medium standard, then "Contact the Rockmen."
   "lanius-ship-attacking-rock": (g, deadCrew) => {

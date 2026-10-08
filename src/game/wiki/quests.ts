@@ -664,6 +664,87 @@ function refuelAmbush(g: Game) {
   pageFight(g, text, "Pirate ship", "refueling-platform");
 }
 
+const REBEL_SUPPLY_NEXT: Choice[] = [
+  { id: "s:rebel-supply:steal", label: "Steal the civilian supplies." },
+  { id: "s:rebel-supply:leave", label: "Leave the civilians alone." },
+];
+
+// Leave the civilians alone. Four printed sentences, no odds. INFERRED: equal.
+const REBEL_SUPPLY_LEAVE = [
+  `You make the preparations to leave. One of the civilian leaders contacts you: "That Rebel was our sole source of supplies. You have doomed us all."`,
+  "You leave the civilians with the supplies, though without the Rebel that was running supplies to them its unlikely they'll live long.",
+  "You wonder if any more Rebels will be available to help these civilians on the edge of nowhere. Oh well, for you a few more dead Rebels matter more than the lives of a thousand colonists.",
+  `Before your FTL drive charges, you receive a hail: "My son was on that ship. He only helped the Rebels because they cared enough to help us. Without him to find us supplies, we'll likely be forgotten and die out here."`,
+];
+
+/**
+ * "2 damage with a random effect (1-2 fires or a breach) to a random room."
+ * INFERRED: every player room is equally likely, and that room's system takes the 2 damage when a bar is left.
+ * The two effects are equally likely. The second flame is a coin flip, the same as Fire Bomb.
+ */
+function rebelSupplyRoom(g: Game): string {
+  const rooms = g.player.rooms;
+  if (!rooms.length) return "";
+  const room = pick(g, rooms);
+  const bits: string[] = [];
+  const id = room.system;
+  const sys = id ? g.player.systems[id] : undefined;
+  if (id && sys && sys.level > 0 && sys.damage < sys.level) {
+    const before = sys.damage;
+    hurtSystem(g.player, id, 2);
+    const applied = sys.damage - before;
+    if (applied) bits.push(`${applied} damage to ${id}.`);
+  }
+  if (rand(g) < 0.5) {
+    const n = 1 + (rand(g) < 0.5 ? 1 : 0);
+    room.fire = Math.min(4, room.fire + n);
+    bits.push(n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`);
+  } else {
+    room.breach += 1;
+    bits.push(`A breach opens in ${room.title}.`);
+  }
+  const line = bits.join(" ");
+  if (line) log(g, line);
+  return line;
+}
+
+/** Steal the civilian supplies. Four printed results, no odds. INFERRED: equal. */
+function rebelSupplySteal(g: Game) {
+  const kind = pick(g, ["parts", "scrap", "trap", "plague"] as const);
+  if (kind === "parts") {
+    // Rewards, Drone parts: "T drone parts & T scrap." The event tooltip prints low as 1 drone part.
+    const offer = scrapOnly(g, "low");
+    offer.parts = 1;
+    result(g, `The colonists hand over the supplies. It appears to be mostly equipment meant for automated farming, but you can make use of it. As you leave, you receive a message: "This is why the Rebels will always have support!"`, offer);
+    return;
+  }
+  if (kind === "scrap") {
+    result(g, "You make the colonists teleport the supplies to your ship. It's nothing more than building construction supplies. Oh well, scrap is scrap.", scrapOnly(g, "low"));
+    return;
+  }
+  if (kind === "trap") {
+    const text = "The colonists willingly give up their supplies. But as you make to jump away, an explosion rocks your ship. The cargo was booby-trapped!";
+    log(g, text);
+    if (damageHull(g, 2)) return;
+    const room = rebelSupplyRoom(g);
+    result(g, text, undefined, ["Hull damage: 2.", room].filter(Boolean));
+    return;
+  }
+  result(g, "The colonists hand over the supplies and you load it onto your ship. As you jump away, you crack it open and discover nothing more than vaccinations for a local plague.", undefined, ["Nothing happens."]);
+}
+
+function rebelSupplyLeave(g: Game) {
+  result(g, pick(g, REBEL_SUPPLY_LEAVE), undefined, ["Nothing happens."]);
+}
+
+/** Destroyed pays low scrap with resources. A crew kill pays medium. Then steal or leave. */
+function rebelSupplyWin(g: Game, deadCrew: boolean) {
+  const text = deadCrew
+    ? "With the Rebel crew dead, you strip their ship for equipment. They had already made their delivery to the civilians."
+    : "With the Rebel ship destroyed, you take the time to collect what little scrap remains. They had already made the delivery to the civilians.";
+  result(g, text, rollStandard(g, deadCrew ? "medium" : "low"), [], REBEL_SUPPLY_NEXT);
+}
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
@@ -1389,6 +1470,20 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.fuel += 5;
     log(g, "Fuel: 5.");
     result(g, "Pirates hidden on the station are confounded by your security locks, turning an attempted ambush into a fish-in-a-barrel firefight. You take control of the station and take its fuel reserves.", undefined, ["Fuel: 5."]);
+  },
+  // Rebel ship supplying civilians. "Leave them be." One printed result.
+  "c:rebel-ship-supplying-civilians:1": (g) => {
+    result(g, "Nothing happens.");
+  },
+  // "Wait and steal the supplies from the civilians." The same four results as the post-fight steal.
+  "c:rebel-ship-supplying-civilians:2": (g) => {
+    rebelSupplySteal(g);
+  },
+  "s:rebel-supply:steal": (g) => {
+    rebelSupplySteal(g);
+  },
+  "s:rebel-supply:leave": (g) => {
+    rebelSupplyLeave(g);
   },
   // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
   "c:zoltan-ship-asks-to-dock:1": (g) => {
@@ -3059,6 +3154,9 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-smuggler": smuggleCargoWin,
   // Rebel transport ship. The same template. The 40 second run and the refusal to surrender stay in escape.ts and surrender.ts.
   "rebel-transport-ship": smuggleCargoWin,
+  // Rebel ship supplying civilians. Destroyed pays low scrap with resources. A crew kill pays medium.
+  // Then steal the supplies or leave the civilians. Default salvage is not paid.
+  "rebel-ship-supplying-civilians": rebelSupplyWin,
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Engi distress Rebel fight. Destroyed pays low standard. A crew kill pays medium. Then the Engi.

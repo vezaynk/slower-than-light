@@ -2374,6 +2374,15 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:rebel-ship-supplying-civilians:2",
+        "label": "Wait and steal the supplies from the civilians",
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
       }
     ]
   },
@@ -3907,7 +3916,7 @@ const MERCENARY_INTROS = [
 ];
 
 // Rebel ship supplying civilians. Five printed intros, no odds. INFERRED: equal.
-// Attack stays c:rebel-ship-supplying-civilians:0. Leave stays :1. The steal choice is not added.
+// Attack stays c:rebel-ship-supplying-civilians:0. Leave stays :1. Wait and steal stays :2.
 const REBEL_SUPPLY_INTROS = [
   "You stumble across a Rebel ship distributing supplies to local civilian colonies. It's probably not anything military grade, but every little bit helps...",
   "You find a Rebel combat ship that has been reassigned as an emergency supply vessel. The local civilians are apparently in need of help, and the Rebels are rising to the occasion.",

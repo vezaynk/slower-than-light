@@ -21,6 +21,7 @@ import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { addQuest, questChoose } from "./quests.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
+import { pirateCrewRaces } from "./skills.ts";
 
 export type SurrenderTier = "low" | "medium" | "high";
 
@@ -250,7 +251,10 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     refuse: "Piracy cannot be forgiven. Attack!",
   },
   // Template:Slaver Fight (used by "Slaver (hostile)" and "Slaver (friendly)"): "(enemy ship has 80% chance to surrender
-  // at 20-40% hull)". "Accept their offer." -> "You receive a crewmember." The race is not named. INFERRED: random race.
+  // at 20-40% hull)". "Accept their offer." -> "You receive a crewmember." The race is not named.
+  // Category:Crew Rewards: any of the possible races for the current sector type (randomRace), not a global race.
+  // INFERRED: each race on that sector's Sectors "Crewmembers" list is equally likely. The Sectors page says rarity
+  // only affects the store assortment probability.
   "slaver-hostile": {
     page: "Slaver (hostile)",
     chance: 80,
@@ -503,7 +507,7 @@ export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = fal
   return offer;
 }
 
-/** Player races a crew reward can roll when the page names none (wiki/surrender.ts "slaver" rows). INFERRED. */
+/** Display race -> kin id for joinCrew. Crew rewards do not draw from this list; an unnamed race is randomRace. */
 const RACES: [string, KinId][] = [
   ["Human", "plain"],
   ["Engi", "shell"],
@@ -566,7 +570,7 @@ export function rollScriptedOffer(g: Game, s: ScriptedSurrender): SurrenderOffer
     offer.scrap = adjustScrap(g, offer.eligible);
     offer.note = `${cap(r.tier)} scrap.`;
   } else if (r.k === "crew") {
-    offer.crew = r.race ?? RACES[Math.min(RACES.length - 1, Math.floor(rand(g) * RACES.length))][0];
+    offer.crew = r.race ?? randomRace(g);
     offer.note = `A ${offer.crew} crewmember.`;
   } else if (r.k === "fuel-repairs") {
     // Rewards, "Fuel": "T fuel & T scrap"; the page's tooltip "low: 1-3 fuel" is Template:Resources rewards' low fuel.
@@ -585,9 +589,18 @@ export function rollScriptedOffer(g: Game, s: ScriptedSurrender): SurrenderOffer
   return offer;
 }
 
-/** @agent:quests. A random player race, for a page that gives "a crewmember" without naming one. INFERRED. */
+/**
+ * Category:Crew Rewards: "If a crewmember's race is not predefined/hard-coded or specified, then it can be of any of
+ * the possible races for the current sector type." Those races are the sector's Sectors "Crewmembers" list
+ * (pirateCrewRaces). Hidden Crystal Worlds: "only Crystal crewmembers can be purchased or received as a crew kill
+ * reward."
+ * INFERRED: each race on that sector list is equally likely. The Sectors page says rarity only affects the store
+ * assortment probability.
+ * @agent:quests. A page that gives "a crewmember" without naming one.
+ */
 export function randomRace(g: Game): string {
-  return RACES[Math.min(RACES.length - 1, Math.floor(rand(g) * RACES.length))][0];
+  const list = pirateCrewRaces(g.sectorName);
+  return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
 }
 
 /**

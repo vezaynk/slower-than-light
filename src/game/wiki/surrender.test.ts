@@ -8,6 +8,8 @@ import {
   SCRIPTED_SURRENDERS,
   STALEMATE_FUEL,
   STALEMATE_SECONDS,
+  randomRace,
+  rollScriptedOffer,
   rollSurrenderOffer,
   surrenderOfferView,
   surrenderPlan,
@@ -325,5 +327,41 @@ describe("scripted surrenders (event pages)", () => {
     const o = surrenderOfferView(g)!;
     assert.equal(o.crew, undefined);
     assert.equal(o.repairs, undefined);
+  });
+
+  it("an unnamed crew reward follows the sector list; a named race stays named", () => {
+    const slaver = eventFight("Pirate ship", "slaver-hostile");
+    slaver.sectorName = "Hidden Crystal Worlds";
+    offer(slaver);
+    assert.equal(surrenderOfferView(slaver)!.crew, "Crystal");
+
+    const named = rollScriptedOffer(createGame(4), SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"]);
+    assert.equal(named.crew, "Human");
+    const onCrystal = createGame(4);
+    onCrystal.sectorName = "Hidden Crystal Worlds";
+    assert.equal(rollScriptedOffer(onCrystal, SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"]).crew, "Human");
+  });
+});
+
+describe("crew reward races (Category:Crew Rewards)", () => {
+  it("Hidden Crystal Worlds draws only Crystal", () => {
+    const g = createGame(2);
+    g.sectorName = "Hidden Crystal Worlds";
+    for (let i = 0; i < 24; i++) assert.equal(randomRace(g), "Crystal");
+  });
+
+  it("Engi Homeworlds draws only Engi, Human, and Zoltan, and each appears", () => {
+    const allowed = new Set(["Engi", "Human", "Zoltan"]);
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const g = createGame(seed);
+      g.sectorName = "Engi Homeworlds";
+      for (let i = 0; i < 6; i++) {
+        const race = randomRace(g);
+        assert.ok(allowed.has(race), race);
+        seen.add(race);
+      }
+    }
+    assert.deepEqual([...seen].sort(), ["Engi", "Human", "Zoltan"]);
   });
 });

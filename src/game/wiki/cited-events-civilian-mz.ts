@@ -278,7 +278,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Engi Homeworlds",
       "Pirate Controlled Sector",
     ],
-    body: "",
+    body: `Upon completing your jump, you receive a message from a nearby ship. "Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way."`,
     choices: [
       {
         id: "c:pirate-toll:0",

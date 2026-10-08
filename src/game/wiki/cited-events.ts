@@ -3118,7 +3118,7 @@ const CORE_EVENTS: EventDef[] = [
       "Engi Controlled Sector",
       "Engi Homeworlds"
     ],
-    "body": "",
+    "body": "The Engi are awaiting you at the beacon, with their weapons on-line! They explain a computer virus that is wanted for hostile acts against the Engi (multiple counts of binary scrambling, nano-dissolution, and variable interference) is aboard your vessel. They insist they must destroy your ship to prevent the virus from escaping!",
     "choices": [
       {
         "id": "c:the-engi-virus:0",

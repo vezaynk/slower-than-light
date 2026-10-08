@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2805 |
+| Behaviors checked | 2806 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4206,6 +4206,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] Two or three human boarders beam aboard your ship when you fight the Rebel ship from Rebel fight with boarders.
   - [x] One of the four printed intros is shown before that fight.
+  - [x] The red line beams 2-3 human boarders aboard and starts the Rebel fight on arrival, and it is not a button.
 
 - [x] Rebel in Nebula
   - [x] No playable control, number, layout, or rule.

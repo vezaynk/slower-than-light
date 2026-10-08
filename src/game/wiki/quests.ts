@@ -1091,6 +1091,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:rebel-ship-attacking-federation-loyalists:1": (g) => {
     result(g, "The Rebel's preoccupation with the Federation ship allows you to slip away undetected. However, you can't help but feel you should have helped them.", undefined, ["Nothing happens."]);
   },
+  // Mantis ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Mantis ship fight.
+  "c:mantis-ship-attacking-civilian:0": (g) => {
+    pageFight(g, "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.", "Mantis ship", "mantis-ship-attacking-civilian");
+  },
   // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
   "c:mantis-ship-attacking-civilian:1": (g) => {
     const line = pick(g, [

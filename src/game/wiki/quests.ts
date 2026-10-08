@@ -1059,6 +1059,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
     pageFight(g, "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.", "Mantis ship", "mantis-fight-choice");
   },
+  // Pirate ship attacking civilian. "Stay out of it." One printed result.
+  "c:pirate-ship-attacking-civilian:1": (g) => {
+    result(g, "The fight brings them out of your immediate scanning range. After a time the distress calls stop.", undefined, ["Nothing happens."]);
+  },
   // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
   "c:mantis-ship-attacking-civilian:1": (g) => {
     const line = pick(g, [

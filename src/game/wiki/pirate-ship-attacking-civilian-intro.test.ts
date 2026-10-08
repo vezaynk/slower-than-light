@@ -53,7 +53,8 @@ describe("Pirate ship attacking civilian intro", () => {
     const stay = createGame(1);
     open(stay);
     choose(stay, "c:pirate-ship-attacking-civilian:1");
-    assert.equal(stay.phase, "map");
+    assert.equal(stay.phase, "event");
+    assert.match(stay.event?.body ?? "", /distress calls stop/);
     assert.equal(stay.scrap, 10);
   });
 });

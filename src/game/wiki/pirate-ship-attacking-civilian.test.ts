@@ -137,7 +137,9 @@ describe("Pirate ship attacking civilian", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian:1");
-    assert.equal(g.phase, "map");
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /distress calls stop/);
+    assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
   });

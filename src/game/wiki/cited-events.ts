@@ -3690,7 +3690,7 @@ const MANTIS_CIVILIAN_INTROS = [
 ];
 
 // Pirate ship attacking civilian. Six printed intros, no odds. INFERRED: equal.
-// Aid stays c:pirate-ship-attacking-civilian:0. Stay out stays :1.
+// Aid stays c:pirate-ship-attacking-civilian:0. Stay out stays :1. The stay-out sentence is quests.ts.
 const PIRATE_CIVILIAN_INTROS = [
   "You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency.",
   "Scanners indicate that a battle is taking place nearby. It seems that someone is under attack by space pirates.",

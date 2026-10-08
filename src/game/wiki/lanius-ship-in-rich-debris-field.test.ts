@@ -133,7 +133,9 @@ describe("Lanius ship in rich debris field", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-in-rich-debris-field:2");
-    assert.equal(g.phase, "map");
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /You charge up your drive and prepare to make the next jump/);
+    assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
   });
 });

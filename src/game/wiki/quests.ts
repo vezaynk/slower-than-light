@@ -1879,6 +1879,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-ship-in-rich-debris-field:1": (g) => {
     pageFight(g, "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.", "Lanius ship", "lanius-ship-in-rich-debris-field");
   },
+  // Lanius ship in rich debris field. "Ignore the vessel." One printed result.
+  "c:lanius-ship-in-rich-debris-field:2": (g) => {
+    result(g, "You charge up your drive and prepare to make the next jump. No sense in antagonizing the Lanius if you don't need to.", undefined, ["Nothing happens."]);
+  },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
     result(g, "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.", undefined, ["Nothing happens."]);

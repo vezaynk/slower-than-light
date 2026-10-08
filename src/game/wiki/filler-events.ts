@@ -978,6 +978,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "fire-on-research-station") return fireCard(g, page);
   if (page.slug === "pirate-ship-distress-trap") return trapCard(g, page);
   if (page.slug === "abandoned-station") return abandonedStationCard(g, page);
+  if (page.slug === "rebel-fight-chance") return rebelChanceCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1534,6 +1535,23 @@ function abandonedStationCard(g: Game, page: Page): GameEvent {
   return {
     title: page.dest,
     body: ABANDONED_STATION_INTROS[between(g, [0, 2])]!,
+    choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+  };
+}
+
+// Rebel fight chance. The page prints four opening intros and no odds.
+// INFERRED: equal. The search, the jump, and the two scans stay the existing choices.
+const REBEL_CHANCE_INTROS = [
+  `You arrive at a beacon located in a civilian star system. A nearby colony contacts you: "We've got a rogue Rebel ship harassing this system. Do you have time to find it?"`,
+  `As soon as you arrive, you receive a Federation encrypted message: "A Rebel ship has been terrorizing the local civilians in this system, please seek and destroy it."`,
+  "You begin charging your FTL drive, and do a quick scan of a local planet. You find the ruins of a recently destroyed federation colony on the surface. There must be a Rebel ship in the vicinity...",
+  `You jump into a field of debris. It appears a battle recently took place here, and the loser seems to have been a civilian ship. A message was left on repeat before it was destroyed: "Rebels attacking, please send aid!" The responsible Rebels are likely still nearby.`,
+];
+
+function rebelChanceCard(g: Game, page: Page): GameEvent {
+  return {
+    title: page.dest,
+    body: REBEL_CHANCE_INTROS[between(g, [0, 3])]!,
     choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
   };
 }

@@ -1164,6 +1164,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:federation-deserters:1": (g) => {
     result(g, "You send them a friendly warning regarding the armada of Rebel ships pursuing you, and then get underway lest they catch you up.", undefined, ["Nothing happens."]);
   },
+  // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
+  "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
+    result(g, "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.", undefined, ["Nothing happens."]);
+  },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
     pageFight(g, "You move in to intercept.", "Rebel ship", "rebel-ship-attacking-civilians-in-last-stand");

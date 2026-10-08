@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lungScale } from "../extras/augments.ts";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
@@ -64,5 +64,32 @@ describe("Boarders: Humans (Pirate)", () => {
       assert.equal(g.augments.includes("lung"), false);
     }
     assert.ok(seen.has(3) && seen.has(5), [...seen].sort().join(","));
+  });
+
+  it("applies the red line on arrival and leaves no button", () => {
+    // The page has no choice. "3-5 human boarders beam aboard your ship."
+    const g = createGame(4);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:boarders-humans-pirate";
+    dest.name = DEST;
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy, null);
+    const humans = boarded(g);
+    assert.ok(humans.length >= 3 && humans.length <= 5, String(humans.length));
+    assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
   });
 });

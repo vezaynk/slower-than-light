@@ -26,7 +26,7 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    // Boarders: Humans (Pirate). The page prints no button. The red line is the label.
+    // Boarders: Humans (Pirate). The page prints no button. The red line is the outcome, applied on arrival.
     // unique=true is the once-per-sector stamp. Not a crew grant. No ship (LRSmap=noship).
     dest: "Boarders: Humans (Pirate)",
     slug: "boarders-humans-pirate",

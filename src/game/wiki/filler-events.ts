@@ -2308,8 +2308,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     beginBoarding(g);
   },
 
-  // Boarders: Humans (Pirate). fillerChoose runs before citedChoose, whose fx is nothing.
-  // The count 3-5 is the printed line: "3-5 human boarders beam aboard your ship."
+  // Boarders: Humans (Pirate). The page has no choice. Arrival calls this id so the red line
+  // "3-5 human boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). No ship. No lungs. Not a crew grant.
   "c:boarders-humans-pirate:0": (g) => {
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");

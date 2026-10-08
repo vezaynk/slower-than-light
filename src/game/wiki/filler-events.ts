@@ -779,6 +779,36 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:single-life-form-on-moon:1", label: "Ignore the signal.", fx: [{ k: "nothing" }] },
     ],
   },
+  // TRAP_BEACON. The intro is one of four printed lines. No odds. INFERRED: equal.
+  // Fight a Pirate ship. Default rewards are the destroy salvage. The PIRATE surrender and escape rows are that faction's plan.
+  {
+    dest: "Pirate ship distress trap",
+    slug: "pirate-ship-distress-trap",
+    flag: "cited:pirate-ship-distress-trap",
+    aliases: ["Pirate ship distress trap"],
+    sectors: [
+      "Abandoned Sector",
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
+    choices: [
+      { id: "c:pirate-ship-distress-trap:0", label: "Fight the pirate ship.", fx: [{ k: "fight", tier: "Pirate ship" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -939,6 +969,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "crushed-pirate") return pirateCard(g, page);
   if (page.slug === "unknown-disease-on-mining-colony") return diseaseCard(g, page);
   if (page.slug === "fire-on-research-station") return fireCard(g, page);
+  if (page.slug === "pirate-ship-distress-trap") return trapCard(g, page);
   return { title: page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -1383,6 +1414,19 @@ function moonCave(g: Game) {
   if (med >= 3) choices.push({ id: "s:moon:medbay3", label: "(Advanced Medbay) Bring him to your medbay." });
   if (livingKin(g, "gel")) choices.push({ id: "s:moon:slug", label: "Sir, allow me to assess his mental state." });
   card(g, "You find a man living alone in a cave. From the appearance of his wrecked ship, it seems he's been here for many years. He looks healthy, but his mental state is questionable.", choices);
+}
+
+const TRAP_INTRO = [
+  "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
+  "\"Haha! I knew someone would fall into our dastardly trap!\" It appears this distress beacon was nothing but a decoy for a pirate ambush.",
+  "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.",
+  "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!",
+];
+
+/** Four printed intros, no odds. INFERRED: equal. */
+function trapCard(g: Game, page: Page): GameEvent {
+  const body = TRAP_INTRO[Math.min(TRAP_INTRO.length - 1, Math.floor(rand(g) * TRAP_INTRO.length))];
+  return { title: page.dest, body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
 function moonCollapse(g: Game) {
@@ -1922,6 +1966,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "c:single-life-form-on-moon:1": (g) => {
     show(g, "Nothing happens.");
+  },
+
+  // Pirate ship distress trap. Default rewards. The PIRATE surrender and escape rows are that faction's plan.
+  "c:pirate-ship-distress-trap:0": (g) => {
+    fight(g, g.event?.body ?? TRAP_INTRO[0], "Pirate ship", "pirate-ship-distress-trap");
   },
 
   // Trade scrap for upgrades. "Inquire about their specialty." One of the printed offers, or nothing

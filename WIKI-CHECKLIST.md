@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2804 |
+| Behaviors checked | 2805 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -6114,6 +6114,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] Three or four Zoltan boarders beam aboard your ship when you fight the Zoltan ship from Zoltan border police.
   - [x] At Zoltan border police, the printed customs-check sentence is shown in full.
+  - [x] The red line beams 3-4 Zoltan boarders aboard and starts the Zoltan fight on arrival, and it is not a button.
 
 - [x] Zoltan empty beacon
   - [x] same title as "Zoltan Empty Beacon" with different capitalization.

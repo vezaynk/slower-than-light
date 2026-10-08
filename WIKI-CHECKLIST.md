@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2810 |
+| Behaviors checked | 2811 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -421,6 +421,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] A destroyed ship pays low scrap with resources, the ship runs from the start for 40 seconds, and an escape doubles Rebel Fleet pursuit.
   - [x] The printed scout sentence is shown before that fight.
+  - [x] The fight line starts the running Auto-ship on arrival, and it is not a button.
 
 - [ ] Automated Re-Fueling Ship
   - [ ] The page states a mechanic and it is not a playable event.

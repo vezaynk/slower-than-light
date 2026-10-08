@@ -167,6 +167,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   "crystal-fight-choice",
   // Pirate engine hacker. The page prints the ship ("PIRATE_NO_ESCAPE") doesn't surrender. Escape is already handled elsewhere.
   "pirate-engine-hacker",
+  // Slug hacker (oxygen). The page prints the enemy ship doesn't surrender. Escape is already handled elsewhere.
+  "slug-hacker-oxygen",
 ]);
 
 /** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */

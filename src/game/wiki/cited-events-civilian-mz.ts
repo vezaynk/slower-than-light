@@ -360,6 +360,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Attack the ship",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
+      {
+        id: "c:rebel-fight-choice-in-nebula:1",
+        label: "Attempt to remain concealed",
+        // Three results, no odds. INFERRED: equal. The caught branch opens the follow-up. quests.ts.
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:rebel-fight-choice-in-nebula:2",
+        label: "Cloak to stay hidden.",
+        // Cloaking. "Nothing happens." quests.ts.
+        fx: [{ k: "nothing" }],
+      },
     ],
   },
   /** "Fight a Rebel ship (default rewards)." */

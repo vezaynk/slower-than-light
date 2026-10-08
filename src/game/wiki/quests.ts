@@ -993,6 +993,43 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.fleet = Math.max(0, g.fleet - 1);
     result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
   },
+  // Rebel fight choice in nebula. Conceal lists three results and prints no odds. INFERRED: equal.
+  // Caught opens Prepare to fight, or Engines 4+. Chase doubles pursuit for 1 jump (citedChoose `faster`: one extra step).
+  "c:rebel-fight-choice-in-nebula:1": (g) => {
+    const r = pick(g, ["caught", "chase", "hidden"] as const);
+    if (r === "caught") {
+      card(g, "You immediately slip further into the clouds, but not quickly enough. The rebel catches sight of you and moves in to engage!", [
+        { id: "q:rebel-nebula:fight", label: "Prepare to fight." },
+        { id: "q:rebel-nebula:engines", label: "Fully power the engines to out-run them." },
+      ]);
+      return;
+    }
+    if (r === "chase") {
+      g.fleet += 1;
+      log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
+      result(
+        g,
+        "The ship spots you and gives chase. After some quick maneuvering you were able to lose your pursuers in the clouds. You expect they warned the fleet of your position, however.",
+        undefined,
+        ["Rebel Fleet pursuit is doubled for 1 jump."],
+      );
+      return;
+    }
+    result(g, "You power down non-essential systems and slip into the cloud. The ship never noticed you.", undefined, ["Nothing happens."]);
+  },
+  "q:rebel-nebula:fight": (g) => {
+    pageFight(g, "Prepare to fight.", "Rebel ship", "rebel-fight-choice-in-nebula");
+  },
+  // Engines level 4+. The page prints no percent.
+  "q:rebel-nebula:engines": (g) => {
+    if ((g.player.systems.engines?.level ?? 0) < 4) return;
+    result(g, "Your powerful engines allow you to out-distance the ship and eventually lose it within the nebula.", undefined, ["Nothing happens."]);
+  },
+  // Cloaking. Nothing happens.
+  "c:rebel-fight-choice-in-nebula:2": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    result(g, "You use your cloaking system to slip further into the nebula undetected.", undefined, ["Nothing happens."]);
+  },
   // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
   "c:mantis-ship-attacking-slug-ship:0": (g) => {
     pageFight(g, "You lock onto the Mantis ship and engage.", "Mantis ship", "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
@@ -1691,6 +1728,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "q:engi-distress:supplies" && g.scrap < 40) return "Need 40 scrap";
   if (id === "q:engi-distress:supplies" && g.missiles < 2) return "Need 2 missiles";
   if (id === "q:engi-distress:supplies" && g.fuel < 2) return "Need 2 fuel";
+  // Rebel fight choice in nebula. Cloaking, and Engines level 4+ on the caught follow-up.
+  if (id === "c:rebel-fight-choice-in-nebula:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
+  if (id === "q:rebel-nebula:engines" && (g.player.systems.engines?.level ?? 0) < 4) return "Needs level 4 Engines";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
   // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.

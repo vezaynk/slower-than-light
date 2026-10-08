@@ -292,6 +292,8 @@ const CORE_EVENTS: EventDef[] = [
       }
     ]
   },
+  // Auto-ship fight in nebula has no choice. Arrival calls c:auto-ship-fight-in-nebula:0.
+  // One of the five printed intros. "Fight an Auto-ship." nebula=true. unique=false.
   {
     "dest": "Auto-ship fight in nebula",
     "slug": "auto-ship-fight-in-nebula",
@@ -4375,7 +4377,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Auto-ship fight in nebula. One of the five printed intros. The fight stays c:auto-ship-fight-in-nebula:0.
+  // Auto-ship fight in nebula has no choice. Arrival calls c:auto-ship-fight-in-nebula:0.
+  // One of the five printed intros. "Fight an Auto-ship." nebula=true. unique=false.
   if (ev.slug === "auto-ship-fight-in-nebula") {
     return {
       title: ev.dest,

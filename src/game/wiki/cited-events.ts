@@ -601,7 +601,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "",
+    "body": "The moment you arrive you notice a Crystalline ship in the vicinity keeping its distance. They message you, \"The 'Rebels' that are trying to hunt YOU down are creating havoc everywhere they go.\" \"To minimize their impact on our people, we would like you to give them your flight path out of our sector. We would like to remain civil and are willing to pay you in 'scrap' for the increased danger it poses.",
     "choices": [
       {
         "id": "c:crystalline-ship-messaging-about-rebels:0",

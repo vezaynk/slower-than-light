@@ -3471,6 +3471,20 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
+  // Auto-ship near storage station in nebula. Cloaking, Improved Cloaking, Hacking, and Improved Hacking.
+  if (ev.slug === "auto-ship-near-storage-station-in-nebula") {
+    return {
+      title: ev.dest,
+      body: ev.body,
+      choices: [
+        ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
+        { id: "c:auto-ship-near-storage-station-in-nebula:2", label: "Attempt to stealthily access the space station." },
+        { id: "c:auto-ship-near-storage-station-in-nebula:3", label: "Use your stealth to access the space station." },
+        { id: "c:auto-ship-near-storage-station-in-nebula:4", label: "Try to hack the station to prevent an alert." },
+        { id: "c:auto-ship-near-storage-station-in-nebula:5", label: "Hack the station to prevent an alert." },
+      ],
+    };
+  }
   // Auto-ship near storage station. Cloaking is a blue option.
   if (ev.slug === "auto-ship-near-storage-station") {
     return {

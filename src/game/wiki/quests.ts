@@ -680,9 +680,39 @@ const CHOICES: Record<string, (g: Game) => void> = {
       pageFight(g, "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!", "Auto-ship", "auto-ship-near-storage-station");
       return;
     }
-    card(g, "The ship patrols wide around the area, successfully approaching the station while avoiding detection.", [
-      { id: "q:auto-storage:investigate", label: "Investigate the station." },
-    ]);
+    storageInvestigate(g, "The ship patrols wide around the area, successfully approaching the station while avoiding detection.");
+  },
+  // Auto-ship near storage station in nebula. Cloaking: two results, no odds. INFERRED: equal.
+  "c:auto-ship-near-storage-station-in-nebula:2": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if (pick(g, ["fight", "station"] as const) === "fight") {
+      pageFight(g, "You try to sneak past the automated ship but it quickly turns and attacks!", "Auto-ship", "auto-ship-near-storage-station-in-nebula");
+      return;
+    }
+    storageInvestigate(g, "You successfully sneak by the ship and access the station undetected.");
+  },
+  // Improved Cloaking, level 2+. Always the station.
+  "c:auto-ship-near-storage-station-in-nebula:3": (g) => {
+    if ((g.player.kits.veil?.level ?? 0) < 2) return;
+    storageInvestigate(g, "You successfully sneak by the ship and access the station undetected.");
+  },
+  // Hacking, one drone part. Two results, no odds. INFERRED: equal. The part is spent either way.
+  "c:auto-ship-near-storage-station-in-nebula:4": (g) => {
+    if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    if (pick(g, ["fight", "station"] as const) === "fight") {
+      pageFight(g, "You send a drone to hack the station but the automated ship notices and turns to attack!", "Auto-ship", "auto-ship-near-storage-station-in-nebula");
+      return;
+    }
+    storageInvestigate(g, "You successfully hack into the station and sever the connection to the automated ship. You access the station undetected.");
+  },
+  // Improved Hacking, level 2+, one drone part. Always the station.
+  "c:auto-ship-near-storage-station-in-nebula:5": (g) => {
+    if ((g.player.kits.spike?.level ?? 0) < 2 || g.player.parts < 1) return;
+    g.player.parts -= 1;
+    log(g, "Drone parts: -1.");
+    storageInvestigate(g, "You successfully hack into the station and sever the connection to the automated ship, accessing the station completely undetected.");
   },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
   // The weapon and the drone schematic are unnamed and not granted. The low scrap still is.
@@ -1204,6 +1234,13 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:auto-ship-near-sensor-station:3" && !hasTeleporter(g)) return "Needs a Teleporter";
   // Auto-ship near storage station. Cloaking, any installed level.
   if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
+  // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.
+  if (id === "c:auto-ship-near-storage-station-in-nebula:2" && (g.player.kits.veil?.level ?? 0) <= 0) return "Needs Cloaking";
+  if (id === "c:auto-ship-near-storage-station-in-nebula:3" && (g.player.kits.veil?.level ?? 0) < 2) return "Needs level 2 Cloaking";
+  if (id === "c:auto-ship-near-storage-station-in-nebula:4" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  if (id === "c:auto-ship-near-storage-station-in-nebula:4" && g.player.parts < 1) return "Need 1 drone part";
+  if (id === "c:auto-ship-near-storage-station-in-nebula:5" && (g.player.kits.spike?.level ?? 0) < 2) return "Needs level 2 Hacking";
+  if (id === "c:auto-ship-near-storage-station-in-nebula:5" && g.player.parts < 1) return "Need 1 drone part";
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
@@ -1341,6 +1378,18 @@ function laniusScoutWin(g: Game, deadCrew: boolean) {
   result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], SCOUT_INSPECT);
 }
 
+const STORAGE_INVESTIGATE: Choice[] = [{ id: "q:auto-storage:investigate", label: "Investigate the station." }];
+
+/** Auto-ship near storage station, and the nebula page. Destroyed pays medium scrap only. No crew-kill reward. */
+function autoStorageWin(g: Game, deadCrew: boolean) {
+  if (deadCrew) return false;
+  result(g, "You salvage what you can from the broken ship.", scrapOnly(g, "medium"), [], STORAGE_INVESTIGATE);
+}
+
+function storageInvestigate(g: Game, text: string) {
+  card(g, text, STORAGE_INVESTIGATE);
+}
+
 /**
  * Event pages that print their own {{Winning|destroyed=true}} / {{Winning|deadCrew=true}} reward, keyed by the slug
  * startCombat received. A page with "(default rewards)" is not listed; winCombat pays the default then.
@@ -1392,12 +1441,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "lanius-ship-absorbing-automated-scout": laniusScoutWin,
   // Auto-ship near storage station. Destroyed pays medium scrap only, then the station.
   // The page prints no crew-kill reward.
-  "auto-ship-near-storage-station": (g, deadCrew) => {
-    if (deadCrew) return false;
-    result(g, "You salvage what you can from the broken ship.", scrapOnly(g, "medium"), [], [
-      { id: "q:auto-storage:investigate", label: "Investigate the station." },
-    ]);
-  },
+  "auto-ship-near-storage-station": autoStorageWin,
+  "auto-ship-near-storage-station-in-nebula": autoStorageWin,
   // Auto-ship near sensor station. Destroyed pays low scrap only. The map reveal is not wired.
   // The page prints no crew-kill reward.
   "auto-ship-near-sensor-station": (g, deadCrew) => {

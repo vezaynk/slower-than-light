@@ -460,7 +460,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:remote-settlement",
     aliases: ["Remote settlement"],
     sectors: ["Civilian Sector"],
-    body: "",
+    body: `Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."`,
     choices: [
       {
         id: "c:remote-settlement:0",

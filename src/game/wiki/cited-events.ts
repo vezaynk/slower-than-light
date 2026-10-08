@@ -3718,6 +3718,18 @@ const NEBULA_PIRATE_INTROS = [
   "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!",
 ];
 
+// Rebel fight in nebula. Seven printed intros, no odds. INFERRED: equal.
+// The fight stays c:rebel-fight-in-nebula:0. Default rewards. No nebula environment is added.
+const NEBULA_REBEL_INTROS = [
+  "You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.",
+  "A ship bearing Rebel colors can be seen waiting near the beacon. They must have been waiting for you, since they engage immediately.",
+  "The Rebels must have anticipated you would try to lose them within the nebula. A scout is waiting for you at the beacon.",
+  "It looks like you will be unable to avoid the Rebels by traveling through the nebula. A Rebel ship is waiting for you near the beacon.",
+  "Shortly after you arrive, a Rebel ship jumps nearby. There looks to be no escape. Prepare for a fight!",
+  "Newton-knows what brings this Rebel ship so far out; its captain hails, but does a double take when he identifies your ship. They open fire.",
+  "A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage.",
+];
+
 // Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
 const ZOLTAN_FIGHT_INTROS = [
@@ -4030,6 +4042,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: NEBULA_PIRATE_INTROS[between(g, [0, 4])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Rebel fight in nebula. One of the seven printed intros. The fight stays c:rebel-fight-in-nebula:0.
+  if (ev.slug === "rebel-fight-in-nebula") {
+    return {
+      title: ev.dest,
+      body: NEBULA_REBEL_INTROS[between(g, [0, 6])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

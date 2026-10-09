@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2842 |
+| Behaviors checked | 2843 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4752,6 +4752,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
   - [x] One of the two printed intros is shown before the default Rock pirate ship fight, which still starts beside a red giant.
+  - [x] The fight line starts the Rock pirate ship on arrival, and it is not a button.
 
 - [x] Rock ship being mined by Lanius
   - [x] same title as "Rock Ship Being Mined by Lanius" with different capitalization.

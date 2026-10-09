@@ -4740,7 +4740,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   ship.kits = {};
   for (const [kitId, kit] of Object.entries(spec.kits)) {
     if (!kit) continue;
-    ship.kits[kitId as KitId] = {
+    const fitted: Kit = {
       id: kitId as KitId,
       level: kit.level,
       power: kit.power,
@@ -4750,6 +4750,9 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       on: kit.on ?? kit.power > 0,
       aux: 0,
     };
+    // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.
+    if (kit.loadout?.length) fitted.loadout = [...kit.loadout];
+    ship.kits[kitId as KitId] = fitted;
   }
   // Kit rooms: Systems, "Each system occupies one predetermined room specific to the ship" (layouts.ts seatKits).
   seatKits(ship);

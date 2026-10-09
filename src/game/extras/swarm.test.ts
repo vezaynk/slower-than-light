@@ -18,6 +18,7 @@ import {
   activateDroneSlot,
   deploy,
   depowerDrone,
+  onJumpSwarm,
   hurtRoomDrones,
   installSwarm,
   installSwarmBundle,
@@ -1541,5 +1542,75 @@ describe("drone schematic activation", () => {
     assert.equal(activateDroneSlot(g, 1), true);
     assert.equal(kit.idle, undefined);
     assert.equal(g.player.parts, 1);
+  });
+});
+
+describe("Engi B paired System Repair drones", () => {
+  it("fits both schematics, spends one part each, and repairs two rooms at once", () => {
+    // The Engi Cruiser, Layout B: System Repair Drone (x2). Each activation spends one part.
+    const g = createGame(3, "engi-b");
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    assert.deepEqual(kit.loadout, ["patch", "patch"]);
+    kit.power = 2;
+    const parts = g.player.parts;
+    assert.equal(activateDroneSlot(g, 0), true);
+    assert.equal(activateDroneSlot(g, 1), true);
+    assert.equal(g.player.parts, parts - 2);
+    assert.equal(activateDroneSlot(g, 0), true);
+    assert.equal(g.player.parts, parts - 2);
+    const units = kit.drones ?? [];
+    assert.equal(units.length, 2);
+    assert.equal(units.every((unit) => unit.alive && unit.kind === "patch"), true);
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    const shields = g.player.rooms.find((room) => room.system === "shields");
+    assert.ok(weapons && shields);
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.weapons.fix = 0;
+    g.player.systems.shields.damage = 1;
+    g.player.systems.shields.fix = 0;
+    units[0].room = weapons.id;
+    units[0].path = [];
+    units[0].stick = weapons.id;
+    units[1].room = shields.id;
+    units[1].path = [];
+    units[1].stick = shields.id;
+    tickSwarm(g, 6.24);
+    assert.equal(g.player.systems.weapons.damage, 1);
+    assert.equal(g.player.systems.shields.damage, 1);
+    tickSwarm(g, 0.01);
+    assert.equal(g.player.systems.weapons.damage, 0);
+    assert.equal(g.player.systems.shields.damage, 0);
+    onJumpSwarm(g);
+    assert.equal(units[0].alive, true);
+    assert.equal(units[1].alive, true);
+  });
+
+  it("powers only the first repair drone when one bar is fed", () => {
+    const g = createGame(4, "engi-b");
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    assert.equal(kit.power, 1);
+    assert.equal(activateDroneSlot(g, 0), true);
+    assert.equal(activateDroneSlot(g, 1), true);
+    const units = kit.drones ?? [];
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    const shields = g.player.rooms.find((room) => room.system === "shields");
+    assert.ok(weapons && shields);
+    g.player.systems.weapons.damage = 1;
+    g.player.systems.weapons.fix = 0;
+    g.player.systems.shields.damage = 1;
+    g.player.systems.shields.fix = 0;
+    units[0].room = weapons.id;
+    units[0].path = [];
+    units[0].stick = weapons.id;
+    units[1].room = shields.id;
+    units[1].path = [];
+    units[1].stick = shields.id;
+    tickSwarm(g, 6.25);
+    assert.equal(units[0].powered, true);
+    assert.equal(units[1].powered, false);
+    assert.equal(g.player.systems.weapons.damage, 0);
+    assert.equal(g.player.systems.shields.damage, 1);
   });
 });

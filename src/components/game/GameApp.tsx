@@ -1243,6 +1243,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               const name = key ? DRONE_LOOKS[key].name : kind;
               const dragging = drones.from === index;
               const drop = drones.over === index && drones.from !== index;
+              const pairedRepair = (swarm?.loadout?.filter((id) => id === "patch").length ?? 0) > 1;
+              const slotDark = !!swarm?.idle && (kind === swarm.target || pairedRepair);
               return (
                 <button
                   key={`${kind}-${index}`}
@@ -1250,8 +1252,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   data-tray="drones"
                   data-slot={index}
                   draggable={false}
-                  className={`gun-slot${swarm?.idle && kind === swarm.target ? " is-dark" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                  aria-label={`${name} drone slot ${index + 1}${swarm?.idle && kind === swarm.target ? ". Depowered" : ""}`}
+                  className={`gun-slot${slotDark ? " is-dark" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                  aria-label={`${name} drone slot ${index + 1}${slotDark ? ". Depowered" : ""}`}
                   onPointerDown={(e) => {
                     drones.onPointerDown(index, e);
                     armHold(e, () => act((g) => depowerDrone(g)));

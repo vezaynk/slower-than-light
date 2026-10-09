@@ -239,6 +239,12 @@ export function toggleSwarmPower(g: Game): void {
  */
 export function depowerDrone(g: Game): boolean {
   const kit = g.player.kits.swarm;
+  // Two fitted schematics share one idle switch. Each still keeps its own deployment.
+  if (pairedRepair(kit)) {
+    if (!kit?.drones?.some((unit) => unit.alive)) return false;
+    kit.idle = true;
+    return true;
+  }
   if (!kit?.on || !kit.target) return false;
   const need = isKind(kit.target) ? DRONE_POWER[kit.target] : SCHEMATIC_POWER[kit.target];
   const zoltan = kit.zoltan ?? 0;
@@ -272,6 +278,11 @@ export function playerDroneSlots(kit: Kit | undefined): string[] {
   return kit.target ? [kit.target] : [];
 }
 
+/** The Engi Cruiser, Layout B: System Repair (x2). Two of that id are two drones, not one swapped schematic. */
+function pairedRepair(kit: Kit | undefined): boolean {
+  return (kit?.loadout?.filter((kind) => kind === "patch").length ?? 0) > 1;
+}
+
 /**
  * Drone Control, Overview: "Activating a drone is done in a similar way as activating weapons,
  * by clicking on the installed drone schematic or pressing the key (5-7)."
@@ -280,7 +291,10 @@ export function playerDroneSlots(kit: Kit | undefined): string[] {
  * The first schematic is key 5, the second key 6, and the third key 7.
  */
 export function activateDroneSlot(g: Game, index: number): boolean {
-  const kind = playerDroneSlots(g.player.kits.swarm)[index];
+  const kit = g.player.kits.swarm;
+  // The Engi Cruiser, Layout B: two System Repair slots. The index picks which one.
+  if (pairedRepair(kit)) return deploySlot(g, index);
+  const kind = playerDroneSlots(kit)[index];
   if (!kind) return false;
   return deploy(g, kind);
 }
@@ -338,6 +352,90 @@ export function deploy(g: Game, kind: string): boolean {
   delete kit.bearing;
   log(g, `Drone Control deploys ${kind}.`);
   return true;
+}
+
+/** One schematic on a hull that fits more than one. A second copy of the same id is its own drone. */
+function playerSlotUnits(g: Game, kit: Kit): DroneUnit[] {
+  const loadout = kit.loadout ?? [];
+  if (!kit.drones || kit.drones.length !== loadout.length) {
+    kit.drones = loadout.map((kind, i) => ({
+      id: `pd-${i}-${nextId(g)}`,
+      kind,
+      alive: false,
+      powered: false,
+      aux: 0,
+      cool: 0,
+    }));
+  }
+  return kit.drones;
+}
+
+/**
+ * The Engi Cruiser, Layout B: System Repair (x2). Each slot spends one drone part when that drone is not already out.
+ * Drone Control, Overview: the 10 second rebuild is for the destroyed drone, not the other schematic.
+ */
+function deploySlot(g: Game, index: number): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit?.loadout || index < 0 || index >= kit.loadout.length) return false;
+  const unit = playerSlotUnits(g, kit)[index];
+  if (!unit || unit.kind !== "patch") return false;
+  if (unit.alive) {
+    delete kit.idle;
+    kit.on = true;
+    return true;
+  }
+  if (unit.cool > 0) {
+    log(g, `Drone Control is rebuilding: ${Math.ceil(unit.cool)} s.`);
+    return false;
+  }
+  if (g.player.parts < PART_COST) {
+    log(g, "Drone Control needs a drone part.");
+    return false;
+  }
+  deployUnit(g, g.player, unit);
+  delete kit.idle;
+  kit.on = true;
+  log(g, `Drone Control deploys ${unit.kind}.`);
+  return true;
+}
+
+/**
+ * Two fitted crew drones. Bars fill slots from the first. A bar that cannot cover the next drone leaves it dark.
+ * System Repair still walks and repairs at an Engi's pace. The Drone Reactor Booster only changes the walk.
+ */
+function tickPlayerSlots(g: Game, kit: Kit, dt: number) {
+  const units = playerSlotUnits(g, kit);
+  const pool = dronePool(kit);
+  let any = false;
+  for (const unit of units) {
+    if (!unit.alive) {
+      unit.powered = false;
+      if (unit.cool > 0) unit.cool = Math.max(0, unit.cool - dt);
+      continue;
+    }
+    any = true;
+    if (unit.kind === "patch" && unit.dying) {
+      tickDyingRepair(g, g.player, unit, dt, false, () => {
+        unit.dying = undefined;
+        unit.alive = false;
+        unit.powered = false;
+        unit.cool = REDEPLOY_S;
+        unit.coldFires = true;
+        log(g, "Your repair drone finishes the bar and breaks apart.");
+      });
+      continue;
+    }
+    const need = SCHEMATIC_POWER[unit.kind] ?? Number.POSITIVE_INFINITY;
+    unit.powered = !kit.idle && takePowerSlot(need, true, pool);
+    if (unit.kind !== "patch") continue;
+    noteRepairPower(unit, g.player, unit.powered);
+    if (!unit.powered) {
+      maybeHealBay(g.player, unit, dt);
+      continue;
+    }
+    tickRepair(g, g.player, unit, dt, "player", false, crewDroneSpeed(g.augments.includes("booster")));
+  }
+  kit.on = any;
 }
 
 function shoots(
@@ -1323,6 +1421,11 @@ export function tickSwarm(g: Game, dt: number) {
   const kit = g.player.kits.swarm;
   // @agent:drones. The 10 second redeploy delay after a destroyed drone (deploy). It runs whether or not bars are fed.
   if (kit && (kit.lost ?? 0) > 0) kit.lost = Math.max(0, (kit.lost ?? 0) - dt);
+  // The Engi Cruiser, Layout B: two System Repair schematics, each its own drone.
+  if (kit && pairedRepair(kit)) {
+    tickPlayerSlots(g, kit, dt);
+    return;
+  }
   if (!kit?.target) return;
   // System Repair dying animation runs even with no power and through a stun. The bar, not the hit, ends it.
   if (kit.target === "patch" && kit.on && kit.dying) {
@@ -2500,6 +2603,18 @@ function defenseStray(g: Game, defender: "player" | "enemy", kind: string, shot:
  */
 export function onJumpSwarm(g: Game) {
   const kit = g.player.kits.swarm;
+  if (!kit?.on && !kit?.drones?.some((unit) => unit.alive)) return;
+  // Crew drones stay aboard. A second System Repair is a crew drone too. A combat drone in the list is still lost.
+  if (kit && pairedRepair(kit)) {
+    for (const unit of kit.drones ?? []) {
+      if (!unit.alive || CREW_DRONES.has(unit.kind)) continue;
+      unit.alive = false;
+      unit.powered = false;
+      unit.aux = 0;
+    }
+    kit.on = (kit.drones ?? []).some((unit) => unit.alive);
+    return;
+  }
   if (!kit?.on) return;
   if (kit.target != null && CREW_DRONES.has(kit.target)) return;
   kit.on = false;

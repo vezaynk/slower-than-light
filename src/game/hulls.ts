@@ -28,6 +28,8 @@ export type HullKit = {
   power: number;
   /** Swarm schematic id, when the kit is drone control. */
   target?: string | null;
+  /** Fitted schematics, in slot order. Two of the same id are two drones. */
+  loadout?: string[];
   /** Defaults to on when power is above 0. */
   on?: boolean;
 };
@@ -241,11 +243,11 @@ export const HULLS: HullSpec[] = [
     weapons: ["heavyion", "heavy"],
     crew: [{ kin: "shell", room: "p-pilot" }],
     // The Engi Cruiser, Layout B: Augmentations lists Drone Reactor Booster.
-    // Drones (3 slots) lists Anti-Personnel and System Repair x2. This build stores one schematic.
-    // System Repair stays fitted. The other two names stay unfitted.
-    kits: { swarm: { level: 3, power: 1, target: "patch" } },
+    // Drones (3 slots): Anti-Personnel, and System Repair (x2). Both repair schematics are fitted.
+    // Anti-Personnel stays a name. This build does not fly that third schematic.
+    kits: { swarm: { level: 3, power: 1, loadout: ["patch", "patch"] } },
     augments: ["booster"],
-    unfitted: ["Anti-Personnel Drone", "System Repair Drone (second)"],
+    unfitted: ["Anti-Personnel Drone"],
   },
   /**
    * Wiki page "The Engi Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.

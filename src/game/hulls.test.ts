@@ -90,7 +90,9 @@ describe("hangar hulls", () => {
     assert.deepEqual(b.augments, ["booster"]);
     assert.equal(b.unfitted.includes("Drone Reactor Booster"), false);
     assert.equal(b.unfitted.includes("Anti-Personnel Drone"), true);
-    assert.equal(b.unfitted.includes("System Repair Drone (second)"), true);
+    assert.equal(b.unfitted.includes("System Repair Drone (second)"), false);
+    assert.deepEqual(b.kits.swarm?.loadout, ["patch", "patch"]);
+    assert.deepEqual(createGame(1, "engi-b").player.kits.swarm?.loadout, ["patch", "patch"]);
     assert.deepEqual(c.augments, ["scrambler"]);
     assert.deepEqual(c.unfitted, []);
     assert.deepEqual(createGame(1, "engi-b").augments, ["booster"]);

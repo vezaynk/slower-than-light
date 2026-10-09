@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2822 |
+| Behaviors checked | 2823 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5245,6 +5245,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A stated scrap tier, trade, hull change, fleet delay, or fight on that panel runs.
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
+  - [x] The fight line starts the Slug ship on arrival, and it is not a button.
 
 - [x] Slug fight in ion storm
   - [x] same title as "Slug Fight in Ion Storm" with different capitalization.

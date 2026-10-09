@@ -120,9 +120,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   /**
-   * "A pirate ship was lying in wait inside this asteroid field."
-   * "Turn and fight."
-   * "Fight a Pirate ship (default rewards)."
+   * "Fight a Pirate ship (default rewards)." Pirate fight in asteroid field has no choice.
+   * Arrival calls this fight. The wait sentence is the card body. asteroidfield=true. unique=false.
    */
   {
     dest: "Pirate fight in asteroid field",

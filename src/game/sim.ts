@@ -22,7 +22,6 @@ import {
   extraEvade,
   ftlBoost,
   ftlFrozen,
-  negateHull,
   negateIon,
   negateSystem,
   noteDeath,
@@ -2709,7 +2708,7 @@ function strikeRoom(
   // Bomb (Weapons) lead: bombs deal no hull damage. System damage above still lands.
   // Crew damage on a bomb is often its own figure (BOMB_GAPS). This still uses 15 per system point from Weapons, "Weapons: general information".
   if (shot.kind !== "bomb" && hull > 0) {
-    const held = playerHurt && negateHull(g);
+    const held = platingNegates(g, ship, playerHurt, shot.breachChance);
     const before = ship.hull;
     if (!held) ship.hull = Math.max(0, ship.hull - hull);
     else log(g, "Rock Plating held the hull.");
@@ -3663,11 +3662,23 @@ function flareShieldsUp(ship: Ship): boolean {
 }
 
 function flareHull(g: Game, ship: Ship, playerHurt: boolean) {
-  const held = playerHurt && negateHull(g);
+  // Augmentations, Rock Plating: "Doesn't protect from solar flares, fire and sabotage damage."
   const before = ship.hull;
-  if (!held) ship.hull = Math.max(0, ship.hull - 1);
-  else log(g, "Rock Plating held the hull.");
+  ship.hull = Math.max(0, ship.hull - 1);
   if (playerHurt && ship.hull < before && g.augments.includes("vengeance") && vengeanceFires(rand(g))) looseShard(g);
+}
+
+/**
+ * Rock Ships, lead: "They always have Rock Plating augmentation."
+ * Augmentations, Rock Plating: "15 percent chance to negate incoming hull damage (hit systems will still be damaged)."
+ * "Doesn't protect from damage sources with 100% breach chance -- i.e. ASBs."
+ * The player copy is g.augments "keel". A Rock enemy has the augment by the Rock Ships lead.
+ */
+function platingNegates(g: Game, ship: Ship, playerHurt: boolean, breachChance: number): boolean {
+  if (breachChance >= 1) return false;
+  const fitted = playerHurt ? g.augments.includes("keel") : ship.faction === "rock";
+  if (!fitted) return false;
+  return rand(g) < 0.15;
 }
 
 function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {

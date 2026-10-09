@@ -240,10 +240,12 @@ export const HULLS: HullSpec[] = [
     },
     weapons: ["heavyion", "heavy"],
     crew: [{ kin: "shell", room: "p-pilot" }],
-    // One schematic slot. System Repair is the one this build can store. The other two are unfitted.
+    // The Engi Cruiser, Layout B: Augmentations lists Drone Reactor Booster.
+    // Drones (3 slots) lists Anti-Personnel and System Repair x2. This build stores one schematic.
+    // System Repair stays fitted. The other two names stay unfitted.
     kits: { swarm: { level: 3, power: 1, target: "patch" } },
-    augments: [],
-    unfitted: ["Drone Reactor Booster", "Anti-Personnel Drone", "System Repair Drone (second)"],
+    augments: ["booster"],
+    unfitted: ["Anti-Personnel Drone", "System Repair Drone (second)"],
   },
   /**
    * Wiki page "The Engi Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -283,8 +285,9 @@ export const HULLS: HullSpec[] = [
       spike: { level: 1, power: 1 },
       cradle: { level: 1, power: 0 },
     },
-    augments: [],
-    unfitted: ["Defense Scrambler"],
+    // The Engi Cruiser, Layout C: Augmentations lists Defense Scrambler.
+    augments: ["scrambler"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Federation Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.

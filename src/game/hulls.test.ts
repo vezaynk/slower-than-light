@@ -82,6 +82,21 @@ describe("hangar hulls", () => {
     assert.deepEqual(powerMask(g.player), [true, false, true]);
   });
 
+  it("fits the Engi B and C printed augments", () => {
+    const b = HULLS.find((h) => h.id === "engi-b");
+    const c = HULLS.find((h) => h.id === "engi-c");
+    assert.ok(b);
+    assert.ok(c);
+    assert.deepEqual(b.augments, ["booster"]);
+    assert.equal(b.unfitted.includes("Drone Reactor Booster"), false);
+    assert.equal(b.unfitted.includes("Anti-Personnel Drone"), true);
+    assert.equal(b.unfitted.includes("System Repair Drone (second)"), true);
+    assert.deepEqual(c.augments, ["scrambler"]);
+    assert.deepEqual(c.unfitted, []);
+    assert.deepEqual(createGame(1, "engi-b").augments, ["booster"]);
+    assert.deepEqual(createGame(1, "engi-c").augments, ["scrambler"]);
+  });
+
   it("gives The Kestrel the Burst Laser II and Artemis", () => {
     const g = createGame(2, "kestrel-a");
     assert.deepEqual(

@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2933 |
+| Behaviors checked | 2935 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -1583,6 +1583,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Engi Med-bot Dispersal
   - [x] heals your crew at 1.6 HP per second outside the medbay while that medbay is powered.
+  - [x] An Engi enemy uses that same 1.6 heal, and it is not added to the player's augment list.
   - [x] A clone bay stops it.
   - [x] Crew on another ship are skipped.
   - [x] Medbay level does not change the rate.
@@ -1607,6 +1608,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Engi Ships
   - [x] No playable control, number, layout, or rule.
+  - [x] An Engi ship heals its own crew at 1.6 HP per second outside a powered medbay, and a clone bay or no medbay stops it.
 
 - [x] Engi Store
   - [x] No playable control, number, layout, or rule.

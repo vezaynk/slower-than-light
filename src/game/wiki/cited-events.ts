@@ -31,7 +31,7 @@ import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { allMantisCrew, between, crystalBoarders, humanBoarders, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { allMantisCrew, between, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -3588,7 +3588,7 @@ function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
 
 /** True when this id is one of the wired choices, including a price the ship cannot pay. */
 export function citedOwns(id: string): boolean {
-  return findChoice(id) != null || tradeTake(id) != null;
+  return findChoice(id) != null || tradeTake(id) != null || id.startsWith("c:slug-moons-question:");
 }
 
 // @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
@@ -4202,9 +4202,95 @@ const REBEL_CHECKPOINT_HIDE = [
   "Stay out of their way and charge your FTL drive.",
 ];
 
+// Four printed tracks. The page gives no odds. INFERRED: each count is equally likely.
+const SLUG_MOON_COUNTS = [5, 6, 7, 11] as const;
+
+const SLUG_MOON_WORD: Record<(typeof SLUG_MOON_COUNTS)[number], string> = {
+  5: "five",
+  6: "six",
+  7: "seven",
+  11: "eleven",
+};
+
+const SLUG_MOON_QUESTION =
+  'As you drift closer, you are contacted by a Slug marooned on the moon\'s surface. "I shall join your crew, sssay I, if you can answer me this simple quesssstion. How many moons are there in orbit here?"';
+
+const SLUG_MOON_CORRECT =
+  '"That isss... correct. You sssurprise me. Human, is it? Yesss... we can be partners." The Slug beams aboard and joins your crew!';
+
+const SLUG_MOON_WRONG =
+  '"That issss... incorrect." Further, I have taken advantage of your lack of acuity to beam aboard your ship and steal your stuff!';
+
+const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(5|6|7|11)$/;
+const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(5|6|7|11):(5|6|7|11)$/;
+
+function slugMoonWord(n: number): string {
+  return SLUG_MOON_WORD[n as (typeof SLUG_MOON_COUNTS)[number]] ?? "five";
+}
+
+/**
+ * Slug moons question. The note: a regular beacon, and a nebula environment on arrival.
+ * beacon.kind "nebula" is that environment (fleet step and the anti-ship battery).
+ */
+function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
+  b.kind = "nebula";
+  const n = SLUG_MOON_COUNTS[between(g, [0, SLUG_MOON_COUNTS.length - 1])]!;
+  return {
+    title,
+    body: `You arrive near the distress beacon's signal.\n\nYou track the distress beacon with difficulty to one of the ${slugMoonWord(n)} moons of a planet hidden in the nebula.`,
+    choices: [{ id: `c:slug-moons-question:ask:${n}`, label: "Investigate." }],
+  };
+}
+
+function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
+  if (!id.startsWith("c:slug-moons-question:")) return null;
+  const ask = SLUG_MOON_ASK.exec(id);
+  if (ask) {
+    const n = Number(ask[1]);
+    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
+    ctx.g.event = {
+      title,
+      body: SLUG_MOON_QUESTION,
+      choices: [5, 6, 7, 11].map((pick) => ({
+        id: `c:slug-moons-question:answer:${n}:${pick}`,
+        label: `${slugMoonWord(pick)[0]!.toUpperCase()}${slugMoonWord(pick).slice(1)}.`,
+      })),
+    };
+    ctx.g.phase = "event";
+    ctx.g.paused = true;
+    return true;
+  }
+  const answer = SLUG_MOON_ANSWER.exec(id);
+  if (!answer) return false;
+  const correct = Number(answer[1]);
+  const picked = Number(answer[2]);
+  if (picked === correct) {
+    // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
+    const joined = joinCrew(ctx.g, "Slug");
+    const line = joined ? "You receive a Slug crewmember." : "There is no room aboard for the new crewmember.";
+    ctx.note(line);
+    citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
+    return true;
+  }
+  // "You lose 35 scrap, 2-4 fuel, and 1-2 drone parts." Inclusive ranges.
+  // A shortfall returns before any spend, the same way a cited price does.
+  const fuel = roll(ctx, 2, 4);
+  const parts = roll(ctx, 1, 2);
+  const g = ctx.g;
+  if (g.scrap < 35 || g.fuel < fuel || g.player.parts < parts) return false;
+  g.scrap -= 35;
+  g.fuel -= fuel;
+  g.player.parts -= parts;
+  const paid = ["Scrap: -35.", `Fuel: -${fuel}.`, `Drone parts: -${parts}.`];
+  for (const line of paid) ctx.note(line);
+  citedResult(g, SLUG_MOON_WRONG, paid);
+  return true;
+}
+
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
+  if (ev.slug === "slug-moons-question") return slugMoonsCard(g, b, ev.dest);
   if (ev.slug === "lanius-trader") {
     const offer = rollLaniusTrader(g, false);
     // The offer is rolled first so the shown trade stays on the same draws. The intro uses the next draw.
@@ -5043,6 +5129,8 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
 
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
+  const moons = slugMoonsQuestion(ctx, id);
+  if (moons !== null) return moons;
   const take = tradeTake(id);
   if (take) {
     const g = ctx.g;

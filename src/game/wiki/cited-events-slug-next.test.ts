@@ -96,7 +96,7 @@ describe("cited slug-next events", () => {
   it("exports only candidate titles, with sectors copied from filtered Locations", () => {
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.deepEqual(dests, []);
+    assert.deepEqual(dests, ["Slug moons question"]);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest));
       assert.equal(ev.slug, slug(ev.dest));

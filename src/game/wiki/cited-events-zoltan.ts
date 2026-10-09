@@ -174,6 +174,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Zoltan fight in asteroid field has no choice. Arrival calls c:zoltan-fight-in-asteroid-field:0.
+  // "Fight a Zoltan ship (default rewards)." asteroidfield=true. unique=true.
   {
     dest: "Zoltan fight in asteroid field",
     slug: "zoltan-fight-in-asteroid-field",

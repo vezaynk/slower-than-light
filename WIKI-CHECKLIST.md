@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2916 |
-| Behaviors open | 542 |
+| Behaviors checked | 2918 |
+| Behaviors open | 543 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -560,9 +560,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A drone in that room that already has health takes half that crew damage.
   - [x] A player beam hits the rooms on the straight line between two clicks on the enemy ship.
   - [x] A tiny edge counts.
-  - [x] Printed beam length does not shorten that line, and Halberd's 3–5 room sentence is not the room rule.
+  - [x] A drawn beam stops at the printed tile length, and Halberd's 3–5 room sentence is not the room rule.
   - [x] An enemy beam still starts in the aimed room and adds one neighbour (INFERRED).
   - [ ] Printed length, pierce, and chain stay gaps.
+    - [x] A longer swipe stops at Mini 1, Pike 3.8, Hull 2.2, Halberd 1.8, Glaive 1.8, Fire 3.1, and Anti-Bio 3.1 tiles, and a closer click stays short.
+    - [ ] Pierce stays a gap.
+    - [ ] Chain stays a gap.
   - [x] Fire Beam has no crew figure.
   - [x] One regular shield blocks a Fire Beam, and the fire roll still lands when that bubble is down.
   - [x] A beam's first Zoltan Shield tick is at 33 percent of the path and the second is at 80 percent, except a Beam Drone 1 or a Fire Drone.
@@ -2172,6 +2175,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [ ] Glaive Beam
   - [x] Fitted on Stealth B.
   - [ ] Beam length and shield profile stay in gaps.
+    - [x] A drawn Glaive stops at 1.8 tiles.
+    - [ ] Shield profile stays a gap.
   - [x] Cloak power 0 is INFERRED so the 4-power gun fits reactor 7.
 
 - [x] Guides and Tips

@@ -5111,6 +5111,7 @@ function arrive(g: Game, b: Beacon) {
   // Rebel fight (Engi): "Fight a Rebel ship (default rewards)." The printed sentence is the card body. unique=false.
   // Rebel fight (Crystal): "Fight a Rebel ship (default rewards)." The printed sentence is the card body. unique=false.
   // Rock fight in nebula: "Fight a Rock ship (default rewards)." The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
+  // Rebel fight in plasma storm: "Fight a Rebel ship (default rewards)." The printed sentence is the card body. plasmastorm=true. unique=true. The beacon stays outside a nebula, so the storm and the full fleet step stay as already applied.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5172,7 +5173,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:pirate-fight-engi" ||
       b.flag === "cited:rebel-fight-engi" ||
       b.flag === "cited:rebel-fight-crystal" ||
-      b.flag === "cited:rock-fight-in-nebula") &&
+      b.flag === "cited:rock-fight-in-nebula" ||
+      b.flag === "cited:rebel-fight-in-plasma-storm") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

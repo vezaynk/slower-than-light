@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
+import { commitJump, createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
 import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
 
 describe("Rebel fight in plasma storm", () => {
@@ -55,5 +55,39 @@ describe("Rebel fight in plasma storm", () => {
     beacon.flag = "cited:rebel-fight-in-plasma-storm";
     beacon.name = "Rebel fight in plasma storm";
     assert.equal(ionStormBeacon(beacon, g.fleet), false);
+  });
+
+  it("starts the Rebel ship on arrival and leaves no button", () => {
+    // The page has no choice. The printed sentence, then "Fight a Rebel ship." plasmastorm=true. unique=true.
+    const BODY =
+      "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.";
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:rebel-fight-in-plasma-storm";
+    dest.name = "Rebel fight in plasma storm";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.sectorName = "Slug Home Nebula";
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "rebel");
+    assert.equal(g.enemy?.pirate, false);
+    assert.equal(g.fightEvent, "rebel-fight-in-plasma-storm");
+    assert.equal(g.player.storm, true);
+    assert.equal(g.enemy?.storm, true);
+    assert.equal(dest.kind, "event");
+    assert.equal(g.fleet, 1);
+    assert.ok(g.log.includes(BODY));
   });
 });

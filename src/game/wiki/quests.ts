@@ -3638,6 +3638,16 @@ export const PAGE_WINS: Record<string, Win> = {
   // Then steal the supplies or leave the civilians. Default salvage is not paid.
   "rebel-ship-supplying-civilians": rebelSupplyWin,
   "zoltan-retake-the-ship": zoltanRaftWin,
+  // Refugee (Zoltan). Destroyed pays medium scrap with resources. A crew kill pays high.
+  // "Contact the refugee ship." pays low scrap with resources in filler-events.ts.
+  "refugee-zoltan": (g, deadCrew) => {
+    const text = deadCrew
+      ? "The Zoltan ship, now empty of lifeforms, provides easy salvage."
+      : "The Zoltan ship breaks apart and you salvage what you can.";
+    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
+      { id: "s:refugee-zoltan:contact", label: "Contact the refugee ship." },
+    ]);
+  },
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Mantis ship attacking Crystal. The same two endings and the same Crystal ship contact.

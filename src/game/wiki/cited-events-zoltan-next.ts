@@ -3,9 +3,10 @@
  * Redirects are not followed: Homeworlds, Shield Bypass, Trade Hub, free
  * stuff, science ship, Life Raft, and Research Facility state no outcome.
  * Zoltan odd moon is the playable card. Its branches run in cited-events.ts.
- * Great Eye, ship asks to dock, and the Refugee template hail each branch
- * across more than one result. A nothing or blue option does not qualify a
- * page by itself. Zoltan Shield Bypass is the augment article.
+ * Refugee (Zoltan) is the playable card. Its hail runs in filler-events.ts.
+ * Great Eye and ship asks to dock each branch across more than one result.
+ * A nothing or blue option does not qualify a page by itself. Zoltan Shield
+ * Bypass is the augment article.
  */
 
 export type CitedFx =
@@ -47,6 +48,22 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Leave it be.",
         fx: [{ k: "nothing" }],
       },
+    ],
+  },
+  // Refugee (Zoltan). Template:Drifting Refugee Ship, introtext=nodistress, type=zoltan.
+  // Zoltan Controlled Sector and Zoltan Homeworlds. unique=false. LRSmap=noship.
+  // Hail is a trade or the Zoltan fight. Those branches run in filler-events.ts.
+  // type=zoltan does not wrap the trade in DuplicateEvent|4, and it does not roll the pirate or Slug hails.
+  {
+    dest: "Refugee (Zoltan)",
+    slug: "refugee-zoltan",
+    flag: "cited:refugee-zoltan",
+    aliases: ["Refugee (Zoltan)"],
+    sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
+    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    choices: [
+      { id: "c:refugee-zoltan:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a Zoltan ship." }] },
+      { id: "c:refugee-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
 ];

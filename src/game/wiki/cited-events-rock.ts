@@ -73,6 +73,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rock ship (default rewards)." Rock fight has no choice. Arrival calls this fight. One of the eight printed intros. unique=false.
   {
     dest: "Rock fight",
     slug: "rock-fight",

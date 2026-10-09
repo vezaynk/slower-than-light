@@ -5095,6 +5095,7 @@ function arrive(g: Game, b: Beacon) {
   // Lanius fight distress: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. distress=true. unique=true.
   // Lanius fight in asteroid field: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. asteroidfield=true. unique=true.
   // Lanius fight near pulsar: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. pulsar=true. unique=true.
+  // Rock fight: "Fight a Rock ship (default rewards)." One of the eight printed intros. unique=false.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5140,7 +5141,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:lanius-fight" ||
       b.flag === "cited:lanius-fight-distress" ||
       b.flag === "cited:lanius-fight-in-asteroid-field" ||
-      b.flag === "cited:lanius-fight-near-pulsar") &&
+      b.flag === "cited:lanius-fight-near-pulsar" ||
+      b.flag === "cited:rock-fight") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

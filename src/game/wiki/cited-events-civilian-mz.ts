@@ -103,7 +103,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Pirate ship (default rewards)." */
+  /** "Fight a Pirate ship (default rewards)." Pirate fight (Lanius) has no choice. Arrival calls this fight. unique=false. */
   {
     dest: "Pirate fight (Lanius)",
     slug: "pirate-fight-lanius",

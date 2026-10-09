@@ -74,4 +74,21 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       { id: "c:refugee-distress-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
+  // Research station with no response. Pirate Controlled Sector. unique=true. LRSmap=noship.
+  // The noinclude intro. Dock, leave, the Anti-Personnel Drone, and the Lifeform Scanner run in quests-b.ts.
+  // The includeonly intro stays on Merchant's Delivery.
+  {
+    dest: "Research station with no response",
+    slug: "research-station-with-no-response",
+    flag: "cited:research-station-with-no-response",
+    aliases: ["Research station with no response"],
+    sectors: ["Pirate Controlled Sector"],
+    body: "You arrive to find a small research station putting out a distress signal. There is no response to your hails.",
+    choices: [
+      { id: "c:research-station-with-no-response:0", label: "Dock with the station and investigate.", fx: [{ k: "note", text: "The station investigation." }] },
+      { id: "c:research-station-with-no-response:1", label: "Leave it alone.", fx: [{ k: "nothing" }] },
+      { id: "c:research-station-with-no-response:2", label: "Send your battle drone in to help.", fx: [{ k: "note", text: "Nothing, or medium scrap with resources." }] },
+      { id: "c:research-station-with-no-response:3", label: "Run advanced life scans.", fx: [{ k: "note", text: "Medium scrap with resources, or nothing." }] },
+    ],
+  },
 ];

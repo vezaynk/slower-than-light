@@ -16,7 +16,8 @@
  * Zoltan ship prints no ref: default rows.
  *
  * Shipless boarders (Research station with no response) run through beginBoarding (sim.ts): no enemy hull, same melee.
- * Not wired: the Anti-Personnel Drone blue option (no Anti-Personnel Drone in this game: wiki/drones-missing.ts).
+ * The standalone card lists the Anti-Personnel Drone and the Lifeform Scanner. The drone's combat stays in drones-missing.ts.
+ * Merchant's Delivery does not list either blue option.
  */
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
@@ -303,11 +304,83 @@ function investigateCargo(g: Game) {
 
 /** Research station with no response, as the Merchant's Delivery "station doesn't respond" subevent ({{:...}} include). */
 function researchStation(g: Game, intro: string) {
-  // The Anti-Personnel Drone blue option is not listed (no such drone here); the Life Scanner option is <noinclude>.
+  // The standalone card lists the Anti-Personnel Drone and the Lifeform Scanner. This include does not.
   card(g, `${intro}\n\nYou find the small research station and discover that it's putting out a distress signal. Strangely, there is no response to your hails.`, [
     { id: "q:research:dock", label: "Dock with the station and investigate." },
     { id: "q:research:leave", label: "Leave it alone." },
   ]);
+}
+
+const APD_TEAR = "You send your Anti-Personnel drone to explore the station. What you find is disconcerting... It appears that something has caused the scientists and guards to tear each other to pieces. You abandon the drone on the station for fear that it is contagious.";
+const APD_MOB = "Once on board the station, your drone is immediately beset by frenzied scientists and guards. It eventually gets torn apart by the mob but it has bought you enough time to disengage from the station and escape into empty space.";
+const APD_CAMERAS = "The cameras mounted to your Anti-Personnel drone show a chaotic scene. No people are to be found but the remnants of a recent battle on-board the ship are obvious. You instruct the drone to retrieve some useful materials before leaving.";
+const SCAN_CLEAR = "There are no life signs detected on the ship although there appears to be a number of deceased crew. There does not appear to be any airborn contagions so your crew quickly salvages what they can before moving on. You can only wonder what befell the station.";
+const SCAN_LIFE = "Sensors show scattered signs of life although most of the crew are deceased. However the health signatures of the living indicate they are violent and unstable. You decide it's better to move on than risk engaging the remaining crew.";
+
+/** Dock with the station. Three results and no odds. INFERRED: equal. Shared with Merchant's Delivery. */
+function researchDock(g: Game) {
+  const r = pick(g, ["parts", "survivor", "infected"] as const);
+  if (r === "parts") {
+    // "medium (1 drone part) drone parts and scrap" (Rewards#Drone parts).
+    const offer = scrapOnly(g, "medium");
+    offer.parts = 1;
+    result(g, "Inside there are signs of a great struggle; scientists lie dead where they fell, brutally dismembered. You grab a few research drone parts lying on a desk near the door and leave quickly.", offer);
+  } else if (r === "survivor") {
+    const joined = crew(g, randomRace(g));
+    const choices: Choice[] = [{ id: "q:research:brace", label: "Prepare for a fight!" }];
+    // {{Blue Option|Medbay|Have the advanced medbay analyze their condition.|level=3}}
+    if (medbay(g) >= 3) choices.push({ id: "q:research:antidote", label: "Have the advanced medbay analyze their condition." });
+    card(g, `You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, "My... friends... They've gone insane... They're coming!" You hand him a blaster and turn to see a number of people charging toward the ship.\n\n${joined}`, choices);
+  } else {
+    const choices: Choice[] = [{ id: "q:research:drag", label: "Drag him back to the ship and prepare for a fight." }];
+    if (hasTeleporter(g)) choices.push({ id: "q:research:beam", label: "Use your Teleporter to retrieve your crew." });
+    if (medbay(g) >= 2) choices.push({ id: "q:research:medbay", label: "Drag him back to the Medbay." });
+    if (medbay(g) >= 3) choices.push({ id: "q:research:cure", label: "Have the Advanced Medbay analyze their condition." });
+    card(g, "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor.", choices);
+  }
+}
+
+/** [ {{Transaction|1|subtract_drones}} ]. False when the ship has no part to spend. */
+function spendDronePart(g: Game): boolean {
+  if (g.player.parts < 1) return false;
+  g.player.parts -= 1;
+  log(g, "Drone parts: -1.");
+  return true;
+}
+
+/**
+ * Anti-Personnel Drone. {{DuplicateEvent|2}} on the nothing pair, once on the cameras. INFERRED: those weights.
+ * The printed OR is the two nothing sentences. INFERRED: equal inside that weight.
+ * Footnote: no drone part is required if the reward includes drone parts. The printed 2/9 is that case, not a second roll.
+ */
+function researchDrone(g: Game) {
+  if (!hasDrone(g, ["antipersonnel"])) return;
+  const kind = weighted(g, [["nothing", 2], ["scrap", 1]] as const);
+  if (kind === "nothing") {
+    if (!spendDronePart(g)) return;
+    const text = pick(g, [APD_TEAR, APD_MOB] as const);
+    result(g, text, undefined, ["Nothing happens.", "Drone parts: -1."]);
+    return;
+  }
+  const hull = g.player.hull;
+  const lines = g.log.slice();
+  const offer = rollStandard(g, "medium");
+  if (offer.parts <= 0 && !spendDronePart(g)) {
+    g.player.hull = hull;
+    g.log = lines;
+    return;
+  }
+  result(g, APD_CAMERAS, offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
+}
+
+/** Lifeform Scanner. Two results and no odds. INFERRED: equal. Standalone card only. */
+function researchScan(g: Game) {
+  if (!g.augments.includes("pulseeye")) return;
+  if (weighted(g, [["clear", 1], ["life", 1]] as const) === "clear") {
+    result(g, SCAN_CLEAR, rollStandard(g, "medium"));
+    return;
+  }
+  result(g, SCAN_LIFE, undefined, ["Nothing happens."]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -612,28 +685,13 @@ export const PART_B: QuestPart = {
       result(g, "They upload the delivery destination once on board. One takes you up on your offer, the rest you drop off at a nearby station.", undefined, [crew(g, randomRace(g)), addQuest(g, "merchant-station")]);
     },
 
-    // ---- Research station with no response (Merchant's Delivery) ----
-    "q:research:dock": (g) => {
-      const r = pick(g, ["parts", "survivor", "infected"] as const);
-      if (r === "parts") {
-        // "medium (1 drone part) drone parts and scrap" (Rewards#Drone parts).
-        const offer = scrapOnly(g, "medium");
-        offer.parts = 1;
-        result(g, "Inside there are signs of a great struggle; scientists lie dead where they fell, brutally dismembered. You grab a few research drone parts lying on a desk near the door and leave quickly.", offer);
-      } else if (r === "survivor") {
-        const joined = crew(g, randomRace(g));
-        const choices: Choice[] = [{ id: "q:research:brace", label: "Prepare for a fight!" }];
-        // {{Blue Option|Medbay|Have the advanced medbay analyze their condition.|level=3}}
-        if (medbay(g) >= 3) choices.push({ id: "q:research:antidote", label: "Have the advanced medbay analyze their condition." });
-        card(g, `You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, "My... friends... They've gone insane... They're coming!" You hand him a blaster and turn to see a number of people charging toward the ship.\n\n${joined}`, choices);
-      } else {
-        const choices: Choice[] = [{ id: "q:research:drag", label: "Drag him back to the ship and prepare for a fight." }];
-        if (hasTeleporter(g)) choices.push({ id: "q:research:beam", label: "Use your Teleporter to retrieve your crew." });
-        if (medbay(g) >= 2) choices.push({ id: "q:research:medbay", label: "Drag him back to the Medbay." });
-        if (medbay(g) >= 3) choices.push({ id: "q:research:cure", label: "Have the Advanced Medbay analyze their condition." });
-        card(g, "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor.", choices);
-      }
-    },
+    // ---- Research station with no response (Merchant's Delivery and the standalone card) ----
+    "q:research:dock": (g) => researchDock(g),
+    "c:research-station-with-no-response:0": (g) => researchDock(g),
+    // Standalone "Leave it alone." prints "Nothing happens." Merchant's Delivery still uses q:research:leave.
+    "c:research-station-with-no-response:1": (g) => result(g, "Nothing happens."),
+    "c:research-station-with-no-response:2": (g) => researchDrone(g),
+    "c:research-station-with-no-response:3": (g) => researchScan(g),
     "q:research:leave": (g) => done(g),
     // "3-4 human boarders beam aboard your ship." No enemy ship.
     "q:research:brace": (g) => {
@@ -731,6 +789,11 @@ export const PART_B: QuestPart = {
     if ((id === "q:merchant:paltry" || id === "q:merchant:full" || id === "q:merchant:weapons") && g.player.parts < PARTS_OWED) {
       return `Need ${PARTS_OWED} drone parts`;
     }
+    // Research station with no response. The fitted schematic is kit.target. A missing part does not close the drone:
+    // the footnote waives it when the reward includes drone parts.
+    // INFERRED: the refusal lines. The page names the drone and the scanner and does not print these sentences.
+    if (id === "c:research-station-with-no-response:2" && !hasDrone(g, ["antipersonnel"])) return "Needs an Anti-Personnel Drone";
+    if (id === "c:research-station-with-no-response:3" && !g.augments.includes("pulseeye")) return "Needs a Lifeform Scanner";
     return null;
   },
 

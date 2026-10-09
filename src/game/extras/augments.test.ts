@@ -415,6 +415,126 @@ describe("augments", () => {
     assert.equal(boarder.hp, 10);
     assert.equal(nen.hp, 100);
   });
+
+  it("heals Engi enemy crew outside a powered medbay at 1.6 per second", () => {
+    const g = createGame(1);
+    g.sector = 5;
+    startCombat(g, "Engi ship");
+    const enemy = g.enemy;
+    assert.ok(enemy);
+    assert.equal(enemy.faction, "engi");
+    assert.equal(g.augments.includes("medbot"), false);
+    enemy.kits.cradle = undefined;
+
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    const ada = g.crew.find((c) => c.id === "c-ada");
+    assert.ok(foe && ada);
+    const outside = enemy.rooms.find((r) => r.system !== "medbay");
+    assert.ok(outside);
+    foe.room = outside.id;
+    foe.aboard = "enemy";
+    foe.hp = 10;
+    ada.hp = 40;
+    ada.aboard = "player";
+    ada.room = "p-pilot";
+
+    enemy.systems.medbay.level = 1;
+    enemy.systems.medbay.power = 1;
+    enemy.systems.medbay.damage = 0;
+    enemy.systems.medbay.ion = [];
+    // A player clone bay does not block the Engi hull.
+    g.player.kits.cradle = {
+      id: "cradle",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    } satisfies Kit;
+
+    tickMedbot(g, 0);
+    tickMedbot(g, -1);
+    assert.equal(foe.hp, 10);
+    assert.equal(ada.hp, 40);
+
+    // Engi Ships: the augment heals when they have a powered Medbay. No "medbot" id on the player.
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 11.6);
+    assert.equal(ada.hp, 40);
+    g.player.kits.cradle = undefined;
+
+    enemy.systems.medbay.power = 0;
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 11.6);
+
+    enemy.systems.medbay.level = 0;
+    enemy.systems.medbay.power = 0;
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 11.6);
+
+    enemy.systems.medbay.level = 1;
+    enemy.systems.medbay.power = 1;
+    enemy.systems.medbay.damage = 0;
+    enemy.systems.medbay.ion = [];
+    // "Does nothing if you have a Clone Bay." The enemy bay does not block the player copy.
+    enemy.kits.cradle = {
+      id: "cradle",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    } satisfies Kit;
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 11.6);
+
+    g.augments = ["medbot"];
+    g.player.systems.medbay.level = 1;
+    g.player.systems.medbay.power = 1;
+    g.player.systems.medbay.damage = 0;
+    g.player.systems.medbay.ion = [];
+    tickMedbot(g, 1);
+    assert.equal(ada.hp, 41.6);
+    assert.equal(foe.hp, 11.6);
+    g.augments = [];
+    enemy.kits.cradle = undefined;
+
+    // "Does not work on crew that is on another ship (teleported)."
+    foe.aboard = "player";
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 11.6);
+    foe.aboard = "enemy";
+
+    // "Engi nano med-bots heal the crew outside of the med-bay (at a reduced speed)."
+    const bay = enemy.rooms.find((r) => r.system === "medbay");
+    const stand = bay ?? enemy.rooms[0];
+    const previous = stand.system;
+    if (!bay) stand.system = "medbay";
+    foe.room = stand.id;
+    foe.hp = 20;
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 20);
+    if (!bay) stand.system = previous;
+    foe.room = outside.id;
+
+    enemy.faction = "rebel";
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 20);
+
+    // "Not affected by Medbay upgrades."
+    enemy.faction = "engi";
+    enemy.systems.medbay.level = 3;
+    enemy.systems.medbay.power = 3;
+    enemy.systems.medbay.damage = 0;
+    enemy.systems.medbay.ion = [];
+    tickMedbot(g, 1);
+    assert.equal(foe.hp, 21.6);
+    assert.equal(g.augments.includes("medbot"), false);
+  });
 });
 
 const TICK = 0.05;

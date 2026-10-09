@@ -1,5 +1,5 @@
 import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
-import type { AugmentId, BeaconKind, Crew, Game } from "../types.ts";
+import type { AugmentId, BeaconKind, Crew, Game, Ship } from "../types.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 
 type Listing = { id: AugmentId; name: string; detail: string; cost: number };
@@ -307,21 +307,30 @@ export function tickSquall(g: Game, dt: number) {
 }
 
 /**
- * Augmentations, "Non-Purchasable Augmentations", Engi Med-bot Dispersal.
- * 1.6 HP per second, outside the medbay, and only while that medbay is powered.
- * Medbay level does not change the 1.6. Crew on another ship are not healed.
- * A clone bay on the ship makes this do nothing. No purchase price, so it is not in CATALOG.
+ * Augmentations, Engi Med-bot Dispersal: "Heals 1.6 health points per second."
+ * "Medbay must be powered for it to work." "Not affected by Medbay upgrades."
+ * "Does not work on crew that is on another ship (teleported)."
+ * "Does nothing if you have a Clone Bay."
+ * "Engi nano med-bots heal the crew outside of the med-bay (at a reduced speed)."
+ * Engi Ships lead: "They have the Engi Med-bot Dispersal augment, but it only functions when they have a Medbay."
+ * The player copy is g.augments "medbot". An Engi enemy uses the same heal and does not gain that id.
+ * No purchase price, so it is not in CATALOG.
  */
-export function tickMedbot(g: Game, dt: number) {
-  if (!(dt > 0) || !has(g, "medbot")) return;
-  if (g.player.kits.cradle) return;
-  if (bars(g.player.systems.medbay, zoltanBars(g.crew, g.player, "player", "medbay")) <= 0) return;
+function medbotHeal(g: Game, dt: number, ship: Ship, side: "player" | "enemy") {
+  if (ship.kits.cradle) return;
+  if (bars(ship.systems.medbay, zoltanBars(g.crew, ship, side, "medbay")) <= 0) return;
   for (const crew of g.crew) {
-    if (crew.side !== "player" || crew.aboard !== "player" || crew.hp <= 0) continue;
-    const room = g.player.rooms.find((item) => item.id === crew.room);
+    if (crew.side !== side || crew.aboard !== side || crew.hp <= 0) continue;
+    const room = ship.rooms.find((item) => item.id === crew.room);
     if (!room || room.system === "medbay") continue;
     crew.hp = Math.min(crew.maxHp, crew.hp + 1.6 * dt);
   }
+}
+
+export function tickMedbot(g: Game, dt: number) {
+  if (!(dt > 0)) return;
+  if (has(g, "medbot")) medbotHeal(g, dt, g.player, "player");
+  if (g.enemy && g.enemy.faction === "engi") medbotHeal(g, dt, g.enemy, "enemy");
 }
 
 /**

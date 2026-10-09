@@ -17,8 +17,8 @@ function cooldown(level: number): number {
   return 20;
 }
 
-/** Crew Teleporter wiki, "System Upgrades": the level 2 row costs 30, the level 3 row costs 60. */
-function upgradeCost(level: number): number | null {
+/** Crew Teleporter wiki, "System Upgrades": the level 2 row costs 30, the level 3 row costs 60. Keyed by the level already owned. */
+export function slingUpgradeCost(level: number): number | null {
   if (level === 1) return 30;
   if (level === 2) return 60;
   return null;
@@ -104,7 +104,7 @@ export function installSling(g: Game) {
 export function upgradeSling(g: Game) {
   const kit = sling(g);
   if (!kit) return;
-  const cost = upgradeCost(kit.level);
+  const cost = slingUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   kit.level += 1;

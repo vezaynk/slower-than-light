@@ -104,6 +104,9 @@ export type DoorMark = {
 
 export type SkillName = "pilot" | "engines" | "weapons" | "shields" | "repair" | "combat";
 
+/** Ship menu at the top of the screen: Upgrades, crew manifest, or inventory. */
+export type ShipTab = "upgrades" | "crew" | "inventory";
+
 export type Crew = {
   id: string;
   name: string;
@@ -816,6 +819,11 @@ export type Game = {
   training: boolean;
   manual: boolean;
   shipSheet: boolean;
+  /**
+   * Ship menu tab. Upgrades, the crew manifest, or inventory.
+   * Absent on a save from before the split means Upgrades.
+   */
+  shipTab?: ShipTab;
   muted: boolean;
   lowHull: boolean;
   /** Beacon the last-sector ship currently occupies. */

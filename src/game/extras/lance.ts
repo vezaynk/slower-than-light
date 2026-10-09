@@ -75,6 +75,23 @@ export function installLance(g: Game): boolean {
   return true;
 }
 
+/** Artillery Beam, "System Upgrades": scrap to reach the next level. Level 1's cost is a dash. */
+export function lanceUpgradeCost(level: number): number | null {
+  return UPGRADE_COSTS[level + 1] ?? null;
+}
+
+/** Artillery Beam, "System Upgrades": 30, then 50, then 80, through level 4. */
+export function upgradeLance(g: Game): boolean {
+  const kit = g.player.kits.lance;
+  if (!kit || kit.level >= 4) return false;
+  const cost = lanceUpgradeCost(kit.level);
+  if (cost == null || g.scrap < cost) return false;
+  g.scrap -= cost;
+  kit.level += 1;
+  log(g, "Artillery Beam raised.");
+  return true;
+}
+
 /**
  * One reactor bar at a time, up to powerCap. Unpowered charge does not advance.
  * Artillery Beam "Overview": no console, so it cannot be manned to shorten the charge.

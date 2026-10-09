@@ -4,24 +4,24 @@ import {
   SECTOR_NAMES,
   SYS_LABEL,
   WEAPONS,
-  hullRepairPerPoint,
   upgradeBlurb,
   upgradeCost,
 } from "@/game/content";
 import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
-import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell, upgradeCell } from "@/game/extras/cell";
-import { recallSling, sendSling, shipInDanger, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
+import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCell } from "@/game/extras/cell";
+import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
+import { recallSling, sendSling, shipInDanger, slingUpgradeCost, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
 import { activateDroneSlot, depowerDrone, playerDroneSlots, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { beamTileLength } from "@/game/wiki/weapons-beam";
-import { lowerLancePower, raiseLancePower } from "@/game/extras/lance";
-import { lowerFlakPower, raiseFlakPower } from "@/game/extras/flakart";
+import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
+import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFlakPower, upgradeFlak } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
-import { startVeil, toggleVeilPower, upgradeVeil } from "@/game/extras/veil";
-import { startLeash, toggleLeashPower, upgradeLeash } from "@/game/extras/leash";
-import { enemyCloneQueue } from "@/game/extras/cradle";
+import { startVeil, toggleVeilPower, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
+import { startLeash, toggleLeashPower, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
+import { cradleUpgradeCost, enemyCloneQueue, upgradeCradle } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
 import { shipSight } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
@@ -39,6 +39,8 @@ import {
   raiseSpikePower,
   spikeAimId,
   spikeRoomTargetable,
+  spikeUpgradeCost,
+  upgradeSpike,
 } from "@/game/extras/spike";
 import { create } from "zustand";
 // @agent:surrender. The surrender card lists the offered cargo.
@@ -68,8 +70,8 @@ import {
   lockdown,
   lockdownSelected,
   openAllDoors,
+  openShipMenu,
   orderSelected,
-  patchAll,
   playerDoorsLocked,
   powerDown,
   powerMask,
@@ -95,7 +97,7 @@ import {
 } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { BeamLine, Crew, Game, KitId, SysId } from "@/game/types";
+import type { BeamLine, Crew, Game, KitId, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx } from "./ShadeFx";
@@ -309,6 +311,17 @@ export function GameApp() {
           g.muted = !g.muted;
           setMuted(g.muted);
         });
+        return;
+      }
+      // Configure controls: U opens Upgrades. I opens Inventory. Both work while that menu is already open.
+      if (e.code === "KeyU" && plain) {
+        e.preventDefault();
+        act((g) => openShipMenu(g, "upgrades"));
+        return;
+      }
+      if (e.code === "KeyI" && plain) {
+        e.preventDefault();
+        act((g) => openShipMenu(g, "inventory"));
         return;
       }
       const g = useGame.getState().game;
@@ -684,7 +697,7 @@ function Hud({ game }: { game: Game }) {
           onClick={() =>
             act((g) => {
               if (g.picking) g.picking = false;
-              else if (!shipInDanger(g)) g.shipSheet = true;
+              else openShipMenu(g, "crew");
             })
           }
         >
@@ -697,9 +710,7 @@ function Hud({ game }: { game: Game }) {
           title={infoLocked ? "In danger" : undefined}
           disabled={infoLocked}
           onClick={() =>
-            act((g) => {
-              if (!shipInDanger(g)) g.shipSheet = true;
-            })
+            act((g) => openShipMenu(g, "upgrades"))
           }
         >
           <PixelIcon name="upgrade" size={20} />
@@ -2198,7 +2209,7 @@ function Manual({ onClose }: { onClose: () => void }) {
             <li>Fuel starts at 16. Every jump, including a retreat, burns 1. A store sells fuel. Scrap starts at 10.</li>
             <li>The hangar launches the cruiser layouts whose wiki pages listed a loadout. Pictures from those pages are not used.</li>
             <li>Sector 8 is the Flagship. It moves every two of your jumps.</li>
-            <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. Click a weapon's number to give its power back. Right-click a room to send the selected crew. Drag or Shift-click to select several. Q selects every crew member, and F1–F8 select one. X closes every door. / saves stations and Return sends them back.</li>
+            <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. U opens upgrades. I opens inventory. Click a weapon's number to give its power back. Right-click a room to send the selected crew. Drag or Shift-click to select several. Q selects every crew member, and F1–F8 select one. X closes every door. / saves stations and Return sends them back.</li>
           </ul>
         </div>
         <button type="button" className="btn-primary" onClick={onClose}>
@@ -2209,172 +2220,383 @@ function Manual({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** INVENTED sheet buttons and the reactor blurb. Kit labels are wiki system names. */
+const SKILL_LABEL: Record<SkillName, string> = {
+  pilot: "Piloting",
+  engines: "Engines",
+  weapons: "Weapons",
+  shields: "Shields",
+  repair: "Repair",
+  combat: "Combat",
+};
+
+const UPGRADE_SYS_NAME: Record<SysId, string> = {
+  shields: "Shields",
+  engines: "Engines",
+  oxygen: "Oxygen",
+  medbay: "Medbay",
+  weapons: "Weapon Control",
+  pilot: "Piloting",
+  sensors: "Sensors",
+  doors: "Door System",
+};
+
+type UpgradeRow = {
+  key: string;
+  icon?: IconName;
+  name: string;
+  level: number;
+  effect: string;
+  cost: number | null;
+  buy: ((g: Game) => void) | null;
+  subsystem: boolean;
+};
+
+/**
+ * Systems, GUI order, with the reactor first.
+ * A missing system is not sold here. Drone Control has no printed per-level scrap.
+ */
+function upgradeRows(game: Game): UpgradeRow[] {
+  const rows: UpgradeRow[] = [];
+  const reactorCost = upgradeCost("reactor", game.player.reactor);
+  rows.push({
+    key: "reactor",
+    name: "Reactor",
+    level: game.player.reactor,
+    effect: reactorCost != null ? upgradeBlurb("reactor", game.player.reactor) : "Cap 25.",
+    cost: reactorCost,
+    buy: reactorCost != null ? (g) => upgrade(g, "reactor") : null,
+    subsystem: false,
+  });
+
+  const sys = (id: SysId) => {
+    const state = game.player.systems[id];
+    if (state.level <= 0) return;
+    const cost = upgradeCost(id, state.level);
+    const subsystem = id === "pilot" || id === "sensors" || id === "doors";
+    rows.push({
+      key: id,
+      icon: id,
+      name: UPGRADE_SYS_NAME[id],
+      level: state.level,
+      effect: cost != null ? upgradeBlurb(id, state.level) : "",
+      cost,
+      buy: cost != null ? (g) => upgrade(g, id) : null,
+      subsystem,
+    });
+  };
+
+  const fitted = (
+    id: KitId,
+    cost: number | null,
+    effect: string,
+    buy: (g: Game) => void,
+    subsystem = false,
+  ) => {
+    const kit = game.player.kits[id];
+    if (!kit) return;
+    rows.push({
+      key: id,
+      icon: id,
+      name: KIT_LABEL[id],
+      level: kit.level,
+      effect: cost != null ? effect : "",
+      cost,
+      buy: cost != null ? buy : null,
+      subsystem,
+    });
+  };
+
+  sys("shields");
+  sys("engines");
+  sys("medbay");
+  {
+    const kit = game.player.kits.cradle;
+    if (kit) {
+      fitted(
+        "cradle",
+        cradleUpgradeCost(kit.level),
+        kit.level === 1 ? "Clone in 9 sec. 16 HP per jump." : "Clone in 7 sec. 25 HP per jump.",
+        (g) => upgradeCradle(g),
+      );
+    }
+  }
+  sys("oxygen");
+  {
+    const kit = game.player.kits.sling;
+    if (kit) {
+      fitted(
+        "sling",
+        slingUpgradeCost(kit.level),
+        kit.level === 1 ? "15 sec cooldown." : "10 sec cooldown.",
+        (g) => upgradeSling(g),
+      );
+    }
+  }
+  {
+    const kit = game.player.kits.veil;
+    if (kit) {
+      fitted("veil", veilUpgradeCost(kit.level), kit.level === 1 ? "10 sec." : "15 sec.", (g) => upgradeVeil(g));
+    }
+  }
+  {
+    const kit = game.player.kits.leash;
+    if (kit) {
+      fitted(
+        "leash",
+        LEASH_UPGRADE[kit.level + 1] ?? null,
+        kit.level === 1 ? "+15 health, +25% combat damage, 20 sec." : "+30 health, +100% combat damage, 28 sec.",
+        (g) => upgradeLeash(g),
+      );
+    }
+  }
+  {
+    const kit = game.player.kits.lance;
+    if (kit) {
+      const next = kit.level + 1;
+      fitted("lance", lanceUpgradeCost(kit.level), LANCE_CHARGE[next] != null ? `${LANCE_CHARGE[next]} sec charge.` : "", (g) => upgradeLance(g));
+    }
+  }
+  {
+    const kit = game.player.kits.flak;
+    if (kit) {
+      const next = kit.level + 1;
+      const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
+      fitted("flak", flakUpgradeCost(kit.level), seconds != null ? `${seconds} sec charge.` : "", (g) => upgradeFlak(g));
+    }
+  }
+  {
+    const kit = game.player.kits.spike;
+    if (kit) {
+      fitted(
+        "spike",
+        spikeUpgradeCost(kit.level),
+        kit.level === 1 ? "7 sec pulse." : "10 sec pulse.",
+        (g) => upgradeSpike(g),
+      );
+    }
+  }
+  sys("weapons");
+  if (game.player.kits.swarm) fitted("swarm", null, "", () => {});
+  sys("pilot");
+  sys("sensors");
+  sys("doors");
+  {
+    const kit = game.player.kits.cell;
+    if (kit) fitted("cell", cellUpgradeCost(kit.level), "4 temporary power bars.", (g) => upgradeCell(g), true);
+  }
+  return rows;
+}
+
+/** Systems: Upgrades, the crew manifest, and Inventory are tabs of the Ship menu. */
 function ShipSheet({ game }: { game: Game }) {
-  const free = sparePower(game.player);
-  const bonus = Math.max(0, cellBonus(game.player));
+  const tab = game.shipTab ?? "upgrades";
+  const guns = useTrayDrag("sheet-weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
+  const drones = useTrayDrag("sheet-drones", (from, to) =>
+    act((g) => {
+      const kit = g.player.kits.swarm;
+      if (kit) reorderDroneSlots(kit, from, to);
+    }),
+  );
   return (
     <div className="overlay">
-      <article className="sheet ftl-sheet">
+      <article className="sheet ftl-sheet" data-sheet="ship">
         <p className="kicker">{game.player.name}</p>
-        <p className="mini">Power {free} free</p>
-        <div className="title-actions">
-          <button type="button" className="btn-ghost" onClick={() => act((g) => { g.shipSheet = false; })}>
-            Close
-          </button>
-          <button
-            type="button"
-            className="btn-ghost"
-            aria-label={game.muted ? "Unmute" : "Mute"}
-            onClick={() =>
-              act((g) => {
-                g.muted = !g.muted;
-                setMuted(g.muted);
-              })
-            }
-          >
-            <PixelIcon name={game.muted ? "mute" : "sound"} />
-            {game.muted ? "Unmute" : "Mute"}
-          </button>
-        </div>
-        <div className="crew-line">
-          {game.crew
-            .filter((c) => c.side === "player" && c.hp > 0)
-            .map((c) => (
-              <span key={c.id}>
-                <i className="token is-sprite">
-                  <CrewFace crew={c} size={16} />
-                </i>
-                {c.name} {c.hp} hp
-              </span>
-            ))}
-        </div>
-        <button type="button" className="btn-ghost" onClick={() => act((g) => patchAll(g))}>
-          Patch hull ({hullRepairPerPoint(game.sector)} scrap a point)
-        </button>
-        <div className="systems">
-          <PowerRow
-            name={`Reactor · ${game.player.reactor}`}
-            blurb="One more bar in the pool."
-            level={game.player.reactor}
-            power={game.player.reactor}
-            max={game.player.reactor}
-            tail={bonus}
-            cost={upgradeCost("reactor", game.player.reactor)}
-            onUp={() => act((g) => upgrade(g, "reactor"))}
-            onDown={null}
-            onPlus={null}
-          />
-          {SYS_ORDER.map((id) => {
-            const sys = game.player.systems[id];
-            const cost = upgradeCost(id, sys.level);
-            return (
-              <PowerRow
-                key={id}
-                name={`${SYS_LABEL[id]} · ${sys.level}`}
-                blurb={upgradeBlurb(id, sys.level)}
-                level={sys.level}
-                power={isMain(id) ? sys.power : sys.level}
-                max={Math.max(0, sys.level - sys.damage - sys.ion.length)}
-                paint={isMain(id) ? batteryBarsOn(game.player, id) : 0}
-                cost={cost}
-                icon={id}
-                onUp={cost != null ? () => act((g) => upgrade(g, id)) : null}
-                onDown={isMain(id) ? () => act((g) => powerDown(g, id)) : null}
-                onPlus={isMain(id) ? () => act((g) => powerUp(g, id)) : null}
-              />
-            );
-          })}
-        </div>
-        <div className="systems">
-          {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {
-            const kit = game.player.kits[id];
-            if (!kit) return null;
-            return (
-              <p key={id} className="power-row">
-                <span className="power-name">
-                  <PixelIcon name={id} />
-                  {KIT_LABEL[id]} · {kit.level}
-                </span>
-                {id === "swarm" && droneKeyOf(kit.target) ? (
-                  <span className="power-drone">
-                    <DroneArt kind={droneKeyOf(kit.target)} height={20} />
-                    {DRONE_LOOKS[droneKeyOf(kit.target)!].name}
-                  </span>
-                ) : null}
-                <span className="mini">{kit.power > 0 ? `${kit.power} power` : "unpowered"}</span>
-                {id === "veil" || id === "sling" || id === "leash" || id === "cell" ? (
-                  <button
-                    type="button"
-                    className="btn-ghost"
-                    onClick={() =>
-                      act((g) => {
-                        if (id === "veil") upgradeVeil(g);
-                        else if (id === "sling") upgradeSling(g);
-                        else if (id === "leash") upgradeLeash(g);
-                        else upgradeCell(g);
-                      })
-                    }
-                  >
-                    UPGRADE
-                  </button>
-                ) : null}
-                {id === "lance" ? (
-                  <span className="mode-row">
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      aria-label={`Less ${KIT_LABEL[id]} · ${kit.level}`}
-                      onClick={() => act((g) => lowerLancePower(g))}
-                    >
-                      <PixelIcon name="minus" />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      aria-label={`More ${KIT_LABEL[id]} · ${kit.level}`}
-                      onClick={() => act((g) => raiseLancePower(g))}
-                    >
-                      <PixelIcon name="plus" />
-                    </button>
-                  </span>
-                ) : null}
-                {id === "flak" ? (
-                  <span className="mode-row">
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      aria-label={`Less ${KIT_LABEL[id]} · ${kit.level}`}
-                      onClick={() => act((g) => lowerFlakPower(g))}
-                    >
-                      <PixelIcon name="minus" />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      aria-label={`More ${KIT_LABEL[id]} · ${kit.level}`}
-                      onClick={() => act((g) => raiseFlakPower(g))}
-                    >
-                      <PixelIcon name="plus" />
-                    </button>
-                  </span>
-                ) : null}
-              </p>
-            );
-          })}
-          {game.augments.map((id) => (
-            <p key={id} className="mini">
-              {CATALOG.find((row) => row.id === id)?.name ?? id}
-            </p>
+        <div className="sheet-tabs" role="tablist">
+          {(
+            [
+              ["upgrades", "Upgrades"],
+              ["crew", "Crew"],
+              ["inventory", "Inventory"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              className="btn-ghost"
+              aria-selected={tab === id}
+              aria-pressed={tab === id}
+              onClick={() =>
+                act((g) => {
+                  g.shipTab = id;
+                })
+              }
+            >
+              {label}
+            </button>
           ))}
         </div>
-        <button type="button" className="btn-ghost" onClick={() => act((g) => installCell(g))}>
-          Buy Backup Battery
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={() =>
+            act((g) => {
+              g.shipSheet = false;
+            })
+          }
+        >
+          Close
         </button>
-        <button type="button" className="btn-ghost" onClick={() => act((g) => startCell(g))}>
-          Start battery
-        </button>
+        {tab === "upgrades" ? <UpgradeList game={game} /> : null}
+        {tab === "crew" ? <CrewManifest game={game} /> : null}
+        {tab === "inventory" ? <CargoList game={game} guns={guns} drones={drones} /> : null}
       </article>
+    </div>
+  );
+}
+
+function UpgradeList({ game }: { game: Game }) {
+  const rows = upgradeRows(game);
+  const firstSub = rows.findIndex((row) => row.subsystem);
+  return (
+    <div className="upgrade-list">
+      {rows.map((row, index) => (
+        <div key={row.key}>
+          {index === firstSub ? <p className="mini sheet-note">Subsystems need no reactor power.</p> : null}
+          <div className="upgrade-row">
+            <span className="power-name">
+              {row.icon ? <PixelIcon name={row.icon} /> : null}
+              {row.name} · {row.level}
+            </span>
+            {row.effect ? <span className="mini">{row.effect}</span> : null}
+            {row.cost != null && row.buy ? (
+              <button
+                type="button"
+                className="text-btn"
+                data-upgrade={row.key}
+                disabled={game.scrap < row.cost}
+                aria-label={`Upgrade ${row.name} for ${row.cost}`}
+                onClick={() => {
+                  const buy = row.buy;
+                  if (buy) act(buy);
+                }}
+              >
+                {row.cost}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ))}
+      <p className="mini sheet-note">Systems you do not have, and hull repair, are bought at a store.</p>
+    </div>
+  );
+}
+
+function CrewManifest({ game }: { game: Game }) {
+  const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
+  if (crew.length === 0) return <p className="mini">No crew aboard.</p>;
+  return (
+    <div className="manifest">
+      {crew.map((c) => {
+        const skills = (Object.keys(SKILL_LABEL) as SkillName[])
+          .filter((name) => c.skills?.[name] != null)
+          .map((name) => `${SKILL_LABEL[name]} ${c.skills?.[name]}`);
+        return (
+          <div key={c.id} className="manifest-row">
+            <i className="token is-sprite">
+              <CrewFace crew={c} size={16} />
+            </i>
+            <input
+              aria-label={`Crew name ${c.name}`}
+              value={c.name}
+              maxLength={NAME_MAX}
+              autoComplete="off"
+              onChange={(e) => {
+                const value = e.target.value.slice(0, NAME_MAX);
+                act((g) => {
+                  const body = g.crew.find((x) => x.id === c.id);
+                  if (body) body.name = value;
+                });
+              }}
+              onBlur={() => {
+                act((g) => {
+                  const living = g.crew.filter((x) => x.side === "player");
+                  const body = living.find((x) => x.id === c.id);
+                  if (!body) return;
+                  body.name = cleanName(body.name, Math.max(0, living.indexOf(body)));
+                });
+              }}
+            />
+            <span className="mini">{kinLabel(c.kin)}</span>
+            <span className="mini">
+              {c.hp} / {c.maxHp}
+            </span>
+            {skills.length > 0 ? <span className="mini">{skills.join(" · ")}</span> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CargoList({
+  game,
+  guns,
+  drones,
+}: {
+  game: Game;
+  guns: ReturnType<typeof useTrayDrag>;
+  drones: ReturnType<typeof useTrayDrag>;
+}) {
+  const slots = playerDroneSlots(game.player.kits.swarm);
+  return (
+    <div className="cargo-list">
+      <p className="mini">Drag a weapon or a drone schematic to change its order.</p>
+      {game.player.weapons.length === 0 ? <p className="mini">No weapons mounted.</p> : null}
+      {game.player.weapons.map((w, index) => {
+        const name = WEAPONS[w.defId]?.name ?? w.defId;
+        const dragging = guns.from === index;
+        const drop = guns.over === index && guns.from !== index;
+        return (
+          <button
+            key={w.uid}
+            type="button"
+            data-tray="sheet-weapons"
+            data-slot={index}
+            className={`btn-ghost sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+            aria-label={`${name}, slot ${index + 1}`}
+            onPointerDown={(e) => guns.onPointerDown(index, e)}
+            onPointerMove={guns.onPointerMove}
+            onPointerUp={guns.onPointerUp}
+            onClickCapture={guns.onClickCapture}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <WeaponArt id={w.defId} height={24} />
+            <span>{name}</span>
+          </button>
+        );
+      })}
+      {slots.length === 0 ? <p className="mini">No drone schematics.</p> : null}
+      {slots.map((kind, index) => {
+        const key = droneKeyOf(kind);
+        const name = key ? DRONE_LOOKS[key].name : kind;
+        const dragging = drones.from === index;
+        const drop = drones.over === index && drones.from !== index;
+        return (
+          <button
+            key={`${kind}-${index}`}
+            type="button"
+            data-tray="sheet-drones"
+            data-slot={index}
+            className={`btn-ghost sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+            aria-label={`${name}, drone slot ${index + 1}`}
+            onPointerDown={(e) => drones.onPointerDown(index, e)}
+            onPointerMove={drones.onPointerMove}
+            onPointerUp={drones.onPointerUp}
+            onClickCapture={drones.onClickCapture}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {key ? <DroneArt kind={key} height={20} /> : null}
+            <span>{name}</span>
+          </button>
+        );
+      })}
+      {game.augments.length === 0 ? <p className="mini">No augments.</p> : null}
+      {game.augments.map((id) => (
+        <p key={id} className="mini">
+          {CATALOG.find((row) => row.id === id)?.name ?? id}
+        </p>
+      ))}
     </div>
   );
 }
@@ -2386,68 +2608,4 @@ function kitBarClass(game: Game, id: string, power: number, n: number): string {
   return painted > 0 && n >= power - painted ? "on is-battery" : "on";
 }
 
-function PowerRow({
-  name,
-  blurb,
-  power,
-  max,
-  cost,
-  onUp,
-  onDown,
-  onPlus,
-  icon,
-  paint = 0,
-  tail = 0,
-}: {
-  name: string;
-  blurb: string;
-  level: number;
-  power: number;
-  max: number;
-  cost: number | null;
-  icon?: IconName;
-  /** Highest powered bars that are Backup Battery bars. */
-  paint?: number;
-  /** Bonus bars drawn after the regular reactor bars. */
-  tail?: number;
-  onUp: (() => void) | null;
-  onDown: (() => void) | null;
-  onPlus: (() => void) | null;
-}) {
-  return (
-    <div className="power-row">
-      <span className="power-name">
-        {icon ? <PixelIcon name={icon} /> : null}
-        {name}
-      </span>
-      <span className="bars" aria-hidden="true">
-        {Array.from({ length: Math.max(max, power, 1) }, (_, i) => {
-          const on = i < power;
-          const battery = on && paint > 0 && i >= power - paint;
-          return <i key={i} className={battery ? "on is-battery" : on ? "on" : ""} />;
-        })}
-        {Array.from({ length: tail }, (_, i) => (
-          <i key={`bonus-${i}`} className="on is-battery" />
-        ))}
-      </span>
-      <span className="mini">{blurb}</span>
-      <span className="mode-row">
-        {onDown ? (
-          <button type="button" className="icon-btn" aria-label={`Less ${name}`} onClick={onDown}>
-            <PixelIcon name="minus" />
-          </button>
-        ) : null}
-        {onPlus ? (
-          <button type="button" className="icon-btn" aria-label={`More ${name}`} onClick={onPlus}>
-            <PixelIcon name="plus" />
-          </button>
-        ) : null}
-        {onUp ? (
-          <button type="button" className="text-btn" onClick={onUp}>
-            {cost}
-          </button>
-        ) : null}
-      </span>
-    </div>
-  );
-}
+

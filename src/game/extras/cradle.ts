@@ -82,6 +82,24 @@ export function installCradle(g: Game) {
   log(g, "Clone Bay installed.");
 }
 
+/** Clone Bay, "System Upgrades": level 2 costs 35, level 3 costs 45. Keyed by the level already owned. */
+const CRADLE_UPGRADE: Record<number, number> = { 1: 35, 2: 45 };
+
+export function cradleUpgradeCost(level: number): number | null {
+  return CRADLE_UPGRADE[level] ?? null;
+}
+
+/** Clone Bay, "System Upgrades": pay 35 to reach level 2, then 45 to reach level 3. */
+export function upgradeCradle(g: Game) {
+  const kit = g.player.kits.cradle;
+  if (!kit || kit.level >= 3) return;
+  const cost = cradleUpgradeCost(kit.level);
+  if (cost == null || g.scrap < cost) return;
+  g.scrap -= cost;
+  kit.level += 1;
+  log(g, "Clone Bay raised.");
+}
+
 /**
  * INFERRED: one reactor bar. Wiki page "Clone Bay" lists no power-per-level number.
  * "Overview": jump heal needs no power; this bar only gates cloning.

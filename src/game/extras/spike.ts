@@ -155,6 +155,25 @@ export function installSpike(g: Game): boolean {
   return true;
 }
 
+/** Hacking wiki, "System upgrades": level 2 costs 35, level 3 costs 60. Keyed by the level already owned. */
+const SPIKE_UPGRADE: Record<number, number> = { 1: 35, 2: 60 };
+
+export function spikeUpgradeCost(level: number): number | null {
+  return SPIKE_UPGRADE[level] ?? null;
+}
+
+/** Hacking wiki, "System upgrades": pay 35 to reach level 2, then 60 to reach level 3. */
+export function upgradeSpike(g: Game): boolean {
+  const kit = g.player.kits.spike;
+  if (!kit || kit.level >= 3) return false;
+  const cost = spikeUpgradeCost(kit.level);
+  if (cost == null || g.scrap < cost) return false;
+  g.scrap -= cost;
+  kit.level += 1;
+  log(g, "Hacking raised.");
+  return true;
+}
+
 /**
  * Hacking wiki, "Overview" (Hacking pulse): duration follows how much power is in the system.
  * INFERRED: one bar is added or removed at a time, and power cannot pass the system level.

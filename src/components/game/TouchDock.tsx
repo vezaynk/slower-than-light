@@ -25,6 +25,7 @@ import {
   slotAutofire,
   toggleDoor,
   togglePause,
+  openShipMenu,
   waitHere,
 } from "@/game/sim";
 import { useGame } from "@/game/store";
@@ -130,7 +131,7 @@ export function PhonePlay({
               </button>
             ) : null}
             {game.phase !== "title" && !shipInDanger(game) ? (
-              <button type="button" data-phone-action="ship" onClick={() => act((g) => { g.shipSheet = true; })}>
+              <button type="button" data-phone-action="ship" onClick={() => act((g) => openShipMenu(g, "crew"))}>
                 Ship
               </button>
             ) : null}

@@ -441,9 +441,11 @@ export function upgradeCost(id: SysId | "reactor", level: number): number | null
     weapons: { 1: 40, 2: 25, 3: 35, 4: 50, 5: 75, 6: 90, 7: 100 },
     // Piloting, "System Upgrades": level 2 costs 20, level 3 costs 50.
     pilot: { 1: 20, 2: 50 },
-    // Sensors, "System Upgrades": level 3 costs 40.
-    sensors: { 2: 40 },
-    // Door System, "System Upgrades": level 1 is 60, level 2 is 35, level 3 is 50.
+    // Sensors, "System Upgrades": level 2 costs 25, level 3 costs 40.
+    // The 40 on level 1 is the store purchase. Level 4 is manned only, so it has no scrap row.
+    sensors: { 1: 25, 2: 40 },
+    // Door System, "System Upgrades": level 2 costs 35, level 3 costs 50.
+    // The 60 is the store purchase. A missing system stays at level 0, and upgrade() will not spend that 60.
     doors: { 0: 60, 1: 35, 2: 50 },
   };
   return table[id]?.[level] ?? null;
@@ -456,21 +458,31 @@ export function hullRepairPerPoint(sector: number): number {
   return 2;
 }
 
+/** Effect of the level being bought. The argument is the level already owned. */
 export function upgradeBlurb(id: SysId | "reactor", level: number): string {
-  if (id === "reactor") return "One more bar in the pool.";
-  if (id === "shields") {
-    return level % 2 === 1
-      ? "Next level adds a buffer bar."
-      : "Next level adds a shield layer.";
+  const next = level + 1;
+  if (id === "reactor") return "One reactor bar. The cap is 25.";
+  // Shields: every 2 system levels adds one bubble. The even level is that layer.
+  if (id === "shields") return next % 2 === 0 ? "Adds a shield layer." : "Adds a power bar.";
+  if (id === "engines") {
+    const evade = EVADE_TABLE[next];
+    return evade != null ? `${evade}% evasion with a working pilot.` : "";
   }
-  if (id === "engines") return "More evasion, faster FTL charge.";
-  if (id === "oxygen") return level === 1 ? "Refill ×4." : "Refill ×7.";
-  if (id === "medbay") return "Heal faster than a room can choke you.";
-  if (id === "weapons") return "More power for mounted guns.";
-  if (id === "pilot" && level === 1) return "Autopilot: half of engine evasion with the chair empty. Jump still needs a body.";
-  if (id === "pilot") return "Autopilot: 80% of engine evasion. Jump still needs a body.";
-  if (id === "sensors") return "Read enemy weapon charge.";
-  if (id === "doors" && level === 1) return "Blast doors. The page prices this step at 35. Fire through them is 10× slower. Boarders need 8 hits.";
-  if (id === "doors") return "Heavier blast doors, priced at 50. A body on the console counts as one level higher.";
+  // Oxygen, "System Upgrades": 4.8% at level 2, 8.4% at level 3.
+  if (id === "oxygen" && level === 1) return "4.8% per second.";
+  if (id === "oxygen" && level === 2) return "8.4% per second.";
+  // Medbay, "System Upgrades": 9.6 HP/s and an airless bay at level 2, 19.2 HP/s at level 3.
+  if (id === "medbay" && level === 1) return "9.6 HP per second. Crew can heal in an airless medbay.";
+  if (id === "medbay" && level === 2) return "19.2 HP per second.";
+  if (id === "weapons" && next <= 8) return `${next} weapon power.`;
+  // Piloting, "System Upgrades": an empty chair keeps 50% at level 2 and 80% at level 3.
+  if (id === "pilot" && level === 1) return "Empty chair keeps 50% of engine evasion.";
+  if (id === "pilot" && level === 2) return "Empty chair keeps 80% of engine evasion.";
+  // Sensors, "System Upgrades": level 2 sees both ships, level 3 also sees enemy weapon charge.
+  if (id === "sensors" && level === 1) return "See interior of all rooms on your ship and the enemy ship.";
+  if (id === "sensors" && level === 2) return "See enemy weapons charge.";
+  // Door System, "System Upgrades": blast doors, then improved blast doors. Level 4 is manned only.
+  if (id === "doors" && level === 1) return "Blast doors. Slows fire between rooms and impedes boarders.";
+  if (id === "doors" && level === 2) return "Improved blast doors. Impedes boarders more.";
   return "";
 }

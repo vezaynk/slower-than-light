@@ -716,6 +716,78 @@ button:disabled {
   max-height: none;
 }
 
+.sheet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sheet-tabs button {
+  font-size: 16px;
+  min-height: 44px;
+}
+
+.upgrade-list,
+.manifest,
+.cargo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.upgrade-row,
+.manifest-row,
+.cargo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  min-height: 2.75rem;
+}
+
+.upgrade-row .power-name {
+  width: auto;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.upgrade-row .mini,
+.manifest-row .mini,
+.cargo-row .mini {
+  flex: 1 1 12rem;
+}
+
+.sheet-note {
+  margin: 0.2rem 0;
+}
+
+.manifest-row input,
+.sheet input {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.5rem;
+  min-height: 44px;
+  min-width: 8rem;
+  flex: 1 1 8rem;
+  box-sizing: border-box;
+}
+
+.sheet-slot {
+  justify-content: flex-start;
+  touch-action: none;
+}
+
+.sheet-slot.is-dragging {
+  opacity: 0.55;
+}
+
+.sheet-slot.is-drop {
+  border-color: var(--color-accent);
+}
+
 .manual-body {
   display: flex;
   flex-direction: column;

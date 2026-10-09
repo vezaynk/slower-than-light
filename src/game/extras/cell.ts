@@ -9,6 +9,10 @@ import type { Game, Kit, Ship } from "../types.ts";
 const INSTALL_COST = 35;
 /** Wiki page "Backup Battery", section "System Upgrades": level 2 cost 50. Paid to go from 1 to 2. */
 const UPGRADE_COST = 50;
+
+export function cellUpgradeCost(level: number): number | null {
+  return level === 1 ? UPGRADE_COST : null;
+}
 /** Wiki page "Backup Battery", section "Overview": extra bars last 30 seconds. */
 const ACTIVE = 30;
 /** Wiki page "Backup Battery", section "Overview": 20 seconds before it can be started again. */

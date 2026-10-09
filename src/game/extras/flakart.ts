@@ -1,4 +1,4 @@
-import { noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -104,6 +104,26 @@ export function chargeFlakSeconds(level: FlakLevel): number {
 export function armFlak(g: Game, level: FlakLevel): void {
   g.player.kits.flak = blank(level);
   seatKits(g.player); // Kit room (layouts.ts): a fitted system takes its hull's room.
+}
+
+/** Flak Artillery, "System Upgrades": scrap to reach the next level. Level 1's cost is a dash. */
+export function flakUpgradeCost(level: number): number | null {
+  if (level === 1) return UPGRADE_COSTS[2];
+  if (level === 2) return UPGRADE_COSTS[3];
+  if (level === 3) return UPGRADE_COSTS[4];
+  return null;
+}
+
+/** Flak Artillery, "System Upgrades": 30, then 50, then 80, through level 4. */
+export function upgradeFlak(g: Game): boolean {
+  const kit = g.player.kits.flak;
+  if (!kit) return false;
+  const cost = flakUpgradeCost(kit.level);
+  if (cost == null || g.scrap < cost) return false;
+  g.scrap -= cost;
+  kit.level += 1;
+  log(g, "Flak Artillery raised.");
+  return true;
 }
 
 /** Filled bars cannot pass min(4, level) minus damage. A Zoltan stamp is not part of this cap. */

@@ -167,6 +167,7 @@ import type {
   Ship,
   Shot,
   SkillName,
+  ShipTab,
   StockItem,
   SysId,
   SystemState,
@@ -4907,6 +4908,7 @@ export function createGame(
     training: false,
     manual: false,
     shipSheet: false,
+    shipTab: "upgrades",
     muted: false,
     lowHull: false,
   } as Game;
@@ -5735,6 +5737,22 @@ export function upgrade(g: Game, id: SysId | "reactor") {
   log(g, `${id} upgraded.`);
 }
 
+/**
+ * Systems: the Ship menu at the top. U opens Upgrades, I opens Inventory, and the ship icon opens the crew manifest.
+ * Environmental Hazards: the menu stays shut while the ship is IN DANGER.
+ */
+export function openShipMenu(g: Game, tab: ShipTab) {
+  if (g.phase === "title" || g.phase === "victory" || g.phase === "defeat") return;
+  if (shipInDanger(g)) return;
+  g.manual = false;
+  if (g.shipSheet && (g.shipTab ?? "upgrades") === tab) {
+    g.shipSheet = false;
+    return;
+  }
+  g.shipSheet = true;
+  g.shipTab = tab;
+}
+
 // Template:Stores: hull repairs in stores. Per point: 2 in sectors 1–3, 3 in 4–6, 4 in 7–8.
 export function patchAll(g: Game) {
   const missing = g.player.hullMax - g.player.hull;
@@ -6020,6 +6038,7 @@ export function loadGame(): Game | null {
       g.routeHere = g.route[0]?.id ?? "";
     }
     if (g.training == null) g.training = false;
+    if (g.shipTab !== "upgrades" && g.shipTab !== "crew" && g.shipTab !== "inventory") g.shipTab = "upgrades";
     if (!g.augments) g.augments = [];
     if (g.player.zoltan == null && g.hullId?.startsWith("zoltan-")) g.player.zoltan = 5;
     if (!g.player.kits) g.player.kits = {};

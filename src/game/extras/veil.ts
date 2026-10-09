@@ -11,8 +11,12 @@ const EVADE = 60;
  * damage, so it cannot be used again for 20 seconds. Code stores that 20s lockout.
  */
 const COOLDOWN = 20;
-/** Wiki page "Cloaking", section "System Upgrades": level 2 costs 30, level 3 costs 50. */
+/** Wiki page "Cloaking", section "System Upgrades": level 2 costs 30, level 3 costs 50. Keyed by the level already owned. */
 const UPGRADE_COST: Record<number, number> = { 1: 30, 2: 50 };
+
+export function veilUpgradeCost(level: number): number | null {
+  return UPGRADE_COST[level] ?? null;
+}
 
 function blankVeil(): Kit {
   return {

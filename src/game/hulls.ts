@@ -850,7 +850,9 @@ export const HULLS: HullSpec[] = [
    * Wiki page "The Stealth Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Stealth Cruiser", section "Layout C": Laser Charger (S) and Mini Beam. Both are 1 power, and the weapon system is level 2.
-   * Shield Overcharger + can be deployed and is still not a SwarmKind. It stays unfitted.
+   * The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
+   * Drone Control is level 2. Engines 3 + oxygen 1 + weapons 2 = 6, and the reactor is 7.
+   * Shield Overcharger + needs 2 power. One spare bar cannot feed it, so power stays 0. INFERRED.
    * Anti-Drone is still a name only. It stays unfitted.
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
@@ -884,10 +886,10 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {
       cradle: { level: 1, power: 0 },
-      swarm: { level: 2, power: 0, target: null },
+      swarm: { level: 2, power: 0, target: "overchargerplus" },
     },
     augments: ["glass"],
-    unfitted: ["Shield Overcharger +", "Anti-Drone"],
+    unfitted: ["Anti-Drone"],
   },
   /**
    * Wiki page "The Lanius Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.

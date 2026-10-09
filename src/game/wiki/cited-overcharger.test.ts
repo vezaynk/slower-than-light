@@ -354,13 +354,18 @@ describe("Shield Overcharger +", () => {
 
     const spec = HULLS.find((hull) => hull.id === "stealth-c");
     assert.ok(spec);
-    assert.ok(spec.unfitted.includes("Shield Overcharger +"));
+    // The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
+    // One spare reactor bar cannot feed its 2 power, so the slot stays unpowered. INFERRED.
+    assert.equal(spec.unfitted.includes("Shield Overcharger +"), false);
     assert.ok(spec.unfitted.includes("Anti-Drone"));
-    assert.equal(spec.kits.swarm?.target ?? null, null);
+    assert.equal(spec.kits.swarm?.target, "overchargerplus");
+    assert.equal(spec.kits.swarm?.power, 0);
     const simo = createGame(19, "stealth-c");
-    assert.equal(simo.player.kits.swarm?.target ?? null, null);
+    assert.equal(simo.player.kits.swarm?.target, "overchargerplus");
+    assert.equal(simo.player.kits.swarm?.power, 0);
     assert.equal(simo.player.kits.swarm?.on, false);
     assert.equal(simo.player.zoltan ?? null, null);
+    assert.equal(simo.player.parts, 16);
 
     const fight = createGame(20);
     startCombat(fight, "scout");

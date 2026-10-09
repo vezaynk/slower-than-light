@@ -243,7 +243,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Fight a Lanius ship.
+  // "Fight a Lanius ship (default Lanius rewards)." Lanius fight near pulsar has no choice. Arrival calls this fight. The printed sentence is the card body. pulsar=true. unique=true.
   {
     dest: "Lanius fight near pulsar",
     slug: "lanius-fight-near-pulsar",

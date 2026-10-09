@@ -90,4 +90,30 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  {
+    // Lanius craftsmen. Abandoned Sector. unique=true. LRSmap=noship.
+    // The inquiry and the leave run in filler-events.ts.
+    // 45 scrap, 50 scrap, and 40 scrap each grant an unnamed item and stay unwired.
+    // A Lanius crewmember discounts those same trades and stays unwired.
+    dest: "Lanius craftsmen",
+    slug: "lanius-craftsmen",
+    flag: "cited:lanius-craftsmen",
+    aliases: ["Lanius craftsmen"],
+    sectors: ["Abandoned Sector"],
+    body: "A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal.",
+    choices: [
+      {
+        id: "c:lanius-craftsmen:0",
+        label: "Inquire about the process.",
+        // Decline. Nothing happens. The crafts stay unwired.
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+      {
+        id: "c:lanius-craftsmen:1",
+        label: "Leave them to their research.",
+        // "Nothing happens."
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+    ],
+  },
 ];

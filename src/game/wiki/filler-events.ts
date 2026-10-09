@@ -2230,6 +2230,19 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "s:lanius-beacon-eater:decline": (g) => {
     show(g, "Nothing happens.");
   },
+  // Lanius craftsmen. Decline does nothing. 45, 50, and 40 scrap grant an unnamed augmentation, weapon, or schematic and stay off this card.
+  // The Lanius discount is on those same trades and stays unwired.
+  "c:lanius-craftsmen:0": (g) => {
+    card(g, "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"", [
+      { id: "s:lanius-craftsmen:decline", label: "Decline their offer." },
+    ]);
+  },
+  "s:lanius-craftsmen:decline": (g) => {
+    show(g, "You thank them for the information and prepare to jump.", undefined, ["Nothing happens."]);
+  },
+  "c:lanius-craftsmen:1": (g) => {
+    show(g, "While replicating their innate ability would have immeasurable consequences on commercial manufacturing, your mission has a much higher priority at the moment.", undefined, ["Nothing happens."]);
+  },
   // Hull Repair Drone. The page prints no drone-part cost, so the part stays.
   // A full ship refuses the crewmember. INFERRED from the crew cap. The page does not print that sentence.
   "c:lanius-ship-absorbing-jump-beacon:3": (g) => {

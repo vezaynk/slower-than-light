@@ -100,7 +100,11 @@ describe("cited lanius events", () => {
   it("exports only candidate titles, with sectors copied from filtered Locations", () => {
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.deepEqual(dests, ["Lanius ship absorbing jump beacon", "Lanius ship absorbing rebel base"]);
+    assert.deepEqual(dests, [
+      "Lanius ship absorbing jump beacon",
+      "Lanius ship absorbing rebel base",
+      "Lanius craftsmen",
+    ]);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest));
       assert.equal(ev.slug, slug(ev.dest));

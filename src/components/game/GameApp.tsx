@@ -109,7 +109,6 @@ import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen, usePhoneLayout } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
-import { PhoneMenu, PhonePlay } from "./TouchDock";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
 
 const SYS_ORDER: SysId[] = [
@@ -472,23 +471,13 @@ export function GameApp() {
 }
 
 function GameShell({ game, shake }: { game: Game; shake: number }) {
-  const phone = usePhoneLayout();
   const manual = game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null;
   const sheet = game.shipSheet ? <ShipSheet game={game} /> : null;
   return (
     <div className={game.phase === "title" ? "deck" : "deck play-root"}>
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
-      {phone ? (
-        <>
-          {manual ? <PhoneMenu plain>{manual}</PhoneMenu> : null}
-          {sheet ? <PhoneMenu plain>{sheet}</PhoneMenu> : null}
-        </>
-      ) : (
-        <>
-          {manual}
-          {sheet}
-        </>
-      )}
+      {manual}
+      {sheet}
     </div>
   );
 }
@@ -516,7 +505,6 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     }
   }, [hackOn, hackReady, slingOn, leashOn, game.enemy]);
   const hackAiming = hackOn && hackReady;
-  const phone = usePhoneLayout();
   const cancelAim = () => {
     clearAims();
     act((g) => cancelTargeting(g));
@@ -573,33 +561,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       </div>
       {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} /> : null}
       <Dock game={game} hackAiming={hackAiming} />
-      {phone ? null : card}
-      <PhonePlay
-        game={game}
-        hackAiming={hackAiming}
-        slingAiming={slingOn}
-        leashAiming={leashOn}
-        card={card}
-        onCancelAim={cancelAim}
-        onArmWeapon={(uid) => {
-          clearAims();
-          act((g) => armWeapon(g, uid));
-        }}
-        onAimRoom={(id) => {
-          if (hackAiming) hackRoomClick(id);
-          else if (slingOn) slingRoomClick(id);
-          else act((g) => aim(g, id));
-        }}
-        onLeashCrew={(id) => {
-          act((g) => startLeash(g, id));
-          setLeashAim(false);
-        }}
-        onHack={hackIconClick}
-        onSling={slingIconClick}
-        onLeash={leashIconClick}
-        onCloak={() => act((g) => startVeil(g))}
-        onBattery={() => act((g) => startCell(g))}
-      />
+      {card}
     </div>
   );
 }
@@ -1186,8 +1148,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
             return (
+              <span key={w.uid} className="gun-wrap">
               <button
-                key={w.uid}
                 type="button"
                 data-tray="weapons"
                 data-slot={index}
@@ -1241,6 +1203,16 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 </span>
                 <span className="power-num">{def?.power ?? 1}</span>
               </button>
+              <button
+                type="button"
+                className={`gun-auto${auto ? " is-on" : ""}`}
+                aria-pressed={auto}
+                aria-label={`${name} autofire`}
+                onClick={() => act((g) => reverseSlotAuto(g, w.uid))}
+              >
+                Auto
+              </button>
+              </span>
             );
           })}
           {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
@@ -1759,7 +1731,7 @@ function TitleScreen() {
     ) : view === "help" ? (
       <HelpScreen onContinue={startTutorial} />
     ) : view === "credits" ? (
-      <div className="phone-card">
+      <div className="title-card">
         <p>CREDITS</p>
         <p>STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
         <p>v. 0.1</p>
@@ -1798,22 +1770,21 @@ function TitleScreen() {
         {phone ? null : view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
         {phone ? null : view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
         {phone ? null : view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
+        {phone ? phoneSheet : null}
       </div>
-      {phone && phoneSheet ? <PhoneMenu plain>{phoneSheet}</PhoneMenu> : null}
       {phone && !phoneSheet ? (
-        <PhoneMenu>
+        <nav className="title-menu" aria-label="Menu">
           {TITLE_MENU_ART.map((item) => (
             <button
               key={item.id}
               type="button"
-              data-phone-action={item.id === "new" ? "new-game" : item.id}
               disabled={item.id === "continue" && !saveReady}
               onClick={() => openTitle(item.id)}
             >
               {item.label}
             </button>
           ))}
-        </PhoneMenu>
+        </nav>
       ) : null}
     </section>
   );

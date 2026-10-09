@@ -4,8 +4,9 @@
  * size, so the aspect ratio is the same on every display and the page never scrolls.
  * The box is the visual viewport (not window.innerHeight) so iOS browser chrome
  * does not leave the screen short or scrolled under the URL bar.
- * Phone controls portal into `.touch-root`, a sibling of `.screen`, so they stay
- * in device pixels when the board is scaled down.
+ * Phone controls used to portal into a sibling of `.screen`. They don't anymore:
+ * on a coarse pointer the screen fills the device instead of scaling a 1280×720
+ * picture, so the buttons on the board stay finger-sized.
  */
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 
@@ -17,6 +18,8 @@ const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLa
 export type ScreenView = {
   fit: number;
   portrait: boolean;
+  /** Coarse pointer held upright: the stage is rotated so the board is landscape. */
+  turned: boolean;
   /** Coarse pointer, or a 44px control on the board would draw smaller than 44 device pixels. */
   phone: boolean;
   w: number;
@@ -24,7 +27,6 @@ export type ScreenView = {
 };
 
 const ScreenContext = createContext<ScreenView | null>(null);
-const SlotContext = createContext<HTMLElement | null>(null);
 
 export function useScreenView() {
   return useContext(ScreenContext);
@@ -34,10 +36,34 @@ export function usePhoneLayout() {
   return useScreenView()?.phone ?? false;
 }
 
-export function useTouchSlot() {
-  return useContext(SlotContext);
+function installedApp() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return !!(
+    nav.standalone ||
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches
+  );
 }
 
+/** Android and some installed apps honor this. iOS only honors the manifest, and only after a reinstall. */
+export function lockLandscape() {
+  const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
+  const lock = orientation?.lock?.bind(orientation);
+  if (!lock) return;
+  void lock("landscape").catch(() => undefined);
+}
+
+function deviceSize(rawW: number, rawH: number) {
+  // An iframe must stay inside the preview. A home-screen app can draw under the status bar.
+  if (window.parent !== window || !installedApp()) return { rawW, rawH };
+  const sw = screen.width;
+  const sh = screen.height;
+  if (!(sw > 0) || !(sh > 0)) return { rawW, rawH };
+  const screenPortrait = sh >= sw;
+  const viewPortrait = rawH >= rawW;
+  if (screenPortrait === viewPortrait) return { rawW: Math.max(rawW, sw), rawH: Math.max(rawH, sh) };
+  return { rawW: Math.max(rawW, sh), rawH: Math.max(rawH, sw) };
+}
 function readPx(name: string) {
   const raw = getComputedStyle(document.documentElement).getPropertyValue(name);
   const n = parseFloat(raw);
@@ -46,32 +72,51 @@ function readPx(name: string) {
 
 function measure(): ScreenView & { top: number; left: number } {
   const vv = window.visualViewport;
-  const top = vv?.offsetTop ?? 0;
-  const left = vv?.offsetLeft ?? 0;
-  const rawW = Math.min(vv?.width ?? window.innerWidth, window.innerWidth);
-  const rawH = Math.min(vv?.height ?? window.innerHeight, window.innerHeight);
+  const offsetTop = vv?.offsetTop ?? 0;
+  const offsetLeft = vv?.offsetLeft ?? 0;
+  const sized = deviceSize(
+    Math.min(vv?.width ?? window.innerWidth, window.innerWidth),
+    Math.min(vv?.height ?? window.innerHeight, window.innerHeight),
+  );
+  const rawW = sized.rawW;
+  const rawH = sized.rawH;
   const sat = readPx("--sat");
   const sab = readPx("--sab");
   const sal = readPx("--sal");
   const sar = readPx("--sar");
-  const w = Math.max(1, rawW - sal - sar);
-  const h = Math.max(1, rawH - sat - sab);
-  const fit = Math.min(w / SCREEN_W, h / SCREEN_H);
+  const safeW = Math.max(1, rawW - sal - sar);
+  const safeH = Math.max(1, rawH - sat - sab);
   const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const portrait = rawH > rawW;
+  // iOS will not rotate the phone for a page. Turn the stage instead.
+  const turned = coarse && portrait;
+  if (turned) {
+    return {
+      top: offsetTop + sat,
+      left: offsetLeft + sal + safeW,
+      w: safeH,
+      h: safeW,
+      fit: Math.min(safeH / SCREEN_W, safeW / SCREEN_H),
+      portrait: true,
+      turned: true,
+      phone: true,
+    };
+  }
+  const fit = Math.min(safeW / SCREEN_W, safeH / SCREEN_H);
   return {
-    top: top + sat,
-    left: left + sal,
-    w,
-    h,
+    top: offsetTop + sat,
+    left: offsetLeft + sal,
+    w: safeW,
+    h: safeH,
     fit,
-    portrait: rawH > rawW,
+    portrait,
+    turned: false,
     phone: coarse || fit < 0.999,
   };
 }
 
 export function Screen({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ReturnType<typeof measure> | null>(null);
-  const [slot, setSlot] = useState<HTMLDivElement | null>(null);
 
   useBrowserLayoutEffect(() => {
     const update = () => setView(measure());
@@ -82,6 +127,11 @@ export function Screen({ children }: { children: ReactNode }) {
     window.visualViewport?.addEventListener("resize", update);
     window.visualViewport?.addEventListener("scroll", update);
     coarse.addEventListener("change", update);
+    if (coarse.matches) lockLandscape();
+    const lockOnGesture = () => {
+      if (window.matchMedia("(pointer: coarse)").matches) lockLandscape();
+    };
+    window.addEventListener("pointerdown", lockOnGesture);
     const editable = (target: EventTarget | null) =>
       target instanceof Element && !!target.closest("input, textarea, select, .fs-guide-url");
     const blockSelect = (event: Event) => {
@@ -108,6 +158,7 @@ export function Screen({ children }: { children: ReactNode }) {
       window.visualViewport?.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("scroll", update);
       coarse.removeEventListener("change", update);
+      window.removeEventListener("pointerdown", lockOnGesture);
       document.removeEventListener("selectstart", blockSelect);
       document.removeEventListener("gesturestart", blockGesture);
       document.removeEventListener("gesturechange", blockGesture);
@@ -121,18 +172,17 @@ export function Screen({ children }: { children: ReactNode }) {
     ? ({ top: view.top, left: view.left, width: view.w, height: view.h } as CSSProperties)
     : undefined;
   const phone = view?.phone ?? false;
-  const cls = ["viewport", phone ? "has-phone" : "", view?.portrait ? "is-portrait" : ""].filter(Boolean).join(" ");
+  const cls = ["viewport", phone ? "has-phone" : "", view?.turned ? "is-turned" : "", view?.portrait && !view.turned ? "is-portrait" : ""]
+    .filter(Boolean)
+    .join(" ");
   return (
     <ScreenContext.Provider value={view}>
-      <SlotContext.Provider value={phone ? slot : null}>
-        <div className={cls} style={box}>
-          <div className={`screen${view ? " is-fit" : ""}`} style={frame}>
-            {children}
-          </div>
-          <div className="touch-root" ref={setSlot} />
-          {view?.portrait ? <p className="rotate-hint">Turn your device sideways for a larger view.</p> : null}
+      <div className={cls} style={box}>
+        <div className={`screen${view ? " is-fit" : ""}`} style={frame}>
+          {children}
         </div>
-      </SlotContext.Provider>
+        {view?.portrait && !view.turned ? <p className="rotate-hint">Turn your device sideways for a larger view.</p> : null}
+      </div>
     </ScreenContext.Provider>
   );
 }

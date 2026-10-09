@@ -39,9 +39,7 @@ import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { FullscreenButton } from "./FullscreenButton";
 import { PixelIcon } from "./PixelIcon";
-import { usePhoneLayout } from "./Screen";
 import { ShipView } from "./ShipView";
-import { PhoneMenu } from "./TouchDock";
 
 type Letter = "A" | "B" | "C";
 type Difficulty = "EASY" | "NORMAL" | "HARD";
@@ -103,7 +101,6 @@ export function Hangar() {
   const [aeOn, setAeOn] = useState(true);
   const [rename, setRename] = useState(false);
   const [name, setName] = useState(() => hangarSheet(CRUISER_PAGES[0].layouts[0]).defaultName);
-  const phone = usePhoneLayout();
 
   const page = CRUISER_PAGES[pageIndex] ?? CRUISER_PAGES[0];
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
@@ -180,7 +177,7 @@ export function Hangar() {
     <section className="hangar">
       <div className="hangar-floor" aria-hidden="true" />
 
-      <header className="hangar-top" inert={phone ? true : undefined}>
+      <header className="hangar-top">
         <button type="button" onClick={() => setRename(true)}>
           RENAME
         </button>
@@ -223,7 +220,7 @@ export function Hangar() {
         </div>
       </header>
 
-      <aside className="hangar-ship" inert={phone ? true : undefined}>
+      <aside className="hangar-ship">
         <p className="hangar-label">SHIP</p>
         <div className="hangar-list" role="group" aria-label="LIST">
           <button type="button" aria-label="LIST" onClick={() => stepPage(-1)}>
@@ -458,61 +455,6 @@ export function Hangar() {
           </div>
         </section>
       </footer>
-      {phone ? (
-        <PhoneMenu>
-          <p className="phone-kicker">
-            {page.page} · {layout.heading}
-          </p>
-          <button type="button" data-phone-action="start" onClick={start} disabled={locked}>
-            START
-          </button>
-          <label className="phone-name">
-            <span>Name</span>
-            <input aria-label="Ship name" value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-          <div className="phone-row" role="group" aria-label="Difficulty">
-            {DIFFICULTIES.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={difficulty === item ? "is-on" : undefined}
-                aria-pressed={difficulty === item}
-                onClick={() => setDifficulty(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="phone-row">
-            <button type="button" data-phone-action="ship-prev" onClick={() => stepPage(-1)}>
-              Previous ship
-            </button>
-            <button type="button" data-phone-action="ship-next" onClick={() => stepPage(1)}>
-              Next ship
-            </button>
-          </div>
-          <div className="phone-row" role="group" aria-label="Layout">
-            {page.layouts.map((item) => {
-              const itemLetter = letterOf(item.heading);
-              const shut = !isUnlockedIn(unlocks, item.id);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  data-phone-action="layout"
-                  className={active === itemLetter ? "is-on" : undefined}
-                  aria-pressed={active === itemLetter}
-                  aria-label={`Layout ${itemLetter}${shut ? " locked" : ""}`}
-                  onClick={() => setLetter(itemLetter)}
-                >
-                  {itemLetter}
-                  {shut ? " locked" : ""}
-                </button>
-              );
-            })}
-          </div>
-        </PhoneMenu>
-      ) : null}
     </section>
   );
 }

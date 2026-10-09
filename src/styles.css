@@ -119,6 +119,12 @@ html.is-immersive body {
   background: #000;
 }
 
+/* Portrait phone: the stage is landscape-sized and rotated onto the upright screen. */
+.viewport.is-turned {
+  transform: rotate(90deg);
+  transform-origin: top left;
+}
+
 .screen {
   position: absolute;
   left: 50%;
@@ -133,6 +139,15 @@ html.is-immersive body {
 
 .screen.is-fit {
   visibility: visible;
+}
+
+/* A phone fills the device with the real layout. Scaling the 1280 board made every control too small, which is why a second bar used to exist. */
+.viewport.has-phone .screen {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  transform: none;
 }
 
 .rotate-hint {
@@ -4054,315 +4069,52 @@ button.door-tick::before {
   outline-offset: 2px;
 }
 
-/* Phone controls live outside the scaled board, in real viewport pixels. */
-.touch-root {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  overflow: hidden;
+/* Phone: the board is the interface. Hits that were a few pixels get a finger-sized pad. Lists that duplicated them are gone. */
+.viewport.has-phone .title-shot.is-phone {
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 210px);
+  place-items: stretch;
 }
 
-.phone-layer {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
+.title-menu {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
-  padding: 8px;
-  box-sizing: border-box;
-  max-height: 100%;
-  min-width: 0;
+  padding: 12px;
+  z-index: 3;
 }
 
-.phone-layer > * {
-  pointer-events: auto;
-}
-
-.phone-layer.is-fill {
-  justify-content: flex-end;
-  overflow: hidden;
-  background: rgba(2, 3, 8, 0.55);
-  pointer-events: auto;
-}
-
-.phone-layer .overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  min-height: 0;
-  padding: 8px;
-  box-sizing: border-box;
-  touch-action: pan-y;
-}
-
-.phone-layer .sheet {
-  width: 100%;
-  max-width: 100%;
-}
-
-.phone-layer .sheet button,
-.phone-layer .manual button,
-.phone-layer .icon-btn,
-.phone-layer .text-btn {
+.title-menu button,
+.viewport.has-phone .hangar-top button,
+.viewport.has-phone .hangar-ship button,
+.viewport.has-phone .hangar-letters button,
+.viewport.has-phone .crew-card,
+.viewport.has-phone .crew-card-hit,
+.viewport.has-phone .choice-line,
+.viewport.has-phone .frame-btn {
   min-height: 44px;
   min-width: 44px;
 }
 
-.viewport.is-portrait .phone-layer.is-fill {
-  padding-top: 36px;
-}
-
-/* Sheets portaled out of the scaled board fill the phone layer and scroll inside it. */
-.phone-layer.is-fill > .wiki-screen,
-.phone-layer.is-fill > .phone-card,
-.phone-layer.is-fill > .phone-readout {
-  flex: 1 1 auto;
-  align-self: stretch;
-  min-height: 0;
-  max-height: 100%;
-}
-
-.phone-layer > .wiki-screen {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.phone-layer .controls-cols,
-.phone-layer .ach-body,
-.phone-layer .help-grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-
-.phone-layer .help-grid {
-  grid-template-columns: 1fr;
-}
-
-.phone-layer .controls-screen header,
-.phone-layer .controls-screen footer,
-.phone-layer .ach-screen header {
-  flex: none;
-}
-
-.phone-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  max-height: 100%;
-  margin-top: auto;
-  overflow: auto;
-  overscroll-behavior: contain;
-  pointer-events: auto;
-}
-
-.phone-menu button,
-.phone-bar button,
-.phone-panel button,
-.phone-readout > button,
-.phone-card button,
-.phone-layer .choice-line,
-.phone-layer .store-board button,
-.phone-layer .verdict-row button,
-.phone-layer .verdict-stats,
-.phone-layer .wiki-screen button,
-.phone-layer .controls-screen button {
-  min-height: 44px;
-  min-width: 44px;
-  box-sizing: border-box;
-}
-
-.phone-menu button,
-.phone-bar button,
-.phone-panel button,
-.phone-readout > button,
-.phone-card button {
+.title-menu button {
   border: 2px solid var(--color-line);
   background: var(--color-panel);
   color: var(--color-fg);
-  border-radius: var(--radius);
   font-family: var(--font-hud);
   font-size: 22px;
-  letter-spacing: 0.04em;
-  padding: 8px 12px;
+  letter-spacing: 0.06em;
 }
 
-.phone-menu button[aria-pressed="true"],
-.phone-bar button[aria-pressed="true"],
-.phone-panel button[aria-pressed="true"] {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.phone-menu button:disabled,
-.phone-bar button:disabled {
-  opacity: 0.45;
-}
-
-.phone-bar {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  overscroll-behavior: contain;
-  flex: none;
-  min-width: 0;
-  max-width: 100%;
-  touch-action: pan-x;
-}
-
-.phone-bar button {
-  flex: none;
-  white-space: nowrap;
-}
-
-.phone-gun {
-  display: inline-flex;
-  gap: 8px;
-  flex: none;
-}
-
-.phone-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-  max-height: min(52dvh, 420px);
-  overflow: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-}
-
-.phone-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow: auto;
-  overscroll-behavior: contain;
-  max-height: min(42dvh, 320px);
-  padding: 8px;
-  background: rgba(11, 17, 22, 0.96);
-  border: 2px solid var(--color-line);
-  box-shadow: var(--glow);
-}
-
-.phone-stack .phone-panel {
-  max-height: none;
-  overflow: visible;
-  flex: none;
-}
-
-.phone-panel button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  white-space: normal;
-}
-
-.phone-panel em {
-  font-style: normal;
-  color: var(--color-accent);
-}
-
-.phone-kicker {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.title-menu button:disabled {
   color: var(--color-muted);
+  border-color: var(--color-line-dim);
 }
 
-.phone-name {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--color-muted);
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.phone-name input {
-  min-height: 44px;
-  width: 100%;
-  box-sizing: border-box;
-  border: 2px solid var(--color-line);
-  background: #05080b;
-  color: var(--color-fg);
-  font-family: var(--font-hud);
-  font-size: 22px;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  touch-action: auto;
-}
-
-.phone-row {
-  display: flex;
-  gap: 8px;
-}
-
-.phone-row button {
-  flex: 1;
-}
-
-.phone-readout {
+.title-card {
+  position: fixed;
+  inset: 8px;
+  z-index: 8;
   overflow: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  max-height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.phone-readout .modal-layer,
-.phone-readout .verdict-layer {
-  position: static;
-  inset: auto;
-  display: block;
-  pointer-events: auto;
-}
-
-.phone-readout .ftl-card,
-.phone-readout .store-board,
-.phone-readout .verdict,
-.phone-readout .victory-cinema,
-.phone-layer .wiki-screen,
-.phone-card {
-  width: 100%;
-  max-width: none;
-  max-height: none;
-  box-sizing: border-box;
-  font-size: 16px;
-}
-
-.phone-readout .store-board {
-  grid-template-columns: 1fr !important;
-}
-
-.phone-readout .weapon-row {
-  grid-template-columns: 1fr;
-}
-
-.phone-layer .choice-line {
-  font-size: 16px;
-  line-height: 1.35;
-}
-
-.phone-layer .verdict-row button {
-  flex: 1 1 40%;
-}
-
-.phone-card {
   padding: 16px;
   background: var(--color-panel);
   border: 2px solid var(--color-line);
@@ -4372,20 +4124,83 @@ button.door-tick::before {
   line-height: 1.3;
 }
 
-.phone-card p {
-  margin: 0 0 8px;
+.viewport.has-phone .play {
+  grid-template-columns: 96px minmax(0, 1fr) minmax(128px, 34%);
 }
 
-.phone-layer .help-screen {
+.viewport.has-phone .play.no-target {
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.viewport.has-phone .power-col button {
+  width: 28px;
+  height: 22px;
+}
+
+.viewport.has-phone .sub-orb,
+.viewport.has-phone .sys-orb {
+  width: 44px;
+  height: 44px;
+}
+
+.viewport.has-phone .autofire,
+.viewport.has-phone .door-pop button {
   min-height: 44px;
+  min-width: 44px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .phone-layer,
-  .phone-stack,
-  .phone-panel,
-  .phone-menu,
-  .phone-bar {
-    scroll-behavior: auto;
-  }
+.gun-wrap {
+  position: relative;
+  flex: none;
+}
+
+.gun-auto {
+  display: none;
+}
+
+.viewport.has-phone .gun-auto {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 2;
+  min-width: 44px;
+  min-height: 28px;
+  padding: 0 6px;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  font-family: var(--font-hud);
+  font-size: 16px;
+}
+
+.viewport.has-phone .gun-auto.is-on {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.viewport.has-phone .play .token {
+  width: 26px;
+  height: 26px;
+}
+
+.viewport.has-phone button.door-tick::before {
+  inset: -16px;
+}
+
+.viewport.has-phone .beacon-map.sector-map .beacon {
+  width: 28px;
+  height: 28px;
+}
+
+.viewport.has-phone .hangar {
+  max-width: none;
+  height: 100cqh;
+  overflow: auto;
+}
+
+.viewport.has-phone .overlay,
+.viewport.has-phone .title-frame .wiki-screen {
+  max-height: 100%;
 }

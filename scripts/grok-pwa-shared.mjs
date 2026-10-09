@@ -166,7 +166,8 @@ export function renderWebManifest(hostHeader) {
       id: "/",
       start_url: "/",
       scope: "/",
-      display: "standalone",
+      display: "fullscreen",
+      orientation: "landscape",
       background_color: "#000000",
       theme_color: "#000000",
       icons: [
@@ -184,8 +185,10 @@ export function renderWebManifest(hostHeader) {
 
 export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
   return [
-    // Standalone display comes from the manifest ("display": "standalone");
-    // the legacy *-web-app-capable metas it replaces are deliberately absent.
+    // Fullscreen display and landscape come from the manifest. iOS snapshots both
+    // when the icon is added, so an already-installed icon keeps the old chrome
+    // until it is removed and added again. The legacy capable meta stays in the
+    // document (src/routes/__root.tsx) for older iOS.
     ["manifest", '<link rel="manifest" href="/__grok/manifest.webmanifest">'],
     ["apple-touch-icon", '<link rel="apple-touch-icon" href="/__grok/icon-180.png">'],
     [
@@ -194,7 +197,7 @@ export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
     ],
     [
       "apple-mobile-web-app-status-bar-style",
-      '<meta name="apple-mobile-web-app-status-bar-style" content="black">',
+      '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
     ],
     ["theme-color", '<meta name="theme-color" content="#000000">'],
   ];

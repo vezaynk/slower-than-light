@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { PixelIcon } from "./PixelIcon";
+import { lockLandscape } from "./Screen";
 
 const IMMERSIVE = "is-immersive";
 const ICON = `${import.meta.env.BASE_URL}__grok/install/assets/homescreen`;
@@ -90,12 +91,18 @@ function leaveNative() {
   Promise.resolve(exit()).catch(() => undefined);
 }
 
-/** Home Screen steps, or null when this is not an iPhone/iPad page in a browser tab. */
-function iosHomeScreen(): IosGuide | null {
+/** Home Screen steps, or null when this is not an iPhone/iPad browser tab. An installed app is not a tab. */
+function installedApp() {
   const nav = navigator as Navigator & { standalone?: boolean };
-  if (nav.standalone) return null;
-  if (window.matchMedia("(display-mode: standalone)").matches) return null;
-  if (window.matchMedia("(display-mode: fullscreen)").matches) return null;
+  return !!(
+    nav.standalone ||
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches
+  );
+}
+
+function iosHomeScreen(): IosGuide | null {
+  if (installedApp()) return null;
   const ua = navigator.userAgent || "";
   const touch = navigator.maxTouchPoints || 0;
   const iphone = /iPhone|iPod/.test(ua);
@@ -115,8 +122,12 @@ export function FullscreenButton({ className = "frame-btn" }: { className?: stri
   const [guide, setGuide] = useState<IosGuide | null>(null);
 
   useEffect(() => {
-    const sync = () => setOn(isOn());
+    const sync = () => setOn(isOn() || installedApp());
     sync();
+    if (installedApp()) {
+      document.documentElement.classList.add(IMMERSIVE);
+      lockLandscape();
+    }
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
     return () => {
@@ -129,6 +140,14 @@ export function FullscreenButton({ className = "frame-btn" }: { className?: stri
     const ios = iosHomeScreen();
     if (ios) {
       setGuide(ios);
+      return;
+    }
+    lockLandscape();
+    if (installedApp()) {
+      document.documentElement.classList.add(IMMERSIVE);
+      void tryNative();
+      setOn(true);
+      refit();
       return;
     }
     if (isOn()) {
@@ -148,7 +167,8 @@ export function FullscreenButton({ className = "frame-btn" }: { className?: stri
     });
   }
 
-  const label = on ? "Exit full screen" : "Full screen";
+  const held = typeof window !== "undefined" && installedApp();
+  const label = held || !on ? "Full screen" : "Exit full screen";
   const where = guide?.ipad ? "toolbar" : "bottom bar";
   return (
     <>

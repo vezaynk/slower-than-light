@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 944 |
-| Behaviors checked | 2920 |
+| Behaviors checked | 2921 |
 | Behaviors open | 541 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -1978,6 +1978,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] src/game/content.ts — Flak I, Adv.
   - [x] Flak, and Flak II are in WEAPONS.
   - [ ] Radius and fake pellets stay in gaps.
+    - [x] A Flak II burst adds six fake pellets and an Adv. Flak burst adds three, a defense drone can shoot one down, and neither drops a shield.
+    - [ ] Targeting radius stays unsimulated as pixels.
   - [x] Flak Artillery is a system.
   - [x] A Flak I shot aimed at a 1x2 room stays there 44.21 percent of the time, with 11.96 percent on each long-side tile, 3.63 percent on each short-side tile, and 0.17 percent on each corner, and a shot aimed at a 2x2 room stays 84.08 percent of the time.
   - [x] A Flak II shot aimed at a 1x2 room stays there 25.78 percent of the time, with 12.06 percent on each long-side tile, 7.02 percent on each short-side tile, 2.70 percent on each corner, and 0.29 percent on each tile past the long sides, and a shot aimed at a 2x2 room stays 51.56 percent of the time, with 5.90 percent on each side tile and 0.31 percent on each corner.

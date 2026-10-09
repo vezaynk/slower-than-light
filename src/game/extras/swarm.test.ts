@@ -15,6 +15,7 @@ import {
   INTRUDER_SPACE_SPEED,
   PATCH_HEAL,
   REDEPLOY_S,
+  activateDroneSlot,
   deploy,
   depowerDrone,
   hurtRoomDrones,
@@ -1507,5 +1508,38 @@ describe("Zoltans drone depower", () => {
     kit.power = 2;
     assert.equal(depowerDrone(g), true);
     assert.equal(kit.idle, true);
+  });
+});
+
+describe("drone schematic activation", () => {
+  it("spends one part the first time a schematic is activated and not again", () => {
+    // Drone Control, Overview: activating spends one part only when the drone is not already deployed.
+    const g = createGame(8);
+    const kit = place(g, 2);
+    kit.target = "striker";
+    assert.equal(activateDroneSlot(g, 0), true);
+    assert.equal(kit.on, true);
+    assert.equal(kit.target, "striker");
+    assert.equal(g.player.parts, 1);
+    assert.equal(activateDroneSlot(g, 0), true);
+    assert.equal(g.player.parts, 1);
+    assert.equal(activateDroneSlot(g, 1), false);
+    assert.equal(g.player.parts, 1);
+  });
+
+  it("activates the second loadout slot and repowers without a part", () => {
+    // Drone Control, Overview: keys 5-7 are the schematic slots, and a deployed drone is only powered again.
+    const g = createGame(9);
+    const kit = place(g, 3);
+    kit.target = null;
+    kit.loadout = ["ward", "striker"];
+    assert.equal(activateDroneSlot(g, 1), true);
+    assert.equal(kit.target, "striker");
+    assert.equal(g.player.parts, 1);
+    depowerDrone(g);
+    assert.equal(kit.idle, true);
+    assert.equal(activateDroneSlot(g, 1), true);
+    assert.equal(kit.idle, undefined);
+    assert.equal(g.player.parts, 1);
   });
 });

@@ -263,6 +263,29 @@ function ready(kit: Kit): boolean {
 }
 
 /**
+ * Schematics the player can switch on.
+ * An enemy-style loadout is the list. Otherwise the single fitted target is the only slot.
+ */
+export function playerDroneSlots(kit: Kit | undefined): string[] {
+  if (!kit) return [];
+  if (kit.loadout?.length) return [...kit.loadout];
+  return kit.target ? [kit.target] : [];
+}
+
+/**
+ * Drone Control, Overview: "Activating a drone is done in a similar way as activating weapons,
+ * by clicking on the installed drone schematic or pressing the key (5-7)."
+ * "Activating a drone will power it and, if the drone is not already deployed, will spend one
+ * drone part to deploy the drone."
+ * The first schematic is key 5, the second key 6, and the third key 7.
+ */
+export function activateDroneSlot(g: Game, index: number): boolean {
+  const kind = playerDroneSlots(g.player.kits.swarm)[index];
+  if (!kind) return false;
+  return deploy(g, kind);
+}
+
+/**
  * Spend one drone part and deploy. Same kind already out does not spend again.
  * Power is not taken here; the drone acts only while fed bars cover DRONE_POWER.
  */

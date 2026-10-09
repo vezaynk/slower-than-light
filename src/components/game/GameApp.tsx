@@ -12,7 +12,7 @@ import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell, upgradeCell } from "@/game/extras/cell";
 import { recallSling, sendSling, shipInDanger, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
-import { depowerDrone, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
+import { activateDroneSlot, depowerDrone, playerDroneSlots, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { lowerLancePower, raiseLancePower } from "@/game/extras/lance";
 import { lowerFlakPower, raiseFlakPower } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
@@ -380,6 +380,12 @@ export function GameApp() {
         return;
       }
       if ((g.phase === "combat" || g.phase === "map") && !g.picking) {
+        // Drone Control, Overview: keys 5-7 activate the installed schematics. Weapon keys stay 1-4.
+        if (plain && n >= 4 && n <= 6) {
+          e.preventDefault();
+          act((game) => activateDroneSlot(game, n - 4));
+          return;
+        }
         const weapon = g.player.weapons[n];
         if (!weapon || e.altKey) return;
         e.preventDefault();
@@ -1123,7 +1129,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
     }),
   );
   const swarm = game.player.kits.swarm;
-  const droneSlots = swarm?.loadout?.length ? swarm.loadout : swarm?.target ? [swarm.target] : [];
+  const droneSlots = playerDroneSlots(swarm);
   // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
   const hackedKit = hackedPlayerKit(game);
   return (
@@ -1246,6 +1252,10 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   onClickCapture={(e) => {
                     if (swallowHoldClick(e)) return;
                     drones.onClickCapture(e);
+                  }}
+                  onClick={() => {
+                    // Drone Control, Overview: clicking the schematic activates that drone.
+                    act((g) => activateDroneSlot(g, index));
                   }}
                   onContextMenu={(e) => {
                     e.preventDefault();

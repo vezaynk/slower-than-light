@@ -102,7 +102,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:rebel-fight-crystal:0",
         label: "Fight a Rebel ship (default rewards)",
         fx: [
-          // Fight a [[Rebel Ships|Rebel ship]]
+          // Fight a [[Rebel Ships|Rebel ship]] ([[Rewards#Default_rewards|default rewards]]).
           { k: "fight", tier: "Rebel ship" },
         ],
       },

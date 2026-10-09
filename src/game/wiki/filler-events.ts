@@ -845,6 +845,33 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:malfunctioning-defense-system:1", label: "Leave them alone.", fx: [{ k: "nothing" }] },
     ],
   },
+  // TAVERN_HIRE. The intro varies. Don't hire anyone does nothing.
+  // Both hire prices grant an unnamed crewmember and stay unwired.
+  {
+    dest: "Crew hiring station",
+    slug: "crew-hiring-station",
+    flag: "cited:crew-hiring-station",
+    aliases: ["Crew hiring station"],
+    sectors: [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rebel Controlled Sector",
+      "Rebel Stronghold",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Slug Controlled Nebula",
+      "Slug Home Nebula",
+      "Uncharted Nebula",
+    ],
+    body: "This Beacon seems to serve as meeting place for local traffic. It seems you can find crew willing to fight on your ship here... for a price.",
+    choices: [
+      { id: "c:crew-hiring-station:0", label: "Don't hire anyone.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -987,6 +1014,22 @@ function tradeIntro(g: Game, page: Page): GameEvent {
   return { title: page.dest, body: text, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
+/**
+ * Crew hiring station. "The intro text for this event varies, and could be any of the following".
+ * Three texts and no odds. INFERRED: equal.
+ * The hire prices grant an unnamed crewmember and stay off this card.
+ */
+const HIRE_INTROS = [
+  "This Beacon seems to serve as meeting place for local traffic. It seems you can find crew willing to fight on your ship here... for a price.",
+  "You find a space station set up for travelers. Browsing through its listings, you find a tavern full of mercenaries for hire. You look for potential crewmembers.",
+  "There are a number of ships stationed around a rest stop. You immediately receive a message saying, \"If you're looking for some bodies to fill your ship, you've come to the right place!\"",
+];
+
+function hireCard(g: Game, page: Page): GameEvent {
+  const text = HIRE_INTROS[Math.min(HIRE_INTROS.length - 1, Math.floor(rand(g) * HIRE_INTROS.length))];
+  return { title: page.dest, body: text, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
+}
+
 function tradeOfferText(o: TradeOffer): string {
   if (o.id === "reactor") return "They offer to upgrade your reactor in exchange for some scrap.";
   if (o.id === "oxygen") return "They offer to upgrade your Oxygen system in exchange for some scrap.";
@@ -999,6 +1042,7 @@ function cardFor(g: Game, page: Page): GameEvent {
   if (page.slug === "empty-nebula-beacon") return emptyCard(g, emptyPageFor("", true));
   if (page.slug === "friendly-ship-out-of-fuel" && FILLER_PAGES.includes(page as CitedEventDef)) return friendlyCard(g, page);
   if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
+  if (page.slug === "crew-hiring-station") return hireCard(g, page);
   if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
   if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
   if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
@@ -2242,6 +2286,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "c:lanius-craftsmen:1": (g) => {
     show(g, "While replicating their innate ability would have immeasurable consequences on commercial manufacturing, your mission has a much higher priority at the moment.", undefined, ["Nothing happens."]);
+  },
+  // Crew hiring station. "Don't hire anyone." Nothing happens.
+  // The 25-45 and 25-55 scrap hires grant an unnamed crewmember and stay unwired.
+  "c:crew-hiring-station:0": (g) => {
+    show(g, "Nothing happens.");
   },
   // Hull Repair Drone. The page prints no drone-part cost, so the part stays.
   // A full ship refuses the crewmember. INFERRED from the crew cap. The page does not print that sentence.

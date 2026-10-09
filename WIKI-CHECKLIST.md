@@ -10,7 +10,7 @@ Reactor bars in this code: only shields, engines, oxygen, medbay, weapons, and k
 
 Wired into the hangar (`HULLS`) and the weapon list (`WEAPONS`):
 
-- Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance stays unfitted. Mantis A/B/C start with Mantis Pheromones, which speed your crew by 25%. Player hangar cutaways are traced from the hangar pictures. Enemy ships are rolled from the 47 documented classes (`enemy-gen.ts`, `wiki/enemy-ships.ts`). Forty-five interiors are traced in `wiki/enemy-layouts.ts`. Engi Hacker and Crystal Outrider stay generated from the system list (INFERRED). An unlabeled system sits in an empty hall of the largest connected interior (INFERRED). The bitmaps are not copied.
+- Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance starts on both Crystal layouts. Mantis A/B/C start with Mantis Pheromones, which speed your crew by 25%. Player hangar cutaways are traced from the hangar pictures. Enemy ships are rolled from the 47 documented classes (`enemy-gen.ts`, `wiki/enemy-ships.ts`). Forty-five interiors are traced in `wiki/enemy-layouts.ts`. Engi Hacker and Crystal Outrider stay generated from the system list (INFERRED). An unlabeled system sits in an empty hall of the largest connected interior (INFERRED). The bitmaps are not copied.
 - Wiki weapon rows, except `pike` (the same Pike Beam row is already id `shear`). Boss Laser and Boss Beam are WeaponDefs (`wiki/flagship-weapons.ts`). Their power fields, 4 and 3, are the chosen artillery maxima. No power line is printed, and the sim does not charge them from the Weapons pool. Charge times are the printed table (laser 25/20/15/10, beam 32.5/26/19.5). Boss Ion power is 3. Boss Missile power is 4. The flagship copy of Boss Missile uses breach 0.14.
 - Starting guns are mounted even when their power sum is above the powered bars. `powerMask` feeds the list in order; switching one off or raising the weapon bars powers the next. That includes Halberd on Zoltan A, Ion Charger on Zoltan C, Breach Bomb I on Slug A, and Heavy Pierce on Rock B. Anti-Bio on Slug A, Healing Burst on Slug B, Hull Missile on Rock A, Swarm Missiles and Heavy Crystal I on Rock C, Mini Beam on Stealth A, Glaive Beam on Stealth B, Pike Beam on Zoltan B.
 - Bombs do not subtract hull. Bomb (Weapons) lead. Printed bomb and beam crew HP is applied. Aiming any bomb at your own ship is a control, and that shot does not miss. Healing Burst adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member. It can still miss the enemy ship. Repair Burst removes 8 system damage, does not miss the shooter's own ship, and does not clear fire or a breach. Neither spends a Zoltan Shield. Heavy Pierce and the four crystal guns ignore one shield layer; a second layer stops the shot and drops one bubble. A Hull Beam deals 2 hull damage on a systemless room, and each shield layer cuts that figure by one. Hull Smasher I and II deal 2 hull damage on a systemless room and do not raise crew damage. A Hull Missile deals 4 hull damage there, and crew stay on the system-room 2 (INFERRED). A drone in the struck room that already has health takes half that crew damage. Beam pierce and beam chain stay gaps. `WeaponDef` has no pierce field.
@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 937 |
-| Behaviors checked | 2865 |
-| Behaviors open | 542 |
+| Pages fully checked | 940 |
+| Behaviors checked | 2868 |
+| Behaviors open | 539 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -681,9 +681,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A Stun Bomb puts 1 ion on that system and stuns every crew member and drone in the room for 15 seconds.
   - [x] A Zoltan Shield spends 2 and stops it.
 
-- [ ] Bravais
+- [x] Bravais
   - [x] crystal-a in HULLS.
-  - [ ] Crystal Vengeance stays unfitted.
+  - [x] Crystal Vengeance starts fitted.
   - [x] Room grid is the shared player grid.
 
 - [x] Brutal Exchange Between Several Ships
@@ -716,9 +716,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
   - [x] The later assist fight can be an Auto-ship or an Elite Rebel with a friendly Anti-Ship Battery, the Elite escapes at 20 percent from 40-60 percent hull, and the unnamed crewmember is not granted.
 
-- [ ] Carnelian
+- [x] Carnelian
   - [x] crystal-b in HULLS.
-  - [ ] Crystal Vengeance stays unfitted.
+  - [x] Crystal Vengeance starts fitted.
   - [x] Room grid is the shared player grid.
 
 - [ ] Cerenkov
@@ -5670,9 +5670,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The collapse prints no stun duration, so none is applied.
   - [x] The mind duel shows the printed collapse or victory sentence, accepting his surrender shows the printed transfer sentence, and ignoring him shows the printed cut-off sentence.
 
-- [ ] The Crystal Cruiser
+- [x] The Crystal Cruiser
   - [x] Bravais and Carnelian are in HULLS.
-  - [ ] Crystal Vengeance stays unfitted.
+  - [x] Crystal Vengeance starts fitted.
   - [x] Room grid is the shared player grid.
   - [x] Unlocks are labels.
 

@@ -211,7 +211,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Fight a Lanius ship.
+  // "Fight a Lanius ship (default Lanius rewards)." Lanius fight distress has no choice. Arrival calls this fight. The printed sentence is the card body. distress=true. unique=true.
   {
     dest: "Lanius fight distress",
     slug: "lanius-fight-distress",

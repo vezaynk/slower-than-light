@@ -5092,6 +5092,7 @@ function arrive(g: Game, b: Beacon) {
   // Rebel fight in nebula: "Fight a Rebel ship (default rewards)." One of the seven printed intros. nebula=true. unique=false.
   // Rebel fight near pulsar: "Fight a Rebel ship (default rewards)." One of the three printed intros. pulsar=true. unique=true.
   // Lanius fight: "Fight a Lanius ship (default Lanius rewards)." One of the eleven printed intros, including the repeated line. unique=false.
+  // Lanius fight distress: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. distress=true. unique=true.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5134,7 +5135,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:rebel-fight-lanius" ||
       b.flag === "cited:rebel-fight-in-nebula" ||
       b.flag === "cited:rebel-fight-near-pulsar" ||
-      b.flag === "cited:lanius-fight") &&
+      b.flag === "cited:lanius-fight" ||
+      b.flag === "cited:lanius-fight-distress") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

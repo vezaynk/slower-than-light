@@ -90,8 +90,9 @@ export function onPlayerJump(g: Game) {
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   onCradleJump(g);
   primeWeapons(g);
-  // Augmentations, Drone Recovery Arm: a live drone's part comes back. Hull Repair after 2 repairs is still live.
-  // A drone that already vanished (kit.on false) does not. INVENTED: one part.
+  // Augmentations, Drone Recovery Arm: defense drones, including a Hull Repair drone still out after 2 repairs,
+  // give a part back on this jump. A combat drone does too only once the fight is over. Boarding, ion, crew, and
+  // hacking drones do not. A drone that already vanished (kit.on false) does not. INVENTED: one part.
   g.player.parts += partsBack(g);
   onJumpSwarm(g);
 }

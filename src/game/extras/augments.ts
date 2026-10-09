@@ -139,7 +139,7 @@ export const CATALOG: Listing[] = [
   {
     id: "recover",
     name: "Drone Recovery Arm",
-    detail: "A powered drone that is still out gives its drone part back. A Hull Repair drone that already broke apart does not.",
+    detail: "A powered defense drone gives its part back when the jump starts. A powered combat drone gives it back only after the fight. Boarding, ion, crew, and hacking drones do not.",
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Hacking Stun. Store cost 60.

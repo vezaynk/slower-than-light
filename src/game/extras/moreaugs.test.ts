@@ -57,7 +57,7 @@ describe("more augments", () => {
     assert.equal(enemyFtlScale(g), 2);
   });
 
-  it("returns one part only for a powered drone that is still out", () => {
+  it("returns one part for a defense drone on the jump, and for a combat drone only after the fight", () => {
     const g = createGame(1);
     assert.equal(partsBack(g), 0);
 
@@ -67,7 +67,29 @@ describe("more augments", () => {
     g.augments = ["recover"];
     assert.equal(partsBack(g), 1);
 
-    g.player.kits.swarm = swarm(0, "striker");
+    g.phase = "combat";
+    g.enemy = g.player;
+    for (const kind of ["striker", "combat2", "beam", "beam2", "fire"]) {
+      g.player.kits.swarm = swarm(2, kind);
+      assert.equal(partsBack(g), 0, kind);
+    }
+    for (const kind of ["ward", "ward2", "wardcut", "overcharger", "overchargerplus", "hull"]) {
+      g.player.kits.swarm = swarm(2, kind);
+      assert.equal(partsBack(g), 1, kind);
+    }
+    for (const kind of ["board", "ionintruder", "patch", "personnel"]) {
+      g.player.kits.swarm = swarm(2, kind);
+      assert.equal(partsBack(g), 0, kind);
+    }
+
+    g.phase = "reward";
+    g.enemy = null;
+    g.player.kits.swarm = swarm(2, "striker");
+    assert.equal(partsBack(g), 1);
+    g.player.kits.swarm = swarm(2, "board");
+    assert.equal(partsBack(g), 0);
+
+    g.player.kits.swarm = swarm(0, "ward");
     assert.equal(partsBack(g), 0);
 
     g.player.kits.swarm = swarm(1, "");
@@ -80,7 +102,8 @@ describe("more augments", () => {
     assert.equal(partsBack(g), 0);
 
     g.player.kits.swarm = swarm(3, "ward");
-    assert.equal(partsBack(g), 1);
+    g.player.kits.swarm.on = false;
+    assert.equal(partsBack(g), 0);
   });
 
   it("flags pulse lock, spare helix, mend jump, and life lamp only when fitted", () => {

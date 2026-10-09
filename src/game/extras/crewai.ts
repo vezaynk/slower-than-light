@@ -38,7 +38,7 @@
  */
 import { interiorLinks, mayStand } from "../crew-spots.ts";
 import type { Crew, CrewAiState, CrewAiTask, Game, Room, Ship, SysId } from "../types.ts";
-import { bars } from "../sim.ts";
+import { bars, lockdown } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
 import { kinOf } from "./kin.ts";
 import { sideOf } from "./leash.ts";
@@ -83,11 +83,42 @@ type Job = { kind: CrewAiTask["kind"]; room: string; slots: number; rank: number
 export function tickEnemyCrewAi(g: Game, dt: number) {
   const ship = g.enemy;
   if (!ship || ship.automated || g.phase !== "combat") return;
+  // Before the plan, so a coat is already up when planCrew refuses to leave a locked room.
+  enemyCrystalLockdown(g);
   const ai = (ship.crewAi ??= { t: 0, post: {}, task: {} });
   ai.t -= dt;
   if (ai.t > 0) return;
   ai.t = PLAN_S;
   planCrew(g, ship, ai);
+}
+
+/**
+ * Crystal Ships: "Be wary of boarding or being boarded: enemy Crystal crew will use their Lockdown power against you."
+ * Crystal Lockdown: the power coats the room that Crystal is standing in, for 12 seconds, then recharges for 50.
+ * The page names no target room and no chance. INFERRED: a Crystal casts when it is standing still in a room it
+ * shares with a living crew member of the other side. A Crystal already walking through does not cast. A room
+ * that is already coated is left alone, so a second Crystal in that room keeps its charge. Stunned crew cannot
+ * act (Boarding, "Stun").
+ */
+export function enemyCrystalLockdown(g: Game) {
+  const coatedRoom = new Set<string>();
+  for (const c of g.crew) {
+    if (c.side !== "enemy" || c.kin !== "shard" || c.hp <= 0) continue;
+    if (sideOf(c) !== "enemy") continue;
+    if ((c.stun ?? 0) > 0 || (c.lockCool ?? 0) > 0 || c.path.length > 0) continue;
+    const ship = c.aboard === "player" ? g.player : g.enemy;
+    if (!ship) continue;
+    const key = `${c.aboard}:${c.room}`;
+    if (coatedRoom.has(key) || (ship.rooms.find((r) => r.id === c.room)?.lock ?? 0) > 0) {
+      coatedRoom.add(key);
+      continue;
+    }
+    const foe = g.crew.some(
+      (o) => o.id !== c.id && o.hp > 0 && o.aboard === c.aboard && o.room === c.room && sideOf(o) !== "enemy",
+    );
+    if (!foe) continue;
+    if (lockdown(g, c.id)) coatedRoom.add(key);
+  }
 }
 
 /** Enemy crew this AI drives right now: alive, aboard their own hull, own side, not boarding, not mind-controlled. */

@@ -162,9 +162,11 @@ function blankKit(id: KitId): Kit {
   return { id, level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
-function systemRank(g: Game, row: Offer): number {
+function systemRank(g: Game, row: Offer, guaranteeSwarm: boolean): number {
   if (row.ref === "shields") return 0;
   if (row.ref === "medbay" || row.ref === "cradle") return missingMedical(g) ? 1 : 2;
+  // Stores and resources, "Systems": a drone system is guaranteed if the store also sells drones.
+  if (guaranteeSwarm && row.ref === "swarm") return 2.5;
   return 3;
 }
 
@@ -176,7 +178,7 @@ function hasSwarm(g: Game): boolean {
   return (g.player.kits.swarm?.level ?? 0) > 0;
 }
 
-function systemItems(g: Game): StockItem[] {
+function systemItems(g: Game, guaranteeSwarm: boolean): StockItem[] {
   const bundle = swarmBundle(g);
   const rows = SYSTEMS.filter((row) => !ownedSystem(g, row)).map((row) => ({
     row,
@@ -188,7 +190,7 @@ function systemItems(g: Game): StockItem[] {
       index: SWARM_SORT,
     });
   }
-  rows.sort((a, b) => systemRank(g, a.row) - systemRank(g, b.row) || a.index - b.index);
+  rows.sort((a, b) => systemRank(g, a.row, guaranteeSwarm) - systemRank(g, b.row, guaranteeSwarm) || a.index - b.index);
   return rows.slice(0, SLOT).map(({ row }) => ({
     id: row.ref === "swarm" ? `sys-swarm-${bundle.schematic}` : `sys-${row.ref}`,
     kind: "system" as const,
@@ -205,9 +207,7 @@ function systemItems(g: Game): StockItem[] {
 
 function droneItems(g: Game): StockItem[] {
   // Stores and resources, "Stores assortment": a drone slot holds three schematics.
-  // No Drone Control means that slot is absent. The page also says a store that sells drones
-  // guarantees the drone system. That case is not this shelf.
-  if (!hasSwarm(g)) return [];
+  // The slot does not require Drone Control. Buying one still needs that system and a free slot.
   // Fire Drone and Shield Overcharger + are not in CITED_DRONES.
   const n = CITED_DRONES.length;
   if (n === 0) return [];
@@ -275,7 +275,7 @@ function extraSlots(g: Game): number {
 
 export function citedStock(g: Game): StockItem[] {
   const built: Record<SlotKind, StockItem[]> = {
-    systems: systemItems(g),
+    systems: systemItems(g, false),
     drones: droneItems(g),
     augments: augmentItems(g),
     crew: crewItems(g),
@@ -286,6 +286,10 @@ export function citedStock(g: Game): StockItem[] {
   if (legal.includes("systems") && (missingShields(g) || missingMedical(g))) forced.push("systems");
   const rest = legal.filter((kind) => !forced.includes(kind));
   const chosen = [...forced, ...rest].slice(0, extraSlots(g));
+  // Stores and resources, "Systems": a drone system is guaranteed if the store also sells drones.
+  if (chosen.includes("systems") && chosen.includes("drones") && !hasSwarm(g)) {
+    built.systems = systemItems(g, true);
+  }
   return chosen.flatMap((kind) => built[kind]);
 }
 

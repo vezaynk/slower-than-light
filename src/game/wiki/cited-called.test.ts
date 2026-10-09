@@ -122,7 +122,7 @@ describe("Zoltan Shield Bypass", () => {
 
     const stock = citedStock(createGame(2));
     assert.equal(
-      stock.some((item) => item.ref === "combat2" || item.ref === "ionintruder"),
+      stock.some((item) => item.ref === "firedrone" || item.ref === "overchargerplus"),
       false,
     );
   });

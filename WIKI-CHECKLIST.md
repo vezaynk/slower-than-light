@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2913 |
+| Behaviors checked | 2914 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -257,6 +257,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Emergency Respirators is sold for 50.
   - [x] Player crew take half low-oxygen damage, including while boarding, and a Crystal with it takes a quarter.
   - [x] An enemy hull that lists the augment does not apply it.
+  - [x] A fitted Drone Recovery Arm returns one drone part (INVENTED) for a powered defense drone, including a Hull Repair drone that is still out, when the jump starts, and for a powered combat drone only when that jump is not leaving a live enemy, and a boarding drone, an ion intruder, a crew drone, or a hacking drone returns none.
 
 - [ ] Augments
   - [ ] The page states a mechanic and it is not a playable event.

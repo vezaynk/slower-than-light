@@ -62,6 +62,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Mantis ship (default rewards)." Mantis fight in nebula (Slug) has no choice. Arrival calls this fight. The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
   {
     dest: "Mantis fight in nebula (Slug)",
     slug: "mantis-fight-in-nebula-slug",

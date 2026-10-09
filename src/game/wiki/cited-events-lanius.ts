@@ -25,6 +25,43 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
+    // Lanius ship absorbing jump beacon. Abandoned Sector. unique=true. LRSmap=ship.
+    // Ask, leave, the Lanius decline, and the Hull Repair Drone run in filler-events.ts.
+    // Sending 30 scrap, and giving 30 scrap, 6 missiles, or 6 drone parts, each grant an unnamed augmentation and stay unwired.
+    dest: "Lanius ship absorbing jump beacon",
+    slug: "lanius-ship-absorbing-jump-beacon",
+    flag: "cited:lanius-ship-absorbing-jump-beacon",
+    aliases: ["Lanius ship absorbing jump beacon"],
+    sectors: ["Abandoned Sector"],
+    body: "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded.",
+    choices: [
+      {
+        id: "c:lanius-ship-absorbing-jump-beacon:0",
+        label: "Ask if they require assistance.",
+        // A Lanius ship, or the translator. No odds.
+        fx: [{ k: "note", text: "A Lanius ship, or the translator." }],
+      },
+      {
+        id: "c:lanius-ship-absorbing-jump-beacon:1",
+        label: "Leave.",
+        // Nothing, or a Lanius ship.
+        fx: [{ k: "note", text: "Nothing, or a Lanius ship." }],
+      },
+      {
+        id: "c:lanius-ship-absorbing-jump-beacon:2",
+        label: "(Lanius Crew) Ask if they require assistance.",
+        // Decline. Nothing happens. The material trades stay unwired.
+        fx: [{ k: "note", text: "Nothing happens." }],
+      },
+      {
+        id: "c:lanius-ship-absorbing-jump-beacon:3",
+        label: "(Hull Repair Drone) Send a drone to help.",
+        // A Lanius crewmember. No drone part is printed.
+        fx: [{ k: "note", text: "A Lanius crewmember." }],
+      },
+    ],
+  },
+  {
     // Lanius ship absorbing rebel base. The delay, the fight, and the Lanius crew run in filler-events.ts.
     dest: "Lanius ship absorbing rebel base",
     slug: "lanius-ship-absorbing-rebel-base",

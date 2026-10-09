@@ -1781,6 +1781,18 @@ function asteroidRemains(g: Game) {
   ]);
 }
 
+/**
+ * Lanius ship absorbing jump beacon, Leave.
+ * DuplicateEvent|3 is three copies of nothing and one Lanius fight. Established, not invented.
+ */
+function beaconEaterLeave(g: Game) {
+  if (weighted(g, [["nothing", 3], ["fight", 1]] as const) === "nothing") {
+    show(g, "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon.", undefined, ["Nothing happens."]);
+    return;
+  }
+  fight(g, "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!", "Lanius ship", "lanius-ship-absorbing-jump-beacon");
+}
+
 function parseTrade(id: string): { pay: "fuel" | "missiles" | "parts"; n: number; get: "fuel" | "missiles" | "parts"; m: number } | null {
   const m = id.match(/^s:refugee(?:-distress)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
   if (!m) return null;
@@ -2194,6 +2206,38 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (!livingKin(g, "voidlung")) return;
     delayFleetOne(g);
     show(g, "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station.", rollStandard(g, "medium"), ["Rebel Fleet is delayed for 1 turn."]);
+  },
+  // Lanius ship absorbing jump beacon. Two ask results and no odds. INFERRED: equal.
+  // Giving them 30 scrap grants an unnamed augmentation and stays off this card.
+  "c:lanius-ship-absorbing-jump-beacon:0": (g) => {
+    if (weighted(g, [["talk", 1], ["fight", 1]] as const) === "fight") {
+      fight(g, "You begin to message the ship but it quickly powers on its weapons defensively. It appears to be fully functional and looking for a fight!", "Lanius ship", "lanius-ship-absorbing-jump-beacon");
+      return;
+    }
+    card(g, "After a long message the translator only able to spurt out \"critical... must... metal...\" You can only surmise they must be desperate for scrap.", [
+      { id: "s:lanius-beacon-eater:leave", label: "Leave." },
+    ]);
+  },
+  "c:lanius-ship-absorbing-jump-beacon:1": (g) => beaconEaterLeave(g),
+  "s:lanius-beacon-eater:leave": (g) => beaconEaterLeave(g),
+  // Lanius crew. Decline does nothing. The 30 scrap, 6 missile, and 6 drone-part trades grant an unnamed augmentation and stay unwired.
+  "c:lanius-ship-absorbing-jump-beacon:2": (g) => {
+    if (!livingKin(g, "voidlung")) return;
+    card(g, "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials.", [
+      { id: "s:lanius-beacon-eater:decline", label: "Decline." },
+    ]);
+  },
+  "s:lanius-beacon-eater:decline": (g) => {
+    show(g, "Nothing happens.");
+  },
+  // Hull Repair Drone. The page prints no drone-part cost, so the part stays.
+  // A full ship refuses the crewmember. INFERRED from the crew cap. The page does not print that sentence.
+  "c:lanius-ship-absorbing-jump-beacon:3": (g) => {
+    if (!ownsDrone(g, "hull")) return;
+    const joined = joinCrew(g, "Lanius");
+    show(g, "As soon as the drone gets close, a Lanius in a type of spacewalk maneuvering unit grabs it and immediately starts breaking it down for metal. You prepare for a fight but they appear quite grateful for the act. They start to use the metal to repair key portions of their ship. From what you can understand from the translator it appears one of their crew wishes to join you.", undefined, [
+      joined ? "You receive a Lanius crewmember." : "There is no room aboard for the new crewmember.",
+    ]);
   },
   // Lanius ship attacking civilian distress. Two results and no odds. INFERRED: equal.
   // A fight pays the page's medium or high standard. Powering down skips that and opens the same contact.
@@ -3105,6 +3149,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:rock-mine:beam" && g.player.parts < 1) return "Need 1 drone part";
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
+  // Lanius ship absorbing jump beacon. INFERRED: the refusal lines. The page names the crew and the drone and prints no sentence.
+  if (id === "c:lanius-ship-absorbing-jump-beacon:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
+  if (id === "c:lanius-ship-absorbing-jump-beacon:3" && !ownsDrone(g, "hull")) return "Needs a Hull Repair Drone";
   // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-attacking-civilian-distress:2" && !livingKin(g, "voidlung")) return "Needs a Lanius crewmember";
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.

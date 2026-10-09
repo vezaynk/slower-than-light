@@ -446,12 +446,30 @@ export function GameApp() {
 
   return (
     <Screen>
-      <div className={game.phase === "title" ? "deck" : "deck play-root"}>
-        {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={reduced ? 0 : game.trauma * game.trauma} />}
-        {game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null}
-        {game.shipSheet ? <ShipSheet game={game} /> : null}
-      </div>
+      <GameShell game={game} shake={reduced ? 0 : game.trauma * game.trauma} />
     </Screen>
+  );
+}
+
+function GameShell({ game, shake }: { game: Game; shake: number }) {
+  const phone = usePhoneLayout();
+  const manual = game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null;
+  const sheet = game.shipSheet ? <ShipSheet game={game} /> : null;
+  return (
+    <div className={game.phase === "title" ? "deck" : "deck play-root"}>
+      {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
+      {phone ? (
+        <>
+          {manual ? <PhoneMenu plain>{manual}</PhoneMenu> : null}
+          {sheet ? <PhoneMenu plain>{sheet}</PhoneMenu> : null}
+        </>
+      ) : (
+        <>
+          {manual}
+          {sheet}
+        </>
+      )}
+    </div>
   );
 }
 
@@ -556,6 +574,11 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
           act((g) => startLeash(g, id));
           setLeashAim(false);
         }}
+        onHack={hackIconClick}
+        onSling={slingIconClick}
+        onLeash={leashIconClick}
+        onCloak={() => act((g) => startVeil(g))}
+        onBattery={() => act((g) => startCell(g))}
       />
     </div>
   );

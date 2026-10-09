@@ -4004,6 +4004,29 @@ button.door-tick::before {
   justify-content: flex-end;
   overflow: hidden;
   background: rgba(2, 3, 8, 0.55);
+  pointer-events: auto;
+}
+
+.phone-layer .overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  min-height: 0;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.phone-layer .sheet {
+  width: 100%;
+  max-width: 100%;
+}
+
+.phone-layer .sheet button,
+.phone-layer .manual button,
+.phone-layer .icon-btn,
+.phone-layer .text-btn {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .viewport.is-portrait .phone-layer.is-fill {

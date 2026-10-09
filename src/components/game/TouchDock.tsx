@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { unlockAudio } from "@/game/audio";
 import { WEAPONS } from "@/game/content";
 import { spikeRoomTargetable } from "@/game/extras/spike";
+import { shipInDanger } from "@/game/extras/sling";
 import {
   canJumpTo,
   chooseSector,
@@ -55,6 +56,11 @@ export function PhonePlay({
   onArmWeapon,
   onAimRoom,
   onLeashCrew,
+  onHack,
+  onSling,
+  onLeash,
+  onCloak,
+  onBattery,
 }: {
   game: Game;
   hackAiming: boolean;
@@ -65,6 +71,11 @@ export function PhonePlay({
   onArmWeapon: (uid: string) => void;
   onAimRoom: (roomId: string) => void;
   onLeashCrew: (crewId: string) => void;
+  onHack: () => void;
+  onSling: () => void;
+  onLeash: () => void;
+  onCloak: () => void;
+  onBattery: () => void;
 }) {
   const slot = useTouchSlot();
   const [doorsOpen, setDoorsOpen] = useState(false);
@@ -117,6 +128,26 @@ export function PhonePlay({
               <button type="button" data-phone-action="pause" onClick={() => act((g) => togglePause(g))}>
                 {game.paused ? "Resume" : "Pause"}
               </button>
+            ) : null}
+            {game.phase !== "title" && !shipInDanger(game) ? (
+              <button type="button" data-phone-action="ship" onClick={() => act((g) => { g.shipSheet = true; })}>
+                Ship
+              </button>
+            ) : null}
+            {game.phase === "combat" && game.player.kits.spike ? (
+              <button type="button" data-phone-action="hack" aria-pressed={hackAiming} onClick={onHack}>Hack</button>
+            ) : null}
+            {game.phase === "combat" && game.player.kits.sling ? (
+              <button type="button" data-phone-action="sling" aria-pressed={slingAiming} onClick={onSling}>Teleport</button>
+            ) : null}
+            {game.phase === "combat" && game.player.kits.leash ? (
+              <button type="button" data-phone-action="leash" aria-pressed={leashAiming} onClick={onLeash}>Mind</button>
+            ) : null}
+            {game.phase === "combat" && game.player.kits.veil ? (
+              <button type="button" data-phone-action="cloak" onClick={onCloak}>Cloak</button>
+            ) : null}
+            {game.phase === "combat" && game.player.kits.cell ? (
+              <button type="button" data-phone-action="battery" onClick={onBattery}>Battery</button>
             ) : null}
             {aiming ? (
               <button type="button" data-phone-action="cancel" onClick={onCancelAim}>

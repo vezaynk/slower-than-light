@@ -4677,7 +4677,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rebel-fight-slug:0", label: "Fight a Rebel ship" }],
     };
   }
-  // Pirate fight (Slug). One of the three printed intros. The fight stays c:pirate-fight-slug:0.
+  // Pirate fight (Slug) has no choice. Arrival calls this fight.
+  // One of the three printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   if (ev.slug === "pirate-fight-slug") {
     return {
       title: ev.dest,

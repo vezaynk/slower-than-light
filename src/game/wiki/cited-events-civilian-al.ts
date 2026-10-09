@@ -227,7 +227,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Fight a Lanius ship.
+  // "Fight a Lanius ship (default Lanius rewards)." Lanius fight in asteroid field has no choice. Arrival calls this fight. The printed sentence is the card body. asteroidfield=true. unique=true.
   {
     dest: "Lanius fight in asteroid field",
     slug: "lanius-fight-in-asteroid-field",

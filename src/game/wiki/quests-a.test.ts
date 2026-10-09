@@ -319,6 +319,7 @@ describe("quest openers (quests-a)", () => {
     assert.equal(g.enemy!.faction, "zoltan");
     assert.equal(g.enemy!.weapons.length, 0);
     assert.equal(g.enemy!.shieldNow, 0);
+    assert.equal(g.enemy!.zoltan, undefined);
     assert.deepEqual(ids(g), ["qa:uzt:finish", "qa:uzt:go"]);
     const scrap = g.scrap;
     choose(g, "qa:uzt:go");

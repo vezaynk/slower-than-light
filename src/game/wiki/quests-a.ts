@@ -236,6 +236,8 @@ const CHOICES_A: QuestPart["choices"] = {
         ship.kits = {};
         ship.boards = false;
         ship.shieldNow = 0;
+        // Zoltan Ships: the unarmed Energy Fighter (Peace) "has no Shields, Weapons, or Zoltan Shield."
+        ship.zoltan = undefined;
         if (ship.systems.shields) {
           ship.systems.shields.level = 0;
           ship.systems.shields.power = 0;

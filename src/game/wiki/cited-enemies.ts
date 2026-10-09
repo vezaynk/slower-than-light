@@ -17,7 +17,10 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
     ship.name = "Rebel Elite";
     return;
   }
-  if (tier !== "boss") return;
+  if (tier !== "boss") {
+    zoltanShipShield(g, ship);
+    return;
+  }
   const phase = FLAGSHIP_PHASES.find((row) => row.phase === stageNow(g, ship));
   if (!phase) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
@@ -71,6 +74,17 @@ const ON_HULL: Partial<Record<string, SysId>> = {
 
 /** Shields first, then the other mains. Guns take what the reactor has left. @agent:flagship: Medbay added. */
 const DRAW: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
+
+/**
+ * Zoltan Ships, lead: "All Zoltan ships (except in sector 1 on easy mode) have a Zoltan Shield,
+ * which absorbs 5 points of damage and prevents boarding, hacking, and mind control."
+ * The unarmed Energy Fighter (Peace) has no Zoltan Shield; that fight clears the bubble after this.
+ */
+function zoltanShipShield(g: Game, ship: Ship): void {
+  if (ship.faction !== "zoltan") return;
+  if (g.sector === 1 && g.difficulty === "easy") return;
+  ship.zoltan = 5;
+}
 
 function stageNow(g: Game, ship: Ship): 1 | 2 | 3 {
   // ram.ts: PHASE_BANDS is null, so phaseOf is not a counter. Every hull reads as 1.

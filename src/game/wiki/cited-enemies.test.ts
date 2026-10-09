@@ -132,3 +132,30 @@ describe("cited enemies", () => {
     assert.ok(spent <= ship.reactor);
   });
 });
+
+describe("Zoltan ship shield", () => {
+  it("gives every Zoltan ship 5 points except sector 1 on easy", () => {
+    const normal = createGame(4);
+    normal.sector = 3;
+    startCombat(normal, "Zoltan ship");
+    assert.equal(normal.enemy?.faction, "zoltan");
+    assert.equal(normal.enemy?.zoltan, 5);
+
+    const easy = createGame(4, undefined, "easy");
+    assert.equal(easy.sector, 1);
+    startCombat(easy, "Zoltan ship");
+    assert.equal(easy.enemy?.faction, "zoltan");
+    assert.equal(easy.enemy?.zoltan, undefined);
+
+    const hard = createGame(4, undefined, "hard");
+    hard.sector = 1;
+    startCombat(hard, "Zoltan ship");
+    assert.equal(hard.enemy?.zoltan, 5);
+
+    const rebel = createGame(4);
+    rebel.sector = 4;
+    startCombat(rebel, "scout");
+    assert.notEqual(rebel.enemy?.faction, "zoltan");
+    assert.equal(rebel.enemy?.zoltan, undefined);
+  });
+});

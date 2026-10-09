@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2935 |
+| Behaviors checked | 2937 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4692,6 +4692,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] No playable control, number, layout, or rule.
 
 - [ ] Rock Plating
+  - [x] A Rock enemy negates incoming hull damage 15 percent of the time, the struck system still takes damage, and a solar flare or a 100 percent breach shot is not negated.
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
@@ -4704,6 +4705,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Rock Ships
   - [x] No playable control, number, layout, or rule.
+  - [x] Every Rock ship, including a pirate, negates incoming hull damage 15 percent of the time, and a solar flare or a 100 percent breach shot still lands.
 
 - [x] Rock Store
   - [x] No playable control, number, layout, or rule.

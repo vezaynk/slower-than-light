@@ -24,6 +24,7 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
+  // "Fight a Mantis ship (default rewards)." Mantis fight (Engi) has no choice. Arrival calls this fight. One of the four printed intros. unique=false.
   {
     dest: "Mantis fight (Engi)",
     slug: "mantis-fight-engi",

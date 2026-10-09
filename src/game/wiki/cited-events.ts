@@ -4476,7 +4476,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
     };
   }
-  // Mantis fight (Engi). One of the four printed intros. The fight stays c:mantis-fight-engi:0.
+  // Mantis fight (Engi) has no choice. Arrival calls this fight.
+  // One of the four printed intros. "Fight a Mantis ship (default rewards)." unique=false.
   if (ev.slug === "mantis-fight-engi") {
     return {
       title: ev.dest,

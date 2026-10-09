@@ -319,4 +319,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Refugee (Slug). Template:Drifting Refugee Ship, introtext=nodistress, type=slug.
+  // Slug Controlled Nebula and Slug Home Nebula. nebula=true. unique=false. LRSmap=noship+nebula.
+  // type=slug is the pirate bait, not the Slug hunt. That hail runs in filler-events.ts.
+  {
+    dest: "Refugee (Slug)",
+    slug: "refugee-slug",
+    flag: "cited:refugee-slug",
+    aliases: ["Refugee (Slug)"],
+    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
+    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    choices: [
+      { id: "c:refugee-slug:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }] },
+      { id: "c:refugee-slug:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];

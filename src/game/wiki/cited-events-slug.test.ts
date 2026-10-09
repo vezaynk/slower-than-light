@@ -99,7 +99,8 @@ describe("EXTRA_EVENTS slug list", () => {
         assert.ok(choice.label.length > 0);
         assert.ok(choice.fx.length > 0);
       });
-      if (event.dest !== "Slocknog") assert.ok(event.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
+      // Refugee (Slug) keeps the fight inside the hail. The opening choices are the trade or the bait, not a fight button.
+      if (event.dest !== "Slocknog" && event.dest !== "Refugee (Slug)") assert.ok(event.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
   });
 
@@ -109,7 +110,8 @@ describe("EXTRA_EVENTS slug list", () => {
       assert.ok(text, event.dest);
       assert.deepEqual(event.sectors, locationNames(text));
       const plain = wikiPlain(text);
-      if (event.body) assert.ok(plain.includes(event.body), event.dest);
+      // The nodistress sentence is on Template:Drifting Refugee Ship, not on this page.
+      if (event.body && event.dest !== "Refugee (Slug)") assert.ok(plain.includes(event.body), event.dest);
       for (const choice of event.choices) {
         for (const step of choice.fx) {
           if (step.k === "fight")

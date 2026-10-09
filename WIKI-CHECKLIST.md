@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2898 |
+| Behaviors checked | 2900 |
 | Behaviors open | 541 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4476,7 +4476,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] This audit did not re-open the article.
 
 - [x] Refugee (Pirate)
-  - [x] No playable control, number, layout, or rule.
+  - [x] Hailing shows a trade or a pirate bait that does not run, and ignoring them does nothing.
+  - [x] The trade's pay and get are rolled, and declining spends nothing.
+  - [x] Destroying the pirate ship pays medium scrap with resources and the shared thanks, and a crew kill pays high scrap then the following-trail thanks.
 
 - [x] Refugee (Slug)
   - [x] No playable control, number, layout, or rule.

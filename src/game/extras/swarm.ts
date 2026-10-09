@@ -2470,13 +2470,15 @@ function defenseStray(g: Game, defender: "player" | "enemy", kind: string, shot:
 
 /**
  * Drone Control, Overview: "External and boarding drones are lost when jumping to a new system and have to be
- * redeployed at each new location or encounter". The System Repair drone is a crew drone and stays aboard.
+ * redeployed at each new location or encounter". Drone Control, Crew Drones: "Crew drones stay on the ship and
+ * only need to be redeployed when destroyed." System Repair and Anti-Personnel are those crew drones.
  * "The drone deployment delay is not reduced nor reset during FTL jump", so kit.lost is left alone.
  * Called from extras/index.ts onPlayerJump after the Drone Recovery Arm refund.
  */
 export function onJumpSwarm(g: Game) {
   const kit = g.player.kits.swarm;
-  if (!kit?.on || kit.target === "patch") return;
+  if (!kit?.on) return;
+  if (kit.target != null && CREW_DRONES.has(kit.target)) return;
   kit.on = false;
   kit.aux = 0;
 }

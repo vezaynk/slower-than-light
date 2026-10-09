@@ -823,6 +823,37 @@ describe("swarm", () => {
     assert.equal(done.player.parts, 1);
   });
 
+  it("keeps a deployed anti-personnel drone through a jump and turns a combat drone off", () => {
+    // Drone Control, Crew Drones: "Crew drones stay on the ship and only need to be redeployed when destroyed."
+    const g = createGame(26);
+    const personnel = place(g, 2);
+    personnel.target = "personnel";
+    personnel.on = true;
+    personnel.aux = 4;
+    onPlayerJump(g);
+    assert.equal(personnel.on, true);
+    assert.equal(personnel.target, "personnel");
+    assert.equal(personnel.aux, 4);
+
+    const repair = createGame(27);
+    const patch = place(repair, 1);
+    patch.target = "patch";
+    patch.on = true;
+    patch.aux = 2;
+    onPlayerJump(repair);
+    assert.equal(patch.on, true);
+    assert.equal(patch.aux, 2);
+
+    const combat = createGame(28);
+    const striker = place(combat, 2);
+    striker.target = "striker";
+    striker.on = true;
+    striker.aux = 4;
+    onPlayerJump(combat);
+    assert.equal(striker.on, false);
+    assert.equal(striker.aux, 0);
+  });
+
   it("sticks to the system it was standing in when power returns, then walks home", () => {
     const g = createGame(23);
     place(g, 1);

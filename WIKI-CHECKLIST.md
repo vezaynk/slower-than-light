@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 942 |
-| Behaviors checked | 2918 |
-| Behaviors open | 543 |
+| Pages fully checked | 943 |
+| Behaviors checked | 2919 |
+| Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -2172,11 +2172,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Givin' her all she's got, Captain!
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Glaive Beam
+- [x] Glaive Beam
   - [x] Fitted on Stealth B.
-  - [ ] Beam length and shield profile stay in gaps.
+  - [x] A drawn Glaive stops at 1.8 tiles, and one shield leaves 2 damage per room while two shields leave 1, with both layers staying up.
     - [x] A drawn Glaive stops at 1.8 tiles.
-    - [ ] Shield profile stays a gap.
+    - [x] One shield leaves 2 damage per room and two shields leave 1, and those layers stay up.
   - [x] Cloak power 0 is INFERRED so the 4-power gun fits reactor 7.
 
 - [x] Guides and Tips

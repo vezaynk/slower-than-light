@@ -5098,6 +5098,7 @@ function arrive(g: Game, b: Beacon) {
   // Rock fight: "Fight a Rock ship (default rewards)." One of the eight printed intros. unique=false.
   // Rock fight in asteroid field: "Fight a Rock ship (default rewards)." One of the three printed intros. asteroidfield=true. unique=true.
   // Rock pirates fight: "Fight a Rock pirate ship (default rewards)." One of the three printed intros. unique=false.
+  // Rock pirates fight in asteroid field: "Fight a Rock pirate ship (default rewards)." One of the two printed intros. asteroidfield=true. unique=true.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5146,7 +5147,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:lanius-fight-near-pulsar" ||
       b.flag === "cited:rock-fight" ||
       b.flag === "cited:rock-fight-in-asteroid-field" ||
-      b.flag === "cited:rock-pirates-fight") &&
+      b.flag === "cited:rock-pirates-fight" ||
+      b.flag === "cited:rock-pirates-fight-in-asteroid-field") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

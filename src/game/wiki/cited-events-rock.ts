@@ -174,6 +174,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rock pirate ship (default rewards)." Rock pirates fight in asteroid field has no choice. Arrival calls this fight. One of the two printed intros. asteroidfield=true. unique=true.
   {
     dest: "Rock pirates fight in asteroid field",
     slug: "rock-pirates-fight-in-asteroid-field",

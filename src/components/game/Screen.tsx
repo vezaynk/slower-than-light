@@ -82,12 +82,37 @@ export function Screen({ children }: { children: ReactNode }) {
     window.visualViewport?.addEventListener("resize", update);
     window.visualViewport?.addEventListener("scroll", update);
     coarse.addEventListener("change", update);
+    const editable = (target: EventTarget | null) =>
+      target instanceof Element && !!target.closest("input, textarea, select, .fs-guide-url");
+    const blockSelect = (event: Event) => {
+      if (editable(event.target)) return;
+      event.preventDefault();
+    };
+    const blockGesture = (event: Event) => {
+      event.preventDefault();
+    };
+    const blockPinchZoom = (event: WheelEvent) => {
+      if (event.ctrlKey) event.preventDefault();
+    };
+    const blockMultiTouch = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    document.addEventListener("selectstart", blockSelect);
+    document.addEventListener("gesturestart", blockGesture, { passive: false });
+    document.addEventListener("gesturechange", blockGesture, { passive: false });
+    window.addEventListener("wheel", blockPinchZoom, { passive: false });
+    document.addEventListener("touchmove", blockMultiTouch, { passive: false });
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
       window.visualViewport?.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("scroll", update);
       coarse.removeEventListener("change", update);
+      document.removeEventListener("selectstart", blockSelect);
+      document.removeEventListener("gesturestart", blockGesture);
+      document.removeEventListener("gesturechange", blockGesture);
+      window.removeEventListener("wheel", blockPinchZoom);
+      document.removeEventListener("touchmove", blockMultiTouch);
     };
   }, []);
 

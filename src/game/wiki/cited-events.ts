@@ -4372,7 +4372,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Rebel fight in nebula. One of the seven printed intros. The fight stays c:rebel-fight-in-nebula:0.
+  // Rebel fight in nebula has no choice. Arrival calls this fight.
+  // One of the seven printed intros. "Fight a Rebel ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
   if (ev.slug === "rebel-fight-in-nebula") {
     return {
       title: ev.dest,

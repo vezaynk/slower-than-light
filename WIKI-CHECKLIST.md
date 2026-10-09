@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 940 |
-| Behaviors checked | 2876 |
-| Behaviors open | 536 |
+| Pages fully checked | 941 |
+| Behaviors checked | 2880 |
+| Behaviors open | 535 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -5364,8 +5364,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Slug medical hacker
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Slug moons question
-  - [ ] The page states a mechanic and it is not a playable event.
+- [x] Slug moons question
+  - [x] Arrival shows one of the four printed moon counts, then Investigate asks how many moons.
+  - [x] The count in that sentence is the correct answer, and a Slug crewmember joins.
+  - [x] A wrong answer loses 35 scrap, 2-4 fuel, and 1-2 drone parts.
+  - [x] The beacon stays regular until arrival, which adds the nebula environment.
 
 - [x] Slug nebula empty beacon
   - [x] same title as "Slug Nebula Empty Beacon" with different capitalization.

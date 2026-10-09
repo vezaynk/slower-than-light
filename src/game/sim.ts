@@ -5108,6 +5108,7 @@ function arrive(g: Game, b: Beacon) {
   // Pirate fight (Slug): "Fight a Pirate ship (default rewards)." One of the three printed intros. unique=false.
   // Mantis fight in nebula (Slug): "Fight a Mantis ship (default rewards)." The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
   // Pirate fight (Engi): "Fight a Pirate ship (default rewards)." The printed sentence is the card body. unique=false.
+  // Rebel fight (Engi): "Fight a Rebel ship (default rewards)." The printed sentence is the card body. unique=false.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5166,7 +5167,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:rebel-fight-slug" ||
       b.flag === "cited:pirate-fight-slug" ||
       b.flag === "cited:mantis-fight-in-nebula-slug" ||
-      b.flag === "cited:pirate-fight-engi") &&
+      b.flag === "cited:pirate-fight-engi" ||
+      b.flag === "cited:rebel-fight-engi") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

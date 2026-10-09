@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 942 |
-| Behaviors checked | 2915 |
+| Behaviors checked | 2916 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -1406,6 +1406,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Once that system is destroyed and no hostile crew remain, it moves to the nearest system room, counted in interior doors, a tie is an even draw, and no walk time is printed so the move is immediate (INFERRED).
   - [x] An enemy anti-personnel drone deals 3 to 7 HP per hit, the same damage as an untrained human.
   - [x] A crew drone stays aboard on a jump, so an Anti-Personnel drone stays on the same way a System Repair drone does, and a combat drone is still lost.
+  - [x] Clicking a fitted drone schematic, or pressing 5, 6, or 7 for that slot, deploys it and spends one drone part only when it is not already out.
 
 - [x] Drone Reactor Booster
   - [x] Not sold.

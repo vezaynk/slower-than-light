@@ -26,6 +26,7 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Rebel fight among Rebel fleet",
+    // Arrival calls this fight. One of the seven printed intros.
     slug: "rebel-fight-among-rebel-fleet",
     flag: "cited:rebel-fight-among-rebel-fleet",
     aliases: ["Rebel fight among Rebel fleet"],

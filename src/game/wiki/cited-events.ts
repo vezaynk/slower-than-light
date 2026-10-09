@@ -4562,7 +4562,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
     };
   }
-  // Rebel fight among Rebel fleet. One of the seven printed intros. The fight stays c:rebel-fight-among-rebel-fleet:0.
+  // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
+  // One of the seven printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
   if (ev.slug === "rebel-fight-among-rebel-fleet") {
     return {
       title: ev.dest,

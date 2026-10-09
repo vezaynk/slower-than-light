@@ -5115,6 +5115,7 @@ function arrive(g: Game, b: Beacon) {
   // Slug fight in nebula: "Fight a Slug ship (default rewards)." One of the five printed intros. nebula=true. unique=false. No nebula environment is added. Surrender stays the Slug row.
   // Slug fight in plasma storm: "Fight a Slug ship (default rewards)." One of the four printed intros. plasmastorm=true. unique=false. The beacon stays outside a nebula, so the storm and the full fleet step stay as already applied. Surrender stays the Slug row.
   // Pirate ship distress trap: "Fight a Pirate ship (default rewards)." One of the four printed intros. distress=true. unique=true.
+  // Rebel fight among Rebel fleet: "Fight a Rebel ship." One of the seven printed intros. unique=false. The low scrap and medium scrap payouts stay the winning results.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5180,7 +5181,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:rebel-fight-in-plasma-storm" ||
       b.flag === "cited:slug-fight-in-nebula" ||
       b.flag === "cited:slug-fight-in-plasma-storm" ||
-      b.flag === "cited:pirate-ship-distress-trap") &&
+      b.flag === "cited:pirate-ship-distress-trap" ||
+      b.flag === "cited:rebel-fight-among-rebel-fleet") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

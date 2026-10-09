@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 941 |
-| Behaviors checked | 2885 |
-| Behaviors open | 536 |
+| Behaviors checked | 2890 |
+| Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -2610,7 +2610,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Leaving them alone shows the printed move-on sentence and nothing happens.
 
 - [ ] Lanius ship absorbing jump beacon
-  - [ ] The page states a mechanic and it is not a playable event.
+  - [ ] Asking if they require assistance starts a Lanius fight or opens the translator.
+    - [x] The defensive ship starts a Lanius fight.
+    - [x] Leaving after the translator does nothing three times as often as it starts a Lanius fight.
+    - [ ] Giving them 30 scrap stays unwired because it grants an unnamed augmentation.
+  - [ ] Sending them 30 scrap stays unwired because it grants an unnamed augmentation or a fight that keeps the spent scrap.
+  - [x] Leaving does nothing three times as often as it starts a Lanius fight.
+  - [ ] A Lanius crewmember can ask, then decline, and the material trades stay unwired.
+    - [x] Declining does nothing.
+    - [ ] Giving 30 scrap, 6 missiles, or 6 drone parts stays unwired because each grants an unnamed augmentation.
+  - [x] A Hull Repair Drone adds a Lanius crewmember and spends no drone part.
 
 - [x] Lanius ship absorbing rebel base
   - [x] Asking them pays medium scrap and delays the fleet one turn, starts a Lanius fight, or does nothing, and a Lanius crewmember pays that same scrap and delay.

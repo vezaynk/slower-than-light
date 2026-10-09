@@ -4355,7 +4355,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Pirate fight. One of the five printed intros. The fight stays c:pirate-fight:0.
+  // Pirate fight has no choice. Arrival calls this fight.
+  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   if (ev.slug === "pirate-fight") {
     return {
       title: ev.dest,

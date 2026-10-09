@@ -24,7 +24,7 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
-  /** "Fight a Mantis Ship (default rewards)." */
+  /** "Fight a Mantis Ship (default rewards)." Mantis fight has no choice. Arrival calls this fight. unique=false. */
   {
     dest: "Mantis fight",
     slug: "mantis-fight",

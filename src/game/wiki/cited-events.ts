@@ -2169,6 +2169,7 @@ const CORE_EVENTS: EventDef[] = [
   },
   {
     "dest": "Rebel fight among Federation and Rebel fleets",
+    // Arrival calls this fight. One of the six printed intros.
     "slug": "rebel-fight-among-federation-and-rebel-fleets",
     "flag": "cited:rebel-fight-among-federation-and-rebel-fleets",
     "aliases": [
@@ -4628,7 +4629,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Rebel fight among Federation and Rebel fleets. One of the six printed intros. The fight stays the existing choice.
+  // Rebel fight among Federation and Rebel fleets has no choice. Arrival calls this fight.
+  // One of the six printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
   if (ev.slug === "rebel-fight-among-federation-and-rebel-fleets") {
     return {
       title: ev.dest,

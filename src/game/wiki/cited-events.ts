@@ -4593,7 +4593,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Slug fight in nebula. One of the five printed intros. The fight stays c:slug-fight-in-nebula:0.
+  // Slug fight in nebula has no choice. Arrival calls this fight.
+  // One of the five printed intros. "Fight a Slug ship (default rewards)." nebula=true. unique=false. No nebula environment is added. Surrender stays the Slug row.
   if (ev.slug === "slug-fight-in-nebula") {
     return {
       title: ev.dest,

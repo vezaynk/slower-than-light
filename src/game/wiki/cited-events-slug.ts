@@ -198,6 +198,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     dest: "Slug fight in nebula",
+    // Arrival calls this fight. One of the five printed intros. No nebula environment is added.
     slug: "slug-fight-in-nebula",
     flag: "cited:slug-fight-in-nebula",
     aliases: ["Slug fight in nebula"],

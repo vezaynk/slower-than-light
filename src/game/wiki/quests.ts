@@ -3668,6 +3668,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "refugee-distress-zoltan": refugeeZoltanWin("refugee-distress-zoltan"),
   // Refugee (Pirate). Contact after a hull kill is the shared thanks. A crew kill uses the following-trail sentence.
   "refugee-pirate": refugeePirateWin("refugee-pirate"),
+  "refugee-distress-pirate": refugeePirateWin("refugee-distress-pirate"),
   // Refugee (Slug). type=slug is the pirate bait, so the contacts match Refugee (Pirate).
   "refugee-slug": refugeePirateWin("refugee-slug"),
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.

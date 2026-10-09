@@ -1869,7 +1869,7 @@ function beaconEaterLeave(g: Game) {
 }
 
 function parseTrade(id: string): { pay: "fuel" | "missiles" | "parts"; n: number; get: "fuel" | "missiles" | "parts"; m: number } | null {
-  const m = id.match(/^s:refugee(?:-distress|-zoltan|-distress-zoltan|-pirate|-slug)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
+  const m = id.match(/^s:refugee(?:-distress-zoltan|-distress-pirate|-distress|-zoltan|-pirate|-slug)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
   if (!m) return null;
   return { pay: m[1] as "fuel", n: Number(m[2]), get: m[3] as "fuel", m: Number(m[4]) };
 }
@@ -2377,6 +2377,16 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:refugee-pirate:contact": refugeeZoltanContact,
   "s:refugee-pirate:contact-dead": refugeePirateFollow,
+  // Refugee distress (Pirate). Same type=pirate hail as Refugee (Pirate).
+  "c:refugee-distress-pirate:0": (g) => refugeePirateHail(g, "refugee-distress-pirate"),
+  "c:refugee-distress-pirate:1": (g) => {
+    show(g, "Nothing happens.");
+  },
+  "s:refugee-distress-pirate:decline": (g) => {
+    show(g, "Nothing happens.");
+  },
+  "s:refugee-distress-pirate:contact": refugeeZoltanContact,
+  "s:refugee-distress-pirate:contact-dead": refugeePirateFollow,
   // Refugee (Slug). type=slug uses the same pirate bait as type=pirate, not the Slug hunt.
   "c:refugee-slug:0": (g) => refugeePirateHail(g, "refugee-slug"),
   "c:refugee-slug:1": (g) => {
@@ -3195,7 +3205,7 @@ function moonChoice(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-distress-pirate|refugee-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */

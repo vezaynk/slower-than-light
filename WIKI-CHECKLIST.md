@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2939 |
+| Behaviors checked | 2940 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -6032,6 +6032,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Attack rolls an unarmed Zoltan fight or a defense ship.
   - [x] Hear them out places the peace marker.
   - [x] The bloodless reply unlocks Zoltan A and rolls a Zoltan Shield plus low scrap, or a maxed Zoltan named Envoy plus high scrap.
+  - [x] That Zoltan Shield occupies one of the three augment slots and sets a 5-point bubble, and a full rack does not add a fourth.
   - [ ] The article was not re-opened, so this is not present.
 
 - [x] Unarmed Zoltan transport

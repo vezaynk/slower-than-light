@@ -15,9 +15,10 @@ const CANDIDATES = [
   "Zoltan Research Facility",
   "Zoltan odd moon",
   "Zoltan ship asks to dock",
+  "Refugee distress (Zoltan)",
 ];
 
-// All eleven exist as namespace 0 pages in the latest dump.
+// All twelve exist as namespace 0 pages in the latest dump.
 const TITLES = CANDIDATES;
 
 const SECTORS = new Set([
@@ -98,7 +99,7 @@ describe("cited zoltan next events", () => {
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.deepEqual(dests, ["Zoltan odd moon", "Refugee (Zoltan)"]);
+    assert.deepEqual(dests, ["Zoltan odd moon", "Refugee (Zoltan)", "Refugee distress (Zoltan)"]);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest));
       assert.ok(CANDIDATES.includes(ev.dest));

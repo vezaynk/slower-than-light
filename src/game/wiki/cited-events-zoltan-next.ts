@@ -3,7 +3,7 @@
  * Redirects are not followed: Homeworlds, Shield Bypass, Trade Hub, free
  * stuff, science ship, Life Raft, and Research Facility state no outcome.
  * Zoltan odd moon is the playable card. Its branches run in cited-events.ts.
- * Refugee (Zoltan) is the playable card. Its hail runs in filler-events.ts.
+ * Refugee (Zoltan) and Refugee distress (Zoltan) are playable cards. Their hails run in filler-events.ts.
  * Great Eye and ship asks to dock each branch across more than one result.
  * A nothing or blue option does not qualify a page by itself. Zoltan Shield
  * Bypass is the augment article.
@@ -64,6 +64,21 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       { id: "c:refugee-zoltan:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a Zoltan ship." }] },
       { id: "c:refugee-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+    ],
+  },
+  // Refugee distress (Zoltan). Template:Drifting Refugee Ship, introtext=distress, type=zoltan.
+  // Zoltan Controlled Sector and Zoltan Homeworlds. distress=true. unique=false. LRSmap=noship.
+  // The same type=zoltan hail: one trade, or the Zoltan fight. Not on the EventList distress beacon list.
+  {
+    dest: "Refugee distress (Zoltan)",
+    slug: "refugee-distress-zoltan",
+    flag: "cited:refugee-distress-zoltan",
+    aliases: ["Refugee distress (Zoltan)"],
+    sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
+    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    choices: [
+      { id: "c:refugee-distress-zoltan:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a Zoltan ship." }] },
+      { id: "c:refugee-distress-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
 ];

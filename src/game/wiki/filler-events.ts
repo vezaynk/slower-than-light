@@ -1791,6 +1791,19 @@ function refugeeTrade(g: Game, slug: string) {
   ]);
 }
 
+/** type=zoltan. The trade is one result, not DuplicateEvent|4. The other printed hail is the Zoltan ship. No odds. INFERRED: equal. */
+function refugeeZoltanHail(g: Game, slug: string) {
+  if (weighted(g, [["trade", 1], ["zoltan", 1]] as const) === "trade") {
+    refugeeTrade(g, slug);
+    return;
+  }
+  fight(g, "As you hail the refugee ship, a Zoltan ship suddenly jumps into the system... it claims the refugees are criminals, and accuses you of escorting fugitives! Before you can respond, it cuts communications, and powers up its weapons!", "Zoltan ship", slug, { never: true });
+}
+
+function refugeeZoltanContact(g: Game) {
+  show(g, "The refugee ship thanks you for your assistance. As a gesture of good will (and seeing how effectively you dispatched the enemy ship), they offer up what supplies they can spare.", rollStandard(g, "low"));
+}
+
 function refugeeHail(g: Game, slug: string) {
   const r = weighted(g, [
     ["trade", 4],
@@ -1842,7 +1855,7 @@ function beaconEaterLeave(g: Game) {
 }
 
 function parseTrade(id: string): { pay: "fuel" | "missiles" | "parts"; n: number; get: "fuel" | "missiles" | "parts"; m: number } | null {
-  const m = id.match(/^s:refugee(?:-distress|-zoltan)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
+  const m = id.match(/^s:refugee(?:-distress|-zoltan|-distress-zoltan)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
   if (!m) return null;
   return { pay: m[1] as "fuel", n: Number(m[2]), get: m[3] as "fuel", m: Number(m[4]) };
 }
@@ -2321,26 +2334,25 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // ---- Refugee / Refugee distress ----
   "c:refugee:0": (g) => refugeeHail(g, "refugee"),
   "c:refugee:1": done,
-  // Refugee (Zoltan). type=zoltan. The trade is one result, not DuplicateEvent|4.
-  // The other printed hail is the Zoltan ship. No odds. INFERRED: equal.
+  // Refugee (Zoltan) and Refugee distress (Zoltan). type=zoltan.
   // Pirate ambush, pirate bait, and the Slug hunt are not on this type.
-  "c:refugee-zoltan:0": (g) => {
-    if (weighted(g, [["trade", 1], ["zoltan", 1]] as const) === "trade") {
-      refugeeTrade(g, "refugee-zoltan");
-      return;
-    }
-    fight(g, "As you hail the refugee ship, a Zoltan ship suddenly jumps into the system... it claims the refugees are criminals, and accuses you of escorting fugitives! Before you can respond, it cuts communications, and powers up its weapons!", "Zoltan ship", "refugee-zoltan", { never: true });
-  },
+  "c:refugee-zoltan:0": (g) => refugeeZoltanHail(g, "refugee-zoltan"),
+  "c:refugee-distress-zoltan:0": (g) => refugeeZoltanHail(g, "refugee-distress-zoltan"),
   "c:refugee-zoltan:1": (g) => {
+    show(g, "Nothing happens.");
+  },
+  "c:refugee-distress-zoltan:1": (g) => {
     show(g, "Nothing happens.");
   },
   "s:refugee-zoltan:decline": (g) => {
     show(g, "Nothing happens.");
   },
-  // "Contact the refugee ship." Low scrap with resources. The fight reward is already paid.
-  "s:refugee-zoltan:contact": (g) => {
-    show(g, "The refugee ship thanks you for your assistance. As a gesture of good will (and seeing how effectively you dispatched the enemy ship), they offer up what supplies they can spare.", rollStandard(g, "low"));
+  "s:refugee-distress-zoltan:decline": (g) => {
+    show(g, "Nothing happens.");
   },
+  // "Contact the refugee ship." Low scrap with resources. The fight reward is already paid.
+  "s:refugee-zoltan:contact": refugeeZoltanContact,
+  "s:refugee-distress-zoltan:contact": refugeeZoltanContact,
   "c:refugee-distress:0": (g) => refugeeHail(g, "refugee-distress"),
   "c:refugee-distress:1": done,
   "s:refugee:decline": done,
@@ -3149,7 +3161,7 @@ function moonChoice(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|refugee-zoltan|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
+  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */

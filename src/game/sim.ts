@@ -3367,8 +3367,11 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       : pals;
     // @agent:flagship. A flagship artillery room's own gun state (wiki/flagship-systems.ts), else null.
     const gun = artilleryGun(ship, r.id);
-    // Augmentations, "Slug Repair Gel": every breached player room, at 75% of regular crew repair speed, stacked on the same counter.
-    if (aboard === "player" && r.breach > 0 && g.augments.includes("gel")) r.breachFix += 0.75 * dt;
+    // Augmentations, "Slug Repair Gel": "Fixes all breaches simultaneously, at 75% regular crew speed."
+    // Slug Ships, lead: "All Slug ships automatically repair hull breaches due to Slug Repair Gel augmentation."
+    // The player copy is g.augments "gel". An enemy Slug ship has the augment by that lead sentence.
+    const slugGel = aboard === "player" ? g.augments.includes("gel") : ship.faction === "slug";
+    if (r.breach > 0 && slugGel) r.breachFix += 0.75 * dt;
     if (pals.length && foes.length) {
       // Boarding, Combat: "Every few moments, a crew will deal a random amount of damage to an enemy".
       // "an unskilled human crew deals per hit is 3 to 7 HP, an average of 5 damage per hit."

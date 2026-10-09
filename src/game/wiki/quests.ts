@@ -3671,6 +3671,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "refugee-distress-pirate": refugeePirateWin("refugee-distress-pirate"),
   // Refugee (Slug). type=slug is the pirate bait, so the contacts match Refugee (Pirate).
   "refugee-slug": refugeePirateWin("refugee-slug"),
+  "refugee-distress-slug": refugeePirateWin("refugee-distress-slug"),
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Mantis ship attacking Crystal. The same two endings and the same Crystal ship contact.

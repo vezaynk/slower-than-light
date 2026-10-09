@@ -334,4 +334,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       { id: "c:refugee-slug:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
+  // Refugee distress (Slug). Template:Drifting Refugee Ship, introtext=distress, type=slug.
+  // Slug Controlled Nebula and Slug Home Nebula. distress=true. unique=false. LRSmap=noship.
+  // type=slug is the pirate bait, not the Slug hunt. Not on the EventList distress beacon list.
+  {
+    dest: "Refugee distress (Slug)",
+    slug: "refugee-distress-slug",
+    flag: "cited:refugee-distress-slug",
+    aliases: ["Refugee distress (Slug)"],
+    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
+    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    choices: [
+      { id: "c:refugee-distress-slug:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }] },
+      { id: "c:refugee-distress-slug:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];

@@ -3588,7 +3588,12 @@ function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
 
 /** True when this id is one of the wired choices, including a price the ship cannot pay. */
 export function citedOwns(id: string): boolean {
-  return findChoice(id) != null || tradeTake(id) != null || id.startsWith("c:slug-moons-question:");
+  return (
+    findChoice(id) != null ||
+    tradeTake(id) != null ||
+    id.startsWith("c:slug-moons-question:") ||
+    id.startsWith("c:zoltan-odd-moon:")
+  );
 }
 
 // @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
@@ -4287,10 +4292,135 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   return true;
 }
 
+const ZOLTAN_MOON_OPEN = "Something strikes you as odd about a moon in the distance.";
+const ZOLTAN_MOON_CAVE =
+  "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern.";
+const ZOLTAN_MOON_SHUTTLE =
+  "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!";
+const ZOLTAN_MOON_HEAP =
+  "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction.";
+const ZOLTAN_MOON_QUIET =
+  "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting.";
+const ZOLTAN_MOON_LEAVE =
+  "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump.";
+const ZOLTAN_MOON_BASE =
+  "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship.";
+const ZOLTAN_MOON_REMAINS =
+  "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful.";
+const ZOLTAN_MOON_WASTE = "The explosives are set remotely, but the detonation achieves nothing. What a waste.";
+const ZOLTAN_MOON_DRONE =
+  "Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below.\n\nYour drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew.";
+
+function zoltanMoonTitle(g: Game): string {
+  return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
+}
+
+function zoltanOddCard(title: string): GameEvent {
+  return {
+    title,
+    body: ZOLTAN_MOON_OPEN,
+    choices: [
+      { id: "c:zoltan-odd-moon:look", label: "Check it out." },
+      { id: "c:zoltan-odd-moon:leave", label: "Leave it be." },
+      { id: "c:zoltan-odd-moon:drone", label: "Send a drone to probe the surface." },
+    ],
+  };
+}
+
+function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
+  const [lo, hi] = band(ctx.g, tier);
+  const n = roll(ctx, lo, hi);
+  ctx.scrap(n);
+  const name = tier === "low" ? "Low" : "Medium";
+  const line = `${name} scrap: ${n}.`;
+  ctx.note(line);
+  return line;
+}
+
+/**
+ * Zoltan odd moon. Check it out has four results and the explosives have three, and the page prints no odds.
+ * INFERRED: each of those results is equally likely.
+ * An unnamed weapon is not granted. "A random amount of scrap" names no band, so that scrap is not paid.
+ */
+function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
+  if (!id.startsWith("c:zoltan-odd-moon:")) return null;
+  const g = ctx.g;
+  if (id === "c:zoltan-odd-moon:look") {
+    // Four results, no odds. INFERRED: equal.
+    const which = ctx.irand(4);
+    if (which === 0) {
+      g.event = {
+        title: zoltanMoonTitle(g),
+        body: ZOLTAN_MOON_CAVE,
+        choices: [
+          { id: "c:zoltan-odd-moon:boom", label: "Attempt to detonate some explosives to break through the surface." },
+          {
+            id: "c:zoltan-odd-moon:spare",
+            label: "Explosives are too valuable to waste on excavation work. Let's get out of here.",
+          },
+        ],
+      };
+      g.phase = "event";
+      g.paused = true;
+      return true;
+    }
+    if (which === 1) {
+      const line = payTier(ctx, "low");
+      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line]);
+      return true;
+    }
+    if (which === 2) {
+      const line = payTier(ctx, "medium");
+      citedResult(g, ZOLTAN_MOON_HEAP, ["You receive medium scrap.", line]);
+      return true;
+    }
+    citedResult(g, ZOLTAN_MOON_QUIET, ["Nothing happens."]);
+    return true;
+  }
+  if (id === "c:zoltan-odd-moon:leave") {
+    citedResult(g, ZOLTAN_MOON_LEAVE, ["Nothing happens."]);
+    return true;
+  }
+  if (id === "c:zoltan-odd-moon:spare") {
+    citedResult(g, "Nothing happens.", ["Nothing happens."]);
+    return true;
+  }
+  if (id === "c:zoltan-odd-moon:boom") {
+    if (g.missiles < 1) return false;
+    g.missiles -= 1;
+    ctx.note("Missiles: -1.");
+    // Three results, no odds. INFERRED: equal. The unnamed weapon and the unstated scrap are not granted.
+    const which = ctx.irand(3);
+    if (which === 0) {
+      citedResult(g, ZOLTAN_MOON_BASE, ["Missiles: -1."]);
+      return true;
+    }
+    if (which === 1) {
+      citedResult(g, ZOLTAN_MOON_REMAINS, ["Missiles: -1."]);
+      return true;
+    }
+    citedResult(g, ZOLTAN_MOON_WASTE, ["Nothing happens.", "Missiles: -1."]);
+    return true;
+  }
+  if (id === "c:zoltan-odd-moon:drone") {
+    if (!ownsBoardDrone(g) || g.player.parts < 1) return false;
+    g.player.parts -= 1;
+    ctx.note("Drone parts: -1.");
+    // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
+    const joined = joinCrew(g, "Zoltan");
+    const line = joined ? "You receive a Zoltan crewmember." : "There is no room aboard for the new crewmember.";
+    ctx.note(line);
+    citedResult(g, ZOLTAN_MOON_DRONE, [line, "Drone parts: -1."]);
+    return true;
+  }
+  return false;
+}
+
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
   if (ev.slug === "slug-moons-question") return slugMoonsCard(g, b, ev.dest);
+  if (ev.slug === "zoltan-odd-moon") return zoltanOddCard(ev.dest);
   if (ev.slug === "lanius-trader") {
     const offer = rollLaniusTrader(g, false);
     // The offer is rolled first so the shown trade stays on the same draws. The intro uses the next draw.
@@ -4975,7 +5105,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   };
 }
 
+/** The fitted schematic is kit.target. A loadout entry counts the same way. */
+function ownsBoardDrone(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit) return false;
+  return kit.target === "board" || (kit.loadout ?? []).includes("board");
+}
+
 export function citedChoiceDisabled(g: Game, id: string): string | null {
+  // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
+  if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return "Needs a Boarding Drone";
+  if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return "Need 1 drone part";
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
   if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs Sensors level 2";
@@ -5131,6 +5271,8 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const moons = slugMoonsQuestion(ctx, id);
   if (moons !== null) return moons;
+  const moon = zoltanOddMoon(ctx, id);
+  if (moon !== null) return moon;
   const take = tradeTake(id);
   if (take) {
     const g = ctx.g;

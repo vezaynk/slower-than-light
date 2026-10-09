@@ -98,7 +98,7 @@ describe("cited zoltan next events", () => {
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.deepEqual(dests, []);
+    assert.deepEqual(dests, ["Zoltan odd moon"]);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest));
       assert.ok(CANDIDATES.includes(ev.dest));

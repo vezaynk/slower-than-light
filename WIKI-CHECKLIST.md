@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 944 |
-| Behaviors checked | 2921 |
-| Behaviors open | 541 |
+| Behaviors checked | 2927 |
+| Behaviors open | 540 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -1385,7 +1385,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A live drone with fewer than 2 repairs is the same retrieve (INFERRED).
   - [x] The timer freezes while unpowered, and it does not walk while unpowered.
   - [x] Neither id is a SwarmKind.
-  - [ ] Neither schematic is stocked.
+  - [x] Hull Repair is stocked at 85 and the Ion Intruder is stocked at 65 when the ship has Drone Control.
   - [x] Enemy crew in the room can destroy the player's drone.
   - [x] Shield Overcharger needs 3 power and Shield Overcharger + needs 2.
   - [x] Both add one Zoltan Shield point on 8/10/13/16/20 seconds for 0–4 existing layers, then stop.
@@ -1397,10 +1397,15 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fitted Shield Overcharger + quotes the printed sell of 30.
   - [x] The regular Shield Overcharger is not quoted.
   - [ ] Neither schematic is stocked.
+    - [x] Shield Overcharger is stocked at 60 when the ship has Drone Control.
+    - [ ] Shield Overcharger + stays unstocked.
   - [x] A store sells it at 75 with a System Repair Drone and at 85 with Defense Drone Mark I or Combat Drone Mark I, at level 2, with that schematic selected.
   - [x] The store seed picks which of the three and is not advanced (INFERRED).
   - [x] The naked 60 is not charged.
   - [ ] Standalone schematics stay unstocked.
+    - [x] A ship with Drone Control stocks a window of three single-price schematics, and buying one spends that printed scrap when a slot is free.
+    - [x] Fire Drone stays unstocked.
+    - [ ] A ship without Drone Control has no drone slot.
   - [x] Some drone pages not split out.
   - [x] An enemy Anti-Combat drone stuns or destroys a deployed Boarding Drone or Ion Intruder with the same 5 second stun and 47.8 percent chance.
   - [x] A player boarding drone holds in space while the enemy is cloaked, then breaches the hull and attacks inside.
@@ -5618,6 +5623,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Catalog augments and the first crew races are buyable.
   - [x] Weapons and augments sell for half the purchase price, rounded down, unless the page prints a sell amount.
   - [ ] Drone schematics are not sold.
+    - [x] A ship with Drone Control stocks three single-price schematics from the seed window, and the seed is not advanced.
+    - [x] Fire Drone and Shield Overcharger + stay off that shelf.
+    - [ ] A ship without Drone Control has no drone slot.
   - [x] A fitted Shield Overcharger + quotes 30 scrap.
   - [x] The item slots beyond fuel, missiles, drone parts, hull repair, and the weapon slot are 1, 2, or 3, from the seed.
   - [x] A bought system does not add a room.

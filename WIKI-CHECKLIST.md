@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2938 |
+| Behaviors checked | 2939 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5884,6 +5884,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Shield Overcharger + and Anti-Drone stay unfitted.
     - [x] Shield Overcharger + starts on Layout C.
     - [ ] Anti-Drone stays unfitted.
+  - [x] Installing shields costs 125 scrap and fits two power bars, which make one shield layer once both are powered.
 
 - [ ] The Stormwalker
   - [x] Title string is in src/.

@@ -817,6 +817,34 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:pirate-ship-distress-trap:0", label: "Fight the pirate ship.", fx: [{ k: "fight", tier: "Pirate ship" }] },
     ],
   },
+  // DISTRESS_SATELLITE_DEFENSE. Promise opens the printed options. No odds on simply fire.
+  // The other printed result (5 hull, 1 random system, 1 breached room) stays unwired, so that button does not roll a weight.
+  // The commented-out Lanius crew option is not in the game. It is not added here.
+  {
+    dest: "Malfunctioning defense system",
+    slug: "malfunctioning-defense-system",
+    flag: "cited:malfunctioning-defense-system",
+    aliases: ["Malfunctioning defense system"],
+    sectors: [
+      "Abandoned Sector",
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Engi Homeworlds",
+      "Mantis Controlled Sector",
+      "Mantis Homeworlds",
+      "Pirate Controlled Sector",
+      "Rock Controlled Sector",
+      "Rock Homeworlds",
+      "Uncharted Nebula",
+      "Zoltan Controlled Sector",
+      "Zoltan Homeworlds",
+    ],
+    body: "The distress signal is coming from a small space station orbiting an uninhabited planet. Their satellite defense system has gone haywire and their repair crew can't approach without being fired on. They're looking for help to fix or disable it.",
+    choices: [
+      { id: "c:malfunctioning-defense-system:0", label: "Promise to help.", fx: [{ k: "note", text: "Ion, cloaking, an Engi, or low scrap. The 5 hull result stays unwired." }] },
+      { id: "c:malfunctioning-defense-system:1", label: "Leave them alone.", fx: [{ k: "nothing" }] },
+    ],
+  },
 ];
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -1268,6 +1296,19 @@ function ownsAntiBio(g: Game): boolean {
   return g.player.weapons.some((w) => w.defId === "antibio");
 }
 
+/** Malfunctioning defense system, Ion Weapon: kind ion, or any weapon that deals ion, including Ion Bomb and Stun Bomb. */
+function ownsIon(g: Game): boolean {
+  return g.player.weapons.some((w) => {
+    const def = WEAPONS[w.defId];
+    return !!def && (def.kind === "ion" || def.ion > 0);
+  });
+}
+
+/** Cloaking with no level named is any installed Cloaking. Improved is 2. Advanced is 3. */
+function cloakLevel(g: Game): number {
+  return g.player.kits.veil?.level ?? 0;
+}
+
 /** Crushed pirate: Anti-Bio Beam and Fire Beam are excluded. Artillery Beam is the lance kit. */
 function ownsCuttingBeam(g: Game): boolean {
   if ((g.player.kits.lance?.level ?? 0) > 0) return true;
@@ -1413,6 +1454,23 @@ function spiderCard(g: Game, page: Page): GameEvent {
     })
     .map((c) => ({ id: c.id, label: c.label }));
   return { title: page.dest, body: page.body, choices };
+}
+
+/**
+ * Promise to help. Blue options stay off until the ship qualifies.
+ * INFERRED: the parenthetical names the requirement, because the three cloaking buttons print the same sentence.
+ */
+function defenseOptions(g: Game): { id: string; label: string }[] {
+  const choices: { id: string; label: string }[] = [
+    { id: "c:malfunctioning-defense-system:2", label: "Simply fire on the defense system from a distance." },
+  ];
+  if (ownsIon(g)) choices.push({ id: "c:malfunctioning-defense-system:3", label: "(Ion Weapon) Disable the defense system." });
+  const cloak = cloakLevel(g);
+  if (cloak >= 1) choices.push({ id: "c:malfunctioning-defense-system:4", label: "(Cloaking) Use your cloaking to disable the system." });
+  if (cloak >= 2) choices.push({ id: "c:malfunctioning-defense-system:5", label: "(Improved Cloaking) Use your cloaking to disable the system." });
+  if (cloak >= 3) choices.push({ id: "c:malfunctioning-defense-system:6", label: "(Advanced Cloaking) Use your cloaking to disable the system." });
+  if (livingKin(g, "shell")) choices.push({ id: "c:malfunctioning-defense-system:7", label: "(Engi Crew) Remotely repair its targeting system." });
+  return choices;
 }
 
 /**
@@ -2542,6 +2600,40 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, g.event?.body ?? TRAP_INTRO[0], "Pirate ship", "pirate-ship-distress-trap");
   },
 
+  // Malfunctioning defense system. Promise opens the options. Leave them alone does nothing.
+  "c:malfunctioning-defense-system:0": (g) => {
+    card(g, "You consider your options.", defenseOptions(g));
+  },
+  "c:malfunctioning-defense-system:1": (g) => {
+    show(g, "You can't help them so you prepare to move on.", undefined, ["Nothing happens."]);
+  },
+  // Simply fire's other printed result (5 hull, 1 random system, 1 breached room) stays unwired.
+  // The page prints no odds, so this button does not roll a weight between the two results.
+  "c:malfunctioning-defense-system:2": (g) => {
+    show(g, "You fire a few volleys from a distance and it is clear the defense system is no match for your weapons. However, the station does not seem happy with your 'solution'. You salvage what you can and jump before there is trouble.", rollStandard(g, "low"));
+  },
+  // Any ion weapon, including Ion Bomb and Stun Bomb. Missile ammo is not required and not wasted.
+  "c:malfunctioning-defense-system:3": (g) => {
+    if (!ownsIon(g)) return;
+    show(g, "You use your ion weaponry to disable the gun long enough for their repair crews to fix it. They message you, \"I've never seen a weapon like that before! Thanks for your help! Please, accept this reward.\"", rollStandard(g, "high"));
+  },
+  "c:malfunctioning-defense-system:4": (g) => {
+    if (cloakLevel(g) < 1) return;
+    show(g, "You use your ship's Cloaking to try to prevent the defense system from getting a lock. However before you are able to safely disable the system your cloaking gives out and you are forced to destroy the satellite. No one was harmed but they don't seem happy with your solution.", rollStandard(g, "low"));
+  },
+  "c:malfunctioning-defense-system:5": (g) => {
+    if (cloakLevel(g) < 2) return;
+    show(g, "You use your ships Cloaking to prevent the defense system from getting a lock. Once closer, you hasten to disable the system without damaging it. It was a sloppy job but they appreciate it and offer a reward.", rollStandard(g, "medium"));
+  },
+  "c:malfunctioning-defense-system:6": (g) => {
+    if (cloakLevel(g) < 3) return;
+    show(g, "Your ship's Advanced Cloaking allows you to approach the defense system without an issue. Once closer, you are able to safely disable the system. They thank you for your help and offer a reward.", rollStandard(g, "high"));
+  },
+  "c:malfunctioning-defense-system:7": (g) => {
+    if (!livingKin(g, "shell")) return;
+    show(g, "Your crew-member is able to remotely fix the glitch in the defense AI, allowing the repair crew to close in and finish the job. The station gives you its thanks along with a reward.", rollStandard(g, "high"));
+  },
+
   // Escape pod. Three pry results, no odds. INFERRED: equal.
   "c:escape-pod:0": (g) => {
     show(g, "You send the pod back out the airlock. You're not stupid.");
@@ -2960,6 +3052,12 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:giant-alien-spiders:2" && !ownsDrone(g, "personnel")) return "Needs an Anti-Personnel Drone";
   if (id === "c:giant-alien-spiders:3" && !ownsDrone(g, "board")) return "Needs a Boarding Drone";
   if (id === "c:giant-alien-spiders:4" && !ownsAntiBio(g)) return "Needs an Anti-Bio Beam";
+  // Malfunctioning defense system blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  if (id === "c:malfunctioning-defense-system:3" && !ownsIon(g)) return "Needs an ion weapon";
+  if (id === "c:malfunctioning-defense-system:4" && cloakLevel(g) < 1) return "Needs Cloaking";
+  if (id === "c:malfunctioning-defense-system:5" && cloakLevel(g) < 2) return "Needs Improved Cloaking";
+  if (id === "c:malfunctioning-defense-system:6" && cloakLevel(g) < 3) return "Needs Advanced Cloaking";
+  if (id === "c:malfunctioning-defense-system:7" && !livingKin(g, "shell")) return "Needs an Engi crewmember";
   // Crushed pirate blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
   if (id === "c:crushed-pirate:2" && !ownsCuttingBeam(g)) return "Needs a beam weapon";
   if (id === "c:crushed-pirate:3" && !ownsBeamDrone(g)) return "Needs a beam drone";

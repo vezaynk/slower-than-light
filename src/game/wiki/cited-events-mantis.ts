@@ -44,6 +44,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     dest: "Mantis ship-collectors",
+    // Arrival calls this fight. The printed hail is the card body. The quest marker stays after the escape.
     slug: "mantis-ship-collectors",
     flag: "cited:mantis-ship-collectors",
     aliases: ["Mantis ship-collectors"],

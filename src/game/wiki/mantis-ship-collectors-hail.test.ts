@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -27,5 +27,37 @@ describe("Mantis ship-collectors hail", () => {
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ship-collectors");
     assert.equal(g.scrap, 10);
+  });
+
+  it("starts the Mantis Fighter on arrival and leaves no button", () => {
+    // The page has no choice before the fight. The printed hail, then "Fight a Mantis Fighter." unique=true.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:mantis-ship-collectors";
+    dest.name = "Mantis ship-collectors";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.sectorName = "Mantis Homeworlds";
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "mantis");
+    assert.equal(g.fightEvent, "mantis-ship-collectors");
+    assert.equal(g.flare, false);
+    assert.equal(g.fleet, 1);
+    assert.ok(g.log.includes(HAIL));
+    const enemyCrew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
+    assert.ok(enemyCrew.length > 0);
+    assert.ok(enemyCrew.every((c) => c.kin === "blade"));
   });
 });

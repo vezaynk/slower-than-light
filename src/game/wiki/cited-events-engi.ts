@@ -91,6 +91,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Pirate ship (default rewards)." Pirate fight (Engi) has no choice. Arrival calls this fight. The printed sentence is the card body. unique=false.
   {
     dest: "Pirate fight (Engi)",
     slug: "pirate-fight-engi",

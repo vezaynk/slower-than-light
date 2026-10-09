@@ -305,6 +305,7 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
 
   it("prints the boss weapon stats", () => {
     assert.equal(WEAPONS.bosslaser.shots, 3);
+    assert.equal(WEAPONS.bosslaser.gap, 0);
     assert.equal(WEAPONS.bosslaser.damage, 1);
     assert.equal(WEAPONS.bosslaser.fire, 0.1);
     assert.equal(WEAPONS.bosslaser.breach, 0.09);

@@ -26,8 +26,8 @@ export const BOSS_LASER: WeaponDef = {
   // Level-1 base. The other levels are in ARTILLERY_CHARGE.
   charge: 25,
   shots: 3,
-  // INFERRED: 0.25 s between the three bolts so the volley reads as three shots. No gap is printed.
-  gap: 0.25,
+  // Laser (Weapons), Boss Laser: "Shots: 3". No gap is printed, so the three bolts are not spaced.
+  gap: 0,
   damage: 1,
   ion: 0,
   fire: 0.1,

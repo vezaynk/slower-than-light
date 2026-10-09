@@ -174,6 +174,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // Slug fight has no choice. Arrival calls this fight.
+  // "Fight a Slug ship (default rewards)." unique=true.
   {
     dest: "Slug fight",
     slug: "slug-fight",

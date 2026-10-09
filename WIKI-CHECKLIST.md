@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 941 |
-| Behaviors checked | 2880 |
-| Behaviors open | 535 |
+| Behaviors checked | 2885 |
+| Behaviors open | 536 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -6229,7 +6229,14 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] same title as "Zoltan Life Raft" with different capitalization.
 
 - [ ] Zoltan odd moon
-  - [ ] The page states a mechanic and it is not a playable event.
+  - [x] Check it out opens the cavern, pays low scrap without the unnamed weapon, pays medium scrap, or finds nothing.
+  - [ ] Detonating the explosives spends 1 missile.
+    - [x] Keeping the missile does nothing, and a dry magazine stays on the cavern.
+    - [x] A wasted blast spends the missile and nothing else happens.
+    - [ ] The secret base's unnamed weapon and its random scrap stay unwired.
+    - [ ] The remains' random scrap stays unwired.
+  - [x] Leave it be does nothing.
+  - [x] A Boarding Drone spends 1 drone part and a Zoltan crewmember joins.
 
 - [x] Zoltan pirate fight
   - [x] same title as "Zoltan Pirate Fight" with different capitalization.

@@ -1,5 +1,4 @@
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
-import { aeEventTitle } from "./ae-events.ts";
 import { mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { EXTRA_EVENTS as AUTO_EVENTS } from "./cited-events-auto.ts";
@@ -3633,7 +3632,7 @@ function stampKey(g: Game, flag: string): number {
 export function stampCitedEvents(g: Game) {
   // Placed in a per-run seeded order rather than table order: in table order the free beacons ran out
   // before most of each sector's list (e.g. 11 of 56 Civilian Sector events), so later events never appeared.
-  const mine = EVENTS.filter((ev) => ev.sectors.includes(g.sectorName) && (g.ae !== false || !aeEventTitle(ev.dest)));
+  const mine = EVENTS.filter((ev) => ev.sectors.includes(g.sectorName));
   mine.sort((a, b) => stampKey(g, a.flag) - stampKey(g, b.flag));
   // @agent:beacon-mix. Sectors, "Beacons:" lists: the free beacons are re-dealt by the sector's counts and
   // this seeded order fills hostile/neutral/distress/items slots (wiki/beacon-mix.ts). The loop below only

@@ -4,8 +4,8 @@ import { createGame, startCombat } from "../sim.ts";
 import { deriveUnlocks } from "../unlocks.ts";
 import { noteAchieve } from "./achieve-notes.ts";
 import { earnedNow } from "./achievement-track.ts";
-import { aeEventTitle } from "./ae-events.ts";
 import { stampCitedEvents } from "./cited-events.ts";
+import { drawFiller } from "./filler-events.ts";
 
 function quietMap(seed = 1, hullId?: string) {
   const g = createGame(seed, hullId);
@@ -80,43 +80,86 @@ describe("achievement counters", () => {
   });
 });
 
-describe("Advanced Edition event gate", () => {
-  it("names the tagged pages and skips them when the run is off", () => {
-    assert.equal(aeEventTitle("Lanius trader"), true);
-    assert.equal(aeEventTitle("Free scrap with resources (Lanius)"), true);
-    assert.equal(aeEventTitle("Zoltan odd moon"), false);
+/** Category:Advanced Edition Content Events. An old save may still carry ae: false. That field is ignored. */
+const AE_TITLES = new Set([
+  "Abandoned station",
+  "Empty beacon (Lanius)",
+  "Free scrap with resources (Lanius)",
+  "Lanius craftsmen",
+  "Lanius fight",
+  "Lanius fight distress",
+  "Lanius fight in asteroid field",
+  "Lanius fight near pulsar",
+  "Lanius fight with friendly ASB support",
+  "Lanius lone ship",
+  "Lanius powered-down ship",
+  "Lanius ship absorbing automated scout",
+  "Lanius ship absorbing jump beacon",
+  "Lanius ship absorbing rebel base",
+  "Lanius ship attacking Mantis",
+  "Lanius ship attacking civilian",
+  "Lanius ship attacking civilian distress",
+  "Lanius ship in rich debris field",
+  "Lanius ship salvager",
+  "Lanius trader",
+  "Lanius trader with translator",
+  "Lanius with Federation science craft",
+  "Large trade station",
+  "Pirate fight (Lanius)",
+  "Pirate fight near pulsar",
+  "Pirate ship attacking civilian (Lanius)",
+  "Rebel fight (Lanius)",
+  "Rebel fight near pulsar",
+  "Refueling platform garbled broadcast",
+  "Space station under construction",
+  "Store (Lanius)",
+]);
 
-    const off = quietMap();
-    off.ae = false;
-    off.sectorName = "Abandoned Sector";
-    for (const beacon of off.beacons) {
+describe("Advanced Edition content", () => {
+  it("places tagged event titles even when an old save says content is off", () => {
+    const g = quietMap(2);
+    (g as { ae?: boolean }).ae = false;
+    g.sectorName = "Abandoned Sector";
+    for (const beacon of g.beacons) {
       if (beacon.kind === "start" || beacon.kind === "exit" || beacon.kind === "boss") continue;
       beacon.flag = "";
       beacon.name = "open";
     }
-    stampCitedEvents(off);
-    assert.equal(off.beacons.some((beacon) => aeEventTitle(beacon.name)), false);
-
-    const on = quietMap(2);
-    delete on.ae;
-    on.sectorName = "Abandoned Sector";
-    for (const beacon of on.beacons) {
-      if (beacon.kind === "start" || beacon.kind === "exit" || beacon.kind === "boss") continue;
-      beacon.flag = "";
-      beacon.name = "open";
-    }
-    stampCitedEvents(on);
-    assert.equal(on.beacons.some((beacon) => aeEventTitle(beacon.name)), true);
+    stampCitedEvents(g);
+    assert.equal(g.beacons.some((beacon) => AE_TITLES.has(beacon.name)), true);
   });
 
-  it("layout C stays locked when Advanced Edition content is off", () => {
-    const g = quietMap(1, "kestrel-b");
-    g.sector = 8;
-    g.ae = false;
-    const locked = deriveUnlocks({ ships: ["kestrel-a"], wins: [] }, g, []);
-    assert.equal(locked.ships.includes("kestrel-c"), false);
-    delete g.ae;
-    const open = deriveUnlocks({ ships: ["kestrel-a"], wins: [] }, g, []);
-    assert.equal(open.ships.includes("kestrel-c"), true);
+  it("still draws an Advanced Edition filler page when an old save says content is off", () => {
+    const g = quietMap();
+    (g as { ae?: boolean }).ae = false;
+    let saw = false;
+    for (let i = 0; i < 400 && !saw; i++) {
+      const page = drawFiller(g, "filler", []);
+      if (page?.dest === "Abandoned station") saw = true;
+    }
+    assert.equal(saw, true);
+  });
+
+  it("unlocks layout C at sector 8 on layout B when an old save says content is off", () => {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const store = new Map<string, string>([["stl:ae", "0"]]);
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => store.set(key, value),
+      },
+    });
+    try {
+      const g = createGame(1, "kestrel-b");
+      assert.equal(Object.hasOwn(g, "ae"), false);
+      (g as { ae?: boolean }).ae = false;
+      g.sector = 8;
+      const open = deriveUnlocks({ ships: ["kestrel-a"], wins: [] }, g, []);
+      assert.equal(open.ships.includes("kestrel-c"), true);
+    } finally {
+      if (previous) Object.defineProperty(globalThis, "localStorage", previous);
+      else delete (globalThis as { localStorage?: unknown }).localStorage;
+    }
   });
 });

@@ -4967,12 +4967,6 @@ export function createGame(
     muted: false,
     lowHull: false,
   } as Game;
-  // FTL: Advanced Edition. "0" in stl:ae is off. Absent storage, and an absent g.ae, both mean on.
-  try {
-    if (typeof localStorage !== "undefined" && localStorage.getItem("stl:ae") === "0") g.ae = false;
-  } catch {
-    // Storage can be blocked. The run keeps Advanced Edition content on.
-  }
   makeMap(g);
   g.sectorName = "Civilian (Starting) Sector";
   // No wired page lists this sector name, so the stamp places nothing here.

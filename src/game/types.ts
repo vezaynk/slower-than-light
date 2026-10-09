@@ -871,11 +871,6 @@ export type Game = {
    * Absent on an older save means none of these marks have been seen.
    */
   tally?: AchieveTally;
-  /**
-   * FTL: Advanced Edition: some events exist only while Advanced Edition content is enabled.
-   * Absent on an older save means content is on.
-   */
-  ae?: boolean;
   /** Score page: beacons visited. The starting beacon counts. */
   beaconsVisited: number;
   /** Sectors page chart. Empty until the exit beacon opens it. */

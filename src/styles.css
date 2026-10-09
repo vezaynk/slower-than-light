@@ -1428,6 +1428,9 @@ button:disabled {
   flex-direction: column;
   overflow: hidden;
   z-index: 2;
+  /* A second camera laid over the main view. The glass stays translucent so a shot
+     leaving the player can be seen passing under it on the way off the right edge. */
+  background: rgba(11, 17, 22, 0.34);
 }
 
 .target-head {
@@ -1435,6 +1438,7 @@ button:disabled {
   gap: 8px;
   padding: 8px 10px 0;
   align-items: stretch;
+  background: rgba(11, 17, 22, 0.82);
 }
 
 .target-flag {
@@ -1463,6 +1467,7 @@ button:disabled {
   justify-content: center;
   gap: 6px;
   padding: 6px 8px 10px;
+  background: rgba(11, 17, 22, 0.82);
 }
 
 .target-systems span {
@@ -3426,6 +3431,17 @@ button.door-tick::before {
 /* Combat effects canvas (CombatFx.tsx): over both ships, under modals. */
 
 .fx-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; image-rendering: pixelated; }
+
+/* Departure of a player shot, and the arrival of an enemy shot, paint under the target panel. */
+.fx-under { z-index: 2; }
+
+.target-panel .room:not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash) {
+  background: color-mix(in srgb, var(--color-room) 52%, transparent);
+}
+
+.target-panel .hull-plate { opacity: 0.4; }
+
+.target-panel .pixel-fill { opacity: 0.45; }
 
 .hull.is-gone { visibility: hidden; }
 

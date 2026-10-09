@@ -4,7 +4,6 @@
  * the same ship a fight draws (rooms, doors, weapons, crew), the system icons,
  * CREW, WEAPONS, DRONES, AUGMENTATIONS.
  * Score, lead formula: the lit button sets initial scrap to 30, 10, or 0. The highlight starts on EASY.
- * Advanced Edition content is a hangar switch (stl:ae). Off skips pages tagged as Advanced Edition events.
  * @agent:unlocks: every layout can be viewed; a locked one shows its unlock line and
  * START is off (unlocks.ts, unlock-store.ts). UNLOCK ALL / RESET LOCKS and ?unlockAll=1 are the developer switches.
  * Crew cards repeat the race counts on the layout line. INVENTED: CUSTOMIZE edits a name
@@ -98,7 +97,6 @@ export function Hangar() {
   const [letter, setLetter] = useState<Letter>("A");
   const [hideRooms, setHideRooms] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
-  const [aeOn, setAeOn] = useState(true);
   const [rename, setRename] = useState(false);
   const [name, setName] = useState(() => hangarSheet(CRUISER_PAGES[0].layouts[0]).defaultName);
 
@@ -121,14 +119,6 @@ export function Hangar() {
   const preview = useMemo(() => hangarLoadout(layout.id, picks), [layout.id, picks]);
 
   useEffect(() => {
-    try {
-      setAeOn(localStorage.getItem("stl:ae") !== "0");
-    } catch {
-      setAeOn(true);
-    }
-  }, []);
-
-  useEffect(() => {
     setName(sheet.defaultName);
     setRename(false);
   }, [layout.id, sheet.defaultName]);
@@ -144,16 +134,6 @@ export function Hangar() {
 
   function stepPage(dir: number) {
     setPageIndex((index) => (index + dir + CRUISER_PAGES.length) % CRUISER_PAGES.length);
-  }
-
-  function toggleAe() {
-    const next = !aeOn;
-    setAeOn(next);
-    try {
-      localStorage.setItem("stl:ae", next ? "1" : "0");
-    } catch {
-      // The next run still reads whatever storage kept.
-    }
   }
 
   function start() {
@@ -212,9 +192,6 @@ export function Hangar() {
           </div>
           <button type="button" className="hangar-start" onClick={start} disabled={locked} title={locked ? "Locked" : undefined}>
             START
-          </button>
-          <button type="button" aria-pressed={aeOn} onClick={toggleAe}>
-            {aeOn ? "AE ON" : "AE OFF"}
           </button>
           <FullscreenButton className="hangar-fs" />
         </div>

@@ -1,9 +1,11 @@
 /**
- * INVENTED combat effects. One canvas over the play screen draws every shot in flight,
- * beams, deployed drones, impacts, and the MISS / SHIELD / damage floaters. It runs its
- * own animation frame and reads the game store directly, so projectiles move at display
- * rate while the React UI keeps its slower refresh. Positions come from the rooms and
- * mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
+ * INVENTED combat effects. Two canvases draw every shot in flight, beams, deployed drones,
+ * impacts, and the MISS / SHIELD / damage floaters. The target panel is a second camera,
+ * so a ship shot leaves its own view going straight ahead, then arrives in the other view
+ * from the fight clock's bearing. One canvas sits under that panel; the other sits over both ships.
+ * The effect runs its own animation frame and reads the game store directly, so projectiles
+ * move at display rate while the React UI keeps its slower refresh. Positions come from the
+ * rooms and mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
  */
 import { useEffect, useRef } from "react";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
@@ -31,6 +33,8 @@ type Spark = {
   drag?: number;
   /** Extra px/s on y, not scaled by drag. Negative rises. */
   lift?: number;
+  /** Departing player shots paint under the target panel. Absent paints on the overlay. */
+  layer?: "world";
 };
 /** Filled or outlined pixel rect, or a tiny laser ring of rects. Grows from the centre. */
 type Mark = {
@@ -70,6 +74,57 @@ function targetSide(shot: Shot): "player" | "enemy" {
   if (shot.at === "player" || shot.at === "enemy") return shot.at;
   if (shot.kind === "bomb" && shot.own === true) return shot.from === "player" ? "player" : "enemy";
   return shot.from === "player" ? "enemy" : "player";
+}
+
+/**
+ * A mount shot that leaves one camera and arrives in the other.
+ * Drone fire stays beside the drone (swarm.ts "swarm-ready" / "swarm", or DRONE_LABEL).
+ * Bombs still appear on the room they hit. Rocks and artillery keep a single approach.
+ */
+function crossesCameras(shot: Shot): boolean {
+  if (shot.from !== "player" && shot.from !== "enemy") return false;
+  if (shot.kind === "bomb") return false;
+  if (targetSide(shot) === shot.from) return false;
+  const label = shot.label ?? "";
+  if (label === "swarm-ready" || label === "swarm" || label.startsWith(DRONE_LABEL)) return false;
+  return true;
+}
+
+/**
+ * Seconds for the arrival bearing to walk once around the target frame.
+ * A Burst Laser II volley is staggered by 0.28s, so the three bolts span about 25° and stay one cluster.
+ */
+const APPROACH_TURN_S = 8;
+
+/**
+ * Where a crossing shot enters the other camera.
+ * The hand is the fight clock at the tick `shot.t` was 0, so one volley shares a side
+ * and the bolt holds that line instead of chasing the hand.
+ */
+function approachAngle(time: number, shot: Shot): number {
+  const born = time - shot.t * shot.duration;
+  const turns = born / APPROACH_TURN_S;
+  return (turns - Math.floor(turns)) * Math.PI * 2;
+}
+
+/** A point just inside `rect`, where a ray from `origin` at `ang` meets the border. */
+function entryPoint(origin: Pt, ang: number, rect: Box): Pt {
+  const dx = Math.cos(ang);
+  const dy = Math.sin(ang);
+  let best = Infinity;
+  const consider = (dist: number) => {
+    if (dist > 1 && dist < best) best = dist;
+  };
+  if (Math.abs(dx) > 1e-4) {
+    consider((rect.x - origin.x) / dx);
+    consider((rect.x + rect.w - origin.x) / dx);
+  }
+  if (Math.abs(dy) > 1e-4) {
+    consider((rect.y - origin.y) / dy);
+    consider((rect.y + rect.h - origin.y) / dy);
+  }
+  const dist = Number.isFinite(best) ? Math.max(16, best - 6) : Math.hypot(rect.w, rect.h) * 0.45;
+  return { x: origin.x + dx * dist, y: origin.y + dy * dist };
 }
 
 /** Drones that fly at the enemy. The rest hold station around the player hull. */
@@ -145,14 +200,17 @@ function droneSprite(key: DroneKey) {
 }
 
 export function CombatFx() {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const overRef = useRef<HTMLCanvasElement>(null);
+  const underRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = ref.current;
-    const host = canvas?.parentElement;
-    if (!canvas || !host) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const over = overRef.current;
+    const under = underRef.current;
+    const host = over?.parentElement;
+    if (!over || !under || !host) return;
+    const ctx = over.getContext("2d");
+    const underCtx = under.getContext("2d");
+    if (!ctx || !underCtx) return;
 
     let raf = 0;
     let last = performance.now();
@@ -188,13 +246,17 @@ export function CombatFx() {
       const dpr = window.devicePixelRatio || 1;
       const backW = Math.round(w * scale * dpr);
       const backH = Math.round(h * scale * dpr);
-      if (canvas.width !== backW || canvas.height !== backH) {
-        canvas.width = backW;
-        canvas.height = backH;
-      }
-      ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      ctx.imageSmoothingEnabled = false;
+      const prep = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
+        if (canvas.width !== backW || canvas.height !== backH) {
+          canvas.width = backW;
+          canvas.height = backH;
+        }
+        context.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+        context.clearRect(0, 0, w, h);
+        context.imageSmoothingEnabled = false;
+      };
+      prep(over, ctx);
+      prep(under, underCtx);
 
       const box = (el: Element | null): Box | null => {
         if (!el) return null;
@@ -475,13 +537,17 @@ export function CombatFx() {
       }
       lastZoltan = zoltanNow;
 
+      const panelBox = box(host.querySelector(".target-panel"));
+      const stageBox = box(host.querySelector(".stage-slot"));
+
       const muzzle = (shot: Shot): Pt | null => {
         if (shot.from === "env") {
-          const target = hull("player");
+          const side = targetSide(shot);
+          const target = hull(side);
           if (!target) return null;
-          return shot.label === "Artillery"
-            ? { x: target.x + target.w * (0.2 + 0.6 * hash(shot.id)), y: -20 }
-            : { x: w + 20, y: target.y + target.h * hash(shot.id) };
+          if (shot.label === "Artillery") return { x: target.x + target.w * (0.2 + 0.6 * hash(shot.id)), y: target.y - 24 };
+          const right = side === "enemy" && panelBox ? panelBox.x + panelBox.w + 20 : w + 20;
+          return { x: right, y: target.y + target.h * hash(shot.id) };
         }
         const side = shot.from;
         if (shot.defId) {
@@ -490,12 +556,12 @@ export function CombatFx() {
             const m = box(mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length]);
             if (m) return side === "player" ? { x: m.x + m.w, y: m.y + m.h / 2 } : { x: m.x, y: m.y + m.h / 2 };
           }
-        } else if (side === "player") {
-          const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
-          if (drone) return drone;
         } else if (shot.label?.startsWith(DRONE_LABEL)) {
           // Enemy drone shots leave from that drone.
           const drone = enemyDroneAt.get(shot.label.slice(DRONE_LABEL.length));
+          if (drone) return drone;
+        } else if (side === "player" && (shot.label === "swarm-ready" || shot.label === "swarm")) {
+          const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
           if (drone) return drone;
         }
         const own = hull(side);
@@ -504,19 +570,49 @@ export function CombatFx() {
       };
 
       const aimAt = (shot: Shot, roomId: string): Pt | null => {
-        const side = shot.from === "player" ? "enemy" : "player";
+        const side = targetSide(shot);
         const r = room(side, roomId) ?? hull(side);
         if (!r) return null;
         const j = hash(shot.id);
         return { x: r.x + r.w * (0.3 + 0.4 * j), y: r.y + r.h * (0.3 + 0.4 * ((j * 7) % 1)) };
       };
 
-      const burst = (at: Pt, color: string, count: number, speed: number) => {
+      const burst = (at: Pt, color: string, count: number, speed: number, layer?: "world") => {
         for (let i = 0; i < count; i++) {
           const a = Math.random() * Math.PI * 2;
           const v = speed * (0.3 + Math.random() * 0.7);
-          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.5, max: 0.5, color, size: Math.random() < 0.3 ? 3 : 2 });
+          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.5, max: 0.5, color, size: Math.random() < 0.3 ? 3 : 2, layer });
         }
+      };
+
+      type Layer = "world" | "panel" | "over";
+      const drawOn = (layer: Layer, fn: (c: CanvasRenderingContext2D) => void) => {
+        const context = layer === "world" ? underCtx : ctx;
+        if (layer === "panel" && panelBox) {
+          context.save();
+          context.beginPath();
+          context.rect(panelBox.x, panelBox.y, panelBox.w, panelBox.h);
+          context.clip();
+          fn(context);
+          context.restore();
+          return;
+        }
+        fn(context);
+      };
+      const paintBeam = (layer: Layer, a: Pt, b: Pt, color: string) => {
+        drawOn(layer, (c) => {
+          c.lineCap = "square";
+          c.strokeStyle = color;
+          c.globalAlpha = 0.35;
+          c.lineWidth = 9;
+          line(c, a, b);
+          c.globalAlpha = 1;
+          c.lineWidth = 4;
+          line(c, a, b);
+          c.strokeStyle = "#ffffff";
+          c.lineWidth = 1.5;
+          line(c, a, b);
+        });
       };
 
       const alive = new Set<string>();
@@ -531,91 +627,133 @@ export function CombatFx() {
         const since = (now - (tickT.get(shot.id)?.at ?? now)) / 1000;
         const t = Math.min(1, shot.t + (live ? Math.min(since, 1 / 30) / shot.duration : 0));
         const color = shot.from === "env" ? "#c8b49a" : weaponPalette(shot.defId).glow;
-        const x = from.x + (to.x - from.x) * t;
-        const arc = shot.kind === "missile" ? Math.sin(t * Math.PI) * -24 : 0;
-        const y = from.y + (to.y - from.y) * t + arc;
-        const ang = Math.atan2(to.y - from.y + (shot.kind === "missile" ? Math.cos(t * Math.PI) * -24 * Math.PI : 0), to.x - from.x);
-        const rec: Seen = { at: to, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom };
+        const crossing = crossesCameras(shot) && !!panelBox && !!stageBox;
+        // First half leaves the firing camera going straight ahead. Second half arrives in the other camera.
+        const outbound = crossing && t < 0.5;
+        const leg = crossing ? (outbound ? t / 0.5 : (t - 0.5) / 0.5) : t;
+        let x = from.x + (to.x - from.x) * t;
+        let y = from.y + (to.y - from.y) * t;
+        let ang = Math.atan2(to.y - from.y, to.x - from.x);
+        let layer: Layer = "over";
+        if (!crossing && shot.kind === "missile") {
+          y += Math.sin(t * Math.PI) * -24;
+          ang = Math.atan2(to.y - from.y + Math.cos(t * Math.PI) * -24 * Math.PI, to.x - from.x);
+        }
+        if (outbound && panelBox) {
+          const dir = shot.from === "player" ? 1 : -1;
+          const endX = dir === 1 ? w + 48 : panelBox.x - 28;
+          x = from.x + (endX - from.x) * leg;
+          y = from.y;
+          ang = dir === 1 ? 0 : Math.PI;
+          layer = shot.from === "player" ? "world" : "panel";
+        } else if (crossing && panelBox && stageBox) {
+          const bounds = shot.from === "player" ? panelBox : stageBox;
+          const approach = approachAngle(g.time, shot);
+          const entry = entryPoint(to, approach, bounds);
+          x = entry.x + (to.x - entry.x) * leg;
+          y = entry.y + (to.y - entry.y) * leg;
+          ang = Math.atan2(to.y - entry.y, to.x - entry.x);
+          layer = shot.from === "player" ? "panel" : "world";
+        } else if (shot.from === "env" && targetSide(shot) === "enemy") {
+          layer = "panel";
+        }
+        const rec: Seen = { at: { x, y }, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom };
         seen.set(shot.id, rec);
 
         if (shot.kind === "beam") {
-          const hullSide = shot.from === "player" ? "enemy" : "player";
+          const hullSide = targetSide(shot);
           const endA = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.a) : null;
           const endB = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.b) : null;
           const rooms = (shot.beamRooms ?? [shot.targetRoom]).map((id) => aimAt(shot, id)).filter((p): p is Pt => !!p);
           const a = endA && endB ? endA : (rooms[0] ?? to);
           const b = endA && endB ? endB : (rooms[rooms.length - 1] ?? to);
-          const sweep = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+          if (crossing && outbound) {
+            // Straight out of the firing camera. The swipe on the other hull is the arrival half.
+            const tip = { x, y };
+            rec.at = tip;
+            paintBeam(layer, from, tip, color);
+            continue;
+          }
+          const sweep = { x: a.x + (b.x - a.x) * (crossing ? leg : t), y: a.y + (b.y - a.y) * (crossing ? leg : t) };
+          const origin = crossing ? a : from;
           // The stroke this frame. When the shot leaves, the scorch uses this segment, not a point.
-          rec.seg = { a: from, b: sweep };
+          rec.seg = { a: origin, b: sweep };
           rec.at = sweep;
-          ctx.lineCap = "square";
-          ctx.strokeStyle = color;
-          ctx.globalAlpha = 0.35;
-          ctx.lineWidth = 9;
-          line(ctx, from, sweep);
-          ctx.globalAlpha = 1;
-          ctx.lineWidth = 4;
-          line(ctx, from, sweep);
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 1.5;
-          line(ctx, from, sweep);
-          if (Math.random() < 0.6) burst(sweep, color, 1, 60);
+          rec.ang = Math.atan2(b.y - origin.y, b.x - origin.x);
+          const beamLayer: Layer = crossing ? (shot.from === "player" ? "panel" : "world") : "over";
+          paintBeam(beamLayer, origin, sweep, color);
+          if (Math.random() < 0.6) burst(sweep, color, 1, 60, beamLayer === "world" ? "world" : undefined);
           continue;
         }
 
         if (shot.kind === "bomb") {
           // Bombs teleport in: a closing ring at the target room, then the impact.
-          const r = 22 * (1 - t) + 4;
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2;
-          ctx.globalAlpha = 0.4 + 0.6 * t;
-          ctx.strokeRect(Math.round(to.x - r), Math.round(to.y - r), Math.round(r * 2), Math.round(r * 2));
-          ctx.globalAlpha = 1;
-          ctx.fillStyle = color;
-          ctx.fillRect(Math.round(to.x) - 2, Math.round(to.y) - 2, 4, 4);
+          rec.at = to;
+          const bombLayer: Layer = targetSide(shot) === "enemy" ? "panel" : "over";
+          drawOn(bombLayer, (c) => {
+            const r = 22 * (1 - t) + 4;
+            c.strokeStyle = color;
+            c.lineWidth = 2;
+            c.globalAlpha = 0.4 + 0.6 * t;
+            c.strokeRect(Math.round(to.x - r), Math.round(to.y - r), Math.round(r * 2), Math.round(r * 2));
+            c.globalAlpha = 1;
+            c.fillStyle = color;
+            c.fillRect(Math.round(to.x) - 2, Math.round(to.y) - 2, 4, 4);
+          });
           continue;
         }
 
-        ctx.save();
-        ctx.translate(Math.round(x), Math.round(y));
-        ctx.rotate(ang);
-        ctx.scale(1.4, 1.4);
-        if (shot.kind === "laser") {
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.35;
-          ctx.fillRect(-22, -2, 18, 4);
-          ctx.globalAlpha = 1;
-          ctx.fillRect(-10, -3, 16, 6);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(-6, -1, 10, 2);
-        } else if (shot.kind === "ion") {
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.3;
-          ctx.fillRect(-9, -9, 18, 18);
-          ctx.globalAlpha = 1;
-          ctx.fillRect(-5, -5, 10, 10);
-          ctx.fillStyle = "#e8f6ff";
-          ctx.fillRect(-2, -2, 4, 4);
-        } else if (shot.kind === "missile") {
-          ctx.fillStyle = "#d8dde2";
-          ctx.fillRect(-9, -2, 14, 5);
-          ctx.fillStyle = "#6f7b86";
-          ctx.fillRect(-9, -4, 3, 9);
-          ctx.fillStyle = color;
-          ctx.fillRect(5, -2, 3, 5);
-          if (live && Math.random() < 0.7) {
-            sparks.push({ x, y, vx: -Math.cos(ang) * 20, vy: -Math.sin(ang) * 20 + (Math.random() - 0.5) * 10, life: 0.6, max: 0.6, color: "#8a9096", size: 3 });
+        drawOn(layer, (c) => {
+          c.save();
+          c.translate(Math.round(x), Math.round(y));
+          c.rotate(ang);
+          c.scale(1.4, 1.4);
+          if (shot.kind === "laser") {
+            c.fillStyle = color;
+            c.globalAlpha = 0.35;
+            c.fillRect(-22, -2, 18, 4);
+            c.globalAlpha = 1;
+            c.fillRect(-10, -3, 16, 6);
+            c.fillStyle = "#ffffff";
+            c.fillRect(-6, -1, 10, 2);
+          } else if (shot.kind === "ion") {
+            c.fillStyle = color;
+            c.globalAlpha = 0.3;
+            c.fillRect(-9, -9, 18, 18);
+            c.globalAlpha = 1;
+            c.fillRect(-5, -5, 10, 10);
+            c.fillStyle = "#e8f6ff";
+            c.fillRect(-2, -2, 4, 4);
+          } else if (shot.kind === "missile") {
+            c.fillStyle = "#d8dde2";
+            c.fillRect(-9, -2, 14, 5);
+            c.fillStyle = "#6f7b86";
+            c.fillRect(-9, -4, 3, 9);
+            c.fillStyle = color;
+            c.fillRect(5, -2, 3, 5);
+            if (live && Math.random() < 0.7) {
+              sparks.push({
+                x,
+                y,
+                vx: -Math.cos(ang) * 20,
+                vy: -Math.sin(ang) * 20 + (Math.random() - 0.5) * 10,
+                life: 0.6,
+                max: 0.6,
+                color: "#8a9096",
+                size: 3,
+                layer: layer === "world" ? "world" : undefined,
+              });
+            }
+          } else {
+            // Flak: a tumbling chunk.
+            c.rotate(t * 12);
+            c.fillStyle = color;
+            c.fillRect(-3, -3, 6, 6);
+            c.fillStyle = "#ffe9b0";
+            c.fillRect(-1, -1, 2, 2);
           }
-        } else {
-          // Flak: a tumbling chunk.
-          ctx.rotate(t * 12);
-          ctx.fillStyle = color;
-          ctx.fillRect(-3, -3, 6, 6);
-          ctx.fillStyle = "#ffe9b0";
-          ctx.fillRect(-1, -1, 2, 2);
-        }
-        ctx.restore();
+          c.restore();
+        });
       }
 
       // Shots that left the list this frame landed, were dodged, or were shot down.
@@ -949,11 +1087,13 @@ export function CombatFx() {
           sparks.splice(i, 1);
           continue;
         }
-        ctx.globalAlpha = Math.max(0, p.life / p.max);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
+        const sparkCtx = p.layer === "world" ? underCtx : ctx;
+        sparkCtx.globalAlpha = Math.max(0, p.life / p.max);
+        sparkCtx.fillStyle = p.color;
+        sparkCtx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
       }
       ctx.globalAlpha = 1;
+      underCtx.globalAlpha = 1;
 
       // Shield hits: the bubble around the struck hull flashes.
       for (let i = rings.length - 1; i >= 0; i--) {
@@ -997,7 +1137,12 @@ export function CombatFx() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  return <canvas ref={ref} className="fx-canvas" aria-hidden="true" />;
+  return (
+    <>
+      <canvas ref={underRef} className="fx-canvas fx-under" aria-hidden="true" />
+      <canvas ref={overRef} className="fx-canvas" aria-hidden="true" />
+    </>
+  );
 }
 
 function line(ctx: CanvasRenderingContext2D, a: Pt, b: Pt) {

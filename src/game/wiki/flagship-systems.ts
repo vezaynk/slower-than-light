@@ -701,9 +701,8 @@ export function resumeCrew(ship: Ship, memo: FlagshipMemo): Crew[] {
 /**
  * "Flagship variation": "On Easy mode with Advanced Edition Content disabled, the Flagship only has 3 layers of shield
  * instead of the usual 4 (which means the shield system level is 6 instead of 8)."
- * The hangar can turn Advanced Edition events off (g.ae === false). This shield row stays at the printed 8.
- * Hacking and Mind Control stay on the flagship. The category page says balance updates still apply when the
- * content switch is off, and this row does not remove those systems.
+ * Advanced Edition content is always on, so this shield row stays at the printed 8.
+ * Hacking and Mind Control stay on the flagship.
  */
 export const FLAGSHIP_AE_ALWAYS_ON = true;
 

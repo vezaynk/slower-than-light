@@ -129,7 +129,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Advanced Edition
   - [x] several AE systems exist.
-  - [x] The hangar can turn Advanced Edition content off, and pages tagged as Advanced Edition events are then skipped. Hacking, mind control, and Lanius stay available.
+  - [x] Advanced Edition content is always on. Pages tagged as Advanced Edition events are placed. Hacking, mind control, and Lanius stay available.
 
 - [ ] Advanced FTL Navigation
   - [ ] The page states a mechanic and it is not a playable event.
@@ -5138,7 +5138,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
     - [x] Layout B unlocks from 2 of 3 ship achievements. A sector-only achievement does not count.
     - [x] Layout C unlocks by reaching sector 8 on Layout B while Advanced Edition content is on.
     - [x] Diplomatic Immunity and We're in position! store no counter. The other ship achievements still supply the 2 of 3, including Slug B and Federation B.
-  - [x] The hangar can turn Advanced Edition content off. Layout C needs it on. Hacking, mind control, and Lanius stay available either way.
+  - [x] Advanced Edition content is always on. Layout C unlocks by reaching sector 8 on Layout B. Hacking, mind control, and Lanius stay available.
   - [ ] The article was not re-opened.
 
 - [ ] Shivan

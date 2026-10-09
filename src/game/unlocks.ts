@@ -13,7 +13,7 @@
  *
  * The sim stays pure: an event outcome calls grantUnlock, which only writes `g.unlocked` on the run.
  * The store calls noteUnlocks after each step; that reads the run and writes localStorage ("stl:unlocks").
- * Layout C also needs Advanced Edition content. g.ae === false is that switch off. An absent flag is on.
+ * Layout C is reaching sector 8 on Layout B. Advanced Edition content is always on.
  */
 import { HULLS, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
@@ -205,7 +205,7 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
     // Engi Cruiser page: "Reaching a sector 5 with any Kestrel Cruiser layout automatically unlocks the Engi Cruiser".
     if (hull.cruiser === "Kestrel Cruiser" && g.sector >= 5) ships.add("engi-a");
     // "Layout C - reach sector 8 with Layout B and Advanced Edition Content enabled."
-    if (hull.layout === "B" && g.sector >= 8 && g.ae !== false) {
+    if (hull.layout === "B" && g.sector >= 8) {
       const c = hullFor(hull.cruiser, "C");
       if (c) ships.add(c);
     }

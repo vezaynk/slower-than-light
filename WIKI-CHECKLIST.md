@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2929 |
+| Behaviors checked | 2930 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -6221,6 +6221,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Zoltan Ships
   - [x] No playable control, number, layout, or rule.
+  - [x] Every Zoltan ship starts with a 5-point Zoltan Shield, except in sector 1 on easy, and the unarmed Energy Fighter has none.
 
 - [x] Zoltan Store
   - [x] No playable control, number, layout, or rule.

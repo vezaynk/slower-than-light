@@ -5,6 +5,7 @@ import { applyImpact, COATED_DOOR_HITS, createGame, REPAIR_SECONDS, startCombat 
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Ship, Shot } from "../types.ts";
 import {
+  BEAM1_SPEED,
   DRONE_COOLDOWN_S,
   DRONE_DOOR_HITS_PER_S,
   DRONE_POWER,
@@ -23,6 +24,14 @@ import {
   swarmIntercept,
   tickSwarm,
 } from "./swarm.ts";
+
+/** A 90 degree orbit leg. Shields, Overview: that leg at Speed 15 is the 2 second layer restore. */
+function pinLeg(body: { heading?: number; bearing?: number; left?: number; aux: number }, speed: number) {
+  body.heading = 0;
+  body.bearing = 90;
+  body.left = orbitLegSeconds(0, 90, speed);
+  body.aux = 0;
+}
 
 /** Fewest interior doors to another system that still has a bar. Mirrors swarm.ts nearestWorkingSystem. */
 function nearestSystem(ship: Ship, from: string): string[] {
@@ -314,7 +323,7 @@ describe("swarm", () => {
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), false);
   });
 
-  it("beam waits 3s and does not hurt a hull that still has shields", () => {
+  it("beam does not hurt a hull that still has shields", () => {
     const g = createGame(9);
     place(g);
     startCombat(g, "scout");
@@ -350,9 +359,14 @@ describe("swarm", () => {
     const systemRoom = g.enemy.rooms.find((r) => r.system);
     assert.ok(systemRoom?.system);
     g.enemy.rooms = [systemRoom];
-    tickSwarm(g, 1.5);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    // Beam speed 3 is not the wait. A 90 degree leg at Speed 15 is 2 seconds.
+    pinLeg(kit, BEAM1_SPEED);
+    assert.equal(kit.left, 2);
+    tickSwarm(g, 1.99);
     assert.equal(g.enemy.hull, hull);
-    tickSwarm(g, 1.5);
+    tickSwarm(g, 0.01);
     assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.enemy.shieldNow, 0);
     const hurt = g.enemy.rooms.filter((r) => r.system && g.enemy!.systems[r.system].damage === 1);
@@ -374,23 +388,26 @@ describe("swarm", () => {
     g.enemy.rooms = [systemRoom];
     assert.equal(deploy(g, "beam"), true);
     const kit = g.player.kits.swarm;
+    assert.ok(kit);
     g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     const hull = g.enemy.hull;
     const damage = g.enemy.systems[system].damage;
-    tickSwarm(g, 3.1);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.zoltan, 2);
     assert.equal(g.enemy.hull, hull);
     assert.equal(g.enemy.systems[system].damage, damage);
-    assert.ok(kit.aux > 0 && kit.aux < 1, `aux ${kit.aux}`);
+    assert.equal(kit.heading, 90);
     g.enemy.zoltan = 0;
-    kit.aux = 0;
-    tickSwarm(g, 3.1);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.hull, hull);
     assert.equal(g.enemy.systems[system].damage, damage);
     assert.equal(g.enemy.zoltan, 0);
-    assert.ok(kit.aux > 0 && kit.aux < 1, `aux ${kit.aux}`);
+    assert.equal(kit.heading, 90);
     g.enemy.kits.veil.on = false;
-    tickSwarm(g, 3);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.hull, hull - 1);
   });
 
@@ -402,14 +419,19 @@ describe("swarm", () => {
     g.enemy.zoltan = 2;
     g.enemy.shieldNow = 0;
     assert.equal(deploy(g, "beam"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
     const hull = g.enemy.hull;
-    tickSwarm(g, 3);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.zoltan, 1);
     assert.equal(g.enemy.hull, hull);
-    tickSwarm(g, 3);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.zoltan, 0);
     assert.equal(g.enemy.hull, hull);
-    tickSwarm(g, 3);
+    pinLeg(kit, BEAM1_SPEED);
+    tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.hull, hull - 1);
   });
 

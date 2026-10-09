@@ -97,11 +97,22 @@ const STRIKER_BREACH = 0;
 const STRIKER_FLIGHT_S = 0.7;
 
 /**
- * INFERRED: Drone Control, "Combat Drones (offensive drones)" > "Anti-Ship Beam Drone I"
- * lists "Beam speed: 3" and a beam length, not a fire interval in seconds.
- * Using that 3 as this interval is not what the 3 means.
+ * Drone Control, Anti-Ship Beam Drone I: "Speed: 15".
+ * "Beam speed: 3" is a beam stat, not a swipe interval.
+ * Combat Drones (offensive drones): offensive drones, including beam drones,
+ * orbit the enemy ship and attack when that leg finishes.
  */
-const BEAM_INTERVAL_S = 3;
+export const BEAM1_SPEED = 15;
+/** Anti-Ship Beam Drone II: "Speed: 11". "Moves a bit slower than Mark I". */
+export const BEAM2_SPEED = 11;
+/** Anti-Ship Fire Drone: "Speed: 12". */
+export const FIRE_DRONE_SPEED = 12;
+
+export function beamDroneSpeed(kind: string): number {
+  if (kind === "beam2") return BEAM2_SPEED;
+  if (kind === "fire") return FIRE_DRONE_SPEED;
+  return BEAM1_SPEED;
+}
 
 /**
  * Drone Control, Combat Drones (offensive drones):
@@ -476,37 +487,10 @@ function tickWardcut(g: Game, kit: Kit, dt: number) {
 }
 
 function tickBeam(g: Game, kit: Kit, dt: number) {
-  kit.aux += dt;
-  while (kit.aux >= BEAM_INTERVAL_S) {
-    const enemy = g.enemy;
-    if (!enemy || enemy.rooms.length === 0) {
-      kit.aux = BEAM_INTERVAL_S;
-      return;
-    }
-    kit.aux -= BEAM_INTERVAL_S;
-    if (combatFireBlocked(g, "player")) continue;
-    // Zoltan Shield: Anti-Ship Beam Drone I deals 1 to the bubble. That swipe does not also cut the hull.
-    if ((enemy.zoltan ?? 0) > 0) {
-      enemy.zoltan = Math.max(0, (enemy.zoltan ?? 0) - SWIPE_ZOLTAN.beam);
-      log(g, `Your beam drone drains the Zoltan Shield to ${enemy.zoltan}.`);
-      continue;
-    }
-    // Drone Control, Anti-Ship Beam Drone I: "the beam cannot penetrate shields at all".
-    // Combat Drones (offensive drones): a swipe started while shields are up
-    // deals no hull/system damage to that room.
-    if (enemy.shieldNow > 0) continue;
-    const id = enemyRoom(g);
-    const room = enemy.rooms.find((r) => r.id === id);
-    if (!room) continue;
-    enemy.hull = Math.max(0, enemy.hull - BEAM_DAMAGE);
-    if (room.system) {
-      const sys = enemy.systems[room.system];
-      if (sys.damage < sys.level) sys.damage += BEAM_DAMAGE;
-    }
-    // INFERRED: one tile per swipe. "Anti-Ship Beam Drone I" gives a 10% chance per tile
-    // and a beam length of 0.4 tile. No stack cap is stated.
-    if (rand(g) < BEAM_FIRE) room.fire += 1;
-  }
+  // Speed 15 is the orbit. Beam speed 3 is not this wait.
+  flyCombatLaser(g, kit, dt, BEAM1_SPEED, () => enemyRoom(g), (roomId) => {
+    landBeamSwipe(g, g.enemy, roomId, "beam", "player");
+  });
 }
 
 /** Crew rooms first, otherwise a system room, otherwise any room. Same rule as the hit below. */
@@ -1481,16 +1465,10 @@ function crewCombat(c: Crew): number {
   return combatSkillMult(skillRank(c.skills?.combat ?? 0, xpNeedFor(c, "combat")));
 }
 
-/** INVENTED: how long a drone beam swipe takes to land. The pages give beam speed and length, not seconds. */
-const DRONE_BEAM_S = 0.4;
-
 /**
- * INFERRED: Combat Drones (offensive drones) says attack rate follows movement ("Moves faster, and consequently has a
- * higher rate of fire" on Combat Drone Mark II). Beam I is "Speed: 15", Beam II "Speed: 11", Fire Drone "Speed: 12",
- * so their swipe intervals are the Beam I interval scaled by 15/11 and 15/12.
+ * Beam length "20 (0.4 tile diagonally)" is a length, not a swipe duration.
+ * The swipe lands when the orbit leg finishes. No separate flight seconds are printed.
  */
-const BEAM2_INTERVAL_S = BEAM_INTERVAL_S * (15 / 11);
-const FIRE_INTERVAL_S = BEAM_INTERVAL_S * (15 / 12);
 
 /** Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage". */
 const FIRE_DRONE_FIRE = 90 / 100;
@@ -1917,61 +1895,76 @@ function linkedRoom(g: Game, ship: Ship, id: string): string | undefined {
 }
 
 /**
- * Beam Drone I / II and Fire Drone on the player.
- * Anti-Ship Beam Drone I: "While fast and 100% accurate, the beam cannot penetrate shields at all".
- * Combat Drones (offensive drones): "If a Beam Drone I/II swipe was started in a room while the shields (either
- * normal or Zoltan) were up, there won't be hull/system damage to that room".
- * Anti-Ship Beam Drone II: "has a longer beam length, so it can often hit 2 rooms". INFERRED: a door-linked
- * neighbour always takes the second room.
+ * One swipe when the orbit leg finishes.
+ * Anti-Ship Beam Drone I: "the beam cannot penetrate shields at all".
+ * Zoltan Shield: Beam Drone I and the Fire Drone deal 1, Beam Drone II deals 2.
+ * That swipe does not also cut the hull.
+ * Combat Drones (offensive drones): "1 hull/system damage ... per room crossed by the beam
+ * (of the Beam Drones, but not the Fire Drone)."
+ * Anti-Ship Beam Drone II: "it can often hit 2 rooms". INFERRED: a door-linked neighbour is the second room.
+ * "0.4 tile diagonally" is the Beam I length, not a flight time, so this does not wait a second duration.
+ */
+function landBeamSwipe(g: Game, ship: Ship | null, roomId: string, kind: string, from: "player" | "enemy"): void {
+  if (!ship || combatFireBlocked(g, from)) return;
+  if ((ship.zoltan ?? 0) > 0) {
+    ship.zoltan = Math.max(0, (ship.zoltan ?? 0) - (SWIPE_ZOLTAN[kind] ?? 1));
+    log(
+      g,
+      from === "player"
+        ? `Your beam drone drains the Zoltan Shield to ${ship.zoltan}.`
+        : `Their ${unitName(kind)} drains the Zoltan Shield to ${ship.zoltan}.`,
+    );
+    return;
+  }
+  // A swipe started while regular shields are up deals no hull or system damage.
+  if (ship.shieldNow > 0) return;
+  const room = ship.rooms.find((item) => item.id === roomId);
+  if (!room) return;
+  if (kind === "fire") {
+    // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
+    // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
+    if (rand(g) < FIRE_DRONE_FIRE) {
+      room.fire = Math.min(4, room.fire + 1);
+      if (from === "enemy") log(g, `Their fire drone lights the ${room.title}.`);
+    }
+    return;
+  }
+  const rooms = [room];
+  if (kind === "beam2") {
+    const secondId = linkedRoom(g, ship, room.id);
+    const second = secondId ? ship.rooms.find((item) => item.id === secondId) : undefined;
+    if (second) rooms.push(second);
+  }
+  for (const hit of rooms) {
+    ship.hull = Math.max(0, ship.hull - BEAM_DAMAGE);
+    if (hit.system) {
+      const sys = ship.systems[hit.system];
+      if (sys && sys.damage < sys.level) sys.damage += BEAM_DAMAGE;
+    }
+    // INFERRED: one tile per swipe. The 10% is per tile. Beam length 0.4 tile is not a count of tiles.
+    // Fires, "Fires and enemy AI": the stack stops at 4.
+    if (rand(g) < BEAM_FIRE) hit.fire = Math.min(4, hit.fire + 1);
+  }
+}
+
+/**
+ * Beam Drone I / II and Fire Drone.
+ * Speed 15, 11, and 12 are the orbit. Beam speed 3, 8, and 2 are not the wait.
  */
 function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
-  const interval = unit.kind === "beam2" ? BEAM2_INTERVAL_S : unit.kind === "fire" ? FIRE_INTERVAL_S : BEAM_INTERVAL_S;
-  unit.aux += dt;
-  while (unit.aux >= interval) {
-    const ship = g.player;
-    const room = randomOf(g, ship.rooms);
-    if (!room) {
-      unit.aux = interval;
-      return;
-    }
-    unit.aux -= interval;
-    if (combatFireBlocked(g, "enemy")) continue;
-    unit.fired = 0;
-    unit.room = room.id;
-    if ((ship.zoltan ?? 0) > 0) {
-      ship.zoltan = Math.max(0, (ship.zoltan ?? 0) - (SWIPE_ZOLTAN[unit.kind] ?? 1));
-      log(g, `Their ${unitName(unit.kind)} drains the Zoltan Shield to ${ship.zoltan}.`);
-      continue;
-    }
-    if (ship.shieldNow > 0) continue;
-    if (unit.kind === "fire") {
-      // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
-      // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
-      if (rand(g) < FIRE_DRONE_FIRE) {
-        room.fire = Math.min(4, room.fire + 1);
-        log(g, `Their fire drone lights the ${room.title}.`);
-      }
-      continue;
-    }
-    const second = unit.kind === "beam2" ? linkedRoom(g, ship, room.id) : undefined;
-    g.shots.push({
-      id: nextId(g),
-      kind: "beam",
-      from: "enemy",
-      // Combat Drones (offensive drones): "1 hull/system damage ... per room crossed by the beam".
-      damage: BEAM_DAMAGE,
-      ion: 0,
-      // Anti-Ship Beam Drone I / II: "10% chance to set a tile on fire".
-      fireChance: BEAM_FIRE,
-      breachChance: 0,
-      targetRoom: room.id,
-      beamRooms: second ? [room.id, second] : [room.id],
-      wait: 0,
-      t: 0,
-      duration: DRONE_BEAM_S,
-      label: DRONE_LABEL + unit.id,
-    });
-  }
+  flyCombatLaser(
+    g,
+    unit,
+    dt,
+    beamDroneSpeed(unit.kind),
+    () => randomOf(g, g.player.rooms)?.id ?? null,
+    (roomId) => {
+      if (combatFireBlocked(g, "enemy")) return;
+      unit.fired = 0;
+      unit.room = roomId;
+      landBeamSwipe(g, g.player, roomId, unit.kind, "enemy");
+    },
+  );
 }
 
 /** Shield Overcharger on the enemy hull: "Periodically adds 1 point of Zoltan Shield to regular shields", same table as yours. */

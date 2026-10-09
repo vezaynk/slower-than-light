@@ -15,12 +15,28 @@ import {
   deploy,
   enemyDefenseIntercept,
   interceptIncomingDrone,
+  BEAM1_SPEED,
+  BEAM2_SPEED,
+  FIRE_DRONE_SPEED,
   ionHitsDrone,
   tickSwarm,
 } from "./swarm.ts";
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 
 const OFFENSIVE = ["striker", "combat2", "beam", "beam2", "fire", "board", "ionintruder"];
+
+function pinLeg(body: { heading?: number; bearing?: number; left?: number; aux: number }, speed: number) {
+  body.heading = 0;
+  body.bearing = 90;
+  body.left = orbitLegSeconds(0, 90, speed);
+  body.aux = 0;
+}
+
+function beamSpeed(kind: string): number {
+  if (kind === "beam2") return BEAM2_SPEED;
+  if (kind === "fire") return FIRE_DRONE_SPEED;
+  return BEAM1_SPEED;
+}
 
 /** Fewest interior doors to another system that still has a bar. */
 function nearestSystem(ship: Ship, from: string): string[] {
@@ -304,9 +320,9 @@ describe("enemy offensive drones", () => {
       const hull = g.player.hull;
       tickSwarm(g, 0.05);
       const unit = units(g)[0];
-      // One swipe. aux sits on that drone's interval, and the next tick crosses it once.
-      unit.aux = kind === "beam2" ? 3 * (15 / 11) : kind === "fire" ? 3 * (15 / 12) : 3;
-      tickSwarm(g, 0.05);
+      // One orbit leg. Beam speed is not this wait.
+      pinLeg(unit, beamSpeed(kind));
+      tickSwarm(g, unit.left ?? 0);
       assert.equal(g.player.zoltan, left, kind);
       assert.equal(g.player.hull, hull, kind);
     };
@@ -326,15 +342,14 @@ describe("enemy offensive drones", () => {
     tickSwarm(g, 0.05);
     const unit = units(g)[0];
     assert.ok(unit);
-    unit.aux = 3;
+    pinLeg(unit, BEAM1_SPEED);
     g.shots = [];
-    tickSwarm(g, 0.05);
-    assert.ok(unit.aux > 0 && unit.aux < 1, `aux ${unit.aux}`);
+    tickSwarm(g, unit.left ?? 0);
+    assert.equal(unit.heading, 90);
     assert.equal(
       g.shots.filter((s) => s.from === "enemy").length,
       0,
     );
-    for (let i = 0; i < 12; i++) step(g, 0.05);
     assert.equal(g.player.hull, hull);
     assert.equal(g.player.zoltan, 0);
     assert.equal(
@@ -342,16 +357,16 @@ describe("enemy offensive drones", () => {
       bars,
     );
     g.player.zoltan = 4;
-    unit.aux = 0;
+    pinLeg(unit, BEAM1_SPEED);
     g.shots = [];
-    tickSwarm(g, 3.1);
+    tickSwarm(g, unit.left ?? 0);
     assert.equal(g.player.zoltan, 4);
     assert.equal(g.player.hull, hull);
     assert.equal(
       g.shots.filter((s) => s.from === "enemy").length,
       0,
     );
-    assert.ok(unit.aux > 0 && unit.aux < 1, `aux ${unit.aux}`);
+    assert.equal(unit.heading, 90);
   });
 
   it("stops when their Drone Control is destroyed, and repowers after repair without a part", () => {

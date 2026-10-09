@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 943 |
-| Behaviors checked | 2919 |
-| Behaviors open | 542 |
+| Pages fully checked | 944 |
+| Behaviors checked | 2920 |
+| Behaviors open | 541 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -5731,12 +5731,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Room grid is the shared player grid.
   - [x] Unlocks are labels.
 
-- [ ] The Engi Cruiser
+- [x] The Engi Cruiser
   - [x] Torus, Vortex, Tetragon in hulls.ts.
   - [x] Torus starts with Engi Med-bot Dispersal.
-  - [ ] Drone Reactor Booster, the second repair drone, and Defense Scrambler stay unfitted.
+  - [x] Layout B fits both System Repair drones and the Drone Reactor Booster, and Layout C starts with Defense Scrambler.
     - [x] Drone Reactor Booster starts on Layout B.
-    - [ ] The second System Repair Drone stays unfitted.
+    - [x] Layout B fits both System Repair drones.
     - [x] Defense Scrambler starts on Layout C.
 
 - [ ] The Engi Virus

@@ -3,7 +3,8 @@
  * Description: "there is a 10 percent chance to break off a shard".
  * Bullet: 1 damage, 10% breach, 20% stun for 3s (with Advanced Edition),
  * ignores shields, affected by evasion, defense drones can shoot it down.
- * Crystal A and B stay unfitted. strikeRoom rolls this when the player hull actually drops.
+ * The Crystal Cruiser, Layout A and Layout B, list it under Augmentations, so those hulls start with it.
+ * strikeRoom rolls this when the player hull actually drops.
  * The shard names no room, so breach and stun are not applied.
  */
 

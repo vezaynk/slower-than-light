@@ -52,9 +52,9 @@ export const CRYSTAL_HULLS: HullSpec[] = [
       { kin: "shard", room: "p-shields" },
     ],
     kits: {},
-    augments: [],
-    // Crystal Vengeance is named here and is not an AugmentId.
-    unfitted: ["Crystal Vengeance"],
+    // The Crystal Cruiser, Layout A: Augmentations lists Crystal Vengeance.
+    augments: ["vengeance"],
+    unfitted: [],
   },
   {
     id: "crystal-b",
@@ -94,7 +94,8 @@ export const CRYSTAL_HULLS: HullSpec[] = [
       sling: { level: 1, power: 1 },
       veil: { level: 1, power: 1 },
     },
-    augments: [],
-    unfitted: ["Crystal Vengeance"],
+    // The Crystal Cruiser, Layout B: Augmentations lists Crystal Vengeance.
+    augments: ["vengeance"],
+    unfitted: [],
   },
 ];

@@ -80,8 +80,8 @@ describe("crystal cruiser hulls", () => {
         assert.ok(pair, id);
         assert.ok(pair[1] <= pair[0], `${hull.id} ${id}`);
       }
-      assert.deepEqual(hull.augments, []);
-      assert.ok(hull.unfitted.includes("Crystal Vengeance"), hull.id);
+      assert.deepEqual(hull.augments, ["vengeance"]);
+      assert.deepEqual(hull.unfitted, []);
     }
   });
 });

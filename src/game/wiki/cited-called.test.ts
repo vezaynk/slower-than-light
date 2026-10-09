@@ -404,9 +404,9 @@ describe("Crystal Vengeance", () => {
     }
   }
 
-  it("is not fitted on the Crystal cruisers", () => {
-    assert.deepEqual(createGame(1, "crystal-a").augments, []);
-    assert.deepEqual(createGame(2, "crystal-b").augments, []);
+  it("starts fitted on the Crystal cruisers", () => {
+    assert.deepEqual(createGame(1, "crystal-a").augments, ["vengeance"]);
+    assert.deepEqual(createGame(2, "crystal-b").augments, ["vengeance"]);
   });
 
   it("rolls a shard only after the player hull drops, ignoring regular shields", () => {

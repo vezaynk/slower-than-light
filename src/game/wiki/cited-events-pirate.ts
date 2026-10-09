@@ -2,6 +2,7 @@
  * Stated outcomes from the pirate title list.
  * A page is absent when no opening choice has one resource amount, scrap tier,
  * hull number, fleet delay, or named fight. Blue options and crew are not granted.
+ * Refugee (Pirate) is the playable card. Its hail runs in filler-events.ts.
  */
 
 export type CitedFx =
@@ -41,6 +42,21 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
           { k: "fight", tier: "Pirate ship" },
         ],
       },
+    ],
+  },
+  // Refugee (Pirate). Template:Drifting Refugee Ship, introtext=nodistress, type=pirate.
+  // Pirate Controlled Sector. unique=false. LRSmap=noship.
+  // Hail is a trade or the pirate bait. type=pirate does not wrap the trade in DuplicateEvent|4.
+  {
+    dest: "Refugee (Pirate)",
+    slug: "refugee-pirate",
+    flag: "cited:refugee-pirate",
+    aliases: ["Refugee (Pirate)"],
+    sectors: ["Pirate Controlled Sector"],
+    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    choices: [
+      { id: "c:refugee-pirate:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }] },
+      { id: "c:refugee-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
     ],
   },
 ];

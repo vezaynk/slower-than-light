@@ -3308,6 +3308,19 @@ function refugeeZoltanWin(slug: string): Win {
   };
 }
 
+/** Refugee (Pirate). Destroyed pays medium scrap with resources and the shared thanks.
+ *  A crew kill pays high, and that contact says the pirates have been following them. */
+function refugeePirateWin(slug: string): Win {
+  return (g, deadCrew) => {
+    const text = deadCrew
+      ? "The pirate ship, now empty of lifeforms, provides easy salvage."
+      : "The pirate ship breaks apart and you salvage what you can.";
+    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
+      { id: deadCrew ? `s:${slug}:contact-dead` : `s:${slug}:contact`, label: "Contact the refugee ship." },
+    ]);
+  };
+}
+
 /** Pirate ship attacking civilian, and the Lanius variant. Destroyed is medium standard.
  *  A crew kill is high. Then Contact the civilian ship. */
 function pirateCivilianWin(g: Game, deadCrew: boolean) {
@@ -3653,6 +3666,8 @@ export const PAGE_WINS: Record<string, Win> = {
   // Refugee (Zoltan) and Refugee distress (Zoltan). Contact pays low scrap with resources in filler-events.ts.
   "refugee-zoltan": refugeeZoltanWin("refugee-zoltan"),
   "refugee-distress-zoltan": refugeeZoltanWin("refugee-distress-zoltan"),
+  // Refugee (Pirate). Contact after a hull kill is the shared thanks. A crew kill uses the following-trail sentence.
+  "refugee-pirate": refugeePirateWin("refugee-pirate"),
   // Pirate ship attacking Crystal. Destroyed pays medium standard. A crew kill pays high. Then Crystal Ship Saved.
   "pirate-ship-attacking-crystal": crystalPirateWin,
   // Mantis ship attacking Crystal. The same two endings and the same Crystal ship contact.

@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2863 |
+| Behaviors checked | 2864 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5774,6 +5774,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Crew in a lost artillery room are removed.
   - [x] Hacking one Flagship artillery room drains that gun.
   - [x] A normal ship's weapons hack still drains every gun.
+  - [x] Stage 2 Power Surge drones are Combat Mark I and Beam Mark I, and each of their two shots waits out an orbit leg at Speed 15.
 
 - [x] The Rebellion
   - [x] No playable control, number, layout, or rule.

@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 941 |
-| Behaviors checked | 2893 |
-| Behaviors open | 542 |
+| Pages fully checked | 942 |
+| Behaviors checked | 2896 |
+| Behaviors open | 541 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -4481,8 +4481,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Refugee (Slug)
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Refugee (Zoltan)
-  - [ ] The page states a mechanic and it is not a playable event.
+- [x] Refugee (Zoltan)
+  - [x] Hailing shows a trade or a Zoltan fight that does not run, and ignoring them does nothing.
+  - [x] The trade's pay and get are rolled, and declining spends nothing.
+  - [x] Destroying the Zoltan ship pays medium scrap with resources, a crew kill pays high, and contacting the refugees pays low scrap with resources.
 
 - [ ] Refugee Ship Trading for Scrap
   - [ ] The page states a mechanic and it is not a playable event.

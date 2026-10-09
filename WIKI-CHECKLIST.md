@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 941 |
-| Behaviors checked | 2890 |
-| Behaviors open | 538 |
+| Behaviors checked | 2892 |
+| Behaviors open | 541 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -2497,7 +2497,13 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The page states a mechanic and it is not a playable event.
 
 - [ ] Lanius craftsmen
-  - [ ] The page states a mechanic and it is not a playable event.
+  - [x] Inquiring shows the printed process sentence, and declining does nothing.
+  - [x] Leaving them to their research shows the printed priority sentence and nothing happens.
+  - [ ] The three craft payments stay unwired.
+    - [ ] 45 scrap for an unnamed augmentation stays unwired.
+    - [ ] 50 scrap for an unnamed weapon stays unwired.
+    - [ ] 40 scrap for an unnamed drone schematic stays unwired.
+    - [ ] A Lanius crewmember's 10 scrap discount on those trades stays unwired.
 
 - [x] Lanius distress beacon empty
   - [x] same title as "Lanius Distress Beacon Empty" with different capitalization.

@@ -19,7 +19,7 @@ Enemy systems and fight endings now run (2026-10-04): enemy Cloaking, Crew Telep
 
 Named and still not installed, because they are not an augment or a drone id, or the effect has no field to run in:
 
-- Zoltan Shield is the bubble on Zoltan hulls (`ship.zoltan`), not an augment id. The Flagship's third stage sets that bubble to 12. Shield Overcharger deploys at 3 power and Shield Overcharger + at 2. Both add one Zoltan Shield point after 8, 10, 13, 16, then 20 seconds for 0 through 4 existing layers, and neither adds a point once 5 or more layers are present. Losing power resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Neither schematic is stocked. A fitted Shield Overcharger + quotes its sell price of 30. An unfitted copy does not, and the regular Shield Overcharger is not quoted. Stealth C does not start with it. A bubble created while the ship had none is lost on an FTL jump. A bubble that was already present still recharges to 5. Anti-Drone is still a name only. Crystal Vengeance is not sold and no cruiser starts with it. When the player hull drops, a fitted copy has a 10 percent chance to throw a 1-damage shard that ignores regular shields, can miss to evasion, can be shot down by an enemy Defense Drone I or II, and is absorbed by a Zoltan Shield. The shard names no room, so breach and stun are not applied. Drone Reactor Booster is not sold and no cruiser starts with it. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds. The booster does not change that pace. Slug Repair Gel seals player breaches at 75% crew repair speed. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay. Engi A starts with the med-bot. Slug A/B/C start with the gel. Mantis A/B/C start with the pheromones. None of the three is sold. Emergency Respirators halves low-oxygen damage for the player's own crew, including while boarding. A Crystal with it takes a quarter. Enemy hulls that list the augment do not apply it.
+- Zoltan Shield is the bubble on Zoltan hulls (`ship.zoltan`), not an augment id. The Flagship's third stage sets that bubble to 12. Shield Overcharger deploys at 3 power and Shield Overcharger + at 2. Both add one Zoltan Shield point after 8, 10, 13, 16, then 20 seconds for 0 through 4 existing layers, and neither adds a point once 5 or more layers are present. Losing power resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Neither schematic is stocked. A fitted Shield Overcharger + quotes its sell price of 30. An unfitted copy does not, and the regular Shield Overcharger is not quoted. Stealth C does not start with it. A bubble created while the ship had none is lost on an FTL jump. A bubble that was already present still recharges to 5. Anti-Drone is still a name only. Crystal Vengeance is not sold, and both Crystal layouts start with it. When the player hull drops, a fitted copy has a 10 percent chance to throw a 1-damage shard that ignores regular shields, can miss to evasion, can be shot down by an enemy Defense Drone I or II, and is absorbed by a Zoltan Shield. The shard names no room, so breach and stun are not applied. Drone Reactor Booster is not sold and no cruiser starts with it. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds. The booster does not change that pace. Slug Repair Gel seals player breaches at 75% crew repair speed. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay. Engi A starts with the med-bot. Slug A/B/C start with the gel. Mantis A/B/C start with the pheromones. None of the three is sold. Emergency Respirators halves low-oxygen damage for the player's own crew, including while boarding. A Crystal with it takes a quarter. Enemy hulls that list the augment do not apply it.
 
 Some catalog numbers now run. The rest stay in `src/game/wiki/` and the fight does not use them:
 
@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 940 |
-| Behaviors checked | 2868 |
+| Behaviors checked | 2870 |
 | Behaviors open | 539 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5680,6 +5680,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Torus, Vortex, Tetragon in hulls.ts.
   - [x] Torus starts with Engi Med-bot Dispersal.
   - [ ] Drone Reactor Booster, the second repair drone, and Defense Scrambler stay unfitted.
+    - [x] Drone Reactor Booster starts on Layout B.
+    - [ ] The second System Repair Drone stays unfitted.
+    - [x] Defense Scrambler starts on Layout C.
 
 - [ ] The Engi Virus
   - [x] one beacon in a sector the page names, while a free beacon remains.

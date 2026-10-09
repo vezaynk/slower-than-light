@@ -215,6 +215,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     dest: "Slug fight in plasma storm",
+    // Arrival calls this fight. One of the four printed intros. The beacon stays outside a nebula.
     slug: "slug-fight-in-plasma-storm",
     flag: "cited:slug-fight-in-plasma-storm",
     aliases: ["Slug fight in plasma storm"],

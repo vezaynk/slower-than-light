@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame, sparePower, syncIonStorm } from "../sim.ts";
+import { choose, commitJump, createGame, sparePower, syncIonStorm } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
@@ -60,5 +60,38 @@ describe("Slug fight in plasma storm", () => {
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.enemy?.storm, true);
     assert.equal(beacon.kind, "event");
+  });
+
+  it("starts the Slug ship on arrival and leaves no button", () => {
+    // The page has no choice. One of the four printed intros, then "Fight a Slug ship." plasmastorm=true. unique=false.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:slug-fight-in-plasma-storm";
+    dest.name = "Slug fight in plasma storm";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.sectorName = "Slug Home Nebula";
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.faction, "slug");
+    assert.equal(g.enemy?.pirate, false);
+    assert.equal(g.fightEvent, "slug-fight-in-plasma-storm");
+    assert.equal(g.player.storm, true);
+    assert.equal(g.enemy?.storm, true);
+    assert.equal(dest.kind, "event");
+    assert.equal(g.flare, false);
+    assert.equal(g.fleet, 1);
+    assert.ok(INTROS.some((line) => g.log.includes(line)));
   });
 });

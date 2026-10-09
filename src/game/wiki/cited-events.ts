@@ -4792,7 +4792,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Slug fight in plasma storm. One of the four printed intros. The fight stays c:slug-fight-in-plasma-storm:0.
+  // Slug fight in plasma storm has no choice. Arrival calls this fight.
+  // One of the four printed intros. "Fight a Slug ship (default rewards)." plasmastorm=true. unique=false. The beacon stays outside a nebula. Surrender stays the Slug row.
   if (ev.slug === "slug-fight-in-plasma-storm") {
     return {
       title: ev.dest,

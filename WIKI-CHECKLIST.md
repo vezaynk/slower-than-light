@@ -13,17 +13,17 @@ Wired into the hangar (`HULLS`) and the weapon list (`WEAPONS`):
 - Mantis A/B/C and Crystal A/B loadouts. Teleporter power on the Mantis layouts is INFERRED. Crystal Vengeance starts on both Crystal layouts. Mantis A/B/C start with Mantis Pheromones, which speed your crew by 25%. Player hangar cutaways are traced from the hangar pictures. Enemy ships are rolled from the 47 documented classes (`enemy-gen.ts`, `wiki/enemy-ships.ts`). Forty-five interiors are traced in `wiki/enemy-layouts.ts`. Engi Hacker and Crystal Outrider stay generated from the system list (INFERRED). An unlabeled system sits in an empty hall of the largest connected interior (INFERRED). The bitmaps are not copied.
 - Wiki weapon rows, except `pike` (the same Pike Beam row is already id `shear`). Boss Laser and Boss Beam are WeaponDefs (`wiki/flagship-weapons.ts`). Their power fields, 4 and 3, are the chosen artillery maxima. No power line is printed, and the sim does not charge them from the Weapons pool. Charge times are the printed table (laser 25/20/15/10, beam 32.5/26/19.5). Boss Ion power is 3. Boss Missile power is 4. The flagship copy of Boss Missile uses breach 0.14.
 - Starting guns are mounted even when their power sum is above the powered bars. `powerMask` feeds the list in order; switching one off or raising the weapon bars powers the next. That includes Halberd on Zoltan A, Ion Charger on Zoltan C, Breach Bomb I on Slug A, and Heavy Pierce on Rock B. Anti-Bio on Slug A, Healing Burst on Slug B, Hull Missile on Rock A, Swarm Missiles and Heavy Crystal I on Rock C, Mini Beam on Stealth A, Glaive Beam on Stealth B, Pike Beam on Zoltan B.
-- Bombs do not subtract hull. Bomb (Weapons) lead. Printed bomb and beam crew HP is applied. Aiming any bomb at your own ship is a control, and that shot does not miss. Healing Burst adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member. It can still miss the enemy ship. Repair Burst removes 8 system damage, does not miss the shooter's own ship, and does not clear fire or a breach. Neither spends a Zoltan Shield. Heavy Pierce and the four crystal guns ignore one shield layer; a second layer stops the shot and drops one bubble. A Hull Beam deals 2 hull damage on a systemless room, and each shield layer cuts that figure by one. Hull Smasher I and II deal 2 hull damage on a systemless room and do not raise crew damage. A Hull Missile deals 4 hull damage there, and crew stay on the system-room 2 (INFERRED). A drone in the struck room that already has health takes half that crew damage. Beam pierce and beam chain stay gaps. `WeaponDef` has no pierce field.
+- Bombs do not subtract hull. Bomb (Weapons) lead. Printed bomb and beam crew HP is applied. Aiming any bomb at your own ship is a control, and that shot does not miss. Healing Burst adds 150 HP to living crew in that room on the shooter's side, including a leashed crew member. It can still miss the enemy ship. Repair Burst removes 8 system damage, does not miss the shooter's own ship, and does not clear fire or a breach. Neither spends a Zoltan Shield. Heavy Pierce and the four crystal guns ignore one shield layer; a second layer stops the shot and drops one bubble. A Hull Beam deals 2 hull damage on a systemless room, and each shield layer cuts that figure by one. Hull Smasher I and II deal 2 hull damage on a systemless room and do not raise crew damage. A Hull Missile deals 4 hull damage there, and crew stay on the system-room 2 (INFERRED). A drone in the struck room that already has health takes half that crew damage. A drawn beam's hull damage drops by one for every shield layer. The dump does not print a beam chain. `WeaponDef` has no pierce field.
 
-Enemy systems and fight endings now run (2026-10-04): enemy Cloaking, Crew Teleporter, Clone Bay, Mind Control, Drone Control, and Hacking on either hull (`extras/veil.ts`, `sling.ts`, `cradle.ts`, `leash.ts`, `swarm.ts`, `spike.ts`); escapes and surrenders per Enemy Ships, "Surrenders and escape attempts" (`wiki/escape.ts`, `wiki/surrender.ts`), including the anti-stalemate 2 fuel; boarder and fire sabotage (`extras/sabotage.ts`); Lanius oxygen drain and the Human XP table (`extras/lineage.ts`); repair 12.5 s per bar or breach and fire oxygen 0.96%/s. Each module cites its page and marks INFERRED / INVENTED gaps. Also running (2026-10-04, later): firefighting by the Crew races formula (repair × fire × skill × 8%/s, 0.096 of a fire per second for a Human); external drones lost on an FTL jump; enemy crew AI (`extras/crewai.ts`: stations, shields first, defenders per intruder, two on a fire, heal and flee rules); enemy weapon targeting with the Hard priority list (`wiki/targeting.ts`); hostile encounter lists per sector type (`wiki/sector-hostiles.ts`: the Civilian templates, the other sectors derived from each event page's Locations line); scripted surrender rewards for eight event pages; player hacking controls (dock orb, H, one target per fight). Also running (2026-10-04, last round): the Rebel Flagship's traced per-stage rooms and systems (`wiki/flagship-systems.ts`: stage 1 Cloaking/Hacking/Door/Medbay, stage 2 Drone Control and drone surges, stage 3 Teleporter/Mind Control and the 7-laser or Zoltan surge, crew carry-over, AI takeover); player kits seated in real rooms (`layouts.ts` seatKits; non-traced seats INFERRED, Lark grows a room, INVENTED); player hacking's paused queue, 2–3 s drone flight, and Sensors/subsystem targets; repair skill +10%/+20% (Skills); pirate crews from the sector's race list; five more surrender pages (`wiki/cited-events-surrender.ts`); cited events placed in a seeded order so every sector event can appear. Also running (2026-10-04, final round): Flagship artillery on its own per-stage charge table outside the Weapons pool (`wiki/flagship-weapons.ts`: Boss Laser, Boss Beam), retreat stage memory, drawn surge drones, surge-laser stun (3 s INFERRED), AI dodge off during an Engines/Piloting pulse; staggered damage numbers; quest markers (`wiki/quests.ts`, Beacons page) with every cited event that names one, Slug comm tapping and Engi fleet discussion, page win rewards (`PAGE_WINS`); per-sector beacon mix from the Sectors page "Beacons:" lists (`wiki/beacon-mix.ts`, counts scaled to the ~12-beacon map, INFERRED). Enemy Sensors: the wiki says "Enemy ships do not have Sensors subsystem", so there is nothing to model. Also running (2026-10-05): per-room Flagship artillery (`FlagshipState.guns`); fights can name a ship class (`classIdFor` in enemy-gen.ts); twelve more quest openers with full chains (`wiki/quests-a.ts`, `wiki/quests-b.ts`); ship unlocks (`unlocks.ts`, `unlock-store.ts`; "UNLOCK ALL" in the hangar, `?unlockAll=1`); plain beacons draw from the wiki's NEUTRAL (filler), NEBULA, DISTRESS_BEACON and ITEMS lists and the per-sector Empty beacon pages (`wiki/filler-events.ts`); the invented filler events are removed. Still missing here: maps of 19–24 beacons; 12 of 51 achievements are tracked (`achievement-track.ts`), so most Layout B and C unlocks cannot be earned yet; hacking a Flagship artillery room drains that one gun; distress/items list rows with no card yet (listed in `wiki/filler-events.ts`); boarders-only outcomes with no ship; the exit-beacon text and picket (INVENTED); the Hidden Crystal Worlds jump (Ancient device puts its marker on the current map instead). Filler choices reuse `c:<slug>:<n>` ids and `fillerChoose` runs before `citedChoose`.
+Enemy systems and fight endings now run (2026-10-04): enemy Cloaking, Crew Teleporter, Clone Bay, Mind Control, Drone Control, and Hacking on either hull (`extras/veil.ts`, `sling.ts`, `cradle.ts`, `leash.ts`, `swarm.ts`, `spike.ts`); escapes and surrenders per Enemy Ships, "Surrenders and escape attempts" (`wiki/escape.ts`, `wiki/surrender.ts`), including the anti-stalemate 2 fuel; boarder and fire sabotage (`extras/sabotage.ts`); Lanius oxygen drain and the Human XP table (`extras/lineage.ts`); repair 12.5 s per bar or breach and fire oxygen 0.96%/s. Each module cites its page and marks INFERRED / INVENTED gaps. Also running (2026-10-04, later): firefighting by the Crew races formula (repair × fire × skill × 8%/s, 0.096 of a fire per second for a Human); external drones lost on an FTL jump; enemy crew AI (`extras/crewai.ts`: stations, shields first, defenders per intruder, two on a fire, heal and flee rules); enemy weapon targeting with the Hard priority list (`wiki/targeting.ts`); hostile encounter lists per sector type (`wiki/sector-hostiles.ts`: the Civilian templates, the other sectors derived from each event page's Locations line); scripted surrender rewards for eight event pages; player hacking controls (dock orb, H, one target per fight). Also running (2026-10-04, last round): the Rebel Flagship's traced per-stage rooms and systems (`wiki/flagship-systems.ts`: stage 1 Cloaking/Hacking/Door/Medbay, stage 2 Drone Control and drone surges, stage 3 Teleporter/Mind Control and the 7-laser or Zoltan surge, crew carry-over, AI takeover); player kits seated in real rooms (`layouts.ts` seatKits; non-traced seats INFERRED, Lark grows a room, INVENTED); player hacking's paused queue, 2–3 s drone flight, and Sensors/subsystem targets; repair skill +10%/+20% (Skills); pirate crews from the sector's race list; five more surrender pages (`wiki/cited-events-surrender.ts`); cited events placed in a seeded order so every sector event can appear. Also running (2026-10-04, final round): Flagship artillery on its own per-stage charge table outside the Weapons pool (`wiki/flagship-weapons.ts`: Boss Laser, Boss Beam), retreat stage memory, drawn surge drones, surge-laser stun (3 s INFERRED), AI dodge off during an Engines/Piloting pulse; staggered damage numbers; quest markers (`wiki/quests.ts`, Beacons page) with every cited event that names one, Slug comm tapping and Engi fleet discussion, page win rewards (`PAGE_WINS`); per-sector beacon mix from the Sectors page "Beacons:" lists (`wiki/beacon-mix.ts`, counts scaled to the ~12-beacon map, INFERRED). Enemy Sensors: the wiki says "Enemy ships do not have Sensors subsystem", so there is nothing to model. Also running (2026-10-05): per-room Flagship artillery (`FlagshipState.guns`); fights can name a ship class (`classIdFor` in enemy-gen.ts); twelve more quest openers with full chains (`wiki/quests-a.ts`, `wiki/quests-b.ts`); ship unlocks (`unlocks.ts`, `unlock-store.ts`; "UNLOCK ALL" in the hangar, `?unlockAll=1`); plain beacons draw from the wiki's NEUTRAL (filler), NEBULA, DISTRESS_BEACON and ITEMS lists and the per-sector Empty beacon pages (`wiki/filler-events.ts`); the invented filler events are removed. Still missing here: 49 of 51 achievements store a counter (`achievement-track.ts`). Layout B is 2 of 3 ship achievements and Layout C is sector 8 on Layout B with Advanced Edition content on. Diplomatic Immunity and We're in position! stay untracked; hacking a Flagship artillery room drains that one gun; distress/items list rows with no card yet (listed in `wiki/filler-events.ts`); boarders-only outcomes with no ship; the exit-beacon text and picket (INVENTED); the Hidden Crystal Worlds jump (Ancient device puts its marker on the current map instead). Filler choices reuse `c:<slug>:<n>` ids and `fillerChoose` runs before `citedChoose`.
 
 Named and still not installed, because they are not an augment or a drone id, or the effect has no field to run in:
 
-- Zoltan Shield is the bubble on Zoltan hulls (`ship.zoltan`), not an augment id. The Flagship's third stage sets that bubble to 12. Shield Overcharger deploys at 3 power and Shield Overcharger + at 2. Both add one Zoltan Shield point after 8, 10, 13, 16, then 20 seconds for 0 through 4 existing layers, and neither adds a point once 5 or more layers are present. Losing power resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Neither schematic is stocked. A fitted Shield Overcharger + quotes its sell price of 30. An unfitted copy does not, and the regular Shield Overcharger is not quoted. Stealth C starts with Shield Overcharger + unpowered, because one spare reactor bar cannot feed its 2 power (INFERRED). Anti-Drone stays unfitted. A bubble created while the ship had none is lost on an FTL jump. A bubble that was already present still recharges to 5. Anti-Drone is still a name only. Crystal Vengeance is not sold, and both Crystal layouts start with it. When the player hull drops, a fitted copy has a 10 percent chance to throw a 1-damage shard that ignores regular shields, can miss to evasion, can be shot down by an enemy Defense Drone I or II, and is absorbed by a Zoltan Shield. The shard names no room, so breach and stun are not applied. Drone Reactor Booster is not sold, and Engi Layout B starts with it. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds. The booster does not change that pace. Slug Repair Gel seals player breaches at 75% crew repair speed. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay. Engi A starts with the med-bot. Slug A/B/C start with the gel. Mantis A/B/C start with the pheromones. None of the three is sold. Emergency Respirators halves low-oxygen damage for the player's own crew, including while boarding. A Crystal with it takes a quarter. Enemy hulls that list the augment do not apply it.
+- Zoltan Shield is the bubble on Zoltan hulls (`ship.zoltan`), not an augment id. The Flagship's third stage sets that bubble to 12. Shield Overcharger deploys at 3 power and Shield Overcharger + at 2. Both add one Zoltan Shield point after 8, 10, 13, 16, then 20 seconds for 0 through 4 existing layers, and neither adds a point once 5 or more layers are present. Losing power resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Shield Overcharger is stocked at 60. Shield Overcharger + stays unstocked. A fitted Shield Overcharger + quotes its sell price of 30. An unfitted copy does not, and the regular Shield Overcharger is not quoted. Stealth C starts with Shield Overcharger + unpowered, because one spare reactor bar cannot feed its 2 power (INFERRED). Anti-Drone stays unfitted. A bubble created while the ship had none is lost on an FTL jump. A bubble that was already present still recharges to 5. Anti-Drone is still a name only. Crystal Vengeance is not sold, and both Crystal layouts start with it. When the player hull drops, a fitted copy has a 10 percent chance to throw a 1-damage shard that ignores regular shields, can miss to evasion, can be shot down by an enemy Defense Drone I or II, and is absorbed by a Zoltan Shield. The shard names no room, so breach and stun are not applied. Drone Reactor Booster is not sold, and Engi Layout B starts with it. When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds. The booster does not change that pace. Slug Repair Gel seals player breaches at 75% crew repair speed. Engi Med-bot Dispersal heals at 1.6 HP/s outside a powered medbay. Engi A starts with the med-bot. Slug A/B/C start with the gel. Mantis A/B/C start with the pheromones. None of the three is sold. Emergency Respirators halves low-oxygen damage for the player's own crew, including while boarding. A Crystal with it takes a quarter. Enemy hulls that list the augment do not apply it.
 
 Some catalog numbers now run. The rest stay in `src/game/wiki/` and the fight does not use them:
 
-- Flagship stage numbers are written onto the traced cutaway (`flagshipStage` replaces the leftover two-row placeholder). Stage 1: hull 20, reactor 42, shields 8, engines 2, oxygen 2, piloting 3, artillery 3, Cloaking 2, Hacking 3. Stage 2: hull 22, reactor 44, engines 3, Drone Control 8. Stage 3: hull 20, reactor 32, engines 6, artillery 4, Teleporter 2, Mind Control 3, Zoltan Shield 12. Each stage mounts its printed artillery, including Boss Laser and Boss Beam, on that gun's own charge row, outside the Weapons pool. Crew in a lost artillery room (the ion room into stage 2, the beam room into stage 3) are removed. Stages 1 and 2 pay sector-1 high scrap. Stage 3 pays none. Square counts stay 52 / 42 / 32, and Hard adds the two link rooms (4). Hacking one Flagship artillery room drains that gun at its base charge. A weapons hack on a normal ship still drains every gun. A shot or ion on one artillery room slows only that gun. Faction pages drive enemy generation (`wiki/enemy-ships.ts`); the older `enemies-rebel.ts` / `enemies-factions.ts` note catalogs are superseded. `SECTOR_NAMES` stay INVENTED. The Last Stand stamps three Federation Repair Stations and pays 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. Jumping into an overtaken beacon, before sector 8, fights a Rebel Elite whose only reward is 1 fuel. Waiting with no fuel when that column arrives pays 4 fuel. The Elite is Elite Fighter or Elite Assault, rolled inside the printed ranges. Store rows now include the printed system prices, catalog augments, and the front of the crew price list. Drone Control is offered as a bundle: 75 scrap with a System Repair Drone, 85 with a Defense Drone Mark I or a Combat Drone Mark I. The store seed picks which of the three and is not advanced (INFERRED). The naked 60 is not a shelf price. Weapons and augments sell for half the purchase price, or for a printed sell line, and that scrap is in the score. Drone schematics are not stocked. Buying Medbay or Clone Bay replaces the other and keeps its level. Twelve of 51 achievements are tracked. Hard flagship wins are stored and are not an achievement. The other 39 stay untracked. Combat Drone Mark II, the Ion Intruder, Shield Overcharger, and Shield Overcharger + remain on the missing-schematic list and are not SwarmKind ids. Mark II deploys at 4 power and fires when its orbit leg finishes. Speed 28 is movement. The page prints no cooldown. A 90 degree leg at Speed 15 takes the 2 second shield restore (INFERRED). The angle check does not wrap. The Ion Intruder has 125 HP and, after a pulse, walks to another system at an inferred 0.6 seconds per room. Speed 18 is the space figure and is not that step. A shut blast door loses two hits a second (INFERRED). A Lockdown coating is a separate 60 hits (INFERRED). The pulse wait is still drawn from 8.2 to 10 seconds. Hull Repair adds one hull point every 3 seconds (INVENTED) for a rolled 3 to 5, then self-destructs. Depowering removes it and does not return the part. Shield Overcharger needs 3 power and Shield Overcharger + needs 2. Both add one Zoltan Shield point after 8, 10, 13, 16, and 20 seconds for 0 through 4 existing layers, then stop. Unpowered time resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Neither is stocked. A fitted copy quotes the sell price of 30, and Stealth C starts with Shield Overcharger + unpowered, because one spare reactor bar cannot feed its 2 power (INFERRED). Anti-Drone stays unfitted. A bubble created while none was present is lost on an FTL jump. A bubble that was already present still recharges to 5. The other missing drone schematics stay catalogs.
+- Flagship stage numbers are written onto the traced cutaway (`flagshipStage` replaces the leftover two-row placeholder). Stage 1: hull 20, reactor 42, shields 8, engines 2, oxygen 2, piloting 3, artillery 3, Cloaking 2, Hacking 3. Stage 2: hull 22, reactor 44, engines 3, Drone Control 8. Stage 3: hull 20, reactor 32, engines 6, artillery 4, Teleporter 2, Mind Control 3, Zoltan Shield 12. Each stage mounts its printed artillery, including Boss Laser and Boss Beam, on that gun's own charge row, outside the Weapons pool. Crew in a lost artillery room (the ion room into stage 2, the beam room into stage 3) are removed. Stages 1 and 2 pay sector-1 high scrap. Stage 3 pays none. Square counts stay 52 / 42 / 32, and Hard adds the two link rooms (4). Hacking one Flagship artillery room drains that gun at its base charge. A weapons hack on a normal ship still drains every gun. A shot or ion on one artillery room slows only that gun. Faction pages drive enemy generation (`wiki/enemy-ships.ts`); the older `enemies-rebel.ts` / `enemies-factions.ts` note catalogs are superseded. `SECTOR_NAMES` stay INVENTED. The Last Stand stamps three Federation Repair Stations and pays 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once. Jumping into an overtaken beacon, before sector 8, fights a Rebel Elite whose only reward is 1 fuel. Waiting with no fuel when that column arrives pays 4 fuel. The Elite is Elite Fighter or Elite Assault, rolled inside the printed ranges. Store rows now include the printed system prices, catalog augments, and the front of the crew price list. Drone Control is offered as a bundle: 75 scrap with a System Repair Drone, 85 with a Defense Drone Mark I or a Combat Drone Mark I. The store seed picks which of the three and is not advanced (INFERRED). The naked 60 is not a shelf price. Weapons and augments sell for half the purchase price, or for a printed sell line, and that scrap is in the score. Hull Repair is stocked at 85, the Ion Intruder at 65, and Shield Overcharger at 60. Shield Overcharger + stays unstocked. Buying Medbay or Clone Bay replaces the other and keeps its level. 49 of 51 achievements store a counter. Hard flagship wins are stored and are not an achievement. Diplomatic Immunity and We're in position! stay untracked. Robotic Warfare's three-drone peak is not reached by the current slots. Combat Drone Mark II, the Ion Intruder, Shield Overcharger, and Shield Overcharger + remain on the missing-schematic list and are not SwarmKind ids. Mark II deploys at 4 power and fires when its orbit leg finishes. Speed 28 is movement. The page prints no cooldown. A 90 degree leg at Speed 15 takes the 2 second shield restore (INFERRED). The angle check does not wrap. The Ion Intruder has 125 HP and, after a pulse, walks to another system at an inferred 0.6 seconds per room. Speed 18 is the space figure and is not that step. A shut blast door loses two hits a second (INFERRED). A Lockdown coating is a separate 60 hits (INFERRED). The pulse wait is still drawn from 8.2 to 10 seconds. Hull Repair adds one hull point every 3 seconds (INVENTED) for a rolled 3 to 5, then self-destructs. Depowering removes it and does not return the part. Shield Overcharger needs 3 power and Shield Overcharger + needs 2. Both add one Zoltan Shield point after 8, 10, 13, 16, and 20 seconds for 0 through 4 existing layers, then stop. Unpowered time resets that timer. Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds). Neither is stocked. A fitted copy quotes the sell price of 30, and Stealth C starts with Shield Overcharger + unpowered, because one spare reactor bar cannot feed its 2 power (INFERRED). Anti-Drone stays unfitted. A bubble created while none was present is lost on an FTL jump. A bubble that was already present still recharges to 5. The other missing drone schematics stay catalogs.
 - Kin gaps, except the Zoltan death burst and the Zoltan power bar. Wiki page "Zoltans", section "Race characteristics": 15 HP to enemy crew in the room, and one power bar for a living Zoltan in shields, engines, oxygen, medbay, or weapons. Ion does not remove that bar. One Zoltan in a full even shield does not free a reactor bar. Two Zoltans replace one shield pair and do not fill a lone buffer. A full weapons or drone system frees one reactor bar per Zoltan, and spare puts it back when they leave. Piloting, sensors, and doors stay unaffected. A living Zoltan in a kit room adds one bar to cloaking, hacking, the teleporter, mind control, drones, the clone bay, and the artillery beam. That bar does not free a reactor bar, except in a full Drone Control system, which frees one per Zoltan and puts it back from spare when they leave. Backup Battery and Flak Artillery do not read it. While cloaking, hacking, the teleporter, or mind control is cooling, a Zoltan who enters that room frees one locked reactor bar. The yellow bar they already grant stands in its place, and leaving does not put the reactor power back. A Zoltan already in the room when the cooldown starts does not peel until they leave and come back. Player Mind Control still has no ordinary cooldown. A drone that already has health and is in the room loses 7.5. That covers the Ion Intruder, the Boarding Drone, the Anti-Personnel Drone, and the System Repair drone. An orbiting drone has no health field. Humans use the printed XP column 13/13/50/58/16/7; other races keep 15/15/55/65/18/8. A living Lanius drains 12 oxygen per second, the same inferred breach rate, and several in one room stack. Repair skill is ×1 / ×1.1 / ×1.2, and that multiplier is inside the fire-fighting share (0.096 of a fire per second for an untrained Human). Rock fire-fighting is 1.67 of that share and Crystal is 0.83. Fire Suppression is not scaled.
 - Event slices 0–3: 881 titles classified mechanic or no-mechanic from revision wikitext. 162 of those pages were placed as one beacon in a sector the page names. Later filler, quest, and surrender cards added more, and this audit did not recount them. A map reveal is still not granted. An unnamed weapon or drone schematic is still not granted. A fight uses a documented class of the named faction (47 classes). Out-of-fuel pages are written and not placed, because they name no sector. Engi cache stays separate and partial. A page that states no amount, including Free scrap with resources (Engi), stays unwired. Narrative was not copied in. Rebel defector fights a Rebel ship when the proposal is accepted. The random crew, 3 hull, engine damage, doubled pursuit, and boarders are not applied. Crystal scrap collector spends 35 scrap. The Crystal crewmember, Crystal Lockdown Bomb, and Crystal Burst Mark II are not granted.
 
@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 945 |
-| Behaviors checked | 2941 |
-| Behaviors open | 538 |
+| Pages fully checked | 953 |
+| Behaviors checked | 2964 |
+| Behaviors open | 524 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -52,10 +52,10 @@ Second pass checked the Score lead formula and the store resource table against 
 | Id | Point | Output | Status |
 |---|---|---|---|
 | mantis | The Mantis Cruiser A/B/C | hulls-mantis.ts, spread into HULLS | wired loadout. Shared room grid. A/B/C start with pheromones. |
-| crystal | The Crystal Cruiser A/B | hulls-crystal.ts, spread into HULLS | wired loadout. Shared room grid. Vengeance unfitted. |
+| crystal | The Crystal Cruiser A/B | hulls-crystal.ts, spread into HULLS | wired loadout. Shared room grid. Crystal Vengeance starts fitted. |
 | w-laser | Laser rows | weapons-laser.ts, cited-weapons.ts, cited-chain.ts | wired. Heavy Pierce ignores one shield layer. Chain Burst charges 16/13/10/7 and Chain Vulcan charges 11.1 down to 1.1. Losing power resets either chain. Boss Laser is a WeaponDef. Power 4 is the chosen artillery maximum, not a Weapons-pool cost. Charge times are 25/20/15/10. |
-| w-beam | Beam rows | weapons-beam.ts, cited-weapons.ts | crew HP applied (Mini/Pike/Hull 15, Halberd 30, Glaive 45, Anti-Bio 60). Fire Beam dash stays null. A systemless room takes 2 hull damage from a Hull Beam, and each shield layer cuts that figure by one. A drone in the room that already has health takes half the crew damage. A player beam hits the rooms on the straight line between two clicks on the enemy ship. A tiny edge counts. Printed beam length does not shorten that line, and Halberd's 3–5 room sentence is not the room rule. An enemy beam still starts in the aimed room and adds one neighbour (INFERRED). Pierce and chain stay gaps. pike is still id shear. Boss Beam is a WeaponDef. Power 3 is the chosen artillery maximum, not a Weapons-pool cost. Charge times are 32.5/26/19.5. |
-| w-ion | Ion Charger, Chain Ion, Boss Ion | weapons-ion.ts, cited-chain.ts | wired. Chain Ion deals 1, then 2, 3, and 4 ion on a 14 second charge. Losing power resets that streak (INFERRED; the section does not print the reset). Ion Charger early fire stays a gap. |
+| w-beam | Beam rows | weapons-beam.ts, cited-weapons.ts | crew HP applied (Mini/Pike/Hull 15, Halberd 30, Glaive 45, Anti-Bio 60). Fire Beam dash stays null. A systemless room takes 2 hull damage from a Hull Beam, and each shield layer cuts that figure by one. A drone in the room that already has health takes half the crew damage. A player beam hits the rooms on the straight line between two clicks on the enemy ship. A tiny edge counts. A drawn beam stops at the printed tile length, and Halberd's 3–5 room sentence is not the room rule. An enemy beam still starts in the aimed room and adds one neighbour (INFERRED). Hull damage drops by one per shield layer. The dump does not print a beam chain. pike is still id shear. Boss Beam is a WeaponDef. Power 3 is the chosen artillery maximum, not a Weapons-pool cost. Charge times are 32.5/26/19.5. |
+| w-ion | Ion Charger, Chain Ion, Boss Ion | weapons-ion.ts, cited-chain.ts | wired. Chain Ion deals 1, then 2, 3, and 4 ion on a 14 second charge. Losing power resets that streak (INFERRED; the section does not print the reset). An Ion Charger fires once one shot is loaded and keeps the next shot's progress. |
 | w-missile | Missile rows other than Artemis and Leto | weapons-missile.ts | wired. Swarm Missiles banks up to 3 at 7 seconds a shot. A click spends one missile for the bank. Autofire spends one missile per shot. Pegasus still fires two from one charge. A 1x2 room keeps 67.85 percent of shots, and each long-side tile takes 8.04 percent. A 2x2 room stays put. An empty long-side tile misses. A 2x1 uses that split. Other shapes have no printed percent. Radius 31 is not resimulated as pixels. |
 | w-bomb | Bomb rows other than Fire Bomb | weapons-bomb.ts, cited-weapons.ts | wired. strikeRoom skips hull damage. Printed crew HP is applied (Small and Breach I 30, Breach II 45, Fire Bomb 30; ion, stun, heal, repair, and lockdown bombs 0). Healing Burst adds 150 HP. Repair Burst removes 8 system damage and does not clear fire or a breach. Aiming any bomb at your own ship is a control, and that shot does not miss. |
 | w-flak | Adv. Flak, Flak II, crystal weapons | weapons-flak-crystal.ts, cited-weapons.ts | wired. The four crystal guns ignore one shield layer. That 1 is not a WeaponDef field. |
@@ -64,9 +64,9 @@ Second pass checked the Score lead formula and the store resource table against 
 | rebels | Rebel and auto-ship rows | enemy-ships.ts, enemy-gen.ts | auto-scout, auto-surveyor, auto-assault, and auto-hacker roll inside printed ranges. The enemies-rebel.ts note catalog is not what the fight reads. |
 | flagship | Flagship phase numbers | flagship.ts, flagship-systems.ts, flagship-weapons.ts | traced cutaway per stage (52/42/32 squares, Hard links 4). Stage kits run. Boss Laser and Boss Beam charge on the printed table, outside the Weapons pool. Power 4 and 3 are the chosen artillery maxima. Crew in a lost artillery room are removed. Hacking one Flagship artillery room drains that gun. A normal ship's weapons hack still drains every gun. |
 | factions | Other non-player ship pages | enemy-ships.ts | 47 classes drive makeEnemy. The enemies-factions.ts note catalog is not what the fight reads. Forty-five interiors are traced. Engi Hacker and Crystal Outrider stay generated (INFERRED). |
-| achievements | Achievement list | achievements.ts, achievement-track.ts, unlocks.ts | 12 of 51 are tracked. Hangar START is off when the layout is locked. Hard wins are stored and are not a rule. The other 39 have no counter. |
-| stores | Store resource prices | sim.ts rollStock, cited-stores.ts | fuel, missiles, parts, and hull repair unchanged. Missing systems use the printed prices except Drone Control (75 and 85, unlabeled). Catalog augments and the front of the crew list are offered. Weapons and augments sell for half the purchase price, or for a printed sell line. citedStock adds 1, 2, or 3 slots from the seed, on top of the weapon slot in rollStock. Buying Medbay or Clone Bay replaces the other and keeps its level. Drone schematics are not stocked. A fitted Shield Overcharger + quotes 30 scrap. A bought system does not add a room. |
-| drones | Drone schematics missing from swarm.ts | drones-missing.ts | Combat Drone Mark II deploys at 4 power and fires when its orbit leg finishes. Speed 28 is movement. The page prints no cooldown. A 90 degree leg at Speed 15 takes the 2 second shield restore (INFERRED). The angle check does not wrap. The Ion Intruder has 125 HP, pulses inside 8.2–10 seconds, applies 3 ion, stuns for 6 seconds, and then walks to another system at an inferred 0.6 seconds per room. Speed 18 is the space figure. A shut blast door loses two hits a second (INFERRED). A fitted Shield Overcharger + quotes 30 scrap. Shield Overcharger (3 power) and Shield Overcharger + (2 power) add one Zoltan Shield point on 8/10/13/16/20 seconds for 0–4 existing layers, then stop. Unpowered time resets that timer. None of the four is a SwarmKind and none is stocked. The other rows stay catalog-only. |
+| achievements | Achievement list | achievements.ts, achievement-track.ts, unlocks.ts | 49 of 51 store a counter. Hangar START is off when the layout is locked. Hard wins are stored and are not a rule. Diplomatic Immunity and We're in position! have no counter. Robotic Warfare cannot field three drones on the current slots. |
+| stores | Store resource prices | sim.ts rollStock, cited-stores.ts | fuel, missiles, parts, and hull repair unchanged. Missing systems use the printed prices except Drone Control (75 and 85, unlabeled). Catalog augments and the front of the crew list are offered. Weapons and augments sell for half the purchase price, or for a printed sell line. citedStock adds 1, 2, or 3 slots from the seed, on top of the weapon slot in rollStock. Buying Medbay or Clone Bay replaces the other and keeps its level. Hull Repair is stocked at 85, the Ion Intruder at 65, and Shield Overcharger at 60. Shield Overcharger + stays unstocked. A fitted Shield Overcharger + quotes 30 scrap. A bought system does not add a room. |
+| drones | Drone schematics missing from swarm.ts | drones-missing.ts | Combat Drone Mark II deploys at 4 power and fires when its orbit leg finishes. Speed 28 is movement. The page prints no cooldown. A 90 degree leg at Speed 15 takes the 2 second shield restore (INFERRED). The angle check does not wrap. The Ion Intruder has 125 HP, pulses inside 8.2–10 seconds, applies 3 ion, stuns for 6 seconds, and then walks to another system at an inferred 0.6 seconds per room. Speed 18 is the space figure. A shut blast door loses two hits a second (INFERRED). A fitted Shield Overcharger + quotes 30 scrap. Shield Overcharger (3 power) and Shield Overcharger + (2 power) add one Zoltan Shield point on 8/10/13/16/20 seconds for 0–4 existing layers, then stop. Unpowered time resets that timer. None of the four is a SwarmKind. Combat Drone Mark II, the Ion Intruder, and Shield Overcharger are stocked. Shield Overcharger + stays unstocked. The other rows stay catalog-only. |
 | kin | Racial abilities missing from kin.ts | kin-gaps.ts, sim.ts | Zoltan death burst of 15 HP in reap. A living Zoltan adds 1 bar in shields, engines, oxygen, medbay, or weapons, and in a kit room for cloaking, hacking, the teleporter, mind control, drones, the clone bay, and the artillery beam. Ion does not remove the system bar. A kit has no ion track. One Zoltan in a full even shield does not free a reactor bar. Two Zoltans replace one shield pair. A full weapons or drone system frees one reactor bar per Zoltan. Backup Battery and Flak Artillery do not read the kit bar. While cloaking, hacking, the teleporter, or mind control is cooling, a Zoltan who enters frees one locked reactor bar and the yellow bar stands in its place. Leaving does not put that reactor power back. A Zoltan already there when the cooldown starts does not peel until they leave and come back. Player Mind Control still has no ordinary cooldown. Crystal lockdown coats for 12s and recharges in 50s. A coated door has 60 hits (INFERRED). A drone that already has health and is in the room loses 7.5. An orbiting drone has no health field. Humans use the printed XP column 13/13/50/58/16/7; other races keep 15/15/55/65/18/8. A living Lanius drains 12 oxygen per second. Repair skill is ×1 / ×1.1 / ×1.2 and is inside the fire-fighting share (0.096 for an untrained Human). Rock is 1.67 of that share and Crystal is 0.83. Fitted Fire Suppression puts out every burning room at a Crystal crew member's speed, 0.096 times 0.83, and that rate is not scaled. Other racial abilities stay catalog-only. |
 | events | 881 remaining titles, four slices | events-0.ts through events-3.ts, cited-events.ts | The old 162-placed count is no longer the whole set. Filler cards, quest openers, and surrender pages also run, and this audit did not recount placed pages. Engi cache stays partial. Out-of-fuel pages are written and not placed. The template does not say which matching out-of-fuel page plays. Trade scrap for upgrades is still a list row with no card. Rebel defector fights a Rebel ship. Its random crew, hull, pursuit, and boarders are not applied. Crystal scrap collector spends 35 scrap. Its crew and named weapons are not granted. |
 | comments | Paragraph cites on existing modules | content, hulls, sim, extras, UI | second pass landed. INFERRED or INVENTED marks the blocks with no wiki paragraph. |
@@ -112,10 +112,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] No playable control, number, layout, or rule.
 
 - [ ] Achievements
-  - [x] 51 rows in achievements.ts.
-  - [x] achievement-track.ts tracks 12: just-getting-started, federation-base-in-range, federation-victory-easy, federation-victory-normal, your-own-fleet, the-united-federation, full-arsenal, artillery-mastery, ancestry, givin-her-all-shes-got-captain, manpower, scrap-hoarder.
+  - [x] 51 rows in achievements.ts (INFERRED: the dump does not print 51).
+  - [ ] Named achievements store a counter, except two.
+    - [x] Every named achievement except Diplomatic Immunity and We're in position! stores a counter.
+    - [x] Robotic Warfare stores a drone count, and the current slots cannot field three functioning drones at once, so that row is not fully earnable.
+    - [ ] Diplomatic Immunity and We're in position! store no counter.
   - [x] Hard wins are stored on the unlock save and are not a rule.
-  - [ ] The other 39 store no counter.
   - [x] Hangar START follows unlocks.ts.
   - [x] An event offer that upgrades the reactor does not block Manpower, and an upgrades-tab bar does.
 
@@ -125,9 +127,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The jump still spends one fuel.
   - [x] The page redirects to Augmentations.
 
-- [ ] Advanced Edition
+- [x] Advanced Edition
   - [x] several AE systems exist.
-  - [ ] Not gated.
+  - [x] The hangar can turn Advanced Edition content off, and pages tagged as Advanced Edition events are then skipped. Hacking, mind control, and Lanius stay available.
 
 - [ ] Advanced FTL Navigation
   - [ ] The page states a mechanic and it is not a playable event.
@@ -143,7 +145,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Scrap rolls high scrap or a Rock fight.
   - [x] Reactivate needs a Crystal.
   - [x] It grants 1 fuel and spends that fuel jumping to the Hidden Crystal Worlds at the same sector number, then places the crystal-unlock marker on that map.
-  - [x] The exit does not open the chart: it picks a random later sector, or The Last Stand when the number is already 7.
+  - [x] The exit does not open the chart: it picks a random later sector, or The Last Stand when the number is already 7 (INFERRED: the page does not print 7 or The Last Stand).
   - [x] Stores there sell crystal weapons, including the Lockdown Bomb, and only a Crystal crewmember.
   - [x] A crew-kill salvage weapon is one of those guns.
   - [x] A hull kill still uses the general priced pool.
@@ -160,10 +162,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Ancient device
   - [x] same title as "Ancient Device" with different capitalization.
 
-- [ ] Anti-Bio Beam
+- [x] Anti-Bio Beam
   - [x] Beam (Weapons) row id antibio is in WEAPONS and fitted on Slug A.
   - [x] One regular shield blocks an Anti-Bio Beam, and the 60 crew damage still lands when that bubble is down.
-  - [ ] Pierce stays a gap.
+  - [x] Beam damage drops by one for every shield layer, and an Anti-Bio Beam's dash is blocked by one layer.
   - [x] Breach Bomb I is mounted beside it and waits for a free weapon bar.
 
 - [ ] Anti-Ship Battery Firing on Lanius Ships
@@ -177,12 +179,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Artillery Beam
   - [x] An Artillery Beam's power is its level from 1 to 4, and charge time follows the filled bars from 50 seconds at one down by ten seconds each to 20 at four.
-  - [x] An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it.
+  - [x] An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it. The 1.1 and 30 percent are printed on Augmentations.
   - [x] Each swipe deals 2 damage to a Zoltan Shield, and a bubble with points left still protects the hull.
   - [x] Each tile the swipe passes rolls a 10 percent chance to start a fire.
   - [x] A cloaked ship stops the charge unless that clock is 20 seconds or less.
@@ -221,7 +223,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Augmentations
@@ -231,7 +233,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Mantis Pheromones multiply your crew's move by 1.25.
   - [x] None of the three is sold.
   - [x] Engi A starts with the med-bot, Slug A/B/C start with the gel, and Mantis A/B/C start with the pheromones.
-  - [x] Distraction Buoys skip the next fleet advance when the sector starts the fleet at 0, and they do nothing in sector 8.
+  - [x] Distraction Buoys skip the next fleet advance when the sector starts the fleet at 0, and they do nothing in sector 8 (INFERRED: the page says the final sector and does not print 8).
   - [x] Adv.
   - [x] FTL Navigation is sold for 50.
   - [x] With it fitted, a jump can target any beacon already visited, including one the fleet overtook, and that jump still spends one fuel.
@@ -240,7 +242,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Your own defense drones still fire.
   - [x] A generated enemy leaves its drone schematic undeployed, and Anti-Combat still has no enemy-drone list to stun.
   - [x] Drone Reactor Booster is not sold.
-  - [x] When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds.
+  - [x] When it is fitted, the System Repair drone moves at 62.5 percent of the 0.6 second crew walk instead of 50 percent, and that drone repairs at an Engi's pace, one bar or breach in 6.25 seconds. The 62.5 percent is printed here. 0.6 and 6.25 are not (INFERRED: 6.25 is half of the 12.5-second bar on Crew skills).
   - [x] The booster does not change that pace.
   - [x] Zoltan Shield Bypass is sold for 55.
   - [x] With it fitted, crew teleport, bomb teleport, and mind control pass a Zoltan Shield without spending it, and a damage bomb strikes the room.
@@ -257,7 +259,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Emergency Respirators is sold for 50.
   - [x] Player crew take half low-oxygen damage, including while boarding, and a Crystal with it takes a quarter.
   - [x] An enemy hull that lists the augment does not apply it.
-  - [x] A fitted Drone Recovery Arm returns one drone part (INVENTED) for a powered defense drone, including a Hull Repair drone that is still out, when the jump starts, and for a powered combat drone only when that jump is not leaving a live enemy, and a boarding drone, an ion intruder, a crew drone, or a hacking drone returns none.
+  - [x] A fitted Drone Recovery Arm returns a drone part for a powered defense drone, including a Hull Repair drone that is still out, when the jump starts, and for a powered combat drone only when that jump is not leaving a live enemy.
+    - [x] Defense drones are recovered when the jump starts, and combat drones only when that jump is not leaving a live enemy. A boarding drone, an ion intruder, or a hacking drone returns none.
+    - [x] The part count is one (INVENTED).
+    - [x] A crew drone returns none (INVENTED).
 
 - [ ] Augments
   - [ ] The page states a mechanic and it is not a playable event.
@@ -437,7 +442,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Automated Rebel Scout Attacking Refueling Outpost
@@ -479,7 +484,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A bar locked into a cloak that is already cooling still comes off when the battery ends, and that cooldown stays where it was.
   - [x] The power button cannot drop that bar while the cooldown lasts.
   - [x] The reactor purchase still stops at 25.
-  - [x] A running battery adds its bars on top, so the ship can assign 29.
+  - [x] A running battery adds its bars on top, so the ship can assign 29 (INFERRED: 25 reactor bars plus the 4 battery bars).
   - [x] Those bars count as spare reactor power when a Zoltan leaves weapons, and the system takes them back.
   - [x] Bonus bars are drawn after the regular reactor bars and keep an orange border.
   - [x] Assigned ones are the bars that come off first (INFERRED).
@@ -490,7 +495,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Badly Damaged Lanius Craft
@@ -504,7 +509,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Battery Charger
@@ -512,7 +517,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Battle Royale
@@ -529,11 +534,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Beacons
-  - [x] The map is a 6×4 grid of 19–24 beacons.
+  - [x] The map is a 6×4 grid of 19–24 beacons (INFERRED: the Beacons page does not print 6, 19, or 24).
   - [x] Each beacon line is a count between its minimum and maximum, then the next line, and the map stops when it is full.
   - [x] Named specials and the three Last Stand repair stations keep exact counts.
   - [x] Beacons left after the list take the neutral fallback.
@@ -545,10 +550,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
-- [ ] Beam (Weapons)
+- [x] Beam (Weapons)
   - [x] Pike is id shear.
   - [x] Halberd, Glaive, Mini, and Anti-Bio are in WEAPONS.
   - [x] Crew HP is the printed per-room figure (15, 30, 45, or 60) and is not multiplied by tiles.
@@ -562,10 +567,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A tiny edge counts.
   - [x] A drawn beam stops at the printed tile length, and Halberd's 3–5 room sentence is not the room rule.
   - [x] An enemy beam still starts in the aimed room and adds one neighbour (INFERRED).
-  - [ ] Printed length, pierce, and chain stay gaps.
+  - [x] A drawn beam stops at its printed length, and hull damage drops by one per shield layer.
     - [x] A longer swipe stops at Mini 1, Pike 3.8, Hull 2.2, Halberd 1.8, Glaive 1.8, Fire 3.1, and Anti-Bio 3.1 tiles, and a closer click stays short.
-    - [ ] Pierce stays a gap.
-    - [ ] Chain stays a gap.
+    - [x] A drawn beam's hull damage is reduced by one for every shield layer, so a 2-damage Halberd deals 1 through one layer.
+    - [x] The dump does not print a beam chain.
   - [x] Fire Beam has no crew figure.
   - [x] One regular shield blocks a Fire Beam, and the fire roll still lands when that bubble is down.
   - [x] A beam's first Zoltan Shield tick is at 33 percent of the path and the second is at 80 percent, except a Beam Drone 1 or a Fire Drone.
@@ -593,12 +598,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Boarders: Crystal
   - [x] Two or three crystal boarders beam aboard your ship from Boarders: Crystal, with no enemy ship.
   - [x] At Boarders: Crystal, one of the three printed intros is shown.
-  - [x] This event can occur on both of the sector's 1-2 boarder beacons.
+  - [x] This event can occur on both of the sector's 1-2 boarder beacons (INFERRED: the page does not print a 1–2 beacon count).
   - [x] The red line beams 2-3 crystal boarders aboard on arrival, and it is not a button.
 
 - [x] Boarders: Humans (Abandoned)
   - [x] No playable control, number, layout, or rule.
-  - [x] This event can occur on both of the sector's 1-2 boarder beacons.
+  - [x] This event can occur on both of the sector's 1-2 boarder beacons (INFERRED: the page does not print a 1–2 beacon count).
   - [x] The red line beams 3-4 human boarders aboard on arrival, and it is not a button.
 
 - [x] Boarders: Humans (Pirate)
@@ -704,7 +709,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Bump Hulls with Mantis Ship
@@ -718,7 +723,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Offer services is a decline.
   - [x] Teleporter, Fire Bomb, and Anti-Bio open the offer in quests-b.ts.
   - [x] The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
-  - [x] The later assist fight can be an Auto-ship or an Elite Rebel with a friendly Anti-Ship Battery, the Elite escapes at 20 percent from 40-60 percent hull, and the unnamed crewmember is not granted.
+  - [x] The later assist fight can be an Auto-ship or an Elite Rebel with a friendly Anti-Ship Battery, and the unnamed crewmember is not granted. An Elite escape at 20 percent from 40-60 percent hull is not printed on this page and is not rolled.
 
 - [x] Carnelian
   - [x] crystal-b in HULLS.
@@ -730,7 +735,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Chain Vulcan
@@ -817,7 +822,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The Abandoned station quest card offers the DNA search when a Clone Bay is fitted.
   - [x] The calm result is weight 2 and the crazed boarder is weight 1.
   - [x] The filler copy of that station has no DNA option.
-  - [x] Cloning starts after the death animation, 2 seconds for Rock, Crystal, and Engi, 1.8 for Humans, Slugs, and Lanius, 1.7 for Mantis, and 1.5 for Zoltans, and a body with no kin waits the Human 1.8 (INFERRED).
+  - [x] Cloning starts after the death animation.
+    - [x] The animation is 2 seconds for Rock, Crystal, and Engi, 1.8 for Humans, Slugs, and Lanius, 1.7 for Mantis, and 1.5 for Zoltans.
+    - [x] A body with no kin waits the Human 1.8 (INFERRED).
   - [x] Living crew left on the enemy ship when you jump are not revived, and crew already in the clone queue still are.
   - [x] A death while an enemy Clone Bay is already destroyed does not enter the cloning queue, and the dying animation still finishes before that fight ends.
 
@@ -932,17 +939,17 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Crystal
   - [x] stat row.
-  - [x] Lockdown coats a room for 12 seconds and recharges in 50.
-  - [x] Fire-fighting is 0.83 of that crew member's share of the 0.096 crew-races extinguish, with repair skill included.
+  - [x] Lockdown coats a room for 12 seconds and recharges in 50. Both durations are printed on Crystal Lockdown.
+  - [x] Fire-fighting is 0.83 of that crew member's share of the 0.096 crew-races extinguish, with repair skill included. 0.83 matches the printed 83 percent. 0.096 is 9.6/100 from Fires and is not printed (INFERRED).
   - [x] It is not fireTaken.
 
 - [x] Crystal (Weapon)
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Crystal (Weapons)
+- [x] Crystal (Weapons)
   - [x] rows are in weapons-flak-crystal.ts and WEAPONS.
   - [x] kind stays laser.
-  - [ ] Pierce 1 is only in FLAK_CRYSTAL_GAPS.
+  - [x] Heavy Pierce and the crystal guns ignore one shield layer, the same way the laser page prints it.
 
 - [x] Crystal Auto-ship fight
   - [x] No playable control, number, layout, or rule.
@@ -979,7 +986,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Breaking the coating breaks the door and sticks it open for 7 seconds.
   - [x] Crew leaving through a shut coated door punch at one hit a second.
   - [x] A drone punches at two.
-  - [x] A room coated before a hacking drone attaches leaves those doors with 4 hits after the coating disappears, and a disruption pulse during that coating or another lockdown keeps the Normal level-3 health of 12, since the page's 10 is the Hard cell.
+  - [x] A room coated before a hacking drone attaches leaves those doors with 4 hits after the coating disappears, and a disruption pulse during that coating or another lockdown keeps the Normal level-3 health of 12, since the page's 10 is the Hard cell. 4 hits and the Hard 10 are printed here. Normal level-3 door health 12 is printed on Door System. The 12 on this page is seconds.
 
 - [x] Crystal Lockdown ability
   - [x] No playable control, number, layout, or rule.
@@ -992,7 +999,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Crystal Ships
   - [x] No playable control, number, layout, or rule.
-  - [x] Enemy Crystal crew use Lockdown when boarding or being boarded, coating the room they share with opposing crew for 12 seconds before the 50 second recharge.
+  - [x] Enemy Crystal crew use Lockdown when boarding or being boarded, coating the room they share with opposing crew for 12 seconds before the 50 second recharge. Both durations are printed on Crystal Lockdown. 12 on this page is a hull range.
 
 - [x] Crystal Store
   - [x] No playable control, number, layout, or rule.
@@ -1043,7 +1050,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] Opening the beacon shows the printed shards sentence.
   - [x] Destroying the ship or killing the crew pays medium scrap with resources.
-  - [ ] The surrender human is not granted on that win.
+  - [x] The surrender human is not granted on that win.
   - [x] Accepting their surrender shows the printed prisoner sentence and the fight continues, and finishing them off shows the printed humans-saved sentence.
 
 - [ ] Crystal fight with surrender offer (hull repairs)
@@ -1053,7 +1060,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] Opening the beacon shows the printed convoy sentence.
   - [x] Destroying the ship or killing the crew pays medium scrap with resources.
-  - [ ] The surrender fuel and 8 repairs are not applied on that win.
+  - [x] The surrender fuel and 8 repairs are not applied on that win.
   - [x] Stopping the fight shows the printed explanation and apology sentences and still pays the low fuel, low scrap, and 8 repairs, and finishing them off shows the printed pick-a-fight sentence.
 
 - [ ] Crystal scrap collector
@@ -1146,7 +1153,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Damaged Lanius Absorbing Jump Beacon
@@ -1255,7 +1262,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The page states a mechanic and it is not a playable event.
 
 - [ ] Distraction Buoys
-  - [x] before sector 8, a fleet already at 0 skips its next advance.
+  - [x] before sector 8, a fleet already at 0 skips its next advance (INFERRED: Augmentations says the final sector and does not print 8).
   - [x] A fleet already ahead still loses one jump at sector start.
   - [ ] The article was not re-opened, so other sentences on the page are not claimed.
 
@@ -1303,7 +1310,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Drifting Debris
@@ -1360,7 +1367,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Drifting refugee ship distress (Zoltan)
   - [x] same title as "Drifting Refugee Ship Distress (Zoltan)" with different capitalization.
 
-- [ ] Drone Control
+- [x] Drone Control
   - [x] eight SwarmKind ids in swarm.ts.
   - [x] Anti-Combat is wardcut (power 1, 7s cooldown, 5s stun, 47.8% chance to destroy the shot) and ticks on both sides.
   - [x] Generated enemies deploy their class drones on the first combat tick.
@@ -1397,9 +1404,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] An existing bubble still recharges to 5.
   - [x] A fitted Shield Overcharger + quotes the printed sell of 30.
   - [x] The regular Shield Overcharger is not quoted.
-  - [ ] Neither schematic is stocked.
+  - [x] Shield Overcharger is stocked and Shield Overcharger + is not.
     - [x] Shield Overcharger is stocked at 60 when the ship has Drone Control.
-    - [ ] Shield Overcharger + stays unstocked.
+    - [x] Shield Overcharger + stays unstocked.
   - [x] A store sells it at 75 with a System Repair Drone and at 85 with Defense Drone Mark I or Combat Drone Mark I, at level 2, with that schematic selected.
   - [x] The store seed picks which of the three and is not advanced (INFERRED).
   - [x] The naked 60 is not charged.
@@ -1419,9 +1426,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Drone Reactor Booster
   - [x] Not sold.
-  - [x] A fitted copy moves the System Repair drone at 62.5 percent of the 0.6 second crew walk; without it, that drone moves at 50 percent.
+  - [x] A fitted copy moves the System Repair drone at 62.5 percent of the 0.6 second crew walk; without it, that drone moves at 50 percent. 50 and 62.5 percent are printed on Augmentations. 0.6 is not (INFERRED).
   - [x] Boarding, combat, hull, and defense drones are not sped up.
-  - [x] The drone repairs at an Engi's pace, one bar or breach in 6.25 seconds, and the booster does not change that pace.
+  - [x] The drone repairs at an Engi's pace, one bar or breach in 6.25 seconds, and the booster does not change that pace (INFERRED: 6.25 is half of the printed 12.5-second human bar).
   - [x] The walk uses the printed order: Oxygen under 25 percent average air, then a fire, then Shields, then a breach.
   - [x] Engi cruisers do not start with it.
 
@@ -1430,7 +1437,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Drone Schematic
@@ -1444,7 +1451,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Drones
@@ -1452,14 +1459,14 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Drones salesman
   - [ ] The page states a mechanic and it is not a playable event.
 
 - [x] Dual Lasers
-  - [x] src/game/content.ts — Laser (Weapons), Dual Lasers: price is 0 because it cannot be bought.
+  - [x] src/game/content.ts — Laser (Weapons), Dual Lasers: price is 0 because it cannot be bought (INFERRED: the page prints a sell of 12 and does not print a purchase price of 0).
   - [x] The sell figure 12 is not a sell control.
   - [x] Fitted as twin.
 
@@ -1474,7 +1481,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Player crew take half low-oxygen damage, including while boarding an enemy ship.
   - [x] A Crystal with the augment takes a quarter, the racial half times this half.
   - [x] The half follows the crew member's own side (INFERRED; a leash does not lend it to an enemy).
-  - [x] An airless level 1 medbay still heals at 6.4, so those crew net-heal.
+  - [x] An airless level 1 medbay still heals at 6.4, so those crew net-heal. 6.4 is printed on Medbay.
   - [x] Enemy hulls that list the augment do not apply it.
   - [x] In Abandoned Sector, weak and hungry humans beam 3–4 boarders aboard with no ship.
   - [x] After a Lanius fight, and on a repeat before another fight, those boarders have Emergency Respirators (INFERRED: the last fight's faction is remembered).
@@ -1527,8 +1534,8 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] same title as "Encrypted Federation Signal" with different capitalization.
 
 - [x] Enemy Ships
-  - [x] makeEnemy uses pickEnemy and rollEnemy over the 47 classes in enemy-ships.ts.
-  - [x] Rooms for 45 classes are the traced interiors in enemy-layouts.ts.
+  - [x] makeEnemy uses pickEnemy and rollEnemy over the 47 classes in enemy-ships.ts (INFERRED: the dump does not print 47).
+  - [x] Rooms for 45 classes are the traced interiors in enemy-layouts.ts (INFERRED: the dump does not print 45).
   - [x] Engi Hacker and Crystal Outrider stay generated from the system list (INFERRED).
   - [x] An unlabeled system sits in an empty hall (INFERRED).
   - [x] Elite hulls stay inside the printed ranges.
@@ -1554,7 +1561,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Engi Distress Call
@@ -1609,7 +1616,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Engi Ships
   - [x] No playable control, number, layout, or rule.
-  - [x] An Engi ship heals its own crew at 1.6 HP per second outside a powered medbay, and a clone bay or no medbay stops it.
+  - [x] An Engi ship heals its own crew at 1.6 HP per second outside a powered medbay, and a clone bay or no medbay stops it. 1.6 is printed on Augmentations, Engi Med-bot Dispersal.
 
 - [x] Engi Store
   - [x] No playable control, number, layout, or rule.
@@ -1804,7 +1811,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Events
@@ -1827,7 +1834,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] FTL: Advanced Edition
@@ -1847,7 +1854,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] FTL Recharge Booster
@@ -1855,7 +1862,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] FTL haywire civilian ship escort
@@ -1869,7 +1876,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Federation Deserters
@@ -1935,7 +1942,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Fire Suppression
@@ -1943,7 +1950,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Fire chance
@@ -1958,13 +1965,16 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Fire on small research station
   - [x] same title as "Fire on Small Research Station" with different capitalization.
 
-- [x] Fires
+- [ ] Fires
   - [x] A fire burns 0.96% oxygen per second and dies below 10% oxygen.
   - [x] A fire below 10 percent oxygen dies on a timer from 5 to 14 seconds, so none beside it lasts 2.08 to 5.83 seconds and four beside it last up to 29.17 seconds.
-  - [x] Fire-fighting is the crew-races share: 0.096 of a fire per second for an untrained Human, times repair skill ×1 / ×1.1 / ×1.2, times Rock 1.67 or Crystal 0.83.
-  - [x] Fitted Fire Suppression puts out every burning room at a Crystal crew member's speed, 0.096 times 0.83, and that rate is not scaled.
+  - [x] Fire-fighting is the crew-races share: 0.096 of a fire per second for an untrained Human, times repair skill ×1 / ×1.1 / ×1.2, times Rock 1.67 or Crystal 0.83. 1.67 and 0.83 match the printed 67 percent bonus and 17 percent penalty. 0.096 is 9.6/100 and is not printed (INFERRED).
+  - [x] Fitted Fire Suppression puts out every burning room at a Crystal crew member's speed, 0.096 times 0.83, and that rate is not scaled. 0.83 matches the printed 17 percent penalty. 0.096 is 9.6/100 and is not printed (INFERRED).
   - [x] The 2.128 crew-damage cite is not this path.
-  - [x] The same oxygen loss, extinguish, crew damage, and 7-second spread run on the map.
+  - [ ] Map fires use the fight's oxygen loss, extinguish, and crew damage.
+    - [x] The same oxygen loss, extinguish, and crew damage run on the map.
+    - [x] The 7-second spread tick is INFERRED.
+    - [ ] The dump says the speed of fire spreading is randomised, and no interval is printed.
   - [x] Repair, venting, oxygen refill, and system sabotage stay on the combat tick.
   - [x] Enemy crew give up a 2x2 only when all four tiles have a flame, and a full breached 2x1 or 2x2 makes every race leave.
 
@@ -1976,18 +1986,18 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Flak (Weapon)
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Flak (Weapons)
+- [x] Flak (Weapons)
   - [x] src/game/content.ts — Flak I, Adv.
   - [x] Flak, and Flak II are in WEAPONS.
-  - [ ] Radius and fake pellets stay in gaps.
+  - [x] A flak targeting radius is stored and is not resimulated as a pixel circle.
     - [x] A Flak II burst adds six fake pellets and an Adv. Flak burst adds three, a defense drone can shoot one down, and neither drops a shield.
-    - [ ] Targeting radius stays unsimulated as pixels.
+    - [x] Targeting radius stays unsimulated as pixels.
   - [x] Flak Artillery is a system.
   - [x] A Flak I shot aimed at a 1x2 room stays there 44.21 percent of the time, with 11.96 percent on each long-side tile, 3.63 percent on each short-side tile, and 0.17 percent on each corner, and a shot aimed at a 2x2 room stays 84.08 percent of the time.
   - [x] A Flak II shot aimed at a 1x2 room stays there 25.78 percent of the time, with 12.06 percent on each long-side tile, 7.02 percent on each short-side tile, 2.70 percent on each corner, and 0.29 percent on each tile past the long sides, and a shot aimed at a 2x2 room stays 51.56 percent of the time, with 5.90 percent on each side tile and 0.31 percent on each corner.
@@ -1998,10 +2008,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Flak Artillery
   - [x] flakart.ts.
   - [x] Flight time and spread INFERRED.
-  - [x] A Flak Artillery shot aimed at a 1x2 room stays there 60.90 percent of the time and otherwise lands on a long-side tile at 9.78 percent each, and a shot aimed at a 2x2 room always stays.
+  - [x] A Flak Artillery shot aimed at a 1x2 room stays there 60.90 percent of the time and otherwise lands on a long-side tile at 9.78 percent each, and a shot aimed at a 2x2 room always stays (INFERRED: the page does not print 60.90 or 9.78).
   - [x] A Flak Artillery burst adds seven fake pellets that deal no damage and do not drop shields, and a defense drone can shoot one down.
   - [x] Charge time follows the filled power level, 50 seconds at one bar, 40 at two, 30 at three, and 20 at four, and powering off drains the charge.
-  - [x] An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it.
+  - [x] An Automated Re-loader divides that charge time by 1.1, three of them raise the firing rate by 30 percent, and the system cannot be manned so crew skill does not shorten it. The 1.1 and 30 percent are printed on Augmentations.
   - [x] A cloaked ship stops charging and firing at every power level.
 
 - [x] Forward Scout of Rebel Fleet
@@ -2081,7 +2091,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Fuel Auto-ship
@@ -2209,7 +2219,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
   - [x] Hacking Stun stuns crew and drones in the hacked room for the rest of the pulse, and someone who enters is stunned for the time still left.
 
@@ -2276,7 +2286,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Human
@@ -2284,7 +2294,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Human Boarders
@@ -2320,7 +2330,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Humans
   - [x] The printed XP column runs: 13/13/50/58/16/7 via xpNeedFor.
   - [x] Other races keep 15/15/55/65/18/8.
-  - [x] The column is not collapsed to 0.9×.
+  - [x] The column is not collapsed to 0.9× (INFERRED: the page prints -10% and does not print 0.9).
   - [x] The rest of the race page is not this path.
 
 - [x] I hardly lifted a finger
@@ -2361,12 +2371,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Intercept comm chatter from Mantis ship
   - [x] same title as "Intercept Comm Chatter from Mantis Ship" with different capitalization.
 
-- [ ] Ion (Weapons)
+- [x] Ion (Weapons)
   - [x] Ion Blast, Ion Blast II, Heavy Ion, Ion Stunner, Ion Charger, Chain Ion, and Boss Ion are in WEAPONS.
   - [x] Boss Ion power is 3.
   - [x] Chain Ion deals 1, then 2, 3, and 4 ion on a 14 second charge.
   - [x] Losing power resets that streak (INFERRED).
-  - [ ] Ion Charger early fire stays a gap.
+  - [x] An Ion Charger with one shot loaded can fire that shot, and the next shot's progress is kept.
   - [x] A blocked Ion Stunner stuns crew and drones in the Shields room for 5 seconds, and the aimed room stays clear.
 
 - [x] Ion Blast Mark II
@@ -2395,7 +2405,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Kruos
@@ -2403,7 +2413,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] LRS
@@ -2428,7 +2438,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Lanius Distress Beacon Empty
@@ -2791,10 +2801,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Large trade station
   - [x] same title as "Large Trade Station" with different capitalization.
 
-- [ ] Laser (Weapons)
+- [x] Laser (Weapons)
   - [x] src/game/content.ts — the laser rows are in WEAPONS.
   - [x] Hull Smasher I and II deal 2 hull damage on a systemless room and do not raise crew damage.
-  - [ ] Pierce stays a gap.
+  - [x] Heavy Pierce ignores one shield layer, and a second layer stops the shot.
   - [x] Chain Burst charges 16/13/10/7 and Chain Vulcan charges 11.1 down to 1.1.
   - [x] Losing power resets either chain.
   - [x] Boss Laser is a WeaponDef.
@@ -2802,7 +2812,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Charge times are 25/20/15/10, outside the Weapons pool.
   - [x] Fire 10% and breach 9% are the flagship page's figures.
   - [x] Boss Laser prints Shots: 3 and no gap, so the three bolts are not spaced.
-  - [x] A Heavy Laser rolls its 30 percent fire chance first and rolls the 30 percent breach chance only when that shot starts no fire (INFERRED: heavy, heavy2, and heavypierce).
+  - [x] A Heavy Laser rolls its 30 percent fire chance first and rolls the 30 percent breach chance only when that shot starts no fire.
+    - [x] That order is the printed Heavy Laser rule.
+    - [x] The same order on Heavy Laser II and Heavy Pierce is INFERRED.
 
 - [x] Laser Charger (S)
   - [x] No playable control, number, layout, or rule.
@@ -2836,7 +2848,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
   - [x] A fitted Lifeform Scanner reveals live enemy crew the way a Slug does, and it does not open room interiors.
 
@@ -2851,7 +2863,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
   - [x] Fitted Long-Ranged Scanners show an environmental hazard and possible ship presence on adjacent beacons, and selling them hides that again.
 
@@ -2886,7 +2898,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Manpower
@@ -2919,7 +2931,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Mantis Empty Beacon
@@ -3211,7 +3223,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Merchant's Request
   - [x] Same card as dest "Merchant's request" (cited-events-quests-b.ts).
   - [x] Yes opens a delivery or an investigation in quests-b.ts.
-  - [x] At the research station, brace, drag, and medbay level 2 each fight 3–4 human boarders with no ship.
+  - [x] At the research station, brace, drag, and medbay level 2 each fight 3–4 human boarders with no ship. The 3–4 count is printed on Research station with no response.
   - [x] Drag can turn one crewmember.
   - [x] Beam turns one crewmember and does not board if that fails.
   - [x] The capture quest marker and the merchant investigation use the printed button Fight a Pirate ship.
@@ -3282,7 +3294,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Missiles (Weapon)
@@ -3302,7 +3314,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Nebula Empty Beacon
@@ -3343,18 +3355,21 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Nebula trader
   - [x] same title as "Nebula Trader" with different capitalization.
 
-- [x] Nebula wreckage
+- [ ] Nebula wreckage
   - [x] quests-b.ts.
   - [x] A Slug scan and the investigate roll (nothing weight 3, 5 hull plus a fire, or a survivor) run.
   - [x] A saved survivor's race is INFERRED.
-  - [x] A fire started there spreads on the map under the same 7-second rule.
+  - [ ] A fire started there can spread on the map.
+    - [x] Oxygen loss, extinguish, and crew damage still run on the map.
+    - [x] The 7-second tick is INFERRED.
+    - [ ] The dump says fire spread is randomised, and this page prints no interval.
 
 - [ ] Nisos
   - [x] Title string is in src/.
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] No Escape
@@ -3446,7 +3461,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Odd Moon
@@ -3850,7 +3865,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Powered-Down Lanius Vessel
@@ -3955,7 +3970,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Rebel AI Scout Carrying Shield Virus
@@ -4055,14 +4070,14 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] No playable control, number, layout, or rule.
 
 - [x] Rebel Flagship
-  - [x] The fight uses the traced cutaway, not the leftover two-row placeholder: stage 1 is 52 squares, stage 2 is 42, stage 3 is 32, and Hard adds two link rooms (4).
+  - [x] The fight uses the traced cutaway, not the leftover two-row placeholder: stage 1 is 52 squares, stage 2 is 42, stage 3 is 32, and Hard adds two link rooms (4) (INFERRED: the flagship page does not print 52).
   - [x] Stage 1 hull 20, reactor 42, shields 8, engines 2, oxygen 2, piloting 3, artillery 3, Cloaking 2, Hacking 3.
   - [x] Stage 2 hull 22, reactor 44, engines 3, Drone Control 8.
   - [x] Stage 3 hull 20, reactor 32, engines 6, artillery 4, Teleporter 2, Mind Control 3, Zoltan Shield 12.
   - [x] Boss Laser and Boss Beam charge on the printed table.
   - [x] Their power fields (4 and 3) are the chosen artillery maxima, not a Weapons-pool cost, and artillery is outside the Weapons pool.
   - [x] Crew in a lost artillery room are removed.
-  - [x] Stages 1 and 2 pay sector-1 high scrap (Easy 27–32, Normal and Hard 19–23).
+  - [x] Stages 1 and 2 pay sector-1 high scrap (Easy 27–32, Normal and Hard 19–23). Those bands are printed on the sector-1 high scrap templates.
   - [x] Stage 3 pays none.
   - [x] Hacking one Flagship artillery room drains that gun.
   - [x] A normal ship's weapons hack still drains every gun.
@@ -4074,13 +4089,13 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] a nebula beacon outside a nebula sector advances 0.5, and one inside a nebula sector advances 0.8.
   - [x] The battery is 3 hull and a breach, off on nebula beacons and off on an Easy exit.
   - [x] It cannot be shot down, and a Zoltan Shield does not take it.
-  - [x] Jumping into an overtaken beacon before sector 8 fights a Rebel Elite and pays 1 fuel, with no scrap.
+  - [x] Jumping into an overtaken beacon before sector 8 fights a Rebel Elite and pays 1 fuel, with no scrap (INFERRED: the page does not print 8 for that jump).
   - [x] Waiting there with no fuel pays 4 fuel for that Elite.
-  - [x] Sector 8 does not use this column.
+  - [x] Sector 8 does not use this column (INFERRED: the page does not print 8 on that claim).
   - [x] A fueled wait does not scrape hull.
   - [x] The out-of-fuel wait exception for the battery is not decided.
   - [x] Rebel-held beacons still count toward score.
-  - [x] Distraction Buoys skip the next advance when the map starts the fleet at 0.
+  - [x] Distraction Buoys skip the next advance when the map starts the fleet at 0 (INFERRED: the page says 1 turn and does not print 0).
   - [x] The Elite's hull and guns stay the shared grid, because Elite Fighter and Elite Assault print ranges.
 
 - [x] Rebel Fleet Fight
@@ -4110,9 +4125,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Rebel Ship with Boarders
   - [x] same title as "Rebel Ship With Boarders" with different capitalization.
 
-- [ ] Rebel Ships
+- [x] Rebel Ships
   - [x] REBEL_ROWS in enemies-rebel.ts.
-  - [ ] makeEnemy names stay INVENTED.
+  - [x] makeEnemy names the fight from the documented class, or a pirate rename of that class name.
 
 - [x] Rebel Store
   - [x] No playable control, number, layout, or rule.
@@ -4424,7 +4439,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Rebels Supplying Civilians
@@ -4438,7 +4453,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Red-Tail
@@ -4446,7 +4461,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Red Giant
@@ -4612,7 +4627,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A resisted ion projectile still hits the room when regular shields are down.
   - [x] Purchase price 45 is on the catalog.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Rewards
@@ -4631,7 +4646,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Rock Armoured Transport
@@ -4651,7 +4666,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Rock Deserters
@@ -4699,7 +4714,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Rock Ship Being Mined by Lanius
@@ -4707,7 +4722,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Rock Ships
   - [x] No playable control, number, layout, or rule.
-  - [x] Every Rock ship, including a pirate, negates incoming hull damage 15 percent of the time, and a solar flare or a 100 percent breach shot still lands.
+  - [x] Every Rock ship, including a pirate, negates incoming hull damage 15 percent of the time, and a solar flare or a 100 percent breach shot still lands. The 15 percent is printed on Augmentations, Rock Plating.
 
 - [x] Rock Store
   - [x] No playable control, number, layout, or rule.
@@ -4863,7 +4878,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Rockmen
   - [x] stat row.
-  - [x] Fire-fighting is 1.67 of that crew member's share of the 0.096 crew-races extinguish, with repair skill included.
+  - [x] Fire-fighting is 1.67 of that crew member's share of the 0.096 crew-races extinguish, with repair skill included. 1.67 matches the printed 67 percent bonus on Fires. 0.096 is not printed (INFERRED).
   - [x] It is not fireTaken.
   - [x] Fire Suppression is not scaled.
 
@@ -4902,13 +4917,13 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Sectors
   - [x] SECTOR_TYPES is in sectors.ts.
   - [ ] SECTOR_NAMES in content.ts stay INVENTED.
-  - [x] Each sector is a 6×4 grid of 19–24 beacons, and each beacon line is a count between its minimum and maximum, then the next line, and the map stops when it is full.
+  - [x] Each sector is a 6×4 grid of 19–24 beacons, and each beacon line is a count between its minimum and maximum, then the next line, and the map stops when it is full (INFERRED: the page does not print 6, 19, or 24).
   - [x] Beacons left after the list take the neutral fallback.
   - [x] Entering The Last Stand still grants 10 hull and 10 fuel.
   - [x] Three repair stations then pay 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once.
@@ -4972,7 +4987,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Shields
@@ -4989,13 +5004,14 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Ship Achievements
-  - [x] Same 51-row catalog as Achievements.
-  - [x] Twelve rules are tracked, including Scrap Hoarder.
-  - [ ] Repair-from-1, an artillery-only kill, a burning kill, a missile-only kill of a ship with a defense drone, and a kill before the Zoltan Shield drops stay untracked, so most Layout B unlocks cannot be earned.
+  - [x] Same 51-row catalog as Achievements (INFERRED: the dump does not print 51).
+  - [ ] Ship-achievement counters follow the printed unlock conditions, except two rows.
+    - [x] Repair from 1 hull, an artillery-only kill, a burning kill, a missile-only kill of a ship with a defense drone, and a kill before the Zoltan Shield drops each store a counter.
+    - [ ] Diplomatic Immunity and We're in position! store no counter.
 
 - [x] Ship Achievements/Advanced Mastery
   - [x] No playable control, number, layout, or rule.
@@ -5118,11 +5134,11 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Hangar START is off when unlocks.ts says the layout is locked.
   - [x] Kestrel A starts unlocked.
   - [x] Layout B needs 2 of 3 ship achievements.
-  - [ ] Only 12 of 51 achievements are tracked, so most B and C layouts cannot be earned.
-    - [x] 12 of 51 achievements are tracked.
-    - [ ] The other 39 achievements are not tracked.
-    - [ ] Most Layout B and C layouts cannot be earned.
-  - [x] Advanced Edition stays on.
+  - [x] Layout B and Layout C follow the printed unlock rule.
+    - [x] Layout B unlocks from 2 of 3 ship achievements. A sector-only achievement does not count.
+    - [x] Layout C unlocks by reaching sector 8 on Layout B while Advanced Edition content is on.
+    - [x] Diplomatic Immunity and We're in position! store no counter. The other ship achievements still supply the 2 of 3, including Slug B and Federation B.
+  - [x] The hangar can turn Advanced Edition content off. Layout C needs it on. Hacking, mind control, and Lanius stay available either way.
   - [ ] The article was not re-opened.
 
 - [ ] Shivan
@@ -5130,7 +5146,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Simo-H
@@ -5138,7 +5154,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Single Life Form on Moon
@@ -5176,7 +5192,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Slug Boarding Rock Freighter
@@ -5199,7 +5215,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Slug Disable Door System
@@ -5222,7 +5238,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Slug Home Nebula Surrender
@@ -5230,7 +5246,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Slug Home Nebula surrender
@@ -5281,7 +5297,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Slug Ships
   - [x] No playable control, number, layout, or rule.
-  - [x] Every Slug ship, including a pirate, seals its own hull breaches at 75% crew repair speed.
+  - [x] Every Slug ship, including a pirate, seals its own hull breaches at 75% crew repair speed. 75% is printed on Augmentations, Slug Repair Gel.
 
 - [x] Slug Store
   - [x] No playable control, number, layout, or rule.
@@ -5560,7 +5576,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Stealth Weapons
@@ -5568,7 +5584,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Store
@@ -5576,7 +5592,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Store (Crystal)
@@ -5622,10 +5638,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] No playable control, number, layout, or rule.
 
 - [x] Stores and resources
-  - [x] src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8.
+  - [x] src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8. This title transcludes that template.
   - [x] Hull repair uses the sector rate.
-  - [x] Missing systems are listed at the printed prices (Shields 125, Medbay 50, Clone Bay 50, Teleporter 90, Cloaking 150, Mind Control 75, Hacking 80, Sensors 40, Doors 60, Backup Battery 35).
-  - [x] Drone Control is offered as a bundle at 75 scrap with a System Repair Drone, or 85 with a Defense Drone Mark I or a Combat Drone Mark I.
+  - [x] Missing systems are listed at the printed prices (Shields 125, Medbay 50, Clone Bay 50, Teleporter 90, Cloaking 150, Mind Control 75, Hacking 80, Sensors 40, Doors 60, Backup Battery 35). Those prices are printed on Template:Purchasable systems, which this page transcludes.
+  - [x] Drone Control is offered as a bundle at 75 scrap with a System Repair Drone, or 85 with a Defense Drone Mark I or a Combat Drone Mark I. Those bundle prices are printed on Template:Purchasable systems, which this page transcludes.
   - [x] The store seed picks which of the three and is not advanced (INFERRED).
   - [x] The naked 60 is not a shelf price.
   - [x] Catalog augments and the first crew races are buyable.
@@ -5644,7 +5660,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Sweet Revenge
@@ -5652,7 +5668,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] System Repair Drone
   - [x] Purchase 30, 1 power, 25 HP.
-  - [x] It repairs systems, breaches, and fires at an Engi's pace: one bar or breach in 6.25 seconds, and a fire at twice a human's share.
+  - [x] It repairs systems, breaches, and fires at an Engi's pace: one bar or breach in 6.25 seconds, and a fire at twice a human's share (INFERRED: Drone Control does not print 6.25; it is half of the 12.5-second bar).
   - [x] Low oxygen does not stop it (INFERRED).
   - [x] It walks to a damaged Oxygen system when average room air is under 25 percent (INFERRED meter), then a fire, then Shields, then a breach, then the nearest other damaged system.
   - [x] A vented room's fire is skipped.
@@ -5684,7 +5700,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Teleporter
@@ -5692,7 +5708,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Terraforming federation team C12
@@ -5718,7 +5734,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] The Adjudicator
@@ -5726,7 +5742,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Basilisk
@@ -5782,7 +5798,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Gila Monster
@@ -5793,7 +5809,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Kestrel Cruiser
@@ -5829,7 +5845,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] The Osprey
@@ -5837,7 +5853,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Rebel Flagship
@@ -5868,7 +5884,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Slug Cruiser
@@ -5892,7 +5908,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] The Swallow
@@ -5900,7 +5916,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Theseus
@@ -5911,7 +5927,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The United Federation
@@ -5922,7 +5938,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] The Zoltan Cruiser
@@ -5942,7 +5958,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Torus
@@ -5950,7 +5966,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Tough Little Ship
@@ -6033,7 +6049,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Attack rolls an unarmed Zoltan fight or a defense ship.
   - [x] Hear them out places the peace marker.
   - [x] The bloodless reply unlocks Zoltan A and rolls a Zoltan Shield plus low scrap, or a maxed Zoltan named Envoy plus high scrap.
-  - [x] That Zoltan Shield occupies one of the three augment slots and sets a 5-point bubble, and a full rack does not add a fourth.
+  - [x] That Zoltan Shield occupies one of the three augment slots and sets a 5-point bubble, and a full rack does not add a fourth. The 5-point bubble is printed on Augmentations, Zoltan Shield.
   - [ ] The article was not re-opened, so this is not present.
 
 - [x] Unarmed Zoltan transport
@@ -6093,7 +6109,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Weapons
@@ -6114,7 +6130,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [ ] Zoltan "Great Eye"
@@ -6146,7 +6162,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] The article was not re-opened, so this is not present.
   - [x] the exact title string occurs in src/.
   - [ ] Paragraph audit is pass 2; this is not a full page check.
-    - [x] Paragraph audit is pass 2.
+    - [x] No playable control of its own.
     - [ ] This is not a full page check.
 
 - [x] Zoltan Empty Beacon
@@ -6198,7 +6214,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Zoltan Security Checkpoint
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Zoltan Shield
+- [x] Zoltan Shield
   - [x] ship.zoltan absorbs damage before shields and hull.
   - [x] Ion spends double.
   - [x] Beams spend double, and Anti-Bio and Fire Beam spend 2.
@@ -6207,18 +6223,18 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The bubble blocks crew teleport, mind control, hacking, boarding drones, and an enemy teleporter party.
   - [x] Bypass lets crew, bombs, and mind control through without spending it.
   - [x] The event exception for an initial boarding party has no separate path.
-  - [x] Shield Overcharger adds one layer on 8/10/13/16/20 seconds for 0–4 existing layers and does not charge once 5 or more are present.
+  - [x] Shield Overcharger adds one layer on 8/10/13/16/20 seconds for 0–4 existing layers and does not charge once 5 or more are present. 10 and 13 seconds are printed on Drone Control.
   - [x] A layer it creates from no bubble is lost on jump.
   - [x] An existing bubble still recharges to 5.
   - [x] Speed 5 is a flight figure, the same number Defense Drone Mark I prints, and it does not change those waits (INFERRED: not seconds).
   - [x] An enemy Anti-Ship Beam Drone I or Fire Drone spends 1 layer per swipe, Beam Drone II spends 2, and the player's Beam Drone I spends 1.
   - [x] That swipe does not cut the hull.
-  - [x] A pulsar fight warns 5 seconds ahead of a pulse every 11–18 seconds.
+  - [x] A pulsar fight warns 5 seconds ahead of a pulse every 11–18 seconds. 11–18 seconds and the 5 second warning are printed on Environmental Hazards.
   - [x] The span is uniform and the top is not its own bucket (INFERRED).
   - [x] A Zoltan Shield on a ship that has Shields spends 3 or 4 (INFERRED even split) and the systems stay clear.
   - [x] One layer is enough.
   - [x] A ship with no Shields system ignores the bubble.
-  - [ ] Drone HP is not applied.
+  - [x] Boarding and hacking drones are destroyed on contact with a Zoltan Shield and deal no damage to it. The page prints no drone HP figure.
   - [x] One Reverse Ion Field resists ion damage to the bubble half the time, and two copies always do.
   - [x] A resisted ion projectile still hits the room when regular shields are down.
   - [x] A solar flare treats a Zoltan Shield as shields up and does not spend it.
@@ -6304,7 +6320,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
     - [x] Keeping the missile does nothing, and a dry magazine stays on the cavern.
     - [x] A wasted blast spends the missile and nothing else happens.
     - [ ] The secret base's unnamed weapon and its random scrap stay unwired.
-    - [ ] The remains' random scrap stays unwired.
+    - [x] The remains pay a random amount of scrap. The equal low, medium, and high band is INFERRED.
   - [x] Leave it be does nothing.
   - [x] A Boarding Drone spends 1 drone part and a Zoltan crewmember joins.
 

@@ -118,6 +118,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rock ship (default rewards)." Rock fight in nebula has no choice. Arrival calls this fight. The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
   {
     dest: "Rock fight in nebula",
     slug: "rock-fight-in-nebula",

@@ -2129,6 +2129,16 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:pirate-ship-selling-weapon:2",
+        "label": "Convince him to make it a better deal.",
+        "fx": [
+          {
+            "k": "note",
+            "text": "A declined deal, or a Pirate ship."
+          }
+        ]
       }
     ]
   },

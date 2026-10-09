@@ -3060,6 +3060,28 @@ function chooseRolled(g: Game, id: string): boolean {
   }
   if (id.startsWith("s:moon:")) return moonChoice(g, id);
   if (id.startsWith("s:confused-mantis:")) return confusedMantisChoice(g, id);
+  // Pirate ship selling weapon. "Nothing happens."
+  if (id === "c:pirate-ship-selling-weapon:1") {
+    show(g, "Nothing happens.");
+    return true;
+  }
+  // Mind Control. Two results and no odds. INFERRED: equal.
+  // Both buys grant an unnamed weapon, so neither spends the printed 45 scrap.
+  if (id === "c:pirate-ship-selling-weapon:2") {
+    if (!ownsMindControl(g)) return true;
+    if (weighted(g, [["deal", 1], ["lie", 1]] as const) === "deal") {
+      card(g, "Once \"convinced\" to help he lowers the price and describes the weapon. However, he eventually comes to his senses and confusedly takes back his discount. He is clearly unsure why he offered it in the first place.", [
+        { id: "s:pirate-weapon:decline", label: "Decline." },
+      ]);
+      return true;
+    }
+    fight(g, "Once \"convinced\" to help, he casually states that his offer was actually a lie and that they planned to attack your ship. By the time he returns to his senses you've already prepared your ship to fight.", "Pirate ship", "pirate-ship-selling-weapon");
+    return true;
+  }
+  if (id === "s:pirate-weapon:decline") {
+    show(g, "You thank him for his offer and prepare to move on.", undefined, ["Nothing happens."]);
+    return true;
+  }
   return false;
 }
 
@@ -3215,7 +3237,7 @@ function moonChoice(g: Game, id: string): boolean {
 
 /** True when `id` belongs to this module. sim.ts choose calls it after surrenderChoose. */
 export function fillerOwns(id: string): boolean {
-  return id in FILLER_CHOICES || /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-distress-pirate|refugee-slug|refugee-distress-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
+  return id in FILLER_CHOICES || id === "c:pirate-ship-selling-weapon:1" || id === "c:pirate-ship-selling-weapon:2" || id.startsWith("s:pirate-weapon:") || /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-distress-pirate|refugee-slug|refugee-distress-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(id);
 }
 
 /** Runs a filler card choice. False when the id is not one of this module's. */
@@ -3245,6 +3267,9 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:asteroid-mining-colony:1" && g.missiles < 5) return "Need 5 missiles";
   if (id === "c:asteroid-mining-colony:2" && g.missiles < 15) return "Need 15 missiles";
   // Giant alien spiders blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Pirate ship selling weapon. {{Blue Option|Mind Control}}.
+  // INFERRED: the refusal line. The page names Mind Control and does not print this sentence.
+  if (id === "c:pirate-ship-selling-weapon:2" && !ownsMindControl(g)) return "Needs Mind Control";
   if (id === "c:giant-alien-spiders:2" && !ownsDrone(g, "personnel")) return "Needs an Anti-Personnel Drone";
   if (id === "c:giant-alien-spiders:3" && !ownsDrone(g, "board")) return "Needs a Boarding Drone";
   if (id === "c:giant-alien-spiders:4" && !ownsAntiBio(g)) return "Needs an Anti-Bio Beam";

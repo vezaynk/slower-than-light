@@ -12,13 +12,25 @@ import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
 import { artilleryChargeSeconds } from "./flagship-weapons.ts";
-import { DRONE_LABEL } from "../extras/swarm.ts";
+import { BEAM1_SPEED, DRONE_LABEL, pickOrbitBearing } from "../extras/swarm.ts";
+import { COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
 import { flagshipHardLinks, flagshipStage1, flagshipStage2, flagshipStage3 } from "./flagship-layout.ts";
 import type { Layout } from "../layouts.ts";
 
-/** One Power Surge drone (stage 2). Not a Drone Control unit: "They are an independent hazard." */
-export type SurgeDrone = { id: string; kind: "beam" | "striker"; shots: number; aux: number };
+/**
+ * One Power Surge drone (stage 2). Not a Drone Control unit: "They are an independent hazard."
+ * heading, bearing, and left are the orbit leg. The page prints no separate shot clock.
+ */
+export type SurgeDrone = {
+  id: string;
+  kind: "beam" | "striker";
+  shots: number;
+  aux: number;
+  heading?: number;
+  bearing?: number;
+  left?: number;
+};
 
 /** Per-fight flagship bookkeeping. Lives on the enemy ship (Ship.flagship), so it leaves with it. */
 export type FlagshipState = {
@@ -279,11 +291,23 @@ export const LASER_SURGES_PER_RESTORE = 3;
 export const FLAGSHIP_ZOLTAN = 12;
 
 /**
- * INFERRED: surge drones fire on the regular drone cadences in swarm.ts (Combat Drone Mark I 2.5 s, Anti-Ship Beam
- * Drone I 3 s). Two shots then take about 5–6 s, close to the page's "the length of the power surge varies, but is
- * about 7 seconds".
+ * The Rebel Flagship, 2nd stage, Power Surge: extra drones are "randomly split between Beam and Combat (both mark 1)".
+ * Drone Control, Combat Drone Mark I and Anti-Ship Beam Drone I: "Speed: 15".
+ * Combat Drones (offensive drones): offensive drones orbit and attack when that leg finishes.
+ * "The extra drones will take two shots each and then disappear. As a result, the length of the power surge varies,
+ * but is about 7 seconds." The variation is the orbit leg. Beam speed is not this wait.
  */
-const SURGE_INTERVAL: Record<SurgeDrone["kind"], number> = { striker: 2.5, beam: 3 };
+function surgeSpeed(kind: SurgeDrone["kind"]): number {
+  return kind === "beam" ? BEAM1_SPEED : COMBAT1_SPEED;
+}
+
+function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {
+  if (d.heading == null) d.heading = 0;
+  if (d.bearing == null || !(d.left != null && d.left > 0)) {
+    d.bearing = pickOrbitBearing(g, d.heading);
+    d.left = orbitLegSeconds(d.heading, d.bearing, speed);
+  }
+}
 
 /**
  * "Final stage" / "Power Surge": "The power surge lasers use the Heavy Laser Mark I blueprint, but are hard-coded to
@@ -362,10 +386,18 @@ export function firePowerSurge(g: Game, ship: Ship) {
  */
 function tickSurgeDrones(g: Game, state: FlagshipState, dt: number) {
   for (const d of state.surge) {
+    const speed = surgeSpeed(d.kind);
+    armSurgeLeg(g, d, speed);
     d.aux += dt;
-    if (d.aux < SURGE_INTERVAL[d.kind]) continue;
-    d.aux = 0;
+    if (d.aux < (d.left ?? 0)) continue;
+    d.aux -= d.left ?? 0;
+    d.heading = d.bearing;
+    d.bearing = undefined;
+    d.left = undefined;
     d.shots += 1;
+    // The next leg starts as the shot is taken, so two shots are two orbit legs.
+    armSurgeLeg(g, d, speed);
+    // "If you are cloaked, they will position for taking a shot, and that will count as one of their allowed two shots."
     if (veilBlocks(g, "enemy")) continue;
     const room = randomRoom(g, g.player);
     const beam = d.kind === "beam";
@@ -383,6 +415,7 @@ function tickSurgeDrones(g: Game, state: FlagshipState, dt: number) {
       ...(beam ? { beamRooms: [room] } : {}),
       wait: 0,
       t: 0,
+      // INVENTED: no projectile flight time is printed. Must be > 0 because shot progress divides by duration.
       duration: beam ? 0.45 : 0.7,
       label: DRONE_LABEL + d.id,
     });

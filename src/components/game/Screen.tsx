@@ -56,9 +56,13 @@ function measure(): ScreenView & { top: number; left: number } {
   const vv = window.visualViewport;
   const offsetTop = vv?.offsetTop ?? 0;
   const offsetLeft = vv?.offsetLeft ?? 0;
+  // Firefox keeps a classic scrollbar. innerWidth includes that bar, so a fixed box sized to it
+  // sticks out and the bar comes back. clientWidth is the space beside the bar.
+  const docW = document.documentElement.clientWidth;
+  const docH = document.documentElement.clientHeight;
   const sized = deviceSize(
-    Math.min(vv?.width ?? window.innerWidth, window.innerWidth),
-    Math.min(vv?.height ?? window.innerHeight, window.innerHeight),
+    Math.min(vv?.width ?? window.innerWidth, window.innerWidth, docW > 0 ? docW : window.innerWidth),
+    Math.min(vv?.height ?? window.innerHeight, window.innerHeight, docH > 0 ? docH : window.innerHeight),
   );
   const rawW = sized.rawW;
   const rawH = sized.rawH;

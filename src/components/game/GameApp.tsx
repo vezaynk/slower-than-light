@@ -43,6 +43,7 @@ import {
   upgradeSpike,
 } from "@/game/extras/spike";
 import { create } from "zustand";
+import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { surrenderOfferView } from "@/game/wiki/surrender";
 import { artilleryView } from "@/game/wiki/flagship-systems";
@@ -97,10 +98,10 @@ import {
 } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { BeamLine, Crew, Game, KitId, SkillName, SysId } from "@/game/types";
+import type { BeamLine, Crew, Game, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
-import { ShadeFx } from "./ShadeFx";
+import { ShadeFx, useEnemyWreck } from "./ShadeFx";
 import { FullscreenButton } from "./FullscreenButton";
 import { CrewFace } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
@@ -249,6 +250,22 @@ function hackRoomClick(roomId: string) {
     else if (armSpike(game, id)) launchSpike(game);
   });
   setHackAim(false);
+}
+
+/** Level-1 clone bay is 12s; the longest death animation adds 2s. Hard flagship seats 13, so the "+n" suffix tops out at 12. */
+const CLONE_SECONDS_WIDE = 14;
+const CLONE_EXTRA_WIDE = 12;
+
+/** Occupies the width of `sample` (the widest value that readout can show) without clipping a longer one. */
+function DigitSlot({ value, sample }: { value: number | string; sample: number | string }) {
+  return (
+    <span className="digit-slot">
+      <span className="is-reserve" aria-hidden="true">
+        {sample}
+      </span>
+      <span>{value}</span>
+    </span>
+  );
 }
 
 /** @agent:hack-ui. Short status for the hacking orb, by spike.ts playerHackView state. */
@@ -489,7 +506,36 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   const sector = game.sectorMap && game.phase !== "victory" && game.phase !== "defeat";
   // File:NO_FUEL.png and File:3_store.jpg: the beacon chart is a panel over the ship, opened with JUMP.
   const chart = !sector && game.picking && (game.phase === "map" || game.phase === "combat" || game.phase === "event");
-  const showTarget = !!game.enemy && !chart && (game.phase === "combat" || game.phase === "event");
+  // The sim drops the enemy as the hull hits 0. Keep the panel until the break-up tiles land.
+  const wrecking = useEnemyWreck();
+  const prevEnemy = useRef(game.enemy);
+  const [linger, setLinger] = useState<Ship | null>(null);
+  const sawWreck = useRef(false);
+  if (game.enemy !== prevEnemy.current) {
+    const previous = prevEnemy.current;
+    prevEnemy.current = game.enemy;
+    if (!game.enemy && previous && previous.hull <= 0) setLinger(previous);
+    else if (game.enemy) setLinger(null);
+  }
+  useEffect(() => {
+    if (!linger) {
+      sawWreck.current = false;
+      return;
+    }
+    if (wrecking) {
+      sawWreck.current = true;
+      return;
+    }
+    if (sawWreck.current) {
+      sawWreck.current = false;
+      setLinger(null);
+      return;
+    }
+    const id = window.setTimeout(() => setLinger(null), 80);
+    return () => window.clearTimeout(id);
+  }, [linger, wrecking]);
+  const displayEnemy = game.enemy ?? linger;
+  const showTarget = !!displayEnemy && (linger != null || (!chart && (game.phase === "combat" || game.phase === "event")));
   const ox = shake ? Math.sin(game.time * 40) * 7 * shake : 0;
   const oy = shake ? Math.cos(game.time * 33) * 5 * shake : 0;
   // @agent:hack-ui. Hack targeting only lasts while a launch is possible (fight over, power pulled, part spent...).
@@ -559,7 +605,9 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         {chart ? <MapScreen game={game} /> : null}
         {game.paused && game.phase === "combat" ? <PauseStamp /> : null}
       </div>
-      {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} /> : null}
+      {showTarget && displayEnemy ? (
+        <TargetPanel game={game} enemy={displayEnemy} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} />
+      ) : null}
       <Dock game={game} hackAiming={hackAiming} />
       {card}
     </div>
@@ -638,16 +686,29 @@ function Hud({ game }: { game: Game }) {
           }}
         >
           <span className="ftl-kicker">FTL Drive</span>
-          {charging ? null : <span>JUMP</span>}
+          <span className={`ftl-jump${charging ? " is-reserve" : ""}`} aria-hidden={charging || undefined}>
+            JUMP
+          </span>
           <span className="ftl-meter">
             <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : 1) * 100)}%` }} />
           </span>
-          <em>{charging ? "CHARGING" : "READY"}</em>
+          <em className="ftl-state">
+            <span className={charging ? undefined : "is-reserve"} aria-hidden={charging ? undefined : true}>
+              CHARGING
+            </span>
+            <span className={charging ? "is-reserve" : undefined} aria-hidden={charging ? true : undefined}>
+              READY
+            </span>
+          </em>
         </button>
         {shipInDanger(game) || game.pulsarWarned ? (
           <div className="hud-alerts">
-            {shipInDanger(game) ? <p className="danger-mark" role="status">DANGER!</p> : null}
-            {game.pulsarWarned ? <p className="hazard-mark" role="status">ION PULSE IMMINENT!</p> : null}
+            <p className={`danger-mark${shipInDanger(game) ? "" : " is-reserve"}`} role="status" aria-hidden={shipInDanger(game) ? undefined : true}>
+              DANGER!
+            </p>
+            <p className={`hazard-mark${game.pulsarWarned ? "" : " is-reserve"}`} role="status" aria-hidden={game.pulsarWarned ? undefined : true}>
+              ION PULSE IMMINENT!
+            </p>
           </div>
         ) : null}
         <button
@@ -866,9 +927,19 @@ function hackMarkOf(game: Game): HackMark | null {
   return null;
 }
 
-function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Game; hackAiming: boolean; slingAiming: boolean; leashAiming: boolean }) {
-  const enemy = game.enemy;
-  if (!enemy) return null;
+function TargetPanel({
+  game,
+  enemy,
+  hackAiming,
+  slingAiming,
+  leashAiming,
+}: {
+  game: Game;
+  enemy: Ship;
+  hackAiming: boolean;
+  slingAiming: boolean;
+  leashAiming: boolean;
+}) {
   const escape = enemyEscapeView(game);
   // @agent:hack-ui. Hacking wiki, "Overview" (passive effects): "Room vision and max-level Sensors information on the
   // system." "If the targeted system is Piloting or Engines, the ship name on the top right corner is replaced with
@@ -889,29 +960,59 @@ function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Gam
       <div className="target-head">
         <span className="target-flag">TARGET</span>
         <div>
-          {vision?.evasion != null ? (
-            <p className="hack-evasion" title={`Hacking drone on ${hack?.label ?? vision.system}`}>
-              Evasion: {vision.evasion}%
-            </p>
-          ) : (
-            <p>Class: {enemy.name}</p>
-          )}
+          <p className="target-id">
+            <span className="line-stack">
+              <span className={vision?.evasion != null ? "is-reserve" : undefined} aria-hidden={vision?.evasion != null || undefined}>
+                Class: {enemy.name}
+              </span>
+              <span
+                className={`hack-evasion${vision?.evasion != null ? "" : " is-reserve"}`}
+                title={vision?.evasion != null ? `Hacking drone on ${hack?.label ?? vision.system}` : undefined}
+                aria-hidden={vision?.evasion != null ? undefined : true}
+              >
+                Evasion: <DigitSlot value={vision?.evasion ?? 0} sample={100} />%
+              </span>
+            </span>
+          </p>
           <p>Relationship: Hostile</p>
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
-              {escape.stalled ? "FTL STALLED" : `FTL CHARGING · ${escape.left}s`}
+              <span className="line-stack">
+                <span className={escape.stalled ? "is-reserve" : undefined} aria-hidden={escape.stalled || undefined}>
+                  FTL CHARGING · <DigitSlot value={escape.left} sample={LAST_FUEL_SECONDS * 2} />s
+                </span>
+                <span className={escape.stalled ? undefined : "is-reserve"} aria-hidden={escape.stalled ? undefined : true}>
+                  FTL STALLED
+                </span>
+              </span>
             </p>
           ) : null}
           {hack && (hack.latched || hack.state === "pulse") && hack.label ? (
             <p className={`hack-line${hack.state === "pulse" ? " is-pulse" : ""}`} role="status">
-              HACKED · {hack.label.toUpperCase()}
-              {hack.state === "pulse" ? ` · ${Math.ceil(hack.left)}s` : ""}
+              <span className="line-stack">
+                <span className={hack.state === "pulse" ? "is-reserve" : undefined} aria-hidden={hack.state === "pulse" || undefined}>
+                  HACKED · {hack.label.toUpperCase()}
+                </span>
+                <span className={hack.state === "pulse" ? undefined : "is-reserve"} aria-hidden={hack.state === "pulse" ? undefined : true}>
+                  HACKED · {hack.label.toUpperCase()} · <DigitSlot value={Math.ceil(hack.left)} sample={10} />s
+                </span>
+              </span>
             </p>
           ) : null}
           {clones ? (
             <p className={`clone-line${clones.offline ? " is-offline" : ""}`} role="status">
-              {clones.offline ? "CLONING HALTED" : `CLONING · ${clones.seconds}s`}
-              {clones.count > 1 ? ` +${clones.count - 1}` : ""}
+              <span className="line-stack">
+                <span className={clones.offline ? undefined : "is-reserve"} aria-hidden={clones.offline ? undefined : true}>
+                  CLONING HALTED
+                </span>
+                <span className={clones.offline ? "is-reserve" : undefined} aria-hidden={clones.offline || undefined}>
+                  CLONING · <DigitSlot value={clones.seconds} sample={CLONE_SECONDS_WIDE} />s
+                  <span className={clones.count > 1 ? undefined : "is-reserve"} aria-hidden={clones.count > 1 ? undefined : true}>
+                    {" "}
+                    +<DigitSlot value={Math.max(0, clones.count - 1)} sample={CLONE_EXTRA_WIDE} />
+                  </span>
+                </span>
+              </span>
             </p>
           ) : null}
           {game.targeting && game.beamAnchor && !hackAiming ? (
@@ -1118,7 +1219,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
     <footer className="dock">
       <div className="power-dock">
         <span className="spare-pip" title="Reactor bars not assigned">
-          {sparePower(game.player)}
+          <DigitSlot value={sparePower(game.player)} sample={29} />
         </span>
         {batterySpareBars(game.player) > 0 ? (
           <i className="spare-bonus" aria-hidden="true" title="Backup Battery bars">
@@ -1411,6 +1512,16 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
         ? "cancel the queued launch"
         : "aim the hacking drone";
   const tip = `Hacking ${view.power}/${view.level}: ${status.toLowerCase()}${usable ? `. Click or H to ${verb}` : ""}`;
+  const metered = view.state === "pulse" || view.state === "flying" || view.state === "cooldown";
+  const meterPct =
+    view.state === "pulse"
+      ? Math.max(0, Math.min(1, view.left / Math.max(1, view.pulse))) * 100
+      : view.state === "flying"
+        ? view.progress * 100
+        : view.state === "cooldown"
+          ? Math.max(0, Math.min(1, 1 - view.cool / 20)) * 100
+          : 0;
+  const show = (text: string) => status === text;
   return (
     <div className={`hack-pod is-${aiming ? "aiming" : view.state}`}>
       {fight ? (
@@ -1418,23 +1529,74 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
           <span className="hack-card-title">
             <PixelIcon name="spike" size={12} />
             HACKING
-            {view.pulse > 0 ? <span className="hack-card-pulse">{view.pulse}s pulse</span> : null}
+            <span className="hack-card-pulse line-stack">
+              <span className="is-reserve" aria-hidden="true">
+                10s pulse
+              </span>
+              <span className={view.pulse > 0 ? undefined : "is-reserve"} aria-hidden={view.pulse > 0 ? undefined : true}>
+                {view.pulse > 0 ? `${view.pulse}s pulse` : "10s pulse"}
+              </span>
+            </span>
           </span>
-          <span className="hack-card-state">{status}</span>
-          {view.state === "pulse" ? (
-            <i className="hack-meter" aria-hidden="true">
-              <i style={{ width: `${Math.max(0, Math.min(1, view.left / Math.max(1, view.pulse))) * 100}%` }} />
-            </i>
-          ) : view.state === "flying" ? (
-            <i className={`hack-meter is-fly${view.stunned || view.power < 1 ? " is-held" : ""}`} aria-hidden="true">
-              <i style={{ width: `${view.progress * 100}%` }} />
-            </i>
-          ) : view.state === "cooldown" ? (
-            <i className="hack-meter is-cool" aria-hidden="true">
-              <i style={{ width: `${Math.max(0, Math.min(1, 1 - view.cool / 20)) * 100}%` }} />
-            </i>
-          ) : null}
-          <span className="hack-card-row">
+          <span className="hack-card-state line-stack">
+            <span className={show("PICK A SYSTEM") ? undefined : "is-reserve"} aria-hidden={show("PICK A SYSTEM") ? undefined : true}>
+              PICK A SYSTEM
+            </span>
+            <span className={status.startsWith("PULSE ") && status !== "PULSE READY" ? undefined : "is-reserve"} aria-hidden={status.startsWith("PULSE ") && status !== "PULSE READY" ? undefined : true}>
+              PULSE <DigitSlot value={view.left.toFixed(1)} sample="10.0" />s
+            </span>
+            <span className={status.startsWith("COOLDOWN ") ? undefined : "is-reserve"} aria-hidden={status.startsWith("COOLDOWN ") ? undefined : true}>
+              COOLDOWN <DigitSlot value={Math.ceil(view.cool)} sample={20} />s
+            </span>
+            <span className={show("PULSE READY") ? undefined : "is-reserve"} aria-hidden={show("PULSE READY") ? undefined : true}>
+              PULSE READY
+            </span>
+            <span className={show("LAUNCH ON UNPAUSE") ? undefined : "is-reserve"} aria-hidden={show("LAUNCH ON UNPAUSE") ? undefined : true}>
+              LAUNCH ON UNPAUSE
+            </span>
+            <span className={show("DRONE STUNNED") ? undefined : "is-reserve"} aria-hidden={show("DRONE STUNNED") ? undefined : true}>
+              DRONE STUNNED
+            </span>
+            <span className={show("DRONE HELD") ? undefined : "is-reserve"} aria-hidden={show("DRONE HELD") ? undefined : true}>
+              DRONE HELD
+            </span>
+            <span className={status.startsWith("DRONE INBOUND ") ? undefined : "is-reserve"} aria-hidden={status.startsWith("DRONE INBOUND ") ? undefined : true}>
+              DRONE INBOUND <DigitSlot value={Math.round(view.progress * 100)} sample={100} />%
+            </span>
+            <span className={show("NO POWER") ? undefined : "is-reserve"} aria-hidden={show("NO POWER") ? undefined : true}>
+              NO POWER
+            </span>
+            <span className={show("NO DRONE PARTS") ? undefined : "is-reserve"} aria-hidden={show("NO DRONE PARTS") ? undefined : true}>
+              NO DRONE PARTS
+            </span>
+            <span className={show("ZOLTAN SHIELD UP") ? undefined : "is-reserve"} aria-hidden={show("ZOLTAN SHIELD UP") ? undefined : true}>
+              ZOLTAN SHIELD UP
+            </span>
+            <span className={show("TARGET CLOAKED") ? undefined : "is-reserve"} aria-hidden={show("TARGET CLOAKED") ? undefined : true}>
+              TARGET CLOAKED
+            </span>
+            <span className={show("LAUNCH READY") ? undefined : "is-reserve"} aria-hidden={show("LAUNCH READY") ? undefined : true}>
+              LAUNCH READY
+            </span>
+            <span className={show("DRONE ATTACHED") ? undefined : "is-reserve"} aria-hidden={show("DRONE ATTACHED") ? undefined : true}>
+              DRONE ATTACHED
+            </span>
+            <span className={show("STANDBY") ? undefined : "is-reserve"} aria-hidden={show("STANDBY") ? undefined : true}>
+              STANDBY
+            </span>
+          </span>
+          <i
+            className={`hack-meter${view.state === "flying" ? " is-fly" : ""}${view.state === "cooldown" ? " is-cool" : ""}${view.state === "flying" && (view.stunned || view.power < 1) ? " is-held" : ""}${metered ? "" : " is-reserve"}`}
+            aria-hidden="true"
+          >
+            <i style={{ width: `${meterPct}%` }} />
+          </i>
+          <span className="hack-card-row line-stack">
+            <span className="hack-card-target is-reserve" aria-hidden="true">
+              <PixelIcon name="target" size={12} />
+              Backup Battery
+              <em>in flight</em>
+            </span>
             {(view.state === "queued" || view.state === "flying") && view.label ? (
               <span className="hack-card-target">
                 <PixelIcon name="target" size={12} />
@@ -2371,11 +2533,55 @@ function ShipSheet({ game }: { game: Game }) {
   );
 }
 
+/** Ship, "Reactor power": 25 bars in five columns. Owned bars fill from the bottom of the left column. The cap is 25. */
+const REACTOR_CAP = 25;
+const REACTOR_COLS = 5;
+const REACTOR_ROWS = 5;
+
+function ReactorTotal({ game }: { game: Game }) {
+  const owned = Math.max(0, Math.min(REACTOR_CAP, game.player.reactor));
+  const cost = upgradeCost("reactor", game.player.reactor);
+  return (
+    <section className="reactor-total" aria-label={`Reactor, ${owned} of ${REACTOR_CAP} power bars`}>
+      <p className="reactor-total-title">Reactor</p>
+      <div className="reactor-total-grid">
+        {Array.from({ length: REACTOR_COLS }, (_, col) => (
+          <span key={col} className="reactor-total-col">
+            {Array.from({ length: REACTOR_ROWS }, (_, fromTop) => {
+              const row = REACTOR_ROWS - 1 - fromTop;
+              const on = col * REACTOR_ROWS + row < owned;
+              return <i key={row} className={on ? "is-on" : undefined} />;
+            })}
+          </span>
+        ))}
+      </div>
+      <div className="reactor-total-foot">
+        <span>Power bars</span>
+        {cost != null ? (
+          <button
+            type="button"
+            className="text-btn"
+            data-upgrade="reactor"
+            disabled={game.scrap < cost}
+            aria-label={`Upgrade Reactor for ${cost}`}
+            onClick={() => act((g) => upgrade(g, "reactor"))}
+          >
+            {cost}
+          </button>
+        ) : (
+          <span className="mini">Cap 25.</span>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function UpgradeList({ game }: { game: Game }) {
-  const rows = upgradeRows(game);
+  const rows = upgradeRows(game).filter((row) => row.key !== "reactor");
   const firstSub = rows.findIndex((row) => row.subsystem);
   return (
     <div className="upgrade-list">
+      <ReactorTotal game={game} />
       {rows.map((row, index) => (
         <div key={row.key}>
           {index === firstSub ? <p className="mini sheet-note">Subsystems need no reactor power.</p> : null}

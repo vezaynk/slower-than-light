@@ -38,6 +38,8 @@
   html,
   body,
   #root {
+    height: 100%;
+    overflow: hidden;
     background: var(--color-bg);
     color: var(--color-fg);
     overscroll-behavior: none;
@@ -65,8 +67,6 @@
 
   body {
     margin: 0;
-    min-height: 100dvh;
-    overflow: hidden;
     font-family: var(--font-mono);
     font-size: 13px;
     text-rendering: geometricPrecision;
@@ -127,7 +127,9 @@ html.is-immersive body {
   height: 720px;
   overflow: hidden;
   container: screen / size;
-  transform: translate(-50%, -50%) scale(var(--fit, 1));
+  /* Default lives on the variable. A fallback comma inside scale() is dropped by Firefox, which leaves the 1280×720 box hanging off the bottom-right. */
+  --fit: 1;
+  transform: translate(-50%, -50%) scale(var(--fit));
   visibility: hidden;
 }
 
@@ -693,14 +695,17 @@ button:disabled {
   inset: 0;
   z-index: 20;
   background: rgba(2, 3, 8, 0.78);
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   place-items: start center;
 }
 
 .sheet {
-  max-height: none;
+  max-height: 100%;
+  min-height: 0;
+  overflow: auto;
 }
 
 .sheet-tabs {
@@ -720,6 +725,58 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+/* Ship, Reactor power: the total is 25 horizontal bars, five columns of five. */
+.reactor-total {
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  padding: 8px 10px 10px;
+  background: #14110e;
+  border: 2px solid var(--color-line-dim);
+  box-sizing: border-box;
+}
+
+.reactor-total-title,
+.reactor-total-foot {
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: var(--color-fg);
+}
+
+.reactor-total-grid {
+  display: flex;
+  gap: 8px;
+}
+
+.reactor-total-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reactor-total-col i {
+  display: block;
+  width: 36px;
+  height: 8px;
+  background: #3a3828;
+  box-shadow: inset 0 0 0 1px #2a261c;
+}
+
+.reactor-total-col i.is-on {
+  background: var(--color-ok);
+  box-shadow: inset 0 0 0 1px #b6ff6a;
+}
+
+.reactor-total-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .upgrade-row,
@@ -1058,7 +1115,8 @@ button:disabled {
 }
 
 .ftl-drive {
-  width: 148px;
+  width: max-content;
+  min-width: 148px;
   min-height: 58px;
   border-radius: var(--radius);
   display: flex;
@@ -1109,6 +1167,48 @@ button:disabled {
   font-style: normal;
   color: var(--color-accent);
   font-size: 18px;
+}
+
+/* Both FTL words stay in the button. The hidden one still holds its line so charging and ready are the same size. */
+.ftl-state {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.ftl-drive .ftl-state > span {
+  grid-area: 1 / 1;
+  font-size: inherit;
+  white-space: nowrap;
+}
+
+.ftl-jump {
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.is-reserve {
+  visibility: hidden;
+}
+
+.line-stack {
+  display: grid;
+  min-width: 0;
+}
+
+.line-stack > span {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.digit-slot {
+  display: inline-grid;
+  text-align: right;
+  vertical-align: bottom;
+}
+
+.digit-slot > span {
+  grid-area: 1 / 1;
 }
 
 .ftl-drive.is-charging em {
@@ -1513,7 +1613,9 @@ button:disabled {
   font-family: var(--font-hud);
   font-size: 22px;
   color: var(--color-ok);
-  min-width: 16px;
+  /* Reactor cap is 25, and a level-2 battery adds 4. Two digits is the widest spare count. */
+  min-width: 2ch;
+  text-align: right;
 }
 
 /* Backup Battery, Overview: unassigned bonus bars keep the orange border. */
@@ -2230,10 +2332,9 @@ button.door-tick::before {
 .crew-drag {
   position: absolute;
   z-index: 6;
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
+  box-sizing: border-box;
   border: 1px solid #f4fff8;
-  background: rgba(244, 255, 248, 0.12);
+  background: color-mix(in srgb, var(--color-ok) 28%, transparent);
   pointer-events: none;
 }
 
@@ -3821,7 +3922,8 @@ button.door-tick::before {
   position: absolute;
   right: calc(100% + 12px);
   bottom: 44px;
-  width: 210px;
+  width: max-content;
+  min-width: 210px;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -3856,6 +3958,18 @@ button.door-tick::before {
   line-height: 1;
   letter-spacing: 0.04em;
   color: var(--color-fg);
+}
+
+/* Every status, the pulse note, and the target row stay one line, sized to the longest copy. */
+.hack-card-state.line-stack > span,
+.hack-card-row.line-stack > span,
+.hack-card-pulse.line-stack > span {
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+.hack-card-row.line-stack {
+  display: grid;
 }
 
 .hack-pod.is-nopower .hack-card-state,
@@ -4021,7 +4135,6 @@ button.door-tick::before {
   .hack-card {
     right: 0;
     bottom: calc(100% + 40px);
-    width: 172px;
   }
 }
 

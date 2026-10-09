@@ -3,9 +3,30 @@
  * shatters, a crew death puffs, and a teleport blinks. The sim has already applied
  * the damage; this canvas does not change it.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
 import type { Ship } from "@/game/types";
+
+/** True while the enemy ship's break-up tiles are still in the air. */
+let enemyWreck = false;
+const wreckListeners = new Set<() => void>();
+
+function setEnemyWreck(next: boolean) {
+  if (enemyWreck === next) return;
+  enemyWreck = next;
+  for (const listener of wreckListeners) listener();
+}
+
+export function useEnemyWreck() {
+  return useSyncExternalStore(
+    (listener) => {
+      wreckListeners.add(listener);
+      return () => wreckListeners.delete(listener);
+    },
+    () => enemyWreck,
+    () => false,
+  );
+}
 
 type Side = "player" | "enemy";
 type Box = { x: number; y: number; w: number; h: number };
@@ -19,6 +40,8 @@ type Chunk = {
   color: string;
   w: number;
   h: number;
+  /** Piece of the enemy hull break-up. The target panel stays until these are gone. */
+  wreck?: boolean;
 };
 type Piece = { x: number; y: number; w: number; h: number; color: string };
 type Oval = {
@@ -169,6 +192,7 @@ export function ShadeFx() {
         if (!b) return;
         const cx = b.x + b.w / 2;
         const cy = b.y + b.h / 2;
+        const wreck = side === "enemy";
         const bits = plates[side] ?? [];
         for (const bit of bits) {
           const px = bit.x + bit.w / 2;
@@ -187,6 +211,7 @@ export function ShadeFx() {
             color: bit.color,
             w: Math.max(2, bit.w),
             h: Math.max(2, bit.h),
+            wreck,
           });
         }
         const palette = [...ORANGE, ...WHITE, ...DARK];
@@ -204,8 +229,10 @@ export function ShadeFx() {
             color: palette[i % palette.length]!,
             w: hot ? 3 : 4 + (i % 3),
             h: hot ? 3 : 4 + ((i + 1) % 3),
+            wreck,
           });
         }
+        if (wreck) setEnemyWreck(true);
         hullEl(side)?.classList.add("is-gone");
       };
 
@@ -352,6 +379,7 @@ export function ShadeFx() {
         ctx.fillStyle = p.color;
         ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
       }
+      if (!chunks.some((c) => c.wreck)) setEnemyWreck(false);
       ctx.globalAlpha = 1;
 
       for (let i = ovals.length - 1; i >= 0; i--) {
@@ -397,7 +425,10 @@ export function ShadeFx() {
     };
 
     raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      setEnemyWreck(false);
+    };
   }, []);
 
   return <canvas ref={ref} className="fx-canvas" aria-hidden="true" />;

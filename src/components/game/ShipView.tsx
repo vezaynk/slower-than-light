@@ -310,7 +310,8 @@ export function ShipView({
     return stands.get(c.id);
   };
   const hullRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean; turn: QuarterTurn } | null>(null);
   const swallowClick = useRef(false);
   const [hover, setHover] = useState<BeamPoint | null>(null);
   const [destRoom, setDestRoom] = useState<string | null>(null);
@@ -327,13 +328,19 @@ export function ShipView({
   return (
     <div
       ref={hullRef}
-      className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}`}
+      className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}${ship.hull <= 0 ? " is-gone" : ""}`}
       data-ship={aboard}
       onPointerDown={(e) => {
         if (e.button !== 0 || !onDragCrew) return;
         const t = e.target as Element | null;
         if (t?.closest(".token, .door-tick, .mount")) return;
-        dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+        const layer = layerRef.current ?? hullRef.current;
+        dragRef.current = {
+          x: e.clientX,
+          y: e.clientY,
+          moved: false,
+          turn: layer ? ancestorTurn(layer) : 0,
+        };
       }}
       onPointerMove={(e) => {
         const hull = hullRef.current;
@@ -350,15 +357,15 @@ export function ShipView({
         const dy = e.clientY - drag.y;
         if (!drag.moved && Math.hypot(dx, dy) > 6) {
           drag.moved = true;
-          hull.setPointerCapture(e.pointerId);
+          try {
+            hull.setPointerCapture(e.pointerId);
+          } catch {
+            // Capture fails once the pointer is already up. Moves still update the box.
+          }
         }
         if (!drag.moved) return;
-        const rect = hull.getBoundingClientRect();
-        const x1 = Math.min(drag.x, e.clientX) - rect.left;
-        const y1 = Math.min(drag.y, e.clientY) - rect.top;
-        const x2 = Math.max(drag.x, e.clientX) - rect.left;
-        const y2 = Math.max(drag.y, e.clientY) - rect.top;
-        setDragBox({ left: x1, top: y1, width: Math.max(0, x2 - x1), height: Math.max(0, y2 - y1) });
+        const layer = layerRef.current ?? hull;
+        setDragBox(dragRect(layer, drag.x, drag.y, e.clientX, e.clientY, drag.turn));
       }}
       onPointerUp={(e) => {
         const drag = dragRef.current;
@@ -367,22 +374,20 @@ export function ShipView({
         setDragBox(null);
         if (!drag.moved || !onDragCrew) return;
         swallowClick.current = true;
-        const hull = hullRef.current;
-        if (!hull) return;
-        const rect = hull.getBoundingClientRect();
-        const x1 = Math.min(drag.x, e.clientX);
-        const y1 = Math.min(drag.y, e.clientY);
-        const x2 = Math.max(drag.x, e.clientX);
-        const y2 = Math.max(drag.y, e.clientY);
+        const layer = layerRef.current ?? hullRef.current;
+        if (!layer) return;
+        const box = dragRect(layer, drag.x, drag.y, e.clientX, e.clientY, drag.turn);
+        const w = layer.clientWidth;
+        const h = layer.clientHeight;
         const ids: string[] = [];
         for (const c of here) {
           const open = seen ? seen(c.room) : true;
           if (!open && !(crewLit?.(c) ?? false)) continue;
           const at = crewPlace(ship, here, c, standFor(c));
           if (!at) continue;
-          const px = rect.left + (at.x / 100) * rect.width;
-          const py = rect.top + (at.y / 100) * rect.height;
-          if (px >= x1 && px <= x2 && py >= y1 && py <= y2) ids.push(c.id);
+          const px = (at.x / 100) * w;
+          const py = (at.y / 100) * h;
+          if (px >= box.left && px <= box.left + box.width && py >= box.top && py <= box.top + box.height) ids.push(c.id);
         }
         onDragCrew(ids);
       }}
@@ -583,7 +588,7 @@ export function ShipView({
       })}
       <Mounts ship={ship} crew={crew} aboard={aboard} />
       {showCrew ? (
-        <div className="crew-walkers">
+        <div className="crew-walkers" ref={layerRef}>
           {here.map((c) => {
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;
@@ -619,12 +624,77 @@ export function ShipView({
               />
             );
           })}
+          {dragBox ? <div className="crew-drag" style={dragBox} /> : null}
         </div>
       ) : null}
-      {dragBox ? <div className="crew-drag" style={dragBox} /> : null}
       <BeamOverlay hullRef={hullRef} lines={strokes} />
     </div>
   );
+}
+
+type QuarterTurn = 0 | 90 | 180 | 270;
+
+/** Ancestor rotations, snapped to a quarter turn. Portrait play rotates the stage 90°; the desktop board is only scaled. */
+function ancestorTurn(el: HTMLElement): QuarterTurn {
+  let angle = 0;
+  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+    const raw = getComputedStyle(node).transform;
+    if (!raw || raw === "none") continue;
+    const m = new DOMMatrix(raw);
+    angle += Math.atan2(m.b, m.a);
+  }
+  const q = Math.round(angle / (Math.PI / 2));
+  return ((((q % 4) + 4) % 4) * 90) as QuarterTurn;
+}
+
+/**
+ * Screen point → pixels from el's padding edge.
+ * The pointer is in viewport pixels. The rubber band's left/top are local pixels,
+ * and an ancestor may scale the board or rotate it for an upright phone.
+ */
+function clientToLayer(el: HTMLElement, clientX: number, clientY: number, turn: QuarterTurn): { x: number; y: number } {
+  const rect = el.getBoundingClientRect();
+  const w = el.offsetWidth || 1;
+  const h = el.offsetHeight || 1;
+  let x: number;
+  let y: number;
+  if (turn === 90) {
+    const sx = rect.height / w || 1;
+    const sy = rect.width / h || 1;
+    x = (clientY - rect.top) / sx;
+    y = (rect.right - clientX) / sy;
+  } else if (turn === 270) {
+    const sx = rect.height / w || 1;
+    const sy = rect.width / h || 1;
+    x = (rect.bottom - clientY) / sx;
+    y = (clientX - rect.left) / sy;
+  } else if (turn === 180) {
+    const sx = rect.width / w || 1;
+    const sy = rect.height / h || 1;
+    x = (rect.right - clientX) / sx;
+    y = (rect.bottom - clientY) / sy;
+  } else {
+    const sx = rect.width / w || 1;
+    const sy = rect.height / h || 1;
+    x = (clientX - rect.left) / sx;
+    y = (clientY - rect.top) / sy;
+  }
+  return { x: x - el.clientLeft, y: y - el.clientTop };
+}
+
+function dragRect(
+  el: HTMLElement,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  turn: QuarterTurn,
+): { left: number; top: number; width: number; height: number } {
+  const a = clientToLayer(el, x1, y1, turn);
+  const b = clientToLayer(el, x2, y2, turn);
+  const left = Math.min(a.x, b.x);
+  const top = Math.min(a.y, b.y);
+  return { left, top, width: Math.max(a.x, b.x) - left, height: Math.max(a.y, b.y) - top };
 }
 
 function frac(el: HTMLElement, clientX: number, clientY: number): { x: number; y: number } {

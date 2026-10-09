@@ -107,7 +107,7 @@ import { DroneArt, WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
-import { Screen, usePhoneLayout } from "./Screen";
+import { Screen } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
 
@@ -1148,8 +1148,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
             return (
-              <span key={w.uid} className="gun-wrap">
               <button
+                key={w.uid}
                 type="button"
                 data-tray="weapons"
                 data-slot={index}
@@ -1203,16 +1203,6 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 </span>
                 <span className="power-num">{def?.power ?? 1}</span>
               </button>
-              <button
-                type="button"
-                className={`gun-auto${auto ? " is-on" : ""}`}
-                aria-pressed={auto}
-                aria-label={`${name} autofire`}
-                onClick={() => act((g) => reverseSlotAuto(g, w.uid))}
-              >
-                Auto
-              </button>
-              </span>
             );
           })}
           {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
@@ -1683,7 +1673,6 @@ function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
   const [view, setView] = useState<string | null>(null);
   const boot = useGame((s) => s.boot);
-  const phone = usePhoneLayout();
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
@@ -1723,25 +1712,8 @@ function TitleScreen() {
   if (view === "hangar") return <Hangar />;
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
-  const phoneSheet =
-    view === "options" ? (
-      <ControlsScreen onClose={() => setView(null)} />
-    ) : view === "stats" ? (
-      <AchievementsScreen game={null} onClose={() => setView(null)} />
-    ) : view === "help" ? (
-      <HelpScreen onContinue={startTutorial} />
-    ) : view === "credits" ? (
-      <div className="title-card">
-        <p>CREDITS</p>
-        <p>STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
-        <p>v. 0.1</p>
-        <button type="button" onClick={() => setView(null)}>
-          Close
-        </button>
-      </div>
-    ) : null;
   return (
-    <section className={`title-shot${phone ? " is-phone" : ""}`}>
+    <section className="title-shot">
       <FullscreenButton className="frame-btn title-fs" />
       <div
         className="title-frame"
@@ -1756,8 +1728,6 @@ function TitleScreen() {
             type="button"
             className="menu-hit"
             aria-label={item.label}
-            aria-hidden={phone || undefined}
-            tabIndex={phone ? -1 : undefined}
             disabled={item.id === "continue" && !saveReady}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {
@@ -1766,26 +1736,11 @@ function TitleScreen() {
             }}
           />
         ))}
-        {phone ? null : view === "credits" ? <TitlePanel /> : null}
-        {phone ? null : view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
-        {phone ? null : view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
-        {phone ? null : view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
-        {phone ? phoneSheet : null}
+        {view === "credits" ? <TitlePanel /> : null}
+        {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
+        {view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
+        {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
       </div>
-      {phone && !phoneSheet ? (
-        <nav className="title-menu" aria-label="Menu">
-          {TITLE_MENU_ART.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              disabled={item.id === "continue" && !saveReady}
-              onClick={() => openTitle(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      ) : null}
     </section>
   );
 }

@@ -119,12 +119,6 @@ html.is-immersive body {
   background: #000;
 }
 
-/* Portrait phone: the stage is landscape-sized and rotated onto the upright screen. */
-.viewport.is-turned {
-  transform: rotate(90deg);
-  transform-origin: top left;
-}
-
 .screen {
   position: absolute;
   left: 50%;
@@ -139,28 +133,6 @@ html.is-immersive body {
 
 .screen.is-fit {
   visibility: visible;
-}
-
-/* A phone fills the device with the real layout. Scaling the 1280 board made every control too small, which is why a second bar used to exist. */
-.viewport.has-phone .screen {
-  position: absolute;
-  inset: 0;
-  width: auto;
-  height: auto;
-  transform: none;
-}
-
-.rotate-hint {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 8px;
-  z-index: 4;
-  text-align: center;
-  color: var(--color-muted);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  pointer-events: none;
 }
 
 .deck {
@@ -2403,10 +2375,6 @@ button.door-tick::before {
   cursor: default;
 }
 
-.title-shot.is-phone .menu-hit {
-  pointer-events: none;
-}
-
 .title-panel {
   position: absolute;
   left: 28%;
@@ -4083,140 +4051,4 @@ button.door-tick::before {
 .beacon-map.sector-map .beacon.is-quest:not(.is-over) {
   outline: 2px solid #f2c94c;
   outline-offset: 2px;
-}
-
-/* Phone: the board is the interface. Hits that were a few pixels get a finger-sized pad. Lists that duplicated them are gone. */
-.viewport.has-phone .title-shot.is-phone {
-  grid-template-columns: minmax(0, 1fr) minmax(148px, 210px);
-  place-items: stretch;
-}
-
-.title-menu {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  z-index: 3;
-}
-
-.title-menu button,
-.viewport.has-phone .hangar-top button,
-.viewport.has-phone .hangar-ship button,
-.viewport.has-phone .hangar-letters button,
-.viewport.has-phone .crew-card,
-.viewport.has-phone .crew-card-hit,
-.viewport.has-phone .choice-line,
-.viewport.has-phone .frame-btn {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.title-menu button {
-  border: 2px solid var(--color-line);
-  background: var(--color-panel);
-  color: var(--color-fg);
-  font-family: var(--font-hud);
-  font-size: 22px;
-  letter-spacing: 0.06em;
-}
-
-.title-menu button:disabled {
-  color: var(--color-muted);
-  border-color: var(--color-line-dim);
-}
-
-.title-card {
-  position: fixed;
-  inset: 8px;
-  z-index: 8;
-  overflow: auto;
-  padding: 16px;
-  background: var(--color-panel);
-  border: 2px solid var(--color-line);
-  color: var(--color-fg);
-  font-family: var(--font-hud);
-  font-size: 22px;
-  line-height: 1.3;
-}
-
-.viewport.has-phone .play {
-  grid-template-columns: 96px minmax(0, 1fr) minmax(128px, 34%);
-}
-
-.viewport.has-phone .play.no-target {
-  grid-template-columns: 96px minmax(0, 1fr);
-}
-
-.viewport.has-phone .power-col button {
-  width: 28px;
-  height: 22px;
-}
-
-.viewport.has-phone .sub-orb,
-.viewport.has-phone .sys-orb {
-  width: 44px;
-  height: 44px;
-}
-
-.viewport.has-phone .autofire,
-.viewport.has-phone .door-pop button {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.gun-wrap {
-  position: relative;
-  flex: none;
-}
-
-.gun-auto {
-  display: none;
-}
-
-.viewport.has-phone .gun-auto {
-  display: grid;
-  place-items: center;
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  z-index: 2;
-  min-width: 44px;
-  min-height: 28px;
-  padding: 0 6px;
-  border: 2px solid var(--color-line);
-  background: var(--color-panel);
-  color: var(--color-fg);
-  font-family: var(--font-hud);
-  font-size: 16px;
-}
-
-.viewport.has-phone .gun-auto.is-on {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.viewport.has-phone .play .token {
-  width: 26px;
-  height: 26px;
-}
-
-.viewport.has-phone button.door-tick::before {
-  inset: -16px;
-}
-
-.viewport.has-phone .beacon-map.sector-map .beacon {
-  width: 28px;
-  height: 28px;
-}
-
-.viewport.has-phone .hangar {
-  max-width: none;
-  height: 100cqh;
-  overflow: auto;
-}
-
-.viewport.has-phone .overlay,
-.viewport.has-phone .title-frame .wiki-screen {
-  max-height: 100%;
 }

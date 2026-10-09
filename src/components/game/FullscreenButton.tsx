@@ -5,7 +5,6 @@
  */
 import { useEffect, useState } from "react";
 import { PixelIcon } from "./PixelIcon";
-import { lockLandscape } from "./Screen";
 
 const IMMERSIVE = "is-immersive";
 const ICON = `${import.meta.env.BASE_URL}__grok/install/assets/homescreen`;
@@ -124,10 +123,7 @@ export function FullscreenButton({ className = "frame-btn" }: { className?: stri
   useEffect(() => {
     const sync = () => setOn(isOn() || installedApp());
     sync();
-    if (installedApp()) {
-      document.documentElement.classList.add(IMMERSIVE);
-      lockLandscape();
-    }
+    if (installedApp()) document.documentElement.classList.add(IMMERSIVE);
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
     return () => {
@@ -142,7 +138,6 @@ export function FullscreenButton({ className = "frame-btn" }: { className?: stri
       setGuide(ios);
       return;
     }
-    lockLandscape();
     if (installedApp()) {
       document.documentElement.classList.add(IMMERSIVE);
       void tryNative();

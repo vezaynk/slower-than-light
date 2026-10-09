@@ -21,7 +21,9 @@ const PULSE_SECONDS = [0, 4, 7, 10] as const;
 
 /**
  * Hacking wiki, "Overview" (Shields): 2 seconds to remove 1 shield layer.
- * That label also says a 4 second level-1 pulse randomly removes 1 or 2 layers; this interval is fixed.
+ * "Level 1 hacking lasts exactly 4 seconds, and will randomly remove 1 or 2 shield layers."
+ * INFERRED: those two outcomes are equally likely. The page prints no weight.
+ * The 30 frames-per-second lock that always removes 2 is not a clock this sim has.
  */
 const SHIELD_DROP_SECONDS = 2;
 
@@ -412,6 +414,27 @@ export function spikeEvadeZero(g: Game, ship: Ship): boolean {
   return spikeFreezesFtl(g);
 }
 
+/**
+ * Hacking wiki, "Overview" (Shields): one layer every 2 seconds.
+ * A level-1 pulse is exactly 4 seconds, so the second mark is the random 1-or-2 layer.
+ * INFERRED: rand at or above one half skips that second layer. No weight is printed.
+ * Level 2 (7 seconds) and level 3 (10 seconds) keep every mark, including the one at 4 seconds.
+ * `kit.aux` is seconds since the pulse started. startOwnPulse and startEnemyPulse zero it.
+ */
+function dischargeShields(g: Game, kit: Kit, ship: Ship, dt: number) {
+  const span = kit.aux + kit.left;
+  const before = kit.aux;
+  kit.aux += dt;
+  const level1 = Math.abs(span - PULSE_SECONDS[1]) < 0.02;
+  const first = Math.floor(before / SHIELD_DROP_SECONDS + 1e-9) + 1;
+  const last = Math.floor(kit.aux / SHIELD_DROP_SECONDS + 1e-9);
+  for (let n = first; n <= last; n++) {
+    if (ship.shieldNow <= 0) return;
+    if (level1 && n === 2 && rand(g) >= 0.5) continue;
+    ship.shieldNow -= 1;
+  }
+}
+
 function applyPulse(g: Game, kit: Kit, dt: number) {
   const enemy = g.enemy;
   if (!enemy || !kit.target) return;
@@ -445,11 +468,7 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
     return;
   }
   if (kit.target === "shields") {
-    kit.aux += dt;
-    while (kit.aux >= SHIELD_DROP_SECONDS) {
-      kit.aux -= SHIELD_DROP_SECONDS;
-      if (enemy.shieldNow > 0) enemy.shieldNow -= 1;
-    }
+    dischargeShields(g, kit, enemy, dt);
     return;
   }
   if (kit.target === "weapons" || FLAGSHIP_GUN[kit.target]) {
@@ -1145,11 +1164,7 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
     case "shields":
       // "Shields: discharges shields, requiring 2 seconds to remove 1 shield layer." sim.ts shieldRegen holds the
       // recharge meanwhile (hackHoldsShields).
-      kit.aux += dt;
-      while (kit.aux >= SHIELD_DROP_SECONDS) {
-        kit.aux -= SHIELD_DROP_SECONDS;
-        if (ship.shieldNow > 0) ship.shieldNow -= 1;
-      }
+      dischargeShields(g, kit, ship, dt);
       return;
     case "weapons":
       // "Weapon Control: drains the charge of all weapons on the ship and prevents them from being fired";

@@ -166,6 +166,28 @@ describe("enemy hacking: pulse effects", () => {
     assert.equal(g.player.shieldNow, 1);
   });
 
+  it("randomly removes 1 or 2 layers on a level-1 pulse, and 3 on a level-2 pulse", () => {
+    // Hacking, Overview: level 1 "will randomly remove 1 or 2 shield layers."
+    // The 2 second mark still removes one. Level 2 lasts 7 seconds, so six seconds remove three.
+    const seen = new Set<number>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const g = latched("shields", 1, seed);
+      g.player.shieldNow = 4;
+      tickEnemySpike(g, 0.01);
+      tickEnemySpike(g, 4);
+      const dropped = 4 - g.player.shieldNow;
+      assert.ok(dropped === 1 || dropped === 2, `seed ${seed} dropped ${dropped}`);
+      seen.add(dropped);
+    }
+    assert.ok(seen.has(1) && seen.has(2));
+
+    const steady = latched("shields", 2, 3);
+    steady.player.shieldNow = 4;
+    tickEnemySpike(steady, 0.01);
+    tickEnemySpike(steady, 6);
+    assert.equal(steady.player.shieldNow, 1);
+  });
+
   it("drains player weapons at base speed and stops them charging", () => {
     const g = latched("weapons");
     for (const w of g.player.weapons) w.charge = 1;

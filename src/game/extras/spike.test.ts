@@ -62,6 +62,24 @@ describe("spike", () => {
     assert.equal(g.player.kits.spike?.left, left);
   });
 
+  it("randomly removes 1 or 2 shield layers across a full level-1 pulse", () => {
+    // Hacking, Overview: "Level 1 hacking lasts exactly 4 seconds, and will randomly remove 1 or 2 shield layers."
+    // INFERRED: the two outcomes are equally likely. The page prints no weight.
+    const seen = new Set<number>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const g = armed(2);
+      armSpike(g, "shields");
+      assert.equal(launchLanded(g), true);
+      g.enemy!.shieldNow = 4;
+      g.seed = seed;
+      tickSpike(g, 4);
+      const dropped = 4 - g.enemy!.shieldNow;
+      assert.ok(dropped === 1 || dropped === 2, `seed ${seed} dropped ${dropped}`);
+      seen.add(dropped);
+    }
+    assert.ok(seen.has(1) && seen.has(2));
+  });
+
   it("does not launch with zero parts or zero power", () => {
     const dry = armed(0);
     armSpike(dry, "shields");

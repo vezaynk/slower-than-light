@@ -216,11 +216,16 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
   },
 ];
 
+/** Flak (Weapons), "Flak Gun Mark II": Additional fake flak 6. Not a WeaponDef field. */
+export const FLAK2_FAKE = 6;
+/** Flak (Weapons), "Adv. Flak Gun": Additional fake flak 3. Not a WeaponDef field. */
+export const ADV_FLAK_FAKE = 3;
+
 /**
  * Flak (Weapons), "Flak Gun Mark II".
  * "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides."
  * "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners."
- * Targeting area radius 55 is not simulated as pixels. Additional fake flak is not spawned.
+ * Targeting area radius 55 is not simulated as pixels. Additional fake flak is FLAK2_FAKE, spawned in launch.
  * INFERRED: each of the seven pellets rolls on its own. The page does not say they share one roll.
  * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
  * INFERRED: 25.78 + 4×12.06 + 2×7.02 + 4×2.70 + 4×0.29 = 100.02, so the last outer long-side tile is 0.27%.
@@ -405,7 +410,7 @@ export function flak2Landing(rooms: readonly Flak2Room[], aimId: string, roll: n
  * Flak (Weapons), "Adv. Flak Gun".
  * "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners."
  * "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides."
- * Targeting area radius 40 is not simulated as pixels. Additional fake flak is not spawned.
+ * Targeting area radius 40 is not simulated as pixels. Additional fake flak is ADV_FLAK_FAKE, spawned in launch.
  * INFERRED: each of the three pellets rolls on its own. The page does not say they share one roll.
  * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
  * INFERRED: 48.74 + 4×11.51 + 2×2.57 + 4×0.02 = 100, so every printed 1×2 tile keeps its percent.

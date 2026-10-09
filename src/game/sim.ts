@@ -132,7 +132,14 @@ import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-store
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { beamTileLength } from "./wiki/weapons-beam.ts";
 import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
-import { advFlakAimRolls, advFlakLanding, flak2AimRolls, flak2Landing } from "./wiki/weapons-flak-crystal.ts";
+import {
+  ADV_FLAK_FAKE,
+  FLAK2_FAKE,
+  advFlakAimRolls,
+  advFlakLanding,
+  flak2AimRolls,
+  flak2Landing,
+} from "./wiki/weapons-flak-crystal.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
@@ -1986,17 +1993,20 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim.
   const flak1 = w.defId === "scatter" && aimed != null && flak1AimRolls(aimed);
-  // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim. Fake flak stays unspawned.
+  // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim.
   const flak2 = w.defId === "flak2" && aimed != null && flak2AimRolls(aimed);
-  // Flak (Weapons), Adv. Flak Gun: 1x2 and 2x2 room odds. Radius 40 is not a pixel sim. Fake flak stays unspawned.
+  // Flak (Weapons), Adv. Flak Gun: 1x2 and 2x2 room odds. Radius 40 is not a pixel sim.
   const advFlak = w.defId === "advflak" && aimed != null && advFlakAimRolls(aimed);
   const born: string[] = [];
-  if (w.defId === "scatter") {
-    // Flak (Weapons), Flak Gun Mark I: Additional fake flak 3.
-    // INFERRED: decoys are pushed first. A defense drone takes the first eligible shot.
-    // INFERRED: a fake pellet stays on the aimed room and does not roll the 1x2 split.
-    // INFERRED: flight matches the damaging pellets. The page does not print a separate time.
-    for (let i = 0; i < FLAK1_FAKE; i++) {
+  // Flak (Weapons): Additional fake flak is 3 on Flak I, 6 on Flak II, and 3 on Adv. Flak.
+  // Understanding flak accuracy: fake flak cannot take down shields or deal damage, and a defense drone can shoot it.
+  // INFERRED: decoys are pushed first. A defense drone takes the first eligible shot.
+  // INFERRED: a fake pellet stays on the aimed room and does not roll the room split.
+  // INFERRED: flight matches the damaging pellets. The page does not print a separate time.
+  // INVENTED: kind missile, damage 0, and the shared fake-flak label. The page prints no kind.
+  const fakeN = w.defId === "scatter" ? FLAK1_FAKE : w.defId === "flak2" ? FLAK2_FAKE : w.defId === "advflak" ? ADV_FLAK_FAKE : 0;
+  if (fakeN > 0) {
+    for (let i = 0; i < fakeN; i++) {
       const id = uid(g);
       born.push(id);
       g.shots.push({

@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { FLAK1_FAKE_LABEL } from "../extras/ordnance.ts";
 import { CHARGE_SECONDS, DAMAGE, PROJECTILES } from "../extras/flakart.ts";
-import { createGame, fireReady, rand, startCombat } from "../sim.ts";
+import { ACQUIRE_S, enemyDefenseIntercept, tickSwarm } from "../extras/swarm.ts";
+import { applyImpact, createGame, fireReady, rand, startCombat } from "../sim.ts";
 import {
+  ADV_FLAK_FAKE,
   ADV_NARROW_CUTS,
   ADV_WIDE_CUTS,
+  FLAK2_FAKE,
   FLAK2_NARROW_CUTS,
   FLAK2_WIDE_CUTS,
   FLAK_CRYSTAL_GAPS,
@@ -285,12 +289,14 @@ describe("Flak II room odds", () => {
     preview.seed = 4;
     const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
     fireReady(g);
-    assert.equal(g.shots.length, 7);
+    const reals = g.shots.filter((shot) => shot.kind === "flak");
+    assert.equal(reals.length, 7);
+    assert.equal(g.shots.filter((shot) => shot.label === FLAK1_FAKE_LABEL).length, FLAK2_FAKE);
     const aim: Flak2Room[] = [
       { id: "n", x: 1, y: 1, w: 2, h: 1 },
       { id: "north", x: 1, y: 0, w: 2, h: 1 },
     ];
-    g.shots.forEach((shot, i) => {
+    reals.forEach((shot, i) => {
       const land = flak2Landing(aim, "n", rolls[i]);
       assert.equal(shot.damage, 1);
       assert.equal(shot.kind, "flak");
@@ -311,7 +317,9 @@ describe("Flak II room odds", () => {
     const seed = quiet.seed;
     fireReady(quiet);
     assert.equal(quiet.seed, seed);
-    assert.equal(quiet.shots.length, 7);
+    const quietReal = quiet.shots.filter((shot) => shot.kind === "flak");
+    assert.equal(quietReal.length, 7);
+    assert.equal(quiet.shots.filter((shot) => shot.label === FLAK1_FAKE_LABEL).length, FLAK2_FAKE);
     for (const shot of quiet.shots) {
       assert.equal(shot.targetRoom, "dot");
       assert.equal(shot.offRoom, undefined);
@@ -361,12 +369,14 @@ describe("Adv. Flak room odds", () => {
     preview.seed = 8;
     const rolls = [rand(preview), rand(preview), rand(preview)];
     fireReady(g);
-    assert.equal(g.shots.length, 3);
+    const reals = g.shots.filter((shot) => shot.kind === "flak");
+    assert.equal(reals.length, 3);
+    assert.equal(g.shots.filter((shot) => shot.label === FLAK1_FAKE_LABEL).length, ADV_FLAK_FAKE);
     const aim: Flak2Room[] = [
       { id: "n", x: 1, y: 1, w: 2, h: 1 },
       { id: "north", x: 1, y: 0, w: 2, h: 1 },
     ];
-    g.shots.forEach((shot, i) => {
+    reals.forEach((shot, i) => {
       const land = advFlakLanding(aim, "n", rolls[i]);
       assert.equal(shot.damage, 1);
       assert.equal(shot.kind, "flak");
@@ -374,5 +384,74 @@ describe("Adv. Flak room odds", () => {
       else if (land.kind === "room") assert.equal(shot.targetRoom, land.roomId);
       else assert.equal(shot.offRoom, true);
     });
+  });
+});
+
+describe("Flak II and Adv. Flak fake pellets", () => {
+  it("adds six and three damage-0 decoys that stay on the aimed room and do not drop shields", () => {
+    assert.equal(FLAK2_FAKE, 6);
+    assert.equal(ADV_FLAK_FAKE, 3);
+    const fire = (defId: string, power: number, fake: number, seed: number) => {
+      const g = createGame(seed);
+      startCombat(g, "scout");
+      assert.ok(g.enemy);
+      g.enemy.weapons = [];
+      g.enemy.systems.engines.level = 0;
+      g.enemy.systems.engines.power = 0;
+      g.enemy.shieldNow = 4;
+      g.enemy.zoltan = 2;
+      const hull = g.enemy.hull;
+      const room = g.enemy.rooms[0]!.id;
+      g.player.systems.weapons.level = power;
+      g.player.systems.weapons.power = power;
+      g.player.weapons = [{ uid: "f", defId, charge: 1, enabled: true, autofire: false, target: room }];
+      fireReady(g);
+      const fakes = g.shots.filter((shot) => shot.label === FLAK1_FAKE_LABEL);
+      const reals = g.shots.filter((shot) => shot.kind === "flak");
+      assert.equal(fakes.length, fake);
+      assert.equal(g.shots.slice(0, fake).every((shot) => shot.label === FLAK1_FAKE_LABEL), true);
+      assert.equal(reals.length, defId === "flak2" ? 7 : 3);
+      for (const shot of fakes) {
+        assert.equal(shot.kind, "missile");
+        assert.equal(shot.damage, 0);
+        assert.equal(shot.targetRoom, room);
+        assert.equal(shot.offRoom, undefined);
+        applyImpact(g, shot);
+      }
+      assert.equal(g.enemy.shieldNow, 4);
+      assert.equal(g.enemy.zoltan, 2);
+      assert.equal(g.enemy.hull, hull);
+    };
+    fire("flak2", 3, 6, 9);
+    fire("advflak", 1, 3, 10);
+  });
+
+  it("lets a defense drone shoot a Flak II fake pellet", () => {
+    const g = createGame(11);
+    startCombat(g, "scout");
+    assert.ok(g.enemy);
+    g.enemy.weapons = [];
+    g.enemy.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      loadout: ["ward"],
+    };
+    g.enemy.parts = 3;
+    tickSwarm(g, 0.05);
+    tickSwarm(g, ACQUIRE_S);
+    g.player.systems.weapons.level = 3;
+    g.player.systems.weapons.power = 3;
+    g.player.weapons = [{ uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: g.enemy.rooms[0]!.id }];
+    fireReady(g);
+    const fake = g.shots.find((shot) => shot.label === FLAK1_FAKE_LABEL);
+    assert.ok(fake);
+    assert.equal(enemyDefenseIntercept(g, fake), true);
+    assert.equal(enemyDefenseIntercept(g, fake), false);
   });
 });

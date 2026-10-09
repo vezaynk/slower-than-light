@@ -216,6 +216,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   /** "Fight a Pirate ship (default rewards)." */
   {
     dest: "Pirate ship distress trap",
+    // Arrival calls this fight. One of the four printed intros.
     slug: "pirate-ship-distress-trap",
     flag: "cited:pirate-ship-distress-trap",
     aliases: ["Pirate ship distress trap"],

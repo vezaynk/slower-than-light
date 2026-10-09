@@ -3706,6 +3706,15 @@ const FREE_SCRAP_WITH_RESOURCES_INTROS = [
 
 // Slug fight in plasma storm. The page prints four intros and no odds.
 // INFERRED: equal. The fight stays c:slug-fight-in-plasma-storm:0.
+// Pirate ship distress trap. The page prints four intros and no odds.
+// INFERRED: equal. The fight stays c:pirate-ship-distress-trap:0.
+const PIRATE_DISTRESS_TRAP_INTROS = [
+  "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
+  "\"Haha! I knew someone would fall into our dastardly trap!\" It appears this distress beacon was nothing but a decoy for a pirate ambush.",
+  "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.",
+  "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!",
+];
+
 const SLUG_PLASMA_INTROS = [
   "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures.",
   "The Slug ship that descends into view as you enter the ion storm must have sensed your distress - defensive action!",
@@ -4789,6 +4798,15 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: FREE_SCRAP_WITH_RESOURCES_INTROS[between(g, [0, 5])]!,
+      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
+  // Pirate ship distress trap has no choice. Arrival calls this fight.
+  // One of the four printed intros. No odds. INFERRED: equal. "Fight a Pirate ship (default rewards)." distress=true. unique=true.
+  if (ev.slug === "pirate-ship-distress-trap") {
+    return {
+      title: ev.dest,
+      body: PIRATE_DISTRESS_TRAP_INTROS[between(g, [0, 3])]!,
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }

@@ -501,7 +501,7 @@ describe("Hidden Crystal Worlds stock", () => {
   it("gives a crystal weapon for a crew kill, and can still give another gun for a hull kill", () => {
     const fromCrew = new Set<string>();
     const fromHull = new Set<string>();
-    for (let seed = 1; seed <= 80; seed++) {
+    for (let seed = 1; seed <= 400; seed++) {
       for (const mode of ["crew", "hull"] as const) {
         const g = createGame(seed);
         g.sectorName = "Hidden Crystal Worlds";

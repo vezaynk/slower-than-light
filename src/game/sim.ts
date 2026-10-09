@@ -4033,7 +4033,9 @@ function winCombat(g: Game) {
   // Template:Default rewards (generic), "Destroying the ship": that bundle is medium scrap with resources.
   // Template:Resources rewards, Low: fuel 1–3, missiles 1–2, drone parts 1.
   // INFERRED: each draw is uniform across the three, and the same resource may be drawn twice.
-  // The roughly 3% bonus weapon, augmentation, or schematic is an unnamed grant and is not rolled here.
+  // Rewards, "Standard": "roughly a 3% chance to include a bonus weapon, augmentation, or drone schematic."
+  // The roll uses that printed 3 percent. The page does not split the three, so a hit mounts a weapon (INFERRED).
+  // An augmentation or a drone schematic is unnamed and is not granted. A full rack pays no substitute scrap.
   const resourceKinds = ["fuel", "missiles", "parts"] as const;
   for (let draw = 0; draw < 2; draw++) {
     const kind = resourceKinds[irand(g, resourceKinds.length)];
@@ -4050,11 +4052,11 @@ function winCombat(g: Game) {
       notes.push("Low drone part 1.");
     }
   }
-  if (rand(g) < 0.16) {
+  if (rand(g) < 0.03) {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
     let options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
     // Sectors, "Hidden Crystal Worlds", "Sector specifics": a crew-kill reward is a crystal weapon, including the Lockdown Bomb.
-    // A hull kill keeps the priced pool. The 16% above stays inferred.
+    // A hull kill keeps the priced pool.
     if (deadCrew && g.sectorName === "Hidden Crystal Worlds") {
       const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
       options = options.filter((w) => allowed.has(w.id));
@@ -4063,9 +4065,6 @@ function winCombat(g: Game) {
       const def = pick(g, options);
       giveWeapon(g, def.id);
       notes.push(`${def.name} mounted.`);
-    } else {
-      scrap += 12;
-      eligible += 12;
     }
   }
   addScrap(g, scrap, eligible);

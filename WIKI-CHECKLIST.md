@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 940 |
-| Behaviors checked | 2871 |
+| Behaviors checked | 2873 |
 | Behaviors open | 539 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -4507,6 +4507,9 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] At Remote settlement, the printed blockade hail is shown before Attack the pirate and Ignore them.
   - [ ] The Fire Beam and Fire Bomb schematic rewards are not granted.
+    - [x] Fire Beam shows the printed crop sentence and pays high scrap.
+    - [x] Fire Bomb shows the printed dwelling sentence, spends 1 missile, and pays high scrap.
+    - [ ] The unnamed drone schematic stays ungranted.
   - [x] Attacking the pirate shows the printed engage sentence and starts a Pirate fight.
   - [x] Ignoring them shows the printed jump sentence and nothing happens.
 

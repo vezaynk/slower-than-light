@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 943 |
-| Behaviors checked | 2912 |
-| Behaviors open | 541 |
+| Pages fully checked | 942 |
+| Behaviors checked | 2913 |
+| Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -4596,10 +4596,13 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
     - [x] Paragraph audit is pass 2.
     - [ ] This is not a full page check.
 
-- [x] Rewards
+- [ ] Rewards
   - [x] SCRAP_MEDIUM bands.
   - [x] Label INFERRED.
   - [x] A destroyed ship's default salvage is two low resources among fuel, missiles, and drone parts.
+  - [ ] Standard salvage includes roughly a 3 percent chance of a bonus weapon, augmentation, or drone schematic.
+    - [x] That chance is 3 percent, and a hit mounts a priced weapon.
+    - [ ] The augmentation and the drone schematic stay unwired because neither is named.
 
 - [x] Robotic Warfare
   - [x] No playable control, number, layout, or rule.

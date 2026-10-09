@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2931 |
+| Behaviors checked | 2933 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5263,6 +5263,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Slug Repair Gel
   - [x] every breached player room gains 0.75 repair per second, including an empty room, stacked on crew repair.
+  - [x] A Slug enemy ship seals its own breaches at that same 75% pace, and a player copy does not seal the enemy hull.
   - [x] No purchase price, so it is not sold.
   - [x] Slug A/B/C start with it.
 
@@ -5274,6 +5275,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Slug Ships
   - [x] No playable control, number, layout, or rule.
+  - [x] Every Slug ship, including a pirate, seals its own hull breaches at 75% crew repair speed.
 
 - [x] Slug Store
   - [x] No playable control, number, layout, or rule.

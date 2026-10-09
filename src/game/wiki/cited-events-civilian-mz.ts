@@ -40,7 +40,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Mantis ship (default rewards)." */
+  /** "Fight a Mantis ship (default rewards)." Mantis fight in nebula has no choice. Arrival calls this fight. nebula=true. unique=false. */
   {
     dest: "Mantis fight in nebula",
     slug: "mantis-fight-in-nebula",

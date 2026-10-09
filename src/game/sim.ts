@@ -5081,6 +5081,7 @@ function arrive(g: Game, b: Beacon) {
   // Zoltan fight in asteroid field: "Fight a Zoltan ship (default rewards)." asteroidfield=true. unique=true.
   // Slug fight: "Fight a Slug ship (default rewards)." unique=true.
   // Mantis fight: "Fight a Mantis ship (default rewards)." One of the twenty printed intros. unique=false.
+  // Mantis fight in nebula: "Fight a Mantis ship (default rewards)." One of the five printed intros. nebula=true. unique=false.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5112,7 +5113,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:zoltan-fight" ||
       b.flag === "cited:zoltan-fight-in-asteroid-field" ||
       b.flag === "cited:slug-fight" ||
-      b.flag === "cited:mantis-fight") &&
+      b.flag === "cited:mantis-fight" ||
+      b.flag === "cited:mantis-fight-in-nebula") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

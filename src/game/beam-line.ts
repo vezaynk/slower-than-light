@@ -56,7 +56,7 @@ export function cellsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): { x:
  * enters them. A room is listed once. An omitted cell is hull, not floor.
  * A segment that passes through a grid corner also counts the two side cells:
  * that corner is the tiny edge of those rooms.
- * Printed beam length does not shorten the segment.
+ * The caller shortens a longer swipe to the printed tile length before this walk.
  */
 export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): string[] {
   const owner = new Map<string, string>();
@@ -78,6 +78,20 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
     rooms.push(id);
   });
   return rooms;
+}
+
+/**
+ * Beam (Weapons): each row prints a length as "N (X tiles diagonally)".
+ * X is the tile length. A second click farther than that stops on the way there.
+ * A closer click is the end. This does not stretch a short swipe out to X.
+ */
+export function clipBeamEnd(a: BeamPoint, toward: BeamPoint, tiles: number): BeamPoint {
+  const dx = toward.x - a.x;
+  const dy = toward.y - a.y;
+  const dist = Math.hypot(dx, dy);
+  if (!(tiles > 0) || !(dist > tiles)) return { x: toward.x, y: toward.y };
+  const scale = tiles / dist;
+  return { x: a.x + dx * scale, y: a.y + dy * scale };
 }
 
 /** The grid walk roomsOnSegment and cellsOnSegment share. Bounds stay here so both see the same cells. */

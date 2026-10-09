@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { cellsOnSegment, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
+import { cellsOnSegment, clipBeamEnd, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
+import { beamTileLength } from "./wiki/weapons-beam.ts";
 import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
 
@@ -70,6 +71,26 @@ describe("rooms on a beam segment", () => {
   });
 });
 
+describe("printed beam length", () => {
+  const row = grid(
+    [cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0), cell("d", 3, 0), cell("e", 4, 0), cell("f", 5, 0)],
+    6,
+    1,
+  );
+
+  it("stops a longer swipe at the printed tile count and leaves a closer click", () => {
+    // Beam (Weapons), Glaive Beam: 1.8 tiles diagonally. The click past that is not the end.
+    const start = { x: 0.5, y: 0.5 };
+    const far = { x: 5.5, y: 0.5 };
+    const end = clipBeamEnd(start, far, 1.8);
+    assert.ok(Math.abs(end.x - 2.3) < 1e-9);
+    assert.equal(end.y, 0.5);
+    assert.deepEqual(roomsOnSegment(row, start, end), ["a", "b", "c"]);
+    const near = { x: 1.2, y: 0.5 };
+    assert.deepEqual(clipBeamEnd(start, near, 1.8), near);
+  });
+});
+
 describe("player beam aim", () => {
   function fight() {
     const g = createGame(1, "slug-a");
@@ -117,16 +138,17 @@ describe("player beam aim", () => {
     const { g, w } = fight();
     const rooms = g.enemy!.rooms;
     const start = rooms[0];
-    const end = rooms[rooms.length - 1];
+    const far = rooms[rooms.length - 1];
     w.charge = 1;
     armWeapon(g, w.uid);
     aim(g, start.id, center(start));
-    aim(g, end.id, center(end));
+    aim(g, far.id, center(far));
     const shot = g.shots.find((s) => s.defId === "antibio");
     assert.ok(shot);
-    assert.deepEqual(shot.beamRooms, roomsOnSegment(g.enemy!, center(start), center(end)));
+    const clipped = clipBeamEnd(center(start), center(far), beamTileLength("antibio") ?? 0);
+    assert.deepEqual(shot.beamRooms, roomsOnSegment(g.enemy!, center(start), clipped));
     assert.equal(shot.beamRooms?.[0], shot.targetRoom);
-    assert.deepEqual(shot.beamLine, { a: center(start), b: center(end) });
+    assert.deepEqual(shot.beamLine, { a: center(start), b: clipped });
   });
 
   it("queues the segment while the beam is still charging", () => {
@@ -139,7 +161,8 @@ describe("player beam aim", () => {
     assert.equal(g.shots.filter((s) => s.defId === "antibio").length, 0);
     assert.equal(g.targeting, false);
     assert.ok(w.beamLine);
-    assert.equal(w.target, roomsOnSegment(g.enemy!, center(rooms[0]), center(rooms[rooms.length - 1]))[0]);
+    const end = clipBeamEnd(center(rooms[0]), center(rooms[rooms.length - 1]), beamTileLength("antibio") ?? 0);
+    assert.equal(w.target, roomsOnSegment(g.enemy!, center(rooms[0]), end)[0]);
   });
 
   it("keeps the segment on autofire and drops it after a manual shot", () => {

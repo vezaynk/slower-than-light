@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { BEAM_CREW, BEAM_GAPS, BEAM_WEAPONS } from "./weapons-beam.ts";
+import { BEAM_CREW, BEAM_GAPS, BEAM_TILES, BEAM_WEAPONS, beamTileLength } from "./weapons-beam.ts";
 
 function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
   return {
@@ -156,6 +156,19 @@ describe("beam weapons", () => {
     assert.match(src, /Fire Beam's crew line is "-"/);
   });
 
+  it("stores the printed tile lengths", () => {
+    // Beam (Weapons): the parenthetical is the tile count. shear is the fitted Pike id.
+    assert.equal(BEAM_TILES.mini, 1);
+    assert.equal(BEAM_TILES.pike, 3.8);
+    assert.equal(beamTileLength("shear"), 3.8);
+    assert.equal(BEAM_TILES.hullbeam, 2.2);
+    assert.equal(BEAM_TILES.halberd, 1.8);
+    assert.equal(BEAM_TILES.glaive, 1.8);
+    assert.equal(BEAM_TILES.firebeam, 3.1);
+    assert.equal(BEAM_TILES.antibio, 3.1);
+    assert.equal(beamTileLength("artillery-beam"), null);
+  });
+
   it("parks length, rooms, pierce, and anti-bio crew damage in gaps", () => {
     assert.match(gap("mini"), /beam length 45/);
     assert.match(gap("mini"), /15 HP/);
@@ -176,7 +189,7 @@ describe("beam weapons", () => {
     assert.match(gap("antibio"), /60 HP/);
     assert.match(gap("shield-layers"), /reduced by one for every shield layer/);
     assert.match(gap("swipe"), /second click fires/);
-    assert.match(gap("swipe"), /not used to shorten/);
+    assert.match(gap("swipe"), /stops at the printed tile length/);
     assert.match(gap("swipe"), /one door-neighbour/);
     assert.match(gap("zoltan-shield"), /33%/);
     assert.match(gap("zoltan-shield"), /80%/);

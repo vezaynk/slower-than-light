@@ -76,7 +76,7 @@ import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
-import { cellsOnSegment, roomCenter, roomsOnSegment } from "./beam-line.ts";
+import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
@@ -130,6 +130,7 @@ import {
 import { asteroidIntervalSeconds, asteroidSide } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
+import { beamTileLength } from "./wiki/weapons-beam.ts";
 import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
 import { advFlakAimRolls, advFlakLanding, flak2AimRolls, flak2Landing } from "./wiki/weapons-flak-crystal.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
@@ -1755,7 +1756,7 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
  * Beam (Weapons), "Beam targeting and damage mechanics":
  * "The first click sets the starting point... The second click fires the beam."
  * "Even catching a room with the tiniest edge of a beam... will deal full hull and system damage."
- * The segment is the two clicks. Printed length does not shorten it.
+ * A farther second click stops at the printed tile length. A closer click stays the click.
  */
 function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point: BeamPoint) {
   const enemy = g.enemy;
@@ -1769,8 +1770,10 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
     sfx(g, "click");
     return;
   }
-  const rooms = roomsOnSegment(enemy, anchor, point);
-  w.beamLine = { a: anchor, b: point };
+  const tiles = beamTileLength(w.defId);
+  const end = tiles == null ? point : clipBeamEnd(anchor, point, tiles);
+  const rooms = roomsOnSegment(enemy, anchor, end);
+  w.beamLine = { a: anchor, b: end };
   w.target = rooms[0] ?? roomId;
   g.beamAnchor = null;
   const titles = (rooms.length > 0 ? rooms : [w.target]).map((id) => roomById(enemy, id)?.title ?? "room");

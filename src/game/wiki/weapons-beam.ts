@@ -172,6 +172,34 @@ export const BEAM_WEAPONS: WeaponDef[] = [
  * Fire Beam's crew line is "-", not a number. Boss Beam prints no crew line.
  * Artillery Beam prints 15 HP per room tile, and lance.ts does not launch a shot.
  */
+/**
+ * Beam (Weapons): the parenthetical tile count, not the pixel figure.
+ * `shear` is the fitted id of the Pike Beam row.
+ * Artillery Beam and Boss Beam are not aimed with this line.
+ */
+export const BEAM_TILES: Record<string, number> = {
+  // "Beam length: 45 (1 tile diagonally)"
+  mini: 1,
+  // "Beam length: 170 (3.8 tiles diagonally)"
+  pike: 3.8,
+  shear: 3.8,
+  // "Beam length: 100 (2.2 tiles diagonally)"
+  hullbeam: 2.2,
+  // "Beam length: 80 (1.8 tiles diagonally)"
+  halberd: 1.8,
+  // "Beam length: 80 (1.8 tiles diagonally)"
+  glaive: 1.8,
+  // "Beam length: 140 (3.1 tiles diagonally)"
+  firebeam: 3.1,
+  // "Beam length: 140 (3.1 tiles diagonally)"
+  antibio: 3.1,
+};
+
+export function beamTileLength(defId: string | undefined): number | null {
+  if (!defId || !Object.prototype.hasOwnProperty.call(BEAM_TILES, defId)) return null;
+  return BEAM_TILES[defId];
+}
+
 export const BEAM_CREW: Record<string, number> = {
   // Beam (Weapons), "Mini Beam": Crew damage: 15 HP per room tile.
   mini: 15,
@@ -235,7 +263,7 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
   {
     id: "swipe",
     // Beam (Weapons), "Beam targeting and damage mechanics".
-    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the starting point and the second click fires. Even a tiny edge of a room counts, and damage is applied when the beam first enters that room. The rooms are the ones the straight segment between those two clicks crosses. Printed beam length is not used to shorten the segment. Halberd\'s "3-4 rooms straight, 2-3 diagonally, 5 max" is not the room rule. Enemies still start in the centre of a room. INFERRED: an enemy swipe adds one door-neighbour.',
+    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the starting point and the second click fires. Even a tiny edge of a room counts, and damage is applied when the beam first enters that room. A longer swipe stops at the printed tile length. A closer click is not stretched. Halberd\'s "3-4 rooms straight, 2-3 diagonally, 5 max" is not the room rule. Enemies still start in the centre of a room. INFERRED: an enemy swipe adds one door-neighbour.',
   },
   {
     id: "zoltan-shield",

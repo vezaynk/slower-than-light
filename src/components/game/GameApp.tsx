@@ -13,6 +13,7 @@ import { navAllows } from "@/game/wiki/cited-nav";
 import { batteryBarsOn, batterySpareBars, cellBonus, installCell, startCell, upgradeCell } from "@/game/extras/cell";
 import { recallSling, sendSling, shipInDanger, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
 import { activateDroneSlot, depowerDrone, playerDroneSlots, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
+import { beamTileLength } from "@/game/wiki/weapons-beam";
 import { lowerLancePower, raiseLancePower } from "@/game/extras/lance";
 import { lowerFlakPower, raiseFlakPower } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
@@ -855,6 +856,13 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   );
 }
 
+/** Beam (Weapons): the aiming line is the printed tile length of the armed gun. */
+function armedBeamReach(game: Game): number | null {
+  if (!game.targeting || !game.beamAnchor) return null;
+  const armed = game.player.weapons.find((w) => w.uid === game.armed);
+  return beamTileLength(armed?.defId);
+}
+
 /** Queued player beam swipes. A powered gun keeps the segment it will fire. */
 function beamLinesOf(game: Game): BeamLine[] {
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
@@ -981,6 +989,7 @@ function TargetPanel({ game, hackAiming, slingAiming, leashAiming }: { game: Gam
           onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
           aims={aimMarks(game)}
           beamAnchor={game.targeting && !hackAiming ? game.beamAnchor : null}
+          beamReach={game.targeting && !hackAiming ? armedBeamReach(game) : null}
           beamLines={beamLinesOf(game)}
           hackMark={hackMark}
           hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}

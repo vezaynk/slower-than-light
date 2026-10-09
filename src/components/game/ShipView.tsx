@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { pointInRoom } from "@/game/beam-line";
+import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, padCells, restSpot, roomConsole, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
@@ -236,6 +236,8 @@ type Props = {
   doorsDead?: boolean;
   /** First click of a beam, in this hull's tile space. The next click is the end. */
   beamAnchor?: BeamPoint | null;
+  /** Printed tile length of the beam being aimed. The preview stops there. */
+  beamReach?: number | null;
   /** Queued player swipes, drawn across this hull. */
   beamLines?: BeamLine[];
   onCrew: (id: string, shift?: boolean) => void;
@@ -275,6 +277,7 @@ export function ShipView({
   hackMark = null,
   hackPick,
   beamAnchor = null,
+  beamReach = null,
   beamLines = [],
   droneHp = [],
   plateId,
@@ -315,9 +318,11 @@ export function ShipView({
   useEffect(() => {
     if (!beamAnchor) setHover(null);
   }, [beamAnchor]);
+  const previewEnd =
+    beamAnchor && hover ? (beamReach != null ? clipBeamEnd(beamAnchor, hover, beamReach) : hover) : null;
   const strokes: { a: BeamPoint; b: BeamPoint; preview: boolean }[] = [
     ...beamLines.map((line) => ({ a: line.a, b: line.b, preview: false })),
-    ...(beamAnchor && hover ? [{ a: beamAnchor, b: hover, preview: true }] : []),
+    ...(beamAnchor && previewEnd ? [{ a: beamAnchor, b: previewEnd, preview: true }] : []),
   ];
   return (
     <div

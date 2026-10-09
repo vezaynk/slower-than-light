@@ -72,8 +72,10 @@ describe("cited stores", () => {
 
     g.scrap = shields.cost;
     buy(g, shields.id);
-    assert.ok(g.player.systems.shields.level >= 1);
+    // The Stealth Cruiser: two power bars making one shield layer. Power stays unassigned.
+    assert.equal(g.player.systems.shields.level, 2);
     assert.equal(g.player.systems.shields.power, 0);
+    assert.equal(g.player.shieldNow, 0);
     assert.equal(g.scrap, 0);
     assert.equal(
       g.stock?.some((item) => item.id === shields.id),

@@ -340,7 +340,10 @@ function grantSystem(g: Game, item: StockItem): boolean {
   if (ownedSystem(g, row)) return false;
   if (row.slot === "sys") {
     const sys = g.player.systems[row.ref];
-    sys.level = 1;
+    // The Stealth Cruiser: "Installing shields requires 125 scrap, and will start with two power bars making one shield layer."
+    // Level 2 is those two bars. One layer is what both bars produce once they are powered.
+    // Power stays unassigned, the same as every other system purchase.
+    sys.level = row.ref === "shields" ? 2 : 1;
     sys.power = 0;
     if (row.ref === "shields") g.player.shieldNow = 0;
     return true;

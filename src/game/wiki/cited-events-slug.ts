@@ -24,6 +24,7 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
+  // "Fight a Mantis ship (default rewards)." Mantis fight (Slug) has no choice. Arrival calls this fight. The printed sentence is the card body. unique=true.
   {
     dest: "Mantis fight (Slug)",
     slug: "mantis-fight-slug",

@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 942 |
-| Behaviors checked | 2906 |
-| Behaviors open | 541 |
+| Pages fully checked | 943 |
+| Behaviors checked | 2909 |
+| Behaviors open | 540 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -4574,8 +4574,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Research station near pulsar
   - [x] same title as "Research Station Near Pulsar" with different capitalization.
 
-- [ ] Research station with no response
-  - [ ] The page states a mechanic and it is not a playable event.
+- [x] Research station with no response
+  - [x] Opening the beacon shows the printed arrival, docking runs the existing station investigation, and leaving shows Nothing happens.
+  - [x] The Anti-Personnel drone shows one of the two nothing texts twice as often as the cameras, spends one drone part unless that medium scrap includes drone parts, and stays closed without the drone.
+  - [x] A Lifeform Scanner shows the deceased-crew salvage or the scattered-life nothing, and stays closed without that augment.
 
 - [x] Resources
   - [x] No playable control, number, layout, or rule.

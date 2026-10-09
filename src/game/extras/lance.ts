@@ -1,6 +1,7 @@
 import type { Door, Game, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { noteAchieve, noteArtillery } from "../wiki/achieve-notes.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";
@@ -88,6 +89,7 @@ export function upgradeLance(g: Game): boolean {
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
   log(g, "Artillery Beam raised.");
   return true;
 }
@@ -248,6 +250,7 @@ export function tickLance(g: Game, dt: number): void {
     enemy.shieldNow = shieldNow;
   }
   kit.aux = 0;
+  noteArtillery(g);
   // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
   noteWeaponManning(g);
   if (!held) log(g, `${DISPLAY_NAME} cuts ${enemy.name}.`);

@@ -6,6 +6,7 @@ import type { DroneUnit, Game, Ship } from "../types.ts";
 import { ENEMY_DRONES } from "../wiki/enemy-ships.ts";
 import {
   ACQUIRE_S,
+  ANTI_KILL,
   ANTI_STUN_S,
   BOARD_FLY_S,
   DRONE_COOLDOWN_S,
@@ -429,6 +430,11 @@ describe("enemy defensive drones", () => {
     tickSwarm(s, 0.05);
     tickSwarm(s, ACQUIRE_S);
     assert.equal(enemyDefenseIntercept(s, { kind: "laser", from: "player" }), false);
+  });
+
+  it("stuns for 5 seconds and destroys on a 47.8 percent roll", () => {
+    assert.equal(ANTI_STUN_S, 5);
+    assert.equal(ANTI_KILL, 47.8 / 100);
   });
 
   it("an enemy Anti-Combat Drone stuns or destroys your combat drone", () => {

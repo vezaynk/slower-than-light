@@ -142,7 +142,9 @@ describe("quest openers (quests-a)", () => {
     assert.equal(g.phase, "event");
     assert.ok(g.event!.body.startsWith("As they jump away"));
     choose(g, "ack");
+    g.player.hull = 1;
     goToQuest(g, "rock-shipyard");
+    assert.equal(g.player.hull, Math.min(g.player.hullMax, 30));
     assert.ok(g.unlocked?.includes("rock-a"));
     assert.ok(g.augments.includes("keel") || g.augments.length >= 3);
   });

@@ -680,6 +680,72 @@ export type GameEvent = {
   choices: { id: string; label: string }[];
 };
 
+/**
+ * Counters for Achievements and Ship Achievements whose printed condition is not a single field
+ * the run already stored. A missing flag means that thing has not happened.
+ */
+export type AchieveTally = {
+  shot?: boolean;
+  offensiveDrone?: boolean;
+  teleported?: boolean;
+  upgraded?: boolean;
+  storeRepair?: boolean;
+  missileOrBomb?: boolean;
+  usedDrone?: boolean;
+  storeBuy?: boolean;
+  lostCrew?: boolean;
+  evadeStreak?: number;
+  evadeBest?: number;
+  boardKills?: number;
+  boardBest?: number;
+  enemyShot?: boolean;
+  playerShots?: number;
+  sawIt?: boolean;
+  allAboard?: boolean;
+  beamAt?: number;
+  beamRooms?: string[];
+  sliced?: boolean;
+  asphyxia?: boolean;
+  fromOne?: boolean;
+  cloakPrey?: boolean;
+  cloakAvoid?: number;
+  envJump?: boolean;
+  crewKillShips?: number;
+  cleanKills?: number;
+  cleanBroke?: boolean;
+  lastStand?: boolean;
+  dronePeak?: number;
+  droneHurt?: boolean;
+  weaponHurt?: boolean;
+  artilleryUsed?: boolean;
+  otherWeapon?: boolean;
+  missileShots?: number;
+  ionFour?: boolean;
+  nebulaJumps?: number;
+  antiBio?: number;
+  warmKill?: boolean;
+  missileDefense?: boolean;
+  shieldArmed?: boolean;
+  shieldIntact?: boolean;
+  shieldsHeld?: boolean;
+  vengeance?: boolean;
+  trapped?: boolean;
+  rockKills?: number;
+  artilleryKill?: boolean;
+  droneOnly?: boolean;
+  burnedAll?: boolean;
+  o2Broke?: boolean;
+  fightHull?: boolean;
+  phaseShift?: boolean;
+  bird?: boolean;
+  /** Hacking, Mind Control, and the Battery active together. */
+  mastery?: boolean;
+  /** Five crew kills in one fight before hull damage or a lost crewmember. */
+  avast?: boolean;
+  /** Reached sector 8 without an environmental-danger jump. */
+  reachedClean?: boolean;
+};
+
 export type Game = {
   seed: number;
   uid: number;
@@ -800,6 +866,16 @@ export type Game = {
    * Bars added by those offers. Absent means none. The upgrades tab does not add to this.
    */
   reactorEvent?: number;
+  /**
+   * Achievement counters the save did not used to keep.
+   * Absent on an older save means none of these marks have been seen.
+   */
+  tally?: AchieveTally;
+  /**
+   * FTL: Advanced Edition: some events exist only while Advanced Edition content is enabled.
+   * Absent on an older save means content is on.
+   */
+  ae?: boolean;
   /** Score page: beacons visited. The starting beacon counts. */
   beaconsVisited: number;
   /** Sectors page chart. Empty until the exit beacon opens it. */

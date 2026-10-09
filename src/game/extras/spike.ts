@@ -1,4 +1,5 @@
 import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, evasionPercent, forgetCrew, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
@@ -139,6 +140,7 @@ export function installSpike(g: Game): boolean {
   if (g.player.kits.spike) return false;
   if (g.scrap < SPIKE_COST) return false;
   g.scrap -= SPIKE_COST;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.spike = {
     id: "spike",
     // Hacking wiki, "System upgrades": a fresh install is level 1. Level 2 costs 35 and level 3 costs 60 on that table; neither is charged here.
@@ -170,6 +172,7 @@ export function upgradeSpike(g: Game): boolean {
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
   log(g, "Hacking raised.");
   return true;
 }

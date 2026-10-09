@@ -2,6 +2,7 @@ import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
 import { cooldownLocksPower, enemyEscapeView, kitBars, kitIonLocked, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
@@ -95,6 +96,7 @@ export function installSling(g: Game) {
   if (g.player.kits.sling) return;
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.sling = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Teleporter fitted to the Lark.");
@@ -108,6 +110,7 @@ export function upgradeSling(g: Game) {
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
   log(g, `Sling raised to level ${kit.level}.`);
 }
 
@@ -176,6 +179,7 @@ export function sendSling(g: Game, roomId: string) {
     if (mendOnSend(g)) c.hp = c.maxHp;
   }
   arm(kit, roomId);
+  noteAchieve(g, { k: "teleport" });
   log(g, `Teleporter sends ${crew.map((c) => c.name).join(" and ")}.`);
 }
 

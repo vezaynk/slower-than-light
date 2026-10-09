@@ -54,4 +54,22 @@ describe("Slug ship breach gel", () => {
     step(rebel, 0.05);
     assert.equal(home.breach, 0);
   });
+
+  it("closes a Slug breach at 0.75 repair-seconds per second", () => {
+    const slug = createGame(4);
+    slug.sector = 3;
+    slug.augments = [];
+    startCombat(slug, "Slug ship");
+    const room = primed(slug, slug.enemy!);
+    room.breachFix = 0;
+    // A healthy system room lets standing crew add their own pace to the same counter.
+    // A damaged bar sends them to the system instead, so one second is the gel alone.
+    assert.ok(room.system);
+    const sys = slug.enemy!.systems[room.system]!;
+    sys.damage = 1;
+    for (let i = 0; i < 20; i++) step(slug, 0.05);
+    assert.ok(sys.damage > 0);
+    assert.ok(Math.abs(room.breachFix - 0.75) < 1e-9);
+    assert.equal(room.breach, 1);
+  });
 });

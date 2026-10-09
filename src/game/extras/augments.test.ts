@@ -581,6 +581,10 @@ function stand(c: Crew, aboard: "player" | "enemy", room: string, hp = 80) {
 }
 
 describe("Emergency Respirators", () => {
+  it("is sold for 50", () => {
+    assert.equal(CATALOG.find((entry) => entry.id === "lung")?.cost, 50);
+  });
+
   it("halves a boarder and quarters a Crystal, and leaves the enemy at full", () => {
     const g = airlessFight(3);
     const room = g.enemy!.rooms[0]!;

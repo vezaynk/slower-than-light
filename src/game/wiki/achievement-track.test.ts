@@ -50,7 +50,12 @@ describe("achievement tracker", () => {
     const five = createGame(1);
     five.phase = "map";
     five.sector = 5;
-    assert.deepEqual(earnedNow(five), ["just-getting-started"]);
+    assert.deepEqual(earnedNow(five), [
+      "just-getting-started",
+      "coming-in-for-my-pacifism-run",
+      "i-dont-need-no-stinkin-upgrades",
+      "on-a-wing-and-a-prayer",
+    ]);
 
     const eight = createGame(1);
     eight.phase = "map";
@@ -67,6 +72,15 @@ describe("achievement tracker", () => {
       "just-getting-started",
       "federation-base-in-range",
       "federation-victory-easy",
+      "rule-ten-greed-is-eternal",
+      "warlord",
+      "coming-in-for-my-pacifism-run",
+      "i-dont-need-no-stinkin-upgrades",
+      "on-a-wing-and-a-prayer",
+      "ballistophobia",
+      "technophobia",
+      "living-off-the-land",
+      "no-redshirts-here",
     ]);
     eight.difficulty = "normal";
     assert.ok(earnedNow(eight).includes("federation-victory-normal"));
@@ -96,18 +110,44 @@ describe("achievement tracker", () => {
 
   it("keeps earned ids in localStorage and ignores an untracked id", () => {
     memoryStorage();
-    localStorage.setItem("stl-achievements-v1", JSON.stringify(["warlord", "just-getting-started"]));
+    localStorage.setItem("stl-achievements-v1", JSON.stringify(["were-in-position", "just-getting-started"]));
     resetAchievementMemory();
     assert.deepEqual(earnedIds(), ["just-getting-started"]);
 
+    localStorage.setItem("stl-achievements-v1", JSON.stringify(["warlord", "just-getting-started"]));
+    resetAchievementMemory();
     const run = createGame(1, "lanius-b");
     run.phase = "map";
     run.sector = 8;
     run.scrap = 600;
-    assert.deepEqual(noteRun(run).sort(), ["federation-base-in-range", "just-getting-started", "scrap-hoarder"]);
+    assert.deepEqual(noteRun(run).sort(), [
+      "ballistophobia",
+      "coming-in-for-my-pacifism-run",
+      "federation-base-in-range",
+      "i-dont-need-no-stinkin-upgrades",
+      "just-getting-started",
+      "living-off-the-land",
+      "no-redshirts-here",
+      "on-a-wing-and-a-prayer",
+      "scrap-hoarder",
+      "technophobia",
+      "warlord",
+    ]);
     const quiet = createGame(1);
     quiet.phase = "map";
-    assert.deepEqual(noteRun(quiet).sort(), ["federation-base-in-range", "just-getting-started", "scrap-hoarder"]);
+    assert.deepEqual(noteRun(quiet).sort(), [
+      "ballistophobia",
+      "coming-in-for-my-pacifism-run",
+      "federation-base-in-range",
+      "i-dont-need-no-stinkin-upgrades",
+      "just-getting-started",
+      "living-off-the-land",
+      "no-redshirts-here",
+      "on-a-wing-and-a-prayer",
+      "scrap-hoarder",
+      "technophobia",
+      "warlord",
+    ]);
   });
 
   it("reads Your Own Fleet from the saved Type A unlocks", () => {
@@ -138,24 +178,15 @@ describe("achievement tracker", () => {
     assert.equal(earnedNow(g).includes("manpower"), false);
   });
 
-  it("marks every other named achievement as not tracked", () => {
+  it("tracks every named achievement except slug vision and the four blue events", () => {
+    const open = ["diplomatic-immunity", "were-in-position"];
     const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
-    // @agent:unlocks: six stateless ship achievements added for Layout B unlocks (unlocks.ts).
-    assert.deepEqual(tracked, [
-      "just-getting-started",
-      "federation-base-in-range",
-      "federation-victory-easy",
-      "federation-victory-normal",
-      "your-own-fleet",
-      "the-united-federation",
-      "full-arsenal",
-      "artillery-mastery",
-      "ancestry",
-      "givin-her-all-shes-got-captain",
-      "manpower",
-      "scrap-hoarder",
-    ]);
-    assert.equal(untrackedIds().length, ACHIEVEMENTS.length - tracked.length);
+    assert.deepEqual(
+      tracked,
+      ACHIEVEMENTS.map((row) => row.id).filter((id) => !open.includes(id)),
+    );
+    assert.deepEqual(untrackedIds().sort(), open);
+    assert.equal(tracked.length, ACHIEVEMENTS.length - open.length);
     for (const id of untrackedIds()) assert.equal(isTracked(id), false);
   });
 });

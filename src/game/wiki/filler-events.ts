@@ -3,6 +3,7 @@ import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
+import { aeEventTitle } from "./ae-events.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
 import {
   NEVER_RUN,
@@ -921,6 +922,7 @@ export function drawFiller(r: Game, list: FillerList, beacons: Beacon[], reserve
   for (const row of LISTS[list]) {
     const page = pageForRow(row.dest);
     if (!page) continue;
+    if (r.ae === false && (aeEventTitle(page.dest) || page.aliases.some((name) => aeEventTitle(name)))) continue;
     if (row.unique && (reserved.has(page.flag) || onMap(beacons, page))) continue;
     pool.push(page);
   }

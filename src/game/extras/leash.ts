@@ -1,5 +1,6 @@
 import { interiorLinks, mayStand } from "../crew-spots.ts";
 import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -190,6 +191,7 @@ export function installLeash(g: Game) {
     return;
   }
   g.scrap -= INSTALL_COST;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.leash = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Mind Control fitted to the Lark.");
@@ -207,6 +209,7 @@ export function upgradeLeash(g: Game) {
     return;
   }
   g.scrap -= cost;
+  noteAchieve(g, { k: "upgrade" });
   kit.level = next;
   log(g, "Mind Control raised.");
 }

@@ -28,6 +28,7 @@ describe("kin", () => {
   it("voidlung does not suffocate", () => {
     // Wiki page "Lanius": immune to suffocation. Wiki page "Oxygen": same.
     assert.equal(kinOf("voidlung").suffocate, 0);
+    assert.equal(kinOf("voidlung").move, 0.85);
     assert.notEqual(kinOf("voidlung").suffocate, kinOf("plain").suffocate);
   });
 

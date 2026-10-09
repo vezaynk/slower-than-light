@@ -19,6 +19,7 @@ import { INTRUDER } from "../wiki/cited-intruder.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS } from "../wiki/cited-overcharger.ts";
 import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 import { flagshipDronePower } from "../wiki/flagship-systems.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 
 /**
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
@@ -208,6 +209,7 @@ export function installSwarmBundle(g: Game, kind: "patch" | "ward" | "striker"):
   const cost = kind === "patch" ? BUNDLE_PATCH : BUNDLE_OTHER;
   if (g.scrap < cost) return false;
   g.scrap -= cost;
+  noteAchieve(g, { k: "upgrade" });
   const kit = blank();
   kit.target = kind;
   g.player.kits.swarm = kit;
@@ -351,6 +353,8 @@ export function deploy(g: Game, kind: string): boolean {
   delete kit.heading;
   delete kit.bearing;
   log(g, `Drone Control deploys ${kind}.`);
+  const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
+  noteAchieve(g, { k: "drone", kind, functioning: Math.max(functioning, kit.on ? 1 : 0) });
   return true;
 }
 
@@ -396,6 +400,8 @@ function deploySlot(g: Game, index: number): boolean {
   delete kit.idle;
   kit.on = true;
   log(g, `Drone Control deploys ${unit.kind}.`);
+  const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
+  noteAchieve(g, { k: "drone", kind: unit.kind, functioning });
   return true;
 }
 
@@ -2062,7 +2068,9 @@ function landBeamSwipe(g: Game, ship: Ship | null, roomId: string, kind: string,
     if (second) rooms.push(second);
   }
   for (const hit of rooms) {
+    const before = ship.hull;
     ship.hull = Math.max(0, ship.hull - BEAM_DAMAGE);
+    if (from === "player" && ship.hull < before) noteAchieve(g, { k: "droneHull" });
     if (hit.system) {
       const sys = ship.systems[hit.system];
       if (sys && sys.damage < sys.level) sys.damage += BEAM_DAMAGE;

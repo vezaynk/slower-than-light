@@ -5,7 +5,7 @@ import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
 import { tickSwarm } from "./extras/swarm.ts";
-import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
+import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, MUZZLE_S, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
 import type { Shot } from "./types.ts";
 import { WEAPONS, XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
@@ -1238,6 +1238,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
 
   it("leaves the shot once the window has passed", () => {
     // INFERRED: 0.15s. Four 0.05s steps are past it. A laser flight is 0.7s, so the shot is still in the air.
+    assert.equal(MUZZLE_S, 0.15);
     const { g, crew } = primed(45, "spark");
     assert.equal(g.shots.length, 1);
     for (let i = 0; i < 4; i++) step(g, 0.05);

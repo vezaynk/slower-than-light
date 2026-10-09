@@ -155,7 +155,7 @@ describe("Zoltan odd moon", () => {
     assert.equal(dry, true);
   });
 
-  it("spends one missile on a blast that grants no weapon and no unstated scrap", () => {
+  it("spends one missile on a blast that grants no weapon, and pays a scrap band only for the remains", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 120; seed++) {
       const g = open(seed);
@@ -167,12 +167,17 @@ describe("Zoltan odd moon", () => {
       choose(g, "c:zoltan-odd-moon:boom");
       assert.equal(g.missiles, 3);
       assert.equal(g.player.weapons.length, weapons);
-      assert.equal(g.scrap, scrap);
       const body = g.event?.body ?? "";
-      if (body.includes("secret base")) seen.add("base");
-      else if (body.includes("subterranean base")) seen.add("remains");
-      else if (body.includes("What a waste")) seen.add("waste");
-      else assert.fail(body);
+      if (body.includes("secret base")) {
+        assert.equal(g.scrap, scrap);
+        seen.add("base");
+      } else if (body.includes("subterranean base")) {
+        assert.ok(g.scrap > scrap);
+        seen.add("remains");
+      } else if (body.includes("What a waste")) {
+        assert.equal(g.scrap, scrap);
+        seen.add("waste");
+      } else assert.fail(body);
     }
     assert.deepEqual([...seen].sort(), ["base", "remains", "waste"]);
   });

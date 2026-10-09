@@ -1,4 +1,5 @@
 import { kitBars, log, playerMedicalOff, sparePower } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { helixHolds } from "./moreaugs.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -77,6 +78,7 @@ export function installCradle(g: Game) {
     return;
   }
   g.scrap -= cost;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.cradle = blankCradle(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Clone Bay installed.");
@@ -97,6 +99,7 @@ export function upgradeCradle(g: Game) {
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
   log(g, "Clone Bay raised.");
 }
 

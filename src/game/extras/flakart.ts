@@ -1,4 +1,5 @@
 import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -122,6 +123,7 @@ export function upgradeFlak(g: Game): boolean {
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
   log(g, "Flak Artillery raised.");
   return true;
 }

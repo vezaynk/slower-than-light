@@ -1,12 +1,13 @@
 /**
  * Wiki pages "Achievements" and "Ship Achievements".
- * A tile is earned only from a field the run already stores: kills, beacons, scrap, hull, or sector.
- * Earned ids are kept in localStorage. No new counter is added for a line the sim does not store.
+ * A tile is earned from a field the run stores, or from a counter in g.tally (wiki/achieve-notes.ts).
+ * Earned ids are kept in localStorage. Two lines stay untracked: slug vision of every room, and four blue events.
  * Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
 import { HULLS } from "../hulls.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
 import type { Difficulty, Game } from "../types.ts";
+import { bankLifetime, lifetimeOf } from "./achieve-notes.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
 
 const STORAGE_KEY = "stl-achievements-v1";
@@ -141,6 +142,15 @@ function ancestry(g: Game): boolean {
   return !!flying(g, "Rock Cruiser") && g.sectorName === "Hidden Crystal Worlds";
 }
 
+function flag(g: Game, key: keyof NonNullable<Game["tally"]>): boolean {
+  return g.tally?.[key] === true;
+}
+
+function atLeast(g: Game, key: keyof NonNullable<Game["tally"]>, n: number): boolean {
+  const value = g.tally?.[key];
+  return typeof value === "number" && value >= n;
+}
+
 const RULES: Rule[] = [
   { id: "just-getting-started", met: sectorFive },
   { id: "federation-base-in-range", met: sectorEight },
@@ -154,51 +164,55 @@ const RULES: Rule[] = [
   { id: "givin-her-all-shes-got-captain", met: givinHerAll },
   { id: "manpower", met: manpower },
   { id: "scrap-hoarder", met: scrapHoarder },
+  // Achievements, General Progression. The cross-game totals live beside the earned ids.
+  { id: "rule-ten-greed-is-eternal", met: (g) => lifetimeOf(g).scrap >= 10000 },
+  { id: "warlord", met: (g) => lifetimeOf(g).kills >= 1000 },
+  // Achievements, Going the Distance. An absent tally flag means that action has not happened.
+  { id: "coming-in-for-my-pacifism-run", met: (g) => g.sector >= 5 && !flag(g, "shot") && !flag(g, "offensiveDrone") && !flag(g, "teleported") },
+  { id: "i-dont-need-no-stinkin-upgrades", met: (g) => g.sector >= 5 && !flag(g, "upgraded") },
+  { id: "on-a-wing-and-a-prayer", met: (g) => g.sector >= 5 && !flag(g, "storeRepair") },
+  { id: "ballistophobia", met: (g) => g.sector >= 8 && !flag(g, "missileOrBomb") },
+  { id: "technophobia", met: (g) => g.sector >= 8 && !flag(g, "usedDrone") },
+  { id: "living-off-the-land", met: (g) => g.sector >= 8 && !flag(g, "storeBuy") },
+  { id: "no-redshirts-here", met: (g) => g.sector >= 8 && !flag(g, "lostCrew") },
+  // Achievements, Skill and Equipment Feats.
+  { id: "some-people-just-like-to-watch-ships-burn", met: (g) => flag(g, "burnedAll") },
+  { id: "astronomically-low-odds", met: (g) => atLeast(g, "evadeBest", 5) },
+  { id: "boarding-objective-successful", met: (g) => atLeast(g, "boardBest", 4) },
+  { id: "they-never-saw-it-coming", met: (g) => flag(g, "sawIt") },
+  { id: "trustworthy-auto-pilot", met: (g) => flag(g, "allAboard") },
+  { id: "slice-and-dice", met: (g) => flag(g, "sliced") },
+  { id: "victory-through-asphyxiation", met: (g) => flag(g, "asphyxia") },
+  // Ship Achievements. The cruiser check is the same one the earlier rules use.
+  { id: "tough-little-ship", met: (g) => !!flying(g, "Kestrel Cruiser") && flag(g, "fromOne") },
+  { id: "bird-of-prey", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "bird") },
+  { id: "phase-shift", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "phaseShift") },
+  { id: "tactical-approach", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "reachedClean") },
+  { id: "take-no-prisoners", met: (g) => !!flying(g, "Mantis Cruiser") && atLeast(g, "crewKillShips", 20) },
+  { id: "avast-ye-scurvy-dogs", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "avast") },
+  { id: "battle-royale", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "lastStand") },
+  { id: "robotic-warfare", met: (g) => !!flying(g, "Engi Cruiser") && atLeast(g, "dronePeak", 3) },
+  { id: "i-hardly-lifted-a-finger", met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "droneOnly") },
+  { id: "the-guns-theyve-stopped", met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "ionFour") },
+  { id: "master-of-patience", met: (g) => !!flying(g, "Federation Cruiser") && flag(g, "artilleryKill") },
+  { id: "home-sweet-home", met: (g) => !!flying(g, "Slug Cruiser") && g.sector < 8 && atLeast(g, "nebulaJumps", 30) },
+  { id: "disintegration-ray", met: (g) => !!flying(g, "Slug Cruiser") && atLeast(g, "antiBio", 3) },
+  { id: "is-it-warm-in-here", met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "warmKill") },
+  { id: "defense-drones-dont-do-danything", met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "missileDefense") },
+  { id: "shields-holding", met: (g) => !!flying(g, "Zoltan Cruiser") && flag(g, "shieldsHeld") },
+  { id: "sweet-revenge", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "vengeance") },
+  { id: "no-escape", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "trapped") },
+  { id: "clash-of-the-titans", met: (g) => !!flying(g, "Crystal Cruiser") && atLeast(g, "rockKills", 10) },
+  { id: "advanced-mastery", met: (g) => !!flying(g, "Lanius Cruiser") && flag(g, "mastery") },
+  { id: "loss-of-cabin-pressure", met: (g) => !!flying(g, "Lanius Cruiser") && g.sector >= 8 && (g.jumps ?? 0) > 0 && !flag(g, "o2Broke") },
 ];
 
 /**
- * These lines stay locked. The sim does not store the condition, so no counter is invented.
- * Kills, beacons, and hull are stored, and none of these lines is only that reading.
- *
- * Achievements, "General Progression":
- * - "Rule Ten: Greed is Eternal" — "Collect 10,000 scrap across all games." Scrap this run is stored. A total across games is not.
- * - "Warlord" — "Defeat 1000 ships across all playthroughs." Kills this run are stored. A total across playthroughs is not.
- *
- * Achievements, "Going the Distance": each line is a sector plus a restriction the run does not store.
- * - "Coming in for my Pacifism run!" — no shots, offensive drone, or teleport.
- * - "I don't need no stinkin' upgrades!" — no system or reactor upgrades.
- * - "On a Wing and a Prayer" — no store repair.
- * - "Ballistophobia" — no missiles or bombs.
- * - "Technophobia" — no drones.
- * - "Living off the Land" — no store purchase.
- * - "No Redshirts Here" — no lost crewmember.
- *
- * Achievements, "Skill and Equipment Feats":
- * - "Some people just like to watch ships burn" — every square on fire.
- * - "Astronomically Low Odds" — five missed evades in a row.
- * - "BOARDING OBJECTIVE SUCCESSFUL" — one boarding drone kills four crew.
- * - "They never saw it coming" — one pre-igniter volley.
- * - "Trustworthy Auto-Pilot" — all crew aboard the enemy.
- * - "Slice and Dice" — every room hit by a beam within five seconds.
- * - "Victory through Asphyxiation" — enemy oxygen under five percent.
- *
- * Ship Achievements, "Kestrel Cruiser": repair from 1 HP to full. (Six aliens and eleven systems are tracked above.)
- * Hull is the current number, not that repair.
- * Ship Achievements, "Stealth Cruiser": one cloak destroying a full-health ship; 9 damage avoided in one cloak; sector 8 with no environmental beacon.
- * Ship Achievements, "Mantis Cruiser": crew of 20 ships by sector 6; five crew kills with no hull or crew loss; last crewmember kills the last enemy.
- * Ship Achievements, "Engi Cruiser": three drones at once; a kill using only drones; four ioned systems at once.
- * Ship Achievements, "Federation Cruiser": artillery-only kill with no hull damage; four blue events by sector 5. (No weapons upgrade is tracked above.)
- * Ship Achievements, "Slug Cruiser": full enemy vision without sensors; 30 nebula jumps; three crew with one Anti-Bio Beam shot.
- * Beacons visited are not nebula jumps.
- * Ship Achievements, "Rock Cruiser": a crew kill on a burning enemy; a missile-only kill of a ship with a defense drone. (Secret sector is tracked above.)
- * Ship Achievements, "Zoltan Cruiser": a kill before the Zoltan Shield drops. (29 power and no reactor upgrade are tracked above.)
- * Ship Achievements, "Crystal Cruiser": a Crystal Vengeance shard kill; four crew trapped in one room; 10 Rock ships destroyed.
- * Ship Achievements, "Lanius Cruiser": Hacking, Mind Control, and Battery active together; oxygen never above 20 percent through sector 8.
- * "Scrap Hoarder" is the one Lanius line that is tracked. It is not in this list.
+ * Still no counter. The sim does not record slug room-vision or which choices were blue options.
+ * Ship Achievements, Slug: "have vision of every room on the enemy ship without functioning sensors."
+ * Ship Achievements, Federation: "use your crew in four special blue events by sector 5."
  */
-const UNTRACKED = new Set(
-  ACHIEVEMENTS.map((row) => row.id).filter((id) => !RULES.some((rule) => rule.id === id)),
-);
+const UNTRACKED = new Set(["were-in-position", "diplomatic-immunity"]);
 
 const TRACKED = new Set(RULES.map((rule) => rule.id));
 
@@ -246,6 +260,7 @@ function write(ids: Set<string>) {
 
 /** Remember ids this run just met. Already earned ids stay earned. */
 export function noteRun(g: Game): string[] {
+  bankLifetime(g);
   const have = read();
   let changed = false;
   for (const id of earnedNow(g)) {

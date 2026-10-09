@@ -1,6 +1,7 @@
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { cooldownLocksPower, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -67,6 +68,7 @@ export function installVeil(g: Game) {
   if (g.player.kits.veil) return;
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.veil = blankVeil();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Cloaking fitted.");
@@ -80,6 +82,7 @@ export function upgradeVeil(g: Game) {
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   kit.level += 1;
+  noteAchieve(g, { k: "upgrade" });
 }
 
 /** INFERRED: one reactor bar. Wiki page "Cloaking" gives no power-bar count under "Overview" or "System Upgrades". */
@@ -105,6 +108,7 @@ export function startVeil(g: Game) {
   if (kitIonLocked(kit)) return;
   if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
   kit.on = true;
+  noteAchieve(g, { k: "cloak" });
   kit.left = 5 * kit.level;
   kit.cool = 0;
   log(g, "Cloaking up.");

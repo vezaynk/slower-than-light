@@ -1,4 +1,5 @@
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { interruptLeash } from "./leash.ts";
 import { shipInDanger } from "./sling.ts";
@@ -189,6 +190,7 @@ export function installCell(g: Game) {
     return;
   }
   g.scrap -= INSTALL_COST;
+  noteAchieve(g, { k: "upgrade" });
   g.player.kits.cell = makeCell(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Backup Battery fitted to the Lark.");
@@ -203,6 +205,7 @@ export function upgradeCell(g: Game) {
     return;
   }
   g.scrap -= UPGRADE_COST;
+  noteAchieve(g, { k: "upgrade" });
   kit.level = 2;
   kit.power = 0;
   if (running(kit)) kit.aux = barsFor(2);

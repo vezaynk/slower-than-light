@@ -73,6 +73,7 @@ import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "./wiki/cited-rock-fire.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
+import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
 import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
@@ -221,7 +222,10 @@ export function repairHull(g: Game, mode: "one" | "all" | "max") {
   else n = Math.min(missing, Math.floor(g.scrap / rate));
   if (n <= 0) return;
   g.scrap -= n * rate;
+  const before = g.player.hull;
   g.player.hull += n;
+  noteAchieve(g, { k: "store", repair: true });
+  noteAchieve(g, { k: "hull", before, after: g.player.hull });
   sfx(g, "click");
 }
 
@@ -611,7 +615,7 @@ export function noteWeaponManning(g: Game) {
  * The point stays. INFERRED: 0.15 seconds. The page prints no duration.
  * Shorter than a beam flight (0.32s), so the shot has not landed.
  */
-const MUZZLE_S = 0.15;
+export const MUZZLE_S = 0.15;
 
 function skillFight(g: Game): boolean {
   // Environmental Hazards, Asteroid Field: skill only while a fight with an enemy ship is still on.
@@ -2075,6 +2079,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   const sound = def.kind === "flak" ? "laser" : def.kind === "bomb" ? "missile" : def.kind === "laser" ? "laser" : def.kind;
   sfx(g, sound);
   veilBrokenByFire(g, from, def.kind);
+  noteAchieve(g, { k: "shot", from, kind: def.kind, defId: w.defId, rooms });
   if (from === "player") {
     log(g, `${def.name} away.`);
     noteWeaponManning(g);
@@ -2327,11 +2332,15 @@ export function applyImpact(g: Game, shot: Shot) {
     const evade = evasionPercent(g, ship, aboard);
     const ownHull = ownBomb && playerTarget === (shot.from === "player");
     if (!ownHull && rand(g) * 100 < evade) {
-      if (playerTarget) noteDodge(g);
+      if (playerTarget) {
+        noteDodge(g);
+        noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
+      }
       log(g, playerTarget ? "Bomb missed the Lark." : "They slipped the bomb.");
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
       return;
     }
+    if (!ownHull && playerTarget) noteAchieve(g, { k: "evade", missed: false });
     const r = roomById(ship, shot.targetRoom);
     if (!r) return;
     // Mind Control, Overview: "teleporting a bomb that doesn't miss a targeted room".
@@ -2512,11 +2521,16 @@ export function applyImpact(g: Game, shot: Shot) {
   }
 
   if (missed) {
-    if (playerTarget) noteDodge(g);
+    if (playerTarget) {
+      noteDodge(g);
+      noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
+    }
     log(g, playerTarget ? "Shot missed the Lark." : "Enemy evasion held.");
     floatAt(g, "MISS", playerTarget ? 72 : 28, 18);
     return;
   }
+  // Beams returned above. They never miss, so they are not a failed evade.
+  if (playerTarget) noteAchieve(g, { k: "evade", missed: false });
 
   // Zoltan Shield, lead: a resisted ion projectile still hits the room when no regular shield bubble is up.
   let ionPassthrough = false;
@@ -2666,6 +2680,7 @@ function looseShard(g: Game) {
   const damage = left == null ? VENGEANCE_SHOT.damage : left;
   if (damage <= 0) return;
   enemy.hull = Math.max(0, enemy.hull - damage);
+  if (enemy.hull <= 0) noteAchieve(g, { k: "vengeance" });
   log(g, `A shard hits their hull. Hull ${enemy.hull}.`);
 }
 
@@ -2713,6 +2728,10 @@ function strikeRoom(
     const before = ship.hull;
     if (!held) ship.hull = Math.max(0, ship.hull - hull);
     else log(g, "Rock Plating held the hull.");
+    if (playerHurt && ship.hull < before) noteAchieve(g, { k: "hull", before, after: ship.hull });
+    if (!playerHurt && ship.hull < before && shot.from === "player") {
+      noteAchieve(g, shot.defId ? { k: "weaponHull" } : { k: "droneHull" });
+    }
     // Augmentations, Crystal Vengeance: 10 percent chance when the ship takes damage.
     // A shield pop and Rock Plating are not hull loss. One roll per drop.
     if (playerHurt && ship.hull < before && g.augments.includes("vengeance") && vengeanceFires(rand(g))) {
@@ -3898,7 +3917,30 @@ function reap(g: Game) {
   const dead = g.crew.filter((c) => c.hp <= 0);
   if (!dead.length) return;
   for (const c of dead) {
-    if (noteDeath(g, c)) continue;
+    const cloned = noteDeath(g, c);
+    const hull = c.aboard === "player" ? g.player : g.enemy;
+    const room = hull?.rooms.find((r) => r.id === c.room);
+    const livingPlayers = g.crew.filter((other) => other.side === "player" && other.hp > 0);
+    const board = g.player.kits.swarm;
+    noteAchieve(g, {
+      k: "death",
+      side: c.side === "player" ? "player" : "enemy",
+      cloned,
+      fire: (room?.fire ?? 0) >= 1,
+      playerThere:
+        c.side === "enemy" &&
+        c.aboard === "enemy" &&
+        g.crew.some((other) => other.side === "player" && other.hp > 0 && other.aboard === c.aboard && other.room === c.room),
+      lastEnemy: c.side === "enemy" && !g.crew.some((other) => other.side === "enemy" && other.hp > 0 && other.id !== c.id),
+      lastPlayerAboard: livingPlayers.length === 1 && livingPlayers[0]?.aboard === "enemy",
+      boarder:
+        c.side === "enemy" &&
+        c.aboard === "enemy" &&
+        !!board?.on &&
+        board.target === "board" &&
+        board.room === c.room,
+    });
+    if (cloned) continue;
     // Wiki page "Zoltans", section "Race characteristics": death burst deals 15 HP to enemy crew in the same room.
     // "No damage to allies, if the exploding Zoltan was mind-controlled."
     // The holder's crew are those allies. The page does not name the Zoltan's own crew as a new target.
@@ -3996,6 +4038,18 @@ function winCombat(g: Game) {
   const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
   // @agent:quests. {{Winning|deadCrew=true}}: the fight ended with their crew dead, not their hull (read before clean-up).
   const deadCrew = !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
+  const livingPlayer = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+  const foe = g.enemy;
+  const defenseUnits = foe?.kits.swarm?.drones ?? [];
+  noteAchieve(g, {
+    k: "win",
+    deadCrew,
+    allAboard: livingPlayer.length > 0 && livingPlayer.every((c) => c.aboard === "enemy"),
+    defense:
+      defenseUnits.some((d) => d.alive && (d.kind === "ward" || d.kind === "ward2")) ||
+      (!!foe?.kits.swarm?.on && (foe.kits.swarm.target === "ward" || foe.kits.swarm.target === "ward2")),
+    rock: foe?.faction === "rock",
+  });
   g.kills += 1;
   // Mind Control: an enemy hold ends with the fight.
   clearEnemyLeash(g);
@@ -4400,6 +4454,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   armDoors(built.ship, doorLevel(g, built.ship, "enemy"), g.difficulty);
   log(g, `${built.ship.name} on the scope.`);
   sfx(g, "alarm");
+  noteAchieve(g, { k: "fight" });
 }
 
 function enemyAboard(g: Game): boolean {
@@ -4912,6 +4967,12 @@ export function createGame(
     muted: false,
     lowHull: false,
   } as Game;
+  // FTL: Advanced Edition. "0" in stl:ae is off. Absent storage, and an absent g.ae, both mean on.
+  try {
+    if (typeof localStorage !== "undefined" && localStorage.getItem("stl:ae") === "0") g.ae = false;
+  } catch {
+    // Storage can be blocked. The run keeps Advanced Edition content on.
+  }
   makeMap(g);
   g.sectorName = "Civilian (Starting) Sector";
   // No wired page lists this sector name, so the stamp places nothing here.
@@ -4976,6 +5037,17 @@ export function commitJump(g: Game, id: string) {
   else g.fleet += pursuit(g, citedFleetAdvance(g, dest));
   g.here = dest.id;
   dest.visited = true;
+  const eventSlug = dest.flag.replace(/^(cited:|filler:)/, "");
+  noteAchieve(g, {
+    k: "jump",
+    nebula: dest.kind === "nebula",
+    hazard:
+      dest.asteroid ||
+      eventHasPulsar(eventSlug) ||
+      eventHasFlare(eventSlug) ||
+      citedAsb(g, dest) ||
+      ionStormBeacon(dest, g.fleet),
+  });
   g.picking = false;
   g.flee = 0;
   g.enemyFlee = 0;
@@ -5316,6 +5388,8 @@ export function buy(g: Game, id: string) {
   if (citedBuy(g, item)) {
     g.scrap -= item.cost;
     g.stock = (g.stock ?? []).filter((s) => s.id !== id);
+    noteAchieve(g, { k: "store", repair: false });
+    if (item.kind === "system") noteAchieve(g, { k: "upgrade" });
     sfx(g, "click");
     log(g, `Bought ${item.name}.`);
     return;
@@ -5332,9 +5406,12 @@ export function buy(g: Game, id: string) {
   if (item.kind === "missiles") g.missiles += item.amount;
   if (item.kind === "parts") g.player.parts += item.amount;
   if (item.kind === "repair") {
+    const before = g.player.hull;
     const gain = Math.min(item.amount, g.player.hullMax - g.player.hull);
     g.player.hull += gain;
-  }
+    noteAchieve(g, { k: "store", repair: true });
+    noteAchieve(g, { k: "hull", before, after: g.player.hull });
+  } else noteAchieve(g, { k: "store", repair: false });
   if (item.kind === "weapon") giveWeapon(g, item.ref);
   g.stock = (g.stock ?? []).filter((s) => s.id !== id);
   sfx(g, "click");
@@ -5723,6 +5800,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
     if (cost == null || g.scrap < cost) return;
     g.scrap -= cost;
     g.player.reactor += 1;
+    noteAchieve(g, { k: "upgrade" });
     sfx(g, "click");
     log(g, `Reactor ${g.player.reactor}.`);
     return;
@@ -5733,6 +5811,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
   g.scrap -= cost;
   sys.level += 1;
   if (!isMain(id)) sys.power = sys.level;
+  noteAchieve(g, { k: "upgrade" });
   sfx(g, "click");
   log(g, `${id} upgraded.`);
 }
@@ -5758,8 +5837,11 @@ export function patchAll(g: Game) {
   const missing = g.player.hullMax - g.player.hull;
   const cost = missing * hullRepairPerPoint(g.sector);
   if (missing <= 0 || g.scrap < cost) return;
+  const before = g.player.hull;
   g.scrap -= cost;
   g.player.hull = g.player.hullMax;
+  noteAchieve(g, { k: "store", repair: true });
+  noteAchieve(g, { k: "hull", before, after: g.player.hull });
   sfx(g, "click");
 }
 
@@ -5875,6 +5957,7 @@ export function step(g: Game, dt: number) {
   // Environmental Hazards: IN DANGER prevents opening the ship info screen.
   // INFERRED: a screen already open closes when that danger starts. The page does not say it stays up.
   if (shipInDanger(g)) g.shipSheet = false;
+  noteAchieve(g, { k: "tick" });
   // Crew Teleporter, Overview: the cooldown is already gone once the ship is not in danger.
   relaxSling(g);
   g.trauma = Math.max(0, g.trauma - dt * 1.7);

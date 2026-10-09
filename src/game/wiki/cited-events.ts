@@ -1,4 +1,5 @@
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
+import { aeEventTitle } from "./ae-events.ts";
 import { mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { EXTRA_EVENTS as AUTO_EVENTS } from "./cited-events-auto.ts";
@@ -3632,7 +3633,7 @@ function stampKey(g: Game, flag: string): number {
 export function stampCitedEvents(g: Game) {
   // Placed in a per-run seeded order rather than table order: in table order the free beacons ran out
   // before most of each sector's list (e.g. 11 of 56 Civilian Sector events), so later events never appeared.
-  const mine = EVENTS.filter((ev) => ev.sectors.includes(g.sectorName));
+  const mine = EVENTS.filter((ev) => ev.sectors.includes(g.sectorName) && (g.ae !== false || !aeEventTitle(ev.dest)));
   mine.sort((a, b) => stampKey(g, a.flag) - stampKey(g, b.flag));
   // @agent:beacon-mix. Sectors, "Beacons:" lists: the free beacons are re-dealt by the sector's counts and
   // this seeded order fills hostile/neutral/distress/items slots (wiki/beacon-mix.ts). The loop below only
@@ -4350,7 +4351,9 @@ function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
 /**
  * Zoltan odd moon. Check it out has four results and the explosives have three, and the page prints no odds.
  * INFERRED: each of those results is equally likely.
- * An unnamed weapon is not granted. "A random amount of scrap" names no band, so that scrap is not paid.
+ * An unnamed weapon is not granted.
+ * Rewards, "Scrap only": the remains' random scrap is a low, medium, or high band. The page prints no odds.
+ * INFERRED: those three bands are equally likely.
  */
 function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
   if (!id.startsWith("c:zoltan-odd-moon:")) return null;
@@ -4399,14 +4402,21 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     if (g.missiles < 1) return false;
     g.missiles -= 1;
     ctx.note("Missiles: -1.");
-    // Three results, no odds. INFERRED: equal. The unnamed weapon and the unstated scrap are not granted.
+    // Three results, no odds. INFERRED: equal. The unnamed weapon is not granted.
     const which = ctx.irand(3);
     if (which === 0) {
       citedResult(g, ZOLTAN_MOON_BASE, ["Missiles: -1."]);
       return true;
     }
     if (which === 1) {
-      citedResult(g, ZOLTAN_MOON_REMAINS, ["Missiles: -1."]);
+      const tier = (["low", "medium", "high"] as const)[ctx.irand(3)]!;
+      const [lo, hi] = band(g, tier);
+      const n = roll(ctx, lo, hi);
+      ctx.scrap(n);
+      const name = tier === "low" ? "Low" : tier === "medium" ? "Medium" : "High";
+      const line = `${name} scrap: ${n}.`;
+      ctx.note(line);
+      citedResult(g, ZOLTAN_MOON_REMAINS, ["You receive a random amount of scrap.", line, "Missiles: -1."]);
       return true;
     }
     citedResult(g, ZOLTAN_MOON_WASTE, ["Nothing happens.", "Missiles: -1."]);

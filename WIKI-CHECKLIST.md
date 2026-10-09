@@ -38,8 +38,8 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 941 |
-| Behaviors checked | 2892 |
-| Behaviors open | 541 |
+| Behaviors checked | 2893 |
+| Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -854,7 +854,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A hacked Crew Teleporter retrieve lands crew in the teleporter room, and crew who cannot fit are placed in an adjacent room.
 
 - [ ] Crew hiring station
-  - [ ] The page states a mechanic and it is not a playable event.
+  - [x] One of the three printed intros is shown, and not hiring anyone does nothing.
+  - [ ] Hiring a crewmember stays unwired.
+    - [ ] The 25-45 scrap hire stays unwired because the crewmember is not named.
+    - [ ] The 25-55 scrap hire stays unwired because the crewmember is not named.
 
 - [x] Crew member
   - [x] same title as "Crew Member" with different capitalization.

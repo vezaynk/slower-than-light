@@ -4466,7 +4466,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" }],
     };
   }
-  // Lanius fight. One of the eleven printed intros, including the repeated line. The fight stays c:lanius-fight:0.
+  // Lanius fight has no choice. Arrival calls this fight.
+  // One of the eleven printed intros, including the repeated line. "Fight a Lanius ship (default Lanius rewards)." unique=false.
   if (ev.slug === "lanius-fight") {
     return {
       title: ev.dest,

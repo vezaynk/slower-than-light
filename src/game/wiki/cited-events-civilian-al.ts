@@ -195,7 +195,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // Fight a Lanius ship.
+  // "Fight a Lanius ship (default Lanius rewards)." Lanius fight has no choice. Arrival calls this fight. One of the eleven printed intros, including the repeated line. unique=false.
   {
     dest: "Lanius fight",
     slug: "lanius-fight",

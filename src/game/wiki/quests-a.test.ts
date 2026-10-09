@@ -342,10 +342,40 @@ describe("quest openers (quests-a)", () => {
       g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
       choose(g, "qa:peace:bloodless");
       assert.ok(g.unlocked?.includes("zoltan-a"));
-      if (g.player.zoltan === 5) seen.add("shield");
+      if (g.player.zoltan === 5) {
+        assert.ok(g.augments.includes("zshield"));
+        seen.add("shield");
+      }
       if (g.crew.some((c) => c.name === "Envoy" && c.kin === "spark")) seen.add("envoy");
     }
     assert.deepEqual([...seen].sort(), ["envoy", "shield"]);
+  });
+
+  it("Unarmed Zoltan transport: a full augment rack does not take a fourth Zoltan Shield", () => {
+    let full = false;
+    let envoy = false;
+    for (let seed = 1; seed < 80 && !(full && envoy); seed++) {
+      const g = atCited(createGame(seed), "Zoltan Homeworlds", "Unarmed Zoltan transport");
+      g.sector = 4;
+      g.augments = ["keel", "glass", "jammer"];
+      choose(g, "c:unarmed-zoltan-transport:1");
+      choose(g, "ack");
+      goToQuest(g, "zoltan-peace");
+      choose(g, "qa:peace:hail");
+      choose(g, "qa:peace:reconcile");
+      choose(g, "qa:peace:bloodless");
+      assert.equal(g.augments.length, 3);
+      assert.equal(g.augments.includes("zshield"), false);
+      if (g.crew.some((c) => c.name === "Envoy")) {
+        envoy = true;
+        assert.equal(g.player.zoltan, undefined);
+      } else {
+        full = true;
+        assert.equal(g.player.zoltan, undefined);
+        assert.match(g.event?.body ?? "", /No free augmentation slot for Zoltan Shield/);
+      }
+    }
+    assert.ok(full && envoy);
   });
 
   it("Unarmed Zoltan transport marker: the Rebel fights pay default rewards", () => {

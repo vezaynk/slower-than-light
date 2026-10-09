@@ -75,13 +75,14 @@ function maxedCrew(g: Game, race: string, name: string): string {
 }
 
 /**
- * Augmentations, "Zoltan Shield". INFERRED: this build keeps the bubble on the ship (Ship.zoltan, 5 points, recharged by
- * every jump) rather than as one of the three augment slots, so granting it sets that field.
+ * Unarmed Zoltan transport: "receive Zoltan Shield augmentation".
+ * Zoltan Shield: 5 points of energy shielding, recharged by an FTL jump once the augment is fitted.
+ * Augmentations: a ship holds three. A full rack does not add a fourth. The page does not name which augment to swap.
  */
 function zoltanShield(g: Game): string {
-  if (g.player.zoltan != null) return "Zoltan Shield is already fitted.";
-  g.player.zoltan = 5;
-  return "Zoltan Shield fitted.";
+  const line = grantAug(g, "zshield");
+  if (g.augments.includes("zshield")) g.player.zoltan = 5;
+  return line;
 }
 
 /** Back to the fight after a card shown mid-combat. */

@@ -344,6 +344,7 @@ const AUG_NAMES: Partial<Record<AugmentId, string>> = {
   // @agent:quests-a.
   keel: "Rock Plating",
   vengeance: "Crystal Vengeance",
+  zshield: "Zoltan Shield",
 };
 
 /** A named augmentation. Three is the cap (augments.ts installAugment); a full rack loses it. INFERRED. */

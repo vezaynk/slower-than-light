@@ -37,9 +37,9 @@ Still a picture, or not fetched:
 | | |
 |---|---|
 | Pages | 1380 |
-| Pages fully checked | 944 |
-| Behaviors checked | 2927 |
-| Behaviors open | 540 |
+| Pages fully checked | 945 |
+| Behaviors checked | 2929 |
+| Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
 
@@ -1402,10 +1402,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A store sells it at 75 with a System Repair Drone and at 85 with Defense Drone Mark I or Combat Drone Mark I, at level 2, with that schematic selected.
   - [x] The store seed picks which of the three and is not advanced (INFERRED).
   - [x] The naked 60 is not charged.
-  - [ ] Standalone schematics stay unstocked.
+  - [x] Standalone schematics are stocked from the single-price list, including on a ship that has not fitted Drone Control.
     - [x] A ship with Drone Control stocks a window of three single-price schematics, and buying one spends that printed scrap when a slot is free.
     - [x] Fire Drone stays unstocked.
-    - [ ] A ship without Drone Control has no drone slot.
+    - [x] A ship without Drone Control still sees that slot, and buying one spends nothing until the system is fitted.
   - [x] Some drone pages not split out.
   - [x] An enemy Anti-Combat drone stuns or destroys a deployed Boarding Drone or Ion Intruder with the same 5 second stun and 47.8 percent chance.
   - [x] A player boarding drone holds in space while the enemy is cloaked, then breaches the hull and attacks inside.
@@ -5613,7 +5613,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 - [x] Stores
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Stores and resources
+- [x] Stores and resources
   - [x] src/game/sim.ts — Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8.
   - [x] Hull repair uses the sector rate.
   - [x] Missing systems are listed at the printed prices (Shields 125, Medbay 50, Clone Bay 50, Teleporter 90, Cloaking 150, Mind Control 75, Hacking 80, Sensors 40, Doors 60, Backup Battery 35).
@@ -5622,10 +5622,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] The naked 60 is not a shelf price.
   - [x] Catalog augments and the first crew races are buyable.
   - [x] Weapons and augments sell for half the purchase price, rounded down, unless the page prints a sell amount.
-  - [ ] Drone schematics are not sold.
+  - [x] Drone schematics are sold as three single-price rows from the seed window, and a store that sells them also offers Drone Control when it is missing.
     - [x] A ship with Drone Control stocks three single-price schematics from the seed window, and the seed is not advanced.
     - [x] Fire Drone and Shield Overcharger + stay off that shelf.
-    - [ ] A ship without Drone Control has no drone slot.
+    - [x] A ship without Drone Control still sees that slot, and buying one spends nothing until the system is fitted.
   - [x] A fitted Shield Overcharger + quotes 30 scrap.
   - [x] The item slots beyond fuel, missiles, drone parts, hull repair, and the weapon slot are 1, 2, or 3, from the seed.
   - [x] A bought system does not add a room.

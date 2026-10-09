@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2930 |
+| Behaviors checked | 2931 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -5920,7 +5920,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Noether starts with two Ion Blasts and Pike Beam (id shear).
   - [x] Adjudicator mounts Leto and Halberd; the Halberd waits for bars.
   - [x] Cerenkov mounts the Ion Charger with weapon bars at 0.
-  - [x] Zoltan Shield stays unfitted.
+  - [x] Zoltan Shield occupies one of the three starting augment slots.
 
 - [x] The guns... They've stopped
   - [x] No playable control, number, layout, or rule.
@@ -6212,6 +6212,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] One Reverse Ion Field resists ion damage to the bubble half the time, and two copies always do.
   - [x] A resisted ion projectile still hits the room when regular shields are down.
   - [x] A solar flare treats a Zoltan Shield as shields up and does not spend it.
+  - [x] Zoltan cruisers start with it in one of the three augment slots, selling it pays the printed 40, and the bubble is cleared so a jump does not refill it.
 
 - [ ] Zoltan Shield Bypass
   - [ ] The page states a mechanic and it is not a playable event.

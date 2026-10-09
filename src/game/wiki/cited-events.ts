@@ -4909,6 +4909,10 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   }
   const choice = findChoice(id);
   if (!choice) return null;
+  // Remote settlement. {{Blue Option|Fire Beam}} and {{Blue Option|Fire Bomb}}.
+  // INFERRED: the refusal sentences. The page names the requirement and does not print the refusal.
+  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return "Needs a Fire Beam";
+  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return "Needs a Fire Bomb";
   for (const fx of choice.fx) {
     if (fx.k === "res" && fx.sign < 0 && stock(g, fx.id) < fx.lo) {
       return `Need ${fx.lo} ${RES_WORD[fx.id]}`;
@@ -5059,6 +5063,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;
+  // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
+  // A missing weapon returns before the res loop, so the missile is not spent.
+  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return false;
+  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return false;
   // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
   const crystalPlans = crystallineRebelPlans(ctx, id);
   if (crystalPlans !== null) return crystalPlans;
@@ -5229,6 +5237,18 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       g,
       "You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! \"The Federation fleet's still standing - get there while you can!\"",
       ["The current sector map is revealed."],
+    );
+    return true;
+  }
+  // Remote settlement. Fire Beam and Fire Bomb. The schematic is not named, so it is not granted.
+  // High scrap is already applied above. "You receive a drone schematic with high scrap."
+  if (id === "c:remote-settlement:2" || id === "c:remote-settlement:3") {
+    citedResult(
+      g,
+      id === "c:remote-settlement:2"
+        ? "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed."
+        : "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.",
+      ["You receive a drone schematic with high scrap."],
     );
     return true;
   }

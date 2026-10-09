@@ -475,7 +475,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight the pirate ship." */
+  /**
+   * "Fight the pirate ship."
+   * {{Blue Option|Fire Beam|Show the pirate how to intimidate settlers: burn their crops!}}
+   * "You receive a drone schematic with high scrap." The schematic is not named.
+   * {{Blue Option|Fire Bomb|Show the pirate how to intimidate settlers: start fires in their crude dwellings.}}
+   * [ {{Transaction|1|subtract_missiles}} ]
+   * Same unnamed drone schematic with high scrap.
+   */
   {
     dest: "Remote settlement",
     slug: "remote-settlement",
@@ -493,6 +500,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:remote-settlement:1",
         label: "Ignore them",
         fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:remote-settlement:2",
+        label: "Show the pirate how to intimidate settlers: burn their crops!",
+        fx: [{ k: "tier", tier: "high" }],
+      },
+      {
+        id: "c:remote-settlement:3",
+        label: "Show the pirate how to intimidate settlers: start fires in their crude dwellings.",
+        fx: [
+          { k: "res", id: "missiles", sign: -1, lo: 1, hi: 1 },
+          { k: "tier", tier: "high" },
+        ],
       },
     ],
   },

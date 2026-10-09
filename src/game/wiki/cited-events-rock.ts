@@ -198,6 +198,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rock pirate ship (default rewards)." Rock pirates fight near sun has no choice. Arrival calls this fight. One of the two printed intros. redgiant=true. unique=true.
   {
     dest: "Rock pirates fight near sun",
     slug: "rock-pirates-fight-near-sun",

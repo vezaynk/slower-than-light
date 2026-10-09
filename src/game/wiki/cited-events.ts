@@ -4639,7 +4639,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Rock pirates fight near sun. One of the two printed intros. The fight stays c:rock-pirates-fight-near-sun:0.
+  // Rock pirates fight near sun has no choice. Arrival calls this fight.
+  // One of the two printed intros. "Fight a Rock pirate ship (default rewards)." redgiant=true. unique=true.
   if (ev.slug === "rock-pirates-fight-near-sun") {
     return {
       title: ev.dest,

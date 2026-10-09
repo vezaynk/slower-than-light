@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2862 |
+| Behaviors checked | 2863 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -1360,6 +1360,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Speed 28 is movement.
   - [x] The page prints no cooldown.
   - [x] A 90 degree leg at Speed 15 takes the 2 second shield restore (INFERRED).
+  - [x] Anti-Ship Beam Drone I, Beam Drone II, and the Fire Drone attack when an orbit leg at Speed 15, 11, or 12 finishes, and beam speed 3, 8, and 2 and the 0.4, 0.9, and 0.2 tile lengths are not that wait.
   - [x] The angle check does not wrap.
   - [x] The Ion Intruder has 125 HP.
   - [x] It pulses on a wait drawn from 8.2 to 10 seconds, applies 3 ion to a system that is not destroyed, stuns enemy crew and hostile drones in that room for 6 seconds, and a boarding drone or another Ion Intruder stays free, and then walks to another system.

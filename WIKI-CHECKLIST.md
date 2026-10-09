@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2846 |
+| Behaviors checked | 2847 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -2992,6 +2992,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [ ] Crew, a map reveal, an upgrade, and an unnamed item are not granted.
   - [x] A fight uses a documented class of the named faction.
   - [x] At Mantis fight (Slug), the printed sentence is shown in full before Fight a Mantis ship.
+  - [x] The fight line starts the Mantis ship on arrival, and it is not a button.
 
 - [ ] Mantis fight (Zoltan)
   - [x] one beacon in a sector the page names, while a free beacon remains.

@@ -24,6 +24,7 @@ export type CitedEventDef = {
 };
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
+  // "Fight a Pirate ship (default rewards)." Pirate fight in nebula has no choice. Arrival calls this fight. One of the five printed intros. nebula=true. unique=false. No nebula environment is added.
   {
     dest: "Pirate fight in nebula",
     slug: "pirate-fight-in-nebula",

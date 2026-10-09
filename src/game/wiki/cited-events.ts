@@ -4364,7 +4364,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
     };
   }
-  // Pirate fight in nebula. One of the five printed intros. The fight stays c:pirate-fight-in-nebula:0.
+  // Pirate fight in nebula has no choice. Arrival calls this fight.
+  // One of the five printed intros. "Fight a Pirate ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
   if (ev.slug === "pirate-fight-in-nebula") {
     return {
       title: ev.dest,

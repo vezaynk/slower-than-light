@@ -164,7 +164,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Pirate ship (default rewards)." */
+  /** "Fight a Pirate ship (default rewards)." Pirate fight near sun has no choice. Arrival calls this fight. The star warning is the card body. redgiant=true. unique=true. */
   {
     dest: "Pirate fight near sun",
     slug: "pirate-fight-near-sun",

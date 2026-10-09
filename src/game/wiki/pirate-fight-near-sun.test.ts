@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -30,5 +30,34 @@ describe("Pirate fight near sun", () => {
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-fight-near-sun");
     assert.equal(g.scrap, scrap);
+  });
+
+  it("starts the Pirate ship beside the star on arrival and leaves no button", () => {
+    // The page has no choice. The star warning, then "Fight a Pirate ship." redgiant=true. unique=true.
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "cited:pirate-fight-near-sun";
+    dest.name = "Pirate fight near sun";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.enemy?.pirate, true);
+    assert.equal(g.flare, true);
+    assert.equal(g.pulsar, false);
+    assert.equal(g.fightEvent, "pirate-fight-near-sun");
+    assert.equal(g.fleet, 1);
+    assert.ok(g.log.includes(BODY));
   });
 });

@@ -5086,6 +5086,7 @@ function arrive(g: Game, b: Beacon) {
   // Pirate fight (Lanius): "Fight a Pirate ship (default rewards)." One of the five printed intros. unique=false.
   // Pirate fight in asteroid field: "Fight a Pirate ship (default rewards)." The wait sentence is the card body. asteroidfield=true. unique=false.
   // Pirate fight near pulsar: "Fight a Pirate ship (default rewards)." One of the three printed intros. pulsar=true. unique=true.
+  // Pirate fight near sun: "Fight a Pirate ship (default rewards)." The star warning is the card body. redgiant=true. unique=true.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
     (b.flag === "cited:boarders-humans-abandoned" ||
@@ -5122,7 +5123,8 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:pirate-fight" ||
       b.flag === "cited:pirate-fight-lanius" ||
       b.flag === "cited:pirate-fight-in-asteroid-field" ||
-      b.flag === "cited:pirate-fight-near-pulsar") &&
+      b.flag === "cited:pirate-fight-near-pulsar" ||
+      b.flag === "cited:pirate-fight-near-sun") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);

@@ -4668,7 +4668,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: "Fight a Rock ship" }],
     };
   }
-  // Rebel fight (Slug). One of the three printed intros. The fight stays c:rebel-fight-slug:0.
+  // Rebel fight (Slug) has no choice. Arrival calls this fight.
+  // One of the three printed intros. "Fight a Rebel ship (default rewards)." unique=false.
   if (ev.slug === "rebel-fight-slug") {
     return {
       title: ev.dest,

@@ -143,6 +143,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rebel ship (default rewards)." Rebel fight (Slug) has no choice. Arrival calls this fight. One of the three printed intros. unique=false.
   {
     dest: "Rebel fight (Slug)",
     slug: "rebel-fight-slug",

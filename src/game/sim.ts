@@ -5305,6 +5305,8 @@ export function buy(g: Game, id: string) {
     log(g, `Bought ${item.name}.`);
     return;
   }
+  // A drone schematic that did not fit spends nothing. citedBuy owns that grant.
+  if (item.kind === "drone") return;
   if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g)) {
     log(g, "No free weapon slot.");
     return;

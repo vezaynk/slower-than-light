@@ -203,11 +203,26 @@ function systemItems(g: Game): StockItem[] {
   }));
 }
 
-function droneItems(): StockItem[] {
-  // CITED_DRONES is the single-price list. Game has no schematic field, so none are stocked.
-  // buy() would spend the scrap and keep nothing.
-  if (CITED_DRONES.some((row) => row.cost <= 0)) return [];
-  return [];
+function droneItems(g: Game): StockItem[] {
+  // Stores and resources, "Stores assortment": a drone slot holds three schematics.
+  // No Drone Control means that slot is absent. The page also says a store that sells drones
+  // guarantees the drone system. That case is not this shelf.
+  if (!hasSwarm(g)) return [];
+  // Fire Drone and Shield Overcharger + are not in CITED_DRONES.
+  const n = CITED_DRONES.length;
+  if (n === 0) return [];
+  // INFERRED: rarity is named and the likelihood formula is not in the dump.
+  // g.seed picks the start of a window of three. The seed is not advanced.
+  const start = ((g.seed % n) + n) % n;
+  return Array.from({ length: Math.min(SLOT, n) }, (_, i) => CITED_DRONES[(start + i) % n]).map((row) => ({
+    id: `drone-${row.ref}`,
+    kind: "drone" as const,
+    ref: row.ref,
+    name: row.name,
+    detail: `Drone Control, "${row.name}". Purchase price ${row.cost}.`,
+    cost: row.cost,
+    amount: 1,
+  }));
 }
 
 function augmentItems(g: Game): StockItem[] {
@@ -261,7 +276,7 @@ function extraSlots(g: Game): number {
 export function citedStock(g: Game): StockItem[] {
   const built: Record<SlotKind, StockItem[]> = {
     systems: systemItems(g),
-    drones: droneItems(),
+    drones: droneItems(g),
     augments: augmentItems(g),
     crew: crewItems(g),
   };
@@ -336,6 +351,49 @@ function grantAugment(g: Game, item: StockItem): boolean {
   return true;
 }
 
+function fieldedSchematics(kit: Kit): string[] {
+  if (kit.loadout?.length) return [...kit.loadout];
+  return kit.target ? [kit.target] : [];
+}
+
+/**
+ * Drone Control, Overview: most playable ships have 2 schematic slots.
+ * All Engi ships and Stealth C have 3. Upgrading powers more drones; it does not add a slot.
+ */
+function schematicCap(g: Game): number {
+  const id = g.hullId ?? "";
+  if (id.startsWith("engi-") || id === "stealth-c") return 3;
+  return 2;
+}
+
+/** The Engi Cruiser, Layout B: two System Repair ids are two drones, not one swapped schematic. */
+function pairedRepair(kit: Kit): boolean {
+  return (kit.loadout?.filter((kind) => kind === "patch").length ?? 0) > 1;
+}
+
+function grantDrone(g: Game, item: StockItem): boolean {
+  const row = CITED_DRONES.find((entry) => entry.ref === item.ref);
+  const kit = g.player.kits.swarm;
+  if (!row || !kit) return false;
+  const have = fieldedSchematics(kit);
+  // Stores and resources: a store will never sell duplicate drone schematics.
+  // INFERRED: a schematic the ship already fields is not fitted a second time.
+  if (have.includes(row.ref)) return false;
+  if (have.length >= schematicCap(g)) return false;
+  // INFERRED: a non-repair id on the paired System Repair list would fly as one swapped drone.
+  if (pairedRepair(kit) && row.ref !== "patch") return false;
+  if (!kit.loadout?.length && !kit.target) {
+    kit.target = row.ref;
+    return true;
+  }
+  if (!kit.loadout?.length && kit.target) {
+    kit.loadout = [kit.target, row.ref];
+    return true;
+  }
+  kit.loadout = [...(kit.loadout ?? []), row.ref];
+  return true;
+}
+
 function grantCrew(g: Game, item: StockItem): boolean {
   const row = CREW.find((entry) => entry.ref === item.ref);
   if (!row) return false;
@@ -375,6 +433,7 @@ export function citedBuy(g: Game, item: StockItem): boolean {
   }
   if (item.kind === "augment") return grantAugment(g, item);
   if (item.kind === "crew") return grantCrew(g, item);
+  if (item.kind === "drone") return grantDrone(g, item);
   return false;
 }
 

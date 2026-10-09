@@ -4772,9 +4772,9 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   g.fuel = spec.fuel;
   g.missiles = spec.missiles;
   g.augments = [...spec.augments];
-  // Augmentations, "Zoltan Shield": on arrival the ship starts with a green shield that absorbs 5 points.
-  // Not an AugmentId: the page has no purchase price, and the store catalog requires one.
-  if (spec.unfitted.includes("Zoltan Shield")) ship.zoltan = 5;
+  // Zoltan Shield, lead: "Zoltan Shield is an augmentation" and "Zoltan Shield has 5 points of energy shielding".
+  // Augmentations: "Your ship can have only up to three augmentations". Fitted zshield is one of those slots.
+  if (g.augments.includes("zshield")) ship.zoltan = 5;
   g.armed = ship.weapons[0]?.uid ?? "";
   g.crew = g.crew.filter((c) => c.side !== "player");
   spec.crew.forEach((seat, i) => {
@@ -4798,8 +4798,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   });
   const guns = spec.weapons.map((id) => WEAPONS[id]?.name ?? id).join(", ");
   log(g, `${spec.name} leaves the hangar.${guns ? ` ${guns}.` : ""}`);
-  const pending = spec.unfitted.filter((name) => name !== "Zoltan Shield");
-  if (pending.length) log(g, `Not fitted: ${pending.join(", ")}.`);
+  if (spec.unfitted.length) log(g, `Not fitted: ${spec.unfitted.join(", ")}.`);
 }
 
 /** The cruiser a hangar tile shows: the same rooms, doors, weapons, and crew a run starts with. */

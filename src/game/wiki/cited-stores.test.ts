@@ -604,6 +604,30 @@ describe("cited stores", () => {
     assert.equal(vortex.scrap, 85);
     assert.deepEqual(vortex.player.kits.swarm?.loadout, ["patch", "patch"]);
   });
+
+  it("sells a fitted Zoltan Shield for 40 and does not let the next jump refill it", () => {
+    const g = createGame(1, "zoltan-a");
+    assert.ok(g.augments.includes("zshield"));
+    g.player.zoltan = 0;
+    g.player.zoltanOver = true;
+    const before = g.scrap;
+    const quote = citedSellQuote(g).find((row) => row.ref === "zshield");
+    assert.ok(quote);
+    assert.equal(quote.kind, "augment");
+    assert.equal(quote.scrap, 40);
+    assert.equal(quote.name, "Zoltan Shield");
+    assert.equal(citedSell(g, quote.id), true);
+    assert.equal(g.scrap, before + 40);
+    assert.equal(g.augments.includes("zshield"), false);
+    assert.equal(g.player.zoltan, undefined);
+    assert.equal(g.player.zoltanOver, undefined);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    g.fuel = 3;
+    commitJump(g, here.links[0]);
+    assert.equal(g.player.zoltan, undefined);
+    assert.equal(createGame(1, "kestrel-a").augments.includes("zshield"), false);
+  });
 });
 
 describe("Hidden Crystal Worlds stock", () => {

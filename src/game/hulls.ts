@@ -446,9 +446,10 @@ export const HULLS: HullSpec[] = [
       { kin: "spark", room: "p-weapons" },
     ],
     kits: {},
-    augments: [],
-    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
-    unfitted: ["Zoltan Shield"],
+    // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
+    // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
+    augments: ["zshield"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -485,9 +486,10 @@ export const HULLS: HullSpec[] = [
       { kin: "spark", room: "p-shields" },
     ],
     kits: {},
-    augments: [],
-    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
-    unfitted: ["Zoltan Shield"],
+    // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
+    // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
+    augments: ["zshield"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
@@ -529,9 +531,10 @@ export const HULLS: HullSpec[] = [
       swarm: { level: 3, power: 0, target: "beam" },
       cell: { level: 2, power: 0 },
     },
-    augments: [],
-    // Zoltan Shield is not an AugmentId. applyHull charges ship.zoltan from this name. The page has no purchase price.
-    unfitted: ["Zoltan Shield"],
+    // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
+    // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
+    augments: ["zshield"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Slug Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.

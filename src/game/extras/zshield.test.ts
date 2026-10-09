@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { installAugment } from "./augments.ts";
+import { citedSell, citedSellQuote } from "../wiki/cited-stores.ts";
 import {
   applyImpact,
   COATED_DOOR_HITS,
@@ -63,10 +65,45 @@ describe("zoltan shield", () => {
   it("starts Zoltan A, B, and C with 5 points and does not give other hulls one", () => {
     for (const id of ["zoltan-a", "zoltan-b", "zoltan-c"] as const) {
       const g = createGame(1, id);
+      assert.ok(g.augments.includes("zshield"), id);
       assert.equal(g.player.zoltan, 5, id);
     }
     const kestrel = createGame(1, "kestrel-a");
+    assert.equal(kestrel.augments.includes("zshield"), false);
     assert.equal(kestrel.player.zoltan, undefined);
+  });
+
+  it("sells for 40, clears the bubble, and refuses a third augment on a full Zoltan rack", () => {
+    const sold = createGame(2, "zoltan-a");
+    sold.player.zoltan = 0;
+    sold.player.zoltanOver = true;
+    const before = sold.scrap;
+    const quote = citedSellQuote(sold).find((row) => row.ref === "zshield");
+    assert.ok(quote);
+    assert.equal(quote.scrap, 40);
+    assert.equal(quote.name, "Zoltan Shield");
+    assert.equal(citedSell(sold, quote.id), true);
+    assert.equal(sold.scrap, before + 40);
+    assert.equal(sold.augments.includes("zshield"), false);
+    assert.equal(sold.player.zoltan, undefined);
+    assert.equal(sold.player.zoltanOver, undefined);
+    const here = sold.beacons.find((b) => b.id === sold.here);
+    assert.ok(here?.links[0]);
+    sold.phase = "map";
+    sold.fuel = 3;
+    commitJump(sold, here.links[0]);
+    assert.equal(sold.player.zoltan, undefined);
+
+    const full = createGame(3, "zoltan-b");
+    assert.ok(full.augments.includes("zshield"));
+    full.scrap = 200;
+    assert.equal(installAugment(full, "glass"), true);
+    assert.equal(installAugment(full, "jammer"), true);
+    assert.equal(full.augments.length, 3);
+    const scrap = full.scrap;
+    assert.equal(installAugment(full, "feed"), false);
+    assert.equal(full.scrap, scrap);
+    assert.deepEqual(full.augments, ["zshield", "glass", "jammer"]);
   });
 
   it("absorbs damage before regular shields and hull, and only a jump refills it", () => {

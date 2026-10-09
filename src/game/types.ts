@@ -494,7 +494,8 @@ export type AugmentId =
   | "booster"
   | "bypass"
   | "vengeance"
-  | "stasis";
+  | "stasis"
+  | "zshield";
 
 /** Crew Teleporter, "Enemy Crew Teleporter": one enemy hull's boarding bookkeeping (extras/sling.ts). */
 export type EnemyBoarding = {

@@ -128,6 +128,8 @@ const AUGMENT_SELL: Partial<Record<AugmentId, number>> = {
   gel: 30,
   // Augmentations, "Crystal Vengeance": "Sell price: 40". No purchase price, so it is not in CATALOG.
   vengeance: 40,
+  // Zoltan Shield, "Sell value: 40". No purchase price, so it is not in CATALOG.
+  zshield: 40,
 };
 
 const AUGMENT_SELL_NAME: Partial<Record<AugmentId, string>> = {
@@ -135,6 +137,7 @@ const AUGMENT_SELL_NAME: Partial<Record<AugmentId, string>> = {
   pheromone: "Mantis Pheromones",
   gel: "Slug Repair Gel",
   vengeance: "Crystal Vengeance",
+  zshield: "Zoltan Shield",
 };
 
 export type SellQuote = {
@@ -542,6 +545,12 @@ export function citedSell(g: Game, id: string): boolean {
   const index = Number(match[1]);
   if (g.augments[index] !== quote.ref) return false;
   g.augments.splice(index, 1);
+  // Zoltan Shield prints "Sell value: 40" and does not print a leftover overcharger amount.
+  // INFERRED: clearing the bubble is the augment leaving.
+  if (quote.ref === "zshield") {
+    g.player.zoltan = undefined;
+    delete g.player.zoltanOver;
+  }
   g.scrap += quote.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
   return true;

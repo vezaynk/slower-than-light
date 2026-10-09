@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 937 |
-| Behaviors checked | 2861 |
+| Behaviors checked | 2862 |
 | Behaviors open | 542 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -3080,6 +3080,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] A fight uses a documented class of the named faction.
   - [x] The Mantis Fighter and the Mantis Bomber from Mantis ship-collectors fight with a crew entirely composed of Mantis.
   - [x] At Mantis ship-collectors, the printed hail is shown in full before Fight a Mantis Fighter.
+  - [x] The fight line starts the Mantis Fighter on arrival, and it is not a button.
 
 - [x] Mantis ship Rock body parts
   - [x] same title as "Mantis Ship Rock Body Parts" with different capitalization.

@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 945 |
-| Behaviors checked | 2940 |
+| Behaviors checked | 2941 |
 | Behaviors open | 538 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -2202,6 +2202,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] On a Flagship, hacking one artillery room drains that gun at its base charge, and the other guns keep charging.
   - [x] A shot or ion on one artillery room slows only that gun.
   - [x] Depowering a hacked Crew Teleporter stops the enemy pulse from retrieving your crew, unless Zoltans, a cooldown, and spare reactor put a bar back and force them home.
+  - [x] A level-1 shield pulse lasts 4 seconds and randomly removes 1 or 2 layers. The even split is INFERRED. One layer still drops every 2 seconds, and a level-2 pulse drops three layers in six seconds.
 
 - [ ] Hacking Stun
   - [x] Title string is in src/.

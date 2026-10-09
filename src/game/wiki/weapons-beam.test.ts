@@ -222,6 +222,30 @@ describe("beam weapons", () => {
     assert.match(boss, /2 damage per room hit/);
   });
 
+  it("deals Glaive's printed damage through one shield and through two", () => {
+    // Beam (Weapons), Glaive Beam: 2 damage per room through 1 shield, or 1 through 2. Layers stay up.
+    function hit(layers: number) {
+      const g = createGame(3);
+      g.player.systems.engines.power = 0;
+      g.player.zoltan = 0;
+      // Shields, Overview: one barrier for every two powered levels. Two layers need four bars.
+      g.player.systems.shields.level = layers * 2;
+      g.player.systems.shields.power = layers * 2;
+      g.player.shieldNow = layers;
+      const hull = g.player.hull;
+      applyImpact(g, beamShot({ damage: 3, defId: "glaive", beamRooms: ["p-weapons"], targetRoom: "p-weapons" }));
+      return { shields: g.player.shieldNow, system: systemDamage(g, "p-weapons"), hull: hull - g.player.hull };
+    }
+    const one = hit(1);
+    assert.equal(one.shields, 1);
+    assert.equal(one.system, 2);
+    assert.equal(one.hull, 2);
+    const two = hit(2);
+    assert.equal(two.shields, 2);
+    assert.equal(two.system, 1);
+    assert.equal(two.hull, 1);
+  });
+
   it("spends a Zoltan Shield at 33% and 80% of the path, once each", () => {
     const path = ["p-engines", "p-shields", "p-oxygen", "p-medbay"];
     const held = quiet();

@@ -92,6 +92,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  // "Fight a Rock ship (default rewards)." Rock fight in asteroid field has no choice. Arrival calls this fight. One of the three printed intros. asteroidfield=true. unique=true.
   {
     dest: "Rock fight in asteroid field",
     slug: "rock-fight-in-asteroid-field",

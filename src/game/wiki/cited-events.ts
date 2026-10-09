@@ -4655,7 +4655,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rock-pirates-fight-in-asteroid-field:0", label: "Fight a Rock pirate ship" }],
     };
   }
-  // Rock fight in asteroid field. One of the three printed intros. The fight stays c:rock-fight-in-asteroid-field:0.
+  // Rock fight in asteroid field has no choice. Arrival calls this fight.
+  // One of the three printed intros. "Fight a Rock ship (default rewards)." asteroidfield=true. unique=true.
   if (ev.slug === "rock-fight-in-asteroid-field") {
     return {
       title: ev.dest,

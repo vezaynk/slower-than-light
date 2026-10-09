@@ -38,7 +38,7 @@ Still a picture, or not fetched:
 |---|---|
 | Pages | 1380 |
 | Pages fully checked | 940 |
-| Behaviors checked | 2877 |
+| Behaviors checked | 2876 |
 | Behaviors open | 536 |
 
 Recount under `## All pages`. A page line matches `^- \[[ x]\] `. A behavior line matches `^  - \[[ x]\] `. A subcheck line matches `^    - \[[ x]\] `. Count a box only when nothing is nested under it. Check a behavior only when every subcheck under it is checked. Check a page only when every behavior under it is checked. Do not put `present`, `partial`, `missing`, or `not-a-surface` back on a page line.
@@ -2843,7 +2843,6 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
     - [x] Low scrap with resources.
   - [x] Ion, Cloaking, and an Engi crew are blue options.
   - [x] Leave them alone does nothing.
-  - [x] Not wired.
 
 - [ ] Man of War
   - [x] Title string is in src/.

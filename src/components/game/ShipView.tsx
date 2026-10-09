@@ -10,6 +10,7 @@ import { CrewFace, type CrewPose } from "./CrewSprite";
 import { DoorTicks, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
+import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
@@ -155,13 +156,18 @@ function CrewToken({
       aria-label={leashed ? `${c.name} (mind-controlled)` : c.name}
       title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
       aria-pressed={picked}
+      onPointerDown={(e) => {
+        if (onPlace) armHold(e, () => onPlace(c.room));
+      }}
       onClick={(e) => {
         e.stopPropagation();
+        if (swallowHoldClick(e)) return;
         onCrew(c.id, e.shiftKey);
       }}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (holdTookContext(e.currentTarget)) return;
         onPlace?.(c.room);
       }}
     >
@@ -218,7 +224,7 @@ type Props = {
   selectedIds?: string[];
   ventMode: boolean;
   targetable: boolean;
-  onRoom: (id: string, point?: BeamPoint) => void;
+  onRoom: (id: string, point?: BeamPoint, how?: { touch?: boolean }) => void;
   /** Right-click a room to move the crew who can walk on this hull. */
   onRoomMenu?: (id: string) => void;
   /** Drag box. The ids are every living crew member whose sprite fell inside it. */
@@ -435,14 +441,21 @@ export function ShipView({
               type="button"
               className="room-hit"
               aria-label={(targetable ? "Target " : "Open ") + room.title}
+              onPointerDown={(e) => {
+                e.currentTarget.dataset.ptr = e.pointerType;
+                if (onRoomMenu) armHold(e, () => onRoomMenu(room.id));
+              }}
               onClick={(e) => {
+                if (swallowHoldClick(e)) return;
                 const f = frac(e.currentTarget, e.clientX, e.clientY);
-                onRoom(room.id, pointInRoom(room, f.x, f.y));
+                const touch = e.currentTarget.dataset.ptr === "touch";
+                onRoom(room.id, pointInRoom(room, f.x, f.y), { touch });
               }}
               onContextMenu={(e) => {
                 if (!onRoomMenu) return;
                 e.preventDefault();
                 e.stopPropagation();
+                if (holdTookContext(e.currentTarget)) return;
                 onRoomMenu(room.id);
               }}
             />

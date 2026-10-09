@@ -103,8 +103,10 @@ import { CrewFace } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 import type { IconName } from "@/game/icons";
-import { Screen } from "./Screen";
+import { armHold, holdTookContext, swallowHoldClick } from "./hold";
+import { Screen, usePhoneLayout } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
+import { PhoneMenu, PhonePlay } from "./TouchDock";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
 
 const SYS_ORDER: SysId[] = [
@@ -476,14 +478,46 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     }
   }, [hackOn, hackReady, slingOn, leashOn, game.enemy]);
   const hackAiming = hackOn && hackReady;
+  const phone = usePhoneLayout();
+  const cancelAim = () => {
+    clearAims();
+    act((g) => cancelTargeting(g));
+  };
+  const cardUp =
+    (game.phase === "event" && !!game.event) ||
+    game.phase === "store" ||
+    (game.phase === "reward" && !!game.reward) ||
+    game.phase === "victory" ||
+    game.phase === "defeat";
+  const card = cardUp ? (
+    <>
+      {game.phase === "event" && game.event ? <EventModal game={game} /> : null}
+      {game.phase === "store" ? <StoreBoard game={game} /> : null}
+      {game.phase === "reward" && game.reward ? <RewardModal game={game} /> : null}
+      {game.phase === "victory" || game.phase === "defeat" ? (
+        <div className="modal-layer verdict-layer">
+          <Verdict game={game} />
+        </div>
+      ) : null}
+    </>
+  ) : null;
   return (
     <div
       className={`play${showTarget ? "" : " no-target"}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
+      onPointerDown={(e) => {
+        if (e.pointerType !== "touch") return;
+        const t = e.target as Element | null;
+        if (t?.closest("button, a, input, textarea, select")) return;
+        armHold(e, cancelAim);
+      }}
+      onClick={(e) => {
+        swallowHoldClick(e);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
+        if (holdTookContext(e.currentTarget)) return;
         // Hacking wiki: hack targeting "works much the same as targeting your weapons"; right click cancels both.
-        clearAims();
-        act((g) => cancelTargeting(g));
+        cancelAim();
       }}
     >
       <Hud game={game} />
@@ -501,14 +535,28 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       </div>
       {showTarget && game.enemy ? <TargetPanel game={game} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} /> : null}
       <Dock game={game} hackAiming={hackAiming} />
-      {game.phase === "event" && game.event ? <EventModal game={game} /> : null}
-      {game.phase === "store" ? <StoreBoard game={game} /> : null}
-      {game.phase === "reward" && game.reward ? <RewardModal game={game} /> : null}
-      {game.phase === "victory" || game.phase === "defeat" ? (
-        <div className="modal-layer verdict-layer">
-          <Verdict game={game} />
-        </div>
-      ) : null}
+      {phone ? null : card}
+      <PhonePlay
+        game={game}
+        hackAiming={hackAiming}
+        slingAiming={slingOn}
+        leashAiming={leashOn}
+        card={card}
+        onCancelAim={cancelAim}
+        onArmWeapon={(uid) => {
+          clearAims();
+          act((g) => armWeapon(g, uid));
+        }}
+        onAimRoom={(id) => {
+          if (hackAiming) hackRoomClick(id);
+          else if (slingOn) slingRoomClick(id);
+          else act((g) => aim(g, id));
+        }}
+        onLeashCrew={(id) => {
+          act((g) => startLeash(g, id));
+          setLeashAim(false);
+        }}
+      />
     </div>
   );
 }
@@ -743,8 +791,13 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         targetable={bombAiming(game)}
         markDest={crewOn(game, "player")}
         doorsDead={playerDoorsLocked(game)}
-        onRoom={(id) => {
-          if (game.targeting) act((g) => aim(g, id));
+        onRoom={(id, _point, how) => {
+          if (game.targeting) {
+            act((g) => aim(g, id));
+            return;
+          }
+          // A touch on your own room orders the selected crew. A mouse click still does not.
+          if (how?.touch && crewOn(game, "player")) act((g) => orderSelected(g, id, "player"));
         }}
         onRoomMenu={(id) => {
           if (crewOn(game, "player")) act((g) => orderSelected(g, id, "player"));
@@ -1092,10 +1145,16 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 draggable={false}
                 className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
                 aria-label={`${name}.${bank} ${w.enabled ? "Powered" : "Depowered"}. ${auto ? "Autofire on" : "Autofire off"}.`}
-                onPointerDown={(e) => guns.onPointerDown(index, e)}
+                onPointerDown={(e) => {
+                  guns.onPointerDown(index, e);
+                  armHold(e, () => act((g) => depowerWeapon(g, w.uid)));
+                }}
                 onPointerMove={guns.onPointerMove}
                 onPointerUp={guns.onPointerUp}
-                onClickCapture={guns.onClickCapture}
+                onClickCapture={(e) => {
+                  if (swallowHoldClick(e)) return;
+                  guns.onClickCapture(e);
+                }}
                 onClick={(e) => {
                   if (e.ctrlKey || e.metaKey) {
                     act((g) => reverseSlotAuto(g, w.uid));
@@ -1107,6 +1166,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 onContextMenu={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (holdTookContext(e.currentTarget)) return;
                   if (e.ctrlKey || e.metaKey) {
                     act((g) => reverseSlotAuto(g, w.uid));
                     return;
@@ -1154,13 +1214,20 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   draggable={false}
                   className={`gun-slot${swarm?.idle && kind === swarm.target ? " is-dark" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
                   aria-label={`${name} drone slot ${index + 1}${swarm?.idle && kind === swarm.target ? ". Depowered" : ""}`}
-                  onPointerDown={(e) => drones.onPointerDown(index, e)}
+                  onPointerDown={(e) => {
+                    drones.onPointerDown(index, e);
+                    armHold(e, () => act((g) => depowerDrone(g)));
+                  }}
                   onPointerMove={drones.onPointerMove}
                   onPointerUp={drones.onPointerUp}
-                  onClickCapture={drones.onClickCapture}
+                  onClickCapture={(e) => {
+                    if (swallowHoldClick(e)) return;
+                    drones.onClickCapture(e);
+                  }}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (holdTookContext(e.currentTarget)) return;
                     act((g) => {
                       depowerDrone(g);
                     });
@@ -1485,7 +1552,7 @@ function EventModal({ game }: { game: Game }) {
           {event.choices.map((c, index) => {
             const why = choiceDisabled(game, c.id);
             return (
-              <button key={c.id} type="button" className="choice-line" disabled={!!why} onClick={() => act((g) => choose(g, c.id))}>
+              <button key={c.id} type="button" className="choice-line" data-phone-action="choice" disabled={!!why} onClick={() => act((g) => choose(g, c.id))}>
                 {index + 1}. {c.label}
                 {why ? ` (${why})` : ""}
               </button>
@@ -1513,7 +1580,7 @@ function RewardModal({ game }: { game: Game }) {
             <b>{reward.scrap}</b>
           </p>
         )}
-        <button type="button" className="choice-line" onClick={() => act((g) => continueReward(g))}>
+        <button type="button" className="choice-line" data-phone-action="choice" onClick={() => act((g) => continueReward(g))}>
           1. Continue...
         </button>
       </article>
@@ -1589,6 +1656,7 @@ function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
   const [view, setView] = useState<string | null>(null);
   const boot = useGame((s) => s.boot);
+  const phone = usePhoneLayout();
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
@@ -1598,12 +1666,55 @@ function TitleScreen() {
       useGame.setState({ boot: "title" });
     }
   }, [boot]);
+  function openTitle(id: string) {
+    unlockAudio();
+    if (id === "continue") {
+      if (useGame.getState().continueRun()) setSaveReady(true);
+      return;
+    }
+    if (id === "new") {
+      setView("hangar");
+      return;
+    }
+    if (id === "tutorial") {
+      setView("help");
+      return;
+    }
+    if (id === "quit") {
+      setView(null);
+      return;
+    }
+    setView(view === id ? null : id);
+  }
+  function startTutorial() {
+    useGame.getState().newRun("kestrel-a");
+    useGame.getState().act((g) => {
+      g.training = true;
+    });
+  }
   const cruiser = view ? cruiserPage(view) : undefined;
   if (view === "hangar") return <Hangar />;
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
+  const phoneSheet =
+    view === "options" ? (
+      <ControlsScreen onClose={() => setView(null)} />
+    ) : view === "stats" ? (
+      <AchievementsScreen game={null} onClose={() => setView(null)} />
+    ) : view === "help" ? (
+      <HelpScreen onContinue={startTutorial} />
+    ) : view === "credits" ? (
+      <div className="phone-card">
+        <p>CREDITS</p>
+        <p>STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
+        <p>v. 0.1</p>
+        <button type="button" onClick={() => setView(null)}>
+          Close
+        </button>
+      </div>
+    ) : null;
   return (
-    <section className="title-shot">
+    <section className={`title-shot${phone ? " is-phone" : ""}`}>
       <FullscreenButton className="frame-btn title-fs" />
       <div
         className="title-frame"
@@ -1618,45 +1729,37 @@ function TitleScreen() {
             type="button"
             className="menu-hit"
             aria-label={item.label}
+            aria-hidden={phone || undefined}
+            tabIndex={phone ? -1 : undefined}
             disabled={item.id === "continue" && !saveReady}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {
               e.stopPropagation();
-              unlockAudio();
-              if (item.id === "continue") {
-                if (useGame.getState().continueRun()) setSaveReady(true);
-                return;
-              }
-              if (item.id === "new") {
-                setView("hangar");
-                return;
-              }
-              if (item.id === "tutorial") {
-                setView("help");
-                return;
-              }
-              if (item.id === "quit") {
-                setView(null);
-                return;
-              }
-              setView(view === item.id ? null : item.id);
+              openTitle(item.id);
             }}
           />
         ))}
-        {view === "credits" ? <TitlePanel /> : null}
-        {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
-        {view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
-        {view === "help" ? (
-          <HelpScreen
-            onContinue={() => {
-              useGame.getState().newRun("kestrel-a");
-              useGame.getState().act((g) => {
-                g.training = true;
-              });
-            }}
-          />
-        ) : null}
+        {phone ? null : view === "credits" ? <TitlePanel /> : null}
+        {phone ? null : view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
+        {phone ? null : view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
+        {phone ? null : view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
       </div>
+      {phone && phoneSheet ? <PhoneMenu plain>{phoneSheet}</PhoneMenu> : null}
+      {phone && !phoneSheet ? (
+        <PhoneMenu>
+          {TITLE_MENU_ART.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              data-phone-action={item.id === "new" ? "new-game" : item.id}
+              disabled={item.id === "continue" && !saveReady}
+              onClick={() => openTitle(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </PhoneMenu>
+      ) : null}
     </section>
   );
 }

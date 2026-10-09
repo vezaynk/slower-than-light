@@ -4413,7 +4413,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Rebel fight (Lanius). One of the six printed intros. The fight stays c:rebel-fight-lanius:0.
+  // Rebel fight (Lanius) has no choice. Arrival calls this fight.
+  // One of the six printed intros. "Fight a Rebel ship (default rewards)." unique=false.
   if (ev.slug === "rebel-fight-lanius") {
     return {
       title: ev.dest,

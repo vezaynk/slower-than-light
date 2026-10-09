@@ -324,7 +324,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Rebel ship (default rewards)." */
+  /** "Fight a Rebel ship (default rewards)." Rebel fight (Lanius) has no choice. Arrival calls this fight. unique=false. */
   {
     dest: "Rebel fight (Lanius)",
     slug: "rebel-fight-lanius",

@@ -402,7 +402,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  /** "Fight a Rebel ship (default rewards)." */
+  /** "Fight a Rebel ship (default rewards)." Rebel fight near pulsar has no choice. Arrival calls this fight. pulsar=true. unique=true. */
   {
     dest: "Rebel fight near pulsar",
     slug: "rebel-fight-near-pulsar",

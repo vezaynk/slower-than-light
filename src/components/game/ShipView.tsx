@@ -202,17 +202,19 @@ function CrewToken({
 }
 
 /**
- * INVENTED mount layout: guns alternate between the top and bottom hull edges, on the
- * half that faces the other ship. CombatFx reads data-mount to launch shots from the muzzle.
+ * INVENTED mount layout. Player guns alternate between the top and bottom edges, on the
+ * half that faces the other ship. In the target preview every enemy gun sits on the top
+ * edge and points up. CombatFx reads data-mount to launch shots from the muzzle.
  */
 function Mounts({ ship, crew, aboard }: { ship: Ship; crew: Crew[]; aboard: "player" | "enemy" }) {
   const mask = powerMask(ship, zoltanBars(crew, ship, aboard, "weapons"));
-  const perEdge = Math.max(1, Math.ceil(ship.weapons.length / 2));
+  const foe = aboard === "enemy";
+  const perEdge = Math.max(1, foe ? ship.weapons.length : Math.ceil(ship.weapons.length / 2));
   return (
     <>
       {ship.weapons.map((w, i) => {
-        const edge = i % 2 === 0 ? "top" : "bottom";
-        const along = 38 + (Math.floor(i / 2) + 0.5) * (52 / perEdge);
+        const edge = foe || i % 2 === 0 ? "top" : "bottom";
+        const along = 38 + ((foe ? i : Math.floor(i / 2)) + 0.5) * (52 / perEdge);
         const powered = mask[i] ?? false;
         const ready = powered && w.charge >= 1;
         return (

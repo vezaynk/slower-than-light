@@ -3712,11 +3712,11 @@ button.door-tick::before {
 
 .hull.is-gone { visibility: hidden; }
 
-/* Weapon mounts on the hull edge (ShipView Mounts). Player guns face right, enemy guns face left. */
+/* Weapon mounts on the hull edge (ShipView Mounts). Player guns face right. Enemy guns in the target preview face up. */
 
 .mount { position: absolute; z-index: 2; pointer-events: none; line-height: 0; transform: translateX(-50%); }
 
-.hull-foe .mount { transform: translateX(50%) scaleX(-1); }
+.hull-foe .mount { transform: translateX(50%) rotate(-90deg); transform-origin: left center; }
 
 .mount.is-top { bottom: 100%; margin-bottom: -3px; }
 

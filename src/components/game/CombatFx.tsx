@@ -1,8 +1,10 @@
 /**
  * INVENTED combat effects. Two canvases draw every shot in flight, beams, deployed drones,
- * impacts, and the MISS / SHIELD / damage floaters. The target panel is a second camera,
- * so a ship shot leaves its own view going straight ahead, then arrives in the other view
- * from the fight clock's bearing. One canvas sits under that panel; the other sits over both ships.
+ * impacts, and the MISS / SHIELD / damage floaters. The target panel is a second camera.
+ * A player shot leaves its view going straight ahead. An enemy shot leaves the preview
+ * going up. The arrival at the other ship uses the fight clock's bearing. Enemy bolts
+ * start outside the screen; player bolts enter the preview frame. One canvas sits under
+ * that panel; the other sits over both ships.
  * The effect runs its own animation frame and reads the game store directly, so projectiles
  * move at display rate while the React UI keeps its slower refresh. Positions come from the
  * rooms and mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
@@ -106,6 +108,9 @@ function approachAngle(time: number, shot: Shot): number {
   const turns = born / APPROACH_TURN_S;
   return (turns - Math.floor(turns)) * Math.PI * 2;
 }
+
+/** Enemy arrivals are born this far outside the screen, on the bearing circle. */
+const OFFSCREEN_PX = 72;
 
 /** A point just inside `rect`, where a ray from `origin` at `ang` meets the border. */
 function entryPoint(origin: Pt, ang: number, rect: Box): Pt {
@@ -554,7 +559,8 @@ export function CombatFx() {
           const mounts = host.querySelectorAll(`.hull[data-ship="${side}"] [data-def="${CSS.escape(shot.defId)}"]`);
           if (mounts.length) {
             const m = box(mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length]);
-            if (m) return side === "player" ? { x: m.x + m.w, y: m.y + m.h / 2 } : { x: m.x, y: m.y + m.h / 2 };
+            // Player barrels point right. Enemy barrels in the preview point up.
+            if (m) return side === "player" ? { x: m.x + m.w, y: m.y + m.h / 2 } : { x: m.x + m.w / 2, y: m.y };
           }
         } else if (shot.label?.startsWith(DRONE_LABEL)) {
           // Enemy drone shots leave from that drone.
@@ -566,7 +572,7 @@ export function CombatFx() {
         }
         const own = hull(side);
         if (!own) return null;
-        return side === "player" ? { x: own.x + own.w, y: own.y + own.h / 2 } : { x: own.x, y: own.y + own.h / 2 };
+        return side === "player" ? { x: own.x + own.w, y: own.y + own.h / 2 } : { x: own.x + own.w / 2, y: own.y };
       };
 
       const aimAt = (shot: Shot, roomId: string): Pt | null => {
@@ -628,7 +634,8 @@ export function CombatFx() {
         const t = Math.min(1, shot.t + (live ? Math.min(since, 1 / 30) / shot.duration : 0));
         const color = shot.from === "env" ? "#c8b49a" : weaponPalette(shot.defId).glow;
         const crossing = crossesCameras(shot) && !!panelBox && !!stageBox;
-        // First half leaves the firing camera going straight ahead. Second half arrives in the other camera.
+        // First half leaves the firing camera: ahead for the player, up for the enemy preview.
+        // Second half arrives in the other camera.
         const outbound = crossing && t < 0.5;
         const leg = crossing ? (outbound ? t / 0.5 : (t - 0.5) / 0.5) : t;
         let x = from.x + (to.x - from.x) * t;
@@ -640,15 +647,26 @@ export function CombatFx() {
           ang = Math.atan2(to.y - from.y + Math.cos(t * Math.PI) * -24 * Math.PI, to.x - from.x);
         }
         if (outbound && panelBox) {
-          const dir = shot.from === "player" ? 1 : -1;
-          const endX = dir === 1 ? w + 48 : panelBox.x - 28;
-          x = from.x + (endX - from.x) * leg;
-          y = from.y;
-          ang = dir === 1 ? 0 : Math.PI;
-          layer = shot.from === "player" ? "world" : "panel";
+          if (shot.from === "enemy") {
+            // The preview guns point up, so the bolt leaves upward and exits that camera.
+            x = from.x;
+            y = from.y + (-OFFSCREEN_PX - from.y) * leg;
+            ang = -Math.PI / 2;
+            layer = "panel";
+          } else {
+            const endX = w + 48;
+            x = from.x + (endX - from.x) * leg;
+            y = from.y;
+            ang = 0;
+            layer = "world";
+          }
         } else if (crossing && panelBox && stageBox) {
-          const bounds = shot.from === "player" ? panelBox : stageBox;
           const approach = approachAngle(g.time, shot);
+          // Player bolts enter the preview frame. Enemy bolts are born outside the screen.
+          const bounds =
+            shot.from === "player"
+              ? panelBox
+              : { x: -OFFSCREEN_PX, y: -OFFSCREEN_PX, w: w + OFFSCREEN_PX * 2, h: h + OFFSCREEN_PX * 2 };
           const entry = entryPoint(to, approach, bounds);
           x = entry.x + (to.x - entry.x) * leg;
           y = entry.y + (to.y - entry.y) * leg;

@@ -13,7 +13,7 @@ import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
 import { artilleryChargeSeconds } from "./flagship-weapons.ts";
 import { BEAM1_SPEED, DRONE_LABEL, pickOrbitBearing } from "../extras/swarm.ts";
-import { COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
+import { BEAM_HOLD_S, COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
 import { flagshipHardLinks, flagshipStage1, flagshipStage2, flagshipStage3 } from "./flagship-layout.ts";
 import type { Layout } from "../layouts.ts";
@@ -305,7 +305,7 @@ function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {
   if (d.heading == null) d.heading = 0;
   if (d.bearing == null || !(d.left != null && d.left > 0)) {
     d.bearing = pickOrbitBearing(g, d.heading);
-    d.left = orbitLegSeconds(d.heading, d.bearing, speed);
+    d.left = orbitLegSeconds(d.heading, d.bearing, speed, d.kind === "beam" ? BEAM_HOLD_S : 0);
   }
 }
 

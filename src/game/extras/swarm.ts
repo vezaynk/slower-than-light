@@ -10,6 +10,7 @@ import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import {
+  BEAM_HOLD_S,
   COMBAT1_SPEED,
   COMBAT2,
   bearingAccepted,
@@ -575,11 +576,19 @@ function combatFireBlocked(g: Game, from: "player" | "enemy"): boolean {
  * a new bearing is picked, and the fire callback withholds the shot.
  * The timer does not run while unpowered: callers skip this until the bars cover the drone.
  */
-function flyCombatLaser(g: Game, body: OrbitBody, dt: number, speed: number, room: () => string | null, fire: (roomId: string) => void) {
+function flyCombatLaser(
+  g: Game,
+  body: OrbitBody,
+  dt: number,
+  speed: number,
+  room: () => string | null,
+  fire: (roomId: string) => void,
+  hold = 0,
+) {
   if (body.heading == null) body.heading = 0;
   if (body.bearing == null || !(body.left != null && body.left > 0)) {
     body.bearing = pickOrbitBearing(g, body.heading);
-    body.left = orbitLegSeconds(body.heading, body.bearing, speed);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed, hold);
   }
   body.aux += dt;
   let guard = 0;
@@ -593,7 +602,7 @@ function flyCombatLaser(g: Game, body: OrbitBody, dt: number, speed: number, roo
     body.heading = body.bearing;
     fire(id);
     body.bearing = pickOrbitBearing(g, body.heading);
-    body.left = orbitLegSeconds(body.heading, body.bearing, speed);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed, hold);
   }
 }
 
@@ -615,9 +624,17 @@ function tickWardcut(g: Game, kit: Kit, dt: number) {
 
 function tickBeam(g: Game, kit: Kit, dt: number) {
   // Speed 15 is the orbit. Beam speed 3 is not this wait.
-  flyCombatLaser(g, kit, dt, BEAM1_SPEED, () => enemyRoom(g), (roomId) => {
-    landBeamSwipe(g, g.enemy, roomId, "beam", "player");
-  });
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    BEAM1_SPEED,
+    () => enemyRoom(g),
+    (roomId) => {
+      landBeamSwipe(g, g.enemy, roomId, "beam", "player");
+    },
+    BEAM_HOLD_S,
+  );
 }
 
 /** Crew rooms first, otherwise a system room, otherwise any room. Same rule as the hit below. */
@@ -2096,6 +2113,7 @@ function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
       unit.room = roomId;
       landBeamSwipe(g, g.player, roomId, unit.kind, "enemy");
     },
+    BEAM_HOLD_S,
   );
 }
 

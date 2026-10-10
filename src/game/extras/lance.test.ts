@@ -2,13 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { cellOccupied } from "../layouts.ts";
 import { createGame, log, rand, sparePower, startCombat } from "../sim.ts";
-import type { Game } from "../types.ts";
+import type { Game, Room, Ship } from "../types.ts";
 import {
   CHARGE_SECONDS,
   DISPLAY_NAME,
   INSTALL_COST,
   UPGRADE_COSTS,
   aimLance,
+  cutLine,
   installLance,
   tickLance,
   lowerLancePower,
@@ -55,36 +56,40 @@ describe("lance", () => {
     assert.equal(g.log[1], "mark");
   });
 
-  it("cuts the aimed room and one door neighbor", () => {
+  it("cuts from the aimed room to the room farthest from it, one hull point per room", () => {
+    // xftl doc/artillery: a random room, then "a second room that is as far away from the first room as possible".
     const g = armed(2);
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
     const bubble = g.enemy.shieldNow;
     const room = g.enemy.rooms.find((r) => r.id === "e-weapons");
     assert.ok(room);
+    const line = cutLine(g.enemy, room.id);
+    assert.equal(line[0], room);
+    const c = (r: (typeof line)[number]) => [r.x + r.w / 2, r.y + r.h / 2];
+    const d = (r: (typeof line)[number]) => Math.hypot(c(r)[0] - c(room)[0], c(r)[1] - c(room)[1]);
+    assert.equal(d(line[line.length - 1]), Math.max(...g.enemy.rooms.map(d)));
     aimLance(g, room.id);
     tickLance(g, 0.1);
-    assert.equal(g.enemy.hull, hull - 2);
+    assert.equal(g.enemy.hull, hull - line.length);
     assert.equal(g.enemy.shieldNow, bubble);
     assert.equal(g.enemy.systems.weapons.damage, 1);
   });
 
-  it("cuts only the target when no door links it", () => {
-    const g = armed(3);
-    assert.ok(g.enemy);
-    g.enemy.doors = [];
-    const hull = g.enemy.hull;
-    const bubble = g.enemy.shieldNow;
-    // Documented hulls differ (auto-ships have no oxygen room), so take any system room but weapons and shields:
-    // wrecking shields would drop the bubble this test checks is untouched.
-    const room = g.enemy.rooms.find((r) => r.system && r.system !== "weapons" && r.system !== "shields");
-    assert.ok(room?.system);
-    g.enemy.systems[room.system].damage = g.enemy.systems[room.system].level;
-    aimLance(g, room.id);
-    tickLance(g, 0.1);
-    assert.equal(g.enemy.hull, hull - 1);
-    assert.equal(g.enemy.shieldNow, bubble);
-    assert.equal(g.enemy.systems[room.system].damage, g.enemy.systems[room.system].level);
+  it("the line takes the rooms it passes through, not the ones beside it", () => {
+    const room = (id: string, x: number, y: number, w = 1, h = 1) =>
+      ({ id, x, y, w, h, o2: 100, fire: 0, breach: 0, breachFix: 0, title: id }) as unknown as Room;
+    // a b c in a row, d above b. From a, c is farthest; the line a-c crosses b and misses d.
+    const ship = { rooms: [room("a", 0, 0), room("b", 1, 0), room("c", 2, 0), room("d", 1, -1)], doors: [] } as unknown as Ship;
+    assert.deepEqual(
+      cutLine(ship, "a").map((r) => r.id),
+      ["a", "b", "c"],
+    );
+    // From d, a and c tie for farthest; the first in room order wins, and the line d-a only clips corners.
+    assert.deepEqual(
+      cutLine(ship, "d").map((r) => r.id),
+      ["d", "a"],
+    );
   });
 
   it("rolls a ten percent fire chance for each tile the swipe passes", () => {

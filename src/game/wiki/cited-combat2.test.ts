@@ -5,7 +5,6 @@ import { pickOrbitBearing } from "../extras/swarm.ts";
 import {
   COMBAT1_SPEED,
   COMBAT2,
-  ORBIT_DEG_PER_SPEED,
   bearingAccepted,
   orbitGap,
   orbitLegSeconds,
@@ -24,11 +23,12 @@ describe("Combat Drone Mark II shot", () => {
     assert.equal(orbitGap(5, 355), 10);
     assert.equal(bearingAccepted(5, 355), true);
     assert.equal(bearingAccepted(0, 45), false);
-    // Shields, Overview: layers 1–2 restore in 2s. A 90 degree leg at Speed 15 takes that long.
-    assert.equal(ORBIT_DEG_PER_SPEED, 3);
-    assert.equal(orbitLegSeconds(0, 90, COMBAT1_SPEED), 2);
-    assert.equal(orbitLegSeconds(0, 180, COMBAT1_SPEED), 4);
-    assert.equal(orbitLegSeconds(0, 180, COMBAT2.speed), 180 / (28 * 3));
+    // xftl doc/combat-drone: stops at 1.15x the shield, Speed/21.875 semi-major units a second, 0.5 s pause.
+    const close = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`);
+    close(orbitLegSeconds(0, 180, COMBAT1_SPEED), (2.3 * 21.875) / 15 + 0.5);
+    close(orbitLegSeconds(0, 90, COMBAT1_SPEED), (2.3 * Math.SQRT1_2 * 21.875) / 15 + 0.5);
+    close(orbitLegSeconds(0, 180, COMBAT2.speed), (2.3 * 21.875) / 28 + 0.5);
+    close(orbitLegSeconds(0, 180, COMBAT1_SPEED, 0.5), orbitLegSeconds(0, 180, COMBAT1_SPEED) + 0.5);
     assert.ok(orbitLegSeconds(5, 355, COMBAT2.speed) < orbitLegSeconds(0, 180, COMBAT2.speed));
   });
 

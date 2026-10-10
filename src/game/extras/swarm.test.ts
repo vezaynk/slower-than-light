@@ -27,7 +27,7 @@ import {
   tickSwarm,
 } from "./swarm.ts";
 
-/** A 90 degree orbit leg. Shields, Overview: that leg at Speed 15 is the 2 second layer restore. */
+/** A 90 degree orbit leg: the flight plus the 0.5 s firing pause (xftl doc/combat-drone). */
 function pinLeg(body: { heading?: number; bearing?: number; left?: number; aux: number }, speed: number) {
   body.heading = 0;
   body.bearing = 90;
@@ -237,13 +237,13 @@ describe("swarm", () => {
     assert.equal(deploy(g, "striker"), true);
     const kit = g.player.kits.swarm;
     assert.ok(kit);
-    // 180 degrees at Speed 15 is 4 seconds. Shields, Overview: a 90 degree leg is the 2 second layer.
+    // 180 degrees at Speed 15: a 2.3-unit chord at 15/21.875 units a second, then the 0.5 s pause.
     kit.heading = 0;
     kit.bearing = 180;
     kit.left = orbitLegSeconds(0, 180, COMBAT1_SPEED);
     kit.aux = 0;
-    assert.equal(kit.left, 4);
-    tickSwarm(g, 3.99);
+    assert.ok(Math.abs(kit.left - (2.3 * 21.875) / 15 - 0.5) < 1e-9);
+    tickSwarm(g, kit.left - 0.01);
     assert.equal(g.shots.length, 0);
     assert.equal(swarmCombatShots(g).length, 0);
     tickSwarm(g, 0.01);
@@ -363,10 +363,9 @@ describe("swarm", () => {
     g.enemy.rooms = [systemRoom];
     const kit = g.player.kits.swarm;
     assert.ok(kit);
-    // Beam speed 3 is not the wait. A 90 degree leg at Speed 15 is 2 seconds.
+    // Beam speed 3 is not the wait. Speed 15 is the flight.
     pinLeg(kit, BEAM1_SPEED);
-    assert.equal(kit.left, 2);
-    tickSwarm(g, 1.99);
+    tickSwarm(g, (kit.left ?? 0) - 0.01);
     assert.equal(g.enemy.hull, hull);
     tickSwarm(g, 0.01);
     assert.equal(g.enemy.hull, hull - 1);

@@ -1,4 +1,4 @@
-import type { Door, Game, Room, Ship } from "../types.ts";
+import type { Game, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve, noteArtillery } from "../wiki/achieve-notes.ts";
@@ -132,38 +132,67 @@ export function aimLance(g: Game, roomId: string): void {
   kit.target = roomId;
 }
 
-function linkedRoom(door: Door, id: string): string | null {
-  if (door.b === "void") return null;
-  if (door.a === id) return door.b;
-  if (door.b === id) return door.a;
-  return null;
+function centre(room: Room): [number, number] {
+  return [room.x + room.w / 2, room.y + room.h / 2];
+}
+
+/** Liang-Barsky: does the segment p0-p1 pass through the room's rectangle (not just touch an edge)? */
+function crosses(room: Room, p0: [number, number], p1: [number, number]): boolean {
+  const dx = p1[0] - p0[0];
+  const dy = p1[1] - p0[1];
+  let t0 = 0;
+  let t1 = 1;
+  const edges: [number, number][] = [
+    [-dx, p0[0] - room.x],
+    [dx, room.x + room.w - p0[0]],
+    [-dy, p0[1] - room.y],
+    [dy, room.y + room.h - p0[1]],
+  ];
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q <= 0) return false;
+      continue;
+    }
+    const t = q / p;
+    if (p < 0) t0 = Math.max(t0, t);
+    else t1 = Math.min(t1, t);
+    if (t0 >= t1) return false;
+  }
+  return true;
 }
 
 /**
- * Aimed room, plus one door-neighbor when the door list shows one (a system room if a door links one).
- * INVENTED: that two-room cap. Artillery Beam "Overview" says 1 damage per room hit and does not count rooms.
- * MISMATCH: code has at most two rooms. Beam (Weapon) "Artillery Beam" says beam length 500.
+ * xftl doc/artillery (ArtillerySystem::OnLoop): "For beam weapons, it randomly selects one room and then picks a
+ * second room that is as far away from the first room as possible."
+ * INFERRED: distance is between room centres, and the beam cuts every room the line between those centres passes
+ * through, in order from the first room. The first room is the stored target when the player set one.
  */
-function cutLine(ship: Ship, origin: string): Room[] {
+export function cutLine(ship: Ship, origin: string): Room[] {
   const first = ship.rooms.find((r) => r.id === origin);
   if (!first) return [];
-  let fallback: Room | undefined;
-  for (const door of ship.doors) {
-    const otherId = linkedRoom(door, origin);
-    if (!otherId) continue;
-    const other = ship.rooms.find((r) => r.id === otherId);
-    if (!other) continue;
-    if (!fallback) fallback = other;
-    if (other.system) return [first, other];
+  const from = centre(first);
+  let far = first;
+  let best = -1;
+  for (const room of ship.rooms) {
+    const [x, y] = centre(room);
+    const d = (x - from[0]) ** 2 + (y - from[1]) ** 2;
+    if (d > best) {
+      best = d;
+      far = room;
+    }
   }
-  return fallback ? [first, fallback] : [first];
+  const to = centre(far);
+  const along = (r: Room) => {
+    const [x, y] = centre(r);
+    return (x - from[0]) ** 2 + (y - from[1]) ** 2;
+  };
+  return ship.rooms.filter((r) => r === first || r === far || crosses(r, from, to)).sort((a, z) => along(a) - along(z));
 }
 
 /**
  * Artillery Beam "Overview": 1 hull damage and 1 system damage per room, and a 10% fire chance
  * in each tile the beam passes. Fires, "Fires and enemy AI": the stack stops at 4.
- * INFERRED: the uncontrolled swipe passes every occupied tile of each cut room. The page does not
- * print that path, and the two-room cap above is still not the printed length.
+ * INFERRED: the uncontrolled swipe passes every occupied tile of each cut room. The page does not print that path.
  */
 function nick(g: Game, ship: Ship, room: Room): void {
   ship.hull -= 1;

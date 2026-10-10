@@ -1,5 +1,3 @@
-import { shieldLayerSeconds } from "../content.ts";
-
 /**
  * Wiki page "Drone Control", section "Combat Drone Mark II".
  * The section prints "Power requirement: 4 power" and "Speed: 28".
@@ -32,14 +30,17 @@ export const COMBAT1_SPEED = 15;
 export const ORBIT_MIN_SEP = 90;
 
 /**
- * INFERRED: degrees per second for one point of Speed, on the normalised orbit.
- * The shortest separation the page allows is 90 degrees. At Speed 15 that leg
- * takes the 2 second restore of shield layers 1 and 2 (Shields, Overview).
- * A longer leg is slower, which is Mark I's "usually slower than normal shield recharge".
- * The same paragraph says movement is normalised to the shield's longest dimension,
- * so the rate does not change with the ship.
+ * xftl doc/combat-drone: "The speed passed into GetNext point is set as the speed in the blueprint times the semi-major
+ * axis (longest distance from centre) of the shields, divided by 21.875. This gives the speed in pixels per second."
+ * CombatDrone::PickDestination puts the stop on the shields at the new angle, "multiply it by 1.15 ... to make the drone
+ * stop just outside the shields". So in semi-major units the stop circle is 1.15 and the speed is Speed / 21.875.
  */
-export const ORBIT_DEG_PER_SPEED = ORBIT_MIN_SEP / (COMBAT1_SPEED * shieldLayerSeconds(1));
+export const ORBIT_SPEED_SCALE = 21.875;
+export const ORBIT_STOP_RADIUS = 1.15;
+/** xftl doc/combat-drone: "Once it gets to it's target position, it waits 0.5 seconds ... and then fires". */
+export const ORBIT_FIRE_PAUSE_S = 0.5;
+/** xftl doc/combat-drone: a beam drone "sets additionalPause to 0.5, delaying the movement ... until the beam has finished". */
+export const BEAM_HOLD_S = 0.5;
 
 /** Shortest arc around the circle. 5° to 355° is 10° of travel. */
 export function orbitGap(from: number, to: number): number {
@@ -47,9 +48,14 @@ export function orbitGap(from: number, to: number): number {
   return Math.min(raw, 360 - raw);
 }
 
-/** Seconds to fly this leg. The drone fires when the leg finishes. */
-export function orbitLegSeconds(from: number, to: number, speed: number): number {
-  return orbitGap(from, to) / (speed * ORBIT_DEG_PER_SPEED);
+/**
+ * Seconds from leaving one stop to firing at the next, plus `hold` after the shot (a beam drone's BEAM_HOLD_S).
+ * INFERRED: the drone flies the straight chord between the two stops, on a circle (a round shield). An elliptical
+ * shield would shorten legs across its minor axis; this sim has no shield ellipse.
+ */
+export function orbitLegSeconds(from: number, to: number, speed: number, hold = 0): number {
+  const chord = 2 * ORBIT_STOP_RADIUS * Math.sin((orbitGap(from, to) * Math.PI) / 360);
+  return (chord * ORBIT_SPEED_SCALE) / speed + ORBIT_FIRE_PAUSE_S + hold;
 }
 
 /** True when the non-wrapping check accepts this destination. */

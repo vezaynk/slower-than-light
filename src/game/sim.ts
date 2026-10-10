@@ -1,5 +1,5 @@
 import { flushSfx } from "./audio.ts";
-import { hopLanding } from "./walk-path.ts";
+import { TILE_WALK_S, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
 import {
   CREW_POOL,
@@ -66,7 +66,7 @@ import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
-import { xpNeedFor } from "./extras/lineage.ts";
+import { BREACH_O2_PER_SEC, xpNeedFor } from "./extras/lineage.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import { chainChargeSeconds, chainIonAmount, isChainWeapon, nextChainStep } from "./wiki/cited-chain.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
@@ -1269,13 +1269,6 @@ export function punchCoat(door: Door, hits: number): "held" | "broke" | "clear" 
   return "broke";
 }
 
-export function doorLabel(ship: Ship, door: Door): string {
-  const a = roomById(ship, door.a)?.title ?? "Room";
-  if (door.b === "void") return `Airlock · ${a}`;
-  const b = roomById(ship, door.b)?.title ?? "Room";
-  return `${a} – ${b}`;
-}
-
 function coated(ship: Ship, id: string): boolean {
   return (roomById(ship, id)?.lock ?? 0) > 0;
 }
@@ -1328,6 +1321,7 @@ function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: strin
   for (const door of doorsOf(ship, roomId)) {
     door.hp = hits;
     door.coat = COATED_DOOR_HITS;
+    delete door.freed;
   }
 }
 
@@ -1401,6 +1395,10 @@ export function openAllDoors(g: Game) {
   }
   for (const door of g.player.doors) {
     door.open = true;
+    // Door System: Open All cancels a Close All that was waiting on a stuck door,
+    // and overrides a crystal coating so the opened doors can be closed by hand.
+    delete door.seal;
+    door.freed = true;
     if (door.b !== "void") continue;
     const room = roomById(g.player, door.a);
     if (room) room.venting = true;
@@ -1410,6 +1408,7 @@ export function openAllDoors(g: Game) {
 
 /**
  * Door System: the close-all control next to open-all. Coated interior doors stay as they are, the same as a hand toggle.
+ * A door that is still stuck open is marked to shut the moment it can be controlled again.
  * A dead Door System cannot do this.
  */
 export function closeAllDoors(g: Game) {
@@ -1418,9 +1417,13 @@ export function closeAllDoors(g: Game) {
     return;
   }
   for (const door of g.player.doors) {
-    if (door.stuck > 0) continue;
-    if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b))) continue;
+    if (door.stuck > 0) {
+      door.seal = true;
+      continue;
+    }
+    if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b)) && !door.freed) continue;
     door.open = false;
+    delete door.seal;
     if (door.b !== "void") continue;
     const room = roomById(g.player, door.a);
     if (room) room.venting = false;
@@ -1510,8 +1513,11 @@ export function toggleDoor(g: Game, a: string, b: string) {
   const door = findDoor(g.player, a, b);
   if (!door || door.stuck > 0) return;
   // Crystal, "Crystal Lockdown": coated rooms cannot be opened or closed by hand. Airlocks are not blocked.
-  if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b))) return;
+  // Crystal Lockdown blocks a hand toggle. Door System: Open All overrides that, and the doors can then be closed.
+  if (door.b !== "void" && (coated(g.player, door.a) || coated(g.player, door.b)) && !door.freed) return;
   door.open = !door.open;
+  // Opening by hand cancels a Close All that was waiting on this door.
+  delete door.seal;
   if (door.b === "void") {
     const room = roomById(g.player, door.a);
     if (room) room.venting = door.open;
@@ -2776,7 +2782,10 @@ function strikeRoom(
     if (missile && rand(g) < 0.5) r.fire = Math.min(4, r.fire + 1);
   }
   const exclusive = (heavyLaser || missile) && fireStarted;
-  if (shot.breachChance > 0 && !exclusive && rand(g) < shot.breachChance) r.breach += 1;
+  if (shot.breachChance > 0 && !exclusive && rand(g) < shot.breachChance) {
+    r.breach += 1;
+    if (aboard === "enemy") noteEnemyBreach(g, r.id);
+  }
   // @agent:flagship. Stage-3 Power Surge lasers: "20% stun" (wiki/flagship-systems.ts SURGE_STUN_S, INFERRED 3 s).
   if ((shot.stunChance ?? 0) > 0 && rand(g) < (shot.stunChance ?? 0)) {
     for (const c of g.crew) {
@@ -3074,36 +3083,42 @@ function moveCrew(g: Game, dt: number) {
     } else if (leaving && door && !door.open && !crystalExit) continue;
     if (door && !door.open && hostile && !leaving) {
       const level = hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, c.aboard);
-      // Door System, "Hits required to break a door": the table starts at level 2. Level 1 is remote doors.
+      // Door System, "Hits required to break a door": the table starts at level 2.
+      // Disabled, broken, missing, or level 1: crew and boarders move through, and the door stays shut.
       const max = blastHits(level, g.difficulty);
-      if (door.hp <= 0) {
-        door.hp = max;
-        if (max > 0) doorArmedMax.set(door, max);
-      } else if (max > 0) {
-        const armed = doorArmedMax.get(door);
-        if (armed == null) doorArmedMax.set(door, max);
-        else if (armed !== max) {
-          door.hp = scaleDoorLeft(door.hp, armed, max);
+      if (max > 0) {
+        if (door.hp <= 0) {
+          door.hp = max;
           doorArmedMax.set(door, max);
+        } else {
+          const armed = doorArmedMax.get(door);
+          if (armed == null) doorArmedMax.set(door, max);
+          else if (armed !== max) {
+            door.hp = scaleDoorLeft(door.hp, armed, max);
+            doorArmedMax.set(door, max);
+          }
         }
+        door.hp -= dt;
+        if (door.hp > 0) continue;
+        door.open = true;
+        // Door System: "When broken, a door remains stuck open for 7 seconds".
+        door.stuck = 7;
+        door.hp = 0;
+        doorArmedMax.delete(door);
+        log(g, "A door gives way.");
       }
-      door.hp -= dt;
-      if (door.hp > 0) continue;
-      door.open = true;
-      // Door System: "When broken, a door remains stuck open for 7 seconds".
-      door.stuck = 7;
-      door.hp = 0;
-      doorArmedMax.delete(door);
-      log(g, "A door gives way.");
     }
-    // INFERRED: 0.6s is the baseline walk. Crew table movement is a multiplier on that.
+    // INFERRED: TILE_WALK_S is one floor tile. A room used to share that one interval,
+    // so walking across the tiles inside it was faster than stepping through a door.
+    // Crew table movement is a multiplier on the tile time.
     // Augmentations, "Mantis Pheromones": your crew move 25% faster on your ship and while boarding.
     const pace =
       kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
-    c.move += (dt * pace) / 0.6;
+    const dest = roomById(ship, c.path[c.path.length - 1]!);
+    const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard, ship) : null;
+    const steps = hopSteps(walkCells(ship, c.room, c.path, c.via, spot ?? undefined));
+    c.move += (dt * pace) / (TILE_WALK_S * steps);
     if (c.move >= 1) {
-      const dest = roomById(ship, c.path[c.path.length - 1]!);
-      const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard, ship) : null;
       const landing = hopLanding(ship, c.room, c.path, c.via, spot ?? undefined);
       c.room = c.path.shift()!;
       c.move = 0;
@@ -3113,17 +3128,56 @@ function moveCrew(g: Game, dt: number) {
   }
 }
 
-function tickDoors(ship: Ship, dt: number) {
+/**
+ * Door System, "Door strength": a broken door stays stuck open for 7 seconds, then its health
+ * resets and the player can control it again. Close All while it is stuck shuts it at that moment.
+ * Boarding, "Doors": a broken door on an enemy ship stays open. A hacked door that is still hacked
+ * when the timer ends is closed by lockHackedDoors. Depowering the hack before then leaves it open.
+ */
+function tickDoors(g: Game, ship: Ship, dt: number) {
   for (const d of ship.doors) {
     if (d.stuck <= 0) continue;
     d.stuck = Math.max(0, d.stuck - dt);
-    if (d.stuck <= 0 && blastHits(Math.max(0, ship.systems.doors.level - ship.systems.doors.damage)) > 0) {
-      d.open = false;
+    if (d.stuck > 0) continue;
+    if (ship !== g.player) continue;
+    d.hp = 0;
+    if (d.seal) shutOperable(ship, d);
+  }
+}
+
+/** Close All's queued shut. Health reset is hp 0 (the next punch arms it). */
+function shutOperable(ship: Ship, d: Door) {
+  d.open = false;
+  d.hp = 0;
+  d.stuck = 0;
+  delete d.seal;
+  doorArmedMax.delete(d);
+  if (d.b === "void") {
+    const r = roomById(ship, d.a);
+    if (r) r.venting = false;
+  }
+}
+
+/**
+ * Door System, "Door strength", and Boarding, "Doors": a breach in an enemy room, and sealing one,
+ * shuts that room's doors when the Door System is functioning. Player doors stay under player control.
+ * Functioning is doorLevel at least 1: not destroyed, not fully ionized, and not taken offline.
+ */
+export function noteEnemyBreach(g: Game, roomId: string) {
+  const ship = g.enemy;
+  if (!ship || doorLevel(g, ship, "enemy") < 1) return;
+  for (const d of ship.doors) {
+    if (d.a !== roomId && d.b !== roomId) continue;
+    const broken = d.stuck > 0;
+    d.open = false;
+    if (broken) {
+      d.stuck = 0;
       d.hp = 0;
-      if (d.b === "void") {
-        const r = roomById(ship, d.a);
-        if (r) r.venting = false;
-      }
+      doorArmedMax.delete(d);
+    }
+    if (d.b === "void") {
+      const room = roomById(ship, d.a);
+      if (room) room.venting = false;
     }
   }
 }
@@ -3134,6 +3188,8 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
   for (const d of ship.doors) {
     d.stuck = 0;
     d.hp = hits;
+    delete d.seal;
+    delete d.freed;
     if (d.b === "void") {
       d.open = false;
       const r = roomById(ship, d.a);
@@ -3146,11 +3202,14 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
  * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3.
  * Unpowered rooms fall at 1.2% per second.
  * Fires die below 10% oxygen. Suffocation is still the 5% check in life().
- * INFERRED: 12% per breach, and 40% of the difference through an open door. The Door System page does not give airflow rates.
+ * One breach is BREACH_O2_PER_SEC (7.2). Oxygen-3 at 8.4%/s beats that with the doors shut.
+ * Oxygen-2 at 4.8%/s does not, until open rooms feed the breach.
+ * INFERRED: 40% of the difference through an open door. The Door System page does not give airflow rates.
  * Oxygen, Overview: an open airlock instantly drains the O2 in the room it is opened in, and quickly drains
  * connected rooms through opened doors. More airlocks drain farther rooms quicker. That drain surpasses
  * several Lanius and breaches. The page prints no percent for the connected-room drain.
- * INFERRED: the airlock room is set to 0 after the open-door share, so a neighbor cannot refill it this tick.
+ * The airlock room is set to 0 after the share, so a neighbor cannot refill it this tick.
+ * A room open to space is not a source: the share never pushes its oxygen into a lower neighbor.
  * That share is what moves oxygen toward each emptied room. No extra percent is added. Holding another
  * airlock room at 0 is what reaches a farther room sooner.
  */
@@ -3242,25 +3301,29 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) {
     if (o2 > 0) r.o2 += 1.2 * mult * dt;
     else r.o2 -= 1.2 * dt;
-    r.o2 -= 12 * r.breach * dt;
+    r.o2 -= BREACH_O2_PER_SEC * r.breach * dt;
     // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
     r.o2 -= 0.96 * r.fire * dt;
   }
   const vented: Room[] = [];
   for (const d of ship.doors) {
-    if (!d.open) continue;
-    if (d.b === "void") {
-      const r = roomById(ship, d.a);
-      // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in".
-      if (r) vented.push(r);
-    } else {
-      const a = roomById(ship, d.a);
-      const b = roomById(ship, d.b);
-      if (!a || !b) continue;
-      const flow = (a.o2 - b.o2) * 0.4 * dt;
-      a.o2 -= flow;
-      b.o2 += flow;
-    }
+    if (!d.open || d.b !== "void") continue;
+    const r = roomById(ship, d.a);
+    // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in".
+    if (r) vented.push(r);
+  }
+  const openToSpace = new Set(vented);
+  for (const d of ship.doors) {
+    if (!d.open || d.b === "void") continue;
+    const a = roomById(ship, d.a);
+    const b = roomById(ship, d.b);
+    if (!a || !b) continue;
+    let flow = (a.o2 - b.o2) * 0.4 * dt;
+    // An airlock empties its own room into space. That oxygen does not cross into a lower neighbor.
+    if (openToSpace.has(a) && flow > 0) flow = 0;
+    if (openToSpace.has(b) && flow < 0) flow = 0;
+    a.o2 -= flow;
+    b.o2 += flow;
   }
   for (const r of vented) r.o2 = 0;
   for (const r of ship.rooms) {
@@ -3303,17 +3366,18 @@ function fightFire(r: Room, pals: Crew[], dt: number) {
  * INFERRED: every 7s, 70% through an open door, else +0.5 fire. The 15% oxygen gate is not on the fetched pages.
  * Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
  * The external spread note the page links is not copied here. A closed door divides the tick (doorSpreadSlow).
+ * A hacked door counts as open for that tick.
  */
 function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number) {
   if (!(r.fire > 0 && r.o2 > 15)) return;
-  const sealed = ship.doors.some((d) => !d.open && d.b !== "void" && (d.a === r.id || d.b === r.id));
+  // Hacking, "Overview": fires spread through a hacked system's doors at the open-door pace.
+  // A shut door that is not hacked still seals. Disabled or missing doors keep the level-1 slow.
+  const touches = (d: Door) => d.b !== "void" && (d.a === r.id || d.b === r.id);
+  const sealed = ship.doors.some((d) => touches(d) && !d.open && !d.hacked);
   r.fireTick += dt * (sealed ? 1 / closedSlow : 1);
   if (r.fireTick <= 7) return;
   r.fireTick = 0;
-  const openNeigh = ship.doors.find((d) => {
-    if (!d.open || d.b === "void") return false;
-    return d.a === r.id || d.b === r.id;
-  });
+  const openNeigh = ship.doors.find((d) => touches(d) && (d.open || d.hacked));
   if (openNeigh && rand(g) < 0.7) {
     const nid = openNeigh.a === r.id ? (openNeigh.b as string) : openNeigh.a;
     const n = roomById(ship, nid);
@@ -3469,6 +3533,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     if (r.breach > 0 && r.breachFix >= REPAIR_SECONDS) {
       r.breach = Math.max(0, r.breach - 1);
       r.breachFix = 0;
+      if (aboard === "enemy") noteEnemyBreach(g, r.id);
       log(g, `${r.title} leak sealed.`);
     }
     spreadFire(g, ship, r, closedSlow, dt);
@@ -3881,11 +3946,66 @@ function boarders(g: Game, dt: number) {
   tickEnemyBoarding(g, dt);
 }
 
+/**
+ * Oxygen, Overview: "Boarders and your mind-controlled crew will attempt to move out of O2-deprived
+ * rooms to reach rooms with 10% or more O2." Deprived is the suffocation line, 5% or less.
+ * Lanius do not suffocate, so they stay. A coated room cannot be left. A walk that already ends in
+ * a breathable room is left alone. The player's own ordered crew are not moved by this.
+ */
+export function leaveDeprivedAir(g: Game, c: Crew): boolean {
+  if (c.hp <= 0 || (c.stun ?? 0) > 0) return false;
+  if (kinOf(c.kin ?? "plain").suffocate <= 0) return false;
+  const ship = c.aboard === "player" ? g.player : g.enemy;
+  if (!ship) return false;
+  const here = roomById(ship, c.room);
+  if (!here || here.o2 > 5 || coated(ship, c.room)) return false;
+  const destId = c.path.length ? c.path[c.path.length - 1]! : "";
+  const dest = destId ? roomById(ship, destId) : undefined;
+  if (dest && dest.o2 >= 10) return true;
+  const hull: "player" | "enemy" = ship === g.player ? "player" : "enemy";
+  const q = [c.room];
+  const prev = new Map<string, string | null>([[c.room, null]]);
+  let goal = "";
+  while (q.length) {
+    const cur = q.shift()!;
+    for (const n of neighbors(ship, cur)) {
+      if (prev.has(n) || coated(ship, n)) continue;
+      prev.set(n, cur);
+      const room = roomById(ship, n);
+      if (
+        room &&
+        room.o2 >= 10 &&
+        mayStand(room, g.crew, c.id, n, c.aboard, hull, interiorLinks(ship.doors, n))
+      ) {
+        goal = n;
+        q.length = 0;
+        break;
+      }
+      q.push(n);
+    }
+  }
+  if (!goal) return false;
+  const path: string[] = [];
+  let w: string | null = goal;
+  while (w && w !== c.room) {
+    path.push(w);
+    w = prev.get(w) ?? null;
+  }
+  path.reverse();
+  if (!path.length) return false;
+  c.path = path;
+  c.move = 0;
+  delete c.via;
+  return true;
+}
+
 // INVENTED: boarders pick a new system every 4–7 seconds.
 function wanderBoarders(g: Game, dt: number) {
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "player" || c.hp <= 0) continue;
     c.think -= dt;
+    // Oxygen, Overview: boarders leave a room at 5% O2 or less for one at 10% or more.
+    if (leaveDeprivedAir(g, c)) continue;
     if (c.path.length > 0 || c.think > 0) continue;
     // Crystal, "Crystal Lockdown": a new walk cannot start out of a coated room.
     if (coated(g.player, c.room)) {
@@ -5868,22 +5988,14 @@ function stepShots(g: Game, dt: number) {
 }
 
 /**
- * Fires, lead: events start fires, and a fire spreads, consumes oxygen, and burns crew whether or not a fight is on.
- * This is the fire portion of airflow() and life() — oxygen 0.96%/s, the die-out timer below 10%, extinguish, 2.128 HP/s, and
- * spreadFire — on the player ship. Melee, repair, medbay, suffocation, door venting, and the oxygen-system refill
- * stay on the combat tick. System sabotage (0.08/s) stays on that tick too (extras/sabotage.ts).
+ * Fires, lead: events start fires, and a fire spreads and burns crew whether or not a fight is on.
+ * Oxygen loss, the die-out timer, refill, and venting are airflow(), which also runs on this tick.
+ * Melee, repair, medbay, and suffocation stay on the combat tick. System sabotage (0.08/s) stays there too.
  */
 function tickIdleFires(g: Game, dt: number) {
   const ship = g.player;
   if (!ship.rooms.some((r) => r.fire > 0)) return;
   const aboard = "player" as const;
-  // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
-  // Fires, "Dealing with fires": fires begin to die out once oxygen drops below 10%.
-  for (const r of ship.rooms) {
-    r.o2 -= 0.96 * r.fire * dt;
-    r.o2 = Math.max(0, Math.min(100, r.o2));
-    starveFire(g, ship, r, dt);
-  }
   const closedSlow = doorSpreadSlow(g, ship, aboard);
   for (const r of ship.rooms) {
     const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
@@ -5907,6 +6019,18 @@ function idleShip(g: Game): boolean {
   return g.phase === "combat" && !g.enemy;
 }
 
+/** The play clock. Oxygen, vents, fires, and walking keep going outside a fight. A pause stops it. */
+export function shipTicking(g: Game): boolean {
+  if (g.paused) return false;
+  return (
+    g.phase === "combat" ||
+    g.phase === "map" ||
+    g.phase === "event" ||
+    g.phase === "store" ||
+    g.phase === "reward"
+  );
+}
+
 /**
  * Player half of the combat tick with no enemy hull: airflow, doors, movement, melee and fires (life),
  * the same 0.08/s sabotage, boarders picking a new room, and the FTL spool. Repair and venting run because
@@ -5916,7 +6040,7 @@ function idleShip(g: Game): boolean {
 function tickBoarding(g: Game, dt: number) {
   g.time += dt;
   airflow(g, g.player, "player", dt);
-  tickDoors(g.player, dt);
+  tickDoors(g, g.player, dt);
   moveCrew(g, dt);
   life(g, g.player, "player", dt);
   reap(g);
@@ -5972,6 +6096,8 @@ export function step(g: Game, dt: number) {
       const h = Math.min(dt, 0.05);
       if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
       else {
+        // Oxygen, Overview, and Venting: refill, airlocks, breaches, and open doors run with no fight on.
+        airflow(g, g.player, "player", h);
         tickIdleFires(g, h);
         // A room order is taken on the map. Without this step the walker stays on the current room's center.
         moveCrew(g, h);
@@ -5989,8 +6115,8 @@ export function step(g: Game, dt: number) {
   g.time += h;
   airflow(g, g.player, "player", h);
   airflow(g, g.enemy, "enemy", h);
-  tickDoors(g.player, h);
-  tickDoors(g.enemy, h);
+  tickDoors(g, g.player, h);
+  tickDoors(g, g.enemy, h);
   tickLockdown(g, h);
   moveCrew(g, h);
   life(g, g.player, "player", h);

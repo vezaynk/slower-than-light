@@ -209,7 +209,7 @@ describe("spike", () => {
 
   it("makes a hacked enemy room's doors level-3 blast doors for that ship's crew only", () => {
     // Boarding, "Doors": level 3 regardless of the door system, blocking the ship's crew.
-    // Boarders and mind-controlled crew pass. Door system level 1 would otherwise open on the first hit.
+    // Boarders and mind-controlled crew pass. A level-1 door stays shut and does not block them.
     const g = armed(2);
     const enemy = g.enemy!;
     g.player.weapons = [];
@@ -280,7 +280,7 @@ describe("spike", () => {
     walker.path = [gate.b];
     walker.move = 0;
     walker.stun = 0;
-    for (let i = 0; i < 20; i++) step(board, 0.05);
+    for (let i = 0; i < 200 && walker.room === gate.a; i++) step(board, 0.05);
     assert.notEqual(walker.room, gate.a, "boarder passed the hacked door");
 
     const held = armed(4);
@@ -313,7 +313,7 @@ describe("spike", () => {
     turned.move = 0;
     turned.stun = 0;
     turned.leashed = 10;
-    for (let i = 0; i < 20; i++) step(held, 0.05);
+    for (let i = 0; i < 200 && turned.room === shut.a; i++) step(held, 0.05);
     assert.notEqual(turned.room, shut.a, "mind-controlled crew passed the hacked door");
     assert.ok((turned.leashed ?? 0) > 0);
   });

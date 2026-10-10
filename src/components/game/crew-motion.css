@@ -28,9 +28,95 @@
   transform: translate(-50%, -50%) scaleX(-1);
 }
 
+.crew-walkers .crew-sprite {
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Idle and terminal cycle in CSS so they keep moving while the map is not ticking.
+   Fight stays on the swing prop, so a pause freezes the punch on the frame that matches the hit. */
+.crew-walkers .crew-sprite.is-cycle {
+  --pose-dur: 1.6s;
+}
+
+.crew-walkers .crew-sprite.is-cycle.is-work {
+  --pose-dur: 0.72s;
+}
+
+.crew-walkers .crew-sprite.is-cycle .crew-frame {
+  opacity: 0;
+  animation-duration: var(--pose-dur);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: calc(var(--pose-phase, 0) * var(--pose-dur) / -4);
+}
+
+.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f0 {
+  opacity: 1;
+  animation-name: crew-f0;
+}
+
+.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f1 {
+  animation-name: crew-f1;
+}
+
+.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f2 {
+  animation-name: crew-f2;
+}
+
+.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f3 {
+  animation-name: crew-f3;
+}
+
+@keyframes crew-f0 {
+  0%,
+  24.9% { opacity: 1; }
+  25%,
+  100% { opacity: 0; }
+}
+
+@keyframes crew-f1 {
+  0%,
+  24.9% { opacity: 0; }
+  25%,
+  49.9% { opacity: 1; }
+  50%,
+  100% { opacity: 0; }
+}
+
+@keyframes crew-f2 {
+  0%,
+  49.9% { opacity: 0; }
+  50%,
+  74.9% { opacity: 1; }
+  75%,
+  100% { opacity: 0; }
+}
+
+@keyframes crew-f3 {
+  0%,
+  74.9% { opacity: 0; }
+  75%,
+  99.9% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .token.is-stunned .crew-sprite {
   transform-origin: 50% 80%;
   animation: crew-stun-wobble 0.32s steps(2, end) infinite;
+}
+
+.token.is-stunned .crew-sprite.is-cycle .crew-frame {
+  animation: none;
+  opacity: 0;
+}
+
+.token.is-stunned .crew-sprite.is-cycle .crew-frame.is-f0 {
+  opacity: 1;
+}
+
+.deck.is-paused .crew-walkers .crew-sprite.is-cycle .crew-frame {
+  animation-play-state: paused;
 }
 
 @keyframes crew-stun-wobble {
@@ -45,5 +131,14 @@
 @media (prefers-reduced-motion: reduce) {
   .token.is-stunned .crew-sprite {
     animation: none;
+  }
+
+  .crew-walkers .crew-sprite.is-cycle .crew-frame {
+    animation: none;
+    opacity: 0;
+  }
+
+  .crew-walkers .crew-sprite.is-cycle .crew-frame.is-f0 {
+    opacity: 1;
   }
 }

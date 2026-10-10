@@ -9,6 +9,90 @@ function doorOf(doors: Door[] | undefined, a: string, b: string): Door | undefin
   return doors.find((d) => (d.a === a && d.b === b) || (d.a === b && d.b === a));
 }
 
+type DoorPaint = {
+  marks: DoorMark[] | undefined;
+  rooms: Box[];
+  doors?: Door[];
+  cells?: Map<string, string>;
+  onToggle?: (a: string, b: string) => void;
+  /** Ion, a broken Door System, or a hacked-offline system. Those bars are red-orange. */
+  doorsDead?: boolean;
+};
+
+function neighbor(mark: DoorMark): { x: number; y: number } {
+  if (mark.side === "e") return { x: mark.x + 1, y: mark.y };
+  if (mark.side === "w") return { x: mark.x - 1, y: mark.y };
+  if (mark.side === "s") return { x: mark.x, y: mark.y + 1 };
+  return { x: mark.x, y: mark.y - 1 };
+}
+
+function doorState(door: Door | undefined, doorsDead: boolean | undefined): { open: boolean; broken: boolean; dead: boolean; label: string; title: string } {
+  const open = door?.open ?? false;
+  const broken = (door?.stuck ?? 0) > 0;
+  const dead = !!doorsDead && !broken;
+  if (broken) return { open, broken, dead, label: "Broken door", title: "Broken" };
+  if (dead) return { open, broken, dead, label: "Door control is dead", title: "No door control" };
+  if (open) return { open, broken, dead, label: "Close door", title: "Open" };
+  return { open, broken, dead, label: "Open door", title: "Shut" };
+}
+
+function doorClass(side: DoorMark["side"], state: { open: boolean; broken: boolean; dead: boolean }): string {
+  return "door-tick is-" + side + (state.open ? " is-open" : "") + (state.broken ? " is-broken" : "") + (state.dead ? " is-dead" : "");
+}
+
+/**
+ * One door per traced bar, painted on the hull grid so the room does not clip it.
+ * The leaf stays parallel to its wall: shut fills the doorway, open slides to one end.
+ * Door System: a dead system turns the leaf red-orange.
+ */
+export function DoorLayer({ marks, rooms, doors, cells, onToggle, doorsDead }: DoorPaint) {
+  const owners = cells ?? cellOwners(rooms);
+  if (!marks?.length) return null;
+  return (
+    <div className="door-layer">
+      {marks.map((mark) => {
+        const other = neighbor(mark);
+        const here = owners.get(`${mark.x},${mark.y}`);
+        if (!here) return null;
+        const otherId = owners.get(`${other.x},${other.y}`) ?? "void";
+        const door = doorOf(doors, here, otherId);
+        const state = doorState(door, doorsDead);
+        const cls = doorClass(mark.side, state);
+        const style = { "--x": mark.x, "--y": mark.y } as CSSProperties;
+        const slab = <span className="door-slab" aria-hidden="true" />;
+        if (!onToggle) {
+          return (
+            <i key={`${mark.x},${mark.y},${mark.side}`} className={cls} style={style}>
+              {slab}
+            </i>
+          );
+        }
+        return (
+          <button
+            key={`${mark.x},${mark.y},${mark.side}`}
+            type="button"
+            className={cls}
+            style={style}
+            aria-label={state.label}
+            title={state.title}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggle(here, otherId);
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {slab}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Orange bar for one traced door. Combat uses the sim door's open flag. The hangar draws them shut, as the picture does. */
 export function DoorTicks({
   room,

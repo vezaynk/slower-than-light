@@ -50,27 +50,31 @@
   to { filter: brightness(1); }
 }
 
-/* Venting: a faint stripe behind the room text. The room fill stays the play-room colour. */
-.play .room.is-vent::before {
+/* Oxygen, Overview: red lines across a room at 5% O2 or less. Above the floor, under the name. */
+.play .room.is-airless:not(.is-cut)::before,
+.play .room.is-airless.is-cut .pixel-fill {
+  background-image: repeating-linear-gradient(
+    -32deg,
+    transparent 0 7px,
+    rgba(90, 8, 8, 0.9) 7px 9px
+  );
+  background-size: 14px 14px;
+  animation: room-vent 0.66s steps(3, jump-end) infinite;
+}
+
+.play .room.is-airless:not(.is-cut)::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent 0 6px,
-    rgba(42, 36, 28, 0.16) 6px 8px
-  );
-  background-size: 12px 12px;
-  animation: room-vent 0.66s steps(3, jump-end) infinite;
 }
 
 @keyframes room-vent {
   to { background-position: 12px 0; }
 }
 
-/* Low air: the existing red oxygen bar steps. No new room colour. */
+/* Low air: the oxygen bar steps. The floor tint is on .play .room.is-thin. */
 .play .room.is-low .o2 span {
   animation: room-low-air 0.9s steps(2, jump-none) infinite;
 }
@@ -79,11 +83,19 @@
   to { opacity: 0.35; }
 }
 
-/* Door open/shut. Colours stay in styles.css (#e07020 bar, or transparent with the inset bar). */
-.door-tick {
+/* Door open/shut. Colours stay in styles.css. */
+.door-layer .door-slab {
   transition:
-    background-color 160ms steps(2, jump-end),
+    background 160ms steps(2, jump-end),
     box-shadow 160ms steps(2, jump-end);
+}
+
+.door-layer .door-tick.is-broken .door-slab {
+  animation: door-broken 0.8s steps(2, jump-none) infinite;
+}
+
+@keyframes door-broken {
+  to { filter: brightness(1.45); }
 }
 
 /* Enemy cloak. Opacity steps between the resting 0.3 so the hull reads as still cloaked. */
@@ -99,13 +111,16 @@
 @media (prefers-reduced-motion: reduce) {
   .play .room.is-fire::after,
   .play .room.is-flash,
-  .play .room.is-vent::before,
+  .play .room.is-airless:not(.is-cut)::before,
+  .play .room.is-airless.is-cut .pixel-fill,
   .play .room.is-low .o2 span,
   .target-body.is-cloaked .hull {
     animation: none;
   }
 
-  .door-tick {
+  .door-layer .door-slab,
+  .door-layer .door-tick.is-broken .door-slab {
     transition: none;
+    animation: none;
   }
 }

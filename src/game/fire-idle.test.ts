@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { FIRE_FIGHT_SHARE, adjacentFires, createGame, fireStarveSeconds, startCombat, step } from "./sim.ts";
+import {
+  FIRE_FIGHT_SHARE,
+  adjacentFires,
+  createGame,
+  fireStarveSeconds,
+  openAllDoors,
+  shipTicking,
+  startCombat,
+  step,
+} from "./sim.ts";
 import type { Game, Room } from "./types.ts";
 
 /** Empty the fire room, shut every door, and keep the door console unmanned so spread uses the level-1 slow. */
@@ -49,7 +58,8 @@ describe("Fires outside a fight", () => {
     assert.ok(elapsed + 1e-6 >= 7 * slow, `${elapsed}`);
     assert.ok(elapsed - 7 * slow <= dt + 1e-6, `${elapsed}`);
     assert.ok(g.player.rooms.every((r) => r.id === room.id || r.fire === 0));
-    assert.ok(Math.abs(room.o2 - (100 - 0.96 * elapsed)) < 1e-6, `${room.o2}`);
+    // Level 1 refills at 1.2%/s and one fire consumes 0.96%/s, so a full room stays full.
+    assert.equal(room.o2, 100);
     for (const [id, o2] of quiet) assert.equal(g.player.rooms.find((r) => r.id === id)!.o2, o2, id);
   });
 
@@ -92,8 +102,9 @@ describe("Fires outside a fight", () => {
     assert.ok(Math.abs(worker.hp - (100 - 2.128 * left * 0.05)) < 1e-6, `${worker.hp}`);
   });
 
-  it("starts a die-out timer below 10% oxygen and does not refill a quiet room", () => {
+  it("starts a die-out timer below 10% when oxygen is off", () => {
     const g = createGame(4);
+    g.player.systems.oxygen.power = 0;
     const room = sealed(g, "p-oxygen");
     room.o2 = 10;
     room.fire = 1;
@@ -101,11 +112,12 @@ describe("Fires outside a fight", () => {
     quiet.o2 = 80;
     quiet.fire = 0;
     // Fires, "Dealing with fires": below 10% the fire waits out a 5–14s timer. No adjacent fires is 2.08–5.83s.
+    // Unpowered rooms also lose 1.2%/s, and the fire still consumes 0.96%/s.
     assert.equal(adjacentFires(g.player, room), 0);
     step(g, 0.05);
     assert.equal(room.fire, 1);
-    assert.ok(Math.abs(room.o2 - (10 - 0.96 * 0.05)) < 1e-9);
-    assert.equal(quiet.o2, 80);
+    assert.ok(Math.abs(room.o2 - (10 - (1.2 + 0.96) * 0.05)) < 1e-9, `${room.o2}`);
+    assert.ok(Math.abs(quiet.o2 - (80 - 1.2 * 0.05)) < 1e-9, `${quiet.o2}`);
     const dt = 0.05;
     let steps = 1;
     while (room.fire > 0 && steps < 200) {
@@ -127,6 +139,7 @@ describe("Fires outside a fight", () => {
     assert.equal(fireStarveSeconds(14, 9), fireStarveSeconds(14, 4));
 
     const g = createGame(8);
+    g.player.systems.oxygen.power = 0;
     const room = sealed(g, "p-oxygen");
     room.o2 = 9;
     room.fire = 1;
@@ -182,7 +195,8 @@ describe("Fires outside a fight", () => {
     assert.equal(g.player.systems.medbay.fix, 0);
     assert.equal(g.player.systems.medbay.damage, 1);
     assert.equal(crew.hp, 40);
-    assert.equal(med.o2, 4);
+    // Doors are shut, so the level-1 refill is the only change: 1.2% over this one second.
+    assert.ok(Math.abs(med.o2 - (4 + 1.2)) < 1e-6, `${med.o2}`);
   });
 
   it("can spread through an open door", () => {
@@ -216,7 +230,28 @@ describe("Fires outside a fight", () => {
   });
 });
 
-/** Combat tick, doors shut, oxygen full. Airflow runs here; the map tick does not vent. */
+describe("Oxygen outside a fight", () => {
+  it("drains the ship when every door is open, and keeps the clock running", () => {
+    const g = createGame(21, "kestrel-a");
+    assert.equal(g.phase, "map");
+    assert.equal(shipTicking(g), true);
+    g.paused = true;
+    assert.equal(shipTicking(g), false);
+    g.paused = false;
+    openAllDoors(g);
+    const voids = g.player.doors.filter((d) => d.b === "void");
+    assert.ok(voids.length > 0);
+    for (let i = 0; i < 60; i++) step(g, 0.05);
+    for (const door of voids) {
+      const room = g.player.rooms.find((r) => r.id === door.a);
+      assert.equal(room?.o2, 0, door.a);
+    }
+    const avg = g.player.rooms.reduce((n, r) => n + r.o2, 0) / g.player.rooms.length;
+    assert.ok(avg < 100, `${avg}`);
+  });
+});
+
+/** Combat tick, doors shut, oxygen full. */
 function ventFight(seed: number): Game {
   const g = createGame(seed);
   startCombat(g, "scout");
@@ -288,5 +323,135 @@ describe("Oxygen airlock", () => {
     const two = far(true);
     assert.equal(one, 100);
     assert.ok(two < one, `${two}`);
+  });
+
+  it("does not push an airlock room's oxygen into a lower neighbor", () => {
+    const g = ventFight(14);
+    const room = g.player.rooms.find((r) => r.id === "p-doors")!;
+    const next = g.player.rooms.find((r) => r.id === "p-sensors")!;
+    room.o2 = 80;
+    next.o2 = 20;
+    airlock(g, room.id);
+    between(g, room.id, next.id);
+    step(g, 0.05);
+    assert.equal(room.o2, 0);
+    // The neighbor only receives its own refill. The airlock's oxygen goes to space.
+    assert.ok(next.o2 < 21, `${next.o2}`);
+    assert.ok(next.o2 > 20, `${next.o2}`);
+  });
+});
+
+function powerOxygen(g: Game, bars: number) {
+  const sys = g.player.systems.oxygen;
+  sys.level = bars;
+  sys.power = bars;
+  sys.damage = 0;
+  sys.ion = [];
+}
+
+function holdCrew(g: Game, roomId: string) {
+  for (const c of g.crew) {
+    if (c.aboard !== "player") continue;
+    c.room = roomId;
+    c.path = [];
+  }
+}
+
+function seconds(g: Game, n: number) {
+  for (let i = 0; i < Math.round(n / 0.05); i++) step(g, 0.05);
+}
+
+describe("Oxygen versus one breach", () => {
+  it("Oxygen-3 refills a shut breached room, and Oxygen-2 does not", () => {
+    const run = (bars: number) => {
+      const g = ventFight(15);
+      powerOxygen(g, bars);
+      holdCrew(g, "p-pilot");
+      const room = g.player.rooms.find((r) => r.id === "p-doors")!;
+      room.o2 = 50;
+      room.breach = 1;
+      seconds(g, 1);
+      return room.o2;
+    };
+    const ox3 = run(3);
+    const ox2 = run(2);
+    // 8.4 − 7.2 = +1.2%/s. 4.8 − 7.2 = −2.4%/s.
+    assert.ok(ox3 > 50, `${ox3}`);
+    assert.ok(ox2 < 50, `${ox2}`);
+  });
+
+  it("an open door to a full room slows the Oxygen-2 drop", () => {
+    const run = (open: boolean) => {
+      const g = ventFight(16);
+      powerOxygen(g, 2);
+      holdCrew(g, "p-pilot");
+      const room = g.player.rooms.find((r) => r.id === "p-doors")!;
+      const next = g.player.rooms.find((r) => r.id === "p-sensors")!;
+      room.o2 = 80;
+      next.o2 = 80;
+      room.breach = 1;
+      if (open) between(g, room.id, next.id);
+      seconds(g, 2);
+      return room.o2;
+    };
+    const shut = run(false);
+    const fed = run(true);
+    assert.ok(fed > shut, `${fed} vs ${shut}`);
+  });
+});
+
+describe("Boarders leave airless rooms", () => {
+  it("walks a boarder from 5% or less toward a room at 10% or more, and a Lanius stays", () => {
+    const g = ventFight(17);
+    const thin = g.player.rooms.find((r) => r.id === "p-weapons")!;
+    thin.o2 = 0;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    foe.aboard = "player";
+    foe.room = thin.id;
+    foe.path = [];
+    foe.think = 30;
+    foe.kin = "plain";
+    step(g, 0.05);
+    const dest = foe.path[foe.path.length - 1];
+    const there = g.player.rooms.find((r) => r.id === dest);
+    assert.ok(there && there.o2 >= 10, `${dest} ${there?.o2}`);
+    foe.kin = "voidlung";
+    foe.path = [];
+    foe.room = thin.id;
+    thin.o2 = 0;
+    step(g, 0.05);
+    assert.deepEqual(foe.path, []);
+  });
+
+  it("walks mind-controlled crew out of a deprived room", () => {
+    const g = ventFight(18);
+    const ship = g.enemy;
+    assert.ok(ship);
+    const door = ship.doors.find((d) => d.b !== "void");
+    assert.ok(door);
+    for (const d of ship.doors) d.open = false;
+    const thin = ship.rooms.find((r) => r.id === door.a)!;
+    for (const r of ship.rooms) r.o2 = r.id === thin.id ? 0 : 100;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    foe.room = thin.id;
+    foe.path = [];
+    foe.kin = "plain";
+    foe.leashed = 14;
+    g.player.kits.leash = {
+      id: "leash",
+      level: 1,
+      power: 1,
+      left: 14,
+      cool: 0,
+      on: true,
+      target: foe.id,
+      aux: 0,
+    };
+    step(g, 0.05);
+    const dest = foe.path[foe.path.length - 1];
+    const there = ship.rooms.find((r) => r.id === dest);
+    assert.ok(there && there.o2 >= 10, `${dest} ${there?.o2}`);
   });
 });

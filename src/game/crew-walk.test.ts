@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { restSpot } from "./crew-spots.ts";
 import { createGame, orderCrew, step } from "./sim.ts";
-import { arriveMove, hopLanding, walkCells, walkPoint } from "./walk-path.ts";
+import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
 
 describe("crew orders outside a fight", () => {
   it("walks into the ordered room on the map", () => {
@@ -14,7 +14,16 @@ describe("crew orders outside a fight", () => {
     orderCrew(g, ivo.id, "p-oxygen");
     assert.deepEqual(ivo.path, ["p-oxygen"]);
     assert.equal(ivo.room, "p-engines");
-    for (let i = 0; i < 20; i++) step(g, 0.05);
+    const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen");
+    assert.ok(oxygen);
+    const spot = restSpot(oxygen, g.crew, ivo.id, "player");
+    const across = walkCells(g.player, ivo.room, ivo.path, ivo.via, spot ?? undefined);
+    const tiles = hopSteps(across);
+    assert.ok(tiles > 1);
+    for (let i = 0; i < 12; i++) step(g, 0.05);
+    assert.equal(ivo.room, "p-engines");
+    assert.ok(Math.abs(ivo.move - 1 / tiles) < 0.02, String(ivo.move));
+    for (let i = 0; i < 200 && ivo.path.length > 0; i++) step(g, 0.05);
     assert.equal(ivo.room, "p-oxygen");
     assert.deepEqual(ivo.path, []);
     assert.equal(ivo.move, 0);
@@ -48,7 +57,7 @@ describe("crew orders outside a fight", () => {
     const spot = restSpot(dest, g.crew, ivo.id, ivo.aboard);
     const landing = hopLanding(g.player, from, ivo.path, ivo.via, spot ?? undefined);
     assert.ok(landing);
-    for (let i = 0; i < 40 && ivo.room === from; i++) step(g, 0.05);
+    for (let i = 0; i < 200 && ivo.room === from; i++) step(g, 0.05);
     assert.notEqual(ivo.room, from);
     assert.equal(ivo.via, `${landing.x},${landing.y}`);
     const at = walkPoint(g.player, ivo.room, ivo.path, ivo.via, 0);
@@ -84,7 +93,14 @@ describe("crew orders outside a fight", () => {
         const cells = walkCells(g.player, ivo.room, ivo.path, ivo.via, goal);
         assert.ok(cells?.length);
         last = cells[cells.length - 1]!;
-        const painted = walkPoint(g.player, ivo.room, ivo.path, ivo.via, arriveMove(0.9), goal);
+        const painted = walkPoint(
+          g.player,
+          ivo.room,
+          ivo.path,
+          ivo.via,
+          arriveMove(1 - 0.28 / hopSteps(cells), hopSteps(cells)),
+          goal,
+        );
         assert.deepEqual(painted, { x: goal.x + 0.5, y: goal.y + 0.5 });
       }
       step(g, 0.05);

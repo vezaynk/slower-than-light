@@ -3,6 +3,7 @@
  * shoulders in the uniform colour. Used by the hangar cards, the crew rail,
  * the ship tokens, and the ship sheet so a crew member reads the same everywhere.
  */
+import type { CSSProperties } from "react";
 import { KIN_SKIN, uniformOf } from "@/game/crew-look";
 import type { KinId } from "@/game/extras/kin";
 import { pixelRuns, type PixelRun } from "@/game/gear-look";
@@ -117,29 +118,34 @@ function legPose(dx: number): string[] {
   return [BODY[0], BODY[1], shiftRow(BODY[2], dx), shiftRow(BODY[3], dx)];
 }
 
+export type CrewPose = "idle" | "walk" | "fight" | "work";
+
 /**
- * Shoulder grows `reach` sleeve pixels to the right (the unflipped facing).
- * The outline stays on the tip. Reach 1 is the guard; reach 2 is the blow.
+ * Idle breathes in place. Work taps the console (the right-hand station). Fight is one swing:
+ * recover, coil, mid, then the blow. The hit lands as swing wraps, so the long arm is frame 3.
+ * u sleeve, h fist. Rows may run past 12; the sprite overflows so the blow clears the tile.
+ * Every frame keeps the same top row, so the figure does not hop.
  */
-function armReach(reach: number): string[] {
-  const rows = BODY.map((row) => row.split(""));
-  const shoulder = rows[0];
-  let edge = -1;
-  for (let i = 0; i < shoulder.length; i++) if (shoulder[i] !== ".") edge = i;
-  if (edge < 0) return BODY;
-  for (let i = 0; i < reach && edge + i < shoulder.length; i++) shoulder[edge + i] = "u";
-  const tip = edge + reach;
-  if (tip < shoulder.length) shoulder[tip] = "d";
-  return rows.map((cells) => cells.join(""));
-}
-
-export type CrewPose = "idle" | "walk" | "fight";
-
-/** Walk: together, step left, together, step right. Fight: guard, guard, blow, blow. */
 const POSE_BODY: Record<CrewPose, string[][]> = {
-  idle: [BODY, BODY, BODY, BODY],
+  idle: [
+    BODY,
+    ["...duuuud...", "..duuuuuud..", "duuuuuuuuuud", "duuuuuuuuuud"],
+    ["..duuuuuud..", ".duuuuuuuud.", "duuuuuuuuuud", "duuuuuuuuuud"],
+    ["....duud....", "...duuuud...", "..duuuuuud..", "..duuuuuud.."],
+  ],
   walk: [legPose(0), legPose(-1), legPose(0), legPose(1)],
-  fight: [armReach(1), armReach(1), armReach(2), armReach(2)],
+  fight: [
+    BODY,
+    ["..duuuud....", ".duuuuuhd...", "duuuuuuud...", ".duuuuuud..."],
+    ["...duuuuuud.", "..duuuuuuhd.", ".duuuuuuuud.", "..duuuuuud.."],
+    ["....duuuuuuuuh", "...duuuuuuuuud", "..duuuuuuuud.", "...duuuuud..."],
+  ],
+  work: [
+    BODY,
+    ["...duuuuuhd.", "..duuuuuuud.", ".duuuuuuuud.", ".duuuuuuuud."],
+    ["...duuuud...", "..duuuuud...", ".duuuuuuuud.", ".duuuuuuuud."],
+    ["...duuuuud..", "..duuuuuuhd.", ".duuuuuuuud.", "..duuuuuud.."],
+  ],
 };
 
 const RUNS = Object.fromEntries(
@@ -161,6 +167,13 @@ function frameIndex(frame: number): number {
   return ((i % 4) + 4) % 4;
 }
 
+/** Spreads neighbours across the idle and terminal cycles so a room does not tap in unison. */
+function posePhase(id: string): number {
+  let n = 0;
+  for (let i = 0; i < id.length; i++) n += id.charCodeAt(i);
+  return n % 4;
+}
+
 export function CrewSprite({
   kin,
   uniform,
@@ -168,6 +181,8 @@ export function CrewSprite({
   className,
   pose = "idle",
   frame = 0,
+  cycle = false,
+  phase = 0,
 }: {
   kin: KinId | undefined;
   uniform: string;
@@ -175,28 +190,39 @@ export function CrewSprite({
   className?: string;
   pose?: CrewPose;
   frame?: number;
+  /** Idle and terminal play all four frames on a CSS clock. Walk and fight stay on `frame`. */
+  cycle?: boolean;
+  phase?: number;
 }) {
   const id = kin ?? "plain";
   const skin = KIN_SKIN[id];
-  const runs = RUNS[id][pose][frameIndex(frame)];
+  const looping = cycle && (pose === "idle" || pose === "work");
+  const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
+  const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""].filter(Boolean).join(" ");
   return (
     <svg
-      className={className ? `crew-sprite ${className}` : "crew-sprite"}
+      className={spriteClass}
       viewBox="0 0 12 12"
       width={size}
       height={size}
+      overflow="visible"
       shapeRendering="crispEdges"
       aria-hidden="true"
+      style={looping ? ({ "--pose-phase": String(phase) } as CSSProperties) : undefined}
     >
-      {runs.map((r) => (
-        <rect
-          key={`${r.x}-${r.y}`}
-          x={r.x}
-          y={r.y}
-          width={r.w}
-          height={1}
-          fill={r.c === "h" ? skin : r.c === "u" ? uniform : INK}
-        />
+      {frames.map((fi) => (
+        <g key={fi} className={looping ? `crew-frame is-f${fi}` : undefined}>
+          {RUNS[id][pose][fi]!.map((r) => (
+            <rect
+              key={`${fi}-${r.x}-${r.y}-${r.w}-${r.c}`}
+              x={r.x}
+              y={r.y}
+              width={r.w}
+              height={1}
+              fill={r.c === "h" ? skin : r.c === "u" ? uniform : INK}
+            />
+          ))}
+        </g>
       ))}
     </svg>
   );
@@ -209,12 +235,25 @@ export function CrewFace({
   className,
   pose = "idle",
   frame = 0,
+  cycle = false,
 }: {
   crew: Crew;
   size?: number;
   className?: string;
   pose?: CrewPose;
   frame?: number;
+  cycle?: boolean;
 }) {
-  return <CrewSprite kin={crew.kin} uniform={uniformOf(crew)} size={size} className={className} pose={pose} frame={frame} />;
+  return (
+    <CrewSprite
+      kin={crew.kin}
+      uniform={uniformOf(crew)}
+      size={size}
+      className={className}
+      pose={pose}
+      frame={frame}
+      cycle={cycle}
+      phase={posePhase(crew.id)}
+    />
+  );
 }

@@ -38,7 +38,6 @@
   html,
   body,
   #root {
-    height: 100%;
     overflow: hidden;
     background: var(--color-bg);
     color: var(--color-fg);
@@ -67,6 +66,7 @@
 
   body {
     margin: 0;
+    min-height: 100dvh;
     font-family: var(--font-mono);
     font-size: 13px;
     text-rendering: geometricPrecision;
@@ -83,10 +83,13 @@
 }
 
 /* Fixed 1280x720 screen from Screen.tsx, scaled by --fit and centred in black bars.
-   Top/left/width/height are set from the visual viewport so iOS chrome does not clip it. */
+   The box stretches to the window. A pinned pixel size is only for iOS chrome or a home-screen app. */
 .viewport {
   position: fixed;
-  inset: 0;
+  top: var(--sat, 0px);
+  right: var(--sar, 0px);
+  bottom: var(--sab, 0px);
+  left: var(--sal, 0px);
   overflow: hidden;
   background: #000;
   touch-action: none;
@@ -601,7 +604,6 @@ button:disabled {
 }
 
 .room.is-fire { background: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface)); }
-.room.is-vent { background: color-mix(in srgb, var(--color-fg) 8%, var(--color-bg)); }
 .room.is-flash { background: color-mix(in srgb, var(--color-fg) 30%, var(--color-surface)); }
 
 .gun {
@@ -1087,11 +1089,6 @@ button:disabled {
   text-shadow: 0 0 18px rgba(255, 40, 40, 0.65);
 }
 
-.door-all {
-  display: flex;
-  gap: 6px;
-}
-
 .dock-drones {
   display: block;
   margin-top: 4px;
@@ -1261,6 +1258,19 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.air-readout .is-o2-low {
+  color: var(--color-danger);
+}
+
+/* Oxygen, Overview: "O2 LOW!" when the ship's total oxygen drops below 25%. */
+.o2-alarm {
+  color: var(--color-danger);
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 
 .sub-pod {
@@ -1433,6 +1443,12 @@ button:disabled {
   background: var(--color-room);
   border: 2px solid #6d6862;
   box-shadow: inset 0 0 0 1px #f7f4ee;
+}
+
+/* Oxygen, Overview: white at full air, pink/red as it falls. A clipped room's floor is .pixel-fill. */
+.play .room.is-thin:not(.is-cut),
+.play .room.is-airless:not(.is-cut) {
+  background: color-mix(in srgb, #e25858 calc((100 - var(--air, 100)) * 1%), var(--color-room));
 }
 
 .play .room.is-dest {
@@ -1896,36 +1912,38 @@ button:disabled {
   border-color: #ff7a18;
 }
 
+.door-pod {
+  position: relative;
+  display: flex;
+}
+
+/* Door System, "Doors control panel": two buttons above the Door System icon. Level pips sit in that gap. */
 .door-pop {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
-  width: 220px;
-  max-height: 180px;
-  overflow: auto;
+  left: 50%;
+  bottom: calc(100% + 42px);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px;
   background: var(--color-panel);
   border: 2px solid var(--color-line);
   border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
+  box-shadow: var(--glow);
 }
 
 .door-pop button {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  background: transparent;
-  color: var(--color-fg);
-  border: 0;
-  border-bottom: 1px solid rgba(215, 255, 242, 0.25);
+  width: 36px;
+  height: 36px;
   min-height: 36px;
-  padding: 6px 8px;
-  text-align: left;
-}
-
-.door-pop em {
-  font-style: normal;
-  color: var(--color-accent);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-panel-2);
+  color: var(--color-fg);
+  border: 1px solid var(--color-line-dim);
 }
 
 .modal-layer {
@@ -2254,11 +2272,152 @@ button.gun-slot {
     drop-shadow(0 -2px 0 #1b1714);
 }
 
+/* Clipped floors cover the room box, so the oxygen tint has to paint here too. */
+.play .room.is-thin .pixel-fill,
+.play .room.is-airless .pixel-fill {
+  background-color: color-mix(in srgb, #e25858 calc((100 - var(--air, 100)) * 1%), var(--color-room));
+}
+
 .door-tick {
   position: absolute;
   z-index: 4;
   background: #e07020;
   pointer-events: none;
+}
+
+/* Hull doors sit on the wall, above the room border and under the crew. */
+.door-layer {
+  position: absolute;
+  z-index: 2;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.door-layer .door-tick {
+  --len: clamp(11px, calc(var(--tile) * 0.46), 22px);
+  --thick: clamp(3px, calc(var(--tile) * 0.09), 4px);
+  --hit-along: clamp(18px, calc(var(--tile) * 0.62), 28px);
+  --hit-across: clamp(12px, calc(var(--tile) * 0.32), 16px);
+  z-index: 2;
+  background: transparent;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.door-layer .door-tick.is-e,
+.door-layer .door-tick.is-w {
+  width: var(--hit-across);
+  height: var(--hit-along);
+  top: calc(var(--y) * (var(--tile) + var(--wall)) + (var(--tile) - var(--hit-along)) / 2);
+}
+
+.door-layer .door-tick.is-e {
+  left: calc((var(--x) + 1) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2);
+}
+
+.door-layer .door-tick.is-w {
+  left: calc(var(--x) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2);
+}
+
+.door-layer .door-tick.is-n,
+.door-layer .door-tick.is-s {
+  width: var(--hit-along);
+  height: var(--hit-across);
+  left: calc(var(--x) * (var(--tile) + var(--wall)) + (var(--tile) - var(--hit-along)) / 2);
+}
+
+.door-layer .door-tick.is-s {
+  top: calc((var(--y) + 1) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2);
+}
+
+.door-layer .door-tick.is-n {
+  top: calc(var(--y) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2);
+}
+
+.door-layer button.door-tick {
+  pointer-events: auto;
+}
+
+.door-layer button.door-tick::before {
+  inset: 0;
+}
+
+.door-slab {
+  position: absolute;
+  pointer-events: none;
+  background: #ff8a14;
+  box-shadow: none;
+}
+
+/* One leaf, long axis along the wall. Shut fills the doorway. Open keeps that leaf and slides it to one end. */
+.door-layer .door-tick.is-e .door-slab,
+.door-layer .door-tick.is-w .door-slab {
+  left: 50%;
+  top: calc(50% - var(--len) / 2);
+  width: var(--thick);
+  height: var(--len);
+  transform: translateX(-50%);
+  background: linear-gradient(#ffd7a8, #ff8a14 42%, #e06a10);
+}
+
+.door-layer .door-tick.is-n .door-slab,
+.door-layer .door-tick.is-s .door-slab {
+  top: 50%;
+  left: calc(50% - var(--len) / 2);
+  width: var(--len);
+  height: var(--thick);
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, #ffd7a8, #ff8a14 42%, #e06a10);
+}
+
+.door-layer .door-tick.is-open.is-e .door-slab,
+.door-layer .door-tick.is-open.is-w .door-slab {
+  height: calc(var(--len) * 0.58);
+}
+
+.door-layer .door-tick.is-open.is-n .door-slab,
+.door-layer .door-tick.is-open.is-s .door-slab {
+  width: calc(var(--len) * 0.58);
+}
+
+/* Stuck open: the same single leaf, red, with a cross in the clear part of the doorway. */
+.door-layer .door-tick.is-broken.is-e .door-slab,
+.door-layer .door-tick.is-broken.is-w .door-slab,
+.door-layer .door-tick.is-broken.is-n .door-slab,
+.door-layer .door-tick.is-broken.is-s .door-slab {
+  background: linear-gradient(#ffd0c8, #ff3b30);
+}
+
+.door-layer .door-tick.is-broken::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+  background:
+    linear-gradient(#ff3b30, #ff3b30) center / 100% 2px no-repeat,
+    linear-gradient(#ff3b30, #ff3b30) center / 2px 100% no-repeat;
+}
+
+/* Door System: a dead system is red-orange, shut or open. */
+.door-layer .door-tick.is-dead .door-slab {
+  background: #e2582a;
+}
+
+.door-layer button.door-tick:hover,
+.door-layer button.door-tick:focus-visible {
+  outline: 2px solid #fff4d0;
+  outline-offset: 1px;
 }
 
 button.door-tick {
@@ -2293,27 +2452,65 @@ button.door-tick::before {
   position: absolute;
   z-index: 2;
   pointer-events: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 2px;
-  box-sizing: border-box;
 }
 
-.room-console::before {
-  content: "";
-  width: 62%;
-  height: 36%;
-  min-width: 7px;
-  min-height: 5px;
-  background: #14120f;
-  border: 1px solid #8a7560;
-  box-shadow: inset 0 -2px 0 #24362e;
+/* Right of the manning tile, under the 16px room name and above a one-row oxygen bar. */
+.room-console-fit {
+  position: absolute;
+  right: 1px;
+  bottom: 5px;
+  height: min(22px, calc(100% - 23px));
+  aspect-ratio: 1;
+  width: auto;
+  max-width: 68%;
+  pointer-events: none;
 }
 
-.room-console.is-on::before {
-  box-shadow: inset 0 -2px 0 #3ecf4a;
+.room-console-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
+
+.room-console-art .casing { fill: #3a3228; }
+.room-console-art .casing-d { fill: #1c1612; }
+.room-console-art .trim { fill: #c4b49a; }
+.room-console-art .screen { fill: #12181c; }
+.room-console-art .glow { fill: #3a342c; }
+.room-console-art .pip { fill: #4a4036; }
+
+.room-console-art[data-kind="pilot"] .screen { fill: #1c3324; }
+.room-console-art[data-kind="pilot"] .glow { fill: #2f6a3a; }
+.room-console-art[data-kind="engines"] .screen { fill: #163044; }
+.room-console-art[data-kind="engines"] .pip { fill: #245068; }
+.room-console-art[data-kind="shields"] .screen { fill: #243848; }
+.room-console-art[data-kind="shields"] .glow { fill: #4a7090; }
+.room-console-art[data-kind="weapons"] .screen { fill: #2a1814; }
+.room-console-art[data-kind="weapons"] .pip { fill: #6a3028; }
+.room-console-art[data-kind="weapons"] .glow { fill: #5a4038; }
+.room-console-art[data-kind="sensors"] .screen { fill: #101c14; }
+.room-console-art[data-kind="sensors"] .glow { fill: #2a5040; }
+.room-console-art[data-kind="sensors"] .pip { fill: #3a6850; }
+.room-console-art[data-kind="doors"] .screen { fill: #3a2c18; }
+.room-console-art[data-kind="doors"] .glow { fill: #6a5030; }
+
+.room-console-art.is-on[data-kind="pilot"] .screen { fill: #7dff6a; }
+.room-console-art.is-on[data-kind="pilot"] .glow { fill: #eaffee; }
+.room-console-art.is-on[data-kind="engines"] .screen { fill: #3ec8ff; }
+.room-console-art.is-on[data-kind="engines"] .pip { fill: #e7f8ff; }
+.room-console-art.is-on[data-kind="shields"] .screen { fill: #8fd4ff; }
+.room-console-art.is-on[data-kind="shields"] .glow { fill: #f4fbff; }
+.room-console-art.is-on[data-kind="weapons"] .screen { fill: #4a2018; }
+.room-console-art.is-on[data-kind="weapons"] .pip { fill: #ff5a3c; }
+.room-console-art.is-on[data-kind="weapons"] .glow { fill: #ffb0a0; }
+.room-console-art.is-on[data-kind="sensors"] .glow { fill: #b6ff9a; }
+.room-console-art.is-on[data-kind="sensors"] .pip { fill: #7dff6a; }
+.room-console-art.is-on[data-kind="doors"] .screen { fill: #ffb15a; }
+.room-console-art.is-on[data-kind="doors"] .glow { fill: #fff1d4; }
 
 .pad-pip {
   position: absolute;
@@ -3493,7 +3690,8 @@ button.door-tick::before {
 .hangar-stage.is-bare .room-body,
 .hangar-stage.is-bare .door-tick,
 .hangar-stage.is-bare .token,
-.hangar-stage.is-bare .crew-walkers { visibility: hidden; }
+.hangar-stage.is-bare .crew-walkers,
+.hangar-stage.is-bare .room-console { visibility: hidden; }
 
 .controls-cols li { align-items: center; }
 
@@ -3504,7 +3702,7 @@ button.door-tick::before {
 /* Departure of a player shot, and the arrival of an enemy shot, paint under the target panel. */
 .fx-under { z-index: 2; }
 
-.target-panel .room:not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash) {
+.target-panel .room:not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless) {
   background: color-mix(in srgb, var(--color-room) 52%, transparent);
 }
 

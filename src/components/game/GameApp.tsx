@@ -58,7 +58,6 @@ import {
   commitJump,
   continueReward,
   depowerWeapon,
-  doorLabel,
   enemyEscapeView,
   evasionPercent,
   ftlSeconds,
@@ -71,6 +70,7 @@ import {
   lockdown,
   lockdownSelected,
   openAllDoors,
+  shipTicking,
   openShipMenu,
   orderSelected,
   playerDoorsLocked,
@@ -300,6 +300,28 @@ function hackStatus(view: NonNullable<ReturnType<typeof playerHackView>>, aiming
   }
 }
 
+/**
+ * Door System, "Doors control panel": the top button opens every door (arrows point out)
+ * and the bottom button closes every door (arrows point in).
+ */
+function DoorAllIcon({ open }: { open?: boolean }) {
+  return (
+    <svg viewBox="0 0 18 14" width="18" height="14" aria-hidden="true">
+      {open ? (
+        <>
+          <path d="M1 7 L7 3 V11 Z" fill="currentColor" />
+          <path d="M17 7 L11 3 V11 Z" fill="currentColor" />
+        </>
+      ) : (
+        <>
+          <path d="M1 3 L7 7 L1 11 Z" fill="currentColor" />
+          <path d="M17 3 L11 7 L17 11 Z" fill="currentColor" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 /** INVENTED title line. The play HUD follows the combat, event, and pause screens. */
 export function GameApp() {
   const version = useGame((s) => s.version);
@@ -452,17 +474,16 @@ export function GameApp() {
       acc += dt;
       saveAcc += dt;
       const g = useGame.getState().game;
-      // Outside a fight the clock still has to run while someone is walking, or the sprite never leaves the room center.
-      const walking = !g.paused && g.crew.some((c) => c.hp > 0 && c.path.length > 0);
-      const live = (g.phase === "combat" && !g.paused) || walking;
+      // Oxygen and venting keep counting on the map. A pause stops the clock.
+      const ticking = shipTicking(g);
       let steps = 0;
       while (acc >= 1 / 30 && steps < 4) {
         useGame.getState().tick(1 / 30);
         acc -= 1 / 30;
         steps += 1;
       }
-      if (!live) acc = 0;
-      if (live && now - ui > 80) {
+      if (!ticking) acc = 0;
+      if (ticking && now - ui > 80) {
         ui = now;
         useGame.getState().bump();
       }
@@ -491,7 +512,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
   const manual = game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null;
   const sheet = game.shipSheet ? <ShipSheet game={game} /> : null;
   return (
-    <div className={game.phase === "title" ? "deck" : "deck play-root"}>
+    <div className={game.phase === "title" ? "deck" : `deck play-root${game.paused ? " is-paused" : ""}`}>
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}
@@ -755,10 +776,11 @@ function CrewRail({ game }: { game: Game }) {
           <PixelIcon name="evade" />
           EVADE {evasionPercent(game, game.player, "player")}%
         </span>
-        <span title="Oxygen">
+        <span title="Oxygen" className={air < 25 ? "is-o2-low" : undefined}>
           <PixelIcon name="oxygen" />
           OXYGEN {air}%
         </span>
+        {air < 25 ? <strong className="o2-alarm">O2 LOW!</strong> : null}
       </div>
       {crew.map((c) => (
         <div key={c.id} className={`crew-card${selectedIds(game).includes(c.id) ? " is-selected" : ""}${(c.leashed ?? 0) > 0 ? " is-leashed" : ""}`}>
@@ -1372,30 +1394,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         </div>
       </div>
       <div className="sub-dock">
-        {game.mode === "vent" ? (
-          <div className="door-pop">
-            <div className="door-all">
-              <button type="button" onClick={() => act((g) => openAllDoors(g))}>
-                Open the doors
-              </button>
-              <button type="button" onClick={() => act((g) => closeAllDoors(g))}>
-                Close the doors
-              </button>
-            </div>
-            {game.player.doors.map((d) => (
-              <button key={`${d.a}-${d.b}`} type="button" onClick={() => act((g) => toggleDoor(g, d.a, d.b))}>
-                {doorLabel(game.player, d)}
-                <em>{d.open ? "Open" : "Shut"}</em>
-              </button>
-            ))}
-          </div>
-        ) : null}
         <div className="sub-row">
           {(["pilot", "sensors", "doors"] as SysId[]).map((id) => {
             const sys = game.player.systems[id];
-            return (
+            const orb = (
               <button
-                key={id}
                 type="button"
                 className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}`}
                 aria-label={id === "doors" ? "Doors" : SYS_LABEL[id]}
@@ -1415,6 +1418,22 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 </i>
                 <PixelIcon name={id} size={16} />
               </button>
+            );
+            if (id !== "doors") return <span key={id}>{orb}</span>;
+            return (
+              <span key={id} className="door-pod">
+                {game.mode === "vent" ? (
+                  <span className="door-pop" role="group" aria-label="Doors control panel">
+                    <button type="button" aria-label="Open the doors" onClick={() => act((g) => openAllDoors(g))}>
+                      <DoorAllIcon open />
+                    </button>
+                    <button type="button" aria-label="Close the doors" onClick={() => act((g) => closeAllDoors(g))}>
+                      <DoorAllIcon />
+                    </button>
+                  </span>
+                ) : null}
+                {orb}
+              </span>
             );
           })}
           {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {

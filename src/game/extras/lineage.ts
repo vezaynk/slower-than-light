@@ -14,11 +14,17 @@ import { XP_NEED } from "../content.ts";
 import type { Crew, Game, SkillName } from "../types.ts";
 
 /**
- * INFERRED: the per-breach oxygen loss is the tree's own inferred rate, a literal
- * `12 * r.breach * dt` in sim.ts `airflow()` (its doc comment: "INFERRED: 12% per breach").
- * Kept in step with that literal by hand; airflow is not edited here.
+ * One hull breach, percent of a room's oxygen per second.
+ * Oxygen, Overview, and Boarding, "Breach Bomb": a functioning Oxygen-3 (8.4%/s) exceeds one
+ * breach with the room's doors shut, and it can take a while to refill a fully vented room.
+ * Oxygen, Overview: Oxygen-2 (4.8%/s) does not; it needs adjacent rooms or a long open path.
+ * The pages print no breach percent. 12%/s sits above 8.4, so a shut Oxygen-3 room still emptied.
+ * 7.2 is six times the 1.2% step, inside (4.8, 8.4), and leaves Oxygen-3 a 1.2%/s surplus.
  */
-export const LANIUS_DRAIN_PER_SEC = 12;
+export const BREACH_O2_PER_SEC = 7.2;
+
+/** Lanius, "Race characteristics": the drain is one breach. Same number as BREACH_O2_PER_SEC. */
+export const LANIUS_DRAIN_PER_SEC = BREACH_O2_PER_SEC;
 
 /**
  * Lanius drain: each living Lanius takes one breach's worth of oxygen per second

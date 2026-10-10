@@ -4,10 +4,11 @@ import { assignStands, padCells, restSpot, roomConsole, stationSide } from "@/ga
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
-import { arriveMove, walkPose } from "@/game/walk-path";
+import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
-import { DoorTicks, cellOwners } from "./DoorTicks";
+import { RoomConsole } from "./RoomConsole";
+import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
@@ -77,26 +78,36 @@ function walkStep(ship: Ship, c: Crew) {
   return { from, to };
 }
 
-/** Sprite center as a percent of the hull. Walkers follow the door path. Idle crew use their floor tile. */
-function crewPlace(
+/** How far this hop has been painted. One tile takes the same share inside a room as through a door. */
+function walkPaint(
   ship: Ship,
   roster: Crew[],
   c: Crew,
+): { t: number; steps: number; goal: { x: number; y: number } | undefined } | null {
+  if (!walkStep(ship, c)) return null;
+  const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
+  const goal = dest ? (restSpot(dest, roster, c.id, c.aboard, ship) ?? undefined) : undefined;
+  const steps = hopSteps(walkCells(ship, c.room, c.path, c.via, goal));
+  const t = c.path.length === 1 ? arriveMove(c.move, steps) : clamp01(c.move);
+  return { t, steps, goal };
+}
+
+/** Sprite center as a percent of the hull. Walkers follow the door path. Idle crew use their floor tile. */
+function crewPlace(
+  ship: Ship,
+  c: Crew,
   spot: { x: number; y: number } | undefined,
+  paint: { t: number; goal: { x: number; y: number } | undefined } | null,
 ): { x: number; y: number; faceLeft: boolean } | null {
   const step = walkStep(ship, c);
-  if (step) {
-    const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
-    const goal = dest ? (restSpot(dest, roster, c.id, c.aboard, ship) ?? undefined) : undefined;
-    // The last hop is drawn on its tile before the sim clears the path.
-    const t = c.path.length === 1 ? arriveMove(c.move) : clamp01(c.move);
-    const at = walkPose(ship, c.room, c.path, c.via, t, goal);
+  if (step && paint) {
+    const at = walkPose(ship, c.room, c.path, c.via, paint.t, paint.goal);
     if (at) return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100, faceLeft: at.faceLeft };
     const from = roomCenter(step.from, ship);
     const to = roomCenter(step.to, ship);
     return {
-      x: from.x + (to.x - from.x) * t,
-      y: from.y + (to.y - from.y) * t,
+      x: from.x + (to.x - from.x) * paint.t,
+      y: from.y + (to.y - from.y) * paint.t,
       faceLeft: to.x < from.x,
     };
   }
@@ -106,6 +117,15 @@ function crewPlace(
     y: ((spot.y + 0.5) / ship.rows) * 100,
     faceLeft: false,
   };
+}
+
+/** The operator on the console tile. A second body in the room, and anyone stunned, stands idle. */
+function atConsole(ship: Ship, c: Crew, spot: { x: number; y: number; stack: number } | undefined): boolean {
+  if (!spot || spot.stack !== 0 || c.path.length > 0 || (c.stun ?? 0) > 0) return false;
+  const room = ship.rooms.find((r) => r.id === c.room);
+  if (!room) return false;
+  const cell = roomConsole(room, ship);
+  return cell != null && cell.x === spot.x && cell.y === spot.y;
 }
 
 /** Standing, alive, not stunned, sharing a room with a living crew of the other effective side. */
@@ -126,6 +146,7 @@ function CrewToken({
   onPlace,
   pose,
   frame,
+  cycle,
   className,
   style,
 }: {
@@ -135,6 +156,7 @@ function CrewToken({
   onPlace?: (roomId: string) => void;
   pose: CrewPose;
   frame: number;
+  cycle: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -171,7 +193,7 @@ function CrewToken({
         onPlace?.(c.room);
       }}
     >
-      <CrewFace crew={c} pose={pose} frame={frame} />
+      <CrewFace crew={c} pose={pose} frame={frame} cycle={cycle} />
       <span className="crew-hp" aria-hidden="true">
         <b style={{ width: `${hp}%` }} />
       </span>
@@ -431,6 +453,7 @@ export function ShipView({
               (room.flash > 0 ? " is-flash" : "") +
               (room.fire > 0 ? " is-fire" : "") +
               (room.venting ? " is-vent" : "") +
+              (room.o2 <= 5 ? " is-airless" : room.o2 < 100 ? " is-thin" : "") +
               (room.o2 <= 10 ? " is-low" : "") +
               ((room.lock ?? 0) > 0 ? " is-lock" : "") +
               (markDest && destRoom === room.id ? " is-dest" : "") +
@@ -444,6 +467,7 @@ export function ShipView({
             style={{
               gridColumn: `${room.x + 1} / span ${room.w}`,
               gridRow: `${room.y + 1} / span ${room.h}`,
+              ["--air" as string]: room.o2,
             }}
           >
             {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
@@ -501,7 +525,7 @@ export function ShipView({
             {open
               ? (() => {
                   const cell = roomConsole(room, ship);
-                  if (!cell) return null;
+                  if (!cell || !room.system) return null;
                   const manned = here.some((c) => {
                     if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard) return false;
                     const spot = stands.get(c.id);
@@ -519,7 +543,11 @@ export function ShipView({
                         width: `${100 / room.w}%`,
                         height: `${100 / room.h}%`,
                       }}
-                    />
+                    >
+                      <span className="room-console-fit">
+                        <RoomConsole kind={room.system} on={manned} />
+                      </span>
+                    </i>
                   );
                 })()
               : null}
@@ -546,14 +574,6 @@ export function ShipView({
                 <i className="hack-drone" aria-hidden="true" />
               </div>
             ) : null}
-            <DoorTicks
-              room={room}
-              marks={ship.doorMarks}
-              doors={ship.doors}
-              cells={cells}
-              onToggle={onDoor}
-              doorsDead={doorsDead}
-            />
             {drone ? (
               <div
                 className={`hack-reticle is-${drone.phase}`}
@@ -586,6 +606,14 @@ export function ShipView({
           </div>
         );
       })}
+      <DoorLayer
+        marks={ship.doorMarks}
+        rooms={ship.rooms}
+        doors={ship.doors}
+        cells={cells}
+        onToggle={onDoor}
+        doorsDead={doorsDead}
+      />
       <Mounts ship={ship} crew={crew} aboard={aboard} />
       {showCrew ? (
         <div className="crew-walkers" ref={layerRef}>
@@ -594,15 +622,17 @@ export function ShipView({
             if (!open && !(crewLit?.(c) ?? false)) return null;
             const step = walkStep(ship, c);
             const spot = standFor(c);
-            const at = crewPlace(ship, here, c, spot);
+            const paint = walkPaint(ship, here, c);
+            const at = crewPlace(ship, c, spot, paint);
             if (!at) return null;
             const faceLeft = at.faceLeft;
-            const pose: CrewPose = step ? "walk" : fighting.has(c.id) ? "fight" : "idle";
+            const pose: CrewPose = step ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
             const frame = step
-              ? Math.floor((c.path.length === 1 ? arriveMove(c.move) : clamp01(c.move)) * 4) % 4
+              ? Math.floor(paint!.t * paint!.steps * 4) % 4
               : pose === "fight"
                 ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4
                 : 0;
+            const cycle = pose === "idle" || pose === "work";
             const nudge = spot && !step ? spot.stack * 4 : 0;
             return (
               <CrewToken
@@ -613,6 +643,7 @@ export function ShipView({
                 onPlace={onRoomMenu}
                 pose={pose}
                 frame={frame}
+                cycle={cycle}
                 className={"crew-walker" + (faceLeft ? " is-face-left" : "")}
                 style={{
                   left: `${at.x}%`,

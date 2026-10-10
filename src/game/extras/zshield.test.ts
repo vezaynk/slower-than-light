@@ -232,7 +232,7 @@ describe("crystal lockdown", () => {
     assert.equal(lockdown(g, second.id), true);
     assert.equal(g.player.rooms.find((r) => r.id === "p-oxygen")?.lock, 12);
 
-    advance(g, 2);
+    for (let i = 0; i < 160 && first.room === from; i++) step(g, 0.05);
     assert.equal(first.room, "p-weapons");
     assert.ok((g.player.rooms.find((r) => r.id === from)?.lock ?? 0) > 0);
 

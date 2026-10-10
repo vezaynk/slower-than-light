@@ -87,6 +87,16 @@ export type Door = {
   /** Seconds a broken door stays stuck open. */
   stuck: number;
   /**
+   * Door System: Close All (X) while this door is stuck open. It shuts when the
+   * 7 seconds end and it can be controlled again. Open All clears it.
+   */
+  seal?: boolean;
+  /**
+   * Door System: Open All overrides a crystal coating. These doors can then be
+   * closed by hand. A new coating clears it.
+   */
+  freed?: boolean;
+  /**
    * @agent:hacking. Locked by a hack (extras/spike.ts). Hacking, "Overview": "Hacked doors are equivalent to
    * level 3 blast doors" for the hacked ship's crew. Boarding, "Doors": boarders and mind-controlled crew pass.
    */

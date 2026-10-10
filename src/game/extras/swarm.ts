@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -671,7 +671,11 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       kit.room = landed.id;
       kit.fix = 0;
       // INFERRED: the page says "breach the hull" and does not print a count of 1.
-      if (landed.breach < 1) landed.breach = 1;
+      if (landed.breach < 1) {
+        landed.breach = 1;
+        // Boarding, "Doors": a new breach shuts that enemy room's doors when the Door System functions.
+        noteEnemyBreach(g, landed.id);
+      }
     }
     const room = enemy.rooms.find((r) => r.id === kit.room);
     if (!room) continue;
@@ -1081,7 +1085,10 @@ function tickRepair(
   const here = ship.rooms.find((room) => room.id === body.room);
   if (here && target === here.id) {
     body.path = [];
+    const breaches = here.breach;
     engiRepair(ship, here, dt, repowerKits);
+    // Door System: sealing a breach on an enemy ship shuts that room's doors when the system functions.
+    if (aboard === "enemy" && here.breach < breaches) noteEnemyBreach(g, here.id);
     return;
   }
   // A new higher-ranked room replaces a walk that was aimed somewhere else. A walk already
@@ -1164,7 +1171,8 @@ export const INTRUDER_HP = 125;
 export const INTRUDER_SPACE_SPEED = 18;
 
 /**
- * INFERRED: one interior room takes the same 0.6s baseline as crew movement (sim.ts moveCrew).
+ * INFERRED: one interior room takes 0.6s. Crew spend that long on each floor tile
+ * (sim.ts moveCrew). This drone step stays one room.
  * "Speed: 18 (when moving through space)" is INTRUDER_SPACE_SPEED and is not this step.
  */
 const INTRUDER_ROOM_S = 0.6;
@@ -1191,10 +1199,11 @@ function roomCoated(ship: Ship, id: string): boolean {
 }
 
 /**
- * A shut door holds the walker. A blast door loses DRONE_DOOR_HITS_PER_S hits per second.
+ * A shut blast door holds the walker and loses DRONE_DOOR_HITS_PER_S hits per second.
  * A coated door spends COATED_DOOR_HITS (punchCoat), not blast-door health, and still arms the ion skip.
  * Hacking: the hacker's crew walk through. breakOwn is the System Repair drone, which still breaks them.
- * A level-1 door has no hit budget and opens on this tick. A blast door that opens this tick still holds the step.
+ * Door System: below blast doors (level under 2, or the system is down) a drone walks through and the door stays shut.
+ * A blast door that opens this tick still holds the step.
  */
 function chewDoor(
   g: Game,
@@ -1223,13 +1232,8 @@ function chewDoor(
   if (hacked && side === "enemy" && !breakOwn) return "clear";
   if (!hacked && side === home && !breakOwn) return "clear";
   const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard), g.difficulty);
-  if (hits <= 0) {
-    door.open = true;
-    door.stuck = 7;
-    door.hp = 0;
-    log(g, "A door gives way.");
-    return "clear";
-  }
+  // Door System: crew, drones, and boarders move freely when there are no blast doors. The door stays shut.
+  if (hits <= 0) return "clear";
   if (door.hp <= 0) door.hp = hits;
   const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
   if (walker.doorChew !== key) {

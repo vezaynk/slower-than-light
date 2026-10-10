@@ -726,6 +726,49 @@ describe("swarm", () => {
     assert.equal(kit.room, next);
   });
 
+  it("walks through a level-1 door and leaves it shut", () => {
+    // Door System: without blast doors, drones move freely. The door stays shut.
+    const g = createGame(21);
+    place(g, 1);
+    assert.equal(deploy(g, "patch"), true);
+    const kit = g.player.kits.swarm;
+    assert.ok(kit);
+    const weapons = g.player.rooms.find((room) => room.system === "weapons");
+    const shields = g.player.rooms.find((room) => room.system === "shields");
+    const doorRoom = g.player.rooms.find((room) => room.system === "doors");
+    assert.ok(weapons && shields && doorRoom);
+    g.player.systems.shields.damage = 1;
+    g.player.systems.doors.level = 1;
+    g.player.systems.doors.damage = 0;
+    g.player.systems.doors.ion = [];
+    for (const c of g.crew) {
+      if (c.side === "player" && c.room === doorRoom.id) {
+        c.room = weapons.id;
+        c.path = [];
+      }
+    }
+    kit.room = weapons.id;
+    kit.path = [];
+    tickSwarm(g, 0.01);
+    const next = kit.path?.[0];
+    assert.ok(next);
+    const door = g.player.doors.find(
+      (item) => item.b !== "void" && ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
+    );
+    assert.ok(door);
+    door.open = false;
+    door.hp = 0;
+    door.stuck = 0;
+    kit.move = 0;
+    tickSwarm(g, 0.05);
+    assert.equal(door.open, false);
+    assert.equal(door.stuck, 0);
+    assert.equal(door.hp, 0);
+    tickSwarm(g, 2);
+    assert.equal(door.open, false);
+    assert.equal(kit.room, next);
+  });
+
   it("adds one hull point every 3 seconds, up to a rolled 3–5, then breaks apart", () => {
     assert.equal(HULL_POINT_S, 3);
     const g = createGame(17);

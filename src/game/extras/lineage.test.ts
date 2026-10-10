@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { XP_NEED, skillRank } from "../content.ts";
 import { createGame, startCombat } from "../sim.ts";
-import { HUMAN_XP_NEED, LANIUS_DRAIN_PER_SEC, isHuman, tickLanius, xpNeedFor } from "./lineage.ts";
+import { BREACH_O2_PER_SEC, HUMAN_XP_NEED, LANIUS_DRAIN_PER_SEC, isHuman, tickLanius, xpNeedFor } from "./lineage.ts";
 import type { Crew, Game } from "../types.ts";
 
 function combat(): Game {
@@ -34,7 +34,9 @@ describe("Lanius oxygen drain", () => {
     r.o2 = 100;
     tickLanius(g, 0.5);
     assert.equal(r.o2, 100 - LANIUS_DRAIN_PER_SEC * 0.5);
-    assert.equal(LANIUS_DRAIN_PER_SEC, 12);
+    // Oxygen-2 is 4.8%/s and does not beat one breach alone. Oxygen-3 is 8.4%/s and does.
+    assert.ok(BREACH_O2_PER_SEC > 4.8 && BREACH_O2_PER_SEC < 8.4);
+    assert.equal(LANIUS_DRAIN_PER_SEC, BREACH_O2_PER_SEC);
   });
 
   it("stacks per Lanius in the same room", () => {

@@ -1,5 +1,5 @@
 import { interiorLinks, mayStand } from "../crew-spots.ts";
-import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
@@ -435,7 +435,11 @@ export function tickLeash(g: Game, dt: number) {
       }
     } else {
       const held = g.crew.find((c) => c.id === kit.target);
-      if (held && held.side === "enemy") stripIfDropped(held, level);
+      if (held && held.side === "enemy") {
+        stripIfDropped(held, level);
+        // Oxygen, Overview: mind-controlled crew leave a room at 5% O2 or less for one at 10% or more.
+        leaveDeprivedAir(g, held);
+      }
     }
     return;
   }
@@ -590,6 +594,8 @@ function pathTo(ship: Ship, from: string, goal: (room: string) => boolean): stri
  * its own (now hostile) side on the same hull. Walking uses sim moveCrew; held crew pass doors freely (sim.ts).
  */
 function huntFor(g: Game, c: Crew) {
+  // Oxygen, Overview: mind-controlled crew leave O2-deprived rooms before they hunt.
+  if (leaveDeprivedAir(g, c)) return;
   if (c.path.length > 0 || c.hp <= 0) return;
   const ship = c.aboard === "player" ? g.player : g.enemy;
   if (!ship) return;

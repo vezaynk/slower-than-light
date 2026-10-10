@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { restSpot } from "../crew-spots.ts";
+import { hopSteps, walkCells } from "../walk-path.ts";
 import { REPAIR_SECONDS, createGame, startCombat, step } from "../sim.ts";
 
 describe("starting augments", () => {
@@ -84,8 +86,11 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
       crew.move = 0;
       crew.stun = 0;
       if (pheromone) g.augments = ["pheromone"];
+      const dest = ship.rooms.find((room) => room.id === crew.path[crew.path.length - 1]);
+      const spot = dest ? restSpot(dest, g.crew, crew.id, crew.aboard, ship) : null;
+      const tiles = hopSteps(walkCells(ship, crew.room, crew.path, crew.via, spot ?? undefined));
       step(g, 0.05);
-      return crew.move;
+      return crew.move * tiles;
     }
     const home = walked(false, "player");
     const sped = walked(true, "player");

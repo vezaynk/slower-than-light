@@ -277,7 +277,7 @@ describe("enemy hacking: pulse effects", () => {
     foe.room = d2.a;
     foe.path = [d2.b];
     foe.move = 0;
-    for (let i = 0; i < 40; i++) step(g2, 0.05);
+    for (let i = 0; i < 200 && foe.room === d2.a; i++) step(g2, 0.05);
     assert.notEqual(foe.room, d2.a, "boarder passed the hacked door");
   });
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "./sim.ts";
-import { arriveMove, standCell, walkCells, walkPoint } from "./walk-path.ts";
+import { arriveMove, hopSteps, standCell, walkCells, walkPoint } from "./walk-path.ts";
 
 const column = {
   cols: 2,
@@ -78,10 +78,15 @@ describe("walk path", () => {
 
   it("holds the last tile before the hop clock finishes", () => {
     const cells = walkCells(column, "L", ["R"], undefined)!;
+    const steps = hopSteps(cells);
     const end = cells[cells.length - 1]!;
-    assert.equal(arriveMove(0), 0);
-    assert.equal(arriveMove(0.72), 1);
-    const held = walkPoint(column, "L", ["R"], undefined, arriveMove(0.9));
+    assert.equal(arriveMove(0, 1), 0);
+    assert.equal(arriveMove(0.72, 1), 1);
+    // The early hold is 0.28 of one tile, not 0.28 of the whole room.
+    const done = 1 - 0.28 / steps;
+    assert.equal(arriveMove(done, steps), 1);
+    assert.ok(arriveMove(done / 2, steps) < 1);
+    const held = walkPoint(column, "L", ["R"], undefined, arriveMove(done, steps));
     assert.deepEqual(held, { x: end.x + 0.5, y: end.y + 0.5 });
     const mid = walkPoint(column, "L", ["R"], undefined, 0.5);
     assert.notDeepEqual(mid, held);

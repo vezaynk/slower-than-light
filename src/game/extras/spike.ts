@@ -1278,7 +1278,8 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
  * drone is attached and Hacking is powered (the hacked room's doors), and "Door System: locks all doors, converting
  * them into temporary enemy level 3 blast doors" during a pulse on Doors. "Hacked doors are equivalent to level 3
  * blast doors; after being broken down they will 'heal' and close automatically in 7 seconds" (sim.ts sets the 7 s
- * `stuck`; this closes the door once it runs out). Airlocks are left alone, as in the player's own Doors pulse.
+ * `stuck`; once it runs out, a door that is still hacked is closed here). Depowering before that leaves it open.
+ * Airlocks are left alone, as in the player's own Doors pulse.
  * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except the printed
  * level-3 cell for this difficulty, or the 4-hit Crystal Lockdown mark, already written this tick.
  */

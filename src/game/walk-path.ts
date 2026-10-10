@@ -3,10 +3,14 @@ import type { DoorMark, DoorSide } from "./types.ts";
 
 /**
  * Cells a walking sprite crosses inside the rooms the sim already chose.
- * One hop still lasts the sim's room time. The line follows door tiles
- * from the standing cell, or from the doorway just used, and ends on the
- * destination's at-rest tile on the last hop.
+ * One floor tile takes TILE_WALK_S, including tiles inside a room and the
+ * step through a doorway. The line follows door tiles from the standing
+ * cell, or from the doorway just used, and ends on the destination's
+ * at-rest tile on the last hop.
  */
+
+/** INFERRED: one floor tile at movement ×1. Race movement multiplies this. */
+export const TILE_WALK_S = 0.6;
 
 export type WalkRoom = {
   id: string;
@@ -245,6 +249,12 @@ function clamp01(n: number) {
   return n;
 }
 
+/** Tile-to-tile steps in this hop. A missing path still costs one tile. */
+export function hopSteps(cells: WalkCell[] | null): number {
+  if (!cells || cells.length < 2) return 1;
+  return cells.length - 1;
+}
+
 function sample(cells: WalkCell[], move: number): { x: number; y: number } {
   if (cells.length === 1) return { x: cells[0].x + 0.5, y: cells[0].y + 0.5 };
   const distAlong = clamp01(move) * (cells.length - 1);
@@ -258,10 +268,12 @@ function sample(cells: WalkCell[], move: number): { x: number; y: number } {
 /**
  * Paint clock for the last hop. The sim clears the path on the tick `move` hits 1,
  * and the ship redraws about every 80ms, so that exact pose is never shown.
- * A hop is 0.6s, so the sprite is already on the last tile for the final stretch.
+ * The sprite finishes 0.28 of one tile early and holds the stand. That slice
+ * does not grow with the tiles inside the room.
  */
-export function arriveMove(move: number): number {
-  return Math.min(1, clamp01(move) / 0.72);
+export function arriveMove(move: number, steps = 1): number {
+  const hold = 0.28 / Math.max(1, steps);
+  return Math.min(1, clamp01(move) / (1 - hold));
 }
 
 /** Point in tile space (cell centers are x+0.5, y+0.5). `move` is the sim's 0..1 hop clock. */

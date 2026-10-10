@@ -242,7 +242,7 @@ describe("crew room orders", () => {
     ivo.path = ["p-oxygen"];
     ivo.move = 0;
     door.open = false;
-    for (let i = 0; i < 20; i++) step(g, 0.05);
+    for (let i = 0; i < 200 && ivo.room === "p-engines"; i++) step(g, 0.05);
     assert.equal(ivo.room, "p-oxygen");
   });
 

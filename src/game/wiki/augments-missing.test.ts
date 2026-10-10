@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { MISSING_AUGMENTS } from "./augments-missing.ts";
+import { wikiPage } from "./dump/index.ts";
 
 const source = readFileSync(new URL("./augments-missing.ts", import.meta.url), "utf8");
-const augmentsWiki = readFileSync("/tmp/wiki-pages/Augmentations.wikitext", "utf8");
-const zoltanWiki = readFileSync("/tmp/wiki-pages/Zoltan_Shield.wikitext", "utf8");
+const augmentsWiki = wikiPage("Augmentations");
+const zoltanWiki = wikiPage("Zoltan Shield");
 const catalogSrc = readFileSync(new URL("../extras/augments.ts", import.meta.url), "utf8");
 
 const EXPECTED: Record<string, string> = {

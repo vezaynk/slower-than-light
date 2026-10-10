@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS } from "./cited-events-zoltan-next.ts";
+import { DUMP } from "./dump/index.ts";
 
 const CANDIDATES = [
   "Zoltan Great Eye",
@@ -43,7 +44,6 @@ const SECTORS = new Set([
   "The Last Stand",
 ]);
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 const SRC = new URL("./cited-events-zoltan-next.ts", import.meta.url);
 
 function slug(title: string): string {

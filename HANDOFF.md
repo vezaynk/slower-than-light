@@ -19,6 +19,8 @@ node --experimental-strip-types --test src/game/*.test.ts src/game/selftest.ts s
 
 `npm run typecheck` is `tsc --noEmit`.
 
+Wiki-backed tests read `src/game/wiki/dump/pages.jsonl` (every main-namespace article, every redirect title, and the `Template:EventList` pages) through `src/game/wiki/dump/index.ts`. Refresh it with `node scripts/wiki-dump.mjs`; a test that then fails means the wiki changed.
+
 ## Where the game lives
 
 | Path | Role |

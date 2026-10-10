@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { choose, createGame, evasionPercent, ftlSeconds, startCombat, step } from "../sim.ts";
 import { citedEvent } from "./cited-events.ts";
 import { EXTRA_EVENTS } from "./cited-events-civilian-mz.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Malfunctioning defense system",
@@ -94,7 +95,7 @@ function hasNumber(text: string, n: number): boolean {
 function loadPages(): Map<string, string> {
   const want = new Set<string>(TITLES);
   const found = new Map<string, string>();
-  const raw = readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8");
+  const raw = readFileSync(DUMP, "utf8");
   for (const line of raw.split("\n")) {
     if (!line.includes('"ns": 0') && !line.includes('"ns":0')) continue;
     const o = JSON.parse(line) as { ns?: number; title?: string; text?: string };

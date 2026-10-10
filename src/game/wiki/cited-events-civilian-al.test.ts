@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS } from "./cited-events-civilian-al.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Asteroid belt distress",
@@ -75,7 +76,7 @@ function locationNames(page: string): string[] {
 function loadPages(titles: string[]): Map<string, string> {
   const want = new Set(titles);
   const found = new Map<string, string>();
-  const dump = readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8");
+  const dump = readFileSync(DUMP, "utf8");
   for (const line of dump.split("\n")) {
     if (!line) continue;
     const row = JSON.parse(line) as { title?: string; text?: string; ns?: number };

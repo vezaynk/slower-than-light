@@ -3,6 +3,7 @@ import { createReadStream, readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-pirate.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Boarders: Humans (Pirate)",
@@ -15,7 +16,6 @@ const TITLES = [
   "Store (Pirate)",
 ];
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function slugOf(title: string): string {
   return title

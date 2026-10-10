@@ -51,6 +51,8 @@ function winByHull(g: Game) {
 }
 
 function winByCrew(g: Game) {
+  // Clone Bay, Overview: dead crew on a hull with a Clone Bay are cloned, so the fight would not end. Drop it.
+  if (g.enemy) delete g.enemy.kits.cradle;
   for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
   for (let i = 0; i < 3 && g.phase === "combat"; i++) step(g, 1 / 30);
 }

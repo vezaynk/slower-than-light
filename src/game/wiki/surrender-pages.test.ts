@@ -7,8 +7,8 @@ import type { Game } from "../types.ts";
 import { EXTRA_EVENTS } from "./cited-events-surrender.ts";
 import { citedEvent } from "./cited-events.ts";
 import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID, SCRIPTED_SURRENDERS } from "./surrender.ts";
+import { DUMP } from "./dump/index.ts";
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function pageText(title: string): string | null {
   if (!existsSync(DUMP)) return null;

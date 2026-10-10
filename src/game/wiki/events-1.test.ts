@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EVENTS_1 } from "./events-1.ts";
+import { wikiTitles } from "./dump/index.ts";
 
-const titles = JSON.parse(readFileSync("/tmp/wiki-slices/events-1.json", "utf8")) as string[];
+// The slice lists the old author kept in /tmp are gone; the titles are checked against the wiki dump instead.
+const titles = EVENTS_1.map((row) => row.title);
+const onWiki = new Set(wikiTitles());
 
 describe("EVENTS_1", () => {
+  it("names only real wiki articles", () => {
+    for (const t of titles) assert.ok(onWiki.has(t), t);
+  });
+
   it("lists each slice title once", () => {
     assert.equal(EVENTS_1.length, titles.length);
     assert.deepEqual(

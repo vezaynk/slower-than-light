@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-engi.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Battlefield wreckage",
@@ -36,7 +37,6 @@ const SHIPS = new Set([
   "Crystal ship",
 ]);
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function slug(title: string): string {
   return title

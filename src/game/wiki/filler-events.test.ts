@@ -18,13 +18,15 @@ import {
   fillerEvent,
   pageForRow,
 } from "./filler-events.ts";
+import { DUMP } from "./dump/index.ts";
 
 function loadDump(): Map<string, string> {
   const pages = new Map<string, string>();
-  for (const line of readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8").split("\n")) {
+  for (const line of readFileSync(DUMP, "utf8").split("\n")) {
     if (!line) continue;
-    const row = JSON.parse(line) as { title?: string; text?: string; ns?: number };
-    if (row.ns === 0 && row.title) pages.set(row.title, row.text ?? "");
+    const row = JSON.parse(line) as { title?: string; text?: string; ns?: number; redirect?: string };
+    // A redirect title reads as its target's page; count each page once, under its own title.
+    if (row.ns === 0 && row.title && !row.redirect) pages.set(row.title, row.text ?? "");
   }
   return pages;
 }
@@ -75,7 +77,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     const rows = (t: string) =>
       [...(dump.get(t) ?? "").matchAll(/^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm)].map((m) => [m[1], m[2] === "true"]);
     const fetch = (t: string) => {
-      const raw = readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8");
+      const raw = readFileSync(DUMP, "utf8");
       for (const line of raw.split("\n")) {
         if (!line.includes(t)) continue;
         const row = JSON.parse(line) as { title?: string; text?: string };

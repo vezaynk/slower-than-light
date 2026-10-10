@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-slug.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Abandoned station",
@@ -49,7 +50,7 @@ function slugOf(title: string): string {
 function pages(): Map<string, string> {
   const want = new Set(TITLES);
   const found = new Map<string, string>();
-  const raw = readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8");
+  const raw = readFileSync(DUMP, "utf8");
   for (const line of raw.split("\n")) {
     if (!line.includes('"ns": 0') && !line.includes('"ns":0')) continue;
     const row = JSON.parse(line) as { title?: string; ns?: number; text?: string };

@@ -22,9 +22,10 @@ import {
   type Flak2Room,
   type FlakCrystalGap,
 } from "./weapons-flak-crystal.ts";
+import { wikiPage } from "./dump/index.ts";
 
-const FLAK_PAGE = readFileSync("/tmp/wiki-pages/Flak_Weapons.wikitext", "utf8");
-const CRYSTAL_PAGE = readFileSync("/tmp/wiki-pages/Crystal_Weapons.wikitext", "utf8");
+const FLAK_PAGE = wikiPage("Flak (Weapons)");
+const CRYSTAL_PAGE = wikiPage("Crystal (Weapons)");
 const SOURCE = readFileSync(
   fileURLToPath(new URL("./weapons-flak-crystal.ts", import.meta.url)),
   "utf8",

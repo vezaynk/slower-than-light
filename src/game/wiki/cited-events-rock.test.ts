@@ -6,6 +6,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { EXTRA_EVENTS } from "./cited-events-rock.ts";
 import { citedEvent } from "./cited-events.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Ancient device",
@@ -28,7 +29,6 @@ const TITLES = [
   "Store (Rock)",
 ];
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function pages(): Map<string, string> {
   const want = new Set(TITLES);

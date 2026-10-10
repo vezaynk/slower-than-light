@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-zoltan.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Boarders: Humans jammed sensors",
@@ -29,7 +30,6 @@ const TITLES = [
   "Zoltan trade hub",
 ];
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function slugOf(title: string): string {
   return title

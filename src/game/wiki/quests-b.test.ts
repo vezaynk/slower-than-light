@@ -8,6 +8,7 @@ import { citedEvent } from "./cited-events.ts";
 import { classifyEvent } from "./beacon-mix.ts";
 import { QUEST_ADDED } from "./quests.ts";
 import { PART_B } from "./quests-b.ts";
+import { DUMP } from "./dump/index.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -88,7 +89,7 @@ describe("quests-b: opening cards (cited-events-quests-b.ts)", () => {
   it("each page's sectors are its {{Locations}} line, and ids follow the table format", () => {
     const want = new Set(EXTRA_EVENTS.map((e) => e.dest));
     const pages = new Map<string, string>();
-    for (const line of readFileSync("/Users/slava/code/ftl.fandom.com-dump/pages.jsonl", "utf8").split("\n")) {
+    for (const line of readFileSync(DUMP, "utf8").split("\n")) {
       if (!line) continue;
       const row = JSON.parse(line) as { title?: string; text?: string; ns?: number };
       if (row.ns === 0 && row.title && want.has(row.title)) pages.set(row.title, row.text ?? "");

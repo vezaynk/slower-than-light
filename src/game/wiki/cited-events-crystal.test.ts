@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS } from "./cited-events-crystal.ts";
+import { DUMP } from "./dump/index.ts";
 
 const TITLES = [
   "Boarders: Crystal",
@@ -18,7 +19,6 @@ const TITLES = [
   "Store (Crystal)",
 ];
 
-const DUMP = "/Users/slava/code/ftl.fandom.com-dump/pages.jsonl";
 
 function slug(title: string): string {
   return title

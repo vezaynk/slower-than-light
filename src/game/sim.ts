@@ -2074,7 +2074,9 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
     }
   }
   for (let i = 0; i < count; i++) {
-    let targetRoom = rooms[0];
+    // wiki/targeting.ts, combat-ai UpdateWeapons: "one [target room] for each projectile that will be fired". A beam
+    // keeps its one swipe. INFERRED: a flak burst is one spread around one room (its pellet odds above).
+    let targetRoom = from === "enemy" && i > 0 && def.kind !== "beam" && def.kind !== "flak" ? enemyTarget(g, w) : rooms[0];
     let offRoom = false;
     if (scatter) {
       const land = swarmLanding(targetShip.rooms, rooms[0], rand(g));
@@ -3073,7 +3075,8 @@ function chargeSide(
     // Cloaking, "Enemy AI and Cloaking": a cloaked enemy that chose to hold fire keeps its charge until the cloak ends.
     if (from === "enemy" && enemyHoldsFire(g)) return;
     if (w.charge >= 1 && w.target) {
-      // wiki/targeting.ts, INFERRED: an enemy gun re-aims every volley, as it fires (a missile with no ammo keeps its room).
+      // wiki/targeting.ts: an enemy gun picks its rooms as it fires ("Targeting rolls appear to happen when the weapon
+      // fires", reddit 7pmz3j). A missile with no ammo keeps its room.
       if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
       launch(g, from, w);
     }

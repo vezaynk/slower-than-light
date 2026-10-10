@@ -10,6 +10,8 @@ const PADS = "e-teleporter";
 function boarder(minCrew = 3): Game {
   for (let seed = 1; seed < 500; seed++) {
     const g = createGame(seed);
+    // Enemy Ships: crew is interpolated by sector, so sector 1 Rebel and Mantis hulls carry at most 3. Fight mid-run.
+    g.sector = 5;
     startCombat(g, "Mantis ship");
     if (!g.enemy?.kits.sling) continue;
     if (foes(g).length < minCrew) continue;

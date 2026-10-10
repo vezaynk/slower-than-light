@@ -1,7 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { WEAPONS } from "./content.ts";
-import { enemyPool, optionalChance, pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
+import {
+  arm,
+  crewCount,
+  enemyPool,
+  hullFor,
+  optionalChance,
+  pickElite,
+  pickEnemy,
+  rangePool,
+  requestFor,
+  rollEnemy,
+  rollMaxLevel,
+  UPGRADE_BUDGET,
+} from "./enemy-gen.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import { createGame, startCombat } from "./sim.ts";
 import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./wiki/enemy-ships.ts";
@@ -108,21 +121,28 @@ describe("rolled ships stay inside the printed numbers", () => {
   });
 });
 
-describe("optional enemy systems", () => {
-  const ctx = (sector: number) => ({ sector, sectorName: "Civilian Sector", difficulty: "normal" as const });
+describe("enemy generation by difficulty (Mathchamp, Details on enemy ship generation)", () => {
+  const ctx = (sector: number, difficulty: "easy" | "normal" | "hard" = "normal") => ({
+    sector,
+    sectorName: "Civilian Sector",
+    difficulty,
+  });
   const cls = (id: string) => ENEMY_CLASSES.find((c) => c.id === id)!;
   /** Share of rolled ships with a Crew Teleporter (the sling kit). */
-  const teleporters = (id: string, pirate: boolean, sector: number) => {
+  const teleporters = (id: string, pirate: boolean, sector: number, difficulty: "easy" | "normal" | "hard" = "hard") => {
     const rand = seeded(sector * 97 + (pirate ? 1 : 0));
     let n = 0;
-    for (let i = 0; i < 4000; i++) if (rollEnemy(cls(id), pirate, ctx(sector), rand).kits.sling) n++;
+    for (let i = 0; i < 4000; i++) if (rollEnemy(cls(id), pirate, ctx(sector, difficulty), rand).kits.sling) n++;
     return n / 4000;
   };
 
-  it("fits each one 30% of the time in sector 1, 10% more each sector", () => {
-    assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8].map((s) => Math.round(optionalChance(s) * 100)), [30, 40, 50, 60, 70, 80, 90, 100]);
-    assert.ok(Math.abs(teleporters("rebel-fighter", false, 1) - 0.3) < 0.03);
-    assert.ok(Math.abs(teleporters("rebel-fighter", false, 4) - 0.6) < 0.03);
+  it("fits an optional system 20% of the time on Normal in sector 1, +10% each sector, Hard +10%, Easy delayed and -10%", () => {
+    const pct = (d: "easy" | "normal" | "hard") => [1, 2, 3, 4, 5, 6, 7, 8].map((s) => Math.round(optionalChance(s, d) * 100));
+    assert.deepEqual(pct("normal"), [20, 30, 40, 50, 60, 70, 80, 90]);
+    assert.deepEqual(pct("hard"), [30, 40, 50, 60, 70, 80, 90, 100]);
+    assert.deepEqual(pct("easy"), [10, 10, 20, 30, 40, 50, 60, 70]);
+    assert.ok(Math.abs(teleporters("rebel-fighter", false, 1, "normal") - 0.2) < 0.03);
+    assert.ok(Math.abs(teleporters("rebel-fighter", false, 4, "hard") - 0.6) < 0.03);
   });
 
   it("keeps a bracketed system on the version the page names", () => {
@@ -131,6 +151,76 @@ describe("optional enemy systems", () => {
     assert.equal(teleporters("rock-scout", true, 8), 1);
     assert.equal(teleporters("rock-investigator", false, 8), 1);
     assert.equal(teleporters("rock-investigator", true, 8), 0);
+  });
+
+  it("rolls the per-sector maximum from the printed range, and Easy sector 1 ships stay at their starting levels", () => {
+    // ftl-layouts.mikehopley.org, Rebel Fighter Shields 2-8 on Hard: sectors 1-2 "2-3", 3 "3-5", 4 "4-6", 8 "7-8".
+    const want: Record<number, [number, number]> = { 1: [2, 3], 3: [3, 5], 4: [4, 6], 8: [7, 8] };
+    const rand = seeded(5);
+    for (const [sector, [lo, hi]] of Object.entries(want)) {
+      const seen = new Set<number>();
+      for (let i = 0; i < 400; i++) seen.add(rollMaxLevel([2, 8], ctx(Number(sector), "hard"), rand));
+      assert.deepEqual([Math.min(...seen), Math.max(...seen)], [lo, hi], `sector ${sector}`);
+    }
+    const easy = seeded(9);
+    for (let i = 0; i < 200; i++) {
+      const spec = rollEnemy(cls("rebel-fighter"), false, ctx(1, "easy"), easy);
+      assert.equal(spec.systems.shields?.[0], 2);
+      assert.equal(spec.systems.weapons?.[0], 2);
+    }
+  });
+
+  it("spends no more than the sector's offensive, defensive, and general budget", () => {
+    for (const d of ["easy", "normal", "hard"] as const) {
+      for (let sector = 1; sector <= 8; sector++) {
+        const [o, def, gen] = UPGRADE_BUDGET[d][sector - 1];
+        const rand = seeded(sector + 31);
+        for (let i = 0; i < 50; i++) {
+          const c = cls("rebel-fighter");
+          const spec = rollEnemy(c, false, ctx(sector, d), rand);
+          let upgrades = 0;
+          for (const [id, r] of Object.entries(c.systems)) {
+            const lvl = (spec.systems as Record<string, [number, number]>)[id]?.[0];
+            if (lvl != null) upgrades += lvl - r[0];
+          }
+          assert.ok(upgrades <= o + def + gen, `${d} sector ${sector}: ${upgrades}`);
+        }
+      }
+    }
+  });
+
+  it("crew and hull follow the per-sector tables", () => {
+    // Mantis Scout crew 3-4: 3 in sectors 1-4, 4 in sectors 5-6. Rebel Fighter crew 3-5: 3, 3, 3, 4, 4, 4, 5, 5.
+    assert.deepEqual([1, 2, 3, 4, 5, 6].map((s) => crewCount(cls("mantis-scout").crew, ctx(s))), [3, 3, 3, 3, 4, 4]);
+    assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8].map((s) => crewCount(cls("rebel-fighter").crew, ctx(s))), [3, 3, 3, 4, 4, 4, 5, 5]);
+    // Mantis Fighter hull 10-16 from sector 2. Rebel Fighter 10-17, "(9-16 on Easy)".
+    assert.deepEqual([2, 5, 8].map((s) => hullFor(cls("mantis-fighter"), ctx(s))), [10, 13, 16]);
+    assert.deepEqual([1, 8].map((s) => hullFor(cls("rebel-fighter"), ctx(s, "easy"))), [9, 16]);
+  });
+
+  it("arms by Mathchamp's weapon rules", () => {
+    const rand = seeded(3);
+    for (let i = 0; i < 300; i++) {
+      for (const level of [1, 2, 3, 4, 6, 8]) {
+        const { weapons } = arm(ENEMY_WEAPON_POOLS.rebel, level, rand);
+        const power = weapons.map((id) => WEAPONS[id].power);
+        assert.ok(power.reduce((a, b) => a + b, 0) <= level);
+        assert.ok(power.every((p) => p < level || p === 1), `level ${level}: ${weapons}`);
+        if (level >= 3) assert.ok(power[0] >= 2, `level ${level} first gun ${weapons[0]}`);
+        // A ship never opens on a gun that clears neither flag (non-damaging beam or bomb).
+        const first = WEAPONS[weapons[0]];
+        assert.ok(first.kind === "laser" || first.kind === "ion" || (first.damage > 0 && first.kind !== "bomb"), weapons[0]);
+      }
+    }
+  });
+
+  it("delays which classes appear by a sector on Easy", () => {
+    // Mantis Fighter: "Encountered in sectors: 2-8". On Easy it first appears in sector 3.
+    const has = (sector: number, d: "easy" | "normal") =>
+      rangePool({ sector, sectorName: "Mantis Controlled Sector", difficulty: d }).some((e) => e.cls.id === "mantis-fighter");
+    assert.equal(has(2, "normal"), true);
+    assert.equal(has(2, "easy"), false);
+    assert.equal(has(3, "easy"), true);
   });
 });
 

@@ -29,6 +29,8 @@ function fight() {
   enemy.hull = 30;
   const system = enemy.rooms.find((room) => room.system && !room.kit);
   assert.ok(system?.system);
+  // Room for 2 system damage whatever level the roll gave it.
+  enemy.systems[system.system].level = Math.max(3, enemy.systems[system.system].level);
   const src = enemy.rooms[0];
   const empty: Room = { ...src, id: "e-hold", title: "Hold", system: null, kit: undefined, x: 30, y: 0 };
   const kitRoom: Room = { ...src, id: "e-kit", title: "Cloak", system: null, kit: "veil", x: 32, y: 0 };

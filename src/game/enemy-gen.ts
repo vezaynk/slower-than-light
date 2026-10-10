@@ -128,25 +128,41 @@ export function enemyParts(classId: string, drones: number): number {
 }
 
 /**
+ * Combat drones for Mathchamp's flag rule. "a combat drone (the type of weapon on the drone does not matter)": Combat
+ * Drone I and II, the Anti-Ship Beam Drones, and the Anti-Ship Fire Drone.
+ */
+const COMBAT_DRONES = new Set(["striker", "combat2", "beam", "beam2", "fire"]);
+
+/**
  * @agent:drones. Which drones this hull fields. Allowed schematics: Template:Enemy ships drones (ENEMY_DRONES).
  * Count cap: that row's max parts column ("# of drones ×2"), halved.
- * INFERRED: the wiki does not say how an enemy picks among its allowed schematics. Each slot draws uniformly from
- * the runnable schematics that still fit the Drone Control level, until the cap or nothing fits. Repeats allowed.
+ * Mathchamp, "Drone generation has the following rules": the drone "cannot use more power than is available", cannot
+ * be 0 power, "If the system is at least level 4, then the drone's power must be strictly less than the total system
+ * power", "must not have the same blueprint as an already installed drone", and "If either flag from the weapon
+ * generator is still outstanding, the drone must be a combat drone ... and a combat drone will clear the flags." "The
+ * last two conditions are soft conditions": a pick that fails them retries with the first three only.
  * Drone Control, "Drone Schematics": "Before the start of a ship fight it is impossible to know the exact drones the
  * enemy ship will deploy" — this list stays hidden; swarm.ts deploys it on the first combat tick.
  */
-export function rollDrones(classId: string, level: number, rand: () => number): string[] {
+export function rollDrones(classId: string, level: number, rand: () => number, flagsOpen = false): string[] {
   const row = ENEMY_DRONES[classId];
   if (!row || level <= 0) return [];
   const pool = row.drones.filter((id) => ENEMY_RUNNABLE.has(id));
   const out: string[] = [];
+  let open = flagsOpen;
   let left = level;
   while (out.length < row.maxDrones) {
-    const fits = pool.filter((id) => (SCHEMATIC_POWER[id] ?? Infinity) <= left);
+    const hard = pool.filter((id) => {
+      const p = SCHEMATIC_POWER[id] ?? Infinity;
+      return p >= 1 && p <= left && (level < 4 || p < level);
+    });
+    const soft = hard.filter((id) => !out.includes(id) && (!open || COMBAT_DRONES.has(id)));
+    const fits = soft.length ? soft : hard;
     if (!fits.length) break;
     const id = fits[Math.floor(rand() * fits.length) % fits.length];
     out.push(id);
     left -= SCHEMATIC_POWER[id];
+    if (COMBAT_DRONES.has(id)) open = false;
   }
   return out;
 }
@@ -272,7 +288,9 @@ export function rangePool(ctx: PoolContext): PoolEntry[] {
   const out: { cls: EnemyClass; pirate: boolean }[] = [];
   for (const cls of ENEMY_CLASSES) {
     if (cls.uniqueTo || fleetOnly(cls)) continue;
-    if (ctx.sector < cls.sectors[0] || ctx.sector > cls.sectors[1]) continue;
+    // Mathchamp: "Blueprint selection (minimum/maximum sector for blueprints) is affected by the Easy sector delay."
+    const at = genSector(ctx.sector, ctx.difficulty);
+    if (at < cls.sectors[0] || at > cls.sectors[1]) continue;
     const where = cls.where ?? "";
     // Federation Ships: "in Crystal Homeworlds only".
     if (/Crystal Homeworlds only/i.test(where) && !/crystal/i.test(ctx.sectorName)) continue;
@@ -379,15 +397,100 @@ export function pickElite(rand: () => number): EnemyClass {
   return elites[Math.floor(rand() * elites.length) % elites.length];
 }
 
-/**
- * INFERRED: Enemy Ships says ships "become more powerful with each new sector" but prints only the
- * overall range. A value is placed by sector (1 → low end, 8 → high end), give or take one.
+/*
+ * Enemy ship generation. Source: Mathchamp, "Details on enemy ship generation" (reddit r/ftlgame qu8kz7), linked from
+ * Enemy Ships ("For technical details on enemy ship generation, see Mathchamp's Reddit post"). Quoted where used.
+ * The faction pages print each system as (starting level - blueprint maximum); `cls.systems` keeps that pair.
  */
-function roll(r: Range, sector: number, rand: () => number): number {
-  const [lo, hi] = r;
-  const t = Math.min(1, Math.max(0, (sector - 1) / 7));
-  const v = Math.round(lo + (hi - lo) * t + (rand() * 2 - 1));
-  return Math.max(lo, Math.min(hi, v));
+
+/** Mathchamp: "Blueprint selection ... is affected by the Easy sector delay", and Easy interpolation is "delayed a sector". */
+export function genSector(sector: number, difficulty: Difficulty): number {
+  return difficulty === "easy" ? Math.max(1, sector - 1) : sector;
+}
+
+/** Mathchamp: values are "linearly interpolated, between the minimum and maximum values ... between sector 1 and 9". */
+function lerp(lo: number, hi: number, sector: number): number {
+  return lo + ((hi - lo) * (sector - 1)) / 8;
+}
+
+/**
+ * Mathchamp, the bonus added to each rolled maximum: "always 0 in sector 1 on Easy. In other sectors on Easy, and in
+ * the first two sectors of Normal and Hard, this number is between 0 and 1, while in the later sectors of Normal and
+ * Hard, this number is between 0 and 2."
+ */
+function levelBonus(ctx: PoolContext, rand: () => number): number {
+  const top = ctx.difficulty === "easy" ? (ctx.sector === 1 ? 0 : 1) : ctx.sector <= 2 ? 1 : 2;
+  return Math.floor(rand() * (top + 1));
+}
+
+/**
+ * Mathchamp: "it rolls a maximum level for each system" from the interpolation (rounded down: the per-sector ranges on
+ * ftl-layouts.mikehopley.org, e.g. Rebel Fighter Shields 2-8 is "3-5" in sector 3) plus the bonus, then "If the maximum
+ * level with the bonus exceeds the maximum power on the blueprint, then the maximum level is reduced".
+ */
+export function rollMaxLevel(r: Range, ctx: PoolContext, rand: () => number): number {
+  const base = Math.floor(lerp(r[0], r[1], genSector(ctx.sector, ctx.difficulty)));
+  return Math.min(r[1], base + levelBonus(ctx, rand));
+}
+
+/**
+ * Mathchamp: "The budget for Easy/Normal/Hard (already adjusted for easy sector delay)", by sector:
+ * [offensive, defensive, general] for each difficulty.
+ */
+export const UPGRADE_BUDGET: Record<Difficulty, [number, number, number][]> = {
+  easy: [[1, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 2], [5, 6, 2], [6, 7, 2], [7, 8, 3]],
+  normal: [[1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 2], [5, 6, 2], [6, 7, 2], [7, 8, 3], [8, 9, 3]],
+  hard: [[1, 2, 2], [2, 3, 2], [3, 4, 2], [4, 5, 3], [5, 6, 3], [6, 7, 3], [7, 8, 4], [8, 9, 4]],
+};
+
+/** Mathchamp: "The "offensive" budget can only be spent on weapons, drone control, teleporter, and artillery." */
+const OFFENSIVE = new Set<EnemySystem>(["weapons", "drones", "teleporter", "artillery"]);
+/** Mathchamp: "The "defensive" budget can only be spent on shields, engines, and cloaking." */
+const DEFENSIVE = new Set<EnemySystem>(["shields", "engines", "cloaking"]);
+
+/**
+ * Mathchamp: "for each available power bar, a list of all eligible systems is generated (must be one of the designated
+ * systems, must be present and below the maximum level that was rolled ...). Then one is selected at random and
+ * upgraded by 1 bar ... until there are no more available bars to spend or no more valid systems to upgrade."
+ * Returns the bars left over (negative stays negative).
+ */
+function spendBudget(
+  levels: Map<EnemySystem, number>,
+  caps: Map<EnemySystem, number>,
+  allowed: Set<EnemySystem> | null,
+  bars: number,
+  rand: () => number,
+): number {
+  let left = bars;
+  while (left > 0) {
+    const ok = [...levels.keys()].filter((id) => (!allowed || allowed.has(id)) && levels.get(id)! < caps.get(id)!);
+    if (!ok.length) break;
+    const id = ok[Math.floor(rand() * ok.length) % ok.length];
+    levels.set(id, levels.get(id)! + 1);
+    left -= 1;
+  }
+  return left;
+}
+
+/**
+ * Mathchamp: "Crew count is linearly interpolated between the minimum and maximum values between Sector 1 and Sector 9,
+ * and rounded down, so you never actually see the max value". The faction pages print the largest count seen, so the
+ * blueprint maximum is one above it (this matches the per-sector crew tables on ftl-layouts.mikehopley.org, e.g.
+ * Mantis Scout 3-4: 3 in sectors 1-4, 4 in sectors 5-6). Easy is delayed a sector.
+ */
+export function crewCount(r: Range, ctx: PoolContext): number {
+  if (r[1] <= 0) return 0;
+  return Math.min(r[1], Math.floor(lerp(r[0], r[1] + 1, genSector(ctx.sector, ctx.difficulty))));
+}
+
+/**
+ * Hull by sector. Not in Mathchamp's post. ftl-layouts.mikehopley.org prints one value per sector, rising by one each
+ * sector from the low end where the class first appears (Mantis Fighter 10-16 is 10 in sector 2 and 16 in sector 8).
+ * Easy uses the page's "(x-y on Easy)" pair the same way.
+ */
+export function hullFor(cls: EnemyClass, ctx: PoolContext): number {
+  const [lo, hi] = ctx.difficulty === "easy" && cls.easyHull ? cls.easyHull : cls.hull;
+  return Math.max(lo, Math.min(hi, lo + (ctx.sector - cls.sectors[0])));
 }
 
 /**
@@ -398,28 +501,63 @@ export function enemyMayMount(id: string): boolean {
   return id !== "chargers" && id !== "swarmmissiles" && id !== "pegasus";
 }
 
-/** Enemy weapon list from the faction pool, filling weapon power without going over. INFERRED: at most 4 guns. */
-function arm(pool: string[], power: number, rand: () => number): string[] {
+/** Mathchamp's first flag: "a weapon that is either a LASER, or is a MISSILE with at most 3 shield piercing. In vanilla,
+ * this is met by lasers, ions, and crystal weapons." Crystal weapons are lasers in content.ts. */
+function laserFlag(id: string): boolean {
+  const kind = WEAPONS[id]?.kind;
+  return kind === "laser" || kind === "ion";
+}
+
+/** Mathchamp's second flag: "A weapon that deals normal damage (i.e. hull damage)". Bombs never damage hull (Bomb (Weapons)). */
+function hullFlag(id: string): boolean {
+  const def = WEAPONS[id];
+  return !!def && def.damage > 0 && def.kind !== "bomb";
+}
+
+/** INFERRED: four weapon slots. Mathchamp stops at "no slots remain"; the faction pages print no slot count. */
+export const ENEMY_WEAPON_SLOTS = 4;
+
+export type ArmResult = { weapons: string[]; flags: { laser: boolean; hull: boolean } };
+
+/**
+ * Mathchamp: "random weapons are generated (with equal odds for each entry ...) until either all power is allocated, no
+ * slots remain, or there are no eligible weapons". Each pick must:
+ * - "not use more power than is available for the system";
+ * - have power "strictly less than the total system power, unless it is 1 power";
+ * - "If there are no weapons installed so far and the system is at least level 3, the first weapon must be at least 2 power";
+ * - "use greater than (not equal to) 25% of the remaining system power";
+ * - while either flag is still set, "satisfy one of the remaining flags".
+ * INFERRED: a pool with nothing eligible for a level-1 system still mounts its cheapest gun, so no fight is unarmed.
+ */
+export function arm(pool: string[], level: number, rand: () => number): ArmResult {
   const ids = pool
     .map((n) => weaponIdForName(n))
     .filter((id): id is string => !!id && !!WEAPONS[id] && enemyMayMount(id));
-  const order = [...ids].sort(() => rand() - 0.5);
+  const flags = { laser: true, hull: true };
   const out: string[] = [];
-  let left = power;
-  for (const id of order) {
-    if (out.length >= 4) break;
-    if (!enemyMayMount(id)) continue;
-    const cost = WEAPONS[id].power;
-    if (cost <= left) {
-      out.push(id);
-      left -= cost;
-    }
+  let left = level;
+  while (left > 0 && out.length < ENEMY_WEAPON_SLOTS) {
+    const ok = ids.filter((id) => {
+      const p = WEAPONS[id].power;
+      if (p > left) return false;
+      if (!(p < level || p === 1)) return false;
+      if (out.length === 0 && level >= 3 && p < 2) return false;
+      if (!(p > 0.25 * left)) return false;
+      if (flags.laser || flags.hull) return (flags.laser && laserFlag(id)) || (flags.hull && hullFlag(id));
+      return true;
+    });
+    if (!ok.length) break;
+    const id = ok[Math.floor(rand() * ok.length) % ok.length];
+    out.push(id);
+    left -= WEAPONS[id].power;
+    if (laserFlag(id)) flags.laser = false;
+    if (hullFlag(id)) flags.hull = false;
   }
   if (!out.length && ids.length) {
     const cheapest = [...ids].sort((a, b) => WEAPONS[a].power - WEAPONS[b].power)[0];
     out.push(cheapest);
   }
-  return out;
+  return { weapons: out, flags };
 }
 
 /**
@@ -568,31 +706,52 @@ function seatTrace(classId: string, installed: EnemySystem[]): { rooms: EnemyRoo
 }
 
 /**
- * Chance an optional system is fitted. ftl-layouts.mikehopley.org (linked from Enemy Ships, built on Mathchamp's
- * enemy generation notes), every optional system card: "30% in sector 1, +10% each sector".
+ * Chance an optional system is fitted. Mathchamp: "Optional systems have a base chance of 20% on Normal, plus 10% per
+ * sector. Hard adds an additional 10% while Easy subtracts 10%, but with the Easy sector delay it effectively subtracts
+ * 20% (except on sector 1 where the chance is 10%)." Hard agrees with every optional card on ftl-layouts.mikehopley.org
+ * ("30% in sector 1, +10% each sector"), which shows Hard.
  */
-export function optionalChance(sector: number): number {
-  return Math.min(1, 0.3 + 0.1 * (sector - 1));
+export function optionalChance(sector: number, difficulty: Difficulty = "normal"): number {
+  const shift = difficulty === "hard" ? 0.1 : difficulty === "easy" ? -0.1 : 0;
+  return Math.max(0, Math.min(1, 0.2 + 0.1 * (genSector(sector, difficulty) - 1) + shift));
 }
 
 const STATION: EnemySystem[] =["pilot", "weapons", "shields", "engines"];
 
 export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, rand: () => number): EnemySpec {
   const automated = cls.faction === "auto";
-  const installed: [EnemySystem, number][] = [];
-  for (const [id, r] of Object.entries(cls.systems) as [EnemySystem, Range][]) installed.push([id, roll(r, ctx.sector, rand)]);
+  // Mathchamp: "First, it rolls a maximum level for each system. Second, it rolls non-starting systems. Finally, it
+  // upgrades systems from a limited budget."
+  const caps = new Map<EnemySystem, number>();
+  for (const [id, r] of [...Object.entries(cls.systems), ...Object.entries(cls.optional)] as [EnemySystem, Range][]) {
+    caps.set(id, rollMaxLevel(r, ctx, rand));
+  }
+  const levels = new Map<EnemySystem, number>();
+  for (const [id, r] of Object.entries(cls.systems) as [EnemySystem, Range][]) levels.set(id, r[0]);
+  const row = UPGRADE_BUDGET[ctx.difficulty][Math.max(0, Math.min(7, ctx.sector - 1))];
+  const defense = row[1];
+  let [offense, , general] = row;
   for (const [id, r] of Object.entries(cls.optional) as [EnemySystem, Range][]) {
     // Faction pages: "[Pirate Fighter only]" fits only the pirate version; "[Rock Investigator only]" and
     // "[Mantis Scout only]" fit only the regular one.
     const only = cls.optionalNotes?.[id];
     if (only && /pirate/i.test(only) !== pirate) continue;
-    if (rand() < optionalChance(ctx.sector)) installed.push([id, roll(r, ctx.sector, rand)]);
+    if (rand() >= optionalChance(ctx.sector, ctx.difficulty)) continue;
+    // Mathchamp: installed "at its starting power". "If the optional system is weapons, drone control, or teleporter
+    // (not artillery), then it reduces the remaining offensive budget by 1. Other systems reduce the general budget ...
+    // 2 on Easy/Normal and 1 on Hard."
+    levels.set(id, r[0]);
+    if (id === "weapons" || id === "drones" || id === "teleporter") offense -= 1;
+    else general -= ctx.difficulty === "hard" ? 1 : 2;
   }
   // Clone Bay: "You can have either a Clone Bay or Medbay installed, not both." The Clone Bay wins when both rolled.
-  if (installed.some(([id]) => id === "clonebay")) {
-    const at = installed.findIndex(([id]) => id === "medbay");
-    if (at >= 0) installed.splice(at, 1);
-  }
+  if (levels.has("clonebay")) levels.delete("medbay");
+  // Mathchamp: offensive, then defensive, then "any unspent power bars from the offensive or defensive budget (or ...
+  // any negative budget from adding optional systems) is added to the general budget's allocation".
+  const offLeft = spendBudget(levels, caps, OFFENSIVE, offense, rand);
+  const defLeft = spendBudget(levels, caps, DEFENSIVE, defense, rand);
+  spendBudget(levels, caps, null, general + offLeft + defLeft, rand);
+  const installed: [EnemySystem, number][] = [...levels.entries()];
   // Pilot first so a lone crew member mans it; then the main systems.
   const rank = (id: EnemySystem) => (STATION.includes(id) ? STATION.indexOf(id) : STATION.length);
   installed.sort((a, b) => rank(a[0]) - rank(b[0]));
@@ -609,19 +768,18 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
   const ids = installed.map(([id]) => id);
   const traced = seatTrace(cls.id, ids);
   const { rooms, cols, rows } = traced ?? layout(ids);
-  const hullRange = ctx.difficulty === "easy" && cls.easyHull ? cls.easyHull : cls.hull;
-  const crewCount = roll(cls.crew, ctx.sector, rand);
+  const crewSize = crewCount(cls.crew, ctx);
   const races: string[] = [];
   if (pirate) {
     // Enemy Ships, "Pirated ships": "pirate crews are randomly chosen from the races that can be encountered in that sector".
     // The races are the Sectors page's per-sector "Crewmembers" list (wiki/skills.ts); INFERRED: any race off that list.
-    races.push(...rollPirateCrew(ctx.sectorName, crewCount, rand));
+    races.push(...rollPirateCrew(ctx.sectorName, crewSize, rand));
   } else {
     for (const [race, lo, hi] of cls.crewMix) {
       const n = lo + Math.floor(rand() * (hi - lo + 1));
-      for (let i = 0; i < n && races.length < crewCount; i++) races.push(race);
+      for (let i = 0; i < n && races.length < crewSize; i++) races.push(race);
     }
-    while (races.length < crewCount) races.push(cls.crewMix[0]?.[0] ?? "Human");
+    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? "Human");
   }
   const stations = STATION.map((id) => `e-${id}`).filter((id) => rooms.some((r) => r.id === id));
   const others = rooms.map((r) => r.id).filter((id) => !stations.includes(id));
@@ -631,12 +789,13 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0].id,
   }));
   const weaponLevel = systems.weapons?.[0] ?? 1;
+  const armed = arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand);
   const spec: EnemySpec = {
     classId: cls.id,
     name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
     pirate,
     automated,
-    hull: roll(hullRange, ctx.sector, rand),
+    hull: hullFor(cls, ctx),
     systems,
     kits,
     unwired,
@@ -646,17 +805,17 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     cols,
     rows,
     ...(traced ? { marks: traced.marks } : {}),
-    weapons: arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand),
+    weapons: armed.weapons,
     missiles: cls.missiles,
     crew,
     boards: installed.some(([id]) => id === "teleporter"),
     parts: enemyParts(cls.id, 0),
     drones: [],
   };
-  // @agent:drones. Rolled after every other roll, and only for a hull with Drone Control, so the rest of the spec
-  // draws the same numbers it did before drones existed.
+  // @agent:drones. Mathchamp: drones are generated after weapons and see the weapon flags. Only for a hull with Drone
+  // Control.
   if (kits.swarm) {
-    spec.drones = rollDrones(cls.id, kits.swarm, rand);
+    spec.drones = rollDrones(cls.id, kits.swarm, rand, armed.flags.laser || armed.flags.hull);
     spec.parts = enemyParts(cls.id, spec.drones.length);
   }
   return spec;

@@ -1366,6 +1366,8 @@ describe("Ion Intruder body", () => {
     foe.path = [];
     foe.stun = 0;
     foe.leashed = undefined;
+    // A Human: the pirate crew is rolled from the sector's races, and an Engi hits for half.
+    foe.kin = "plain";
     // One untrained blow is 3 to 7 HP. 125 HP takes more than one blow, then the drone waits out the redeploy.
     tickSwarm(g, 1);
     assert.equal(kit.on, true);

@@ -1,90 +1,101 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, evasionPercent, startCombat, step } from "../sim.ts";
+import { seatKits } from "../layouts.ts";
 import type { Game, Kit, KitId } from "../types.ts";
-import { enemyTarget, priorityList, priorityRooms, randomRoom } from "./targeting.ts";
+import {
+  enemyTarget,
+  installedSystems,
+  prioritizeSystem,
+  priorityList,
+  priorityRooms,
+  randomRoom,
+  SYSTEM_TARGETS,
+} from "./targeting.ts";
 
 function kit(id: KitId, over: Partial<Kit> = {}): Kit {
   return { id, level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0, ...over };
 }
 
+/** Kestrel A with nothing on the Hard list: shields and weapons unpowered, no evasion, full air. */
 function calm(difficulty: "easy" | "normal" | "hard"): Game {
-  const g = createGame(7, undefined, difficulty);
-  // Below the Piloting line: no engines bars, no evasion.
+  const g = createGame(7, "kestrel-a", difficulty);
   g.player.systems.engines.power = 0;
+  g.player.systems.shields.power = 0;
+  g.player.systems.weapons.power = 0;
   return g;
 }
 
-/** Engines 4 on the Lark gives 30% evasion; 3 gives exactly 25%. */
-function engines(g: Game, n: number): Game {
-  g.player.systems.engines.level = n;
-  g.player.systems.engines.power = n;
-  return g;
+function share(g: Game, n: number, hit: (room: string | null) => boolean): number {
+  let k = 0;
+  for (let i = 0; i < n; i++) if (hit(prioritizeSystem(g))) k++;
+  return k / n;
 }
 
-describe("enemy targeting (wiki/targeting.ts)", () => {
-  it("lists nothing on Easy or Normal, whatever the state", () => {
-    for (const d of ["easy", "normal"] as const) {
-      const g = engines(createGame(3, undefined, d), 4);
+describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
+  it("Easy and Normal pick from system_targets 20% / 33% of the time, else a random room", () => {
+    for (const [d, chance] of [["easy", 0.2], ["normal", 0.33]] as const) {
+      const g = calm(d);
+      const installed = installedSystems(g).length / SYSTEM_TARGETS.length;
+      const got = share(g, 20000, (r) => r != null);
+      assert.ok(Math.abs(got - chance * installed) < 0.015, `${d} ${got}`);
       g.player.rooms[0].fire = 1;
-      assert.ok(priorityList(g).includes("doors"));
-      assert.deepEqual(priorityRooms(g), []);
+      assert.deepEqual(priorityRooms(g), [], "no priority list below Hard");
     }
   });
 
-  it("Piloting: >25% evasion on Hard lists Piloting and Engines", () => {
-    const g = engines(createGame(3, undefined, "hard"), 4);
-    assert.equal(evasionPercent(g, g.player, "player"), 30);
-    assert.deepEqual(priorityList(g), ["pilot", "engines"]);
-    assert.equal(evasionPercent(engines(g, 3), g.player, "player"), 25);
-    assert.deepEqual(priorityList(g), [], "exactly 25% is not >25%");
-    engines(g, 4);
-    assert.deepEqual(priorityRooms(g).sort(), ["p-engines", "p-pilot"]);
-    assert.deepEqual(priorityList(calm("hard")), []);
-  });
-
-  it("Door System: boarders or fires on Hard list Doors", () => {
+  it("Hard: half the shots pick no system, a quarter any system, a quarter the priority list", () => {
     const g = calm("hard");
+    assert.deepEqual(priorityList(g), []);
+    assert.ok(Math.abs(share(g, 20000, (r) => r == null) - 0.5) < 0.015);
+    // With only Doors listed, Doors takes the list quarter plus its share of the any-system quarter.
     g.player.rooms.find((r) => r.system === "medbay")!.fire = 1;
     assert.deepEqual(priorityRooms(g), ["p-doors"]);
-    const h = calm("hard");
-    h.crew.push({ ...h.crew[0], id: "boarder", side: "enemy", aboard: "player" });
-    assert.deepEqual(priorityList(h), ["doors"]);
-    h.crew[h.crew.length - 1].hp = 0;
-    assert.deepEqual(priorityList(h), []);
+    const any = installedSystems(g).length;
+    const got = share(g, 20000, (r) => r === "p-doors");
+    assert.ok(Math.abs(got - (0.25 + 0.25 / any)) < 0.015, `doors ${got}`);
   });
 
-  it("Cloaking off cooldown, an active Backup Battery, and crew aboard the enemy (Teleporter)", () => {
+  it("Hard list: Shields and Weapons only while powered (a Zoltan bar counts for weapons)", () => {
     const g = calm("hard");
-    g.player.kits.veil = kit("veil", { cool: 5 });
-    g.player.kits.cell = kit("cell", { power: 0 });
-    g.player.kits.sling = kit("sling");
-    assert.deepEqual(priorityList(g), []);
-    g.player.kits.veil.cool = 0;
-    g.player.kits.cell.on = true;
-    g.player.kits.cell.left = 10;
-    g.crew[0].aboard = "enemy";
-    assert.deepEqual(priorityList(g), ["cloaking", "battery", "teleporter"]);
-    // GAP: the Lark has no kit rooms, so these entries add no room.
-    assert.deepEqual(priorityRooms(g), []);
-    g.player.rooms.find((r) => r.system === "sensors")!.kit = "veil";
-    assert.deepEqual(priorityRooms(g), ["p-sensors"]);
+    g.player.systems.shields.power = 1;
+    assert.deepEqual(priorityList(g), ["shields"]);
+    g.player.systems.weapons.power = 1;
+    assert.deepEqual(priorityList(g), ["shields", "weapons"]);
   });
 
-  it("Hard aims at the list more often than chance; Normal stays uniform", () => {
-    const count = (d: "normal" | "hard") => {
-      const g = calm(d);
-      g.player.rooms.find((r) => r.system === "medbay")!.fire = 1;
-      let doors = 0;
-      for (let i = 0; i < 4000; i++) if (enemyTarget(g, null) === "p-doors") doors++;
-      return doors / 4000;
-    };
-    const rooms = createGame(1).player.rooms.length;
-    const normal = count("normal");
-    const hard = count("hard");
-    assert.ok(Math.abs(normal - 1 / rooms) < 0.03, `normal ${normal}`);
-    // INVENTED PRIORITY_CHANCE 0.5: 0.5 + 0.5 / rooms.
-    assert.ok(Math.abs(hard - (0.5 + 0.5 / rooms)) < 0.04, `hard ${hard}`);
+  it("Hard list: Engines and Piloting above 25% evasion; Oxygen below 50% average air", () => {
+    const g = calm("hard");
+    g.player.systems.engines.power = g.player.systems.engines.level = 4;
+    assert.ok(evasionPercent(g, g.player, "player") > 25);
+    assert.deepEqual(priorityList(g), ["engines", "pilot"]);
+    g.player.systems.engines.power = 0;
+    for (const r of g.player.rooms) r.o2 = 49;
+    assert.deepEqual(priorityList(g), ["oxygen"]);
+  });
+
+  it("Hard list: Cloaking off cooldown and not cloaked, even unpowered; Battery while active", () => {
+    const g = calm("hard");
+    g.player.kits.veil = kit("veil", { power: 0, cool: 5 });
+    g.player.kits.cell = kit("cell");
+    seatKits(g.player);
+    assert.deepEqual(priorityList(g), []);
+    g.player.kits.veil!.cool = 0;
+    assert.deepEqual(priorityList(g), ["veil"]);
+    g.player.kits.veil!.on = true;
+    g.player.kits.veil!.left = 5;
+    assert.deepEqual(priorityList(g), [], "an active cloak is not listed");
+    g.player.kits.cell!.on = true;
+    g.player.kits.cell!.left = 10;
+    assert.deepEqual(priorityList(g), ["cell"]);
+    assert.deepEqual(priorityRooms(g), ["p-battery"]);
+  });
+
+  it("Hard list: Doors for intruders; Sensors never", () => {
+    const g = calm("hard");
+    g.crew.push({ ...g.crew[0], id: "boarder", side: "enemy", aboard: "player" });
+    assert.deepEqual(priorityList(g), ["doors"]);
+    assert.ok(!priorityList(g).includes("sensors"));
   });
 
   it("randomRoom covers every room", () => {
@@ -109,5 +120,26 @@ describe("enemy targeting (wiki/targeting.ts)", () => {
       g.player.hull = g.player.hullMax;
     }
     assert.ok(aims.size >= 2, `aims ${[...aims]}`);
+  });
+
+  it("each shot of an enemy burst rolls its own room (combat-ai UpdateWeapons)", () => {
+    const g = createGame(5, "kestrel-a", "normal");
+    startCombat(g, "scout");
+    const gun = g.enemy!.weapons[0];
+    gun.defId = "burst3";
+    gun.enabled = true;
+    g.enemy!.weapons = [gun];
+    g.enemy!.systems.weapons.level = g.enemy!.systems.weapons.power = 4;
+    let spread = 0;
+    for (let i = 0; i < 20; i++) {
+      g.shots = [];
+      gun.charge = 1;
+      gun.target = enemyTarget(g, gun);
+      // sim.ts launch is internal; a full charge fires on the next tick.
+      step(g, 0.001);
+      const rooms = new Set(g.shots.filter((s) => s.from === "enemy" && s.defId === "burst3").map((s) => s.targetRoom));
+      if (rooms.size >= 2) spread++;
+    }
+    assert.ok(spread > 10, `volleys that split: ${spread} of 20`);
   });
 });

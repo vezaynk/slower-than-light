@@ -1,108 +1,176 @@
 /**
- * Enemy weapon targeting: which player room an enemy gun (or a boss surge) aims at.
+ * Enemy weapon targeting: which player room an enemy shot (or a boss surge) aims at.
  *
- * Wiki sources, quoted:
- * - Piloting, Overview: "Having >25% evasion, when playing on Hard difficulty, puts Piloting (and Engines too) on
- *   the enemy high-priority system targeting list."
- * - Door System, Overview: "Having boarders or fires on your ship, when playing on Hard difficulty, puts Door System
- *   on the enemy high-priority system targeting list."
- * - Backup Battery, Overview: "Activating the Backup Battery, when playing on Hard difficulty, puts it on the enemy
- *   high-priority system targeting list."
- * - Cloaking, "Enemy AI and Cloaking": "If playing on Hard difficulty, your cloaking system, when not on cooldown, can
- *   become one of the priority target systems for the enemy."
- * - Cloaking, tactics: "putting some systems on the enemy targeting priority list by powering them on or other means,
- *   depending on the system - works only on Hard difficulty".
- * - Boarding: "On Hard game difficulty, when your crew is onboard enemy ship, your Teleporter system will be among the
- *   priority targets for enemy weapons."
+ * Source: the xftl reverse-engineering notes the wiki links from Cloaking and Door System
+ * (gitlab.com/znixian/xftl, doc/combat-ai, CombatAI::UpdateWeapons and CombatAI::PrioritizeSystem), checked against
+ * the developer list in "Hard mode AI Targeting mechanics" (reddit r/ftlgame 7pmz3j, linked from Guides and tips as
+ * "officially confirmed by the devs"). Quoted:
+ * - UpdateWeapons: "Pick the number of target rooms - this is one for each projectile that will be fired ... For each
+ *   shot, call PrioritizeSystem to pick a system to fire at, or chose a random room if it returns null."
+ * - PrioritizeSystem, Easy/Normal: "there's a 33%/20% (for normal/easy respectively) to pick a system to target from the
+ *   system_targets list. Otherwise it returns null and a random room is selected ... If the selected target isn't
+ *   present in the player ship, this function also returns null".
+ * - PrioritizeSystem, Hard: "50%: Don't target a system, return null (a random room is picked) / 25%: Pick a random
+ *   system / 25%: Pick a high-priority system at random if there is one, otherwise pick a system at random."
+ * - The Hard list (xftl, per system): "Shields: if powered; Engines, Piloting: if ship has >25% dodge; Oxygen: if
+ *   average oxygen is <50%; Weapons, Drones: if any weapon/drone is powered; Teleporter: if the enemy ship has any
+ *   intruders; Cloaking: if not on cooldown, nor active; Artillery: yes if < 4sec of total charge; Clonebay: if crew is
+ *   being cloned; Mind control: if active; Hacking: if drone launched (flying or landed); Doors: if there are any
+ *   intruders or fires; Sensors: never; Backup battery: if active".
+ * - The reddit tests agree: "Shields and Weapons don't appear to be prioritized when they're not powered", "Cloaking,
+ *   when not on cooldown, appears to be prioritized regardless of power status", and "A single level of Zoltan power
+ *   appears to be enough to count as being powered".
+ * - Artillery: xftl reads the code as "charging for less than four seconds" and calls it faulty; the developers' list
+ *   says "Within 4 seconds of firing". This follows the code, as xftl read it.
  * - Beam (Weapons): "Enemies target beams inefficiently, starting the beam in the centre of a room."
- *   Enemy beams still start in that room and add one door-neighbour (INFERRED). A player beam uses the drawn segment.
- * - Cloaking: "the AI fires weapons as soon as they are ready". Environmental Hazards, Anti-Ship Batteries: the shot
- *   hits "a random room".
- * Those pages link the xftl "combat-ai" doc and a reddit post for detail; neither is in the wiki dump, so the
- * numbers below are not from them.
  *
  * Gaps:
- * - INFERRED: Easy and Normal (and Hard when the list is empty or not rolled) aim at a uniformly random player room,
- *   systems and empty rooms alike. The wiki gives no Easy/Normal rule; the list "works only on Hard difficulty", and
- *   Cloaking advises to "take hull damage on unimportant systems or empty rooms", so empty rooms do get hit.
- * - INVENTED: on Hard, a volley aims at the priority list PRIORITY_CHANCE of the time, uniformly among listed rooms.
- *   The wiki names the list but not how often it is used.
- * - INFERRED: Cloaking "when not on cooldown" also needs the cloak powered ("by powering them on").
- * - INFERRED: "boarders" are living enemy crew aboard the player hull; enemy boarding drones are not counted.
- * - INFERRED: an enemy gun picks a new room for every volley, at the moment it fires (sim.ts chargeSide). The wiki
- *   does not say when the AI re-targets.
- * - Cloaking, Backup Battery, and Crew Teleporter resolve to the player room whose `kit` matches (layouts.ts
- *   seatKits gives every installed kit a room); an entry with no such room is skipped.
+ * - INFERRED: xftl does not print the system_targets list. It is every system type here, so a system the player lacks
+ *   turns that roll into a random room, as the quote above says it should.
+ * - "Pick a random system" (Hard) draws from the systems installed on the player ship, subsystems included.
+ * - Cloaking, Backup Battery, Crew Teleporter, and the other kits resolve to the player room whose `kit` matches
+ *   (layouts.ts seatKits gives every installed kit a room).
  */
-import type { Game, Room, Ship, SysId, WeaponInst } from "../types.ts";
-import { evasionPercent, rand } from "../sim.ts";
+import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
+import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
 
-/** INVENTED: share of Hard-difficulty volleys aimed at the priority list when it is not empty. */
-export const PRIORITY_CHANCE = 0.5;
-/** Piloting, Overview: "Having >25% evasion". Strictly greater. */
+/** combat-ai, PrioritizeSystem: chance an Easy / Normal shot picks from system_targets. */
+export const SYSTEM_CHANCE = { easy: 0.2, normal: 0.33 } as const;
+/** combat-ai, PrioritizeSystem (Hard): share of shots that pick no system, and that pick any system. The rest pick the list. */
+export const HARD_RANDOM_ROOM = 0.5;
+export const HARD_ANY_SYSTEM = 0.25;
+/** combat-ai: Engines and Piloting are listed at ">25% dodge". Strictly greater. */
 export const EVASION_LINE = 25;
+/** combat-ai: Oxygen is listed when "average oxygen is <50%". */
+export const OXYGEN_LINE = 50;
+/** combat-ai: Artillery is listed with "< 4sec of total charge". */
+export const ARTILLERY_LINE = 4;
 
-export type PriorityEntry = "pilot" | "engines" | "doors" | "cloaking" | "battery" | "teleporter";
+/** A player system as the AI sees it: a core system id or a kit id. */
+export type TargetSystem = SysId | KitId;
 
-/** Which Hard-list entries hold right now. Order is fixed so tests can compare. */
-export function priorityList(g: Game): PriorityEntry[] {
-  const out: PriorityEntry[] = [];
-  const ship = g.player;
-  // Piloting, Overview: >25% evasion lists Piloting and Engines.
-  if (evasionPercent(g, ship, "player") > EVASION_LINE) out.push("pilot", "engines");
-  // Door System, Overview: boarders or fires on your ship.
-  const boarders = g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
-  const fires = ship.rooms.some((r) => r.fire > 0);
-  if (boarders || fires) out.push("doors");
-  // Cloaking, "Enemy AI and Cloaking": not on cooldown. INFERRED: and powered.
-  const veil = ship.kits.veil;
-  if (veil && veil.level > 0 && veil.power >= 1 && veil.cool <= 0) out.push("cloaking");
-  // Backup Battery, Overview: activated (running).
-  const cell = ship.kits.cell;
-  if (cell && cell.on && cell.left > 0) out.push("battery");
-  // Boarding: your crew onboard the enemy ship.
-  if (ship.kits.sling && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) {
-    out.push("teleporter");
+/** INFERRED: system_targets is every system type (see the header). */
+export const SYSTEM_TARGETS: readonly TargetSystem[] = [
+  "shields",
+  "engines",
+  "oxygen",
+  "weapons",
+  "swarm",
+  "medbay",
+  "pilot",
+  "sensors",
+  "doors",
+  "sling",
+  "veil",
+  "lance",
+  "flak",
+  "cell",
+  "cradle",
+  "leash",
+  "spike",
+];
+
+const CORE = new Set<string>(["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"]);
+
+/** The player room holding that system, or undefined when it is not installed. */
+export function systemRoom(ship: Ship, id: TargetSystem): Room | undefined {
+  if (CORE.has(id)) {
+    const sys = ship.systems[id as SysId];
+    return (sys?.level ?? 0) > 0 ? ship.rooms.find((r) => r.system === id) : undefined;
   }
-  return out;
+  const kit = ship.kits?.[id as KitId];
+  return kit && kit.level > 0 ? ship.rooms.find((r) => r.kit === id) : undefined;
 }
 
-const SYS_OF: Partial<Record<PriorityEntry, SysId>> = { pilot: "pilot", engines: "engines", doors: "doors" };
-const KIT_OF = { cloaking: "veil", battery: "cell", teleporter: "sling" } as const;
+/** Systems installed on the player ship that have a room. */
+export function installedSystems(g: Game): TargetSystem[] {
+  return SYSTEM_TARGETS.filter((id) => systemRoom(g.player, id));
+}
 
-function roomFor(ship: Ship, entry: PriorityEntry): Room | undefined {
-  const sys = SYS_OF[entry];
-  if (sys) return (ship.systems[sys]?.level ?? 0) > 0 ? ship.rooms.find((r) => r.system === sys) : undefined;
-  const kit = KIT_OF[entry as keyof typeof KIT_OF];
-  return ship.rooms.find((r) => r.kit === kit);
+function intruders(g: Game): boolean {
+  return g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
+}
+
+function averageOxygen(ship: Ship): number {
+  if (ship.rooms.length === 0) return 100;
+  return ship.rooms.reduce((n, r) => n + r.o2, 0) / ship.rooms.length;
+}
+
+/** Seconds of charge on a player artillery kit (lance stores a 0..1 fraction, flak stores seconds). */
+function artilleryCharge(g: Game, id: "lance" | "flak"): number {
+  const kit = g.player.kits[id];
+  if (!kit) return Infinity;
+  if (id === "flak") return kit.aux;
+  // extras/lance.ts: Artillery Beam charge time is 50 / 40 / 30 / 20 seconds at level 1-4.
+  const seconds = [50, 40, 30, 20][Math.max(0, Math.min(3, kit.level - 1))];
+  return kit.aux * seconds;
+}
+
+/** The Hard high-priority systems that hold right now (combat-ai list). Order follows that list. */
+export function priorityList(g: Game): TargetSystem[] {
+  const ship = g.player;
+  const kits = ship.kits ?? {};
+  const out: TargetSystem[] = [];
+  if (ship.systems.shields.power > 0) out.push("shields");
+  if (evasionPercent(g, ship, "player") > EVASION_LINE) out.push("engines", "pilot");
+  if (averageOxygen(ship) < OXYGEN_LINE) out.push("oxygen");
+  if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean)) out.push("weapons");
+  if (kits.swarm && kits.swarm.power > 0) out.push("swarm");
+  if (kits.sling && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) out.push("sling");
+  if (kits.veil && kits.veil.cool <= 0 && !(kits.veil.on && kits.veil.left > 0)) out.push("veil");
+  for (const id of ["lance", "flak"] as const) if (kits[id] && artilleryCharge(g, id) < ARTILLERY_LINE) out.push(id);
+  if (kits.cradle && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null)) out.push("cradle");
+  if (kits.leash && kits.leash.on && kits.leash.left > 0) out.push("leash");
+  if (kits.spike && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null)) out.push("spike");
+  if (intruders(g) || ship.rooms.some((r) => r.fire > 0)) out.push("doors");
+  if (kits.cell && kits.cell.on && kits.cell.left > 0) out.push("cell");
+  return out.filter((id) => systemRoom(ship, id));
 }
 
 /** Player rooms on the Hard list right now (deduplicated). Empty on Easy and Normal. */
 export function priorityRooms(g: Game): string[] {
   if (g.difficulty !== "hard") return [];
   const ids: string[] = [];
-  for (const e of priorityList(g)) {
-    const r = roomFor(g.player, e);
+  for (const id of priorityList(g)) {
+    const r = systemRoom(g.player, id);
     if (r && !ids.includes(r.id)) ids.push(r.id);
   }
   return ids;
 }
 
-/** Environmental Hazards, ASB: "hitting a random room". Also the INFERRED base pick for enemy guns. */
+function pick<T>(g: Game, list: readonly T[]): T | undefined {
+  if (list.length === 0) return undefined;
+  return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
+}
+
+/** combat-ai, PrioritizeSystem: the player room one enemy shot aims at, or null for "a random room". */
+export function prioritizeSystem(g: Game): string | null {
+  const ship = g.player;
+  if (g.difficulty !== "hard") {
+    const chance = g.difficulty === "easy" ? SYSTEM_CHANCE.easy : SYSTEM_CHANCE.normal;
+    if (rand(g) >= chance) return null;
+    const id = pick(g, SYSTEM_TARGETS);
+    return (id && systemRoom(ship, id)?.id) ?? null;
+  }
+  const roll = rand(g);
+  if (roll < HARD_RANDOM_ROOM) return null;
+  const any = installedSystems(g);
+  const listed = roll < HARD_RANDOM_ROOM + HARD_ANY_SYSTEM ? [] : priorityList(g);
+  const id = pick(g, listed.length > 0 ? listed : any);
+  return (id && systemRoom(ship, id)?.id) ?? null;
+}
+
+/** Environmental Hazards, ASB: "hitting a random room". Also the room a null PrioritizeSystem falls back to. */
 export function randomRoom(g: Game, ship: Ship): string {
   const i = Math.min(ship.rooms.length - 1, Math.floor(rand(g) * ship.rooms.length));
   return ship.rooms[i]?.id ?? ship.rooms[0].id;
 }
 
 /**
- * The player room an enemy weapon (or an unarmed enemy volley such as a boss surge, `weapon` null) aims at.
- * Hard: the priority list PRIORITY_CHANCE of the time when it has rooms; otherwise a random room.
+ * The player room one enemy projectile (or an unarmed enemy volley such as a boss surge, `weapon` null) aims at.
+ * combat-ai, UpdateWeapons: PrioritizeSystem first, a random room when it returns null. Called once per shot.
  */
 export function enemyTarget(g: Game, _weapon: WeaponInst | null): string {
   // @agent:enemy-sensors. No Sensors check: "Enemy ships ... have all the information about your ship" (Sensors wiki).
-  const list = priorityRooms(g);
-  if (list.length > 0 && rand(g) < PRIORITY_CHANCE) {
-    return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
-  }
-  return randomRoom(g, g.player);
+  return prioritizeSystem(g) ?? randomRoom(g, g.player);
 }

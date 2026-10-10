@@ -30,6 +30,12 @@ function stage2Surge(seed: number) {
     d.aux = 0;
     d.shots = 0;
   }
+  // Only the surge drones are under test: the stage 2 Drone Control drones fly their own random legs.
+  const swarm = g.enemy!.kits.swarm;
+  if (swarm) {
+    swarm.loadout = [];
+    swarm.drones = [];
+  }
   g.shots = [];
   return g;
 }

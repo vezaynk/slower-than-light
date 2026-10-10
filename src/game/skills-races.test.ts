@@ -1443,6 +1443,8 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     const poke = () => {
       g.player.shieldNow = 1;
       g.player.hull = g.player.hullMax;
+      // A shield hit logs nothing, so a stale miss line must not count again.
+      g.log.unshift("");
       g.shots.push({
         id: "poke",
         kind: "laser",

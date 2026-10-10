@@ -8,6 +8,8 @@ import type { Crew, Game, Room } from "../types.ts";
 function fight(minCrew = 4): Game {
   for (let seed = 1; seed < 500; seed++) {
     const g = createGame(seed);
+    // Enemy Ships: crew is interpolated by sector, so sector 1 Rebel and Mantis hulls carry at most 3. Fight mid-run.
+    g.sector = 5;
     startCombat(g, "Rebel ship");
     const e = g.enemy!;
     if (Object.keys(e.kits).length) continue;

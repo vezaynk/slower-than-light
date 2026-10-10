@@ -1,5 +1,5 @@
 import { flushSfx } from "./audio.ts";
-import { TILE_WALK_S, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
+import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
 import {
   CREW_POOL,
@@ -1624,28 +1624,64 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
   // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
   // A path that was already started can still finish, which is how a Crystal leaves as the coating forms.
   if (coated(ship, c.room) || coated(ship, dest)) return "coat";
-  const path = bfs(ship, c.room, dest);
+  // Sample before the path changes. The sprite is ahead of the sim clock on the last hop.
+  const oldDest = c.path.length ? roomById(ship, c.path[c.path.length - 1]!) : undefined;
+  const oldGoal = oldDest ? restSpot(oldDest, g.crew, c.id, c.aboard, ship) : null;
+  const foot =
+    c.path.length > 0 && (c.stun ?? 0) <= 0
+      ? footVia(ship, c.room, c.path, c.via, c.move, oldGoal ?? undefined)
+      : null;
+  // The paint can already be in the next room while this hop's clock is still running.
+  const roomNow = foot && foot.room !== c.room && c.path.includes(foot.room) ? foot.room : c.room;
+  const path = bfs(ship, roomNow, dest);
   if (!path) return "path";
+  if (path.length > 0 && !mayStand(destRoom, g.crew, c.id, dest, c.aboard, c.aboard, interiorLinks(ship.doors, dest))) {
+    return "full";
+  }
+  if (roomNow !== c.room) {
+    c.room = roomNow;
+    c.move = 0;
+    if (foot) c.via = foot.via;
+  }
   if (path.length === 0) {
+    if (foot && holdInRoom(g, c, ship, dest, foot.via)) {
+      sfx(g, "click");
+      return "ok";
+    }
     c.path = [];
     c.move = 0;
     delete c.via;
     claimPad(g, c, ship, dest);
     return "there";
   }
-  // A full room can still be crossed. It cannot be the place the walk ends.
-  if (!mayStand(destRoom, g.crew, c.id, dest, c.aboard, c.aboard, interiorLinks(ship.doors, dest))) return "full";
   const here = roomById(ship, c.room);
-  const fromSpot = here ? restSpot(here, g.crew, c.id, c.aboard, ship) : null;
+  const fromSpot = here && !foot ? restSpot(here, g.crew, c.id, c.aboard, ship) : null;
   claimFile(g, c, dest);
   claimPad(g, c, ship, dest);
   c.path = path;
   c.move = 0;
-  // Leave from the tile they are standing on. The hop replaces this with the doorway.
-  if (fromSpot) c.via = `${fromSpot.x},${fromSpot.y}`;
+  const goalRoom = roomById(ship, path[path.length - 1]!);
+  const goal = goalRoom ? restSpot(goalRoom, g.crew, c.id, c.aboard, ship) : null;
+  // Keep the tile they are already on. A standstill order still leaves from the stand.
+  if (foot && walkCells(ship, c.room, c.path, foot.via, goal ?? undefined)) c.via = foot.via;
+  else if (fromSpot) c.via = `${fromSpot.x},${fromSpot.y}`;
   else delete c.via;
   sfx(g, "click");
   return "ok";
+}
+
+/** Already inside the ordered room, still crossing it: walk to the stand from the current point. */
+function holdInRoom(g: Game, c: Crew, ship: Ship, dest: string, via: string): boolean {
+  claimFile(g, c, dest);
+  claimPad(g, c, ship, dest);
+  c.path = [dest];
+  c.move = 0;
+  c.via = via;
+  const room = roomById(ship, dest);
+  const goal = room ? restSpot(room, g.crew, c.id, c.aboard, ship) : null;
+  const cells = walkCells(ship, c.room, c.path, c.via, goal ?? undefined);
+  if (!cells || hopSteps(cells, c.via) < 0.05) return false;
+  return true;
 }
 
 /**
@@ -3116,7 +3152,8 @@ function moveCrew(g: Game, dt: number) {
       kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
     const dest = roomById(ship, c.path[c.path.length - 1]!);
     const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard, ship) : null;
-    const steps = hopSteps(walkCells(ship, c.room, c.path, c.via, spot ?? undefined));
+    const across = walkCells(ship, c.room, c.path, c.via, spot ?? undefined);
+    const steps = hopSteps(across, c.via);
     c.move += (dt * pace) / (TILE_WALK_S * steps);
     if (c.move >= 1) {
       const landing = hopLanding(ship, c.room, c.path, c.via, spot ?? undefined);

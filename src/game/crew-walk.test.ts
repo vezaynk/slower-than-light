@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { restSpot } from "./crew-spots.ts";
 import { createGame, orderCrew, step } from "./sim.ts";
 import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
+import type { Crew, Game } from "./types.ts";
 
 describe("crew orders outside a fight", () => {
   it("walks into the ordered room on the map", () => {
@@ -142,4 +143,76 @@ describe("crew orders outside a fight", () => {
       assert.deepEqual({ x: stoodAt.x, y: stoodAt.y }, { x: spot.x, y: spot.y });
     }
   });
+
+  it("stays on the same tile when the destination changes mid-walk", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    g.enemy = null;
+    const ivo = g.crew.find((c) => c.name === "Ivo Park");
+    assert.ok(ivo);
+    orderCrew(g, ivo.id, "p-pilot");
+    for (let i = 0; i < 5; i++) step(g, 0.05);
+    assert.equal(ivo.room, "p-engines");
+    const before = painted(g, ivo);
+    assert.equal(orderCrew(g, ivo.id, "p-shields"), "ok");
+    assert.equal(ivo.room, "p-engines");
+    const after = painted(g, ivo);
+    assert.ok(Math.hypot(after.x - before.x, after.y - before.y) < 0.02, `${before.x},${before.y} -> ${after.x},${after.y}`);
+    assert.notEqual(ivo.path[ivo.path.length - 1], "p-pilot");
+    step(g, 0.05);
+    const moved = Math.hypot(painted(g, ivo).x - after.x, painted(g, ivo).y - after.y);
+    assert.ok(moved > 0.02 && moved < 0.25, String(moved));
+
+    const again = painted(g, ivo);
+    assert.equal(orderCrew(g, ivo.id, "p-weapons"), "ok");
+    assert.equal(ivo.path[ivo.path.length - 1], "p-weapons");
+    const turned = painted(g, ivo);
+    assert.ok(Math.hypot(turned.x - again.x, turned.y - again.y) < 0.02, `${again.x},${again.y} -> ${turned.x},${turned.y}`);
+  });
+
+  it("walks to the stand when ordered to stay in the room being crossed", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    g.enemy = null;
+    const ivo = g.crew.find((c) => c.name === "Ivo Park");
+    const engines = g.player.rooms.find((r) => r.id === "p-engines");
+    assert.ok(ivo && engines);
+    orderCrew(g, ivo.id, "p-pilot");
+    for (let i = 0; i < 5; i++) step(g, 0.05);
+    assert.equal(ivo.room, "p-engines");
+    const before = painted(g, ivo);
+    assert.equal(orderCrew(g, ivo.id, "p-engines"), "ok");
+    assert.equal(ivo.room, "p-engines");
+    assert.deepEqual(ivo.path, ["p-engines"]);
+    const after = painted(g, ivo);
+    assert.ok(Math.hypot(after.x - before.x, after.y - before.y) < 0.02, `${before.x},${before.y} -> ${after.x},${after.y}`);
+    for (let i = 0; i < 80 && ivo.path.length > 0; i++) step(g, 0.05);
+    assert.deepEqual(ivo.path, []);
+    const stood = restSpot(engines, g.crew, ivo.id, "player");
+    assert.ok(stood);
+    const at = painted(g, ivo);
+    assert.ok(Math.hypot(at.x - (stood.x + 0.5), at.y - (stood.y + 0.5)) < 0.02);
+  });
 });
+
+/** Sprite point: last hop uses the early-arrival clock, every earlier hop uses move. */
+function painted(g: Game, c: Crew): { x: number; y: number } {
+  const ship = c.aboard === "player" ? g.player : g.enemy;
+  assert.ok(ship);
+  if (c.path.length === 0) {
+    const room = ship.rooms.find((r) => r.id === c.room);
+    assert.ok(room);
+    const spot = restSpot(room, g.crew, c.id, c.aboard, ship);
+    assert.ok(spot);
+    return { x: spot.x + 0.5, y: spot.y + 0.5 };
+  }
+  const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
+  assert.ok(dest);
+  const goal = restSpot(dest, g.crew, c.id, c.aboard, ship) ?? undefined;
+  const cells = walkCells(ship, c.room, c.path, c.via, goal);
+  const steps = hopSteps(cells, c.via);
+  const t = c.path.length === 1 ? arriveMove(c.move, steps) : Math.min(1, Math.max(0, c.move));
+  const at = walkPoint(ship, c.room, c.path, c.via, t, goal);
+  assert.ok(at);
+  return at;
+}

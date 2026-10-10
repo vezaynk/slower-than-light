@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "./sim.ts";
-import { arriveMove, hopSteps, standCell, walkCells, walkPoint } from "./walk-path.ts";
+import { arriveMove, footVia, hopSteps, standCell, walkCells, walkPoint } from "./walk-path.ts";
 
 const column = {
   cols: 2,
@@ -90,5 +90,23 @@ describe("walk path", () => {
     assert.deepEqual(held, { x: end.x + 0.5, y: end.y + 0.5 });
     const mid = walkPoint(column, "L", ["R"], undefined, 0.5);
     assert.notDeepEqual(mid, held);
+  });
+
+  it("resumes a hop at the exact point instead of the cell center", () => {
+    const ship = createGame(4, "kestrel-a").player;
+    const via = "2,2@2.5000,2.2000";
+    const at = walkPoint(ship, "p-engines", ["p-oxygen"], via, 0);
+    assert.deepEqual(at, { x: 2.5, y: 2.2 });
+    const steps = hopSteps(walkCells(ship, "p-engines", ["p-oxygen"], via), via);
+    const next = walkPoint(ship, "p-engines", ["p-oxygen"], via, 0.05 / steps);
+    assert.ok(next);
+    const along = Math.hypot(next.x - at.x, next.y - at.y);
+    assert.ok(Math.abs(along - 0.05) < 0.01, String(along));
+    const foot = footVia(ship, "p-engines", ["p-oxygen"], via, 0);
+    assert.ok(foot);
+    assert.equal(foot.room, "p-engines");
+    const resumed = walkPoint(ship, "p-engines", ["p-oxygen"], foot.via, 0);
+    assert.ok(resumed);
+    assert.ok(Math.hypot(resumed.x - at.x, resumed.y - at.y) < 0.001);
   });
 });

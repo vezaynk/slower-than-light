@@ -87,7 +87,7 @@ function walkPaint(
   if (!walkStep(ship, c)) return null;
   const dest = ship.rooms.find((r) => r.id === c.path[c.path.length - 1]);
   const goal = dest ? (restSpot(dest, roster, c.id, c.aboard, ship) ?? undefined) : undefined;
-  const steps = hopSteps(walkCells(ship, c.room, c.path, c.via, goal));
+  const steps = hopSteps(walkCells(ship, c.room, c.path, c.via, goal), c.via);
   const t = c.path.length === 1 ? arriveMove(c.move, steps) : clamp01(c.move);
   return { t, steps, goal };
 }

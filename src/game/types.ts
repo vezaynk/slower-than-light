@@ -129,7 +129,9 @@ export type Crew = {
   move: number;
   /**
    * Tile "x,y" the sprite starts this hop from.
-   * A fresh order records the tile they were standing on. Later hops record the doorway.
+   * A fresh order from a stand records that tile. An order while they are already
+   * walking records the cell under them, and "@x,y" is the exact point so the
+   * sprite does not jump. Later hops record the doorway.
    * Absent means the front standing tile. Cleared when the walk finishes.
    */
   via?: string;

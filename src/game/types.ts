@@ -176,9 +176,11 @@ export type Crew = {
   stun?: number;
   /**
    * Seconds since this crew's last blow. Boarding, Combat: damage is per hit, "every few moments".
-   * INFERRED: the pause is 1 second. Absent means the pause has not started.
+   * Absent means the pause has not started.
    */
   swing?: number;
+  /** Seconds of swing the next blow lands at (sim.ts crewBlowDue). Absent means the first, 0.5-0.65 s lead-in. */
+  swingAt?: number;
   /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
   lockCool?: number;
   /**
@@ -526,6 +528,10 @@ export type EnemyBoarding = {
   away: string[];
   /** Station room each boarder left, so recalled crew walk back to it. */
   home: Record<string, string>;
+  /** Crew that stay aboard, fixed when the plan is made (xftl doc/ship-ai, "Crew teleporting"). Absent in old saves. */
+  stay?: number;
+  /** Invasion mode (the Flagship): no minimum health, so no recall for a hurt boarder. */
+  invasion?: boolean;
 };
 
 export type Ship = {

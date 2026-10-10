@@ -144,6 +144,49 @@ describe("enemy crew teleporter", () => {
     assert.ok(before - party.length >= (before >= 4 ? 2 : 1));
   });
 
+  it("sabotage sends half the crew, rounded down, and fixes the stay-behind count once", () => {
+    // xftl doc/ship-ai, "Crew teleporting".
+    for (const n of [3, 4, 5]) {
+      const g = boarder(n);
+      const crew = foes(g);
+      for (const c of crew.slice(n)) g.crew = g.crew.filter((x) => x.id !== c.id);
+      const party = form(g);
+      assert.equal(plan(g).stay, n - Math.floor(n / 2), String(n));
+      assert.equal(plan(g).invasion, false);
+      assert.equal(party.length, Math.min(2, Math.floor(n / 2)), String(n));
+    }
+    // A crew member killed at home does not move the line: one fewer goes.
+    const g = boarder(4);
+    for (const c of foes(g).slice(4)) g.crew = g.crew.filter((x) => x.id !== c.id);
+    g.boardTimer = 0;
+    tickEnemyBoarding(g, 0.01);
+    const b = plan(g);
+    for (const id of b.party) {
+      const c = g.crew.find((x) => x.id === id)!;
+      c.path = [];
+    }
+    b.party = [];
+    const pilot = g.enemy!.rooms.find((r) => r.system === "pilot")?.id;
+    const victim = foes(g).find((c) => c.room !== pilot)!;
+    victim.hp = 0;
+    tickEnemyBoarding(g, 0.01);
+    assert.equal(b.stay, 2);
+    assert.equal(b.party.length, 1);
+  });
+
+  it("invasion mode (the Flagship) sends 3/4 and has no minimum health", () => {
+    const g = boarder(4);
+    for (const c of foes(g).slice(4)) g.crew = g.crew.filter((x) => x.id !== c.id);
+    g.enemy!.flagship = { stage: 3 } as never;
+    const party = send(g);
+    assert.equal(plan(g).invasion, true);
+    assert.equal(plan(g).stay, 1);
+    pad(g).cool = 0;
+    party[0].hp = party[0].maxHp * 0.1;
+    tickEnemyBoarding(g, 0.01);
+    assert.equal(party[0].aboard, "player", "no recall line in invasion mode");
+  });
+
   it("sends at most 2 boarding parties per fight", () => {
     const g = boarder();
     for (let round = 0; round < 2; round++) {

@@ -792,7 +792,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     assert.ok(foe.hp > 0 && foe.hp < foe.maxHp);
     assert.equal(hero.skills?.combat ?? 0, 0);
     foe.hp = 0.05;
-    hero.swing = 1;
+    hero.swing = 2;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 1);
@@ -807,7 +807,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     mate.kin = "plain";
     mate.skills = {};
     foe.hp = 0.05;
-    hero.swing = 1;
+    hero.swing = 2;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 1);
@@ -818,7 +818,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     const { g, hero, foe } = duel();
     foe.cloned = true;
     foe.hp = 0.05;
-    hero.swing = 1;
+    hero.swing = 2;
     step(g, 0.05);
     assert.ok(foe.hp <= 0);
     assert.equal(hero.skills?.combat ?? 0, 0);
@@ -904,7 +904,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     hero.leashed = undefined;
     hero.skills = {};
     hero.kin = "plain";
-    hero.swing = 1;
+    hero.swing = 2;
     const unit = {
       id: "crew-drone",
       kind: "personnel",
@@ -936,7 +936,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     // Crew skills, lead: "the enemy ships crew is always untrained and cannot reach higher skill levels."
     const { g, hero, foe } = duel();
     hero.hp = 0.05;
-    foe.swing = 1;
+    foe.swing = 2;
     step(g, 0.05);
     assert.ok(hero.hp <= 0);
     assert.equal(foe.skills?.combat ?? 0, 0);

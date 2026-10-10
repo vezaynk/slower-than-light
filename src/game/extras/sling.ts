@@ -349,9 +349,28 @@ function boardingLimit(g: Game, ship: Ship): number {
   return 2;
 }
 
+/**
+ * xftl doc/ship-ai, "Crew teleporting": "Sabotage sends half the crew, while invasion sends 3/4 of the crew. Both
+ * round down. The number of crew that should stay behind is then calculated from this number." Invasion is "used by
+ * the flagship". "in sabotage mode, the crew's minimum health is set to 25% ... for invasion there isn't a minimum
+ * health."
+ * INFERRED: the crew count is the enemy crew aboard their own hull when the plan is first made.
+ */
 function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
-  if (!ship.boarding) ship.boarding = { sent: 0, limit: boardingLimit(g, ship), party: [], away: [], home: {} };
-  return ship.boarding;
+  ship.boarding ??= { sent: 0, limit: boardingLimit(g, ship), party: [], away: [], home: {} };
+  const b = ship.boarding;
+  // The Flagship's stage 3 builds its own plan (wiki/flagship-systems.ts). Fill the split on first read.
+  if (b.stay == null) {
+    b.invasion = !!ship.flagship;
+    const crew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length;
+    b.stay = crew - Math.floor(b.invasion ? (crew * 3) / 4 : crew / 2);
+  }
+  return b;
+}
+
+/** The minimum-health recall line, or none for invasion. */
+function recallLine(b: EnemyBoarding): number {
+  return b.invasion ? 0 : RECALL_HP;
 }
 
 /** Room graph walk over interior doors, the same rule sim.ts uses for crew orders. */
@@ -493,7 +512,7 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   let pull: Crew[];
   if (fleeing || wrecked) pull = crew;
   else {
-    const hurt = crew.filter((c) => c.hp < c.maxHp * RECALL_HP);
+    const hurt = crew.filter((c) => c.hp < c.maxHp * recallLine(b));
     pull = crew.filter((c) => hurt.some((h) => h.room === c.room));
   }
   if (!pull.length) return;
@@ -518,20 +537,19 @@ function recallWeather(g: Game, ship: Ship): boolean {
 }
 
 /**
- * INFERRED party size: up to 2 (the pads, "Ships can have only 2-tile Teleporter rooms"), and never more than the pad room can hold, keeping 1 crew
- * home when the hull has 3 or fewer aboard and 2 when it has 4 or more. The pilot always stays.
- * Basis: the Flagship "will send all its crew except for 1 or 2 crewmembers" (same section); the
- * regular "if ... the crew count allows" gives no number.
+ * xftl doc/ship-ai, "Crew teleporting": "the number of boarders to be sent. This is the number of (friendly) crew
+ * abord the ship, minus the number that should stay behind". The pad room still caps the party ("Ships can have only
+ * 2-tile Teleporter rooms").
  * INFERRED: one party at a time. A new one forms only after the last is recalled or dead.
- * INFERRED: healthiest first, at least half health.
+ * INFERRED: healthiest first, at least half health. The pilot stays at the helm.
  */
 function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
   if (b.sent >= b.limit || b.away.length > 0 || b.party.length > 0) return;
   const home = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c));
-  const keep = home.length >= 4 ? 2 : 1;
+  const keep = b.stay ?? 0;
   const padRoom = ship.rooms.find((r) => r.kit === "sling");
   const spots = padRoom ? roomCapacity(padRoom, "enemy", interiorLinks(ship.doors, padRoom.id)) : 1;
-  const size = Math.min(2, spots, home.length - keep);
+  const size = Math.min(spots, home.length - keep);
   if (size <= 0) return;
   const pilot = ship.rooms.find((r) => r.system === "pilot")?.id ?? "e-pilot";
   const picks = home
@@ -603,7 +621,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
   b.party = b.party.filter((id) => {
     const c = aliveById(g, id);
     if (!c || c.aboard !== "enemy") return false;
-    if (leashed(c) || c.hp < c.maxHp * RECALL_HP) {
+    if (leashed(c) || c.hp < c.maxHp * recallLine(b)) {
       goHome(g, ship, b, c);
       return false;
     }

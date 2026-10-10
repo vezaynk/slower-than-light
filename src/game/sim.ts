@@ -3511,6 +3511,29 @@ function suffocateShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numb
   }
 }
 
+/**
+ * xftl doc/damage-notes: "When two crew members are punching each other, damage is done randomly between every
+ * 500ms-650ms, and then an equal duration is spent letting the punch animation finish, so a full cycle is
+ * 1000ms-1300ms. When a crew member is shooting another crew member, damage is done randomly between every
+ * 1000ms-1300ms."
+ * The first blow lands at 0.5-0.65 s, and each later one at twice a fresh 0.5-0.65 s draw after the last.
+ * INFERRED: one draw per cycle stands for both halves; the notes do not say whether the tail reuses the lead-in.
+ * Exported for extras/swarm.ts (crew hitting an onboard drone).
+ */
+export function crewBlowDue(g: Game, c: Crew, dt: number): boolean {
+  c.swing = (c.swing ?? 0) + dt;
+  c.swingAt ??= 0.5 + rand(g) * 0.15;
+  if (c.swing < c.swingAt) return false;
+  c.swing -= c.swingAt;
+  c.swingAt = 2 * (0.5 + rand(g) * 0.15);
+  return true;
+}
+
+/** xftl doc/damage-notes: base damage "3.0 <= damage <= 7.0", before skill, race, and mind control multipliers. */
+export function crewBlowDamage(g: Game): number {
+  return 3 + rand(g) * 4;
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
@@ -3540,23 +3563,20 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       // "an unskilled human crew deals per hit is 3 to 7 HP, an average of 5 damage per hit."
       // Template:Crew races (comparison): final_damage = skill_mult * damage_mult * mindControl_mult * damage.
       // Crew skills, Combat skill: the attacker's rank multiplies damage dealt (×1 / ×1.1 / ×1.2).
-      // INFERRED: the pause is 1 second. The page says "every few moments" and prints no seconds.
+      // xftl doc/damage-notes: "3.0 <= damage <= 7.0" and the blow timing in crewBlowDue.
       // INFERRED: the blow lands on the first living enemy in the room, rather than splitting across them.
       // Boarding party management: once someone has been ordered, the lowest file (first sent back) is that first body.
       // Rooms where nobody has a file keep array order.
-      const SWING_S = 1;
       const filed = pals.some((c) => c.file != null) || foes.some((c) => c.file != null);
       const seq = (list: Crew[]) => (filed ? list.slice().sort(byFile) : list);
       const palsHit = seq(pals);
       const foesHit = seq(foes);
       const strike = (attacker: Crew, targets: Crew[]) => {
-        attacker.swing = (attacker.swing ?? 0) + dt;
-        if ((attacker.swing ?? 0) < SWING_S) return;
-        attacker.swing -= SWING_S;
+        if (!crewBlowDue(g, attacker, dt)) return;
         const target = targets.find((t) => t.hp > 0);
         if (!target) return;
         const before = target.hp;
-        const roll = 3 + Math.floor(rand(g) * 5);
+        const roll = crewBlowDamage(g);
         target.hp -=
           roll *
           leashMult(attacker) *

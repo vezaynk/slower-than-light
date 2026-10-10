@@ -1,5 +1,5 @@
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, crewBlowDamage, crewBlowDue, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -1583,17 +1583,11 @@ function accrueBar(holder: { fix?: number }, dt: number): boolean {
 /**
  * Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
  * Crew skills, Combat skill: that hit also lands on onboard drones, times the combat rank.
- * INFERRED: the pause is 1 second, the same mark as a crew blow. The page prints no seconds.
+ * Timing and the 3.0-7.0 base are sim.ts crewBlowDue and crewBlowDamage (xftl doc/damage-notes).
  */
 function crewBlow(g: Game, c: Crew, dt: number): number {
-  c.swing = (c.swing ?? 0) + dt;
-  let total = 0;
-  while (c.swing >= 1) {
-    c.swing -= 1;
-    const roll = 3 + Math.floor(rand(g) * 5);
-    total += roll * kinOf(c.kin ?? "plain").fight * crewCombat(c);
-  }
-  return total;
+  if (!crewBlowDue(g, c, dt)) return 0;
+  return crewBlowDamage(g) * kinOf(c.kin ?? "plain").fight * crewCombat(c);
 }
 
 /** Crew skills, Combat skill: "increases the damage dealt to crewmembers and onboard drones". Level 0 stays ×1, level 2 is 20% more. */

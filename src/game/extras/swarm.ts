@@ -575,6 +575,7 @@ function combatFireBlocked(g: Game, from: "player" | "enemy"): boolean {
  * where it is (no hull yet). A cloaked target does not: the leg still finishes,
  * a new bearing is picked, and the fire callback withholds the shot.
  * The timer does not run while unpowered: callers skip this until the bars cover the drone.
+ * `hold` is a beam drone's BEAM_HOLD_S (xftl doc/combat-drone, additionalPause), added to each leg after a shot.
  */
 function flyCombatLaser(
   g: Game,
@@ -633,6 +634,7 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
     (roomId) => {
       landBeamSwipe(g, g.enemy, roomId, "beam", "player");
     },
+    // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
     BEAM_HOLD_S,
   );
 }
@@ -2113,6 +2115,7 @@ function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
       unit.room = roomId;
       landBeamSwipe(g, g.player, roomId, unit.kind, "enemy");
     },
+    // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
     BEAM_HOLD_S,
   );
 }

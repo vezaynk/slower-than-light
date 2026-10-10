@@ -179,7 +179,10 @@ export type Crew = {
    * Absent means the pause has not started.
    */
   swing?: number;
-  /** Seconds of swing the next blow lands at (sim.ts crewBlowDue). Absent means the first, 0.5-0.65 s lead-in. */
+  /**
+   * Seconds of swing the next blow lands at (sim.ts crewBlowDue, xftl doc/damage-notes). Absent means the first,
+   * 0.5-0.65 s lead-in.
+   */
   swingAt?: number;
   /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
   lockCool?: number;
@@ -530,7 +533,7 @@ export type EnemyBoarding = {
   home: Record<string, string>;
   /** Crew that stay aboard, fixed when the plan is made (xftl doc/ship-ai, "Crew teleporting"). Absent in old saves. */
   stay?: number;
-  /** Invasion mode (the Flagship): no minimum health, so no recall for a hurt boarder. */
+  /** xftl doc/ship-ai: invasion mode ("used by the flagship") has no minimum health, so no recall for a hurt boarder. */
   invasion?: boolean;
 };
 
@@ -821,10 +824,10 @@ export type Game = {
    * 0 until that field is armed.
    */
   asteroidWait?: number;
-  /** wiki/cited-asteroid.ts: the asteroid field's phase, and seconds left in it. */
+  /** xftl doc/asteroids (wiki/cited-asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
   asteroidPhase?: "break" | "wave1" | "wave2";
   asteroidPhaseLeft?: number;
-  /** wiki/cited-asteroid.ts: rocks alternate between the two ships; true when the next one is the enemy's. */
+  /** xftl doc/asteroids: "fired in sequence at your ship and the enemy's ship"; true when the next one is the enemy's. */
   asteroidEnemyNext?: boolean;
   /** Seconds into the current anti-ship battery phase. */
   asbT: number;

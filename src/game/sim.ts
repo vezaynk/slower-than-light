@@ -3247,8 +3247,10 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
 
 /**
  * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3 (xftl doc/oxygen: "1,4,7 ... NOT the 1,3,6
- * multipliers listed in the UI"). Unpowered rooms fall at 1.2% per second. Fires die below 10% oxygen. Suffocation is
- * still the 5% check in life(). Breaches, open airlocks, and air sharing between open rooms are air.ts.
+ * multipliers listed in the UI"). Unpowered rooms fall at 1.2% per second (doc/oxygen: "Oxygen drains from rooms at
+ * 1.2% per second when the oxygen system is off"). Fires die below 10% oxygen (Fires, "Dealing with fires"; burn-out is
+ * fireStarve below). Suffocation is still the 5% check in life(). Breaches, open airlocks, and air sharing between open
+ * rooms are air.ts.
  */
 /**
  * Template:Crew races (comparison), "Repair speed" note, and Crew skills, Repair skill: "It takes 12.5 seconds
@@ -3338,7 +3340,8 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) {
     if (o2 > 0) r.o2 += 1.2 * mult * dt;
     else r.o2 -= 1.2 * dt;
-    // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)", in their own room only.
+    // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)". In their own room only: xftl
+    // doc/oxygen, "they only reduce it for their room".
     r.o2 -= 0.96 * r.fire * dt;
   }
   // air.ts: breaches (8%/s each) and open airlocks (16%/s each) drain their room and the rooms open to it.
@@ -3397,7 +3400,7 @@ function fightFire(r: Room, pals: Crew[], dt: number) {
 const tileTimers = new WeakMap<Room, number>();
 const doorTimers = new WeakMap<Door, Map<string, number>>();
 
-/** Floor tiles in a room. */
+/** Floor tiles in a room: the room's rectangle less its omitted cells (layouts.ts). */
 function floorTiles(r: Room): number {
   return Math.max(1, r.w * r.h - (r.omit?.length ?? 0));
 }
@@ -3418,8 +3421,8 @@ function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number
   const tiles = floorTiles(r);
   const burning = Math.min(tiles, Math.ceil(r.fire - 1e-9));
   if (burning < tiles) {
-    // Candidates and their adjacent fires: 1x2 -> one tile next to one fire; 2x2 -> two candidates next to one fire,
-    // then (with three burning) one candidate next to two.
+    // INFERRED (header): candidates and their adjacent fires. 1x2 -> one tile next to one fire; 2x2 -> two candidates
+    // next to one fire, then (with three burning) one candidate next to two. doc/fires: 1.6 per adjacent fire.
     const candidates = tiles === 4 && burning < 3 ? 2 : 1;
     const adjacent = tiles === 4 && burning === 3 ? 2 : 1;
     let left = tileTimers.get(r);
@@ -3929,8 +3932,10 @@ function tickLingeringAsteroids(g: Game, dt: number) {
 }
 
 /**
- * Start the asteroid field's next phase (wiki/cited-asteroid.ts). The table follows the Shields system level, so ion or
- * an empty power bar does not slow the rocks.
+ * Start the asteroid field's next phase (wiki/cited-asteroid.ts). xftl doc/asteroids: "The timings are determined by
+ * the player shield level ... set in AsteroidGenerator::Initialize".
+ * INFERRED: that is the installed Shields level, read when each phase starts, so ion or an empty power bar does not
+ * slow the rocks. The notes do not say whether damage or power counts.
  */
 function armAsteroid(g: Game, phase: "break" | "wave1" | "wave2" = "break") {
   const level = g.player.systems.shields.level;
@@ -3966,8 +3971,9 @@ function environment(g: Game, dt: number) {
           label: "Rock",
         });
       };
-      // xftl doc/asteroids: rocks go to the two ships in turn; with no enemy every rock is the player's. A turn left
-      // for an enemy that has died is wasted ("every second asteroid is effectively wasted").
+      // xftl doc/asteroids: "Asteroids are fired in sequence at your ship and the enemy's ship". A turn left for an
+      // enemy that has died is wasted: "This is not reset when the enemy is killed, so every second asteroid is
+      // effectively wasted". INFERRED: a field with no enemy from the start sends every rock to the player.
       if (g.asteroidEnemyNext && g.enemy) rock(g.enemy, "enemy");
       else if (!g.asteroidEnemyNext) {
         rock(g.player, "player");
@@ -4646,7 +4652,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.shipSheet = false;
   g.event = null;
   g.asteroid = asteroid;
-  // wiki/cited-asteroid.ts: an asteroid field opens on its break, then runs its waves.
+  // xftl doc/asteroids: "State 0 is the break between waves". INFERRED: a field opens in state 0, then runs its waves.
+  // INFERRED: the player gets the first rock of the alternation.
   // INFERRED: boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
   g.asteroidT = 0;
   g.asteroidWait = 0;
@@ -5588,7 +5595,7 @@ function rollStock(g: Game): StockItem[] {
   ];
   const dart = guns.find((w) => w.id === "dart");
   const pool = dart && !owned.has("dart") ? [dart, ...guns.filter((w) => w.id !== "dart")] : guns;
-  // xftl doc/stores: weapons are one of the rolled sections, not a fixed shelf.
+  // xftl doc/stores, "Section generation": weapons are one of the rolled sections (storeSections), not a fixed shelf.
   for (const def of storeSections(g).includes("weapons") ? pool.slice(0, 2) : []) {
     items.push({
       id: "gun-" + def.id,

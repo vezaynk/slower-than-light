@@ -132,6 +132,7 @@ export function aimLance(g: Game, roomId: string): void {
   kit.target = roomId;
 }
 
+/** Geometry for cutLine's INFERRED line: a room's centre in tile units. */
 function centre(room: Room): [number, number] {
   return [room.x + room.w / 2, room.y + room.h / 2];
 }
@@ -166,6 +167,7 @@ function crosses(room: Room, p0: [number, number], p1: [number, number]): boolea
  * second room that is as far away from the first room as possible."
  * INFERRED: distance is between room centres, and the beam cuts every room the line between those centres passes
  * through, in order from the first room. The first room is the stored target when the player set one.
+ * INFERRED: a tie for farthest goes to the first such room in ship.rooms order.
  */
 export function cutLine(ship: Ship, origin: string): Room[] {
   const first = ship.rooms.find((r) => r.id === origin);

@@ -531,6 +531,7 @@ export function StoreBoard({ game }: { game: Game }) {
             CURRENT HULL <b>{game.player.hull}</b>
           </p>
         </div>
+        {/* xftl doc/stores: weapons are a rolled section like the rest, so a store without one shows no shelf. */}
         {weapons.length ? (
           <div>
             <h2>WEAPONS</h2>

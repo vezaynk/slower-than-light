@@ -368,7 +368,7 @@ function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
   return b;
 }
 
-/** The minimum-health recall line, or none for invasion. */
+/** xftl doc/ship-ai: the sabotage minimum health (25%), or none for invasion. */
 function recallLine(b: EnemyBoarding): number {
   return b.invasion ? 0 : RECALL_HP;
 }

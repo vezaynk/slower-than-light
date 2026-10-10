@@ -175,8 +175,8 @@ function hasSwarm(g: Game): boolean {
 }
 
 /**
- * A private roll stream for one store, seeded from g.seed. The run seed is not advanced, so rollStock and
- * citedStock read the same sections. `salt` keeps the section and system rolls apart.
+ * INVENTED: plumbing, not a game rule. A private roll stream for one store, seeded from g.seed. The run seed is not
+ * advanced, so rollStock and citedStock read the same sections. `salt` keeps the section and system rolls apart.
  */
 function storeRoll(g: Game, salt: number): () => number {
   let a = (g.seed ^ Math.imul(salt + 1, 0x9e3779b9)) >>> 0;
@@ -243,6 +243,9 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   if (drones && !hasSwarm(g)) picked.push(swarmRow);
   if (missingShields(g)) picked.push(SYSTEMS.find((row) => row.ref === "shields")!);
   if (missingMedical(g)) picked.push(SYSTEMS.find((row) => row.ref === "cradle")!);
+  // The guarantees count toward that total: doc/stores' closing example ("every system except a medbay and two
+  // others ... the store will only sell two systems"). INFERRED: when the guarantees alone pass it, the first ones
+  // listed above are kept.
   const roll = storeRoll(g, 1);
   const rest = pool.filter((row) => !picked.includes(row));
   while (picked.length < count && rest.length) picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
@@ -319,7 +322,8 @@ function crewItems(g: Game): StockItem[] {
 
 /**
  * The non-weapon sections of storeSections, in store order. rollStock fills the weapons section.
- * A section with nothing left to sell (a full crew, three augments) shows nothing.
+ * INFERRED: a section with nothing left to sell (a full crew, three augments) shows nothing. The notes do not say
+ * whether the game rerolls it.
  */
 export function citedStock(g: Game): StockItem[] {
   const sections = storeSections(g);

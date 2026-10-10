@@ -52,6 +52,8 @@ export function orbitGap(from: number, to: number): number {
  * Seconds from leaving one stop to firing at the next, plus `hold` after the shot (a beam drone's BEAM_HOLD_S).
  * INFERRED: the drone flies the straight chord between the two stops, on a circle (a round shield). An elliptical
  * shield would shorten legs across its minor axis; this sim has no shield ellipse.
+ * INFERRED: the notes slow the drone during the pause ("the speed is multiplied by the time remaining over 1.5");
+ * that creep is counted as part of the 0.5 s, not as extra flight.
  */
 export function orbitLegSeconds(from: number, to: number, speed: number, hold = 0): number {
   const chord = 2 * ORBIT_STOP_RADIUS * Math.sin((orbitGap(from, to) * Math.PI) / 360);

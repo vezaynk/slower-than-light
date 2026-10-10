@@ -72,7 +72,7 @@ export function placeFlareFires(count: number, rooms: number, roll: () => number
 /**
  * Environmental Hazards, Class-M Red Giant Star: 33% from one fire, 66% from two. xftl doc/solar-flares: "For each
  * room a fire is started in, there's a 33%/66% chance to deal a point of damage, depending on whether 1/2 fires were
- * started in that room." Rolled once per spawn.
+ * started in that room." INFERRED: rolled once per spawn, so a room picked twice rolls twice.
  * The roll is 1 hull and 1 system damage, or nothing.
  */
 export function flareDamagesRoom(fires: number, roll: number): boolean {

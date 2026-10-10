@@ -9,7 +9,7 @@ import type { KinId } from "./extras/kin.ts";
 import { rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
-import { ENEMY_LAYOUTS } from "./wiki/enemy-layouts.ts";
+import { enemyLayout } from "./wiki/enemy-layouts.ts";
 import {
   ENEMY_CLASSES,
   ENEMY_DRONES,
@@ -51,7 +51,7 @@ export type EnemySpec = {
   rooms: EnemyRoomSpec[];
   cols: number;
   rows: number;
-  /** Orange bars from a traced interior. Absent for the two classes with no picture. */
+  /** Door bars from a traced interior. Absent on the untraced fallback. */
   marks?: DoorMark[];
   weapons: string[];
   missiles: number;
@@ -561,7 +561,7 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
 }
 
 /**
- * INFERRED layout for Engi Hacker and Crystal Outrider, the two classes with no interior picture.
+ * INFERRED fallback for a class with no traced interior (every class has one now; kept for test hulls).
  * Two rows, one room per installed system.
  */
 function layout(installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
@@ -654,8 +654,12 @@ function mainComponent(rooms: { x: number; y: number; w: number; h: number; omit
  * largest hall first, then nearer the nose. A class that rolls more systems than rooms
  * gains a 1×1 past the traced columns. Pictured walls are not given extra doors.
  */
-function seatTrace(classId: string, installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks: DoorMark[] } | null {
-  const laid = ENEMY_LAYOUTS[classId];
+function seatTrace(
+  classId: string,
+  installed: EnemySystem[],
+  pirate = false,
+): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks: DoorMark[] } | null {
+  const laid = enemyLayout(classId, pirate);
   if (!laid) return null;
   const have = new Set(installed);
   const taken = new Set<EnemySystem>();
@@ -766,7 +770,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     else unwired.push({ id, level });
   }
   const ids = installed.map(([id]) => id);
-  const traced = seatTrace(cls.id, ids);
+  const traced = seatTrace(cls.id, ids, pirate);
   const { rooms, cols, rows } = traced ?? layout(ids);
   const crewSize = crewCount(cls.crew, ctx);
   const races: string[] = [];

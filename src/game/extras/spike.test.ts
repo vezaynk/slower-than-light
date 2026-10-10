@@ -355,7 +355,8 @@ describe("spike", () => {
     foe.path = [door.b];
     foe.move = 0;
     foe.stun = 0;
-    for (let i = 0; i < 20; i++) step(g, 0.05);
+    // Long enough to cross a 2x2 room on the traced interior.
+    for (let i = 0; i < 80 && foe.room === door.a; i++) step(g, 0.05);
     assert.notEqual(foe.room, door.a, "depowered hack lets the ship's crew through");
 
     kit.power = 1;
@@ -366,7 +367,7 @@ describe("spike", () => {
     foe.path = [door.b];
     foe.move = 0;
     foe.stun = 0;
-    for (let i = 0; i < 20; i++) step(g, 0.05);
+    for (let i = 0; i < 80; i++) step(g, 0.05);
     assert.equal(foe.room, door.a, "powering the hack shuts the door on that crew");
   });
 

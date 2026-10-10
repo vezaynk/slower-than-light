@@ -34,7 +34,7 @@ export const LANIUS_DRAIN_PER_SEC = BREACH_O2_PER_SEC;
  * INFERRED: a walking Lanius drains its current `room` too. The pages do not say
  * whether the drain pauses while moving.
  * Clamped at 0. Suffocation immunity stays in kin.ts (`suffocate: 0`).
- * Runs from tickExtras, after airflow has already clamped the rooms.
+ * Runs after airflow has clamped the rooms, in a fight and outside one.
  */
 export function tickLanius(g: Game, dt: number) {
   if (dt <= 0) return;

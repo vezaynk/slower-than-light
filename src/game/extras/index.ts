@@ -27,7 +27,7 @@ import { enemyDefenseIntercept, onJumpSwarm, swarmIntercept, tickSwarm } from ".
 import { tickVeil, veilBlocks, veilEvade } from "./veil.ts";
 import { flagshipAiEvade } from "../wiki/flagship-systems.ts";
 
-export { enemyDefenseIntercept, onNewSector, swarmIntercept, tickPlayerSabotage };
+export { enemyDefenseIntercept, onNewSector, swarmIntercept, tickLanius, tickPlayerSabotage };
 
 export function tickExtras(g: Game, dt: number) {
   tickVeil(g, dt);

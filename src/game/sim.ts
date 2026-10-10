@@ -30,6 +30,7 @@ import {
   suffocateScale,
   targetIsCloaked,
   tickExtras,
+  tickLanius,
   tickPlayerSabotage,
   weaponBoost,
   keepMissile,
@@ -3468,6 +3469,20 @@ function byFile(a: Crew, b: Crew): number {
   return (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 
+/** Oxygen, Overview: crew in a room at 5% or less lose 6.4 HP per second. Walking crew are not in `present`. */
+function suffocatePresent(g: Game, present: Crew[], dt: number) {
+  for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
+}
+
+/** Same suffocation as a fight. The Oxygen page does not limit it to combat. */
+function suffocateShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
+  for (const r of ship.rooms) {
+    if (r.o2 > 5) continue;
+    const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
+    suffocatePresent(g, present, dt);
+  }
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
@@ -3609,9 +3624,8 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       for (const c of healing) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
     }
     // Oxygen: at 5% or less, crew lose 6.4 HP per second, scaled per crew (Emergency Respirators, then kin).
-    if (r.o2 <= 5) {
-      for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
-    } else burnIntruders(r, foes, dt);
+    if (r.o2 <= 5) suffocatePresent(g, present, dt);
+    else burnIntruders(r, foes, dt);
     autoRepair(ship, r, dt);
     r.flash = Math.max(0, r.flash - dt);
   }
@@ -6027,7 +6041,8 @@ function stepShots(g: Game, dt: number) {
 /**
  * Fires, lead: events start fires, and a fire spreads and burns crew whether or not a fight is on.
  * Oxygen loss, the die-out timer, refill, and venting are airflow(), which also runs on this tick.
- * Melee, repair, medbay, and suffocation stay on the combat tick. System sabotage (0.08/s) stays there too.
+ * Melee, repair, and medbay stay on the combat tick. System sabotage (0.08/s) stays there too.
+ * Suffocation does not: Oxygen states it for the room, with no fight requirement.
  */
 function tickIdleFires(g: Game, dt: number) {
   const ship = g.player;
@@ -6043,6 +6058,10 @@ function tickIdleFires(g: Game, dt: number) {
     spreadFire(g, ship, r, closedSlow, dt);
     if (r.o2 > 5) burnIntruders(r, foes, dt);
   }
+}
+
+/** A death from fire or from suffocation, with no enemy hull on the tick. */
+function finishIdleDeaths(g: Game) {
   if (!g.crew.some((c) => c.hp <= 0)) return;
   reap(g);
   if (g.phase !== "map" && g.phase !== "event" && g.phase !== "store" && g.phase !== "reward") return;
@@ -6081,6 +6100,8 @@ function tickBoarding(g: Game, dt: number) {
   moveCrew(g, dt);
   life(g, g.player, "player", dt);
   reap(g);
+  // Lanius drain is part of oxygen. A boarding fight has no enemy hull, so tickExtras is not on this path.
+  tickLanius(g, dt);
   noteZoltanKits(g);
   settleZoltanPower(g);
   swapZoltanCooldown(g);
@@ -6133,11 +6154,15 @@ export function step(g: Game, dt: number) {
       const h = Math.min(dt, 0.05);
       if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
       else {
-        // Oxygen, Overview, and Venting: refill, airlocks, breaches, and open doors run with no fight on.
+        // Oxygen, Overview, and Venting: refill, airlocks, breaches, suffocation, and open doors run with no fight on.
+        // Suffocation and the Lanius drain follow movement, as they do inside a fight.
         airflow(g, g.player, "player", h);
         tickIdleFires(g, h);
         // A room order is taken on the map. Without this step the walker stays on the current room's center.
         moveCrew(g, h);
+        suffocateShip(g, g.player, "player", h);
+        tickLanius(g, h);
+        finishIdleDeaths(g);
         // Backup Battery, Overview: the window can run out once the fight is over.
         // INFERRED: those 30 seconds keep counting on the map. A fight still ticks the cell in tickExtras.
         if (g.phase !== "combat") tickCell(g, h);

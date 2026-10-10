@@ -180,7 +180,7 @@ describe("Fires outside a fight", () => {
     assert.ok(room.fire > 0);
   });
 
-  it("does not repair, heal, or suffocate on the map", () => {
+  it("does not repair or heal on the map, and still suffocates", () => {
     const g = createGame(5);
     sealed(g, "p-oxygen");
     const med = g.player.rooms.find((r) => r.id === "p-medbay")!;
@@ -190,12 +190,19 @@ describe("Fires outside a fight", () => {
     med.o2 = 4;
     const crew = g.crew[0]!;
     crew.room = med.id;
+    crew.path = [];
     crew.hp = 40;
-    for (let i = 0; i < 20; i++) step(g, 0.05);
+    // Oxygen, Overview: 6.4 HP/s while the room is at 5% or less. Refill is 1.2%/s with the doors shut.
+    let expected = 40;
+    let o2 = 4;
+    for (let i = 0; i < 20; i++) {
+      step(g, 0.05);
+      o2 = Math.min(100, o2 + 1.2 * 0.05);
+      if (o2 <= 5) expected -= 6.4 * 0.05;
+    }
     assert.equal(g.player.systems.medbay.fix, 0);
     assert.equal(g.player.systems.medbay.damage, 1);
-    assert.equal(crew.hp, 40);
-    // Doors are shut, so the level-1 refill is the only change: 1.2% over this one second.
+    assert.ok(Math.abs(crew.hp - expected) < 1e-6, `${crew.hp} vs ${expected}`);
     assert.ok(Math.abs(med.o2 - (4 + 1.2)) < 1e-6, `${med.o2}`);
   });
 
@@ -248,6 +255,45 @@ describe("Oxygen outside a fight", () => {
     }
     const avg = g.player.rooms.reduce((n, r) => n + r.o2, 0) / g.player.rooms.length;
     assert.ok(avg < 100, `${avg}`);
+  });
+
+  it("suffocates at 6.4 HP per second with no fight on", () => {
+    const g = createGame(22, "kestrel-a");
+    g.phase = "map";
+    g.player.systems.oxygen.power = 0;
+    for (const d of g.player.doors) d.open = false;
+    const room = g.player.rooms.find((r) => r.id === "p-pilot")!;
+    room.o2 = 0;
+    room.fire = 0;
+    room.breach = 0;
+    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
+    ada.room = room.id;
+    ada.path = [];
+    ada.hp = 100;
+    for (const c of g.crew) if (c.id !== ada.id) c.room = "p-engines";
+    step(g, 0.05);
+    assert.equal(room.o2, 0);
+    assert.ok(Math.abs(ada.hp - (100 - 6.4 * 0.05)) < 1e-6, `${ada.hp}`);
+  });
+
+  it("lets a Lanius drain oxygen with no fight on, and does not suffocate them", () => {
+    const g = createGame(23, "kestrel-a");
+    g.phase = "map";
+    for (const d of g.player.doors) d.open = false;
+    const room = g.player.rooms.find((r) => r.id === "p-pilot")!;
+    room.o2 = 40;
+    room.fire = 0;
+    room.breach = 0;
+    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
+    ada.room = room.id;
+    ada.path = [];
+    ada.kin = "voidlung";
+    ada.hp = 50;
+    for (const c of g.crew) if (c.id !== ada.id) c.room = "p-engines";
+    step(g, 0.05);
+    // Level-1 refill 1.2%/s, then one breach of drain, 7.2%/s.
+    assert.ok(Math.abs(room.o2 - (40 + (1.2 - 7.2) * 0.05)) < 1e-6, `${room.o2}`);
+    assert.equal(ada.hp, 50);
   });
 });
 

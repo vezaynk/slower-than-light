@@ -531,21 +531,23 @@ export function StoreBoard({ game }: { game: Game }) {
             CURRENT HULL <b>{game.player.hull}</b>
           </p>
         </div>
-        <div>
-          <h2>WEAPONS</h2>
-          <div className="weapon-row">
-            {weapons.map((item) => (
-              <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
-                <WeaponArt id={item.ref} height={22} />
-                <span>{item.name}</span>
-                <b>{item.cost}</b>
-              </button>
-            ))}
-            {weapons.length < 3
-              ? Array.from({ length: 3 - weapons.length }, (_, i) => <span key={i} />)
-              : null}
+        {weapons.length ? (
+          <div>
+            <h2>WEAPONS</h2>
+            <div className="weapon-row">
+              {weapons.map((item) => (
+                <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
+                  <WeaponArt id={item.ref} height={22} />
+                  <span>{item.name}</span>
+                  <b>{item.cost}</b>
+                </button>
+              ))}
+              {weapons.length < 3
+                ? Array.from({ length: 3 - weapons.length }, (_, i) => <span key={i} />)
+                : null}
+            </div>
           </div>
-        </div>
+        ) : null}
         {systems.length ? (
           <div>
             <h2>SYSTEMS</h2>

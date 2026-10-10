@@ -8,7 +8,8 @@ import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
 /**
  * Extra store rows whose price and stock the wiki states.
  * Fuel, missiles, drone parts, and hull repair stay in rollStock.
- * rollStock also contributes the weapon slot. This module does not add a second one.
+ * rollStock fills the weapons section when storeSections rolls one. This module does not add a second one.
+ * xftl doc/stores, "Resources": fuel 3–7, missiles 2–6, drone parts 2–4. rollStock rolls those ranges.
  *
  * Template:Purchasable systems (WIKI-SPEC section 7):
  * Shields 125, Medbay 50, Clone Bay 50, Crew Teleporter 90, Cloaking 150,
@@ -165,14 +166,6 @@ function blankKit(id: KitId): Kit {
   return { id, level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
-function systemRank(g: Game, row: Offer, guaranteeSwarm: boolean): number {
-  if (row.ref === "shields") return 0;
-  if (row.ref === "medbay" || row.ref === "cradle") return missingMedical(g) ? 1 : 2;
-  // Stores and resources, "Systems": a drone system is guaranteed if the store also sells drones.
-  if (guaranteeSwarm && row.ref === "swarm") return 2.5;
-  return 3;
-}
-
 function swarmBundle(g: Game) {
   return SWARM_BUNDLE[((g.seed % 3) + 3) % 3];
 }
@@ -181,20 +174,79 @@ function hasSwarm(g: Game): boolean {
   return (g.player.kits.swarm?.level ?? 0) > 0;
 }
 
-function systemItems(g: Game, guaranteeSwarm: boolean): StockItem[] {
-  const bundle = swarmBundle(g);
-  const rows = SYSTEMS.filter((row) => !ownedSystem(g, row)).map((row) => ({
-    row,
-    index: SYSTEMS.indexOf(row),
-  }));
-  if (!hasSwarm(g)) {
-    rows.push({
-      row: { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost },
-      index: SWARM_SORT,
-    });
+/**
+ * A private roll stream for one store, seeded from g.seed. The run seed is not advanced, so rollStock and
+ * citedStock read the same sections. `salt` keeps the section and system rolls apart.
+ */
+function storeRoll(g: Game, salt: number): () => number {
+  let a = (g.seed ^ Math.imul(salt + 1, 0x9e3779b9)) >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export type StoreSection = "weapons" | "drones" | "augments" | "crew" | "systems";
+const SECTION_KINDS: readonly StoreSection[] = ["weapons", "drones", "augments", "crew", "systems"];
+// xftl doc/stores: "any drones section found will be replaced with - in order of preference: weapons, augments, crew, system".
+const DRONE_STAND_INS: readonly StoreSection[] = ["weapons", "augments", "crew", "systems"];
+
+/**
+ * Store::OnInit (xftl doc/stores, "Section generation"):
+ * - "The number of sections is picked randomly between 2..4 inclusive."
+ * - System sections: "For AE they're always enabled". This game has the Clone Bay, so it is AE.
+ * - "there's a 50% the first section will be a systems section. The other system slots are then picked, avoiding
+ *   duplicates." INFERRED: those other slots draw from all five kinds, so a coin-flip miss can still roll systems.
+ * - "If you don't have a drones system and the store does not contain a systems section, any drones section found
+ *   will be replaced with" the first of weapons, augments, crew, system not already in the store.
+ */
+export function storeSections(g: Game): StoreSection[] {
+  const roll = storeRoll(g, 0);
+  const count = 2 + Math.floor(roll() * 3);
+  const out: StoreSection[] = [];
+  if (roll() < 0.5) out.push("systems");
+  while (out.length < count) {
+    const pick = SECTION_KINDS[Math.floor(roll() * SECTION_KINDS.length)];
+    if (!out.includes(pick)) out.push(pick);
   }
-  rows.sort((a, b) => systemRank(g, a.row, guaranteeSwarm) - systemRank(g, b.row, guaranteeSwarm) || a.index - b.index);
-  return rows.slice(0, SLOT).map(({ row }) => ({
+  if (!hasSwarm(g) && !out.includes("systems")) {
+    const at = out.indexOf("drones");
+    const swap = DRONE_STAND_INS.find((kind) => !out.includes(kind));
+    if (at >= 0 && swap) out[at] = swap;
+  }
+  return out;
+}
+
+/**
+ * xftl doc/stores, "Selecting systems":
+ * - The random list holds missing systems, but Drone Control only when the store has no drones section, and a
+ *   medical system only when the player "must already have a medical system".
+ * - "The store picks how many systems to sell. This is either the number of systems in the randomised list above,
+ *   or three - whichever is lower."
+ * - Guaranteed first: Drone Control if the store sells drones and the ship lacks it; Shields if missing; "Medbay (or
+ *   Clonebay in AE) if you have neither". This game is AE, so that guarantee is the Clone Bay.
+ * - "The rest are randomly selected systems that you don't have, without any duplicates."
+ */
+function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
+  const bundle = swarmBundle(g);
+  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost };
+  const missing = SYSTEMS.filter((row) => !ownedSystem(g, row));
+  const drones = sections.includes("drones");
+  const medical = (row: Offer) => row.ref === "medbay" || row.ref === "cradle";
+  const pool = missing.filter((row) => !medical(row) || !missingMedical(g));
+  if (!drones && !hasSwarm(g)) pool.push(swarmRow);
+  const count = Math.min(SLOT, pool.length);
+  const picked: Offer[] = [];
+  if (drones && !hasSwarm(g)) picked.push(swarmRow);
+  if (missingShields(g)) picked.push(SYSTEMS.find((row) => row.ref === "shields")!);
+  if (missingMedical(g)) picked.push(SYSTEMS.find((row) => row.ref === "cradle")!);
+  const roll = storeRoll(g, 1);
+  const rest = pool.filter((row) => !picked.includes(row));
+  while (picked.length < count && rest.length) picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
+  return picked.slice(0, count).map((row) => ({
     id: row.ref === "swarm" ? `sys-swarm-${bundle.schematic}` : `sys-${row.ref}`,
     kind: "system" as const,
     ref: row.ref,
@@ -266,34 +318,18 @@ function crewItems(g: Game): StockItem[] {
 }
 
 /**
- * Stores and resources: 2–4 slots of systems, weapons, drones, augments, and crew.
- * rollStock already adds the weapon slot, so this adds 1, 2, or 3 more.
- * g.seed % 3 is the bucket. rand() can leave a negative seed, so the residue is non-negative.
- * The seed is not advanced.
+ * The non-weapon sections of storeSections, in store order. rollStock fills the weapons section.
+ * A section with nothing left to sell (a full crew, three augments) shows nothing.
  */
-function extraSlots(g: Game): number {
-  const bucket = g.seed % 3;
-  return ((bucket + 3) % 3) + 1;
-}
-
 export function citedStock(g: Game): StockItem[] {
-  const built: Record<SlotKind, StockItem[]> = {
-    systems: systemItems(g, false),
-    drones: droneItems(g),
-    augments: augmentItems(g),
-    crew: crewItems(g),
+  const sections = storeSections(g);
+  const built: Record<Exclude<StoreSection, "weapons">, () => StockItem[]> = {
+    systems: () => systemItems(g, sections),
+    drones: () => droneItems(g),
+    augments: () => augmentItems(g),
+    crew: () => crewItems(g),
   };
-  const order: SlotKind[] = ["systems", "drones", "augments", "crew"];
-  const legal = order.filter((kind) => built[kind].length > 0);
-  const forced: SlotKind[] = [];
-  if (legal.includes("systems") && (missingShields(g) || missingMedical(g))) forced.push("systems");
-  const rest = legal.filter((kind) => !forced.includes(kind));
-  const chosen = [...forced, ...rest].slice(0, extraSlots(g));
-  // Stores and resources, "Systems": a drone system is guaranteed if the store also sells drones.
-  if (chosen.includes("systems") && chosen.includes("drones") && !hasSwarm(g)) {
-    built.systems = systemItems(g, true);
-  }
-  return chosen.flatMap((kind) => built[kind]);
+  return sections.flatMap((kind) => (kind === "weapons" ? [] : built[kind]()));
 }
 
 function clearMedbay(g: Game) {

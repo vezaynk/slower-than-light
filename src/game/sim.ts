@@ -135,7 +135,7 @@ import {
   asteroidSpawnSeconds,
   nextAsteroidPhase,
 } from "./wiki/cited-asteroid.ts";
-import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
+import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock, storeSections } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { beamTileLength } from "./wiki/weapons-beam.ts";
 import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
@@ -5568,7 +5568,8 @@ function rollStock(g: Game): StockItem[] {
   ];
   const dart = guns.find((w) => w.id === "dart");
   const pool = dart && !owned.has("dart") ? [dart, ...guns.filter((w) => w.id !== "dart")] : guns;
-  for (const def of pool.slice(0, 2)) {
+  // xftl doc/stores: weapons are one of the rolled sections, not a fixed shelf.
+  for (const def of storeSections(g).includes("weapons") ? pool.slice(0, 2) : []) {
     items.push({
       id: "gun-" + def.id,
       kind: "weapon",

@@ -1779,7 +1779,7 @@ function touching(a: Seat & { x: number; y: number }, b: Seat & { x: number; y: 
 
 /**
  * INVENTED: a hull with no empty room left (the Lark grid has none) grows one 2×1 room under the grid for the kit.
- * Doors follow the untraced rule in sim.ts addDoors: one to space, one open door per touching room.
+ * Doors follow sim.ts addDoors: one shut door to space, and one shut door per touching room.
  */
 function growRoom(ship: Ship, kit: KitId): Room {
   const taken = (x: number, y: number) =>
@@ -1816,7 +1816,7 @@ function growRoom(ship: Ship, kit: KitId): Room {
     venting: false,
   };
   const doors: Door[] = [{ a: r.id, b: "void", open: false, hp: 0, stuck: 0 }];
-  for (const o of ship.rooms) if (touching(o, r)) doors.push({ a: o.id, b: r.id, open: true, hp: 0, stuck: 0 });
+  for (const o of ship.rooms) if (touching(o, r)) doors.push({ a: o.id, b: r.id, open: false, hp: 0, stuck: 0 });
   ship.rooms.push(r);
   ship.doors.push(...doors);
   ship.rows = Math.max(ship.rows, y + 1);

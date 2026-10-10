@@ -194,8 +194,7 @@ describe("hangar hulls", () => {
           return (d.a === idHere && d.b === other) || (d.b === idHere && d.a === other);
         });
         assert.ok(door, `${id} missing door ${mark.x},${mark.y} ${mark.side}`);
-        if (!other) assert.equal(door?.open, false, id);
-        else assert.equal(door?.open, true, id);
+        assert.equal(door?.open, false, `${id} ${mark.x},${mark.y} ${mark.side}`);
       }
     }
   });

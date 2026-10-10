@@ -30,6 +30,8 @@ describe("hangar loadout", () => {
         run.player.doors.map((d) => `${d.a}|${d.b}|${d.open}`),
         spec.id,
       );
+      assert.ok(preview.ship.doors.length > 0, spec.id);
+      assert.ok(preview.ship.doors.every((d) => !d.open), spec.id);
       assert.deepEqual(
         preview.crew.map((c) => `${c.name}|${c.kin}|${c.room}|${c.uniform}`),
         run.crew.filter((c) => c.side === "player").map((c) => `${c.name}|${c.kin}|${c.room}|${c.uniform}`),

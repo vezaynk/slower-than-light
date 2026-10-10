@@ -107,6 +107,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     assert.ok(g.player.doors.some((d) => d.b === veil.id && d.a === "p-doors"));
     assert.ok(g.player.doors.some((d) => d.a === veil.id && d.b === sling.id));
     assert.ok(g.player.doors.some((d) => d.a === sling.id && d.b === "void"));
+    const grown = g.player.doors.filter((d) => d.a === veil.id || d.b === veil.id || d.a === sling.id || d.b === sling.id);
+    assert.ok(grown.every((d) => !d.open));
   });
 
   it("puts the Medbay back in the Clone Bay room when the store swaps it in (Systems)", () => {

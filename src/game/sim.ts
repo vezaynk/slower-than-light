@@ -343,7 +343,7 @@ function touches(a: Room, b: Room): boolean {
   return (xTouch && yOverlap) || (yTouch && xOverlap);
 }
 
-// INFERRED: interior doors start open and airlocks start shut. The fetched pages do not say the default.
+// Every door starts shut, interior and airlock. The fetched pages do not print a default; a new run and the hangar both begin closed.
 // A traced layout passes the orange bars. One door per connected pair. A room with no airlock bar has no void door.
 function addDoors(rooms: Room[], marks?: DoorMark[]): Door[] {
   if (!marks) {
@@ -352,7 +352,7 @@ function addDoors(rooms: Room[], marks?: DoorMark[]): Door[] {
       doors.push({ a: rooms[i].id, b: "void", open: false, hp: 0, stuck: 0 });
       for (let j = i + 1; j < rooms.length; j++) {
         if (touches(rooms[i], rooms[j])) {
-          doors.push({ a: rooms[i].id, b: rooms[j].id, open: true, hp: 0, stuck: 0 });
+          doors.push({ a: rooms[i].id, b: rooms[j].id, open: false, hp: 0, stuck: 0 });
         }
       }
     }
@@ -388,7 +388,7 @@ function addDoors(rooms: Room[], marks?: DoorMark[]): Door[] {
     const key = id < other ? `${id}|${other}` : `${other}|${id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    doors.push({ a: id, b: other, open: true, hp: 0, stuck: 0 });
+    doors.push({ a: id, b: other, open: false, hp: 0, stuck: 0 });
   }
   for (const id of vented) doors.push({ a: id, b: "void", open: false, hp: 0, stuck: 0 });
   return doors;

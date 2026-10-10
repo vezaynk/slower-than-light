@@ -74,7 +74,7 @@ Second pass checked the Score lead formula and the store resource table against 
 
 ## Still pictures, not text
 
-Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Rebel Flagship fight uses those traced cutaways. Forty-five other enemy interiors are traced in enemy-layouts.ts. Engi Hacker and Crystal Outrider stay generated from the class system list. Do not copy those bitmaps into the app.
+Player hangar cutaways are traced from the hangar pictures in layouts.ts: rooms, door bars, and the room under every system icon, including the pale icons for systems the hull can buy. The Rebel Flagship fight uses those traced cutaways. Forty-five other enemy interiors are traced in enemy-layouts.ts. Engi Hacker and Crystal Outrider stay generated from the class system list. Do not copy those bitmaps into the app.
 
 ## All pages
 
@@ -1538,6 +1538,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
   - [x] Rooms for 45 classes are the traced interiors in enemy-layouts.ts (INFERRED: the dump does not print 45).
   - [x] Engi Hacker and Crystal Outrider stay generated from the system list (INFERRED).
   - [x] An unlabeled system sits in an empty hall (INFERRED).
+  - [x] An optional system is fitted 30% of the time in sector 1 and 10% more each sector (ftl-layouts.mikehopley.org, linked from the page). A bracketed "[Pirate X only]" system fits only the pirate version, and "[Rock Investigator only]" or "[Mantis Scout only]" only the regular one.
   - [x] Elite hulls stay inside the printed ranges.
   - [x] enemies-rebel.ts and enemies-factions.ts are not what the fight reads.
 
@@ -5683,6 +5684,7 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts. The Re
 
 - [x] Systems
   - [x] eight core systems plus nine kits.
+  - [x] Each system occupies one predetermined room. Every player hull keeps a room for Shields, Sensors, Doors, the medical system, Teleporter, Cloaking, Hacking, Mind Control, Drones, and Backup Battery, read off the pale icons on its `*Systems.png` hangar picture, and a bought system takes that room.
   - [x] Upgrade tables in content.ts are incomplete (INFERRED rows).
   - [x] A breach prevents manning until it is sealed, and an auto-ship keeps its manning bonus through a fire, a breach, or an intruder.
 

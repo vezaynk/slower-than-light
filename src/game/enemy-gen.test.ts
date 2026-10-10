@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { WEAPONS } from "./content.ts";
-import { enemyPool, pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
+import { enemyPool, optionalChance, pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import { createGame, startCombat } from "./sim.ts";
 import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./wiki/enemy-ships.ts";
@@ -105,6 +105,32 @@ describe("rolled ships stay inside the printed numbers", () => {
       assert.ok(!invented.includes(g.enemy!.name));
       for (const c of g.crew.filter((m) => m.side === "enemy")) assert.ok(!invented.includes(c.name));
     }
+  });
+});
+
+describe("optional enemy systems", () => {
+  const ctx = (sector: number) => ({ sector, sectorName: "Civilian Sector", difficulty: "normal" as const });
+  const cls = (id: string) => ENEMY_CLASSES.find((c) => c.id === id)!;
+  /** Share of rolled ships with a Crew Teleporter (the sling kit). */
+  const teleporters = (id: string, pirate: boolean, sector: number) => {
+    const rand = seeded(sector * 97 + (pirate ? 1 : 0));
+    let n = 0;
+    for (let i = 0; i < 4000; i++) if (rollEnemy(cls(id), pirate, ctx(sector), rand).kits.sling) n++;
+    return n / 4000;
+  };
+
+  it("fits each one 30% of the time in sector 1, 10% more each sector", () => {
+    assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8].map((s) => Math.round(optionalChance(s) * 100)), [30, 40, 50, 60, 70, 80, 90, 100]);
+    assert.ok(Math.abs(teleporters("rebel-fighter", false, 1) - 0.3) < 0.03);
+    assert.ok(Math.abs(teleporters("rebel-fighter", false, 4) - 0.6) < 0.03);
+  });
+
+  it("keeps a bracketed system on the version the page names", () => {
+    // Rock Ships: Rock Scout "Crew Teleporter (1-2) [Pirate Scout only]"; Rock Investigator "[Rock Investigator only]".
+    assert.equal(teleporters("rock-scout", false, 8), 0);
+    assert.equal(teleporters("rock-scout", true, 8), 1);
+    assert.equal(teleporters("rock-investigator", false, 8), 1);
+    assert.equal(teleporters("rock-investigator", true, 8), 0);
   });
 });
 

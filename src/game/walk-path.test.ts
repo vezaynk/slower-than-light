@@ -61,7 +61,7 @@ describe("walk path", () => {
     ]);
     const at = walkPoint(ship, "p-engines", ["p-oxygen"], undefined, 0);
     assert.deepEqual(at, { x: 1.5, y: 3.5 });
-    const door = walkPoint(ship, "p-oxygen", ["p-a1"], "2,1", 0);
+    const door = walkPoint(ship, "p-oxygen", ["p-battery"], "2,1", 0);
     assert.deepEqual(door, { x: 2.5, y: 1.5 });
   });
 

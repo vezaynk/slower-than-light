@@ -567,18 +567,26 @@ function seatTrace(classId: string, installed: EnemySystem[]): { rooms: EnemyRoo
   return { rooms, cols, rows: laid.rows, marks: laid.marks };
 }
 
-const STATION: EnemySystem[] = ["pilot", "weapons", "shields", "engines"];
+/**
+ * Chance an optional system is fitted. ftl-layouts.mikehopley.org (linked from Enemy Ships, built on Mathchamp's
+ * enemy generation notes), every optional system card: "30% in sector 1, +10% each sector".
+ */
+export function optionalChance(sector: number): number {
+  return Math.min(1, 0.3 + 0.1 * (sector - 1));
+}
+
+const STATION: EnemySystem[] =["pilot", "weapons", "shields", "engines"];
 
 export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, rand: () => number): EnemySpec {
   const automated = cls.faction === "auto";
   const installed: [EnemySystem, number][] = [];
   for (const [id, r] of Object.entries(cls.systems) as [EnemySystem, Range][]) installed.push([id, roll(r, ctx.sector, rand)]);
   for (const [id, r] of Object.entries(cls.optional) as [EnemySystem, Range][]) {
+    // Faction pages: "[Pirate Fighter only]" fits only the pirate version; "[Rock Investigator only]" and
+    // "[Mantis Scout only]" fit only the regular one.
     const only = cls.optionalNotes?.[id];
-    // Rebel Ships: "[Pirate Fighter only]" and similar notes.
-    if (only && /pirate/i.test(only) && !pirate) continue;
-    // INFERRED: an optional system is fitted half the time.
-    if (rand() < 0.5) installed.push([id, roll(r, ctx.sector, rand)]);
+    if (only && /pirate/i.test(only) !== pirate) continue;
+    if (rand() < optionalChance(ctx.sector)) installed.push([id, roll(r, ctx.sector, rand)]);
   }
   // Clone Bay: "You can have either a Clone Bay or Medbay installed, not both." The Clone Bay wins when both rolled.
   if (installed.some(([id]) => id === "clonebay")) {

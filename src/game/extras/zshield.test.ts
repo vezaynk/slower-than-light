@@ -218,10 +218,10 @@ describe("crystal lockdown", () => {
     lockdownSelected(g);
     assert.equal(g.player.rooms.find((r) => r.id === human.room)?.lock ?? 0, 0);
 
-    // Crystal A hall beside weapons shares that door and has an airlock. The traced picture has no sensors room.
-    const from = "p-cah0";
+    // Crystal A, CrystalASystems.png: the hall at the nose shares a door with the Medbay and has two airlocks.
+    const from = "p-cah1";
     first.room = from;
-    first.path = ["p-weapons"];
+    first.path = ["p-medbay"];
     first.move = 0;
     assert.equal(lockdown(g, first.id), true);
     assert.equal(g.player.rooms.find((r) => r.id === from)?.lock, 12);
@@ -233,37 +233,37 @@ describe("crystal lockdown", () => {
     assert.equal(g.player.rooms.find((r) => r.id === "p-oxygen")?.lock, 12);
 
     for (let i = 0; i < 160 && first.room === from; i++) step(g, 0.05);
-    assert.equal(first.room, "p-weapons");
+    assert.equal(first.room, "p-medbay");
     assert.ok((g.player.rooms.find((r) => r.id === from)?.lock ?? 0) > 0);
 
     human.room = from;
     human.path = [];
-    orderCrew(g, human.id, "p-weapons");
+    orderCrew(g, human.id, "p-medbay");
     assert.deepEqual(human.path, []);
 
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(foe);
     foe.aboard = "player";
-    foe.room = "p-weapons";
+    foe.room = "p-medbay";
     foe.path = [from];
     foe.move = 0;
     foe.think = 10;
     step(g, 0.05);
-    assert.equal(foe.room, "p-weapons");
+    assert.equal(foe.room, "p-medbay");
     assert.deepEqual(foe.path, []);
     // Send the boarder home: pirate crews now come from the sector's races (wiki/skills.ts), and a Rock boarder
-    // left in p-weapons kills the Crystal before the 38-second recharge check below.
+    // left in p-medbay kills the Crystal before the 38-second recharge check below.
     foe.aboard = "enemy";
     foe.room = g.enemy!.rooms[0].id;
     foe.path = [];
 
     const interior = g.player.doors.find(
       (d) =>
-        (d.a === from && d.b === "p-weapons") || (d.a === "p-weapons" && d.b === from),
+        (d.a === from && d.b === "p-medbay") || (d.a === "p-medbay" && d.b === from),
     );
     assert.ok(interior);
     interior.open = false;
-    toggleDoor(g, from, "p-weapons");
+    toggleDoor(g, from, "p-medbay");
     assert.equal(interior.open, false);
     const air = g.player.doors.find((d) => d.b === "void" && d.a === from);
     assert.ok(air);

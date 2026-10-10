@@ -59,6 +59,10 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
       ["lanius-b", "leash", "p-mind"],
       ["mantis-b", "sling", "p-tele"],
       ["crystal-b", "sling", "p-tele"],
+      ["engi-a", "swarm", "p-drones"],
+      ["mantis-a", "sling", "p-tele"],
+      ["fed-a", "lance", "p-artillery"],
+      ["kestrel-c", "cradle", "p-clone"],
     ];
     for (const [hull, kit, room] of want) assert.equal(kitRoom(createGame(3, hull), kit)?.id, room, `${hull} ${kit}`);
   });
@@ -80,18 +84,43 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     }
   });
 
-  it("gives a kit bought mid-run an empty traced room (INFERRED) and is idempotent", () => {
+  it("puts a kit bought mid-run in the room its hangar picture keeps for it, and is idempotent", () => {
     const g = createGame(3, "kestrel-a");
     g.scrap = 500;
     const halls = g.player.rooms.filter((r) => r.title === "Hall").length;
     installVeil(g);
     const r = kitRoom(g, "veil")!;
-    assert.ok(r);
-    assert.equal(r.title, "Cloaking");
+    assert.equal(r.id, "p-cloak");
     assert.equal(r.w * r.h, 4);
-    assert.equal(g.player.rooms.filter((o) => o.title === "Hall").length, halls - 1);
+    assert.equal(g.player.rooms.filter((o) => o.title === "Hall").length, halls);
     seatKits(g.player);
     assert.equal(g.player.rooms.filter((o) => o.kit === "veil").length, 1);
+  });
+
+  it("keeps a room for every system a store sells on every traced hull (Systems: one predetermined room)", () => {
+    const titles = ["Shields", "Sensors", "Doors", "Teleporter", "Cloaking", "Hacking", "Mind Control", "Drones", "Backup Battery"];
+    for (const h of HULLS) {
+      const rooms = layoutFor(h.id)!.rooms;
+      for (const t of titles) assert.equal(rooms.filter((r) => r.title === t).length, 1, `${h.id} ${t}`);
+      assert.equal(rooms.filter((r) => r.title === "Medbay" || r.title === "Clone Bay").length, 1, `${h.id} medical`);
+    }
+  });
+
+  it("gives bought Shields and Sensors the pale rooms on the hangar picture", () => {
+    const g = createGame(3, "stealth-c");
+    assert.equal(g.player.rooms.find((r) => r.id === "p-shields")?.system, null);
+    g.player.systems.shields.level = 2;
+    g.player.systems.sensors.level = 1;
+    seatKits(g.player);
+    assert.equal(g.player.rooms.find((r) => r.id === "p-shields")?.system, "shields");
+    assert.equal(g.player.rooms.find((r) => r.id === "p-sensors")?.system, "sensors");
+  });
+
+  it("seats a Clone Bay in the pale Medbay room of a hull with no medical system", () => {
+    const g = createGame(3, "slug-b");
+    g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    seatKits(g.player);
+    assert.equal(kitRoom(g, "cradle")?.id, "p-medbay");
   });
 
   it("grows the Lark a room under its grid, with doors, when it has no empty room (INVENTED)", () => {

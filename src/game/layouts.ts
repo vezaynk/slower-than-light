@@ -46,7 +46,11 @@ function traced(rows: Raw[], bars: Bar[], cols: number, gridRows: number): Layou
   return { ...laid, marks: bars.map(([x, y, side]) => ({ x, y, side })) };
 }
 
-/** Titles a pale hangar icon can carry: every kit (KIT_TITLE), and the core systems a store sells. */
+/**
+ * Titles a pale hangar icon can carry: every kit (KIT_TITLE), and the core systems a store sells. The core four are the
+ * pale icons seen on the traced pictures (Shields on the Stealth hulls, Sensors, Doors on Rock B, Medbay on Slug B).
+ * Stores and resources: "Stores cannot sell a system you already own"; "Shields are guaranteed if you don't have them".
+ */
 const RESERVABLE = new Set<string>([
   "Teleporter", "Cloaking", "Hacking", "Drones", "Mind Control", "Clone Bay", "Backup Battery", "Artillery",
   "Shields", "Sensors", "Doors", "Medbay",
@@ -55,6 +59,7 @@ const RESERVABLE = new Set<string>([
 /**
  * A pale icon is a room kept for a system the hull does not have yet. It shows as a Hall, and `reserve` keeps the
  * system's name for seatKits. Idempotent; also turns rooms from older saves (titled for the system) into Halls.
+ * INFERRED: "Hall" because the wiki names no such room and the traced layouts already call an empty room a Hall.
  */
 export function reserveRooms(rooms: { title: string; system: SysId | null; kit?: KitId; reserve?: string }[]): void {
   for (const r of rooms) {
@@ -1810,6 +1815,7 @@ export function kitSeat<R extends Seat>(rooms: R[], kit: KitId, medbayLevel = 0)
     const bay = rooms.find((r) => !r.kit && (r.system === "medbay" || (r.system === null && r.reserve === "Medbay")));
     if (bay) return bay;
   }
+  // A room kept for another system is not free (Systems: "Each system occupies one predetermined room").
   const empty = rooms.filter((r) => free(r) && !r.reserve && (r.title === "Hall" || r.title === "Hold"));
   for (const n of KIT_SQUARES[kit]) {
     const hit = empty.find((r) => squares(r) === n);
@@ -1889,7 +1895,10 @@ function growRoom(ship: Ship, kit: KitId): Room {
   return r;
 }
 
-/** Systems a store sells that are not kits, with the title of the pale room each hull keeps for them. */
+/**
+ * Systems a store sells that are not kits, with the title of the pale room each hull keeps for them (the pale icons on
+ * the traced hangar pictures). Stores and resources names Shields, Sensors, and "a medical system" among store stock.
+ */
 const BOUGHT_SYSTEMS: [SysId, string][] = [
   ["shields", "Shields"],
   ["sensors", "Sensors"],
@@ -1913,7 +1922,8 @@ export function seatKits(ship: Ship): void {
       r.system = "medbay";
       r.title = "Medbay";
     } else {
-      // The system left: its room is a Hall again, still kept for it.
+      // The system left: its room is a Hall again, still kept for it (Systems: "Each system occupies one predetermined
+      // room specific to the ship").
       r.reserve = r.title;
       r.title = "Hall";
     }

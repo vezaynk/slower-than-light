@@ -43,7 +43,11 @@ export type Room = {
   system: SysId | null;
   /** Subsystem kit housed in this room (enemy hulls from enemy-gen.ts). Weapon hits damage it. */
   kit?: KitId;
-  /** Player hulls: the system this empty room is kept for (its pale hangar icon). It shows as a Hall until bought. */
+  /**
+   * Player hulls: the system this empty room is kept for, traced from the pale icon on the hull's *Systems.png hangar
+   * picture. Systems: "Each system occupies one predetermined room specific to the ship". INFERRED: it shows as a
+   * "Hall" until bought, because the wiki names no such room.
+   */
   reserve?: string;
   x: number;
   y: number;

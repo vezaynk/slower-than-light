@@ -2080,8 +2080,9 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
     }
   }
   for (let i = 0; i < count; i++) {
-    // wiki/targeting.ts, combat-ai UpdateWeapons: "one [target room] for each projectile that will be fired". A beam
-    // keeps its one swipe. INFERRED: a flak burst is one spread around one room (its pellet odds above).
+    // wiki/targeting.ts, combat-ai UpdateWeapons: "one [target room] for each projectile that will be fired".
+    // INFERRED: a beam is one swipe, so it keeps the room already picked (w.target) instead of rolling per projectile.
+    // INFERRED: a flak burst is one spread around one room (its pellet odds above).
     let targetRoom = from === "enemy" && i > 0 && def.kind !== "beam" && def.kind !== "flak" ? enemyTarget(g, w) : rooms[0];
     let offRoom = false;
     if (scatter) {
@@ -3082,7 +3083,8 @@ function chargeSide(
     if (from === "enemy" && enemyHoldsFire(g)) return;
     if (w.charge >= 1 && w.target) {
       // wiki/targeting.ts: an enemy gun picks its rooms as it fires ("Targeting rolls appear to happen when the weapon
-      // fires", reddit 7pmz3j). A missile with no ammo keeps its room.
+      // fires", reddit 7pmz3j). INFERRED: a missile gun with no ammo fires nothing, so there is no new shot to roll a
+      // room for; it keeps its old target.
       if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
       launch(g, from, w);
     }

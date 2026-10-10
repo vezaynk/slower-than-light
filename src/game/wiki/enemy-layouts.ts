@@ -1817,7 +1817,7 @@ export const ENEMY_LAYOUTS: Record<string, EnemyLayout> = {
   },
 };
 
-/** The traced interior for a class, the pirate one when it differs. */
+/** The traced interior for a class, the pirate one when it differs (ftl-layouts.mikehopley.org pirate/ pictures). */
 export function enemyLayout(classId: string, pirate = false): EnemyLayout | undefined {
   return (pirate ? ENEMY_LAYOUTS[`${classId}:pirate`] : undefined) ?? ENEMY_LAYOUTS[classId];
 }

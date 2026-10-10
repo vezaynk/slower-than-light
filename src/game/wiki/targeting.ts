@@ -27,7 +27,9 @@
  * Gaps:
  * - INFERRED: xftl does not print the system_targets list. It is every system type here, so a system the player lacks
  *   turns that roll into a random room, as the quote above says it should.
- * - "Pick a random system" (Hard) draws from the systems installed on the player ship, subsystems included.
+ * - INFERRED: "Pick a random system" (Hard) draws from the systems installed on the player ship, subsystems included,
+ *   since PrioritizeSystem (Hard) "loops through all the systems on the player ship".
+ * - INFERRED: every "at random" pick is uniform; xftl gives no weights.
  * - Cloaking, Backup Battery, Crew Teleporter, and the other kits resolve to the player room whose `kit` matches
  *   (layouts.ts seatKits gives every installed kit a room).
  */
@@ -91,12 +93,16 @@ function intruders(g: Game): boolean {
   return g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
 }
 
+/** combat-ai: "average oxygen". INFERRED: a plain mean over rooms (not weighted by size); a hull with no rooms reads full. */
 function averageOxygen(ship: Ship): number {
   if (ship.rooms.length === 0) return 100;
   return ship.rooms.reduce((n, r) => n + r.o2, 0) / ship.rooms.length;
 }
 
-/** Seconds of charge on a player artillery kit (lance stores a 0..1 fraction, flak stores seconds). */
+/**
+ * Seconds of charge on a player artillery kit (lance stores a 0..1 fraction, flak stores seconds): combat-ai's "been
+ * charging for less than four seconds", read as seconds of charge built so far. A missing kit never lists.
+ */
 function artilleryCharge(g: Game, id: "lance" | "flak"): number {
   const kit = g.player.kits[id];
   if (!kit) return Infinity;
@@ -111,14 +117,23 @@ export function priorityList(g: Game): TargetSystem[] {
   const ship = g.player;
   const kits = ship.kits ?? {};
   const out: TargetSystem[] = [];
+  // combat-ai, Hard list, one line per entry. Shields: "if powered".
   if (ship.systems.shields.power > 0) out.push("shields");
   if (evasionPercent(g, ship, "player") > EVASION_LINE) out.push("engines", "pilot");
   if (averageOxygen(ship) < OXYGEN_LINE) out.push("oxygen");
+  // Weapons, Drones: "if any weapon/drone is powered"; Zoltan bars count (reddit 7pmz3j, header). INFERRED: Drone
+  // Control with any power counts as a powered drone.
   if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean)) out.push("weapons");
   if (kits.swarm && kits.swarm.power > 0) out.push("swarm");
+  // Teleporter: "if the enemy ship has any intruders", i.e. player crew aboard the enemy (Boarding: "when your crew is
+  // onboard enemy ship, your Teleporter system will be among the priority targets"). Cloaking: "if not on cooldown,
+  // nor active". Artillery: "< 4sec of total charge".
   if (kits.sling && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) out.push("sling");
   if (kits.veil && kits.veil.cool <= 0 && !(kits.veil.on && kits.veil.left > 0)) out.push("veil");
   for (const id of ["lance", "flak"] as const) if (kits[id] && artilleryCharge(g, id) < ARTILLERY_LINE) out.push(id);
+  // Clonebay: "if crew is being cloned". INFERRED: a dead player crew member with a clone queued (cloneSeq).
+  // Mind control: "if active". Hacking: "if drone launched (flying or landed)". Doors: "if there are any intruders or
+  // fires". Backup battery: "if active". Sensors: "never", so it is not checked.
   if (kits.cradle && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null)) out.push("cradle");
   if (kits.leash && kits.leash.on && kits.leash.left > 0) out.push("leash");
   if (kits.spike && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null)) out.push("spike");
@@ -149,12 +164,14 @@ export function prioritizeSystem(g: Game): string | null {
   if (g.difficulty !== "hard") {
     const chance = g.difficulty === "easy" ? SYSTEM_CHANCE.easy : SYSTEM_CHANCE.normal;
     if (rand(g) >= chance) return null;
+    // INFERRED: uniform over system_targets; an entry the player lacks returns null ("isn't present in the player ship").
     const id = pick(g, SYSTEM_TARGETS);
     return (id && systemRoom(ship, id)?.id) ?? null;
   }
   const roll = rand(g);
   if (roll < HARD_RANDOM_ROOM) return null;
   const any = installedSystems(g);
+  // "Pick a high-priority system at random if there is one, otherwise pick a system at random."
   const listed = roll < HARD_RANDOM_ROOM + HARD_ANY_SYSTEM ? [] : priorityList(g);
   const id = pick(g, listed.length > 0 ? listed : any);
   return (id && systemRoom(ship, id)?.id) ?? null;

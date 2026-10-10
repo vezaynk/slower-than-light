@@ -129,7 +129,8 @@ export function enemyParts(classId: string, drones: number): number {
 
 /**
  * Combat drones for Mathchamp's flag rule. "a combat drone (the type of weapon on the drone does not matter)": Combat
- * Drone I and II, the Anti-Ship Beam Drones, and the Anti-Ship Fire Drone.
+ * Drone I and II, the Anti-Ship Beam Drones, and the Anti-Ship Fire Drone: the five schematics under Drone Control,
+ * "Combat Drones (offensive drones)".
  */
 const COMBAT_DRONES = new Set(["striker", "combat2", "beam", "beam2", "fire"]);
 
@@ -159,6 +160,7 @@ export function rollDrones(classId: string, level: number, rand: () => number, f
     const soft = hard.filter((id) => !out.includes(id) && (!open || COMBAT_DRONES.has(id)));
     const fits = soft.length ? soft : hard;
     if (!fits.length) break;
+    // INFERRED: uniform among the drones that pass, as Mathchamp's weapon generator gives "equal odds for each entry".
     const id = fits[Math.floor(rand() * fits.length) % fits.length];
     out.push(id);
     left -= SCHEMATIC_POWER[id];
@@ -420,6 +422,7 @@ function lerp(lo: number, hi: number, sector: number): number {
  */
 function levelBonus(ctx: PoolContext, rand: () => number): number {
   const top = ctx.difficulty === "easy" ? (ctx.sector === 1 ? 0 : 1) : ctx.sector <= 2 ? 1 : 2;
+  // INFERRED: "between 0 and 1" / "between 0 and 2" read as an integer drawn uniformly, both ends included.
   return Math.floor(rand() * (top + 1));
 }
 
@@ -463,6 +466,7 @@ function spendBudget(
 ): number {
   let left = bars;
   while (left > 0) {
+    // INFERRED: "selected at random" read as uniform among the eligible systems.
     const ok = [...levels.keys()].filter((id) => (!allowed || allowed.has(id)) && levels.get(id)! < caps.get(id)!);
     if (!ok.length) break;
     const id = ok[Math.floor(rand() * ok.length) % ok.length];
@@ -479,6 +483,7 @@ function spendBudget(
  * Mantis Scout 3-4: 3 in sectors 1-4, 4 in sectors 5-6). Easy is delayed a sector.
  */
 export function crewCount(r: Range, ctx: PoolContext): number {
+  // INFERRED: a "0-0" crew range (automated ships) has no blueprint maximum to add one to; it stays crewless.
   if (r[1] <= 0) return 0;
   return Math.min(r[1], Math.floor(lerp(r[0], r[1] + 1, genSector(ctx.sector, ctx.difficulty))));
 }
@@ -553,6 +558,7 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
     if (laserFlag(id)) flags.laser = false;
     if (hullFlag(id)) flags.hull = false;
   }
+  // INFERRED (see above): nothing eligible still mounts the cheapest gun.
   if (!out.length && ids.length) {
     const cheapest = [...ids].sort((a, b) => WEAPONS[a].power - WEAPONS[b].power)[0];
     out.push(cheapest);
@@ -720,7 +726,7 @@ export function optionalChance(sector: number, difficulty: Difficulty = "normal"
   return Math.max(0, Math.min(1, 0.2 + 0.1 * (genSector(sector, difficulty) - 1) + shift));
 }
 
-const STATION: EnemySystem[] =["pilot", "weapons", "shields", "engines"];
+const STATION: EnemySystem[] = ["pilot", "weapons", "shields", "engines"];
 
 export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, rand: () => number): EnemySpec {
   const automated = cls.faction === "auto";
@@ -731,7 +737,10 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     caps.set(id, rollMaxLevel(r, ctx, rand));
   }
   const levels = new Map<EnemySystem, number>();
+  // Faction pages print (starting level - blueprint maximum); a starting system begins at the first number and only the
+  // budget raises it (Mathchamp: "upgrades systems from a limited budget").
   for (const [id, r] of Object.entries(cls.systems) as [EnemySystem, Range][]) levels.set(id, r[0]);
+  // UPGRADE_BUDGET holds sectors 1-8, one row each. INFERRED: a sector outside 1-8 uses the nearest row.
   const row = UPGRADE_BUDGET[ctx.difficulty][Math.max(0, Math.min(7, ctx.sector - 1))];
   const defense = row[1];
   let [offense, , general] = row;
@@ -748,7 +757,8 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
     if (id === "weapons" || id === "drones" || id === "teleporter") offense -= 1;
     else general -= ctx.difficulty === "hard" ? 1 : 2;
   }
-  // Clone Bay: "You can have either a Clone Bay or Medbay installed, not both." The Clone Bay wins when both rolled.
+  // Clone Bay: "You can have either a Clone Bay or Medbay installed, not both." INFERRED: the Clone Bay wins when both
+  // rolled (no source says which the game keeps).
   if (levels.has("clonebay")) levels.delete("medbay");
   // Mathchamp: offensive, then defensive, then "any unspent power bars from the offensive or defensive budget (or ...
   // any negative budget from adding optional systems) is added to the general budget's allocation".

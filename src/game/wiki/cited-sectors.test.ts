@@ -394,7 +394,7 @@ describe("ship info screen while in danger", () => {
     assert.equal(g.shipSheet, false);
   });
 
-  it("sends the same asteroid at the enemy ship", () => {
+  it("sends asteroids at the enemy ship too, in turn with the player's (xftl doc/asteroids)", () => {
     const g = createGame(12);
     startCombat(g, "scout", true);
     assert.ok(g.enemy);
@@ -410,11 +410,15 @@ describe("ship info screen while in danger", () => {
     g.enemy.zoltan = undefined;
     g.player.kits.swarm = undefined;
     g.enemy.kits.swarm = undefined;
-    g.asteroidWait = 8;
-    g.asteroidT = 7.96;
     const playerHull = g.player.hull;
     const enemyHull = g.enemy.hull;
-    step(g, 0.05);
+    g.asteroidPhase = "wave1";
+    g.asteroidPhaseLeft = 100;
+    for (let i = 0; i < 2; i++) {
+      g.asteroidWait = 0.05;
+      g.asteroidT = 0;
+      step(g, 0.05);
+    }
     const rocks = g.shots.filter((s) => s.label === "Rock");
     assert.equal(rocks.length, 2);
     const theirs = rocks.find((s) => s.at === "enemy");

@@ -50,26 +50,29 @@ export function flareFireCount(shieldsUp: boolean, roll: number): number {
 }
 
 /**
- * Environmental Hazards, Class-M Red Giant Star: "1 or 2 of the total fires randomly allocated to each room."
- * INFERRED: one fire at a time, into a room that still has fewer than 2 from this flare.
- * Fires left over when every room already has 2 are not placed.
+ * Where a flare's fires land. xftl doc/solar-flares: "While there are more fires to start, pick a random room. Then
+ * spawn either 1/2 fires (always 1 if there's only one left to spawn), and spawn it into the room." A room can be
+ * picked again. Environmental Hazards prints the same "1 or 2 of the total fires randomly allocated to each room."
+ * INFERRED: 1 and 2 are an even split.
+ * Returns each spawn in order: the room index and its 1 or 2 fires.
  */
-export function placeFlareFires(count: number, rooms: number, roll: () => number): number[] {
-  const placed = Array.from({ length: Math.max(0, rooms) }, () => 0);
+export function placeFlareFires(count: number, rooms: number, roll: () => number): { room: number; fires: number }[] {
+  const out: { room: number; fires: number }[] = [];
+  if (rooms <= 0) return out;
   let left = Math.max(0, count);
   while (left > 0) {
-    const open: number[] = [];
-    for (let i = 0; i < placed.length; i++) if (placed[i] < 2) open.push(i);
-    if (open.length === 0) break;
-    const pick = open[Math.floor(roll() * open.length) % open.length];
-    placed[pick] += 1;
-    left -= 1;
+    const room = Math.floor(roll() * rooms) % rooms;
+    const fires = left === 1 ? 1 : roll() < 0.5 ? 1 : 2;
+    out.push({ room, fires });
+    left -= fires;
   }
-  return placed;
+  return out;
 }
 
 /**
- * Environmental Hazards, Class-M Red Giant Star: 33% from one fire, 66% from two.
+ * Environmental Hazards, Class-M Red Giant Star: 33% from one fire, 66% from two. xftl doc/solar-flares: "For each
+ * room a fire is started in, there's a 33%/66% chance to deal a point of damage, depending on whether 1/2 fires were
+ * started in that room." Rolled once per spawn.
  * The roll is 1 hull and 1 system damage, or nothing.
  */
 export function flareDamagesRoom(fires: number, roll: number): boolean {

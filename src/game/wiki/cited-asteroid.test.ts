@@ -1,43 +1,67 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { commitJump, continueReward, createGame, startCombat, step } from "../sim.ts";
-import { asteroidIntervalSeconds, asteroidSide } from "./cited-asteroid.ts";
+import type { Game } from "../types.ts";
+import {
+  ASTEROID_TABLE,
+  asteroidPhaseSeconds,
+  asteroidSide,
+  asteroidSpawnSeconds,
+  nextAsteroidPhase,
+} from "./cited-asteroid.ts";
 
-describe("asteroid interval", () => {
-  it("is random and shortens as the shield system level rises", () => {
-    assert.equal(asteroidIntervalSeconds(0, 0), 6);
-    assert.ok(asteroidIntervalSeconds(0, 0.999999) < 10);
-    assert.ok(asteroidIntervalSeconds(0, 0) < asteroidIntervalSeconds(0, 0.9));
-    assert.ok(asteroidIntervalSeconds(8, 0.4) < asteroidIntervalSeconds(0, 0.4));
-    assert.ok(asteroidIntervalSeconds(4, 0.2) < asteroidIntervalSeconds(2, 0.2));
-    assert.equal(asteroidIntervalSeconds(8, 0), 1.5);
-    assert.equal(asteroidIntervalSeconds(12, 0), asteroidIntervalSeconds(8, 0));
+/** Put the field in a long wave with the next rock due now. */
+function rockNow(g: Game) {
+  g.asteroidPhase = "wave1";
+  g.asteroidPhaseLeft = 100;
+  g.asteroidWait = 0.05;
+  g.asteroidT = 0;
+}
+
+describe("asteroid field timing (xftl doc/asteroids)", () => {
+  it("reads the table by shield bubbles: 0-1, 2, 3, 4+", () => {
+    // Shields level 0-3 is 0-1 bubbles, 4-5 is 2, 6-7 is 3, 8+ is 4.
+    assert.equal(asteroidPhaseSeconds(0, "break", 0), 5);
+    assert.equal(asteroidPhaseSeconds(3, "wave1", 1), 16);
+    assert.equal(asteroidPhaseSeconds(4, "wave1", 1), 20);
+    assert.equal(asteroidPhaseSeconds(6, "break", 0), 12);
+    assert.equal(asteroidPhaseSeconds(8, "wave1", 1), 30);
+    assert.equal(asteroidSpawnSeconds(2, "wave1", 0), 1.8);
+    assert.equal(asteroidSpawnSeconds(8, "wave2", 0), 0.54);
+    assert.equal(asteroidSpawnSeconds(12, "wave2", 1), 0.95);
+    assert.equal(ASTEROID_TABLE.length, 4);
+    // More bubbles, faster rocks (Environmental Hazards: "more frequently if your shields are highly upgraded").
+    assert.ok(asteroidSpawnSeconds(8, "wave1", 0.5) < asteroidSpawnSeconds(0, "wave1", 0.5));
+  });
+
+  it("cycles break, wave 1, wave 2, and throws rocks only in a wave", () => {
+    assert.equal(nextAsteroidPhase("break"), "wave1");
+    assert.equal(nextAsteroidPhase("wave1"), "wave2");
+    assert.equal(nextAsteroidPhase("wave2"), "break");
+    const g = createGame(9);
+    startCombat(g, "scout", true);
+    assert.equal(g.asteroidPhase, "break");
+    for (const w of g.player.weapons) w.enabled = false;
+    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+    g.asteroidPhaseLeft = 100;
+    for (let i = 0; i < 60; i++) step(g, 0.05);
+    assert.equal(g.shots.filter((s) => s.label === "Rock").length, 0);
   });
 
   it("follows shield system level, not power or ion", () => {
-    const powered = createGame(5);
-    powered.player.systems.shields.level = 4;
-    powered.player.systems.shields.power = 4;
-    startCombat(powered, "scout", true);
-
-    const down = createGame(5);
-    down.player.systems.shields.level = 4;
-    down.player.systems.shields.power = 0;
-    down.player.systems.shields.ion = [5, 5, 5, 5];
-    startCombat(down, "scout", true);
-
-    const open = createGame(5);
-    open.player.systems.shields.level = 0;
-    open.player.systems.shields.power = 0;
-    startCombat(open, "scout", true);
-
-    assert.equal(down.asteroidWait, powered.asteroidWait);
-    assert.ok((down.asteroidWait ?? 0) > 0);
-    assert.ok((open.asteroidWait ?? 0) > (powered.asteroidWait ?? 0));
-    assert.equal(powered.asteroidT, 0);
+    const wait = (power: number, ion: number[], level: number) => {
+      const g = createGame(5);
+      g.player.systems.shields.level = level;
+      g.player.systems.shields.power = power;
+      g.player.systems.shields.ion = ion;
+      startCombat(g, "scout", true);
+      return g.asteroidPhaseLeft;
+    };
+    assert.equal(wait(0, [5, 5, 5, 5], 6), wait(6, [], 6));
+    assert.notEqual(wait(0, [], 0), wait(6, [], 6));
   });
 
-  it("rolls a new wait from the current shield level after a rock", () => {
+  it("aims rocks at the two ships in turn", () => {
     const g = createGame(9);
     g.player.systems.shields.level = 8;
     g.player.systems.shields.power = 0;
@@ -46,12 +70,15 @@ describe("asteroid interval", () => {
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     g.player.systems.engines.power = 0;
     g.enemy!.systems.engines.power = 0;
-    g.asteroidWait = 0.05;
-    g.asteroidT = 0;
-    step(g, 0.05);
-    assert.equal(g.shots.filter((s) => s.label === "Rock").length, 2);
-    assert.ok((g.asteroidWait ?? 0) >= 1.5 && (g.asteroidWait ?? 0) < 2.5);
-    assert.equal(g.asteroidT, 0);
+    const at: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      rockNow(g);
+      const before = g.shots.length;
+      step(g, 0.05);
+      for (const s of g.shots.slice(before)) if (s.label === "Rock") at.push(s.at ?? "");
+      assert.ok((g.asteroidWait ?? 0) >= 0.54 && (g.asteroidWait ?? 0) <= 1.35);
+    }
+    assert.deepEqual(at, ["player", "enemy", "player", "enemy"]);
   });
 
   it("keeps throwing rocks after the fight and does not train on those", () => {
@@ -68,11 +95,13 @@ describe("asteroid interval", () => {
     assert.ok(nen);
     nen.room = "p-shields";
     nen.path = [];
+    // After the enemy dies, every second rock is its wasted turn (xftl doc/asteroids), so force up to two.
     const land = () => {
-      g.asteroidWait = 0.05;
-      g.asteroidT = 0;
       const before = g.player.shieldNow;
-      for (let i = 0; i < 40 && g.player.shieldNow === before && g.phase !== "defeat"; i++) step(g, 0.05);
+      for (let tries = 0; tries < 2 && g.player.shieldNow === before; tries++) {
+        rockNow(g);
+        for (let i = 0; i < 40 && g.player.shieldNow === before && g.phase !== "defeat"; i++) step(g, 0.05);
+      }
     };
     land();
     assert.equal(nen.skills?.shields, 1);
@@ -111,8 +140,7 @@ describe("asteroid interval", () => {
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       g.player.systems.engines.power = 0;
       g.enemy!.systems.engines.power = 0;
-      g.asteroidWait = 0.05;
-      g.asteroidT = 0;
+      rockNow(g);
       step(g, 0.05);
       for (const shot of g.shots) {
         if (shot.label !== "Rock") continue;
@@ -136,8 +164,7 @@ describe("asteroid interval", () => {
         g.player.systems.shields.power = 0;
         g.player.shieldNow = 0;
         if (g.player.kits.swarm) g.player.kits.swarm.loadout = [];
-        g.asteroidWait = 0.05;
-        g.asteroidT = 0;
+        rockNow(g);
         step(g, 0.05);
         const rock = g.shots.find(
           (s) => s.label === "Rock" && s.at === "player" && (want === "fire" ? s.fireChance === 1 : s.breachChance === 1),

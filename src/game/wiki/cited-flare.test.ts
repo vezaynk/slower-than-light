@@ -117,16 +117,25 @@ describe("solar flare", () => {
     applyFlarePulse(g);
     const open = fires(g, "player");
     assert.ok(open >= 3 && open <= 6);
-    assert.ok(g.player.rooms.every((room) => room.fire <= 2));
   });
 
-  it("deals 1 hull and 1 system damage on the printed chance, and never two fires in one room past the cap", () => {
+  it("deals 1 hull and 1 system damage on the printed chance, and spawns 1 or 2 fires per random room pick", () => {
     assert.equal(flareDamagesRoom(1, 0.32), true);
     assert.equal(flareDamagesRoom(1, 0.33), false);
     assert.equal(flareDamagesRoom(2, 0.65), true);
     assert.equal(flareDamagesRoom(2, 0.66), false);
-    const packed = placeFlareFires(6, 2, () => 0);
-    assert.deepEqual(packed, [2, 2]);
+    // xftl doc/solar-flares: a room can be picked again, and the last fire left is always a single.
+    assert.deepEqual(placeFlareFires(5, 2, () => 0), [
+      { room: 0, fires: 1 },
+      { room: 0, fires: 1 },
+      { room: 0, fires: 1 },
+      { room: 0, fires: 1 },
+      { room: 0, fires: 1 },
+    ]);
+    assert.deepEqual(placeFlareFires(3, 4, () => 0.75), [
+      { room: 3, fires: 2 },
+      { room: 3, fires: 1 },
+    ]);
 
     let hurt = false;
     for (let seed = 1; seed < 40 && !hurt; seed++) {

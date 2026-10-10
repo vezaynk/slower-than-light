@@ -40,45 +40,36 @@ function fireTotal(g: Game): number {
 }
 
 describe("Fires outside a fight", () => {
-  it("grows a sealed fire by 0.5 once the level-1 door slow passes 7s", () => {
-    const g = createGame(1);
-    const room = sealed(g, "p-oxygen");
-    const quiet = new Map(g.player.rooms.filter((r) => r.id !== room.id).map((r) => [r.id, r.o2]));
-    // Door System: a level-1 closed door slows spread ×1.75. The tick must pass 7s of slowed time.
-    const slow = 1.75;
-    const dt = 0.05;
-    let steps = 0;
-    while (room.fire === 1 && steps < 400) {
-      step(g, dt);
-      steps += 1;
+  /** Seconds until `when` holds, stepping 0.05s, or Infinity past `limit`. */
+  function until(g: Game, when: () => boolean, limit: number): number {
+    for (let t = 0; t <= limit; t += 0.05) {
+      if (when()) return t;
+      step(g, 0.05);
     }
-    const elapsed = steps * dt;
-    assert.equal(room.fire, 1.5);
-    assert.equal(room.fireTick, 0);
-    assert.ok(elapsed + 1e-6 >= 7 * slow, `${elapsed}`);
-    assert.ok(elapsed - 7 * slow <= dt + 1e-6, `${elapsed}`);
-    assert.ok(g.player.rooms.every((r) => r.id === room.id || r.fire === 0));
-    // Level 1 refills at 1.2%/s and one fire consumes 0.96%/s, so a full room stays full.
-    assert.equal(room.o2, 100);
-    for (const [id, o2] of quiet) assert.equal(g.player.rooms.find((r) => r.id === id)!.o2, o2, id);
+    return Infinity;
+  }
+
+  it("catches a second tile of a sealed 2x1 room after 6.25 to 30.6 seconds (xftl doc/fires)", () => {
+    // A counter of 10 to 49, drained 1.6 a second by the one adjacent fire.
+    for (const seed of [1, 2, 3, 4]) {
+      const g = createGame(seed, "kestrel-a");
+      const room = sealed(g, "p-oxygen");
+      assert.equal(room.w * room.h, 2);
+      const t = until(g, () => room.fire >= 2, 40);
+      assert.ok(t >= 6.25 - 0.05 && t <= 30.63 + 0.05, `seed ${seed}: ${t}`);
+      assert.equal(room.fire, 2, "one more fire, never past one per tile");
+    }
   });
 
-  it("grows a sealed fire by 0.5 once blast doors pass 7s", () => {
-    const g = createGame(2);
+  it("holds a fire behind shut blast doors for at least 62.5 seconds", () => {
+    // doc/fires: a level 2+ door drains the far tile's counter 0.16 a second, so 10 / 0.16 at the soonest.
+    const g = createGame(2, "kestrel-a");
     g.player.systems.doors.level = 2;
     const room = sealed(g, "p-oxygen");
-    const dt = 0.05;
-    let steps = 0;
-    while (room.fire === 1 && steps < 2000) {
-      step(g, dt);
-      steps += 1;
-    }
-    const elapsed = steps * dt;
-    assert.equal(room.fire, 1.5);
-    assert.ok(elapsed + 1e-6 >= 7 * 10, `${elapsed}`);
-    assert.ok(elapsed - 70 <= dt + 1e-6, `${elapsed}`);
+    room.fire = 2;
+    const t = until(g, () => g.player.rooms.some((r) => r.id !== room.id && r.fire > 0), 70);
+    assert.ok(t >= 62.5 - 0.05, `${t}`);
   });
-
   it("a crew member in the room puts the fire out and takes 2.128 HP per second", () => {
     const g = createGame(3);
     const room = g.player.rooms.find((r) => r.id === "p-oxygen")!;
@@ -206,18 +197,15 @@ describe("Fires outside a fight", () => {
     assert.ok(Math.abs(med.o2 - (4 + 1.2)) < 1e-6, `${med.o2}`);
   });
 
-  it("can spread through an open door", () => {
-    const g = createGame(6);
+  it("crosses an open door from a burning room after 6.25 to 30.6 seconds", () => {
+    const g = createGame(6, "kestrel-a");
     const room = sealed(g, "p-oxygen");
+    room.fire = 2;
     for (const d of g.player.doors) {
       if (d.b !== "void" && (d.a === room.id || d.b === room.id)) d.open = true;
     }
-    room.fireTick = 7;
-    const before = fireTotal(g);
-    step(g, 0.05);
-    const after = fireTotal(g);
-    assert.equal(room.fireTick, 0);
-    assert.ok(after === before + 0.5 || after === before + 1, `${before} -> ${after}`);
+    const t = until(g, () => g.player.rooms.some((r) => r.id !== room.id && r.fire > 0), 40);
+    assert.ok(t >= 6.25 - 0.05 && t <= 30.63 + 0.05, `${t}`);
   });
 
   it("stays still while paused or on the title", () => {
@@ -251,10 +239,10 @@ describe("Oxygen outside a fight", () => {
     for (let i = 0; i < 60; i++) step(g, 0.05);
     for (const door of voids) {
       const room = g.player.rooms.find((r) => r.id === door.a);
-      assert.equal(room?.o2, 0, door.a);
+      assert.ok((room?.o2 ?? 100) < 75, `${door.a} ${room?.o2}`);
     }
     const avg = g.player.rooms.reduce((n, r) => n + r.o2, 0) / g.player.rooms.length;
-    assert.ok(avg < 100, `${avg}`);
+    assert.ok(avg < 90, `${avg}`);
   });
 
   it("suffocates at 6.4 HP per second with no fight on", () => {
@@ -291,8 +279,8 @@ describe("Oxygen outside a fight", () => {
     ada.hp = 50;
     for (const c of g.crew) if (c.id !== ada.id) c.room = "p-engines";
     step(g, 0.05);
-    // Level-1 refill 1.2%/s, then one breach of drain, 7.2%/s.
-    assert.ok(Math.abs(room.o2 - (40 + (1.2 - 7.2) * 0.05)) < 1e-6, `${room.o2}`);
+    // Level-1 refill 1.2%/s, then one breach of drain (xftl doc/oxygen: 8%/s, "anaerobic crew ... are equivalent").
+    assert.ok(Math.abs(room.o2 - (40 + (1.2 - 8) * 0.05)) < 1e-6, `${room.o2}`);
     assert.equal(ada.hp, 50);
   });
 });
@@ -329,61 +317,64 @@ function between(g: Game, a: string, b: string) {
   return door;
 }
 
-describe("Oxygen airlock", () => {
-  it("empties the room the airlock is opened in on that tick", () => {
-    const g = ventFight(11);
+describe("Oxygen airlock (xftl doc/oxygen, ComputeAirLoss and RedistributeOxygen)", () => {
+  /** Oxygen off, so only the airlock and sharing move the air. */
+  function still(seed: number): Game {
+    const g = ventFight(seed);
+    g.player.systems.oxygen.power = 0;
+    return g;
+  }
+
+  it("drains the airlock room 16% a second, and leaves a room behind a shut door alone", () => {
+    const g = still(11);
     const room = g.player.rooms.find((r) => r.id === "p-oxygen")!;
     const neighbor = g.player.rooms.find((r) => r.id === "p-medbay")!;
     airlock(g, room.id);
     step(g, 0.05);
-    assert.equal(room.o2, 0);
-    assert.equal(neighbor.o2, 100);
+    // 16%/s from the airlock, 1.2%/s with oxygen off.
+    assert.ok(Math.abs(room.o2 - (100 - (16 + 1.2) * 0.05)) < 1e-6, `${room.o2}`);
+    assert.ok(Math.abs(neighbor.o2 - (100 - 1.2 * 0.05)) < 1e-6, `${neighbor.o2}`);
   });
 
-  it("does not empty a connected room on that same tick", () => {
-    const g = ventFight(12);
+  it("drains a room open to it at 0.75 of the rate", () => {
+    const g = still(12);
     const room = g.player.rooms.find((r) => r.id === "p-doors")!;
     const next = g.player.rooms.find((r) => r.id === "p-sensors")!;
     airlock(g, room.id);
     between(g, room.id, next.id);
     step(g, 0.05);
-    assert.equal(room.o2, 0);
-    assert.equal(next.o2, 100);
-    step(g, 0.05);
-    // INFERRED: the drop is the existing open-door share, 40% of the difference. The page prints no percent.
-    assert.ok(Math.abs(next.o2 - 98.06) < 1e-6, `${next.o2}`);
+    // Loss first: 16 and 12 %/s, then 8%/s of the gap to the pair's average.
+    const a = 100 - (16 + 1.2) * 0.05;
+    const b = 100 - (12 + 1.2) * 0.05;
+    const avg = (a + b) / 2;
+    assert.ok(Math.abs(next.o2 - (b + (avg - b) * 0.08 * 0.05)) < 1e-6, `${next.o2}`);
+    assert.ok(room.o2 < next.o2);
   });
 
   it("drains a farther room sooner when a second airlock is open", () => {
     const far = (extra: boolean) => {
-      const g = ventFight(13);
+      const g = still(13);
       airlock(g, "p-doors");
       if (extra) airlock(g, "p-sensors");
       between(g, "p-doors", "p-sensors");
       between(g, "p-sensors", "p-weapons");
-      step(g, 0.05);
-      step(g, 0.05);
+      for (let i = 0; i < 20; i++) step(g, 0.05);
       return g.player.rooms.find((r) => r.id === "p-weapons")!.o2;
     };
-    const one = far(false);
-    const two = far(true);
-    assert.equal(one, 100);
-    assert.ok(two < one, `${two}`);
+    assert.ok(far(true) < far(false));
   });
 
-  it("does not push an airlock room's oxygen into a lower neighbor", () => {
-    const g = ventFight(14);
+  it("evens out air between rooms joined by open doors, 8% of the gap a second", () => {
+    const g = still(14);
     const room = g.player.rooms.find((r) => r.id === "p-doors")!;
     const next = g.player.rooms.find((r) => r.id === "p-sensors")!;
     room.o2 = 80;
     next.o2 = 20;
-    airlock(g, room.id);
     between(g, room.id, next.id);
     step(g, 0.05);
-    assert.equal(room.o2, 0);
-    // The neighbor only receives its own refill. The airlock's oxygen goes to space.
-    assert.ok(next.o2 < 21, `${next.o2}`);
-    assert.ok(next.o2 > 20, `${next.o2}`);
+    const a = 80 - 1.2 * 0.05;
+    const b = 20 - 1.2 * 0.05;
+    assert.ok(Math.abs(next.o2 - (b + ((a + b) / 2 - b) * 0.08 * 0.05)) < 1e-6, `${next.o2}`);
   });
 });
 

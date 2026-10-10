@@ -11,24 +11,19 @@
  * "Human XP/level" column. Template:Crew races (comparison), Human row: "-10% experience requirements".
  */
 import { XP_NEED } from "../content.ts";
+import { BREACH_AIR_LOSS, airLoss } from "../air.ts";
 import type { Crew, Game, SkillName } from "../types.ts";
 
-/**
- * One hull breach, percent of a room's oxygen per second.
- * Oxygen, Overview, and Boarding, "Breach Bomb": a functioning Oxygen-3 (8.4%/s) exceeds one
- * breach with the room's doors shut, and it can take a while to refill a fully vented room.
- * Oxygen, Overview: Oxygen-2 (4.8%/s) does not; it needs adjacent rooms or a long open path.
- * The pages print no breach percent. 12%/s sits above 8.4, so a shut Oxygen-3 room still emptied.
- * 7.2 is six times the 1.2% step, inside (4.8, 8.4), and leaves Oxygen-3 a 1.2%/s surplus.
- */
-export const BREACH_O2_PER_SEC = 7.2;
+/** xftl doc/oxygen: one hull breach drains 8% of a room's air per second (air.ts BREACH_AIR_LOSS). */
+export const BREACH_O2_PER_SEC = BREACH_AIR_LOSS;
 
-/** Lanius, "Race characteristics": the drain is one breach. Same number as BREACH_O2_PER_SEC. */
+/** xftl doc/oxygen: ComputeAirLoss is "called for hull breaches (and anaerobic crew, which are equivalent)". */
 export const LANIUS_DRAIN_PER_SEC = BREACH_O2_PER_SEC;
 
 /**
  * Lanius drain: each living Lanius takes one breach's worth of oxygen per second
- * from the room it is in, on whichever ship it stands (crew and boarders alike).
+ * from the room it is in, on whichever ship it stands (crew and boarders alike), and, like a breach, from the rooms
+ * open to it at 0.75 per room of distance (air.ts).
  * INFERRED: several Lanius in one room stack, one breach each. The pages say only
  * "Drains oxygen from an occupied room" and give the rate per Lanius as a breach.
  * INFERRED: a walking Lanius drains its current `room` too. The pages do not say
@@ -43,7 +38,7 @@ export function tickLanius(g: Game, dt: number) {
     const ship = c.aboard === "player" ? g.player : g.enemy;
     const room = ship?.rooms.find((r) => r.id === c.room);
     if (!room) continue;
-    room.o2 = Math.max(0, room.o2 - LANIUS_DRAIN_PER_SEC * dt);
+    airLoss(ship!, room.id, LANIUS_DRAIN_PER_SEC, dt);
   }
 }
 

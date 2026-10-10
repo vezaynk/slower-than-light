@@ -251,34 +251,31 @@ describe("hacked doors", () => {
   });
 
   it("spreads fire through a hacked door at the open-door pace", () => {
-    // Hacking, "Overview": hacked system doors spread fire at the fastest pace.
-    const g = fight(6);
-    g.player.systems.doors.level = 2;
-    g.player.systems.doors.damage = 0;
-    const room = g.player.rooms.find((r) => r.system === "oxygen");
-    assert.ok(room);
-    const doors = g.player.doors.filter((d) => d.b !== "void" && (d.a === room.id || d.b === room.id));
-    assert.ok(doors.length > 0);
-    for (const d of doors) {
-      d.open = false;
-      d.hacked = true;
-    }
-    room.fire = 1;
-    room.o2 = 100;
-    room.fireTick = 0;
-    step(g, 0.05);
-    assert.ok(Math.abs(room.fireTick - 0.05) < 1e-9, String(room.fireTick));
-
-    const slow = fight(7);
-    slow.player.systems.doors.level = 2;
-    const sealed = slow.player.rooms.find((r) => r.system === "oxygen");
-    assert.ok(sealed);
-    for (const d of slow.player.doors) d.open = false;
-    sealed.fire = 1;
-    sealed.o2 = 100;
-    sealed.fireTick = 0;
-    step(slow, 0.05);
-    assert.ok(Math.abs(sealed.fireTick - 0.05 / 10) < 1e-9, String(sealed.fireTick));
+    // Hacking, "Overview": hacked system doors spread fire at the fastest pace. xftl doc/fires: "none, open, hacked: 1.6".
+    const spreadIn = (hacked: boolean, seed: number) => {
+      const g = fight(seed);
+      g.player.systems.doors.level = 2;
+      g.player.systems.doors.damage = 0;
+      const room = g.player.rooms.find((r) => r.system === "oxygen")!;
+      for (const d of g.player.doors) {
+        d.open = false;
+        if (hacked && d.b !== "void" && (d.a === room.id || d.b === room.id)) d.hacked = true;
+      }
+      room.fire = room.w * room.h;
+      room.o2 = 100;
+      for (let t = 0; t <= 35; t += 0.05) {
+        if (g.player.rooms.some((r) => r.id !== room.id && r.fire > 0)) return t;
+        for (const r of g.player.rooms) r.o2 = 100;
+        g.player.hull = g.player.hullMax;
+        // The hack sync clears a mark with no enemy drone behind it, so hold it for this check.
+        if (hacked) for (const d of g.player.doors) if (d.b !== "void" && (d.a === room.id || d.b === room.id)) d.hacked = true;
+        step(g, 0.05);
+      }
+      return Infinity;
+    };
+    // An open-pace door is through by 49 / 1.6 seconds; shut blast doors need at least 10 / 0.16.
+    assert.ok(spreadIn(true, 6) <= 30.63 + 0.05);
+    assert.equal(spreadIn(false, 7), Infinity);
   });
 });
 

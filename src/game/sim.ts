@@ -67,7 +67,8 @@ import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
-import { BREACH_O2_PER_SEC, xpNeedFor } from "./extras/lineage.ts";
+import { xpNeedFor } from "./extras/lineage.ts";
+import { AIRLOCK_AIR_LOSS, BREACH_AIR_LOSS, airLoss, shareAir } from "./air.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import { chainChargeSeconds, chainIonAmount, isChainWeapon, nextChainStep } from "./wiki/cited-chain.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
@@ -128,7 +129,12 @@ import {
   flareFireCount,
   placeFlareFires,
 } from "./wiki/cited-flare.ts";
-import { asteroidIntervalSeconds, asteroidSide } from "./wiki/cited-asteroid.ts";
+import {
+  asteroidPhaseSeconds,
+  asteroidSide,
+  asteroidSpawnSeconds,
+  nextAsteroidPhase,
+} from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
 import { beamTileLength } from "./wiki/weapons-beam.ts";
@@ -3240,19 +3246,9 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
 }
 
 /**
- * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3.
- * Unpowered rooms fall at 1.2% per second.
- * Fires die below 10% oxygen. Suffocation is still the 5% check in life().
- * One breach is BREACH_O2_PER_SEC (7.2). Oxygen-3 at 8.4%/s beats that with the doors shut.
- * Oxygen-2 at 4.8%/s does not, until open rooms feed the breach.
- * INFERRED: 40% of the difference through an open door. The Door System page does not give airflow rates.
- * Oxygen, Overview: an open airlock instantly drains the O2 in the room it is opened in, and quickly drains
- * connected rooms through opened doors. More airlocks drain farther rooms quicker. That drain surpasses
- * several Lanius and breaches. The page prints no percent for the connected-room drain.
- * The airlock room is set to 0 after the share, so a neighbor cannot refill it this tick.
- * A room open to space is not a source: the share never pushes its oxygen into a lower neighbor.
- * That share is what moves oxygen toward each emptied room. No extra percent is added. Holding another
- * airlock room at 0 is what reaches a farther room sooner.
+ * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3 (xftl doc/oxygen: "1,4,7 ... NOT the 1,3,6
+ * multipliers listed in the UI"). Unpowered rooms fall at 1.2% per second. Fires die below 10% oxygen. Suffocation is
+ * still the 5% check in life(). Breaches, open airlocks, and air sharing between open rooms are air.ts.
  */
 /**
  * Template:Crew races (comparison), "Repair speed" note, and Crew skills, Repair skill: "It takes 12.5 seconds
@@ -3342,31 +3338,13 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) {
     if (o2 > 0) r.o2 += 1.2 * mult * dt;
     else r.o2 -= 1.2 * dt;
-    r.o2 -= BREACH_O2_PER_SEC * r.breach * dt;
-    // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)".
+    // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)", in their own room only.
     r.o2 -= 0.96 * r.fire * dt;
   }
-  const vented: Room[] = [];
-  for (const d of ship.doors) {
-    if (!d.open || d.b !== "void") continue;
-    const r = roomById(ship, d.a);
-    // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in".
-    if (r) vented.push(r);
-  }
-  const openToSpace = new Set(vented);
-  for (const d of ship.doors) {
-    if (!d.open || d.b === "void") continue;
-    const a = roomById(ship, d.a);
-    const b = roomById(ship, d.b);
-    if (!a || !b) continue;
-    let flow = (a.o2 - b.o2) * 0.4 * dt;
-    // An airlock empties its own room into space. That oxygen does not cross into a lower neighbor.
-    if (openToSpace.has(a) && flow > 0) flow = 0;
-    if (openToSpace.has(b) && flow < 0) flow = 0;
-    a.o2 -= flow;
-    b.o2 += flow;
-  }
-  for (const r of vented) r.o2 = 0;
+  // air.ts: breaches (8%/s each) and open airlocks (16%/s each) drain their room and the rooms open to it.
+  for (const r of ship.rooms) if (r.breach > 0) airLoss(ship, r.id, BREACH_AIR_LOSS * r.breach, dt);
+  for (const d of ship.doors) if (d.open && d.b === "void") airLoss(ship, d.a, AIRLOCK_AIR_LOSS, dt);
+  shareAir(ship, dt);
   for (const r of ship.rooms) {
     r.o2 = Math.max(0, Math.min(100, r.o2));
     starveFire(g, ship, r, dt);
@@ -3403,27 +3381,74 @@ function fightFire(r: Room, pals: Crew[], dt: number) {
 }
 
 /**
- * Fires, lead: "Fires spread from tile to tile and can spread between rooms. The speed of fire spreading is randomised."
- * INFERRED: every 7s, 70% through an open door, else +0.5 fire. The 15% oxygen gate is not on the fetched pages.
- * Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
- * The external spread note the page links is not copied here. A closed door divides the tick (doorSpreadSlow).
- * A hacked door counts as open for that tick.
+ * Fire spread, from the xftl reverse-engineering notes (gitlab.com/znixian/xftl, doc/fires): "When there is any fire
+ * adjacent to a tile, a counter is set randomly between 10 to 49 (inclusive). This counter is decremented by some
+ * amount per second for every adjacent fire, depending on the level of the door between it and the fire: none, open,
+ * hacked: 1.6; level 0/1: 32/35 (approx 0.9143); level 2/3/4: 0.16". "If there is no longer any fire adjacent to this
+ * tile, this counter is cleared." Fires, "Dealing with fires", prints the same ratios (×1.75 and ×10 slower).
+ * This sim stores fires per room, not per tile, so:
+ * INFERRED: inside a room the next tile catches when the soonest of its candidate tiles' counters runs out. A 1x2 room
+ * has one candidate next to one fire; a 2x2 has two candidates next to one fire each, then one next to two fires.
+ * INFERRED: across a door, the counter on the far tile drains at the door's rate times the share of the room's tiles
+ * that burn (the chance the tile at the door is one of them).
+ * INFERRED: a room holds one fire per floor tile (Fires and enemy AI: "one flame per tile of a 2x2").
+ * INFERRED, kept from before: no spread out of a room at 15% oxygen or less. The notes give only the 10% burn-out.
  */
+const tileTimers = new WeakMap<Room, number>();
+const doorTimers = new WeakMap<Door, Map<string, number>>();
+
+/** Floor tiles in a room. */
+function floorTiles(r: Room): number {
+  return Math.max(1, r.w * r.h - (r.omit?.length ?? 0));
+}
+
+/** doc/fires: a fresh counter, 10 to 49 inclusive. */
+function fireCounter(g: Game): number {
+  return 10 + Math.floor(rand(g) * 40);
+}
+
 function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number) {
-  if (!(r.fire > 0 && r.o2 > 15)) return;
-  // Hacking, "Overview": fires spread through a hacked system's doors at the open-door pace.
-  // A shut door that is not hacked still seals. Disabled or missing doors keep the level-1 slow.
   const touches = (d: Door) => d.b !== "void" && (d.a === r.id || d.b === r.id);
-  const sealed = ship.doors.some((d) => touches(d) && !d.open && !d.hacked);
-  r.fireTick += dt * (sealed ? 1 / closedSlow : 1);
-  if (r.fireTick <= 7) return;
-  r.fireTick = 0;
-  const openNeigh = ship.doors.find((d) => touches(d) && (d.open || d.hacked));
-  if (openNeigh && rand(g) < 0.7) {
-    const nid = openNeigh.a === r.id ? (openNeigh.b as string) : openNeigh.a;
-    const n = roomById(ship, nid);
-    if (n) n.fire = Math.min(4, n.fire + 1);
-  } else if (r.fire < 4) r.fire += 0.5;
+  if (!(r.fire > 0)) {
+    tileTimers.delete(r);
+    for (const d of ship.doors) if (touches(d)) doorTimers.get(d)?.delete(r.id);
+    return;
+  }
+  if (!(r.o2 > 15)) return;
+  const tiles = floorTiles(r);
+  const burning = Math.min(tiles, Math.ceil(r.fire - 1e-9));
+  if (burning < tiles) {
+    // Candidates and their adjacent fires: 1x2 -> one tile next to one fire; 2x2 -> two candidates next to one fire,
+    // then (with three burning) one candidate next to two.
+    const candidates = tiles === 4 && burning < 3 ? 2 : 1;
+    const adjacent = tiles === 4 && burning === 3 ? 2 : 1;
+    let left = tileTimers.get(r);
+    if (left == null) {
+      left = Infinity;
+      for (let i = 0; i < candidates; i++) left = Math.min(left, fireCounter(g));
+    }
+    left -= 1.6 * adjacent * dt;
+    if (left <= 0) {
+      r.fire = Math.min(tiles, r.fire + 1);
+      tileTimers.delete(r);
+    } else tileTimers.set(r, left);
+  } else tileTimers.delete(r);
+  for (const d of ship.doors) {
+    if (!touches(d)) continue;
+    const n = roomById(ship, d.a === r.id ? d.b : d.a);
+    if (!n || n.fire >= floorTiles(n)) continue;
+    // doc/fires: open or hacked doors 1.6, a shut door 0.9143 (level 0-1) or 0.16 (blast doors). closedSlow is the
+    // printed ratio (1.75 or 10) for this ship's door level.
+    // Hacking, "Overview": fires spread through a hacked system's doors at the open-door pace.
+    const rate = d.open || d.hacked ? 1.6 : 1.6 / closedSlow;
+    let timers = doorTimers.get(d);
+    if (!timers) doorTimers.set(d, (timers = new Map()));
+    const left = (timers.get(r.id) ?? fireCounter(g)) - rate * (burning / tiles) * dt;
+    if (left <= 0) {
+      n.fire = Math.min(floorTiles(n), Math.floor(n.fire) + 1);
+      timers.delete(r.id);
+    } else timers.set(r.id, left);
+  }
 }
 
 /** Fires, lead: the same 2.128 HP/s hits boarders standing in the fire. Suffocation, when it applies, replaces this. */
@@ -3822,14 +3847,12 @@ function platingNegates(g: Game, ship: Ship, playerHurt: boolean, breachChance: 
 
 function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
   const count = flareFireCount(flareShieldsUp(ship), rand(g));
-  const placed = placeFlareFires(count, ship.rooms.length, () => rand(g));
-  let rooms = 0;
-  for (let i = 0; i < ship.rooms.length; i++) {
-    const n = placed[i] ?? 0;
-    if (n <= 0) continue;
+  const spawns = placeFlareFires(count, ship.rooms.length, () => rand(g));
+  const lit = new Set<number>();
+  for (const { room: i, fires: n } of spawns) {
     const room = ship.rooms[i];
     if (!room) continue;
-    rooms += 1;
+    lit.add(i);
     // Fires, "Fires and enemy AI": a room stacks to four flames. The flare's own 1-or-2 count is unchanged.
     room.fire = Math.min(4, room.fire + n);
     if (!flareDamagesRoom(n, rand(g))) continue;
@@ -3843,6 +3866,7 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
     // The page names hull and system damage. It does not name crew damage.
     flareHull(g, ship, playerHurt);
   }
+  const rooms = lit.size;
   if (rooms > 0) {
     log(
       g,
@@ -3884,21 +3908,26 @@ function tickLingeringAsteroids(g: Game, dt: number) {
   if (g.player.hull <= 0) lose(g, "hull");
 }
 
-function armAsteroid(g: Game) {
+/**
+ * Start the asteroid field's next phase (wiki/cited-asteroid.ts). The table follows the Shields system level, so ion or
+ * an empty power bar does not slow the rocks.
+ */
+function armAsteroid(g: Game, phase: "break" | "wave1" | "wave2" = "break") {
+  const level = g.player.systems.shields.level;
+  g.asteroidPhase = phase;
+  g.asteroidPhaseLeft = asteroidPhaseSeconds(level, phase, rand(g));
   g.asteroidT = 0;
-  // Environmental Hazards, Asteroid Field: the wait follows this ship's shield system level.
-  // Ion or an empty power bar does not change that level, so a downed shield does not slow the rocks.
-  g.asteroidWait = asteroidIntervalSeconds(g.player.systems.shields.level, rand(g));
+  g.asteroidWait = phase === "break" ? Infinity : asteroidSpawnSeconds(level, phase, rand(g));
 }
 
 function environment(g: Game, dt: number) {
   if (g.asteroid) {
-    if (!(g.asteroidWait > 0)) armAsteroid(g);
+    if (!g.asteroidPhase || g.asteroidPhaseLeft == null) armAsteroid(g);
+    g.asteroidPhaseLeft = (g.asteroidPhaseLeft ?? 0) - dt;
     g.asteroidT += dt;
-    if (g.asteroidT >= (g.asteroidWait ?? 0)) {
-      // Environmental Hazards, Asteroid Field: the rock strikes this ship, and the enemy ship the same way.
-      // "They have a small chance to cause a fire or a breach." Fires: one of a breach, fires, or neither.
-      // INFERRED: 5 percent each, so one rock does not start both (cited-asteroid.ts).
+    if (g.asteroidPhase !== "break" && g.asteroidT >= (g.asteroidWait ?? Infinity)) {
+      // Environmental Hazards, Asteroid Field: "They have a small chance to cause a fire or a breach." Fires: one of a
+      // breach, fires, or neither. INFERRED: 5 percent each, so one rock does not start both (cited-asteroid.ts).
       const rock = (ship: Ship, at: "player" | "enemy") => {
         const side = asteroidSide(rand(g));
         g.shots.push({
@@ -3917,11 +3946,18 @@ function environment(g: Game, dt: number) {
           label: "Rock",
         });
       };
-      rock(g.player, "player");
-      if (g.enemy) rock(g.enemy, "enemy");
-      log(g, "Asteroid inbound.");
-      armAsteroid(g);
+      // xftl doc/asteroids: rocks go to the two ships in turn; with no enemy every rock is the player's. A turn left
+      // for an enemy that has died is wasted ("every second asteroid is effectively wasted").
+      if (g.asteroidEnemyNext && g.enemy) rock(g.enemy, "enemy");
+      else if (!g.asteroidEnemyNext) {
+        rock(g.player, "player");
+        log(g, "Asteroid inbound.");
+      }
+      if (g.enemy || g.asteroidEnemyNext) g.asteroidEnemyNext = !g.asteroidEnemyNext;
+      g.asteroidT = 0;
+      g.asteroidWait = asteroidSpawnSeconds(g.player.systems.shields.level, g.asteroidPhase!, rand(g));
     }
+    if ((g.asteroidPhaseLeft ?? 0) <= 0) armAsteroid(g, nextAsteroidPhase(g.asteroidPhase!));
   }
   if (g.asb) {
     // A save from before the phase clock has no wait. Arming here still rolls only while the battery is on.
@@ -4590,10 +4626,13 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   g.shipSheet = false;
   g.event = null;
   g.asteroid = asteroid;
-  // Environmental Hazards, Asteroid Field: the first gap is the same random, shield-scaled interval.
+  // wiki/cited-asteroid.ts: an asteroid field opens on its break, then runs its waves.
   // INFERRED: boarders at 9s. First surge wait is 12s; "Power Surge" says 20–30s.
   g.asteroidT = 0;
   g.asteroidWait = 0;
+  g.asteroidEnemyNext = false;
+  delete g.asteroidPhase;
+  delete g.asteroidPhaseLeft;
   if (g.asteroid) armAsteroid(g);
   const here = g.beacons.find((b) => b.id === g.here);
   // Rebel Fleet: not on a nebula beacon, and never on an Easy exit. Overtaken column is the existing test.

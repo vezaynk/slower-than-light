@@ -811,11 +811,15 @@ export type Game = {
   asb: boolean;
   asteroidT: number;
   /**
-   * Environmental Hazards, Asteroid Field: seconds until the next rock.
-   * Scales with this ship's shield system level. 0 until that field is armed.
-   * The seconds are INFERRED.
+   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (wiki/cited-asteroid.ts).
+   * 0 until that field is armed.
    */
   asteroidWait?: number;
+  /** wiki/cited-asteroid.ts: the asteroid field's phase, and seconds left in it. */
+  asteroidPhase?: "break" | "wave1" | "wave2";
+  asteroidPhaseLeft?: number;
+  /** wiki/cited-asteroid.ts: rocks alternate between the two ships; true when the next one is the enemy's. */
+  asteroidEnemyNext?: boolean;
   /** Seconds into the current anti-ship battery phase. */
   asbT: number;
   /**

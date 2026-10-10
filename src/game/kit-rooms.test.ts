@@ -91,8 +91,9 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     installVeil(g);
     const r = kitRoom(g, "veil")!;
     assert.equal(r.id, "p-cloak");
+    assert.equal(r.title, "Cloaking");
     assert.equal(r.w * r.h, 4);
-    assert.equal(g.player.rooms.filter((o) => o.title === "Hall").length, halls);
+    assert.equal(g.player.rooms.filter((o) => o.title === "Hall").length, halls - 1);
     seatKits(g.player);
     assert.equal(g.player.rooms.filter((o) => o.kit === "veil").length, 1);
   });
@@ -101,9 +102,48 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     const titles = ["Shields", "Sensors", "Doors", "Teleporter", "Cloaking", "Hacking", "Mind Control", "Drones", "Backup Battery"];
     for (const h of HULLS) {
       const rooms = layoutFor(h.id)!.rooms;
-      for (const t of titles) assert.equal(rooms.filter((r) => r.title === t).length, 1, `${h.id} ${t}`);
-      assert.equal(rooms.filter((r) => r.title === "Medbay" || r.title === "Clone Bay").length, 1, `${h.id} medical`);
+      const kept = (r: { title: string; reserve?: string }) => r.reserve ?? r.title;
+      for (const t of titles) assert.equal(rooms.filter((r) => kept(r) === t).length, 1, `${h.id} ${t}`);
+      assert.equal(rooms.filter((r) => kept(r) === "Medbay" || kept(r) === "Clone Bay").length, 1, `${h.id} medical`);
     }
+  });
+
+  it("shows a room kept for an unbought system as a Hall, and names it once bought", () => {
+    const g = createGame(3, "kestrel-a");
+    const tele = g.player.rooms.find((r) => r.id === "p-tele")!;
+    assert.equal(tele.title, "Hall");
+    assert.equal(tele.reserve, "Teleporter");
+    for (const h of HULLS) {
+      for (const r of createGame(3, h.id).player.rooms) {
+        if (r.system === null && !r.kit) assert.equal(r.title, "Hall", `${h.id} ${r.id}`);
+      }
+    }
+    g.scrap = 500;
+    installSling(g);
+    assert.equal(tele.kit, "sling");
+    assert.equal(tele.title, "Teleporter");
+    // Losing it leaves a Hall that is still kept for the teleporter.
+    delete g.player.kits.sling;
+    seatKits(g.player);
+    assert.equal(tele.title, "Hall");
+    assert.equal(tele.reserve, "Teleporter");
+  });
+
+  it("names a bought Shields room, and turns an older save's titled room into a kept Hall", () => {
+    const g = createGame(3, "stealth-a");
+    const room = g.player.rooms.find((r) => r.id === "p-shields")!;
+    assert.equal(room.title, "Hall");
+    g.player.systems.shields.level = 2;
+    seatKits(g.player);
+    assert.equal(room.system, "shields");
+    assert.equal(room.title, "Shields");
+    const old = createGame(3, "kestrel-a");
+    const pads = old.player.rooms.find((r) => r.id === "p-tele")!;
+    pads.title = "Teleporter";
+    delete pads.reserve;
+    seatKits(old.player);
+    assert.equal(pads.title, "Hall");
+    assert.equal(pads.reserve, "Teleporter");
   });
 
   it("gives bought Shields and Sensors the pale rooms on the hangar picture", () => {

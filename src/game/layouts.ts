@@ -21,6 +21,8 @@ export type TileRoom = {
   omit?: { x: number; y: number }[];
   /** Subsystem kit seated here (seatLayout). Absent on the raw traced layouts. */
   kit?: KitId;
+  /** The system this empty room is kept for (its pale hangar icon). It shows as a Hall until that system is bought. */
+  reserve?: string;
 };
 
 export type Layout = {
@@ -39,10 +41,27 @@ type Bar = [number, number, DoorSide];
 
 /** Square totals below are the traced cell count. Cruiser pages do not state a square count. */
 function traced(rows: Raw[], bars: Bar[], cols: number, gridRows: number): Layout {
-  return {
-    ...pack(rows, cols, gridRows),
-    marks: bars.map(([x, y, side]) => ({ x, y, side })),
-  };
+  const laid = pack(rows, cols, gridRows);
+  reserveRooms(laid.rooms);
+  return { ...laid, marks: bars.map(([x, y, side]) => ({ x, y, side })) };
+}
+
+/** Titles a pale hangar icon can carry: every kit (KIT_TITLE), and the core systems a store sells. */
+const RESERVABLE = new Set<string>([
+  "Teleporter", "Cloaking", "Hacking", "Drones", "Mind Control", "Clone Bay", "Backup Battery", "Artillery",
+  "Shields", "Sensors", "Doors", "Medbay",
+]);
+
+/**
+ * A pale icon is a room kept for a system the hull does not have yet. It shows as a Hall, and `reserve` keeps the
+ * system's name for seatKits. Idempotent; also turns rooms from older saves (titled for the system) into Halls.
+ */
+export function reserveRooms(rooms: { title: string; system: SysId | null; kit?: KitId; reserve?: string }[]): void {
+  for (const r of rooms) {
+    if (r.system !== null || r.kit || !RESERVABLE.has(r.title)) continue;
+    r.reserve = r.title;
+    r.title = "Hall";
+  }
 }
 
 /** Callers keep the published square count. Positions in the rows are INFERRED because the wiki picture was not text. */
@@ -1759,7 +1778,16 @@ const KIT_SQUARES: Record<KitId, number[]> = {
   flak: [2, 4],
 };
 
-type Seat = { id: string; title: string; system: SysId | null; w: number; h: number; omit?: { x: number; y: number }[]; kit?: KitId };
+type Seat = {
+  id: string;
+  title: string;
+  system: SysId | null;
+  w: number;
+  h: number;
+  omit?: { x: number; y: number }[];
+  kit?: KitId;
+  reserve?: string;
+};
 
 function squares(r: Seat): number {
   return r.w * r.h - (r.omit?.length ?? 0);
@@ -1776,13 +1804,13 @@ export function kitSeat<R extends Seat>(rooms: R[], kit: KitId, medbayLevel = 0)
   const held = rooms.find((r) => r.kit === kit);
   if (held) return held;
   const free = (r: R) => !r.kit && r.system === null;
-  const traced = rooms.find((r) => free(r) && r.title === KIT_TITLE[kit]);
+  const traced = rooms.find((r) => free(r) && r.reserve === KIT_TITLE[kit]);
   if (traced) return traced;
   if (kit === "cradle" && medbayLevel <= 0) {
-    const bay = rooms.find((r) => !r.kit && (r.system === "medbay" || (r.system === null && r.title === "Medbay")));
+    const bay = rooms.find((r) => !r.kit && (r.system === "medbay" || (r.system === null && r.reserve === "Medbay")));
     if (bay) return bay;
   }
-  const empty = rooms.filter((r) => free(r) && (r.title === "Hall" || r.title === "Hold"));
+  const empty = rooms.filter((r) => free(r) && !r.reserve && (r.title === "Hall" || r.title === "Hold"));
   for (const n of KIT_SQUARES[kit]) {
     const hit = empty.find((r) => squares(r) === n);
     if (hit) return hit;
@@ -1877,19 +1905,29 @@ const BOUGHT_SYSTEMS: [SysId, string][] = [
  */
 export function seatKits(ship: Ship): void {
   if (!ship.rooms || !ship.kits) return;
+  reserveRooms(ship.rooms);
   const medbay = ship.systems?.medbay?.level ?? 0;
   for (const r of ship.rooms) {
     if (!r.kit || ship.kits[r.kit]) continue;
     if (r.kit === "cradle" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {
       r.system = "medbay";
       r.title = "Medbay";
+    } else {
+      // The system left: its room is a Hall again, still kept for it.
+      r.reserve = r.title;
+      r.title = "Hall";
     }
     delete r.kit;
   }
   for (const [id, title] of BOUGHT_SYSTEMS) {
     if ((ship.systems?.[id]?.level ?? 0) <= 0 || ship.rooms.some((r) => r.system === id)) continue;
-    const r = ship.rooms.find((o) => o.system === null && !o.kit && o.title === title);
-    if (r) r.system = id;
+    // Systems: "buying one replaces the other" - the medical room is kept for Medbay and Clone Bay alike.
+    const medical = (o: Room) => id === "medbay" && o.reserve === "Clone Bay";
+    const r = ship.rooms.find((o) => o.system === null && !o.kit && (o.reserve === title || medical(o)));
+    if (r) {
+      r.system = id;
+      r.title = title;
+    }
   }
   for (const id of Object.keys(ship.kits) as KitId[]) {
     if (!ship.kits[id]) continue;

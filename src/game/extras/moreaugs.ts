@@ -17,7 +17,8 @@ export function enemyFtlScale(g: Game): number {
  * Crew drones are not external (Drone Control: they stay aboard). A hacking drone is the spike kit, not this target.
  * Hull Repair vanishes after 3–5 points, so jumping after 2 repairs (still out; the shortest job is 3) returns the part.
  * A drone that already broke apart is not retrieved. kit.on is that vanished state.
- * INVENTED: the page never states a part count. One part is returned.
+ * One part per drone: Augmentations, "Drone Recovery Arm": "Non-destroyed drones will be retrieved when jumping, allowing
+ * their parts to be reused", and Drone Control: "Each deployment requires a drone part".
  * INFERRED: a live Hull Repair drone with 0 or 1 repairs is the same retrieve.
  * INFERRED: a jump while phase is combat and the enemy ship is still there is a flee, so a combat drone is not returned.
  * Any other jump is after that fight. The same jump clears the drone, so the part is not paid twice.

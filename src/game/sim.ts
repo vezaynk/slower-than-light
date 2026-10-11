@@ -120,6 +120,7 @@ import {
   citedSector,
   ionStormBeacon,
   lastStandRepairEvent,
+  nebulaSector,
   stormReactor,
 } from "./wiki/cited-sectors.ts";
 import {
@@ -165,7 +166,7 @@ import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.t
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import { surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
 // @agent:filler. Documented events for plain beacons.
-import { emptyEvent, fillerChoiceDisabled, fillerChoose, fillerEvent } from "./wiki/filler-events.ts";
+import { drawFiller, emptyEvent, FILLER_FLAG, fillerChoiceDisabled, fillerChoose, fillerEvent, stampFiller } from "./wiki/filler-events.ts";
 // @agent:quests. Quest markers, quest-beacon events, page win rewards and "gotaway" results (wiki/quests.ts).
 import { pageGotAway, pageWin, placeQueuedQuests, questAfterCited, questChoiceDisabled, questEvent } from "./wiki/quests.ts";
 import { pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
@@ -4085,7 +4086,7 @@ function environment(g: Game, dt: number) {
 
 function bossThink(g: Game, dt: number) {
   // "Global behavior": the surge exists on the second and third stage only.
-  // "Power Surge": the wait is a random 20–30s. The two shots below are INVENTED; the page describes a surge, not this burst.
+  // "Power Surge": the wait is a random 20–30s (rollSurge).
   // @agent:flagship. Endless missiles, surge drones in flight, and the AI takeover (wiki/flagship-systems.ts).
   if (g.enemy?.flagship) tickFlagship(g, dt);
   if (!g.enemy || g.beacons.find((b) => b.id === g.here)?.kind !== "boss") return;
@@ -4102,7 +4103,6 @@ function bossThink(g: Game, dt: number) {
   firePowerSurge(g, g.enemy);
 }
 
-// INVENTED: two boarders, Hook and Barb, after the timer set in startCombat.
 /** Enemy boarding lives in extras/sling.ts (Crew Teleporter, "Enemy Crew Teleporter"). */
 function boarders(g: Game, dt: number) {
   tickEnemyBoarding(g, dt);
@@ -5106,9 +5106,9 @@ function makeMap(g: Game) {
     exit = pickExit(beacons, start, r) ?? beacons[beacons.length - 1];
     exit.kind = "exit";
     exit.name = "Lane out";
-    // INVENTED: a picket on the exit. "Exit beacon events" is EXIT_LIST, not these odds.
-    // The flag is the roll burned with the old column map, so this grid does not draw it again.
-    if (picket) exit.flag = "picket";
+    // The exit's event is drawn on arrival (eventFor, Category:Exit Beacon Events). The old picket roll is still burned
+    // with the legacy map so later draws keep their stream; its result is unused.
+    void picket;
     g.ramId = null;
     g.ramClock = 2;
   }
@@ -5129,7 +5129,8 @@ function makeMap(g: Game) {
       b.tier = tierFor(g, false);
     }
     if (b.kind === "event") b.asteroid = rand(roll) < 0.5;
-    // INVENTED: distress ship tier.
+    // INFERRED: a distress beacon's ship draws from the same sector pool as any hostile beacon (enemy-gen.ts); a cited
+    // distress page that names its ship overrides this.
     if (b.kind === "distress") b.tier = "pool";
   }
   // Start first, then later columns. A jump advances the fleet before the dive check, so the next
@@ -5155,8 +5156,7 @@ function makeMap(g: Game) {
   onNewSector(g);
 }
 
-// INVENTED: which enemy tier a sector rolls.
-/** Every hostile beacon draws from the documented pool for its sector (enemy-gen.ts). */
+/** Every hostile beacon draws from the documented pool for its sector (enemy-gen.ts: Enemy Ships, Mathchamp's post). */
 function tierFor(_g: Game, _exit: boolean): string {
   return "pool";
 }
@@ -5383,8 +5383,11 @@ export function commitJump(g: Game, id: string) {
   // Stores, "Fuel": one fuel per jump. Rebel Fleet: half only for a nebula beacon outside a nebula sector.
   g.fuel -= 1;
   g.jumps += 1;
-  // Score, b: a rebel-held or about-to-be-held beacon does not count. The fleet column that would mark one is INVENTED, so this jump still counts.
-  g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
+  // Score, b: "Visiting a beacon controlled by rebels or about to be controlled by rebels does NOT increase the count."
+  // Controlled is inside the danger circle (wiki/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
+  // fleet advance lands. Sector 8 has no fleet circle (the Flagship rules there are not modelled here).
+  const held = g.sector < 8 && (overtaken(g, dest) || overtaken({ fleet: g.fleet + citedFleetAdvance(g, dest), dangerY: g.dangerY }, dest));
+  if (!held) g.beaconsVisited = (g.beaconsVisited ?? 0) + 1;
   onPlayerJump(g);
   // INFERRED: jumping away restores the engines. The page prints the restore on a win.
   clearEngineLimit(g);
@@ -5683,7 +5686,20 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
   const filler = fillerEvent(g, b);
   if (filler) return filler;
   if (b.kind === "exit") {
-    // INVENTED: the exit text and the picket ("Exit beacon events" is EXIT_LIST, not wired).
+    // Beacons, "Exit beacon": "Non-hostile exit beacon events can occur when rebels haven't expanded to this beacon,
+    // unless the beacon is contained within a nebula." The pages are Category:Exit Beacon Events (filler-events EXIT).
+    // INFERRED: an exit outside a nebula sector always draws one; the page gives no chance of a plain exit. An exit
+    // the fleet holds never gets here unflagged (the dive fight runs first).
+    if (!b.flag && !nebulaSector(g.sectorName) && !overtaken(g, b)) {
+      const page = drawFiller(g, "exit", g.beacons);
+      if (page) {
+        stampFiller(b, page);
+        b.kind = "exit";
+        const card = fillerEvent(g, b);
+        if (card) return card;
+      }
+    }
+    // INVENTED: the exit text, and the picket card kept for a save made before exit events.
     if (b.flag === "picket") {
       return {
         title: "Lane out",
@@ -6334,7 +6350,25 @@ function tickBoarding(g: Game, dt: number) {
   log(g, "The boarders are dead.");
 }
 
+/**
+ * After an exit beacon's event settles back to the map, the lane out is offered (the exit beacon "allows navigation
+ * through the Sector Map to another sector"). INVENTED: the card text.
+ */
+function promptExitLane(g: Game) {
+  if (g.phase !== "map" || g.event) return;
+  const b = hereBeacon(g);
+  if (b?.kind !== "exit" || !b.flag.startsWith(FILLER_FLAG)) return;
+  g.phase = "event";
+  g.paused = true;
+  g.event = {
+    title: "Lane out",
+    body: "The exit buoy is green. The next sector is already louder.",
+    choices: [{ id: "exit-leave", label: "Take the lane" }],
+  };
+}
+
 export function step(g: Game, dt: number) {
+  promptExitLane(g);
   // Environmental Hazards: IN DANGER prevents opening the ship info screen.
   // INFERRED: a screen already open closes when that danger starts. The page does not say it stays up.
   if (shipInDanger(g)) g.shipSheet = false;

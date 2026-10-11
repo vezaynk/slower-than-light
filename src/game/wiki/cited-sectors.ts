@@ -18,6 +18,11 @@ const NEBULA_SECTORS = new Set(
   SECTOR_TYPES.filter((sector) => sector.group === "nebula").map((sector) => sector.name),
 );
 
+/** True in a nebula sector (Sectors: the nebula group). */
+export function nebulaSector(name: string): boolean {
+  return NEBULA_SECTORS.has(name);
+}
+
 export function citedSector(g: Game): void {
   if (g.sectorName !== "The Last Stand") return;
   let need = REPAIR_COUNT - g.beacons.filter((b) => b.flag === REPAIR_FLAG).length;

@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { stampCitedEvents } from "./cited-events.ts";
 import {
   DISTRESS,
   EMPTY_PAGES,
+  EXIT,
   FILLER,
   FILLER_CHOICES,
   FILLER_FLAG,
@@ -171,6 +172,52 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     for (const t of INVENTED) assert.ok(!src.includes(`"${t}"`), t);
     for (const id of ["empty-take", "cache-take", "distress-help", "nebula-ping", "wreck-deep", "deserter-pay", "asteroid-skirt"]) {
       assert.ok(!src.includes(`"${id}"`), id);
+    }
+  });
+
+  it("EXIT is every page with alsooccur=exit or exitandfiller, with its unique= flag", () => {
+    const want: [string, boolean][] = [];
+    for (const [title, text] of dump) {
+      if (!/\{\{Locations\|/.test(text)) continue;
+      const { params } = locations(text);
+      if (params.alsooccur === "exit" || params.alsooccur === "exitandfiller") want.push([title, params.unique === "true"]);
+    }
+    assert.deepEqual(EXIT.map((r) => [r.dest, r.unique]).sort(), want.sort());
+  });
+
+  it("an exit outside a nebula draws an exit page, then offers the lane out (Beacons, Exit beacon)", () => {
+    const pages = new Set(EXIT.map((r) => r.dest));
+    for (const [name, nebula] of [["Civilian Sector", false], ["Uncharted Nebula", true]] as const) {
+      const g = createGame(14);
+      g.sectorName = name;
+      const exit = g.beacons.find((b) => b.kind === "exit")!;
+      const from = g.beacons.find((b) => b.id === g.here)!;
+      if (!from.links.includes(exit.id)) from.links.push(exit.id);
+      g.fuel = 5;
+      commitJump(g, exit.id);
+      assert.equal(g.phase, "event");
+      if (nebula) {
+        assert.equal(exit.flag, "");
+        assert.equal(g.event?.title, "Lane out");
+        continue;
+      }
+      assert.ok(exit.flag.startsWith(FILLER_FLAG));
+      assert.ok(pages.has(exit.name), exit.name);
+      assert.equal(exit.kind, "exit");
+      // Play the card out with its first choices, then the lane card follows on the map.
+      for (let depth = 0; depth < 6 && g.phase === "event" && g.event?.title !== "Lane out"; depth++) {
+        const open = g.event!.choices.find((c) => !choiceDisabled(g, c.id)) ?? g.event!.choices[0];
+        choose(g, open.id);
+      }
+      // A fight or store from the card is played elsewhere; the lane only matters once back on the map.
+      const phase = g.phase as Game["phase"];
+      if (phase === "combat") return;
+      if (phase === "store" || phase === "reward") g.phase = "map";
+      if ((g.phase as Game["phase"]) === "map") g.event = null;
+      step(g, 0.05);
+      assert.equal(g.event?.title, "Lane out");
+      choose(g, "exit-leave");
+      assert.notEqual(g.event?.title, "Lane out");
     }
   });
 });

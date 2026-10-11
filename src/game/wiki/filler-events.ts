@@ -136,8 +136,46 @@ export const ITEMS: FillerRow[] = [
   { dest: "Improve reactor for supplies", unique: true },
 ];
 
-export type FillerList = "filler" | "nebula" | "distress" | "items";
-const LISTS: Record<FillerList, FillerRow[]> = { filler: FILLER, nebula: NEBULA, distress: DISTRESS, items: ITEMS };
+/**
+ * Category:Exit Beacon Events: every page with alsooccur=exit or exitandfiller, and its unique=. Template:Locations
+ * prints that parameter as "Can also occur at an exit beacon", with no sector list (filler adds "in any sector").
+ */
+export const EXIT: FillerRow[] = [
+  { dest: "Abandoned station", unique: true },
+  { dest: "Asteroid mining colony", unique: true },
+  { dest: "Auto-ship attacking outpost", unique: true },
+  { dest: "Auto-ship near storage station", unique: true },
+  { dest: "Battlefield wreckage", unique: false },
+  { dest: "Crew hiring station", unique: true },
+  { dest: "Free drone schematic", unique: false },
+  { dest: "Free scrap with resources", unique: false },
+  { dest: "Free weapon", unique: false },
+  { dest: "Improve reactor for supplies", unique: true },
+  { dest: "Intelligent ponies", unique: true },
+  { dest: "Large asteroid field", unique: true },
+  { dest: "Large trade station", unique: true },
+  { dest: "Pirate briber", unique: true },
+  { dest: "Pirate ship attacking civilian", unique: false },
+  { dest: "Pirate ship selling drones", unique: true },
+  { dest: "Plagued station", unique: true },
+  { dest: "Rebel checkpoint", unique: false },
+  { dest: "Rebel fight chance", unique: false },
+  { dest: "Rebel ship supplying civilians", unique: false },
+  { dest: "Rebel transport ship", unique: true },
+  { dest: "Refueling platform", unique: true },
+  { dest: "Refueling station", unique: true },
+  { dest: "Refugee", unique: false },
+  { dest: "Repair station", unique: true },
+  { dest: "Sell drone parts for scrap", unique: true },
+  { dest: "Sell missiles for scrap", unique: true },
+  { dest: "Slaver (friendly)", unique: true },
+  { dest: "Trade fuel for drone parts", unique: false },
+  { dest: "Trade resources", unique: false },
+  { dest: "Trade scrap for upgrades", unique: true },
+];
+
+export type FillerList = "filler" | "nebula" | "distress" | "items" | "exit";
+const LISTS: Record<FillerList, FillerRow[]> = { filler: FILLER, nebula: NEBULA, distress: DISTRESS, items: ITEMS, exit: EXIT };
 
 /** "Empty beacon (...)" pages: {{Locations}} sectors and the intro texts. Every one ends "Nothing happens." */
 type EmptyPage = { dest: string; sectors: string[]; texts: string[] };
@@ -3032,7 +3070,7 @@ function chooseRolled(g: Game, id: string): boolean {
     show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"));
     return true;
   }
-  let rock = id.match(/^s:rock-slug:(debt|upgrade):(\d+)$/);
+  const rock = id.match(/^s:rock-slug:(debt|upgrade):(\d+)$/);
   if (rock) return rockSlugPay(g, rock[1] === "debt" ? "debt" : "upgrade", Number(rock[2]));
   if (id === "s:rock-slug:decline") {
     show(g, "You break communications and prepare to move on.", undefined, ["Nothing happens."]);

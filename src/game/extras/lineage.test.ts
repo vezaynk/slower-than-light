@@ -99,8 +99,10 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
     const r = roomOf(g, lan);
     for (const c of g.crew) if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
     for (const x of g.player.rooms) x.o2 = 80;
+    // Another empty room gets the same refill and hull leak (air.ts); a hole would cost several % a second.
+    const twin = g.player.rooms.find((x) => x.id !== r.id && !g.crew.some((c) => c.hp > 0 && c.aboard === "player" && c.room === x.id))!;
     settle(g, 1);
-    assert.ok(Math.abs(r.o2 - 80) < 0.01, `${r.o2}`);
+    assert.ok(Math.abs(r.o2 - twin.o2) < 0.05, `${r.o2} ${twin.o2}`);
   });
 });
 

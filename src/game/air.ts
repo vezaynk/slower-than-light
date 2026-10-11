@@ -12,9 +12,10 @@
  * Hull doors (airlocks) seal when closed. An open airlock is a very wide opening (C = 8), so its room empties in about
  * half a second and then pulls on its neighbours through their doors. A breach, or a Lanius, is a C = 0.16 hole to
  * space.
- * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. A powered Oxygen system adds air to every
- * room in proportion to its volume, so every room refills at the same %: 1.2%/s, x4 at level 2, x7 at level 3
- * (Oxygen; xftl doc/oxygen). An unpowered system adds nothing; only breathing, fire, and holes take air.
+ * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. Every hull seeps a little air to space
+ * (HULL_LEAK). A powered Oxygen system adds air to every room in proportion to its volume, so every room refills at
+ * the same %: 1.2%/s, x4 at level 2, x7 at level 3 (Oxygen; xftl doc/oxygen). An unpowered system adds nothing, so a
+ * sealed ship slowly loses its air.
  *
  * Each opening is applied as the exact two-sided exchange over the tick, so a wide opening cannot overshoot and air is
  * conserved between rooms. Pure: no sim import.
@@ -29,16 +30,21 @@ export const CLOSED_DOOR_C: readonly number[] = [0.032, 0.016, 0.005, 0.002, 0.0
 export const BREACH_C = 0.16;
 /** An open airlock: a 2-tile room empties in about half a second. */
 export const AIRLOCK_C = 8;
-/**
- * Air one breathing crew member uses, tile-%/s. Level-1 Oxygen (1.2%/s per tile) just covers one crew member in a
- * 1-tile room; two crowded into one slowly thin it. A sealed, unpowered ship loses air only to breathing.
- */
-export const BREATH_PER_CREW = 1;
-/** Air one fire burns, tile-%/s (Fires: "0.96% per second for each fire in a room", read as one tile's worth). */
-export const FIRE_BURN = 0.96;
 /** Oxygen system refill per tile, %/s at level 1, and the level multipliers (xftl doc/oxygen: "1,4,7"). */
 export const REFILL = 1.2;
 export const REFILL_MULT: readonly number[] = [0, 1, 4, 7];
+/**
+ * Air one breathing crew member uses, tile-%/s: half of one tile's level-1 refill (per the user). A lone crew member
+ * thins a 1-tile room by 0.6%/s and a 4-tile room by 0.15%/s.
+ */
+export const BREATH_PER_CREW = REFILL / 2;
+/**
+ * Passive seepage to space, %/s from a full room: a quarter of the level-1 refill (per the user). Like every other
+ * opening to space it scales with the room's pressure, so it is 0.15%/s at half air.
+ */
+export const HULL_LEAK = REFILL / 4;
+/** Air one fire burns, tile-%/s (Fires: "0.96% per second for each fire in a room", read as one tile's worth). */
+export const FIRE_BURN = 0.96;
 
 /** Floor tiles: the room's rectangle less its omitted cells. */
 export function volume(r: Pick<Room, "w" | "h" | "omit">): number {
@@ -80,6 +86,7 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
     r.o2 += refill * dt;
     r.o2 -= ((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW * dt) / v;
     r.o2 -= (r.fire * FIRE_BURN * dt) / v;
+    r.o2 *= Math.exp((-HULL_LEAK / 100) * dt);
     r.o2 = Math.max(0, Math.min(100, r.o2));
   }
   const byId = new Map(ship.rooms.map((r) => [r.id, r]));

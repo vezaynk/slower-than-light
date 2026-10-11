@@ -1,5 +1,5 @@
 /**
- * Ship bay from the hangar screenshot: RENAME, the name plate, EASY / NORMAL / HARD,
+ * Ship bay from the hangar screenshot: the name plate, EASY / NORMAL / HARD,
  * START, SHIP, LIST, LAYOUT, TYPE, HIDE ROOMS, Available Achievements,
  * the same ship a fight draws (rooms, doors, weapons, crew), the system icons,
  * CREW, WEAPONS, DRONES, AUGMENTATIONS.
@@ -102,8 +102,6 @@ export function Hangar() {
   const [letter, setLetter] = useState<Letter>("A");
   const [hideRooms, setHideRooms] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
-  const [rename, setRename] = useState(false);
-  const [name, setName] = useState(() => hangarSheet(CRUISER_PAGES[0].layouts[0]).defaultName);
 
   const page = CRUISER_PAGES[pageIndex] ?? CRUISER_PAGES[0];
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
@@ -124,11 +122,6 @@ export function Hangar() {
   const preview = useMemo(() => hangarLoadout(layout.id, picks), [layout.id, picks]);
 
   useEffect(() => {
-    setName(sheet.defaultName);
-    setRename(false);
-  }, [layout.id, sheet.defaultName]);
-
-  useEffect(() => {
     setPicks(defaultPicks(seats.length));
     setEditing(null);
   }, [layout.id, seats.length]);
@@ -143,13 +136,7 @@ export function Hangar() {
 
   function start() {
     if (locked) return;
-    const chosen = name.trim() || sheet.defaultName;
     useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty], picks);
-    if (chosen && chosen !== sheet.defaultName) {
-      useGame.getState().act((game) => {
-        game.player.name = chosen;
-      });
-    }
   }
 
   const droneNames = sheet.drones.filter((line) => !/^none \(/i.test(line));
@@ -163,24 +150,9 @@ export function Hangar() {
       <div className="hangar-floor" aria-hidden="true" />
 
       <header className="hangar-top">
-        <button type="button" onClick={() => setRename(true)}>
-          RENAME
-        </button>
-        {rename ? (
-          <input
-            className="hangar-name"
-            value={name}
-            aria-label="RENAME"
-            autoFocus
-            onChange={(event) => setName(event.target.value)}
-            onBlur={() => setRename(false)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") setRename(false);
-            }}
-          />
-        ) : (
-          <p className="hangar-name">{name}</p>
-        )}
+        {/* Per the user: no RENAME. The ship's name only shows in the Ship menu and the victory text, so every run
+            keeps its class name. */}
+        <p className="hangar-name">{sheet.defaultName}</p>
         <div className="hangar-diff">
           <div className="hangar-diff-col">
             {DIFFICULTIES.map((item) => (

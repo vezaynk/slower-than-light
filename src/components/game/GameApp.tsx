@@ -2425,11 +2425,20 @@ type UpgradeRow = {
   icon?: IconName;
   name: string;
   level: number;
+  /** Highest level: the current one plus every further level that has a price. */
+  max: number;
   effect: string;
   cost: number | null;
   buy: ((g: Game) => void) | null;
   subsystem: boolean;
 };
+
+/** Walks a cost table from `level` until there is no next price. */
+function topLevel(level: number, costAt: (level: number) => number | null | undefined): number {
+  let top = level;
+  while (top < 25 && costAt(top) != null) top += 1;
+  return top;
+}
 
 /**
  * Systems, GUI order, with the reactor first.
@@ -2442,6 +2451,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     key: "reactor",
     name: "Reactor",
     level: game.player.reactor,
+    max: 25,
     effect: reactorCost != null ? upgradeBlurb("reactor", game.player.reactor) : "Cap 25.",
     cost: reactorCost,
     buy: reactorCost != null ? (g) => upgrade(g, "reactor") : null,
@@ -2458,6 +2468,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
       icon: id,
       name: UPGRADE_SYS_NAME[id],
       level: state.level,
+      max: topLevel(state.level, (l) => upgradeCost(id, l)),
       effect: cost != null ? upgradeBlurb(id, state.level) : "",
       cost,
       buy: cost != null ? (g) => upgrade(g, id) : null,
@@ -2467,18 +2478,20 @@ function upgradeRows(game: Game): UpgradeRow[] {
 
   const fitted = (
     id: KitId,
-    cost: number | null,
+    costAt: (level: number) => number | null | undefined,
     effect: string,
     buy: (g: Game) => void,
     subsystem = false,
   ) => {
     const kit = game.player.kits[id];
     if (!kit) return;
+    const cost = costAt(kit.level) ?? null;
     rows.push({
       key: id,
       icon: id,
       name: KIT_LABEL[id],
       level: kit.level,
+      max: topLevel(kit.level, costAt),
       effect: cost != null ? effect : "",
       cost,
       buy: cost != null ? buy : null,
@@ -2494,7 +2507,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       fitted(
         "cradle",
-        cradleUpgradeCost(kit.level),
+        cradleUpgradeCost,
         kit.level === 1 ? "Clone in 9 sec. 16 HP per jump." : "Clone in 7 sec. 25 HP per jump.",
         (g) => upgradeCradle(g),
       );
@@ -2506,7 +2519,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       fitted(
         "sling",
-        slingUpgradeCost(kit.level),
+        slingUpgradeCost,
         kit.level === 1 ? "15 sec cooldown." : "10 sec cooldown.",
         (g) => upgradeSling(g),
       );
@@ -2515,7 +2528,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
   {
     const kit = game.player.kits.veil;
     if (kit) {
-      fitted("veil", veilUpgradeCost(kit.level), kit.level === 1 ? "10 sec." : "15 sec.", (g) => upgradeVeil(g));
+      fitted("veil", veilUpgradeCost, kit.level === 1 ? "10 sec." : "15 sec.", (g) => upgradeVeil(g));
     }
   }
   {
@@ -2523,7 +2536,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       fitted(
         "leash",
-        LEASH_UPGRADE[kit.level + 1] ?? null,
+        (l) => LEASH_UPGRADE[l + 1] ?? null,
         kit.level === 1 ? "+15 health, +25% combat damage, 20 sec." : "+30 health, +100% combat damage, 28 sec.",
         (g) => upgradeLeash(g),
       );
@@ -2533,7 +2546,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     const kit = game.player.kits.lance;
     if (kit) {
       const next = kit.level + 1;
-      fitted("lance", lanceUpgradeCost(kit.level), LANCE_CHARGE[next] != null ? `${LANCE_CHARGE[next]} sec charge.` : "", (g) => upgradeLance(g));
+      fitted("lance", lanceUpgradeCost, LANCE_CHARGE[next] != null ? `${LANCE_CHARGE[next]} sec charge.` : "", (g) => upgradeLance(g));
     }
   }
   {
@@ -2541,7 +2554,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       const next = kit.level + 1;
       const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
-      fitted("flak", flakUpgradeCost(kit.level), seconds != null ? `${seconds} sec charge.` : "", (g) => upgradeFlak(g));
+      fitted("flak", flakUpgradeCost, seconds != null ? `${seconds} sec charge.` : "", (g) => upgradeFlak(g));
     }
   }
   {
@@ -2549,20 +2562,20 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       fitted(
         "spike",
-        spikeUpgradeCost(kit.level),
+        spikeUpgradeCost,
         kit.level === 1 ? "7 sec pulse." : "10 sec pulse.",
         (g) => upgradeSpike(g),
       );
     }
   }
   sys("weapons");
-  if (game.player.kits.swarm) fitted("swarm", null, "", () => {});
+  if (game.player.kits.swarm) fitted("swarm", () => null, "", () => {});
   sys("pilot");
   sys("sensors");
   sys("doors");
   {
     const kit = game.player.kits.cell;
-    if (kit) fitted("cell", cellUpgradeCost(kit.level), "4 temporary power bars.", (g) => upgradeCell(g), true);
+    if (kit) fitted("cell", cellUpgradeCost, "4 temporary power bars.", (g) => upgradeCell(g), true);
   }
   return rows;
 }
@@ -2668,39 +2681,79 @@ function ReactorTotal({ game }: { game: Game }) {
   );
 }
 
+/**
+ * One upgrade drawn like the reactor (ReactorTotal): a framed panel, a column of bars lit up to the current level and
+ * dim up to the top level, and the price in the foot. INVENTED layout, after the reactor panel.
+ */
+function UpgradeCard({ game, row }: { game: Game; row: UpgradeRow }) {
+  const top = Math.max(row.level, row.max);
+  return (
+    <section
+      className="reactor-total upgrade-card"
+      data-upgrade-card={row.key}
+      aria-label={`${row.name}, level ${row.level} of ${top}`}
+    >
+      <p className="reactor-total-title upgrade-card-title">
+        {row.icon ? <PixelIcon name={row.icon} size={18} /> : null}
+        <span>{row.name}</span>
+      </p>
+      <div className="reactor-total-grid">
+        <span className="reactor-total-col">
+          {Array.from({ length: top }, (_, fromTop) => {
+            const bar = top - 1 - fromTop;
+            return <i key={bar} className={bar < row.level ? "is-on" : undefined} />;
+          })}
+        </span>
+      </div>
+      <p className="mini upgrade-card-next">{row.effect}</p>
+      <div className="reactor-total-foot">
+        <span>
+          {row.level}/{top}
+        </span>
+        {row.cost != null && row.buy ? (
+          <button
+            type="button"
+            className="text-btn"
+            data-upgrade={row.key}
+            disabled={game.scrap < row.cost}
+            aria-label={`Upgrade ${row.name} for ${row.cost}`}
+            onClick={() => {
+              const buy = row.buy;
+              if (buy) act(buy);
+            }}
+          >
+            {row.cost}
+          </button>
+        ) : (
+          <span className="mini">Max</span>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function UpgradeList({ game }: { game: Game }) {
   const rows = upgradeRows(game).filter((row) => row.key !== "reactor");
-  const firstSub = rows.findIndex((row) => row.subsystem);
+  const systems = rows.filter((row) => !row.subsystem);
+  const subsystems = rows.filter((row) => row.subsystem);
   return (
     <div className="upgrade-list">
-      <ReactorTotal game={game} />
-      {rows.map((row, index) => (
-        <div key={row.key}>
-          {index === firstSub ? <p className="mini sheet-note">Subsystems need no reactor power.</p> : null}
-          <div className="upgrade-row">
-            <span className="power-name">
-              {row.icon ? <PixelIcon name={row.icon} /> : null}
-              {row.name} · {row.level}
-            </span>
-            {row.effect ? <span className="mini">{row.effect}</span> : null}
-            {row.cost != null && row.buy ? (
-              <button
-                type="button"
-                className="text-btn"
-                data-upgrade={row.key}
-                disabled={game.scrap < row.cost}
-                aria-label={`Upgrade ${row.name} for ${row.cost}`}
-                onClick={() => {
-                  const buy = row.buy;
-                  if (buy) act(buy);
-                }}
-              >
-                {row.cost}
-              </button>
-            ) : null}
+      <div className="upgrade-cards">
+        <ReactorTotal game={game} />
+        {systems.map((row) => (
+          <UpgradeCard key={row.key} game={game} row={row} />
+        ))}
+      </div>
+      {subsystems.length ? (
+        <>
+          <p className="mini sheet-note">Subsystems need no reactor power.</p>
+          <div className="upgrade-cards">
+            {subsystems.map((row) => (
+              <UpgradeCard key={row.key} game={game} row={row} />
+            ))}
           </div>
-        </div>
-      ))}
+        </>
+      ) : null}
       <p className="mini sheet-note">Systems you do not have, and hull repair, are bought at a store.</p>
     </div>
   );

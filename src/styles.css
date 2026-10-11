@@ -4577,3 +4577,52 @@ button.door-tick::before {
 .target-panel .room.is-unseen .pixel-fill {
   background: #2b2f36;
 }
+
+/* Ship menu, Upgrades: every system is a reactor-style panel (GameApp UpgradeCard). INVENTED layout. */
+.upgrade-cards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+/* Bars sit on a common line above a fixed-height effect note, so every column's base lines up. */
+.upgrade-card {
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+}
+
+.upgrade-card .reactor-total-grid {
+  flex: 1 1 auto;
+  align-items: flex-end;
+}
+
+.upgrade-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.upgrade-card-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upgrade-card-next {
+  margin: 0;
+  min-height: 8em;
+}
+
+.upgrade-card .reactor-total-foot {
+  font-size: 18px;
+}
+
+/* A maxed panel's "Max" note is shorter than a price button; hold the foot at the button's height. */
+.upgrade-card .reactor-total-foot {
+  min-height: 2.25rem;
+}

@@ -10,8 +10,9 @@
  * - sealed rooms joined by open doors settle at their volume-weighted average, with no air lost;
  * - closed interior doors still seep, less at higher Door System levels.
  * Hull doors (airlocks) seal when closed. An open airlock is a very wide opening (C = 8), so its room empties in about
- * half a second. Space's pull reaches past it: every open interior door carries VACUUM_HOP of a room's exposure to the
- * next room, which vents straight to space at AIRLOCK_C times its exposure (per the user: rooms connected to an open
+ * half a second. Space's pull reaches past it through open interior doors: the room one door away has exposure
+ * VACUUM_REACH, and each further door keeps VACUUM_FALLOFF of that. Each exposed room vents straight to space at
+ * AIRLOCK_C times its exposure (per the user: rooms connected to an open
  * airlock feel the vacuum, at least partially). A breach, or a Lanius, is a C = 0.16 hole to space.
  * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. Every hull seeps a little air to space
  * (HULL_LEAK). A powered Oxygen system adds air to every room in proportion to its volume, so every room refills at
@@ -32,10 +33,13 @@ export const BREACH_C = 0.16;
 /** An open airlock: a 2-tile room empties in about half a second. */
 export const AIRLOCK_C = 8;
 /**
- * Share of a room's exposure to space that one open interior door passes on. A room open to space has exposure 1, its
- * open-door neighbour 0.1 (a full 2-tile room loses about a third of its air a second), the next room 0.01.
+ * Exposure to space of a room one open door from an open airlock, and the share kept per further open door
+ * (0.25, 0.2, 0.16, ...). Per the user: with every airlock open, a ship on level-1 Oxygen loses its air fairly
+ * quickly (about 5 s to a tenth of its air, under 20 s to 5% everywhere, on the playable hulls), while the airlock's
+ * neighbour still vents well short of the airlock itself.
  */
-export const VACUUM_HOP = 0.1;
+export const VACUUM_REACH = 0.25;
+export const VACUUM_FALLOFF = 0.8;
 /** Oxygen system refill per tile, %/s at level 1, and the level multipliers (xftl doc/oxygen: "1,4,7"). */
 export const REFILL = 1.2;
 export const REFILL_MULT: readonly number[] = [0, 1, 4, 7];
@@ -84,8 +88,8 @@ function vent(r: Room, c: number, dt: number) {
 }
 
 /**
- * How exposed each room is to space through open airlocks: 1 for a room with one open, VACUUM_HOP per open interior
- * door beyond it, the strongest path winning. Rooms with no open path are left out.
+ * How exposed each room is to space through open airlocks: 1 for a room with one open, VACUUM_REACH one open
+ * interior door beyond it, then VACUUM_FALLOFF of that per further open door, the strongest path winning. Rooms with no open path are left out.
  */
 export function vacuumExposure(ship: Pick<Ship, "rooms" | "doors">): Map<string, number> {
   const out = new Map<string, number>();
@@ -99,7 +103,8 @@ export function vacuumExposure(ship: Pick<Ship, "rooms" | "doors">): Map<string,
   // Exposure only falls along a path, so a breadth-first sweep from the open airlocks finds the strongest one.
   while (todo.length) {
     const at = todo.shift()!;
-    const next = out.get(at)! * VACUUM_HOP;
+    const here = out.get(at)!;
+    const next = here >= 1 ? VACUUM_REACH : here * VACUUM_FALLOFF;
     for (const d of ship.doors) {
       if (!d.open || d.b === "void") continue;
       const other = d.a === at ? d.b : d.b === at ? d.a : null;

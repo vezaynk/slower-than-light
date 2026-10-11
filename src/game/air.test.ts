@@ -9,12 +9,14 @@ import {
   HULL_LEAK,
   OPEN_DOOR_C,
   REFILL,
-  VACUUM_HOP,
+  VACUUM_FALLOFF,
+  VACUUM_REACH,
   stepAir,
   vacuumExposure,
   volume,
   type AirInputs,
 } from "./air.ts";
+import { createGame } from "./sim.ts";
 import type { Door, Room, Ship } from "./types.ts";
 
 function room(id: string, w: number, h: number, o2 = 100): Room {
@@ -96,20 +98,31 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const s = ship([lock, next, far, shut], [door("lock", "void"), door("lock", "next"), door("next", "far"), door("lock", "shut", false)]);
     assert.deepEqual(
       Object.fromEntries(vacuumExposure(s)),
-      { lock: 1, next: VACUUM_HOP, far: VACUUM_HOP * VACUUM_HOP },
+      { lock: 1, next: VACUUM_REACH, far: VACUUM_REACH * VACUUM_FALLOFF },
     );
     run(s, off(), 0.5);
     assert.ok(lock.o2 < 15, `${lock.o2}`);
-    // The neighbour feels a tenth of the vacuum on top of its door: down by about half in 2 s, under 10% by 10 s
-    // (the far room keeps feeding it through their open door).
+    // The neighbour feels a quarter of the vacuum on top of its door: most of its air is gone in 2 s, yet it empties
+    // well behind the airlock room itself.
     run(s, off(), 1.5);
-    assert.ok(next.o2 > 25 && next.o2 < 60, `${next.o2}`);
+    assert.ok(next.o2 > lock.o2 && next.o2 < 30, `${next.o2}`);
     run(s, off(), 8);
-    assert.ok(next.o2 < 10, `${next.o2}`);
-    // One door further the pull is far weaker, and a closed door passes none of it.
-    assert.ok(far.o2 > next.o2, `${far.o2} ${next.o2}`);
+    assert.ok(next.o2 < 5 && far.o2 < 5, `${next.o2} ${far.o2}`);
+    // A closed door passes none of the pull.
     assert.ok(shut.o2 > 85, `${shut.o2}`);
     assert.ok(AIRLOCK_C > OPEN_DOOR_C * 40);
+  });
+
+  it("with every door and airlock open, a Kestrel on level-1 Oxygen loses its air fairly quickly", () => {
+    const g = createGame(3, "kestrel-a");
+    const s = g.player;
+    for (const d of s.doors) d.open = true;
+    for (const r of s.rooms) r.o2 = 100;
+    const avg = () => amount(s) / s.rooms.reduce((n, r) => n + volume(r), 0);
+    run(s, off({ o2Bars: 1 }), 8);
+    assert.ok(avg() < 10, `${avg()}`);
+    run(s, off({ o2Bars: 1 }), 12);
+    for (const r of s.rooms) assert.ok(r.o2 <= 5, `${r.id} ${r.o2}`);
   });
 
   it("a closed airlock seals; closed interior doors seep less at each Door System level", () => {

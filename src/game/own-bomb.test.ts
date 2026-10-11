@@ -255,13 +255,13 @@ describe("bombs aimed at your own ship", () => {
     g.player.systems[room.system].ion = [];
     crew[0].stun = 0;
     g.player.kits.swarm.stun = 0;
-    enemy.kits.swarm.drones[0].stun = 0;
+    enemy.kits.swarm.drones![0].stun = 0;
     applyImpact(g, bomb({ defId: "stunbomb", ion: 1, from: "enemy", targetRoom: room.id }));
     assert.equal(g.player.zoltan, 3);
     assert.equal(g.player.systems[room.system].ion.length, 0);
     assert.equal(crew[0].stun ?? 0, 0);
     assert.equal(g.player.kits.swarm.stun ?? 0, 0);
-    assert.equal(enemy.kits.swarm.drones[0].stun ?? 0, 0);
+    assert.equal(enemy.kits.swarm.drones![0].stun ?? 0, 0);
   });
 });
 

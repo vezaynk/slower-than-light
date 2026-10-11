@@ -23,8 +23,8 @@ import {
   tickSquall,
 } from "./augments.ts";
 
-/** Sold rows only. medbot, gel, pheromone, booster, and vengeance have no purchase price and are not in CATALOG. */
-type CatalogId = Exclude<AugmentId, "medbot" | "gel" | "pheromone" | "booster" | "vengeance">;
+/** Sold rows only. medbot, gel, pheromone, booster, vengeance, stasis, and zshield have no purchase price and are not in CATALOG. */
+type CatalogId = Exclude<AugmentId, "medbot" | "gel" | "pheromone" | "booster" | "vengeance" | "stasis" | "zshield">;
 
 const NAMES: Record<CatalogId, string> = {
   feed: "Automated Re-loader",
@@ -330,7 +330,8 @@ describe("augments", () => {
     assert.equal(installAugment(g, "echo"), false);
     assert.equal(g.augments.length, 3);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.augments.includes("echo"), false);
+    // Re-read through a cast: the deepEqual above narrows g.augments to never[] for TypeScript.
+    assert.equal((g.augments as AugmentId[]).includes("echo"), false);
   });
 
   it("refuses to sell medbot, which has no purchase price", () => {

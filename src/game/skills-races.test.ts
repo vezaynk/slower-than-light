@@ -1390,7 +1390,7 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
       e.systems.weapons.power = 2;
       e.systems.weapons.damage = damage;
       e.systems.weapons.ion = [];
-      e.weapons = [{ id: "w", defId: "spark", charge: 0, enabled: true, target: "p-pilot" }];
+      e.weapons = [{ uid: "w", defId: "spark", charge: 0, enabled: true, autofire: false, target: "p-pilot" }];
       if (e.kits.veil) {
         e.kits.veil.power = 0;
         e.kits.veil.on = false;
@@ -1526,8 +1526,8 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     let misses = 0;
     let hits = 0;
     for (let i = 0; i < 80 && (misses < 2 || hits < 1); i++) {
-      const pilotBefore = ada.skills?.pilot ?? 0;
-      const enginesBefore = ivo.skills?.engines ?? 0;
+      const pilotBefore: number = ada.skills?.pilot ?? 0;
+      const enginesBefore: number = ivo.skills?.engines ?? 0;
       g.player.shieldNow = 1;
       g.player.hull = g.player.hullMax;
       // A shield hit logs nothing, so a previous miss would stay at the front of the log.
@@ -1548,8 +1548,8 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
         label: "Pew",
       });
       step(g, 0.05);
-      const pilot = ada.skills?.pilot ?? 0;
-      const engines = ivo.skills?.engines ?? 0;
+      const pilot: number = ada.skills?.pilot ?? 0;
+      const engines: number = ivo.skills?.engines ?? 0;
       if (g.log[0] === "Shot missed the Lark.") {
         misses++;
         assert.equal(pilot - pilotBefore, 1);
@@ -1632,7 +1632,7 @@ describe("Crew skills: piloting and engines are different consoles", () => {
     ivo.room = engines.id;
     let both = false;
     for (let i = 0; i < 40 && !both; i++) {
-      const pilotBefore = ada.skills?.pilot ?? 0;
+      const pilotBefore: number = ada.skills?.pilot ?? 0;
       if (!dodge()) continue;
       both = true;
       assert.equal((ada.skills?.pilot ?? 0) - pilotBefore, 1);
@@ -1671,8 +1671,8 @@ describe("Crew skills, Piloting: an asteroid during the fight", () => {
     ivo.skills = {};
     let misses = 0;
     for (let i = 0; i < 40 && misses < 1; i++) {
-      const pilotBefore = ada.skills?.pilot ?? 0;
-      const enginesBefore = ivo.skills?.engines ?? 0;
+      const pilotBefore: number = ada.skills?.pilot ?? 0;
+      const enginesBefore: number = ivo.skills?.engines ?? 0;
       g.player.shieldNow = 1;
       g.player.hull = g.player.hullMax;
       g.log.length = 0;
@@ -1804,7 +1804,7 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
         label: "Pew",
       });
       step(g, 0.05);
-      const gained = (nen.skills?.shields ?? 0) - before;
+      const gained: number = (nen.skills?.shields ?? 0) - before;
       if (g.log[0] === "Shot missed the Lark.") {
         misses++;
         assert.equal(gained, 0);

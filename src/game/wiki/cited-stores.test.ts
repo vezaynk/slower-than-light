@@ -270,10 +270,12 @@ describe("cited stores", () => {
       g.scrap = row.cost;
       buy(g, item.id);
       assert.equal(g.scrap, 0);
-      assert.equal(g.player.kits.swarm?.level, 2);
-      assert.equal(g.player.kits.swarm?.power, 0);
-      assert.equal(g.player.kits.swarm?.target, row.target);
-      assert.equal(g.player.kits.swarm?.on, false);
+      // Cast: the assert.equal(..., undefined) above narrows this path to undefined for TypeScript.
+      const bay = g.player.kits.swarm as Kit | undefined;
+      assert.equal(bay?.level, 2);
+      assert.equal(bay?.power, 0);
+      assert.equal(bay?.target, row.target);
+      assert.equal(bay?.on, false);
       assert.equal(
         g.player.rooms.some((room) => room.kit === "swarm"),
         true,

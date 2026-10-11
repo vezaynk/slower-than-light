@@ -97,7 +97,8 @@ describe("Lanius ship absorbing jump beacon", () => {
       assert.match(g.event?.body ?? "", /critical\.\.\. must\.\.\. metal\.\.\./);
       assert.deepEqual(g.event?.choices.map((c) => c.label), ["Leave."]);
       choose(g, "s:lanius-beacon-eater:leave");
-      if (g.phase === "combat") {
+      // Cast: TypeScript still holds the narrowing from above; choose changes the phase.
+      if ((g.phase as Game["phase"]) === "combat") {
         pulled = true;
         assertLaniusFight(g);
         sameStock(g, before);
@@ -185,7 +186,9 @@ describe("Lanius ship absorbing jump beacon", () => {
     const full = createGame(4);
     open(full);
     full.player.kits.swarm = drone("hull");
-    while (joinCrew(full, "Human")) {}
+    while (joinCrew(full, "Human")) {
+      // Fill the ship to the crew cap.
+    }
     assert.equal(full.crew.filter((c) => c.side === "player").length, CREW_CAP);
     const fullParts = full.player.parts;
     choose(full, "c:lanius-ship-absorbing-jump-beacon:3");

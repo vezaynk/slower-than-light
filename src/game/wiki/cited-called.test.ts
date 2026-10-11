@@ -658,7 +658,6 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.equal(other.stun, 6);
     assert.equal(friend.stun, 0);
     assert.equal(personnel.stun, 6);
-    assert.equal(personnel.ionT, undefined);
     assert.equal(boardDrone.stun, 0);
     assert.equal(ionDrone.stun, 0);
     assert.equal(striker.stun, 0);

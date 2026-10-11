@@ -3117,7 +3117,7 @@ function salesmanMark(g: Game, room: { fire: number; breach: number; title: stri
 }
 
 /** 1 damage to that room's system when a bar is left, plus the tooltip's effect. */
-function salesmanRoom(g: Game, room: { fire: number; breach: number; title: string; system?: string }): string {
+function salesmanRoom(g: Game, room: { fire: number; breach: number; title: string; system?: string | null }): string {
   const bits: string[] = [];
   const id = room.system;
   const sys = id ? g.player.systems[id as "engines"] : undefined;

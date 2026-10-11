@@ -259,7 +259,7 @@ export function Hangar() {
           style={{
             ["--cols" as string]: preview.ship.cols,
             ["--rows" as string]: preview.ship.rows,
-            ["--hull-body" as string]: factionPaint(layout.id.split("-")[0]).body,
+            ["--hull-body" as string]: factionPaint(layout.id.split("-")[0]).skin,
           }}
         >
           <ShipView

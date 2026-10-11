@@ -120,7 +120,8 @@ describe("veil", () => {
 
     g.scrap = 150;
     installVeil(g);
-    const kit = g.player.kits.veil;
+    // Cast: the assert.equal(..., undefined) above narrows this path to undefined for TypeScript.
+    const kit = g.player.kits.veil as Kit | undefined;
     assert.ok(kit);
     assert.equal(g.scrap, 0);
     startVeil(g);

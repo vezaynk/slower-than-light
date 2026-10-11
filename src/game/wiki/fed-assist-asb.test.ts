@@ -33,7 +33,8 @@ function arriveQuest(seed: number, id: string): Game | null {
   g.phase = "map";
   g.event = null;
   commitJump(g, b.id);
-  if (g.phase !== "event") return null;
+  // Cast: TypeScript still holds the "map" assigned above; commitJump changes it.
+  if ((g.phase as Game["phase"]) !== "event") return null;
   return g;
 }
 

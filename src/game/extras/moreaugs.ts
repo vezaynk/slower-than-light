@@ -29,7 +29,7 @@ const RECOVER_DEFENSE = new Set(["ward", "ward2", "wardcut", "overcharger", "ove
 export function partsBack(g: Game): number {
   const kit = g.player.kits.swarm;
   const target = kit?.target;
-  const deployed = typeof target === "string" && target.length > 0 && kit.on;
+  const deployed = typeof target === "string" && target.length > 0 && !!kit?.on;
   if (!fitted(g, "recover") || !deployed || kit === undefined || kit.power <= 0 || !target) return 0;
   if (RECOVER_DEFENSE.has(target)) return 1;
   if (RECOVER_COMBAT.has(target) && !(g.phase === "combat" && g.enemy)) return 1;

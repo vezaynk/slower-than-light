@@ -289,7 +289,7 @@ describe("crystal lockdown and a hacking drone", () => {
     assert.ok(g.enemy);
     g.enemy.systems.doors.level = 4;
     g.enemy.systems.doors.damage = 0;
-    g.enemy.drones = [];
+    delete g.enemy.kits.swarm; // no enemy drones in this test
     const room = g.enemy.rooms.find((r) => r.system === "weapons");
     const crystal = g.crew.find((c) => c.kin === "shard" && c.hp > 0);
     assert.ok(room && crystal);
@@ -321,7 +321,7 @@ describe("crystal lockdown and a hacking drone", () => {
     startCombat(kept, "scout");
     calm(kept);
     assert.ok(kept.enemy);
-    kept.enemy.drones = [];
+    delete kept.enemy.kits.swarm; // no enemy drones in this test
     const foeRoom = kept.enemy.rooms.find((r) => r.system === "weapons");
     const gem = kept.crew.find((c) => c.kin === "shard" && c.hp > 0);
     assert.ok(foeRoom && gem);

@@ -214,7 +214,7 @@ describe("spike", () => {
     const enemy = g.enemy!;
     g.player.weapons = [];
     enemy.weapons = [];
-    enemy.drones = [];
+    delete enemy.kits.swarm; // no enemy drones in this test
     enemy.automated = true;
     enemy.systems.doors.level = 1;
     enemy.systems.doors.damage = 0;
@@ -255,7 +255,7 @@ describe("spike", () => {
     const foeHull = board.enemy!;
     board.player.weapons = [];
     foeHull.weapons = [];
-    foeHull.drones = [];
+    delete foeHull.kits.swarm; // no enemy drones in this test
     foeHull.automated = true;
     foeHull.systems.doors.level = 1;
     foeHull.systems.doors.damage = 0;
@@ -287,7 +287,7 @@ describe("spike", () => {
     const hull = held.enemy!;
     held.player.weapons = [];
     hull.weapons = [];
-    hull.drones = [];
+    delete hull.kits.swarm; // no enemy drones in this test
     hull.automated = true;
     hull.systems.doors.level = 1;
     hull.systems.doors.damage = 0;
@@ -325,7 +325,7 @@ describe("spike", () => {
     const enemy = g.enemy!;
     g.player.weapons = [];
     enemy.weapons = [];
-    enemy.drones = [];
+    delete enemy.kits.swarm; // no enemy drones in this test
     enemy.automated = true;
     enemy.systems.doors.level = 1;
     enemy.systems.doors.damage = 0;

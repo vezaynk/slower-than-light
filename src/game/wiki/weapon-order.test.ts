@@ -27,7 +27,7 @@ import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./enemy-ships.ts";
 import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
-  return { uid: defId, defId, charge: 0, enabled: true, autofire: false, target: null, ...extra, uid: extra.uid ?? defId };
+  return { defId, charge: 0, enabled: true, autofire: false, target: null, ...extra, uid: extra.uid ?? defId };
 }
 
 function spark(room: string, id: string): Crew {

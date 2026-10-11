@@ -9,7 +9,9 @@ import {
   HULL_LEAK,
   OPEN_DOOR_C,
   REFILL,
+  VACUUM_HOP,
   stepAir,
+  vacuumExposure,
   volume,
   type AirInputs,
 } from "./air.ts";
@@ -86,20 +88,27 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     assert.ok(big.o2 > small.o2);
   });
 
-  it("an open airlock empties its room in about half a second, then pulls on the rooms open to it", () => {
+  it("an open airlock empties its room in about half a second, and space reaches through open doors beyond it", () => {
     const lock = room("lock", 2, 1);
     const next = room("next", 2, 1);
-    const s = ship([lock, next], [door("lock", "void"), door("lock", "next")]);
+    const far = room("far", 2, 1);
+    const shut = room("shut", 2, 1);
+    const s = ship([lock, next, far, shut], [door("lock", "void"), door("lock", "next"), door("next", "far"), door("lock", "shut", false)]);
+    assert.deepEqual(
+      Object.fromEntries(vacuumExposure(s)),
+      { lock: 1, next: VACUUM_HOP, far: VACUUM_HOP * VACUUM_HOP },
+    );
     run(s, off(), 0.5);
     assert.ok(lock.o2 < 15, `${lock.o2}`);
-    run(s, off(), 0.5);
-    assert.ok(lock.o2 < 5, `${lock.o2}`);
-    assert.ok(next.o2 < 100 && next.o2 > lock.o2, `${next.o2}`);
-    // The neighbour drains through its door at up to 16 tile-%/s: about 46% after 10 s, under 5% by 40 s.
-    run(s, off(), 9);
-    assert.ok(next.o2 > 40 && next.o2 < 52, `${next.o2}`);
-    run(s, off(), 30);
-    assert.ok(next.o2 < 5, `${next.o2}`);
+    // The neighbour feels a tenth of the vacuum on top of its door: down by about half in 2 s, under 10% by 10 s
+    // (the far room keeps feeding it through their open door).
+    run(s, off(), 1.5);
+    assert.ok(next.o2 > 25 && next.o2 < 60, `${next.o2}`);
+    run(s, off(), 8);
+    assert.ok(next.o2 < 10, `${next.o2}`);
+    // One door further the pull is far weaker, and a closed door passes none of it.
+    assert.ok(far.o2 > next.o2, `${far.o2} ${next.o2}`);
+    assert.ok(shut.o2 > 85, `${shut.o2}`);
     assert.ok(AIRLOCK_C > OPEN_DOOR_C * 40);
   });
 

@@ -10,8 +10,9 @@
  * - sealed rooms joined by open doors settle at their volume-weighted average, with no air lost;
  * - closed interior doors still seep, less at higher Door System levels.
  * Hull doors (airlocks) seal when closed. An open airlock is a very wide opening (C = 8), so its room empties in about
- * half a second and then pulls on its neighbours through their doors. A breach, or a Lanius, is a C = 0.16 hole to
- * space.
+ * half a second. Space's pull reaches past it: every open interior door carries VACUUM_HOP of a room's exposure to the
+ * next room, which vents straight to space at AIRLOCK_C times its exposure (per the user: rooms connected to an open
+ * airlock feel the vacuum, at least partially). A breach, or a Lanius, is a C = 0.16 hole to space.
  * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. Every hull seeps a little air to space
  * (HULL_LEAK). A powered Oxygen system adds air to every room in proportion to its volume, so every room refills at
  * the same %: 1.2%/s, x4 at level 2, x7 at level 3 (Oxygen; xftl doc/oxygen). An unpowered system adds nothing, so a
@@ -30,6 +31,11 @@ export const CLOSED_DOOR_C: readonly number[] = [0.032, 0.016, 0.005, 0.002, 0.0
 export const BREACH_C = 0.16;
 /** An open airlock: a 2-tile room empties in about half a second. */
 export const AIRLOCK_C = 8;
+/**
+ * Share of a room's exposure to space that one open interior door passes on. A room open to space has exposure 1, its
+ * open-door neighbour 0.1 (a full 2-tile room loses about a third of its air a second), the next room 0.01.
+ */
+export const VACUUM_HOP = 0.1;
 /** Oxygen system refill per tile, %/s at level 1, and the level multipliers (xftl doc/oxygen: "1,4,7"). */
 export const REFILL = 1.2;
 export const REFILL_MULT: readonly number[] = [0, 1, 4, 7];
@@ -77,6 +83,34 @@ function vent(r: Room, c: number, dt: number) {
   r.o2 *= Math.exp((-c * dt) / volume(r));
 }
 
+/**
+ * How exposed each room is to space through open airlocks: 1 for a room with one open, VACUUM_HOP per open interior
+ * door beyond it, the strongest path winning. Rooms with no open path are left out.
+ */
+export function vacuumExposure(ship: Pick<Ship, "rooms" | "doors">): Map<string, number> {
+  const out = new Map<string, number>();
+  const todo: string[] = [];
+  for (const d of ship.doors) {
+    if (d.b === "void" && d.open && !out.has(d.a)) {
+      out.set(d.a, 1);
+      todo.push(d.a);
+    }
+  }
+  // Exposure only falls along a path, so a breadth-first sweep from the open airlocks finds the strongest one.
+  while (todo.length) {
+    const at = todo.shift()!;
+    const next = out.get(at)! * VACUUM_HOP;
+    for (const d of ship.doors) {
+      if (!d.open || d.b === "void") continue;
+      const other = d.a === at ? d.b : d.b === at ? d.a : null;
+      if (other == null || (out.get(other) ?? 0) >= next) continue;
+      out.set(other, next);
+      todo.push(other);
+    }
+  }
+  return out;
+}
+
 /** One tick of air on a hull. Fire starvation and suffocation read the result. */
 export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
   if (!(dt > 0)) return;
@@ -100,6 +134,11 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
     }
     const b = byId.get(d.b);
     if (b) exchange(a, b, d.open ? OPEN_DOOR_C : closed, dt);
+  }
+  // Rooms open to space directly are already vented by their airlock above; the reach adds to the rooms beyond.
+  for (const [id, exposure] of vacuumExposure(ship)) {
+    const r = byId.get(id);
+    if (r && exposure < 1) vent(r, AIRLOCK_C * exposure, dt);
   }
   for (const r of ship.rooms) {
     const holes = r.breach + (input.lanius.get(r.id) ?? 0);

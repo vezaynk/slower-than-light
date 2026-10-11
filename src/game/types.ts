@@ -157,6 +157,8 @@ export type Crew = {
    */
   station?: string;
   think: number;
+  /** An enemy boarder's assigned room on the player ship (sim.ts boarderRooms, xftl doc/crew-ai). */
+  intrude?: string;
   tone: number;
   /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */
   uniform?: number;
@@ -612,7 +614,8 @@ export type Ship = {
 };
 
 /** @agent:crewai. One enemy crew task (extras/crewai.ts). `room` is the destination room id. */
-export type CrewAiTask = { kind: "heal" | "flee" | "shields" | "defend" | "fire" | "repair"; room: string };
+/** xftl doc/crew-ai task kinds: heal, combat ("defend"), fire, hull breach, and repair. "flee" is the wiki's. */
+export type CrewAiTask = { kind: "heal" | "flee" | "defend" | "fire" | "breach" | "repair"; room: string };
 
 /** @agent:crewai. Enemy crew AI state on an enemy hull (extras/crewai.ts). */
 export type CrewAiState = {
@@ -622,6 +625,10 @@ export type CrewAiState = {
   post: Record<string, string>;
   /** Crew id -> the task it is on. Absent means idle (at or walking to its post). */
   task: Record<string, CrewAiTask>;
+  /** xftl doc/crew-ai: bHurtCrew, read by the ship AI to power the Medbay. */
+  hurt?: boolean;
+  /** xftl doc/crew-ai: bOverrideRace. Once set, crew bad at combat are no longer kept off combat tasks. */
+  overrideRace?: boolean;
 };
 
 export type BeaconKind =

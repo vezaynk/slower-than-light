@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "../sim.ts";
-import { aiCrew, jobsOn, planCrew, tickEnemyCrewAi } from "./crewai.ts";
+import { aiCrew, jobsOn, manPriority, planCrew, systemPriority, tickEnemyCrewAi } from "./crewai.ts";
 import type { Crew, Game, Room } from "../types.ts";
 
 /** A Rebel hull with a Medbay, no subsystem kits (no teleporter to borrow crew), and 4+ crew. */
@@ -119,28 +119,37 @@ describe("enemy crew AI: intruders", () => {
   });
 });
 
-describe("enemy crew AI: shields first", () => {
-  it("puts the shield room ahead of every other job", () => {
-    const g = fight();
-    g.enemy!.systems.engines.damage = 1;
-    g.enemy!.systems.shields.damage = 1;
-    room(g, "weapons").fire = 1;
-    const jobs = jobsOn(g, g.enemy!);
-    assert.equal(jobs[0].kind, "shields");
+describe("enemy crew AI: priorities", () => {
+  it("uses the xftl priority tables (doc/crew-ai PrioritizeSystem and manning)", () => {
+    assert.equal(systemPriority("shields"), 0);
+    assert.equal(systemPriority("weapons"), 1);
+    assert.equal(systemPriority("cradle"), 1);
+    assert.equal(systemPriority("oxygen"), 3);
+    assert.equal(systemPriority("pilot"), 4);
+    assert.equal(systemPriority("doors"), 7);
+    assert.equal(systemPriority("medbay"), 2);
+    assert.equal(systemPriority("medbay", true), 1);
+    assert.equal(systemPriority(undefined), 8);
+    assert.equal(manPriority("pilot", false), 64);
+    assert.equal(manPriority("shields", false), 65);
+    assert.equal(manPriority("engines", false), 67);
+    assert.equal(manPriority("shields", true), 67);
+    assert.equal(manPriority("engines", true), 65);
+    assert.equal(manPriority("weapons", false), 66);
   });
 
-  it("pulls a crew member off another job to the shield room", () => {
+  it("pulls a crew member off another repair to fix Shields (priority 1 against 52)", () => {
     const g = fight();
-    const sh = room(g, "shields").id;
-    // The shield crew is away; everyone else is busy.
     tickEnemyCrewAi(g, 0.05);
     const ai = g.enemy!.crewAi!;
-    for (const c of foes(g)) ai.task[c.id] = { kind: "repair", room: room(g, "engines").id };
+    const eng = room(g, "engines").id;
     g.enemy!.systems.engines.damage = 1;
-    for (const c of foes(g)) if (c.room === sh) c.room = room(g, "oxygen").id;
-    board(g, sh);
+    g.enemy!.systems.shields.damage = 1;
+    for (const c of foes(g)) ai.task[c.id] = { kind: "repair", room: eng };
     planCrew(g, g.enemy!, ai);
-    assert.ok(Object.values(ai.task).some((t) => t.kind === "shields"));
+    const tasks = Object.values(ai.task);
+    assert.ok(tasks.some((t) => t.kind === "repair" && t.room === room(g, "shields").id));
+    assert.equal(tasks.filter((t) => t.kind === "repair" && t.room === eng).length, 1);
   });
 });
 
@@ -212,6 +221,53 @@ describe("enemy crew AI: fires and repairs", () => {
 });
 
 describe("enemy crew AI: health", () => {
+  it("heals below 25% and stays until 99% (xftl CheckForHealing), and sets bHurtCrew", () => {
+    const g = fight();
+    const c = foes(g).find((x) => x.room === room(g, "weapons").id)!;
+    c.hp = c.maxHp * 0.26;
+    tickEnemyCrewAi(g, 1);
+    assert.notEqual(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
+    assert.equal(g.enemy!.crewAi!.hurt, false);
+    c.hp = c.maxHp * 0.24;
+    tickEnemyCrewAi(g, 1);
+    assert.equal(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
+    assert.equal(g.enemy!.crewAi!.hurt, true);
+    c.hp = c.maxHp * 0.985;
+    tickEnemyCrewAi(g, 1);
+    assert.equal(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
+    c.hp = c.maxHp * 0.995;
+    tickEnemyCrewAi(g, 1);
+    assert.notEqual(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
+  });
+
+  it("keeps crew bad at combat (<1x damage or <100 HP) off boarders while others can go", () => {
+    const g = fight();
+    const ox = room(g, "oxygen").id;
+    const crew = foes(g);
+    for (const c of crew) c.kin = "plain";
+    const weak = crew[0];
+    weak.maxHp = 90;
+    weak.hp = 90;
+    board(g, ox);
+    tickEnemyCrewAi(g, 1);
+    const ai = g.enemy!.crewAi!;
+    assert.notEqual(ai.task[weak.id]?.kind, "defend");
+    assert.ok(crew.slice(1).some((c) => ai.task[c.id]?.kind === "defend"));
+  });
+
+  it("treats a room with an open airlock as dangerous (xftl DangerRating)", () => {
+    const g = fight();
+    const e = g.enemy!;
+    const lock = e.doors.find((d) => d.b === "void");
+    assert.ok(lock);
+    const c = foes(g).find((x) => x.room !== lock.a)!;
+    c.room = lock.a;
+    c.path = [];
+    lock.open = true;
+    tickEnemyCrewAi(g, 1);
+    assert.equal(e.crewAi!.task[c.id]?.kind, "flee");
+  });
+
   it("sends a hurt crew member to the Medbay and keeps it there until full", () => {
     const g = fight();
     const med = room(g, "medbay").id;

@@ -29,15 +29,20 @@
  *   fights the drone" (4 boarders plus 1 drone drew 4 + 1 defenders): one defender per hostile unit.
  * Wiki page "AI-Controlled Rebel Ships": "Automated ships are unmanned." Nothing runs on them.
  *
+ * The numbers come from the xftl reverse-engineering notes (gitlab.com/znixian/xftl, doc/crew-ai), the doc "No Escape"
+ * links: CrewAI::CheckForHealing (heal below 25%, stay until 99%), DangerRating, PrioritizeSystem, CheckForProblems
+ * (the tasks), PrioritizeTask (their priorities, lower first), and AttemptToAssign (who takes each task). The wiki's
+ * flee and break-out rules above are kept: the notes do not cover them.
+ *
  * Out of scope here (other modules own them): crew in an enemy boarding party or away on the player hull
  * (extras/sling.ts), crew under either side's Mind Control (extras/leash.ts `sideOf`), stunned crew.
  * The Rebel Flagship gets only this generic behaviour.
  *
  * Determinism and cost: one ship-wide plan every PLAN_S seconds, no random rolls (so the seed's rand(g) stream is
- * untouched), one BFS per crew member per plan over a hull of at most ~20 rooms.
+ * untouched).
  */
 import { interiorLinks, mayStand } from "../crew-spots.ts";
-import type { Crew, CrewAiState, CrewAiTask, Game, Room, Ship, SysId } from "../types.ts";
+import type { Crew, CrewAiState, CrewAiTask, Game, KitId, Room, Ship, SysId } from "../types.ts";
 import { bars, lockdown } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
 import { kinOf } from "./kin.ts";
@@ -48,36 +53,116 @@ import { artilleryGun } from "../wiki/flagship-systems.ts";
 export const PLAN_S = 0.5;
 
 /**
- * INFERRED: a crew member goes to heal below 25% health. "Boarding" gives "go heal if it can" with no number;
- * 25% is the wiki's line for the enemy recalling hurt boarders (Crew Teleporter, "below 25% HP").
+ * xftl doc/crew-ai, CheckForHealing: "the crew health is <25% (non-calm ship) or <99% (calm ship)". This AI runs only
+ * in a fight, so the ship is never calm. UpdateCrewMember: "If healing, and <99% health, and the medbay isn't hacked,
+ * remain in the healing state."
  */
 export const HEAL_BELOW = 0.25;
+export const HEAL_UNTIL = 0.99;
 
-/** Fires, "Fires and enemy AI": "Weakened crew - at 20% health and below - will flee from fires, if not immune." */
+/**
+ * xftl doc/crew-ai, DangerRating: "If fireCount>0 and health<20%, it's dangerous unless we're immune to fire". Fires,
+ * "Fires and enemy AI", words it "at 20% health and below".
+ */
 export const FIRE_FLEE_AT = 0.2;
 
-/** Boarding, "Fire Bomb": "will start to leave an airless room at below 25% HP threshold." */
+/**
+ * xftl doc/crew-ai, DangerRating: "If health<25% and oxygen<10% it's dangerous, if we can suffocate". Boarding, "Fire
+ * Bomb": "will start to leave an airless room at below 25% HP threshold."
+ */
 export const AIR_FLEE_BELOW = 0.25;
+export const AIR_DANGER_O2 = 10;
 
-/** Fires, "Fires and enemy AI": "will generally send two crew members to fight it." */
+/**
+ * xftl doc/crew-ai, CheckForProblems: "A room with any number of fires (and more than 10% oxygen) gets two tasks".
+ * Fires, "Fires and enemy AI": "will generally send two crew members to fight it." INFERRED: the "bonus task" the notes
+ * call "quite confusing" is left out.
+ */
 export const FIRE_CREW = 2;
 
-/**
- * Stations crew return to. Matches enemy-gen.ts STATION (pilot first so a lone crew member flies the ship).
- * Order is the refill order when a station's crew dies (INFERRED).
- */
+/** Stations crew return to. Matches enemy-gen.ts STATION. Refilled in manning priority order (manPriority). */
 export const STATIONS: readonly SysId[] = ["pilot", "weapons", "shields", "engines"];
 
+/** xftl doc/crew-ai, PrioritizeTask: "If a task is in a room marked as dangerous ... it gets a priority of 100." */
+const DANGER_PRIORITY = 100;
+/** "An idle task has priority 1000." */
+const IDLE_PRIORITY = 1000;
+
+type System = SysId | KitId;
+type Job = { kind: CrewAiTask["kind"]; room: string; slots: number };
+
 /**
- * Repair order. "No Escape": "the Shields system usually has the highest repair priority". The rest is INFERRED:
- * flying and shooting first, then life support, then the rest.
+ * xftl doc/crew-ai, CrewAI::PrioritizeSystem: "0: Shields / 1: Weapons, clonebay / 2: Artillery / 3: Oxygen /
+ * 4: Engines, drones, piloting / 5: Cloaking, mind control, hacking / 6: Sensors, battery / 7: Doors /
+ * 8: Everything else". "Medbay: 1 if it's requested (see CheckForHealing), 2 otherwise." "Teleporter: ... If ... a
+ * teleport is requested, priority 1 / Otherwise, priority 3". INFERRED: this sim has no teleport request, so 3.
  */
-export const REPAIR_ORDER: readonly SysId[] = ["shields", "pilot", "weapons", "engines", "oxygen", "medbay", "doors", "sensors"];
+export function systemPriority(sys: System | undefined, medbayRequested = false): number {
+  switch (sys) {
+    case "shields":
+      return 0;
+    case "weapons":
+    case "cradle":
+      return 1;
+    case "lance":
+    case "flak":
+      return 2;
+    case "oxygen":
+      return 3;
+    case "engines":
+    case "swarm":
+    case "pilot":
+      return 4;
+    case "veil":
+    case "leash":
+    case "spike":
+      return 5;
+    case "sensors":
+    case "cell":
+      return 6;
+    case "doors":
+      return 7;
+    case "medbay":
+      return medbayRequested ? 1 : 2;
+    case "sling":
+      return 3;
+    default:
+      return 8;
+  }
+}
 
-/** Task rank, lower first. Shields first (Fires, "Fires and enemy AI"). Defend before fire before repair is INFERRED. */
-const RANK: Record<CrewAiTask["kind"], number> = { heal: -2, flee: -1, shields: 0, defend: 1, fire: 2, repair: 3 };
-
-type Job = { kind: CrewAiTask["kind"]; room: string; slots: number; rank: number };
+/**
+ * xftl doc/crew-ai, PrioritizeTask, manning: "Piloting is 64 / Shields are 67 on hard, else 65. / Engines are 65 on
+ * hard, else 67. / Weapons and artillery is 66 / Oxygen is 68 / Sensors is 69 / Doors and cloaking is 70 / Teleporter
+ * is 71 / Medbay is 72 / Anything else is 1000."
+ */
+export function manPriority(sys: System | undefined, hard: boolean): number {
+  switch (sys) {
+    case "pilot":
+      return 64;
+    case "shields":
+      return hard ? 67 : 65;
+    case "engines":
+      return hard ? 65 : 67;
+    case "weapons":
+    case "lance":
+    case "flak":
+      return 66;
+    case "oxygen":
+      return 68;
+    case "sensors":
+      return 69;
+    case "doors":
+    case "veil":
+      return 70;
+    case "sling":
+      return 71;
+    case "medbay":
+      return 72;
+    default:
+      return IDLE_PRIORITY;
+  }
+}
 
 /** Called once per combat tick from sim.ts step(). */
 export function tickEnemyCrewAi(g: Game, dt: number) {
@@ -135,6 +220,70 @@ export function aiCrew(g: Game, ship: Ship): Crew[] {
   );
 }
 
+/** True when the crew member is "bad at combat": "<1x damage or <100hp" (xftl doc/crew-ai, PrioritizeTask). */
+function badFighter(c: Crew): boolean {
+  return kinOf(c.kin ?? "plain").fight < 1 || c.maxHp < 100;
+}
+
+/** The system a room houses, for the priority tables. */
+function roomSystem(ship: Ship, r: Room | undefined): System | undefined {
+  if (!r) return undefined;
+  if (artilleryGun(ship, r.id)) return "lance";
+  return r.system ?? r.kit;
+}
+
+/** INFERRED: "oxygen is below 25%" is the ship's average room oxygen. The notes do not say which oxygen. */
+function shipOxygen(ship: Ship): number {
+  return ship.rooms.length ? ship.rooms.reduce((n, r) => n + r.o2, 0) / ship.rooms.length : 100;
+}
+
+/**
+ * xftl doc/crew-ai, PrioritizeTask, for this crew member. Lower is more important.
+ * - A task in a room DangerRating marks dangerous: 100.
+ * - Combat for a crew member bad at combat: 100, "if not all of the crew are bad at combat, and unless the
+ *   combat/race override is set".
+ * - "Healing tasks has priority 0."
+ * - "Fire fighting and combat tasks: Use PrioritizeSystem + 16, or 24 (8+16) for rooms without a system."
+ * - Hull breaches: "PrioritizeSystem + 32, or 40 (8+32) for rooms without a system."
+ * - Repairs: "PrioritizeSystem + 48. The exception is that if oxygen is below 25%, repairing the oxygen system has
+ *   priority 0. Also, shields is always priority 1".
+ */
+function taskPriority(g: Game, ship: Ship, ai: CrewAiState, crew: Crew[], c: Crew, t: CrewAiTask): number {
+  const r = roomOf(ship, t.room);
+  if (t.kind === "heal") return 0;
+  if (r && t.kind !== "flee" && unsafe(g, ship, c, r)) return DANGER_PRIORITY;
+  const sys = roomSystem(ship, r);
+  const rank = systemPriority(sys, ai.hurt === true);
+  switch (t.kind) {
+    case "defend":
+      if (badFighter(c) && !ai.overrideRace && !crew.every(badFighter)) return DANGER_PRIORITY;
+      return rank + 16;
+    case "fire":
+      return rank + 16;
+    case "breach":
+      return rank + 32;
+    case "repair":
+      if (sys === "shields") return 1;
+      if (sys === "oxygen" && shipOxygen(ship) < 25) return 0;
+      return rank + 48;
+    default:
+      return IDLE_PRIORITY;
+  }
+}
+
+/**
+ * The priority of what a crew member is doing now: its task, else manning (standing at its post, a station), else
+ * idle. xftl doc/crew-ai, UpdateCrewMember: "If someone else is manning the room, go into idle mode."
+ */
+function currentPriority(g: Game, ship: Ship, ai: CrewAiState, crew: Crew[], c: Crew): number {
+  const t = ai.task[c.id];
+  if (t) return taskPriority(g, ship, ai, crew, c, t);
+  if (c.path.length || c.room !== ai.post[c.id]) return IDLE_PRIORITY;
+  const manned = crew.some((o) => o.id !== c.id && o.room === c.room && !ai.task[o.id] && crew.indexOf(o) < crew.indexOf(c));
+  if (manned) return IDLE_PRIORITY;
+  return manPriority(roomSystem(ship, roomOf(ship, c.room)), g.difficulty === "hard");
+}
+
 /** One full plan. Exported for tests. */
 export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
   // @agent:enemy-sensors. Never gated on their Sensors: enemies "have all the information about your ship and crew".
@@ -143,27 +292,30 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
   for (const id of Object.keys(ai.task)) if (!live.has(id)) delete ai.task[id];
   // A crew member's post is the room it first stood in (enemy-gen.ts places crew on stations first).
   for (const c of crew) ai.post[c.id] ??= c.room;
-  repost(ship, ai, crew);
+  repost(g, ship, ai, crew);
 
   // Crystal, "Crystal Lockdown": nobody leaves a coated room. Boarding: "if the room it is in is already locked
   // down then it will fight to the death". Stunned crew cannot act (Boarding, "Stun").
   const free = crew.filter((c) => !coated(ship, c.room) && (c.stun ?? 0) <= 0);
 
-  // 1. Heal, and hazard flight. Both outrank every job.
+  // 1. Heal (xftl CheckForHealing), and the wiki's hazard flight. Both outrank every job.
+  // bHurtCrew: "if any crew is assigned to the healing task, or if any crew satisfy the first per-crew condition".
+  ai.hurt = crew.some((c) => c.hp < c.maxHp * HEAL_BELOW);
   for (const c of free) {
     const t = ai.task[c.id];
-    const med = medbayFor(ship, c);
+    const med = medbayFor(g, ship, c);
     const hurt = c.hp < c.maxHp * HEAL_BELOW;
-    // "Once in an active healing room, a hurt AI will not leave for any reason until it is fully healed."
-    const healing = t?.kind === "heal" || (c.room === med?.id && c.path.length === 0);
-    if (med && (hurt || (healing && c.hp < c.maxHp))) {
+    const healing = t?.kind === "heal" && c.hp < c.maxHp * HEAL_UNTIL;
+    if (med && (hurt || healing)) {
       ai.task[c.id] = { kind: "heal", room: med.id };
+      ai.hurt = true;
       continue;
     }
     if (t?.kind === "heal") delete ai.task[c.id];
     const here = roomOf(ship, c.room);
-    if (here && unsafe(ship, c, here)) {
-      const to = refuge(ship, c);
+    // A hacked Medbay is the break-out below (Boarding), which keeps the phase-1 Flagship's lone medbay crew.
+    if (here && unsafe(g, ship, c, here, false)) {
+      const to = refuge(g, ship, c);
       if (to) ai.task[c.id] = { kind: "flee", room: to };
       continue;
     }
@@ -186,7 +338,7 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
     }
   }
 
-  // 2. Jobs on the hull, and which assigned crew still have a live one ("once assigned often do not change").
+  // 2. Tasks on the hull. A crew member already on a live task keeps its slot; a task that is gone frees the crew.
   const jobs = jobsOn(g, ship);
   const open = new Map(jobs.map((j) => [key(j), j.slots]));
   for (const c of free) {
@@ -194,40 +346,59 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
     if (!t || t.kind === "heal" || t.kind === "flee") continue;
     const k = key(t);
     const left = open.get(k) ?? 0;
-    const target = roomOf(ship, t.room);
-    if (left <= 0 || !target || unsafe(ship, c, target)) {
+    if (left <= 0 || !roomOf(ship, t.room)) {
       delete ai.task[c.id];
       continue;
     }
     open.set(k, left - 1);
   }
 
-  // 3. Fill open slots, best job first, nearest crew first. Shields may pull crew off any other job
-  // ("Unless actively healing in the Medbay, the AI will always drop what it is doing").
-  const dist = new Map(free.map((c) => [c.id, distances(ship, c.room)]));
+  // 3. xftl doc/crew-ai, AttemptToAssign, once per open task slot, in CheckForProblems order (not sorted).
+  const reach = new Map(free.map((c) => [c.id, distances(ship, c.room)]));
+  let combatMissed = false;
   for (const job of jobs) {
     let left = open.get(key(job)) ?? 0;
-    if (left <= 0) continue;
-    const target = roomOf(ship, job.room);
-    if (!target || coated(ship, job.room)) continue;
-    const pool = free
-      .filter((c) => {
+    const task: CrewAiTask = { kind: job.kind, room: job.room };
+    while (left > 0) {
+      const pool = free.filter((c) => {
         const t = ai.task[c.id];
         if (t && (t.kind === "heal" || t.kind === "flee")) return false;
-        if (t && !(job.kind === "shields" && t.kind !== "shields")) return false;
-        if (!dist.get(c.id)!.has(job.room)) return false;
-        return !unsafe(ship, c, target);
-      })
-      .sort((a, b) => dist.get(a.id)!.get(job.room)! - dist.get(b.id)!.get(job.room)!);
-    for (const c of pool) {
-      if (left <= 0) break;
-      const was = ai.task[c.id];
+        if (t && key(t) === key(task)) return false;
+        if (!reach.get(c.id)!.has(job.room)) return false;
+        // "Exclude crewmembers whose task is more important (lower priority number) than the task to be assigned."
+        return currentPriority(g, ship, ai, crew, c) >= taskPriority(g, ship, ai, crew, c, task);
+      });
+      // "If the crewmember's current task is combat, repair, fire-fighting, or hull-breach repair, and they're in the
+      // same room as the task, assign them immediately".
+      let pick = pool.find((c) => {
+        const t = ai.task[c.id];
+        return !!t && t.kind !== "heal" && t.kind !== "flee" && c.room === job.room;
+      });
+      if (!pick) {
+        // "pick the crewmember whose current task has the highest priority value ... If there's a tie, pick the
+        // crewmember that appears first in the crew list." Then assign only if the new task's priority is lower.
+        let best: Crew | undefined;
+        let bestCur = -Infinity;
+        for (const c of pool) {
+          const cur = currentPriority(g, ship, ai, crew, c);
+          if (cur > bestCur) {
+            best = c;
+            bestCur = cur;
+          }
+        }
+        if (best && taskPriority(g, ship, ai, crew, best, task) < bestCur) pick = best;
+      }
+      if (!pick) break;
+      const was = ai.task[pick.id];
       if (was) open.set(key(was), (open.get(key(was)) ?? 0) + 1);
-      ai.task[c.id] = { kind: job.kind, room: job.room };
+      ai.task[pick.id] = task;
       left -= 1;
     }
+    if (left > 0 && job.kind === "defend") combatMissed = true;
     open.set(key(job), left);
   }
+  // "if a combat task isn't assigned, and some of the crew are bad at combat, the combat/race override is set".
+  if (combatMissed && crew.some(badFighter)) ai.overrideRace = true;
 
   // 4. Walk. Crew with a task go to it; idle crew go back to their post.
   for (const c of free) {
@@ -236,47 +407,39 @@ export function planCrew(g: Game, ship: Ship, ai: CrewAiState) {
     const target = roomOf(ship, dest);
     // An idle crew member does not walk home into a room that would hurt it, and a walk it is already on (for
     // example sling.ts sending a recalled boarder home) is left alone ("Pathing" above).
-    if (!ai.task[c.id] && ((target && unsafe(ship, c, target)) || c.path.length)) continue;
+    if (!ai.task[c.id] && ((target && unsafe(g, ship, c, target)) || c.path.length)) continue;
     walk(g, ship, c, dest);
   }
 }
 
 /**
- * Every job on the hull this plan, best first.
- * - shields: anything wrong in the shield room (boarders, fire, damage, breach). Slots: one per hostile, two for a
- *   fire, one for repair. Fires: "at least 1 crewmember is assigned to repairing Shields".
- * - defend: one crew per hostile unit in the room (Achievements quote above). Hostiles are crew fighting for the
- *   player (Mind Control, "Overview": "They will be treated as an intruder by the enemy crew") and the player's
- *   Ion Intruder drone, which stands in a room (extras/swarm.ts kit.room).
- * - fire: FIRE_CREW per burning room. A fully burning room that is also breached is skipped ("any kind of enemy
- *   crew will leave the room till the fires die out").
- * - repair: one per room with a damaged system or subsystem, or a breach ("a damaged system counts as a separate
- *   AI crew task"). Ordered by REPAIR_ORDER; breach-only and subsystem rooms after systems (INFERRED).
+ * Every task on the hull this plan, in xftl CrewAI::CheckForProblems order: "Boarders get a single task each", "A room
+ * with any number of fires (and more than 10% oxygen) gets two tasks", then "Hull breaches get a task, one per room".
+ * INFERRED: the "bonus task" for breaches is left out, and system repairs (one per damaged system or subsystem room,
+ * No Escape: "a damaged system counts as a separate AI crew task") come last; the notes list no repair source.
+ * Hostiles are crew fighting for the player (Mind Control, "Overview": "They will be treated as an intruder by the
+ * enemy crew") and the player's Ion Intruder drone, which stands in a room (extras/swarm.ts kit.room).
+ * Fires, "Fires and enemy AI": a fully burning room that is also breached is left ("any kind of enemy crew will leave
+ * the room till the fires die out").
  */
 export function jobsOn(g: Game, ship: Ship): Job[] {
-  const jobs: Job[] = [];
-  const shieldsRoom = ship.rooms.find((r) => r.system === "shields");
+  const defend: Job[] = [];
+  const fire: Job[] = [];
+  const breach: Job[] = [];
+  const repair: Job[] = [];
   for (const r of ship.rooms) {
     const foes = hostilesIn(g, r.id);
-    const burning = r.fire > 0 && !(fullFire(r) && r.breach > 0);
+    if (foes > 0) defend.push({ kind: "defend", room: r.id, slots: foes });
+    if (r.fire > 0 && r.o2 > 10 && !(fullFire(r) && r.breach > 0)) fire.push({ kind: "fire", room: r.id, slots: FIRE_CREW });
+    if (r.breach > 0) breach.push({ kind: "breach", room: r.id, slots: 1 });
     // @agent:flagship. A flagship artillery room's own gun damage (wiki/flagship-systems.ts artilleryGun).
     const sys = artilleryGun(ship, r.id) ?? (r.system ? ship.systems[r.system] : undefined);
     const kit = r.kit ? ship.kits[r.kit] : undefined;
-    const broken = (sys != null && sys.damage > 0) || (kit != null && (kit.damage ?? 0) > 0);
-    const fix = broken || r.breach > 0;
-    if (r === shieldsRoom) {
-      const slots = foes + (burning ? FIRE_CREW : 0) + (fix ? 1 : 0);
-      if (slots > 0) jobs.push({ kind: "shields", room: r.id, slots, rank: RANK.shields });
-      continue;
-    }
-    if (foes > 0) jobs.push({ kind: "defend", room: r.id, slots: foes, rank: RANK.defend });
-    if (burning) jobs.push({ kind: "fire", room: r.id, slots: FIRE_CREW, rank: RANK.fire });
-    if (fix) {
-      const order = sys && sys.damage > 0 && r.system ? REPAIR_ORDER.indexOf(r.system) : REPAIR_ORDER.length;
-      jobs.push({ kind: "repair", room: r.id, slots: 1, rank: RANK.repair + (order + 1) / 100 });
+    if ((sys != null && sys.damage > 0) || (kit != null && (kit.damage ?? 0) > 0)) {
+      repair.push({ kind: "repair", room: r.id, slots: 1 });
     }
   }
-  return jobs.sort((a, b) => a.rank - b.rank);
+  return [...defend, ...fire, ...breach, ...repair];
 }
 
 /** Hostile units in an enemy room: crew fighting for the player, plus the player's Ion Intruder drone. */
@@ -289,17 +452,20 @@ function hostilesIn(g: Game, roomId: string): number {
 
 /**
  * Stations refill (INFERRED): when no living crew is posted to a station, the crew with the least important post
- * (a non-station room first, then the lowest station in STATIONS order below it) moves its post there.
+ * moves its post there. Stations fill in xftl manning priority order (manPriority: pilot 64, then shields 65 and
+ * engines 67, swapped on Hard, with weapons 66 between).
  */
-function repost(ship: Ship, ai: CrewAiState, crew: Crew[]) {
+function repost(g: Game, ship: Ship, ai: CrewAiState, crew: Crew[]) {
+  const hard = g.difficulty === "hard";
+  const order = [...STATIONS].sort((a, b) => manPriority(a, hard) - manPriority(b, hard));
   const rankOfRoom = (id: string) => {
     const sys = roomOf(ship, id)?.system;
-    const i = sys ? STATIONS.indexOf(sys) : -1;
-    return i < 0 ? STATIONS.length : i;
+    const i = sys ? order.indexOf(sys) : -1;
+    return i < 0 ? order.length : i;
   };
-  for (let i = 0; i < STATIONS.length; i++) {
-    const station = ship.rooms.find((r) => r.system === STATIONS[i]);
-    if (!station || ship.systems[STATIONS[i]].level <= 0) continue;
+  for (let i = 0; i < order.length; i++) {
+    const station = ship.rooms.find((r) => r.system === order[i]);
+    if (!station || ship.systems[order[i]].level <= 0) continue;
     if (crew.some((c) => ai.post[c.id] === station.id)) continue;
     const spare = crew
       .filter((c) => rankOfRoom(ai.post[c.id]) > i)
@@ -308,28 +474,37 @@ function repost(ship: Ship, ai: CrewAiState, crew: Crew[]) {
   }
 }
 
-/** A working Medbay this crew member may walk to, or undefined. Clone Bay ships have none. */
-function medbayFor(ship: Ship, c: Crew): Room | undefined {
+/**
+ * A Medbay this crew member may walk to, or undefined. Clone Bay ships have none. xftl doc/crew-ai, CheckForHealing:
+ * "the medbay is working and isn't hacked", and "the medbay room is rated as safe (see CrewAI::DangerRating)".
+ * Fires: weakened crew "will also not come to an operational Medbay on fire if not immune".
+ */
+function medbayFor(g: Game, ship: Ship, c: Crew): Room | undefined {
   if (bars(ship.systems.medbay) <= 0) return undefined;
   const r = ship.rooms.find((x) => x.system === "medbay");
-  if (!r || coated(ship, r.id) || r.o2 <= 5) return undefined;
-  // Fires: weakened crew "will also not come to an operational Medbay on fire if not immune".
+  if (!r || coated(ship, r.id)) return undefined;
   if (r.fire > 0 && !fireProof(c)) return undefined;
-  if (fullFire(r) && r.breach > 0) return undefined;
+  if (unsafe(g, ship, c, r)) return undefined;
   return r;
 }
 
-/** True when this crew member should not stay in (or walk into) this room. */
-function unsafe(_ship: Ship, c: Crew, r: Room): boolean {
+/**
+ * True when this room is dangerous for this crew member. xftl doc/crew-ai, CrewAI::DangerRating:
+ * - "If a room is an airlock and an airlock door is open, it's dangerous"
+ * - "If health<25% and oxygen<10% it's dangerous, if we can suffocate (ie, except lanius)"
+ * - "If fireCount>0 and health<20%, it's dangerous unless we're immune to fire"
+ * - "If fireCount>=4 then it's dangerous unless we're immune to fire"
+ * - "This room is the medbay, and it's being hacked"
+ * Fires, "Fires and enemy AI" adds: a completely burning room that is also breached is left by "any kind of enemy crew".
+ */
+function unsafe(g: Game, ship: Ship, c: Crew, r: Room, hackCounts = true): boolean {
+  if (ship.doors.some((d) => d.open && d.b === "void" && d.a === r.id)) return true;
+  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && kinOf(c.kin ?? "plain").suffocate > 0) return true;
   if (r.fire > 0) {
-    // Fires: "If a 2x2 room is completely filled with fire ..., enemy crew will give up and leave the room (except
-    // for Rockmen). However, if this room is also breached, then any kind of enemy crew will leave the room".
     if (fullFire(r) && r.breach > 0) return true;
-    if (!fireProof(c) && (fullFire(r, 4) || c.hp <= c.maxHp * FIRE_FLEE_AT)) return true;
+    if (!fireProof(c) && (r.fire >= 4 || c.hp < c.maxHp * FIRE_FLEE_AT)) return true;
   }
-  // Boarding, "Fire Bomb": "will start to leave an airless room at below 25% HP threshold." INFERRED: 5% oxygen is
-  // airless (sim.ts suffocation line); crew that do not suffocate (Lanius) stay.
-  if (r.o2 <= 5 && c.hp < c.maxHp * AIR_FLEE_BELOW && kinOf(c.kin ?? "plain").suffocate > 0) return true;
+  if (hackCounts && r.system === "medbay" && hackPulseOn(g, ship, "medbay")) return true;
   return false;
 }
 
@@ -351,16 +526,16 @@ function breakOut(ship: Ship, bayId: string): string | undefined {
 }
 
 /** The nearest room that is safe for this crew member: a usable Medbay first, else any safe room. */
-function refuge(ship: Ship, c: Crew): string | undefined {
-  const med = medbayFor(ship, c);
+function refuge(g: Game, ship: Ship, c: Crew): string | undefined {
+  const med = medbayFor(g, ship, c);
   const d = distances(ship, c.room);
-  if (med && d.has(med.id) && !unsafe(ship, c, med)) return med.id;
+  if (med && d.has(med.id) && !unsafe(g, ship, c, med)) return med.id;
   let best: string | undefined;
   let bestD = Infinity;
   for (const r of ship.rooms) {
     const n = d.get(r.id);
-    if (n == null || n === 0 || coated(ship, r.id) || unsafe(ship, c, r)) continue;
-    if (r.fire > 0 || r.o2 <= 5) continue;
+    if (n == null || n === 0 || coated(ship, r.id) || unsafe(g, ship, c, r)) continue;
+    if (r.fire > 0 || r.o2 < AIR_DANGER_O2) continue;
     if (n < bestD) {
       best = r.id;
       bestD = n;

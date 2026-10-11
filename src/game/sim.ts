@@ -1,6 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
-import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot } from "./crew-spots.ts";
+import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot, roomCapacity } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -4126,37 +4126,113 @@ export function leaveDeprivedAir(g: Game, c: Crew): boolean {
   return true;
 }
 
-// INVENTED: boarders pick a new system every 4–7 seconds.
-function wanderBoarders(g: Game, dt: number) {
-  for (const c of g.crew) {
-    if (c.side !== "enemy" || c.aboard !== "player" || c.hp <= 0) continue;
-    c.think -= dt;
-    // Oxygen, Overview: boarders leave a room at 5% O2 or less for one at 10% or more.
+/**
+ * xftl doc/crew-ai, CrewAI::PrioritizeIntruderRoom, for boarder `c` and room `r` (lower is better):
+ * - Unless the Doors system "is installed, and it's completely broken (or possibly ioned)": "if the crewmember can
+ *   fight, the room being tested is the room the crewmember is currently in, and there's enemies ... in the room,
+ *   then the room is given priority -10."
+ * - Danger: fire 100, "No air" 70, both 170, "The 'no air' threshold is 10%". Fire-immune and anaerobic crew skip each.
+ * - "A 5 point penalty is added for rooms that don't have the exact same number of slots as the number of boarders."
+ * - "For rooms that aren't adjacent to the current player's room, a 10 point penalty is added."
+ * - System mode ("used as standard"): "a 20 point penalty is applied if there isn't a system to attack, it's broken".
+ * INFERRED: "current player's room" is the boarder's own room, which counts as adjacent; a room "can fight" crew are
+ * all boarders here; a broken system is damage at its level, subsystem kits included.
+ */
+export function intruderRoomPriority(g: Game, c: Crew, r: Room, boarders: number): number {
+  const ship = g.player;
+  const doors = ship.systems.doors;
+  const doorsDead = doors.level > 0 && (doors.damage >= doors.level || doors.ion.length > 0);
+  let p = 0;
+  if (!doorsDead && r.id === c.room) {
+    const foes = g.crew.some((o) => o.hp > 0 && o.aboard === "player" && o.room === r.id && sideOf(o) !== sideOf(c));
+    if (foes) p -= 10;
+  }
+  const kin = kinOf(c.kin ?? "plain");
+  if (r.fire > 0 && kin.fireTaken > 0) p += 100;
+  if (r.o2 < 10 && kin.suffocate > 0) p += 70;
+  if (roomCapacity(r, "player", interiorLinks(ship.doors, r.id)) !== boarders) p += 5;
+  const adjacent = r.id === c.room || ship.doors.some((d) => (d.a === c.room && d.b === r.id) || (d.b === c.room && d.a === r.id));
+  if (!adjacent) p += 10;
+  const sys = r.system ? ship.systems[r.system] : r.kit ? ship.kits[r.kit] : undefined;
+  if (!sys || sys.level <= 0 || (sys.damage ?? 0) >= sys.level) p += 20;
+  return p;
+}
+
+/**
+ * xftl doc/crew-ai, CrewAI::ChoosePriorityRoom: the assigned room's priority, against every room "that aren't full and
+ * that we can pathfind to". A strictly lower one replaces it; "If there's multiple rooms tied for lowest priority, pick
+ * one at random", and "the current task is kept if another task has the same priority".
+ */
+function choosePriorityRoom(g: Game, c: Crew, assigned: string | undefined, boarders: number): string | undefined {
+  const ship = g.player;
+  const reach = new Set(bfsReach(ship, c.room));
+  const held = assigned ? roomById(ship, assigned) : undefined;
+  let best = held ? intruderRoomPriority(g, c, held, boarders) : Infinity;
+  let ties: string[] = held ? [held.id] : [];
+  let keep = !!held;
+  for (const r of ship.rooms) {
+    if (r.id === assigned || !reach.has(r.id) || coated(ship, r.id)) continue;
+    if (r.id !== c.room && !mayStand(r, g.crew, c.id, r.id, c.aboard, "player", interiorLinks(ship.doors, r.id))) continue;
+    const p = intruderRoomPriority(g, c, r, boarders);
+    if (p < best) {
+      best = p;
+      ties = [r.id];
+      keep = false;
+    } else if (p === best && !keep) ties.push(r.id);
+  }
+  if (!ties.length) return assigned;
+  return ties.length === 1 ? ties[0] : pick(g, ties);
+}
+
+/** Rooms reachable from `from` over interior doors, `from` included. */
+function bfsReach(ship: Ship, from: string): string[] {
+  const seen = new Set([from]);
+  const q = [from];
+  while (q.length) {
+    const at = q.shift()!;
+    for (const d of ship.doors) {
+      if (d.b === "void") continue;
+      const n = d.a === at ? d.b : d.b === at ? d.a : null;
+      if (n && !seen.has(n)) {
+        seen.add(n);
+        q.push(n);
+      }
+    }
+  }
+  return [...seen];
+}
+
+/**
+ * xftl doc/crew-ai, CrewAI::UpdateIntruders, "run every update": each boarder in turn runs ChoosePriorityRoom, and the
+ * room it picks is commanded to "that crewmember AND EVERY SUBSEQUENT ONE" ("This appears to be why enemies will meet
+ * up"); a later boarder still switches when it finds a strictly better room.
+ * Oxygen, Overview (kept): boarders leave a room at 5% O2 or less for one at 10% or more. Crystal Lockdown (kept): a
+ * new walk cannot start out of a coated room.
+ */
+function wanderBoarders(g: Game, _dt: number) {
+  const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0 && sideOf(c) === "enemy");
+  let commanded: string | undefined;
+  for (const c of boarders) {
     if (leaveDeprivedAir(g, c)) continue;
-    if (c.path.length > 0 || c.think > 0) continue;
-    // Crystal, "Crystal Lockdown": a new walk cannot start out of a coated room.
-    if (coated(g.player, c.room)) {
-      c.think = 4 + rand(g) * 3;
+    if (coated(g.player, c.room)) continue;
+    // Boarding, "Enemy crew AI": "if the AI has decided to move somewhere, then it will often not change its mind until
+    // it gets there". A walk in progress finishes first; its end still leads the boarders after it.
+    if (c.path.length) {
+      commanded = c.path[c.path.length - 1];
       continue;
     }
-    const options = g.player.rooms.filter(
-      (r) =>
-        r.system &&
-        !coated(g.player, r.id) &&
-        mayStand(r, g.crew, c.id, r.id, c.aboard, "player", interiorLinks(g.player.doors, r.id)),
-    );
-    if (!options.length) {
-      c.think = 4 + rand(g) * 3;
-      continue;
-    }
-    const dest = pick(g, options).id;
-    const path = bfs(g.player, c.room, dest);
+    const assigned = commanded ?? c.intrude;
+    const room = choosePriorityRoom(g, c, assigned, boarders.length);
+    c.intrude = room;
+    commanded = room;
+    if (!room) continue;
+    if (room === c.room) continue;
+    const path = bfs(g.player, c.room, room);
     if (path && path.length) {
       c.path = path;
       c.move = 0;
       delete c.via;
     }
-    c.think = 4 + rand(g) * 3;
   }
 }
 

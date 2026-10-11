@@ -8,6 +8,7 @@ import type { Game, SectorNode } from "@/game/types";
 import { WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 import { PixelHull } from "./PixelArt";
+import { CloseX } from "./CloseX";
 
 function act(fn: (g: Game) => void) {
   useGame.getState().act(fn);
@@ -81,16 +82,14 @@ export function AchievementsScreen({
     setEarned(earnedIds());
   }, [game]);
   return (
-    <section className="wiki-screen ach-screen" onClick={(e) => e.stopPropagation()}>
+    <section className="wiki-screen ach-screen has-x" onClick={(e) => e.stopPropagation()}>
+      <CloseX onClose={onClose} />
       <header className="ach-tabs">
         <button type="button" className={tab === "stats" ? "is-on" : ""} onClick={() => setTab("stats")}>
           STATS
         </button>
         <button type="button" className={tab === "achievements" ? "is-on" : ""} onClick={() => setTab("achievements")}>
           ACHIEVEMENTS
-        </button>
-        <button type="button" className="wiki-close" onClick={onClose}>
-          CLOSE
         </button>
       </header>
       {tab === "achievements" ? (
@@ -282,7 +281,8 @@ export function ControlsScreen({ onClose }: { onClose: () => void }) {
   const [page, setPage] = useState<1 | 2>(1);
   const columns = page === 1 ? CONTROLS_1 : CONTROLS_2;
   return (
-    <section className="wiki-screen controls-screen" onClick={(e) => e.stopPropagation()}>
+    <section className="wiki-screen controls-screen has-x" onClick={(e) => e.stopPropagation()}>
+      <CloseX onClose={onClose} />
       <header>
         <h2>CONFIGURE CONTROLS</h2>
         <div>
@@ -309,9 +309,6 @@ export function ControlsScreen({ onClose }: { onClose: () => void }) {
       <footer>
         <button type="button" onClick={() => setPage(1)}>
           DEFAULTS
-        </button>
-        <button type="button" onClick={onClose}>
-          CLOSE
         </button>
       </footer>
     </section>
@@ -482,10 +479,11 @@ export function StoreBoard({ game }: { game: Game }) {
       onClick={() => act((g) => leaveStore(g))}
     >
       <section
-        className="store-board"
+        className="store-board has-x"
         style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", minWidth: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
+        <CloseX onClose={() => act((g) => leaveStore(g))} label="Leave the store" />
         <div>
           <h2>SELL</h2>
           {quotes.length ? (

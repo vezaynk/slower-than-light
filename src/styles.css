@@ -3205,7 +3205,6 @@ button.door-tick::before {
   height: auto;
 }
 
-.map-close,
 .map-wait {
   position: absolute;
   z-index: 4;
@@ -3214,15 +3213,6 @@ button.door-tick::before {
   border: 2px solid var(--color-line);
   background: var(--color-panel);
   color: var(--color-fg);
-}
-
-.map-close {
-  top: 8px;
-  right: 8px;
-  width: 36px;
-  height: 36px;
-  font-size: 28px;
-  line-height: 1;
 }
 
 .map-wait {
@@ -3299,7 +3289,6 @@ button.door-tick::before {
 .controls-screen header button,
 .ship-best-head button,
 .wiki-key,
-.wiki-close,
 .verdict-row button,
 .verdict-stats,
 .store-board button,
@@ -3617,8 +3606,6 @@ button.door-tick::before {
 .store-note { margin: 4px 0 0; color: var(--color-muted); font-size: 13px; }
 
 .repair-row { flex-wrap: nowrap; }
-
-.ach-tabs .wiki-close { margin-left: auto; }
 
 .ach-body h3, .ship-best-head p { margin: 14px 0 6px; font-family: var(--font-hud); font-size: 24px; font-weight: 400; letter-spacing: 0.08em; }
 
@@ -4709,4 +4696,49 @@ button.door-tick::before {
 .skill-cell.is-rank-1 .skill-rank,
 .skill-cell.is-rank-2 .skill-rank {
   color: var(--color-fg);
+}
+
+/* Every dismissible panel closes from an × in its top-right corner (CloseX). INVENTED, after the beacon map's ×. */
+/* Zero specificity: a panel that is already absolute or fixed keeps that; a static one becomes the × parent. */
+:where(.has-x) {
+  position: relative;
+}
+
+/* Credits is a small panel; keep its text clear of the ×. */
+.title-panel.has-x {
+  padding-right: 56px;
+}
+
+/* Doubled class: panels style their own buttons (.store-board button, .title-panel button); the × must win. */
+button.modal-x.modal-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  font-family: var(--font-hud);
+  font-size: 30px;
+  line-height: 1;
+  text-align: center;
+  justify-content: center;
+}
+
+/* The whole UI scales down on a phone; a wider invisible hit area keeps the × tappable there. */
+button.modal-x.modal-x::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+}
+
+button.modal-x.modal-x:hover,
+button.modal-x.modal-x:focus-visible {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }

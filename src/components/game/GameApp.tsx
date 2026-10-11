@@ -110,6 +110,7 @@ import { ShadeFx, useEnemyWreck } from "./ShadeFx";
 import { FullscreenButton } from "./FullscreenButton";
 import { CrewFace } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
+import { CloseX } from "./CloseX";
 import { PixelIcon } from "./PixelIcon";
 import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
@@ -1961,7 +1962,7 @@ function TitleScreen() {
             }}
           />
         ))}
-        {view === "credits" ? <TitlePanel /> : null}
+        {view === "credits" ? <TitlePanel onClose={() => setView(null)} /> : null}
         {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
         {view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
@@ -1970,9 +1971,10 @@ function TitleScreen() {
   );
 }
 
-function TitlePanel() {
+function TitlePanel({ onClose }: { onClose: () => void }) {
   return (
-    <div className="title-panel" onClick={(e) => e.stopPropagation()}>
+    <div className="title-panel has-x" onClick={(e) => e.stopPropagation()}>
+      <CloseX onClose={onClose} />
       <p>CREDITS</p>
       <p className="title-panel-body">STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
       <p>v. 0.1</p>
@@ -2154,20 +2156,15 @@ function MapScreen({ game }: { game: Game }) {
   const warnY = Math.min(0.9, Math.max(0.1, fy(wy)));
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
-    <section className="sector-map beacon-map">
+    <section className="sector-map beacon-map has-x">
       <h2>BEACON MAP</h2>
-      <button
-        type="button"
-        className="map-close"
-        aria-label="Close"
-        onClick={() =>
+      <CloseX
+        onClose={() =>
           act((g) => {
             g.picking = false;
           })
         }
-      >
-        ×
-      </button>
+      />
       {game.phase === "map" ? (
         <button type="button" className="map-wait" onClick={() => act((g) => waitHere(g))}>
           WAIT
@@ -2281,11 +2278,6 @@ function MapScreen({ game }: { game: Game }) {
           <span><i className="key-beacon is-over" />Fleet</span>
           {warn ? <span><i className="key-beacon is-warn" />Next jump</span> : null}
         </span>
-        {game.picking ? (
-          <button type="button" onClick={() => act((g) => { g.picking = false; })}>
-            CANCEL
-          </button>
-        ) : null}
       </div>
     </section>
   );
@@ -2384,7 +2376,8 @@ function SectorChart({ game }: { game: Game }) {
 function Manual({ onClose }: { onClose: () => void }) {
   return (
     <div className="overlay">
-      <article className="sheet manual ftl-sheet">
+      <article className="sheet manual ftl-sheet has-x">
+        <CloseX onClose={onClose} />
         <p className="kicker">Manual</p>
         <div className="manual-body">
           <h3>Getting out</h3>
@@ -2395,9 +2388,6 @@ function Manual({ onClose }: { onClose: () => void }) {
             <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. U opens upgrades. I opens inventory. Click a weapon's number to give its power back. Right-click a room to send the selected crew. Drag or Shift-click to select several. Q selects every crew member, and F1–F8 select one. X closes every door. / saves stations and Return sends them back.</li>
           </ul>
         </div>
-        <button type="button" className="btn-primary" onClick={onClose}>
-          Close
-        </button>
       </article>
     </div>
   );
@@ -2595,7 +2585,14 @@ function ShipSheet({ game }: { game: Game }) {
   );
   return (
     <div className="overlay">
-      <article className="sheet ftl-sheet" data-sheet="ship">
+      <article className="sheet ftl-sheet has-x" data-sheet="ship">
+        <CloseX
+          onClose={() =>
+            act((g) => {
+              g.shipSheet = false;
+            })
+          }
+        />
         <p className="kicker">{game.player.name}</p>
         <div className="sheet-tabs" role="tablist">
           {(
@@ -2622,17 +2619,6 @@ function ShipSheet({ game }: { game: Game }) {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() =>
-            act((g) => {
-              g.shipSheet = false;
-            })
-          }
-        >
-          Close
-        </button>
         {tab === "upgrades" ? <UpgradeList game={game} /> : null}
         {tab === "crew" ? <CrewManifest game={game} /> : null}
         {tab === "inventory" ? <CargoList game={game} guns={guns} drones={drones} /> : null}

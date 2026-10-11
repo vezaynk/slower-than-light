@@ -3702,7 +3702,7 @@ button.door-tick::before {
 /* Departure of a player shot, and the arrival of an enemy shot, paint under the target panel. */
 .fx-under { z-index: 2; }
 
-.target-panel .room:not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless) {
+.target-panel .room:not(.is-unseen):not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless) {
   background: color-mix(in srgb, var(--color-room) 52%, transparent);
 }
 
@@ -4546,4 +4546,34 @@ button.door-tick::before {
 .target-systems span.is-broken {
   color: var(--color-danger);
   border-color: var(--color-danger);
+}
+
+/*
+ * A room Sensors cannot see into: dark, with its name and system icon still legible (ShipView room-sys-mark).
+ * INFERRED colours, after the game's dark unseen rooms.
+ */
+.play .room.is-unseen,
+.target-panel .room.is-unseen {
+  background: #2b2f36;
+  border-color: #4b505a;
+  box-shadow: inset 0 0 0 1px #3a3f48;
+}
+
+.play .room.is-unseen .room-name,
+.target-panel .room.is-unseen .room-name {
+  color: #c9ced6;
+}
+
+.room-sys-mark {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 6px);
+  translate: -50% -50%;
+  color: #e6ebf2;
+  pointer-events: none;
+}
+
+.play .room.is-unseen .pixel-fill,
+.target-panel .room.is-unseen .pixel-fill {
+  background: #2b2f36;
 }

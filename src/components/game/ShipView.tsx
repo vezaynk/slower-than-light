@@ -453,10 +453,11 @@ export function ShipView({
               "room" +
               (clip ? " is-cut" : "") +
               (room.flash > 0 ? " is-flash" : "") +
-              (room.fire > 0 ? " is-fire" : "") +
-              (room.venting ? " is-vent" : "") +
-              (room.o2 <= 5 ? " is-airless" : room.o2 < 100 ? " is-thin" : "") +
-              (room.o2 <= 10 ? " is-low" : "") +
+              // Sensors, "Overview": fire, venting, and air are interior information, so an unseen room shows none of it.
+              (open && room.fire > 0 ? " is-fire" : "") +
+              (open && room.venting ? " is-vent" : "") +
+              (!open ? "" : room.o2 <= 5 ? " is-airless" : room.o2 < 100 ? " is-thin" : "") +
+              (open && room.o2 <= 10 ? " is-low" : "") +
               ((room.lock ?? 0) > 0 ? " is-lock" : "") +
               (markDest && destRoom === room.id ? " is-dest" : "") +
               (open ? "" : " is-unseen") +
@@ -497,6 +498,12 @@ export function ShipView({
             />
             <div className="room-body">
               <div className="room-name">{roomLabel(room.title, room.w)}</div>
+              {/*
+                INFERRED: an unseen room keeps its system icon, as the game draws it on a dark room, so systems can be
+                targeted without Sensors. Sensors, "Overview" lists interiors, weapon charge, and system detail as what
+                the levels reveal; where the systems are is not on that list.
+              */}
+              {!open && room.system ? <PixelIcon name={room.system} size={20} className="room-sys-mark" /> : null}
               {open ? (
                 <div className="room-flags">
                   {room.fire > 0 ? <span>Fire</span> : null}

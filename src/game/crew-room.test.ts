@@ -3,8 +3,10 @@ import { describe, it } from "node:test";
 import { claimPadTile, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
 import {
+  canDismiss,
   closeAllDoors,
   createGame,
+  dismissCrew,
   orderCrew,
   orderSelected,
   repairPace,
@@ -387,5 +389,30 @@ describe("manning terminal", () => {
     assert.ok(back && held);
     assert.deepEqual({ x: back.x, y: back.y }, { x: 2, y: 2 });
     assert.notDeepEqual({ x: held.x, y: held.y }, { x: 2, y: 2 });
+  });
+});
+
+describe("dismissing crew (Ship menu)", () => {
+  it("removes a crew member aboard, but not a boarder, an enemy, or the last one aboard", () => {
+    const g = createGame(6);
+    const mine = () => g.crew.filter((c) => c.side === "player");
+    const [ada, ivo, nen] = mine();
+    g.selected = ada.id;
+    g.squad = [ada.id];
+    assert.equal(dismissCrew(g, ada.id), true);
+    assert.ok(!g.crew.some((c) => c.id === ada.id));
+    assert.equal(g.selected, null);
+    // A boarder away on the enemy ship cannot be dismissed.
+    ivo.aboard = "enemy";
+    assert.equal(canDismiss(g, ivo.id), false);
+    // Nen is now the last crewmember aboard.
+    assert.equal(dismissCrew(g, nen.id), false);
+    ivo.aboard = "player";
+    assert.equal(dismissCrew(g, nen.id), true);
+    assert.equal(dismissCrew(g, ivo.id), false);
+    assert.equal(mine().length, 1);
+    startCombat(g, "scout");
+    const foe = g.crew.find((c) => c.side === "enemy")!;
+    assert.equal(canDismiss(g, foe.id), false);
   });
 });

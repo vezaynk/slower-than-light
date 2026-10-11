@@ -1598,6 +1598,30 @@ export function forgetCrew(g: Game, id: string) {
   g.selected = g.squad && g.squad.length ? g.squad[g.squad.length - 1]! : null;
 }
 
+/** True when the Ship menu may dismiss this crew member (dismissCrew). */
+export function canDismiss(g: Game, id: string): boolean {
+  const c = g.crew.find((x) => x.id === id);
+  if (!c || c.side !== "player" || c.hp <= 0) return false;
+  // INFERRED: only crew aboard your own ship, and not while the enemy's Mind Control holds them.
+  if (c.aboard !== "player" || heldByEnemy(c)) return false;
+  // INFERRED, as the events' "You lose a crewmember" (quests-b.ts loseCrew): never the last crewmember aboard.
+  const aboard = g.crew.filter((x) => x.side === "player" && x.aboard === "player" && x.hp > 0);
+  return aboard.length > 1;
+}
+
+/**
+ * Ship menu, Crew: send a crew member away for good. Crew Member: "Receiving a 9th crewmember forces you to dismiss
+ * one crewmember", so dismissing is a thing the game lets you do; INVENTED: it is also offered at any time here.
+ */
+export function dismissCrew(g: Game, id: string): boolean {
+  if (!canDismiss(g, id)) return false;
+  const c = g.crew.find((x) => x.id === id)!;
+  g.crew = g.crew.filter((x) => x.id !== id);
+  forgetCrew(g, id);
+  log(g, `${c.name} leaves the crew.`);
+  return true;
+}
+
 /**
  * Left click selects one crew member. Clicking the only selected id clears the selection.
  * Shift-click toggles that id inside the group. The last id stays `selected` for lockdown.

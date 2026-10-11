@@ -97,7 +97,10 @@ import {
   weaponChargeShown,
   weaponSlotCap,
   weaponsPowerLocked,
+  canDismiss,
+  dismissCrew,
 } from "@/game/sim";
+import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
 import type { BeamLine, Crew, Game, KitId, Ship, SkillName, SysId } from "@/game/types";
@@ -2759,46 +2762,114 @@ function UpgradeList({ game }: { game: Game }) {
   );
 }
 
+/**
+ * Crew skills, lead: skill level 1 and level 2 each take the same XP. Each skill shows two segments, one per level,
+ * filling with XP (xpNeedFor, Humans need less). INVENTED layout.
+ */
+function SkillBars({ crew }: { crew: Crew }) {
+  return (
+    <div className="skill-grid">
+      {(Object.keys(SKILL_LABEL) as SkillName[]).map((name) => {
+        const xp = crew.skills?.[name] ?? 0;
+        const need = xpNeedFor(crew, name);
+        const rank = xp >= need * 2 ? 2 : xp >= need ? 1 : 0;
+        const fill = (seg: number) => Math.max(0, Math.min(1, (xp - seg * need) / need));
+        return (
+          <div
+            key={name}
+            className={`skill-cell is-rank-${rank}`}
+            title={`${SKILL_LABEL[name]}: level ${rank}${rank < 2 ? `, ${Math.floor(xp)} of ${need * (rank + 1)} XP` : ""}`}
+          >
+            <span className="skill-name">{SKILL_LABEL[name]}</span>
+            <span className="skill-segs" aria-label={`${SKILL_LABEL[name]} level ${rank} of 2`}>
+              {[0, 1].map((seg) => (
+                <i key={seg}>
+                  <b style={{ width: `${fill(seg) * 100}%` }} />
+                </i>
+              ))}
+            </span>
+            <span className="skill-rank">{rank}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function CrewManifest({ game }: { game: Game }) {
+  const [confirm, setConfirm] = useState<string | null>(null);
   const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
   if (crew.length === 0) return <p className="mini">No crew aboard.</p>;
   return (
     <div className="manifest">
       {crew.map((c) => {
-        const skills = (Object.keys(SKILL_LABEL) as SkillName[])
-          .filter((name) => c.skills?.[name] != null)
-          .map((name) => `${SKILL_LABEL[name]} ${c.skills?.[name]}`);
+        const may = canDismiss(game, c.id);
         return (
-          <div key={c.id} className="manifest-row">
-            <i className="token is-sprite">
-              <CrewFace crew={c} size={16} />
-            </i>
-            <input
-              aria-label={`Crew name ${c.name}`}
-              value={c.name}
-              maxLength={NAME_MAX}
-              autoComplete="off"
-              onChange={(e) => {
-                const value = e.target.value.slice(0, NAME_MAX);
-                act((g) => {
-                  const body = g.crew.find((x) => x.id === c.id);
-                  if (body) body.name = value;
-                });
-              }}
-              onBlur={() => {
-                act((g) => {
-                  const living = g.crew.filter((x) => x.side === "player");
-                  const body = living.find((x) => x.id === c.id);
-                  if (!body) return;
-                  body.name = cleanName(body.name, Math.max(0, living.indexOf(body)));
-                });
-              }}
-            />
-            <span className="mini">{kinLabel(c.kin)}</span>
-            <span className="mini">
-              {c.hp} / {c.maxHp}
-            </span>
-            {skills.length > 0 ? <span className="mini">{skills.join(" · ")}</span> : null}
+          <div key={c.id} className="manifest-card">
+            <div className="manifest-row">
+              <i className="token is-sprite">
+                <CrewFace crew={c} size={16} />
+              </i>
+              <input
+                aria-label={`Crew name ${c.name}`}
+                value={c.name}
+                maxLength={NAME_MAX}
+                autoComplete="off"
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, NAME_MAX);
+                  act((g) => {
+                    const body = g.crew.find((x) => x.id === c.id);
+                    if (body) body.name = value;
+                  });
+                }}
+                onBlur={() => {
+                  act((g) => {
+                    const living = g.crew.filter((x) => x.side === "player");
+                    const body = living.find((x) => x.id === c.id);
+                    if (!body) return;
+                    body.name = cleanName(body.name, Math.max(0, living.indexOf(body)));
+                  });
+                }}
+              />
+              <span className="mini">{kinLabel(c.kin)}</span>
+              <span className="mini">
+                {Math.ceil(c.hp)} / {c.maxHp}
+              </span>
+              {confirm === c.id ? null : (
+                <button
+                  type="button"
+                  className="text-btn manifest-dismiss"
+                  data-dismiss={c.id}
+                  disabled={!may}
+                  title={may ? undefined : "Only crew aboard your ship can be dismissed, and never the last one."}
+                  onClick={() => setConfirm(c.id)}
+                >
+                  Dismiss
+                </button>
+              )}
+            </div>
+            {confirm === c.id ? (
+              <div className="manifest-confirm" role="alertdialog" aria-label={`Dismiss ${c.name}?`}>
+                <span>Dismiss {c.name}? They leave the ship for good.</span>
+                <button
+                  type="button"
+                  className="text-btn is-danger"
+                  data-dismiss-yes={c.id}
+                  onClick={() => {
+                    setConfirm(null);
+                    act((g) => {
+                      dismissCrew(g, c.id);
+                    });
+                  }}
+                >
+                  Dismiss
+                </button>
+                <button type="button" className="text-btn" onClick={() => setConfirm(null)}>
+                  Keep
+                </button>
+              </div>
+            ) : null}
+            <SkillBars crew={c} />
           </div>
         );
       })}

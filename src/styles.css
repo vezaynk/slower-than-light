@@ -4626,3 +4626,87 @@ button.door-tick::before {
 .upgrade-card .reactor-total-foot {
   min-height: 2.25rem;
 }
+
+/* Ship menu, Crew: one framed card per crew member, in the reactor panel's frame (GameApp CrewManifest). INVENTED. */
+.manifest-card {
+  display: grid;
+  gap: 6px;
+  padding: 6px 10px 10px;
+  background: #14110e;
+  border: 2px solid var(--color-line-dim);
+}
+
+.manifest-dismiss {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.manifest-dismiss:not(:disabled):hover {
+  color: var(--color-danger);
+}
+
+.manifest-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 6px 8px;
+  border: 2px solid var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-fg);
+}
+
+.manifest-confirm span {
+  flex: 1 1 14rem;
+}
+
+.text-btn.is-danger {
+  color: var(--color-danger);
+}
+
+/* Two segments per skill, one per level; lit segments fill with XP. Level 2 turns yellow. */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 14px;
+}
+
+.skill-cell {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr 1ch;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.skill-segs {
+  display: flex;
+  gap: 3px;
+}
+
+.skill-segs i {
+  position: relative;
+  flex: 1 1 0;
+  height: 8px;
+  background: #3a3828;
+  box-shadow: inset 0 0 0 1px #2a261c;
+}
+
+.skill-segs b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-ok);
+}
+
+.skill-cell.is-rank-2 .skill-segs b {
+  background: var(--color-accent);
+}
+
+.skill-cell.is-rank-1 .skill-rank,
+.skill-cell.is-rank-2 .skill-rank {
+  color: var(--color-fg);
+}

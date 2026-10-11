@@ -119,6 +119,35 @@ describe("crew room orders", () => {
     assert.equal(nen.room, "p-medbay");
   });
 
+  it("heals in a burning medbay and through a fight with a boarder", () => {
+    // Fires: an "operational Medbay on fire" is "capable of healing the crew more than the fire damaging them".
+    // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders".
+    const run = (power: number) => {
+      const g = createGame(6);
+      startCombat(g, "scout");
+      g.player.systems.medbay.power = power;
+      const bay = g.player.rooms.find((r) => r.id === "p-medbay")!;
+      bay.fire = 1;
+      const ada = g.crew.find((c) => c.id === "c-ada")!;
+      ada.room = "p-medbay";
+      ada.hp = 40;
+      ada.path = [];
+      ada.move = 0;
+      // Not a Zoltan: one in the room would power the bay itself (Zoltans, "Race characteristics").
+      const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "spark")!;
+      foe.aboard = "player";
+      foe.room = "p-medbay";
+      foe.path = [];
+      foe.move = 0;
+      for (let i = 0; i < 4; i++) step(g, 0.05);
+      return ada.hp;
+    };
+    const healed = run(1);
+    const unhealed = run(0);
+    // Level 1 heals 6.4 HP/s; four 50 ms ticks.
+    assert.ok(Math.abs(healed - unhealed - 6.4 * 0.2) < 1e-6, `${healed} ${unhealed}`);
+  });
+
   it("lets only the standing spots repair a medbay", () => {
     const g = createGame(7);
     startCombat(g, "scout");

@@ -3688,11 +3688,12 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
     // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.
     // Slug hacker (medical): "Medbay / Clone Bay offline". The enemy medbay still heals.
+    // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders ... Lv1 Medbay can't
+    // out-heal Mantis combat damage", so it heals through a fight. Fires: an "operational Medbay on fire" is
+    // "capable of healing the crew more than the fire damaging them", so it heals while burning.
     if (
       mainBars(g, ship, aboard, "medbay") > 0 &&
       r.system === "medbay" &&
-      r.fire <= 0 &&
-      foes.length === 0 &&
       !(aboard === "player" && playerMedicalOff(g))
     ) {
       const powered = mainBars(g, ship, aboard, "medbay");

@@ -120,8 +120,11 @@ describe("Skills, Repair skill: 10% / 20% faster repair", () => {
 describe("Crew skills, Repair skill: one point when a bar finishes", () => {
   function quiet(g: Game) {
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
   }
 
@@ -354,12 +357,11 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     const g = createGame(55);
     const { worker, roomId, sys } = lone(g);
     quiet(g);
-    if (g.enemy?.kits.spike) {
-      g.enemy.kits.spike.on = false;
-      g.enemy.kits.spike.left = 0;
-      g.enemy.kits.spike.cool = 999;
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its hacking and teleporter are removed.
+    if (g.enemy) {
+      delete g.enemy.kits.spike;
+      delete g.enemy.kits.sling;
     }
-    if (g.enemy?.kits.sling) g.enemy.kits.sling.power = 0;
     worker.kin = "plain";
     worker.skills = {};
     const room = g.player.rooms.find((r) => r.id === roomId)!;
@@ -1426,8 +1428,11 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     const g = createGame(6);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.power = 0;
     g.enemy!.systems.engines.power = 0;
@@ -1495,8 +1500,11 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     const g = createGame(51);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
     g.player.systems.engines.power = 8;
@@ -1563,8 +1571,11 @@ describe("Crew skills: piloting and engines are different consoles", () => {
     const g = createGame(67);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
     g.player.systems.engines.power = 8;
@@ -1638,8 +1649,11 @@ describe("Crew skills, Piloting: an asteroid during the fight", () => {
     const g = createGame(64);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
     g.player.systems.engines.power = 8;
@@ -1697,8 +1711,11 @@ describe("Crew skills, Shields: an asteroid during the fight", () => {
     const g = createGame(65);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.power = 0;
     g.player.systems.shields.level = 2;
@@ -1741,8 +1758,11 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
     const g = createGame(53);
     startCombat(g, "scout");
     for (const w of g.player.weapons) w.enabled = false;
-    for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-    if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
+    if (g.enemy) {
+      g.enemy.weapons = [];
+      delete g.enemy.kits.swarm;
+    }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
     g.player.systems.engines.power = 8;

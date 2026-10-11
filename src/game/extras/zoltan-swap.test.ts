@@ -144,9 +144,10 @@ describe("Zoltan cooldown swap", () => {
     g.enemy.weapons = [];
     const room = g.enemy.rooms.find((r) => r.system === "sensors") ?? g.enemy.rooms[0];
     room.kit = "veil";
+    // Level 2, fully powered: the enemy's ship AI keeps a kit at its free bars (extras/ship-ai.ts).
     g.enemy.kits.veil = {
       id: "veil",
-      level: 3,
+      level: 2,
       power: 2,
       left: 0,
       cool: 20,

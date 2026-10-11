@@ -397,9 +397,10 @@ describe("ship info screen while in danger", () => {
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy.weapons) w.enabled = false;
     g.player.systems.engines.power = 0;
-    g.enemy.systems.engines.power = 0;
     g.player.systems.shields.power = 0;
-    g.enemy.systems.shields.power = 0;
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its engines and shields are removed.
+    g.enemy.systems.engines.level = 0;
+    g.enemy.systems.shields.level = 0;
     g.player.shieldNow = 0;
     g.enemy.shieldNow = 0;
     g.player.zoltan = undefined;

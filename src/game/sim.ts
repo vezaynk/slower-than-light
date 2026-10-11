@@ -58,6 +58,7 @@ import { clearBombSight, clearEnemyLeash, heldByEnemy, ionOnLeash, leashOnLeave,
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
+import { checkEnemyPower } from "./extras/ship-ai.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
@@ -6402,6 +6403,8 @@ export function step(g: Game, dt: number) {
   // Crew skills, Weapons: the cancel window is game time, so a pause holds it.
   tickMuzzle(g, h);
   chargeSide(g, g.player, "player", h);
+  // xftl doc/ship-ai, CheckPowerLevels: the enemy re-plans its power before its weapons charge (extras/ship-ai.ts).
+  checkEnemyPower(g);
   chargeSide(g, g.enemy, "enemy", h);
   wanderBoarders(g, h);
   boarders(g, h);

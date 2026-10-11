@@ -54,7 +54,8 @@ function quiet(g: ReturnType<typeof createGame>) {
   g.player.systems.engines.power = 0;
   if (g.enemy) {
     g.enemy.systems.engines.power = 0;
-    for (const w of g.enemy.weapons) w.enabled = false;
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns are removed.
+    g.enemy.weapons = [];
   }
   g.asteroid = false;
   g.asb = false;

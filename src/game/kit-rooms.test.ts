@@ -21,10 +21,12 @@ function quiet(hull: string, difficulty: "easy" | "normal" | "hard" = "normal"):
   g.asb = false;
   g.boardTimer = 0;
   g.enemyEscape = null;
-  for (const w of [...g.player.weapons, ...g.enemy!.weapons]) {
+  for (const w of g.player.weapons) {
     w.enabled = false;
     w.charge = 0;
   }
+  // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns are removed.
+  g.enemy!.weapons = [];
   return g;
 }
 

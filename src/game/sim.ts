@@ -536,7 +536,7 @@ function sideCrew(g: Game, side: "player" | "enemy", aboard: "player" | "enemy")
   return g.crew.filter((c) => c.side === side && c.aboard === aboard && c.hp > 0);
 }
 
-function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): boolean {
+export function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): boolean {
   // Systems, the paragraph above "Main systems": "fires, breaches, and intruders prevent manning as well - the only exception to this are Auto-ships, which retain manning bonus for all their (sub-)systems unless the (sub-)systems are damaged."
   // "If a system is affected by a breach but is not damaged ... it cannot be manned till the breach is sealed."
   // INFERRED: oxygen at or below 5% also prevents manning, on every ship. The fetched pages do not number that.
@@ -549,6 +549,8 @@ function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId)
   // Zoltans: "The ion-lock status, preventing manning the system console, is not removed".
   // Systems, the paragraph above "Main systems": ionized systems cannot be manned. Auto-ships keep the bonus unless damaged.
   if (ship.systems[system].ion.length > 0 && !autoManning(ship)) return false;
+  // Systems, the same paragraph: damaged systems cannot be manned. Auto-ships lose the bonus to damage too.
+  if (ship.systems[system].damage > 0) return false;
   if (r.o2 <= 5) return false;
   if (!autoManning(ship)) {
     if (r.fire > 0 || r.breach > 0) return false;
@@ -577,6 +579,7 @@ function manningCrew(g: Game, ship: Ship, aboard: "player" | "enemy", system: Sy
   );
   const c = id ? g.crew.find((x) => x.id === id) : undefined;
   if (!c || c.path.length > 0 || c.room !== r.id) return undefined;
+  if (!countsAsPilot(c, system)) return undefined;
   return c;
 }
 
@@ -586,9 +589,17 @@ function present(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId)
   // AI-Controlled Rebel Ships: "Automated ships are unmanned." Their systems run with nobody aboard.
   if (ship.automated) return true;
   const friends = aboard === "player" ? "player" : "enemy";
-  return g.crew.some(
-    (c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0,
-  );
+  return g.crew.some((c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && countsAsPilot(c, system));
+}
+
+/**
+ * Piloting, "Overview": "Stunned or mind-controlled ship crew and crew drones do not count towards the crew presence
+ * in the Piloting." Crew drones are not in g.crew. Other rooms keep the older rule.
+ */
+function countsAsPilot(c: Crew, system: SysId): boolean {
+  if (c.hp <= 0 || c.path.length > 0) return false;
+  if (system !== "pilot") return true;
+  return (c.stun ?? 0) <= 0 && (c.leashed ?? 0) <= 0;
 }
 
 function rankOf(c: Crew | undefined, skill: SkillName): 0 | 1 | 2 {
@@ -881,11 +892,31 @@ export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"):
   return Math.min(100, bonus);
 }
 
+/**
+ * Piloting, "Overview": "Crew presence in the Piloting room and powered Engines are required for the system to be
+ * fully functional: enabling ship evasion, charging the FTL Drive and making an FTL Jump."
+ * Systems, "Damaged and destroyed systems": a system with every level damaged or ionized is not functional.
+ */
+function pilotCanJump(g: Game, ship: Ship): boolean {
+  return functional(ship.systems.pilot) && present(g, ship, "player", "pilot");
+}
+
+/**
+ * Piloting, "Overview": the same pilot and powered engines needed to charge the drive are needed to jump.
+ * Null when a jump is allowed, otherwise the line to show.
+ */
+export function jumpBlocked(g: Game): string | null {
+  if (!functional(g.player.systems.pilot)) return "Piloting is down.";
+  if (!present(g, g.player, "player", "pilot")) return "Nobody is piloting.";
+  if (engineBars(g, g.player, "player") <= 0) return "Engines are unpowered.";
+  return null;
+}
+
 /** Engines, "FTL Charge Times": unmanned table, or the manned skill row. A body in piloting is required. */
 export function ftlSeconds(g: Game, ship: Ship): number | null {
   const eng = engineBars(g, ship, "player");
   if (eng <= 0) return null;
-  if (!present(g, ship, "player", "pilot")) return null;
+  if (!pilotCanJump(g, ship)) return null;
   // The player's own hack on the enemy's Engines/Piloting (ftlFrozen) stops THEIR drive, not this one; it is checked
   // in enemyEscapeStalled. Only an enemy pulse on this ship's systems stops this drive.
   // @agent:hacking. Hacking, "Overview" (Piloting/Engines): an enemy pulse "stops the FTL drive charging".
@@ -5335,6 +5366,12 @@ export function commitJump(g: Game, id: string) {
   }
   if (g.phase === "combat" && g.flee < 1) {
     log(g, "Jump drive is still charging.");
+    return;
+  }
+  const grounded = jumpBlocked(g);
+  if (grounded) {
+    log(g, grounded);
+    sfx(g, "click");
     return;
   }
   const dest = g.beacons.find((b) => b.id === id);

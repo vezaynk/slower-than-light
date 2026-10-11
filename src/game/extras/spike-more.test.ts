@@ -291,6 +291,10 @@ describe("mind control across a jump", () => {
     g.enemy!.kits.leash = kit("leash", 1, 1);
     assert.equal(fireEnemyLeash(g), true);
     const held = g.crew.find((c) => heldByEnemy(c))!;
+    // Piloting, "Overview": a mind-controlled body is no pilot, so a free crew member takes the seat.
+    const pilot = g.crew.find((c) => c.side === "player" && c.aboard === "player" && !heldByEnemy(c))!;
+    pilot.room = g.player.rooms.find((r) => r.system === "pilot")!.id;
+    pilot.path = [];
     const here = g.beacons.find((b) => b.id === g.here)!;
     g.flee = 1;
     g.fuel = Math.max(g.fuel, 1);

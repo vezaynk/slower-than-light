@@ -62,6 +62,7 @@ import {
   enemyEscapeView,
   evasionPercent,
   ftlSeconds,
+  jumpBlocked,
   hasSave,
   isMain,
   bars,
@@ -692,7 +693,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className={`ftl-drive${charging ? " is-charging" : " is-ready"}`}
           disabled={game.phase === "combat" && game.flee < 1}
-          title={spool == null ? "FTL needs a pilot or engines." : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`}
+          title={jumpBlocked(game) ?? (spool == null ? "FTL needs a pilot or engines." : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`)}
           onClick={() => {
             if (game.phase === "map" || game.picking) {
               act((g) => {

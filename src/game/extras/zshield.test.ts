@@ -144,6 +144,8 @@ describe("zoltan shield", () => {
     assert.ok(here && here.links[0]);
     g.phase = "map";
     g.fuel = 3;
+    // Piloting, "Overview": a jump needs powered engines.
+    g.player.systems.engines.power = 1;
     commitJump(g, here.links[0]);
     assert.equal(g.player.zoltan, 5);
   });

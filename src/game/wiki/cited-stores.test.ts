@@ -152,12 +152,14 @@ describe("cited stores", () => {
       game.player.systems.medbay.level = 0;
       game.player.systems.sensors.level = 0;
       game.player.systems.doors.level = 0;
-      game.player.systems.engines.level = 0;
       game.player.systems.oxygen.level = 0;
       game.player.systems.weapons.level = 0;
-      game.player.systems.pilot.level = 0;
       game.player.kits = {};
     }, (stock) => stock.some((item) => item.kind === "system") && !stock.some((item) => item.kind === "drone"));
+    // Piloting, "Overview": a jump needs a pilot and powered engines, so they come off after arriving.
+    g.player.systems.engines.level = 0;
+    g.player.systems.pilot.level = 0;
+    assert.equal(citedStock(g).some((item) => item.kind === "system" && item.ref === "engines"), false);
     const systems = (g.stock ?? []).filter((item) => item.kind === "system");
     const byName = Object.fromEntries(systems.map((item) => [item.name, item.cost]));
     // Shields and the Clone Bay are guaranteed. The third is a random missing non-medical system.

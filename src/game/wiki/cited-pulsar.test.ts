@@ -144,14 +144,17 @@ describe("pulsar", () => {
     assert.equal(pulsarSystemIon(g, g.player, "player", "pilot"), 2);
     g.player.systems.doors.damage = 1;
     assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 2);
+    // Systems: a damaged system cannot be manned, so the crew in the room add no temporary level.
     for (const c of g.crew) c.room = "p-doors";
-    assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 3);
+    assert.equal(pulsarSystemIon(g, g.player, "player", "doors"), 2);
     // Sensors, Manning: one level above the upgrade, capped at 4. Damage stays out of the figure.
     g.player.systems.sensors.level = 2;
-    g.player.systems.sensors.damage = 1;
     for (const c of g.crew) c.room = "p-sensors";
     assert.equal(pulsarSystemIon(g, g.player, "player", "sensors"), 3);
     for (const c of g.crew) c.room = "p-pilot";
+    assert.equal(pulsarSystemIon(g, g.player, "player", "sensors"), 2);
+    g.player.systems.sensors.damage = 1;
+    for (const c of g.crew) c.room = "p-sensors";
     assert.equal(pulsarSystemIon(g, g.player, "player", "sensors"), 2);
   });
 

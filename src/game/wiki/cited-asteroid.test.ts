@@ -120,6 +120,8 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here && here.links[0]);
     g.fuel = 3;
+    // Piloting, "Overview": a jump needs powered engines.
+    g.player.systems.engines.power = 1;
     commitJump(g, here.links[0]);
     assert.equal(g.asteroid, false);
   });

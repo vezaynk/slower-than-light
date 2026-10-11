@@ -821,6 +821,28 @@ function CrewRail({ game }: { game: Game }) {
           ) : null}
         </div>
       ))}
+      {/* The controls list's Save Stations (/) and Return to Stations (Return), as buttons under the crew (per the user). */}
+      <div className="station-btns">
+        <button
+          type="button"
+          className="text-btn"
+          aria-label="Save stations"
+          title="Save where every crew member stands ( / )"
+          onClick={() => act((g) => saveStations(g))}
+        >
+          SAVE
+        </button>
+        <button
+          type="button"
+          className="text-btn"
+          aria-label="Return to stations"
+          title="Send the crew back to their saved spots (Return)"
+          disabled={!crew.some((c) => c.station)}
+          onClick={() => act((g) => returnToStations(g))}
+        >
+          RETURN
+        </button>
+      </div>
       {/* Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon. Up to 3
           portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
           here under the live crew, head of the queue first. */}

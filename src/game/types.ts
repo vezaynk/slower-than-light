@@ -160,6 +160,8 @@ export type Crew = {
    * The room this crew member was standing in on the player ship when stations were saved.
    */
   station?: string;
+  /** The floor tile in `station` they stood on when stations were saved (per the user: save positions, not just rooms). */
+  stationTile?: { x: number; y: number };
   think: number;
   /** An enemy boarder's assigned room on the player ship (sim.ts boarderRooms, xftl doc/crew-ai). */
   intrude?: string;

@@ -1803,6 +1803,9 @@ export function saveStations(g: Game) {
   for (const c of g.crew) {
     if (c.side !== "player" || c.hp <= 0 || c.aboard !== "player") continue;
     c.station = c.room;
+    // INVENTED (per the user): the exact tile is saved too, so Return walks each crew member back to the same spot.
+    if (c.tile && c.tile.room === c.room && c.path.length === 0) c.stationTile = { x: c.tile.x, y: c.tile.y };
+    else delete c.stationTile;
     n += 1;
   }
   if (n > 0) log(g, "Stations saved.");

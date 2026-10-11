@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { restSpot, roomConsole, shiftPoint } from "./crew-spots.ts";
-import { createGame, manning, orderCrew, startCombat, step } from "./sim.ts";
+import { createGame, manning, orderCrew, returnToStations, saveStations, startCombat, step } from "./sim.ts";
 import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -303,5 +303,44 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
     assert.equal(walker.shift, undefined);
     assert.deepEqual({ x: last.x, y: last.y }, { x: cell.x, y: cell.y });
     assert.equal(manning(g, g.player, "player", "shields"), true);
+  });
+});
+
+describe("saved stations keep the exact tile (per the user)", () => {
+  it("sends each crew member back to the tile they stood on when stations were saved", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    g.enemy = null;
+    const room = g.player.rooms.find((r) => r.system === "shields")!;
+    const crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
+    for (const c of crew) {
+      c.room = room.id;
+      c.path = [];
+      c.move = 0;
+      delete c.via;
+      delete c.tile;
+    }
+    step(g, 0.05);
+    // Rotate who stands where, so the fresh order they would be handed on arrival does not match by chance.
+    const tiles = crew.map((c) => ({ ...c.tile! }));
+    crew.forEach((c, i) => {
+      c.tile = tiles[(i + 1) % tiles.length]!;
+    });
+    step(g, 0.05);
+    const saved = new Map(crew.map((c) => [c.id, { ...c.tile! }]));
+    assert.deepEqual(crew.map((c) => saved.get(c.id)), crew.map((_, i) => tiles[(i + 1) % tiles.length]));
+    saveStations(g);
+    // Somewhere roomy enough for all three, then back.
+    const away = g.player.rooms.find((r) => r.id !== room.id && r.w * r.h >= 4 && r.system !== "medbay" && !r.kit)!;
+    for (const c of crew) orderCrew(g, c.id, away.id);
+    for (let i = 0; i < 400 && crew.some((c) => c.path.length); i++) step(g, 0.05);
+    assert.ok(crew.every((c) => c.room === away.id));
+    returnToStations(g);
+    for (let i = 0; i < 400 && crew.some((c) => c.path.length || c.shift); i++) step(g, 0.05);
+    for (const c of crew) {
+      assert.equal(c.room, room.id);
+      const want = saved.get(c.id)!;
+      assert.deepEqual({ x: c.tile!.x, y: c.tile!.y }, { x: want.x, y: want.y }, c.name);
+    }
   });
 });

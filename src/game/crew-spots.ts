@@ -4,6 +4,7 @@
  */
 
 type Box = {
+  id?: string;
   x: number;
   y: number;
   w: number;
@@ -149,6 +150,8 @@ type RosterCrew = {
   tile?: HeldTile;
   shift?: TileShift;
   stun?: number;
+  station?: string;
+  stationTile?: { x: number; y: number };
 };
 
 /** The floor tile an idle crew member keeps (settleTiles), or null while walking or before one is stamped. */
@@ -286,6 +289,13 @@ export function assignStands(
     if (!t || !floor.has(cellKey(t)) || used.has(cellKey(t))) continue;
     if (cellKey(t) === consoleKey && !ownsHere(c)) continue;
     put(c.id, t);
+  }
+  // Someone coming back to their saved station takes the tile they saved, when it is free (sim saveStations).
+  for (const c of ordered) {
+    if (placed.has(c.id) || !room.id || c.station !== room.id || !c.stationTile) continue;
+    const key = cellKey(c.stationTile);
+    if (!floor.has(key) || used.has(key) || (key === consoleKey && !ownsHere(c))) continue;
+    put(c.id, c.stationTile);
   }
   const unplaced = ordered.filter((c) => !placed.has(c.id));
   // A free terminal goes to a newcomer who can run it. settleTiles walks an idle owner over when there is none.

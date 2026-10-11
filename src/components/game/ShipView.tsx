@@ -418,7 +418,7 @@ export function ShipView({
         for (const c of here) {
           const open = seen ? seen(c.room) : true;
           if (!open && !(crewLit?.(c) ?? false)) continue;
-          const at = crewPlace(ship, here, c, standFor(c));
+          const at = crewPlace(ship, c, standFor(c), walkPaint(ship, here, c));
           if (!at) continue;
           const px = (at.x / 100) * w;
           const py = (at.y / 100) * h;
@@ -637,6 +637,27 @@ export function ShipView({
       <Mounts ship={ship} crew={crew} aboard={aboard} />
       {showCrew ? (
         <div className="crew-walkers" ref={layerRef}>
+          {/*
+            INVENTED (per the user): a faint copy of each of your walking crew on the tile their walk ends on. The goal
+            is the one the walk itself aims for (walkPaint), so the sprite lands exactly on its ghost.
+          */}
+          {here.map((c) => {
+            if (c.side !== "player" || (c.leashed ?? 0) > 0 || c.path.length === 0) return null;
+            // Your own orders: shown even where Sensors cannot see in.
+            const goal = walkPaint(ship, here, c)?.goal;
+            if (!goal) return null;
+            return (
+              <span
+                key={`ghost-${c.id}`}
+                className="token is-sprite crew-walker crew-ghost"
+                data-ghost={c.id}
+                aria-hidden="true"
+                style={{ left: `${((goal.x + 0.5) / ship.cols) * 100}%`, top: `${((goal.y + 0.5) / ship.rows) * 100}%` }}
+              >
+                <CrewFace crew={c} pose="idle" frame={0} cycle={false} />
+              </span>
+            );
+          })}
           {here.map((c) => {
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;

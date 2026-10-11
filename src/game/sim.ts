@@ -481,8 +481,8 @@ export function roomWith(ship: Ship, system: SysId): Room | undefined {
  * Crew who can lend Zoltan power on the `aboard` hull: aboard it and fighting for it.
  * INTENTIONALLY OVERRIDING SPEC: Zoltans, "Race characteristics" says only "an occupied system"; per the user, an
  * intruding Zoltan does not power, replace, or swap power in the other side's systems.
- * INFERRED: a mind-controlled Zoltan counts for the side it fights for (Mind Control: "Turns one enemy crewmember into
- * ally").
+ * INTENTIONAL (confirmed by the user): a mind-controlled Zoltan counts for the side it fights for (Mind Control: "Turns
+ * one enemy crewmember into ally").
  */
 function hullCrew<C extends Pick<Crew, "aboard" | "side" | "leashed">>(crew: readonly C[], aboard: "player" | "enemy"): C[] {
   const fightsFor = (c: C) => ((c.leashed ?? 0) > 0 ? (c.side === "player" ? "enemy" : "player") : c.side);
@@ -576,8 +576,8 @@ export function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system:
     (c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0,
   );
   if (!crewed) return false;
-  // INFERRED (per the user): a mannable system is manned from its terminal. While its next operator walks over, it is
-  // not. consoleOperator falls back to "anyone idle here" before tiles are stamped.
+  // INTENTIONAL (confirmed by the user): a mannable system is manned from its terminal. While its next operator walks
+  // over, it is not. consoleOperator falls back to "anyone idle here" before tiles are stamped.
   const cell = roomConsole(r, ship);
   if (!cell) return true;
   return consoleOperator(g.crew.filter((c) => sideOf(c) === friends), r.id, aboard, cell) != null;

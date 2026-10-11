@@ -100,11 +100,12 @@ export function interiorLinks(doors: { a: string; b: string | "void" }[], roomId
 
 /**
  * Standing spots in a medbay or clone bay.
- * Medbay: player 2 when the room has two tiles or fewer, otherwise 3.
- * Enemy medbay: 2 or 4 the same way.
+ * Medbay, "Overview": players have "either 2 or 3 standing spots", enemies "either 2 or 4" ("depends on the ship
+ * design"). INTENTIONAL (confirmed by the user): which one is read from the room, 2 when it has two tiles or fewer,
+ * otherwise 3 for the player and 4 for an enemy.
  * Clone bay (kit "cradle", and not still the medbay): player 1 or 3, enemy 2 or 4.
  * Stealth B and Rock C: the medbay "is positioned in a dead-end corner and has 2 standing spots."
- * INFERRED: one interior door is that dead-end, so a player medbay with a single neighbor stays at 2
+ * INTENTIONAL (confirmed by the user): one interior door is that dead-end, so a player medbay with a single neighbor stays at 2
  * even when the tile count would allow 3.
  */
 export function medicalLimit(room: Box, side: "player" | "enemy", interiorDoors: number): number {
@@ -185,7 +186,8 @@ export function consoleOperator(
     return aboard == null || side == null || side === aboard;
   };
   // With tiles stamped (settleTiles), the operator is whoever stands on the terminal, once they have walked onto it.
-  // INFERRED: nobody operates while the terminal is empty or its next operator is still walking over.
+  // INTENTIONAL (confirmed by the user): nobody operates while the terminal is empty or its next operator is still
+  // walking over.
   if (cell) {
     const on = roster.find((c) => {
       const t = heldTile(c);
@@ -281,7 +283,7 @@ export function assignStands(
     const [xs, ys] = c.pad.split(",");
     put(c.id, { x: Number(xs), y: Number(ys) });
   }
-  // INFERRED (per the user): crew already standing in the room keep their tile when someone else comes or goes.
+  // INTENTIONAL (per the user): crew already standing in the room keep their tile when someone else comes or goes.
   // Only an owner keeps the terminal tile; anyone else standing there is moved off it.
   for (const c of ordered) {
     if (placed.has(c.id)) continue;

@@ -5393,7 +5393,21 @@ export function createGame(
   g.route = buildRoute(seed || 1);
   g.routeHere = g.route[0]?.id ?? "";
   if (hullId) applyHull(g, hullId, picks);
+  seedStations(g);
   return g;
+}
+
+/**
+ * Per the user: saved stations start as where the crew spawn, tile and all, so Return to Stations works before the
+ * first save. Tiles are stamped first (settleTiles, no time passing) so each crew member's spot is known.
+ */
+function seedStations(g: Game) {
+  settleTiles(g.crew, g.player, "player", 0, () => TILE_WALK_S);
+  for (const c of g.crew) {
+    if (c.side !== "player" || c.hp <= 0 || c.aboard !== "player") continue;
+    c.station = c.room;
+    if (c.tile && c.tile.room === c.room) c.stationTile = { x: c.tile.x, y: c.tile.y };
+  }
 }
 
 function hereBeacon(g: Game): Beacon | undefined {

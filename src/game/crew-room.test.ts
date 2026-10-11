@@ -306,6 +306,14 @@ describe("crew room orders", () => {
     assert.equal(ivo.room, "p-oxygen");
   });
 
+  it("seeds every crew member's station with where they spawn, tile included", () => {
+    const g = createGame(3, "kestrel-a");
+    for (const c of g.crew.filter((x) => x.side === "player")) {
+      assert.equal(c.station, c.room, c.name);
+      assert.deepEqual(c.stationTile, { x: c.tile!.x, y: c.tile!.y }, c.name);
+    }
+  });
+
   it("saves stations on the player ship and returns crew there", () => {
     const g = createGame(10);
     g.phase = "map";
@@ -317,7 +325,8 @@ describe("crew room orders", () => {
     saveStations(g);
     assert.equal(g.log[0], "Stations saved.");
     assert.equal(ivo.station, "p-pilot");
-    assert.equal(nen.station, undefined);
+    // Away from the ship, Nen keeps the station seeded at spawn.
+    assert.equal(nen.station, createGame(10).crew.find((c) => c.id === "c-nen")!.station);
     ivo.room = "p-engines";
     for (const other of g.crew) {
       if (other.id === ivo.id || other.side !== "player") continue;
@@ -406,6 +415,13 @@ describe("manning terminal", () => {
 
     ada.room = "p-engines";
     ada.path = [];
+    delete ada.tile;
+    // Ivo has stood on the terminal since spawn, so he keeps it; Ada, arriving, takes a free tile.
+    const kept = restSpot(engines, g.crew, ivo.id, "player", g.player);
+    assert.deepEqual(kept && { x: kept.x, y: kept.y }, { x: 2, y: 2 });
+    // Between two newcomers with no tiles (and no saved station tile) yet, the terminal goes by file order.
+    delete ivo.tile;
+    delete ivo.stationTile;
     const adaSpot = restSpot(engines, g.crew, ada.id, "player", g.player);
     const ivoSpot = restSpot(engines, g.crew, ivo.id, "player", g.player);
     assert.ok(adaSpot && ivoSpot);

@@ -2100,6 +2100,16 @@ function MapScreen({ game }: { game: Game }) {
   };
   const [dx, dy] = dangerCentre(game);
   const pct = (n: number) => `${n * 100}%`;
+  // Rebel Fleet: "arrows and the word 'warning' contained by a red line, which represents where the fleet will be in
+  // one jump". One normal step, two after a scout escaped (Rebel Fleet, Notes: "double the fleet pursue rate for 1
+  // turn"). INFERRED: the band shows a normal-beacon step; a nebula jump moves the fleet less. No fleet in sector 8.
+  const warn = game.sector < 8 ? { fleet: game.fleet + (game.pursuitDouble ? 2 : 1), dangerY: game.dangerY } : null;
+  const [wx, wy] = warn ? dangerCentre(warn) : [dx, dy];
+  const rx = (DANGER_RADIUS / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X);
+  const ry = (DANGER_RADIUS / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y);
+  // The warning label sits on the band's leading edge, at the fleet's centre height, kept on the plot.
+  const warnX = Math.min(0.97, Math.max(0.03, fx(wx) + rx));
+  const warnY = Math.min(0.9, Math.max(0.1, fy(wy)));
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
     <section className="sector-map beacon-map">
@@ -2149,15 +2159,34 @@ function MapScreen({ game }: { game: Game }) {
             <ellipse
               cx={fx(dx)}
               cy={fy(dy)}
-              rx={(DANGER_RADIUS / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X)}
-              ry={(DANGER_RADIUS / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y)}
+              rx={rx}
+              ry={ry}
               fill="rgba(226, 58, 58, 0.16)"
               stroke="#e23a3a"
               strokeWidth="3"
               strokeDasharray="7 5"
               vectorEffect="non-scaling-stroke"
             />
+            {warn ? (
+              <ellipse
+                className="fleet-warn"
+                cx={fx(wx)}
+                cy={fy(wy)}
+                rx={rx}
+                ry={ry}
+                fill="none"
+                stroke="#ff8a3d"
+                strokeWidth="2"
+                strokeDasharray="3 6"
+                vectorEffect="non-scaling-stroke"
+              />
+            ) : null}
           </svg>
+          {warn && warnX > 0.03 ? (
+            <span className="fleet-warn-tag" style={{ left: pct(warnX), top: pct(warnY) }}>
+              WARNING
+            </span>
+          ) : null}
           {here ? (
             <svg className="beacon-ship" viewBox="-14 -8 28 16" style={{ left: pct(at(here)[0]), top: pct(at(here)[1]) }} aria-hidden="true">
               <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
@@ -2170,6 +2199,7 @@ function MapScreen({ game }: { game: Game }) {
             const linked = here?.links.includes(b.id) ?? false;
             const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
             const swallowed = overtaken(game, b);
+            const soon = !swallowed && !!warn && overtaken(warn, b);
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
             const tag = isHere ? null : beaconMark(b);
             const nebula = b.kind === "nebula" && !b.cleared;
@@ -2184,7 +2214,7 @@ function MapScreen({ game }: { game: Game }) {
                 {isHere ? null : (
                   <button
                     type="button"
-                    className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
+                    className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
                     disabled={!open || (game.phase === "combat" && game.flee < 1)}
                     aria-label={tag || "Beacon"}
                     onClick={() => act((g) => commitJump(g, b.id))}
@@ -2207,6 +2237,7 @@ function MapScreen({ game }: { game: Game }) {
           <span><i className="key-beacon" />Beacon</span>
           <span><i className="key-beacon is-visited" />Visited</span>
           <span><i className="key-beacon is-over" />Fleet</span>
+          {warn ? <span><i className="key-beacon is-warn" />Next jump</span> : null}
         </span>
         {game.picking ? (
           <button type="button" onClick={() => act((g) => { g.picking = false; })}>

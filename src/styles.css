@@ -4480,3 +4480,24 @@ button.door-tick::before {
   border-style: dashed;
 }
 
+
+/* Rebel Fleet: where the fleet will be after the next jump. Beacons inside it get an orange ring. */
+.map-beacon.is-warn::before {
+  box-shadow: 0 0 0 3px #ff8a3d;
+}
+
+.key-beacon.is-warn {
+  box-shadow: 0 0 0 2px #ff8a3d;
+}
+
+.fleet-warn-tag {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-family: var(--font-hud);
+  font-size: clamp(10px, 3.6cqh, 16px);
+  letter-spacing: 0.18em;
+  color: #ff8a3d;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}

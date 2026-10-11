@@ -92,6 +92,11 @@ function SysMark({ name }: { name: string }) {
   return icon ? <PixelIcon name={icon} size={20} /> : <i className="hangar-sys-blank" aria-hidden="true" />;
 }
 
+/** True when the main pointer is a finger (phones, tablets), so focusing a field would pop up the keyboard. */
+function touchFirst(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+}
+
 export function Hangar() {
   const [pageIndex, setPageIndex] = useState(0);
   const [letter, setLetter] = useState<Letter>("A");
@@ -337,10 +342,11 @@ export function Hangar() {
               <div className="hangar-crew-fields">
                 <label>
                   <span>NAME</span>
+                  {/* Per the user: no autofocus on touch, where it would raise the keyboard over the dialog. */}
                   <input
                     value={picks[editing].name}
                     maxLength={NAME_MAX}
-                    autoFocus
+                    autoFocus={!touchFirst()}
                     onChange={(event) => updatePick(editing, { name: event.target.value })}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === "Escape") setEditing(null);

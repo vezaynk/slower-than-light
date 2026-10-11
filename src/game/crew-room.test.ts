@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { claimPadTile, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
+import { blockedCells, claimPadTile, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
 import {
   canDismiss,
@@ -33,6 +33,35 @@ describe("medical standing spots", () => {
     assert.equal(medicalLimit({ ...clone, w: 2, h: 1 }, "player", 1), 1);
     assert.equal(medicalLimit(clone, "enemy", 2), 4);
     assert.equal(medicalLimit({ ...wide, kit: "cradle" }, "player", 2), 3);
+  });
+});
+
+describe("the medical machine's tile", () => {
+  it("blocks the tiles a medical room has beyond its standing spots, top-left first", () => {
+    const wide = { id: "m", x: 2, y: 1, w: 2, h: 2, system: "medbay" as const };
+    assert.deepEqual(blockedCells(wide, "player", 2), [{ x: 2, y: 1 }]);
+    assert.deepEqual(blockedCells(wide, "enemy", 2), []);
+    assert.deepEqual(blockedCells({ ...wide, w: 2, h: 1 }, "player", 2), []);
+    const vat = { id: "c", x: 0, y: 0, w: 2, h: 1, system: null, kit: "cradle" };
+    assert.deepEqual(blockedCells(vat, "player", 2), [{ x: 0, y: 0 }]);
+    assert.deepEqual(blockedCells({ id: "o", x: 0, y: 0, w: 2, h: 2, system: "oxygen" }, "player", 2), []);
+  });
+
+  it("never stands crew on the blocked tile", () => {
+    const g = createGame(6, "kestrel-a");
+    g.phase = "map";
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const [blocked] = blockedCells(bay, "player", interiorLinks(g.player.doors, bay.id));
+    assert.ok(blocked, "a 4-tile Kestrel medbay has a machine tile");
+    for (const c of g.crew.filter((x) => x.side === "player")) {
+      c.room = bay.id;
+      c.path = [];
+      delete c.tile;
+    }
+    step(g, 0.05);
+    for (const c of g.crew.filter((x) => x.side === "player")) {
+      assert.notDeepEqual({ x: c.tile!.x, y: c.tile!.y }, { x: blocked.x, y: blocked.y }, c.name);
+    }
   });
 });
 

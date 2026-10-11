@@ -4836,3 +4836,30 @@ button.modal-x.modal-x:focus-visible {
   display: flex;
   align-items: center;
 }
+
+/* The medical machine on a Medbay or Clone Bay's blocked tile (ShipView, RoomConsole RoomProp). INVENTED colours. */
+/* Sits low in the tile, under the room name, like the terminals. */
+.room-prop {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: end center;
+  pointer-events: none;
+}
+
+.room-prop-art {
+  width: 66%;
+  height: 66%;
+  margin-bottom: 8%;
+  image-rendering: pixelated;
+}
+
+.room-prop-art .casing { fill: #8a94a0; }
+.room-prop-art .casing-d { fill: #4a525c; }
+.room-prop-art .trim { fill: #b8c2cc; }
+.room-prop-art .screen { fill: #b9d6e6; }
+.room-prop-art .glow { fill: #5fe08a; }
+.room-prop-art .pip { fill: #c8d6e0; }
+.room-prop-art[data-kind="cradle"] .screen { fill: #2c6a58; }
+.room-prop-art[data-kind="cradle"] .glow { fill: #9fe6c8; }
+.room-prop-art[data-kind="cradle"] .pip { fill: #1a3a30; }

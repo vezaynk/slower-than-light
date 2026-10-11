@@ -127,6 +127,26 @@ export function medicalLimit(room: Box, side: "player" | "enemy", interiorDoors:
  * INFERRED: every other room holds one crew member per floor tile. Clone Bay's
  * "4-tile room ... only up to 3 standing crew" is the exception to that.
  */
+/**
+ * Floor tiles nobody stands on: a Medbay or Clone Bay with more tiles than standing spots (medicalLimit) keeps the rest
+ * for its machine, which ShipView draws there. Medbay, "Overview": a 4-tile player Medbay has 3 standing spots; Clone
+ * Bay: "a 4-tile Clone Bay room ... only up to 3 standing crew", "a 2-tile Clone Bay room can accommodate only 1".
+ * INFERRED: the machine takes the top-left tiles, opposite the top-right corner terminals use (roomConsole).
+ */
+export function blockedCells(room: Box, side: "player" | "enemy", interiorDoors: number): { x: number; y: number }[] {
+  if (room.system !== "medbay" && room.kit !== "cradle") return [];
+  const cells = floorCells(room);
+  const extra = cells.length - medicalLimit(room, side, interiorDoors);
+  if (extra <= 0) return [];
+  return cells.slice().sort((a, b) => a.y - b.y || a.x - b.x).slice(0, extra);
+}
+
+/** blockedCells for a room on a hull, when the side and doors are known. */
+function blockedOn(room: Box, aboard: string | undefined, hull: StandHull | undefined): Set<string> {
+  if (!hull?.doors || !room.id || (aboard !== "player" && aboard !== "enemy")) return new Set();
+  return new Set(blockedCells(room, aboard, interiorLinks(hull.doors, room.id)).map(cellKey));
+}
+
 export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors: number): number {
   if (room.system === "medbay" || room.kit === "cradle") return medicalLimit(room, side, interiorDoors);
   const tiles = floorCells(room).length;
@@ -162,7 +182,7 @@ export function heldTile(c: Pick<RosterCrew, "tile" | "path" | "room">): { x: nu
 
 const cellKey = (cell: { x: number; y: number }) => `${cell.x},${cell.y}`;
 
-type StandHull = { flagship?: unknown } | null;
+type StandHull = { flagship?: unknown; doors?: { a: string; b: string | "void" }[] } | null;
 
 /**
  * The crew member who stands at the terminal.
@@ -260,7 +280,8 @@ export function assignStands(
   const console = roomConsole(room, opts?.hull);
   const consoleKey = console ? cellKey(console) : null;
   const pads = new Set(padCells(room));
-  const floor = new Set(floorCells(room).map(cellKey));
+  const blocked = blockedOn(room, opts?.aboard, opts?.hull);
+  const floor = new Set(floorCells(room).map(cellKey).filter((key) => !blocked.has(key)));
   const ordered = crew
     .slice()
     .sort((a, b) => (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -308,7 +329,9 @@ export function assignStands(
   }
   // The terminal is kept clear for an owner while one is in the room.
   const blockConsole = !!consoleKey && ordered.some(ownsHere);
-  const spare = standCells(room).filter((cell) => !blockConsole || cellKey(cell) !== consoleKey);
+  const spare = standCells(room).filter(
+    (cell) => !blocked.has(cellKey(cell)) && (!blockConsole || cellKey(cell) !== consoleKey),
+  );
   const free = spare.filter((cell) => !used.has(cellKey(cell)));
   let next = 0;
   for (const c of unplaced) {

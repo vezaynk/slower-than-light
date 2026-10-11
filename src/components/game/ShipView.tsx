@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
-import { assignStands, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
+import { assignStands, blockedCells, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
-import { RoomConsole } from "./RoomConsole";
+import { RoomConsole, RoomProp } from "./RoomConsole";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
@@ -570,6 +570,25 @@ export function ShipView({
                     </i>
                   );
                 })()
+              : null}
+            {/* The medical machine on the tile nobody stands on (crew-spots blockedCells). */}
+            {open && (room.system === "medbay" || room.kit === "cradle")
+              ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id)).map((cell) => (
+                  <i
+                    key={`prop-${cell.x},${cell.y}`}
+                    className="room-prop"
+                    data-prop={`${cell.x},${cell.y}`}
+                    aria-hidden="true"
+                    style={{
+                      left: `${((cell.x - room.x) / room.w) * 100}%`,
+                      top: `${((cell.y - room.y) / room.h) * 100}%`,
+                      width: `${100 / room.w}%`,
+                      height: `${100 / room.h}%`,
+                    }}
+                  >
+                    <RoomProp kind={room.system === "medbay" ? "medbay" : "cradle"} />
+                  </i>
+                ))
               : null}
             {room.kit === "sling"
               ? padCells(room).map((key) => {

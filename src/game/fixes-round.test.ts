@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { volume } from "./air.ts";
 import { REPAIR_SECONDS, createGame, evasionPercent, ftlSeconds, startCombat, step } from "./sim.ts";
 import { hackHoldsWeapons } from "./extras/spike.ts";
 import type { Game } from "./types.ts";
@@ -13,7 +14,7 @@ describe("rates from the wiki", () => {
     assert.equal(REPAIR_SECONDS, 12.5);
   });
 
-  it("burns 0.96% oxygen per fire per second (Fires)", () => {
+  it("burns a fixed 0.96 tile-% of air per fire per second (Fires; air.ts spreads it over the room)", () => {
     // Same fight twice; the only difference is one fire in an empty room, so the oxygen gap is the fire's share.
     const run = (fire: number) => {
       const g = createGame(1);
@@ -23,9 +24,10 @@ describe("rates from the wiki", () => {
       room.o2 = 50;
       room.fire = fire;
       step(g, 0.05);
-      return room.o2;
+      return { o2: room.o2, tiles: volume(room) };
     };
-    assert.ok(Math.abs(run(0) - run(1) - 0.96 * 0.05) < 0.002, `${run(0) - run(1)}`);
+    const lit = run(1);
+    assert.ok(Math.abs(run(0).o2 - lit.o2 - (0.96 * 0.05) / lit.tiles) < 0.002, `${run(0).o2 - lit.o2}`);
   });
 });
 

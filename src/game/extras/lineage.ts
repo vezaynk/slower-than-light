@@ -11,36 +11,18 @@
  * "Human XP/level" column. Template:Crew races (comparison), Human row: "-10% experience requirements".
  */
 import { XP_NEED } from "../content.ts";
-import { BREACH_AIR_LOSS, airLoss } from "../air.ts";
+import { BREACH_C } from "../air.ts";
 import type { Crew, Game, SkillName } from "../types.ts";
 
-/** xftl doc/oxygen: one hull breach drains 8% of a room's air per second (air.ts BREACH_AIR_LOSS). */
-export const BREACH_O2_PER_SEC = BREACH_AIR_LOSS;
-
-/** xftl doc/oxygen: ComputeAirLoss is "called for hull breaches (and anaerobic crew, which are equivalent)". */
-export const LANIUS_DRAIN_PER_SEC = BREACH_O2_PER_SEC;
-
 /**
- * Lanius drain: each living Lanius takes one breach's worth of oxygen per second
- * from the room it is in, on whichever ship it stands (crew and boarders alike), and, like a breach, from the rooms
- * open to it at 0.75 per room of distance (air.ts).
- * INFERRED: several Lanius in one room stack, one breach each. The pages say only
- * "Drains oxygen from an occupied room" and give the rate per Lanius as a breach.
- * INFERRED: a walking Lanius drains its current `room` too. The pages do not say
- * whether the drain pauses while moving.
- * Clamped at 0. Suffocation immunity stays in kin.ts (`suffocate: 0`).
- * Runs after airflow has clamped the rooms, in a fight and outside one.
+ * Lanius, lead: "They drain Oxygen about as fast as a hull breach in a single square." In the air model (air.ts, sim.ts
+ * airflow) each living Lanius is a breach-sized hole (BREACH_C) in the room it stands in, on either hull; several
+ * stack. Suffocation immunity stays in kin.ts (`suffocate: 0`).
  */
-export function tickLanius(g: Game, dt: number) {
-  if (dt <= 0) return;
-  for (const c of g.crew) {
-    if (c.kin !== "voidlung" || c.hp <= 0) continue;
-    const ship = c.aboard === "player" ? g.player : g.enemy;
-    const room = ship?.rooms.find((r) => r.id === c.room);
-    if (!room) continue;
-    airLoss(ship!, room.id, LANIUS_DRAIN_PER_SEC, dt);
-  }
-}
+export const LANIUS_HOLE_C = BREACH_C;
+
+/** The Lanius drain now runs inside airflow (air.ts). Kept so the existing tick order does not change. */
+export function tickLanius(_g: Game, _dt: number) {}
 
 /**
  * Humans, "Race characteristics", "Human XP/level" column, and Crew skills, Skills table parentheses:

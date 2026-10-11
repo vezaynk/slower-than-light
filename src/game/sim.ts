@@ -69,7 +69,7 @@ import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
-import { AIRLOCK_AIR_LOSS, BREACH_AIR_LOSS, airLoss, shareAir } from "./air.ts";
+import { stepAir } from "./air.ts";
 import {
   connectGrid,
   overtaken,
@@ -3293,11 +3293,10 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
 }
 
 /**
- * Oxygen: online refill is 1.2% per second, ×4 at level 2, ×7 at level 3 (xftl doc/oxygen: "1,4,7 ... NOT the 1,3,6
- * multipliers listed in the UI"). Unpowered rooms fall at 1.2% per second (doc/oxygen: "Oxygen drains from rooms at
- * 1.2% per second when the oxygen system is off"). Fires die below 10% oxygen (Fires, "Dealing with fires"; burn-out is
- * fireStarve below). Suffocation is still the 5% check in life(). Breaches, open airlocks, and air sharing between open
- * rooms are air.ts.
+ * Air is air.ts: an INVENTED first-principles model (pressure-driven flow through doors, breaches, and airlocks; crew
+ * breathing; per-tile Oxygen refill of 1.2%/s, x4 at level 2, x7 at level 3, from xftl doc/oxygen). It replaces the
+ * game's flat 1.2%/s unpowered drain with breathing. Fires die below 10% oxygen (Fires, "Dealing with fires"; burn-out
+ * is fireStarve below). Suffocation is still the 5% check in life().
  */
 /**
  * Template:Crew races (comparison), "Repair speed" note, and Crew skills, Repair skill: "It takes 12.5 seconds
@@ -3381,29 +3380,17 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   let o2 = mainBars(g, ship, aboard, "oxygen");
   // Slug hacker (choice): "Oxygen system halved" and "rounds down against you".
   if (aboard === "player" && systemHalf.get(g)?.has("oxygen")) o2 = Math.floor(o2 / 2);
-  // Slug hacker (oxygen): "Oxygen system offline". Production is none, so the unpowered drain below applies.
+  // Slug hacker (oxygen): "Oxygen system offline". Production is none.
   if (oxygenOff(g, aboard)) o2 = 0;
-  const mult = o2 <= 0 ? 0 : o2 === 1 ? 1 : o2 === 2 ? 4 : 7;
-  for (const r of ship.rooms) {
-    if (o2 > 0) r.o2 += 1.2 * mult * dt;
-    else r.o2 -= 1.2 * dt;
-    // Fires: "Fires also consume oxygen (0.96% per second for each fire in a room)". In their own room only: xftl
-    // doc/oxygen, "they only reduce it for their room".
-    r.o2 -= 0.96 * r.fire * dt;
+  // air.ts: production, crew breathing, fires, doors, airlocks, breaches, and Lanius (INVENTED first-principles model).
+  const breathers = new Map<string, number>();
+  const lanius = new Map<string, number>();
+  for (const c of g.crew) {
+    if (c.hp <= 0 || c.aboard !== aboard) continue;
+    if (c.kin === "voidlung") lanius.set(c.room, (lanius.get(c.room) ?? 0) + 1);
+    else if (kinOf(c.kin ?? "plain").suffocate > 0) breathers.set(c.room, (breathers.get(c.room) ?? 0) + 1);
   }
-  // air.ts: breaches (8%/s each) and open airlocks (16%/s each) drain their room and the rooms open to it.
-  for (const r of ship.rooms) if (r.breach > 0) airLoss(ship, r.id, BREACH_AIR_LOSS * r.breach, dt);
-  for (const d of ship.doors) if (d.open && d.b === "void") airLoss(ship, d.a, AIRLOCK_AIR_LOSS, dt);
-  shareAir(ship, dt);
-  // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in, and quickly drains the O2 from the
-  // connected rooms with opened doors". The wiki outranks xftl here, so the airlock's own room is emptied outright;
-  // the connected rooms keep xftl's 16%/s at 0.75 per room of distance. Emptied after the share, so a neighbour cannot
-  // refill it this tick.
-  for (const d of ship.doors) {
-    if (!d.open || d.b !== "void") continue;
-    const r = roomById(ship, d.a);
-    if (r) r.o2 = 0;
-  }
+  stepAir(ship, { o2Bars: o2, doorLevel: doorLevel(g, ship, aboard), breathers, lanius }, dt);
   for (const r of ship.rooms) {
     r.o2 = Math.max(0, Math.min(100, r.o2));
     starveFire(g, ship, r, dt);

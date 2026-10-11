@@ -1,66 +1,101 @@
 /**
- * Air loss and air sharing, from the xftl reverse-engineering notes (gitlab.com/znixian/xftl, doc/oxygen):
- * - OxygenSystem::ComputeAirLoss: "The base air loss ... for airlock doors is 16%/sec per open airlock door, and for
- *   hull breaches it's 8%/sec per breach." It is "called for hull breaches (and anaerobic crew, which are equivalent)".
- *   "It drains the oxygen from the relevant room, and from all adjacent rooms ... the air loss rate is computed as 0.75
- *   to the power of it's distance from the room with the breach/open airlock".
- * - OxygenSystem::RedistributeOxygen: "Any two rooms with a path of open doors between them is part of a single chunk
- *   ... Find the average oxygen level in a chunk, and for each room therein find the difference of it's oxygen vs the
- *   average, and change the level by 8% of that per second."
- * Oxygen (wiki) overrides the airlock's own room: "an airlock instantly drains the O2 in the room it is opened in"
- * (sim.ts airflow empties it). The 16%/s here reaches the connected rooms.
- * INFERRED: the distance map follows open interior doors, the same paths as a chunk. The notes' tactics ("close all but
- * one ... of the doors around the breached room ... by opening nearby doors you're loosing more air") need that.
- * Pure: no sim import, so lineage.ts can use it too.
+ * INVENTED air model, written from first principles on purpose (it departs from the game and from the xftl notes).
+ *
+ * Every room holds an amount of air. Its volume is its floor tiles, and its pressure is amount / volume: the 0-100%
+ * the sim stores in `room.o2` and crew breathe. Every opening moves air in proportion to the pressure difference across
+ * it, flow = C * (p_from - p_to), in tile-% per second. Space is pressure 0 with no volume limit. So:
+ * - a bigger room holds more air and its % changes more slowly for the same flow;
+ * - a full room next to an empty one pushes 16 tile-%/s through an open door (C = 0.16), less as they converge;
+ * - sealed rooms joined by open doors settle at their volume-weighted average, with no air lost;
+ * - closed interior doors still seep, less at higher Door System levels.
+ * Hull doors (airlocks) seal when closed. An open airlock is a very wide opening (C = 8), so its room empties in about
+ * half a second and then pulls on its neighbours through their doors. A breach, or a Lanius, is a C = 0.16 hole to
+ * space.
+ * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. A powered Oxygen system adds air to every
+ * room in proportion to its volume, so every room refills at the same %: 1.2%/s, x4 at level 2, x7 at level 3
+ * (Oxygen; xftl doc/oxygen). An unpowered system adds nothing; only breathing, fire, and holes take air.
+ *
+ * Each opening is applied as the exact two-sided exchange over the tick, so a wide opening cannot overshoot and air is
+ * conserved between rooms. Pure: no sim import.
  */
-import type { Ship } from "./types.ts";
+import type { Room, Ship } from "./types.ts";
 
-/** ComputeAirLoss base rates, percent of a room's air per second. */
-export const BREACH_AIR_LOSS = 8;
-export const AIRLOCK_AIR_LOSS = 16;
-/** ComputeAirLoss falloff per room of distance. */
-export const AIR_LOSS_FALLOFF = 0.75;
-/** RedistributeOxygen: share of the gap to the chunk average closed per second. */
-export const AIR_SHARE_PER_SEC = 0.08;
+/** Open interior door: 16 tile-%/s from a full room into an empty one. */
+export const OPEN_DOOR_C = 0.16;
+/** Closed interior door seepage, by Door System level 0 (none or broken) to 4. Level 4 is effectively sealed. */
+export const CLOSED_DOOR_C: readonly number[] = [0.032, 0.016, 0.005, 0.002, 0.001];
+/** One hull breach, or one Lanius, as a hole to space. A 2-tile room loses 8%/s through one when full. */
+export const BREACH_C = 0.16;
+/** An open airlock: a 2-tile room empties in about half a second. */
+export const AIRLOCK_C = 8;
+/**
+ * Air one breathing crew member uses, tile-%/s. Level-1 Oxygen (1.2%/s per tile) just covers one crew member in a
+ * 1-tile room; two crowded into one slowly thin it. A sealed, unpowered ship loses air only to breathing.
+ */
+export const BREATH_PER_CREW = 1;
+/** Air one fire burns, tile-%/s (Fires: "0.96% per second for each fire in a room", read as one tile's worth). */
+export const FIRE_BURN = 0.96;
+/** Oxygen system refill per tile, %/s at level 1, and the level multipliers (xftl doc/oxygen: "1,4,7"). */
+export const REFILL = 1.2;
+export const REFILL_MULT: readonly number[] = [0, 1, 4, 7];
 
-/** Rooms joined to `from` by open interior doors, with their distance in rooms. */
-function openDistances(ship: Ship, from: string): Map<string, number> {
-  const dist = new Map<string, number>([[from, 0]]);
-  const todo = [from];
-  while (todo.length) {
-    const at = todo.shift()!;
-    for (const d of ship.doors) {
-      if (!d.open || d.b === "void") continue;
-      const next = d.a === at ? d.b : d.b === at ? d.a : null;
-      if (next == null || dist.has(next)) continue;
-      dist.set(next, dist.get(at)! + 1);
-      todo.push(next);
-    }
-  }
-  return dist;
+/** Floor tiles: the room's rectangle less its omitted cells. */
+export function volume(r: Pick<Room, "w" | "h" | "omit">): number {
+  return Math.max(1, r.w * r.h - (r.omit?.length ?? 0));
 }
 
-/** ComputeAirLoss: drain `perSecond` from room `from`, and 0.75^distance of it from each room open to it. */
-export function airLoss(ship: Ship, from: string, perSecond: number, dt: number): void {
-  if (!(perSecond > 0) || !(dt > 0)) return;
-  for (const [id, d] of openDistances(ship, from)) {
-    const r = ship.rooms.find((x) => x.id === id);
-    if (r) r.o2 = Math.max(0, r.o2 - perSecond * AIR_LOSS_FALLOFF ** d * dt);
-  }
+export type AirInputs = {
+  /** Oxygen system bars feeding production (0 = none). */
+  o2Bars: number;
+  /** Door System level for closed-door seepage, 0-4. */
+  doorLevel: number;
+  /** Breathing crew per room id. */
+  breathers: ReadonlyMap<string, number>;
+  /** Lanius per room id (each a breach-sized hole). */
+  lanius: ReadonlyMap<string, number>;
+};
+
+/** Air moves between two rooms toward their shared pressure, exactly over dt. */
+function exchange(a: Room, b: Room, c: number, dt: number) {
+  const va = volume(a);
+  const vb = volume(b);
+  const eq = (a.o2 * va + b.o2 * vb) / (va + vb);
+  const k = 1 - Math.exp(-c * dt * (1 / va + 1 / vb));
+  a.o2 += (eq - a.o2) * k;
+  b.o2 += (eq - b.o2) * k;
 }
 
-/** RedistributeOxygen: each room moves 8%/s of its gap toward the average of its open-door chunk. */
-export function shareAir(ship: Ship, dt: number): void {
-  const seen = new Set<string>();
+/** Air leaves a room to space, exactly over dt. */
+function vent(r: Room, c: number, dt: number) {
+  r.o2 *= Math.exp((-c * dt) / volume(r));
+}
+
+/** One tick of air on a hull. Fire starvation and suffocation read the result. */
+export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
+  if (!(dt > 0)) return;
+  const refill = REFILL * (REFILL_MULT[Math.min(3, Math.max(0, input.o2Bars))] ?? 0);
   for (const r of ship.rooms) {
-    if (seen.has(r.id)) continue;
-    const chunk = [...openDistances(ship, r.id).keys()]
-      .map((id) => ship.rooms.find((x) => x.id === id))
-      .filter((x) => x != null);
-    for (const x of chunk) seen.add(x.id);
-    if (chunk.length < 2) continue;
-    const avg = chunk.reduce((n, x) => n + x.o2, 0) / chunk.length;
-    const k = Math.min(1, AIR_SHARE_PER_SEC * dt);
-    for (const x of chunk) x.o2 += (avg - x.o2) * k;
+    const v = volume(r);
+    r.o2 += refill * dt;
+    r.o2 -= ((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW * dt) / v;
+    r.o2 -= (r.fire * FIRE_BURN * dt) / v;
+    r.o2 = Math.max(0, Math.min(100, r.o2));
+  }
+  const byId = new Map(ship.rooms.map((r) => [r.id, r]));
+  const closed = CLOSED_DOOR_C[Math.min(4, Math.max(0, Math.floor(input.doorLevel)))];
+  for (const d of ship.doors) {
+    const a = byId.get(d.a);
+    if (!a) continue;
+    if (d.b === "void") {
+      if (d.open) vent(a, AIRLOCK_C, dt);
+      continue;
+    }
+    const b = byId.get(d.b);
+    if (b) exchange(a, b, d.open ? OPEN_DOOR_C : closed, dt);
+  }
+  for (const r of ship.rooms) {
+    const holes = r.breach + (input.lanius.get(r.id) ?? 0);
+    if (holes > 0) vent(r, BREACH_C * holes, dt);
+    r.o2 = Math.max(0, Math.min(100, r.o2));
   }
 }

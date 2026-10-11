@@ -626,7 +626,8 @@ describe("Slug hacker (choice)", () => {
     }
     choose(air, "c:slug-hacker-choice:1");
     quietEnemy(air);
-    const room = air.player.rooms[0];
+    // A room nobody breathes in (air.ts), so the change is the refill alone.
+    const room = air.player.rooms.find((r) => !air.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id));
     assert.ok(room);
     const before = room.o2;
     step(air, 0.05);
@@ -744,13 +745,13 @@ describe("Slug hacker (oxygen)", () => {
       r.fire = 0;
       r.breach = 0;
     }
-    const room = g.player.rooms[0];
+    // A room nobody breathes in (air.ts): with no production it holds its air. Level 2 would add 0.24 per step.
+    const room = g.player.rooms.find((r) => !g.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id));
     assert.ok(room);
     const before = room.o2;
     step(g, 0.05);
-    const lost = before - room.o2;
-    // Unpowered drain is 1.2% per second. Level 2 would refill at four times the one-bar rate.
-    assert.ok(lost > 0.04 && lost < 0.1, String(lost));
+    const change = room.o2 - before;
+    assert.ok(Math.abs(change) < 0.01, String(change));
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.05);

@@ -73,7 +73,12 @@ export function shipSight(g: Game): ShipSight {
   const life =
     g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0) || g.augments.includes("pulseeye");
 
+  // A room your own crew stand in is always seen, on either hull. We're in position!: boarding crew give "vision of
+  // ... the enemy ship without functioning sensors". INFERRED: the room each crew member stands in.
+  const crewed = (aboard: "player" | "enemy", roomId: string) =>
+    g.crew.some((c) => c.side === "player" && c.hp > 0 && c.aboard === aboard && c.room === roomId && !(c.leashed ?? 0));
   const interior = (aboard: "player" | "enemy", roomId: string): boolean => {
+    if (crewed(aboard, roomId)) return true;
     if (aboard === "player") return sensors >= 1 || own.has(roomId);
     if (foe.has(roomId) || hack === roomId) return true;
     if (cloaked) return ownAboard;

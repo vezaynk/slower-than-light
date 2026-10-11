@@ -24,6 +24,16 @@ function gel(g: Game, room: string, id = "slug"): Crew {
   return crew;
 }
 
+/** Every living player crew member except `keep` stands in `room` (your own crew's rooms are always seen). */
+function park(g: Game, room: string, keep: Crew[] = []) {
+  for (const c of g.crew) {
+    if (c.side !== "player" || keep.includes(c)) continue;
+    c.aboard = "player";
+    c.room = room;
+    c.path = [];
+  }
+}
+
 function dark(g: Game) {
   g.player.systems.sensors.level = 0;
   g.player.systems.sensors.damage = 0;
@@ -50,6 +60,7 @@ describe("Slug vision", () => {
     const g = createGame(21);
     startCombat(g, "scout");
     dark(g);
+    park(g, "p-engines");
     gel(g, "p-engines");
     g.player.doors = g.player.doors.filter(
       (d) => !((d.a === "p-engines" && d.b === "p-shields") || (d.b === "p-engines" && d.a === "p-shields")),
@@ -63,10 +74,11 @@ describe("Slug vision", () => {
     assert.equal(sight.interior("player", "p-weapons"), false);
   });
 
-  it("reveals live enemy crew on both ships and does not reveal a friendly boarder or a dead Slug", () => {
+  it("reveals live enemy crew on both ships; a friendly boarder's own room is seen; a dead Slug reveals nothing", () => {
     const g = createGame(22);
     startCombat(g, "scout");
     dark(g);
+    park(g, "p-pilot");
     const slug = gel(g, "p-engines");
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(foe);
@@ -77,7 +89,9 @@ describe("Slug vision", () => {
     const sight = shipSight(g);
     assert.equal(sight.showCrew(foe), true);
     assert.equal(sight.interior("enemy", foe.room), false);
-    assert.equal(sight.showCrew(boarder), false);
+    // We're in position!: crew aboard give vision of the room they stand in, without functioning sensors.
+    assert.equal(sight.showCrew(boarder), true);
+    assert.equal(sight.interior("enemy", boarder.room), true);
     assert.equal(sight.showCrew(slug), true);
 
     slug.hp = 0;
@@ -121,6 +135,7 @@ describe("Slug vision", () => {
     const g = createGame(24);
     startCombat(g, "scout");
     dark(g);
+    park(g, "p-pilot");
     const foe = g.crew.find((c) => c.side === "enemy");
     assert.ok(foe);
     foe.kin = "gel";
@@ -135,6 +150,7 @@ describe("Slug vision", () => {
   // versus the separate sentence "Grants vision of adjacent rooms' interior".
   it("a fitted Lifeform Scanner reveals live enemy crew without opening that room", () => {
     const { g, foe } = blindScout(30);
+    park(g, "p-pilot");
     g.augments = ["pulseeye"];
     const boarder = g.crew.find((c) => c.side === "player");
     assert.ok(boarder);
@@ -144,7 +160,8 @@ describe("Slug vision", () => {
     assert.equal(sight.showCrew(foe), true);
     assert.equal(sight.interior("enemy", foe.room), false);
     assert.equal(sight.interior("player", "p-engines"), false);
-    assert.equal(sight.showCrew(boarder), false);
+    // The boarder's own room is seen (We're in position!), so the boarder is too.
+    assert.equal(sight.showCrew(boarder), true);
     assert.equal(sight.showCrew({ ...foe, hp: 0 }), false);
   });
 

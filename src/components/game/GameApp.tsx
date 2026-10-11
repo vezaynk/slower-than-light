@@ -979,6 +979,11 @@ function TargetPanel({
   // Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon." Shown here as a
   // countdown on the head clone plus the queue size. Hidden while cloaked, like the interior.
   const clones = cloaked && !ownAboard ? null : enemyCloneQueue(game);
+  const sensors = playerSensorLevel(game);
+  // Hull and shields are not on the Sensors list (Sensors, "Overview" names interiors, weapon charge, and system detail),
+  // so they always show. INFERRED: the same 30-segment bar as your own hull.
+  const foeBubbles = enemy.shieldNow;
+  const foeCap = Math.max(maxBubbles(enemy, zoltanBars(game.crew, enemy, "enemy", "shields")), foeBubbles, 0);
   return (
     <aside className="target-panel">
       <div className="target-head">
@@ -1044,6 +1049,36 @@ function TargetPanel({
           ) : null}
         </div>
       </div>
+      <div className="foe-vitals">
+        <div className="hull-row">
+          <span className="hud-word">HULL</span>
+          <div className="hull-segs" aria-label={`Enemy hull ${enemy.hull} of ${enemy.hullMax}`}>
+            {Array.from({ length: Math.min(30, enemy.hullMax) }, (_, i) => (
+              <i key={i} className={i < Math.round((enemy.hull / Math.max(1, enemy.hullMax)) * Math.min(30, enemy.hullMax)) ? "on" : ""} />
+            ))}
+          </div>
+          <b className="foe-hull-num">{Math.max(0, Math.ceil(enemy.hull))}</b>
+        </div>
+        <div className="store-row">
+          <span className="hud-word hud-shields">SHIELDS</span>
+          {foeCap > 0 ? (
+            <span className="bubbles" aria-label={`Enemy shield bubbles ${foeBubbles}`}>
+              {Array.from({ length: foeCap }, (_, i) => (
+                <i key={i} className={i < foeBubbles ? "on" : ""} />
+              ))}
+            </span>
+          ) : (
+            <span className="foe-none">NONE</span>
+          )}
+          {(enemy.zoltan ?? 0) > 0 ? (
+            <span className="bubbles zoltan-pips" aria-label={`Enemy Zoltan Shield ${enemy.zoltan}`}>
+              {Array.from({ length: Math.max(enemy.zoltan ?? 0, 0) }, (_, i) => (
+                <i key={i} className="on" />
+              ))}
+            </span>
+          ) : null}
+        </div>
+      </div>
       {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. */}
       {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
       <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
@@ -1106,14 +1141,17 @@ function TargetPanel({
           // level 4 adds enemy systems level, power usage, ion damage/cooldown, repair/sabotage progress.
           // sensorSystemDetail is that line. It does not add Hacking, Cloaking, Mind Control, or Clone Bay timers.
           // Below level 4, and off the hacked system, the chip stays the short power count.
-          const full = vision?.system === id || playerSensorLevel(game) >= 4;
+          const full = vision?.system === id || sensors >= 4;
           const tip = full
             ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? " (hacking drone)" : ""}`
-            : `${SYS_LABEL[id]} ${shown}`;
+            : SYS_LABEL[id];
+          // Below Sensors 4 only the icon shows: "level, power usage, ion damage" are level 4 information.
+          // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
+          const harm = sys.damage >= sys.level && sys.level > 0 ? "is-broken" : sys.damage > 0 ? "is-damaged" : "";
           return (
-            <span key={id} title={tip} className={vision?.system === id ? "is-hack-seen" : undefined}>
+            <span key={id} title={tip} className={[vision?.system === id ? "is-hack-seen" : "", harm].filter(Boolean).join(" ") || undefined}>
               <PixelIcon name={id} size={16} />
-              <b>{shown}</b>
+              {full ? <b>{shown}</b> : null}
             </span>
           );
         })}
@@ -1131,19 +1169,20 @@ function TargetPanel({
         {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {
           const kit = enemy.kits[id];
           if (!kit) return null;
+          const fullKit = vision?.system === id || sensors >= 4;
           return (
             <span
               key={id}
-              title={`${KIT_LABEL[id]} ${kit.level}${vision?.system === id ? " (hacking drone)" : ""}`}
+              title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`}
               className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : ""].filter(Boolean).join(" ") || undefined}
             >
               <PixelIcon name={id} size={16} />
-              <b>{kit.level}</b>
+              {fullKit ? <b>{kit.level}</b> : null}
             </span>
           );
         })}
       </div>
-      {playerSensorLevel(game) >= 3 ? (
+      {sensors >= 3 ? (
         <div className="foe-charges" aria-label="Enemy weapon charge">
           {enemy.weapons.map((w) => {
             const name = WEAPONS[w.defId]?.name ?? w.defId;

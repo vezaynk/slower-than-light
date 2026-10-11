@@ -4501,3 +4501,49 @@ button.door-tick::before {
   white-space: nowrap;
   z-index: 2;
 }
+
+/* Enemy hull and shields on the target panel (always shown; not Sensors information). */
+.foe-vitals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px 2px;
+}
+
+.foe-vitals .hull-row,
+.foe-vitals .store-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foe-vitals .hud-word {
+  font-size: 16px;
+}
+
+.foe-vitals .hull-segs {
+  flex: 1;
+  min-width: 0;
+}
+
+.foe-hull-num {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  color: var(--color-fg);
+}
+
+.foe-none {
+  font-family: var(--font-hud);
+  font-size: 14px;
+  color: var(--color-line-dim);
+}
+
+.target-systems span.is-damaged {
+  color: #ffb648;
+  border-color: #ffb648;
+}
+
+.target-systems span.is-broken {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}

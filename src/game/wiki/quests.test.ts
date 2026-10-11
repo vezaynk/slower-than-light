@@ -5,6 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
 import { citedEvent } from "./cited-events.ts";
 import { addQuest, QUEST_ADDED, QUEST_CANCELLED, QUEST_NEXT, QUESTS } from "./quests.ts";
+import { fleetToReach, jumpsBetween } from "./sector-map.ts";
 import { ACCEPT_ID } from "./surrender.ts";
 
 function here(g: Game): Beacon {
@@ -62,13 +63,13 @@ function choiceIds(g: Game) {
 }
 
 describe("Beacons, Quest (marker) beacon: placement", () => {
-  it("adds the marker two or more columns to the right, never on a store, exit, nebula, or visited beacon", () => {
+  it("adds the marker fewer jumps away than the fleet needs to take it, never on a visited beacon (xftl AddQuest)", () => {
     for (let seed = 1; seed < 30; seed++) {
       const g = createGame(seed);
       assert.equal(addQuest(g, "escort"), QUEST_ADDED);
       const [b] = questBeacons(g);
       assert.ok(b);
-      assert.ok(b.col >= here(g).col + 2);
+      assert.ok(jumpsBetween(g.beacons, here(g).id, b.id) < fleetToReach(g, b) - g.fleet);
       assert.equal(b.kind, "event");
       assert.equal(b.flag, "quest:escort");
       assert.equal(b.name, QUESTS.escort.title);
@@ -89,6 +90,8 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
     const g = createGame(7);
     const late = g.beacons.find((b) => b.col === 5)!;
     g.here = late.id;
+    // The fleet has every beacon: nowhere left this sector.
+    g.fleet = Math.max(...g.beacons.map((b) => fleetToReach(g, b)));
     assert.equal(addQuest(g, "mantis-war-camp"), QUEST_NEXT);
     assert.equal(questBeacons(g).length, 0);
     assert.deepEqual(g.questsNext, ["mantis-war-camp"]);
@@ -104,6 +107,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
     const g = createGame(9);
     g.sector = 7;
     g.here = g.beacons.find((b) => b.col === 5)!.id;
+    g.fleet = Math.max(...g.beacons.map((b) => fleetToReach(g, b)));
     assert.equal(addQuest(g, "escort"), QUEST_CANCELLED);
     assert.equal((g.questsNext ?? []).length, 0);
     g.sector = 8;
@@ -116,7 +120,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
     addQuest(g, "defector-cache");
     const b = questBeacons(g)[0];
     here(g).links.push(b.id);
-    g.fleet = b.col + 1;
+    g.fleet = fleetToReach(g, b);
     g.fuel = 3;
     commitJump(g, b.id);
     assert.equal(g.phase, "combat");

@@ -640,6 +640,9 @@ export type Beacon = {
   id: string;
   col: number;
   row: number;
+  /** Map position in px inside its 110px cell (wiki/sector-map.ts, xftl doc/sector-map). Absent in old saves. */
+  x?: number;
+  y?: number;
   links: string[];
   kind: BeaconKind;
   visited: boolean;
@@ -783,6 +786,11 @@ export type Game = {
   beacons: Beacon[];
   here: string;
   fleet: number;
+  /**
+   * xftl doc/sector-map: the danger zone's centre height, "picked at random in the range of 50-300" per sector
+   * (wiki/sector-map.ts). Absent in old saves.
+   */
+  dangerY?: number;
   /** Augmentations, Distraction Buoys: the next fleet advance is skipped. 0 means none waiting. */
   buoyDelay: number;
   scrap: number;

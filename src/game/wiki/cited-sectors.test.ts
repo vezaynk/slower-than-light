@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { SECTOR_NAMES } from "../content.ts";
 import { choose, chooseSector, commitJump, createGame, runScore, startCombat, step, upgrade, waitHere } from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
+import { fleetToReach } from "./sector-map.ts";
 import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
 
 function enterLastStand(seed = 1) {
@@ -204,8 +205,7 @@ describe("fleet advance and the anti-ship battery", () => {
     const g = createGame(1, "kestrel-a", "normal");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
-    here.col = 0;
-    g.fleet = 2;
+    g.fleet = fleetToReach(g, here);
     here.kind = "empty";
     assert.equal(citedAsb(g, here), true);
     here.kind = "nebula";
@@ -218,7 +218,7 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.equal(citedAsb(g, here), true);
 
     here.kind = "nebula";
-    g.fleet = 3;
+    g.fleet += 1;
     startCombat(g, "scout");
     assert.equal(g.asb, false);
   });
@@ -227,11 +227,11 @@ describe("fleet advance and the anti-ship battery", () => {
     const waiting = createGame(4);
     waiting.phase = "map";
     waiting.fuel = 0;
-    waiting.fleet = 0;
     const spot = waiting.beacons.find((beacon) => beacon.id === waiting.here);
     assert.ok(spot);
+    // A wait in a nebula moves the fleet half a step (32px), onto this beacon.
+    waiting.fleet = fleetToReach(waiting, spot) - 0.5;
     spot.kind = "nebula";
-    spot.col = 0;
     spot.resolved = false;
     waitHere(waiting);
     assert.equal(spot.cleared, true);
@@ -243,11 +243,10 @@ describe("fleet advance and the anti-ship battery", () => {
     const fueled = createGame(6);
     fueled.phase = "map";
     fueled.fuel = 3;
-    fueled.fleet = 0;
     const home = fueled.beacons.find((beacon) => beacon.id === fueled.here);
     assert.ok(home);
+    fueled.fleet = fleetToReach(fueled, home) - 0.5;
     home.kind = "nebula";
-    home.col = 0;
     const hull = fueled.player.hull;
     waitHere(fueled);
     assert.equal(home.cleared, undefined);
@@ -258,12 +257,11 @@ describe("fleet advance and the anti-ship battery", () => {
     const jumped = createGame(5);
     jumped.phase = "map";
     jumped.fuel = 1;
-    jumped.fleet = 4;
     const from = jumped.beacons.find((beacon) => beacon.id === jumped.here);
     const dest = jumped.beacons.find((beacon) => beacon.id !== jumped.here);
     assert.ok(from && dest);
+    jumped.fleet = fleetToReach(jumped, dest);
     dest.kind = "nebula";
-    dest.col = 1;
     dest.resolved = false;
     if (!from.links.includes(dest.id)) from.links.push(dest.id);
     commitJump(jumped, dest.id);
@@ -278,12 +276,11 @@ describe("fleet advance and the anti-ship battery", () => {
       const g = createGame(seed);
       g.phase = "map";
       g.fuel = fuel;
-      g.fleet = 4;
       const from = g.beacons.find((beacon) => beacon.id === g.here);
       const dest = g.beacons.find((beacon) => beacon.id !== g.here);
       assert.ok(from && dest);
+      g.fleet = fleetToReach(g, dest);
       dest.kind = kind;
-      dest.col = 1;
       dest.resolved = false;
       if (!from.links.includes(dest.id)) from.links.push(dest.id);
       commitJump(g, dest.id);
@@ -313,9 +310,8 @@ describe("fleet advance and the anti-ship battery", () => {
     const g = createGame(2, "kestrel-a", "normal");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
-    here.col = 0;
     here.kind = "empty";
-    g.fleet = 2;
+    g.fleet = fleetToReach(g, here);
     startCombat(g, "scout");
     assert.equal(g.asb, true);
     assert.equal(g.asbPhase, "warn");

@@ -69,6 +69,15 @@ import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { AIRLOCK_AIR_LOSS, BREACH_AIR_LOSS, airLoss, shareAir } from "./air.ts";
+import {
+  connectGrid,
+  overtaken,
+  pickExit,
+  pickFedBase,
+  pickFlagship,
+  populateGrid,
+  rollDangerY,
+} from "./wiki/sector-map.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import { chainChargeSeconds, chainIonAmount, isChainWeapon, nextChainStep } from "./wiki/cited-chain.ts";
 import { crystalExtinguishScale } from "./wiki/cited-crystal-fire.ts";
@@ -1039,7 +1048,7 @@ export function sparePower(ship: Ship): number {
  * INFERRED: only the always-overtaken nebula case. The page does not say which other nebula beacons have a storm.
  */
 export function syncIonStorm(g: Game) {
-  const on = ionStormBeacon(hereBeacon(g), g.fleet);
+  const on = ionStormBeacon(hereBeacon(g), g);
   const was = !!g.player.storm;
   if (on) g.player.storm = true;
   else delete g.player.storm;
@@ -4616,7 +4625,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
     g.pending === "dive:1" &&
     g.fuel <= 0 &&
     arrived &&
-    arrived.col < g.fleet &&
+    overtaken(g, arrived) &&
     (arrived.kind === "nebula" || arrived.kind === "exit")
   ) {
     g.enemyEscape = overtakenArrivalEscape();
@@ -4779,7 +4788,9 @@ function mixSeed(seed: number, salt: number) {
 
 type SectorColour = "civilian" | "hostile" | "nebula";
 
-// Sectors lead, before the colour-coding paragraph: 48% green, 32% red, 20% purple.
+// Sectors lead, before the colour-coding paragraph: 48% green, 32% red, 20% purple. xftl doc/sector-map,
+// GetRandomSectorChoice: "20% chance of nebula, otherwise: An independent 60% chance of being friendly, 40% hostile",
+// which is the same 48/32/20.
 // INFERRED: green is the Civilian group, red is Hostile, and purple is Nebula.
 // The page names those three groups and those three colours and does not print the pairing.
 function sectorColour(unit: number): SectorColour {
@@ -4809,6 +4820,38 @@ function colouredName(g: Game, names: readonly string[]): string {
   return choices[irand(g, choices.length)].name;
 }
 
+/** Chart row for slot i of n, centred on the 0-3 band four sectors fill. */
+function chartRow(i: number, n: number): number {
+  return ((i + 0.5) * 4) / n - 0.5;
+}
+
+/**
+ * xftl doc/sector-map, AddSectorColumn links, as [previous index, new index] pairs:
+ * - "4 prev, 2 now: 1st sector links to previous 1st/2nd, 2nd links to 3rd/4th".
+ * - "2 prev, 4 now: 1st and 2nd links to previous 1st, 3rd and 4th link to previous 2nd".
+ * - Otherwise each new sector links its "peer" (same index, the last one when the previous column is shorter) and the
+ *   peer also links "the previously-added new sector", so that "the neighbour links" never overlap.
+ * INFERRED: when the column shrinks by one, a new sector also links the previous sector after its peer, so the last
+ * previous sector is not a dead end (the notes' extra-column bookkeeping is not spelled out). The last column (one
+ * sector) takes every link.
+ */
+export function columnLinks(prev: number, now: number): [number, number][] {
+  const out: [number, number][] = [];
+  if (now === 1) {
+    for (let i = 0; i < prev; i++) out.push([i, 0]);
+    return out;
+  }
+  if (prev === 4 && now === 2) return [[0, 0], [1, 0], [2, 1], [3, 1]];
+  if (prev === 2 && now === 4) return [[0, 0], [0, 1], [1, 2], [1, 3]];
+  for (let j = 0; j < now; j++) {
+    const peer = Math.min(j, prev - 1);
+    out.push([peer, j]);
+    if (j > 0 && peer > 0 && !out.some(([p, n]) => p === peer && n === j - 1)) out.push([peer, j - 1]);
+    if (now < prev) out.push([j + 1, j]);
+  }
+  return out;
+}
+
 /** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
@@ -4836,37 +4879,49 @@ export function buildRoute(seed: number): SectorNode[] {
       if ((s.id === "slug-nebula" || s.id === "slug-home") && sector < 4) return false;
       return true;
     });
+  // xftl doc/sector-map, StarMap::AddSectorColumn: "a random number between 2 and 4 inclusive ... It always picks a
+  // different number (via re-rolling) than the last column. The exception is the first column, which always has two
+  // sectors". GenerateSectorMap "sets up the first and last sectors, and calls AddSectorColumn six times".
+  let prevCount = 1;
   for (let sector = 2; sector <= 7; sector++) {
     // INVENTED: independent mixSeed salts. The page does not print a seed formula.
     // Colour and index stay on the seed, and this chart does not touch the game RNG.
-    const take = (slot: number, skip?: string) => {
-      // The other node in this column is already chosen. A repeatable sector stays eligible later, not twice here.
-      const pool = poolFor(sector).filter((s) => s.id !== skip);
-      const colourSalt = sector * 4 + slot * 2;
+    let count = 2;
+    if (sector > 2) {
+      for (let tryN = 0; count === prevCount || tryN === 0; tryN++) count = 2 + (mixSeed(seed, 1000 + sector * 16 + tryN) % 3);
+    }
+    const picked = new Set<string>();
+    const take = (slot: number) => {
+      // The other nodes in this column are already chosen. A repeatable sector stays eligible later, not twice here.
+      const pool = poolFor(sector).filter((s) => !picked.has(s.id));
+      const colourSalt = sector * 8 + slot * 2;
       const colour = sectorColour(mixSeed(seed, colourSalt) / 4294967296);
       const choices = colourBag(pool, colour);
       return choices[mixSeed(seed, colourSalt + 1) % choices.length];
     };
-    const a = take(0);
-    if (ONCE_SECTOR.has(a.id)) used.add(a.id);
-    const b = take(1, a.id);
-    if (ONCE_SECTOR.has(b.id)) used.add(b.id);
     const col = sector - 1;
-    nodes.push({ id: `sec-${col}-a`, name: a.name, group: groupOf(a.group), col, row: 0, links: [] });
-    nodes.push({ id: `sec-${col}-b`, name: b.name, group: groupOf(b.group), col, row: 2, links: [] });
+    for (let slot = 0; slot < count; slot++) {
+      const pick = take(slot);
+      picked.add(pick.id);
+      if (ONCE_SECTOR.has(pick.id)) used.add(pick.id);
+      nodes.push({ id: `sec-${col}-${slot}`, name: pick.name, group: groupOf(pick.group), col, row: chartRow(slot, count), links: [] });
+    }
+    prevCount = count;
   }
   nodes.push({
     id: "sec-7",
     name: last?.name ?? "The Last Stand",
     group: "last-stand",
     col: 7,
-    row: 1,
+    row: chartRow(0, 1),
     links: [],
   });
   for (let col = 0; col < 7; col++) {
     const from = nodes.filter((n) => n.col === col);
     const to = nodes.filter((n) => n.col === col + 1);
-    for (const node of from) node.links = to.map((t) => t.id);
+    for (const [i, j] of columnLinks(from.length, to.length)) {
+      if (!from[i].links.includes(to[j].id)) from[i].links.push(to[j].id);
+    }
   }
   return nodes;
 }
@@ -4893,34 +4948,19 @@ function burnLegacyMap(g: Game): boolean {
   return picket;
 }
 
-// Sectors, lead: a sector contains 19 to 24 beacons.
-// Technical details: the map is a 6×4 grid; each square has an 80% chance of a beacon, and a square stays
-// filled once too many squares are already empty. INFERRED: "too many" is 5, because 24 − 5 = 19.
-// INFERRED: an empty column gets one beacon, so the exit stays reachable. Adjacent squares (including diagonals)
-// are linked. The page's 165-pixel cutoff assumes a pixel jitter this map does not have; a beacon with no
-// neighbor in the next column still links to the nearest one there.
+// Sectors, lead: a sector contains 19 to 24 beacons. The grid, links, exit, and Last Stand seats are xftl
+// doc/sector-map (wiki/sector-map.ts).
 function makeMap(g: Game) {
   const seed0 = g.seed;
   const picket = burnLegacyMap(g);
   const roll = { seed: seed0 } as Game;
-  const COLS = 6;
-  const ROWS = 4;
-  const placed: { col: number; row: number }[] = [];
-  let empty = 0;
-  for (let col = 0; col < COLS; col++) {
-    for (let row = 0; row < ROWS; row++) {
-      if (empty >= 5 || rand(roll) < 0.8) placed.push({ col, row });
-      else empty += 1;
-    }
-  }
-  for (let col = 0; col < COLS; col++) {
-    if (placed.some((p) => p.col === col)) continue;
-    placed.push({ col, row: 1 });
-  }
-  const beacons: Beacon[] = placed.map((p) => ({
+  const r = () => rand(roll);
+  const beacons: Beacon[] = populateGrid(r).map((p) => ({
     id: `s${g.sector}-c${p.col}-r${p.row}`,
     col: p.col,
     row: p.row,
+    x: p.x,
+    y: p.y,
     links: [],
     kind: "empty",
     visited: false,
@@ -4930,47 +4970,29 @@ function makeMap(g: Game) {
     flag: "",
     asteroid: false,
   }));
-  for (let i = 0; i < beacons.length; i++) {
-    for (let j = i + 1; j < beacons.length; j++) {
-      const a = beacons[i];
-      const b = beacons[j];
-      const dc = Math.abs(a.col - b.col);
-      const dr = Math.abs(a.row - b.row);
-      if (dc <= 1 && dr <= 1 && dc + dr > 0) link(a, b);
-    }
-  }
+  connectGrid(beacons);
   const inCol = (col: number) => beacons.filter((b) => b.col === col);
-  for (let col = 0; col < COLS - 1; col++) {
-    const here = inCol(col);
-    const next = inCol(col + 1);
-    for (const b of next) {
-      if (here.some((a) => a.links.includes(b.id))) continue;
-      const parent = [...here].sort((a, d) => Math.abs(a.row - b.row) - Math.abs(d.row - b.row))[0];
-      link(parent, b);
-    }
-    for (const a of here) {
-      if (next.some((b) => a.links.includes(b.id))) continue;
-      const child = [...next].sort((b, d) => Math.abs(b.row - a.row) - Math.abs(d.row - a.row))[0];
-      link(a, child);
-    }
-  }
-  const closest = (col: number) =>
-    [...inCol(col)].sort((a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row)[0];
-  const start = closest(0);
+  // INFERRED: the start is the left column's beacon nearest the middle. The notes do not place it.
+  const firstCol = Math.min(...beacons.map((b) => b.col));
+  const start = [...inCol(firstCol)].sort((a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row)[0];
   start.kind = "start";
   start.visited = true;
   start.resolved = true;
   // INVENTED: beacon names Departure and Lane out.
   start.name = "Departure";
-  const exit = closest(COLS - 1);
+  let exit: Beacon;
+  let base: Beacon | undefined;
   if (g.sector >= 8) {
-    // Sectors, "The Last Stand": sector 8 and the Flagship on the right. The column fleet here is INVENTED; the page uses random takeover.
+    // Sectors, "The Last Stand": sector 8, the Federation base, and the Flagship. xftl doc/sector-map seats both.
+    base = pickFedBase(beacons, start, g.difficulty, r);
+    exit = (base && pickFlagship(beacons, base, r)) ?? beacons[beacons.length - 1];
     exit.kind = "boss";
     exit.name = "Flagship";
     exit.tier = "boss";
     g.ramId = exit.id;
     g.ramClock = 2;
   } else {
+    exit = pickExit(beacons, start, r) ?? beacons[beacons.length - 1];
     exit.kind = "exit";
     exit.name = "Lane out";
     // INVENTED: a picket on the exit. "Exit beacon events" is EXIT_LIST, not these odds.
@@ -5004,25 +5026,19 @@ function makeMap(g: Game) {
   const ahead = middles.filter((b) => b.col > start.col).sort((a, b) => a.col - b.col || a.row - b.row);
   const same = middles.filter((b) => b.col <= start.col).sort((a, b) => a.col - b.col || a.row - b.row);
   g.beacons = [start, ...ahead, ...same, exit];
-  // Sectors, "The Last Stand": the base spawns slightly to the right of the centre.
-  // INFERRED: on this 0–5 grid that is column 3, the beacon nearest the middle row.
-  // The Rebel Flagship: the trip is 6, 8, or 10 turns. This grid links every adjacent
-  // square, so a step that gets closer arrives in fewer turns than that. The total is not applied.
-  if (g.sector >= 8) {
-    const seat = g.beacons
-      .filter((b) => b !== exit && b.col === 3)
-      .sort((a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row)[0];
-    if (seat) {
-      seat.flag = "fed-base";
-      seat.kind = "empty";
-      seat.name = "Federation Base";
-      seat.tier = "";
-      seat.asteroid = false;
-      seat.resolved = false;
-    }
+  // The Rebel Flagship: the trip is 6, 8, or 10 turns. This grid links neighbours, so a step that gets closer arrives
+  // in fewer turns than that. The total is not applied.
+  if (base && base !== exit) {
+    base.flag = "fed-base";
+    base.kind = "empty";
+    base.name = "Federation Base";
+    base.tier = "";
+    base.asteroid = false;
+    base.resolved = false;
   }
   g.here = start.id;
   g.fleet = 0;
+  g.dangerY = rollDangerY(r);
   // INVENTED: sector name fallback.
   g.sectorName = SECTOR_NAMES[g.sector - 1] ?? "Reach";
   onNewSector(g);
@@ -5282,7 +5298,7 @@ export function commitJump(g: Game, id: string) {
       eventHasPulsar(eventSlug) ||
       eventHasFlare(eventSlug) ||
       citedAsb(g, dest) ||
-      ionStormBeacon(dest, g.fleet),
+      ionStormBeacon(dest, g),
   });
   g.picking = false;
   g.flee = 0;
@@ -5301,7 +5317,7 @@ export function commitJump(g: Game, id: string) {
   // The departing enemy is already gone, so only this hull sheds here. startCombat halves the new one.
   syncIonStorm(g);
   // Rebel Fleet: a beacon the column has already taken is a Rebel Elite. Sector 8 is not this column.
-  if (g.sector < 8 && dest.col < g.fleet && !dest.resolved) {
+  if (g.sector < 8 && overtaken(g, dest) && !dest.resolved) {
     g.pending = "dive:1";
     startCombat(g, "elite", false);
     return;
@@ -6009,17 +6025,17 @@ export function waitHere(g: Game) {
   if (g.phase !== "map") return;
   const b = hereBeacon(g);
   // Stores, "Fuel": waiting advances the rebels like a jump, slower in a nebula.
-  const wasPast = !!b && b.col < g.fleet;
+  const wasPast = !!b && overtaken(g, b);
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
   else g.fleet += pursuit(g, b ? citedFleetAdvance(g, b) : 1);
   // Environmental Hazards, Anti-Ship Battery: waiting out of fuel when the fleet overtakes a nebula removes that environment.
   // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
-  if (b && !wasPast && b.col < g.fleet && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
+  if (b && !wasPast && overtaken(g, b) && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
   syncIonStorm(g);
   log(g, "You hold. The line advances.");
   onCradleJump(g); // Clone Bay, "Overview": waiting applies the jump heal (extras/cradle.ts)
   // Rebel Fleet: out of fuel when they take your beacon. Destroying that Elite yields 4 fuel.
-  if (b && g.sector < 8 && g.fuel <= 0 && b.col < g.fleet && !b.resolved) {
+  if (b && g.sector < 8 && g.fuel <= 0 && overtaken(g, b) && !b.resolved) {
     g.pending = "dive:4";
     startCombat(g, "elite", false);
     return;

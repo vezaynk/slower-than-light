@@ -4,6 +4,7 @@ import { onNewSector } from "../extras/augments.ts";
 import { deploy, swarmIntercept } from "../extras/swarm.ts";
 import { applyImpact, commitJump, createGame, startCombat, step, waitHere } from "../sim.ts";
 import { citedPierce } from "./cited-weapons.ts";
+import { fleetToReach } from "./sector-map.ts";
 import type { Shot } from "../types.ts";
 
 function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage">): Shot {
@@ -145,12 +146,11 @@ describe("fleet dive fuel", () => {
     const jumped = createGame(2);
     jumped.phase = "map";
     jumped.fuel = 3;
-    jumped.fleet = 3;
     jumped.scrap = 40;
     const here = jumped.beacons.find((beacon) => beacon.id === jumped.here);
     const dest = jumped.beacons.find((beacon) => beacon.id !== jumped.here);
     assert.ok(here && dest);
-    dest.col = 1;
+    jumped.fleet = fleetToReach(jumped, dest);
     dest.kind = "store";
     dest.resolved = false;
     if (!here.links.includes(dest.id)) here.links.push(dest.id);
@@ -171,11 +171,11 @@ describe("fleet dive fuel", () => {
     const waiting = createGame(3);
     waiting.phase = "map";
     waiting.fuel = 0;
-    waiting.fleet = 0;
     waiting.scrap = 11;
     const spot = waiting.beacons.find((beacon) => beacon.id === waiting.here);
     assert.ok(spot);
-    spot.col = 0;
+    // One wait moves the fleet one step, onto this beacon.
+    waiting.fleet = fleetToReach(waiting, spot) - 1;
     spot.resolved = false;
     waitHere(waiting);
     assert.equal(waiting.phase, "combat");

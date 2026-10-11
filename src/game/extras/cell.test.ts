@@ -6,6 +6,7 @@ import { seatKits } from "../layouts.ts";
 import { batteryPaint, batterySpareBars, cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
+import { fleetToReach } from "../wiki/sector-map.ts";
 import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
 
 function pushCell(level = 1): Kit {
@@ -411,9 +412,8 @@ describe("cell", () => {
     const beacon = g.beacons[2];
     assert.ok(beacon);
     beacon.kind = "nebula";
-    beacon.col = 2;
     g.here = beacon.id;
-    g.fleet = 2;
+    g.fleet = fleetToReach(g, beacon) - 1;
     g.player.reactor = 5;
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
@@ -421,7 +421,7 @@ describe("cell", () => {
     assert.equal(g.player.storm, undefined);
     assert.equal(g.player.systems.weapons.power, 5);
 
-    g.fleet = 3;
+    g.fleet += 1;
     syncIonStorm(g);
     assert.equal(g.player.storm, true);
     assert.equal(g.player.systems.weapons.power, 3);

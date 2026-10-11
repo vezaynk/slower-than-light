@@ -44,7 +44,7 @@ describe("Slug fight in plasma storm", () => {
 
     const g = createGame(3);
     const beacon = open(g);
-    assert.equal(ionStormBeacon(beacon, g.fleet), true);
+    assert.equal(ionStormBeacon(beacon, g), true);
     assert.equal(citedFleetAdvance(g, beacon), 1);
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
     g.player.reactor = 5;

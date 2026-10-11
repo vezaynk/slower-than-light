@@ -1,5 +1,6 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { SECTOR_TYPES } from "./sectors.ts";
+import { overtaken, type Danger } from "./sector-map.ts";
 
 /**
  * Sector, fleet, and Last Stand rules whose numbers the wiki states.
@@ -38,7 +39,7 @@ export function citedSector(g: Game): void {
  * Beacons that count toward score.
  * Return null to keep g.beaconsVisited.
  * Score: rebel-held beacons do not count.
- * beacon.col < g.fleet is the column the sim already treats as overtaken,
+ * overtaken(g, beacon) (wiki/sector-map.ts) is what the sim treats as overtaken,
  * but beaconsVisited is a lifetime counter and earlier sectors are gone,
  * so a visit-time count cannot be rebuilt from these fields.
  */
@@ -67,14 +68,17 @@ export function citedFleetAdvance(g: Game, beacon: Pick<Beacon, "kind">): number
 
 /**
  * Rebel Fleet / Environmental Hazards: the battery is not on a nebula beacon, and never on an Easy exit.
- * The overtaken-column test is the one startCombat already used.
+ * Overtaken is the xftl danger circle (wiki/sector-map.ts overtaken).
  * Anti-Ship Battery: an out-of-fuel wait that the fleet overtakes removes the nebula, so the battery is present.
  */
-export function citedAsb(g: Game, here: Pick<Beacon, "kind" | "col" | "cleared"> | undefined): boolean {
+export function citedAsb(
+  g: Game,
+  here: (Pick<Beacon, "kind" | "col" | "row" | "cleared"> & { x?: number; y?: number }) | undefined,
+): boolean {
   if (!here) return false;
   if (here.kind === "nebula" && !here.cleared) return false;
   if (g.difficulty === "easy" && here.kind === "exit") return false;
-  return here.col < g.fleet;
+  return overtaken(g, here);
 }
 
 /**
@@ -104,13 +108,13 @@ function plasmaStormEvent(beacon: Pick<Beacon, "flag" | "name">): boolean {
  * Those plasma-storm fights still storm when the beacon is not a nebula and the fleet has not overtaken it.
  */
 export function ionStormBeacon(
-  beacon: Pick<Beacon, "kind" | "col" | "cleared" | "flag" | "name"> | undefined,
-  fleet: number,
+  beacon: (Pick<Beacon, "kind" | "col" | "row" | "cleared" | "flag" | "name"> & { x?: number; y?: number }) | undefined,
+  fleet: Danger,
 ): boolean {
   if (!beacon || beacon.kind === "exit") return false;
   if (plasmaStormEvent(beacon)) return true;
   if (beacon.kind !== "nebula" || beacon.cleared) return false;
-  return beacon.col < fleet;
+  return overtaken(fleet, beacon);
 }
 
 /** Rebel Fleet / Environmental Hazards: 3 hull and a breach. No fire figure is stated. The timer is environment(). */

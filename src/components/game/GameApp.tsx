@@ -9,6 +9,7 @@ import {
 } from "@/game/content";
 import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
+import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, overtaken } from "@/game/wiki/sector-map";
 import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCell } from "@/game/extras/cell";
 import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
 import { recallSling, sendSling, shipInDanger, slingUpgradeCost, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
@@ -2079,10 +2080,15 @@ function mapY(row: number) {
 /** BEACON MAP: File:NO_FUEL.png. NO FUEL across the chart, WAIT, DISTRESS BEACON, SECTOR. STORE and EXIT labels stay. */
 function MapScreen({ game }: { game: Game }) {
   const here = game.beacons.find((b) => b.id === game.here);
-  const maxCol = game.beacons.reduce((m, b) => Math.max(m, b.col), 0);
-  const maxRow = game.beacons.reduce((m, b) => Math.max(m, b.row), 0);
-  const w = mapX(maxCol) + 40;
-  const h = mapY(maxRow) + 36;
+  // xftl doc/sector-map: beacons sit at px positions in a 6x4 grid of 110px cells; PAD keeps the edge ones whole.
+  const PAD = 24;
+  const w = GRID_COLS * CELL_PX + 2 * PAD;
+  const h = GRID_ROWS * CELL_PX + 2 * PAD;
+  const at = (b: (typeof game.beacons)[number]) => {
+    const [x, y] = beaconXY(b);
+    return [x + PAD, y + PAD];
+  };
+  const [dx, dy] = dangerCentre(game);
   const pct = (n: number, total: number) => `${(n / total) * 100}%`;
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
@@ -2117,29 +2123,28 @@ function MapScreen({ game }: { game: Game }) {
                   return (
                     <line
                       key={`${b.id}-${id}`}
-                      x1={mapX(b.col)}
-                      y1={mapY(b.row)}
-                      x2={mapX(other.col)}
-                      y2={mapY(other.row)}
+                      x1={at(b)[0]}
+                      y1={at(b)[1]}
+                      x2={at(other)[0]}
+                      y2={at(other)[1]}
                       stroke="#f4f1ea"
                       strokeWidth="2.4"
                     />
                   );
                 }),
             )}
-            {game.fleet > 0 ? (
-              <line
-                x1={mapX(game.fleet) - 28}
-                y1={8}
-                x2={mapX(game.fleet) - 28}
-                y2={h - 8}
-                stroke="#e23a3a"
-                strokeWidth="3"
-                strokeDasharray="7 5"
-              />
-            ) : null}
+            {/* xftl doc/sector-map: the danger zone is a 767px circle. */}
+            <circle
+              cx={dx + PAD}
+              cy={dy + PAD}
+              r={DANGER_RADIUS}
+              fill="rgba(226, 58, 58, 0.16)"
+              stroke="#e23a3a"
+              strokeWidth="3"
+              strokeDasharray="7 5"
+            />
             {here ? (
-              <g transform={`translate(${mapX(here.col)} ${mapY(here.row)})`}>
+              <g transform={`translate(${at(here)[0]} ${at(here)[1]})`}>
                 <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
                 <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
               </g>
@@ -2149,7 +2154,7 @@ function MapScreen({ game }: { game: Game }) {
             if (b.id === game.here) return null;
             const linked = here?.links.includes(b.id) ?? false;
             const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
-            const swallowed = b.col < game.fleet;
+            const swallowed = overtaken(game, b);
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
             const tag = beaconMark(b);
             const nebula = b.kind === "nebula" && !b.cleared;
@@ -2158,7 +2163,7 @@ function MapScreen({ game }: { game: Game }) {
                 key={b.id}
                 type="button"
                 className={`beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
-                style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
+                style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h) }}
                 disabled={!open || (game.phase === "combat" && game.flee < 1)}
                 aria-label={tag || "Beacon"}
                 onClick={() => act((g) => commitJump(g, b.id))}
@@ -2169,7 +2174,7 @@ function MapScreen({ game }: { game: Game }) {
             const tag = beaconMark(b);
             if (!tag || b.id === game.here) return null;
             return (
-              <span key={`tag-${b.id}`} className={`jump-tag${tag === "QUEST" ? " is-quest" : ""}`} style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}>
+              <span key={`tag-${b.id}`} className={`jump-tag${tag === "QUEST" ? " is-quest" : ""}`} style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h) }}>
                 {tag}
               </span>
             );
@@ -2186,7 +2191,7 @@ function MapScreen({ game }: { game: Game }) {
                   <span
                     key={`scan-${b.id}`}
                     className="jump-tag"
-                    style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h), transform: "translate(12px, -50%)" }}
+                    style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h), transform: "translate(12px, -50%)" }}
                   >
                     {bits.join(" ")}
                   </span>
@@ -2221,7 +2226,8 @@ function SectorChart({ game }: { game: Game }) {
   const nodes = game.route ?? [];
   const maxCol = nodes.reduce((m, n) => Math.max(m, n.col), 0);
   const w = mapX(maxCol) + 70;
-  const h = mapY(2) + 36;
+  // xftl doc/sector-map: up to four sectors a column, rows 0-3.
+  const h = mapY(3) + 36;
   const here = nodes.find((n) => n.id === game.routeHere);
   const next = nodes.filter((n) => here?.links.includes(n.id));
   const pct = (n: number, total: number) => `${(n / total) * 100}%`;

@@ -15,7 +15,7 @@ describe("Rebel fight in plasma storm", () => {
     g.here = beacon.id;
     g.fleet = 1;
     g.sectorName = "Slug Home Nebula";
-    assert.equal(ionStormBeacon(beacon, g.fleet), true);
+    assert.equal(ionStormBeacon(beacon, g), true);
     assert.equal(citedFleetAdvance(g, beacon), 1);
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
 
@@ -50,11 +50,11 @@ describe("Rebel fight in plasma storm", () => {
     beacon.name = "Lane";
     beacon.col = 0;
     g.fleet = 4;
-    assert.equal(ionStormBeacon(beacon, g.fleet), false);
+    assert.equal(ionStormBeacon(beacon, g), false);
     beacon.kind = "exit";
     beacon.flag = "cited:rebel-fight-in-plasma-storm";
     beacon.name = "Rebel fight in plasma storm";
-    assert.equal(ionStormBeacon(beacon, g.fleet), false);
+    assert.equal(ionStormBeacon(beacon, g), false);
   });
 
   it("starts the Rebel ship on arrival and leaves no button", () => {

@@ -35,6 +35,7 @@ import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openS
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
+import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
@@ -119,24 +120,33 @@ const KEEP_FLAGS = new Set([
   "cited:zoltan-research-facility",
 ]);
 
-function canHold(g: Game, b: Beacon, from: Beacon | undefined): boolean {
+/**
+ * xftl doc/sector-map, StarMap::AddQuest, keeps a beacon that has "not been visited", is not a nebula beacon, "not the
+ * exit beacon", has "not been overtaken by the rebel fleet", has no quest, "Is not a store", "Is not a distress beacon",
+ * and "Is not the player's current beacon". "If there is no path, the beacon is skipped." Then, "unless the 'force'
+ * argument is set, the number of jumps away from the player must be less than the number of jumps until this quest is
+ * overtaken by the rebels" ("force ... is true when adding quests delayed from a previous sector").
+ * Beacons, "Quest (marker) beacon": "A quest marker cannot appear in nebula area".
+ * INFERRED: jumps until overtaken count normal 64px fleet steps (wiki/sector-map.ts fleetToReach). The boss beacon and
+ * the KEEP_FLAGS pages are also kept clear.
+ */
+function canHold(g: Game, b: Beacon, from: Beacon | undefined, force: boolean): boolean {
   if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store") return false;
-  // "A quest marker cannot appear in nebula area".
-  if (b.kind === "nebula") return false;
+  if (b.kind === "nebula" || b.kind === "distress") return false;
   if (b.quest || b.visited || b.id === g.here || KEEP_FLAGS.has(b.flag)) return false;
-  // Rebel Fleet: a beacon the column has taken is not a quest destination. INFERRED.
-  if (b.col < g.fleet) return false;
-  // "usually a couple jumps from your current position": two columns or more to the right. INFERRED.
-  return b.col >= (from?.col ?? 0) + 2;
+  if (overtaken(g, b)) return false;
+  const jumps = from ? jumpsBetween(g.beacons, from.id, b.id) : 0;
+  if (!Number.isFinite(jumps)) return false;
+  return force || jumps < fleetToReach(g, b) - g.fleet;
 }
 
 /**
  * A beacon for a new marker, or undefined. Beacon-mix (wiki/beacon-mix.ts) leaves the Sectors page's "N quests" lines as
  * unflagged `event` beacons; those are taken first, then any other beacon a marker may overwrite.
  */
-export function questSpot(g: Game): Beacon | undefined {
+export function questSpot(g: Game, force = false): Beacon | undefined {
   const from = here(g);
-  const ok = g.beacons.filter((b) => canHold(g, b, from));
+  const ok = g.beacons.filter((b) => canHold(g, b, from, force));
   const slots = ok.filter((b) => b.kind === "event" && !b.flag);
   const pool = slots.length ? slots : ok;
   if (!pool.length) return undefined;
@@ -182,7 +192,7 @@ export function placeQueuedQuests(g: Game) {
   const queued = g.questsNext ?? [];
   g.questsNext = [];
   for (const id of queued) {
-    const spot = questSpot(g);
+    const spot = questSpot(g, true);
     if (spot) mark(spot, id);
     // INFERRED: a sector with no room (all nebula, say) loses the marker. The page does not cover this case.
     else log(g, "No room on this map for the quest marker.");

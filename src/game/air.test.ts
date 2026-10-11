@@ -40,7 +40,7 @@ function run(s: Ship, input: AirInputs, seconds: number, dt = 0.05) {
 
 const amount = (s: Ship) => s.rooms.reduce((n, r) => n + r.o2 * volume(r), 0);
 
-describe("air model (air.ts, INVENTED first-principles flow)", () => {
+describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
   it("a full room pushes 16 tile-%/s into an empty one through an open door, and less as they converge", () => {
     const a = room("a", 2, 1, 100);
     const b = room("b", 2, 1, 0);

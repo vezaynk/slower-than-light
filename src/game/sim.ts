@@ -3293,7 +3293,7 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
 }
 
 /**
- * Air is air.ts: an INVENTED first-principles model (pressure-driven flow through doors, breaches, and airlocks; crew
+ * INTENTIONALLY OVERRIDING SPEC: air is air.ts, a first-principles model (pressure-driven flow through doors, breaches, and airlocks; crew
  * breathing; per-tile Oxygen refill of 1.2%/s, x4 at level 2, x7 at level 3, from xftl doc/oxygen). It replaces the
  * game's flat 1.2%/s unpowered drain with breathing. Fires die below 10% oxygen (Fires, "Dealing with fires"; burn-out
  * is fireStarve below). Suffocation is still the 5% check in life().
@@ -3382,7 +3382,7 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   if (aboard === "player" && systemHalf.get(g)?.has("oxygen")) o2 = Math.floor(o2 / 2);
   // Slug hacker (oxygen): "Oxygen system offline". Production is none.
   if (oxygenOff(g, aboard)) o2 = 0;
-  // air.ts: production, crew breathing, fires, doors, airlocks, breaches, and Lanius (INVENTED first-principles model).
+  // INTENTIONALLY OVERRIDING SPEC: production, crew breathing, fires, doors, airlocks, breaches, and Lanius (air.ts).
   const breathers = new Map<string, number>();
   const lanius = new Map<string, number>();
   for (const c of g.crew) {

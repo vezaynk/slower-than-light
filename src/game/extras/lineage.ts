@@ -15,13 +15,14 @@ import { BREACH_C } from "../air.ts";
 import type { Crew, Game, SkillName } from "../types.ts";
 
 /**
- * Lanius, lead: "They drain Oxygen about as fast as a hull breach in a single square." In the air model (air.ts, sim.ts
+ * INTENTIONALLY OVERRIDING SPEC (air.ts). Lanius, lead: "They drain Oxygen about as fast as a hull breach in a single
+ * square." In the air model (air.ts, sim.ts
  * airflow) each living Lanius is a breach-sized hole (BREACH_C) in the room it stands in, on either hull; several
  * stack. Suffocation immunity stays in kin.ts (`suffocate: 0`).
  */
 export const LANIUS_HOLE_C = BREACH_C;
 
-/** The Lanius drain now runs inside airflow (air.ts). Kept so the existing tick order does not change. */
+/** INTENTIONALLY OVERRIDING SPEC: the Lanius drain runs inside airflow (air.ts). Kept so the tick order does not change. */
 export function tickLanius(_g: Game, _dt: number) {}
 
 /**

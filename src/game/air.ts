@@ -1,5 +1,6 @@
 /**
- * INVENTED air model, written from first principles on purpose (it departs from the game and from the xftl notes).
+ * INTENTIONALLY OVERRIDING SPEC: an air model written from first principles on purpose. It departs from the game, the
+ * wiki (Oxygen), and the xftl notes (doc/oxygen).
  *
  * Every room holds an amount of air. Its volume is its floor tiles, and its pressure is amount / volume: the 0-100%
  * the sim stores in `room.o2` and crew breathe. Every opening moves air in proportion to the pressure difference across

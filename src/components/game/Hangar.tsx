@@ -37,6 +37,8 @@ import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/un
 import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { FullscreenButton } from "./FullscreenButton";
+import { CloseX } from "./CloseX";
+import { PixelHull } from "./PixelArt";
 import { PixelIcon } from "./PixelIcon";
 import { ShipView } from "./ShipView";
 
@@ -102,6 +104,7 @@ export function Hangar() {
   const [letter, setLetter] = useState<Letter>("A");
   const [hideRooms, setHideRooms] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
+  const [listOpen, setListOpen] = useState(false);
 
   const page = CRUISER_PAGES[pageIndex] ?? CRUISER_PAGES[0];
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
@@ -176,12 +179,15 @@ export function Hangar() {
 
       <aside className="hangar-ship">
         <p className="hangar-label">SHIP</p>
-        <div className="hangar-list" role="group" aria-label="LIST">
-          <button type="button" aria-label="LIST" onClick={() => stepPage(-1)}>
+        <div className="hangar-list" role="group" aria-label="Ship">
+          <button type="button" aria-label="Previous ship" onClick={() => stepPage(-1)}>
             <i className="hangar-arrow is-prev" />
           </button>
-          <span>LIST</span>
-          <button type="button" aria-label="LIST" onClick={() => stepPage(1)}>
+          {/* Per the user: LIST opens every ship and layout to pick from. */}
+          <button type="button" className="hangar-list-open" aria-haspopup="dialog" onClick={() => setListOpen(true)}>
+            LIST
+          </button>
+          <button type="button" aria-label="Next ship" onClick={() => stepPage(1)}>
             <i className="hangar-arrow is-next" />
           </button>
         </div>
@@ -302,6 +308,54 @@ export function Hangar() {
               );
             })}
           </div>
+          {listOpen ? (
+            <div className="hangar-crew-layer" onClick={() => setListOpen(false)}>
+              <div
+                className="hangar-ship-list has-x"
+                role="dialog"
+                aria-label="Ships"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <CloseX onClose={() => setListOpen(false)} />
+                <p className="hangar-label">SHIPS</p>
+                <ul>
+                  {CRUISER_PAGES.map((cruiserPage, index) => (
+                    <li key={cruiserPage.page}>
+                      <span className="hangar-ship-list-hull">
+                        <PixelHull kind={cruiserPage.layouts[0]?.id.split("-")[0] ?? "kestrel"} />
+                      </span>
+                      <span className="hangar-ship-list-name">{cruiserPage.page}</span>
+                      <span className="hangar-ship-list-types">
+                        {cruiserPage.layouts.map((item) => {
+                          const itemLetter = letterOf(item.heading);
+                          const shut = !isUnlockedIn(unlocks, item.id);
+                          const here = index === pageIndex && itemLetter === active;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              className={[here ? "is-on" : "", shut ? "is-locked" : ""].join(" ").trim() || undefined}
+                              aria-pressed={here}
+                              aria-label={`${hangarSheet(item).defaultName}, type ${itemLetter}${shut ? " (locked)" : ""}`}
+                              title={hangarSheet(item).defaultName}
+                              onClick={() => {
+                                setPageIndex(index);
+                                setLetter(itemLetter);
+                                setListOpen(false);
+                              }}
+                            >
+                              TYPE {itemLetter}
+                              {shut ? <PixelIcon name="lock" size={12} /> : null}
+                            </button>
+                          );
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : null}
           {editing != null && picks[editing] ? (
             <div className="hangar-crew-layer" onClick={() => setEditing(null)}>
             <div

@@ -16,7 +16,11 @@ import type { Beacon, Difficulty } from "../types.ts";
 export const GRID_COLS = 6;
 export const GRID_ROWS = 4;
 export const CELL_PX = 110;
-const CELL_MARGIN_PX = 10;
+/**
+ * INTENTIONALLY OVERRIDING SPEC: xftl prints a 10px margin inside each 110px cell; 28px keeps neighbouring beacons at
+ * least 56px apart so the map reads and taps cleanly. Same/adjacent row neighbours stay within the 165px link cutoff.
+ */
+export const CELL_MARGIN_PX = 28;
 const EMPTY_CHANCE = 0.2;
 const Y_MAX = 415;
 const TOP_RIGHT_Y_MIN = 30;

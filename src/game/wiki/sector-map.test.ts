@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { buildRoute, columnLinks, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import {
+  CELL_MARGIN_PX,
   CELL_PX,
   DANGER_RADIUS,
   LINK_PX,
@@ -47,8 +48,8 @@ describe("beacon map (xftl doc/sector-map)", () => {
       cells += grid.length;
       runs += 1;
       for (const c of grid) {
-        assert.ok(c.x >= c.col * CELL_PX + 10 && c.x <= c.col * CELL_PX + 100, `x ${c.x}`);
-        assert.ok(c.y >= c.row * CELL_PX + 10 || (c.row === 0 && c.col >= 4 && c.y >= 30));
+        assert.ok(c.x >= c.col * CELL_PX + CELL_MARGIN_PX && c.x <= (c.col + 1) * CELL_PX - CELL_MARGIN_PX, `x ${c.x}`);
+        assert.ok(c.y >= c.row * CELL_PX + CELL_MARGIN_PX || (c.row === 0 && c.col >= 4 && c.y >= 30));
         assert.ok(c.y <= 415);
         if (c.row === 0 && c.col >= 4) assert.ok(c.y >= 30);
       }

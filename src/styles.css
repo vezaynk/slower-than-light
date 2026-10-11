@@ -4355,11 +4355,128 @@ button.door-tick::before {
 
 /* @agent:quests. Beacons, "Quest (marker) beacon": a 'QUEST' tag, readable from any distance. Amber so it does not
    read as a jump target (green), visited (dim) or the fleet (red). */
-.beacon-map.sector-map .jump-tag.is-quest {
+.beacon-tag.is-quest {
   border-color: #f2c94c;
   color: #f2c94c;
 }
-.beacon-map.sector-map .beacon.is-quest:not(.is-over) {
+.map-beacon.is-quest:not(.is-over)::before {
   outline: 2px solid #f2c94c;
   outline-offset: 2px;
 }
+
+/* Beacon map: the plot fills the board; each beacon is a wide tap target with the diamond drawn inside it, and its
+   labels sit in the same positioned box so they stay attached. */
+.sector-plot.beacon-plot {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+.beacon-plot > svg:first-child {
+  position: absolute;
+  inset: 0;
+}
+
+.beacon-plot svg.beacon-ship {
+  position: absolute;
+  width: 34px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.beacon-spot {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.map-beacon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 60px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.map-beacon:disabled {
+  cursor: default;
+}
+
+.map-beacon::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--color-fg);
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition: transform 0.12s ease;
+}
+
+.map-beacon.is-linked:not(:disabled)::before {
+  background: var(--color-ok);
+  box-shadow: 0 0 0 4px rgba(62, 229, 106, 0.3);
+}
+
+.map-beacon.is-linked:not(:disabled):hover::before,
+.map-beacon.is-linked:not(:disabled):focus-visible::before {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.35);
+}
+
+.map-beacon.is-visited::before {
+  background: var(--color-line-dim);
+}
+
+.map-beacon.is-nebula:not(.is-over)::before {
+  background: #9b6dff;
+}
+
+.map-beacon.is-over::before {
+  background: var(--color-danger);
+}
+
+.beacon-tag {
+  position: absolute;
+  left: 0;
+  bottom: 14px;
+  transform: translateX(-50%);
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  font-family: var(--font-hud);
+  font-size: clamp(11px, 4.4cqh, 18px);
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  padding: 1px 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.beacon-tag.is-below {
+  bottom: auto;
+  top: 14px;
+}
+
+.beacon-tag.is-scan {
+  bottom: auto;
+  top: 0;
+  left: 16px;
+  transform: translateY(-50%);
+  border-style: dashed;
+}
+

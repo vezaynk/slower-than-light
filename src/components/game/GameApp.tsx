@@ -2081,16 +2081,25 @@ function mapY(row: number) {
 /** BEACON MAP: File:NO_FUEL.png. NO FUEL across the chart, WAIT, DISTRESS BEACON, SECTOR. STORE and EXIT labels stay. */
 function MapScreen({ game }: { game: Game }) {
   const here = game.beacons.find((b) => b.id === game.here);
-  // xftl doc/sector-map: beacons sit at px positions in a 6x4 grid of 110px cells; PAD keeps the edge ones whole.
-  const PAD = 24;
-  const w = GRID_COLS * CELL_PX + 2 * PAD;
-  const h = GRID_ROWS * CELL_PX + 2 * PAD;
+  // xftl doc/sector-map: beacons sit at px positions in a 6x4 grid of 110px cells. The plot stretches the beacons'
+  // own extent to fill the board on each axis (INVENTED view), keeping an inset so tap targets and labels stay whole.
+  const xs = game.beacons.map((b) => beaconXY(b)[0]);
+  const ys = game.beacons.map((b) => beaconXY(b)[1]);
+  const x0 = xs.length ? Math.min(...xs) : 0;
+  const x1 = xs.length ? Math.max(...xs) : GRID_COLS * CELL_PX;
+  const y0 = ys.length ? Math.min(...ys) : 0;
+  const y1 = ys.length ? Math.max(...ys) : GRID_ROWS * CELL_PX;
+  const INSET_X = 0.06;
+  const INSET_Y = 0.12;
+  // Game px -> 0..1 of the plot.
+  const fx = (x: number) => INSET_X + ((x - x0) / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X);
+  const fy = (y: number) => INSET_Y + ((y - y0) / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y);
   const at = (b: (typeof game.beacons)[number]) => {
     const [x, y] = beaconXY(b);
-    return [x + PAD, y + PAD];
+    return [fx(x), fy(y)];
   };
   const [dx, dy] = dangerCentre(game);
-  const pct = (n: number, total: number) => `${(n / total) * 100}%`;
+  const pct = (n: number) => `${n * 100}%`;
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
     <section className="sector-map beacon-map">
@@ -2113,8 +2122,9 @@ function MapScreen({ game }: { game: Game }) {
         </button>
       ) : null}
       <div className="sector-board">
-        <div className="sector-plot" style={{ aspectRatio: `${w} / ${h}`, ["--aspect" as string]: w / h }}>
-          <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+        <div className="sector-plot beacon-plot">
+          {/* One unit = the plot; preserveAspectRatio none stretches with it, so lines meet the beacons exactly. */}
+          <svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
             {game.beacons.flatMap((b) =>
               b.links
                 .filter((id) => id > b.id)
@@ -2130,75 +2140,61 @@ function MapScreen({ game }: { game: Game }) {
                       y2={at(other)[1]}
                       stroke="#f4f1ea"
                       strokeWidth="2.4"
+                      vectorEffect="non-scaling-stroke"
                     />
                   );
                 }),
             )}
-            {/* xftl doc/sector-map: the danger zone is a 767px circle. */}
-            <circle
-              cx={dx + PAD}
-              cy={dy + PAD}
-              r={DANGER_RADIUS}
+            {/* xftl doc/sector-map: the danger zone is a 767px circle, stretched with the plot. */}
+            <ellipse
+              cx={fx(dx)}
+              cy={fy(dy)}
+              rx={(DANGER_RADIUS / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X)}
+              ry={(DANGER_RADIUS / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y)}
               fill="rgba(226, 58, 58, 0.16)"
               stroke="#e23a3a"
               strokeWidth="3"
               strokeDasharray="7 5"
+              vectorEffect="non-scaling-stroke"
             />
-            {here ? (
-              <g transform={`translate(${at(here)[0]} ${at(here)[1]})`}>
-                <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
-                <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
-              </g>
-            ) : null}
           </svg>
+          {here ? (
+            <svg className="beacon-ship" viewBox="-14 -8 28 16" style={{ left: pct(at(here)[0]), top: pct(at(here)[1]) }} aria-hidden="true">
+              <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
+              <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
+            </svg>
+          ) : null}
           {game.beacons.map((b) => {
-            if (b.id === game.here) return null;
+            const [bx, by] = at(b);
+            const isHere = b.id === game.here;
             const linked = here?.links.includes(b.id) ?? false;
             const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
             const swallowed = overtaken(game, b);
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
-            const tag = beaconMark(b);
+            const tag = isHere ? null : beaconMark(b);
             const nebula = b.kind === "nebula" && !b.cleared;
+            // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
+            // Not the current beacon. Live from the fitted scanners; selling them hides the marks.
+            const scan = here && !isHere && game.augments.includes("glass") && here.links.includes(b.id) ? scanMark(game, b) : null;
+            const bits = scan ? [scan.ship ? "SHIP" : "", scan.hazard ? "HAZARD" : ""].filter(Boolean) : [];
+            // A label sits above its beacon, or below it near the top edge, always centred on it.
+            const below = by < 0.22;
             return (
-              <button
-                key={b.id}
-                type="button"
-                className={`beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
-                style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h) }}
-                disabled={!open || (game.phase === "combat" && game.flee < 1)}
-                aria-label={tag || "Beacon"}
-                onClick={() => act((g) => commitJump(g, b.id))}
-              />
+              <div key={b.id} className="beacon-spot" style={{ left: pct(bx), top: pct(by) }}>
+                {isHere ? null : (
+                  <button
+                    type="button"
+                    className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
+                    disabled={!open || (game.phase === "combat" && game.flee < 1)}
+                    aria-label={tag || "Beacon"}
+                    onClick={() => act((g) => commitJump(g, b.id))}
+                  />
+                )}
+                {tag ? <span className={`beacon-tag${below ? " is-below" : ""}${tag === "QUEST" ? " is-quest" : ""}`}>{tag}</span> : null}
+                {bits.length ? <span className="beacon-tag is-scan">{bits.join(" ")}</span> : null}
+              </div>
             );
           })}
-          {game.beacons.map((b) => {
-            const tag = beaconMark(b);
-            if (!tag || b.id === game.here) return null;
-            return (
-              <span key={`tag-${b.id}`} className={`jump-tag${tag === "QUEST" ? " is-quest" : ""}`} style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h) }}>
-                {tag}
-              </span>
-            );
-          })}
-          {here && game.augments.includes("glass")
-            ? game.beacons.map((b) => {
-                // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
-                // Not the current beacon. Live from the fitted scanners; selling them hides the marks.
-                if (b.id === here.id || !here.links.includes(b.id)) return null;
-                const mark = scanMark(game, b);
-                const bits = [mark.ship ? "SHIP" : "", mark.hazard ? "HAZARD" : ""].filter(Boolean);
-                if (!bits.length) return null;
-                return (
-                  <span
-                    key={`scan-${b.id}`}
-                    className="jump-tag"
-                    style={{ left: pct(at(b)[0], w), top: pct(at(b)[1], h), transform: "translate(12px, -50%)" }}
-                  >
-                    {bits.join(" ")}
-                  </span>
-                );
-              })
-            : null}
           {game.fuel < 1 ? <p className="no-fuel">NO FUEL</p> : null}
         </div>
       </div>

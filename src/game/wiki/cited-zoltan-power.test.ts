@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Crew } from "../types.ts";
+import { createGame, startCombat, zoltanBars } from "../sim.ts";
 import { citedZoltanPower } from "./cited-zoltan-power.ts";
 
 type Body = Pick<Crew, "kin" | "hp" | "room">;
@@ -31,5 +32,26 @@ describe("citedZoltanPower", () => {
     const other: Body = { kin: "plain", hp: 100, room: ROOM };
     assert.equal(citedZoltanPower([spark("p-engines")], ROOM), 0);
     assert.equal(citedZoltanPower([other], ROOM), 0);
+  });
+});
+
+describe("zoltanBars (INTENTIONALLY OVERRIDING SPEC)", () => {
+  it("an intruding Zoltan powers nothing on the other side's ship; a mind-controlled one powers its captor's", () => {
+    const g = createGame(6);
+    startCombat(g, "scout");
+    const zoltan = g.crew.find((c) => c.side === "enemy" && c.kin === "spark")!;
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    zoltan.aboard = "player";
+    zoltan.room = bay.id;
+    zoltan.path = [];
+    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 0);
+    zoltan.leashed = 10;
+    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 1);
+    // At home it powers its own ship's system.
+    zoltan.leashed = 0;
+    const home = g.enemy!.rooms.find((r) => r.system === "shields")!;
+    zoltan.aboard = "enemy";
+    zoltan.room = home.id;
+    assert.equal(zoltanBars(g.crew, g.enemy!, "enemy", "shields"), 1);
   });
 });

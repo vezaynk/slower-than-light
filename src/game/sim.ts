@@ -477,8 +477,21 @@ export function roomWith(ship: Ship, system: SysId): Room | undefined {
  * Cloaking, hacking, the teleporter, mind control, drones, and the clone bay are kits.
  * noteZoltanKits counts those. This function stays on the five main systems.
  */
+/**
+ * Crew who can lend Zoltan power on the `aboard` hull: aboard it and fighting for it.
+ * INTENTIONALLY OVERRIDING SPEC: Zoltans, "Race characteristics" says only "an occupied system"; per the user, an
+ * intruding Zoltan does not power, replace, or swap power in the other side's systems.
+ * INFERRED: a mind-controlled Zoltan counts for the side it fights for (Mind Control: "Turns one enemy crewmember into
+ * ally").
+ */
+function hullCrew<C extends Pick<Crew, "aboard" | "side" | "leashed">>(crew: readonly C[], aboard: "player" | "enemy"): C[] {
+  const fightsFor = (c: C) => ((c.leashed ?? 0) > 0 ? (c.side === "player" ? "enemy" : "player") : c.side);
+  return crew.filter((c) => c.aboard === aboard && fightsFor(c) === aboard);
+}
+
+/** Zoltan power on this hull's system, from its own side's Zoltans (hullCrew). */
 export function zoltanBars(
-  crew: readonly Pick<Crew, "kin" | "hp" | "room" | "aboard">[],
+  crew: readonly Pick<Crew, "kin" | "hp" | "room" | "aboard" | "side" | "leashed">[],
   ship: Ship,
   aboard: "player" | "enemy",
   id: SysId,
@@ -486,10 +499,7 @@ export function zoltanBars(
   if (!isMain(id)) return 0;
   const room = roomWith(ship, id);
   if (!room) return 0;
-  return citedZoltanPower(
-    crew.filter((c) => c.aboard === aboard),
-    room.id,
-  );
+  return citedZoltanPower(hullCrew(crew, aboard), room.id);
 }
 
 function mainBars(g: Game, ship: Ship, aboard: "player" | "enemy", id: SysId): number {
@@ -1183,10 +1193,7 @@ function settleCover(sys: SystemState, zoltans: number): void {
 
 function zoltanCount(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: string | undefined): number {
   if (!roomId) return 0;
-  return citedZoltanPower(
-    g.crew.filter((c) => c.aboard === aboard),
-    roomId,
-  );
+  return citedZoltanPower(hullCrew(g.crew, aboard), roomId);
 }
 
 /**
@@ -2206,7 +2213,7 @@ export function noteZoltanKits(g: Game): void {
 
 function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void {
   if (!ship.kits || !ship.rooms) return;
-  const crew = g.crew.filter((c) => c.aboard === aboard);
+  const crew = hullCrew(g.crew, aboard);
   for (const kit of Object.values(ship.kits)) {
     if (!kit) continue;
     const room = ship.rooms.find((r) => r.kit === kit.id);
@@ -2247,8 +2254,8 @@ function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): vo
     }
     const room = ship.rooms.find((r) => r.kit === kit.id);
     const here = room
-      ? g.crew
-          .filter((c) => c.aboard === aboard && c.kin === "spark" && c.hp > 0 && c.room === room.id)
+      ? hullCrew(g.crew, aboard)
+          .filter((c) => c.kin === "spark" && c.hp > 0 && c.room === room.id)
           .map((c) => c.id)
       : [];
     if (!kit.swap) {

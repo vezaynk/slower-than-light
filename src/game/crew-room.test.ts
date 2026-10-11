@@ -133,8 +133,8 @@ describe("crew room orders", () => {
       ada.hp = 40;
       ada.path = [];
       ada.move = 0;
-      // Not a Zoltan: one in the room would power the bay itself (Zoltans, "Race characteristics").
-      const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "spark")!;
+      // A Zoltan intruder: it must not power the bay (zoltanBars, INTENTIONALLY OVERRIDING SPEC).
+      const foe = g.crew.find((c) => c.side === "enemy" && c.kin === "spark")!;
       foe.aboard = "player";
       foe.room = "p-medbay";
       foe.path = [];

@@ -1,6 +1,6 @@
 import { flushSfx } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
-import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot, roomCapacity } from "./crew-spots.ts";
+import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot, roomCapacity, roomConsole, settleTiles } from "./crew-spots.ts";
 import {
   CREW_POOL,
   EVADE_TABLE,
@@ -572,9 +572,15 @@ export function manning(g: Game, ship: Ship, aboard: "player" | "enemy", system:
     if (foes) return false;
   }
   const friends = aboard === "player" ? "player" : "enemy";
-  return g.crew.some(
+  const crewed = g.crew.some(
     (c) => sideOf(c) === friends && c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0,
   );
+  if (!crewed) return false;
+  // INFERRED (per the user): a mannable system is manned from its terminal. While its next operator walks over, it is
+  // not. consoleOperator falls back to "anyone idle here" before tiles are stamped.
+  const cell = roomConsole(r, ship);
+  if (!cell) return true;
+  return consoleOperator(g.crew.filter((c) => sideOf(c) === friends), r.id, aboard, cell) != null;
 }
 
 function manningCrew(g: Game, ship: Ship, aboard: "player" | "enemy", system: SysId): Crew | undefined {
@@ -588,6 +594,7 @@ function manningCrew(g: Game, ship: Ship, aboard: "player" | "enemy", system: Sy
     g.crew.filter((c) => sideOf(c) === friends),
     r.id,
     aboard,
+    roomConsole(r, ship),
   );
   const c = id ? g.crew.find((x) => x.id === id) : undefined;
   if (!c || c.path.length > 0 || c.room !== r.id) return undefined;
@@ -3167,6 +3174,14 @@ function chargeSide(
   });
 }
 
+/**
+ * Crew table movement multiplies the tile time.
+ * Augmentations, "Mantis Pheromones": your crew move 25% faster on your ship and while boarding.
+ */
+function crewPace(g: Game, c: Crew): number {
+  return kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
+}
+
 function moveCrew(g: Game, dt: number) {
   for (const c of g.crew) {
     if ((c.stun ?? 0) > 0) {
@@ -3236,8 +3251,7 @@ function moveCrew(g: Game, dt: number) {
     // so walking across the tiles inside it was faster than stepping through a door.
     // Crew table movement is a multiplier on the tile time.
     // Augmentations, "Mantis Pheromones": your crew move 25% faster on your ship and while boarding.
-    const pace =
-      kinOf(c.kin ?? "plain").move * (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1);
+    const pace = crewPace(g, c);
     const dest = roomById(ship, c.path[c.path.length - 1]!);
     const spot = dest ? restSpot(dest, g.crew, c.id, c.aboard, ship) : null;
     const across = walkCells(ship, c.room, c.path, c.via, spot ?? undefined);
@@ -3251,6 +3265,11 @@ function moveCrew(g: Game, dt: number) {
       else delete c.via;
     }
   }
+  // Idle crew keep their tiles, and an empty terminal draws the nearest crew member over at walking pace.
+  // settleTiles hands back the same Crew objects it was given.
+  const tileSeconds = (c: object) => TILE_WALK_S / crewPace(g, c as Crew);
+  settleTiles(g.crew, g.player, "player", dt, tileSeconds);
+  if (g.enemy) settleTiles(g.crew, g.enemy, "enemy", dt, tileSeconds);
 }
 
 /**

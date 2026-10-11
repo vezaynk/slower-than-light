@@ -151,6 +151,10 @@ export type Crew = {
    * Absent means they were not given a pad, so a send leaves them behind.
    */
   pad?: string;
+  /** Floor tile this body stands on while idle, and its room (crew-spots settleTiles). Absent until first stamped. */
+  tile?: { room: string; x: number; y: number };
+  /** An in-room walk to `tile`: the point it started from and progress 0-1. Absent when standing still. */
+  shift?: { x: number; y: number; t: number };
   /**
    * INFERRED from the controls list (Save Stations / Return to Stations).
    * The room this crew member was standing in on the player ship when stations were saved.

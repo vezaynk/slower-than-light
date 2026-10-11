@@ -133,6 +133,9 @@ export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors:
 
 export type StandSpot = { x: number; y: number; stack: number };
 
+export type HeldTile = { room: string; x: number; y: number };
+export type TileShift = { x: number; y: number; t: number };
+
 type RosterCrew = {
   id: string;
   file?: number;
@@ -143,7 +146,17 @@ type RosterCrew = {
   aboard?: string;
   side?: "player" | "enemy";
   leashed?: number;
+  tile?: HeldTile;
+  shift?: TileShift;
+  stun?: number;
 };
+
+/** The floor tile an idle crew member keeps (settleTiles), or null while walking or before one is stamped. */
+export function heldTile(c: Pick<RosterCrew, "tile" | "path" | "room">): { x: number; y: number } | null {
+  return c.tile && c.path.length === 0 && c.tile.room === c.room ? c.tile : null;
+}
+
+const cellKey = (cell: { x: number; y: number }) => `${cell.x},${cell.y}`;
 
 type StandHull = { flagship?: unknown } | null;
 
@@ -152,7 +165,12 @@ type StandHull = { flagship?: unknown } | null;
  * Someone already in the room keeps it. Otherwise the first crew member whose walk ends there claims it.
  * A mind-controlled crew member fights for the other side, so they do not take the console.
  */
-export function consoleOperator(crew: RosterCrew[], dest: string, aboard?: string): string | null {
+export function consoleOperator(
+  crew: RosterCrew[],
+  dest: string,
+  aboard?: string,
+  cell?: { x: number; y: number } | null,
+): string | null {
   const roster = crew.filter((c) => {
     if (c.hp <= 0) return false;
     if (aboard != null && c.aboard !== aboard) return false;
@@ -163,6 +181,16 @@ export function consoleOperator(crew: RosterCrew[], dest: string, aboard?: strin
     const side = stationSide(c);
     return aboard == null || side == null || side === aboard;
   };
+  // With tiles stamped (settleTiles), the operator is whoever stands on the terminal, once they have walked onto it.
+  // INFERRED: nobody operates while the terminal is empty or its next operator is still walking over.
+  if (cell) {
+    const on = roster.find((c) => {
+      const t = heldTile(c);
+      return !!t && t.x === cell.x && t.y === cell.y;
+    });
+    if (on) return owns(on) && !on.shift ? on.id : null;
+    if (roster.some((c) => heldTile(c))) return null;
+  }
   return (roster.find((c) => owns(c) && c.path.length === 0) ?? roster.find(owns))?.id ?? null;
 }
 
@@ -216,8 +244,8 @@ export function mayStand(
 }
 
 /**
- * Idle crew in one room. A pad tile wins over the file order.
- * The crew member manning a system stands on its terminal. Overflow stacks on the last other tile.
+ * Idle crew in one room. A pad tile wins over the file order, then everyone keeps the tile they already hold.
+ * Newcomers fill the free tiles; a free terminal goes to one who can man it. Overflow stacks on the last other tile.
  */
 export function assignStands(
   room: Box,
@@ -225,15 +253,21 @@ export function assignStands(
   opts?: { hull?: StandHull; aboard?: string },
 ): Map<string, StandSpot> {
   const console = roomConsole(room, opts?.hull);
+  const consoleKey = console ? cellKey(console) : null;
   const pads = new Set(padCells(room));
+  const floor = new Set(floorCells(room).map(cellKey));
   const ordered = crew
     .slice()
     .sort((a, b) => (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const ownsHere = (c: RosterCrew) => {
+    const side = stationSide(c);
+    return opts?.aboard == null || side == null || side === opts.aboard;
+  };
   const used = new Map<string, number>();
   const out = new Map<string, StandSpot>();
   const placed = new Set<string>();
   const put = (id: string, cell: { x: number; y: number }) => {
-    const key = `${cell.x},${cell.y}`;
+    const key = cellKey(cell);
     const stack = used.get(key) ?? 0;
     used.set(key, stack + 1);
     out.set(id, { x: cell.x, y: cell.y, stack });
@@ -244,26 +278,121 @@ export function assignStands(
     const [xs, ys] = c.pad.split(",");
     put(c.id, { x: Number(xs), y: Number(ys) });
   }
-  const op = console ? operatorInRoster(crew, opts?.aboard) : null;
-  const hold = !!console && !!op && !placed.has(op);
-  if (hold && console && op) put(op, console);
-  const slots = standCells(room).filter((cell) => !hold || !console || cell.x !== console.x || cell.y !== console.y);
-  let next = 0;
+  // INFERRED (per the user): crew already standing in the room keep their tile when someone else comes or goes.
+  // Only an owner keeps the terminal tile; anyone else standing there is moved off it.
   for (const c of ordered) {
     if (placed.has(c.id)) continue;
-    const cell = slots.length ? slots[Math.min(next, slots.length - 1)]! : console;
+    const t = heldTile(c);
+    if (!t || !floor.has(cellKey(t)) || used.has(cellKey(t))) continue;
+    if (cellKey(t) === consoleKey && !ownsHere(c)) continue;
+    put(c.id, t);
+  }
+  const unplaced = ordered.filter((c) => !placed.has(c.id));
+  // A free terminal goes to a newcomer who can run it. settleTiles walks an idle owner over when there is none.
+  // By file order alone, so the pick made when the walks were ordered holds whoever arrives first.
+  if (console && consoleKey && !used.has(consoleKey)) {
+    const op = unplaced.find(ownsHere)?.id;
+    if (op) put(op, console);
+  }
+  // The terminal is kept clear for an owner while one is in the room.
+  const blockConsole = !!consoleKey && ordered.some(ownsHere);
+  const spare = standCells(room).filter((cell) => !blockConsole || cellKey(cell) !== consoleKey);
+  const free = spare.filter((cell) => !used.has(cellKey(cell)));
+  let next = 0;
+  for (const c of unplaced) {
+    if (placed.has(c.id)) continue;
+    // Overflow stacks on the last other tile.
+    const cell = next < free.length ? free[next++]! : (spare[spare.length - 1] ?? console);
     if (!cell) continue;
-    if (slots.length && next < slots.length) next += 1;
     put(c.id, cell);
   }
   return out;
 }
 
-/** First owner already standing, else the first owner in this room's roster. */
-function operatorInRoster(crew: RosterCrew[], aboard?: string): string | null {
-  const owns = (c: RosterCrew) => {
-    const side = stationSide(c);
-    return aboard == null || side == null || side === aboard;
-  };
-  return (crew.find((c) => owns(c) && c.path.length === 0) ?? crew.find(owns))?.id ?? null;
+/** Where an idle crew member is drawn: their tile, or part way there on an in-room walk. */
+export function shiftPoint(c: Pick<RosterCrew, "tile" | "shift">): { x: number; y: number } | null {
+  if (!c.tile) return null;
+  if (!c.shift) return { x: c.tile.x, y: c.tile.y };
+  const t = Math.max(0, Math.min(1, c.shift.t));
+  return { x: c.shift.x + (c.tile.x - c.shift.x) * t, y: c.shift.y + (c.tile.y - c.shift.y) * t };
 }
+
+type TileRoom = Box & { id: string };
+
+/**
+ * Keeps idle crew on their own tiles, once per tick after crew move (sim moveCrew).
+ * - A crew member who has just stopped takes the tile assignStands gives them, with no walk: their walk ended there.
+ * - Someone moved off a tile (a duplicate, a pad, a non-owner on the terminal) walks to the new one.
+ * - Per the user: when the terminal is left empty, the nearest idle crew member who can run it walks over to it.
+ *   It counts as manned once they arrive (consoleOperator).
+ * `tileSeconds` is one tile's walking time for that crew member. INFERRED: an in-room walk is straight-line tiles.
+ */
+export function settleTiles(
+  crew: RosterCrew[],
+  hull: { rooms: TileRoom[]; flagship?: unknown },
+  aboard: "player" | "enemy",
+  dt: number,
+  tileSeconds: (c: RosterCrew) => number,
+): void {
+  const walkTo = (c: RosterCrew, room: string, cell: { x: number; y: number }) => {
+    const from = shiftPoint(c) ?? cell;
+    c.tile = { room, x: cell.x, y: cell.y };
+    if (from.x === cell.x && from.y === cell.y) delete c.shift;
+    else c.shift = { x: from.x, y: from.y, t: 0 };
+  };
+  for (const room of hull.rooms) {
+    const roster = crew.filter(
+      (c) =>
+        c.hp > 0 &&
+        c.aboard === aboard &&
+        (c.path.length === 0 ? c.room === room.id : c.path[c.path.length - 1] === room.id),
+    );
+    if (!roster.length) continue;
+    const idle = roster.filter((c) => c.path.length === 0);
+    for (const c of idle) {
+      if (!c.shift || !c.tile || c.tile.room !== room.id) continue;
+      if ((c.stun ?? 0) > 0) continue;
+      const span = Math.max(1, Math.hypot(c.tile.x - c.shift.x, c.tile.y - c.shift.y));
+      c.shift.t += dt / (Math.max(1e-6, tileSeconds(c)) * span);
+      if (c.shift.t >= 1) delete c.shift;
+    }
+    const stands = assignStands(room, roster, { hull, aboard });
+    for (const c of idle) {
+      const spot = stands.get(c.id);
+      if (!spot) continue;
+      const held = heldTile(c);
+      if (!held) {
+        c.tile = { room: room.id, x: spot.x, y: spot.y };
+        delete c.shift;
+      } else if (held.x !== spot.x || held.y !== spot.y) {
+        walkTo(c, room.id, spot);
+      }
+    }
+    const cell = roomConsole(room, hull);
+    if (!cell) continue;
+    const owns = (c: RosterCrew) => {
+      const side = stationSide(c);
+      return side == null || side === aboard;
+    };
+    // Someone already holds it, or a crew member walking in has it as their stopping tile.
+    const claimed = roster.some((c) => {
+      const spot = stands.get(c.id);
+      return !!spot && spot.x === cell.x && spot.y === cell.y && spot.stack === 0 && owns(c);
+    });
+    if (claimed) continue;
+    let best: RosterCrew | null = null;
+    let bestD = Infinity;
+    for (const c of idle) {
+      if (!owns(c) || (c.stun ?? 0) > 0 || c.pad) continue;
+      const at = shiftPoint(c);
+      if (!at) continue;
+      const d = Math.abs(at.x - cell.x) + Math.abs(at.y - cell.y);
+      if (d < bestD || (d === bestD && best && ((c.file ?? 0) < (best.file ?? 0) || ((c.file ?? 0) === (best.file ?? 0) && c.id < best.id)))) {
+        best = c;
+        bestD = d;
+      }
+    }
+    if (best) walkTo(best, room.id, cell);
+  }
+}
+

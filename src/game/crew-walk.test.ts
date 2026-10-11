@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { restSpot } from "./crew-spots.ts";
-import { createGame, orderCrew, step } from "./sim.ts";
+import { restSpot, roomConsole, shiftPoint } from "./crew-spots.ts";
+import { createGame, manning, orderCrew, step } from "./sim.ts";
 import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -216,3 +216,68 @@ function painted(g: Game, c: Crew): { x: number; y: number } {
   assert.ok(at);
   return at;
 }
+
+describe("crew keep their tiles in a shared room (per the user)", () => {
+  /** Three crew idle in the Shields room of a Kestrel, tiles stamped by a tick. */
+  function crowd() {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    g.enemy = null;
+    const room = g.player.rooms.find((r) => r.system === "shields")!;
+    const crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
+    for (const c of crew) {
+      c.room = room.id;
+      c.path = [];
+      c.move = 0;
+      delete c.via;
+      delete c.tile;
+      delete c.shift;
+    }
+    step(g, 0.05);
+    const cell = roomConsole(room, g.player)!;
+    const op = crew.find((c) => c.tile?.x === cell.x && c.tile?.y === cell.y)!;
+    assert.ok(op, "someone takes the terminal");
+    return { g, room, crew, cell, op, others: crew.filter((c) => c !== op) };
+  }
+
+  it("leaves everyone else where they stand when a crew member who is not on the terminal leaves", () => {
+    const { g, op, others } = crowd();
+    const [leaving, staying] = others;
+    const before = { ...staying.tile! };
+    const opBefore = { ...op.tile! };
+    orderCrew(g, leaving.id, "p-oxygen");
+    for (let i = 0; i < 80; i++) {
+      step(g, 0.05);
+      assert.deepEqual({ ...staying.tile! }, before);
+      assert.deepEqual({ ...op.tile! }, opBefore);
+      assert.equal(staying.shift, undefined);
+    }
+  });
+
+  it("walks the nearest crew member to an empty terminal, and the system is manned only once they arrive", () => {
+    const { g, cell, op, others } = crowd();
+    assert.equal(manning(g, g.player, "player", "shields"), true);
+    orderCrew(g, op.id, "p-oxygen");
+    step(g, 0.05);
+    const near = (c: Crew) => Math.abs(c.tile!.x - cell.x) + Math.abs(c.tile!.y - cell.y);
+    const walker = others.find((c) => c.tile!.x === cell.x && c.tile!.y === cell.y)!;
+    assert.ok(walker, "someone heads for the terminal");
+    assert.ok(walker.shift, "they walk, not teleport");
+    const still = others.find((c) => c !== walker)!;
+    const stillAt = { ...still.tile! };
+    assert.ok(near(still) >= 1);
+    assert.equal(manning(g, g.player, "player", "shields"), false);
+    // The walker's drawn point moves a little each tick until it reaches the terminal.
+    let last = shiftPoint(walker)!;
+    for (let i = 0; i < 60 && walker.shift; i++) {
+      step(g, 0.05);
+      const at = shiftPoint(walker)!;
+      assert.ok(Math.hypot(at.x - last.x, at.y - last.y) < 0.5, `${JSON.stringify(last)} -> ${JSON.stringify(at)}`);
+      last = at;
+      assert.deepEqual({ ...still.tile! }, stillAt);
+    }
+    assert.equal(walker.shift, undefined);
+    assert.deepEqual({ x: last.x, y: last.y }, { x: cell.x, y: cell.y });
+    assert.equal(manning(g, g.player, "player", "shields"), true);
+  });
+});

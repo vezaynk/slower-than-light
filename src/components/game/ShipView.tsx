@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
-import { assignStands, padCells, restSpot, roomConsole, stationSide } from "@/game/crew-spots";
+import { assignStands, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
@@ -112,6 +112,17 @@ function crewPlace(
     };
   }
   if (!spot) return null;
+  // An in-room walk to a new tile (crew-spots settleTiles), drawn part way along.
+  if (c.shift && c.tile && c.tile.room === c.room && c.tile.x === spot.x && c.tile.y === spot.y) {
+    const at = shiftPoint(c);
+    if (at) {
+      return {
+        x: ((at.x + 0.5) / ship.cols) * 100,
+        y: ((at.y + 0.5) / ship.rows) * 100,
+        faceLeft: c.tile.x < c.shift.x,
+      };
+    }
+  }
   return {
     x: ((spot.x + 0.5) / ship.cols) * 100,
     y: ((spot.y + 0.5) / ship.rows) * 100,
@@ -121,7 +132,7 @@ function crewPlace(
 
 /** The operator on the console tile. A second body in the room, and anyone stunned, stands idle. */
 function atConsole(ship: Ship, c: Crew, spot: { x: number; y: number; stack: number } | undefined): boolean {
-  if (!spot || spot.stack !== 0 || c.path.length > 0 || (c.stun ?? 0) > 0) return false;
+  if (!spot || spot.stack !== 0 || c.path.length > 0 || (c.stun ?? 0) > 0 || c.shift) return false;
   const room = ship.rooms.find((r) => r.id === c.room);
   if (!room) return false;
   const cell = roomConsole(room, ship);
@@ -635,10 +646,15 @@ export function ShipView({
             const at = crewPlace(ship, c, spot, paint);
             if (!at) return null;
             const faceLeft = at.faceLeft;
-            const pose: CrewPose = step ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
+            // An in-room walk to a new tile (settleTiles) uses the walking frames too.
+            const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0;
+            const pose: CrewPose =
+              step || shuffling ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
             const frame = step
               ? Math.floor(paint!.t * paint!.steps * 4) % 4
-              : pose === "fight"
+              : shuffling
+                ? Math.floor((c.shift?.t ?? 0) * 4) % 4
+                : pose === "fight"
                 ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4
                 : 0;
             const cycle = pose === "idle" || pose === "work";

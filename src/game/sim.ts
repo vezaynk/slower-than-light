@@ -2349,6 +2349,9 @@ function zoltanBeamInstance(shot: Shot): number {
 
 /**
  * Beam (Weapons), "Beams vs Zoltan Shields": Beam Drone 1 and Fire Drone have no second tick.
+ * xftl doc/weapons, BeamWeapon::OnUpdate, gives the reason: the 80% tick "only applies if the beam is more than 20
+ * pixels long (NOT greater than or equal to, which matters for the level-1 beam drone)", whose beam is 20 (Drone
+ * Control: "20 (0.4 tile diagonally)").
  * INFERRED: those two are defId "beam" or "fire", or a drone label that names fire or beam1.
  * A drone label that does not name the kind still takes both ticks. swarm.ts spends the bubble
  * on a drone swipe before this shot is built, so that path is not a second specification.

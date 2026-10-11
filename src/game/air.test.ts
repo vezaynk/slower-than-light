@@ -177,8 +177,8 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     assert.ok(Math.abs(empty.o2 - 70 * kept(10)) < 1e-9);
   });
 
-  it("Oxygen refills every room by the same %, 1.2/4.8/8.4 per second by level, and fire burns a fixed amount", () => {
-    for (const [bars, rate] of [[1, 1.2], [2, 4.8], [3, 8.4]] as const) {
+  it("Oxygen refills every room by the same %, 1.8/4.8/8.4 per second by level, and fire burns a fixed amount", () => {
+    for (const [bars, rate] of [[1, 1.8], [2, 4.8], [3, 8.4]] as const) {
       const a = room("a", 1, 1, 50);
       const b = room("b", 2, 2, 50);
       stepAir(ship([a, b], []), off({ o2Bars: bars }), 1);
@@ -192,17 +192,17 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     assert.ok(Math.abs(lit.o2 - (50 - FIRE_BURN / 2) * kept(1)) < 1e-9);
   });
 
-  it("crew breathe half a tile's level-1 refill and every room leaks a quarter of it", () => {
+  it("crew breathe half the base refill and every room leaks a quarter of it", () => {
     assert.equal(BREATH_PER_CREW, REFILL / 2);
     assert.equal(HULL_LEAK, REFILL / 4);
     // A full, empty, unpowered room seeps about 0.3%/s.
     const idle = room("idle", 2, 2, 100);
     stepAir(ship([idle], []), off(), 1);
     assert.ok(Math.abs(100 - idle.o2 - 0.3) < 0.001, `${idle.o2}`);
-    // Level 1 still gains on one crew member in a 1-tile room: 1.2 - 0.6 - 0.15 (the leak at half air).
+    // Level 1 gains on one crew member in a 1-tile room: 1.8 - 0.6 - about 0.16 (the leak near half air).
     const cell = room("cell", 1, 1, 50);
     run(ship([cell], []), off({ o2Bars: 1, breathers: new Map([["cell", 1]]) }), 10);
-    assert.ok(cell.o2 > 54 && cell.o2 < 55, `${cell.o2}`);
+    assert.ok(cell.o2 > 60 && cell.o2 < 61, `${cell.o2}`);
     // Unpowered, that room thins.
     const dark = room("dark", 1, 1, 50);
     run(ship([dark], []), off({ breathers: new Map([["dark", 1]]) }), 10);

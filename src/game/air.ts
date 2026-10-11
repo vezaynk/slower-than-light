@@ -16,7 +16,7 @@
  * airlock feel the vacuum, at least partially). A breach, or a Lanius, is a C = 0.16 hole to space.
  * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. Every hull seeps a little air to space
  * (HULL_LEAK). A powered Oxygen system adds air to every room in proportion to its volume, so every room refills at
- * the same %: 1.2%/s, x4 at level 2, x7 at level 3 (Oxygen; xftl doc/oxygen). An unpowered system adds nothing, so a
+ * the same %: 1.8%/s at level 1 (per the user, 1.5x the xftl rate), 4.8 at level 2, 8.4 at level 3 (Oxygen; xftl doc/oxygen). An unpowered system adds nothing, so a
  * sealed ship slowly loses its air.
  *
  * Each opening is applied as the exact two-sided exchange over the tick, so a wide opening cannot overshoot and air is
@@ -34,22 +34,29 @@ export const BREACH_C = 0.16;
 export const AIRLOCK_C = 8;
 /**
  * Exposure to space of a room one open door from an open airlock, and the share kept per further open door
- * (0.25, 0.2, 0.16, ...). Per the user: with every airlock open, a ship on level-1 Oxygen loses its air fairly
- * quickly (about 5 s to a tenth of its air, under 20 s to 5% everywhere, on the playable hulls), while the airlock's
- * neighbour still vents well short of the airlock itself.
+ * (0.25, 0.22, 0.19, ...). Per the user: with every airlock open, a ship on level-1 Oxygen loses its air fairly
+ * quickly (about a tenth of its air left at 5 s, about 5% everywhere by 20-30 s, on the playable hulls), while the
+ * airlock's neighbour still vents well short of the airlock itself. The falloff is 0.88 rather than 0.8 so the faster
+ * level-1 refill does not hold the deepest rooms above 5%.
  */
 export const VACUUM_REACH = 0.25;
-export const VACUUM_FALLOFF = 0.8;
-/** Oxygen system refill per tile, %/s at level 1, and the level multipliers (xftl doc/oxygen: "1,4,7"). */
-export const REFILL = 1.2;
-export const REFILL_MULT: readonly number[] = [0, 1, 4, 7];
+export const VACUUM_FALLOFF = 0.88;
 /**
- * Air one breathing crew member uses, tile-%/s: half of one tile's level-1 refill (per the user). A lone crew member
+ * Oxygen system refill per tile: a base %/s and a multiplier per level (xftl doc/oxygen: "1,4,7").
+ * INTENTIONALLY OVERRIDING SPEC (per the user): level 1 refills 1.5x faster, 1.8%/s, so an emptied room comes back in
+ * about a minute even with crew in it. Levels 2 and 3 keep 4.8 and 8.4, so Oxygen-2 still cannot hold a room against a
+ * breach and Oxygen-3 can.
+ */
+export const REFILL = 1.2;
+export const REFILL_MULT: readonly number[] = [0, 1.5, 4, 7];
+/**
+ * Air one breathing crew member uses, tile-%/s: half of the base refill (per the user; it was the level-1 rate before
+ * level 1 was sped up, and stays 0.6). A lone crew member
  * thins a 1-tile room by 0.6%/s and a 4-tile room by 0.15%/s.
  */
 export const BREATH_PER_CREW = REFILL / 2;
 /**
- * Passive seepage to space, %/s from a full room: a quarter of the level-1 refill (per the user). Like every other
+ * Passive seepage to space, %/s from a full room: a quarter of the base refill (per the user), 0.3. Like every other
  * opening to space it scales with the room's pressure, so it is 0.15%/s at half air.
  */
 export const HULL_LEAK = REFILL / 4;

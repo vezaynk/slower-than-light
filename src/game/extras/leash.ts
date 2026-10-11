@@ -1,5 +1,5 @@
 import { interiorLinks, mayStand } from "../crew-spots.ts";
-import { cooldownLocksPower, createGame, forgetCrew, kitBars, kitIonLocked, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, deselectCrew, kitBars, kitIonLocked, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
@@ -561,7 +561,7 @@ export function fireEnemyLeash(g: Game): boolean {
   kit.target = crew.id;
   crew.path = [];
   crew.move = 0;
-  forgetCrew(g, crew.id);
+  deselectCrew(g, crew.id);
   log(g, `${crew.name} is under their mind control.`);
   return true;
 }

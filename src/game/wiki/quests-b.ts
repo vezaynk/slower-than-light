@@ -21,7 +21,7 @@
  */
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
-import { beginBoarding, forgetCrew, hurtSystem, log, rand } from "../sim.ts";
+import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import {
   addQuest,
@@ -173,7 +173,7 @@ function turnCoat(g: Game): boolean {
   turned.path = [];
   turned.move = 0;
   turned.think = 0;
-  forgetCrew(g, turned.id);
+  deselectCrew(g, turned.id);
   log(g, `${turned.name} turns on the crew.`);
   return true;
 }

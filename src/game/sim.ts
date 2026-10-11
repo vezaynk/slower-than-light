@@ -1592,7 +1592,7 @@ export function selectedIds(g: Game): string[] {
 }
 
 /** Drop one id from the selection. Mind control and a crew who changes sides use this. */
-export function forgetCrew(g: Game, id: string) {
+export function deselectCrew(g: Game, id: string) {
   if (g.squad) g.squad = g.squad.filter((x) => x !== id);
   if (g.selected !== id) return;
   g.selected = g.squad && g.squad.length ? g.squad[g.squad.length - 1]! : null;
@@ -1617,7 +1617,7 @@ export function dismissCrew(g: Game, id: string): boolean {
   if (!canDismiss(g, id)) return false;
   const c = g.crew.find((x) => x.id === id)!;
   g.crew = g.crew.filter((x) => x.id !== id);
-  forgetCrew(g, id);
+  deselectCrew(g, id);
   log(g, `${c.name} leaves the crew.`);
   return true;
 }

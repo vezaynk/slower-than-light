@@ -1,4 +1,4 @@
-import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, evasionPercent, forgetCrew, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
+import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, deselectCrew, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { WEAPONS } from "../content.ts";
@@ -1091,7 +1091,7 @@ function pulseMind(g: Game, kit: Kit) {
   c.leashed = kit.left;
   c.path = [];
   c.move = 0;
-  forgetCrew(g, c.id);
+  deselectCrew(g, c.id);
   kit.hackHeld = c.id;
   log(g, `${c.name} is turned by their hack.`);
 }

@@ -126,24 +126,25 @@ describe("cited stores", () => {
     );
   });
 
-  it("guarantees a Clone Bay, not a Medbay, to a ship with neither, and fits it at level 1", () => {
-    // xftl doc/stores: "Medbay (or Clonebay in AE) if you have neither", and the random list skips medical systems.
-    const g = openStore(6, (game) => {
-      game.player.systems.medbay.level = 0;
-      game.player.systems.medbay.power = 1;
-    }, (stock) => stock.some((item) => item.kind === "system"));
-    assert.equal(
-      g.stock?.some((item) => item.ref === "medbay"),
-      false,
-    );
-    const bay = g.stock?.find((item) => item.kind === "system" && item.ref === "cradle");
-    assert.ok(bay);
-    assert.equal(bay.cost, 50);
-    g.scrap = 50;
-    buy(g, bay.id);
-    assert.equal(g.player.kits.cradle?.level, 1);
-    assert.equal(g.player.kits.cradle?.power, 0);
-    assert.equal(g.scrap, 0);
+  it("guarantees one medical system, a Medbay or a Clone Bay, to a ship with neither (Stores and resources)", () => {
+    // "A medical system is guaranteed if you don't have one."
+    const seen = new Set<string>();
+    for (const seed of [6, 16, 26, 36, 46, 56]) {
+      const g = openStore(seed, (game) => {
+        game.player.systems.medbay.level = 0;
+        game.player.systems.medbay.power = 1;
+      }, (stock) => stock.some((item) => item.kind === "system"));
+      const medical = (g.stock ?? []).filter((item) => item.ref === "medbay" || item.ref === "cradle");
+      assert.equal(medical.length, 1);
+      assert.equal(medical[0].cost, 50);
+      seen.add(medical[0].ref);
+      g.scrap = 50;
+      buy(g, medical[0].id);
+      if (medical[0].ref === "cradle") assert.equal(g.player.kits.cradle?.level, 1);
+      else assert.equal(g.player.systems.medbay.level, 1);
+      assert.equal(g.scrap, 0);
+    }
+    assert.deepEqual([...seen].sort(), ["cradle", "medbay"]);
   });
 
   it("lists the other priced systems only while missing, and not artillery", () => {
@@ -162,20 +163,16 @@ describe("cited stores", () => {
     assert.equal(citedStock(g).some((item) => item.kind === "system" && item.ref === "engines"), false);
     const systems = (g.stock ?? []).filter((item) => item.kind === "system");
     const byName = Object.fromEntries(systems.map((item) => [item.name, item.cost]));
-    // Shields and the Clone Bay are guaranteed. The third is a random missing non-medical system.
+    // Shields and one medical system are guaranteed. The third is a random missing non-medical system.
     assert.equal(systems.length, 3);
     assert.equal(byName.Shields, 125);
-    assert.equal(byName["Clone Bay"], 50);
-    assert.equal(byName.Medbay, undefined);
+    const medical = systems.filter((item) => item.ref === "medbay" || item.ref === "cradle");
+    assert.equal(medical.length, 1);
+    assert.equal(medical[0].cost, 50);
     assert.equal(systems.some((item) => item.ref === "engines" || item.ref === "lance" || item.ref === "flak"), false);
 
     g.scrap = 50;
-    const bay = systems.find((item) => item.name === "Clone Bay");
-    assert.ok(bay);
-    buy(g, bay.id);
-    assert.equal(g.player.kits.cradle?.level, 1);
-    assert.equal(g.player.kits.cradle?.power, 0);
-    assert.equal(g.player.systems.medbay.level, 0);
+    buy(g, medical[0].id);
     assert.equal(g.scrap, 0);
     assert.equal(g.player.kits.swarm, undefined);
   });
@@ -317,6 +314,25 @@ describe("cited stores", () => {
     );
   });
 
+  it("forces systems first half the time only below 11 systems+subsystems (Stores and resources)", () => {
+    const share = (g: Game) => {
+      let first = 0;
+      for (let i = 0; i < 2000; i++) {
+        g.seed = i * 7919 + 1;
+        if (storeSections(g)[0] === "systems") first += 1;
+      }
+      return first / 2000;
+    };
+    const small = createGame(3);
+    const big = createGame(3);
+    ownEveryPricedSystem(big);
+    const count = Object.values(big.player.systems).filter((x) => x.level > 0).length + Object.keys(big.player.kits).length;
+    assert.ok(count >= 11, String(count));
+    // Below 11: the coin plus a random first pick (1 in 5). At 11 or more: only the random pick.
+    assert.ok(share(small) > 0.5, String(share(small)));
+    assert.ok(share(big) < 0.3, String(share(big)));
+  });
+
   it("swaps a drones section for weapons, augments, crew, or systems without Drone Control or a systems section", () => {
     const g = createGame(3);
     assert.equal(g.player.kits.swarm, undefined);
@@ -340,7 +356,7 @@ describe("cited stores", () => {
     reseed(g, rolls("systems"));
     const systems = citedStock(g).filter((item) => item.kind === "system");
     assert.equal(systems.length, 2);
-    assert.equal(systems[0].ref, "cradle");
+    assert.ok(systems[0].ref === "cradle" || systems[0].ref === "medbay");
     assert.ok(systems.slice(1).every((item) => item.ref === "sensors" || item.ref === "doors"));
   });
 

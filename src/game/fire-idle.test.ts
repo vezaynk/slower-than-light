@@ -325,14 +325,14 @@ describe("Oxygen airlock (xftl doc/oxygen, ComputeAirLoss and RedistributeOxygen
     return g;
   }
 
-  it("drains the airlock room 16% a second, and leaves a room behind a shut door alone", () => {
+  it("empties the airlock's own room instantly, and leaves a room behind a shut door alone", () => {
+    // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in".
     const g = still(11);
     const room = g.player.rooms.find((r) => r.id === "p-oxygen")!;
     const neighbor = g.player.rooms.find((r) => r.id === "p-medbay")!;
     airlock(g, room.id);
     step(g, 0.05);
-    // 16%/s from the airlock, 1.2%/s with oxygen off.
-    assert.ok(Math.abs(room.o2 - (100 - (16 + 1.2) * 0.05)) < 1e-6, `${room.o2}`);
+    assert.equal(room.o2, 0);
     assert.ok(Math.abs(neighbor.o2 - (100 - 1.2 * 0.05)) < 1e-6, `${neighbor.o2}`);
   });
 
@@ -343,7 +343,7 @@ describe("Oxygen airlock (xftl doc/oxygen, ComputeAirLoss and RedistributeOxygen
     airlock(g, room.id);
     between(g, room.id, next.id);
     step(g, 0.05);
-    // Loss first: 16 and 12 %/s, then 8%/s of the gap to the pair's average.
+    // Loss first: 16 and 12 %/s, then 8%/s of the gap to the pair's average. The airlock room is then emptied.
     const a = 100 - (16 + 1.2) * 0.05;
     const b = 100 - (12 + 1.2) * 0.05;
     const avg = (a + b) / 2;

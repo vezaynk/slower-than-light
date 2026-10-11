@@ -174,17 +174,18 @@ describe("enemy crew teleporter", () => {
     assert.equal(b.party.length, 1);
   });
 
-  it("invasion mode (the Flagship) sends 3/4 and has no minimum health", () => {
+  it("the Flagship keeps 1 or 2 crew home and still recalls a boarder under 25% (wiki over xftl)", () => {
+    // Crew Teleporter, "Enemy Crew Teleporter": "all its crew except for 1 or 2 crewmembers".
     const g = boarder(4);
     for (const c of foes(g).slice(4)) g.crew = g.crew.filter((x) => x.id !== c.id);
     g.enemy!.flagship = { stage: 3 } as never;
     const party = send(g);
     assert.equal(plan(g).invasion, true);
-    assert.equal(plan(g).stay, 1);
+    assert.equal(plan(g).stay, 2);
     pad(g).cool = 0;
     party[0].hp = party[0].maxHp * 0.1;
     tickEnemyBoarding(g, 0.01);
-    assert.equal(party[0].aboard, "player", "no recall line in invasion mode");
+    assert.equal(party[0].aboard, "enemy", "the 25% recall applies to the Flagship too");
   });
 
   it("sends at most 2 boarding parties per fight", () => {

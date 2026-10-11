@@ -251,7 +251,7 @@ export function coilRate(g: Game, aboard: "player" | "enemy"): number {
 /**
  * Augmentations, "FTL Augmentations", FTL Recharge Booster:
  * charge time is 80% / 67% / 57% for one, two, and three copies.
- * MISMATCH if read as 0.8^n (that would be 64% and 51%).
+ * The printed values, not 0.8^n (that would be 64% and 51%).
  */
 export function spoolRate(g: Game): number {
   const n = copies(g, "spool");

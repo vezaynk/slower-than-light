@@ -8,7 +8,8 @@ import { stampCitedEvents } from "./cited-events.ts";
 import {
   DISTRESS,
   EMPTY_PAGES,
-  EXIT,
+  EXIT_ITEMS,
+  EXIT_NEUTRAL,
   FILLER,
   FILLER_CHOICES,
   FILLER_FLAG,
@@ -30,6 +31,15 @@ function loadDump(): Map<string, string> {
     if (row.ns === 0 && row.title && !row.redirect) pages.set(row.title, row.text ?? "");
   }
   return pages;
+}
+
+function fetchTemplate(t: string): string {
+  for (const line of readFileSync(DUMP, "utf8").split("\n")) {
+    if (!line.includes(t)) continue;
+    const row = JSON.parse(line) as { title?: string; text?: string };
+    if (row.title === t) return row.text ?? "";
+  }
+  return "";
 }
 
 function locations(page: string): { sectors: string[]; params: Record<string, string> } {
@@ -175,49 +185,62 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     }
   });
 
-  it("EXIT is every page with alsooccur=exit or exitandfiller, with its unique= flag", () => {
-    const want: [string, boolean][] = [];
-    for (const [title, text] of dump) {
-      if (!/\{\{Locations\|/.test(text)) continue;
-      const { params } = locations(text);
-      if (params.alsooccur === "exit" || params.alsooccur === "exitandfiller") want.push([title, params.unique === "true"]);
-    }
-    assert.deepEqual(EXIT.map((r) => [r.dest, r.unique]).sort(), want.sort());
+  it("the exit lists are Template:EventList OVERRIDE NEUTRAL EXIT and OVERRIDE ITEMS", () => {
+    const rows = (t: string) =>
+      [...(dump.get(t) ?? fetchTemplate(t)).matchAll(/^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm)].map(
+        (m) => [m[1], m[2] === "true"],
+      );
+    assert.deepEqual(EXIT_NEUTRAL.map((r) => [r.dest, r.unique]), rows("Template:EventList OVERRIDE NEUTRAL EXIT"));
+    assert.deepEqual(EXIT_ITEMS.map((r) => [r.dest, r.unique]), rows("Template:EventList OVERRIDE ITEMS"));
+    assert.equal(EXIT_NEUTRAL.length, 18);
+    assert.equal(EXIT_ITEMS.length, 14);
   });
 
-  it("an exit outside a nebula draws an exit page, then offers the lane out (Beacons, Exit beacon)", () => {
-    const pages = new Set(EXIT.map((r) => r.dest));
-    for (const [name, nebula] of [["Civilian Sector", false], ["Uncharted Nebula", true]] as const) {
-      const g = createGame(14);
-      g.sectorName = name;
+  it("an exit shows FINISH_BEACON, then Continue draws a neutral exit or an item event, then the lane", () => {
+    const pages = new Set([...EXIT_NEUTRAL, ...EXIT_ITEMS].map((r) => r.dest));
+    const halves = { neutral: 0, items: 0 };
+    for (let seed = 1; seed <= 40; seed++) {
+      const g = createGame(seed);
+      g.sectorName = "Civilian Sector";
       const exit = g.beacons.find((b) => b.kind === "exit")!;
       const from = g.beacons.find((b) => b.id === g.here)!;
       if (!from.links.includes(exit.id)) from.links.push(exit.id);
       g.fuel = 5;
       commitJump(g, exit.id);
       assert.equal(g.phase, "event");
-      if (nebula) {
-        assert.equal(exit.flag, "");
-        assert.equal(g.event?.title, "Lane out");
-        continue;
-      }
-      assert.ok(exit.flag.startsWith(FILLER_FLAG));
+      assert.equal(g.event?.body, "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.");
+      choose(g, "exit-continue");
+      assert.ok(exit.flag.startsWith(FILLER_FLAG), `${seed}`);
       assert.ok(pages.has(exit.name), exit.name);
-      assert.equal(exit.kind, "exit");
-      // Play the card out with its first choices, then the lane card follows on the map.
-      for (let depth = 0; depth < 6 && g.phase === "event" && g.event?.title !== "Lane out"; depth++) {
+      if (EXIT_NEUTRAL.some((r) => r.dest === exit.name)) halves.neutral += 1;
+      else halves.items += 1;
+      if (seed > 3) continue;
+      // Play the card out, then the lane card follows on the map.
+      for (let depth = 0; depth < 6 && g.phase === "event" && g.event?.title !== "Exit beacon"; depth++) {
         const open = g.event!.choices.find((c) => !choiceDisabled(g, c.id)) ?? g.event!.choices[0];
         choose(g, open.id);
       }
-      // A fight or store from the card is played elsewhere; the lane only matters once back on the map.
       const phase = g.phase as Game["phase"];
-      if (phase === "combat") return;
+      if (phase === "combat") continue;
       if (phase === "store" || phase === "reward") g.phase = "map";
       if ((g.phase as Game["phase"]) === "map") g.event = null;
       step(g, 0.05);
-      assert.equal(g.event?.title, "Lane out");
-      choose(g, "exit-leave");
-      assert.notEqual(g.event?.title, "Lane out");
+      assert.ok(g.event?.choices.some((c) => c.id === "exit-leave"));
     }
+    // An even split between the two halves.
+    assert.ok(halves.neutral >= 10 && halves.items >= 10, JSON.stringify(halves));
+  });
+
+  it("a nebula sector's exit prints FINISH_BEACON_NEBULA and nothing happens", () => {
+    const g = createGame(14);
+    g.sectorName = "Uncharted Nebula";
+    const exit = g.beacons.find((b) => b.kind === "exit")!;
+    const from = g.beacons.find((b) => b.id === g.here)!;
+    if (!from.links.includes(exit.id)) from.links.push(exit.id);
+    g.fuel = 5;
+    commitJump(g, exit.id);
+    assert.equal(g.event?.body, "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.");
+    assert.deepEqual(g.event?.choices.map((c) => c.id), ["exit-leave"]);
+    assert.equal(exit.flag, "");
   });
 });

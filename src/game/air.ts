@@ -7,6 +7,8 @@
  * - OxygenSystem::RedistributeOxygen: "Any two rooms with a path of open doors between them is part of a single chunk
  *   ... Find the average oxygen level in a chunk, and for each room therein find the difference of it's oxygen vs the
  *   average, and change the level by 8% of that per second."
+ * Oxygen (wiki) overrides the airlock's own room: "an airlock instantly drains the O2 in the room it is opened in"
+ * (sim.ts airflow empties it). The 16%/s here reaches the connected rooms.
  * INFERRED: the distance map follows open interior doors, the same paths as a chunk. The notes' tactics ("close all but
  * one ... of the doors around the breached room ... by opening nearby doors you're loosing more air") need that.
  * Pure: no sim import, so lineage.ts can use it too.

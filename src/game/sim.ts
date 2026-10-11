@@ -3395,6 +3395,15 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) if (r.breach > 0) airLoss(ship, r.id, BREACH_AIR_LOSS * r.breach, dt);
   for (const d of ship.doors) if (d.open && d.b === "void") airLoss(ship, d.a, AIRLOCK_AIR_LOSS, dt);
   shareAir(ship, dt);
+  // Oxygen, Overview: "an airlock instantly drains the O2 in the room it is opened in, and quickly drains the O2 from the
+  // connected rooms with opened doors". The wiki outranks xftl here, so the airlock's own room is emptied outright;
+  // the connected rooms keep xftl's 16%/s at 0.75 per room of distance. Emptied after the share, so a neighbour cannot
+  // refill it this tick.
+  for (const d of ship.doors) {
+    if (!d.open || d.b !== "void") continue;
+    const r = roomById(ship, d.a);
+    if (r) r.o2 = 0;
+  }
   for (const r of ship.rooms) {
     r.o2 = Math.max(0, Math.min(100, r.o2));
     starveFire(g, ship, r, dt);
@@ -4565,8 +4574,8 @@ function addCrew(g: Game) {
 
 /**
  * Wiki page "The Rebel Flagship" sets this hull's numbers through citedEnemy.
- * MISMATCH and INVENTED: the two-row grid and the starting loadout below are placeholders that
- * citedEnemy overwrites where the page prints a value.
+ * INVENTED: the two-row grid and the starting loadout below are placeholders that citedEnemy overwrites where the
+ * page prints a value.
  * @agent:flagship. The grid is now swapped for the traced stage-1 rooms by flagshipStage before the crew boards.
  */
 function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
@@ -5687,17 +5696,23 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
   if (filler) return filler;
   if (b.kind === "exit") {
     // Beacons, "Exit beacon": "Non-hostile exit beacon events can occur when rebels haven't expanded to this beacon,
-    // unless the beacon is contained within a nebula." The pages are Category:Exit Beacon Events (filler-events EXIT).
-    // INFERRED: an exit outside a nebula sector always draws one; the page gives no chance of a plain exit. An exit
-    // the fleet holds never gets here unflagged (the dive fight runs first).
-    if (!b.flag && !nebulaSector(g.sectorName) && !overtaken(g, b)) {
-      const page = drawFiller(g, "exit", g.beacons);
-      if (page) {
-        stampFiller(b, page);
-        b.kind = "exit";
-        const card = fillerEvent(g, b);
-        if (card) return card;
-      }
+    // unless the beacon is contained within a nebula." The game's FINISH_BEACON and FINISH_BEACON_NEBULA events (FTL
+    // events.xml, as transcribed on hugomg.github.io/ftl-cheatsheet) print the arrival text below. An exit the fleet
+    // holds never gets here unflagged (the dive fight runs first).
+    // INFERRED: a nebula sector's exit is the beacon "contained within a nebula".
+    if (!b.flag && nebulaSector(g.sectorName)) {
+      return {
+        title: "Exit beacon",
+        body: "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.",
+        choices: [{ id: "exit-leave", label: "Take the lane" }],
+      };
+    }
+    if (!b.flag && !overtaken(g, b)) {
+      return {
+        title: "Exit beacon",
+        body: "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
+        choices: [{ id: "exit-continue", label: "Continue..." }],
+      };
     }
     // INVENTED: the exit text, and the picket card kept for a save made before exit events.
     if (b.flag === "picket") {
@@ -5844,6 +5859,22 @@ export function choose(g: Game, id: string) {
       g.event = null;
       startCombat(g, tierFor(g, true));
       break;
+    case "exit-continue": {
+      // FINISH_BEACON's Continue: 1/2 OVERRIDE_NEUTRAL_EXIT (1/18 each), 1/2 OVERRIDE_ITEMS (1/14 each), per the game's
+      // event data (hugomg.github.io/ftl-cheatsheet). Lists: filler-events EXIT_NEUTRAL and EXIT_ITEMS.
+      // INFERRED: a row with no card here, or a unique row already on this map, is skipped within its half.
+      const exit = hereBeacon(g);
+      const page = exit ? drawFiller(g, rand(g) < 0.5 ? "exitNeutral" : "exitItems", g.beacons) : null;
+      const card = exit && page ? (stampFiller(exit, page), (exit.kind = "exit"), fillerEvent(g, exit)) : null;
+      g.event = card ?? {
+        title: "Exit beacon",
+        body: "The exit buoy is green. The next sector is already louder.",
+        choices: [{ id: "exit-leave", label: "Take the lane" }],
+      };
+      g.phase = "event";
+      g.paused = true;
+      break;
+    }
     case "exit-leave":
       // Ancient device, Notes: leaving the Hidden Crystal Worlds does not open the sector chart.
       if (g.sectorName === "Hidden Crystal Worlds") {

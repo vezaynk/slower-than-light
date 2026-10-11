@@ -221,7 +221,7 @@ describe("enemy crew AI: fires and repairs", () => {
 });
 
 describe("enemy crew AI: health", () => {
-  it("heals below 25% and stays until 99% (xftl CheckForHealing), and sets bHurtCrew", () => {
+  it("heals below 25% and stays until fully healed (Boarding, Enemy crew AI), and sets bHurtCrew", () => {
     const g = fight();
     const c = foes(g).find((x) => x.room === room(g, "weapons").id)!;
     c.hp = c.maxHp * 0.26;
@@ -236,6 +236,9 @@ describe("enemy crew AI: health", () => {
     tickEnemyCrewAi(g, 1);
     assert.equal(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
     c.hp = c.maxHp * 0.995;
+    tickEnemyCrewAi(g, 1);
+    assert.equal(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
+    c.hp = c.maxHp;
     tickEnemyCrewAi(g, 1);
     assert.notEqual(g.enemy!.crewAi!.task[c.id]?.kind, "heal");
   });

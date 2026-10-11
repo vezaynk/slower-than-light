@@ -350,10 +350,10 @@ function boardingLimit(g: Game, ship: Ship): number {
 }
 
 /**
- * xftl doc/ship-ai, "Crew teleporting": "Sabotage sends half the crew, while invasion sends 3/4 of the crew. Both
- * round down. The number of crew that should stay behind is then calculated from this number." Invasion is "used by
- * the flagship". "in sabotage mode, the crew's minimum health is set to 25% ... for invasion there isn't a minimum
- * health."
+ * xftl doc/ship-ai, "Crew teleporting": "Sabotage sends half the crew ... round down. The number of crew that should
+ * stay behind is then calculated from this number." Its invasion mode ("used by the flagship") sends 3/4 with no
+ * minimum health; the wiki outranks both for the Flagship: it keeps "1 or 2 crewmembers" home, and the wiki's 25%
+ * recall line names no exception.
  * INFERRED: the crew count is the enemy crew aboard their own hull when the plan is first made.
  */
 function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
@@ -363,14 +363,16 @@ function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
   if (b.stay == null) {
     b.invasion = !!ship.flagship;
     const crew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length;
-    b.stay = crew - Math.floor(b.invasion ? (crew * 3) / 4 : crew / 2);
+    // Crew Teleporter, "Enemy Crew Teleporter": the Flagship "will send all its crew except for 1 or 2 crewmembers". The
+    // wiki outranks xftl's 3/4. INFERRED: 1 stays at 3 or fewer crew, 2 at 4 or more.
+    b.stay = b.invasion ? (crew >= 4 ? 2 : 1) : crew - Math.floor(crew / 2);
   }
   return b;
 }
 
-/** xftl doc/ship-ai: the sabotage minimum health (25%), or none for invasion. */
-function recallLine(b: EnemyBoarding): number {
-  return b.invasion ? 0 : RECALL_HP;
+/** Crew Teleporter, "Enemy Crew Teleporter": the 25% recall line, for every boarding party including the Flagship's. */
+function recallLine(_b: EnemyBoarding): number {
+  return RECALL_HP;
 }
 
 /** Room graph walk over interior doors, the same rule sim.ts uses for crew orders. */

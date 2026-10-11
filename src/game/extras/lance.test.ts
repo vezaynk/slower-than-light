@@ -17,6 +17,13 @@ import {
   toggleLancePower,
 } from "./lance.ts";
 
+/** A Federation A hull with its beam taken off, so installLance fits a fresh one. */
+function fedFresh(seed: number): Game {
+  const g = createGame(seed, "fed-a");
+  delete g.player.kits.lance;
+  return g;
+}
+
 function armed(seed: number): Game {
   const g = createGame(seed);
   startCombat(g, "scout");
@@ -44,7 +51,8 @@ describe("lance", () => {
     const room = g.enemy.rooms.find((r) => r.system === "shields");
     assert.ok(room);
     const broken = g.enemy.systems.shields.damage;
-    aimLance(g, room.id);
+    // The swipe cannot be aimed (Artillery Beam, "Overview"): a one-room hull fixes where it lands.
+    g.enemy.rooms = [room];
     log(g, "mark");
     tickLance(g, 0.1);
     assert.ok(g.enemy.hull < hull);
@@ -56,24 +64,26 @@ describe("lance", () => {
     assert.equal(g.log[1], "mark");
   });
 
-  it("cuts from the aimed room to the room farthest from it, one hull point per room", () => {
-    // xftl doc/artillery: a random room, then "a second room that is as far away from the first room as possible".
+  it("cuts from a random room to the room farthest from it, one hull point per room, and ignores an aim", () => {
+    // Artillery Beam, "Overview": the swipe "cannot be controlled". xftl doc/artillery: a random room, then "a second
+    // room that is as far away from the first room as possible".
     const g = armed(2);
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
     const bubble = g.enemy.shieldNow;
-    const room = g.enemy.rooms.find((r) => r.id === "e-weapons");
-    assert.ok(room);
-    const line = cutLine(g.enemy, room.id);
-    assert.equal(line[0], room);
+    aimLance(g, g.enemy.rooms[0].id);
+    assert.equal(g.player.kits.lance?.target, null);
+    const saved = g.seed;
+    const first = g.enemy.rooms[Math.floor(rand(g) * g.enemy.rooms.length)];
+    g.seed = saved;
+    const line = cutLine(g.enemy, first.id);
+    assert.equal(line[0], first);
     const c = (r: (typeof line)[number]) => [r.x + r.w / 2, r.y + r.h / 2];
-    const d = (r: (typeof line)[number]) => Math.hypot(c(r)[0] - c(room)[0], c(r)[1] - c(room)[1]);
+    const d = (r: (typeof line)[number]) => Math.hypot(c(r)[0] - c(first)[0], c(r)[1] - c(first)[1]);
     assert.equal(d(line[line.length - 1]), Math.max(...g.enemy.rooms.map(d)));
-    aimLance(g, room.id);
     tickLance(g, 0.1);
     assert.equal(g.enemy.hull, hull - line.length);
     assert.equal(g.enemy.shieldNow, bubble);
-    assert.equal(g.enemy.systems.weapons.damage, 1);
   });
 
   it("the line takes the rooms it passes through, not the ones beside it", () => {
@@ -102,7 +112,7 @@ describe("lance", () => {
     room.w = 2;
     room.h = 1;
     room.omit = undefined;
-    aimLance(g, room.id);
+    g.enemy.rooms = [room];
     let tiles = 0;
     for (let y = room.y; y < room.y + room.h; y++) {
       for (let x = room.x; x < room.x + room.w; x++) {
@@ -111,6 +121,8 @@ describe("lance", () => {
     }
     assert.equal(tiles, 2);
     const saved = g.seed;
+    // The first draw picks the room (the only one), then one roll per tile.
+    rand(g);
     let fires = 0;
     for (let i = 0; i < tiles; i++) if (rand(g) < 0.1) fires += 1;
     g.seed = saved;
@@ -256,8 +268,12 @@ describe("lance", () => {
     assert.ok(fast.enemy.hull < hull);
   });
 
-  it("mounts for free and records the wiki costs", () => {
-    const g = createGame(7);
+  it("is fitted only on Federation A and B, free, and records the wiki costs", () => {
+    // Artillery Beam, "Overview": pre-installed only on the Federation Cruiser A and B. No purchase price is printed.
+    const lark = createGame(7);
+    assert.equal(installLance(lark), false);
+    assert.equal(lark.player.kits.lance, undefined);
+    const g = fedFresh(7);
     assert.equal(INSTALL_COST, null);
     assert.deepEqual(CHARGE_SECONDS, { 1: 50, 2: 40, 3: 30, 4: 20 });
     assert.deepEqual(UPGRADE_COSTS, { 2: 30, 3: 50, 4: 80 });
@@ -271,7 +287,7 @@ describe("lance", () => {
   });
 
   it("takes one spare reactor bar and gives it back", () => {
-    const g = createGame(8);
+    const g = fedFresh(8);
     assert.equal(installLance(g), true);
     const kit = g.player.kits.lance;
     assert.ok(kit);
@@ -332,7 +348,7 @@ describe("lance", () => {
   });
 
   it("level 4 with four bars charges in 20 seconds and three bars charge in 30", () => {
-    const g = createGame(11);
+    const g = fedFresh(11);
     assert.equal(installLance(g), true);
     const kit = g.player.kits.lance;
     assert.ok(kit);
@@ -359,7 +375,7 @@ describe("lance", () => {
   });
 
   it("damage 1 on a level 3 beam caps power at 2", () => {
-    const g = createGame(12);
+    const g = fedFresh(12);
     assert.equal(installLance(g), true);
     const kit = g.player.kits.lance;
     assert.ok(kit);
@@ -378,7 +394,7 @@ describe("lance", () => {
   });
 
   it("the more control stops at the cap and the less control removes a bar", () => {
-    const g = createGame(13);
+    const g = fedFresh(13);
     assert.equal(installLance(g), true);
     const kit = g.player.kits.lance;
     assert.ok(kit);

@@ -60,13 +60,17 @@ function blankKit() {
   };
 }
 
+/** Artillery Beam, "Overview": the system is pre-installed only on the Federation Cruiser's Type A and Type B. */
+const LANCE_HULLS: ReadonlySet<string> = new Set(["fed-a", "fed-b"]);
+
 /**
- * Mount the cutter. Free when INSTALL_COST is null; otherwise scrap must cover it.
+ * Mount the cutter on a hull that carries it. Template:Purchasable systems prints no price for the Artillery Beam, and
+ * "Overview" names only Federation A and B, so no other hull can fit one (hulls.ts already fits theirs).
  * Artillery Beam "System Upgrades": a fresh kit is level 1, whose cost is "-".
- * MISMATCH: code fits it on any ship. Wiki "Overview" says it is pre-installed only on Federation A and B.
  */
 export function installLance(g: Game): boolean {
   if (g.player.kits.lance) return false;
+  if (!LANCE_HULLS.has(g.hullId ?? "")) return false;
   if (INSTALL_COST != null) {
     if (g.scrap < INSTALL_COST) return false;
     g.scrap -= INSTALL_COST;
@@ -123,14 +127,11 @@ export function toggleLancePower(g: Game): void {
   lowerLancePower(g);
 }
 
-/** MISMATCH: code stores a chosen enemy room. Artillery Beam "Overview" says the beam swipe cannot be controlled. */
-export function aimLance(g: Game, roomId: string): void {
-  const kit = g.player.kits.lance;
-  const enemy = g.enemy;
-  if (!kit || !enemy) return;
-  if (!enemy.rooms.some((r) => r.id === roomId)) return;
-  kit.target = roomId;
-}
+/**
+ * Artillery Beam, "Overview": the beam swipe "cannot be controlled", so a chosen room is ignored. Kept so a caller has
+ * nothing to store. xftl doc/artillery: each shot picks its own random room.
+ */
+export function aimLance(_g: Game, _roomId: string): void {}
 
 /** Geometry for cutLine's INFERRED line: a room's centre in tile units. */
 function centre(room: Room): [number, number] {
@@ -166,7 +167,7 @@ function crosses(room: Room, p0: [number, number], p1: [number, number]): boolea
  * xftl doc/artillery (ArtillerySystem::OnLoop): "For beam weapons, it randomly selects one room and then picks a
  * second room that is as far away from the first room as possible."
  * INFERRED: distance is between room centres, and the beam cuts every room the line between those centres passes
- * through, in order from the first room. The first room is the stored target when the player set one.
+ * through, in order from the first room.
  * INFERRED: a tie for farthest goes to the first such room in ship.rooms order.
  */
 export function cutLine(ship: Ship, origin: string): Room[] {
@@ -258,16 +259,13 @@ export function tickLance(g: Game, dt: number): void {
   // divides cooldown by 1.1, and three raise firing rate by 30%. The unpowered drain stays dt/2.
   if (kit.aux < 1) kit.aux = Math.min(1, kit.aux + (dt * feedRate(g, "player")) / seconds);
   if (kit.aux < 1) return;
-  if (!kit.target) {
-    const rooms = g.enemy.rooms;
-    if (rooms.length === 0) return;
-    const pick = rooms[Math.floor(rand(g) * rooms.length)];
-    kit.target = pick?.id ?? null;
-  }
-  if (!kit.target) return;
+  // xftl doc/artillery: "it randomly selects one room" each shot (the wiki's uncontrolled swipe).
+  const first = g.enemy.rooms[Math.floor(rand(g) * g.enemy.rooms.length)];
+  if (!first) return;
+  kit.target = null;
 
   const enemy = g.enemy;
-  const rooms = cutLine(enemy, kit.target);
+  const rooms = cutLine(enemy, first.id);
   if (rooms.length === 0) return;
 
   // Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total.

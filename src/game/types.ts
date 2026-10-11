@@ -539,7 +539,7 @@ export type EnemyBoarding = {
   home: Record<string, string>;
   /** Crew that stay aboard, fixed when the plan is made (xftl doc/ship-ai, "Crew teleporting"). Absent in old saves. */
   stay?: number;
-  /** xftl doc/ship-ai: invasion mode ("used by the flagship") has no minimum health, so no recall for a hurt boarder. */
+  /** xftl doc/ship-ai: invasion mode ("used by the flagship"). The Flagship keeps 1 or 2 crew home (sling.ts). */
   invasion?: boolean;
 };
 

@@ -198,7 +198,7 @@ export const FLAGSHIP_PARTS = 10;
 
 /**
  * Crew Teleporter, "Enemy Crew Teleporter": "The Rebel Flagship in phase 3 will send all its crew except for 1 or 2
- * crewmembers". sling.ts sends 3/4 of the crew in invasion mode (xftl doc/ship-ai), with no minimum health.
+ * crewmembers". sling.ts keeps those 1 or 2 home.
  * INFERRED: no cap on how many trips it makes (the regular hull's 2-boarding limit does not apply).
  */
 const PHASE3_BOARDINGS = 99;

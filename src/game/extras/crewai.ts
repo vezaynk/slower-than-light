@@ -53,16 +53,16 @@ import { artilleryGun } from "../wiki/flagship-systems.ts";
 export const PLAN_S = 0.5;
 
 /**
- * xftl doc/crew-ai, CheckForHealing: "the crew health is <25% (non-calm ship) or <99% (calm ship)". This AI runs only
- * in a fight, so the ship is never calm. UpdateCrewMember: "If healing, and <99% health, and the medbay isn't hacked,
- * remain in the healing state."
+ * xftl doc/crew-ai, CheckForHealing: "the crew health is <25% (non-calm ship)". This AI runs only in a fight, so the
+ * ship is never calm. Staying: Boarding, "Enemy crew AI": "Once in an active healing room, a hurt AI will not leave for
+ * any reason until it is fully healed." The wiki outranks xftl's 99% (UpdateCrewMember).
  */
 export const HEAL_BELOW = 0.25;
-export const HEAL_UNTIL = 0.99;
+export const HEAL_UNTIL = 1;
 
 /**
- * xftl doc/crew-ai, DangerRating: "If fireCount>0 and health<20%, it's dangerous unless we're immune to fire". Fires,
- * "Fires and enemy AI", words it "at 20% health and below".
+ * Fires, "Fires and enemy AI": "Weakened crew - at 20% health and below - will flee from fires, if not immune." The
+ * wiki outranks xftl's strict "health<20%" (DangerRating).
  */
 export const FIRE_FLEE_AT = 0.2;
 
@@ -502,7 +502,7 @@ function unsafe(g: Game, ship: Ship, c: Crew, r: Room, hackCounts = true): boole
   if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && kinOf(c.kin ?? "plain").suffocate > 0) return true;
   if (r.fire > 0) {
     if (fullFire(r) && r.breach > 0) return true;
-    if (!fireProof(c) && (r.fire >= 4 || c.hp < c.maxHp * FIRE_FLEE_AT)) return true;
+    if (!fireProof(c) && (r.fire >= 4 || c.hp <= c.maxHp * FIRE_FLEE_AT)) return true;
   }
   if (hackCounts && r.system === "medbay" && hackPulseOn(g, ship, "medbay")) return true;
   return false;

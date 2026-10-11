@@ -137,45 +137,57 @@ export const ITEMS: FillerRow[] = [
 ];
 
 /**
- * Category:Exit Beacon Events: every page with alsooccur=exit or exitandfiller, and its unique=. Template:Locations
- * prints that parameter as "Can also occur at an exit beacon", with no sector list (filler adds "in any sector").
+ * Exit beacons (Template:EventList EXIT LIST): "This event list is actually comprised of 2 event lists - NEUTRAL_EXIT and
+ * ITEMS (OVERRIDE_NEUTRAL_EXIT and OVERRIDE_ITEMS - when Advanced Edition Content is enabled)". This game is AE.
+ * Rows are Template:EventList OVERRIDE NEUTRAL EXIT and Template:EventList OVERRIDE ITEMS, Event name (wiki) and Unique?.
  */
-export const EXIT: FillerRow[] = [
-  { dest: "Abandoned station", unique: true },
-  { dest: "Asteroid mining colony", unique: true },
-  { dest: "Auto-ship attacking outpost", unique: true },
-  { dest: "Auto-ship near storage station", unique: true },
-  { dest: "Battlefield wreckage", unique: false },
-  { dest: "Crew hiring station", unique: true },
-  { dest: "Free drone schematic", unique: false },
-  { dest: "Free scrap with resources", unique: false },
-  { dest: "Free weapon", unique: false },
-  { dest: "Improve reactor for supplies", unique: true },
-  { dest: "Intelligent ponies", unique: true },
+export const EXIT_NEUTRAL: FillerRow[] = [
   { dest: "Large asteroid field", unique: true },
-  { dest: "Large trade station", unique: true },
+  { dest: "Auto-ship near storage station", unique: true },
+  { dest: "Auto-ship attacking outpost", unique: true },
+  { dest: "Plagued station", unique: true },
+  { dest: "Intelligent ponies", unique: true },
+  { dest: "Abandoned station", unique: true },
+  { dest: "Slaver (friendly)", unique: true },
+  { dest: "Refueling platform", unique: true },
   { dest: "Pirate briber", unique: true },
   { dest: "Pirate ship attacking civilian", unique: false },
   { dest: "Pirate ship selling drones", unique: true },
-  { dest: "Plagued station", unique: true },
   { dest: "Rebel checkpoint", unique: false },
-  { dest: "Rebel fight chance", unique: false },
   { dest: "Rebel ship supplying civilians", unique: false },
   { dest: "Rebel transport ship", unique: true },
-  { dest: "Refueling platform", unique: true },
-  { dest: "Refueling station", unique: true },
   { dest: "Refugee", unique: false },
+  { dest: "Rebel fight chance", unique: false },
+  { dest: "Trade scrap for upgrades", unique: true },
+  { dest: "Battlefield wreckage", unique: false },
+];
+
+export const EXIT_ITEMS: FillerRow[] = [
+  { dest: "Free drone schematic", unique: false },
+  { dest: "Free weapon", unique: false },
+  { dest: "Free scrap with resources", unique: false },
+  { dest: "Trade fuel for drone parts", unique: false },
+  { dest: "Asteroid mining colony", unique: true },
+  { dest: "Refueling station", unique: true },
   { dest: "Repair station", unique: true },
   { dest: "Sell drone parts for scrap", unique: true },
   { dest: "Sell missiles for scrap", unique: true },
-  { dest: "Slaver (friendly)", unique: true },
-  { dest: "Trade fuel for drone parts", unique: false },
+  { dest: "Large trade station", unique: true },
+  { dest: "Crew hiring station", unique: true },
   { dest: "Trade resources", unique: false },
   { dest: "Trade scrap for upgrades", unique: true },
+  { dest: "Improve reactor for supplies", unique: true },
 ];
 
-export type FillerList = "filler" | "nebula" | "distress" | "items" | "exit";
-const LISTS: Record<FillerList, FillerRow[]> = { filler: FILLER, nebula: NEBULA, distress: DISTRESS, items: ITEMS, exit: EXIT };
+export type FillerList = "filler" | "nebula" | "distress" | "items" | "exitNeutral" | "exitItems";
+const LISTS: Record<FillerList, FillerRow[]> = {
+  filler: FILLER,
+  nebula: NEBULA,
+  distress: DISTRESS,
+  items: ITEMS,
+  exitNeutral: EXIT_NEUTRAL,
+  exitItems: EXIT_ITEMS,
+};
 
 /** "Empty beacon (...)" pages: {{Locations}} sectors and the intro texts. Every one ends "Nothing happens." */
 type EmptyPage = { dest: string; sectors: string[]; texts: string[] };

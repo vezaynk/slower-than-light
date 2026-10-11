@@ -1,3 +1,4 @@
+import type { Game } from "./types.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { upgradeCost } from "./content.ts";
@@ -67,7 +68,9 @@ describe("ship menu upgrades", () => {
     assert.equal(bay.player.kits.cradle?.level, 3);
     assert.equal(bay.scrap, 0);
 
-    const lance = createGame(4);
+    // Artillery Beam, "Overview": only Federation A and B carry it.
+    const lance = createGame(4, "fed-a");
+    delete lance.player.kits.lance;
     assert.equal(installLance(lance), true);
     lance.scrap = 30;
     assert.equal(upgradeLance(lance), true);
@@ -75,7 +78,7 @@ describe("ship menu upgrades", () => {
     assert.equal(upgradeLance(lance), true);
     lance.scrap = 80;
     assert.equal(upgradeLance(lance), true);
-    assert.equal(lance.player.kits.lance?.level, 4);
+    assert.equal((lance.player.kits as Game["player"]["kits"]).lance?.level, 4);
     lance.scrap = 80;
     assert.equal(upgradeLance(lance), false);
 

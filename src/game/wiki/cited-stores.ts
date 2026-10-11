@@ -194,12 +194,20 @@ const SECTION_KINDS: readonly StoreSection[] = ["weapons", "drones", "augments",
 // xftl doc/stores: "any drones section found will be replaced with - in order of preference: weapons, augments, crew, system".
 const DRONE_STAND_INS: readonly StoreSection[] = ["weapons", "augments", "crew", "systems"];
 
+/** Systems and subsystems the ship has installed (main systems, Piloting, Sensors, Doors, and fitted kits). */
+function installedSystems(g: Game): number {
+  const systems = Object.values(g.player.systems).filter((s) => s.level > 0).length;
+  const kits = Object.values(g.player.kits).filter((k) => k && k.level > 0).length;
+  return systems + kits;
+}
+
 /**
  * Store::OnInit (xftl doc/stores, "Section generation"):
  * - "The number of sections is picked randomly between 2..4 inclusive."
- * - System sections: "For AE they're always enabled". This game has the Clone Bay, so it is AE.
- * - "there's a 50% the first section will be a systems section. The other system slots are then picked, avoiding
- *   duplicates." INFERRED: those other slots draw from all five kinds, so a coin-flip miss can still roll systems.
+ * - Stores and resources, "Systems" (the wiki outranks xftl): "If your ship has less than 11 systems+subsystems,
+ *   there is a 50% chance the first store slot will be forced to be systems". xftl: "The other system slots are then
+ *   picked, avoiding duplicates." INFERRED: those other slots draw from all five kinds, so a ship at 11 or more, or a
+ *   coin-flip miss, can still roll systems.
  * - "If you don't have a drones system and the store does not contain a systems section, any drones section found
  *   will be replaced with" the first of weapons, augments, crew, system not already in the store.
  */
@@ -207,7 +215,8 @@ export function storeSections(g: Game): StoreSection[] {
   const roll = storeRoll(g, 0);
   const count = 2 + Math.floor(roll() * 3);
   const out: StoreSection[] = [];
-  if (roll() < 0.5) out.push("systems");
+  const coin = roll() < 0.5;
+  if (coin && installedSystems(g) < 11) out.push("systems");
   while (out.length < count) {
     const pick = SECTION_KINDS[Math.floor(roll() * SECTION_KINDS.length)];
     if (!out.includes(pick)) out.push(pick);
@@ -226,8 +235,9 @@ export function storeSections(g: Game): StoreSection[] {
  *   medical system only when the player "must already have a medical system".
  * - "The store picks how many systems to sell. This is either the number of systems in the randomised list above,
  *   or three - whichever is lower."
- * - Guaranteed first: Drone Control if the store sells drones and the ship lacks it; Shields if missing; "Medbay (or
- *   Clonebay in AE) if you have neither". This game is AE, so that guarantee is the Clone Bay.
+ * - Guaranteed first (Stores and resources, "Systems"): "A drone system is guaranteed if the store also sells drones";
+ *   "Shields are guaranteed if you don't have them"; "A medical system is guaranteed if you don't have one". The wiki
+ *   outranks xftl's "Clonebay in AE". INFERRED: that medical system is the Medbay or the Clone Bay, an even roll.
  * - "The rest are randomly selected systems that you don't have, without any duplicates."
  */
 function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
@@ -242,11 +252,14 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   const picked: Offer[] = [];
   if (drones && !hasSwarm(g)) picked.push(swarmRow);
   if (missingShields(g)) picked.push(SYSTEMS.find((row) => row.ref === "shields")!);
-  if (missingMedical(g)) picked.push(SYSTEMS.find((row) => row.ref === "cradle")!);
+  const roll = storeRoll(g, 1);
+  if (missingMedical(g)) {
+    const ref = roll() < 0.5 ? "medbay" : "cradle";
+    picked.push(SYSTEMS.find((row) => row.ref === ref)!);
+  }
   // The guarantees count toward that total: doc/stores' closing example ("every system except a medbay and two
   // others ... the store will only sell two systems"). INFERRED: when the guarantees alone pass it, the first ones
   // listed above are kept.
-  const roll = storeRoll(g, 1);
   const rest = pool.filter((row) => !picked.includes(row));
   while (picked.length < count && rest.length) picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
   return picked.slice(0, count).map((row) => ({

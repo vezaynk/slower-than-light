@@ -98,7 +98,7 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const s = ship([lock, next, far, shut], [door("lock", "void"), door("lock", "next"), door("next", "far"), door("lock", "shut", false)]);
     assert.deepEqual(
       Object.fromEntries(vacuumExposure(s)),
-      { lock: 1, next: VACUUM_REACH, far: VACUUM_REACH * VACUUM_FALLOFF },
+      { next: VACUUM_REACH, far: VACUUM_REACH * VACUUM_FALLOFF },
     );
     run(s, off(), 0.5);
     assert.ok(lock.o2 < 15, `${lock.o2}`);
@@ -123,6 +123,30 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     assert.ok(avg() < 10, `${avg()}`);
     run(s, off({ o2Bars: 1 }), 12);
     for (const r of s.rooms) assert.ok(r.o2 <= 5, `${r.id} ${r.o2}`);
+  });
+
+  it("a breach pulls on the rooms open to it, in proportion to its size, but never on its own room twice", () => {
+    const drain = (holes: number) => {
+      const a = room("a", 2, 1);
+      const b = room("b", 2, 1);
+      const c = room("c", 2, 1);
+      a.breach = holes;
+      const s = ship([a, b, c], [door("a", "b"), door("b", "c")]);
+      const pull = vacuumExposure(s);
+      assert.equal(pull.has("a"), false);
+      assert.ok(Math.abs((pull.get("b") ?? 0) - (holes * BREACH_C * VACUUM_REACH) / AIRLOCK_C) < 1e-12);
+      run(s, off(), 10);
+      return { b: b.o2, c: c.o2 };
+    };
+    // Without the pull, the doors alone leave the neighbour at about 84% and the next room at about 94% after 10 s.
+    const one = drain(1);
+    assert.ok(one.b < 75 && one.c < 85, JSON.stringify(one));
+    const three = drain(3);
+    assert.ok(three.b < one.b && three.c < one.c, JSON.stringify(three));
+    // A closed door passes none of a breach's pull.
+    const a = room("a", 2, 1);
+    a.breach = 1;
+    assert.equal(vacuumExposure(ship([a, room("b", 2, 1)], [door("a", "b", false)])).size, 0);
   });
 
   it("a closed airlock seals; closed interior doors seep less at each Door System level", () => {

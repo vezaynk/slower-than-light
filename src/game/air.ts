@@ -11,8 +11,8 @@
  * - closed interior doors still seep, less at higher Door System levels.
  * Hull doors (airlocks) seal when closed. An open airlock is a very wide opening (C = 8), so its room empties in about
  * half a second. Space's pull reaches past it through open interior doors: the room one door away has exposure
- * VACUUM_REACH, and each further door keeps VACUUM_FALLOFF of that. Each exposed room vents straight to space at
- * AIRLOCK_C times its exposure (per the user: rooms connected to an open
+ * VACUUM_REACH, and each further door keeps VACUUM_FALLOFF of that. Hull breaches pull the same way, scaled to their
+ * size against an airlock (vacuumExposure). Each exposed room vents straight to space at AIRLOCK_C times its exposure (per the user: rooms connected to an open
  * airlock feel the vacuum, at least partially). A breach, or a Lanius, is a C = 0.16 hole to space.
  * Crew breathe a fixed amount (BREATH_PER_CREW); fires burn FIRE_BURN each. Every hull seeps a little air to space
  * (HULL_LEAK). A powered Oxygen system adds air to every room in proportion to its volume, so every room refills at
@@ -88,32 +88,58 @@ function vent(r: Room, c: number, dt: number) {
 }
 
 /**
- * How exposed each room is to space through open airlocks: 1 for a room with one open, VACUUM_REACH one open
- * interior door beyond it, then VACUUM_FALLOFF of that per further open door, the strongest path winning. Rooms with no open path are left out.
+ * A room's own opening to space, as a share of an open airlock: 1 with an airlock open, else BREACH_C / AIRLOCK_C per
+ * breach or Lanius (a small hole), at most 1.
  */
-export function vacuumExposure(ship: Pick<Ship, "rooms" | "doors">): Map<string, number> {
+function ownOpening(ship: Pick<Ship, "rooms" | "doors">, lanius?: ReadonlyMap<string, number>): Map<string, number> {
   const out = new Map<string, number>();
-  const todo: string[] = [];
-  for (const d of ship.doors) {
-    if (d.b === "void" && d.open && !out.has(d.a)) {
-      out.set(d.a, 1);
-      todo.push(d.a);
-    }
+  for (const r of ship.rooms) {
+    const holes = r.breach + (lanius?.get(r.id) ?? 0);
+    if (holes > 0) out.set(r.id, Math.min(1, (holes * BREACH_C) / AIRLOCK_C));
   }
-  // Exposure only falls along a path, so a breadth-first sweep from the open airlocks finds the strongest one.
+  for (const d of ship.doors) if (d.b === "void" && d.open) out.set(d.a, 1);
+  return out;
+}
+
+/**
+ * How much of space's pull each room feels through open interior doors, from every room open to space: VACUUM_REACH of
+ * a source's opening one door away, then VACUUM_FALLOFF of that per further open door, the strongest path winning.
+ * Per the user, hull breaches pull on their neighbours too, in proportion to their size against an airlock. A room's
+ * own opening is not counted here; stepAir vents that already. Rooms with no pull are left out.
+ */
+export function vacuumExposure(
+  ship: Pick<Ship, "rooms" | "doors">,
+  lanius?: ReadonlyMap<string, number>,
+): Map<string, number> {
+  const own = ownOpening(ship, lanius);
+  const pull = new Map<string, number>();
+  const passed = (id: string) => {
+    const mine = own.get(id) ?? 0;
+    const felt = pull.get(id) ?? 0;
+    return Math.max(mine * VACUUM_REACH, felt * VACUUM_FALLOFF);
+  };
+  // Relax until nothing grows: every hop shrinks the pull, so this ends; ships are a few dozen rooms.
+  const todo = [...own.keys()];
   while (todo.length) {
     const at = todo.shift()!;
-    const here = out.get(at)!;
-    const next = here >= 1 ? VACUUM_REACH : here * VACUUM_FALLOFF;
+    const next = passed(at);
+    if (next <= 0) continue;
     for (const d of ship.doors) {
       if (!d.open || d.b === "void") continue;
       const other = d.a === at ? d.b : d.b === at ? d.a : null;
-      if (other == null || (out.get(other) ?? 0) >= next) continue;
-      out.set(other, next);
+      if (other == null || (pull.get(other) ?? 0) >= next) continue;
+      pull.set(other, next);
       todo.push(other);
     }
   }
-  return out;
+  // A room's own opening is vented already: only pull beyond it counts, so a breach's pull bounced back through a
+  // neighbour adds nothing, and a room with an open airlock gets nothing more.
+  for (const [id, mine] of own) {
+    const extra = (pull.get(id) ?? 0) - mine;
+    if (extra > 0) pull.set(id, extra);
+    else pull.delete(id);
+  }
+  return pull;
 }
 
 /** One tick of air on a hull. Fire starvation and suffocation read the result. */
@@ -140,10 +166,10 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
     const b = byId.get(d.b);
     if (b) exchange(a, b, d.open ? OPEN_DOOR_C : closed, dt);
   }
-  // Rooms open to space directly are already vented by their airlock above; the reach adds to the rooms beyond.
-  for (const [id, exposure] of vacuumExposure(ship)) {
+  // The pull of space from airlocks and breaches elsewhere, on top of each room's own opening (vented above and below).
+  for (const [id, exposure] of vacuumExposure(ship, input.lanius)) {
     const r = byId.get(id);
-    if (r && exposure < 1) vent(r, AIRLOCK_C * exposure, dt);
+    if (r) vent(r, AIRLOCK_C * exposure, dt);
   }
   for (const r of ship.rooms) {
     const holes = r.breach + (input.lanius.get(r.id) ?? 0);

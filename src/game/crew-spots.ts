@@ -349,9 +349,16 @@ export function settleTiles(
     );
     if (!roster.length) continue;
     const idle = roster.filter((c) => c.path.length === 0);
+    const owns = (c: RosterCrew) => {
+      const side = stationSide(c);
+      return side == null || side === aboard;
+    };
+    // Per the user: fighting comes before the terminal. With an enemy standing here, nobody walks between tiles and
+    // nobody heads for the terminal (Systems: "intruders prevent manning" as well).
+    const fight = idle.some((c) => !owns(c));
     for (const c of idle) {
       if (!c.shift || !c.tile || c.tile.room !== room.id) continue;
-      if ((c.stun ?? 0) > 0) continue;
+      if ((c.stun ?? 0) > 0 || fight) continue;
       const span = Math.max(1, Math.hypot(c.tile.x - c.shift.x, c.tile.y - c.shift.y));
       c.shift.t += dt / (Math.max(1e-6, tileSeconds(c)) * span);
       if (c.shift.t >= 1) delete c.shift;
@@ -369,11 +376,7 @@ export function settleTiles(
       }
     }
     const cell = roomConsole(room, hull);
-    if (!cell) continue;
-    const owns = (c: RosterCrew) => {
-      const side = stationSide(c);
-      return side == null || side === aboard;
-    };
+    if (!cell || fight) continue;
     // Someone already holds it, or a crew member walking in has it as their stopping tile.
     const claimed = roster.some((c) => {
       const spot = stands.get(c.id);

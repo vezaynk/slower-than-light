@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { restSpot, roomConsole, shiftPoint } from "./crew-spots.ts";
-import { createGame, manning, orderCrew, step } from "./sim.ts";
+import { createGame, manning, orderCrew, startCombat, step } from "./sim.ts";
 import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -252,6 +252,30 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
       assert.deepEqual({ ...op.tile! }, opBefore);
       assert.equal(staying.shift, undefined);
     }
+  });
+
+  it("fights an intruder before anyone heads for the terminal", () => {
+    const { g, room, cell, op, others } = crowd();
+    startCombat(g, "scout");
+    const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "spark")!;
+    foe.aboard = "player";
+    foe.room = room.id;
+    foe.path = [];
+    foe.move = 0;
+    const foeHp = foe.hp;
+    orderCrew(g, op.id, "p-oxygen");
+    const at = others.map((c) => ({ ...c.tile! }));
+    for (let i = 0; i < 20; i++) {
+      step(g, 0.05);
+      // Nobody leaves their tile for the terminal while the intruder stands here.
+      assert.deepEqual(others.map((c) => ({ ...c.tile! })), at);
+      assert.equal(manning(g, g.player, "player", "shields"), false);
+    }
+    assert.ok(foe.hp < foeHp, "the crew fight the intruder");
+    // With the room clear, the nearest crew member walks over.
+    g.crew = g.crew.filter((c) => c !== foe);
+    step(g, 0.05);
+    assert.ok(others.some((c) => c.tile!.x === cell.x && c.tile!.y === cell.y && c.shift));
   });
 
   it("walks the nearest crew member to an empty terminal, and the system is manned only once they arrive", () => {

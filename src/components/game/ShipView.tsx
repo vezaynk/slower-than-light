@@ -647,7 +647,8 @@ export function ShipView({
             if (!at) return null;
             const faceLeft = at.faceLeft;
             // An in-room walk to a new tile (settleTiles) uses the walking frames too.
-            const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0;
+            // Fighting comes first: a crew member caught mid-shuffle by an intruder fights where they stand.
+            const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0 && !fighting.has(c.id);
             const pose: CrewPose =
               step || shuffling ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
             const frame = step

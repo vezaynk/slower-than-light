@@ -47,11 +47,10 @@ function run(s: Ship, input: AirInputs, seconds: number, dt = 0.05) {
 
 const amount = (s: Ship) => s.rooms.reduce((n, r) => n + r.o2 * volume(r), 0);
 
-/** A room's air after `t` seconds of only the hull leak, which pulls toward space's SPACE_O2. */
-const leak = (o2: number, t: number) => SPACE_O2 + (o2 - SPACE_O2) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * t);
-/** A room's air after `t` seconds through an opening of size `c` to space (air.ts vent). */
-const vented = (o2: number, c: number, v: number, t: number) =>
-  SPACE_O2 + (o2 - SPACE_O2) * Math.exp((-c * t * 100) / ((100 - SPACE_O2) * v));
+/** A room's air after `t` seconds of only the hull leak (a room not drained through an airlock: toward 0%). */
+const leak = (o2: number, t: number) => o2 * Math.exp((-HULL_LEAK / 100) * t);
+/** A room's air after `t` seconds through a hole of size `c` (a breach or Lanius: toward 0%; air.ts vent). */
+const vented = (o2: number, c: number, v: number, t: number) => o2 * Math.exp((-c * t) / v);
 
 describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
   it("a full room pushes 16 tile-%/s into an empty one through an open door, and less as they converge", () => {
@@ -76,9 +75,8 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const s = ship([big, small], [door("big", "small")]);
     const before = amount(s);
     run(s, off(), 60);
-    // Doors move air without losing any; the leak is the same affine pull on every room.
-    const tiles = s.rooms.reduce((n, r) => n + volume(r), 0);
-    assert.ok(Math.abs(amount(s) - (SPACE_O2 * tiles + (before - SPACE_O2 * tiles) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * 60))) < 1e-6);
+    // Doors move air without losing any; the leak takes the same share of every room.
+    assert.ok(Math.abs(amount(s) - before * Math.exp((-HULL_LEAK / 100) * 60)) < 1e-6);
     const even = leak(80, 60);
     assert.ok(Math.abs(big.o2 - even) < 0.1 && Math.abs(small.o2 - even) < 0.1, `${big.o2} ${small.o2}`);
   });
@@ -261,13 +259,19 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     assert.equal(airShown(42), 42);
   });
 
-  it("a deeper deficit takes longer to refill", () => {
-    const refillFrom = (o2: number) => {
-      const r = room("r", 2, 1, o2);
-      let t = 0;
-      for (; r.o2 < 50 && t < 200; t += 0.05) stepAir(ship([r], []), off({ o2Bars: 1 }), 0.05);
-      return t;
-    };
-    assert.ok(refillFrom(-40) > refillFrom(0) + 15, `${refillFrom(-40)} vs ${refillFrom(0)}`);
+  it("only a room drained through an open airlock goes below 0%, and closing it returns the floor to 0%", () => {
+    // Per the user: a vacuum cannot be held while air is pumped in.
+    const lock = room("lock", 2, 1);
+    const next = room("next", 2, 1);
+    const holed = room("holed", 2, 1);
+    holed.breach = 3;
+    const airlock = door("lock", "void");
+    const s = ship([lock, next, holed], [airlock, door("lock", "next")]);
+    run(s, off(), 10);
+    assert.ok(lock.o2 < -20 && next.o2 < 0, `${lock.o2} ${next.o2}`);
+    assert.ok(holed.o2 >= 0, `a breach alone stops at 0%: ${holed.o2}`);
+    airlock.open = false;
+    stepAir(s, off({ o2Bars: 1 }), 0.05);
+    assert.ok(lock.o2 >= 0 && next.o2 >= 0, `${lock.o2} ${next.o2}`);
   });
 });

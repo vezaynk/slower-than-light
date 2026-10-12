@@ -150,7 +150,7 @@ export function Screen({ children }: { children: ReactNode }) {
     window.visualViewport?.addEventListener("resize", update);
     window.visualViewport?.addEventListener("scroll", update);
     const editable = (target: EventTarget | null) =>
-      target instanceof Element && !!target.closest("input, textarea, select");
+      target instanceof Element && !!target.closest("input, textarea, select, .install-url");
     const blockSelect = (event: Event) => {
       if (editable(event.target)) return;
       event.preventDefault();

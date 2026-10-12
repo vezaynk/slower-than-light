@@ -5104,3 +5104,75 @@ button.modal-x.modal-x:focus-visible {
   background: var(--color-danger);
   border-color: #ff8a7a;
 }
+
+/* Per the user: the title screen's install guide (InstallGuide.tsx). INVENTED look; sized for the 720-high screen. */
+.title-install {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 3;
+  padding: 8px 14px;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  background: var(--color-panel);
+  border: 2px solid var(--color-line);
+}
+
+.install-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.install-card {
+  width: min(860px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  text-align: left;
+  font-family: var(--font-hud);
+}
+
+.install-card h2 { font-size: 36px; font-weight: 400; letter-spacing: 0.06em; margin: 0; }
+.install-card h3 { font-size: 26px; font-weight: 400; letter-spacing: 0.05em; margin: 0 0 6px; color: var(--color-accent); }
+.install-card p,
+.install-card li { font-size: 24px; letter-spacing: 0.03em; line-height: 1.35; margin: 0; }
+.install-card ol { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.install-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.install-icon { display: inline-block; width: 22px; height: 22px; vertical-align: -4px; }
+
+.install-url {
+  padding: 8px 10px;
+  border: 2px solid var(--color-line-dim);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  word-break: break-all;
+  user-select: text;
+}
+
+.install-card .install-now,
+.install-card .install-close {
+  align-self: flex-start;
+  padding: 6px 16px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  color: var(--color-fg);
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line);
+}
+
+.install-card .install-now { border-color: var(--color-ok); color: var(--color-ok); margin-bottom: 4px; }

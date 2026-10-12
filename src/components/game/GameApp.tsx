@@ -18,6 +18,7 @@ import { beamTileLength } from "@/game/wiki/weapons-beam";
 import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
 import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFlakPower, upgradeFlak } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
+import { InstallButton } from "./InstallGuide";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
@@ -2325,6 +2326,7 @@ function TitleScreen() {
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
     <section className="title-shot">
+      <InstallButton className="title-install" />
       <div
         className="title-frame"
         onClick={() => {

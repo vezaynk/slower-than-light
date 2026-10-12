@@ -3,18 +3,16 @@ import { describe, it } from "node:test";
 import { onPlayerJump } from "./extras/index.ts";
 import { createGame, startCombat, step } from "./sim.ts";
 
-// Per the user: weapons charge out of a fight too, start at zero after a jump, and the Weapon Pre-Igniter primes them
+// Per the user: weapons do not charge out of a fight, start at zero after a jump, and the Weapon Pre-Igniter primes them
 // (Augmentations, Weapon Pre-Igniter: "Weapons are made immediately available after an FTL jump").
 describe("weapons out of a fight", () => {
-  it("charge on the map, hold one finished shot, and fire nothing", () => {
+  it("do not charge on the map after a battle, and keep what they had", () => {
     const g = createGame(3, "kestrel-a");
     g.phase = "map";
     const w = g.player.weapons[0]!;
-    w.charge = 0;
-    for (let i = 0; i < 40; i++) step(g, 0.05);
-    assert.ok(w.charge > 0 && w.charge < 1, `${w.charge}`);
-    for (let i = 0; i < 600; i++) step(g, 0.05);
-    assert.equal(w.charge, 1);
+    w.charge = 0.4;
+    for (let i = 0; i < 200; i++) step(g, 0.05);
+    assert.equal(w.charge, 0.4);
     assert.equal(g.shots.length, 0);
   });
 

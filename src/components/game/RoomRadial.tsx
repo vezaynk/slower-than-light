@@ -151,7 +151,7 @@ export function RoomRadial({
                 >
                   {(() => {
                     const look = lookOf(c);
-                    return <CrewFace crew={c} pose={look.pose} frame={look.frame} cycle={look.cycle} />;
+                    return <CrewFace crew={c} pose={look.pose} frame={look.frame} cycle={look.cycle} loopAll />;
                   })()}
                   <span className="crew-hp" aria-hidden="true">
                     <b style={{ width: `${hp}%` }} />

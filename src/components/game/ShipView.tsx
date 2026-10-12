@@ -252,8 +252,11 @@ type Props = {
   markDest?: boolean;
   /** Room radial menu open (true) or closed (false). The game holds its clock meanwhile (Game.menuHold). */
   onMenuHold?: (on: boolean) => void;
-  /** Room radial menu: a power control for this room's system, drawn beside the ring. Null for none. */
-  roomPower?: (roomId: string) => ReactNode;
+  /**
+   * Room radial menu: the panel beside the ring (power and the system's actions). Null when the room has neither, so
+   * no empty panel is drawn. `close` shuts the menu, for an action that goes on to aim at the enemy ship.
+   */
+  roomPower?: (roomId: string, close: () => void) => ReactNode;
   /** Player door bars. Absent leaves the bars as decoration. */
   onDoor?: (a: string, b: string) => void;
   doorsDead?: boolean;
@@ -406,6 +409,11 @@ export function ShipView({
       ref={hullRef}
       className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}${ship.hull <= 0 ? " is-gone" : ""}`}
       data-ship={aboard}
+      onPointerDownCapture={() => {
+        // A touch drag ends without a click, so the swallow set on its release must not outlive it: a new press means
+        // that click is not coming (bug: the tap after a drifted long hold was ignored).
+        swallowClick.current = false;
+      }}
       onPointerDown={(e) => {
         if (e.button !== 0 || !onDragCrew) return;
         const t = e.target as Element | null;
@@ -803,7 +811,7 @@ export function ShipView({
           doors={radialDoors(radialRoom.id)}
           crew={radialCrew(radialRoom.id)}
           lookOf={lookOf}
-          power={roomPower?.(radialRoom.id) ?? null}
+          power={roomPower?.(radialRoom.id, closeRadial) ?? null}
           picked={picked}
           doorsDead={doorsDead}
           onDoor={onDoor}

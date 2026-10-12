@@ -35,15 +35,15 @@
 
 /* Idle and terminal cycle in CSS so they keep moving while the map is not ticking.
    Fight stays on the swing prop, so a pause freezes the punch on the frame that matches the hit. */
-.crew-walkers .crew-sprite.is-cycle {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle {
   --pose-dur: 1.6s;
 }
 
-.crew-walkers .crew-sprite.is-cycle.is-work {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle.is-work {
   --pose-dur: 0.72s;
 }
 
-.crew-walkers .crew-sprite.is-cycle .crew-frame {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame {
   opacity: 0;
   animation-duration: var(--pose-dur);
   animation-timing-function: linear;
@@ -51,22 +51,27 @@
   animation-delay: calc(var(--pose-phase, 0) * var(--pose-dur) / -4);
 }
 
-.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f0 {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame.is-f0 {
   opacity: 1;
   animation-name: crew-f0;
 }
 
-.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f1 {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame.is-f1 {
   animation-name: crew-f1;
 }
 
-.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f2 {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame.is-f2 {
   animation-name: crew-f2;
 }
 
-.crew-walkers .crew-sprite.is-cycle .crew-frame.is-f3 {
+:is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame.is-f3 {
   animation-name: crew-f3;
 }
+
+/* Per the user: the radial menu's crew preview keeps animating while the game is paused (the pause rule below is
+   scoped to the hull). Walk and fight loop on the same clock there. INVENTED durations. */
+.radial-mate .crew-sprite.is-cycle.is-walk { --pose-dur: 0.5s; }
+.radial-mate .crew-sprite.is-cycle.is-fight { --pose-dur: 0.56s; }
 
 @keyframes crew-f0 {
   0%,
@@ -133,12 +138,12 @@
     animation: none;
   }
 
-  .crew-walkers .crew-sprite.is-cycle .crew-frame {
+  :is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame {
     animation: none;
     opacity: 0;
   }
 
-  .crew-walkers .crew-sprite.is-cycle .crew-frame.is-f0 {
+  :is(.crew-walkers, .radial-mate) .crew-sprite.is-cycle .crew-frame.is-f0 {
     opacity: 1;
   }
 }

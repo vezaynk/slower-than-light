@@ -80,6 +80,7 @@ import {
   powerMask,
   powerUp,
   kitPowerUp,
+  kitBars,
   kitPowerDown,
   setKitBars,
   type BarKit,
@@ -931,7 +932,7 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         onCrew={(id, shift) => act((g) => selectCrew(g, id, shift ? "toggle" : "replace"))}
         onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
         onMenuHold={setMenuHold}
-        roomPower={(id) => <RadialPower game={game} roomId={id} />}
+        roomPower={(id, close) => radialPanel(game, id, close)}
         onDoor={(a, b) => act((g) => toggleDoor(g, a, b))}
         aims={aimMarks(game)}
         droneHp={roomDroneHp(game.player, game)}
@@ -1787,10 +1788,42 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
           );
         })}
       </div>
-      <span className="sys-orb" title={SYS_LABEL[id]}>
-        <PixelIcon name={id} size={16} />
-      </span>
+      <PowerOrb
+        icon={id}
+        label={SYS_LABEL[id]}
+        onUp={() => act((g) => powerUp(g, id))}
+        onDown={() => act((g) => powerDown(g, id))}
+      />
     </div>
+  );
+}
+
+/**
+ * Per the user: the system icon under a power column adds a bar on a left click and removes one on a right click (a
+ * long press on touch). Systems, "Powering and upgrading systems": "To power a main system, left click on it in the
+ * system bar. To unpower it, right click."
+ */
+function PowerOrb({ icon, label, onUp, onDown }: { icon: IconName; label: string; onUp: () => void; onDown: () => void }) {
+  return (
+    <button
+      type="button"
+      className="sys-orb"
+      title={label}
+      aria-label={`${label}: add power (right-click removes)`}
+      onPointerDown={(e) => armHold(e, onDown)}
+      onClick={(e) => {
+        if (swallowHoldClick(e)) return;
+        onUp();
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (holdTookContext(e.currentTarget)) return;
+        onDown();
+      }}
+    >
+      <PixelIcon name={icon} size={16} />
+    </button>
   );
 }
 
@@ -1808,7 +1841,7 @@ function setMenuHold(on: boolean) {
  */
 function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   const room = game.player.rooms.find((r) => r.id === roomId);
-  if (!room) return null;
+  if (!room || !hasRadialPower(game, roomId)) return null;
   const spare = (
     <span className="spare-pip radial-spare" title="Reactor bars not assigned">
       <DigitSlot value={sparePower(game.player)} sample={29} />
@@ -1916,11 +1949,84 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
           );
         })}
       </div>
-      <span className="sys-orb" title={KIT_LABEL[id]}>
-        <PixelIcon name={id} size={16} />
-      </span>
+      <PowerOrb
+        icon={id}
+        label={KIT_LABEL[id]}
+        onUp={() => act((g) => kitPowerUp(g, id))}
+        onDown={() => act((g) => kitPowerDown(g, id))}
+      />
     </div>
   );
+}
+
+/** True when the room's system has a power control in the radial panel (RadialPower). */
+function hasRadialPower(game: Game, roomId: string): boolean {
+  const room = game.player.rooms.find((r) => r.id === roomId);
+  if (!room) return false;
+  if (room.system && MAIN_BARS.includes(room.system)) return true;
+  return (room.kit === "veil" || room.kit === "sling" || room.kit === "leash") && !!game.player.kits[room.kit];
+}
+
+/**
+ * Per the user: the radial panel beside the ring, holding the room's power control and the buttons that run its system
+ * (the same actions as the dock). Null when the room has neither, so no empty panel is drawn.
+ */
+function radialPanel(game: Game, roomId: string, close: () => void): ReactNode {
+  const power = hasRadialPower(game, roomId);
+  const actions = radialActions(game, roomId, close);
+  if (!power && !actions) return null;
+  return (
+    <>
+      {power ? <RadialPower game={game} roomId={roomId} /> : null}
+      {actions}
+    </>
+  );
+}
+
+/**
+ * The system's own operations, as on the dock: Door System open and close all (two-step), Cloaking, the Backup Battery,
+ * the Teleporter (send, or recall crew already aboard), Mind Control and Hacking. Send, Mind Control and Hacking go on
+ * to aim at the enemy ship, so they close the menu first. Labels INVENTED.
+ */
+function radialActions(game: Game, roomId: string, close: () => void): ReactNode {
+  const room = game.player.rooms.find((r) => r.id === roomId);
+  if (!room) return null;
+  const buttons: ReactNode[] = [];
+  const add = (key: string, label: string, icon: ReactNode, run: () => void, disabled = false) =>
+    buttons.push(
+      <button key={key} type="button" className="radial-act" disabled={disabled} onClick={run}>
+        {icon}
+        <span>{label}</span>
+      </button>,
+    );
+  if (room.system === "doors") {
+    add("open", "Open all", <DoorAllIcon open />, () => act((g) => openAllDoors(g)), playerDoorsLocked(game));
+    add("close", "Close all", <DoorAllIcon />, () => act((g) => closeAllDoors(g)), playerDoorsLocked(game));
+  }
+  const kitId = room.kit;
+  const kit = kitId ? game.player.kits[kitId] : undefined;
+  if (kitId && kit) {
+    const icon = <PixelIcon name={kitId} size={14} />;
+    const idle = !kit.on && kit.cool <= 0;
+    if (kitId === "veil") add("veil", kit.on ? "Cloaked" : "Cloak", icon, () => act((g) => startVeil(g)), !idle || kitBars(kit) < 1);
+    if (kitId === "cell") add("cell", kit.on ? "Boosting" : "Boost", icon, () => act((g) => startCell(g)), !idle);
+    if (kitId === "sling") {
+      const away = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+      add("sling", away ? "Recall" : "Send", icon, () => {
+        if (!away) close();
+        slingIconClick();
+      }, kit.cool > 0 || kitBars(kit) < 1 || (!away && !game.enemy));
+    }
+    if (kitId === "leash") add("leash", "Mind control", icon, () => {
+      close();
+      leashIconClick();
+    }, !idle || kitBars(kit) < 1 || !game.enemy);
+    if (kitId === "spike") add("spike", "Hack", icon, () => {
+      close();
+      hackIconClick();
+    }, !playerHackView(game) || !game.enemy);
+  }
+  return buttons.length ? <div className="radial-acts">{buttons}</div> : null;
 }
 
 /** Per the user: + and - beside the radial power bar step it one bar at a time. */
@@ -1953,6 +2059,8 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
   };
   return {
     onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
+      // A touch drag ends without a click; a new press means the swallow from the last drag is stale.
+      swallowNextClick.current = false;
       if (e.button !== 0) return;
       ref.current = { y: e.clientY, moving: false, last: -1 };
     },

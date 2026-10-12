@@ -5127,3 +5127,23 @@ button.modal-x.modal-x:focus-visible {
 
 /* Power columns take a vertical drag (usePowerDrag), so the page must not claim the gesture. */
 .power-col { touch-action: none; }
+
+/* Radial panel: the system's own actions (radialActions), under the power control. INVENTED look. */
+.radial-acts { display: flex; flex-direction: column; gap: 6px; align-self: stretch; }
+.radial-power .radial-act {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 2px 8px;
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line);
+  color: var(--color-fg);
+  font-family: var(--font-hud);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.radial-power .radial-act:disabled { opacity: 0.45; cursor: default; }
+.radial-power .radial-act svg { flex: none; }

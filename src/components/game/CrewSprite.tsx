@@ -182,6 +182,7 @@ export function CrewSprite({
   pose = "idle",
   frame = 0,
   cycle = false,
+  loopAll = false,
   phase = 0,
 }: {
   kin: KinId | undefined;
@@ -192,11 +193,13 @@ export function CrewSprite({
   frame?: number;
   /** Idle and terminal play all four frames on a CSS clock. Walk and fight stay on `frame`. */
   cycle?: boolean;
+  /** Every pose plays its four frames on the CSS clock, walk and fight too (the radial menu preview). */
+  loopAll?: boolean;
   phase?: number;
 }) {
   const id = kin ?? "plain";
   const skin = KIN_SKIN[id];
-  const looping = cycle && (pose === "idle" || pose === "work");
+  const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
   const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
   const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""].filter(Boolean).join(" ");
   return (
@@ -236,6 +239,7 @@ export function CrewFace({
   pose = "idle",
   frame = 0,
   cycle = false,
+  loopAll = false,
 }: {
   crew: Crew;
   size?: number;
@@ -243,6 +247,7 @@ export function CrewFace({
   pose?: CrewPose;
   frame?: number;
   cycle?: boolean;
+  loopAll?: boolean;
 }) {
   return (
     <CrewSprite
@@ -253,6 +258,7 @@ export function CrewFace({
       pose={pose}
       frame={frame}
       cycle={cycle}
+      loopAll={loopAll}
       phase={posePhase(crew.id)}
     />
   );

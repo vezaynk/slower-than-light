@@ -8,6 +8,12 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
  */
 const LONG_MS = 400;
 const MOVE_PX = 8;
+/**
+ * The click a finished hold's release produces arrives right after pointerup. Only a click inside this window is
+ * swallowed: when the release lands elsewhere (the radial menu opened under the finger, or the finger slid off), no
+ * click reaches this element, and a stale record used to eat the next real tap (bug reported by the user). INVENTED.
+ */
+const RELEASE_MS = 500;
 
 type Rec = {
   t: number;
@@ -16,6 +22,8 @@ type Rec = {
   pid: number;
   fired: boolean;
   done: boolean;
+  /** When the pointer came up after the hold fired. */
+  upAt?: number;
   cleanup: () => void;
 };
 
@@ -58,7 +66,14 @@ export function armHold(e: ReactPointerEvent<Element>, onLong: () => void, opts?
     if (ev.pointerId !== rec.pid) return;
     window.clearTimeout(rec.t);
     rec.cleanup();
-    if (!rec.fired) holds.delete(target);
+    if (!rec.fired) {
+      holds.delete(target);
+      return;
+    }
+    rec.upAt = performance.now();
+    window.setTimeout(() => {
+      if (holds.get(target) === rec) holds.delete(target);
+    }, RELEASE_MS);
   };
   rec.cleanup = () => {
     window.removeEventListener("pointermove", onMove);
@@ -94,6 +109,7 @@ export function swallowHoldClick(e: ReactMouseEvent<Element>) {
   if (!rec) return false;
   holds.delete(e.currentTarget);
   if (!rec.fired) return false;
+  if (rec.upAt != null && performance.now() - rec.upAt > RELEASE_MS) return false;
   e.preventDefault();
   e.stopPropagation();
   return true;

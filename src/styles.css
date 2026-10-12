@@ -5863,3 +5863,17 @@ body.page-turn-180 {
    it anyway), and the map gets its own layer. */
 .stage-slot > .beacon-map { isolation: isolate; transform: translateZ(0); }
 .stage-slot:has(> .beacon-map) .room-terminal { visibility: hidden; }
+
+/* Per the user: the expanded Credits panel (licence notice, about, developer). Scrolls inside the title screen. */
+.title-panel.credits-panel {
+  width: min(560px, 62%);
+  max-height: 84%;
+  display: flex;
+  flex-direction: column;
+}
+.credits-body { overflow: auto; min-height: 0; padding-right: 6px; overscroll-behavior: contain; }
+.credits-body section { margin: 8px 0 12px; }
+.credits-body h3 { margin: 0 0 4px; font-size: 18px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent); }
+.credits-body p { margin: 0 0 6px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; line-height: 1.5; color: var(--color-fg); }
+.credits-body a { color: var(--color-ok); }
+.credits-version { font-size: 16px; color: var(--color-muted); }

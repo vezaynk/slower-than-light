@@ -2764,13 +2764,56 @@ function TitleScreen() {
   );
 }
 
+/**
+ * Per the user: credits that meet CC BY-SA 3.0 for the wiki material (attribution, licence, changes noted, the adapted
+ * text shared alike), say how the project was made, and credit its developer.
+ */
+const WIKI_URL = "https://ftl.fandom.com/wiki/FTL:_Faster_Than_Light_Wiki";
+const CC_BY_SA_URL = "https://creativecommons.org/licenses/by-sa/3.0/";
+const SOURCE_URL = "https://github.com/vezaynk/slower-than-light";
+const AUTHOR_URL = "https://knyazev.io/ftl";
+
 function TitlePanel({ onClose }: { onClose: () => void }) {
+  const link = (href: string, text: string) => (
+    <a href={href} target="_blank" rel="noreferrer">
+      {text}
+    </a>
+  );
   return (
-    <div className="title-panel has-x" onClick={(e) => e.stopPropagation()}>
+    <div className="title-panel credits-panel has-x" onClick={(e) => e.stopPropagation()}>
       <CloseX onClose={onClose} />
       <p>CREDITS</p>
-      <p className="title-panel-body">STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games.</p>
-      <p>v. 0.1</p>
+      <div className="credits-body">
+        <section>
+          <h3>Development</h3>
+          <p>Slava Knyazev ({link(AUTHOR_URL, "knyazev.io/ftl")})</p>
+        </section>
+        <section>
+          <h3>About</h3>
+          <p>
+            STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated
+            with or endorsed by Subset Games.
+          </p>
+          <p>
+            It is a clean-room implementation: the game was written from scratch from publicly available documentation of
+            how FTL plays. It contains no code, art, music or sound from FTL.
+          </p>
+        </section>
+        <section>
+          <h3>FTL Wiki (CC BY-SA 3.0)</h3>
+          <p>
+            Game rules, numbers and event text are adapted from the {link(WIKI_URL, "FTL: Faster Than Light Wiki")} on
+            Fandom, by its contributors (see each page's history), used under the{" "}
+            {link(CC_BY_SA_URL, "Creative Commons Attribution-ShareAlike 3.0")} licence. The material was changed:
+            condensed, reworded in places and turned into game logic.
+          </p>
+          <p>
+            That adapted material is shared under the same licence, CC BY-SA 3.0, and is available without restriction in
+            the project's source repository ({link(SOURCE_URL, "github.com/vezaynk/slower-than-light")}).
+          </p>
+        </section>
+      </div>
+      <p className="credits-version">v. 0.1</p>
     </div>
   );
 }

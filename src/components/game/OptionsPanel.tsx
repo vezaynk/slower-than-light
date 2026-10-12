@@ -4,7 +4,7 @@
  * INVENTED layout, on the ship sheet's tab styles.
  */
 import { tx } from "@/i18n";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/settings";
 import { saveGame } from "@/game/sim";
 import { useGame } from "@/game/store";
@@ -105,13 +105,7 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
   const landscapeOk = canForceLandscape();
   const s = useSettings();
   const set = <K extends keyof Settings>(key: K) => (value: Settings[K]) => setSetting(key, value);
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [onClose]);
+  // Esc closes it through CloseX (every panel with an × answers Esc).
   return (
     <div className="overlay options-overlay" onClick={(e) => e.stopPropagation()}>
       <article className="sheet ftl-sheet ship-sheet options-sheet has-x" aria-label={tx("ui.OptionsPanel.options")}>

@@ -11,6 +11,8 @@
  */
 import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
+import { halted } from "@/game/sim";
+import { animSpeed } from "./speed";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
 import { roomInterior } from "@/game/extras/slug-sight";
@@ -240,7 +242,8 @@ export function CombatFx() {
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      const dt = Math.min(0.05, (now - last) / 1000);
+      // Per the user: fast forward speeds the effects up too (speed.ts).
+      const dt = Math.min(0.05, (now - last) / 1000) * animSpeed();
       last = now;
       const g = useGame.getState().game;
 
@@ -294,7 +297,7 @@ export function CombatFx() {
 
       // Effects play out whenever the game runs, not only in a fight: when a fight ends, the last MISS / SHIELD /
       // damage numbers, rings and sparks still fade instead of freezing on screen. A pause still holds them.
-      const live = !g.paused && !g.menuHold;
+      const live = !halted(g);
       const time = now / 1000;
 
       // Drones on station. Positions feed the drone shots below.

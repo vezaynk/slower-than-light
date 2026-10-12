@@ -20,13 +20,13 @@ describe("the ship outside a fight (per the user)", () => {
   it("pauses on the map, and a pause holds the ship's clock", () => {
     const g = map();
     togglePause(g);
-    assert.equal(g.paused, true);
+    assert.equal(g.userPaused, true);
     const room = g.player.rooms[0]!;
     room.o2 = 50;
     run(g, 1);
     assert.equal(room.o2, 50);
     togglePause(g);
-    assert.equal(g.paused, false);
+    assert.equal(g.userPaused, false);
     run(g, 1);
     assert.ok(room.o2 > 50);
   });

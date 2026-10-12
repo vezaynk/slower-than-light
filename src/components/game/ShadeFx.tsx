@@ -5,6 +5,8 @@
  */
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
+import { halted } from "@/game/sim";
+import { animSpeed } from "./speed";
 import type { Ship } from "@/game/types";
 import { pageRect } from "./turn";
 
@@ -125,7 +127,8 @@ export function ShadeFx() {
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      const dt = Math.min(0.05, (now - last) / 1000);
+      // Per the user: fast forward speeds the effects up too (speed.ts).
+      const dt = Math.min(0.05, (now - last) / 1000) * animSpeed();
       last = now;
       const g = useGame.getState().game;
 
@@ -367,7 +370,7 @@ export function ShadeFx() {
       // A combat pause holds the picture. Leaving combat (hull loss sets paused) still plays the blast: the enemy's
       // break-up pieces always run, so the explosion plays out before the reward or victory card (per the user; the
       // card waits on useEnemyWreck).
-      const hold = g.paused || !!g.menuHold;
+      const hold = halted(g);
       const step = hold ? 0 : dt;
 
       for (let i = chunks.length - 1; i >= 0; i--) {

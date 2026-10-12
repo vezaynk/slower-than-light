@@ -154,6 +154,8 @@ export function interruptLeash(g: Game, kit: Kit) {
 
 function clearCrew(c: Crew) {
   dropBoost(c);
+  // INFERRED: the intruder room picked while held (sim.ts wanderIntruders) is dropped with the hold.
+  delete c.intrude;
   c.leashed = 0;
   delete c.leashed;
 }
@@ -592,8 +594,13 @@ function pathTo(ship: Ship, from: string, goal: (room: string) => boolean): stri
  * Mind Control wiki, "Overview": "Like with drones, you can't give them orders, rather they are under the AI
  * control." INFERRED: the enemy's AI walks a held player crew member to the nearest room holding a crew member of
  * its own (now hostile) side on the same hull. Walking uses sim moveCrew; held crew pass doors freely (sim.ts).
+ * Per the user ("Mind controlled enemies should behave the same as boarding enemies"), and Mind Control, "Overview":
+ * "They will be treated as an intruder by the enemy crew". A held crew member aboard its own (player) ship is an
+ * intruder there, so sim.ts wanderIntruders runs it with the boarders' room choice and this hunt is skipped. The hunt
+ * is left only for a player boarder held aboard the enemy ship, where it defends rather than intrudes.
  */
 function huntFor(g: Game, c: Crew) {
+  if (c.aboard === c.side) return;
   // Oxygen, Overview: mind-controlled crew leave O2-deprived rooms before they hunt.
   if (leaveDeprivedAir(g, c)) return;
   if (c.path.length > 0 || c.hp <= 0) return;

@@ -4443,20 +4443,22 @@ export function leaveDeprivedAir(g: Game, c: Crew): boolean {
  * - System mode ("used as standard"): "a 20 point penalty is applied if there isn't a system to attack, it's broken".
  * INFERRED: "current player's room" is the boarder's own room, which counts as adjacent; a room "can fight" crew are
  * all boarders here; a broken system is damage at its level, subsystem kits included.
+ * Mind Control, "Overview": a controlled crew member "will be treated as an intruder by the enemy crew" and is "under
+ * the AI control", so the same scoring runs on whichever hull `c` stands on (c.aboard), not only the player's.
  */
 export function intruderRoomPriority(g: Game, c: Crew, r: Room, boarders: number): number {
-  const ship = g.player;
+  const ship = crewHull(g, c.aboard) ?? g.player;
   const doors = ship.systems.doors;
   const doorsDead = doors.level > 0 && (doors.damage >= doors.level || doors.ion.length > 0);
   let p = 0;
   if (!doorsDead && r.id === c.room) {
-    const foes = g.crew.some((o) => o.hp > 0 && o.aboard === "player" && o.room === r.id && sideOf(o) !== sideOf(c));
+    const foes = g.crew.some((o) => o.hp > 0 && o.aboard === c.aboard && o.room === r.id && sideOf(o) !== sideOf(c));
     if (foes) p -= 10;
   }
   const kin = kinOf(c.kin ?? "plain");
   if (r.fire > 0 && kin.fireTaken > 0) p += 100;
   if (r.o2 < 10 && kin.suffocate > 0) p += 70;
-  if (roomCapacity(r, "player", interiorLinks(ship.doors, r.id)) !== boarders) p += 5;
+  if (roomCapacity(r, c.aboard, interiorLinks(ship.doors, r.id)) !== boarders) p += 5;
   const adjacent = r.id === c.room || ship.doors.some((d) => (d.a === c.room && d.b === r.id) || (d.b === c.room && d.a === r.id));
   if (!adjacent) p += 10;
   const sys = r.system ? ship.systems[r.system] : r.kit ? ship.kits[r.kit] : undefined;
@@ -4470,7 +4472,8 @@ export function intruderRoomPriority(g: Game, c: Crew, r: Room, boarders: number
  * one at random", and "the current task is kept if another task has the same priority".
  */
 function choosePriorityRoom(g: Game, c: Crew, assigned: string | undefined, boarders: number): string | undefined {
-  const ship = g.player;
+  // Mind Control, "Overview" ("treated as an intruder"): the hull is the one `c` stands on (see intruderRoomPriority).
+  const ship = crewHull(g, c.aboard) ?? g.player;
   const reach = new Set(bfsReach(ship, c.room));
   const held = assigned ? roomById(ship, assigned) : undefined;
   let best = held ? intruderRoomPriority(g, c, held, boarders) : Infinity;
@@ -4478,7 +4481,7 @@ function choosePriorityRoom(g: Game, c: Crew, assigned: string | undefined, boar
   let keep = !!held;
   for (const r of ship.rooms) {
     if (r.id === assigned || !reach.has(r.id) || coated(ship, r.id)) continue;
-    if (r.id !== c.room && !mayStand(r, g.crew, c.id, r.id, c.aboard, "player", interiorLinks(ship.doors, r.id))) continue;
+    if (r.id !== c.room && !mayStand(r, g.crew, c.id, r.id, c.aboard, c.aboard, interiorLinks(ship.doors, r.id))) continue;
     const p = intruderRoomPriority(g, c, r, boarders);
     if (p < best) {
       best = p;
@@ -4516,11 +4519,33 @@ function bfsReach(ship: Ship, from: string): string[] {
  * new walk cannot start out of a coated room.
  */
 function wanderBoarders(g: Game, _dt: number) {
-  const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0 && sideOf(c) === "enemy");
+  wanderIntruders(g, "player");
+  wanderIntruders(g, "enemy");
+}
+
+/**
+ * AI-run intruders on hull `aboard`: crew there whose effective side (leash.ts sideOf) is not the hull's owner, minus
+ * the player's own boarders, who take orders. That is enemy boarders on the player ship, plus crew mind-controlled on
+ * their own ship: an enemy the player holds aboard the enemy, a player crew member the enemy holds aboard the player.
+ * Per the user: "Mind controlled enemies should behave the same as boarding enemies. For example, after they destroy a
+ * system, they should move on to their next target." Mind Control, "Overview": "They will be treated as an intruder
+ * by the enemy crew" and "you can't give them orders, rather they are under the AI control". INFERRED: that AI is
+ * the boarders' UpdateIntruders below; a held crew member and the boarders on one hull form one commanded group.
+ */
+function wanderIntruders(g: Game, aboard: "player" | "enemy") {
+  const ship = crewHull(g, aboard);
+  if (!ship) return;
+  const boarders = g.crew.filter(
+    (c) =>
+      c.aboard === aboard &&
+      c.hp > 0 &&
+      sideOf(c) !== aboard &&
+      !(c.side === "player" && sideOf(c) === "player"),
+  );
   let commanded: string | undefined;
   for (const c of boarders) {
     if (leaveDeprivedAir(g, c)) continue;
-    if (coated(g.player, c.room)) continue;
+    if (coated(ship, c.room)) continue;
     // Boarding, "Enemy crew AI": "if the AI has decided to move somewhere, then it will often not change its mind until
     // it gets there". A walk in progress finishes first; its end still leads the boarders after it.
     if (c.path.length) {
@@ -4533,7 +4558,7 @@ function wanderBoarders(g: Game, _dt: number) {
     commanded = room;
     if (!room) continue;
     if (room === c.room) continue;
-    const path = bfs(g.player, c.room, room);
+    const path = bfs(ship, c.room, room);
     if (path && path.length) {
       c.path = path;
       c.move = 0;
@@ -6833,18 +6858,20 @@ export function step(g: Game, dt: number) {
 }
 
 /**
- * The clock is stopped: the player's pause, the room radial menu's or Options' hold (Game.menuHold), a make-room choice
+ * The clock is stopped while any source holds it: a card's hold (`paused`: event, reward, store, end screens), the
+ * player's own pause (Game.userPaused), the room radial menu's or Options' hold (Game.menuHold), a make-room choice
  * waiting (Game.overflow), or, per the user ("Opening any overlay should pause the clock"), the ship menu, the manual,
- * the beacon chart or the sector map. None of these touch `paused`, so closing one never undoes the player's pause.
+ * the beacon chart or the sector map. Per the user: they are independent; all must be off for the clock to run.
  */
 export function halted(g: Game): boolean {
-  return g.paused || !!g.menuHold || g.shipSheet || g.manual || g.picking || !!g.sectorMap || !!pendingOverflow(g);
+  return g.paused || !!g.userPaused || !!g.menuHold || g.shipSheet || g.manual || g.picking || !!g.sectorMap || !!pendingOverflow(g);
 }
 
 /** Per the user: pause works wherever the ship's clock runs, not only in a fight (shipTicking's phases). */
 export function togglePause(g: Game) {
   if (!["combat", "map", "event", "store", "reward"].includes(g.phase)) return;
-  g.paused = !g.paused;
+  // Per the user: the player's pause is its own source (Game.userPaused). A card's hold (`paused`) is untouched.
+  g.userPaused = !g.userPaused;
 }
 
 export function saveGame(g: Game) {

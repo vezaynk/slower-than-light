@@ -815,6 +815,12 @@ export type Game = {
    */
   menuHold?: boolean;
   /**
+   * Per the user: the player's own pause (the pause button, Space), independent of every other hold. A card, menu or
+   * overlay stops the clock through `paused`/`menuHold`/the overlay flags; closing them never clears this, and toggling
+   * this never clears them. All must be off for the clock to run (sim.ts halted).
+   */
+  userPaused?: boolean;
+  /**
    * Per the user: rewards that arrived to a full rack, waiting for the player to pick what is left behind
    * (wiki/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
    */

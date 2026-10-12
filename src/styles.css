@@ -5877,3 +5877,19 @@ body.page-turn-180 {
 .credits-body p { margin: 0 0 6px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; line-height: 1.5; color: var(--color-fg); }
 .credits-body a { color: var(--color-ok); }
 .credits-version { font-size: 16px; color: var(--color-muted); }
+
+/* Per the user: fuel beside the FTL Drive, missiles beside WEAPONS, drone parts beside DRONES, and room around the
+   shield pips. */
+.hud-right .hud-fuel { align-self: center; margin-right: 4px; }
+.dock-label { display: inline-flex; align-items: center; gap: 14px; }
+.dock-label .count-chip { font-size: 22px; color: var(--color-fg); }
+.store-row .bubbles { display: inline-flex; gap: 6px; margin-right: 4px; }
+.store-row .shield-charge { margin: 0 8px 0 2px; }
+.store-row .zoltan-pips { margin-left: 4px; }
+.dock-label .count-chip.is-empty { color: #ff4b4b; }
+
+/* Per the user: the bar about to break fills red left to right with the sabotage progress (GameApp hurtStyle). */
+.power-col button.is-hurting,
+.sub-bars b.is-hurting {
+  background-image: linear-gradient(to right, var(--color-danger) var(--hurt, 0%), transparent var(--hurt, 0%));
+}

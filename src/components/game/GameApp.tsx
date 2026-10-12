@@ -4,6 +4,7 @@ import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
+import { applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
 import {
   SECTOR_NAMES,
@@ -275,7 +276,7 @@ function hackRoomClick(roomId: string) {
   act((game) => {
     // @agent:hack-rules. "Once the game is unpaused, this choice is permanent": while paused the pick only queues.
     // A flagship artillery room aims at that room (spike.ts spikeAimId), not every gun.
-    if (game.paused || game.menuHold) queueSpike(game, id);
+    if (halted(game)) queueSpike(game, id);
     else if (armSpike(game, id)) launchSpike(game);
   });
   setHackAim(false);
@@ -551,6 +552,8 @@ export function GameApp() {
         acc -= 1 / 30;
         steps += 1;
       }
+      // Per the user: fast forward speeds up CSS animations too (speed.ts). New animations start at 1x, so every frame.
+      applyCssSpeed();
       // Per the user (haptics): your ship's hits, losses, jumps and wins (haptics.ts watchHaptics).
       watchHaptics(useGame.getState().game);
       if (!ticking) acc = 0;
@@ -595,7 +598,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
   const looks = `${ghosts ? "" : " no-ghosts"}${roomAir ? "" : " no-room-air"}`;
   const optionsOpen = useOptionsOpen((s) => s.open) && game.phase !== "title";
   return (
-    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.paused ? " is-paused" : ""}${halted(game) ? " is-halted" : ""}${looks}`}>
+    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.userPaused ? " is-paused" : ""}${halted(game) ? " is-halted" : ""}${looks}`}>
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}
@@ -807,23 +810,11 @@ function Hud({ game }: { game: Game }) {
               ))}
             </span>
           ) : null}
-          <span className={`count-chip${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title={tx("ui.GameApp.fuel")}>
-            <PixelIcon name="fuel" />
-            {game.fuel}
-          </span>
-          <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title={tx("ui.GameApp.missiles")}>
-            <PixelIcon name="missile" />
-            {game.missiles}
-          </span>
-          <span className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`} aria-label={`${game.player.parts} drone parts`} title={tx("ui.GameApp.drone-parts")}>
-            <PixelIcon name="parts" />
-            {game.player.parts}
-          </span>
         </div>
       </div>
       <div className="hud-mid">
         {/* Per the user: pause and fast forward, top middle. While paused, the PAUSED mark takes their place. */}
-        {game.paused ? (
+        {game.userPaused ? (
           <PauseStamp />
         ) : (
           <>
@@ -842,6 +833,11 @@ function Hud({ game }: { game: Game }) {
         )}
       </div>
       <div className="hud-right">
+        {/* Per the user: fuel sits beside the FTL Drive it feeds. */}
+        <span className={`count-chip hud-fuel${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title={tx("ui.GameApp.fuel")}>
+          <PixelIcon name="fuel" />
+          {game.fuel}
+        </span>
         <button
           type="button"
           className={`ftl-drive${blocked ? " is-blocked" : charging ? " is-charging" : " is-ready"}`}
@@ -1607,9 +1603,23 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             })}
           </div>
         ) : null}
-        {swarm ? <span className="dock-label dock-drones">{tx("ui.GameApp.drones")}</span> : null}
+        {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES (beside WEAPONS when there is no Drone
+            Control, since hacking spends them too). */}
+        {swarm ? (
+          <span className="dock-label dock-drones">
+            {tx("ui.GameApp.drones")}
+            <PartsChip game={game} />
+          </span>
+        ) : null}
         <div className="dock-caption">
-          <span className="dock-label">{tx("ui.GameApp.weapons")}</span>
+          <span className="dock-label">
+            {tx("ui.GameApp.weapons")}
+            <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title={tx("ui.GameApp.missiles")}>
+              <PixelIcon name="missile" />
+              {game.missiles}
+            </span>
+            {swarm ? null : <PartsChip game={game} />}
+          </span>
         </div>
       </div>
       <div className="sub-dock">
@@ -1634,7 +1644,14 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
                     const up = sys.level - sys.damage;
                     const cls = n < up ? "on" : n === up && sys.damage > 0 ? "is-dmg is-fixing" : n < sys.level ? "is-dmg" : "";
-                    return <b key={n} className={cls} style={n === up && sys.damage > 0 ? fixStyle(sys.fix) : undefined} />;
+                    const hurt = n === up - 1 ? hurtStyle(game, id) : undefined;
+                    return (
+                      <b
+                        key={n}
+                        className={cls + (hurt ? " is-hurting" : "")}
+                        style={n === up && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
+                      />
+                    );
                   })}
                 </i>
                 <PixelIcon name={id} size={16} />
@@ -1915,12 +1932,13 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
                         ? "is-dmg is-fixing"
                         : "is-dmg"
                       : "";
+          const hurt = i === dmgStart - 1 ? hurtStyle(game, id) : undefined;
           return (
             <button
               key={i}
               type="button"
-              className={cls}
-              style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : undefined}
+              className={cls + (hurt ? " is-hurting" : "")}
+              style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
               aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
               aria-disabled={locked || undefined}
               onClick={() => {
@@ -2078,12 +2096,13 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
           const cls = i < kit.power ? kitBarClass(game, id, kit.power, i) : i === cap && kit.damage ? "is-dmg is-fixing" : i >= cap ? "is-dmg" : "";
+          const hurt = i === cap - 1 ? hurtStyle(game, id) : undefined;
           return (
             <button
               key={i}
               type="button"
-              className={cls}
-              style={i === cap && kit.damage ? fixStyle(kit.fix) : undefined}
+              className={cls + (hurt ? " is-hurting" : "")}
+              style={i === cap && kit.damage ? fixStyle(kit.fix) : hurt}
               aria-label={`${KIT_LABEL[id]} power ${i + 1}`}
               onClick={() => {
                 if (i >= cap) return;
@@ -2625,9 +2644,14 @@ function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missil
   );
 }
 
-/** Per the user: fast forward. INVENTED speed: the clock runs twice as fast. Not saved; a new page starts at 1x. */
-const FAST_SPEED = 2;
-const useFast = create<{ on: boolean }>(() => ({ on: false }));
+function PartsChip({ game }: { game: Game }) {
+  return (
+    <span className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`} aria-label={`${game.player.parts} drone parts`} title={tx("ui.GameApp.drone-parts")}>
+      <PixelIcon name="parts" />
+      {game.player.parts}
+    </span>
+  );
+}
 
 function FastButton() {
   const on = useFast((s) => s.on);
@@ -4014,10 +4038,23 @@ function fixStyle(fix: number | undefined): CSSProperties {
   return { ["--fix" as string]: `${Math.round(Math.max(0, Math.min(1, (fix ?? 0) / REPAIR_SECONDS)) * 100)}%` };
 }
 
+/**
+ * Per the user: a system taking damage shows it like repair progress. Boarders and fires build sabotage progress in the
+ * room (extras/sabotage.ts, Boarding "Combat": "When the bar is filled, the system takes 1 damage"); the next bar to
+ * break fills red left to right with it. Undefined when nothing is being damaged.
+ */
+function hurtStyle(game: Game, id: string): CSSProperties | undefined {
+  const room = game.player.rooms.find((r) => r.system === id || r.kit === id);
+  const progress = room?.sabotage ?? 0;
+  if (!(progress > 0)) return undefined;
+  return { ["--hurt" as string]: `${Math.round(Math.min(1, progress) * 100)}%` };
+}
+
 /** A dock subsystem bar: powered, damaged (red), or the one being repaired (fixStyle). */
 function KitBar({ game, id, kit, n }: { game: Game; id: KitId; kit: Kit; n: number }) {
   const up = Math.max(0, kit.level - (kit.damage ?? 0));
-  if (n < kit.power && n < up) return <b className={kitBarClass(game, id, kit.power, n)} />;
+  const hurt = n === up - 1 ? hurtStyle(game, id) : undefined;
+  if (n < kit.power && n < up) return <b className={kitBarClass(game, id, kit.power, n) + (hurt ? " is-hurting" : "")} style={hurt} />;
   if ((kit.damage ?? 0) > 0 && n === up) return <b className="is-dmg is-fixing" style={fixStyle(kit.fix)} />;
   return <b className={n >= up && n < kit.level ? "is-dmg" : ""} />;
 }

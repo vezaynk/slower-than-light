@@ -1,4 +1,5 @@
 import { tx } from "@/i18n";
+import { animSpeed } from "./speed";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
@@ -379,7 +380,7 @@ export function ShipView({
       : shuffling
         ? Math.floor((c.shift?.t ?? 0) * 4) % 4
         : fixing
-          ? Math.floor(performance.now() / 140) % 4
+          ? Math.floor((performance.now() * animSpeed()) / 140) % 4
           : pose === "fight"
             ? Math.floor(((c.swing ?? 0) % 1) * 4) % 4
             : 0;

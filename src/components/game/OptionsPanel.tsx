@@ -212,7 +212,7 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
               <Toggle label="Mute" note="Silence all sound. M toggles it in a game." value={s.muted} onChange={set("muted")} />
               <Toggle
                 label="Haptics"
-                note="Phone vibration for hits, crew losses, jumps, wins and long presses. iPhone gives one light tap, for your own presses only."
+                note="Phone vibration for hits, crew losses, jumps, wins and long presses. iPhone (iOS 18+) only allows a light tap for your own presses: a long press or a power drag is felt when you let go."
                 value={s.haptics}
                 onChange={set("haptics")}
               />

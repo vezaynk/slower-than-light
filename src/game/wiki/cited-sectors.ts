@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { SECTOR_TYPES } from "./sectors.ts";
 import { overtaken, type Danger } from "./sector-map.ts";
@@ -11,7 +12,7 @@ import { overtaken, type Danger } from "./sector-map.ts";
  * citedSector only stamps them. lastStandRepairEvent plus the choose case pay them.
  */
 const REPAIR_FLAG = "last-stand-repair";
-const REPAIR_NAME = "Federation Repair Station";
+const REPAIR_NAME = tx("wiki.cited-sectors.federation-repair-station");
 const REPAIR_COUNT = 3;
 
 const NEBULA_SECTORS = new Set(
@@ -56,8 +57,8 @@ export function citedBeaconCount(_g: Game): number | null {
 export function lastStandRepairEvent(): GameEvent {
   return {
     title: REPAIR_NAME,
-    body: "15 hull, 22–44 scrap, 5 fuel, 4 missiles, and 5 drone parts.",
-    choices: [{ id: REPAIR_FLAG, label: "Take the supplies." }],
+    body: tx("wiki.cited-sectors.15-hull-22-44-scrap-5"),
+    choices: [{ id: REPAIR_FLAG, label: tx("wiki.cited-sectors.take-the-supplies") }],
   };
 }
 

@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import "./room-motion.css";
 import type { CSSProperties } from "react";
 import type { Door, DoorMark } from "@/game/types";
@@ -30,10 +31,10 @@ function doorState(door: Door | undefined, doorsDead: boolean | undefined): { op
   const open = door?.open ?? false;
   const broken = (door?.stuck ?? 0) > 0;
   const dead = !!doorsDead && !broken;
-  if (broken) return { open, broken, dead, label: "Broken door", title: "Broken" };
-  if (dead) return { open, broken, dead, label: "Door control is dead", title: "No door control" };
-  if (open) return { open, broken, dead, label: "Close door", title: "Open" };
-  return { open, broken, dead, label: "Open door", title: "Shut" };
+  if (broken) return { open, broken, dead, label: tx("ui.DoorTicks.broken-door"), title: tx("ui.DoorTicks.broken") };
+  if (dead) return { open, broken, dead, label: tx("ui.DoorTicks.door-control-is-dead"), title: tx("ui.DoorTicks.no-door-control") };
+  if (open) return { open, broken, dead, label: tx("ui.DoorTicks.close-door"), title: tx("ui.DoorTicks.open") };
+  return { open, broken, dead, label: tx("ui.DoorTicks.open-door"), title: tx("ui.DoorTicks.shut") };
 }
 
 function doorClass(
@@ -170,7 +171,7 @@ export function DoorTicks({
             type="button"
             className={cls}
             style={style}
-            aria-label={open ? "Close door" : "Open door"}
+            aria-label={open ? tx("ui.DoorTicks.close-door") : tx("ui.DoorTicks.open-door")}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

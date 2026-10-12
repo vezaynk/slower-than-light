@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Lanius candidate pages. Redirects have no opening choice.
  * Lanius ship absorbing rebel base runs its branches in filler-events.ts.
@@ -33,31 +34,31 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-absorbing-jump-beacon",
     aliases: ["Lanius ship absorbing jump beacon"],
     sectors: ["Abandoned Sector"],
-    body: "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded.",
+    body: tx("wiki.cited-events-lanius.you-detect-a-damaged-vessel-docked"),
     choices: [
       {
         id: "c:lanius-ship-absorbing-jump-beacon:0",
-        label: "Ask if they require assistance.",
+        label: tx("wiki.cited-events-lanius.ask-if-they-require-assistance"),
         // A Lanius ship, or the translator. No odds.
-        fx: [{ k: "note", text: "A Lanius ship, or the translator." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.a-lanius-ship-or-the-translator") }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:1",
-        label: "Leave.",
+        label: tx("wiki.cited-events-lanius.leave"),
         // Nothing, or a Lanius ship.
-        fx: [{ k: "note", text: "Nothing, or a Lanius ship." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.nothing-or-a-lanius-ship") }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:2",
-        label: "(Lanius Crew) Ask if they require assistance.",
+        label: tx("wiki.cited-events-lanius.lanius-crew-ask-if-they-require"),
         // Decline. Nothing happens. The material trades stay unwired.
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.nothing-happens") }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:3",
-        label: "(Hull Repair Drone) Send a drone to help.",
+        label: tx("wiki.cited-events-lanius.hull-repair-drone-send-a-drone"),
         // A Lanius crewmember. No drone part is printed.
-        fx: [{ k: "note", text: "A Lanius crewmember." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.a-lanius-crewmember") }],
       },
     ],
   },
@@ -68,25 +69,25 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-absorbing-rebel-base",
     aliases: ["Lanius ship absorbing rebel base"],
     sectors: ["Abandoned Sector"],
-    body: "You notice a number of Lanius ships absorbing a forward Rebel base and its automated scouts. They don't seem to be aggressive. Perhaps their desire for metal could prove to be useful?",
+    body: tx("wiki.cited-events-lanius.you-notice-a-number-of-lanius"),
     choices: [
       {
         id: "c:lanius-ship-absorbing-rebel-base:0",
-        label: "Try to use them to delay the Rebels.",
+        label: tx("wiki.cited-events-lanius.try-to-use-them-to-delay"),
         // "Medium scrap, a Lanius ship, or nothing."
-        fx: [{ k: "note", text: "Medium scrap and a fleet delay, a Lanius ship, or nothing." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.medium-scrap-and-a-fleet-delay") }],
       },
       {
         id: "c:lanius-ship-absorbing-rebel-base:1",
-        label: "Leave them alone.",
+        label: tx("wiki.cited-events-lanius.leave-them-alone"),
         // "Nothing happens."
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.nothing-happens") }],
       },
       {
         id: "c:lanius-ship-absorbing-rebel-base:2",
-        label: "Try to use them to delay the Rebels.",
+        label: tx("wiki.cited-events-lanius.try-to-use-them-to-delay"),
         // "Lanius crew. Medium scrap and a fleet delay."
-        fx: [{ k: "note", text: "Medium scrap and a fleet delay." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.medium-scrap-and-a-fleet-delay-2") }],
       },
     ],
   },
@@ -100,19 +101,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-craftsmen",
     aliases: ["Lanius craftsmen"],
     sectors: ["Abandoned Sector"],
-    body: "A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal.",
+    body: tx("wiki.cited-events-lanius.a-merchant-ship-is-docked-with"),
     choices: [
       {
         id: "c:lanius-craftsmen:0",
-        label: "Inquire about the process.",
+        label: tx("wiki.cited-events-lanius.inquire-about-the-process"),
         // Decline. Nothing happens. The crafts stay unwired.
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.nothing-happens") }],
       },
       {
         id: "c:lanius-craftsmen:1",
-        label: "Leave them to their research.",
+        label: tx("wiki.cited-events-lanius.leave-them-to-their-research"),
         // "Nothing happens."
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-lanius.nothing-happens") }],
       },
     ],
   },

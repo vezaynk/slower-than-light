@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, deselectCrew, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -153,7 +154,7 @@ export function installSpike(g: Game): boolean {
     aux: 0,
   };
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Hacking installed on the Lark.");
+  log(g, tx("extras.spike.hacking-installed-on-the-lark"));
   return true;
 }
 
@@ -173,7 +174,7 @@ export function upgradeSpike(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, "Hacking raised.");
+  log(g, tx("extras.spike.hacking-raised"));
   return true;
 }
 
@@ -247,20 +248,20 @@ export function launchSpike(g: Game): boolean {
     const again = pulseSeconds(powered);
     if (again <= 0) return false;
     startOwnPulse(g, kit, again);
-    log(g, `Hacking pulses their ${LABEL[kit.target] ?? kit.target}.`);
+    log(g, tx("extras.spike.hacking-pulses-their", { v: LABEL[kit.target] ?? kit.target }));
     return true;
   }
   // @agent:hack-rules. One drone at a time: a drone still in flight is not doubled.
   if (g.enemy.hackFlying != null) return false;
   if (g.player.parts < 1) {
-    log(g, "Hacking needs a drone part.");
+    log(g, tx("extras.spike.hacking-needs-a-drone-part"));
     return false;
   }
   if (running(kit) || kit.cool > 0) return false;
   // @agent:hack-ui. Hacking wiki, "Choosing your hacking target": "if they are cloaked, you must wait for the cloak to
   // end." No part is spent: nothing launches.
   if (veilBlocks(g, "player")) {
-    log(g, "Hacking must wait for their cloak to end.");
+    log(g, tx("extras.spike.hacking-must-wait-for-their-cloak"));
     return false;
   }
   // @agent:hacking. INFERRED: no launch while the enemy's pulse is on this Hacking system. Hacking, "Overview"
@@ -272,7 +273,7 @@ export function launchSpike(g: Game): boolean {
   // augmentation." So nothing launches and no part is spent. (A drone already flying when a shield goes up still
   // breaks on impact: arriveOwn.)
   if ((g.enemy.zoltan ?? 0) > 0) {
-    log(g, "Hacking cannot launch at a Zoltan Shield.");
+    log(g, tx("extras.spike.hacking-cannot-launch-at-a-zoltan"));
     return false;
   }
   g.player.parts -= 1;
@@ -288,7 +289,7 @@ export function launchSpike(g: Game): boolean {
   kit.aux = 0;
   kit.cool = 0;
   g.enemy.hackFlying = kit.target;
-  log(g, `Hacking drone away toward their ${LABEL[kit.target] ?? kit.target}.`);
+  log(g, tx("extras.spike.hacking-drone-away-toward-their", { v: LABEL[kit.target] ?? kit.target }));
   return true;
 }
 
@@ -370,7 +371,7 @@ function arriveOwn(g: Game, kit: Kit) {
   }
   if ((foe.zoltan ?? 0) > 0) {
     loseOwnDrone(g, kit);
-    log(g, "Your hacking drone breaks on their Zoltan Shield.");
+    log(g, tx("extras.spike.your-hacking-drone-breaks-on-their"));
     return;
   }
   clearOwnFlight(g, kit);
@@ -378,7 +379,7 @@ function arriveOwn(g: Game, kit: Kit) {
   foe.hackDrone = target;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The pulse below can cancel it.
   noteHackLatchedDuringLock(foe, target);
-  log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
+  log(g, tx("extras.spike.hacking-drone-latches-onto-their", { v: LABEL[target] ?? target }));
   const seconds = pulseSeconds(fedBars(kit));
   if (seconds > 0 && !enemyPulseOn(g, ["spike"])) startOwnPulse(g, kit, seconds);
 }
@@ -402,12 +403,12 @@ function tickOwnFlight(g: Game, kit: Kit, dt: number) {
   const hit = powered ? interceptIncomingDrone(g, "enemy", "hacking") : null;
   if (hit === "down") {
     loseOwnDrone(g, kit);
-    log(g, "Their drone shoots down your hacking drone.");
+    log(g, tx("extras.spike.their-drone-shoots-down-your-hacking"));
     return;
   }
   if (hit === "stun") {
     kit.stun = ANTI_STUN_S;
-    log(g, "Their drone stuns your hacking drone.");
+    log(g, tx("extras.spike.their-drone-stuns-your-hacking-drone"));
     return;
   }
   if (!powered || stunned) return;
@@ -597,7 +598,7 @@ function pulseTheirSwarm(g: Game, kit: Kit, dt: number) {
         u.aux = 0;
         u.left = undefined;
       }
-      log(g, "Your hack burns out one of their drones.");
+      log(g, tx("extras.spike.your-hack-burns-out-one-of"));
     }
   }
 }
@@ -624,7 +625,7 @@ function pulseTheirMind(g: Game, kit: Kit) {
   c.path = [];
   c.move = 0;
   kit.hackHeld = c.id;
-  log(g, `${c.name} is turned by your hack.`);
+  log(g, tx("extras.spike.is-turned-by-your-hack", { name: c.name }));
 }
 
 /**
@@ -679,7 +680,7 @@ function pulseTheirSling(g: Game) {
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);
-  log(g, pull.length > 1 ? "Your hack yanks their boarders home." : "Your hack yanks a boarder home.");
+  log(g, pull.length > 1 ? tx("extras.spike.your-hack-yanks-their-boarders-home") : tx("extras.spike.your-hack-yanks-a-boarder-home"));
 }
 
 /**
@@ -713,7 +714,7 @@ function pulseTheirHacking(g: Game, kit: Kit, dt: number) {
   if (!theirs) return;
   if (running(theirs)) {
     endEnemyPulse(g, theirs);
-    log(g, "Your hack cuts their hacking pulse.");
+    log(g, tx("extras.spike.your-hack-cuts-their-hacking-pulse"));
   }
   if (!theirs.hackLatched) return;
   const before = kit.aux;
@@ -721,7 +722,7 @@ function pulseTheirHacking(g: Game, kit: Kit, dt: number) {
   for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
     if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
       loseDrone(theirs);
-      log(g, "Your hack burns out their hacking drone.");
+      log(g, tx("extras.spike.your-hack-burns-out-their-hacking"));
       return;
     }
   }
@@ -849,23 +850,23 @@ function slingCooldown(level: number): number {
 const PLAYER_SYSTEMS: readonly SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"];
 
 const LABEL: Record<string, string> = {
-  shields: "Shields",
-  engines: "Engines",
-  oxygen: "Oxygen",
-  medbay: "Medbay",
-  weapons: "Weapons",
-  pilot: "Piloting",
-  sensors: "Sensors",
-  doors: "Doors",
-  veil: "Cloaking",
-  sling: "Teleporter",
-  spike: "Hacking",
-  swarm: "Drone Control",
-  leash: "Mind Control",
-  cradle: "Clone Bay",
-  cell: "Backup Battery",
-  lance: "Artillery Beam",
-  flak: "Flak Artillery",
+  shields: tx("extras.spike.shields"),
+  engines: tx("extras.spike.engines"),
+  oxygen: tx("extras.spike.oxygen"),
+  medbay: tx("extras.spike.medbay"),
+  weapons: tx("extras.spike.weapons"),
+  pilot: tx("extras.spike.piloting"),
+  sensors: tx("extras.spike.sensors"),
+  doors: tx("extras.spike.doors"),
+  veil: tx("extras.spike.cloaking"),
+  sling: tx("extras.spike.teleporter"),
+  spike: tx("extras.spike.hacking"),
+  swarm: tx("extras.spike.drone-control"),
+  leash: tx("extras.spike.mind-control"),
+  cradle: tx("extras.spike.clone-bay"),
+  cell: tx("extras.spike.backup-battery"),
+  lance: tx("extras.spike.artillery-beam"),
+  flak: tx("extras.spike.flak-artillery"),
 };
 
 function enemyKit(g: Game): Kit | undefined {
@@ -956,7 +957,7 @@ export function launchEnemySpike(g: Game): boolean {
   kit.on = false;
   kit.left = 0;
   kit.aux = 0;
-  log(g, "They launch a hacking drone.");
+  log(g, tx("extras.spike.they-launch-a-hacking-drone"));
   return true;
 }
 
@@ -978,7 +979,7 @@ function loseDrone(kit: Kit) {
 function arrive(g: Game, kit: Kit) {
   if (playerBubble(g)) {
     loseDrone(kit);
-    log(g, "Their hacking drone breaks on your Zoltan Shield.");
+    log(g, tx("extras.spike.their-hacking-drone-breaks-on-your"));
     return;
   }
   kit.hackFly = undefined;
@@ -986,7 +987,7 @@ function arrive(g: Game, kit: Kit) {
   kit.hackLatched = true;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The later pulse can cancel it.
   if (kit.target) noteHackLatchedDuringLock(g.player, kit.target);
-  log(g, `Their hacking drone latches onto your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
+  log(g, tx("extras.spike.their-hacking-drone-latches-onto-your", { v: LABEL[kit.target ?? ""] ?? kit.target }));
 }
 
 /** Hacking wiki, "Overview" (Hacking pulse): 4 / 7 / 10 seconds by the hacker's working bars. */
@@ -1006,7 +1007,7 @@ function startEnemyPulse(g: Game, kit: Kit) {
     veil.left = 0;
     veil.cool = CLOAK_COOLDOWN;
   }
-  log(g, `They hack your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
+  log(g, tx("extras.spike.they-hack-your", { v: LABEL[kit.target ?? ""] ?? kit.target }));
 }
 
 function releaseHeld(g: Game, kit: Kit) {
@@ -1093,7 +1094,7 @@ function pulseMind(g: Game, kit: Kit) {
   c.move = 0;
   deselectCrew(g, c.id);
   kit.hackHeld = c.id;
-  log(g, `${c.name} is turned by their hack.`);
+  log(g, tx("extras.spike.is-turned-by-their-hack", { name: c.name }));
 }
 
 /**
@@ -1132,7 +1133,7 @@ function pulseSling(g: Game) {
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);
-  log(g, "Their hack yanks your boarders home.");
+  log(g, tx("extras.spike.their-hack-yanks-your-boarders-home"));
 }
 
 /**
@@ -1150,7 +1151,7 @@ function pulseSwarm(g: Game, kit: Kit, dt: number) {
     if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
       swarm.on = false;
       swarm.stun = 0;
-      log(g, "Their hack burns out your drone.");
+      log(g, tx("extras.spike.their-hack-burns-out-your-drone"));
       return;
     }
   }
@@ -1238,7 +1239,7 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
         if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
           delete foe.hackDrone;
-          log(g, "Their hack burns out your hacking drone.");
+          log(g, tx("extras.spike.their-hack-burns-out-your-hacking"));
           return;
         }
       }
@@ -1379,10 +1380,10 @@ export function tickEnemySpike(g: Game, dt: number) {
     const hit = hackDroneIntercept(g);
     if (hit === "down") {
       loseDrone(kit);
-      log(g, "Your drone shoots down their hacking drone.");
+      log(g, tx("extras.spike.your-drone-shoots-down-their-hacking"));
     } else if (hit === "stun") {
       kit.stun = ANTI_STUN_S;
-      log(g, "Your drone stuns their hacking drone.");
+      log(g, tx("extras.spike.your-drone-stuns-their-hacking-drone"));
     } else if (live && !stunned && !veilBlocks(g, "enemy")) {
       // "Defense drones can be dodged by de-powering the hacking drone ..., which freezes the hacking drone in place".
       // Cloaking, Overview: the drone also holds while the player ship it is flying to is cloaked, then continues.

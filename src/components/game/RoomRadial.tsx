@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Crew } from "@/game/types";
@@ -187,7 +188,7 @@ export function RoomRadial({
               }
               style={{ left: radius + Math.cos(a) * radius, top: radius + Math.sin(a) * radius }}
               disabled={!onDoor || dead}
-              aria-label={`${airlock ? "Airlock" : "Door"}: ${broken ? "broken" : doorsDead ? "no door control" : open ? "close" : "open"}`}
+              aria-label={`${airlock ? tx("ui.RoomRadial.airlock") : tx("ui.RoomRadial.door")}: ${broken ? "broken" : doorsDead ? "no door control" : open ? "close" : "open"}`}
               aria-pressed={open}
               onClick={() => onDoor?.(d.room, d.other)}
             >

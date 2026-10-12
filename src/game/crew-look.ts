@@ -3,6 +3,7 @@
  * The hangar and every in-run view read these helpers, so a crew member
  * looks the same on the bay card, the crew rail, the ship tokens, and the ship sheet.
  */
+import { tx } from "../i18n/index.ts";
 import { CREW_POOL } from "./content.ts";
 import { KIN, type KinId } from "./extras/kin.ts";
 import type { Crew } from "./types.ts";
@@ -34,7 +35,7 @@ export function kinLabel(kin: KinId | undefined) {
 }
 
 export function defaultPick(seat: number): CrewPick {
-  return { name: CREW_POOL[seat % CREW_POOL.length] ?? "Crew", uniform: seat % PLAYER_UNIFORMS };
+  return { name: CREW_POOL[seat % CREW_POOL.length] ?? tx("game.crew-look.crew"), uniform: seat % PLAYER_UNIFORMS };
 }
 
 export function defaultPicks(count: number): CrewPick[] {

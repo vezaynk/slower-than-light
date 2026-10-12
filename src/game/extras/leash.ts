@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { interiorLinks, mayStand } from "../crew-spots.ts";
 import { cooldownLocksPower, createGame, deselectCrew, kitBars, kitIonLocked, kitPowerDown, kitPowerUp, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
@@ -179,22 +180,22 @@ export function heldByEnemy(c: Crew): boolean {
 /** Mind Control wiki, "System Upgrades": spends the level 1 cost of 75. */
 export function installLeash(g: Game) {
   if (INSTALL_COST == null) {
-    log(g, "No price on the sheet.");
+    log(g, tx("extras.leash.no-price-on-the-sheet"));
     return;
   }
   if (g.player.kits.leash) {
-    log(g, "The Lark already carries Mind Control.");
+    log(g, tx("extras.leash.the-lark-already-carries-mind-control"));
     return;
   }
   if (g.scrap < INSTALL_COST) {
-    log(g, "Not enough scrap for Mind Control.");
+    log(g, tx("extras.leash.not-enough-scrap-for-mind-control"));
     return;
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.leash = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Mind Control fitted to the Lark.");
+  log(g, tx("extras.leash.mind-control-fitted-to-the-lark"));
 }
 
 /** Mind Control wiki, "System Upgrades": pays 30 to reach level 2, then 60 to reach level 3. */
@@ -205,13 +206,13 @@ export function upgradeLeash(g: Game) {
   const cost = UPGRADE_COST[next];
   if (cost == null) return;
   if (g.scrap < cost) {
-    log(g, "Not enough scrap to raise Mind Control.");
+    log(g, tx("extras.leash.not-enough-scrap-to-raise-mind"));
     return;
   }
   g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   kit.level = next;
-  log(g, "Mind Control raised.");
+  log(g, tx("extras.leash.mind-control-raised"));
 }
 
 /**
@@ -227,12 +228,12 @@ export function toggleLeashPower(g: Game) {
     return;
   }
   if (sparePower(g.player) < 1) {
-    log(g, "No spare power on the Lark.");
+    log(g, tx("extras.leash.no-spare-power-on-the-lark"));
     return;
   }
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (kit.level - (kit.damage ?? 0) < 1) {
-    log(g, "Mind Control is too damaged to power.");
+    log(g, tx("extras.leash.mind-control-is-too-damaged-to"));
     return;
   }
   kit.power = 1;
@@ -277,11 +278,11 @@ export function startLeash(g: Game, crewId: string) {
   // Zoltans: Mind Control cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
   if (kitBars(kit) < 1) {
-    log(g, "Mind Control has no power.");
+    log(g, tx("extras.leash.mind-control-has-no-power"));
     return;
   }
   if (kit.cool > 0 || (kit.on && kit.left > 0)) {
-    log(g, "Mind Control is not ready.");
+    log(g, tx("extras.leash.mind-control-is-not-ready"));
     return;
   }
   const crew = g.crew.find((c) => c.id === crewId);
@@ -295,13 +296,13 @@ export function startLeash(g: Game, crewId: string) {
     kit.left = durationOf(playerLevel(kit));
     kit.on = true;
     kit.target = null;
-    log(g, `${crew.name} is freed from their mind control.`);
+    log(g, tx("extras.leash.is-freed-from-their-mind-control", { name: crew.name }));
     return;
   }
   if (!crew || crew.side !== "enemy" || crew.hp <= 0) return;
   // Mind Control wiki, "Overview": "Slugs cannot be mind controlled." Rejected before the kit is spent.
   if (!controllable(crew)) {
-    log(g, `${crew.name} is a Slug. Mind control does not take.`);
+    log(g, tx("extras.leash.is-a-slug-mind-control-does", { name: crew.name }));
     return;
   }
   // Mind Control, Overview: "Mind control requires view of enemy crew (Slug telepathy and Lifeform Scanners count)."
@@ -310,7 +311,7 @@ export function startLeash(g: Game, crewId: string) {
   // "teleporting a bomb that doesn't miss a targeted room" is bombRoomOpen.
   // Enemies do not use this function. "Enemies do not require vision to use Mind Control" stays on fireEnemyLeash.
   if (!enemyCrewInView(g, crew)) {
-    log(g, "Mind Control has no view of that crew.");
+    log(g, tx("extras.leash.mind-control-has-no-view-of"));
     return;
   }
   // Zoltan Shield: mind control does not pass the bubble. Bypass lets it through and does not spend the bubble.
@@ -320,7 +321,7 @@ export function startLeash(g: Game, crewId: string) {
     (g.enemy?.zoltan ?? 0) > 0 &&
     !(g.augments.includes("bypass") && bypassZoltan("mind") === "pass")
   ) {
-    log(g, "Their Zoltan Shield blocks mind control.");
+    log(g, tx("extras.leash.their-zoltan-shield-blocks-mind-control"));
     return;
   }
   for (const other of g.crew) {
@@ -334,7 +335,7 @@ export function startLeash(g: Game, crewId: string) {
   kit.on = true;
   kit.target = crew.id;
   retarget(g);
-  log(g, `${crew.name} is leashed.`);
+  log(g, tx("extras.leash.is-leashed", { name: crew.name }));
 }
 
 /**
@@ -561,7 +562,7 @@ export function fireEnemyLeash(g: Game): boolean {
   crew.path = [];
   crew.move = 0;
   deselectCrew(g, crew.id);
-  log(g, `${crew.name} is under their mind control.`);
+  log(g, tx("extras.leash.is-under-their-mind-control", { name: crew.name }));
   return true;
 }
 
@@ -625,14 +626,14 @@ function tickEnemyLeash(g: Game, dt: number) {
     const level = mindLevel(kit, kitBars(kit));
     if (level <= 0 || kit.left <= 0 || !held || !heldByEnemy(held) || held.hp <= 0) {
       clearEnemyLeash(g);
-      if (held && held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
+      if (held && held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
       return;
     }
     capDuration(kit, level);
     kit.left = Math.max(0, kit.left - dt);
     if (kit.left <= 0) {
       clearEnemyLeash(g);
-      if (held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
+      if (held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
       return;
     }
     // "Combat damage bonus and health boost are removed if the system level is decreased": working bars are its level.

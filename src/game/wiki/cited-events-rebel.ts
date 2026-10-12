@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Rebel pages whose opening outcome states one fight.
  * Not stamped onto a map. Boarder counts are not granted.
@@ -35,7 +36,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rebel-fight-among-rebel-fleet:0",
-        label: "Fight a Rebel ship",
+        label: tx("wiki.cited-events-rebel.fight-a-rebel-ship"),
         // "Fight a Rebel ship."
         // Destroyed: low scrap. Crew killed: medium scrap with resources. Two Winning results, not granted.
         fx: [
@@ -57,7 +58,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rebel-fight-with-boarders:0",
-        label: "Fight a Rebel ship",
+        label: tx("wiki.cited-events-rebel.fight-a-rebel-ship"),
         // "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)."
         fx: [
           {

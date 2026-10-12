@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
@@ -169,7 +170,7 @@ function CrewToken({
       style={style}
       data-crew={c.id}
       aria-label={leashed ? `${c.name} (mind-controlled)` : c.name}
-      title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
+      title={leashed ? tx("ui.ShipView.mind-controlled-s", { name: c.name, ceil: Math.ceil(c.leashed ?? 0) }) : undefined}
       aria-pressed={picked}
       onPointerDown={(e) => {
         const open = onHold?.(c.room);
@@ -565,7 +566,7 @@ export function ShipView({
             <button
               type="button"
               className="room-hit"
-              aria-label={(targetable ? "Target " : "Open ") + room.title}
+              aria-label={(targetable ? tx("ui.ShipView.target") : tx("ui.ShipView.open")) + room.title}
               title={room.title}
               onPointerDown={(e) => {
                 e.currentTarget.dataset.ptr = e.pointerType;
@@ -599,20 +600,20 @@ export function ShipView({
               ) : null}
               {open ? (
                 <div className="room-flags">
-                  {room.fire > 0 ? <span>Fire</span> : null}
-                  {room.breach > 0 ? <span>Leak</span> : null}
-                  {room.venting ? <span>Vent</span> : null}
+                  {room.fire > 0 ? <span>{tx("ui.ShipView.fire")}</span> : null}
+                  {room.breach > 0 ? <span>{tx("ui.ShipView.leak")}</span> : null}
+                  {room.venting ? <span>{tx("ui.ShipView.vent")}</span> : null}
                   {/* @agent:flagship. A flagship artillery room shows its own gun (wiki/flagship-systems.ts artilleryGun). */}
                   {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
-                    <span>Dmg {(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
+                    <span>{tx("ui.ShipView.dmg")}{(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
                   ) : null}
                   {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
-                    <span>Ion</span>
+                    <span>{tx("ui.ShipView.ion")}</span>
                   ) : null}
                   {droneHp
                     .filter((mark) => mark.room === room.id)
                     .map((mark, i) => (
-                      <span key={`drone-hp-${i}`} data-drone-hp={mark.shown} aria-label={`Drone health ${mark.shown}`}>
+                      <span key={`drone-hp-${i}`} data-drone-hp={mark.shown} aria-label={tx("ui.ShipView.drone-health", { shown: mark.shown })}>
                         {mark.shown}
                       </span>
                     ))}
@@ -700,7 +701,7 @@ export function ShipView({
                 })
               : null}
             {room.hacked ? (
-              <div className="hack-mark" aria-label={room.hacked === "pulse" ? "Hacked: pulse" : "Hacking drone attached"}>
+              <div className="hack-mark" aria-label={room.hacked === "pulse" ? tx("ui.ShipView.hacked-pulse") : tx("ui.ShipView.hacking-drone-attached")}>
                 <i className="hack-drone" aria-hidden="true" />
               </div>
             ) : null}
@@ -709,10 +710,10 @@ export function ShipView({
                 className={`hack-reticle is-${drone.phase}`}
                 aria-label={
                   drone.phase === "pulse"
-                    ? `Hacking pulse, ${Math.ceil(drone.left)} seconds`
+                    ? tx("ui.ShipView.hacking-pulse-seconds", { ceil: Math.ceil(drone.left) })
                     : drone.phase === "latched"
-                      ? "Your hacking drone is attached"
-                      : "Hacking target"
+                      ? tx("ui.ShipView.your-hacking-drone-is-attached")
+                      : tx("ui.ShipView.hacking-target")
                 }
               >
                 <span className="hack-reticle-box">

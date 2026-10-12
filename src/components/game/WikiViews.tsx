@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, noteRun } from "@/game/wiki/achievement-track";
@@ -28,10 +29,10 @@ const DISTANCE = [
 ];
 
 const ACH_GROUPS: { title: string; ids: string[] }[] = [
-  { title: "General Progression:", ids: GENERAL },
-  { title: "Going the Distance:", ids: DISTANCE },
+  { title: tx("ui.WikiViews.general-progression"), ids: GENERAL },
+  { title: tx("ui.WikiViews.going-the-distance"), ids: DISTANCE },
   {
-    title: "Skill and Equipment Feats:",
+    title: tx("ui.WikiViews.skill-and-equipment-feats"),
     ids: ACHIEVEMENTS.filter((row) => !row.ship && !GENERAL.includes(row.id) && !DISTANCE.includes(row.id)).map((row) => row.id),
   },
 ];
@@ -80,10 +81,10 @@ export function AchievementsScreen({
       <CloseX onClose={onClose} />
       <header className="ach-tabs">
         <button type="button" className={tab === "stats" ? "is-on" : ""} onClick={() => setTab("stats")}>
-          STATS
+          {tx("ui.WikiViews.stats")}
         </button>
         <button type="button" className={tab === "achievements" ? "is-on" : ""} onClick={() => setTab("achievements")}>
-          ACHIEVEMENTS
+          {tx("ui.WikiViews.achievements")}
         </button>
       </header>
       {tab === "achievements" ? (
@@ -94,7 +95,7 @@ export function AchievementsScreen({
               <AchievementTiles ids={group.ids} earned={earned} />
             </div>
           ))}
-          <h3>Ship Achievements</h3>
+          <h3>{tx("ui.WikiViews.ship-achievements")}</h3>
           {SHIP_GROUPS.map((group) => (
             <div key={group.title}>
               <h3>{group.title}</h3>
@@ -104,7 +105,7 @@ export function AchievementsScreen({
         </div>
       ) : (
         <div className="ach-body">
-          {finished && game ? <RunStats game={game} /> : <p className="store-note">Finish a run to see its stats here.</p>}
+          {finished && game ? <RunStats game={game} /> : <p className="store-note">{tx("ui.WikiViews.finish-a-run-to-see-its")}</p>}
           <ShipBest type={type} onType={setType} />
         </div>
       )}
@@ -132,16 +133,16 @@ function RunStats({ game }: { game: Game }) {
   return (
     <div className="run-stats">
       <p>
-        Scrap collected <b>{game.scrapCollected ?? 0}</b>
+        {tx("ui.WikiViews.scrap-collected")}<b>{game.scrapCollected ?? 0}</b>
       </p>
       <p>
-        Beacons visited <b>{game.beaconsVisited ?? 0}</b>
+        {tx("ui.WikiViews.beacons-visited")}<b>{game.beaconsVisited ?? 0}</b>
       </p>
       <p>
-        Ships defeated <b>{game.phase === "victory" ? Math.max(0, game.kills - 1) : game.kills}</b>
+        {tx("ui.WikiViews.ships-defeated")}<b>{game.phase === "victory" ? Math.max(0, game.kills - 1) : game.kills}</b>
       </p>
       <p>
-        SCORE <b>{runScore(game)}</b>
+        {tx("ui.WikiViews.score")}<b>{runScore(game)}</b>
       </p>
     </div>
   );
@@ -152,11 +153,11 @@ function ShipBest({ type, onType }: { type: "A" | "B" | "C"; onType: (type: "A" 
   return (
     <div className="ship-best">
       <div className="ship-best-head">
-        <p>CHOOSE YOUR SHIP</p>
+        <p>{tx("ui.WikiViews.choose-your-ship")}</p>
         <div>
           {(["A", "B", "C"] as const).map((item) => (
             <button key={item} type="button" className={type === item ? "is-on" : ""} onClick={() => onType(item)}>
-              TYPE {item}
+              {tx("ui.WikiViews.type")}{item}
             </button>
           ))}
         </div>
@@ -167,7 +168,7 @@ function ShipBest({ type, onType }: { type: "A" | "B" | "C"; onType: (type: "A" 
           <i>1 2 3</i>
         </span>
         {Array.from({ length: 7 }, (_, i) => (
-          <span key={i} className="ship-card is-locked" aria-label="Locked">
+          <span key={i} className="ship-card is-locked" aria-label={tx("ui.WikiViews.locked")}>
             <PixelIcon name="lock" size={24} />
           </span>
         ))}
@@ -184,35 +185,35 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
     }}>
       <div className="help-grid">
         <article>
-          <h2>CREW CONTROL</h2>
-          <p>How to give orders:</p>
-          <p>Left Click or Drag to select crew.</p>
-          <p>Right Click to move selected crew.</p>
-          <p>Crew will automatically repair systems or fight intruders in their current room.</p>
+          <h2>{tx("ui.WikiViews.crew-control")}</h2>
+          <p>{tx("ui.WikiViews.how-to-give-orders")}</p>
+          <p>{tx("ui.WikiViews.left-click-or-drag-to-select")}</p>
+          <p>{tx("ui.WikiViews.right-click-to-move-selected-crew")}</p>
+          <p>{tx("ui.WikiViews.crew-will-automatically-repair-systems-or")}</p>
         </article>
         <div className="help-mid">
           <article>
-            <h2>PAUSING</h2>
-            <p className="help-paused">PAUSED</p>
-            <p>Press SPACE to resume</p>
-            <p>Press the Space Bar to pause.</p>
-            <p>Commands and orders can still be given while paused.</p>
+            <h2>{tx("ui.WikiViews.pausing")}</h2>
+            <p className="help-paused">{tx("ui.WikiViews.paused")}</p>
+            <p>{tx("ui.WikiViews.press-space-to-resume")}</p>
+            <p>{tx("ui.WikiViews.press-the-space-bar-to-pause")}</p>
+            <p>{tx("ui.WikiViews.commands-and-orders-can-still-be")}</p>
           </article>
           <article>
-            <h2>POWER DISTRIBUTION</h2>
-            <p>Adding/removing power to systems:</p>
-            <p>Left Click to add power.</p>
-            <p>Right Click to remove power.</p>
+            <h2>{tx("ui.WikiViews.power-distribution")}</h2>
+            <p>{tx("ui.WikiViews.adding-removing-power-to-systems")}</p>
+            <p>{tx("ui.WikiViews.left-click-to-add-power")}</p>
+            <p>{tx("ui.WikiViews.right-click-to-remove-power")}</p>
           </article>
         </div>
         <article>
           <h2>WEAPONS/DRONES</h2>
-          <p>How to fire:</p>
-          <p>Left click to power a weapon.</p>
-          <p>Left click again to activate.</p>
-          <p>Left click on an enemy ship to target it.</p>
-          <p>Left Click and drag to reorder weapons/drones.</p>
-          <p>If the system is damaged, the rightmost item will be depowered first.</p>
+          <p>{tx("ui.WikiViews.how-to-fire")}</p>
+          <p>{tx("ui.WikiViews.left-click-to-power-a-weapon")}</p>
+          <p>{tx("ui.WikiViews.left-click-again-to-activate")}</p>
+          <p>{tx("ui.WikiViews.left-click-on-an-enemy-ship")}</p>
+          <p>{tx("ui.WikiViews.left-click-and-drag-to-reorder")}</p>
+          <p>{tx("ui.WikiViews.if-the-system-is-damaged-the")}</p>
         </article>
       </div>
     </section>
@@ -224,35 +225,35 @@ const HIGH_KEY = "stl-high-score";
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
   if (game.outcome === "victory") {
     return {
-      title: "VICTORY!",
-      body: "Congratulations! You've defeated the Rebel Flagship and ensured the victory of the Federation!",
+      title: tx("ui.WikiViews.victory"),
+      body: tx("ui.WikiViews.congratulations-you-ve-defeated-the-rebel"),
       score: true,
     };
   }
   if (game.outcome === "tutorial") {
     return {
-      title: "GAME OVER",
-      body: "Somehow you've died during the introduction training exercise. Feel free to try again but this doesn't bode well for your mission.",
+      title: tx("ui.WikiViews.game-over"),
+      body: tx("ui.WikiViews.somehow-you-ve-died-during-the"),
       score: false,
     };
   }
   if (game.outcome === "crew") {
     return {
-      title: "GAME OVER",
-      body: "All crew members have died. Your ship will continue to drift for eternity, or until looters destroy it.",
+      title: tx("ui.WikiViews.game-over"),
+      body: tx("ui.WikiViews.all-crew-members-have-died-your"),
       score: true,
     };
   }
   if (game.outcome === "rebel") {
     return {
-      title: "GAME OVER",
-      body: "The Rebel Flagship is within range of the Federation Base. All is lost, they've won.",
+      title: tx("ui.WikiViews.game-over"),
+      body: tx("ui.WikiViews.the-rebel-flagship-is-within-range"),
       score: true,
     };
   }
   return {
-    title: "GAME OVER",
-    body: "One last explosion marks your fate as your ship is torn apart.",
+    title: tx("ui.WikiViews.game-over"),
+    body: tx("ui.WikiViews.one-last-explosion-marks-your-fate"),
     score: true,
   };
 }
@@ -280,11 +281,11 @@ export function Verdict({ game }: { game: Game }) {
       names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
     return (
       <button type="button" className="victory-cinema" onClick={() => setStep("card")}>
-        <p>Thanks to the valiant effort of:</p>
+        <p>{tx("ui.WikiViews.thanks-to-the-valiant-effort-of")}</p>
         <h2>{game.player.name}</h2>
-        <p>And her successful crew:</p>
+        <p>{tx("ui.WikiViews.and-her-successful-crew")}</p>
         <p className="cinema-crew">{crew}</p>
-        <p>The Rebel's flagship was destroyed, throwing their fleet into chaos and ensuring a Federation victory</p>
+        <p>{tx("ui.WikiViews.the-rebel-s-flagship-was-destroyed")}</p>
       </button>
     );
   }
@@ -292,26 +293,26 @@ export function Verdict({ game }: { game: Game }) {
     <article className="verdict">
       <h2>{copy.title}</h2>
       <p>{copy.body}</p>
-      {copy.score ? <p className="verdict-score">SCORE: {score}</p> : null}
-      {copy.score && high ? <p className="verdict-high">New High Score!</p> : null}
+      {copy.score ? <p className="verdict-score">{tx("ui.WikiViews.score-2")}{score}</p> : null}
+      {copy.score && high ? <p className="verdict-high">{tx("ui.WikiViews.new-high-score")}</p> : null}
       <button type="button" className="verdict-stats" onClick={() => setStats(true)}>
-        STATS
+        {tx("ui.WikiViews.stats")}
       </button>
       <div className="verdict-row">
         <button
           type="button"
           onClick={() => verdictRestart(game)}
         >
-          RESTART
+          {tx("ui.WikiViews.restart")}
         </button>
         <button type="button" onClick={() => goTitle("hangar")}>
-          HANGAR
+          {tx("ui.WikiViews.hangar")}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          MAIN MENU
+          {tx("ui.WikiViews.main-menu")}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          QUIT
+          {tx("ui.WikiViews.quit")}
         </button>
       </div>
     </article>

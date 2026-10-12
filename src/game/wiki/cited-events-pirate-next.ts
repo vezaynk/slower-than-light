@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Next pirate titles. Redirects have no opening choice and no Locations
  * template, so they are not events. Boarders: Humans (Pirate) beams 3-5
@@ -33,11 +34,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-humans-pirate",
     aliases: ["Boarders: Humans (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!",
+    body: tx("wiki.cited-events-pirate-next.what-appears-to-be-a-civilian"),
     choices: [
       {
         id: "c:boarders-humans-pirate:0",
-        label: "3-5 human boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-pirate-next.3-5-human-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],

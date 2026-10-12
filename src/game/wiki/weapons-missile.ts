@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 
 /**
@@ -12,7 +13,7 @@ import type { WeaponDef } from "../content.ts";
 export const MISSILE_WEAPONS: WeaponDef[] = [
   {
     id: "artemisEnemy",
-    name: "Artemis Missiles (enemy)",
+    name: tx("wiki.weapons-missile.artemis-missiles-enemy"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Artemis Missiles (enemy)===.
     // "Power requirement: 2 power". Player ===Artemis Missiles=== is 1 power.
@@ -41,7 +42,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
   },
   {
     id: "hermes",
-    name: "Hermes Missile",
+    name: tx("wiki.weapons-missile.hermes-missile"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Hermes Missile===: "Power requirement: 3 power".
     power: 3,
@@ -63,11 +64,11 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Hermes Missile===: "Purchase price: 45". Store rarity 2 is not a field.
     price: 45,
-    blurb: "Standard but powerful missile.",
+    blurb: tx("wiki.weapons-missile.standard-but-powerful-missile"),
   },
   {
     id: "breachmissiles",
-    name: "Breach Missiles",
+    name: tx("wiki.weapons-missile.breach-missiles"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Breach Missiles===: "Power requirement: 3 power".
     power: 3,
@@ -89,11 +90,11 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Breach Missiles===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
-    blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
+    blurb: tx("wiki.weapons-missile.these-missiles-are-designed-to-cause"),
   },
   {
     id: "hullmissile",
-    name: "Hull Missile",
+    name: tx("wiki.weapons-missile.hull-missile"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Hull Missile===: "Power requirement: 2 power".
     power: 2,
@@ -115,11 +116,11 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Hull Missile===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
-    blurb: "High hull damage plus a decent breach chance.",
+    blurb: tx("wiki.weapons-missile.high-hull-damage-plus-a-decent"),
   },
   {
     id: "swarmmissiles",
-    name: "Swarm Missiles",
+    name: tx("wiki.weapons-missile.swarm-missiles"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Power requirement: 2 power".
     power: 2,
@@ -143,11 +144,11 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Purchase price: 65". Store rarity 4. Advanced Edition. Neither is a field.
     price: 65,
-    blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
+    blurb: tx("wiki.weapons-missile.if-given-time-to-prepare-the"),
   },
   {
     id: "pegasus",
-    name: "Pegasus Missile",
+    name: tx("wiki.weapons-missile.pegasus-missile"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===: "Power requirement: 3 power".
     power: 3,
@@ -170,11 +171,11 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===: "Purchase price: 60". Store rarity 3 is not a field.
     price: 60,
-    blurb: "Creative missile design allows for two projectiles for the cost of one!",
+    blurb: tx("wiki.weapons-missile.creative-missile-design-allows-for-two"),
   },
   {
     id: "bossmissile",
-    name: "Boss Missile",
+    name: tx("wiki.weapons-missile.boss-missile"),
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Boss Missile===.
     // "Artillery system: with 4 system levels maximum." No "Power requirement" line. power is that 4.

@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Leftover Civilian and Abandoned pages with one stated opening outcome.
  * A choice with several results is left out. Blue options, crew, map reveals,
@@ -47,7 +48,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:auto-ship-fight:0",
-        label: "Fight an Auto-ship",
+        label: tx("wiki.cited-events-civilian-al.fight-an-auto-ship"),
         fx: [{ k: "fight", tier: "Auto-ship" }],
       },
     ],
@@ -67,11 +68,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
+    body: tx("wiki.cited-events-civilian-al.you-jump-into-a-sector-of"),
     choices: [
       {
         id: "c:auto-ship-fight-in-plasma-storm:0",
-        label: "Prepare to fight",
+        label: tx("wiki.cited-events-civilian-al.prepare-to-fight"),
         fx: [{ k: "fight", tier: "Auto-ship" }],
       },
     ],
@@ -93,16 +94,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
+    body: tx("wiki.cited-events-civilian-al.an-advanced-rebel-automated-ship-remains"),
     choices: [
       {
         id: "c:auto-ship-near-storage-station:0",
-        label: "Attack the automated ship to get to the storage cache",
+        label: tx("wiki.cited-events-civilian-al.attack-the-automated-ship-to-get"),
         fx: [{ k: "fight", tier: "Auto-ship" }],
       },
       {
         id: "c:auto-ship-near-storage-station:1",
-        label: "Avoid provoking the ship",
+        label: tx("wiki.cited-events-civilian-al.avoid-provoking-the-ship"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -123,11 +124,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
+    body: tx("wiki.cited-events-civilian-al.it-appears-that-an-automated-rebel"),
     choices: [
       {
         id: "c:auto-ship-warning-in-nebula:0",
-        label: "Fight an Auto-ship that is running away",
+        label: tx("wiki.cited-events-civilian-al.fight-an-auto-ship-that-is"),
         fx: [{ k: "fight", tier: "Auto-ship" }],
       },
     ],
@@ -150,7 +151,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:escort-civilians:0",
-        label: "Accept",
+        label: tx("wiki.cited-events-civilian-al.accept"),
         fx: [
           { k: "res", id: "fuel", sign: 1, lo: 1, hi: 3 },
           // @agent:quests. The page's quest marker is added after this choice (wiki/quests.ts questAfterCited).
@@ -159,7 +160,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:escort-civilians:1",
-        label: "Decline",
+        label: tx("wiki.cited-events-civilian-al.decline"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -190,7 +191,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:free-weapon:0",
-        label: "You receive a weapon with low scrap",
+        label: tx("wiki.cited-events-civilian-al.you-receive-a-weapon-with-low"),
         fx: [
           { k: "tier", tier: "low" },
           { k: "item", item: "weapon" },
@@ -209,7 +210,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:lanius-fight:0",
-        label: "Fight a Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.fight-a-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
     ],
@@ -221,11 +222,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-distress",
     aliases: ["Lanius fight distress"],
     sectors: ["Abandoned Sector"],
-    body: "You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel.",
+    body: tx("wiki.cited-events-civilian-al.you-are-too-late-whatever-once"),
     choices: [
       {
         id: "c:lanius-fight-distress:0",
-        label: "Fight a Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.fight-a-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
     ],
@@ -237,11 +238,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-in-asteroid-field",
     aliases: ["Lanius fight in asteroid field"],
     sectors: ["Abandoned Sector"],
-    body: "This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off.",
+    body: tx("wiki.cited-events-civilian-al.this-beacon-appears-to-have-been"),
     choices: [
       {
         id: "c:lanius-fight-in-asteroid-field:0",
-        label: "Fight a Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.fight-a-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship", asteroid: true }],
       },
     ],
@@ -253,11 +254,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-fight-near-pulsar",
     aliases: ["Lanius fight near pulsar"],
     sectors: ["Abandoned Sector"],
-    body: "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses.",
+    body: tx("wiki.cited-events-civilian-al.there-appears-to-be-some-sort"),
     choices: [
       {
         id: "c:lanius-fight-near-pulsar:0",
-        label: "Fight a Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.fight-a-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
     ],
@@ -269,27 +270,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-lone-ship",
     aliases: ["Lanius lone ship"],
     sectors: ["Abandoned Sector"],
-    body: `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`,
+    body: tx("wiki.cited-events-civilian-al.you-arrive-at-the-beacon-to"),
     choices: [
       {
         id: "c:lanius-lone-ship:0",
-        label: "Attack the Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.attack-the-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
       {
         id: "c:lanius-lone-ship:1",
-        label: "Stay out of it",
+        label: tx("wiki.cited-events-civilian-al.stay-out-of-it"),
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:lanius-lone-ship:2",
-        label: "Try to contact the Lanius ship.",
-        fx: [{ k: "note", text: "Continuing may open a store, start a Lanius fight, or do nothing." }],
+        label: tx("wiki.cited-events-civilian-al.try-to-contact-the-lanius-ship"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-civilian-al.continuing-may-open-a-store-start") }],
       },
       {
         id: "c:lanius-lone-ship:3",
-        label: "Try to contact the ship.",
-        fx: [{ k: "note", text: "A Lanius crewmember opens a store." }],
+        label: tx("wiki.cited-events-civilian-al.try-to-contact-the-ship"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-civilian-al.a-lanius-crewmember-opens-a-store") }],
       },
     ],
   },
@@ -300,22 +301,22 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-powered-down-ship",
     aliases: ["Lanius powered-down ship"],
     sectors: ["Abandoned Sector"],
-    body: "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
+    body: tx("wiki.cited-events-civilian-al.you-have-picked-up-a-lanius"),
     choices: [
       {
         id: "c:lanius-powered-down-ship:0",
-        label: "Scan the ship for lifeforms",
+        label: tx("wiki.cited-events-civilian-al.scan-the-ship-for-lifeforms"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
       {
         id: "c:lanius-powered-down-ship:1",
-        label: "Power weapons to attack.",
-        fx: [{ k: "note", text: "They wake and fight, or stay silent." }],
+        label: tx("wiki.cited-events-civilian-al.power-weapons-to-attack"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-civilian-al.they-wake-and-fight-or-stay") }],
       },
       {
         id: "c:lanius-powered-down-ship:2",
-        label: "Investigate the vessel.",
-        fx: [{ k: "note", text: "Ignore, strip the hull, send a Lanius, or use level 2 piloting." }],
+        label: tx("wiki.cited-events-civilian-al.investigate-the-vessel"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-civilian-al.ignore-strip-the-hull-send-a") }],
       },
     ],
   },
@@ -326,16 +327,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-attacking-slug",
     aliases: ["Lanius ship attacking Slug"],
     sectors: ["Abandoned Sector"],
-    body: "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.",
+    body: tx("wiki.cited-events-civilian-al.the-distress-signal-from-this-system"),
     choices: [
       {
         id: "c:lanius-ship-attacking-slug:0",
-        label: "Attack the Lanius ship",
+        label: tx("wiki.cited-events-civilian-al.attack-the-lanius-ship"),
         fx: [{ k: "fight", tier: "Lanius ship" }],
       },
       {
         id: "c:lanius-ship-attacking-slug:1",
-        label: "Leave the Slugs to their fate",
+        label: tx("wiki.cited-events-civilian-al.leave-the-slugs-to-their-fate"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -349,11 +350,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-humans-in-nebula",
     aliases: ["Boarders: Humans in nebula"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
-    body: "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!",
+    body: tx("wiki.cited-events-civilian-al.you-see-a-small-station-nearby"),
     choices: [
       {
         id: "c:boarders-humans-in-nebula:0",
-        label: "2-4 human boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-civilian-al.2-4-human-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -375,11 +376,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!",
+    body: tx("wiki.cited-events-civilian-al.there-appear-to-be-a-number"),
     choices: [
       {
         id: "c:boarders-rebels-in-nebula:0",
-        label: "3-4 human boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-civilian-al.3-4-human-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],

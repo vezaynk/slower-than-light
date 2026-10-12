@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -186,14 +187,14 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
 export function installCell(g: Game) {
   if (g.player.kits.cell) return;
   if (g.scrap < INSTALL_COST) {
-    log(g, "Not enough scrap.");
+    log(g, tx("extras.cell.not-enough-scrap"));
     return;
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.cell = makeCell(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Backup Battery fitted to the Lark.");
+  log(g, tx("extras.cell.backup-battery-fitted-to-the-lark"));
 }
 
 /** Wiki page "Backup Battery", section "System Upgrades": 1→2 costs 50 and supplies 4 bars. Power stays 0. */
@@ -201,7 +202,7 @@ export function upgradeCell(g: Game) {
   const kit = g.player.kits.cell;
   if (!kit || kit.level !== 1) return;
   if (g.scrap < UPGRADE_COST) {
-    log(g, "Not enough scrap.");
+    log(g, tx("extras.cell.not-enough-scrap"));
     return;
   }
   g.scrap -= UPGRADE_COST;
@@ -209,7 +210,7 @@ export function upgradeCell(g: Game) {
   kit.level = 2;
   kit.power = 0;
   if (running(kit)) kit.aux = barsFor(2);
-  log(g, "Backup Battery level 2.");
+  log(g, tx("extras.cell.backup-battery-level-2"));
 }
 
 /**
@@ -220,7 +221,7 @@ export function cellOnJump(g: Game) {
   const kit = g.player.kits.cell;
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
-  log(g, "Backup Battery is ready.");
+  log(g, tx("extras.cell.backup-battery-is-ready"));
 }
 
 /**
@@ -252,7 +253,7 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
     const ship = kit === g.player.kits.cell ? g.player : g.enemy;
     if (ship) shedOverAssigned(g, ship, ship === g.player ? "player" : "enemy");
   }
-  log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
+  log(g, kit === g.player.kits.cell ? tx("extras.cell.backup-battery-cooling") : tx("extras.cell.their-backup-battery-cooling"));
   return true;
 }
 
@@ -264,7 +265,7 @@ export function startCell(g: Game) {
   // Systems, "Damaged and destroyed systems": every level damaged is "completely unfunctional".
   if ((kit.damage ?? 0) >= kit.level) return;
   arm(kit);
-  log(g, "Backup Battery online.");
+  log(g, tx("extras.cell.backup-battery-online"));
 }
 
 function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {

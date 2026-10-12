@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Game } from "../types.ts";
 
 /**
@@ -20,16 +21,16 @@ export function stampEngiCache(g: Game) {
   spot.flag = "engi-cache";
   spot.kind = "event";
   spot.asteroid = false;
-  spot.name = "Engi cache";
+  spot.name = tx("wiki.engi-cache.engi-cache");
 }
 
 export function engiCacheEvent(): NonNullable<Game["event"]> {
   return {
-    title: "Engi cache",
-    body: "You notice an Engi colony hiding on the other side of a nearby moon. It turns out they're excavating an equipment cache from the Federation-Mantis War, and they suggest it might be used to lure the pursuing rebel fleet.",
+    title: tx("wiki.engi-cache.engi-cache"),
+    body: tx("wiki.engi-cache.you-notice-an-engi-colony-hiding"),
     choices: [
-      { id: "engi-cache-trap", label: "Booby trap the cache." },
-      { id: "engi-cache-secure", label: "Secure the cache." },
+      { id: "engi-cache-trap", label: tx("wiki.engi-cache.booby-trap-the-cache") },
+      { id: "engi-cache-secure", label: tx("wiki.engi-cache.secure-the-cache") },
     ],
   };
 }

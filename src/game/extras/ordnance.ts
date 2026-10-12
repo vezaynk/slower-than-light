@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 import { cellOccupied } from "../layouts.ts";
 
@@ -202,7 +203,7 @@ export const ORDNANCE: WeaponDef[] = [
   // INFERRED: gap 0 from the lead "all the shots arrive almost simultaneously". Ion 0. No missile cost is listed, so ammo is false.
   {
     id: "scatter",
-    name: "Flak I",
+    name: tx("extras.ordnance.flak-i"),
     kind: "flak",
     power: 2,
     charge: 10,
@@ -214,7 +215,7 @@ export const ORDNANCE: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 65,
-    blurb: "Three pellets. Each is one damage, can miss alone, and one shield layer stops one.",
+    blurb: tx("extras.ordnance.three-pellets-each-is-one-damage"),
   },
   // Bomb (Weapons), "Fire Bomb": purchase price 50, power 2, charge 15 seconds, system damage 0.
   // Effect: guaranteed 1-2 fires, so fire is 1. No breach percent is published, so breach is 0.
@@ -222,7 +223,7 @@ export const ORDNANCE: WeaponDef[] = [
   // INFERRED: shots 1, gap 0, ion 0. The section does not number them. How often the second fire happens is not published.
   {
     id: "cask",
-    name: "Fire Bomb",
+    name: tx("extras.ordnance.fire-bomb"),
     kind: "bomb",
     power: 2,
     charge: 15,
@@ -234,6 +235,6 @@ export const ORDNANCE: WeaponDef[] = [
     breach: 0,
     ammo: true,
     price: 50,
-    blurb: "Hits the room. No hull. One or two fires. Spends a missile. Ignores shields. Can still miss.",
+    blurb: tx("extras.ordnance.hits-the-room-no-hull-one"),
   },
 ];

@@ -7,6 +7,7 @@
  * The box is the visual viewport (not window.innerHeight) so iOS browser chrome
  * does not leave the screen short or scrolled under the URL bar.
  */
+import { tx } from "@/i18n";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useSettings } from "@/game/settings";
 import { canForceLandscape, installedApp, pageTurn, setPageTurn, type PageTurn } from "./turn";
@@ -270,7 +271,7 @@ export function Screen({ children }: { children: ReactNode }) {
   const frame = {
     "--fit": fit,
     width: view?.width ?? SCREEN_W,
-    transform: `translate(-50%, -50%) scale(${fit})`,
+    transform: tx("ui.Screen.translate-50-50-scale", { fit: fit }),
   } as CSSProperties;
   const box = view?.pin
     ? ({ top: view.top, left: view.left, width: view.w, height: view.h } as CSSProperties)

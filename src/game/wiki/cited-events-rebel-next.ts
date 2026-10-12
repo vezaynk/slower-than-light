@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Next Rebel titles. Redirects are not followed. A chase that sometimes
  * fights, sometimes doubles pursuit, and sometimes does nothing is left out.
@@ -34,7 +35,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rebel-defector:0",
-        label: "Accept his proposal",
+        label: tx("wiki.cited-events-rebel-next.accept-his-proposal"),
         // "Accept his proposal, and prepare to fight the Rebel ship."
         // "you fight a Rebel ship (default rewards)." Branched reward is not granted.
         fx: [
@@ -49,7 +50,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       // format can say about it.
       {
         id: "c:rebel-defector:1",
-        label: "Reject his offer. You can never trust these Rebels.",
+        label: tx("wiki.cited-events-rebel-next.reject-his-offer-you-can-never"),
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
     ],

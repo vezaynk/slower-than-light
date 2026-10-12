@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import { type ReactNode } from "react";
 import { hullById } from "@/game/hulls";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
@@ -188,15 +189,15 @@ const ROOM_COLOR: Record<string, string> = {
 
 /** Kit rooms carry a short tag in the cutaway, so a bought or starting kit's room reads at a glance. */
 const KIT_SHORT: Record<KitId, string> = {
-  veil: "CLOAK",
-  sling: "TELE",
-  spike: "HACK",
-  swarm: "DRONE",
-  leash: "MIND",
-  cradle: "CLONE",
-  cell: "BATT",
-  lance: "ARTY",
-  flak: "ARTY",
+  veil: tx("ui.PixelArt.cloak"),
+  sling: tx("ui.PixelArt.tele"),
+  spike: tx("ui.PixelArt.hack"),
+  swarm: tx("ui.PixelArt.drone"),
+  leash: tx("ui.PixelArt.mind"),
+  cradle: tx("ui.PixelArt.clone"),
+  cell: tx("ui.PixelArt.batt"),
+  lance: tx("ui.PixelArt.arty"),
+  flak: tx("ui.PixelArt.arty"),
 };
 
 const KIT_TAG = {
@@ -359,7 +360,7 @@ export function PixelTitle() {
           ),
         )}
       </g>
-      {blit("STL", 152 - textWidth("STL", 1), 19, 1, "#f4f7f4", "banner")}
+      {blit(tx("ui.PixelArt.stl"), 152 - textWidth(tx("ui.PixelArt.stl"), 1), 19, 1, "#f4f7f4", "banner")}
     </svg>
   );
 }
@@ -419,13 +420,13 @@ function textWidth(text: string, scale: number) {
 }
 
 const TITLE_LINES = [
-  { id: "continue", label: "CONTINUE" },
-  { id: "new", label: "NEW GAME" },
-  { id: "tutorial", label: "TUTORIAL" },
-  { id: "stats", label: "STATS" },
-  { id: "options", label: "OPTIONS" },
-  { id: "credits", label: "CREDITS" },
-  { id: "quit", label: "QUIT" },
+  { id: "continue", label: tx("ui.PixelArt.continue") },
+  { id: "new", label: tx("ui.PixelArt.new-game") },
+  { id: "tutorial", label: tx("ui.PixelArt.tutorial") },
+  { id: "stats", label: tx("ui.PixelArt.stats") },
+  { id: "options", label: tx("ui.PixelArt.options") },
+  { id: "credits", label: tx("ui.PixelArt.credits") },
+  { id: "quit", label: tx("ui.PixelArt.quit") },
 ];
 
 export const TITLE_MENU_ART = TITLE_LINES.map((item, i) => {
@@ -551,9 +552,9 @@ function shipPixels(ship: (typeof FLEET)[number]) {
 
 /** Title: planet and fleet on the left, the STL mark, the Slower Than Light subtitle and the menu on the right. */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
-  const subtitle = "SLOWER THAN LIGHT";
-  const mark = "FAN PROJECT · INSPIRED BY FTL";
-  const version = "v. 0.1";
+  const subtitle = tx("ui.PixelArt.slower-than-light");
+  const mark = tx("ui.PixelArt.fan-project-inspired-by-ftl");
+  const version = tx("ui.PixelArt.v-0-1");
   return (
     <svg className="pixel-menu" viewBox={`0 0 ${TITLE_VIEW.w} ${TITLE_VIEW.h}`} aria-hidden="true">
       <rect width={TITLE_VIEW.w} height={TITLE_VIEW.h} fill="#07060d" />
@@ -564,7 +565,7 @@ export function PixelMenu({ continueReady }: { continueReady: boolean }) {
         <rect key={`p${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="2" height="2" fill={cell.fill} />
       ))}
       {FLEET.map((ship) => shipPixels(ship))}
-      {blit("STL", TITLE_VIEW.w - MENU_RIGHT - textWidth("STL", 4), 24, 4, "#f4f7f4", "logo")}
+      {blit(tx("ui.PixelArt.stl"), TITLE_VIEW.w - MENU_RIGHT - textWidth(tx("ui.PixelArt.stl"), 4), 24, 4, "#f4f7f4", "logo")}
       {blit(subtitle, TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1), 58, 1, "#c8c8c8", "subtitle")}
       {TITLE_LINES.map((item, i) =>
         blit(

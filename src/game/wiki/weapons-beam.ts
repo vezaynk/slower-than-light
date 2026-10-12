@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 
 /**
@@ -12,7 +13,7 @@ import type { WeaponDef } from "../content.ts";
 export const BEAM_WEAPONS: WeaponDef[] = [
   {
     id: "mini",
-    name: "Mini Beam",
+    name: tx("wiki.weapons-beam.mini-beam"),
     kind: "beam",
     // Beam (Weapons), "Mini Beam": 1 power, charge 12 seconds, 1 damage per room.
     // Sells for: 10. Cannot be bought or found, so price is 0.
@@ -29,11 +30,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 0,
-    blurb: "Extremely cheap and weak beam weapon.",
+    blurb: tx("wiki.weapons-beam.extremely-cheap-and-weak-beam-weapon"),
   },
   {
     id: "pike",
-    name: "Pike Beam",
+    name: tx("wiki.weapons-beam.pike-beam"),
     kind: "beam",
     // Beam (Weapons), "Pike Beam": 2 power, charge 16 seconds, 1 damage per room.
     // Purchase price: 55. Store rarity: 2.
@@ -50,11 +51,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 55,
-    blurb: "Can cut across entire ships, assuming there's no shield to stop it.",
+    blurb: tx("wiki.weapons-beam.can-cut-across-entire-ships-assuming"),
   },
   {
     id: "hullbeam",
-    name: "Hull Beam",
+    name: tx("wiki.weapons-beam.hull-beam"),
     kind: "beam",
     // Beam (Weapons), "Hull Beam": 2 power, charge 14 seconds, 1 damage per room.
     // The parenthetical 2 damage on systemless rooms is in BEAM_GAPS.
@@ -72,11 +73,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 70,
-    blurb: "This beam is most powerful when targeting large, empty sections of hull.",
+    blurb: tx("wiki.weapons-beam.this-beam-is-most-powerful-when"),
   },
   {
     id: "halberd",
-    name: "Halberd Beam",
+    name: tx("wiki.weapons-beam.halberd-beam"),
     kind: "beam",
     // Beam (Weapons), "Halberd Beam": 3 power, charge 17 seconds, 2 damage per room.
     // Purchase price: 65. Store rarity: 2.
@@ -94,11 +95,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 65,
-    blurb: "Slow but reliably powerful standard beam weapon.",
+    blurb: tx("wiki.weapons-beam.slow-but-reliably-powerful-standard-beam"),
   },
   {
     id: "glaive",
-    name: "Glaive Beam",
+    name: tx("wiki.weapons-beam.glaive-beam"),
     kind: "beam",
     // Beam (Weapons), "Glaive Beam": 4 power, charge 25 seconds, 3 damage per room.
     // Purchase price: 95. Store rarity: 5.
@@ -116,11 +117,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 95,
     blurb:
-      "One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.",
+      tx("wiki.weapons-beam.one-of-the-most-powerful-weapons"),
   },
   {
     id: "firebeam",
-    name: "Fire Beam",
+    name: tx("wiki.weapons-beam.fire-beam"),
     kind: "beam",
     // Beam (Weapons), "Fire Beam": 2 power, charge 20 seconds.
     // Damage: -. The quote says it does no physical damage, so damage is 0.
@@ -139,11 +140,11 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 50,
-    blurb: "This terrifying beam does no physical damage but ignites fires.",
+    blurb: tx("wiki.weapons-beam.this-terrifying-beam-does-no-physical"),
   },
   {
     id: "antibio",
-    name: "Anti-Bio Beam",
+    name: tx("wiki.weapons-beam.anti-bio-beam"),
     kind: "beam",
     // Beam (Weapons), "Anti-Bio Beam": 2 power, charge 16 seconds.
     // Damage: -. The quote says it does no physical damage, so damage is 0.
@@ -163,7 +164,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 50,
     blurb:
-      "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
+      tx("wiki.weapons-beam.this-terrifying-beam-does-no-physical-2"),
   },
 ];
 
@@ -218,56 +219,56 @@ export const BEAM_CREW: Record<string, number> = {
 export const BEAM_GAPS: { id: string; note: string }[] = [
   {
     id: "mini",
-    note: 'Beam (Weapons), "Mini Beam": beam length 45 (1 tile diagonally). Crew damage 15 HP per room tile. WeaponDef has no length or crew-damage field.',
+    note: tx("wiki.weapons-beam.beam-weapons-mini-beam-beam-length"),
   },
   {
     id: "pike",
-    note: 'Beam (Weapons), "Pike Beam": beam length 170 (3.8 tiles diagonally). Crew damage 15 HP per room tile. WeaponDef has no length or crew-damage field.',
+    note: tx("wiki.weapons-beam.beam-weapons-pike-beam-beam-length"),
   },
   {
     id: "hullbeam",
-    note: 'Beam (Weapons), "Hull Beam": beam length 100 (2.2 tiles diagonally). 2 damage on systemless rooms, applied as hull damage. Each shield layer cuts that figure by one. Crew damage 15 HP per room tile. WeaponDef stores only the 1 damage per room.',
+    note: tx("wiki.weapons-beam.beam-weapons-hull-beam-beam-length"),
   },
   {
     id: "halberd",
-    note: 'Beam (Weapons), "Halberd Beam": beam length 80 (1.8 tiles diagonally). Can target 3-4 rooms straight, 2-3 diagonally, 5 max. Still deals 1 damage per room through 1 shield. Crew damage 30 HP per room tile.',
+    note: tx("wiki.weapons-beam.beam-weapons-halberd-beam-beam-length"),
   },
   {
     id: "glaive",
-    note: 'Beam (Weapons), "Glaive Beam": beam length 80 (1.8 tiles diagonally). Still deals 1 damage per room through 2 shields, or 2 damage per room through 1 shield. Crew damage 45 HP per room tile.',
+    note: tx("wiki.weapons-beam.beam-weapons-glaive-beam-beam-length"),
   },
   {
     id: "firebeam",
-    note: 'Beam (Weapons), "Fire Beam": beam length 140 (3.1 tiles diagonally). Deals 1 point of damage twice against Zoltan Shields. Crew damage is listed as "-". Fires: "Fire beams can be blocked by a regular shield barrier (1 is enough)".',
+    note: tx("wiki.weapons-beam.beam-weapons-fire-beam-beam-length"),
   },
   {
     id: "antibio",
-    note: 'Beam (Weapons), "Anti-Bio Beam": beam length 140 (3.1 tiles diagonally). Crew damage 60 HP per room tile, which is not hull damage. Deals 1 point of damage twice against Zoltan Shields. Beam (Weapons): "even one shield layer is enough to block most beam weapons."',
+    note: tx("wiki.weapons-beam.beam-weapons-anti-bio-beam-beam"),
   },
   {
     id: "artillery-beam",
     // Beam (Weapons), "Artillery Beam": no WeaponDef. lance.ts owns the system.
-    note: 'lance.ts owns the system. Beam (Weapons), "Artillery Beam": artillery system with 4 system levels maximum. Charge time 50s for level 1, reduced by 10 seconds for each level above 1 to a minimum of 20s for level 4. Beam length 500 (12.5 tiles diagonally). Deals 1 damage per room hit and ignores all standard shields. Crew damage 15 HP per room tile. Effect: 10% chance to start fire (per tile). Pre-installed on Federation Cruiser Layout A and Layout B. Opening paragraph: pierces all regular shield layers (up to all 5).',
+    note: tx("wiki.weapons-beam.lance-ts-owns-the-system-beam"),
   },
   {
     id: "bossbeam",
     // Beam (Weapons), "Boss Beam": "Artillery system: with 3 system levels maximum". No power requirement.
     // INFERRED: that maximum is the WeaponDef power in flagship-weapons.ts, and it is not a Weapons-pool cost.
-    note: 'INFERRED: the artillery maximum is 3, stored on the WeaponDef in flagship-weapons.ts, and it is not a Weapons-pool cost. Beam (Weapons), "Boss Beam" states no power requirement. This catalog does not emit a second WeaponDef. Charge time 32.5s for level 1, 26s for level 2, 19.5s for level 3. Beam length 100 (2.2 tiles diagonally). Deals 2 damage per room hit. Artillery system with 3 system levels maximum. Only used by the Rebel Flagship in phase 1-2. The italic quote is inside an HTML comment and is not copied.',
+    note: tx("wiki.weapons-beam.inferred-the-artillery-maximum-is-3"),
   },
   {
     id: "shield-layers",
     // Beam (Weapons), "Beam targeting and damage mechanics".
-    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the damage of a beam is reduced by one for every shield layer. Beams do not deplete regular shield layers. A 2-damage Halberd Beam deals 1 damage per room through 1 shield layer. Damage to crew drones is halved. A drone that already has health and is in the room takes half the crew damage.',
+    note: tx("wiki.weapons-beam.beam-weapons-beam-targeting-and-damage"),
   },
   {
     id: "swipe",
     // Beam (Weapons), "Beam targeting and damage mechanics".
-    note: 'Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the starting point and the second click fires. Even a tiny edge of a room counts, and damage is applied when the beam first enters that room. A longer swipe stops at the printed tile length. A closer click is not stretched. Halberd\'s "3-4 rooms straight, 2-3 diagonally, 5 max" is not the room rule. Enemies still start in the centre of a room. INFERRED: an enemy swipe adds one door-neighbour.',
+    note: tx("wiki.weapons-beam.beam-weapons-beam-targeting-and-damage-2"),
   },
   {
     id: "zoltan-shield",
     // Beam (Weapons), "Beams vs Zoltan Shields".
-    note: 'Beam (Weapons), "Beams vs Zoltan Shields": first damage instance at 33% of the beam path, second at 80%. Beams that do no hull damage do 1 damage per instance. A Halberd Beam deals 4 damage (2 x 2 instances). A Fire Beam or Anti-Bio Beam deals 2 damage (1 x 2 instances).',
+    note: tx("wiki.weapons-beam.beam-weapons-beams-vs-zoltan-shields"),
   },
 ];

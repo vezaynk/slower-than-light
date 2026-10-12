@@ -12,6 +12,7 @@
  * The choice queues on Game.overflow and stops the clock (sim.ts halted) until it is answered. The new item can always
  * be the one left behind.
  */
+import { tx } from "../../i18n/index.ts";
 import { CREW_CAP, dismissCrew, log, weaponSlotCap } from "../sim.ts";
 import type { AugmentId, CargoItem, Game, Overflow } from "../types.ts";
 import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "./cited-stores.ts";
@@ -181,7 +182,7 @@ export function resolveOverflow(g: Game, leave: string): boolean {
     // The newcomer is already aboard, so "new" is just one of the ids here. A paid hire stays.
     if (leave === head.keep || !dismissCrew(g, leave)) return false;
   } else if (leave === "new") {
-    log(g, "Left behind.");
+    log(g, tx("wiki.make-room.left-behind"));
   } else if (/^c:\d+$/.test(leave)) {
     // A cargo item is left behind; the new one takes its cargo slot.
     const index = Number(leave.slice(2));

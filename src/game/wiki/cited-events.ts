@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
@@ -145,11 +146,11 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold"
     ],
-    "body": "You come across a Rebel automated scout ship pursuing a civilian ship, weapons engaged.",
+    "body": tx("wiki.cited-events.you-come-across-a-rebel-automated"),
     "choices": [
       {
         "id": "c:auto-ship-attacking-civilian:0",
-        "label": "Aid the civilian ship",
+        "label": tx("wiki.cited-events.aid-the-civilian-ship"),
         "fx": [
           {
             "k": "fight",
@@ -159,7 +160,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-attacking-civilian:1",
-        "label": "Stay out of it",
+        "label": tx("wiki.cited-events.stay-out-of-it"),
         "fx": [
           {
             "k": "nothing"
@@ -180,11 +181,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "You detect an automated Rebel scout attacking a small refueling outpost.",
+    "body": tx("wiki.cited-events.you-detect-an-automated-rebel-scout"),
     "choices": [
       {
         "id": "c:auto-ship-attacking-outpost:0",
-        "label": "Intervene to defend the outpost",
+        "label": tx("wiki.cited-events.intervene-to-defend-the-outpost"),
         "fx": [
           {
             "k": "fight",
@@ -194,7 +195,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-attacking-outpost:1",
-        "label": "Avoid the conflict",
+        "label": tx("wiki.cited-events.avoid-the-conflict"),
         "fx": [
           {
             "k": "nothing"
@@ -213,11 +214,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Civilian Sector"
     ],
-    "body": "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.",
+    "body": tx("wiki.cited-events.your-arrival-is-greeted-by-numerous"),
     "choices": [
       {
         "id": "c:auto-ship-carrying-shield-virus:0",
-        "label": "Continue",
+        "label": tx("wiki.cited-events.continue"),
         "fx": [
           {
             "k": "fight",
@@ -227,7 +228,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-carrying-shield-virus:1",
-        "label": "Counter the remote hacking.",
+        "label": tx("wiki.cited-events.counter-the-remote-hacking"),
         "fx": [
           {
             "k": "fight",
@@ -250,11 +251,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.",
+    "body": tx("wiki.cited-events.the-rebels-must-have-sent-their"),
     "choices": [
       {
         "id": "c:auto-ship-fight-crystal:0",
-        "label": "Fight an Auto-ship",
+        "label": tx("wiki.cited-events.fight-an-auto-ship"),
         "fx": [
           {
             "k": "fight",
@@ -281,11 +282,11 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold"
     ],
-    "body": "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!",
+    "body": tx("wiki.cited-events.you-arrive-in-an-asteroid-belt"),
     "choices": [
       {
         "id": "c:auto-ship-fight-in-asteroid-field:0",
-        "label": "Fight an Auto-ship",
+        "label": tx("wiki.cited-events.fight-an-auto-ship"),
         "fx": [
           {
             "k": "fight",
@@ -319,7 +320,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:auto-ship-fight-in-nebula:0",
-        "label": "Fight an Auto-ship",
+        "label": tx("wiki.cited-events.fight-an-auto-ship"),
         "fx": [
           {
             "k": "fight",
@@ -343,11 +344,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Civilian Sector"
     ],
-    "body": "You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.",
+    "body": tx("wiki.cited-events.you-arrive-at-the-beacon-to"),
     "choices": [
       {
         "id": "c:auto-ship-fight-near-sun:0",
-        "label": "Fight an Auto-ship",
+        "label": tx("wiki.cited-events.fight-an-auto-ship"),
         "fx": [
           {
             "k": "fight",
@@ -368,11 +369,11 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold"
     ],
-    "body": "A Rebel automated ship sits dormant near a Rebel forward radar station.",
+    "body": tx("wiki.cited-events.a-rebel-automated-ship-sits-dormant"),
     "choices": [
       {
         "id": "c:auto-ship-near-radar-station:0",
-        "label": "Approach the station",
+        "label": tx("wiki.cited-events.approach-the-station"),
         "fx": [
           {
             "k": "fight",
@@ -382,7 +383,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-near-radar-station:1",
-        "label": "Keep your distance and wait for the FTL to charge",
+        "label": tx("wiki.cited-events.keep-your-distance-and-wait-for"),
         "fx": [
           {
             "k": "nothing"
@@ -405,11 +406,11 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold"
     ],
-    "body": "You detect a Rebel automated ship nearby. It does not engage and seems to be patrolling around a long-range sensor station.",
+    "body": tx("wiki.cited-events.you-detect-a-rebel-automated-ship"),
     "choices": [
       {
         "id": "c:auto-ship-near-sensor-station:0",
-        "label": "Attack the automated ship to get to the sensor station",
+        "label": tx("wiki.cited-events.attack-the-automated-ship-to-get"),
         "fx": [
           {
             "k": "fight",
@@ -419,7 +420,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-near-sensor-station:1",
-        "label": "Avoid provoking the ship",
+        "label": tx("wiki.cited-events.avoid-provoking-the-ship"),
         "fx": [
           {
             "k": "nothing"
@@ -447,11 +448,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "An advance <!-- [sic] -->rebel automated ship remains stationed near a small Rebel space-station. However, without functioning sensors it is impossible to tell what is inside.",
+    "body": tx("wiki.cited-events.an-advance-sic-rebel-automated-ship"),
     "choices": [
       {
         "id": "c:auto-ship-near-storage-station-in-nebula:0",
-        "label": "Attack the automated ship to get to the station",
+        "label": tx("wiki.cited-events.attack-the-automated-ship-to-get-2"),
         "fx": [
           {
             "k": "fight",
@@ -461,7 +462,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:auto-ship-near-storage-station-in-nebula:1",
-        "label": "Avoid provoking the ship",
+        "label": tx("wiki.cited-events.avoid-provoking-the-ship"),
         "fx": [
           {
             "k": "nothing"
@@ -489,7 +490,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:auto-ship-warning:0",
-        "label": "Fight an Auto-ship that is running away",
+        "label": tx("wiki.cited-events.fight-an-auto-ship-that-is"),
         "fx": [
           {
             "k": "fight",
@@ -513,11 +514,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "You find two heavily damaged ships floating nearby, the remains of a battle. You begin to harvest some usable debris when you hear the sounds of someone beaming aboard followed by the shouts of a boarding party.",
+    "body": tx("wiki.cited-events.you-find-two-heavily-damaged-ships"),
     "choices": [
       {
         "id": "c:boarders-humans-in-plasma-storm:0",
-        "label": "You receive medium scrap with resources",
+        "label": tx("wiki.cited-events.you-receive-medium-scrap-with-resources"),
         "fx": [
           {
             "k": "tier",
@@ -538,11 +539,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "Crystal shards fly past your ship as soon as you jump. You scan to find the assailant and discover a Crystalline ship carrying a number of humans in it's cargo bay. It must be hunting the intruding ships!",
+    "body": tx("wiki.cited-events.crystal-shards-fly-past-your-ship"),
     "choices": [
       {
         "id": "c:crystal-fight-with-surrender-offer-human-crew:0",
-        "label": "Fight a Crystal ship",
+        "label": tx("wiki.cited-events.fight-a-crystal-ship"),
         "fx": [
           {
             "k": "fight",
@@ -564,11 +565,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "A large convoy of lumbering civilian ships appears to be passing through this region. You show no hostile intentions, but they are taking no chances, immediately sending their escort to attack!",
+    "body": tx("wiki.cited-events.a-large-convoy-of-lumbering-civilian"),
     "choices": [
       {
         "id": "c:crystal-fight-with-surrender-offer-hull-repairs:0",
-        "label": "Fight a Crystal ship",
+        "label": tx("wiki.cited-events.fight-a-crystal-ship"),
         "fx": [
           {
             "k": "fight",
@@ -589,11 +590,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "There appears to be a fight going on nearby. A Crystalline border guard is chasing a small Federation ship!",
+    "body": tx("wiki.cited-events.there-appears-to-be-a-fight"),
     "choices": [
       {
         "id": "c:crystal-ship-attacking-federation-loyalists:0",
-        "label": "Save the Federation ship",
+        "label": tx("wiki.cited-events.save-the-federation-ship"),
         "fx": [
           {
             "k": "fight",
@@ -603,7 +604,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:crystal-ship-attacking-federation-loyalists:1",
-        "label": "Prepare to leave",
+        "label": tx("wiki.cited-events.prepare-to-leave"),
         "fx": [
           {
             "k": "nothing"
@@ -623,11 +624,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "The moment you arrive you notice a Crystalline ship in the vicinity keeping its distance. They message you, \"The 'Rebels' that are trying to hunt YOU down are creating havoc everywhere they go.\" \"To minimize their impact on our people, we would like you to give them your flight path out of our sector. We would like to remain civil and are willing to pay you in 'scrap' for the increased danger it poses.",
+    "body": tx("wiki.cited-events.the-moment-you-arrive-you-notice"),
     "choices": [
       {
         "id": "c:crystalline-ship-messaging-about-rebels:0",
-        "label": "Give them your flight plans",
+        "label": tx("wiki.cited-events.give-them-your-flight-plans"),
         "fx": [
           {
             "k": "nothing"
@@ -636,7 +637,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:crystalline-ship-messaging-about-rebels:1",
-        "label": "Accept the scrap but give them false flight plans",
+        "label": tx("wiki.cited-events.accept-the-scrap-but-give-them"),
         "fx": [
           {
             "k": "nothing"
@@ -645,7 +646,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:crystalline-ship-messaging-about-rebels:2",
-        "label": "Accept the scrap but give them falsified flight plans.",
+        "label": tx("wiki.cited-events.accept-the-scrap-but-give-them-2"),
         "fx": [
           {
             "k": "nothing"
@@ -654,7 +655,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:crystalline-ship-messaging-about-rebels:3",
-        "label": "Refuse",
+        "label": tx("wiki.cited-events.refuse"),
         "fx": [
           {
             "k": "nothing"
@@ -684,11 +685,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You find a Rebel automated scout floating near this beacon. Despite its pristine condition, it appears to be de-activated.",
+    "body": tx("wiki.cited-events.you-find-a-rebel-automated-scout"),
     "choices": [
       {
         "id": "c:deactivated-auto-ship:0",
-        "label": "Don't risk activating it, and just strip the ship for any useful scrap",
+        "label": tx("wiki.cited-events.don-t-risk-activating-it-and"),
         "fx": [
           {
             "k": "tier",
@@ -712,11 +713,11 @@ const CORE_EVENTS: EventDef[] = [
       "Engi Controlled Sector",
       "Engi Homeworlds"
     ],
-    "body": "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!",
+    "body": tx("wiki.cited-events.the-distress-signal-originates-at-a"),
     "choices": [
       {
         "id": "c:engi-distress-rebel-fight:0",
-        "label": "Fight the Rebel Ship",
+        "label": tx("wiki.cited-events.fight-the-rebel-ship"),
         "fx": [
           {
             "k": "fight",
@@ -738,11 +739,11 @@ const CORE_EVENTS: EventDef[] = [
       "Engi Controlled Sector",
       "Engi Homeworlds"
     ],
-    "body": "What appeared to be a single damaged ship is in fact two ships that have smashed into each other... there is a flurry of comm signals and damage, and it's hard to determine what occurred. The vessels appear to be... Engi? They look locked together by the impact and can't free themselves.",
+    "body": tx("wiki.cited-events.what-appeared-to-be-a-single"),
     "choices": [
       {
         "id": "c:engi-smashed-ships:0",
-        "label": "Attempt to help the ships by prying them apart",
+        "label": tx("wiki.cited-events.attempt-to-help-the-ships-by"),
         "fx": [
           {
             "k": "fight",
@@ -752,7 +753,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:engi-smashed-ships:1",
-        "label": "Ignore the damaged vessels",
+        "label": tx("wiki.cited-events.ignore-the-damaged-vessels"),
         "fx": [
           {
             "k": "nothing"
@@ -761,11 +762,11 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:engi-smashed-ships:2",
-        "label": "Have your Engi crewmember hail the vessel and assess the damage.",
+        "label": tx("wiki.cited-events.have-your-engi-crewmember-hail-the"),
         "fx": [
           {
             "k": "note",
-            "text": "Random resources with some scrap."
+            "text": tx("wiki.cited-events.random-resources-with-some-scrap")
           }
         ]
       }
@@ -794,7 +795,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:escort-civilians-ftl-haywire:0",
-        "label": "Lead them to their destination",
+        "label": tx("wiki.cited-events.lead-them-to-their-destination"),
         "fx": [
           {
             "k": "tier",
@@ -808,7 +809,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:escort-civilians-ftl-haywire:1",
-        "label": "Decline",
+        "label": tx("wiki.cited-events.decline"),
         "fx": [
           {
             "k": "nothing"
@@ -828,11 +829,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "For a moment you assume it's a glitch, but no... you've found a Federation military ship! They hail you and, after some probing, reveal that they deserted the Federation fleet before stumbling into this sector while seeking refuge.",
+    "body": tx("wiki.cited-events.for-a-moment-you-assume-it"),
     "choices": [
       {
         "id": "c:federation-deserters:2",
-        "label": "Offer supplies.",
+        "label": tx("wiki.cited-events.offer-supplies"),
         "fx": [
           {
             "k": "res",
@@ -852,7 +853,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:federation-deserters:0",
-        "label": "Attack the traitors",
+        "label": tx("wiki.cited-events.attack-the-traitors"),
         "fx": [
           {
             "k": "fight",
@@ -862,7 +863,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:federation-deserters:1",
-        "label": "Leave them be",
+        "label": tx("wiki.cited-events.leave-them-be"),
         "fx": [
           {
             "k": "nothing"
@@ -901,7 +902,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:free-drone-schematic:0",
-        "label": "You receive a drone schematic with low scrap",
+        "label": tx("wiki.cited-events.you-receive-a-drone-schematic-with"),
         "fx": [
           {
             "k": "tier",
@@ -944,7 +945,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:free-scrap-with-resources:0",
-        "label": "You receive medium scrap with resources",
+        "label": tx("wiki.cited-events.you-receive-medium-scrap-with-resources"),
         "fx": [
           {
             "k": "tier",
@@ -966,11 +967,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "You stumble across a badly damaged Lanius craft. It jumps away as soon as it sees you. Looking around the area, you discover a number of destroyed Rebel automated ships. It must have been quite the fight. You scrap what remains.",
+    "body": tx("wiki.cited-events.you-stumble-across-a-badly-damaged"),
     "choices": [
       {
         "id": "c:free-scrap-with-resources-lanius:0",
-        "label": "You receive high scrap with resources",
+        "label": tx("wiki.cited-events.you-receive-high-scrap-with-resources"),
         "fx": [
           {
             "k": "tier",
@@ -992,11 +993,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "After the fight",
+    "body": tx("wiki.cited-events.after-the-fight"),
     "choices": [
       {
         "id": "c:lanius-fight-with-friendly-asb-support:0",
-        "label": "Fight a Lanius ship with an Anti-Ship Battery on your side",
+        "label": tx("wiki.cited-events.fight-a-lanius-ship-with-an"),
         "fx": [
           {
             "k": "fight",
@@ -1017,11 +1018,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "You come across a Lanius ship in the process of absorbing a Rebel automated scout. If you scare off the Lanius you could probably make use of it.",
+    "body": tx("wiki.cited-events.you-come-across-a-lanius-ship"),
     "choices": [
       {
         "id": "c:lanius-ship-absorbing-automated-scout:0",
-        "label": "Fight the ship",
+        "label": tx("wiki.cited-events.fight-the-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1031,7 +1032,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-absorbing-automated-scout:1",
-        "label": "Leave them alone",
+        "label": tx("wiki.cited-events.leave-them-alone"),
         "fx": [
           {
             "k": "nothing"
@@ -1051,11 +1052,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "The Mantis ship in this system looks like its distress beacon is malfunctioning... likely due to the Lanius ship mining their hull and sub-systems! It doesn't look like the Mantis ship will last much longer.",
+    "body": tx("wiki.cited-events.the-mantis-ship-in-this-system"),
     "choices": [
       {
         "id": "c:lanius-ship-attacking-mantis:0",
-        "label": "Attack the Lanius ship",
+        "label": tx("wiki.cited-events.attack-the-lanius-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1065,7 +1066,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-attacking-mantis:1",
-        "label": "Leave the Mantis to their fate",
+        "label": tx("wiki.cited-events.leave-the-mantis-to-their-fate"),
         "fx": [
           {
             "k": "nothing"
@@ -1085,11 +1086,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "A distress beacon pulses weakly from a Rockman ship in this system... their hull (and their crew) are being mined by the Lanius, lasers and weapons tearing through the ship!",
+    "body": tx("wiki.cited-events.a-distress-beacon-pulses-weakly-from"),
     "choices": [
       {
         "id": "c:lanius-ship-attacking-rock:0",
-        "label": "Attack the Lanius ship",
+        "label": tx("wiki.cited-events.attack-the-lanius-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1099,7 +1100,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-attacking-rock:1",
-        "label": "Leave the Rockmen to their fate",
+        "label": tx("wiki.cited-events.leave-the-rockmen-to-their-fate"),
         "fx": [
           {
             "k": "nothing"
@@ -1123,7 +1124,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:lanius-ship-attacking-civilian:0",
-        "label": "Attack the Lanius ship",
+        "label": tx("wiki.cited-events.attack-the-lanius-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1133,7 +1134,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-attacking-civilian:1",
-        "label": "Avoid the conflict",
+        "label": tx("wiki.cited-events.avoid-the-conflict"),
         "fx": [
           {
             "k": "nothing"
@@ -1153,11 +1154,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "You immediately do a short-range scan after arriving at the beacon. It appears to be coming from a small civilian vessel under fire from a Lanius ship. Not all Lanius are content with simply scavenging the wrecks of previous battles.",
+    "body": tx("wiki.cited-events.you-immediately-do-a-short-range"),
     "choices": [
       {
         "id": "c:lanius-ship-attacking-civilian-distress:0",
-        "label": "Fight the Lanius ship",
+        "label": tx("wiki.cited-events.fight-the-lanius-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1167,7 +1168,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-attacking-civilian-distress:1",
-        "label": "Avoid the conflict",
+        "label": tx("wiki.cited-events.avoid-the-conflict"),
         "fx": [
           {
             "k": "nothing"
@@ -1176,11 +1177,11 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-attacking-civilian-distress:2",
-        "label": "Have your crew admonish their captain.",
+        "label": tx("wiki.cited-events.have-your-crew-admonish-their-captain"),
         "fx": [
           {
             "k": "note",
-            "text": "A Lanius crewmember starts a fight or powers the ship down."
+            "text": tx("wiki.cited-events.a-lanius-crewmember-starts-a-fight")
           }
         ]
       }
@@ -1196,11 +1197,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "Your scans have picked up a Lanius vessel in this system: it appears to be navigating a rich debris field, harvesting the minerals.",
+    "body": tx("wiki.cited-events.your-scans-have-picked-up-a"),
     "choices": [
       {
         "id": "c:lanius-ship-in-rich-debris-field:0",
-        "label": "Attempt to harvest some for yourself",
+        "label": tx("wiki.cited-events.attempt-to-harvest-some-for-yourself"),
         "fx": [
           {
             "k": "fight",
@@ -1210,7 +1211,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-in-rich-debris-field:1",
-        "label": "Attack the vessel",
+        "label": tx("wiki.cited-events.attack-the-vessel"),
         "fx": [
           {
             "k": "fight",
@@ -1220,7 +1221,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-in-rich-debris-field:2",
-        "label": "Ignore the vessel",
+        "label": tx("wiki.cited-events.ignore-the-vessel"),
         "fx": [
           {
             "k": "nothing"
@@ -1229,21 +1230,21 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-in-rich-debris-field:3",
-        "label": "Engage the auto-pilot and safely harvest the debris.",
+        "label": tx("wiki.cited-events.engage-the-auto-pilot-and-safely"),
         "fx": [
           {
             "k": "note",
-            "text": "Improved Piloting at level 2 pays medium scrap with resources."
+            "text": tx("wiki.cited-events.improved-piloting-at-level-2-pays")
           }
         ]
       },
       {
         "id": "c:lanius-ship-in-rich-debris-field:4",
-        "label": "Engage the auto-pilot and safely harvest the debris.",
+        "label": tx("wiki.cited-events.engage-the-auto-pilot-and-safely"),
         "fx": [
           {
             "k": "note",
-            "text": "Advanced Piloting at level 3 pays high scrap with resources."
+            "text": tx("wiki.cited-events.advanced-piloting-at-level-3-pays")
           }
         ]
       }
@@ -1264,7 +1265,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:lanius-ship-salvager:0",
-        "label": "Attack the ship",
+        "label": tx("wiki.cited-events.attack-the-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1274,7 +1275,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-salvager:1",
-        "label": "Leave them alone",
+        "label": tx("wiki.cited-events.leave-them-alone"),
         "fx": [
           {
             "k": "nothing"
@@ -1283,11 +1284,11 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-ship-salvager:2",
-        "label": "Request some scrap.",
+        "label": tx("wiki.cited-events.request-some-scrap"),
         "fx": [
           {
             "k": "note",
-            "text": "A Lanius crewmember may receive medium scrap only, a scoff, or nothing."
+            "text": tx("wiki.cited-events.a-lanius-crewmember-may-receive-medium")
           }
         ]
       }
@@ -1307,7 +1308,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:lanius-trader:0",
-        "label": "You lose 3-7 fuel and receive 15-30 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-fuel-and"),
         "fx": [
           {
             "k": "res",
@@ -1327,7 +1328,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader:1",
-        "label": "You lose 3-7 missiles and receive 20-40 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-missiles-and"),
         "fx": [
           {
             "k": "res",
@@ -1347,7 +1348,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader:2",
-        "label": "You lose 3-7 drone parts and receive 20-40 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-drone-parts"),
         "fx": [
           {
             "k": "res",
@@ -1367,7 +1368,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader:3",
-        "label": "Decline",
+        "label": tx("wiki.cited-events.decline"),
         "fx": [
           {
             "k": "nothing"
@@ -1392,7 +1393,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:lanius-trader-with-translator:0",
-        "label": "You lose 3-7 fuel and receive 15-30 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-fuel-and"),
         "fx": [
           {
             "k": "res",
@@ -1412,7 +1413,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader-with-translator:1",
-        "label": "You lose 3-7 missiles and receive 20-40 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-missiles-and"),
         "fx": [
           {
             "k": "res",
@@ -1432,7 +1433,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader-with-translator:2",
-        "label": "You lose 3-7 drone parts and receive 20-40 scrap",
+        "label": tx("wiki.cited-events.you-lose-3-7-drone-parts"),
         "fx": [
           {
             "k": "res",
@@ -1452,7 +1453,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:lanius-trader-with-translator:3",
-        "label": "Decline",
+        "label": tx("wiki.cited-events.decline"),
         "fx": [
           {
             "k": "nothing"
@@ -1473,11 +1474,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Mantis Homeworlds"
     ],
-    "body": "You cross paths with a Mantis ship that looks to have had dozens of layers of armor-plating added over what must have been a hundred year career. Its captain is legendary thief KazaaakplethKilik. Your crew look frightened.",
+    "body": tx("wiki.cited-events.you-cross-paths-with-a-mantis"),
     "choices": [
       {
         "id": "c:legendary-thief-kazaaakplethkilik:0",
-        "label": "Prepare to fight",
+        "label": tx("wiki.cited-events.prepare-to-fight"),
         "fx": [
           {
             "k": "fight",
@@ -1487,7 +1488,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:legendary-thief-kazaaakplethkilik:1",
-        "label": "Attempt to hail him.",
+        "label": tx("wiki.cited-events.attempt-to-hail-him"),
         "fx": [
           {
             "k": "fight",
@@ -1508,11 +1509,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "The Mantis outcasts sometimes make the mistake of taking the Zoltan for easy game. A scout moves in to attack while a boarding party beams aboard from a nearby transport!",
+    "body": tx("wiki.cited-events.the-mantis-outcasts-sometimes-make-the"),
     "choices": [
       {
         "id": "c:mantis-outcasts:0",
-        "label": "2-3 mantis boarders beam aboard your ship and you fight a Mantis Ship (default rewards)",
+        "label": tx("wiki.cited-events.2-3-mantis-boarders-beam-aboard"),
         "fx": [
           {
             "k": "fight",
@@ -1532,11 +1533,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "You discover a number of civilian ships fleeing the area. Shots are fired and you find the assailant; a Mantis ship is attacking one of the smaller ships!",
+    "body": tx("wiki.cited-events.you-discover-a-number-of-civilian"),
     "choices": [
       {
         "id": "c:mantis-ship-attacking-crystal:0",
-        "label": "Attack the Mantis",
+        "label": tx("wiki.cited-events.attack-the-mantis"),
         "fx": [
           {
             "k": "fight",
@@ -1546,7 +1547,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:mantis-ship-attacking-crystal:1",
-        "label": "Ignore them",
+        "label": tx("wiki.cited-events.ignore-them"),
         "fx": [
           {
             "k": "nothing"
@@ -1568,11 +1569,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You receive a request, \"All of our military ships have been destroyed or damaged during the rebellion. However, there have been reports of a Mantis war camp only a few jumps from us. Can you help?\"",
+    "body": tx("wiki.cited-events.you-receive-a-request-all-of"),
     "choices": [
       {
         "id": "c:mantis-war-camp:0",
-        "label": "Pledge to do what you can",
+        "label": tx("wiki.cited-events.pledge-to-do-what-you-can"),
         "fx": [
           {
             "k": "tier",
@@ -1586,7 +1587,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:mantis-war-camp:1",
-        "label": "Apologize and decline",
+        "label": tx("wiki.cited-events.apologize-and-decline"),
         "fx": [
           {
             "k": "nothing"
@@ -1604,11 +1605,11 @@ const CORE_EVENTS: EventDef[] = [
       "No fuel: Auto-ship warning"
     ],
     "sectors": [],
-    "body": "A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship.",
+    "body": tx("wiki.cited-events.a-ship-responding-to-your-distress"),
     "choices": [
       {
         "id": "c:no-fuel-auto-ship-warning:0",
-        "label": "Fight an Auto-ship that is running away",
+        "label": tx("wiki.cited-events.fight-an-auto-ship-that-is"),
         "fx": [
           {
             "k": "fight",
@@ -1631,7 +1632,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-engi-ship-repair:0",
-        "label": "Make the trade",
+        "label": tx("wiki.cited-events.make-the-trade"),
         "fx": [
           {
             "k": "res",
@@ -1651,7 +1652,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-engi-ship-repair:1",
-        "label": "Ignore them",
+        "label": tx("wiki.cited-events.ignore-them"),
         "fx": [
           {
             "k": "nothing"
@@ -1673,7 +1674,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-mantis-fight:0",
-        "label": "Fight a Mantis ship that is running away",
+        "label": tx("wiki.cited-events.fight-a-mantis-ship-that-is"),
         "fx": [
           {
             "k": "fight",
@@ -1696,7 +1697,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-rebel-fight:0",
-        "label": "Fight a Rebel ship that is running away",
+        "label": tx("wiki.cited-events.fight-a-rebel-ship-that-is"),
         "fx": [
           {
             "k": "fight",
@@ -1715,11 +1716,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slugman Fuel Depot"
     ],
     "sectors": [],
-    "body": "A mobile Slugman fuel depot enters scanning range. \"My prices are fair, but I ask one thing - do not insult me with negotiation!\" You check out his price list.",
+    "body": tx("wiki.cited-events.a-mobile-slugman-fuel-depot-enters"),
     "choices": [
       {
         "id": "c:no-fuel-slug-fuel-depot:0",
-        "label": "Buy 5 fuel for 50 scrap",
+        "label": tx("wiki.cited-events.buy-5-fuel-for-50-scrap"),
         "fx": [
           {
             "k": "res",
@@ -1739,7 +1740,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-slug-fuel-depot:1",
-        "label": "Buy 10 fuel for 95 scrap. (BEST DEAL!)",
+        "label": tx("wiki.cited-events.buy-10-fuel-for-95-scrap"),
         "fx": [
           {
             "k": "res",
@@ -1759,7 +1760,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-slug-fuel-depot:2",
-        "label": "Negotiate",
+        "label": tx("wiki.cited-events.negotiate"),
         "fx": [
           {
             "k": "fight",
@@ -1782,7 +1783,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-automated-refueling-ship:0",
-        "label": "Request emergency fuel reserves",
+        "label": tx("wiki.cited-events.request-emergency-fuel-reserves"),
         "fx": [
           {
             "k": "res",
@@ -1795,7 +1796,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:1",
-        "label": "Buy 5 fuel for 20 scrap",
+        "label": tx("wiki.cited-events.buy-5-fuel-for-20-scrap"),
         "fx": [
           {
             "k": "res",
@@ -1815,7 +1816,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:2",
-        "label": "Buy 2 fuel for 8 scrap",
+        "label": tx("wiki.cited-events.buy-2-fuel-for-8-scrap"),
         "fx": [
           {
             "k": "res",
@@ -1835,7 +1836,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:3",
-        "label": "Attack the automated ship",
+        "label": tx("wiki.cited-events.attack-the-automated-ship"),
         "fx": [
           {
             "k": "fight",
@@ -1854,11 +1855,11 @@ const CORE_EVENTS: EventDef[] = [
       "No fuel: explore the system"
     ],
     "sectors": [],
-    "body": "Although your lack of fuel cells prevents your ship from jumping, you can still use your impulse engines. Will you spend some time exploring the nearby system?",
+    "body": tx("wiki.cited-events.although-your-lack-of-fuel-cells"),
     "choices": [
       {
         "id": "c:no-fuel-explore-the-system:0",
-        "label": "Trade 20 scrap for 5 fuel",
+        "label": tx("wiki.cited-events.trade-20-scrap-for-5-fuel"),
         "fx": [
           {
             "k": "res",
@@ -1878,7 +1879,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:1",
-        "label": "Trade 10 scrap for 2 fuel",
+        "label": tx("wiki.cited-events.trade-10-scrap-for-2-fuel"),
         "fx": [
           {
             "k": "res",
@@ -1898,7 +1899,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:2",
-        "label": "Trade 5 scrap for 1 fuel",
+        "label": tx("wiki.cited-events.trade-5-scrap-for-1-fuel"),
         "fx": [
           {
             "k": "res",
@@ -1918,7 +1919,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:3",
-        "label": "Stay near the beacon",
+        "label": tx("wiki.cited-events.stay-near-the-beacon"),
         "fx": [
           {
             "k": "nothing"
@@ -1950,7 +1951,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:pirate-briber:0",
-        "label": "Accept their bribe",
+        "label": tx("wiki.cited-events.accept-their-bribe"),
         "fx": [
           {
             "k": "tier",
@@ -1961,7 +1962,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-briber:1",
-        "label": "Try to be a hero. Attack the pirate",
+        "label": tx("wiki.cited-events.try-to-be-a-hero-attack"),
         "fx": [
           {
             "k": "fight",
@@ -1985,7 +1986,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:pirate-ship-attacking-civilian-lanius:0",
-        "label": "Attack the pirate",
+        "label": tx("wiki.cited-events.attack-the-pirate"),
         "fx": [
           {
             "k": "fight",
@@ -1995,7 +1996,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-attacking-civilian-lanius:1",
-        "label": "Avoid the conflict",
+        "label": tx("wiki.cited-events.avoid-the-conflict"),
         "fx": [
           {
             "k": "nothing"
@@ -2021,11 +2022,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "The distress beacon is coming from a civilian ship. It appears it is being chased by a pirate.",
+    "body": tx("wiki.cited-events.the-distress-beacon-is-coming-from"),
     "choices": [
       {
         "id": "c:pirate-ship-attacking-civilian-distress:0",
-        "label": "Aid the civilian ship",
+        "label": tx("wiki.cited-events.aid-the-civilian-ship"),
         "fx": [
           {
             "k": "fight",
@@ -2035,7 +2036,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-attacking-civilian-distress:1",
-        "label": "Stay out of it",
+        "label": tx("wiki.cited-events.stay-out-of-it"),
         "fx": [
           {
             "k": "nothing"
@@ -2056,11 +2057,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "A ship with conspicuous pirate markings is orbiting a nearby moon, broadcasting a simple message claiming to have equipment available for sale.",
+    "body": tx("wiki.cited-events.a-ship-with-conspicuous-pirate-markings"),
     "choices": [
       {
         "id": "c:pirate-ship-selling-drones:0",
-        "label": "Buy some Drone parts",
+        "label": tx("wiki.cited-events.buy-some-drone-parts"),
         "fx": [
           {
             "k": "res",
@@ -2080,7 +2081,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-selling-drones:1",
-        "label": "Attack him before he can attack!",
+        "label": tx("wiki.cited-events.attack-him-before-he-can-attack"),
         "fx": [
           {
             "k": "fight",
@@ -2090,7 +2091,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-selling-drones:2",
-        "label": "Quickly prepare to jump away",
+        "label": tx("wiki.cited-events.quickly-prepare-to-jump-away"),
         "fx": [
           {
             "k": "nothing"
@@ -2114,11 +2115,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "A black market weapons trader spins you a tale of the dangers of the nebula before pushing his wares.",
+    "body": tx("wiki.cited-events.a-black-market-weapons-trader-spins"),
     "choices": [
       {
         "id": "c:pirate-ship-selling-weapon:0",
-        "label": "Attack the ship",
+        "label": tx("wiki.cited-events.attack-the-ship"),
         "fx": [
           {
             "k": "fight",
@@ -2128,7 +2129,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-selling-weapon:1",
-        "label": "Ignore the ship",
+        "label": tx("wiki.cited-events.ignore-the-ship"),
         "fx": [
           {
             "k": "nothing"
@@ -2137,11 +2138,11 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:pirate-ship-selling-weapon:2",
-        "label": "Convince him to make it a better deal.",
+        "label": tx("wiki.cited-events.convince-him-to-make-it-a"),
         "fx": [
           {
             "k": "note",
-            "text": "A declined deal, or a Pirate ship."
+            "text": tx("wiki.cited-events.a-declined-deal-or-a-pirate")
           }
         ]
       }
@@ -2163,7 +2164,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rebel-checkpoint:0",
-        "label": "Fend for yourself, attack, and escape",
+        "label": tx("wiki.cited-events.fend-for-yourself-attack-and-escape"),
         "fx": [
           {
             "k": "fight",
@@ -2173,7 +2174,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-checkpoint:1",
-        "label": "Fly behind a moon and stay hidden",
+        "label": tx("wiki.cited-events.fly-behind-a-moon-and-stay"),
         "fx": [
           {
             "k": "nothing"
@@ -2197,7 +2198,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rebel-fight-among-federation-and-rebel-fleets:0",
-        "label": "Fight a Rebel ship",
+        "label": tx("wiki.cited-events.fight-a-rebel-ship"),
         "fx": [
           {
             "k": "fight",
@@ -2225,11 +2226,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.",
+    "body": tx("wiki.cited-events.you-arrive-in-the-middle-of"),
     "choices": [
       {
         "id": "c:rebel-fight-in-plasma-storm:0",
-        "label": "Fight a Rebel ship (default rewards)",
+        "label": tx("wiki.cited-events.fight-a-rebel-ship-default-rewards"),
         "fx": [
           {
             "k": "fight",
@@ -2250,11 +2251,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Hidden Crystal Worlds"
     ],
-    "body": "Crystal shards fly past the screen as soon as you arrive. Checking the scanners, it looks like a crystalline ship is engaged with a Rebel!",
+    "body": tx("wiki.cited-events.crystal-shards-fly-past-the-screen"),
     "choices": [
       {
         "id": "c:rebel-ship-attacking-crystal-ship:0",
-        "label": "Attack the Rebel",
+        "label": tx("wiki.cited-events.attack-the-rebel"),
         "fx": [
           {
             "k": "fight",
@@ -2264,7 +2265,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-attacking-crystal-ship:1",
-        "label": "Attack the Crystalline ship",
+        "label": tx("wiki.cited-events.attack-the-crystalline-ship"),
         "fx": [
           {
             "k": "fleet",
@@ -2279,7 +2280,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-attacking-crystal-ship:2",
-        "label": "Ignore them",
+        "label": tx("wiki.cited-events.ignore-them"),
         "fx": [
           {
             "k": "nothing"
@@ -2309,7 +2310,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rebel-ship-attacking-federation-loyalists:0",
-        "label": "Aid the Federation ship",
+        "label": tx("wiki.cited-events.aid-the-federation-ship"),
         "fx": [
           {
             "k": "fight",
@@ -2319,7 +2320,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-attacking-federation-loyalists:1",
-        "label": "Use this chance to escape",
+        "label": tx("wiki.cited-events.use-this-chance-to-escape"),
         "fx": [
           {
             "k": "nothing"
@@ -2343,7 +2344,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rebel-ship-attacking-civilians-in-last-stand:0",
-        "label": "Prepare to fight the Rebel ship!",
+        "label": tx("wiki.cited-events.prepare-to-fight-the-rebel-ship"),
         "fx": [
           {
             "k": "fight",
@@ -2353,7 +2354,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-attacking-civilians-in-last-stand:1",
-        "label": "There's no time, get ready to jump",
+        "label": tx("wiki.cited-events.there-s-no-time-get-ready"),
         "fx": [
           {
             "k": "nothing"
@@ -2375,11 +2376,11 @@ const CORE_EVENTS: EventDef[] = [
       "Rebel Stronghold",
       "The Last Stand"
     ],
-    "body": "You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.",
+    "body": tx("wiki.cited-events.you-detect-a-rebel-scout-on"),
     "choices": [
       {
         "id": "c:rebel-ship-attacking-refueling-outpost:0",
-        "label": "Intervene to defend the outpost",
+        "label": tx("wiki.cited-events.intervene-to-defend-the-outpost"),
         "fx": [
           {
             "k": "fight",
@@ -2389,7 +2390,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-attacking-refueling-outpost:1",
-        "label": "Avoid the conflict",
+        "label": tx("wiki.cited-events.avoid-the-conflict"),
         "fx": [
           {
             "k": "nothing"
@@ -2414,7 +2415,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rebel-ship-supplying-civilians:0",
-        "label": "Attack the Rebels",
+        "label": tx("wiki.cited-events.attack-the-rebels"),
         "fx": [
           {
             "k": "fight",
@@ -2424,7 +2425,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-supplying-civilians:1",
-        "label": "Leave them be",
+        "label": tx("wiki.cited-events.leave-them-be"),
         "fx": [
           {
             "k": "nothing"
@@ -2433,7 +2434,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-ship-supplying-civilians:2",
-        "label": "Wait and steal the supplies from the civilians",
+        "label": tx("wiki.cited-events.wait-and-steal-the-supplies-from"),
         "fx": [
           {
             "k": "nothing"
@@ -2453,11 +2454,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Rebel Stronghold"
     ],
-    "body": "You arrive at the beacon to find yourself in a huge Rebel shipyard, scaffolding and construction drones filling the sector! The entire system looks devoted to ship construction, the nearby planets and moons ruthlessly mined to harvest resources for a ship of immense size...",
+    "body": tx("wiki.cited-events.you-arrive-at-the-beacon-to-2"),
     "choices": [
       {
         "id": "c:rebel-shipyard:0",
-        "label": "Look around",
+        "label": tx("wiki.cited-events.look-around"),
         "fx": [
           {
             "k": "fight",
@@ -2467,7 +2468,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-shipyard:1",
-        "label": "Leave immediately",
+        "label": tx("wiki.cited-events.leave-immediately"),
         "fx": [
           {
             "k": "nothing"
@@ -2492,11 +2493,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "You spot a small rebel ship nearby. It seems to have been re-fitted for transport rather than combat. It does not seem to want to engage you and your ship.",
+    "body": tx("wiki.cited-events.you-spot-a-small-rebel-ship"),
     "choices": [
       {
         "id": "c:rebel-transport-ship:0",
-        "label": "Demand the surrender of their goods",
+        "label": tx("wiki.cited-events.demand-the-surrender-of-their-goods"),
         "fx": [
           {
             "k": "fight",
@@ -2506,7 +2507,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rebel-transport-ship:1",
-        "label": "Avoid the ship",
+        "label": tx("wiki.cited-events.avoid-the-ship"),
         "fx": [
           {
             "k": "nothing"
@@ -2530,11 +2531,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.",
+    "body": tx("wiki.cited-events.a-small-platform-orbits-near-this"),
     "choices": [
       {
         "id": "c:refueling-platform:0",
-        "label": "Dock with the refueling platform.",
+        "label": tx("wiki.cited-events.dock-with-the-refueling-platform"),
         "fx": [
           {
             "k": "nothing"
@@ -2543,7 +2544,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:refueling-platform:1",
-        "label": "Ignore the refueling platform.",
+        "label": tx("wiki.cited-events.ignore-the-refueling-platform"),
         "fx": [
           {
             "k": "fight",
@@ -2579,11 +2580,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "A ship re-fueling station is stationed at this beacon. We can purchase fuel here.",
+    "body": tx("wiki.cited-events.a-ship-re-fueling-station-is"),
     "choices": [
       {
         "id": "c:refueling-station:0",
-        "label": "Buy 6 Fuel for 12 Scrap",
+        "label": tx("wiki.cited-events.buy-6-fuel-for-12-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2603,7 +2604,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:refueling-station:1",
-        "label": "Buy 3 Fuel for 6 Scrap",
+        "label": tx("wiki.cited-events.buy-3-fuel-for-6-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2623,7 +2624,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:refueling-station:2",
-        "label": "Buy 1 Fuel for 2 Scrap",
+        "label": tx("wiki.cited-events.buy-1-fuel-for-2-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2643,7 +2644,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:refueling-station:3",
-        "label": "Ignore the station",
+        "label": tx("wiki.cited-events.ignore-the-station"),
         "fx": [
           {
             "k": "nothing"
@@ -2668,7 +2669,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:rock-atheists:0",
-        "label": "Tell them their god sent them here to join your crew",
+        "label": tx("wiki.cited-events.tell-them-their-god-sent-them"),
         "fx": [
           {
             "k": "fight",
@@ -2689,11 +2690,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Uncharted Nebula"
     ],
-    "body": "A rock armoured transport nearby looks to have lost its bearings, but when you hail they grow suspicious: \"Whatever life-form you are, we find you repugnant. We seek no aid. Leave. Now.\"",
+    "body": tx("wiki.cited-events.a-rock-armoured-transport-nearby-looks"),
     "choices": [
       {
         "id": "c:rock-ship-in-plasma-storm:0",
-        "label": "Repugnant? Arm the weapons!",
+        "label": tx("wiki.cited-events.repugnant-arm-the-weapons"),
         "fx": [
           {
             "k": "fight",
@@ -2703,7 +2704,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:rock-ship-in-plasma-storm:1",
-        "label": "Leave",
+        "label": tx("wiki.cited-events.leave"),
         "fx": [
           {
             "k": "nothing"
@@ -2734,11 +2735,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "You see a civilian space station with heavy damage. You receive a message, \"We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra.\"",
+    "body": tx("wiki.cited-events.you-see-a-civilian-space-station"),
     "choices": [
       {
         "id": "c:sell-drone-parts-for-scrap:0",
-        "label": "Sell 3 drone parts for 12 scrap",
+        "label": tx("wiki.cited-events.sell-3-drone-parts-for-12"),
         "fx": [
           {
             "k": "res",
@@ -2758,7 +2759,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-drone-parts-for-scrap:1",
-        "label": "Sell 6 drone parts for 24 scrap",
+        "label": tx("wiki.cited-events.sell-6-drone-parts-for-24"),
         "fx": [
           {
             "k": "res",
@@ -2778,7 +2779,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-drone-parts-for-scrap:2",
-        "label": "Sell 12 drone parts for 48 scrap",
+        "label": tx("wiki.cited-events.sell-12-drone-parts-for-48"),
         "fx": [
           {
             "k": "res",
@@ -2798,7 +2799,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-drone-parts-for-scrap:3",
-        "label": "Ignore the station",
+        "label": tx("wiki.cited-events.ignore-the-station"),
         "fx": [
           {
             "k": "nothing"
@@ -2830,11 +2831,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula"
     ],
-    "body": "There is a black market hub here. You receive a message, \"These are dangerous times. If you have extra military-grade explosives, we'll gladly pay you for them.\"",
+    "body": tx("wiki.cited-events.there-is-a-black-market-hub"),
     "choices": [
       {
         "id": "c:sell-missiles-for-scrap:0",
-        "label": "Sell 5 missiles for 15 scrap",
+        "label": tx("wiki.cited-events.sell-5-missiles-for-15-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2854,7 +2855,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-missiles-for-scrap:1",
-        "label": "Sell 10 missiles for 30 scrap",
+        "label": tx("wiki.cited-events.sell-10-missiles-for-30-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2874,7 +2875,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-missiles-for-scrap:2",
-        "label": "Sell 15 missiles for 45 scrap",
+        "label": tx("wiki.cited-events.sell-15-missiles-for-45-scrap"),
         "fx": [
           {
             "k": "res",
@@ -2894,7 +2895,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:sell-missiles-for-scrap:3",
-        "label": "Ignore the station",
+        "label": tx("wiki.cited-events.ignore-the-station"),
         "fx": [
           {
             "k": "nothing"
@@ -2922,11 +2923,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You recognize the ship as a well known slave trader. He hails you and offers you \"laborers\" for cheap.",
+    "body": tx("wiki.cited-events.you-recognize-the-ship-as-a"),
     "choices": [
       {
         "id": "c:slaver-friendly:0",
-        "label": "Attack the slaver scum",
+        "label": tx("wiki.cited-events.attack-the-slaver-scum"),
         "fx": [
           {
             "k": "fight",
@@ -2936,7 +2937,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slaver-friendly:1",
-        "label": "Ignore the slaver and continue on your way",
+        "label": tx("wiki.cited-events.ignore-the-slaver-and-continue-on"),
         "fx": [
           {
             "k": "nothing"
@@ -2957,11 +2958,11 @@ const CORE_EVENTS: EventDef[] = [
       "Civilian Sector",
       "Pirate Controlled Sector"
     ],
-    "body": "An especially well-armed pirate ship approaches you. \"Hand over one of your crew and the rest can go unharmed.\"",
+    "body": tx("wiki.cited-events.an-especially-well-armed-pirate-ship"),
     "choices": [
       {
         "id": "c:slaver-hostile:2",
-        "label": "Draw straws and send a crew-member over to the slavers.",
+        "label": tx("wiki.cited-events.draw-straws-and-send-a-crew"),
         "fx": [
           {
             "k": "nothing"
@@ -2970,7 +2971,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slaver-hostile:0",
-        "label": "We will never surrender one of our crew to slavers!",
+        "label": tx("wiki.cited-events.we-will-never-surrender-one-of"),
         "fx": [
           {
             "k": "fight",
@@ -2980,7 +2981,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slaver-hostile:1",
-        "label": "Attempt to out-run the slaver ship.",
+        "label": tx("wiki.cited-events.attempt-to-out-run-the-slaver"),
         "fx": [
           {
             "k": "fight",
@@ -3002,11 +3003,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Home Nebula"
     ],
     // Slug drink. The printed hail.
-    "body": "A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. \"Now, most gracioussss captain, you must join me please in a drink to our alliance!\"",
+    "body": tx("wiki.cited-events.a-slug-captain-hails-and-invites"),
     "choices": [
       {
         "id": "c:slug-drink:0",
-        "label": "Refuse",
+        "label": tx("wiki.cited-events.refuse"),
         "fx": [
           {
             "k": "fight",
@@ -3029,11 +3030,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "You are immediately hailed by a dangerous looking ship. \"I'm feeling generouss today. I shall allow you to choose your own death. Which do you like leasst: shields, oxygen, or weaponsss?\"",
+    "body": tx("wiki.cited-events.you-are-immediately-hailed-by-a"),
     "choices": [
       {
         "id": "c:slug-hacker-choice:0",
-        "label": "Shields",
+        "label": tx("wiki.cited-events.shields"),
         "fx": [
           {
             "k": "fight",
@@ -3043,7 +3044,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-choice:1",
-        "label": "Oxygen",
+        "label": tx("wiki.cited-events.oxygen"),
         "fx": [
           {
             "k": "fight",
@@ -3053,7 +3054,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-choice:2",
-        "label": "Weapons",
+        "label": tx("wiki.cited-events.weapons"),
         "fx": [
           {
             "k": "fight",
@@ -3063,7 +3064,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-choice:3",
-        "label": "Offer 35 scrap to leave you alone",
+        "label": tx("wiki.cited-events.offer-35-scrap-to-leave-you"),
         "fx": [
           {
             "k": "res",
@@ -3076,7 +3077,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-choice:4",
-        "label": "Counter any hack attempt.",
+        "label": tx("wiki.cited-events.counter-any-hack-attempt"),
         "fx": [
           {
             "k": "fight",
@@ -3098,11 +3099,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!",
+    "body": tx("wiki.cited-events.there-are-few-more-vicious-beasts"),
     "choices": [
       {
         "id": "c:slug-hacker-doors:0",
-        "label": "Continue",
+        "label": tx("wiki.cited-events.continue"),
         "fx": [
           {
             "k": "fight",
@@ -3112,7 +3113,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-doors:1",
-        "label": "Counter the remote hacking.",
+        "label": tx("wiki.cited-events.counter-the-remote-hacking"),
         "fx": [
           {
             "k": "fight",
@@ -3133,11 +3134,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "A Slug ship hails you: \"We've detected some worrying radiation coming from your medical unit, perhaps you should take a look?\" As he signs off, your medical bay shuts off and their crew teleports aboard from a nearby station. They don't look like engineers.",
+    "body": tx("wiki.cited-events.a-slug-ship-hails-you-we"),
     "choices": [
       {
         "id": "c:slug-hacker-medical:0",
-        "label": "Continue",
+        "label": tx("wiki.cited-events.continue"),
         "fx": [
           {
             "k": "fight",
@@ -3147,7 +3148,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-medical:1",
-        "label": "Counter the remote hacking.",
+        "label": tx("wiki.cited-events.counter-the-remote-hacking"),
         "fx": [
           {
             "k": "fight",
@@ -3157,7 +3158,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-medical:2",
-        "label": "Try to squeeze some extra power to the system.",
+        "label": tx("wiki.cited-events.try-to-squeeze-some-extra-power"),
         "fx": [
           {
             "k": "fight",
@@ -3180,11 +3181,11 @@ const CORE_EVENTS: EventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula"
     ],
-    "body": "The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!",
+    "body": tx("wiki.cited-events.the-slugs-here-use-a-tactic"),
     "choices": [
       {
         "id": "c:slug-hacker-oxygen:0",
-        "label": "Continue",
+        "label": tx("wiki.cited-events.continue"),
         "fx": [
           {
             "k": "fight",
@@ -3194,7 +3195,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-oxygen:1",
-        "label": "Try to squeeze some extra power to the system.",
+        "label": tx("wiki.cited-events.try-to-squeeze-some-extra-power"),
         "fx": [
           {
             "k": "fight",
@@ -3204,7 +3205,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:slug-hacker-oxygen:2",
-        "label": "Counter the remote hacking.",
+        "label": tx("wiki.cited-events.counter-the-remote-hacking"),
         "fx": [
           {
             "k": "fight",
@@ -3225,11 +3226,11 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Civilian Sector"
     ],
-    "body": "You come across a space station under construction. You receive a message from their command tower, \"Greetings. We recently lost contact with a cargo ship that was set to deliver more construction materials. Could you help us figure out what happened to them?\"",
+    "body": tx("wiki.cited-events.you-come-across-a-space-station"),
     "choices": [
       {
         "id": "c:space-station-under-construction:0",
-        "label": "Offer your help",
+        "label": tx("wiki.cited-events.offer-your-help"),
         "fx": [
           {
             "k": "res",
@@ -3260,7 +3261,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:space-station-under-construction:1",
-        "label": "Decline",
+        "label": tx("wiki.cited-events.decline"),
         "fx": [
           {
             "k": "nothing"
@@ -3282,11 +3283,11 @@ const CORE_EVENTS: EventDef[] = [
       "Engi Controlled Sector",
       "Engi Homeworlds"
     ],
-    "body": "The Engi are awaiting you at the beacon, with their weapons on-line! They explain a computer virus that is wanted for hostile acts against the Engi (multiple counts of binary scrambling, nano-dissolution, and variable interference) is aboard your vessel. They insist they must destroy your ship to prevent the virus from escaping!",
+    "body": tx("wiki.cited-events.the-engi-are-awaiting-you-at"),
     "choices": [
       {
         "id": "c:the-engi-virus:0",
-        "label": "Hold on! Let us try to purge the system code!",
+        "label": tx("wiki.cited-events.hold-on-let-us-try-to"),
         "fx": [
           {
             "k": "fight",
@@ -3296,7 +3297,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:the-engi-virus:1",
-        "label": "Attack the Engi vessel!",
+        "label": tx("wiki.cited-events.attack-the-engi-vessel"),
         "fx": [
           {
             "k": "fight",
@@ -3326,7 +3327,7 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:the-mercenary:0",
-        "label": "Hire the mercenary to delay the Rebels",
+        "label": tx("wiki.cited-events.hire-the-mercenary-to-delay-the"),
         "fx": [
           {
             "k": "res",
@@ -3344,7 +3345,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:the-mercenary:1",
-        "label": "Fight the ship",
+        "label": tx("wiki.cited-events.fight-the-ship"),
         "fx": [
           {
             "k": "fight",
@@ -3354,7 +3355,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:the-mercenary:2",
-        "label": "You have no need of his services",
+        "label": tx("wiki.cited-events.you-have-no-need-of-his"),
         "fx": [
           {
             "k": "nothing"
@@ -3375,11 +3376,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You pick up a Zoltan life raft floating in space. Its inhabitant asks you to retake his ship from the pirates who recently commandeered it. \"I'm certain it is clear,\" he concludes, \"that you must not destroy my vessel in the process.\"",
+    "body": tx("wiki.cited-events.you-pick-up-a-zoltan-life"),
     "choices": [
       {
         "id": "c:zoltan-retake-the-ship:0",
-        "label": "Engage the pirates",
+        "label": tx("wiki.cited-events.engage-the-pirates"),
         "fx": [
           {
             "k": "fight",
@@ -3389,7 +3390,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:zoltan-retake-the-ship:1",
-        "label": "Leave",
+        "label": tx("wiki.cited-events.leave"),
         "fx": [
           {
             "k": "nothing"
@@ -3409,11 +3410,11 @@ const CORE_EVENTS: EventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds"
     ],
-    "body": "You come to a quiet part of Zoltan space and encounter an ancient Zoltan wise man who has managed to harness the power of a spatial rift, but seems to have been driven completely mad by the power. \"Choose your doom,\" he demands. This is all part of a day's work.",
+    "body": tx("wiki.cited-events.you-come-to-a-quiet-part"),
     "choices": [
       {
         "id": "c:zoltan-wise-man:0",
-        "label": "Mantis",
+        "label": tx("wiki.cited-events.mantis"),
         "fx": [
           {
             "k": "fight",
@@ -3423,7 +3424,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:zoltan-wise-man:1",
-        "label": "Slug",
+        "label": tx("wiki.cited-events.slug"),
         "fx": [
           {
             "k": "fight",
@@ -3433,7 +3434,7 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:zoltan-wise-man:2",
-        "label": "Rockmen",
+        "label": tx("wiki.cited-events.rockmen"),
         "fx": [
           {
             "k": "fight",
@@ -3457,7 +3458,7 @@ const CORE_EVENTS: EventDef[] = [
     "sectors": [
       "Abandoned Sector"
     ],
-    "body": "An image of some weak and hungry humans comes onto your screen. \"Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force.\"",
+    "body": tx("wiki.cited-events.an-image-of-some-weak-and"),
     "choices": [
       {
         "id": "c:boarders-humans-abandoned:0",
@@ -3536,12 +3537,12 @@ type TradeRes = "fuel" | "missiles" | "parts";
 // Trade resources. The page prints six intros and four offers, and no odds.
 // INFERRED: each intro is equally likely, and each of the four offers is equally likely.
 const TRADE_RESOURCE_INTROS = [
-  `You arrive at a quiet spaceport and are immediately hailed by another ship at port with a "once in a lifetime deal!"`,
-  "You jump into a sector filled with civilian activity. Your scan the various advertisement channels while waiting for your FTL to charge, and are intrigued by a grey-market shipwright.",
-  "Your ship is flooded with advertisement transmissions from nearby merchants as soon as you arrive at this beacon. You arbitrarily pick one to examine in detail.",
-  "Despite the barren area, a trader has set up shop at this beacon. He presents his offer.",
-  "The beacon at first glance seems home to a junk yard. Upon closer inspection, it reveals itself to be a ramshackle market. One trader has a deal that catches your eye.",
-  "A pawn broker has set up shop at this obscure beacon. He might be offering something worth looking at.",
+  tx("wiki.cited-events.you-arrive-at-a-quiet-spaceport"),
+  tx("wiki.cited-events.you-jump-into-a-sector-filled"),
+  tx("wiki.cited-events.your-ship-is-flooded-with-advertisement"),
+  tx("wiki.cited-events.despite-the-barren-area-a-trader"),
+  tx("wiki.cited-events.the-beacon-at-first-glance-seems"),
+  tx("wiki.cited-events.a-pawn-broker-has-set-up"),
 ];
 
 const TRADE_RESOURCE_OFFERS: { pay: TradeRes; cost: [number, number]; get: TradeRes; gain: [number, number] }[] = [
@@ -3556,7 +3557,7 @@ const TRADE_RESOURCES_TAKE = /^c:trade-resources:take:(fuel|missiles|parts):(\d+
 // Trade resources in nebula. One intro and the same four offers, and no odds.
 // INFERRED: each offer is equally likely. The numbers are rolled once and stay on Trade.
 const TRADE_RESOURCES_NEBULA_INTRO =
-  "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
+  tx("wiki.cited-events.it-s-hard-to-see-why");
 
 const TRADE_RESOURCES_NEBULA_TAKE =
   /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
@@ -3566,7 +3567,7 @@ function tradeTake(id: string): RegExpExecArray | null {
 }
 
 function tradeNote(id: TradeRes, n: number): string {
-  const word = id === "fuel" ? "Fuel" : id === "missiles" ? "Missiles" : "Drone parts";
+  const word = id === "fuel" ? tx("wiki.cited-events.fuel") : id === "missiles" ? tx("wiki.cited-events.missiles") : tx("wiki.cited-events.drone-parts");
   return `${word}: ${n}.`;
 }
 
@@ -3575,13 +3576,13 @@ function tradeResourcesEvent(g: Game, title: string): GameEvent {
   const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
-  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
+  const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
   return {
     title,
     body: `${intro} ${sentence}`,
     choices: [
-      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
-      { id: "c:trade-resources:4", label: "Ignore." },
+      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: tx("wiki.cited-events.trade") },
+      { id: "c:trade-resources:4", label: tx("wiki.cited-events.ignore") },
     ],
   };
 }
@@ -3590,13 +3591,13 @@ function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
   const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
-  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
+  const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
   return {
     title,
     body: `${TRADE_RESOURCES_NEBULA_INTRO} ${sentence}`,
     choices: [
-      { id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
-      { id: "c:trade-resources-in-nebula:4", label: "Ignore." },
+      { id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: tx("wiki.cited-events.trade") },
+      { id: "c:trade-resources-in-nebula:4", label: tx("wiki.cited-events.ignore") },
     ],
   };
 }
@@ -3690,39 +3691,39 @@ export function rollLaniusTrader(g: Game, better: boolean): LaniusTraderOffer {
 
 export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
   const word = offer.res === "parts" ? "drone parts" : offer.res;
-  return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
+  return tx("wiki.cited-events.you-lose-and-receive-scrap", { cost: offer.cost, word: word, scrap: offer.scrap });
 }
 
 // Lanius trader. The page prints three intros and no odds. INFERRED: equal.
 const LANIUS_TRADER_INTROS = [
-  "Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, \"Metal sufficient. Request exchange.\" It appears there are some Lanius who wish sociable interaction with other races.",
-  "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
-  "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
+  tx("wiki.cited-events.aided-by-a-modified-translator-a"),
+  tx("wiki.cited-events.a-small-lanius-craft-approaches-you"),
+  tx("wiki.cited-events.you-arrive-to-find-a-large"),
 ];
 
 export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
-  return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
+  return tx("wiki.cited-events.q-lanius-trader-take", { res: offer.res, cost: offer.cost, scrap: offer.scrap });
 }
 
 // Pirate fight. The page prints five intros and then a default Pirate ship fight, and it prints no odds.
 // INFERRED: the five intros are equally likely.
 const PIRATE_FIGHT_INTROS = [
-  "As you jump into the system a pirate advances on your position. They are refusing all hails. Prepare for a fight.",
-  `Soon after arriving in the system you are hailed by a small cruiser. "What good fortune that we happen to run into each other. Nothing personal, but you have some information we need!"`,
-  `At first it appears you've arrived in an empty system, but a ship appears from behind a planet and hails you: "Haha! I am the dread pirate Tuco, prepare to die!"`,
-  `The only other ship at this beacon messages you: "Finally, after months of waiting, someone has fallen into our trap!"`,
-  "You barely have time to register jump completion before your ship warns you of an incoming ship with weapons hot.",
+  tx("wiki.cited-events.as-you-jump-into-the-system"),
+  tx("wiki.cited-events.soon-after-arriving-in-the-system"),
+  tx("wiki.cited-events.at-first-it-appears-you-ve"),
+  tx("wiki.cited-events.the-only-other-ship-at-this"),
+  tx("wiki.cited-events.you-barely-have-time-to-register"),
 ];
 
 // Free scrap with resources. The page prints six intros and no odds.
 // INFERRED: equal. The gift stays c:free-scrap-with-resources:0.
 const FREE_SCRAP_WITH_RESOURCES_INTROS = [
-  "You arrive in a system and immediately discover a pirate ship nearby. Strangely, scans indicate there are no lifeforms aboard. You salvage anything useful, but find no clue as to the whereabouts of the former crew.",
-  "Not much remains in this abandoned system; however, scans reveal a nearby mining platform with some salvageable materials.",
-  "As you arrive in the system you are hailed by a loyalist settlement. Upon learning of your quest, they offer you supplies.",
-  "Debris from a forgotten battle still orbits the gas giant in this system. Some of it still might be usable.",
-  `You receive a message from a nearby station, "A Federation cruiser jumping into Rebel territory? Quite the bold move." You quickly move to arm the weapons but he continues, "Lucky for you we're not all in support of the Rebellion. Perhaps these supplies will help you get to friendlier space alive."`,
-  "You happen upon the remains of a space station. It has been mostly picked clean but there appears to be a few materials that will aid you in your mission.",
+  tx("wiki.cited-events.you-arrive-in-a-system-and"),
+  tx("wiki.cited-events.not-much-remains-in-this-abandoned"),
+  tx("wiki.cited-events.as-you-arrive-in-the-system"),
+  tx("wiki.cited-events.debris-from-a-forgotten-battle-still"),
+  tx("wiki.cited-events.you-receive-a-message-from-a"),
+  tx("wiki.cited-events.you-happen-upon-the-remains-of"),
 ];
 
 // Slug fight in plasma storm. The page prints four intros and no odds.
@@ -3730,496 +3731,496 @@ const FREE_SCRAP_WITH_RESOURCES_INTROS = [
 // Pirate ship distress trap. The page prints four intros and no odds.
 // INFERRED: equal. The fight stays c:pirate-ship-distress-trap:0.
 const PIRATE_DISTRESS_TRAP_INTROS = [
-  "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
-  "\"Haha! I knew someone would fall into our dastardly trap!\" It appears this distress beacon was nothing but a decoy for a pirate ambush.",
-  "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.",
-  "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!",
+  tx("wiki.cited-events.you-arrive-at-the-beacon-and"),
+  tx("wiki.cited-events.haha-i-knew-someone-would-fall"),
+  tx("wiki.cited-events.your-cockpit-lights-up-with-warning"),
+  tx("wiki.cited-events.as-soon-as-you-arrive-at"),
 ];
 
 const SLUG_PLASMA_INTROS = [
-  "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures.",
-  "The Slug ship that descends into view as you enter the ion storm must have sensed your distress - defensive action!",
-  "You arrive in the middle of an ion storm. Slugs generally avoid these storms but you find one waiting in ambush. Prepare for a fight!",
-  "You find yourself stuck in the middle of an ion storm with a Slug ship just a short distance away, refusing all hails. You cautiously try to slip further into the clouds, but they turn suddenly to attack!",
+  tx("wiki.cited-events.the-ion-storm-here-threatens-to"),
+  tx("wiki.cited-events.the-slug-ship-that-descends-into"),
+  tx("wiki.cited-events.you-arrive-in-the-middle-of-2"),
+  tx("wiki.cited-events.you-find-yourself-stuck-in-the"),
 ];
 
 // Free weapon. The page prints six intros and no odds.
 // INFERRED: equal. The gift stays c:free-weapon:0.
 const FREE_WEAPON_INTROS = [
-  "Holy crap! A weapon is just floating in space!",
-  "You inform a nearby station of your flight from the Rebels. They offer to outfit your ship with a weapon and wish you well.",
-  "A settlement still loyal to the Federation hails your ship. They have prepared a weapon to aid your escape from the Rebels.",
-  "As soon as you arrive a small Mantis ship detaches from a wreck and jumps away. You must have interrupted their salvage operation because you find a weapon ready to be installed!",
-  `A small merchant ship messages you, "Underground Federation comm channels are all talking about your 'secret' mission. Let us install a weapon to help. Good luck!"`,
-  "Debris from a battle is scattered around this system. A few pieces bounce against your ship. You passively scan them and discover there is a functioning weapon among them!",
+  tx("wiki.cited-events.holy-crap-a-weapon-is-just"),
+  tx("wiki.cited-events.you-inform-a-nearby-station-of"),
+  tx("wiki.cited-events.a-settlement-still-loyal-to-the"),
+  tx("wiki.cited-events.as-soon-as-you-arrive-a"),
+  tx("wiki.cited-events.a-small-merchant-ship-messages-you"),
+  tx("wiki.cited-events.debris-from-a-battle-is-scattered"),
 ];
 
 // Rebel checkpoint. Four intros and four hide labels, no odds. INFERRED: equal.
 const REBEL_CHECKPOINT_INTROS = [
-  "A rather large fleet of civilian ships are held up at this Beacon. It appears to be a Rebel checkpoint; everyone is being inspected for possible ties to the Federation. No one has noticed you yet.",
-  "Another Rebel checkpoint is monitoring this location. A number of civilian ships are awaiting inspection, any of them could be Federation loyalists. The Rebels haven't noticed you yet.",
-  "A Rebel space station and single fighter is monitoring this Beacon for Federation activity. A number of civilian ships are docked, awaiting inspection by the Rebels and possible detainment if they are Federation loyalists. The Rebels haven't noticed you yet.",
-  "It looks like this Beacon is home to a Rebel checkpoint. They're stopping and searching any ship that passes through. Civilians are being harassed, and Federation members are detained. The Rebels haven't noticed you yet.",
+  tx("wiki.cited-events.a-rather-large-fleet-of-civilian"),
+  tx("wiki.cited-events.another-rebel-checkpoint-is-monitoring-this"),
+  tx("wiki.cited-events.a-rebel-space-station-and-single"),
+  tx("wiki.cited-events.it-looks-like-this-beacon-is"),
 ];
 // Pirate fight near pulsar. Three printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-near-pulsar:0.
 const PIRATE_PULSAR_INTROS = [
-  "Sensors go wild as a nearby pulsar is detected. While you are attempting to recalibrate the FTL drive, a pirate sneaks up on your ship, weapons charging. Prepare for a fight!",
-  "You arrive to find a pulsar dominating the view screen. You see a small silhouette pass in front of the star. Before you can ponder what it is, warning signals go off. It appears to be a ship in a firing trajectory!",
-  "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!",
+  tx("wiki.cited-events.sensors-go-wild-as-a-nearby"),
+  tx("wiki.cited-events.you-arrive-to-find-a-pulsar"),
+  tx("wiki.cited-events.a-small-research-station-orbits-a"),
 ];
 
 // Rock fight. Eight printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight:0.
 const ROCK_FIGHT_INTROS = [
-  "You encounter a Rock vessel and attempt to open trading frequencies, but they take it as an act of cultural transgression and open fire.",
-  "You jump into the middle of a Rock excavation project on a nearby moon. Unimpressed with your intrusion they move to defend themselves!",
-  `You intercept chatter from an approaching Rock ship: "Weapons, moving in to engage, arm the tubes." There is no talking to these guys.`,
-  "As you jump in, a vast figure appears on the view-screen. The Rock captain rubs the green, moss-like appendage on his chin and then orders his crew to open fire.",
-  `It looks quiet, but you realize your computer is being scanned. A hidden Rock vessel hails you: "Why do you fill your computer with lies?! These are not the holy words!" Before you can interject they open fire.`,
-  "You notice a Rock ship performing combat exercises. However, they quickly change their course to engage your ship. They apparently treat unregistered alien ships as handy target practice.",
-  "A loud 'thud' resounds through the ship after jump completion - you've just shunted a Rock fighter and he's already preparing to fire!",
-  "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.",
+  tx("wiki.cited-events.you-encounter-a-rock-vessel-and"),
+  tx("wiki.cited-events.you-jump-into-the-middle-of"),
+  tx("wiki.cited-events.you-intercept-chatter-from-an-approaching"),
+  tx("wiki.cited-events.as-you-jump-in-a-vast"),
+  tx("wiki.cited-events.it-looks-quiet-but-you-realize"),
+  tx("wiki.cited-events.you-notice-a-rock-ship-performing"),
+  tx("wiki.cited-events.a-loud-thud-resounds-through-the"),
+  tx("wiki.cited-events.you-re-intercepted-by-a-rock"),
 ];
 
 // Rebel fight (Lanius). Six printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-lanius:0.
 const LANIUS_REBEL_INTROS = [
-  `You intercept discussions between a Rebel patrol and a human mining colony, "...we realize you're scared but all reports indicate the metal bastards target abandoned settlements only. If we relocated our fleets based on every request from backwater... wait, what's that..." Before you can react, the channel is cut and the Rebel ship moves in to attack.`,
-  `You arrive to see a number of Rebel ships attempting to dissuade Lanius scavenger ships from "acquiring" their forward station. A passing Rebel patrol ship spots you and moves in to intercept.`,
-  `A Rebel scout patrols near the beacon. "Hah! I knew you would try to sneak through this sector as soon as I heard it had become treacherous. Surrender!"`,
-  "You arrive at the beacon and notice a small Rebel ship chasing Lanius scavengers away from a wrecked Rebel battleship. As soon as the Rebel notices you and moves in to attack, the Lanius ships return to their prey like flies on garbage.",
-  `A Rebel messages you. "Who would have thought the most wanted ship in the quadrant would just happen by my station? Prepare to meet your maker."`,
-  "Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.",
+  tx("wiki.cited-events.you-intercept-discussions-between-a-rebel"),
+  tx("wiki.cited-events.you-arrive-to-see-a-number"),
+  tx("wiki.cited-events.a-rebel-scout-patrols-near-the"),
+  tx("wiki.cited-events.you-arrive-at-the-beacon-and-2"),
+  tx("wiki.cited-events.a-rebel-messages-you-who-would"),
+  tx("wiki.cited-events.your-arrival-coincides-almost-exactly-with"),
 ];
 
 // Rock fight with boarders. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-with-boarders:0.
 const ROCK_BOARDER_INTROS = [
-  "You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!",
-  "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!",
+  tx("wiki.cited-events.you-passively-scan-a-small-rock"),
+  tx("wiki.cited-events.you-find-a-rock-ship-docked"),
 ];
 
 // Auto-ship fight. Nine printed intros, no odds. INFERRED: equal. The fight stays c:auto-ship-fight:0.
 // Auto-ship warning prints the same nine lines. That fight stays c:auto-ship-warning:0.
 const AUTO_SHIP_FIGHT_INTROS = [
-  "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.",
-  `Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.`,
-  "A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.",
-  "The AI of a nearby small Rebel scout immediately identifies you as a threat and engages.",
-  "A Rebel ship moves in to engage. You attempt to open communications, but realize the futility of that action when you see the ship is run by an AI.",
-  "This must be one of the Rebels' unmanned scout ships. Looks like there's no way around a fight.",
-  "Another unmanned ship patrols this area. You prepare the ship for combat.",
-  "This beacon is being patrolled by a unmanned scout. A fight is unavoidable.",
-  "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!",
+  tx("wiki.cited-events.you-discover-one-of-the-rebel"),
+  tx("wiki.cited-events.your-ship-is-hailed-this-is"),
+  tx("wiki.cited-events.a-rebel-autonomous-scout-is-exploring"),
+  tx("wiki.cited-events.the-ai-of-a-nearby-small"),
+  tx("wiki.cited-events.a-rebel-ship-moves-in-to"),
+  tx("wiki.cited-events.this-must-be-one-of-the"),
+  tx("wiki.cited-events.another-unmanned-ship-patrols-this-area"),
+  tx("wiki.cited-events.this-beacon-is-being-patrolled-by"),
+  tx("wiki.cited-events.a-small-shuttle-appears-on-the"),
 ];
 
 // Rebel fight with boarders. Four printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-with-boarders:0.
 const REBEL_BOARDER_INTROS = [
-  `You receive a message from a nearby Rebel station, "You have a lot of guts passing through our space, I'll give you that." He turns giving an order, "Kill their crew, I want that ship intact."`,
-  `Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, "Ready to die? I sure am ready to get a promotion!"`,
-  `Incoming message, "Hello Captain," says a Rebel in an officer's garb. "How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient."`,
-  `You receive a message on a low-band channel. "You're surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!`,
+  tx("wiki.cited-events.you-receive-a-message-from-a-2"),
+  tx("wiki.cited-events.your-sensors-warn-of-an-incoming"),
+  tx("wiki.cited-events.incoming-message-hello-captain-says-a"),
+  tx("wiki.cited-events.you-receive-a-message-on-a"),
 ];
 
 // Boarders: Mantis. The page prints three intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-mantis:0.
 const MANTIS_BOARDER_INTROS = [
-  "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
-  "Your world, all of a sudden, changes. The Mantis are on board your ship.",
-  "You hear a grating rattle and a soft clicking. You reach for your pistol.",
+  tx("wiki.cited-events.a-derelict-and-still-smoking-mantis"),
+  tx("wiki.cited-events.your-world-all-of-a-sudden"),
+  tx("wiki.cited-events.you-hear-a-grating-rattle-and"),
 ];
 
 // Boarders: Humans in nebula. The page prints three intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-humans-in-nebula:0.
 const NEBULA_HUMAN_BOARDER_INTROS = [
-  "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!",
-  `You arrive in the nebula and immediately receive a message from an unknown source, "Prepare to be boarded!" With the static from the nebula, there's no way to tell where they came from, but you hear shots fired on board the ship.`,
-  "You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!",
+  tx("wiki.cited-events.you-see-a-small-station-nearby"),
+  tx("wiki.cited-events.you-arrive-in-the-nebula-and"),
+  tx("wiki.cited-events.you-see-a-number-of-derelict"),
 ];
 
 // Boarders: Crystal. The page prints three intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-crystal:0.
 const CRYSTAL_BOARDER_INTROS = [
-  "You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off.",
-  "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
-  `You pick up chatter from a nearby ship, "Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens." Scanners indicate a remote teleporter was just used.`,
+  tx("wiki.cited-events.you-detect-a-heavily-armed-crystalline"),
+  tx("wiki.cited-events.you-arrive-near-a-small-settlement"),
+  tx("wiki.cited-events.you-pick-up-chatter-from-a"),
 ];
 
 // Boarders: Rockmen near sun. The page prints two intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-rockmen-near-sun:0.
 const ROCK_SUN_BOARDER_INTROS = [
-  `As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"`,
-  "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
+  tx("wiki.cited-events.as-soon-as-you-arrive-you"),
+  tx("wiki.cited-events.with-their-high-resistance-to-heat"),
 ];
 
 // Boarders: Humans (Pirate). The page prints five intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-humans-pirate:0.
 const PIRATE_HUMAN_BOARDER_INTROS = [
-  `What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!"`,
-  `A heavily damaged ship is drifting near this beacon. You receive a communication: "Hello! Nice of you to drop by. As you can see, our ship has seen better days. Yours is looking quite nice, I think we might be taking it from you now." Intruders beam aboard.`,
-  "You detect life-signs actually on the beacon itself! A teleporter signal warns you but it's too late, they've beamed from the beacon onto your ship and seem intent on taking it over.",
-  "Your ship detects a faint distress signal on a nearby moon. As you approach the rock, warning lights flash as hostiles beam aboard the ship from some hidden location.",
-  "As you arrive, you become aware of a small Rebel outpost near the beacon. You are hardly able to bark an order before a small team is beamed aboard your ship. They must have been expecting you...",
+  tx("wiki.cited-events.what-appears-to-be-a-civilian"),
+  tx("wiki.cited-events.a-heavily-damaged-ship-is-drifting"),
+  tx("wiki.cited-events.you-detect-life-signs-actually-on"),
+  tx("wiki.cited-events.your-ship-detects-a-faint-distress"),
+  tx("wiki.cited-events.as-you-arrive-you-become-aware"),
 ];
 
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
-  "You arrive in an asteroid field and immediately begin evasive maneuvers when a loud clunk reverberates through the ship. At first you think the hull has been hit, but the noise came from some Rock intruders teleporting aboard the ship!",
-  "Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.",
+  tx("wiki.cited-events.you-arrive-in-an-asteroid-field"),
+  tx("wiki.cited-events.your-shields-are-being-taxed-as"),
 ];
 
 // Lanius fight. Eleven printed intros, one repeated, no odds. INFERRED: equal, so the repeated line is twice as likely.
 // The fight stays c:lanius-fight:0. Default Lanius rewards are not a separate payout.
 const LANIUS_FIGHT_INTROS = [
-  `You receive a message on a wide band frequency, originating from an approaching Lanius ship. It appears not to be directed at you, but your translator does its best all the same: "... metallic opportunity... acquisition... by force..." Looks like you're in for a fight.`,
-  "Sensors indicate a small Lanius cruiser in the process of salvaging another small Lanius ship. Before you have a chance to wonder what caused them to turn on each other, the survivor notices you and moves in to attack.",
-  "Shortly after your arrival, a Lanius ship jumps near the beacon. It begins to move slowly toward you. You open wide band communication channels, attempting to make contact. However, it either ignores you or is unable to receive the messages. As they get closer you issue the order to charge weapons and find they do the same.",
-  "A military Lanius vessel stops repurposing an abandoned satellite as soon as you jump in. It blocks all hails and powers its weapons.",
-  "The beacon is surrounded by many tiny Lanius crafts, surely only capable of holding one occupant. Perhaps they are some kind of forward scout searching for 'metallic opportunities'? As you consider this, a much larger Lanius vessel moves in to engage you, and the scout ships scatter in all directions.",
-  "You arrive to see a well-armed Lanius craft preparing to salvage a badly damaged Rebel patrol ship. Noticing your arrival, the Lanius greedily moves in to intercept its second target of the day.",
-  "As you arrive in the system, your proximity alarm begins screaming: there is a Lanius ship right on top of you! Before you have a chance to hail, they open fire!",
-  "As you are getting your bearings, another ship suddenly arrives at the beacon - it's the Lanius, and they've marked your ship for salvage!",
-  "At first everything seems quiet, then your scanners pick up a ship approaching at high speed - the Lanius have detected your arrival and are powering up their weapons!",
-  "You have stumbled across a mining expedition - unfortunately, the miners are the Lanius, and they've chosen your ship as their target!",
-  "As you are getting your bearings, another ship suddenly arrives at the beacon - it's the Lanius, and they've marked your ship for salvage!",
+  tx("wiki.cited-events.you-receive-a-message-on-a-2"),
+  tx("wiki.cited-events.sensors-indicate-a-small-lanius-cruiser"),
+  tx("wiki.cited-events.shortly-after-your-arrival-a-lanius"),
+  tx("wiki.cited-events.a-military-lanius-vessel-stops-repurposing"),
+  tx("wiki.cited-events.the-beacon-is-surrounded-by-many"),
+  tx("wiki.cited-events.you-arrive-to-see-a-well"),
+  tx("wiki.cited-events.as-you-arrive-in-the-system-2"),
+  tx("wiki.cited-events.as-you-are-getting-your-bearings"),
+  tx("wiki.cited-events.at-first-everything-seems-quiet-then"),
+  tx("wiki.cited-events.you-have-stumbled-across-a-mining"),
+  tx("wiki.cited-events.as-you-are-getting-your-bearings"),
 ];
 
 // Mantis fight (Engi). Four printed intros, no odds. INFERRED: equal.
 // The fight stays c:mantis-fight-engi:0. Default Mantis rewards are not a separate payout.
 const MANTIS_FIGHT_ENGI_INTROS = [
-  "A mixed radar signal turns out to be a Mantis attack ship scavenging the remains of an Engi carrier. They turn and fight.",
-  "You come across a Mantis raider taking pot shots at a defenceless Engi supply station. Discovering its weapons aren't much of a match for the station's armour, it turns on your ship. Battle stations!",
-  "The area looks clear, and you prepare to jump off, but a Mantis scout jumps in behind you! They're as surprised as you are, but their weapons are already online.",
-  "You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!",
+  tx("wiki.cited-events.a-mixed-radar-signal-turns-out"),
+  tx("wiki.cited-events.you-come-across-a-mantis-raider"),
+  tx("wiki.cited-events.the-area-looks-clear-and-you"),
+  tx("wiki.cited-events.you-find-a-mantis-ship-harrying"),
 ];
 
 // Mantis fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:mantis-fight-in-nebula:0. Default Mantis rewards are not a separate payout.
 // The storm words are the printed lines. They do not arm an ion storm.
 const MANTIS_NEBULA_INTROS = [
-  "Nebulas are known to be popular Mantis hunting grounds. Information you would have done well to heed here.",
-  "You detect a Mantis expedition vessel returning home with its haul. So determined are they, in fact, that they don't wait to see if you're hostile before firing.",
-  `A Mantis ship, lost in the storm, hails you. "Sensors are out. We have no local telemetry. We will take yours." You detect a power increase in their weapons systems.`,
-  `A Mantis ship hails you through the storm: "These are sacred Urggghtnag clan hunting grounds. You are prey." Shields up!`,
-  "You notice a Mantis attack ship ducking between the clouds of swirling space stuff; it's hunting you. You try to get the jump and move in to attack.",
+  tx("wiki.cited-events.nebulas-are-known-to-be-popular"),
+  tx("wiki.cited-events.you-detect-a-mantis-expedition-vessel"),
+  tx("wiki.cited-events.a-mantis-ship-lost-in-the"),
+  tx("wiki.cited-events.a-mantis-ship-hails-you-through"),
+  tx("wiki.cited-events.you-notice-a-mantis-attack-ship"),
 ];
 
 // Mantis fight. Twenty printed intros, no odds. INFERRED: equal.
 // The fight stays c:mantis-fight:0. Default Mantis rewards are not a separate payout.
 const MANTIS_FIGHT_INTROS = [
-  "A Mantis military ship appears on local radar alongside the remains of a human freighter. Prepare for a hostile encounter!",
-  `A Mantis military scout hails your ship. "Foolish alien! Your kind has stifled our greatness for too long! You will rue the day you backed the Federation!"`,
-  `A small Mantis cruiser is broadcasting a repeating message on a wide-band frequency, "All non-Mantis ships that enter our territory are forfeit. Lower your shields and surrender if you value your lives."`,
-  "You detect a small military outpost and a few freighters nearby. This mineral rich planet in an isolated location would be perfect for an illegal Mantis mining operation. As you consider your options, a ship launches from the outpost. Prepare for a fight.",
-  "You discover yet another unlicensed and uncharted Mantis colony. They certainly waste no time expanding their claims. A Mantis ship moves to intercept you before you can jump away.",
-  "A Mantis military scout seems to have just finished a salvage op on a nearby wreck. They have no time to waste with warnings and appear to wish to fight.",
-  `A small military craft hails you and a Mantis captain appears on your receiver. "All local human colonies have been punished for the Federation's transgressions. Submit to processing."`,
-  "A nearby Mantis ship begins aggressive maneuvers. You prepare for the worst.",
-  "A stream of clicks and gurgling comes on the comm from a hostile Mantis scout. The universal translator might be on the blink, but his intent is obvious.",
-  "The Mantis ship is pleased to see you, and fires up its weapon systems.",
-  "You recognize the outline of a Mantis ship against the blackness. Engage!",
-  "Something red looms. It's the Mantis.",
-  `A Mantis vessel hails you. "This hail is merely a distraction!" You notice their shields and weapons have come online.`,
-  "You notice a flurry of laser fire glance by the port window. The Mantis are upon you.",
-  `The Mantis hail you. Their captain says, "I claim this vessel for my clan. Good hunting!"`,
-  "A Mantis female comes on the vidscreen. The females don't make it to authority unless they're particularly vicious. You power the weapons.",
-  "A Mantis ship with the markings of a warrior tribe breaks position and attacks!",
-  `A Mantis ship hails: "Ah! Fine prey. Fine prey! We honor you with our most eviscerating arsenal!" You sense a cloud to this silver lining and power the weapons.`,
-  "Children on Earth are told terrible tales of the blood red Mantis invasion ships - much like the one bearing down on you now - which once threatened the planet. You order weapons free!",
-  `A youthful-looking Mantis captain hails. "You, prey, must know. Your death, Kaaazthwak's final kill before maturity. Kaaazthwak pay respects." Seems respects in Mantis culture are paid with lasers.`,
+  tx("wiki.cited-events.a-mantis-military-ship-appears-on"),
+  tx("wiki.cited-events.a-mantis-military-scout-hails-your"),
+  tx("wiki.cited-events.a-small-mantis-cruiser-is-broadcasting"),
+  tx("wiki.cited-events.you-detect-a-small-military-outpost"),
+  tx("wiki.cited-events.you-discover-yet-another-unlicensed-and"),
+  tx("wiki.cited-events.a-mantis-military-scout-seems-to"),
+  tx("wiki.cited-events.a-small-military-craft-hails-you"),
+  tx("wiki.cited-events.a-nearby-mantis-ship-begins-aggressive"),
+  tx("wiki.cited-events.a-stream-of-clicks-and-gurgling"),
+  tx("wiki.cited-events.the-mantis-ship-is-pleased-to"),
+  tx("wiki.cited-events.you-recognize-the-outline-of-a"),
+  tx("wiki.cited-events.something-red-looms-it-s-the"),
+  tx("wiki.cited-events.a-mantis-vessel-hails-you-this"),
+  tx("wiki.cited-events.you-notice-a-flurry-of-laser"),
+  tx("wiki.cited-events.the-mantis-hail-you-their-captain"),
+  tx("wiki.cited-events.a-mantis-female-comes-on-the"),
+  tx("wiki.cited-events.a-mantis-ship-with-the-markings"),
+  tx("wiki.cited-events.a-mantis-ship-hails-ah-fine"),
+  tx("wiki.cited-events.children-on-earth-are-told-terrible"),
+  tx("wiki.cited-events.a-youthful-looking-mantis-captain-hails"),
 ];
 
 // Mantis fight choice. Six printed intros, no odds. INFERRED: equal.
 // Attack stays c:mantis-fight-choice:0. Conceal and cloaking are quests.ts.
 const MANTIS_CHOICE_INTROS = [
-  "You're greeted by a rare sight: a Mantis ship that appears not to have noticed you.",
-  "For once, you see the Mantis before they see you.",
-  "When they see the Mantis warship waiting in ambush at your intended coordinates, your crew is relieved to note you've jumped someway off the mark.",
-  `You overhear Mantis comm chatter: "Negative, I have killed more humans!" You gulp noticeably, but luckily they don't see you yet.`,
-  `You overhear Mantis comm chatter: "The one on the right is starting to rot. Take him down. Take off his fingers. Put him out of the airlock." They certainly don't seem to be friendly...`,
-  `You overhear Mantis comm chatter: "Agreed. Next ship is your turn. Good hunting." They don't see you yet.`,
+  tx("wiki.cited-events.you-re-greeted-by-a-rare"),
+  tx("wiki.cited-events.for-once-you-see-the-mantis"),
+  tx("wiki.cited-events.when-they-see-the-mantis-warship"),
+  tx("wiki.cited-events.you-overhear-mantis-comm-chatter-negative"),
+  tx("wiki.cited-events.you-overhear-mantis-comm-chatter-the"),
+  tx("wiki.cited-events.you-overhear-mantis-comm-chatter-agreed"),
 ];
 
 // Mantis ship attacking civilian. Five printed intros, no odds. INFERRED: equal.
 // Aid stays c:mantis-ship-attacking-civilian:0. Stay out stays :1. The three stay-out sentences are quests.ts.
 const MANTIS_CIVILIAN_INTROS = [
-  "You spot a Mantis ship hunting in the distance.",
-  `A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, "Stay out of this human! Else you are next!"`,
-  "Local sensors pick up two ships engaged in a heated battle. It seems the Mantis military ship will surely defeat its prey.",
-  "A Mantis vessel flashes past your view-screen, weapons and engines at full. A tiny blip on the sensor readout marks its quarry.",
-  "You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!",
+  tx("wiki.cited-events.you-spot-a-mantis-ship-hunting"),
+  tx("wiki.cited-events.a-mantis-ship-engaging-a-civilian"),
+  tx("wiki.cited-events.local-sensors-pick-up-two-ships"),
+  tx("wiki.cited-events.a-mantis-vessel-flashes-past-your"),
+  tx("wiki.cited-events.you-pick-up-a-distress-call"),
 ];
 
 // Pirate ship attacking civilian. Six printed intros, no odds. INFERRED: equal.
 // Aid stays c:pirate-ship-attacking-civilian:0. Stay out stays :1. The stay-out sentence is quests.ts.
 const PIRATE_CIVILIAN_INTROS = [
-  "You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency.",
-  "Scanners indicate that a battle is taking place nearby. It seems that someone is under attack by space pirates.",
-  "You detect two ships, one chasing the other... Scanners show the pursuer is a pirate!",
-  "There are only two ships within range and they seem to be engaged in battle. One of them has the markings of a space pirate.",
-  `You arrive at the next beacon only to immediately be hailed by a small shuttle. "Help us! We are being attacked by pirates!"`,
-  "You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.",
+  tx("wiki.cited-events.you-arrive-in-the-system-to"),
+  tx("wiki.cited-events.scanners-indicate-that-a-battle-is"),
+  tx("wiki.cited-events.you-detect-two-ships-one-chasing"),
+  tx("wiki.cited-events.there-are-only-two-ships-within"),
+  tx("wiki.cited-events.you-arrive-at-the-next-beacon"),
+  tx("wiki.cited-events.you-come-out-of-the-jump"),
 ];
 
 // Pirate ship attacking civilian (Lanius). Three printed intros, no odds. INFERRED: equal.
 // Attack stays c:pirate-ship-attacking-civilian-lanius:0. Avoid stays :1.
 const LANIUS_PIRATE_CIVILIAN_INTROS = [
-  `You discover an abandoned mining facility in the process of being 'acquired' by the Lanius. However, you immediately receive a call from a civilian transport vessel, "Help! We were trying to escape before the Lanius came only to be caught by pirates!" You see a lone pirate ship boarding the civilian craft.`,
-  "A pirate ship emerges from hiding after you and another ship jump into the area. Sensors show the pirates ran a quick scan of your ship's weapon system before flying off to pursue the unarmed civilian ship.",
-  `A pirate ship is firing on the small ships docked at a refueling station. They are broadcasting on a wide band channel. You catch the captain's rant mid-speed, "...saw you trading with those damned scavengers. I'll show you what happens when you try and undercut the Red Giant gang!"`,
+  tx("wiki.cited-events.you-discover-an-abandoned-mining-facility"),
+  tx("wiki.cited-events.a-pirate-ship-emerges-from-hiding"),
+  tx("wiki.cited-events.a-pirate-ship-is-firing-on"),
 ];
 
 // Pirate fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:pirate-fight-in-nebula:0. Default rewards. No nebula environment is added.
 const NEBULA_PIRATE_INTROS = [
-  "As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online.",
-  `A pirate ship pulls out of the ether and hails: "You know what I love about this part of the galaxy? The explorers! You always carry such fine loot." They lock weapons.`,
-  "As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers.",
-  "A hostile vessel descends from out of the nebula. Combat stations!",
-  "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!",
+  tx("wiki.cited-events.as-you-drift-through-the-nebula"),
+  tx("wiki.cited-events.a-pirate-ship-pulls-out-of"),
+  tx("wiki.cited-events.as-you-coast-through-the-nebula"),
+  tx("wiki.cited-events.a-hostile-vessel-descends-from-out"),
+  tx("wiki.cited-events.you-try-to-read-the-id"),
 ];
 
 // Rebel fight in nebula. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:rebel-fight-in-nebula:0. Default rewards. No nebula environment is added.
 const NEBULA_REBEL_INTROS = [
-  "You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.",
-  "A ship bearing Rebel colors can be seen waiting near the beacon. They must have been waiting for you, since they engage immediately.",
-  "The Rebels must have anticipated you would try to lose them within the nebula. A scout is waiting for you at the beacon.",
-  "It looks like you will be unable to avoid the Rebels by traveling through the nebula. A Rebel ship is waiting for you near the beacon.",
-  "Shortly after you arrive, a Rebel ship jumps nearby. There looks to be no escape. Prepare for a fight!",
-  "Newton-knows what brings this Rebel ship so far out; its captain hails, but does a double take when he identifies your ship. They open fire.",
-  "A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage.",
+  tx("wiki.cited-events.you-cross-paths-with-an-advance"),
+  tx("wiki.cited-events.a-ship-bearing-rebel-colors-can"),
+  tx("wiki.cited-events.the-rebels-must-have-anticipated-you"),
+  tx("wiki.cited-events.it-looks-like-you-will-be"),
+  tx("wiki.cited-events.shortly-after-you-arrive-a-rebel"),
+  tx("wiki.cited-events.newton-knows-what-brings-this-rebel"),
+  tx("wiki.cited-events.a-rebel-ship-hails-but-you"),
 ];
 
 // Auto-ship fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:auto-ship-fight-in-nebula:0. The destroyed reward is quests.ts. No nebula environment is added.
 const NEBULA_AUTO_INTROS = [
-  "You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.",
-  "You jump into a calmer part of the nebula. However, your relief fades as a Rebel scout jumps to the beacon and moves in to attack.",
-  "The tangled wrecks of many ships wait in dormancy here. You see lights flicker on what looks like debris. A Rebel scout bursts out of the wreckage!",
-  "This drone isn't looking for you. Perhaps it's scouting ahead for the Rebel expansion or maybe they're seeking to use this nebula for cover. Regardless, it identifies you as hostile.",
-  "It's worrying that the Rebels have penetrated so deep into uncharted space, even if it is only an unmanned craft. It arms its weapons; you should do the same.",
+  tx("wiki.cited-events.you-cross-paths-with-an-advance"),
+  tx("wiki.cited-events.you-jump-into-a-calmer-part"),
+  tx("wiki.cited-events.the-tangled-wrecks-of-many-ships"),
+  tx("wiki.cited-events.this-drone-isn-t-looking-for"),
+  tx("wiki.cited-events.it-s-worrying-that-the-rebels"),
 ];
 
 // Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
 const ZOLTAN_FIGHT_INTROS = [
-  `A Zoltan ship makes contact. "The nature of the day is rotational. The fever is emaciated. The reason is-" They've caught some nasty deep space dementia. Before you can consider finding help for them, they open fire.`,
-  "You're surprised when a stationary Zoltan ship opens fire. It appears there are aggressive pugilists even among the 'enlightened'.",
-  `You receive a message, "This area is off limits. Submit your ship to processing." It's only one guard ship in a lonely beacon. You decide to fight your way out.`,
-  "You discover a number of Zoltan civilian ships fighting off pirates. Unfortunately one ship mistakes your purpose and moves in to attack! They are refusing all communication; you have no choice but to fight.",
-  "Like many areas in Zoltan space, the residents of this sector prepared well for Galactic war. The military here seem to have given up reasoning with foreigners, preferring instead to attack on sight!",
-  "A Zoltan ship is waiting at this beacon. They request your identification, but radiation from the sun in this system is disrupting your communications. They take your silence for aggression and move in to attack.",
-  `The Zoltan ship patrolling this area hails you: "This area is off limits. Secrecy is vital." They power their weapons.`,
+  tx("wiki.cited-events.a-zoltan-ship-makes-contact-the"),
+  tx("wiki.cited-events.you-re-surprised-when-a-stationary"),
+  tx("wiki.cited-events.you-receive-a-message-this-area"),
+  tx("wiki.cited-events.you-discover-a-number-of-zoltan"),
+  tx("wiki.cited-events.like-many-areas-in-zoltan-space"),
+  tx("wiki.cited-events.a-zoltan-ship-is-waiting-at"),
+  tx("wiki.cited-events.the-zoltan-ship-patrolling-this-area"),
 ];
 
 // Crystal fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:crystal-fight:0. The unique surrender is surrender.ts.
 const CRYSTAL_FIGHT_INTROS = [
-  "You arrive near a fleet of crystal ships, civilian or mercantile from the looks of them. You pause to scan one but they react immediately and send an escort to fight you off. Prepare to engage!",
-  "You arrive at the Beacon and are immediately greeted by an automatic message or warning of some kind. The translator can't seem to discern its purpose but after a few short moments an alarm goes off and a hostile ship jumps in!",
-  `You receive a message, "Hah. It looks like another worthless alien-filled craft. Prepare to meet your maker!" Weapon locks detected.`,
-  `A Crystalline ship messages you, "I've heard tales that our isolation has finally ended. As a warrior I must demand to test my skills against you!" Before you can respond they move in to attack.`,
-  "You arrive in a busy sector. At first no one pays any mind to your alien ship but soon you're registering a number of scan signatures. You get the feeling you're not wanted here just seconds before registering enemy weapon locks!",
-  "You jump next to a node busy with traffic, but before long all nearby ships notice you and keep their distance, uncertain of your allegiance. After an awkward standoff, a military ship breaks away from the rest and charges you.",
-  "A barrage of rasps and clicks is broadcast over the comm; the universal translator understands little, but the words 'aliens', 'allowed' and 'no' come through quite clearly. You'll have to prove your right to be here in combat!",
+  tx("wiki.cited-events.you-arrive-near-a-fleet-of"),
+  tx("wiki.cited-events.you-arrive-at-the-beacon-and-3"),
+  tx("wiki.cited-events.you-receive-a-message-hah-it"),
+  tx("wiki.cited-events.a-crystalline-ship-messages-you-i"),
+  tx("wiki.cited-events.you-arrive-in-a-busy-sector"),
+  tx("wiki.cited-events.you-jump-next-to-a-node"),
+  tx("wiki.cited-events.a-barrage-of-rasps-and-clicks"),
 ];
 
 // Rebel fight among Rebel fleet. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:rebel-fight-among-rebel-fleet:0. The low scrap and medium scrap payouts are not added here.
 const REBEL_FLEET_INTROS = [
-  "Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.",
-  "This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!",
-  "You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!",
-  "As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack.",
-  "Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!",
-  "What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!",
-  "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.",
+  tx("wiki.cited-events.although-you-were-expecting-the-rebels"),
+  tx("wiki.cited-events.this-system-is-flooded-with-rebel"),
+  tx("wiki.cited-events.you-arrive-to-find-a-rebel"),
+  tx("wiki.cited-events.as-soon-as-you-arrive-you-2"),
+  tx("wiki.cited-events.shots-fly-by-and-your-computer"),
+  tx("wiki.cited-events.what-was-once-a-great-series"),
+  tx("wiki.cited-events.the-federation-seems-to-have-put"),
 ];
 
 // Rebel fight among Federation and Rebel fleets. Six printed intros, no odds. INFERRED: equal.
 // The fight stays c:rebel-fight-among-federation-and-rebel-fleets:0. Escape and the scrap payouts stay elsewhere.
 const FEDERATION_FLEET_INTROS = [
-  "You arrive in the middle of a raging battle. Both sides are taking heavy losses. A small squadron flies past and a fighter breaks off, moving toward your position.",
-  "Two fleets fight nearby. You try to skirt around the edges of the battle and keep out of weapons range, but a Rebel scout spots you and moves in.",
-  "It's hard to tell who is winning the nearby battle. Before you have a chance to figure it out, a fighter moves in to attack.",
-  "The sheer scale of the destruction in the distance is almost breath-taking. Unfortunately, your position as an independent observer doesn't last for long!",
-  "The destruction in the distance is almost awe-inspiring. However you're dragged back to reality as Sensors indicate you are under attack.",
-  "You don't have any time to worry about the battle in the distance. The fight is coming to you really quickly!",
+  tx("wiki.cited-events.you-arrive-in-the-middle-of-3"),
+  tx("wiki.cited-events.two-fleets-fight-nearby-you-try"),
+  tx("wiki.cited-events.it-s-hard-to-tell-who"),
+  tx("wiki.cited-events.the-sheer-scale-of-the-destruction"),
+  tx("wiki.cited-events.the-destruction-in-the-distance-is"),
+  tx("wiki.cited-events.you-don-t-have-any-time"),
 ];
 
 // Lanius ship attacking civilian. Three printed intros, no odds. INFERRED: equal.
 // Attack stays c:lanius-ship-attacking-civilian:0. Avoid stays the nothing choice.
 const LANIUS_CIVILIAN_INTROS = [
-  `You immediately receive a message upon arrival, "Help! These metal bastards have gone crazy!" The communication originates from the hull of a partially dismantled ship which lies among a number of other destroyed ships. The violent Lanius ship responsible for this carnage is advancing on the survivors.`,
-  "You scan the area after arriving at this system. A Lanius ship is in fast pursuit of an unarmed civilian ship. It's hard to say if it's truly a threat since its weapons are not charging.",
-  "You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.",
+  tx("wiki.cited-events.you-immediately-receive-a-message-upon"),
+  tx("wiki.cited-events.you-scan-the-area-after-arriving"),
+  tx("wiki.cited-events.you-arrive-at-the-location-of"),
 ];
 
 // Lanius ship salvager. Five printed intros, no odds. INFERRED: equal.
 // Attack stays c:lanius-ship-salvager:0. Leave stays :1. The Lanius scrap request stays :2.
 const LANIUS_SALVAGER_INTROS = [
-  "You come across a single Lanius ship salvaging a small civilian craft. You cannot tell if they attacked the craft or just happened upon it.",
-  "There are remnants of a fierce battle here. Scattered among the hulks are small Lanius craft, slowly breaking apart the wrecks. One of the ships is close enough that you could probably attack it without immediately alerting the others.",
-  "When you arrive at the beacon you discover what must have been remnants of a large battle. However the vast majority of metal has been striped from the ships, only various plastic and other materials float in a ring around a planet. A lone Lanius ship moves between the wreckage looking for more salvage.",
-  "A small asteroid belt is near this jump beacon. It must be mineral-rich since a Lanius ship is docked on a large rock, slowly absorbing parts of it. You could probably get their attention pretty easily.",
-  "A Lanius ship is slowly salvaging what remains of a small research station. It's hard to say if it was abandoned or attacked by the Lanius.",
+  tx("wiki.cited-events.you-come-across-a-single-lanius"),
+  tx("wiki.cited-events.there-are-remnants-of-a-fierce"),
+  tx("wiki.cited-events.when-you-arrive-at-the-beacon"),
+  tx("wiki.cited-events.a-small-asteroid-belt-is-near"),
+  tx("wiki.cited-events.a-lanius-ship-is-slowly-salvaging"),
 ];
 
 // The mercenary. Six printed intros, no odds. INFERRED: equal.
 // Delay stays c:the-mercenary:0. Fight stays :1. Decline stays :2.
 const MERCENARY_INTROS = [
-  "You find a mercenary for hire at this Beacon. Their unique skills can sometimes prove to be useful.",
-  `A mercenary hails you: "Greetings, friend! We've heard tell of your quest and are here to offer our valuable services."`,
-  `There's a ship with pirate markings orbiting the nearby planet. You receive his hail: "Anything is possible, for the right price"`,
-  `The captain of this ship claims he can provide "services" as long as you've got the scrap.`,
-  "Mercenaries are swarming the galaxy now, knowing that their less-than-legal services are in demand during this period of unrest. One is waiting at this beacon and hails you.",
-  `A ship hails you: "Good sir! It seems you're having some troubles with the Rebels. I'd like to help you, but I can't afford the upkeep required on this hunk of junk I'm flying... maybe we can come to an arrangement?"`,
+  tx("wiki.cited-events.you-find-a-mercenary-for-hire"),
+  tx("wiki.cited-events.a-mercenary-hails-you-greetings-friend"),
+  tx("wiki.cited-events.there-s-a-ship-with-pirate"),
+  tx("wiki.cited-events.the-captain-of-this-ship-claims"),
+  tx("wiki.cited-events.mercenaries-are-swarming-the-galaxy-now"),
+  tx("wiki.cited-events.a-ship-hails-you-good-sir"),
 ];
 
 // Rebel ship supplying civilians. Five printed intros, no odds. INFERRED: equal.
 // Attack stays c:rebel-ship-supplying-civilians:0. Leave stays :1. Wait and steal stays :2.
 const REBEL_SUPPLY_INTROS = [
-  "You stumble across a Rebel ship distributing supplies to local civilian colonies. It's probably not anything military grade, but every little bit helps...",
-  "You find a Rebel combat ship that has been reassigned as an emergency supply vessel. The local civilians are apparently in need of help, and the Rebels are rising to the occasion.",
-  "The Rebels in this system are doing supply runs for the local space stations. These civilians have likely been out of supply for months due to the war and are in desperate need.",
-  "Civilian colonists loyal to the Rebel cause are present on a nearby planet. It looks like they are currently receiving a supply shipment. Could be useful.",
-  "Because of the war, thousands of colonists have had their supply lines disrupted and have found themselves in dire straits. It seems in this system, the Rebels are sympathetic and are distributing what little supplies they can spare.",
+  tx("wiki.cited-events.you-stumble-across-a-rebel-ship"),
+  tx("wiki.cited-events.you-find-a-rebel-combat-ship"),
+  tx("wiki.cited-events.the-rebels-in-this-system-are"),
+  tx("wiki.cited-events.civilian-colonists-loyal-to-the-rebel"),
+  tx("wiki.cited-events.because-of-the-war-thousands-of"),
 ];
 
 // Rebel ship attacking Federation loyalists. Three printed intros, no odds. INFERRED: equal.
 // Aid stays c:rebel-ship-attacking-federation-loyalists:0. Escape stays :1.
 const REBEL_LOYALIST_INTROS = [
-  "Upon arriving at this beacon, you detect a distress call. Local scans reveal that a Federation transport is under attack from a Rebel scout!",
-  "You immediately notice a Rebel ship chasing what appears to be a civilian transport. However you are detecting chatter on an encrypted Federation channel... That transport is carrying Federation loyalists!",
-  "Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!",
+  tx("wiki.cited-events.upon-arriving-at-this-beacon-you"),
+  tx("wiki.cited-events.you-immediately-notice-a-rebel-ship"),
+  tx("wiki.cited-events.your-sensors-are-picking-up-a"),
 ];
 
 // Pirate briber. Three printed intros, no odds. INFERRED: equal.
 // Accept stays c:pirate-briber:0. Attack stays c:pirate-briber:1.
 const PIRATE_BRIBER_INTROS = [
-  `You come across a pirate in hot pursuit of an unidentified ship. You quickly receive a transmission from the pirate: "Stay out of this fight and we'll make it worth your while."`,
-  "An unidentified ship is badly damaged and still being assaulted by a space pirate. The victim begins a distress message until the pirate cuts in and offers to split the bounty if you sit tight.",
-  `A missile shoots across your bow when the jump completes. Your scans quickly reveal a ship with pirate markings pursuing an unknown vessel. The pirate hails you: "Damn it, we weren't expecting company. Stay out of this and you could profit."`,
+  tx("wiki.cited-events.you-come-across-a-pirate-in"),
+  tx("wiki.cited-events.an-unidentified-ship-is-badly-damaged"),
+  tx("wiki.cited-events.a-missile-shoots-across-your-bow"),
 ];
 
 // Slug fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:slug-fight-in-nebula:0. No nebula environment is added. Surrender stays the Slug row.
 const NEBULA_SLUG_INTROS = [
-  "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!",
-  "The Slug vessel you encounter here has obviously made a big score and is looking to test its new armaments. They picked the wrong ship to attack.",
-  `A Slug passenger ship hails: "Please, your worthy alien highnessesss, we are unarmed and sseeking asssylum." You approach cautiously, and weapons immediately spring from their hull!`,
-  "A Slug ship - a rogue, you suspect - approaches, but when he sees you're Federation he thinks better of the sneak attack and fires everything he has.",
-  "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!",
+  tx("wiki.cited-events.your-sensors-are-no-match-for"),
+  tx("wiki.cited-events.the-slug-vessel-you-encounter-here"),
+  tx("wiki.cited-events.a-slug-passenger-ship-hails-please"),
+  tx("wiki.cited-events.a-slug-ship-a-rogue-you"),
+  tx("wiki.cited-events.direct-attacks-are-not-preferred-by"),
 ];
 
 // Escort civilians. Three printed intros, no odds. INFERRED: equal.
 // Accept stays the low fuel and the quest marker. Decline stays nothing.
 const ESCORT_CIVILIAN_INTROS = [
-  `After a short time you receive a message, "Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed."`,
-  `There is a single ship at this beacon. They hail you, "We could really use some help. Our FTL navigation system is shot. Can you help us get to a nearby station where they can patch us up?"`,
-  `"Hello," your communicator opens a hail from a nearby ship. "Our weapon systems are malfunctioning and we're too afraid of pirates to travel home unassisted. Can you escort us?"`,
+  tx("wiki.cited-events.after-a-short-time-you-receive"),
+  tx("wiki.cited-events.there-is-a-single-ship-at"),
+  tx("wiki.cited-events.hello-your-communicator-opens-a-hail"),
 ];
 
 // Trade fuel for drone parts. Three printed intros, no odds. INFERRED: equal.
 // The trade stays lose 2-4 fuel for 1-3 drone parts. Reject stays nothing.
 const FUEL_FOR_DRONES_INTROS = [
-  `A nearby space station hails you. "Greetings! Your arrival is most fortuitous. We recently came across some extra drones. If you have some fuel, perhaps we can make a deal?"`,
-  `A strange vessel approaches. A digital message appears on your view-screen: "This is an automated merchant. Refill this vessel with fuel and it will supply you with drones."`,
-  `You arrive in the sector and are greeted by a science vessel waiting by the beacon. They hail you, "We find ourselves low on fuel and have a proposition."`,
+  tx("wiki.cited-events.a-nearby-space-station-hails-you"),
+  tx("wiki.cited-events.a-strange-vessel-approaches-a-digital"),
+  tx("wiki.cited-events.you-arrive-in-the-sector-and"),
 ];
 
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
-  "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
-  `A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.`,
+  tx("wiki.cited-events.unusual-solar-activity-in-this-region"),
+  tx("wiki.cited-events.a-rock-ship-is-silhouetted-against"),
 ];
 
 // Rock pirates fight in asteroid field. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-in-asteroid-field:0.
 const ROCK_PIRATE_ASTEROID_INTROS = [
-  "Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.",
-  "You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!",
+  tx("wiki.cited-events.minute-fissures-in-the-shields-spark"),
+  tx("wiki.cited-events.you-exit-the-jump-surrounded-by"),
 ];
 
 // Rock fight in asteroid field. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-in-asteroid-field:0.
 const ROCK_ASTEROID_INTROS = [
-  "A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!",
-  "A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.",
-  `The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.`,
+  tx("wiki.cited-events.a-rock-mining-vessel-is-harvesting"),
+  tx("wiki.cited-events.a-rookie-rock-cargo-ship-has"),
+  tx("wiki.cited-events.the-captain-of-a-rock-freighter"),
 ];
 
 // Rebel fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-slug:0.
 const SLUG_REBEL_INTROS = [
-  "As you arrive at the beacon, a hostile ship immediately registers on your scanners. You didn't expect to see Rebels extending their reach into Slug territory. Charge the weapons!",
-  "You jump into empty space and are relieved to see your sensors blink back to life. However, you are less pleased to see them immediately register a rebel ship on an approach vector!",
-  `You receive a message from a nearby ship, "Looks like our intelligence was correct! Sneaking through the clouds with the Slugs... No one can hide from the rebellion!"`,
+  tx("wiki.cited-events.as-you-arrive-at-the-beacon"),
+  tx("wiki.cited-events.you-jump-into-empty-space-and"),
+  tx("wiki.cited-events.you-receive-a-message-from-a-3"),
 ];
 
 // Pirate fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-slug:0.
 const SLUG_PIRATE_INTROS = [
-  "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous.",
-  `"We knew anyone foolish enough to try and sneak through a Slug nebula would stick to open space. Yield your goods and we may let you live." You cut the transmission in lieu of a response.`,
-  "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire.",
+  tx("wiki.cited-events.there-appears-to-be-a-pirate"),
+  tx("wiki.cited-events.we-knew-anyone-foolish-enough-to"),
+  tx("wiki.cited-events.before-you-can-take-a-moment"),
 ];
 
 // Pirate fight (Lanius). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-lanius:0.
 const LANIUS_PIRATE_INTROS = [
-  `An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."`,
-  `The pirate ship patrolling this sector has been busy. The debris of several Rebel scouts and at least one civilian ship litter the area. "Welcome, welcome, there's room for one more!" The over-confident pirate hails you as he charges his weapons and moves in to attack.`,
-  "A pirate ship appears to be threatening a small refugee ship near the beacon. Upon seeing you jump in, it turns to approach. The civilian wastes no time and jumps away, but that appears only to harden the pirate's resolve.",
-  "Debris from a number of battleships are scattered around the beacon. As you approach the area a pirate ship thrusts itself through the hulks to attack. It must be using the metal to lure the Lanius into a trap.",
-  "The pirate sees you before you see him... prepare for a fight!",
+  tx("wiki.cited-events.an-upgraded-pirate-ship-sits-among"),
+  tx("wiki.cited-events.the-pirate-ship-patrolling-this-sector"),
+  tx("wiki.cited-events.a-pirate-ship-appears-to-be"),
+  tx("wiki.cited-events.debris-from-a-number-of-battleships"),
+  tx("wiki.cited-events.the-pirate-sees-you-before-you"),
 ];
 
 // Pirate fight (Zoltan). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-zoltan:0.
 const ZOLTAN_PIRATE_INTROS = [
-  `"Emergency, all ships in range, we are under attack!" The frequency matches a nearby Zoltan ship; you move in on their pursuer. They take your intervention as a cue to jump away. Cowards.`,
-  "You jump just in time to witness a Zoltan ship's FTL drive overload. In their final moments they implore you not to get involved, but it's too late - their attacker is already upon you!",
-  "Despite their precautions, pirates have begun to harass the local Zoltan settlements across this sector. One such pirate spots your ship and moves in to attack.",
-  "A ship with pirate markings demand that you surrender. These are sad times when even Zoltan space is beset by pirates. You doubt these fools will be missed.",
-  "You spot a pirate ship looting a small Zoltan cruiser. They spot you and move in to attack before your FTL drive has a chance to recharge.",
+  tx("wiki.cited-events.emergency-all-ships-in-range-we"),
+  tx("wiki.cited-events.you-jump-just-in-time-to"),
+  tx("wiki.cited-events.despite-their-precautions-pirates-have-begun"),
+  tx("wiki.cited-events.a-ship-with-pirate-markings-demand"),
+  tx("wiki.cited-events.you-spot-a-pirate-ship-looting"),
 ];
 
 // Rock pirates fight. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight:0.
 const ROCK_PIRATE_INTROS = [
-  "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.",
-  "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!",
-  "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!",
+  tx("wiki.cited-events.as-a-naturally-warlike-species-with"),
+  tx("wiki.cited-events.a-rock-ship-flies-past-your"),
+  tx("wiki.cited-events.a-motley-collection-of-rock-ships"),
 ];
 
 // Rebel fight near pulsar. Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-near-pulsar:0.
 const REBEL_PULSAR_INTROS = [
-  `A Rebel captain appears on the screen. "I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!"`,
-  "A small rebel research station overlooks a pulsating star. Before you can react a Rebel ship spots you and moves in to attack.",
-  "You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight.",
+  tx("wiki.cited-events.a-rebel-captain-appears-on-the"),
+  tx("wiki.cited-events.a-small-rebel-research-station-overlooks"),
+  tx("wiki.cited-events.you-arrive-at-an-infrequently-used"),
 ];
 
 // Rebel fight. Ten printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight:0.
 const REBEL_FIGHT_INTROS = [
-  `Your ship is hailed. "We've found you at last. Prepare to die!"`,
-  "A small Rebel ship is docked at a small station. You try to lay low but it spots you. Power up the weapons!",
-  "A Rebel ship has been patrolling this region. As soon as you arrive it begins its assault.",
-  `A Rebel ship hails you: "Federation scum! We've waited a long time for this!"`,
-  `You receive a transmission: "Sorry sir, this is nothing personal but we're under orders." The Rebel ship's weapons go hot.`,
-  "By the time you notice the Rebel ship behind the beacon, it's too late to avoid a fight.",
-  `A Rebel ship hails. "We did not fight a war to let a single Federation ship shatter our dreams of a better galaxy!" He locks weapons.`,
-  `A Rebel ship approaches cautiously. "Personally," says the captain, "I'd have stuck with the Federation. But I'm a soldier, sir, and I'm no use without a war to fight. Raise your shields!"`,
-  `You're hailed by a Rebel ship: "When the rebellion is complete you'll see the safer world we provide. Well, you won't, but you get the point." They arm weapons.`,
-  "A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more.",
+  tx("wiki.cited-events.your-ship-is-hailed-we-ve"),
+  tx("wiki.cited-events.a-small-rebel-ship-is-docked"),
+  tx("wiki.cited-events.a-rebel-ship-has-been-patrolling"),
+  tx("wiki.cited-events.a-rebel-ship-hails-you-federation"),
+  tx("wiki.cited-events.you-receive-a-transmission-sorry-sir"),
+  tx("wiki.cited-events.by-the-time-you-notice-the"),
+  tx("wiki.cited-events.a-rebel-ship-hails-we-did"),
+  tx("wiki.cited-events.a-rebel-ship-approaches-cautiously-personally"),
+  tx("wiki.cited-events.you-re-hailed-by-a-rebel"),
+  tx("wiki.cited-events.a-rebel-ship-is-guarding-this"),
 ];
 
 // Rebel ship attacking civilians in Last Stand. Five printed intros, no odds. INFERRED: equal. Both choices stay.
 const LAST_STAND_CIVILIAN_INTROS = [
-  "A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!",
-  "Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?",
-  "There seems to be a small Federation colony under attack by a Rebel forward scout. Will you protect them?",
-  "A battle rages nearby between small fighters; apparently fighting over a space station. The Federation appears to be losing ships fast. Shall we assist them?",
-  "A civilian ship is broadcasting a request for assistance on a secure Federation channel. They are being harassed by Rebel scouts. Will you respond?",
+  tx("wiki.cited-events.a-number-of-large-transports-are"),
+  tx("wiki.cited-events.shots-fly-by-your-port-windows"),
+  tx("wiki.cited-events.there-seems-to-be-a-small"),
+  tx("wiki.cited-events.a-battle-rages-nearby-between-small"),
+  tx("wiki.cited-events.a-civilian-ship-is-broadcasting-a"),
 ];
 
 const REBEL_CHECKPOINT_HIDE = [
-  "Fly behind a moon and stay hidden.",
-  "Shut down all non-vital systems and stay hidden.",
-  "Stay quiet and hope they don't notice you.",
-  "Stay out of their way and charge your FTL drive.",
+  tx("wiki.cited-events.fly-behind-a-moon-and-stay-2"),
+  tx("wiki.cited-events.shut-down-all-non-vital-systems"),
+  tx("wiki.cited-events.stay-quiet-and-hope-they-don"),
+  tx("wiki.cited-events.stay-out-of-their-way-and"),
 ];
 
 // Four printed tracks. The page gives no odds. INFERRED: each count is equally likely.
@@ -4233,13 +4234,13 @@ const SLUG_MOON_WORD: Record<(typeof SLUG_MOON_COUNTS)[number], string> = {
 };
 
 const SLUG_MOON_QUESTION =
-  'As you drift closer, you are contacted by a Slug marooned on the moon\'s surface. "I shall join your crew, sssay I, if you can answer me this simple quesssstion. How many moons are there in orbit here?"';
+  tx("wiki.cited-events.as-you-drift-closer-you-are");
 
 const SLUG_MOON_CORRECT =
-  '"That isss... correct. You sssurprise me. Human, is it? Yesss... we can be partners." The Slug beams aboard and joins your crew!';
+  tx("wiki.cited-events.that-isss-correct-you-sssurprise-me");
 
 const SLUG_MOON_WRONG =
-  '"That issss... incorrect." Further, I have taken advantage of your lack of acuity to beam aboard your ship and steal your stuff!';
+  tx("wiki.cited-events.that-issss-incorrect-further-i-have");
 
 const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(5|6|7|11)$/;
 const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(5|6|7|11):(5|6|7|11)$/;
@@ -4257,8 +4258,8 @@ function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
   const n = SLUG_MOON_COUNTS[between(g, [0, SLUG_MOON_COUNTS.length - 1])]!;
   return {
     title,
-    body: `You arrive near the distress beacon's signal.\n\nYou track the distress beacon with difficulty to one of the ${slugMoonWord(n)} moons of a planet hidden in the nebula.`,
-    choices: [{ id: `c:slug-moons-question:ask:${n}`, label: "Investigate." }],
+    body: tx("wiki.cited-events.you-arrive-near-the-distress-beacon", { slugMoonWord: slugMoonWord(n) }),
+    choices: [{ id: `c:slug-moons-question:ask:${n}`, label: tx("wiki.cited-events.investigate") }],
   };
 }
 
@@ -4267,7 +4268,7 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   const ask = SLUG_MOON_ASK.exec(id);
   if (ask) {
     const n = Number(ask[1]);
-    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
+    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? tx("wiki.cited-events.slug-moons-question");
     ctx.g.event = {
       title,
       body: SLUG_MOON_QUESTION,
@@ -4286,8 +4287,8 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   const picked = Number(answer[2]);
   if (picked === correct) {
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
-    const joined = joinCrew(ctx.g, "Slug");
-    const line = joined ? "You receive a Slug crewmember." : "There is no room aboard for the new crewmember.";
+    const joined = joinCrew(ctx.g, tx("wiki.cited-events.slug"));
+    const line = joined ? tx("wiki.cited-events.you-receive-a-slug-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
     ctx.note(line);
     citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
     return true;
@@ -4301,33 +4302,33 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   g.scrap -= 35;
   g.fuel -= fuel;
   g.player.parts -= parts;
-  const paid = ["Scrap: -35.", `Fuel: -${fuel}.`, `Drone parts: -${parts}.`];
+  const paid = [tx("wiki.cited-events.scrap-35"), tx("wiki.cited-events.fuel-2", { fuel: fuel }), tx("wiki.cited-events.drone-parts-2", { parts: parts })];
   for (const line of paid) ctx.note(line);
   citedResult(g, SLUG_MOON_WRONG, paid);
   return true;
 }
 
-const ZOLTAN_MOON_OPEN = "Something strikes you as odd about a moon in the distance.";
+const ZOLTAN_MOON_OPEN = tx("wiki.cited-events.something-strikes-you-as-odd-about");
 const ZOLTAN_MOON_CAVE =
-  "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern.";
+  tx("wiki.cited-events.it-looks-as-if-a-team");
 const ZOLTAN_MOON_SHUTTLE =
-  "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!";
+  tx("wiki.cited-events.sending-a-shuttle-to-explore-a");
 const ZOLTAN_MOON_HEAP =
-  "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction.";
+  tx("wiki.cited-events.a-deep-scan-of-the-surface");
 const ZOLTAN_MOON_QUIET =
-  "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting.";
+  tx("wiki.cited-events.a-closer-inspection-reveals-signs-of");
 const ZOLTAN_MOON_LEAVE =
-  "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump.";
+  tx("wiki.cited-events.you-try-not-to-fixate-on");
 const ZOLTAN_MOON_BASE =
-  "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship.";
+  tx("wiki.cited-events.your-explosives-reveal-the-cave-is");
 const ZOLTAN_MOON_REMAINS =
-  "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful.";
-const ZOLTAN_MOON_WASTE = "The explosives are set remotely, but the detonation achieves nothing. What a waste.";
+  tx("wiki.cited-events.a-portion-of-the-surface-layer");
+const ZOLTAN_MOON_WASTE = tx("wiki.cited-events.the-explosives-are-set-remotely-but");
 const ZOLTAN_MOON_DRONE =
-  "Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below.\n\nYour drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew.";
+  tx("wiki.cited-events.initial-scans-indicate-a-network-of");
 
 function zoltanMoonTitle(g: Game): string {
-  return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
+  return g.beacons.find((b) => b.id === g.here)?.name ?? tx("wiki.cited-events.zoltan-odd-moon");
 }
 
 function zoltanOddCard(title: string): GameEvent {
@@ -4335,9 +4336,9 @@ function zoltanOddCard(title: string): GameEvent {
     title,
     body: ZOLTAN_MOON_OPEN,
     choices: [
-      { id: "c:zoltan-odd-moon:look", label: "Check it out." },
-      { id: "c:zoltan-odd-moon:leave", label: "Leave it be." },
-      { id: "c:zoltan-odd-moon:drone", label: "Send a drone to probe the surface." },
+      { id: "c:zoltan-odd-moon:look", label: tx("wiki.cited-events.check-it-out") },
+      { id: "c:zoltan-odd-moon:leave", label: tx("wiki.cited-events.leave-it-be") },
+      { id: "c:zoltan-odd-moon:drone", label: tx("wiki.cited-events.send-a-drone-to-probe-the") },
     ],
   };
 }
@@ -4348,8 +4349,8 @@ function payRandomTier(ctx: CitedChoice): string {
   const [lo, hi] = band(ctx.g, tier);
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const name = tier === "low" ? "Low" : tier === "medium" ? "Medium" : "High";
-  const line = `${name} scrap: ${n}.`;
+  const name = tier === "low" ? tx("wiki.cited-events.low") : tier === "medium" ? tx("wiki.cited-events.medium") : tx("wiki.cited-events.high");
+  const line = tx("wiki.cited-events.scrap", { name: name, n: n });
   ctx.note(line);
   return line;
 }
@@ -4358,8 +4359,8 @@ function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
   const [lo, hi] = band(ctx.g, tier);
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const name = tier === "low" ? "Low" : "Medium";
-  const line = `${name} scrap: ${n}.`;
+  const name = tier === "low" ? tx("wiki.cited-events.low") : tx("wiki.cited-events.medium");
+  const line = tx("wiki.cited-events.scrap", { name: name, n: n });
   ctx.note(line);
   return line;
 }
@@ -4397,29 +4398,29 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payTier(ctx, "low");
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line, item]);
+      citedResult(g, ZOLTAN_MOON_SHUTTLE, [tx("wiki.cited-events.you-receive-a-weapon-with-low"), line, item]);
       return true;
     }
     if (which === 2) {
       const line = payTier(ctx, "medium");
-      citedResult(g, ZOLTAN_MOON_HEAP, ["You receive medium scrap.", line]);
+      citedResult(g, ZOLTAN_MOON_HEAP, [tx("wiki.cited-events.you-receive-medium-scrap"), line]);
       return true;
     }
-    citedResult(g, ZOLTAN_MOON_QUIET, ["Nothing happens."]);
+    citedResult(g, ZOLTAN_MOON_QUIET, [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:leave") {
-    citedResult(g, ZOLTAN_MOON_LEAVE, ["Nothing happens."]);
+    citedResult(g, ZOLTAN_MOON_LEAVE, [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:spare") {
-    citedResult(g, "Nothing happens.", ["Nothing happens."]);
+    citedResult(g, tx("wiki.cited-events.nothing-happens"), [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:boom") {
     if (g.missiles < 1) return false;
     g.missiles -= 1;
-    ctx.note("Missiles: -1.");
+    ctx.note(tx("wiki.cited-events.missiles-1"));
     // Three results, no odds. INFERRED: equal.
     const which = ctx.irand(3);
     if (which === 0) {
@@ -4427,26 +4428,26 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payRandomTier(ctx);
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_BASE, ["You receive a weapon with a random amount of scrap.", line, item, "Missiles: -1."]);
+      citedResult(g, ZOLTAN_MOON_BASE, [tx("wiki.cited-events.you-receive-a-weapon-with-a"), line, item, tx("wiki.cited-events.missiles-1")]);
       return true;
     }
     if (which === 1) {
       const line = payRandomTier(ctx);
-      citedResult(g, ZOLTAN_MOON_REMAINS, ["You receive a random amount of scrap.", line, "Missiles: -1."]);
+      citedResult(g, ZOLTAN_MOON_REMAINS, [tx("wiki.cited-events.you-receive-a-random-amount-of"), line, tx("wiki.cited-events.missiles-1")]);
       return true;
     }
-    citedResult(g, ZOLTAN_MOON_WASTE, ["Nothing happens.", "Missiles: -1."]);
+    citedResult(g, ZOLTAN_MOON_WASTE, [tx("wiki.cited-events.nothing-happens"), tx("wiki.cited-events.missiles-1")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:drone") {
     if (!ownsBoardDrone(g) || g.player.parts < 1) return false;
     g.player.parts -= 1;
-    ctx.note("Drone parts: -1.");
+    ctx.note(tx("wiki.cited-events.drone-parts-1"));
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
-    const joined = joinCrew(g, "Zoltan");
-    const line = joined ? "You receive a Zoltan crewmember." : "There is no room aboard for the new crewmember.";
+    const joined = joinCrew(g, tx("wiki.cited-events.zoltan"));
+    const line = joined ? tx("wiki.cited-events.you-receive-a-zoltan-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
     ctx.note(line);
-    citedResult(g, ZOLTAN_MOON_DRONE, [line, "Drone parts: -1."]);
+    citedResult(g, ZOLTAN_MOON_DRONE, [line, tx("wiki.cited-events.drone-parts-1")]);
     return true;
   }
   return false;
@@ -4465,9 +4466,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: `${intro}\n\n${laniusTraderOfferText(offer)}`,
       choices: [
-        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
-        { id: "c:lanius-trader:3", label: "Decline" },
-        { id: "c:lanius-trader:4", label: "Ask for an alternative trade." },
+        { id: laniusTraderTakeId(offer), label: tx("wiki.cited-events.agree-to-the-exchange") },
+        { id: "c:lanius-trader:3", label: tx("wiki.cited-events.decline") },
+        { id: "c:lanius-trader:4", label: tx("wiki.cited-events.ask-for-an-alternative-trade") },
       ],
     };
   }
@@ -4478,7 +4479,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-radar-station:2", label: "Send a drone to distract the automated ship." },
+        { id: "c:auto-ship-near-radar-station:2", label: tx("wiki.cited-events.send-a-drone-to-distract-the") },
       ],
     };
   }
@@ -4489,10 +4490,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-storage-station-in-nebula:2", label: "Attempt to stealthily access the space station." },
-        { id: "c:auto-ship-near-storage-station-in-nebula:3", label: "Use your stealth to access the space station." },
-        { id: "c:auto-ship-near-storage-station-in-nebula:4", label: "Try to hack the station to prevent an alert." },
-        { id: "c:auto-ship-near-storage-station-in-nebula:5", label: "Hack the station to prevent an alert." },
+        { id: "c:auto-ship-near-storage-station-in-nebula:2", label: tx("wiki.cited-events.attempt-to-stealthily-access-the-space") },
+        { id: "c:auto-ship-near-storage-station-in-nebula:3", label: tx("wiki.cited-events.use-your-stealth-to-access-the") },
+        { id: "c:auto-ship-near-storage-station-in-nebula:4", label: tx("wiki.cited-events.try-to-hack-the-station-to") },
+        { id: "c:auto-ship-near-storage-station-in-nebula:5", label: tx("wiki.cited-events.hack-the-station-to-prevent-an") },
       ],
     };
   }
@@ -4503,7 +4504,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:pirate-ship-attacking-civilian-distress:2", label: "Fire a warning shot from your strongest weapon." },
+        { id: "c:pirate-ship-attacking-civilian-distress:2", label: tx("wiki.cited-events.fire-a-warning-shot-from-your") },
       ],
     };
   }
@@ -4514,9 +4515,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:zoltan-security-checkpoint:1", label: "Submit to profiling." },
-        { id: "c:zoltan-security-checkpoint:2", label: "Have your Slug talk them into letting you go." },
-        { id: "c:zoltan-security-checkpoint:3", label: "Make the guards believe they have already checked your crew today." },
+        { id: "c:zoltan-security-checkpoint:1", label: tx("wiki.cited-events.submit-to-profiling") },
+        { id: "c:zoltan-security-checkpoint:2", label: tx("wiki.cited-events.have-your-slug-talk-them-into") },
+        { id: "c:zoltan-security-checkpoint:3", label: tx("wiki.cited-events.make-the-guards-believe-they-have") },
       ],
     };
   }
@@ -4527,7 +4528,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:escort-civilians-ftl-haywire:2", label: "Have your navigation software calculate and upload route instructions to their ship." },
+        { id: "c:escort-civilians-ftl-haywire:2", label: tx("wiki.cited-events.have-your-navigation-software-calculate-and") },
       ],
     };
   }
@@ -4537,9 +4538,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:slug-drink:1", label: "Drink." },
+        { id: "c:slug-drink:1", label: tx("wiki.cited-events.drink") },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:slug-drink:2", label: "Have your Rockman pose as captain." },
+        { id: "c:slug-drink:2", label: tx("wiki.cited-events.have-your-rockman-pose-as-captain") },
       ],
     };
   }
@@ -4550,7 +4551,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:rock-ship-in-plasma-storm:2", label: "Offer to lead them out of the nebula." },
+        { id: "c:rock-ship-in-plasma-storm:2", label: tx("wiki.cited-events.offer-to-lead-them-out-of") },
       ],
     };
   }
@@ -4560,9 +4561,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:deactivated-auto-ship:1", label: "Attempt to download the ship's data stores." },
+        { id: "c:deactivated-auto-ship:1", label: tx("wiki.cited-events.attempt-to-download-the-ship-s") },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:deactivated-auto-ship:2", label: "Remotely scan the ship." },
+        { id: "c:deactivated-auto-ship:2", label: tx("wiki.cited-events.remotely-scan-the-ship") },
       ],
     };
   }
@@ -4573,9 +4574,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-fight-in-plasma-storm:1", label: "Attempt to out-run it." },
-        { id: "c:auto-ship-fight-in-plasma-storm:2", label: "Attempt to out-run it." },
-        { id: "c:auto-ship-fight-in-plasma-storm:3", label: "Use your cloaking to escape." },
+        { id: "c:auto-ship-fight-in-plasma-storm:1", label: tx("wiki.cited-events.attempt-to-out-run-it") },
+        { id: "c:auto-ship-fight-in-plasma-storm:2", label: tx("wiki.cited-events.attempt-to-out-run-it") },
+        { id: "c:auto-ship-fight-in-plasma-storm:3", label: tx("wiki.cited-events.use-your-cloaking-to-escape") },
       ],
     };
   }
@@ -4586,7 +4587,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-storage-station:2", label: "Attempt to cloak and access the cache." },
+        { id: "c:auto-ship-near-storage-station:2", label: tx("wiki.cited-events.attempt-to-cloak-and-access-the") },
       ],
     };
   }
@@ -4597,8 +4598,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-sensor-station:2", label: "Use your sensors to attempt to access the data." },
-        { id: "c:auto-ship-near-sensor-station:3", label: "Beam directly onto the station to try to avoid detection." },
+        { id: "c:auto-ship-near-sensor-station:2", label: tx("wiki.cited-events.use-your-sensors-to-attempt-to") },
+        { id: "c:auto-ship-near-sensor-station:3", label: tx("wiki.cited-events.beam-directly-onto-the-station-to") },
       ],
     };
   }
@@ -4610,10 +4611,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "pirate-smuggler") {
     return {
       title: ev.dest,
-      body: "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons.",
+      body: tx("wiki.cited-events.a-pirate-ship-arrives-shortly-after"),
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:pirate-smuggler:2", label: "Activate your advanced weapons threateningly." },
+        { id: "c:pirate-smuggler:2", label: tx("wiki.cited-events.activate-your-advanced-weapons-threateningly") },
       ],
     };
   }
@@ -4623,7 +4624,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: PIRATE_FIGHT_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
+      choices: [{ id: "c:pirate-fight:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
     };
   }
   // Pirate fight in nebula has no choice. Arrival calls this fight.
@@ -4657,11 +4658,11 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "rock-atheists") {
     return {
       title: ev.dest,
-      body: "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.",
+      body: tx("wiki.cited-events.you-encounter-a-small-craft-with"),
       choices: [
-        { id: "c:rock-atheists:0", label: "Tell them their god sent them here to join your crew." },
-        { id: "c:rock-atheists:1", label: "Promise to share with them the truths they've been denied." },
-        { id: "c:rock-atheists:2", label: "Show them to your data suite." },
+        { id: "c:rock-atheists:0", label: tx("wiki.cited-events.tell-them-their-god-sent-them-2") },
+        { id: "c:rock-atheists:1", label: tx("wiki.cited-events.promise-to-share-with-them-the") },
+        { id: "c:rock-atheists:2", label: tx("wiki.cited-events.show-them-to-your-data-suite") },
       ],
     };
   }
@@ -4671,9 +4672,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "q:pirate-drones:hail", label: "Hail the ship." },
-        { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
-        { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
+        { id: "q:pirate-drones:hail", label: tx("wiki.cited-events.hail-the-ship") },
+        { id: "c:pirate-ship-selling-drones:1", label: tx("wiki.cited-events.attack-him-before-he-can-attack") },
+        { id: "c:pirate-ship-selling-drones:2", label: tx("wiki.cited-events.quickly-prepare-to-jump-away-2") },
       ],
     };
   }
@@ -4683,7 +4684,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: LANIUS_REBEL_INTROS[between(g, [0, 5])]!,
-      choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-lanius:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
@@ -4691,7 +4692,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_BOARDER_INTROS[between(g, [0, 1])]!,
-      choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
+      choices: [{ id: "c:rock-fight-with-boarders:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
     };
   }
   // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
@@ -4700,7 +4701,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
-      choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
+      choices: [{ id: "c:auto-ship-fight:0", label: tx("wiki.cited-events.fight-an-auto-ship") }],
     };
   }
   // Auto-ship warning has no choice. Arrival calls c:auto-ship-warning:0.
@@ -4710,7 +4711,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: AUTO_SHIP_FIGHT_INTROS[between(g, [0, 8])]!,
-      choices: [{ id: "c:auto-ship-warning:0", label: "Fight an Auto-ship that is running away" }],
+      choices: [{ id: "c:auto-ship-warning:0", label: tx("wiki.cited-events.fight-an-auto-ship-that-is") }],
     };
   }
   // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
@@ -4718,7 +4719,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: REBEL_BOARDER_INTROS[between(g, [0, 3])]!,
-      choices: [{ id: "c:rebel-fight-with-boarders:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-with-boarders:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Rock fight with boarders in asteroid field. One of the two printed intros. The fight stays c:rock-fight-with-boarders-in-asteroid-field:0.
@@ -4726,7 +4727,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_BOARDER_ASTEROID_INTROS[between(g, [0, 1])]!,
-      choices: [{ id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" }],
+      choices: [{ id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
     };
   }
   // Lanius fight has no choice. Arrival calls this fight.
@@ -4735,7 +4736,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: LANIUS_FIGHT_INTROS[between(g, [0, 10])]!,
-      choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
+      choices: [{ id: "c:lanius-fight:0", label: tx("wiki.cited-events.fight-a-lanius-ship") }],
     };
   }
   // Mantis fight (Engi) has no choice. Arrival calls this fight.
@@ -4744,7 +4745,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MANTIS_FIGHT_ENGI_INTROS[between(g, [0, 3])]!,
-      choices: [{ id: "c:mantis-fight-engi:0", label: "Fight a Mantis ship" }],
+      choices: [{ id: "c:mantis-fight-engi:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
     };
   }
   // Mantis fight in nebula has no choice. Arrival calls this fight.
@@ -4753,7 +4754,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MANTIS_NEBULA_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:mantis-fight-in-nebula:0", label: "Fight a Mantis ship" }],
+      choices: [{ id: "c:mantis-fight-in-nebula:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
     };
   }
   // Mantis fight has no choice. Arrival calls this fight.
@@ -4762,7 +4763,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MANTIS_FIGHT_INTROS[between(g, [0, 19])]!,
-      choices: [{ id: "c:mantis-fight:0", label: "Fight a Mantis ship" }],
+      choices: [{ id: "c:mantis-fight:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
     };
   }
   // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
@@ -4803,7 +4804,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ZOLTAN_FIGHT_INTROS[between(g, [0, 6])]!,
-      choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
+      choices: [{ id: "c:zoltan-fight:0", label: tx("wiki.cited-events.fight-a-zoltan-ship") }],
     };
   }
   // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
@@ -4812,7 +4813,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: CRYSTAL_FIGHT_INTROS[between(g, [0, 6])]!,
-      choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
+      choices: [{ id: "c:crystal-fight:0", label: tx("wiki.cited-events.fight-a-crystal-ship-default-rewards") }],
     };
   }
   // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
@@ -4821,7 +4822,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
-      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
@@ -4862,7 +4863,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: NEBULA_SLUG_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
+      choices: [{ id: "c:slug-fight-in-nebula:0", label: tx("wiki.cited-events.fight-a-slug-ship") }],
     };
   }
   // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
@@ -4887,7 +4888,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: FEDERATION_FLEET_INTROS[between(g, [0, 5])]!,
-      choices: [{ id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.
@@ -4912,7 +4913,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_PIRATE_SUN_INTROS[between(g, [0, 1])]!,
-      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: "Fight a Rock pirate ship" }],
+      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
     };
   }
   // Rock pirates fight in asteroid field has no choice. Arrival calls this fight.
@@ -4921,7 +4922,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_PIRATE_ASTEROID_INTROS[between(g, [0, 1])]!,
-      choices: [{ id: "c:rock-pirates-fight-in-asteroid-field:0", label: "Fight a Rock pirate ship" }],
+      choices: [{ id: "c:rock-pirates-fight-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
     };
   }
   // Rock fight in asteroid field has no choice. Arrival calls this fight.
@@ -4930,7 +4931,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_ASTEROID_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: "Fight a Rock ship" }],
+      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
     };
   }
   // Rebel fight (Slug) has no choice. Arrival calls this fight.
@@ -4939,7 +4940,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: SLUG_REBEL_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:rebel-fight-slug:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-slug:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Pirate fight (Slug) has no choice. Arrival calls this fight.
@@ -4948,7 +4949,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: SLUG_PIRATE_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
+      choices: [{ id: "c:pirate-fight-slug:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
     };
   }
   // Pirate fight (Lanius) has no choice. Arrival calls this fight.
@@ -4957,7 +4958,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: LANIUS_PIRATE_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:pirate-fight-lanius:0", label: "Fight a Pirate ship" }],
+      choices: [{ id: "c:pirate-fight-lanius:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
     };
   }
   // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
@@ -4966,7 +4967,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ZOLTAN_PIRATE_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
+      choices: [{ id: "c:pirate-fight-zoltan:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
     };
   }
   // Rock pirates fight has no choice. Arrival calls this fight.
@@ -4975,7 +4976,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_PIRATE_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:rock-pirates-fight:0", label: "Fight a Rock pirate ship" }],
+      choices: [{ id: "c:rock-pirates-fight:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
     };
   }
   // Rebel fight near pulsar has no choice. Arrival calls this fight.
@@ -4984,7 +4985,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: REBEL_PULSAR_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Rock fight has no choice. Arrival calls this fight.
@@ -4993,7 +4994,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_FIGHT_INTROS[between(g, [0, 7])]!,
-      choices: [{ id: "c:rock-fight:0", label: "Fight a Rock ship" }],
+      choices: [{ id: "c:rock-fight:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
     };
   }
   // Pirate fight near pulsar has no choice. Arrival calls this fight.
@@ -5002,7 +5003,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: PIRATE_PULSAR_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
+      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
     };
   }
   // Rebel fight has no choice. Arrival calls this fight.
@@ -5011,7 +5012,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: REBEL_FIGHT_INTROS[between(g, [0, 9])]!,
-      choices: [{ id: "c:rebel-fight:0", label: "Fight a Rebel ship" }],
+      choices: [{ id: "c:rebel-fight:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
   // Rebel checkpoint. The bribe amount is a whole number from 10 to 15, shown on the button.
@@ -5021,8 +5022,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: REBEL_CHECKPOINT_INTROS[between(g, [0, 3])]!,
       choices: [
-        { id: "c:rebel-checkpoint:0", label: "Fend for yourself, attack, and escape." },
-        { id: `q:rebel-checkpoint:bribe:${cost}`, label: `Bribe the Rebels to release the civilian ships. [${cost} scrap]` },
+        { id: "c:rebel-checkpoint:0", label: tx("wiki.cited-events.fend-for-yourself-attack-and-escape-2") },
+        { id: `q:rebel-checkpoint:bribe:${cost}`, label: tx("wiki.cited-events.bribe-the-rebels-to-release-the", { cost: cost }) },
         { id: "c:rebel-checkpoint:1", label: REBEL_CHECKPOINT_HIDE[between(g, [0, 3])]! },
       ],
     };
@@ -5032,11 +5033,11 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     const offer = rollLaniusTrader(g, false);
     return {
       title: ev.dest,
-      body: `A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"\n\n${laniusTraderOfferText(offer)}`,
+      body: tx("wiki.cited-events.a-lanius-merchant-appears-to-have", { laniusTraderOfferText: laniusTraderOfferText(offer) }),
       choices: [
-        { id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`, label: "Agree to the exchange." },
-        { id: "c:lanius-trader-with-translator:3", label: "Decline" },
-        { id: "c:lanius-trader-with-translator:4", label: "Decline but ask about their translation device." },
+        { id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`, label: tx("wiki.cited-events.agree-to-the-exchange") },
+        { id: "c:lanius-trader-with-translator:3", label: tx("wiki.cited-events.decline") },
+        { id: "c:lanius-trader-with-translator:4", label: tx("wiki.cited-events.decline-but-ask-about-their-translation") },
       ],
     };
   }
@@ -5071,7 +5072,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: SLUG_PLASMA_INTROS[between(g, [0, 3])]!,
-      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
+      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: tx("wiki.cited-events.fight-a-slug-ship") }],
     };
   }
   // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
@@ -5079,7 +5080,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: MANTIS_BOARDER_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:boarders-mantis:0", label: "2-4 mantis boarders beam aboard your ship." }],
+      choices: [{ id: "c:boarders-mantis:0", label: tx("wiki.cited-events.2-4-mantis-boarders-beam-aboard") }],
     };
   }
   // Boarders: Humans in nebula. One of the three printed intros. The boarders stay c:boarders-humans-in-nebula:0.
@@ -5087,7 +5088,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: NEBULA_HUMAN_BOARDER_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:boarders-humans-in-nebula:0", label: "2-4 human boarders beam aboard your ship." }],
+      choices: [{ id: "c:boarders-humans-in-nebula:0", label: tx("wiki.cited-events.2-4-human-boarders-beam-aboard") }],
     };
   }
   // Boarders: Crystal. One of the three printed intros. The boarders stay c:boarders-crystal:0.
@@ -5095,7 +5096,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: CRYSTAL_BOARDER_INTROS[between(g, [0, 2])]!,
-      choices: [{ id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." }],
+      choices: [{ id: "c:boarders-crystal:0", label: tx("wiki.cited-events.2-3-crystal-boarders-beam-aboard") }],
     };
   }
   // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
@@ -5103,7 +5104,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: ROCK_SUN_BOARDER_INTROS[between(g, [0, 1])]!,
-      choices: [{ id: "c:boarders-rockmen-near-sun:0", label: "2-3 rock boarders beam aboard your ship." }],
+      choices: [{ id: "c:boarders-rockmen-near-sun:0", label: tx("wiki.cited-events.2-3-rock-boarders-beam-aboard") }],
     };
   }
   // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
@@ -5111,7 +5112,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: PIRATE_HUMAN_BOARDER_INTROS[between(g, [0, 4])]!,
-      choices: [{ id: "c:boarders-humans-pirate:0", label: "3-5 human boarders beam aboard your ship." }],
+      choices: [{ id: "c:boarders-humans-pirate:0", label: tx("wiki.cited-events.3-5-human-boarders-beam-aboard") }],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.
@@ -5130,7 +5131,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:space-station-under-construction:2", label: "Offer to have your crewmember help." },
+        { id: "c:space-station-under-construction:2", label: tx("wiki.cited-events.offer-to-have-your-crewmember-help") },
       ],
     };
   }
@@ -5150,34 +5151,34 @@ function ownsBoardDrone(g: Game): boolean {
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
-  if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return "Needs a Boarding Drone";
-  if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return "Need 1 drone part";
+  if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return tx("wiki.cited-events.needs-a-boarding-drone");
+  if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
-  if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return "Needs Sensors level 2";
-  if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return "Needs Long-Ranged Scanners";
+  if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return tx("wiki.cited-events.needs-sensors-level-2");
+  if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return tx("wiki.cited-events.needs-long-ranged-scanners");
   // Auto-ship carrying shield virus. Hacking, "Counter the remote hacking."
   // INFERRED: the refusal line. The page names Hacking and does not print the sentence.
-  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return "Needs a Hacking system";
+  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.cited-events.needs-a-hacking-system");
   // Crystalline ship messaging about Rebels. Distraction Buoys.
   // INFERRED: the refusal line. The page names the augment and does not print the refusal sentence.
-  if (id === "c:crystalline-ship-messaging-about-rebels:2" && !g.augments.includes("falsebuoy")) return "Needs Distraction Buoys";
+  if (id === "c:crystalline-ship-messaging-about-rebels:2" && !g.augments.includes("falsebuoy")) return tx("wiki.cited-events.needs-distraction-buoys");
   const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;
     const cost = Number(take[2]);
-    if (stock(g, pay) < cost) return `Need ${cost} ${RES_WORD[pay]}`;
+    if (stock(g, pay) < cost) return tx("wiki.cited-events.need", { cost: cost, v: RES_WORD[pay] });
     return null;
   }
   const choice = findChoice(id);
   if (!choice) return null;
   // Remote settlement. {{Blue Option|Fire Beam}} and {{Blue Option|Fire Bomb}}.
   // INFERRED: the refusal sentences. The page names the requirement and does not print the refusal.
-  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return "Needs a Fire Beam";
-  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return "Needs a Fire Bomb";
+  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return tx("wiki.cited-events.needs-a-fire-beam");
+  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return tx("wiki.cited-events.needs-a-fire-bomb");
   for (const fx of choice.fx) {
     if (fx.k === "res" && fx.sign < 0 && stock(g, fx.id) < fx.lo) {
-      return `Need ${fx.lo} ${RES_WORD[fx.id]}`;
+      return tx("wiki.cited-events.need-2", { lo: fx.lo, v: RES_WORD[fx.id] });
     }
   }
   return null;
@@ -5209,32 +5210,32 @@ function sellStationThanks(id: string): string | null {
     id === "c:sell-missiles-for-scrap:1" ||
     id === "c:sell-missiles-for-scrap:2"
   ) {
-    return "\"Thank you, this will help greatly.\"";
+    return tx("wiki.cited-events.thank-you-this-will-help-greatly");
   }
   if (
     id === "c:sell-drone-parts-for-scrap:0" ||
     id === "c:sell-drone-parts-for-scrap:1" ||
     id === "c:sell-drone-parts-for-scrap:2"
   ) {
-    return "\"Thank you for your business.\"";
+    return tx("wiki.cited-events.thank-you-for-your-business");
   }
   return null;
 }
 
 const CRYSTAL_PLANS = "c:crystalline-ship-messaging-about-rebels";
 const CRYSTAL_OUTRUN =
-  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
+  tx("wiki.cited-events.it-was-never-your-intention-to");
 const CRYSTAL_CRUISE =
-  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
+  tx("wiki.cited-events.unable-to-interpret-it-themselves-the");
 const CRYSTAL_LIE =
-  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
+  tx("wiki.cited-events.they-take-one-look-at-your");
 const CRYSTAL_BUOY =
-  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
+  tx("wiki.cited-events.your-distraction-buoy-allows-you-to");
 const CRYSTAL_REFUSE =
-  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
+  tx("wiki.cited-events.you-apologize-for-the-trouble-you");
 
 function citedResult(g: Game, sentence: string, paid: string[]) {
-  const title = g.beacons.find((b) => b.id === g.here)?.name ?? "Event";
+  const title = g.beacons.find((b) => b.id === g.here)?.name ?? tx("wiki.cited-events.event");
   g.event = {
     title,
     body: `${sentence}\n\n${paid.join(" ")}`,
@@ -5248,7 +5249,7 @@ function highScrapNote(ctx: CitedChoice): string {
   const [lo, hi] = band(ctx.g, "high");
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const line = `High scrap: ${n}.`;
+  const line = tx("wiki.cited-events.high-scrap", { n: n });
   ctx.note(line);
   return line;
 }
@@ -5256,14 +5257,14 @@ function highScrapNote(ctx: CitedChoice): string {
 /** Existing faster fx: one extra step, not a doubled column. */
 function doubledPursuit(ctx: CitedChoice): string {
   ctx.g.fleet += 1;
-  const line = "Rebel Fleet pursuit is doubled for 1 jump.";
+  const line = tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for");
   ctx.note(line);
   return line;
 }
 
 function delayedPursuit(ctx: CitedChoice): string {
   ctx.g.fleet = Math.max(0, ctx.g.fleet - 1);
-  const line = "Rebel Fleet pursuit is delayed for 1 jump.";
+  const line = tx("wiki.cited-events.rebel-fleet-pursuit-is-delayed-for");
   ctx.note(line);
   return line;
 }
@@ -5286,7 +5287,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
       return true;
     }
     ctx.note(CRYSTAL_LIE);
-    ctx.fight("Crystal ship");
+    ctx.fight(tx("wiki.cited-events.crystal-ship"));
     // INFERRED: the count is inclusive, and the call is after ctx.fight because startCombat drops enemy crew already aboard.
     crystalBoarders(g, 1, 2);
     return true;
@@ -5297,7 +5298,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
     return true;
   }
   if (id === `${CRYSTAL_PLANS}:3`) {
-    citedResult(g, CRYSTAL_REFUSE, ["Nothing happens."]);
+    citedResult(g, CRYSTAL_REFUSE, [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   return null;
@@ -5355,14 +5356,14 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       if (got > 0) g.scrap += got;
       if (gn.n > 0) g.scrapCollected = (g.scrapCollected ?? 0) + gn.n;
       ctx.note(thanks);
-      ctx.note(`You receive ${got} scrap.`);
+      ctx.note(tx("wiki.cited-events.you-receive-scrap", { got: got }));
       continue;
     }
     if (gn.id === "scrap") ctx.scrap(gn.n);
     else if (gn.id === "fuel") g.fuel += gn.n;
     else if (gn.id === "missiles") g.missiles += gn.n;
     else g.player.parts += gn.n;
-    const word = gn.id === "scrap" ? "Scrap" : gn.id === "fuel" ? "Fuel" : gn.id === "missiles" ? "Missiles" : "Drone parts";
+    const word = gn.id === "scrap" ? tx("wiki.cited-events.scrap-2") : gn.id === "fuel" ? tx("wiki.cited-events.fuel") : gn.id === "missiles" ? tx("wiki.cited-events.missiles") : tx("wiki.cited-events.drone-parts");
     ctx.note(`${word}: ${gn.n}.`);
   }
   for (const fx of choice.fx) {
@@ -5370,30 +5371,30 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     const [lo, hi] = band(g, fx.tier);
     const n = roll(ctx, lo, hi);
     ctx.scrap(n);
-    const name = fx.tier === "low" ? "Low" : fx.tier === "high" ? "High" : "Medium";
-    ctx.note(`${name} scrap: ${n}.`);
-    if (fx.resources) ctx.note("Resource amounts are not stated.");
+    const name = fx.tier === "low" ? tx("wiki.cited-events.low") : fx.tier === "high" ? tx("wiki.cited-events.high") : tx("wiki.cited-events.medium");
+    ctx.note(tx("wiki.cited-events.scrap", { name: name, n: n }));
+    if (fx.resources) ctx.note(tx("wiki.cited-events.resource-amounts-are-not-stated"));
   }
   for (const fx of choice.fx) {
     if (fx.k !== "hull") continue;
     if (fx.n >= 0) g.player.hull = Math.min(g.player.hullMax, g.player.hull + fx.n);
     else g.player.hull = Math.max(0, g.player.hull + fx.n);
-    ctx.note(fx.n >= 0 ? `Hull repairs: ${fx.n}.` : `Hull damage: ${-fx.n}.`);
+    ctx.note(fx.n >= 0 ? tx("wiki.cited-events.hull-repairs", { n: fx.n }) : tx("wiki.cited-events.hull-damage", { v: -fx.n }));
   }
   for (const fx of choice.fx) {
     if (fx.k !== "fleet") continue;
     const last = !!fx.lastStand && (g.sector === 8 || g.sectorName === "The Last Stand");
     if (fx.faster) {
       g.fleet += fx.n;
-      ctx.note(`Rebel Fleet pursuit is doubled for ${fx.n} ${fx.n === 1 ? "jump" : "jumps"}.`);
+      ctx.note(tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for-2", { n: fx.n, v: fx.n === 1 ? "jump" : "jumps" }));
     } else if (fx.double) {
       g.fleet *= 2;
-      ctx.note("Rebel Fleet pursuit is doubled.");
+      ctx.note(tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled"));
     } else if (last) {
-      ctx.note("No effect in The Last Stand.");
+      ctx.note(tx("wiki.cited-events.no-effect-in-the-last-stand"));
     } else {
       g.fleet = Math.max(0, g.fleet - fx.n);
-      ctx.note(`Rebel Fleet is delayed for ${fx.n} turns.`);
+      ctx.note(tx("wiki.cited-events.rebel-fleet-is-delayed-for-turns", { n: fx.n }));
     }
   }
   for (const fx of choice.fx) {
@@ -5410,46 +5411,46 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     return true;
   }
   // Rebel transport ship. "Demand the surrender of their goods." One printed lead-in, then the running Rebel fight.
-  if (id === "c:rebel-transport-ship:0") ctx.note("You prepare to secure their cargo by force.");
+  if (id === "c:rebel-transport-ship:0") ctx.note(tx("wiki.cited-events.you-prepare-to-secure-their-cargo"));
   // Lanius ship absorbing automated scout. "Fight the ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-ship-absorbing-automated-scout:0") ctx.note("You power up your weapons, which quickly gets the attention of the ship.");
+  if (id === "c:lanius-ship-absorbing-automated-scout:0") ctx.note(tx("wiki.cited-events.you-power-up-your-weapons-which"));
   // Mantis ship attacking Crystal. "Attack the Mantis." One printed lead-in, then a Mantis ship fight.
-  if (id === "c:mantis-ship-attacking-crystal:0") ctx.note("You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.");
+  if (id === "c:mantis-ship-attacking-crystal:0") ctx.note(tx("wiki.cited-events.you-activate-your-impulse-engines-and"));
   // Mantis ship with Rock body parts. "Attack!" One printed lead-in, then a Mantis ship fight.
-  if (id === "c:mantis-ship-with-rock-body-parts:0") ctx.note("No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!");
+  if (id === "c:mantis-ship-with-rock-body-parts:0") ctx.note(tx("wiki.cited-events.no-species-deserves-a-mantis-hunter"));
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-lone-ship:0") ctx.note("The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.");
+  if (id === "c:lanius-lone-ship:0") ctx.note(tx("wiki.cited-events.the-civilian-ship-hastily-retreats-while"));
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
-  if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
+  if (id === "c:auto-ship-near-radar-station:0") ctx.note(tx("wiki.cited-events.the-ship-powers-up-and-targets"));
   // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
-  if (id === "c:crystal-fight-choice:0") ctx.note("Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!");
+  if (id === "c:crystal-fight-choice:0") ctx.note(tx("wiki.cited-events.before-you-can-engage-the-crystalline"));
   // Lanius powered-down ship. "Scan the ship for lifeforms." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-powered-down-ship:0") ctx.note("As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!");
+  if (id === "c:lanius-powered-down-ship:0") ctx.note(tx("wiki.cited-events.as-you-scan-the-vessel-the"));
   // Pirate ship attacking Crystal. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:pirate-ship-attacking-crystal:0") ctx.note("You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you.");
+  if (id === "c:pirate-ship-attacking-crystal:0") ctx.note(tx("wiki.cited-events.you-chase-down-the-pirate-before"));
   // Remote settlement. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:remote-settlement:0") ctx.note("\"You asked for it!\" They pull away from the planet and move in to engage.");
+  if (id === "c:remote-settlement:0") ctx.note(tx("wiki.cited-events.you-asked-for-it-they-pull"));
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
+  if (id === "c:pirate-smuggler:0") ctx.note(tx("wiki.cited-events.you-power-up-your-weapons-and"));
   // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!");
+  if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note(tx("wiki.cited-events.there-is-a-screech-from-your"));
   // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
-  if (id === "c:slug-drink:0") ctx.note("The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.");
+  if (id === "c:slug-drink:0") ctx.note(tx("wiki.cited-events.the-slug-feigns-offense-at-your"));
   // Zoltan quest primitives. "Interfere - make first contact with the primitive aliens." One printed lead-in, then a Zoltan ship fight.
-  if (id === "c:zoltan-quest-primitives:0") ctx.note("The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.");
+  if (id === "c:zoltan-quest-primitives:0") ctx.note(tx("wiki.cited-events.the-local-people-furry-one-eyed"));
   // Zoltan quest primitives. "Protect the aliens' way of life - Attack the Rebel ship." One printed lead-in, then a Rebel ship fight.
-  if (id === "c:zoltan-quest-primitives:1") ctx.note("These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.");
+  if (id === "c:zoltan-quest-primitives:1") ctx.note(tx("wiki.cited-events.these-creatures-should-be-left-to"));
   // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
-  if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note("You message the Crystalline ship your intentions and move in to intercept the Rebel ship.");
+  if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note(tx("wiki.cited-events.you-message-the-crystalline-ship-your"));
   // Rebel ship attacking Crystal ship. "Attack the Crystalline ship." One printed lead-in, then a Crystal ship fight.
-  if (id === "c:rebel-ship-attacking-crystal-ship:1") ctx.note("You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.");
+  if (id === "c:rebel-ship-attacking-crystal-ship:1") ctx.note(tx("wiki.cited-events.you-move-in-to-intercept-the"));
   // Auto-ship carrying shield virus. "Counter the remote hacking." Without Hacking the arrival card stays open.
   // citedChoose does not read citedChoiceDisabled, so this returns before the fight note and the fight.
   if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return true;
   // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
-  if (id === "c:auto-ship-carrying-shield-virus:1") ctx.note("Your hacking system automatically counters the digital assault and you move in to fight the ship.");
+  if (id === "c:auto-ship-carrying-shield-virus:1") ctx.note(tx("wiki.cited-events.your-hacking-system-automatically-counters-the"));
   // Rebel shipyard. "Look around." One printed warning, then the same second Flagship fight. No salvage is granted here.
-  if (id === "c:rebel-shipyard:0") ctx.note("Warning lights flash as scans identify the gigantic ship under construction - it's a second Rebel Flagship! This must be the secret shipyards where the first one was built, and you've accidentally stumbled across it! Even in its weakened state, the Rebel ship powers up... get ready, you've got a hell of a fight on your hands!");
+  if (id === "c:rebel-shipyard:0") ctx.note(tx("wiki.cited-events.warning-lights-flash-as-scans-identify"));
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);
@@ -5471,9 +5472,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // Rebel fight with boarders has no choice. Arrival calls this id.
     // "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
-    if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
+    if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, tx("wiki.cited-events.human-boarders-beam-aboard-your-ship"));
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
-    if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
+    if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, tx("wiki.cited-events.slug-boarders-beam-aboard-your-ship"));
     // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship; Legendary thief KazaaakplethKilik).
     if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
     return true;
@@ -5487,14 +5488,14 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   // Pirate toll. "Pay their toll." One printed result. The 15-25 scrap is already spent above. No fight.
   if (id === "c:pirate-toll:0") {
-    citedResult(g, "\"You made the right decision, friend.\"", ["You avoid the fight."]);
+    citedResult(g, tx("wiki.cited-events.you-made-the-right-decision-friend"), [tx("wiki.cited-events.you-avoid-the-fight")]);
     return true;
   }
   // The mercenary. "Hire the mercenary to delay the Rebels." One printed result. Scrap and the 2-turn delay are already applied.
   if (id === "c:the-mercenary:0") {
     const last = g.sector === 8 || g.sectorName === "The Last Stand";
-    citedResult(g, "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.", [
-      last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns.",
+    citedResult(g, tx("wiki.cited-events.the-mercenary-ship-masks-its-jump"), [
+      last ? tx("wiki.cited-events.no-effect-in-the-last-stand") : tx("wiki.cited-events.rebel-fleet-is-delayed-for-2"),
     ]);
     return true;
   }
@@ -5504,8 +5505,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:federation-deserters:2") {
     citedResult(
       g,
-      "You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! \"The Federation fleet's still standing - get there while you can!\"",
-      ["The current sector map is revealed."],
+      tx("wiki.cited-events.you-send-over-some-supplies-to"),
+      [tx("wiki.cited-events.the-current-sector-map-is-revealed")],
     );
     return true;
   }
@@ -5517,9 +5518,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     citedResult(
       g,
       id === "c:remote-settlement:2"
-        ? "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed."
-        : "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.",
-      ["You receive a drone schematic with high scrap.", item],
+        ? tx("wiki.cited-events.the-pirate-watches-as-you-start")
+        : tx("wiki.cited-events.the-pirate-watches-as-you-teleport"),
+      [tx("wiki.cited-events.you-receive-a-drone-schematic-with-2"), item],
     );
     return true;
   }

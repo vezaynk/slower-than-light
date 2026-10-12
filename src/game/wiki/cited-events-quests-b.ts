@@ -10,6 +10,7 @@
  * "Nothing happens." choices are left to citedChoose.
  */
 
+import { tx } from "../../i18n/index.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
@@ -31,13 +32,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rock Homeworlds",
       "Uncharted Nebula",
     ],
-    body: "You follow the distress beacon to a tiny asteroid belt. You find a small ship struggling to maneuver through the field.",
+    body: tx("wiki.cited-events-quests-b.you-follow-the-distress-beacon-to"),
     choices: [
       {
         id: "c:asteroid-belt-distress:0",
-        label: "Hail them to offer assistance.",
+        label: tx("wiki.cited-events-quests-b.hail-them-to-offer-assistance"),
         // "Help! Our shields are down and we won't last long!" Follow-up card: wiki/quests-b.ts.
-        fx: [{ k: "note", text: "They beg for help." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-beg-for-help") }],
       },
     ],
   },
@@ -49,37 +50,37 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:capture-the-ship",
     aliases: ["Capture the ship", "Capture the Ship"],
     sectors: ["Civilian Sector", "Rock Controlled Sector", "Rock Homeworlds", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive to find a number of ships convening around a station. There is some unencrypted chatter between the ships, you tune in and listen for anything interesting.\n\nOverhearing their conversation, it seems that they need to take possession of an enemy ship intact.",
+    body: tx("wiki.cited-events-quests-b.you-arrive-to-find-a-number"),
     choices: [
       {
         id: "c:capture-the-ship:0",
-        label: "Offer your services.",
+        label: tx("wiki.cited-events-quests-b.offer-your-services"),
         // "Nothing happens." (they say you are not "properly equipped"; the text is in wiki/quests-b.ts)
-        fx: [{ k: "note", text: "They decline." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-decline") }],
       },
       {
         id: "c:capture-the-ship:1",
-        label: "Leave them alone.",
+        label: tx("wiki.cited-events-quests-b.leave-them-alone"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:capture-the-ship:2",
         // {{Blue Option|Teleporter|Offer to board their ship.}}
-        label: "Offer to board their ship.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: tx("wiki.cited-events-quests-b.offer-to-board-their-ship"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
       {
         id: "c:capture-the-ship:3",
         // {{Blue Option|Fire Bomb|Offer to burn the crew out.}}
-        label: "Offer to burn the crew out.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: tx("wiki.cited-events-quests-b.offer-to-burn-the-crew-out"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
       {
         id: "c:capture-the-ship:4",
         // {{Blue Option|Bio Beam|Offer to 'remove' their crew.|shortreq=Anti-Bio Beam}}
-        label: "Offer to 'remove' their crew.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: tx("wiki.cited-events-quests-b.offer-to-remove-their-crew"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
     ],
   },
@@ -103,17 +104,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "A Federation encrypted signal is being broadcast from a nearby planet.",
+    body: tx("wiki.cited-events-quests-b.a-federation-encrypted-signal-is-being"),
     choices: [
       {
         id: "c:encrypted-federation-signal:0",
-        label: "Send an away party to investigate.",
+        label: tx("wiki.cited-events-quests-b.send-an-away-party-to-investigate"),
         // One of five results, one of them a Rebel ship fight. Random branch: wiki/quests-b.ts.
-        fx: [{ k: "note", text: "The away party reports back." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.the-away-party-reports-back") }],
       },
       {
         id: "c:encrypted-federation-signal:1",
-        label: "It could be a trap, let's move on.",
+        label: tx("wiki.cited-events-quests-b.it-could-be-a-trap-let"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -126,17 +127,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-ship-attacked-by-mantis-ship",
     aliases: ["Engi ship attacked by Mantis ship", "Engi Ship Attacked by Mantis Ship"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "You receive a distress call from a nearby Engi ship. \"Assistance requested. Danger present. Imminent destruction.\"",
+    body: tx("wiki.cited-events-quests-b.you-receive-a-distress-call-from"),
     choices: [
       {
         id: "c:engi-ship-attacked-by-mantis-ship:0",
-        label: "Respond to the call and move in to assist.",
+        label: tx("wiki.cited-events-quests-b.respond-to-the-call-and-move"),
         // Fight a Mantis ship, or a mantis-controlled Engi ship with boarders. Random branch: wiki/quests-b.ts.
-        fx: [{ k: "note", text: "You move in." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.you-move-in") }],
       },
       {
         id: "c:engi-ship-attacked-by-mantis-ship:1",
-        label: "Keep your distance.",
+        label: tx("wiki.cited-events-quests-b.keep-your-distance"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -157,17 +158,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive at a populated sector. One merchant seems to be mass-broadcasting a request for a mercenary ship to aid him. Shall we respond?",
+    body: tx("wiki.cited-events-quests-b.you-arrive-at-a-populated-sector"),
     choices: [
       {
         id: "c:merchant-s-request:0",
-        label: "Yes.",
+        label: tx("wiki.cited-events-quests-b.yes"),
         // One of two requests (a delivery or an investigation). Random branch: wiki/quests-b.ts.
-        fx: [{ k: "note", text: "The merchant explains." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.the-merchant-explains") }],
       },
       {
         id: "c:merchant-s-request:1",
-        label: "No.",
+        label: tx("wiki.cited-events-quests-b.no"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -180,23 +181,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:nebula-wreckage",
     aliases: ["Nebula wreckage", "Nebula Wreckage"],
     sectors: ["Slug Controlled Nebula", "Uncharted Nebula"],
-    body: "This nebula looks like it's recently seen two ships exchange fire... with mutually-assured destructive results. Wreckage drifts by your screens and tumbles into the depths of the nebula to be lost to sight. It's hard to determine who the combatants were without closer investigation.",
+    body: tx("wiki.cited-events-quests-b.this-nebula-looks-like-it-s"),
     choices: [
       {
         id: "c:nebula-wreckage:0",
         // {{Blue Option|Slug Crew|Ask your Slug crew to scan for survivors.}}
-        label: "Ask your Slug crew to scan for survivors.",
-        fx: [{ k: "note", text: "Your Slug finds a survivor." }],
+        label: tx("wiki.cited-events-quests-b.ask-your-slug-crew-to-scan"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.your-slug-finds-a-survivor") }],
       },
       {
         id: "c:nebula-wreckage:1",
-        label: "Investigate the battlefield.",
+        label: tx("wiki.cited-events-quests-b.investigate-the-battlefield"),
         // {{DuplicateEvent|3}} nothing, 5 hull damage with a fire, or a survivor. Random branch: wiki/quests-b.ts.
-        fx: [{ k: "note", text: "You search the wreckage." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.you-search-the-wreckage") }],
       },
       {
         id: "c:nebula-wreckage:2",
-        label: "Leave the battlefield before other ships arrive.",
+        label: tx("wiki.cited-events-quests-b.leave-the-battlefield-before-other-ships"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },

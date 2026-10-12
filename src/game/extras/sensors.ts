@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { REPAIR_SECONDS, manning, playerSensorsOff, roomWith } from "../sim.ts";
 import type { Game, Ship, SysId } from "../types.ts";
 
@@ -52,5 +53,5 @@ export function sensorSystemDetail(ship: Ship, id: SysId, label: string, shownPo
   const sabotage = roomWith(ship, id)?.sabotage ?? 0;
   const repair = sensorPct(REPAIR_SECONDS > 0 ? sys.fix / REPAIR_SECONDS : 0);
   const cooldown = sys.ion.length === 0 ? "none" : sys.ion.map((s) => `${s.toFixed(1)}s`).join(" / ");
-  return `${label}: level ${sys.level}, power ${shownPower} of ${sys.level}, ion ${sys.ion.length}, cooldown ${cooldown}, repair ${repair}%, sabotage ${sensorPct(sabotage)}%`;
+  return tx("extras.sensors.level-power-of-ion-cooldown-repair", { label: label, level: sys.level, shownPower: shownPower, level2: sys.level, length: sys.ion.length, cooldown: cooldown, repair: repair, sensorPct: sensorPct(sabotage) });
 }

@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Rock pages whose opening outcome is one stated amount or one named fight.
  * A choice with several results is left out. Blue options, crew, map reveals,
@@ -37,11 +38,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Mantis ship Rock body parts",
     ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.",
+    body: tx("wiki.cited-events-rock.a-mantis-ship-here-is-adorned"),
     choices: [
       {
         id: "c:mantis-ship-with-rock-body-parts:0",
-        label: "Attack!",
+        label: tx("wiki.cited-events-rock.attack"),
         fx: [
           // "Fight the Mantis ship (default rewards)."
           { k: "fight", tier: "Mantis ship" },
@@ -49,7 +50,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:mantis-ship-with-rock-body-parts:1",
-        label: "Ignore them.",
+        label: tx("wiki.cited-events-rock.ignore-them"),
         fx: [
           // "Nothing happens."
           { k: "nothing" },
@@ -57,7 +58,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:mantis-ship-with-rock-body-parts:2",
-        label: "Put your Rock crewmember on the comm.",
+        label: tx("wiki.cited-events-rock.put-your-rock-crewmember-on-the"),
         fx: [
           // "Fight the Mantis ship (default rewards)."
           { k: "fight", tier: "Mantis ship" },
@@ -65,7 +66,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:mantis-ship-with-rock-body-parts:3",
-        label: "Ram the bastards.",
+        label: tx("wiki.cited-events-rock.ram-the-bastards"),
         fx: [
           // "Fight the Mantis ship (default rewards), whose engines are disabled."
           { k: "fight", tier: "Mantis ship" },
@@ -84,7 +85,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-fight:0",
-        label: "Fight a Rock ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-ship"),
         fx: [
           // "Fight a Rock ship (default rewards)."
           { k: "fight", tier: "Rock ship" },
@@ -103,7 +104,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-fight-in-asteroid-field:0",
-        label: "Fight a Rock ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-ship"),
         fx: [
           // "Fight a Rock ship (default rewards)." Locations: asteroidfield=true.
           { k: "fight", tier: "Rock ship", asteroid: true },
@@ -123,7 +124,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-fight-with-boarders:0",
-        label: "Fight a Rock ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-ship"),
         fx: [
           // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
           { k: "fight", tier: "Rock ship" },
@@ -147,7 +148,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-fight-with-boarders-in-asteroid-field:0",
-        label: "Fight a Rock ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-ship"),
         fx: [
           // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." Locations: asteroidfield=true.
           { k: "fight", tier: "Rock ship", asteroid: true },
@@ -166,7 +167,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-pirates-fight:0",
-        label: "Fight a Rock pirate ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-pirate-ship"),
         fx: [
           // "Fight a Rock pirate ship (default rewards)."
           { k: "fight", tier: "Rock pirate ship" },
@@ -190,7 +191,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-pirates-fight-in-asteroid-field:0",
-        label: "Fight a Rock pirate ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-pirate-ship"),
         fx: [
           // "Fight a Rock pirate ship (default rewards)." Locations: asteroidfield=true.
           { k: "fight", tier: "Rock pirate ship", asteroid: true },
@@ -214,7 +215,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-pirates-fight-near-sun:0",
-        label: "Fight a Rock pirate ship",
+        label: tx("wiki.cited-events-rock.fight-a-rock-pirate-ship"),
         fx: [
           // "Fight a Rock pirate ship (default rewards)."
           { k: "fight", tier: "Rock pirate ship" },
@@ -230,11 +231,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-rockmen-near-sun",
     aliases: ["Boarders: Rockmen near sun"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, \"Prepare to burn, fleshy meat-sack aliens!\"",
+    body: tx("wiki.cited-events-rock.as-soon-as-you-arrive-you"),
     choices: [
       {
         id: "c:boarders-rockmen-near-sun:0",
-        label: "2-3 rock boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-rock.2-3-rock-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -247,25 +248,25 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:disabled-rock-ship",
     aliases: ["Disabled Rock ship"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "You find a disabled rock transport floating near the beacon. You consider stripping it of useful parts but are uncertain why it's there in the first place.",
+    body: tx("wiki.cited-events-rock.you-find-a-disabled-rock-transport"),
     choices: [
       {
         id: "c:disabled-rock-ship:0",
-        label: "Strip the ship.",
+        label: tx("wiki.cited-events-rock.strip-the-ship"),
         // Random scrap, or that scrap and a Rock ship. No odds. INFERRED: equal.
-        fx: [{ k: "note", text: "Random scrap, or that scrap and a Rock ship." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.random-scrap-or-that-scrap-and") }],
       },
       {
         id: "c:disabled-rock-ship:1",
-        label: "Leave it alone.",
+        label: tx("wiki.cited-events-rock.leave-it-alone"),
         // Nothing, or a Rock ship. The nothing result is printed twice.
-        fx: [{ k: "note", text: "Nothing, or a Rock ship." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.nothing-or-a-rock-ship") }],
       },
       {
         id: "c:disabled-rock-ship:2",
-        label: "Check for lifeforms and keep a lookout for ships while looting the wreck.",
+        label: tx("wiki.cited-events-rock.check-for-lifeforms-and-keep-a"),
         // Slug crew. Random scrap. The two sentences are printed as alternatives.
-        fx: [{ k: "note", text: "Random scrap." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.random-scrap") }],
       },
     ],
   },
@@ -276,19 +277,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-and-slug-standoff",
     aliases: ["Rock and Slug standoff"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand.",
+    body: tx("wiki.cited-events-rock.you-find-a-slug-cruiser-and"),
     choices: [
       {
         id: "c:rock-and-slug-standoff:0",
-        label: "Hail them to see what's wrong.",
+        label: tx("wiki.cited-events-rock.hail-them-to-see-what-s"),
         // "The Slug captain explains the unpaid reactor work."
-        fx: [{ k: "note", text: "Pay the debt, demand payment, or leave." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.pay-the-debt-demand-payment-or") }],
       },
       {
         id: "c:rock-and-slug-standoff:1",
-        label: "Leave them be.",
+        label: tx("wiki.cited-events-rock.leave-them-be"),
         // "Nothing happens."
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.nothing-happens") }],
       },
     ],
   },
@@ -303,31 +304,31 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Mantis ships battle for Rock Freighter",
     ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "A curious sight greets you at this beacon: a disabled Rock freighter drifts in space while two Mantis craft battle it out - presumably over who deserves the spoils.",
+    body: tx("wiki.cited-events-rock.a-curious-sight-greets-you-at"),
     choices: [
       {
         id: "c:mantis-ships-battle-for-rock-freighter:0",
-        label: "Wait, then attack the surviving Mantis.",
+        label: tx("wiki.cited-events-rock.wait-then-attack-the-surviving-mantis"),
         // Two Mantis fights. One has Weapon Control reduced. No odds. INFERRED: equal.
-        fx: [{ k: "note", text: "A weakened Mantis ship, or a Mantis ship." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.a-weakened-mantis-ship-or-a") }],
       },
       {
         id: "c:mantis-ships-battle-for-rock-freighter:1",
-        label: "Ignore them.",
+        label: tx("wiki.cited-events-rock.ignore-them"),
         // "Nothing happens."
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.nothing-happens") }],
       },
       {
         id: "c:mantis-ships-battle-for-rock-freighter:2",
-        label: "Repair the Rock ship.",
+        label: tx("wiki.cited-events-rock.repair-the-rock-ship"),
         // Repair Drone. High scrap. The printed drone-part bug stays in filler-events.ts.
-        fx: [{ k: "note", text: "High scrap." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.high-scrap") }],
       },
       {
         id: "c:mantis-ships-battle-for-rock-freighter:3",
-        label: "Repair their hull.",
+        label: tx("wiki.cited-events-rock.repair-their-hull"),
         // Hull Repair Drone, then a Mantis ship.
-        fx: [{ k: "note", text: "A Mantis ship." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.a-mantis-ship") }],
       },
     ],
   },
@@ -338,19 +339,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-live-mine",
     aliases: ["Rock live mine", "Rock Live Mine"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "The burnt out hull of a Rock mine layer drifts by. Behind the wreck drifts a live mine; an automated drone that drills into ships' hulls before exploding. It locks onto your ship's signature and heads your way!",
+    body: tx("wiki.cited-events-rock.the-burnt-out-hull-of-a"),
     choices: [
       {
         id: "c:rock-live-mine:0",
-        label: "Attempt evasive maneuvers.",
+        label: tx("wiki.cited-events-rock.attempt-evasive-maneuvers"),
         // The mine bites down. Defuse it, detonate a missile, or cut it free.
-        fx: [{ k: "note", text: "The mine bites down." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.the-mine-bites-down") }],
       },
       {
         id: "c:rock-live-mine:1",
-        label: "Reverse thrusters!",
+        label: tx("wiki.cited-events-rock.reverse-thrusters"),
         // Improved Engines. "Nothing happens."
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-rock.nothing-happens") }],
       },
     ],
   },

@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
@@ -124,7 +125,7 @@ export function upgradeFlak(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, "Flak Artillery raised.");
+  log(g, tx("extras.flakart.flak-artillery-raised"));
   return true;
 }
 

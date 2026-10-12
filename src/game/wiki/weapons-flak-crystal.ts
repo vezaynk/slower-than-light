@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 import { cellOccupied } from "../layouts.ts";
 
@@ -35,7 +36,7 @@ const FLAK_FAMILY = {
 export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
     id: "advflak",
-    name: "Adv. Flak Gun",
+    name: tx("wiki.weapons-flak-crystal.adv-flak-gun"),
     kind: "flak",
     // Flak (Weapons) "Adv. Flak Gun": 1 power, 8s, 3 shots, 1 damage.
     // Sells for 30 and cannot be bought or found, so price is 0, not the sell scrap.
@@ -53,11 +54,11 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     ammo: FLAK_FAMILY.ammo,
     price: 0,
     blurb:
-      "Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.",
+      tx("wiki.weapons-flak-crystal.fires-a-blast-of-debris-across"),
   },
   {
     id: "flak2",
-    name: "Flak Gun Mark II",
+    name: tx("wiki.weapons-flak-crystal.flak-gun-mark-ii"),
     kind: "flak",
     // Flak (Weapons) "Flak Gun Mark II": 3 power, 21s, 7 shots, 1 damage, purchase price 80.
     power: 3,
@@ -74,11 +75,11 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     ammo: FLAK_FAMILY.ammo,
     price: 80,
     blurb:
-      "Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.",
+      tx("wiki.weapons-flak-crystal.fires-a-blast-of-debris-across-2"),
   },
   {
     id: "crystalburst",
-    name: "Crystal Burst Mark I",
+    name: tx("wiki.weapons-flak-crystal.crystal-burst-mark-i"),
     // Shards are projectiles. WeaponKind has no crystal kind.
     // kind "laser" is the closest stored kind and pierce is NOT modeled by kind.
     kind: "laser",
@@ -98,11 +99,11 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     // INFERRED: ammo false. The section lists no missile cost.
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
   },
   {
     id: "crystalburst2",
-    name: "Crystal Burst Mark II",
+    name: tx("wiki.weapons-flak-crystal.crystal-burst-mark-ii"),
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
     // Crystal (Weapons) "Crystal Burst Mark II": 3 power, 17s, 3 shots, 1 damage, purchase price 20.
@@ -118,11 +119,11 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
   },
   {
     id: "heavycrystal",
-    name: "Heavy Crystal Mark I",
+    name: tx("wiki.weapons-flak-crystal.heavy-crystal-mark-i"),
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
     // Crystal (Weapons) "Heavy Crystal Mark I": 1 power, 13s, 1 shot, 2 damage, purchase price 20.
@@ -138,11 +139,11 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
   },
   {
     id: "heavycrystal2",
-    name: "Heavy Crystal Mark II",
+    name: tx("wiki.weapons-flak-crystal.heavy-crystal-mark-ii"),
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
     // Crystal (Weapons) "Heavy Crystal Mark II": 3 power, 19s, 1 shot, 4 damage, purchase price 20.
@@ -158,7 +159,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 1,
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
   },
 ];
 
@@ -169,50 +170,50 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
     fake: 3,
     sell: 30,
     rooms: [
-      "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners.",
-      "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides.",
+      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-48"),
+      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-89"),
     ],
-    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 and 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
+    note: tx("wiki.weapons-flak-crystal.flak-weapons-adv-flak-gun-targeting"),
   },
   {
     id: "flak2",
     radius: 55,
     fake: 6,
     rooms: [
-      "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides.",
-      "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners.",
+      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-25"),
+      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-51"),
     ],
-    note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 and 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are applied by flak2Landing. Radius 55 is not simulated as pixels.',
+    note: tx("wiki.weapons-flak-crystal.flak-weapons-flak-gun-mark-ii"),
   },
   {
     id: "flak-artillery",
     radius: 35,
     fake: 7,
     rooms: [
-      "When fired at 1x2 room: 60.90% in main room, 9.78% in each tile next to long sides.",
-      "When fired at 2x2 room: 100% in main room.",
+      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-60"),
+      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-100"),
     ],
-    note: 'flakart.ts owns the system. Flak (Weapons) "Flak Artillery" matches that file on 4 levels, charge 50/40/30/20, shots 7, damage 1, and auto-fire. This section is more than that reminder: radius 35 (each flak projectile is auto-targeted at a random room), additional fake flak 7, and the room odds below are not applied there.',
+    note: tx("wiki.weapons-flak-crystal.flakart-ts-owns-the-system-flak"),
   },
   {
     id: "crystalburst",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
+    note: tx("wiki.weapons-flak-crystal.crystal-weapons-crystal-burst-mark-i"),
   },
   {
     id: "crystalburst2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
+    note: tx("wiki.weapons-flak-crystal.crystal-weapons-crystal-burst-mark-ii"),
   },
   {
     id: "heavycrystal",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
+    note: tx("wiki.weapons-flak-crystal.crystal-weapons-heavy-crystal-mark-i"),
   },
   {
     id: "heavycrystal2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
+    note: tx("wiki.weapons-flak-crystal.crystal-weapons-heavy-crystal-mark-ii"),
   },
 ];
 

@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Leftover Mantis pages. A choice is kept only when the opening result is one
  * stated amount or one named fight. Boarders: Humans near sun beams 2-4 humans.
@@ -32,12 +33,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-near-sun",
     aliases: ["Mantis fight near sun"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?",
+    body: tx("wiki.cited-events-mantis.who-knows-why-the-mantis-would"),
     choices: [
       {
         id: "c:mantis-fight-near-sun:0",
         // "Fight a Mantis ship (default rewards)."
-        label: "Fight a Mantis ship (default rewards)",
+        label: tx("wiki.cited-events-mantis.fight-a-mantis-ship-default-rewards"),
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
@@ -49,12 +50,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-ship-collectors",
     aliases: ["Mantis ship-collectors"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "You are immediately hailed by an impressive-looking Mantis ship, \"Your ship would make a mighty fine prize. Prepare for battle!\"",
+    body: tx("wiki.cited-events-mantis.you-are-immediately-hailed-by-an"),
     choices: [
       {
         id: "c:mantis-ship-collectors:0",
         // "Fight a Mantis Fighter with crew entirely composed of Mantis."
-        label: "Fight a Mantis Fighter",
+        label: tx("wiki.cited-events-mantis.fight-a-mantis-fighter"),
         fx: [
           { k: "fight", tier: "Mantis Fighter" },
         ],
@@ -75,11 +76,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!",
+    body: tx("wiki.cited-events-mantis.you-arrive-to-find-yourself-extremely"),
     choices: [
       {
         id: "c:boarders-humans-near-sun:0",
-        label: "2-4 human boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-mantis.2-4-human-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -92,11 +93,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-mantis",
     aliases: ["Boarders: Mantis"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+    body: tx("wiki.cited-events-mantis.a-derelict-and-still-smoking-mantis"),
     choices: [
       {
         id: "c:boarders-mantis:0",
-        label: "2-4 mantis boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-mantis.2-4-mantis-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -109,10 +110,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:escape-pod",
     aliases: ["Escape pod"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis.",
+    body: tx("wiki.cited-events-mantis.you-detect-and-retrieve-an-escape"),
     choices: [
-      { id: "c:escape-pod:0", label: "Jettison the pod.", fx: [{ k: "nothing" }] },
-      { id: "c:escape-pod:1", label: "Pry it open.", fx: [{ k: "note", text: "A Mantis boarder and a lost crewmember, or nothing." }] },
+      { id: "c:escape-pod:0", label: tx("wiki.cited-events-mantis.jettison-the-pod"), fx: [{ k: "nothing" }] },
+      { id: "c:escape-pod:1", label: tx("wiki.cited-events-mantis.pry-it-open"), fx: [{ k: "note", text: tx("wiki.cited-events-mantis.a-mantis-boarder-and-a-lost") }] },
     ],
   },
 ];

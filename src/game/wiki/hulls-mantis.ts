@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { HullSpec } from "../hulls.ts";
 
 /**
@@ -12,13 +13,13 @@ import type { HullSpec } from "../hulls.ts";
 export const MANTIS_HULLS: HullSpec[] = [
   {
     id: "mantis-a",
-    cruiser: "Mantis Cruiser",
+    cruiser: tx("wiki.hulls-mantis.mantis-cruiser"),
     layout: "A",
-    name: "The Gila Monster",
-    quote: "This warship is designed to enhance its crew for close combat missions.",
+    name: tx("wiki.hulls-mantis.the-gila-monster"),
+    quote: tx("wiki.hulls-mantis.this-warship-is-designed-to-enhance"),
     unlock:
-      "See the Legendary Thief KazaaakplethKilik random event. Alternatively, defeat the Rebel Flagship with the Zoltan Cruiser.",
-    source: "The Mantis Cruiser, Layout A",
+      tx("wiki.hulls-mantis.see-the-legendary-thief-kazaaakplethkilik-random"),
+    source: tx("wiki.hulls-mantis.the-mantis-cruiser-layout-a"),
     // Wiki page "The Mantis Cruiser", section "Layout A": Starting Reactor: 7.
     reactor: 7,
     // Wiki page "The Mantis Cruiser", section "Layout A": Starting Resources: 16 Fuel, 16 Missiles, 0 Drone parts.
@@ -53,12 +54,12 @@ export const MANTIS_HULLS: HullSpec[] = [
   },
   {
     id: "mantis-b",
-    cruiser: "Mantis Cruiser",
+    cruiser: tx("wiki.hulls-mantis.mantis-cruiser"),
     layout: "B",
-    name: "The Basilisk",
-    quote: "This warship encourages sending massive boarding parties and keeping strong defense.",
-    unlock: "Earning two of the three Mantis Cruiser achievements will unlock Layout B.",
-    source: "The Mantis Cruiser, Layout B",
+    name: tx("wiki.hulls-mantis.the-basilisk"),
+    quote: tx("wiki.hulls-mantis.this-warship-encourages-sending-massive-boarding"),
+    unlock: tx("wiki.hulls-mantis.earning-two-of-the-three-mantis"),
+    source: tx("wiki.hulls-mantis.the-mantis-cruiser-layout-b"),
     // Wiki page "The Mantis Cruiser", section "Layout B": Starting Reactor: 11.
     reactor: 11,
     // Wiki page "The Mantis Cruiser", section "Layout B": Starting Resources: 16 Fuel, 0 Missiles, 15 Drone parts.
@@ -94,18 +95,18 @@ export const MANTIS_HULLS: HullSpec[] = [
     },
     augments: ["pheromone"],
     // Defense Drone I does not fit in the single schematic slot.
-    unfitted: ["Defense Drone I"],
+    unfitted: [tx("wiki.hulls-mantis.defense-drone-i")],
   },
   {
     id: "mantis-c",
-    cruiser: "Mantis Cruiser",
+    cruiser: tx("wiki.hulls-mantis.mantis-cruiser"),
     layout: "C",
-    name: "The Theseus",
+    name: tx("wiki.hulls-mantis.the-theseus"),
     quote:
-      "With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.",
+      tx("wiki.hulls-mantis.with-a-large-teleporter-and-weapons"),
     unlock:
-      "Reaching Sector 8 with the Mantis Cruiser B and Advanced Edition Content enabled will unlock layout C.",
-    source: "The Mantis Cruiser, Layout C",
+      tx("wiki.hulls-mantis.reaching-sector-8-with-the-mantis"),
+    source: tx("wiki.hulls-mantis.the-mantis-cruiser-layout-c"),
     // Wiki page "The Mantis Cruiser", section "Layout C": Starting Reactor: 8.
     reactor: 8,
     // Wiki page "The Mantis Cruiser", section "Layout C": Starting Resources: 16 Fuel, 20 Missiles, 0 Drone parts.

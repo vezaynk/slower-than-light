@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Leftover Zoltan pages. An opening choice is kept only when it states one
  * amount, scrap tier, hull number, fleet delay, or one named fight.
@@ -35,11 +36,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-fight",
     aliases: ["Engi fight", "Engi fight (Zoltan)", "Zoltan Engi fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails.",
+    body: tx("wiki.cited-events-zoltan.you-jump-into-a-debris-field"),
     choices: [
       {
         id: "c:engi-fight:0",
-        label: "Fight an Engi ship",
+        label: tx("wiki.cited-events-zoltan.fight-an-engi-ship"),
         fx: [
           // "Fight an Engi ship (default rewards)."
           { k: "fight", tier: "Engi ship" },
@@ -55,11 +56,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-zoltan",
     aliases: ["Mantis fight (Zoltan)", "Zoltan Mantis fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You pick up the last broadcast from a rupturing Zoltan freighter: \"The Mantis, they're here, please-\" You're interrupted by fire off the port bow!",
+    body: tx("wiki.cited-events-zoltan.you-pick-up-the-last-broadcast"),
     choices: [
       {
         id: "c:mantis-fight-zoltan:0",
-        label: "Fight a Mantis ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-mantis-ship"),
         fx: [
           // "Fight a Mantis ship (default rewards)."
           { k: "fight", tier: "Mantis ship" },
@@ -79,7 +80,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:pirate-fight-zoltan:0",
-        label: "Fight a Pirate ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-pirate-ship"),
         fx: [
           // "Fight a Pirate ship (default rewards)."
           { k: "fight", tier: "Pirate ship" },
@@ -93,11 +94,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-ships-in-plasma-storm",
     aliases: ["Pirate ships in plasma storm", "Plasma storm pirate ships", "Two pirate ships in plasma storm"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.",
+    body: tx("wiki.cited-events-zoltan.you-spy-two-pirate-ships-lurking"),
     choices: [
       {
         id: "c:pirate-ships-in-plasma-storm:0",
-        label: "Secure the fuel supply",
+        label: tx("wiki.cited-events-zoltan.secure-the-fuel-supply"),
         fx: [
           // "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!" Category: Pirate ship fights.
           { k: "fight", tier: "Pirate ship" },
@@ -105,7 +106,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:pirate-ships-in-plasma-storm:1",
-        label: "Secure the ammunition",
+        label: tx("wiki.cited-events-zoltan.secure-the-ammunition"),
         fx: [
           // "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!" Category: Pirate ship fights.
           { k: "fight", tier: "Pirate ship" },
@@ -113,7 +114,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:pirate-ships-in-plasma-storm:2",
-        label: "Let them leave",
+        label: tx("wiki.cited-events-zoltan.let-them-leave"),
         fx: [
           // "Nothing happens."
           { k: "nothing" },
@@ -128,11 +129,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-fight-in-nebula",
     aliases: ["Rock fight in nebula", "Zoltan Rock fight in nebula"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!",
+    body: tx("wiki.cited-events-zoltan.this-nebula-turns-out-to-be"),
     choices: [
       {
         id: "c:rock-fight-in-nebula:0",
-        label: "Fight a Rock ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-rock-ship"),
         fx: [
           // "Fight a Rock ship (default rewards)."
           { k: "fight", tier: "Rock ship" },
@@ -146,11 +147,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-border-police",
     aliases: ["Zoltan border police", "Zoltan Border Police"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!",
+    body: tx("wiki.cited-events-zoltan.there-are-few-more-zealous-in"),
     choices: [
       {
         id: "c:zoltan-border-police:0",
-        label: "Fight a Zoltan ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-zoltan-ship"),
         fx: [
           // "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)."
           { k: "fight", tier: "Zoltan ship" },
@@ -170,7 +171,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:zoltan-fight:0",
-        label: "Fight a Zoltan ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-zoltan-ship"),
         fx: [
           // "Fight a Zoltan ship (default rewards)."
           { k: "fight", tier: "Zoltan ship" },
@@ -186,11 +187,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-fight-in-asteroid-field",
     aliases: ["Zoltan fight in asteroid field"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive in an asteroid field and are greeted by a Zoltan guard, \"By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing.\" You don't have time for this.",
+    body: tx("wiki.cited-events-zoltan.you-arrive-in-an-asteroid-field"),
     choices: [
       {
         id: "c:zoltan-fight-in-asteroid-field:0",
-        label: "Fight a Zoltan ship",
+        label: tx("wiki.cited-events-zoltan.fight-a-zoltan-ship"),
         fx: [
           // "Fight a Zoltan ship (default rewards)." Locations: asteroidfield=true.
           { k: "fight", tier: "Zoltan ship", asteroid: true },
@@ -205,11 +206,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-free-augment",
     aliases: ["Zoltan free augment", "Zoltan Academy Free Augment", "Zoltan academy free augment"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you.",
+    body: tx("wiki.cited-events-zoltan.a-zoltan-academy-sits-docked-just"),
     choices: [
       {
         id: "c:zoltan-free-augment:0",
-        label: "You receive an augmentation with low scrap",
+        label: tx("wiki.cited-events-zoltan.you-receive-an-augmentation-with-low"),
         fx: [
           // "You receive an augmentation with low scrap." The augmentation is a random one (Rewards, above).
           { k: "tier", tier: "low" },
@@ -224,11 +225,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-quest-primitives",
     aliases: ["Zoltan quest primitives"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.\n\nYou tap into their frequency and hear the Rebel captain yelling, \"We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!\"",
+    body: tx("wiki.cited-events-zoltan.you-arrive-at-the-primitive-planet"),
     choices: [
       {
         id: "c:zoltan-quest-primitives:0",
-        label: "Interfere - make first contact with the primitive aliens",
+        label: tx("wiki.cited-events-zoltan.interfere-make-first-contact-with-the"),
         fx: [
           // "Fight the Zoltan ship."
           { k: "fight", tier: "Zoltan ship" },
@@ -236,7 +237,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:zoltan-quest-primitives:1",
-        label: "Protect the aliens' way of life - Attack the Rebel ship",
+        label: tx("wiki.cited-events-zoltan.protect-the-aliens-way-of-life"),
         fx: [
           // "Fight the Rebel Ship."
           { k: "fight", tier: "Rebel Ship" },
@@ -244,7 +245,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:zoltan-quest-primitives:2",
-        label: "Leave",
+        label: tx("wiki.cited-events-zoltan.leave"),
         fx: [
           // "Nothing happens."
           { k: "nothing" },
@@ -258,11 +259,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-security-checkpoint",
     aliases: ["Zoltan security checkpoint", "Zoltan Security Checkpoint"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. \"Traveling vessel, you will submit to crew profiling to identify fugitives of the empire.\"",
+    body: tx("wiki.cited-events-zoltan.you-arrive-at-a-zoltan-security"),
     choices: [
       {
         id: "c:zoltan-security-checkpoint:0",
-        label: "You don't have time for this nonsense. Attack!",
+        label: tx("wiki.cited-events-zoltan.you-don-t-have-time-for"),
         fx: [
           // "Fight a Zoltan ship (default rewards)."
           { k: "fight", tier: "Zoltan ship" },
@@ -276,11 +277,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-ship-follows-mantis-ship",
     aliases: ["Zoltan ship follows Mantis ship", "Zoltan Follows Mantis", "Zoltan follows Mantis"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, \"Your presence here will continue to be tolerated - but please, do not interfere.\"",
+    body: tx("wiki.cited-events-zoltan.your-jump-interrupts-a-zoltan-security"),
     choices: [
       {
         id: "c:zoltan-ship-follows-mantis-ship:0",
-        label: "Interfere and save the Mantis ship",
+        label: tx("wiki.cited-events-zoltan.interfere-and-save-the-mantis-ship"),
         fx: [
           // "Fight a Zoltan ship." Locations: asteroidfield=true.
           { k: "fight", tier: "Zoltan ship", asteroid: true },
@@ -288,7 +289,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:zoltan-ship-follows-mantis-ship:1",
-        label: "Interfere and help the Zoltan ship",
+        label: tx("wiki.cited-events-zoltan.interfere-and-help-the-zoltan-ship"),
         fx: [
           // "Fight a Mantis ship with crew entirely composed of Mantis." Locations: asteroidfield=true.
           { k: "fight", tier: "Mantis ship", asteroid: true },
@@ -296,7 +297,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:zoltan-ship-follows-mantis-ship:2",
-        label: "Don't interfere",
+        label: tx("wiki.cited-events-zoltan.don-t-interfere"),
         fx: [
           // "Nothing happens."
           { k: "nothing" },
@@ -311,11 +312,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-humans-jammed-sensors",
     aliases: ["Boarders: Humans jammed sensors"],
     sectors: ["Pirate Controlled Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You catch a glimpse of a strange signal coming from a space station before your sensors shut off unexpectedly. As you discover that your sensors are being jammed, you hear hostiles beam onto your ship.",
+    body: tx("wiki.cited-events-zoltan.you-catch-a-glimpse-of-a"),
     choices: [
       {
         id: "c:boarders-humans-jammed-sensors:0",
-        label: "Continue...",
+        label: tx("wiki.cited-events-zoltan.continue"),
         fx: [
           // "3-5 human boarders beam aboard your ship, and your Sensors are disabled."
           { k: "nothing" },
@@ -323,7 +324,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:boarders-humans-jammed-sensors:1",
-        label: "Counter the remote hacking.",
+        label: tx("wiki.cited-events-zoltan.counter-the-remote-hacking"),
         fx: [
           // "3-5 human boarders beam aboard your ship."
           { k: "nothing" },
@@ -338,17 +339,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-great-eye",
     aliases: ["Zoltan Great Eye"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye. A Zoltan elder hails you from the planet. \"Through luck or intent, you have discovered the Great Eye. Look into its depths and receive your just deserts.\"",
+    body: tx("wiki.cited-events-zoltan.inside-this-nebula-you-detect-a"),
     choices: [
       {
         id: "c:zoltan-great-eye:0",
-        label: "Pull the ship in closer.",
+        label: tx("wiki.cited-events-zoltan.pull-the-ship-in-closer"),
         // Four results, no odds. INFERRED: equal.
-        fx: [{ k: "note", text: "Lose a crewmember, a Zoltan ship, high scrap, or Healing Burst." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-zoltan.lose-a-crewmember-a-zoltan-ship") }],
       },
       {
         id: "c:zoltan-great-eye:1",
-        label: "Leave.",
+        label: tx("wiki.cited-events-zoltan.leave-2"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },

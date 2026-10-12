@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { kitBars, kitIonLocked, kitPowerDown, kitPowerUp, log, noteZoltanKits, rand } from "../sim.ts";
@@ -71,7 +72,7 @@ export function installVeil(g: Game) {
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.veil = blankVeil();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Cloaking fitted.");
+  log(g, tx("extras.veil.cloaking-fitted"));
 }
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1→2 costs 30, level 2→3 costs 50. Level 3 is the cap. */
@@ -113,7 +114,7 @@ export function startVeil(g: Game) {
   noteAchieve(g, { k: "cloak" });
   kit.left = veilSeconds(kit);
   kit.cool = 0;
-  log(g, "Cloaking up.");
+  log(g, tx("extras.veil.cloaking-up"));
 }
 
 /**

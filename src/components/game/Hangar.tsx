@@ -9,6 +9,7 @@
  * Crew cards repeat the race counts on the layout line. INVENTED: CUSTOMIZE edits a name
  * and uniform per seat, and the run starts with exactly those crew (crew-look.ts).
  */
+import { tx } from "@/i18n";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { WEAPONS } from "@/game/content";
 import {
@@ -169,27 +170,27 @@ export function Hangar() {
               </button>
             ))}
           </div>
-          <button type="button" className="hangar-start" onClick={start} disabled={locked} title={locked ? "Locked" : undefined}>
-            START
+          <button type="button" className="hangar-start" onClick={start} disabled={locked} title={locked ? tx("ui.Hangar.locked") : undefined}>
+            {tx("ui.Hangar.start")}
           </button>
         </div>
       </header>
 
       <aside className="hangar-ship">
-        <p className="hangar-label">SHIP</p>
-        <div className="hangar-list" role="group" aria-label="Ship">
-          <button type="button" aria-label="Previous ship" onClick={() => stepPage(-1)}>
+        <p className="hangar-label">{tx("ui.Hangar.ship")}</p>
+        <div className="hangar-list" role="group" aria-label={tx("ui.Hangar.ship-2")}>
+          <button type="button" aria-label={tx("ui.Hangar.previous-ship")} onClick={() => stepPage(-1)}>
             <i className="hangar-arrow is-prev" />
           </button>
           {/* Per the user: LIST opens every ship and layout to pick from. */}
           <button type="button" className="hangar-list-open" aria-haspopup="dialog" onClick={() => setListOpen(true)}>
-            LIST
+            {tx("ui.Hangar.list")}
           </button>
-          <button type="button" aria-label="Next ship" onClick={() => stepPage(1)}>
+          <button type="button" aria-label={tx("ui.Hangar.next-ship")} onClick={() => stepPage(1)}>
             <i className="hangar-arrow is-next" />
           </button>
         </div>
-        <p className="hangar-label">LAYOUT</p>
+        <p className="hangar-label">{tx("ui.Hangar.layout")}</p>
         <div className="hangar-letters">
           {page.layouts.map((item) => {
             const itemLetter = letterOf(item.heading);
@@ -200,21 +201,21 @@ export function Hangar() {
                 type="button"
                 className={[active === itemLetter ? "is-on" : "", shut ? "is-locked" : ""].join(" ").trim() || undefined}
                 aria-pressed={active === itemLetter}
-                aria-label={`TYPE ${itemLetter}${shut ? " (locked)" : ""}`}
+                aria-label={tx("ui.Hangar.type", { itemLetter: itemLetter, v: shut ? " (locked)" : "" })}
                 onClick={() => setLetter(itemLetter)}
               >
-                TYPE {itemLetter}
+                {tx("ui.Hangar.type-2")}{itemLetter}
                 {shut ? <PixelIcon name="lock" size={12} /> : null}
               </button>
             );
           })}
         </div>
         <button type="button" aria-pressed={hideRooms} onClick={() => setHideRooms((value) => !value)}>
-          HIDE ROOMS
+          {tx("ui.Hangar.hide-rooms")}
         </button>
         <div className="hangar-achieve">
-          <p>Available Achievements:</p>
-          <p>Complete 2/3 to unlock a layout!</p>
+          <p>{tx("ui.Hangar.available-achievements")}</p>
+          <p>{tx("ui.Hangar.complete-2-3-to-unlock-a")}</p>
           <div>
             {shipAch.map((row) => (
               <span
@@ -227,9 +228,9 @@ export function Hangar() {
             ))}
           </div>
         </div>
-        <div className="hangar-dev" role="group" aria-label="Developer unlocks">
+        <div className="hangar-dev" role="group" aria-label={tx("ui.Hangar.developer-unlocks")}>
           <button type="button" onClick={() => (allOpen ? resetUnlocks() : unlockAll())}>
-            {allOpen ? "RESET LOCKS" : "UNLOCK ALL"}
+            {allOpen ? tx("ui.Hangar.reset-locks") : tx("ui.Hangar.unlock-all")}
           </button>
         </div>
       </aside>
@@ -261,7 +262,7 @@ export function Hangar() {
         {locked ? (
           <div className="hangar-locked" role="note">
             <p className="hangar-locked-title">
-              <PixelIcon name="lock" size={20} /> LOCKED
+              <PixelIcon name="lock" size={20} />{tx("ui.Hangar.locked-2")}
             </p>
             {(sheet.unlock.length ? sheet.unlock : [lockRule.quote]).map((line) => (
               <p key={line}>{line}</p>
@@ -284,7 +285,7 @@ export function Hangar() {
 
       <footer className="hangar-bay">
         <section className="hangar-panel">
-          <h2>CREW</h2>
+          <h2>{tx("ui.Hangar.crew")}</h2>
           <div className="hangar-crew">
             {seats.map((kin, index) => {
               const pick = picks[index];
@@ -294,14 +295,14 @@ export function Hangar() {
                   key={`${layout.id}-${index}`}
                   type="button"
                   className={`hangar-crew-card${editing === index ? " is-on" : ""}`}
-                  aria-label={`Customize ${pick.name}`}
+                  aria-label={tx("ui.Hangar.customize", { name: pick.name })}
                   aria-expanded={editing === index}
                   onClick={() => setEditing(index)}
                 >
                   <CrewSprite kin={kin} uniform={UNIFORMS[pick.uniform]} size={36} />
                   <span className="hangar-crew-name">{pick.name}</span>
                   <span className="hangar-crew-race">{kinLabel(kin)}</span>
-                  <span className="hangar-crew-cta">CUSTOMIZE</span>
+                  <span className="hangar-crew-cta">{tx("ui.Hangar.customize-2")}</span>
                 </button>
               );
             })}
@@ -311,11 +312,11 @@ export function Hangar() {
               <div
                 className="hangar-ship-list has-x"
                 role="dialog"
-                aria-label="Ships"
+                aria-label={tx("ui.Hangar.ships")}
                 onClick={(event) => event.stopPropagation()}
               >
                 <CloseX onClose={() => setListOpen(false)} />
-                <p className="hangar-label">SHIPS</p>
+                <p className="hangar-label">{tx("ui.Hangar.ships-2")}</p>
                 <ul>
                   {CRUISER_PAGES.map((cruiserPage, index) => (
                     <li key={cruiserPage.page}>
@@ -334,7 +335,7 @@ export function Hangar() {
                               type="button"
                               className={[here ? "is-on" : "", shut ? "is-locked" : ""].join(" ").trim() || undefined}
                               aria-pressed={here}
-                              aria-label={`${hangarSheet(item).defaultName}, type ${itemLetter}${shut ? " (locked)" : ""}`}
+                              aria-label={tx("ui.Hangar.type-3", { defaultName: hangarSheet(item).defaultName, itemLetter: itemLetter, v: shut ? " (locked)" : "" })}
                               title={hangarSheet(item).defaultName}
                               onClick={() => {
                                 setPageIndex(index);
@@ -342,7 +343,7 @@ export function Hangar() {
                                 setListOpen(false);
                               }}
                             >
-                              TYPE {itemLetter}
+                              {tx("ui.Hangar.type-2")}{itemLetter}
                               {shut ? <PixelIcon name="lock" size={12} /> : null}
                             </button>
                           );
@@ -359,13 +360,13 @@ export function Hangar() {
             <div
               className="hangar-crew-edit"
               role="dialog"
-              aria-label="Customize crew"
+              aria-label={tx("ui.Hangar.customize-crew")}
               onClick={(event) => event.stopPropagation()}
             >
               <CrewSprite kin={seats[editing]} uniform={UNIFORMS[picks[editing].uniform]} size={56} />
               <div className="hangar-crew-fields">
                 <label>
-                  <span>NAME</span>
+                  <span>{tx("ui.Hangar.name")}</span>
                   {/* Per the user: no autofocus on touch, where it would raise the keyboard over the dialog. */}
                   <input
                     value={picks[editing].name}
@@ -377,14 +378,14 @@ export function Hangar() {
                     }}
                   />
                 </label>
-                <div className="hangar-swatches" role="radiogroup" aria-label="Uniform">
+                <div className="hangar-swatches" role="radiogroup" aria-label={tx("ui.Hangar.uniform")}>
                   {UNIFORMS.slice(0, PLAYER_UNIFORMS).map((color, index) => (
                     <button
                       key={color}
                       type="button"
                       role="radio"
                       aria-checked={picks[editing].uniform === index}
-                      aria-label={`Uniform ${index + 1}`}
+                      aria-label={tx("ui.Hangar.uniform-2", { v: index + 1 })}
                       style={{ background: color }}
                       onClick={() => updatePick(editing, { uniform: index })}
                     />
@@ -392,10 +393,10 @@ export function Hangar() {
                 </div>
                 <div className="hangar-crew-actions">
                   <button type="button" onClick={() => updatePick(editing, { name: randomName() })}>
-                    RANDOM
+                    {tx("ui.Hangar.random")}
                   </button>
                   <button type="button" onClick={() => setEditing(null)}>
-                    DONE
+                    {tx("ui.Hangar.done")}
                   </button>
                 </div>
               </div>
@@ -405,7 +406,7 @@ export function Hangar() {
         </section>
         <div className="hangar-mid">
           <section className="hangar-panel">
-            <h2>WEAPONS</h2>
+            <h2>{tx("ui.Hangar.weapons")}</h2>
             <div className="hangar-slots">
               {sheet.weapons.map((weapon) => {
                 const power = weaponPower(weapon);
@@ -435,9 +436,9 @@ export function Hangar() {
             </div>
           </section>
           <section className="hangar-panel hangar-drones">
-            <h2>DRONES</h2>
+            <h2>{tx("ui.Hangar.drones")}</h2>
             {dronesOut ? (
-              <p className="hangar-absent">SYSTEM NOT INSTALLED</p>
+              <p className="hangar-absent">{tx("ui.Hangar.system-not-installed")}</p>
             ) : (
               <div className="hangar-slots">
                 {droneNames.map((drone) => (
@@ -451,7 +452,7 @@ export function Hangar() {
           </section>
         </div>
         <section className="hangar-panel">
-          <h2>AUGMENTATIONS</h2>
+          <h2>{tx("ui.Hangar.augmentations")}</h2>
           <div className="hangar-augs">
             {sheet.augments.map((augment) => (
               <p key={augment}>{augment}</p>

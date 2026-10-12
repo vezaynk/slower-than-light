@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game, Ship } from "../types.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
@@ -19,177 +20,177 @@ export const CATALOG: Listing[] = [
   // Augmentations, "Offensive Augmentations", Automated Re-loader. Store cost 40.
   {
     id: "feed",
-    name: "Automated Re-loader",
-    detail: "Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.",
+    name: tx("extras.augments.automated-re-loader"),
+    detail: tx("extras.augments.weapon-charge-speed-rises-10-per"),
     cost: 40,
   },
   // Augmentations, "Offensive Augmentations", Explosive Replicator. Store cost 60.
   {
     id: "echo",
-    name: "Explosive Replicator",
-    detail: "A missile has a 50% chance not to be spent.",
+    name: tx("extras.augments.explosive-replicator"),
+    detail: tx("extras.augments.a-missile-has-a-50-chance"),
     cost: 60,
   },
   // Augmentations, "Offensive Augmentations", Stealth Weapons. Store cost 50.
   {
     id: "quiet",
-    name: "Stealth Weapons",
-    detail: "Firing does not drop cloaking.",
+    name: tx("extras.augments.stealth-weapons"),
+    detail: tx("extras.augments.firing-does-not-drop-cloaking"),
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Store cost 120.
   {
     id: "hot",
-    name: "Weapon Pre-Igniter",
-    detail: "After a jump, enabled weapons that have power start fully charged.",
+    name: tx("extras.augments.weapon-pre-igniter"),
+    detail: tx("extras.augments.after-a-jump-enabled-weapons-that"),
     cost: 120,
   },
   // Augmentations, "Defensive Augmentations", Repair Arm. Store cost 50.
   {
     id: "weld",
-    name: "Repair Arm",
-    detail: "Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.",
+    name: tx("extras.augments.repair-arm"),
+    detail: tx("extras.augments.scrap-gain-repairs-2-hull-and"),
     cost: 50,
   },
   // Augmentations, "Defensive Augmentations", Reverse Ion Field. Store cost 45.
   {
     id: "baffle",
-    name: "Reverse Ion Field",
-    detail: "50% chance to ignore an ion hit. Two or more ignore every ion hit.",
+    name: tx("extras.augments.reverse-ion-field"),
+    detail: tx("extras.augments.50-chance-to-ignore-an-ion"),
     cost: 45,
   },
   // Augmentations, "Defensive Augmentations", Shield Charge Booster. Store cost 45.
   {
     id: "coil",
-    name: "Shield Charge Booster",
-    detail: "Shields recharge 15% faster per copy.",
+    name: tx("extras.augments.shield-charge-booster"),
+    detail: tx("extras.augments.shields-recharge-15-faster-per-copy"),
     cost: 45,
   },
   // Augmentations, "FTL Augmentations", FTL Recharge Booster. Store cost 50.
   {
     id: "spool",
-    name: "FTL Recharge Booster",
-    detail: "One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.",
+    name: tx("extras.augments.ftl-recharge-booster"),
+    detail: tx("extras.augments.one-copy-makes-ftl-charge-take"),
     cost: 50,
   },
   // Augmentations, "Misc. Augmentations", Scrap Recovery Arm. Store cost 50.
   {
     id: "hook",
-    name: "Scrap Recovery Arm",
-    detail: "Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.",
+    name: tx("extras.augments.scrap-recovery-arm"),
+    detail: tx("extras.augments.scrap-gain-is-10-higher-per"),
     cost: 50,
   },
   // Augmentations, "Non-Purchasable Augmentations", Rock Plating. Sell price 40. Store cost 50 is INVENTED.
   {
     id: "keel",
-    name: "Rock Plating",
-    detail: "15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.",
+    name: tx("extras.augments.rock-plating"),
+    detail: tx("extras.augments.15-chance-to-ignore-hull-damage"),
     cost: 50,
   },
   // Augmentations, "Non-Purchasable Augmentations", Titanium System Casing. Sell price 40. Store cost 50 is INVENTED.
   {
     id: "casing",
-    name: "Titanium System Casing",
-    detail: "15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.",
+    name: tx("extras.augments.titanium-system-casing"),
+    detail: tx("extras.augments.15-chance-to-ignore-system-damage"),
     cost: 50,
   },
   // Augmentations, "Misc. Augmentations", Battery Charger. Store cost 40.
   {
     id: "tap",
-    name: "Battery Charger",
-    detail: "The Backup Battery cooldown is cut in half.",
+    name: tx("extras.augments.battery-charger"),
+    detail: tx("extras.augments.the-backup-battery-cooldown-is-cut"),
     cost: 40,
   },
   // Augmentations, "Crew Augmentations", Emergency Respirators. Store cost 50.
   {
     id: "lung",
-    name: "Emergency Respirators",
-    detail: "Suffocation damage is halved, including while boarding. A Crystal takes a quarter.",
+    name: tx("extras.augments.emergency-respirators"),
+    detail: tx("extras.augments.suffocation-damage-is-halved-including-while"),
     cost: 50,
   },
   // Augmentations, "Defensive Augmentations", Fire Suppression. Store cost 65.
   {
     id: "squall",
-    name: "Fire Suppression",
-    detail: "Fires on your ship die down faster than a person can put them out.",
+    name: tx("extras.augments.fire-suppression"),
+    detail: tx("extras.augments.fires-on-your-ship-die-down"),
     cost: 65,
   },
   // Augmentations, "FTL Augmentations", Distraction Buoys. Store cost 55.
   {
     id: "falsebuoy",
-    name: "Distraction Buoys",
-    detail: "At sector start, before sector 8, the fleet falls back one jump.",
+    name: tx("extras.augments.distraction-buoys"),
+    detail: tx("extras.augments.at-sector-start-before-sector-8"),
     cost: 55,
   },
   // Augmentations, "Misc. Augmentations", Long-Ranged Scanners. Store cost 30.
   {
     id: "glass",
-    name: "Long-Ranged Scanners",
-    detail: "Adjacent beacons show an environmental hazard and possible ship presence. Selling or swapping the scanners hides that again.",
+    name: tx("extras.augments.long-ranged-scanners"),
+    detail: tx("extras.augments.adjacent-beacons-show-an-environmental-hazard"),
     cost: 30,
   },
   // Augmentations, "FTL Augmentations", FTL Jammer. Store cost 30.
   {
     id: "jammer",
-    name: "FTL Jammer",
-    detail: "Enemy ships take twice as long to charge FTL.",
+    name: tx("extras.augments.ftl-jammer"),
+    detail: tx("extras.augments.enemy-ships-take-twice-as-long"),
     cost: 30,
   },
   // Augmentations, "Misc. Augmentations", Drone Recovery Arm. Store cost 50.
   {
     id: "recover",
-    name: "Drone Recovery Arm",
-    detail: "A powered defense drone gives its part back when the jump starts. A powered combat drone gives it back only after the fight. Boarding, ion, crew, and hacking drones do not.",
+    name: tx("extras.augments.drone-recovery-arm"),
+    detail: tx("extras.augments.a-powered-defense-drone-gives-its"),
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Hacking Stun. Store cost 60.
   {
     id: "stun",
-    name: "Hacking Stun",
-    detail: "Everyone in a room during a hacking pulse is stunned for that pulse.",
+    name: tx("extras.augments.hacking-stun"),
+    detail: tx("extras.augments.everyone-in-a-room-during-a"),
     cost: 60,
   },
   // Augmentations, "Crew Augmentations", Backup DNA Bank. Store cost 40.
   {
     id: "dna",
-    name: "Backup DNA Bank",
-    detail: "A waiting body stays in the clone bay queue even when the clone bay is off or broken.",
+    name: tx("extras.augments.backup-dna-bank"),
+    detail: tx("extras.augments.a-waiting-body-stays-in-the"),
     cost: 40,
   },
   // Augmentations, "Crew Augmentations", Reconstructive Teleport. Store cost 70.
   {
     id: "mend",
-    name: "Reconstructive Teleport",
-    detail: "A person sent through the teleporter is fully healed.",
+    name: tx("extras.augments.reconstructive-teleport"),
+    detail: tx("extras.augments.a-person-sent-through-the-teleporter"),
     cost: 70,
   },
   // Augmentations, "Misc. Augmentations", Lifeform Scanner. Store cost 40.
   {
     id: "pulseeye",
-    name: "Lifeform Scanner",
-    detail: "Living crew show up even when sensors do not.",
+    name: tx("extras.augments.lifeform-scanner"),
+    detail: tx("extras.augments.living-crew-show-up-even-when"),
     cost: 40,
   },
   // Augmentations, "FTL Augmentations", "Adv. FTL Navigation". Purchase price 50.
   {
     id: "nav",
-    name: "Adv. FTL Navigation",
-    detail: "The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.",
+    name: tx("extras.augments.adv-ftl-navigation"),
+    detail: tx("extras.augments.the-ship-can-jump-to-any"),
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Defense Scrambler. Purchase price 80.
   {
     id: "scrambler",
-    name: "Defense Scrambler",
+    name: tx("extras.augments.defense-scrambler"),
     detail:
-      "Enemy Defense Drone I, Defense Drone II, and Anti-Combat drones cannot acquire or shoot down targets. Your own defense drones still fire.",
+      tx("extras.augments.enemy-defense-drone-i-defense-drone"),
     cost: 80,
   },
   // Augmentations, "Offensive Augmentations", Zoltan Shield Bypass. Purchase price 55.
   {
     id: "bypass",
-    name: "Zoltan Shield Bypass",
-    detail: "Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.",
+    name: tx("extras.augments.zoltan-shield-bypass"),
+    detail: tx("extras.augments.crew-teleportation-bomb-teleportation-and-mind"),
     cost: 55,
   },
 ];
@@ -231,7 +232,7 @@ export function primeWeapons(g: Game) {
     } else w.charge = 1;
     primed = true;
   });
-  if (primed) log(g, "Weapon Pre-Igniter: weapons are charged.");
+  if (primed) log(g, tx("extras.augments.weapon-pre-igniter-weapons-are-charged"));
 }
 
 /** Augmentations, "Defensive Augmentations", Reverse Ion Field: 50% per copy, two or more ignore every ion. */
@@ -346,12 +347,12 @@ export function onNewSector(g: Game) {
   // The map starts the fleet at 0, so a subtraction would do nothing. Hold the next advance instead.
   if (g.fleet <= 0) {
     g.buoyDelay = 1;
-    log(g, "Distraction Buoys. The fleet loses a jump.");
+    log(g, tx("extras.augments.distraction-buoys-the-fleet-loses-a"));
     return;
   }
   g.buoyDelay = 0;
   g.fleet -= 1;
-  log(g, "Distraction Buoys. The fleet loses a jump.");
+  log(g, tx("extras.augments.distraction-buoys-the-fleet-loses-a"));
 }
 
 /**
@@ -411,7 +412,7 @@ export function adjustScrapAmount(g: Game, scrap: number): number {
   if (has(g, "weld") && g.player.hull < g.player.hullMax) {
     n *= 0.85;
     g.player.hull += 2;
-    log(g, "Repair Arm seals 2 hull.");
+    log(g, tx("extras.augments.repair-arm-seals-2-hull"));
   }
   return Math.floor(n);
 }
@@ -424,15 +425,15 @@ export function installAugment(g: Game, id: AugmentId): boolean {
   const row = CATALOG.find((item) => item.id === id);
   if (!row) return false;
   if (has(g, id)) {
-    log(g, "Already fitted.");
+    log(g, tx("extras.augments.already-fitted"));
     return false;
   }
   if (g.augments.length >= 3) {
-    log(g, "Three augments is the cap.");
+    log(g, tx("extras.augments.three-augments-is-the-cap"));
     return false;
   }
   if (g.scrap < row.cost) {
-    log(g, "Not enough scrap.");
+    log(g, tx("extras.augments.not-enough-scrap"));
     return false;
   }
   g.scrap -= row.cost;

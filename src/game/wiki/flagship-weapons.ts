@@ -10,6 +10,7 @@
  *
  * Pure data, no sim imports: content.ts registers the defs (registerFlagshipWeapons).
  */
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 
 /**
@@ -19,7 +20,7 @@ import type { WeaponDef } from "../content.ts";
  */
 export const BOSS_LASER: WeaponDef = {
   id: "bosslaser",
-  name: "Boss Laser",
+  name: tx("wiki.flagship-weapons.boss-laser"),
   kind: "laser",
   // INFERRED, chosen: the artillery maximum (4). No power line is printed. Not a Weapons-pool cost.
   power: 4,
@@ -47,7 +48,7 @@ export const BOSS_LASER: WeaponDef = {
  */
 export const BOSS_BEAM: WeaponDef = {
   id: "bossbeam",
-  name: "Boss Beam",
+  name: tx("wiki.flagship-weapons.boss-beam"),
   kind: "beam",
   // INFERRED, chosen: the artillery maximum (3). No power line is printed. Not a Weapons-pool cost.
   power: 3,

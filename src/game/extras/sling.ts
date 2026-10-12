@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
@@ -99,7 +100,7 @@ export function installSling(g: Game) {
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.sling = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Teleporter fitted to the Lark.");
+  log(g, tx("extras.sling.teleporter-fitted-to-the-lark"));
 }
 
 /** Crew Teleporter wiki, "System Upgrades": pays the next row, 30 then 60. */
@@ -111,7 +112,7 @@ export function upgradeSling(g: Game) {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, `Sling raised to level ${kit.level}.`);
+  log(g, tx("extras.sling.sling-raised-to-level", { level: kit.level }));
 }
 
 /**
@@ -142,30 +143,30 @@ export function sendSling(g: Game, roomId: string) {
   // Zoltans: the Crew Teleporter cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
   if (!canRun(kit) && kit.cool <= 0) {
-    log(g, "Teleporter has no power.");
+    log(g, tx("extras.sling.teleporter-has-no-power"));
     return;
   }
   if (kit.cool > 0) {
-    log(g, "Teleporter is still cooling.");
+    log(g, tx("extras.sling.teleporter-is-still-cooling"));
     return;
   }
   if (g.phase !== "combat" || !g.enemy || !roomById(g.enemy, roomId)) {
-    log(g, "No hull to teleport onto.");
+    log(g, tx("extras.sling.no-hull-to-teleport-onto"));
     return;
   }
   const crew = pickCrew(g);
   if (crew.length < 1) {
-    log(g, "No one to teleport.");
+    log(g, tx("extras.sling.no-one-to-teleport"));
     return;
   }
   // Zoltan Shield: the bubble prevents boarding. Bypass lets crew teleport through and does not spend the bubble.
   if ((g.enemy.zoltan ?? 0) > 0 && !(g.augments.includes("bypass") && bypassZoltan("crew") === "pass")) {
-    log(g, "Their Zoltan Shield blocks the teleporter.");
+    log(g, tx("extras.sling.their-zoltan-shield-blocks-the-teleporter"));
     return;
   }
   // Crew Teleporter: a cloaked enemy ship, or the player's own cloak, blocks the send. Cooldown stays put.
   if (cloakBlocksTeleport(g)) {
-    log(g, "Cloaking blocks the teleporter.");
+    log(g, tx("extras.sling.cloaking-blocks-the-teleporter"));
     return;
   }
   for (const c of crew) {
@@ -180,7 +181,7 @@ export function sendSling(g: Game, roomId: string) {
   }
   arm(kit, roomId);
   noteAchieve(g, { k: "teleport" });
-  log(g, `Teleporter sends ${crew.map((c) => c.name).join(" and ")}.`);
+  log(g, tx("extras.sling.teleporter-sends", { join: crew.map((c) => c.name).join(" and ") }));
 }
 
 /** Squares of floor. Crew Teleporter: a 2-tile room, or a four-person room on Mantis B, Mantis C, and Crystal B. */
@@ -216,21 +217,21 @@ export function recallSling(g: Game) {
   // Zoltans: the Crew Teleporter cannot be activated if it is ionized.
   if (kitIonLocked(kit)) return;
   if (!canRun(kit)) {
-    if (kit.cool <= 0) log(g, "Teleporter has no power.");
-    else if (kit.cool > 0) log(g, "Teleporter is still cooling.");
+    if (kit.cool <= 0) log(g, tx("extras.sling.teleporter-has-no-power"));
+    else if (kit.cool > 0) log(g, tx("extras.sling.teleporter-is-still-cooling"));
     return;
   }
   // Mind Control: "A player cannot teleport own mind-controlled crew from the enemy ship".
   const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0 && !heldByEnemy(c));
   if (away.length < 1) {
-    log(g, "No one to pull back.");
+    log(g, tx("extras.sling.no-one-to-pull-back"));
     return;
   }
   // Crew Teleporter: "Does not retrieve crew from a cloaked ship" is the hack pulse.
   // Cloaking, Overview: a cloak that is still up after the crew are dead still blocks this retrieve,
   // and "Friendly crew cannot be teleported to or from an enemy ship" during the player's own cloak.
   if (cloakBlocksTeleport(g)) {
-    log(g, "Cloaking blocks the teleporter.");
+    log(g, tx("extras.sling.cloaking-blocks-the-teleporter"));
     return;
   }
   // Crew Teleporter: "Can retrieve up to 4 crew from the enemy ship".
@@ -252,7 +253,7 @@ export function recallSling(g: Game) {
     if (mendOnSend(g)) c.hp = c.maxHp;
   });
   arm(kit, null);
-  log(g, "Teleporter pulls them back.");
+  log(g, tx("extras.sling.teleporter-pulls-them-back"));
 }
 
 /**
@@ -276,7 +277,7 @@ export function relaxSling(g: Game) {
   const kit = sling(g);
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
-  log(g, "Teleporter is ready.");
+  log(g, tx("extras.sling.teleporter-is-ready"));
 }
 
 /**
@@ -300,7 +301,7 @@ export function onJumpSling(g: Game) {
   for (const c of g.crew) {
     if (c.side !== "player" || c.aboard !== "enemy" || c.hp <= 0) continue;
     c.hp = 0;
-    log(g, `${c.name} is lost on the other hull.`);
+    log(g, tx("extras.sling.is-lost-on-the-other-hull", { name: c.name }));
   }
 }
 
@@ -529,7 +530,7 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   }
   b.away = b.away.filter((id) => !pull.some((c) => c.id === id));
   kit.cool = cooldown(kitBars(kit));
-  log(g, pull.length > 1 ? "They pull their boarders back." : "They pull a boarder back.");
+  log(g, pull.length > 1 ? tx("extras.sling.they-pull-their-boarders-back") : tx("extras.sling.they-pull-a-boarder-back"));
 }
 
 /** True while a recall circumstance holds for the whole party, so no new party is sent into it (INFERRED). */
@@ -593,7 +594,7 @@ function sendParty(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   b.party = [];
   b.sent += 1;
   kit.cool = cooldown(kitBars(kit));
-  log(g, "Boarders on the hull.");
+  log(g, tx("extras.sling.boarders-on-the-hull"));
 }
 
 /**
@@ -642,7 +643,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
         if (c) goHome(g, ship, b, c);
       }
       b.party = [];
-      log(g, "The Zoltan Shield stops the boarders.");
+      log(g, tx("extras.sling.the-zoltan-shield-stops-the-boarders"));
     }
     return;
   }

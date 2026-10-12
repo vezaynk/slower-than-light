@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Crew lineages. Stat block is wiki page "Crew", section "Crew races comparison"
  * (that section transcludes the crew-races table), plus wiki page "Oxygen",
@@ -75,7 +76,7 @@ export type Kin = {
  */
 export const KIN: Record<KinId, Kin> = {
   plain: {
-    name: "Human",
+    name: tx("extras.kin.human"),
     hp: 100,
     move: 1,
     repair: 1,
@@ -84,7 +85,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   shell: {
-    name: "Engi",
+    name: tx("extras.kin.engi"),
     hp: 100,
     move: 1,
     repair: 2,
@@ -93,7 +94,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   spark: {
-    name: "Zoltan",
+    name: tx("extras.kin.zoltan"),
     hp: 70,
     move: 1,
     repair: 1,
@@ -102,7 +103,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   blade: {
-    name: "Mantis",
+    name: tx("extras.kin.mantis"),
     hp: 100,
     move: 1.2,
     repair: 0.5,
@@ -111,7 +112,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   gel: {
-    name: "Slug",
+    name: tx("extras.kin.slug"),
     hp: 100,
     move: 1,
     repair: 1,
@@ -120,7 +121,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   stone: {
-    name: "Rock",
+    name: tx("extras.kin.rock"),
     hp: 150,
     move: 0.5,
     repair: 1,
@@ -129,7 +130,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 0,
   },
   voidlung: {
-    name: "Lanius",
+    name: tx("extras.kin.lanius"),
     hp: 100,
     // Crew, "Crew races comparison": movement ×0.85. Lanius, "Race characteristics": 85%.
     // INFERRED against an in-game tooltip: that column's footnote says the speed
@@ -141,7 +142,7 @@ export const KIN: Record<KinId, Kin> = {
     fireTaken: 1,
   },
   shard: {
-    name: "Crystal",
+    name: tx("extras.kin.crystal"),
     hp: 125,
     move: 0.8,
     repair: 1,

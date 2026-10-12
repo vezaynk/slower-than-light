@@ -9,6 +9,7 @@
  * move at display rate while the React UI keeps its slower refresh. Positions come from the
  * rooms and mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
  */
+import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
@@ -469,7 +470,7 @@ export function CombatFx() {
             // Label tag under the pod, VT323 like the floaters.
             ctx.font = "18px VT323, monospace";
             ctx.textAlign = "center";
-            const tag = pulse ? `HACK ${Math.ceil(hack.left)}s` : "HACK";
+            const tag = pulse ? tx("ui.CombatFx.hack-s", { ceil: Math.ceil(hack.left) }) : tx("ui.CombatFx.hack");
             ctx.fillStyle = "#020308";
             ctx.fillText(tag, Math.round(end.x) + 1, Math.round(end.y) + 22);
             ctx.fillStyle = teal;

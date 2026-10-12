@@ -4,6 +4,7 @@
  * and `dronePixels` paint onto a small grid. gear-look.test.ts checks that every
  * fitted weapon and every drone renders to a different picture.
  */
+import { tx } from "../i18n/index.ts";
 import { WEAPONS } from "./content.ts";
 import type { SwarmKind } from "./extras/swarm.ts";
 
@@ -135,24 +136,24 @@ export type DroneKey =
   | "overcharge2";
 
 export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
-  ward: { name: "Defense Drone Mark I", hull: "hex", tool: "gun", body: "#4a6a9a", trim: SLATE, glow: BLUE },
-  ward2: { name: "Defense Drone Mark II", hull: "hex", tool: "twin", mark: 2, body: "#4a6a9a", trim: SLATE, glow: AMBER },
-  wardcut: { name: "Anti-Combat Drone", hull: "hex", tool: "ion", body: "#6a5a9a", trim: SLATE, glow: VIOLET },
-  striker: { name: "Combat Drone Mark I", hull: "dart", tool: "gun", body: "#a04040", trim: SLATE, glow: ORANGE },
-  striker2: { name: "Combat Drone Mark II", hull: "dart", tool: "twin", mark: 2, body: "#a04040", trim: SLATE, glow: RED },
-  beam: { name: "Anti-Ship Beam Drone I", hull: "diamond", tool: "beam", body: BONE, trim: SLATE, glow: AMBER },
-  beam2: { name: "Anti-Ship Beam Drone II", hull: "diamond", tool: "beam", mark: 2, body: BONE, trim: GUNMETAL, glow: ORANGE },
-  fire: { name: "Anti-Ship Fire Drone", hull: "diamond", tool: "fire", body: RUST, trim: SLATE, glow: ORANGE },
-  intruder: { name: "Ion Intruder Drone", hull: "box", tool: "ion", body: "#4a6a9a", trim: "#2a3c5c", glow: CYAN },
-  board: { name: "Boarding Drone", hull: "box", tool: "claw", body: GUNMETAL, trim: SLATE, glow: RED },
-  personnel: { name: "Anti-Personnel Drone", hull: "box", tool: "gun", body: "#5a7a4a", trim: "#34472a", glow: GREEN },
-  patch: { name: "System Repair Drone", hull: "disc", tool: "wrench", body: "#c8a040", trim: SLATE, glow: AMBER },
-  hull: { name: "Hull Repair Drone", hull: "ring", tool: "wrench", body: "#5a8a5a", trim: SLATE, glow: GREEN },
-  overcharge: { name: "Shield Overcharger", hull: "ring", tool: "shield", body: "#4a8a8a", trim: SLATE, glow: CYAN },
-  overcharge2: { name: "Shield Overcharger +", hull: "ring", tool: "shield", mark: 2, body: "#4a8a8a", trim: SLATE, glow: "#d0fff0" },
+  ward: { name: tx("game.gear-look.defense-drone-mark-i"), hull: "hex", tool: "gun", body: "#4a6a9a", trim: SLATE, glow: BLUE },
+  ward2: { name: tx("game.gear-look.defense-drone-mark-ii"), hull: "hex", tool: "twin", mark: 2, body: "#4a6a9a", trim: SLATE, glow: AMBER },
+  wardcut: { name: tx("game.gear-look.anti-combat-drone"), hull: "hex", tool: "ion", body: "#6a5a9a", trim: SLATE, glow: VIOLET },
+  striker: { name: tx("game.gear-look.combat-drone-mark-i"), hull: "dart", tool: "gun", body: "#a04040", trim: SLATE, glow: ORANGE },
+  striker2: { name: tx("game.gear-look.combat-drone-mark-ii"), hull: "dart", tool: "twin", mark: 2, body: "#a04040", trim: SLATE, glow: RED },
+  beam: { name: tx("game.gear-look.anti-ship-beam-drone-i"), hull: "diamond", tool: "beam", body: BONE, trim: SLATE, glow: AMBER },
+  beam2: { name: tx("game.gear-look.anti-ship-beam-drone-ii"), hull: "diamond", tool: "beam", mark: 2, body: BONE, trim: GUNMETAL, glow: ORANGE },
+  fire: { name: tx("game.gear-look.anti-ship-fire-drone"), hull: "diamond", tool: "fire", body: RUST, trim: SLATE, glow: ORANGE },
+  intruder: { name: tx("game.gear-look.ion-intruder-drone"), hull: "box", tool: "ion", body: "#4a6a9a", trim: "#2a3c5c", glow: CYAN },
+  board: { name: tx("game.gear-look.boarding-drone"), hull: "box", tool: "claw", body: GUNMETAL, trim: SLATE, glow: RED },
+  personnel: { name: tx("game.gear-look.anti-personnel-drone"), hull: "box", tool: "gun", body: "#5a7a4a", trim: "#34472a", glow: GREEN },
+  patch: { name: tx("game.gear-look.system-repair-drone"), hull: "disc", tool: "wrench", body: "#c8a040", trim: SLATE, glow: AMBER },
+  hull: { name: tx("game.gear-look.hull-repair-drone"), hull: "ring", tool: "wrench", body: "#5a8a5a", trim: SLATE, glow: GREEN },
+  overcharge: { name: tx("game.gear-look.shield-overcharger"), hull: "ring", tool: "shield", body: "#4a8a8a", trim: SLATE, glow: CYAN },
+  overcharge2: { name: tx("game.gear-look.shield-overcharger-2"), hull: "ring", tool: "shield", mark: 2, body: "#4a8a8a", trim: SLATE, glow: "#d0fff0" },
 };
 
-const UNKNOWN_DRONE: DroneLook = { name: "Drone", hull: "disc", tool: "eye", body: STEEL, trim: SLATE, glow: BONE };
+const UNKNOWN_DRONE: DroneLook = { name: tx("game.gear-look.drone"), hull: "disc", tool: "eye", body: STEEL, trim: SLATE, glow: BONE };
 
 export type PixelRun = { x: number; y: number; w: number; c: string };
 

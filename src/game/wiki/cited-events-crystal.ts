@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Crystal event pages whose opening choice is one stated outcome.
  * A follow-up menu, a blue option, crew, and a random list of results are omitted.
@@ -36,7 +37,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:crystal-fight:0",
-        label: "Fight a Crystal ship (default rewards)",
+        label: tx("wiki.cited-events-crystal.fight-a-crystal-ship-default-rewards"),
         fx: [
           // Fight a [[Crystal Ships|Crystal ship]]
           { k: "fight", tier: "Crystal ship" },
@@ -50,11 +51,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:crystal-fight-choice",
     aliases: ["Crystal fight choice"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "You're greeted by an unwelcome sight - a Rebel advance ship is laying down fire on a Crystalline vessel in the distance.",
+    body: tx("wiki.cited-events-crystal.you-re-greeted-by-an-unwelcome"),
     choices: [
       {
         id: "c:crystal-fight-choice:0",
-        label: "Engage the Rebel ship",
+        label: tx("wiki.cited-events-crystal.engage-the-rebel-ship"),
         fx: [
           // Fight a [[Crystal Ships|Crystal ship]]
           { k: "fight", tier: "Crystal ship" },
@@ -62,7 +63,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:crystal-fight-choice:1",
-        label: "Leave them alone",
+        label: tx("wiki.cited-events-crystal.leave-them-alone"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -73,11 +74,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-ship-attacking-crystal",
     aliases: ["Pirate ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed.",
+    body: tx("wiki.cited-events-crystal.a-pirate-ship-jumps-in-right"),
     choices: [
       {
         id: "c:pirate-ship-attacking-crystal:0",
-        label: "Attack the pirate",
+        label: tx("wiki.cited-events-crystal.attack-the-pirate"),
         fx: [
           // Fight a [[Enemy Ships|Pirate ship]]
           { k: "fight", tier: "Pirate ship" },
@@ -85,7 +86,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:pirate-ship-attacking-crystal:1",
-        label: "Ignore them",
+        label: tx("wiki.cited-events-crystal.ignore-them"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -96,11 +97,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rebel-fight-crystal",
     aliases: ["Rebel fight (Crystal)"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail.",
+    body: tx("wiki.cited-events-crystal.as-soon-as-you-arrive-a"),
     choices: [
       {
         id: "c:rebel-fight-crystal:0",
-        label: "Fight a Rebel ship (default rewards)",
+        label: tx("wiki.cited-events-crystal.fight-a-rebel-ship-default-rewards"),
         fx: [
           // Fight a [[Rebel Ships|Rebel ship]] ([[Rewards#Default_rewards|default rewards]]).
           { k: "fight", tier: "Rebel ship" },
@@ -114,11 +115,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-crystal",
     aliases: ["Boarders: Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
+    body: tx("wiki.cited-events-crystal.you-arrive-near-a-small-settlement"),
     choices: [
       {
         id: "c:boarders-crystal:0",
-        label: "2-3 crystal boarders beam aboard your ship.",
+        label: tx("wiki.cited-events-crystal.2-3-crystal-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },
     ],

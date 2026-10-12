@@ -1,3 +1,4 @@
+import { tx } from "../i18n/index.ts";
 import { flushSfx } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, padCells, restSpot, roomCapacity, roomConsole, settleTiles } from "./crew-spots.ts";
@@ -417,17 +418,17 @@ function addDoors(rooms: Room[], marks?: DoorMark[]): Door[] {
 // INVENTED: the Lark, this room grid, and this starting fit. Not a paragraph on the fetched pages.
 function makePlayer(): Ship {
   const rooms: Room[] = [
-    room({ id: "p-engines", title: "Engines", system: "engines", x: 0, y: 0, w: 2, h: 1 }),
-    room({ id: "p-shields", title: "Shields", system: "shields", x: 2, y: 0, w: 2, h: 1 }),
-    room({ id: "p-oxygen", title: "Oxygen", system: "oxygen", x: 0, y: 1, w: 1, h: 1 }),
-    room({ id: "p-medbay", title: "Medbay", system: "medbay", x: 1, y: 1, w: 2, h: 1 }),
-    room({ id: "p-pilot", title: "Piloting", system: "pilot", x: 3, y: 1, w: 1, h: 1 }),
-    room({ id: "p-doors", title: "Doors", system: "doors", x: 0, y: 2, w: 1, h: 1 }),
-    room({ id: "p-sensors", title: "Sensors", system: "sensors", x: 1, y: 2, w: 1, h: 1 }),
-    room({ id: "p-weapons", title: "Weapons", system: "weapons", x: 2, y: 2, w: 2, h: 1 }),
+    room({ id: "p-engines", title: tx("game.sim.engines"), system: "engines", x: 0, y: 0, w: 2, h: 1 }),
+    room({ id: "p-shields", title: tx("game.sim.shields"), system: "shields", x: 2, y: 0, w: 2, h: 1 }),
+    room({ id: "p-oxygen", title: tx("game.sim.oxygen"), system: "oxygen", x: 0, y: 1, w: 1, h: 1 }),
+    room({ id: "p-medbay", title: tx("game.sim.medbay"), system: "medbay", x: 1, y: 1, w: 2, h: 1 }),
+    room({ id: "p-pilot", title: tx("game.sim.piloting"), system: "pilot", x: 3, y: 1, w: 1, h: 1 }),
+    room({ id: "p-doors", title: tx("game.sim.doors"), system: "doors", x: 0, y: 2, w: 1, h: 1 }),
+    room({ id: "p-sensors", title: tx("game.sim.sensors"), system: "sensors", x: 1, y: 2, w: 1, h: 1 }),
+    room({ id: "p-weapons", title: tx("game.sim.weapons"), system: "weapons", x: 2, y: 2, w: 2, h: 1 }),
   ];
   return {
-    name: "Lark",
+    name: tx("game.sim.lark"),
     hull: 30,
     hullMax: 30,
     reactor: 8,
@@ -460,9 +461,9 @@ function makePlayer(): Ship {
 // Crew skills, lead: "All crew on every player ship start untrained, i.e. at skill level 0."
 function starterCrew(): Crew[] {
   return [
-    { id: "c-ada", name: "Ada Voss", side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-pilot", path: [], move: 0, think: 0, tone: 0 },
-    { id: "c-ivo", name: "Ivo Park", side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-engines", path: [], move: 0, think: 0, tone: 1 },
-    { id: "c-nen", name: "Nen Hale", side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-weapons", path: [], move: 0, think: 0, tone: 2 },
+    { id: "c-ada", name: tx("game.sim.ada-voss"), side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-pilot", path: [], move: 0, think: 0, tone: 0 },
+    { id: "c-ivo", name: tx("game.sim.ivo-park"), side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-engines", path: [], move: 0, think: 0, tone: 1 },
+    { id: "c-nen", name: tx("game.sim.nen-hale"), side: "player", aboard: "player", hp: 100, maxHp: 100, room: "p-weapons", path: [], move: 0, think: 0, tone: 2 },
   ];
 }
 
@@ -641,7 +642,7 @@ function bumpXp(g: Game, c: Crew | undefined, skill: SkillName, amount: number) 
   const before = rankOf(c, skill);
   c.skills[skill] = (c.skills[skill] ?? 0) + amount;
   const after = rankOf(c, skill);
-  if (after > before) log(g, `${c.name} — ${skill} rank ${after}.`);
+  if (after > before) log(g, tx("game.sim.rank", { name: c.name, skill: skill, after: after }));
 }
 
 /** Crew skills, Combat: one printed point for a killing blow or one sabotaged system level. */
@@ -928,9 +929,9 @@ function pilotCanJump(g: Game, ship: Ship): boolean {
  * Null when a jump is allowed, otherwise the line to show.
  */
 export function jumpBlocked(g: Game): string | null {
-  if (!functional(g.player.systems.pilot)) return "Piloting is down.";
-  if (!present(g, g.player, "player", "pilot")) return "Nobody is piloting.";
-  if (engineBars(g, g.player, "player") <= 0) return "Engines are unpowered.";
+  if (!functional(g.player.systems.pilot)) return tx("game.sim.piloting-is-down");
+  if (!present(g, g.player, "player", "pilot")) return tx("game.sim.nobody-is-piloting");
+  if (engineBars(g, g.player, "player") <= 0) return tx("game.sim.engines-are-unpowered");
   return null;
 }
 
@@ -968,7 +969,7 @@ function enemyEscapeStep(g: Game, h: number) {
     plan.rolled = true;
     if (rand(g) * 100 < plan.chance) {
       plan.running = true;
-      log(g, "They are powering their FTL drive to escape.");
+      log(g, tx("game.sim.they-are-powering-their-ftl-drive"));
       sfx(g, "alarm");
     }
   }
@@ -1113,7 +1114,7 @@ export function syncIonStorm(g: Game) {
   shedOverAssigned(g, g.player, "player");
   if (g.enemy) shedOverAssigned(g, g.enemy, "enemy");
   // Environmental Hazards, Plasma/ion Storm: the printed beacon warning.
-  log(g, "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.");
+  log(g, tx("game.sim.this-section-of-the-nebula-is"));
 }
 
 type ZoltanBox = {
@@ -1456,7 +1457,7 @@ export function playerDoorsLocked(g: Game): boolean {
 export function openAllDoors(g: Game) {
   // Slug hacker (doors): an offline Door System cannot open every door.
   if (playerDoorsLocked(g)) {
-    log(g, "Door control is dead.");
+    log(g, tx("game.sim.door-control-is-dead"));
     return;
   }
   // Per the user: a first press opens the interior doors; only once they are all open does a press open the airlocks.
@@ -1483,7 +1484,7 @@ export function openAllDoors(g: Game) {
  */
 export function closeAllDoors(g: Game) {
   if (playerDoorsLocked(g)) {
-    log(g, "Door control is dead.");
+    log(g, tx("game.sim.door-control-is-dead"));
     return;
   }
   // Per the user: a first press shuts the airlocks; only once they are all shut does a press close the interior doors.
@@ -1581,7 +1582,7 @@ export function toggleDoor(g: Game, a: string, b: string) {
   // Slug hacker (doors): an offline Door System cannot open or close a door.
   // Systems: any ion on the Door System blocks a click the same way.
   if (playerDoorsLocked(g)) {
-    log(g, "Door control is dead.");
+    log(g, tx("game.sim.door-control-is-dead"));
     return;
   }
   const door = findDoor(g.player, a, b);
@@ -1649,7 +1650,7 @@ export function dismissCrew(g: Game, id: string): boolean {
   const c = g.crew.find((x) => x.id === id)!;
   g.crew = g.crew.filter((x) => x.id !== id);
   deselectCrew(g, id);
-  log(g, `${c.name} leaves the crew.`);
+  log(g, tx("game.sim.leaves-the-crew", { name: c.name }));
   return true;
 }
 
@@ -1811,11 +1812,11 @@ export function orderSelected(g: Game, dest: string, aboard: "player" | "enemy")
     else if (result !== "skip" && !reason) reason = result;
   }
   if (moved || !reason) return;
-  if (reason === "mind") log(g, "You can't give them orders.");
-  else if (reason === "coat") log(g, "The crystal coating blocks the way.");
+  if (reason === "mind") log(g, tx("game.sim.you-can-t-give-them-orders"));
+  else if (reason === "coat") log(g, tx("game.sim.the-crystal-coating-blocks-the-way"));
   // INFERRED: the pages print the spot counts, not this sentence.
-  else if (reason === "full") log(g, "That room is full.");
-  else log(g, "They can't reach that room.");
+  else if (reason === "full") log(g, tx("game.sim.that-room-is-full"));
+  else log(g, tx("game.sim.they-can-t-reach-that-room"));
 }
 
 /**
@@ -1832,7 +1833,7 @@ export function saveStations(g: Game) {
     else delete c.stationTile;
     n += 1;
   }
-  if (n > 0) log(g, "Stations saved.");
+  if (n > 0) log(g, tx("game.sim.stations-saved"));
 }
 
 /** INFERRED: Return sends saved crew back only while they are still on the player ship. */
@@ -1895,7 +1896,7 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   if (index < 0) index = g.player.weapons.findIndex((w, i) => w.enabled && mask[i]);
   const w = g.player.weapons[index];
   if (!w) {
-    log(g, "No weapon selected.");
+    log(g, tx("game.sim.no-weapon-selected"));
     stopTargeting(g);
     return;
   }
@@ -1924,7 +1925,7 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   // Per the user: aimed during a pause, a ready gun waits and fires on the first tick after the pause (chargeSide).
   if (!halted(g) && !hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
   else {
-    log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}${halted(g) ? "; fires on unpause" : ""}.`);
+    log(g, tx("game.sim.aimed-at", { v: WEAPONS[w.defId]?.name ?? "Gun", title: title, v2: halted(g) ? "; fires on unpause" : "" }));
     sfx(g, "click");
   }
   // INFERRED: confirming the room leaves targeting mode. The overview does not say the cursor stays.
@@ -1940,12 +1941,12 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
 function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point: BeamPoint) {
   const enemy = g.enemy;
   if (!enemy) return;
-  const name = WEAPONS[w.defId]?.name ?? "Beam";
+  const name = WEAPONS[w.defId]?.name ?? tx("game.sim.beam");
   const anchor = g.beamAnchor;
   if (!anchor) {
     g.beamAnchor = point;
     const title = roomById(enemy, roomId)?.title ?? "room";
-    log(g, `${name} start on ${title}.`);
+    log(g, tx("game.sim.start-on", { name: name, title: title }));
     sfx(g, "click");
     return;
   }
@@ -1959,7 +1960,7 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
   // Per the user: a beam aimed during a pause fires on the first tick after it (chargeSide).
   if (!halted(g) && powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
   else {
-    log(g, `${name} aimed across ${titles.join(", ")}${halted(g) ? "; fires on unpause" : ""}.`);
+    log(g, tx("game.sim.aimed-across", { name: name, join: titles.join(", "), v: halted(g) ? "; fires on unpause" : "" }));
     sfx(g, "click");
   }
   g.targeting = false;
@@ -2030,12 +2031,12 @@ export function toggleAutoAll(g: Game) {
 
 export function fireReady(g: Game) {
   if (hackHoldsWeapons(g, "player")) {
-    log(g, "Weapon Control is hacked.");
+    log(g, tx("game.sim.weapon-control-is-hacked"));
     return;
   }
   // Per the user: nothing fires during a pause. Aimed, charged guns go on the first tick after it (chargeSide).
   if (halted(g)) {
-    log(g, "Aimed weapons fire on unpause.");
+    log(g, tx("game.sim.aimed-weapons-fire-on-unpause"));
     return;
   }
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
@@ -2045,7 +2046,7 @@ export function fireReady(g: Game) {
     launch(g, "player", w);
     any = true;
   });
-  if (!any) log(g, "Nothing is charged and aimed.");
+  if (!any) log(g, tx("game.sim.nothing-is-charged-and-aimed"));
 }
 
 export function toggleWeapon(g: Game, weaponUid: string) {
@@ -2098,7 +2099,7 @@ function claimWeaponBars(g: Game, w: WeaponInst): boolean {
   if (done()) return true;
   sys.power = before;
   w.enabled = false;
-  log(g, `Not enough power for ${WEAPONS[w.defId]?.name ?? "that weapon"}.`);
+  log(g, tx("game.sim.not-enough-power-for", { v: WEAPONS[w.defId]?.name ?? "that weapon" }));
   return false;
 }
 
@@ -2180,7 +2181,7 @@ export function choiceDisabled(g: Game, id: string): string | null {
   const filler = fillerChoiceDisabled(g, id);
   if (filler) return filler;
   // Engi cache: Transaction 2 subtract_missiles.
-  if (id === "engi-cache-trap" && g.missiles < 2) return "Need 2 missiles";
+  if (id === "engi-cache-trap" && g.missiles < 2) return tx("game.sim.need-2-missiles");
   const cited = citedChoiceDisabled(g, id);
   if (cited) return cited;
   // @agent:quests. Blue-option requirements and prices on quest cards (wiki/quests.ts).
@@ -2236,7 +2237,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
     if (from === "player") {
       if (g.missiles <= 0) {
         // A queued shot would retry every tick, so it says so once and a one-shot target is dropped.
-        if (g.log[0] !== "No missiles.") log(g, "No missiles.");
+        if (g.log[0] !== "No missiles.") log(g, tx("game.sim.no-missiles"));
         if (!slotAutofire(g, w)) dropQueued(w);
         return;
       }
@@ -2531,9 +2532,9 @@ function spendZoltan(ship: Ship, amount: number): number | null {
 function noteZoltan(g: Game, playerHurt: boolean) {
   const ship = playerHurt ? g.player : g.enemy;
   const left = ship?.zoltan ?? 0;
-  log(g, playerHurt ? `Zoltan Shield ${left}.` : `Their Zoltan Shield ${left}.`);
+  log(g, playerHurt ? tx("game.sim.zoltan-shield", { left: left }) : tx("game.sim.their-zoltan-shield", { left: left }));
   sfx(g, "shield");
-  floatAt(g, "SHIELD", playerHurt ? 68 : 32, 16);
+  floatAt(g, tx("game.sim.shield"), playerHurt ? 68 : 32, 16);
 }
 
 /**
@@ -2618,8 +2619,8 @@ export function applyImpact(g: Game, shot: Shot) {
   // Missile (Weapons), ===Swarm Missiles===: a long-side tile with no room is not a hit.
   // INFERRED: that miss does not roll evasion and does not spend a Zoltan Shield.
   if (shot.offRoom) {
-    log(g, playerTarget ? "The swarm missed the Lark." : "The swarm slipped past the room.");
-    floatAt(g, "MISS", playerTarget ? 72 : 28, 18);
+    log(g, playerTarget ? tx("game.sim.the-swarm-missed-the-lark") : tx("game.sim.the-swarm-slipped-past-the-room"));
+    floatAt(g, tx("game.sim.miss"), playerTarget ? 72 : 28, 18);
     return;
   }
   const aboard: "player" | "enemy" = playerTarget ? "player" : "enemy";
@@ -2634,8 +2635,8 @@ export function applyImpact(g: Game, shot: Shot) {
         noteDodge(g);
         noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
       }
-      log(g, playerTarget ? "Bomb missed the Lark." : "They slipped the bomb.");
-      floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
+      log(g, playerTarget ? tx("game.sim.bomb-missed-the-lark") : tx("game.sim.they-slipped-the-bomb"));
+      floatAt(g, tx("game.sim.miss"), playerTarget ? 70 : 30, 20);
       return;
     }
     if (!ownHull && playerTarget) noteAchieve(g, { k: "evade", missed: false });
@@ -2659,7 +2660,7 @@ export function applyImpact(g: Game, shot: Shot) {
     // Zoltan Shield, lead: the pass-through bug names an ion projectile, so a resisted ion bomb stops.
     if ((ship.zoltan ?? 0) > 0 && !bombThrough && shot.damage <= 0 && shot.ion > 0) {
       if (playerTarget && negateIon(g)) {
-        log(g, "Reverse Ion Field shrugged that off.");
+        log(g, tx("game.sim.reverse-ion-field-shrugged-that-off"));
         return;
       }
       spendZoltan(ship, shot.ion * 2);
@@ -2676,7 +2677,7 @@ export function applyImpact(g: Game, shot: Shot) {
       shot.defId !== "healburst" &&
       shot.defId !== "repairburst"
     ) {
-      log(g, playerTarget ? "The Zoltan Shield shrugs the bomb off." : "Their Zoltan Shield shrugs the bomb off.");
+      log(g, playerTarget ? tx("game.sim.the-zoltan-shield-shrugs-the-bomb") : tx("game.sim.their-zoltan-shield-shrugs-the-bomb"));
       sfx(g, "shield");
       return;
     }
@@ -2694,7 +2695,7 @@ export function applyImpact(g: Game, shot: Shot) {
       if ((shot.defId === "ionbomb" || shot.defId === "stunbomb") && shot.ion > 0) {
         // INFERRED: Reverse Ion Field negates the ion. The Stun Bomb's 15 second stun is printed beside it, so it still lands.
         const held = playerTarget && negateIon(g);
-        if (held) log(g, "Reverse Ion Field shrugged that off.");
+        if (held) log(g, tx("game.sim.reverse-ion-field-shrugged-that-off"));
         else {
           if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
           // Zoltans: those four systems cannot be activated if they are ionized. An active cloak or hold is not ended here.
@@ -2707,7 +2708,7 @@ export function applyImpact(g: Game, shot: Shot) {
             if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
               applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
             }
-            log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
+            log(g, playerTarget ? `${r.title} ionized.` : tx("game.sim.ion-on-their", { title: r.title }));
           }
         }
         if (shot.defId === "stunbomb") stunBombRoom(g, r.id, aboard);
@@ -2718,7 +2719,7 @@ export function applyImpact(g: Game, shot: Shot) {
       // Crystal, "Crystal Lockdown": the Crystal Lockdown Bomb is identical in its coating effect.
       if (shot.defId === "lockdown") {
         coatRoom(g, ship, aboard, r.id);
-        log(g, playerTarget ? `${r.title} locked down.` : `Their ${r.title} locked down.`);
+        log(g, playerTarget ? tx("game.sim.locked-down", { title: r.title }) : tx("game.sim.their-locked-down", { title: r.title }));
         sfx(g, "click");
         return;
       }
@@ -2731,7 +2732,7 @@ export function applyImpact(g: Game, shot: Shot) {
           c.hp = Math.min(c.maxHp, c.hp + 150);
         }
         r.flash = 0.35;
-        log(g, playerTarget ? `${r.title} crew healed.` : `Their ${r.title} crew healed.`);
+        log(g, playerTarget ? tx("game.sim.crew-healed", { title: r.title }) : tx("game.sim.their-crew-healed", { title: r.title }));
         sfx(g, "click");
         return;
       }
@@ -2743,7 +2744,7 @@ export function applyImpact(g: Game, shot: Shot) {
           sys.fix = 0;
         }
         r.flash = 0.35;
-        log(g, playerTarget ? `${r.title} repaired.` : `Their ${r.title} repaired.`);
+        log(g, playerTarget ? `${r.title} repaired.` : tx("game.sim.their-repaired", { title: r.title }));
         sfx(g, "click");
         return;
       }
@@ -2752,7 +2753,7 @@ export function applyImpact(g: Game, shot: Shot) {
       if (shot.fireChance > 0 && rand(g) < shot.fireChance) r.fire = Math.min(4, r.fire + 1);
       if (shot.fireChance >= 1 && rand(g) < 0.5) r.fire = Math.min(4, r.fire + 1);
       r.flash = 0.35;
-      log(g, playerTarget ? `Fire in ${r.title}.` : `Fire in their ${r.title}.`);
+      log(g, playerTarget ? tx("game.sim.fire-in", { title: r.title }) : tx("game.sim.fire-in-their", { title: r.title }));
       sfx(g, "hit");
     }
     return;
@@ -2796,7 +2797,7 @@ export function applyImpact(g: Game, shot: Shot) {
     // A damage number, even 1, is still cut by each layer below.
     const dashed = shot.damage <= 0;
     if (dashed && reduce > 0) {
-      log(g, "Beam skids off the shields.");
+      log(g, tx("game.sim.beam-skids-off-the-shields"));
       sfx(g, "shield");
       return;
     }
@@ -2812,7 +2813,7 @@ export function applyImpact(g: Game, shot: Shot) {
       strikeRoom(g, ship, aboard, id, system, shot, playerTarget, hull);
     }
     if (!landed) {
-      log(g, "Beam skids off the shields.");
+      log(g, tx("game.sim.beam-skids-off-the-shields"));
       sfx(g, "shield");
     }
     return;
@@ -2823,8 +2824,8 @@ export function applyImpact(g: Game, shot: Shot) {
       noteDodge(g);
       noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
     }
-    log(g, playerTarget ? "Shot missed the Lark." : "Enemy evasion held.");
-    floatAt(g, "MISS", playerTarget ? 72 : 28, 18);
+    log(g, playerTarget ? tx("game.sim.shot-missed-the-lark") : tx("game.sim.enemy-evasion-held"));
+    floatAt(g, tx("game.sim.miss"), playerTarget ? 72 : 28, 18);
     return;
   }
   // Beams returned above. They never miss, so they are not a failed evade.
@@ -2839,7 +2840,7 @@ export function applyImpact(g: Game, shot: Shot) {
     const bubbleUp = (ship.zoltan ?? 0) > 0 && shot.ion > 0;
     if (bubbleUp && playerTarget && negateIon(g)) {
       if (ship.shieldNow > 0) {
-        log(g, "Reverse Ion Field shrugged that off.");
+        log(g, tx("game.sim.reverse-ion-field-shrugged-that-off"));
         return;
       }
       ionPassthrough = true;
@@ -2887,7 +2888,7 @@ export function applyImpact(g: Game, shot: Shot) {
       bumpXp(g, manningCrew(g, g.player, "player", "shields"), "shields", 1);
     }
     sfx(g, "shield");
-    floatAt(g, "SHIELD", playerTarget ? 68 : 32, 16);
+    floatAt(g, tx("game.sim.shield"), playerTarget ? 68 : 32, 16);
     if (playerTarget) g.trauma = Math.min(1, g.trauma + 0.18);
     return;
   }
@@ -2895,7 +2896,7 @@ export function applyImpact(g: Game, shot: Shot) {
 
   if (shot.kind === "ion") {
     if (playerTarget && !ionPassthrough && negateIon(g)) {
-      log(g, "Reverse Ion Field shrugged that off.");
+      log(g, tx("game.sim.reverse-ion-field-shrugged-that-off"));
       return;
     }
     const r = roomById(ship, shot.targetRoom);
@@ -2911,7 +2912,7 @@ export function applyImpact(g: Game, shot: Shot) {
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) applyIon(ship, r.system, Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
-      log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
+      log(g, playerTarget ? `${r.title} ionized.` : tx("game.sim.ion-on-their", { title: r.title }));
     }
     // Boarding, "Stun effect": the Ion Stunner stuns crew and drones in the room for 5 seconds.
     // A shield bubble already returned above, so that room stays clear, as with any other ion.
@@ -2959,15 +2960,15 @@ function looseShard(g: Game) {
   // INFERRED: that drone orbits this hull, so it is offered the shard before the enemy's drone.
   // Friendly projectiles are not given a meeting point. No flight time is printed, so the shard still resolves now.
   if (swarmIntercept(g, shot)) {
-    log(g, "Your defense drone shot the shard down.");
+    log(g, tx("game.sim.your-defense-drone-shot-the-shard"));
     return;
   }
   if (enemyDefenseIntercept(g, shot)) {
-    log(g, "Their defense drone shot the shard down.");
+    log(g, tx("game.sim.their-defense-drone-shot-the-shard"));
     return;
   }
   if (rand(g) * 100 < evasionPercent(g, enemy, "enemy")) {
-    log(g, "The shard missed.");
+    log(g, tx("game.sim.the-shard-missed"));
     return;
   }
   const left = spendZoltan(enemy, VENGEANCE_SHOT.damage);
@@ -2979,7 +2980,7 @@ function looseShard(g: Game) {
   if (damage <= 0) return;
   enemy.hull = Math.max(0, enemy.hull - damage);
   if (enemy.hull <= 0) noteAchieve(g, { k: "vengeance" });
-  log(g, `A shard hits their hull. Hull ${enemy.hull}.`);
+  log(g, tx("game.sim.a-shard-hits-their-hull-hull", { hull: enemy.hull }));
 }
 
 /**
@@ -3014,7 +3015,7 @@ function strikeRoom(
   if (damage > 0) {
     if (r.kit) hurtKit(ship, r.kit, damage);
     if (r.system) {
-      if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
+      if (playerHurt && negateSystem(g)) log(g, tx("game.sim.titanium-system-casing-held-the-system"));
       // @agent:flagship. A flagship artillery room is its own system: only that gun slows (wiki/flagship-systems.ts).
       else if (!hurtArtillery(ship, r.id, damage)) hurtSystem(ship, r.system, damage, zoltanBars(g.crew, ship, aboard, "shields"));
     }
@@ -3025,7 +3026,7 @@ function strikeRoom(
     const held = platingNegates(g, ship, playerHurt, shot.breachChance);
     const before = ship.hull;
     if (!held) ship.hull = Math.max(0, ship.hull - hull);
-    else log(g, "Rock Plating held the hull.");
+    else log(g, tx("game.sim.rock-plating-held-the-hull"));
     if (playerHurt && ship.hull < before) noteAchieve(g, { k: "hull", before, after: ship.hull });
     if (!playerHurt && ship.hull < before && shot.from === "player") {
       noteAchieve(g, shot.defId ? { k: "weaponHull" } : { k: "droneHull" });
@@ -3090,13 +3091,13 @@ function strikeRoom(
   if (playerHurt) {
     g.trauma = Math.min(1, g.trauma + 0.48);
     g.hitstop = Math.max(g.hitstop, 0.045);
-    log(g, `${r.title} hit. Hull ${ship.hull}.`);
+    log(g, tx("game.sim.hit-hull", { title: r.title, hull: ship.hull }));
     if (ship.hull > 0 && ship.hull <= 10 && !g.lowHull) {
       g.lowHull = true;
       sfx(g, "alarm");
     }
   } else {
-    log(g, `Their ${r.title} takes ${shown}.`);
+    log(g, tx("game.sim.their-takes", { title: r.title, shown: shown }));
   }
 }
 
@@ -3385,7 +3386,7 @@ function moveCrew(g: Game, dt: number) {
     // Airlocks are not coated. Entering a coated room is refused above, before this punch.
     if (leaving && door && !door.open && door.b !== "void" && !crystalExit) {
       const result = punchCoat(door, dt);
-      if (result === "broke") log(g, "A door gives way.");
+      if (result === "broke") log(g, tx("game.sim.a-door-gives-way"));
       if (result === "held") continue;
     } else if (leaving && door && !door.open && !crystalExit) continue;
     if (door && !door.open && hostile && !leaving) {
@@ -3412,7 +3413,7 @@ function moveCrew(g: Game, dt: number) {
         door.stuck = 7;
         door.hp = 0;
         doorArmedMax.delete(door);
-        log(g, "A door gives way.");
+        log(g, tx("game.sim.a-door-gives-way"));
       }
     }
     // INFERRED: TILE_WALK_S is one floor tile. A room used to share that one interval,
@@ -3973,7 +3974,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       r.breach = Math.max(0, r.breach - 1);
       r.breachFix = 0;
       if (aboard === "enemy") noteEnemyBreach(g, r.id);
-      log(g, `${r.title} leak sealed.`);
+      log(g, tx("game.sim.leak-sealed", { title: r.title }));
     }
     spreadFire(g, ship, r, closedSlow, dt);
     healMedbay(g, ship, aboard, r, dt);
@@ -4090,7 +4091,7 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
   // Two or zero systems are ionized, never one. A resisted pulse does not spend the Zoltan Shield.
   // Player augments only. The enemy has no augment list.
   if (aboard === "player" && negateIon(g)) {
-    log(g, "Reverse Ion Field shrugged that off.");
+    log(g, tx("game.sim.reverse-ion-field-shrugged-that-off"));
     return;
   }
   // Zoltan Shield, lead: one layer blocks the pulse. A ship with no Shields system ignores the bubble.
@@ -4100,8 +4101,8 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
     log(
       g,
       aboard === "player"
-        ? `The pulsar drains the Zoltan Shield to ${ship.zoltan}.`
-        : `The pulsar drains their Zoltan Shield to ${ship.zoltan}.`,
+        ? tx("game.sim.the-pulsar-drains-the-zoltan-shield", { zoltan: ship.zoltan })
+        : tx("game.sim.the-pulsar-drains-their-zoltan-shield", { zoltan: ship.zoltan }),
     );
     return;
   }
@@ -4129,11 +4130,11 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
   }
   const names = picks
     .map((hit) => {
-      if (hit.id === "cell") return ship.rooms.find((r) => r.kit === "cell")?.title ?? "Backup Battery";
+      if (hit.id === "cell") return ship.rooms.find((r) => r.kit === "cell")?.title ?? tx("game.sim.backup-battery");
       return roomWith(ship, hit.id)?.title ?? hit.id;
     })
     .join(" and ");
-  log(g, aboard === "player" ? `The pulsar ionizes ${names}.` : `The pulsar ionizes their ${names}.`);
+  log(g, aboard === "player" ? tx("game.sim.the-pulsar-ionizes", { names: names }) : tx("game.sim.the-pulsar-ionizes-their", { names: names }));
 }
 
 function tickPulsar(g: Game, dt: number) {
@@ -4144,7 +4145,7 @@ function tickPulsar(g: Game, dt: number) {
   if (!g.pulsarWarned && g.pulsarT >= wait - PULSAR_WARN_S) {
     g.pulsarWarned = true;
     // Environmental Hazards, Pulsar: the danger line is the warning.
-    log(g, "Periodic waves of electromagnetic energy will disrupt your systems.");
+    log(g, tx("game.sim.periodic-waves-of-electromagnetic-energy-will"));
     sfx(g, "alarm");
   }
   if (g.pulsarT >= wait) {
@@ -4198,7 +4199,7 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
     if (!flareDamagesRoom(n, rand(g))) continue;
     const playerHurt = aboard === "player";
     if ((room.system || room.kit) && playerHurt && negateSystem(g)) {
-      log(g, "Titanium System Casing held the system.");
+      log(g, tx("game.sim.titanium-system-casing-held-the-system"));
     } else {
       if (room.system) hurtSystem(ship, room.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
       if (room.kit) hurtKit(ship, room.kit, 1);
@@ -4211,8 +4212,8 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
     log(
       g,
       aboard === "player"
-        ? `A solar flare lights ${rooms} rooms. Hull ${ship.hull}.`
-        : `A solar flare lights ${rooms} of their rooms.`,
+        ? tx("game.sim.a-solar-flare-lights-rooms-hull", { rooms: rooms, hull: ship.hull })
+        : tx("game.sim.a-solar-flare-lights-of-their", { rooms: rooms }),
     );
   }
 }
@@ -4231,7 +4232,7 @@ function tickFlare(g: Game, dt: number) {
   if (!g.flareWarned && g.flareT >= wait - FLARE_WARN_S) {
     g.flareWarned = true;
     // Environmental Hazards, Class-M Red Giant Star: the danger line is the warning.
-    log(g, "Solar flares will light the ship on fire. Shields will reduce the effect.");
+    log(g, tx("game.sim.solar-flares-will-light-the-ship"));
     sfx(g, "alarm");
   }
   if (g.flareT >= wait) {
@@ -4285,7 +4286,7 @@ function environment(g: Game, dt: number) {
           wait: 0.2,
           t: 0,
           duration: 0.8,
-          label: "Rock",
+          label: tx("game.sim.rock"),
         });
       };
       // xftl doc/asteroids: "Asteroids are fired in sequence at your ship and the enemy's ship". A turn left for an
@@ -4294,7 +4295,7 @@ function environment(g: Game, dt: number) {
       if (g.asteroidEnemyNext && g.enemy) rock(g.enemy, "enemy");
       else if (!g.asteroidEnemyNext) {
         rock(g.player, "player");
-        log(g, "Asteroid inbound.");
+        log(g, tx("game.sim.asteroid-inbound"));
       }
       if (g.enemy || g.asteroidEnemyNext) g.asteroidEnemyNext = !g.asteroidEnemyNext;
       g.asteroidT = 0;
@@ -4314,10 +4315,10 @@ function environment(g: Game, dt: number) {
         log(
           g,
           friendlyAsb.has(g)
-            ? "The planetary battery is aiming at the other ship."
+            ? tx("game.sim.the-planetary-battery-is-aiming-at")
             : g.enemy
-              ? "The Fleet's Anti-Ship Batteries are targeting you."
-              : "Planet-side anti-ship batteries are detected in this system.",
+              ? tx("game.sim.the-fleet-s-anti-ship-batteries")
+              : tx("game.sim.planet-side-anti-ship-batteries-are"),
         );
         sfx(g, "alarm");
         armAsbClock(g, "shot");
@@ -4341,10 +4342,10 @@ function environment(g: Game, dt: number) {
             wait: 0.15,
             t: 0,
             duration: 1.1,
-            label: "Artillery",
+            label: tx("game.sim.artillery"),
           });
         }
-        log(g, "Line artillery.");
+        log(g, tx("game.sim.line-artillery"));
         sfx(g, "alarm");
         armAsbClock(g, "warn");
       }
@@ -4584,7 +4585,7 @@ function reap(g: Game) {
       }
       zoltanBurstDrones(g, c);
     }
-    if (c.side === "player") log(g, `${c.name} is gone.`);
+    if (c.side === "player") log(g, tx("game.sim.is-gone", { name: c.name }));
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   if (g.squad) g.squad = g.squad.filter((id) => g.crew.some((c) => c.id === id));
@@ -4610,7 +4611,7 @@ function endCheck(g: Game) {
   if (g.enemy && !g.enemy.automated && g.enemy.classId) {
     const enemyAlive = g.crew.some((c) => c.side === "enemy" && c.hp > 0);
     if (!enemyAlive && !enemyCloneHolds(g)) {
-      log(g, "Their crew is dead.");
+      log(g, tx("game.sim.their-crew-is-dead"));
       winCombat(g);
       return;
     }
@@ -4643,7 +4644,7 @@ function advanceRam(g: Game) {
   addScrap(g, scrap, eligible);
   const wait = rollSurge(next, rand(g));
   g.bossSurge = wait ?? 25;
-  log(g, next === 2 ? "The Flagship brings up the second hull." : "The Flagship brings up its last hull.");
+  log(g, next === 2 ? tx("game.sim.the-flagship-brings-up-the-second") : tx("game.sim.the-flagship-brings-up-its-last"));
 }
 
 function lose(g: Game, reason: "hull" | "crew") {
@@ -4729,7 +4730,7 @@ function winCombat(g: Game) {
   if (g.pending === "crew") {
     const before = g.crew.filter((c) => c.side === "player").length;
     addCrew(g);
-    if (g.crew.filter((c) => c.side === "player").length > before) notes.push("A survivor comes aboard.");
+    if (g.crew.filter((c) => c.side === "player").length > before) notes.push(tx("game.sim.a-survivor-comes-aboard"));
     g.pending = null;
   } else if (g.pending === "exit-clear") {
     g.pending = null;
@@ -4753,14 +4754,14 @@ function winCombat(g: Game) {
     if (kind === "fuel") {
       const n = 1 + irand(g, 3);
       g.fuel += n;
-      notes.push(`Low fuel ${n}.`);
+      notes.push(tx("game.sim.low-fuel", { n: n }));
     } else if (kind === "missiles") {
       const n = 1 + irand(g, 2);
       g.missiles += n;
-      notes.push(`Low missiles ${n}.`);
+      notes.push(tx("game.sim.low-missiles", { n: n }));
     } else {
       g.player.parts += 1;
-      notes.push("Low drone part 1.");
+      notes.push(tx("game.sim.low-drone-part-1"));
     }
   }
   if (rand(g) < 0.03) {
@@ -4772,7 +4773,7 @@ function winCombat(g: Game) {
     if (item?.kind === "weapon") {
       const name = WEAPONS[item.id]?.name ?? item.id;
       const got = receiveWeapon(g, item.id);
-      notes.push(got === "mounted" ? `${name} mounted.` : got === "cargo" ? `${name} stowed in cargo.` : `No room in cargo for ${name}: choose what to leave behind.`);
+      notes.push(got === "mounted" ? `${name} mounted.` : got === "cargo" ? tx("game.sim.stowed-in-cargo", { name: name }) : tx("game.sim.no-room-in-cargo-for-choose", { name: name }));
     } else if (item?.kind === "augment") notes.push(grantBonusAugment(g, item.id));
     else if (item?.kind === "drone") notes.push(droneLine(g, item.id));
   }
@@ -4802,7 +4803,7 @@ export const CREW_CAP = 8;
 
 function addCrew(g: Game) {
   const used = new Set(g.crew.map((c) => c.name));
-  const name = CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
+  const name = CREW_POOL.find((n) => !used.has(n)) ?? tx("game.sim.rook-vale");
   g.crew.push({
     id: uid(g),
     name,
@@ -4828,14 +4829,14 @@ function addCrew(g: Game) {
  */
 function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
   const rooms: Room[] = [
-    room({ id: "e-shields", title: "Shields", system: "shields", x: 0, y: 0, w: 2, h: 1 }),
-    room({ id: "e-weapons", title: "Weapons", system: "weapons", x: 2, y: 0, w: 2, h: 1 }),
-    room({ id: "e-oxygen", title: "Oxygen", system: "oxygen", x: 0, y: 1, w: 1, h: 1 }),
-    room({ id: "e-pilot", title: "Piloting", system: "pilot", x: 1, y: 1, w: 1, h: 1 }),
-    room({ id: "e-engines", title: "Engines", system: "engines", x: 2, y: 1, w: 2, h: 1 }),
+    room({ id: "e-shields", title: tx("game.sim.shields"), system: "shields", x: 0, y: 0, w: 2, h: 1 }),
+    room({ id: "e-weapons", title: tx("game.sim.weapons"), system: "weapons", x: 2, y: 0, w: 2, h: 1 }),
+    room({ id: "e-oxygen", title: tx("game.sim.oxygen"), system: "oxygen", x: 0, y: 1, w: 1, h: 1 }),
+    room({ id: "e-pilot", title: tx("game.sim.piloting"), system: "pilot", x: 1, y: 1, w: 1, h: 1 }),
+    room({ id: "e-engines", title: tx("game.sim.engines"), system: "engines", x: 2, y: 1, w: 2, h: 1 }),
   ];
   const ship: Ship = {
-    name: "Rebel Flagship",
+    name: tx("game.sim.rebel-flagship"),
     hull: 20,
     hullMax: 20,
     reactor: 12,
@@ -4863,7 +4864,7 @@ function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
   // @agent:flagship. The placeholder grid above is replaced by the traced stage-1 cutaway and its systems.
   flagshipStage(g, ship, 1);
   // "The Rebel Flagship", "1st Stage" / "General": the crew is Human, one seat each (wiki/flagship-systems.ts).
-  const crew: Crew[] = flagshipSeats(g.difficulty === "hard").map((roomId) => enemyCrew(g, "plain", "Human", roomId));
+  const crew: Crew[] = flagshipSeats(g.difficulty === "hard").map((roomId) => enemyCrew(g, "plain", tx("game.sim.human"), roomId));
   citedEnemy(g, "boss", ship, crew);
   return { ship, crew };
 }
@@ -5072,7 +5073,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   if (g.armed == null) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   armDoors(built.ship, doorLevel(g, built.ship, "enemy"), g.difficulty);
-  log(g, `${built.ship.name} on the scope.`);
+  log(g, tx("game.sim.on-the-scope", { name: built.ship.name }));
   sfx(g, "alarm");
   noteAchieve(g, { k: "fight" });
 }
@@ -5229,7 +5230,7 @@ export function buildRoute(seed: number): SectorNode[] {
   const nodes: SectorNode[] = [
     {
       id: "sec-0",
-      name: start?.name ?? "Civilian (Starting) Sector",
+      name: start?.name ?? tx("game.sim.civilian-starting-sector"),
       group: "civilian",
       col: 0,
       row: 1,
@@ -5279,7 +5280,7 @@ export function buildRoute(seed: number): SectorNode[] {
   }
   nodes.push({
     id: "sec-7",
-    name: last?.name ?? "The Last Stand",
+    name: last?.name ?? tx("game.sim.the-last-stand"),
     group: "last-stand",
     col: 7,
     row: chartRow(0, 1),
@@ -5334,7 +5335,7 @@ function makeMap(g: Game) {
     kind: "empty",
     visited: false,
     resolved: false,
-    name: "Beacon",
+    name: tx("game.sim.beacon"),
     tier: "pool",
     flag: "",
     asteroid: false,
@@ -5348,7 +5349,7 @@ function makeMap(g: Game) {
   start.visited = true;
   start.resolved = true;
   // INVENTED: beacon names Departure and Lane out.
-  start.name = "Departure";
+  start.name = tx("game.sim.departure");
   let exit: Beacon;
   let base: Beacon | undefined;
   if (g.sector >= 8) {
@@ -5356,14 +5357,14 @@ function makeMap(g: Game) {
     base = pickFedBase(beacons, start, g.difficulty, r);
     exit = (base && pickFlagship(beacons, base, r)) ?? beacons[beacons.length - 1];
     exit.kind = "boss";
-    exit.name = "Flagship";
+    exit.name = tx("game.sim.flagship");
     exit.tier = "boss";
     g.ramId = exit.id;
     g.ramClock = 2;
   } else {
     exit = pickExit(beacons, start, r) ?? beacons[beacons.length - 1];
     exit.kind = "exit";
-    exit.name = "Lane out";
+    exit.name = tx("game.sim.lane-out");
     // The exit's event is drawn on arrival (eventFor, Category:Exit Beacon Events). The old picket roll is still burned
     // with the legacy map so later draws keep their stream; its result is unused.
     void picket;
@@ -5371,7 +5372,7 @@ function makeMap(g: Game) {
     g.ramClock = 2;
   }
   // INVENTED: beacon names. Kind mix below is only the placeholder; a listed sector is re-dealt by beacon-mix.ts.
-  const names = ["Silt", "Hinge", "Marrow", "Kite", "Brine", "Cask", "Loom", "Vesper", "Nock", "Quarry", "Weld", "Pell"];
+  const names = [tx("game.sim.silt"), tx("game.sim.hinge"), tx("game.sim.marrow"), tx("game.sim.kite"), tx("game.sim.brine"), tx("game.sim.cask"), tx("game.sim.loom"), tx("game.sim.vesper"), tx("game.sim.nock"), tx("game.sim.quarry"), tx("game.sim.weld"), tx("game.sim.pell")];
   let ni = 0;
   const middles = beacons.filter((b) => b !== start && b !== exit);
   for (const b of middles) b.kind = KINDS[irand(roll, KINDS.length)];
@@ -5401,7 +5402,7 @@ function makeMap(g: Game) {
   if (base && base !== exit) {
     base.flag = "fed-base";
     base.kind = "empty";
-    base.name = "Federation Base";
+    base.name = tx("game.sim.federation-base");
     base.tier = "";
     base.asteroid = false;
     base.resolved = false;
@@ -5494,8 +5495,8 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
     });
   });
   const guns = spec.weapons.map((id) => WEAPONS[id]?.name ?? id).join(", ");
-  log(g, `${spec.name} leaves the hangar.${guns ? ` ${guns}.` : ""}`);
-  if (spec.unfitted.length) log(g, `Not fitted: ${spec.unfitted.join(", ")}.`);
+  log(g, tx("game.sim.leaves-the-hangar", { name: spec.name, v: guns ? ` ${guns}.` : "" }));
+  if (spec.unfitted.length) log(g, tx("game.sim.not-fitted", { join: spec.unfitted.join(", ") }));
 }
 
 /** The cruiser a hangar tile shows: the same rooms, doors, weapons, and crew a run starts with. */
@@ -5540,7 +5541,7 @@ export function createGame(
     enemy: null,
     crew: starterCrew(),
     shots: [],
-    log: ["Departure buoy. The fleet is still behind you. The Burst Laser II is the only weapon aboard."],
+    log: [tx("game.sim.departure-buoy-the-fleet-is-still")],
     selected: null,
     mode: "crew",
     armed: "w-line",
@@ -5636,12 +5637,12 @@ export function canJumpTo(g: Game, id: string): boolean {
 export function commitJump(g: Game, id: string) {
   if (!canJumpTo(g, id)) return;
   if (g.fuel < 1) {
-    log(g, "No fuel.");
+    log(g, tx("game.sim.no-fuel"));
     sfx(g, "click");
     return;
   }
   if (g.phase === "combat" && g.flee < 1) {
-    log(g, "Jump drive is still charging.");
+    log(g, tx("game.sim.jump-drive-is-still-charging"));
     return;
   }
   const grounded = jumpBlocked(g);
@@ -5733,7 +5734,7 @@ export function commitJump(g: Game, id: string) {
   }
   if (dest.resolved && dest.kind !== "boss") {
     g.phase = "map";
-    log(g, `${dest.name} is already quiet.`);
+    log(g, tx("game.sim.is-already-quiet", { name: dest.name }));
     return;
   }
   arrive(g, dest);
@@ -5767,14 +5768,14 @@ function stepRam(g: Game, ram: Beacon) {
   const next = [...options].sort((a, b) => span(a, base) - span(b, base) || a.col - b.col || a.row - b.row)[0];
   g.ramAtBase = 0;
   ram.kind = "empty";
-  ram.name = "Wake";
+  ram.name = tx("game.sim.wake");
   ram.tier = "";
   next.kind = "boss";
-  next.name = "Flagship";
+  next.name = tx("game.sim.flagship");
   next.tier = "boss";
   next.resolved = false;
   g.ramId = next.id;
-  log(g, "The Flagship jumps toward the Federation base.");
+  log(g, tx("game.sim.the-flagship-jumps-toward-the-federation"));
 }
 
 function arrive(g: Game, b: Beacon) {
@@ -5965,30 +5966,30 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
     // INFERRED: a nebula sector's exit is the beacon "contained within a nebula".
     if (!b.flag && nebulaSector(g.sectorName)) {
       return {
-        title: "Exit beacon",
-        body: "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.",
-        choices: [{ id: "exit-leave", label: "Take the lane" }],
+        title: tx("game.sim.exit-beacon"),
+        body: tx("game.sim.this-long-range-beacon-is-almost"),
+        choices: [{ id: "exit-leave", label: tx("game.sim.take-the-lane") }],
       };
     }
     if (!b.flag && !overtaken(g, b)) {
       return {
-        title: "Exit beacon",
-        body: "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
-        choices: [{ id: "exit-continue", label: "Continue..." }],
+        title: tx("game.sim.exit-beacon"),
+        body: tx("game.sim.you-ve-arrived-at-the-long"),
+        choices: [{ id: "exit-continue", label: tx("game.sim.continue") }],
       };
     }
     // INVENTED: the exit text, and the picket card kept for a save made before exit events.
     if (b.flag === "picket") {
       return {
-        title: "Lane out",
-        body: "A picket sits on the only clean vector out of the sector.",
-        choices: [{ id: "exit-fight", label: "Push through" }],
+        title: tx("game.sim.lane-out"),
+        body: tx("game.sim.a-picket-sits-on-the-only"),
+        choices: [{ id: "exit-fight", label: tx("game.sim.push-through") }],
       };
     }
     return {
-      title: "Lane out",
-      body: "The exit buoy is green. The next sector is already louder.",
-      choices: [{ id: "exit-leave", label: "Take the lane" }],
+      title: tx("game.sim.lane-out"),
+      body: tx("game.sim.the-exit-buoy-is-green-the"),
+      choices: [{ id: "exit-leave", label: tx("game.sim.take-the-lane") }],
     };
   }
   // Anything else (an unknown flag): the sector's empty beacon page, "Nothing happens."
@@ -6011,15 +6012,15 @@ function rollStock(g: Game): StockItem[] {
   const items: StockItem[] = [
     // Stores and resources: "Limited quantities of all resources". "Fuel, missiles, and drone parts stock varies, but the
     // price for each type of resource is fixed." `cost` is that one-unit price and `amount` the stock; buy takes one.
-    { id: "fuel", kind: "fuel", ref: "fuel", name: "Fuel", detail: "3 scrap each.", cost: 3, amount: fuelN },
-    { id: "missiles", kind: "missiles", ref: "missiles", name: "Missiles", detail: "6 scrap each.", cost: 6, amount: missileN },
-    { id: "parts", kind: "parts", ref: "parts", name: "Drone parts", detail: "8 scrap each.", cost: 8, amount: partN },
+    { id: "fuel", kind: "fuel", ref: "fuel", name: tx("game.sim.fuel"), detail: tx("game.sim.3-scrap-each"), cost: 3, amount: fuelN },
+    { id: "missiles", kind: "missiles", ref: "missiles", name: tx("game.sim.missiles"), detail: tx("game.sim.6-scrap-each"), cost: 6, amount: missileN },
+    { id: "parts", kind: "parts", ref: "parts", name: tx("game.sim.drone-parts"), detail: tx("game.sim.8-scrap-each"), cost: 8, amount: partN },
     {
       id: "repair",
       kind: "repair",
       ref: "repair",
-      name: "Hull patch +5",
-      detail: `${hullRepairPerPoint(g.sector)} scrap a point.`,
+      name: tx("game.sim.hull-patch-5"),
+      detail: tx("game.sim.scrap-a-point", { hullRepairPerPoint: hullRepairPerPoint(g.sector) }),
       cost: Math.min(5, g.player.hullMax - g.player.hull) * hullRepairPerPoint(g.sector),
       amount: 5,
     },
@@ -6048,7 +6049,7 @@ export function buy(g: Game, id: string) {
   const item = g.stock?.find((s) => s.id === id);
   if (!item) return;
   if (g.scrap < item.cost) {
-    log(g, "Not enough scrap.");
+    log(g, tx("game.sim.not-enough-scrap"));
     return;
   }
   if (citedBuy(g, item)) {
@@ -6057,14 +6058,14 @@ export function buy(g: Game, id: string) {
     noteAchieve(g, { k: "store", repair: false });
     if (item.kind === "system") noteAchieve(g, { k: "upgrade" });
     sfx(g, "click");
-    log(g, `Bought ${item.name}.`);
+    log(g, tx("game.sim.bought", { name: item.name }));
     return;
   }
   // A drone schematic that did not fit spends nothing. citedBuy owns that grant.
   if (item.kind === "drone") return;
   // Per the user: a weapon with no free slot goes to cargo; the store will not sell it when cargo is full too.
   if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && (g.cargo?.length ?? 0) >= CARGO_SLOTS) {
-    log(g, "No free weapon slot or cargo slot.");
+    log(g, tx("game.sim.no-free-weapon-slot-or-cargo"));
     return;
   }
   if (item.kind === "repair" && g.player.hull >= g.player.hullMax) return;
@@ -6078,7 +6079,7 @@ export function buy(g: Game, id: string) {
     if (item.amount <= 0) g.stock = (g.stock ?? []).filter((s) => s.id !== id);
     noteAchieve(g, { k: "store", repair: false });
     sfx(g, "click");
-    log(g, `Bought 1 ${item.name.toLowerCase()}.`);
+    log(g, tx("game.sim.bought-1", { toLowerCase: item.name.toLowerCase() }));
     return;
   }
   if (item.kind === "repair") {
@@ -6091,7 +6092,7 @@ export function buy(g: Game, id: string) {
   if (item.kind === "weapon") receiveWeapon(g, item.ref);
   g.stock = (g.stock ?? []).filter((s) => s.id !== id);
   sfx(g, "click");
-  log(g, `Bought ${item.name}.`);
+  log(g, tx("game.sim.bought", { name: item.name }));
 }
 
 /** @agent:quests. A quest result that "opens a store" at this beacon (wiki/quests.ts). */
@@ -6175,7 +6176,7 @@ export function choose(g: Game, id: string) {
       if (g.missiles < 2) return;
       g.missiles -= 2;
       g.fleet = Math.max(0, g.fleet - 2);
-      log(g, "Rebel Fleet is delayed for 2 turns.");
+      log(g, tx("game.sim.rebel-fleet-is-delayed-for-2"));
       resolve();
       break;
     case "engi-cache-secure": {
@@ -6184,7 +6185,7 @@ export function choose(g: Game, id: string) {
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       const n = lo + irand(g, hi - lo + 1);
       addScrap(g, n);
-      log(g, `Medium scrap: ${n}.`);
+      log(g, tx("game.sim.medium-scrap", { n: n }));
       log(g, grantRandomItem(g, "drone"));
       resolve();
       break;
@@ -6198,7 +6199,7 @@ export function choose(g: Game, id: string) {
       g.fuel += 5;
       g.missiles += 4;
       g.player.parts += 5;
-      log(g, `Federation Repair Station: ${n} scrap.`);
+      log(g, tx("game.sim.federation-repair-station-scrap", { n: n }));
       resolve();
       break;
     }
@@ -6336,7 +6337,7 @@ export function enterHiddenCrystal(g: Game) {
   g.enemyFlee = 0;
   g.pending = null;
   g.sectorMap = false;
-  log(g, "Hidden Crystal Worlds.");
+  log(g, tx("game.sim.hidden-crystal-worlds"));
 }
 
 /**
@@ -6397,7 +6398,7 @@ export function titleHandoff(playedRun: Game): { played: Game | null; title: Gam
 function blindSectorTwo(g: Game) {
   const pool = sectorPool(g, g.sector + 1);
   // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
-  nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
+  nextSector(g, pool.length ? colouredName(g, pool) : tx("game.sim.civilian-sector"));
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);
   const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
@@ -6409,11 +6410,11 @@ function blindSectorTwo(g: Game) {
  * Homeworlds number, and it may not be a sector connected to the Rock Homeworlds. Sector 8 stays The Last Stand.
  */
 function leaveHiddenCrystal(g: Game) {
-  if (g.sector >= 7) nextSector(g, "The Last Stand");
+  if (g.sector >= 7) nextSector(g, tx("game.sim.the-last-stand"));
   else {
     const pool = sectorPool(g, g.sector + 1);
     // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
-    nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
+    nextSector(g, pool.length ? colouredName(g, pool) : tx("game.sim.civilian-sector"));
   }
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);
@@ -6432,7 +6433,7 @@ function nextSector(g: Game, name?: string) {
     // Sectors, "The Last Stand": on entry, 10 hull repairs and 10 fuel.
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
     g.fuel += 10;
-    log(g, "10 hull repairs. 10 fuel.");
+    log(g, tx("game.sim.10-hull-repairs-10-fuel"));
   }
   makeMap(g);
   if (name) g.sectorName = name;
@@ -6446,7 +6447,7 @@ function nextSector(g: Game, name?: string) {
   g.paused = false;
   g.event = null;
   g.sectorMap = false;
-  log(g, `${g.sectorName}. The line starts over, closer than you like.`);
+  log(g, tx("game.sim.the-line-starts-over-closer-than", { sectorName: g.sectorName }));
   sfx(g, "click");
 }
 
@@ -6479,7 +6480,7 @@ export function waitHere(g: Game) {
   // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
   if (b && !wasPast && overtaken(g, b) && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
   syncIonStorm(g);
-  log(g, "You hold. The line advances.");
+  log(g, tx("game.sim.you-hold-the-line-advances"));
   onCradleJump(g); // Clone Bay, "Overview": waiting applies the jump heal (extras/cradle.ts)
   // Rebel Fleet: out of fuel when they take your beacon. Destroying that Elite yields 4 fuel.
   if (b && g.sector < 8 && g.fuel <= 0 && overtaken(g, b) && !b.resolved) {
@@ -6495,7 +6496,7 @@ export function waitHere(g: Game) {
     const pick = rollFuelWait(() => rand(g), g.distress !== false);
     const event =
       "fail" in pick
-        ? { title: "No fuel", body: pick.fail, choices: [{ id: "fuel-wait-done", label: "Continue..." }] }
+        ? { title: tx("game.sim.no-fuel-2"), body: pick.fail, choices: [{ id: "fuel-wait-done", label: tx("game.sim.continue") }] }
         : citedEvent(g, { ...b, flag: pick.flag, name: pick.dest });
     if (event) {
       g.event = event;
@@ -6518,7 +6519,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
     g.player.reactor += 1;
     noteAchieve(g, { k: "upgrade" });
     sfx(g, "click");
-    log(g, `Reactor ${g.player.reactor}.`);
+    log(g, tx("game.sim.reactor", { reactor: g.player.reactor }));
     return;
   }
   const sys = g.player.systems[id];
@@ -6573,11 +6574,11 @@ function stepShots(g: Game, dt: number) {
       // Environmental Hazards, Asteroid Field: a rock aimed at the enemy is their incoming shot.
       const rockAtEnemy = shot.from === "env" && shot.label === "Rock" && shot.at === "enemy";
       if (!rockAtEnemy && shot.from !== "player" && swarmIntercept(g, shot)) {
-        log(g, "A drone cut that shot down.");
+        log(g, tx("game.sim.a-drone-cut-that-shot-down"));
         continue;
       }
       if ((shot.from === "player" || rockAtEnemy) && enemyDefenseIntercept(g, shot)) {
-        log(g, "Their drone cut that shot down.");
+        log(g, tx("game.sim.their-drone-cut-that-shot-down"));
         continue;
       }
       // @agent:drones. Drone Control, Overview: drones "can be shot down by enemy fire if they are in direct line of
@@ -6655,7 +6656,7 @@ function tickBoarding(g: Game, dt: number) {
   g.asb = false;
   g.phase = "map";
   g.flee = 0;
-  log(g, "The boarders are dead.");
+  log(g, tx("game.sim.the-boarders-are-dead"));
 }
 
 /**
@@ -6806,8 +6807,8 @@ export function step(g: Game, dt: number) {
     // Rebel Fleet: letting a charging Rebel scout or auto-ship escape doubles the pursuit for one turn.
     if (g.enemyEscape?.pursuit) {
       g.pursuitDouble = true;
-      log(g, "They got away. The fleet will close in twice as fast.");
-    } else log(g, "They charged FTL and left.");
+      log(g, tx("game.sim.they-got-away-the-fleet-will"));
+    } else log(g, tx("game.sim.they-charged-ftl-and-left"));
     g.enemy = null;
     g.enemyEscape = null;
     // INFERRED: their escape ends the engine cap. The page prints the restore on a win.

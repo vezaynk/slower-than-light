@@ -1,3 +1,4 @@
+import { tx } from "@/i18n";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
@@ -152,15 +153,15 @@ const SYS_ORDER: SysId[] = [
 ];
 
 const KIT_LABEL: Record<KitId, string> = {
-  veil: "Cloaking",
-  sling: "Teleporter",
-  spike: "Hacking",
-  swarm: "Drone Control",
-  leash: "Mind Control",
-  cradle: "Clone Bay",
-  cell: "Backup Battery",
-  lance: "Artillery Beam",
-  flak: "Flak Artillery",
+  veil: tx("ui.GameApp.cloaking"),
+  sling: tx("ui.GameApp.teleporter"),
+  spike: tx("ui.GameApp.hacking"),
+  swarm: tx("ui.GameApp.drone-control"),
+  leash: tx("ui.GameApp.mind-control"),
+  cradle: tx("ui.GameApp.clone-bay"),
+  cell: tx("ui.GameApp.backup-battery"),
+  lance: tx("ui.GameApp.artillery-beam"),
+  flak: tx("ui.GameApp.flak-artillery"),
 };
 
 function act(fn: (g: Game) => void) {
@@ -298,33 +299,33 @@ function DigitSlot({ value, sample }: { value: number | string; sample: number |
 
 /** @agent:hack-ui. Short status for the hacking orb, by spike.ts playerHackView state. */
 function hackStatus(view: NonNullable<ReturnType<typeof playerHackView>>, aiming: boolean): string {
-  if (aiming) return "PICK A SYSTEM";
+  if (aiming) return tx("ui.GameApp.pick-a-system");
   switch (view.state) {
     case "pulse":
-      return `PULSE ${view.left.toFixed(1)}s`;
+      return tx("ui.GameApp.pulse-s", { toFixed: view.left.toFixed(1) });
     case "cooldown":
-      return `COOLDOWN ${Math.ceil(view.cool)}s`;
+      return tx("ui.GameApp.cooldown-s", { ceil: Math.ceil(view.cool) });
     case "latched":
-      return "PULSE READY";
+      return tx("ui.GameApp.pulse-ready");
     case "queued":
-      return "LAUNCH ON UNPAUSE";
+      return tx("ui.GameApp.launch-on-unpause");
     case "flying":
       // @agent:hack-rules. Hacking wiki: de-powering "freezes the hacking drone in place"; Anti-Combat Drones stun it.
-      if (view.stunned) return "DRONE STUNNED";
-      if (view.power < 1) return "DRONE HELD";
-      return `DRONE INBOUND ${Math.round(view.progress * 100)}%`;
+      if (view.stunned) return tx("ui.GameApp.drone-stunned");
+      if (view.power < 1) return tx("ui.GameApp.drone-held");
+      return tx("ui.GameApp.drone-inbound", { round: Math.round(view.progress * 100) });
     case "nopower":
-      return "NO POWER";
+      return tx("ui.GameApp.no-power");
     case "noparts":
-      return "NO DRONE PARTS";
+      return tx("ui.GameApp.no-drone-parts");
     case "zoltan":
-      return "ZOLTAN SHIELD UP";
+      return tx("ui.GameApp.zoltan-shield-up");
     case "cloaked":
-      return "TARGET CLOAKED";
+      return tx("ui.GameApp.target-cloaked");
     case "ready":
-      return "LAUNCH READY";
+      return tx("ui.GameApp.launch-ready");
     default:
-      return view.latched ? "DRONE ATTACHED" : "STANDBY";
+      return view.latched ? tx("ui.GameApp.drone-attached") : tx("ui.GameApp.standby");
   }
 }
 
@@ -767,7 +768,7 @@ function Hud({ game }: { game: Game }) {
   // Per the user: the drive is not ready while Piloting is down or empty or the Engines are unpowered (sim jumpBlocked,
   // the same check commitJump makes). The state then names the reason instead of CHARGING or READY.
   const blocked = jumpBlocked(game);
-  const blockedWord = !blocked ? "" : blocked.startsWith("Nobody") ? "NO PILOT" : blocked.startsWith("Piloting") ? "PILOT DOWN" : "NO ENGINES";
+  const blockedWord = !blocked ? "" : blocked.startsWith("Nobody") ? tx("ui.GameApp.no-pilot") : blocked.startsWith("Piloting") ? tx("ui.GameApp.pilot-down") : tx("ui.GameApp.no-engines");
   const charging = !blocked && game.phase === "combat" && game.flee < 1;
   const ready = !blocked && game.phase === "combat" && game.flee >= 1 && !game.picking;
   const shieldFill = shieldChargeShown(game);
@@ -777,8 +778,8 @@ function Hud({ game }: { game: Game }) {
     <header className="hud">
       <div className="hud-left">
         <div className="hull-row">
-          <span className="hud-word">HULL</span>
-          <div className="hull-segs" aria-label={`Hull ${game.player.hull} of ${game.player.hullMax}`}>
+          <span className="hud-word">{tx("ui.GameApp.hull")}</span>
+          <div className="hull-segs" aria-label={tx("ui.GameApp.hull-of", { hull: game.player.hull, hullMax: game.player.hullMax })}>
             {Array.from({ length: 30 }, (_, i) => (
               <i key={i} className={i < Math.round((game.player.hull / Math.max(1, game.player.hullMax)) * 30) ? "on" : ""} />
             ))}
@@ -789,32 +790,32 @@ function Hud({ game }: { game: Game }) {
           </div>
         </div>
         <div className="store-row">
-          <span className="hud-word hud-shields">SHIELDS</span>
+          <span className="hud-word hud-shields">{tx("ui.GameApp.shields")}</span>
           <span className="bubbles" aria-label={`${bubbles} shield bubbles`}>
             {Array.from({ length: cap }, (_, i) => (
               <i key={i} className={i < bubbles ? "on" : ""} />
             ))}
           </span>
           {/* Per the user: how far the next shield layer has charged, beside the count. Empty when none is charging. */}
-          <span className="shield-charge" role="meter" aria-label="Shield charge" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((shieldFill ?? 0) * 100)}>
+          <span className="shield-charge" role="meter" aria-label={tx("ui.GameApp.shield-charge")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((shieldFill ?? 0) * 100)}>
             <i style={{ width: `${Math.round((shieldFill ?? 0) * 100)}%` }} />
           </span>
           {game.player.zoltan != null ? (
-            <span className="bubbles zoltan-pips" aria-label={`Zoltan Shield ${game.player.zoltan}`}>
+            <span className="bubbles zoltan-pips" aria-label={tx("ui.GameApp.zoltan-shield", { zoltan: game.player.zoltan })}>
               {Array.from({ length: 5 }, (_, i) => (
                 <i key={i} className={i < (game.player.zoltan ?? 0) ? "on" : ""} />
               ))}
             </span>
           ) : null}
-          <span className={`count-chip${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title="Fuel">
+          <span className={`count-chip${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title={tx("ui.GameApp.fuel")}>
             <PixelIcon name="fuel" />
             {game.fuel}
           </span>
-          <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title="Missiles">
+          <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title={tx("ui.GameApp.missiles")}>
             <PixelIcon name="missile" />
             {game.missiles}
           </span>
-          <span className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`} aria-label={`${game.player.parts} drone parts`} title="Drone parts">
+          <span className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`} aria-label={`${game.player.parts} drone parts`} title={tx("ui.GameApp.drone-parts")}>
             <PixelIcon name="parts" />
             {game.player.parts}
           </span>
@@ -829,8 +830,8 @@ function Hud({ game }: { game: Game }) {
             <button
               type="button"
               className="frame-btn pause-btn"
-              aria-label="Pause"
-              title="Pause (Space)"
+              aria-label={tx("ui.GameApp.pause")}
+              title={tx("ui.GameApp.pause-space")}
               disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
               onClick={() => act((g) => togglePause(g))}
             >
@@ -845,7 +846,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className={`ftl-drive${blocked ? " is-blocked" : charging ? " is-charging" : " is-ready"}`}
           disabled={game.phase === "combat" && game.flee < 1}
-          title={jumpBlocked(game) ?? (spool == null ? "FTL needs a pilot or engines." : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`)}
+          title={jumpBlocked(game) ?? (spool == null ? tx("ui.GameApp.ftl-needs-a-pilot-or-engines") : tx("ui.GameApp.about-seconds-at-this-engine-power", { round: Math.round(spool), fuel: game.fuel }))}
           onClick={() => {
             if (game.phase === "map" || game.picking) {
               act((g) => {
@@ -860,40 +861,40 @@ function Hud({ game }: { game: Game }) {
             }
           }}
         >
-          <span className="ftl-kicker">FTL Drive</span>
+          <span className="ftl-kicker">{tx("ui.GameApp.ftl-drive")}</span>
           <span className={`ftl-jump${charging ? " is-reserve" : ""}`} aria-hidden={charging || undefined}>
-            JUMP
+            {tx("ui.GameApp.jump")}
           </span>
           <span className="ftl-meter">
             <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : blocked ? 0 : 1) * 100)}%` }} />
           </span>
           <em className="ftl-state">
             <span className={charging ? undefined : "is-reserve"} aria-hidden={charging ? undefined : true}>
-              CHARGING
+              {tx("ui.GameApp.charging")}
             </span>
             <span className={!blocked && !charging ? undefined : "is-reserve"} aria-hidden={!blocked && !charging ? undefined : true}>
-              READY
+              {tx("ui.GameApp.ready")}
             </span>
             <span className={blocked ? "ftl-blocked" : "is-reserve"} aria-hidden={blocked ? undefined : true}>
-              {blockedWord || "NO PILOT"}
+              {blockedWord || tx("ui.GameApp.no-pilot")}
             </span>
           </em>
         </button>
         {shipInDanger(game) || game.pulsarWarned ? (
           <div className="hud-alerts">
             <p className={`danger-mark${shipInDanger(game) ? "" : " is-reserve"}`} role="status" aria-hidden={shipInDanger(game) ? undefined : true}>
-              DANGER!
+              {tx("ui.GameApp.danger")}
             </p>
             <p className={`hazard-mark${game.pulsarWarned ? "" : " is-reserve"}`} role="status" aria-hidden={game.pulsarWarned ? undefined : true}>
-              ION PULSE IMMINENT!
+              {tx("ui.GameApp.ion-pulse-imminent")}
             </p>
           </div>
         ) : null}
         <button
           type="button"
           className="frame-btn"
-          aria-label={game.picking ? "Back to the ship" : "Ship"}
-          title={infoLocked && !game.picking ? "In danger" : undefined}
+          aria-label={game.picking ? tx("ui.GameApp.back-to-the-ship") : tx("ui.GameApp.ship")}
+          title={infoLocked && !game.picking ? tx("ui.GameApp.in-danger") : undefined}
           disabled={infoLocked && !game.picking}
           onClick={() =>
             act((g) => {
@@ -905,7 +906,7 @@ function Hud({ game }: { game: Game }) {
           <PixelIcon name="ship" size={20} />
         </button>
         {/* Per the user: the wrench opens Options (graphics, sound, keyboard). Upgrades stay in the ship menu (U). */}
-        <button type="button" className="frame-btn" aria-label="Options" title="Options" onClick={() => useOptionsOpen.setState({ open: true })}>
+        <button type="button" className="frame-btn" aria-label={tx("ui.GameApp.options")} title={tx("ui.GameApp.options")} onClick={() => useOptionsOpen.setState({ open: true })}>
           <PixelIcon name="upgrade" size={20} />
         </button>
       </div>
@@ -920,15 +921,15 @@ function CrewRail({ game }: { game: Game }) {
   return (
     <aside className="crew-rail">
       <div className="air-readout">
-        <span title="Evasion">
+        <span title={tx("ui.GameApp.evasion")}>
           <PixelIcon name="evade" />
-          EVADE {evasionPercent(game, game.player, "player")}%
+          {tx("ui.GameApp.evade")}{evasionPercent(game, game.player, "player")}%
         </span>
-        <span title="Oxygen" className={air < 25 ? "is-o2-low" : undefined}>
+        <span title={tx("ui.GameApp.oxygen")} className={air < 25 ? "is-o2-low" : undefined}>
           <PixelIcon name="oxygen" />
-          OXYGEN {air}%
+          {tx("ui.GameApp.oxygen-2")}{air}%
         </span>
-        {air < 25 ? <strong className="o2-alarm">O2 LOW!</strong> : null}
+        {air < 25 ? <strong className="o2-alarm">{tx("ui.GameApp.o2-low")}</strong> : null}
       </div>
       {crew.map((c) => (
         <div key={c.id} className={`crew-card${selectedIds(game).includes(c.id) ? " is-selected" : ""}${(c.leashed ?? 0) > 0 ? " is-leashed" : ""}`}>
@@ -946,15 +947,15 @@ function CrewRail({ game }: { game: Game }) {
             </span>
           </button>
           {(c.leashed ?? 0) > 0 ? (
-            <button type="button" className="lock-pip" aria-label="Free from mind control" onClick={() => act((g) => startLeash(g, c.id))}>
-              MC
+            <button type="button" className="lock-pip" aria-label={tx("ui.GameApp.free-from-mind-control")} onClick={() => act((g) => startLeash(g, c.id))}>
+              {tx("ui.GameApp.mc")}
             </button>
           ) : null}
           {c.kin === "shard" ? (
             <button
               type="button"
               className="lock-pip"
-              aria-label="Lockdown"
+              aria-label={tx("ui.GameApp.lockdown")}
               disabled={(c.lockCool ?? 0) > 0}
               onClick={() => act((g) => lockdown(g, c.id))}
             >
@@ -968,31 +969,31 @@ function CrewRail({ game }: { game: Game }) {
         <button
           type="button"
           className="text-btn"
-          aria-label="Save stations"
-          title="Save where every crew member stands ( / )"
+          aria-label={tx("ui.GameApp.save-stations")}
+          title={tx("ui.GameApp.save-where-every-crew-member-stands")}
           onClick={() => act((g) => saveStations(g))}
         >
-          SAVE
+          {tx("ui.GameApp.save")}
         </button>
         <button
           type="button"
           className="text-btn"
-          aria-label="Return to stations"
-          title="Send the crew back to their saved spots (Return)"
+          aria-label={tx("ui.GameApp.return-to-stations")}
+          title={tx("ui.GameApp.send-the-crew-back-to-their")}
           disabled={!crew.some((c) => c.station)}
           onClick={() => act((g) => returnToStations(g))}
         >
-          RETURN
+          {tx("ui.GameApp.return")}
         </button>
       </div>
       {/* Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon. Up to 3
           portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
           here under the live crew, head of the queue first. */}
       {clones ? (
-        <div className="clone-queue" role="status" title="Clone Bay queue: first in line is revived first">
+        <div className="clone-queue" role="status" title={tx("ui.GameApp.clone-bay-queue-first-in-line")}>
           <p className="clone-queue-head">
             <PixelIcon name="cradle" size={16} />
-            CLONING · {clones.seconds}s
+            {tx("ui.GameApp.cloning")}{clones.seconds}s
           </p>
           <div className="clone-queue-faces">
             {clones.shown.map((c) => (
@@ -1073,11 +1074,11 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
       />
       {intruders ? (
         <p className="intruder-warn">
-          WARNING!
+          {tx("ui.GameApp.warning")}
           <br />
-          INTRUDERS
+          {tx("ui.GameApp.intruders")}
           <br />
-          DETECTED
+          {tx("ui.GameApp.detected")}
         </p>
       ) : null}
       <p className="log-line sky-log">{game.log[0]}</p>
@@ -1158,32 +1159,32 @@ function TargetPanel({
   return (
     <aside className="target-panel">
       <div className="target-head">
-        <span className="target-flag">TARGET</span>
+        <span className="target-flag">{tx("ui.GameApp.target")}</span>
         <div>
           <p className="target-id">
             <span className="line-stack">
               <span className={vision?.evasion != null ? "is-reserve" : undefined} aria-hidden={vision?.evasion != null || undefined}>
-                Class: {enemy.name}
+                {tx("ui.GameApp.class")}{enemy.name}
               </span>
               <span
                 className={`hack-evasion${vision?.evasion != null ? "" : " is-reserve"}`}
-                title={vision?.evasion != null ? `Hacking drone on ${hack?.label ?? vision.system}` : undefined}
+                title={vision?.evasion != null ? tx("ui.GameApp.hacking-drone-on", { v: hack?.label ?? vision.system }) : undefined}
                 aria-hidden={vision?.evasion != null ? undefined : true}
               >
-                Evasion: <DigitSlot value={vision?.evasion ?? 0} sample={100} />%
+                {tx("ui.GameApp.evasion-2")}<DigitSlot value={vision?.evasion ?? 0} sample={100} />%
               </span>
             </span>
           </p>
           {/* Per the user: a ship that is no longer fighting us (sim.ts truce) reads Neutral. */}
-          <p>Relationship: {truce(game) && enemy === game.wreck ? "Neutral" : "Hostile"}</p>
+          <p>{tx("ui.GameApp.relationship")}{truce(game) && enemy === game.wreck ? tx("ui.GameApp.neutral") : tx("ui.GameApp.hostile")}</p>
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               <span className="line-stack">
                 <span className={escape.stalled ? "is-reserve" : undefined} aria-hidden={escape.stalled || undefined}>
-                  FTL CHARGING · <DigitSlot value={escape.left} sample={LAST_FUEL_SECONDS * 2} />s
+                  {tx("ui.GameApp.ftl-charging")}<DigitSlot value={escape.left} sample={LAST_FUEL_SECONDS * 2} />s
                 </span>
                 <span className={escape.stalled ? undefined : "is-reserve"} aria-hidden={escape.stalled ? undefined : true}>
-                  FTL STALLED
+                  {tx("ui.GameApp.ftl-stalled")}
                 </span>
               </span>
             </p>
@@ -1192,10 +1193,10 @@ function TargetPanel({
             <p className={`hack-line${hack.state === "pulse" ? " is-pulse" : ""}`} role="status">
               <span className="line-stack">
                 <span className={hack.state === "pulse" ? "is-reserve" : undefined} aria-hidden={hack.state === "pulse" || undefined}>
-                  HACKED · {hack.label.toUpperCase()}
+                  {tx("ui.GameApp.hacked")}{hack.label.toUpperCase()}
                 </span>
                 <span className={hack.state === "pulse" ? undefined : "is-reserve"} aria-hidden={hack.state === "pulse" ? undefined : true}>
-                  HACKED · {hack.label.toUpperCase()} · <DigitSlot value={Math.ceil(hack.left)} sample={10} />s
+                  {tx("ui.GameApp.hacked")}{hack.label.toUpperCase()} · <DigitSlot value={Math.ceil(hack.left)} sample={10} />s
                 </span>
               </span>
             </p>
@@ -1204,10 +1205,10 @@ function TargetPanel({
             <p className={`clone-line${clones.offline ? " is-offline" : ""}`} role="status">
               <span className="line-stack">
                 <span className={clones.offline ? undefined : "is-reserve"} aria-hidden={clones.offline ? undefined : true}>
-                  CLONING HALTED
+                  {tx("ui.GameApp.cloning-halted")}
                 </span>
                 <span className={clones.offline ? "is-reserve" : undefined} aria-hidden={clones.offline || undefined}>
-                  CLONING · <DigitSlot value={clones.seconds} sample={CLONE_SECONDS_WIDE} />s
+                  {tx("ui.GameApp.cloning")}<DigitSlot value={clones.seconds} sample={CLONE_SECONDS_WIDE} />s
                   <span className={clones.count > 1 ? undefined : "is-reserve"} aria-hidden={clones.count > 1 ? undefined : true}>
                     {" "}
                     +<DigitSlot value={Math.max(0, clones.count - 1)} sample={CLONE_EXTRA_WIDE} />
@@ -1217,14 +1218,14 @@ function TargetPanel({
             </p>
           ) : null}
           {game.targeting && game.beamAnchor && !hackAiming ? (
-            <p className="beam-hint">Click the end of the beam</p>
+            <p className="beam-hint">{tx("ui.GameApp.click-the-end-of-the-beam")}</p>
           ) : null}
         </div>
       </div>
       <div className="foe-vitals">
         <div className="hull-row">
-          <span className="hud-word">HULL</span>
-          <div className="hull-segs" aria-label={`Enemy hull ${enemy.hull} of ${enemy.hullMax}`}>
+          <span className="hud-word">{tx("ui.GameApp.hull")}</span>
+          <div className="hull-segs" aria-label={tx("ui.GameApp.enemy-hull-of", { hull: enemy.hull, hullMax: enemy.hullMax })}>
             {Array.from({ length: Math.min(30, enemy.hullMax) }, (_, i) => (
               <i key={i} className={i < Math.round((enemy.hull / Math.max(1, enemy.hullMax)) * Math.min(30, enemy.hullMax)) ? "on" : ""} />
             ))}
@@ -1232,18 +1233,18 @@ function TargetPanel({
           <b className="foe-hull-num">{Math.max(0, Math.ceil(enemy.hull))}</b>
         </div>
         <div className="store-row">
-          <span className="hud-word hud-shields">SHIELDS</span>
+          <span className="hud-word hud-shields">{tx("ui.GameApp.shields")}</span>
           {foeCap > 0 ? (
-            <span className="bubbles" aria-label={`Enemy shield bubbles ${foeBubbles}`}>
+            <span className="bubbles" aria-label={tx("ui.GameApp.enemy-shield-bubbles", { foeBubbles: foeBubbles })}>
               {Array.from({ length: foeCap }, (_, i) => (
                 <i key={i} className={i < foeBubbles ? "on" : ""} />
               ))}
             </span>
           ) : (
-            <span className="foe-none">NONE</span>
+            <span className="foe-none">{tx("ui.GameApp.none")}</span>
           )}
           {(enemy.zoltan ?? 0) > 0 ? (
-            <span className="bubbles zoltan-pips" aria-label={`Enemy Zoltan Shield ${enemy.zoltan}`}>
+            <span className="bubbles zoltan-pips" aria-label={tx("ui.GameApp.enemy-zoltan-shield", { zoltan: enemy.zoltan })}>
               {Array.from({ length: Math.max(enemy.zoltan ?? 0, 0) }, (_, i) => (
                 <i key={i} className="on" />
               ))}
@@ -1302,7 +1303,7 @@ function TargetPanel({
           hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}
           droneHp={roomDroneHp(enemy, game)}
         />
-        {cloaked ? <p className="cloak-tag">CLOAKED</p> : null}
+        {cloaked ? <p className="cloak-tag">{tx("ui.GameApp.cloaked")}</p> : null}
       </div>
       <div className="target-systems">
         {SYS_ORDER.map((id) => {
@@ -1317,7 +1318,7 @@ function TargetPanel({
           // Below level 4, and off the hacked system, the chip stays the short power count.
           const full = vision?.system === id || sensors >= 4;
           const tip = full
-            ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? " (hacking drone)" : ""}`
+            ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? tx("ui.GameApp.hacking-drone") : ""}`
             : SYS_LABEL[id];
           // Below Sensors 4 only the icon shows: "level, power usage, ion damage" are level 4 information.
           // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
@@ -1333,7 +1334,7 @@ function TargetPanel({
         {artilleryView(enemy).map((a) => {
           const name = WEAPONS[a.defId]?.name ?? a.defId;
           return (
-            <span key={a.room} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? `, ion ${a.ion}` : ""}`}>
+            <span key={a.room} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? tx("ui.GameApp.ion", { ion: a.ion }) : ""}`}>
               <PixelIcon name="weapons" size={16} />
               <small>{name.replace(/^Boss /, "").slice(0, 3).toUpperCase()}</small>
               <b>{a.bars}</b>
@@ -1347,7 +1348,7 @@ function TargetPanel({
           return (
             <span
               key={id}
-              title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`}
+              title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? tx("ui.GameApp.hacking-drone") : ""}`}
               className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : ""].filter(Boolean).join(" ") || undefined}
             >
               <PixelIcon name={id} size={16} />
@@ -1357,13 +1358,13 @@ function TargetPanel({
         })}
       </div>
       {sensors >= 3 ? (
-        <div className="foe-charges" aria-label="Enemy weapon charge">
+        <div className="foe-charges" aria-label={tx("ui.GameApp.enemy-weapon-charge")}>
           {enemy.weapons.map((w) => {
             const name = WEAPONS[w.defId]?.name ?? w.defId;
             const pips = 7;
             const filled = Math.round(weaponChargeShown(w) * pips);
             const cap = chargerCap(w.defId);
-            const bank = cap != null ? `, ${w.loaded ?? 0} of ${cap} shots` : "";
+            const bank = cap != null ? tx("ui.GameApp.of-shots", { v: w.loaded ?? 0, cap: cap }) : "";
             return (
               <div key={w.uid} className="foe-charge" aria-label={`${name} charge${bank}`}>
                 <span className="foe-charge-name">{name}</span>
@@ -1455,11 +1456,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   return (
     <footer className="dock">
       <div className="power-dock">
-        <span className="spare-pip" title="Reactor bars not assigned">
+        <span className="spare-pip" title={tx("ui.GameApp.reactor-bars-not-assigned")}>
           <DigitSlot value={sparePower(game.player)} sample={29} />
         </span>
         {batterySpareBars(game.player) > 0 ? (
-          <i className="spare-bonus" aria-hidden="true" title="Backup Battery bars">
+          <i className="spare-bonus" aria-hidden="true" title={tx("ui.GameApp.backup-battery-bars")}>
             {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
               <b key={i} />
             ))}
@@ -1479,7 +1480,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const filled = Math.round(weaponChargeShown(w) * pips);
             const name = def?.name ?? w.defId;
             const cap = chargerCap(w.defId);
-            const bank = cap != null ? ` ${w.loaded ?? 0} of ${cap} shots.` : "";
+            const bank = cap != null ? tx("ui.GameApp.of-shots-2", { v: w.loaded ?? 0, cap: cap }) : "";
             const aimed = w.target
               ? (w.own ? game.player.rooms : game.enemy?.rooms)?.find((r) => r.id === w.target)?.title ?? null
               : null;
@@ -1493,7 +1494,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 data-slot={index}
                 draggable={false}
                 className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                aria-label={`${name}.${bank} ${w.enabled ? "Powered" : "Depowered"}. ${auto ? "Autofire on" : "Autofire off"}.`}
+                aria-label={`${name}.${bank} ${w.enabled ? tx("ui.GameApp.powered") : tx("ui.GameApp.depowered")}. ${auto ? tx("ui.GameApp.autofire-on") : tx("ui.GameApp.autofire-off")}.`}
                 onPointerDown={(e) => {
                   guns.onPointerDown(index, e);
                   armHold(e, () => act((g) => depowerWeapon(g, w.uid)));
@@ -1530,7 +1531,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                     <span className="gun-aim">
                       <PixelIcon name="target" size={12} />
                       {aimed}
-                      {auto ? " · AUTO" : ""}
+                      {auto ? tx("ui.GameApp.auto") : ""}
                     </span>
                   ) : null}
                 </span>
@@ -1551,11 +1552,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             type="button"
             className={`gun-slot autofire-slot${game.autofireAll ? " is-on" : ""}`}
             aria-pressed={!!game.autofireAll}
-            title="Autofire every weapon"
+            title={tx("ui.GameApp.autofire-every-weapon")}
             onClick={() => act((g) => toggleAutoAll(g))}
           >
-            <span className="autofire-word">AUTOFIRE</span>
-            <span className="autofire-state">{game.autofireAll ? "ON" : "OFF"}</span>
+            <span className="autofire-word">{tx("ui.GameApp.autofire")}</span>
+            <span className="autofire-state">{game.autofireAll ? tx("ui.GameApp.on") : tx("ui.GameApp.off")}</span>
           </button>
         </div>
         {droneSlots.length > 0 ? (
@@ -1575,7 +1576,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   data-slot={index}
                   draggable={false}
                   className={`gun-slot${slotDark ? " is-dark" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                  aria-label={`${name} drone slot ${index + 1}${slotDark ? ". Depowered" : ""}`}
+                  aria-label={`${name} drone slot ${index + 1}${slotDark ? tx("ui.GameApp.depowered-2") : ""}`}
                   onPointerDown={(e) => {
                     drones.onPointerDown(index, e);
                     armHold(e, () => act((g) => depowerDrone(g)));
@@ -1606,9 +1607,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             })}
           </div>
         ) : null}
-        {swarm ? <span className="dock-label dock-drones">DRONES</span> : null}
+        {swarm ? <span className="dock-label dock-drones">{tx("ui.GameApp.drones")}</span> : null}
         <div className="dock-caption">
-          <span className="dock-label">WEAPONS</span>
+          <span className="dock-label">{tx("ui.GameApp.weapons")}</span>
         </div>
       </div>
       <div className="sub-dock">
@@ -1619,7 +1620,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               <button
                 type="button"
                 className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}`}
-                aria-label={id === "doors" ? "Doors" : SYS_LABEL[id]}
+                aria-label={id === "doors" ? tx("ui.GameApp.doors") : SYS_LABEL[id]}
                 aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
                 onClick={() => {
                   if (id === "doors") {
@@ -1643,11 +1644,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             return (
               <span key={id} className="door-pod">
                 {game.mode === "vent" ? (
-                  <span className="door-pop" role="group" aria-label="Doors control panel">
-                    <button type="button" aria-label="Open the doors" onClick={() => act((g) => openAllDoors(g))}>
+                  <span className="door-pop" role="group" aria-label={tx("ui.GameApp.doors-control-panel")}>
+                    <button type="button" aria-label={tx("ui.GameApp.open-the-doors")} onClick={() => act((g) => openAllDoors(g))}>
                       <DoorAllIcon open />
                     </button>
-                    <button type="button" aria-label="Close the doors" onClick={() => act((g) => closeAllDoors(g))}>
+                    <button type="button" aria-label={tx("ui.GameApp.close-the-doors")} onClick={() => act((g) => closeAllDoors(g))}>
                       <DoorAllIcon />
                     </button>
                   </span>
@@ -1667,15 +1668,15 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const hacked = hackedKit?.id === id ? hackedKit.phase : null;
             const away = id === "sling" && game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
             const tip = cloakLocked
-              ? `${KIT_LABEL[id]}: hacked, cannot cloak`
+              ? tx("ui.GameApp.hacked-cannot-cloak", { v: KIT_LABEL[id] })
               : hacked
-                ? `${KIT_LABEL[id]}: hacking drone attached${hacked === "pulse" ? " (pulse)" : ""}`
+                ? tx("ui.GameApp.hacking-drone-attached", { v: KIT_LABEL[id], v2: hacked === "pulse" ? " (pulse)" : "" })
                 : id === "sling"
                   ? away
-                    ? "Teleporter: recall crew"
-                    : "Teleporter: send crew"
+                    ? tx("ui.GameApp.teleporter-recall-crew")
+                    : tx("ui.GameApp.teleporter-send-crew")
                   : id === "leash"
-                    ? "Mind Control: pick a crewmember"
+                    ? tx("ui.GameApp.mind-control-pick-a-crewmember")
                     : KIT_LABEL[id];
             const powered = id === "veil" || id === "sling" || id === "leash";
             return (
@@ -1709,7 +1710,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             );
           })}
         </div>
-        <span className="dock-label">SUBSYSTEMS</span>
+        <span className="dock-label">{tx("ui.GameApp.subsystems")}</span>
       </div>
     </footer>
   );
@@ -1735,7 +1736,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
       : view.state === "queued"
         ? "cancel the queued launch"
         : "aim the hacking drone";
-  const tip = `Hacking ${view.power}/${view.level}: ${status.toLowerCase()}${usable ? `. Click or H to ${verb}` : ""}`;
+  const tip = tx("ui.GameApp.hacking-2", { power: view.power, level: view.level, toLowerCase: status.toLowerCase(), v: usable ? `. Click or H to ${verb}` : "" });
   const metered = view.state === "pulse" || view.state === "flying" || view.state === "cooldown";
   const meterPct =
     view.state === "pulse"
@@ -1752,7 +1753,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
         <div className="hack-card" role="status">
           <span className="hack-card-title">
             <PixelIcon name="spike" size={12} />
-            HACKING
+            {tx("ui.GameApp.hacking-3")}
             <span className="hack-card-pulse line-stack">
               <span className="is-reserve" aria-hidden="true">
                 10s pulse
@@ -1763,50 +1764,50 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
             </span>
           </span>
           <span className="hack-card-state line-stack">
-            <span className={show("PICK A SYSTEM") ? undefined : "is-reserve"} aria-hidden={show("PICK A SYSTEM") ? undefined : true}>
-              PICK A SYSTEM
+            <span className={show(tx("ui.GameApp.pick-a-system")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.pick-a-system")) ? undefined : true}>
+              {tx("ui.GameApp.pick-a-system")}
             </span>
             <span className={status.startsWith("PULSE ") && status !== "PULSE READY" ? undefined : "is-reserve"} aria-hidden={status.startsWith("PULSE ") && status !== "PULSE READY" ? undefined : true}>
-              PULSE <DigitSlot value={view.left.toFixed(1)} sample="10.0" />s
+              {tx("ui.GameApp.pulse")}<DigitSlot value={view.left.toFixed(1)} sample="10.0" />s
             </span>
             <span className={status.startsWith("COOLDOWN ") ? undefined : "is-reserve"} aria-hidden={status.startsWith("COOLDOWN ") ? undefined : true}>
-              COOLDOWN <DigitSlot value={Math.ceil(view.cool)} sample={20} />s
+              {tx("ui.GameApp.cooldown")}<DigitSlot value={Math.ceil(view.cool)} sample={20} />s
             </span>
-            <span className={show("PULSE READY") ? undefined : "is-reserve"} aria-hidden={show("PULSE READY") ? undefined : true}>
-              PULSE READY
+            <span className={show(tx("ui.GameApp.pulse-ready")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.pulse-ready")) ? undefined : true}>
+              {tx("ui.GameApp.pulse-ready")}
             </span>
-            <span className={show("LAUNCH ON UNPAUSE") ? undefined : "is-reserve"} aria-hidden={show("LAUNCH ON UNPAUSE") ? undefined : true}>
-              LAUNCH ON UNPAUSE
+            <span className={show(tx("ui.GameApp.launch-on-unpause")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.launch-on-unpause")) ? undefined : true}>
+              {tx("ui.GameApp.launch-on-unpause")}
             </span>
-            <span className={show("DRONE STUNNED") ? undefined : "is-reserve"} aria-hidden={show("DRONE STUNNED") ? undefined : true}>
-              DRONE STUNNED
+            <span className={show(tx("ui.GameApp.drone-stunned")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.drone-stunned")) ? undefined : true}>
+              {tx("ui.GameApp.drone-stunned")}
             </span>
-            <span className={show("DRONE HELD") ? undefined : "is-reserve"} aria-hidden={show("DRONE HELD") ? undefined : true}>
-              DRONE HELD
+            <span className={show(tx("ui.GameApp.drone-held")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.drone-held")) ? undefined : true}>
+              {tx("ui.GameApp.drone-held")}
             </span>
             <span className={status.startsWith("DRONE INBOUND ") ? undefined : "is-reserve"} aria-hidden={status.startsWith("DRONE INBOUND ") ? undefined : true}>
-              DRONE INBOUND <DigitSlot value={Math.round(view.progress * 100)} sample={100} />%
+              {tx("ui.GameApp.drone-inbound-2")}<DigitSlot value={Math.round(view.progress * 100)} sample={100} />%
             </span>
-            <span className={show("NO POWER") ? undefined : "is-reserve"} aria-hidden={show("NO POWER") ? undefined : true}>
-              NO POWER
+            <span className={show(tx("ui.GameApp.no-power")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.no-power")) ? undefined : true}>
+              {tx("ui.GameApp.no-power")}
             </span>
-            <span className={show("NO DRONE PARTS") ? undefined : "is-reserve"} aria-hidden={show("NO DRONE PARTS") ? undefined : true}>
-              NO DRONE PARTS
+            <span className={show(tx("ui.GameApp.no-drone-parts")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.no-drone-parts")) ? undefined : true}>
+              {tx("ui.GameApp.no-drone-parts")}
             </span>
-            <span className={show("ZOLTAN SHIELD UP") ? undefined : "is-reserve"} aria-hidden={show("ZOLTAN SHIELD UP") ? undefined : true}>
-              ZOLTAN SHIELD UP
+            <span className={show(tx("ui.GameApp.zoltan-shield-up")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.zoltan-shield-up")) ? undefined : true}>
+              {tx("ui.GameApp.zoltan-shield-up")}
             </span>
-            <span className={show("TARGET CLOAKED") ? undefined : "is-reserve"} aria-hidden={show("TARGET CLOAKED") ? undefined : true}>
-              TARGET CLOAKED
+            <span className={show(tx("ui.GameApp.target-cloaked")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.target-cloaked")) ? undefined : true}>
+              {tx("ui.GameApp.target-cloaked")}
             </span>
-            <span className={show("LAUNCH READY") ? undefined : "is-reserve"} aria-hidden={show("LAUNCH READY") ? undefined : true}>
-              LAUNCH READY
+            <span className={show(tx("ui.GameApp.launch-ready")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.launch-ready")) ? undefined : true}>
+              {tx("ui.GameApp.launch-ready")}
             </span>
-            <span className={show("DRONE ATTACHED") ? undefined : "is-reserve"} aria-hidden={show("DRONE ATTACHED") ? undefined : true}>
-              DRONE ATTACHED
+            <span className={show(tx("ui.GameApp.drone-attached")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.drone-attached")) ? undefined : true}>
+              {tx("ui.GameApp.drone-attached")}
             </span>
-            <span className={show("STANDBY") ? undefined : "is-reserve"} aria-hidden={show("STANDBY") ? undefined : true}>
-              STANDBY
+            <span className={show(tx("ui.GameApp.standby")) ? undefined : "is-reserve"} aria-hidden={show(tx("ui.GameApp.standby")) ? undefined : true}>
+              {tx("ui.GameApp.standby")}
             </span>
           </span>
           <i
@@ -1818,7 +1819,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
           <span className="hack-card-row line-stack">
             <span className="hack-card-target is-reserve" aria-hidden="true">
               <PixelIcon name="target" size={12} />
-              Backup Battery
+              {tx("ui.GameApp.backup-battery")}
               <em>in flight</em>
             </span>
             {(view.state === "queued" || view.state === "flying") && view.label ? (
@@ -1834,7 +1835,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
                 <em>locked</em>
               </span>
             ) : (
-              <span className={`hack-card-cost${view.parts < 1 ? " is-short" : ""}`} title="Each launch costs one drone part">
+              <span className={`hack-card-cost${view.parts < 1 ? " is-short" : ""}`} title={tx("ui.GameApp.each-launch-costs-one-drone-part")}>
                 <PixelIcon name="parts" size={12} />1 of {view.parts}
               </span>
             )}
@@ -1842,13 +1843,13 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
         </div>
       ) : null}
       <span className="hack-power">
-        <button type="button" aria-label="Remove power from Hacking" title="Remove power" disabled={view.power <= 0} onClick={() => act((g) => lowerSpikePower(g))}>
+        <button type="button" aria-label={tx("ui.GameApp.remove-power-from-hacking")} title={tx("ui.GameApp.remove-power")} disabled={view.power <= 0} onClick={() => act((g) => lowerSpikePower(g))}>
           <PixelIcon name="minus" size={12} />
         </button>
         <button
           type="button"
-          aria-label="Add power to Hacking"
-          title="Add power"
+          aria-label={tx("ui.GameApp.add-power-to-hacking")}
+          title={tx("ui.GameApp.add-power")}
           disabled={view.power >= view.level || sparePower(game.player) < 1}
           onClick={() => act((g) => raiseSpikePower(g))}
         >
@@ -1952,7 +1953,7 @@ function PowerOrb({ icon, label, onUp, onDown }: { icon: IconName; label: string
       type="button"
       className="sys-orb"
       title={label}
-      aria-label={`${label}: add power (right-click removes)`}
+      aria-label={tx("ui.GameApp.add-power-right-click-removes", { label: label })}
       onPointerDown={(e) => armHold(e, onDown)}
       onClick={(e) => {
         if (swallowHoldClick(e)) return;
@@ -1986,7 +1987,7 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   const room = game.player.rooms.find((r) => r.id === roomId);
   if (!room || !hasRadialPower(game, roomId)) return null;
   const spare = (
-    <span className="spare-pip radial-spare" title="Reactor bars not assigned">
+    <span className="spare-pip radial-spare" title={tx("ui.GameApp.reactor-bars-not-assigned")}>
       <DigitSlot value={sparePower(game.player)} sample={29} />
     </span>
   );
@@ -2144,28 +2145,28 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
       </button>,
     );
   if (room.system === "doors") {
-    add("open", "Open all", <DoorAllIcon open />, () => act((g) => openAllDoors(g)), playerDoorsLocked(game));
-    add("close", "Close all", <DoorAllIcon />, () => act((g) => closeAllDoors(g)), playerDoorsLocked(game));
+    add("open", tx("ui.GameApp.open-all"), <DoorAllIcon open />, () => act((g) => openAllDoors(g)), playerDoorsLocked(game));
+    add("close", tx("ui.GameApp.close-all"), <DoorAllIcon />, () => act((g) => closeAllDoors(g)), playerDoorsLocked(game));
   }
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
   if (kitId && kit) {
     const icon = <PixelIcon name={kitId} size={14} />;
     const idle = !kit.on && kit.cool <= 0;
-    if (kitId === "veil") add("veil", kit.on ? "Cloaked" : "Cloak", icon, () => act((g) => startVeil(g)), !idle || kitBars(kit) < 1);
-    if (kitId === "cell") add("cell", kit.on ? "Boosting" : "Boost", icon, () => act((g) => startCell(g)), !idle);
+    if (kitId === "veil") add("veil", kit.on ? tx("ui.GameApp.cloaked-2") : tx("ui.GameApp.cloak"), icon, () => act((g) => startVeil(g)), !idle || kitBars(kit) < 1);
+    if (kitId === "cell") add("cell", kit.on ? tx("ui.GameApp.boosting") : tx("ui.GameApp.boost"), icon, () => act((g) => startCell(g)), !idle);
     if (kitId === "sling") {
       const away = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
-      add("sling", away ? "Recall" : "Send", icon, () => {
+      add("sling", away ? tx("ui.GameApp.recall") : tx("ui.GameApp.send"), icon, () => {
         if (!away) close();
         slingIconClick();
       }, kit.cool > 0 || kitBars(kit) < 1 || (!away && !game.enemy));
     }
-    if (kitId === "leash") add("leash", "Mind control", icon, () => {
+    if (kitId === "leash") add("leash", tx("ui.GameApp.mind-control-2"), icon, () => {
       close();
       leashIconClick();
     }, !idle || kitBars(kit) < 1 || !game.enemy);
-    if (kitId === "spike") add("spike", "Hack", icon, () => {
+    if (kitId === "spike") add("spike", tx("ui.GameApp.hack"), icon, () => {
       close();
       hackIconClick();
     }, !playerHackView(game) || !game.enemy);
@@ -2177,10 +2178,10 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
 function StepButtons({ label, onUp, onDown }: { label: string; onUp: () => void; onDown: () => void }) {
   return (
     <span className="radial-steps">
-      <button type="button" aria-label={`Add power to ${label}`} title="Add power" onClick={onUp}>
+      <button type="button" aria-label={tx("ui.GameApp.add-power-to", { label: label })} title={tx("ui.GameApp.add-power")} onClick={onUp}>
         <PixelIcon name="plus" size={12} />
       </button>
-      <button type="button" aria-label={`Remove power from ${label}`} title="Remove power" onClick={onDown}>
+      <button type="button" aria-label={tx("ui.GameApp.remove-power-from", { label: label })} title={tx("ui.GameApp.remove-power")} onClick={onDown}>
         <PixelIcon name="minus" size={12} />
       </button>
     </span>
@@ -2297,7 +2298,7 @@ function EventCard({ game }: { game: Game }) {
         <p>{event.body}</p>
         {offer ? (
           <>
-            <p className="surrender-sub">They offer:</p>
+            <p className="surrender-sub">{tx("ui.GameApp.they-offer")}</p>
             <LootChips scrap={offer.scrap} res={offer} />
             <OfferCards game={game} weapon={offer.weapon} crew={offer.crew} augment={offer.augment} drone={offer.drone} repairs={offer.repairs} />
           </>
@@ -2342,7 +2343,7 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
       note: kinLabel(c.kin),
       isNew: c.id === newest,
       locked:
-        c.id === item.keep ? "Just hired." : canDismiss(game, c.id) ? undefined : c.aboard !== "player" ? "Not aboard." : "Can't leave now.",
+        c.id === item.keep ? tx("ui.GameApp.just-hired") : canDismiss(game, c.id) ? undefined : c.aboard !== "player" ? tx("ui.GameApp.not-aboard") : tx("ui.GameApp.can-t-leave-now"),
     }));
   }
   // Per the user: a full rack and a full cargo hold: a fitted one of that kind, anything in cargo, or the new one.
@@ -2350,11 +2351,11 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
     key: `c:${i}`,
     name: c.kind === "weapon" ? (WEAPONS[c.id]?.name ?? c.id) : droneName(c.id),
     art: c.kind === "weapon" ? <WeaponArt id={c.id} height={30} /> : <DroneArt kind={droneKeyOf(c.id)} height={30} />,
-    note: "Cargo",
+    note: tx("ui.GameApp.cargo"),
   }));
   if (item.kind === "weapon") {
     return [
-      ...game.player.weapons.map((w) => ({ key: w.uid, name: WEAPONS[w.defId]?.name ?? w.defId, art: <WeaponArt id={w.defId} height={30} />, note: "Fitted" })),
+      ...game.player.weapons.map((w) => ({ key: w.uid, name: WEAPONS[w.defId]?.name ?? w.defId, art: <WeaponArt id={w.defId} height={30} />, note: tx("ui.GameApp.fitted") })),
       ...cargo,
       { key: "new", name: WEAPONS[item.id]?.name ?? item.id, art: <WeaponArt id={item.id} height={30} />, isNew: true },
     ];
@@ -2363,7 +2364,7 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
     const kit = game.player.kits.swarm;
     const have = kit ? (kit.loadout?.length ? kit.loadout : kit.target ? [kit.target] : []) : [];
     return [
-      ...have.map((ref, i) => ({ key: `d:${i}`, name: droneName(ref), art: <DroneArt kind={droneKeyOf(ref)} height={30} />, note: "Fitted" })),
+      ...have.map((ref, i) => ({ key: `d:${i}`, name: droneName(ref), art: <DroneArt kind={droneKeyOf(ref)} height={30} />, note: tx("ui.GameApp.fitted") })),
       ...cargo,
       { key: "new", name: droneName(item.id), art: <DroneArt kind={droneKeyOf(item.id)} height={30} />, isNew: true },
     ];
@@ -2376,11 +2377,11 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
 
 const ROOM_TEXT: Record<Overflow["kind"], [string, string]> = {
   // Augmentations: "you must choose one augment to leave behind without receiving any scrap value".
-  augment: ["No room for another augmentation", "A ship holds three. Pick one to leave behind. It gives no scrap."],
+  augment: [tx("ui.GameApp.no-room-for-another-augmentation"), tx("ui.GameApp.a-ship-holds-three-pick-one")],
   // Crew: "the game will require to relieve one of the crewmembers, be it the new one or from the existing crew."
-  crew: ["Too many crew aboard", "A ship holds eight. Pick one to relieve."],
-  weapon: ["No room for another weapon", "Every weapon slot and the cargo hold are full. Pick one to leave behind."],
-  drone: ["No room for another drone schematic", "Every schematic slot and the cargo hold are full. Pick one to leave behind."],
+  crew: [tx("ui.GameApp.too-many-crew-aboard"), tx("ui.GameApp.a-ship-holds-eight-pick-one")],
+  weapon: [tx("ui.GameApp.no-room-for-another-weapon"), tx("ui.GameApp.every-weapon-slot-and-the-cargo")],
+  drone: [tx("ui.GameApp.no-room-for-another-drone-schematic"), tx("ui.GameApp.every-schematic-slot-and-the-cargo")],
 };
 
 /**
@@ -2405,7 +2406,7 @@ function MakeRoomCard({ game, item }: { game: Game; item: Overflow }) {
       <article className="ftl-card make-room-card" aria-label={title}>
         <p className="event-lead">{title}</p>
         <p>{body}</p>
-        <div className="make-room-picks" role="radiogroup" aria-label="Leave behind">
+        <div className="make-room-picks" role="radiogroup" aria-label={tx("ui.GameApp.leave-behind")}>
           {picks.map((p) => (
             <button
               key={p.key}
@@ -2416,7 +2417,7 @@ function MakeRoomCard({ game, item }: { game: Game; item: Overflow }) {
               disabled={!!p.locked || locked}
               onClick={() => setPick(p.key)}
             >
-              {p.isNew ? <em className="make-room-new">NEW</em> : null}
+              {p.isNew ? <em className="make-room-new">{tx("ui.GameApp.new")}</em> : null}
               <span className="make-room-art">{p.art}</span>
               <b>{p.name}</b>
               {p.locked ? <span className="mini">{p.locked}</span> : p.note ? <span className="mini">{p.note}</span> : null}
@@ -2435,7 +2436,7 @@ function MakeRoomCard({ game, item }: { game: Game; item: Overflow }) {
             });
           }}
         >
-          {chosen ? `${item.kind === "crew" ? "Relieve" : "Leave behind"}: ${chosen.name}` : "Pick one to leave behind"}
+          {chosen ? `${item.kind === "crew" ? tx("ui.GameApp.relieve") : tx("ui.GameApp.leave-behind")}: ${chosen.name}` : tx("ui.GameApp.pick-one-to-leave-behind")}
         </button>
       </article>
     </div>
@@ -2456,7 +2457,7 @@ function RewardCard({ game }: { game: Game }) {
   return (
     <div className="modal-layer">
       <article className="ftl-card">
-        <p>{reward.note || "The buoy is quiet."}</p>
+        <p>{reward.note || tx("ui.GameApp.the-buoy-is-quiet")}</p>
         {reward.res ? (
           <LootChips scrap={reward.scrap} res={reward.res} />
         ) : (
@@ -2475,7 +2476,7 @@ function RewardCard({ game }: { game: Game }) {
             act((g) => continueReward(g));
           }}
         >
-          1. Continue...
+          {tx("ui.GameApp.1-continue")}
         </button>
       </article>
     </div>
@@ -2515,22 +2516,22 @@ function OfferCards({
     <div className="offer-cards">
       {weapon ? (
         <section className="offer-card" data-offer="weapon">
-          <p className="offer-kind">Weapon</p>
+          <p className="offer-kind">{tx("ui.GameApp.weapon")}</p>
           <span className="offer-art">
             <WeaponArt id={weapon} height={34} />
           </span>
           <b className="offer-name">{def?.name ?? weapon}</b>
           {def ? (
             <span className="cargo-stats">
-              <span title="Power">
+              <span title={tx("ui.GameApp.power")}>
                 <PixelIcon name="weapons" size={12} />
                 {def.power}
               </span>
-              <span title="Charge time">{def.charge}s</span>
-              {def.damage > 0 ? <span title="Damage per shot">{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
-              {def.ion > 0 ? <span title="Ion">{def.ion} ion</span> : null}
+              <span title={tx("ui.GameApp.charge-time")}>{def.charge}s</span>
+              {def.damage > 0 ? <span title={tx("ui.GameApp.damage-per-shot")}>{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
+              {def.ion > 0 ? <span title={tx("ui.GameApp.ion-2")}>{def.ion} ion</span> : null}
               {def.ammo ? (
-                <span title="Uses a missile">
+                <span title={tx("ui.GameApp.uses-a-missile")}>
                   <PixelIcon name="missile" size={12} />
                 </span>
               ) : null}
@@ -2539,62 +2540,62 @@ function OfferCards({
           {def?.blurb ? <span className="offer-note">{def.blurb}</span> : null}
           {rackFull ? (
             <span className="offer-warn">
-              {cargoOf(game).length < CARGO_SLOTS ? "No free weapon slot: it goes to cargo." : "No room in cargo: you pick what to leave behind."}
+              {cargoOf(game).length < CARGO_SLOTS ? tx("ui.GameApp.no-free-weapon-slot-it-goes") : tx("ui.GameApp.no-room-in-cargo-you-pick")}
             </span>
           ) : null}
         </section>
       ) : null}
       {crew && kin && k ? (
         <section className="offer-card" data-offer="crew">
-          <p className="offer-kind">Crewmember</p>
+          <p className="offer-kind">{tx("ui.GameApp.crewmember")}</p>
           <span className="offer-art offer-face">
             <CrewSprite kin={kin} uniform={UNIFORMS[0]} size={44} />
           </span>
           <b className="offer-name">{crew}</b>
           <span className="cargo-stats">
-            <span title="Health">{k.hp} HP</span>
-            {k.repair !== 1 ? <span title="Repair speed">repair {pct(k.repair)}</span> : null}
-            {k.fight !== 1 ? <span title="Combat damage">combat {pct(k.fight)}</span> : null}
-            {k.move !== 1 ? <span title="Movement speed">move {pct(k.move)}</span> : null}
+            <span title={tx("ui.GameApp.health")}>{k.hp}{tx("ui.GameApp.hp")}</span>
+            {k.repair !== 1 ? <span title={tx("ui.GameApp.repair-speed")}>repair {pct(k.repair)}</span> : null}
+            {k.fight !== 1 ? <span title={tx("ui.GameApp.combat-damage")}>combat {pct(k.fight)}</span> : null}
+            {k.move !== 1 ? <span title={tx("ui.GameApp.movement-speed")}>move {pct(k.move)}</span> : null}
           </span>
-          {crewFull ? <span className="offer-warn">Crew is full (8): you pick who is relieved.</span> : null}
+          {crewFull ? <span className="offer-warn">{tx("ui.GameApp.crew-is-full-8-you-pick")}</span> : null}
         </section>
       ) : null}
       {augment ? (
         <section className="offer-card" data-offer="augment">
-          <p className="offer-kind">Augmentation</p>
+          <p className="offer-kind">{tx("ui.GameApp.augmentation")}</p>
           <span className="offer-art">
             <PixelIcon name="upgrade" size={30} />
           </span>
           <b className="offer-name">{augmentName(augment)}</b>
           <span className="offer-note">{augmentDetail(augment)}</span>
-          {augFate === "scrap" ? <span className="offer-warn">Already fitted: 25 scrap instead.</span> : null}
-          {augFate === "full" ? <span className="offer-warn">No free augmentation slot: you pick what to leave behind.</span> : null}
+          {augFate === "scrap" ? <span className="offer-warn">{tx("ui.GameApp.already-fitted-25-scrap-instead")}</span> : null}
+          {augFate === "full" ? <span className="offer-warn">{tx("ui.GameApp.no-free-augmentation-slot-you-pick")}</span> : null}
         </section>
       ) : null}
       {drone ? (
         <section className="offer-card" data-offer="drone">
-          <p className="offer-kind">Drone schematic</p>
+          <p className="offer-kind">{tx("ui.GameApp.drone-schematic")}</p>
           <span className="offer-art">
             <DroneArt kind={droneKey} height={34} />
           </span>
           <b className="offer-name">{droneName(drone)}</b>
           {!canFieldDrone(game, drone) ? (
             <span className="offer-warn">
-              {cargoOf(game).length < CARGO_SLOTS ? "No free schematic slot: it goes to cargo." : "No room in cargo: you pick what to leave behind."}
+              {cargoOf(game).length < CARGO_SLOTS ? tx("ui.GameApp.no-free-schematic-slot-it-goes") : tx("ui.GameApp.no-room-in-cargo-you-pick")}
             </span>
           ) : null}
         </section>
       ) : null}
       {repairs ? (
         <section className="offer-card" data-offer="repairs">
-          <p className="offer-kind">Hull repairs</p>
+          <p className="offer-kind">{tx("ui.GameApp.hull-repairs")}</p>
           <span className="offer-art">
             <PixelIcon name="ship" size={30} />
           </span>
           <b className="offer-name">+{repairs} hull</b>
           <span className="offer-note">
-            Hull {game.player.hull} → {Math.min(game.player.hullMax, game.player.hull + repairs)} of {game.player.hullMax}.
+            {tx("ui.GameApp.hull-2")}{game.player.hull} → {Math.min(game.player.hullMax, game.player.hull + repairs)} of {game.player.hullMax}.
           </span>
         </section>
       ) : null}
@@ -2605,10 +2606,10 @@ function OfferCards({
 /** @agent:surrender. Scrap plus fuel, missiles and drone parts, one chip each, zero amounts left out. */
 function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missiles?: number; parts?: number } }) {
   const items: [IconName, number, string][] = [
-    ["scrap", scrap, "Scrap"],
-    ["fuel", res.fuel ?? 0, "Fuel"],
-    ["missile", res.missiles ?? 0, "Missiles"],
-    ["parts", res.parts ?? 0, "Drone parts"],
+    ["scrap", scrap, tx("ui.GameApp.scrap")],
+    ["fuel", res.fuel ?? 0, tx("ui.GameApp.fuel")],
+    ["missile", res.missiles ?? 0, tx("ui.GameApp.missiles")],
+    ["parts", res.parts ?? 0, tx("ui.GameApp.drone-parts")],
   ];
   return (
     <div className="loot-row">
@@ -2634,9 +2635,9 @@ function FastButton() {
     <button
       type="button"
       className={`frame-btn pause-btn fast-btn${on ? " is-on" : ""}`}
-      aria-label={on ? "Normal speed" : "Fast forward"}
+      aria-label={on ? tx("ui.GameApp.normal-speed") : tx("ui.GameApp.fast-forward")}
       aria-pressed={on}
-      title={on ? "Normal speed (F)" : `Fast forward ×${FAST_SPEED} (F)`}
+      title={on ? tx("ui.GameApp.normal-speed-f") : tx("ui.GameApp.fast-forward-f", { FAST_SPEED: FAST_SPEED })}
       onClick={() => useFast.setState({ on: !on })}
     >
       <PixelIcon name="fast" size={34} />
@@ -2648,9 +2649,9 @@ function FastButton() {
 function PauseStamp() {
   const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   return (
-    <button type="button" className="pause-mark" aria-label="Resume" onClick={() => act((g) => togglePause(g))}>
-      <strong>PAUSED</strong>
-      <span>{touch ? "Tap to resume" : "Press SPACE or click to resume"}</span>
+    <button type="button" className="pause-mark" aria-label={tx("ui.GameApp.resume")} onClick={() => act((g) => togglePause(g))}>
+      <strong>{tx("ui.GameApp.paused")}</strong>
+      <span>{touch ? tx("ui.GameApp.tap-to-resume") : tx("ui.GameApp.press-space-or-click-to-resume")}</span>
     </button>
   );
 }
@@ -2782,38 +2783,33 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="title-panel credits-panel has-x" onClick={(e) => e.stopPropagation()}>
       <CloseX onClose={onClose} />
-      <p>CREDITS</p>
+      <p>{tx("ui.GameApp.credits")}</p>
       <div className="credits-body">
         <section>
-          <h3>Development</h3>
-          <p>Slava Knyazev ({link(AUTHOR_URL, "knyazev.io/ftl")})</p>
+          <h3>{tx("ui.GameApp.development")}</h3>
+          <p>{tx("ui.GameApp.slava-knyazev")}{link(AUTHOR_URL, "knyazev.io/ftl")})</p>
         </section>
         <section>
-          <h3>About</h3>
+          <h3>{tx("ui.GameApp.about")}</h3>
           <p>
-            STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated
-            with or endorsed by Subset Games.
+            {tx("ui.GameApp.stl-slower-than-light-is-a")}
           </p>
           <p>
-            It is a clean-room implementation: the game was written from scratch from publicly available documentation of
-            how FTL plays. It contains no code, art, music or sound from FTL.
+            {tx("ui.GameApp.it-is-a-clean-room-implementation")}
           </p>
         </section>
         <section>
-          <h3>FTL Wiki (CC BY-SA 3.0)</h3>
+          <h3>{tx("ui.GameApp.ftl-wiki-cc-by-sa-3")}</h3>
           <p>
-            Game rules, numbers and event text are adapted from the {link(WIKI_URL, "FTL: Faster Than Light Wiki")} on
-            Fandom, by its contributors (see each page's history), used under the{" "}
-            {link(CC_BY_SA_URL, "Creative Commons Attribution-ShareAlike 3.0")} licence. The material was changed:
-            condensed, reworded in places and turned into game logic.
+            {tx("ui.GameApp.game-rules-numbers-and-event-text")}{link(WIKI_URL, tx("ui.GameApp.ftl-faster-than-light-wiki"))}{tx("ui.GameApp.on-fandom-by-its-contributors-see")}{" "}
+            {link(CC_BY_SA_URL, tx("ui.GameApp.creative-commons-attribution-sharealike-3-0"))}{tx("ui.GameApp.licence-the-material-was-changed-condensed")}
           </p>
           <p>
-            That adapted material is shared under the same licence, CC BY-SA 3.0, and is available without restriction in
-            the project's source repository ({link(SOURCE_URL, "github.com/vezaynk/slower-than-light")}).
+            {tx("ui.GameApp.that-adapted-material-is-shared-under")}{link(SOURCE_URL, "github.com/vezaynk/slower-than-light")}).
           </p>
         </section>
       </div>
-      <p className="credits-version">v. 0.1</p>
+      <p className="credits-version">{tx("ui.GameApp.v-0-1")}</p>
     </div>
   );
 }
@@ -2823,7 +2819,7 @@ function PlayableShips({ onOpen, onTitle }: { onOpen: (page: string) => void; on
   const ships = PLAYABLE_SHIPS;
   return (
     <article className="wiki-doc">
-      <button type="button" className="title-figure-hit" aria-label="FTL" onClick={onTitle}>
+      <button type="button" className="title-figure-hit" aria-label={tx("ui.GameApp.ftl")} onClick={onTitle}>
         <PixelTitle />
       </button>
       <h1>{ships.heading}</h1>
@@ -2943,10 +2939,10 @@ function WikiLines({ lines, onRun }: { lines: WikiLine[]; onRun: () => void }) {
 }
 
 function beaconMark(b: { quest?: string; resolved: boolean; kind: string; name: string; flag: string }): string {
-  if (b.quest && !b.resolved) return "QUEST";
-  if (b.kind === "store") return "STORE";
-  if (b.kind === "exit") return "EXIT";
-  if (b.kind === "distress" || /distress/i.test(`${b.name} ${b.flag}`)) return "DISTRESS";
+  if (b.quest && !b.resolved) return tx("ui.GameApp.quest");
+  if (b.kind === "store") return tx("ui.GameApp.store");
+  if (b.kind === "exit") return tx("ui.GameApp.exit");
+  if (b.kind === "distress" || /distress/i.test(`${b.name} ${b.flag}`)) return tx("ui.GameApp.distress");
   return "";
 }
 
@@ -2993,7 +2989,7 @@ function MapScreen({ game }: { game: Game }) {
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
     <section className="sector-map beacon-map has-x">
-      <h2>BEACON MAP</h2>
+      <h2>{tx("ui.GameApp.beacon-map")}</h2>
       <CloseX
         onClose={() =>
           act((g) => {
@@ -3007,22 +3003,22 @@ function MapScreen({ game }: { game: Game }) {
       {game.phase === "map" && game.fuel <= 0 ? (
         <div className="map-wait">
           <button type="button" className="map-wait-btn" onClick={() => act((g) => waitHere(g))}>
-            WAIT
+            {tx("ui.GameApp.wait")}
           </button>
           <button
             type="button"
             role="switch"
             aria-checked={game.distress !== false}
             className={`map-distress${game.distress !== false ? " is-on" : ""}`}
-            title="A distress beacon draws ships, hostile or friendly, while you wait."
+            title={tx("ui.GameApp.a-distress-beacon-draws-ships-hostile")}
             onClick={() =>
               act((g) => {
                 g.distress = g.distress === false;
               })
             }
           >
-            <span>DISTRESS</span>
-            <b>{game.distress !== false ? "ON" : "OFF"}</b>
+            <span>{tx("ui.GameApp.distress")}</span>
+            <b>{game.distress !== false ? tx("ui.GameApp.on") : tx("ui.GameApp.off")}</b>
           </button>
         </div>
       ) : null}
@@ -3079,7 +3075,7 @@ function MapScreen({ game }: { game: Game }) {
           </svg>
           {warn && warnX > 0.03 ? (
             <span className="fleet-warn-tag" style={{ left: pct(warnX), top: pct(warnY) }}>
-              WARNING
+              {tx("ui.GameApp.warning-2")}
             </span>
           ) : null}
           {here ? (
@@ -3101,7 +3097,7 @@ function MapScreen({ game }: { game: Game }) {
             // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
             // Not the current beacon. Live from the fitted scanners; selling them hides the marks.
             const scan = here && !isHere && game.augments.includes("glass") && here.links.includes(b.id) ? scanMark(game, b) : null;
-            const bits = scan ? [scan.ship ? "SHIP" : "", scan.hazard ? "HAZARD" : ""].filter(Boolean) : [];
+            const bits = scan ? [scan.ship ? tx("ui.GameApp.ship-2") : "", scan.hazard ? tx("ui.GameApp.hazard") : ""].filter(Boolean) : [];
             // A label sits above its beacon, or below it near the top edge, always centred on it.
             const below = by < 0.22;
             return (
@@ -3111,7 +3107,7 @@ function MapScreen({ game }: { game: Game }) {
                     type="button"
                     className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
                     disabled={!open || (game.phase === "combat" && game.flee < 1)}
-                    aria-label={tag || "Beacon"}
+                    aria-label={tag || tx("ui.GameApp.beacon")}
                     onClick={() => act((g) => commitJump(g, b.id))}
                   />
                 )}
@@ -3120,19 +3116,19 @@ function MapScreen({ game }: { game: Game }) {
               </div>
             );
           })}
-          {game.fuel < 1 ? <p className="no-fuel">NO FUEL</p> : null}
+          {game.fuel < 1 ? <p className="no-fuel">{tx("ui.GameApp.no-fuel")}</p> : null}
         </div>
       </div>
       <div className="sector-key beacon-foot">
-        <span>SECTOR {game.sector}</span>
+        <span>{tx("ui.GameApp.sector")}{game.sector}</span>
         {named ? <span>{named}</span> : null}
-        {here && beaconMark(here) === "DISTRESS" ? <span>DISTRESS BEACON</span> : null}
+        {here && beaconMark(here) === "DISTRESS" ? <span>{tx("ui.GameApp.distress-beacon")}</span> : null}
         <span className="beacon-legend">
-          <span><i className="key-beacon is-linked" />Jump</span>
-          <span><i className="key-beacon" />Beacon</span>
-          <span><i className="key-beacon is-visited" />Visited</span>
-          <span><i className="key-beacon is-over" />Fleet</span>
-          {warn ? <span><i className="key-beacon is-warn" />Next jump</span> : null}
+          <span><i className="key-beacon is-linked" />{tx("ui.GameApp.jump-2")}</span>
+          <span><i className="key-beacon" />{tx("ui.GameApp.beacon")}</span>
+          <span><i className="key-beacon is-visited" />{tx("ui.GameApp.visited")}</span>
+          <span><i className="key-beacon is-over" />{tx("ui.GameApp.fleet")}</span>
+          {warn ? <span><i className="key-beacon is-warn" />{tx("ui.GameApp.next-jump")}</span> : null}
         </span>
       </div>
     </section>
@@ -3151,7 +3147,7 @@ function SectorChart({ game }: { game: Game }) {
   const pct = (n: number, total: number) => `${(n / total) * 100}%`;
   return (
     <section className="sector-map">
-      <h2>SECTOR MAP</h2>
+      <h2>{tx("ui.GameApp.sector-map")}</h2>
       <div className="sector-board">
         <div className="sector-plot" style={{ aspectRatio: `${w} / ${h}`, ["--aspect" as string]: w / h }}>
           <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
@@ -3206,15 +3202,15 @@ function SectorChart({ game }: { game: Game }) {
       <div className="sector-key">
         <span>
           <i className="dot dot-civilian" />
-          Civilian
+          {tx("ui.GameApp.civilian")}
         </span>
         <span>
           <i className="dot dot-hostile" />
-          Hostile
+          {tx("ui.GameApp.hostile")}
         </span>
         <span>
           <i className="dot dot-nebula" />
-          Nebula
+          {tx("ui.GameApp.nebula")}
         </span>
       </div>
       <div className="sector-picks">
@@ -3234,14 +3230,14 @@ function Manual({ onClose }: { onClose: () => void }) {
     <div className="overlay">
       <article className="sheet manual ftl-sheet has-x">
         <CloseX onClose={onClose} />
-        <p className="kicker">Manual</p>
+        <p className="kicker">{tx("ui.GameApp.manual")}</p>
         <div className="manual-body">
-          <h3>Getting out</h3>
+          <h3>{tx("ui.GameApp.getting-out")}</h3>
           <ul>
-            <li>Fuel starts at 16. Every jump, including a retreat, burns 1. A store sells fuel. Scrap starts at 10.</li>
-            <li>The hangar launches the cruiser layouts whose wiki pages listed a loadout. Pictures from those pages are not used.</li>
-            <li>Sector 8 is the Flagship. It moves every two of your jumps.</li>
-            <li>Space pauses. Number keys arm a weapon, or pick a numbered choice. M mutes. U opens upgrades. I opens inventory. Click a weapon's number to give its power back. Right-click a room to send the selected crew. Drag or Shift-click to select several. Q selects every crew member, and F1–F8 select one. X closes every door. / saves stations and Return sends them back.</li>
+            <li>{tx("ui.GameApp.fuel-starts-at-16-every-jump")}</li>
+            <li>{tx("ui.GameApp.the-hangar-launches-the-cruiser-layouts")}</li>
+            <li>{tx("ui.GameApp.sector-8-is-the-flagship-it")}</li>
+            <li>{tx("ui.GameApp.space-pauses-number-keys-arm-a")}</li>
           </ul>
         </div>
       </article>
@@ -3250,23 +3246,23 @@ function Manual({ onClose }: { onClose: () => void }) {
 }
 
 const SKILL_LABEL: Record<SkillName, string> = {
-  pilot: "Piloting",
-  engines: "Engines",
-  weapons: "Weapons",
-  shields: "Shields",
-  repair: "Repair",
-  combat: "Combat",
+  pilot: tx("ui.GameApp.piloting"),
+  engines: tx("ui.GameApp.engines"),
+  weapons: tx("ui.GameApp.weapons-2"),
+  shields: tx("ui.GameApp.shields-2"),
+  repair: tx("ui.GameApp.repair"),
+  combat: tx("ui.GameApp.combat"),
 };
 
 const UPGRADE_SYS_NAME: Record<SysId, string> = {
-  shields: "Shields",
-  engines: "Engines",
-  oxygen: "Oxygen",
-  medbay: "Medbay",
-  weapons: "Weapon Control",
-  pilot: "Piloting",
-  sensors: "Sensors",
-  doors: "Door System",
+  shields: tx("ui.GameApp.shields-2"),
+  engines: tx("ui.GameApp.engines"),
+  oxygen: tx("ui.GameApp.oxygen"),
+  medbay: tx("ui.GameApp.medbay"),
+  weapons: tx("ui.GameApp.weapon-control"),
+  pilot: tx("ui.GameApp.piloting"),
+  sensors: tx("ui.GameApp.sensors"),
+  doors: tx("ui.GameApp.door-system"),
 };
 
 type UpgradeRow = {
@@ -3298,10 +3294,10 @@ function upgradeRows(game: Game): UpgradeRow[] {
   const reactorCost = upgradeCost("reactor", game.player.reactor);
   rows.push({
     key: "reactor",
-    name: "Reactor",
+    name: tx("ui.GameApp.reactor"),
     level: game.player.reactor,
     max: 25,
-    effect: reactorCost != null ? upgradeBlurb("reactor", game.player.reactor) : "Cap 25.",
+    effect: reactorCost != null ? upgradeBlurb("reactor", game.player.reactor) : tx("ui.GameApp.cap-25"),
     cost: reactorCost,
     buy: reactorCost != null ? (g) => upgrade(g, "reactor") : null,
     subsystem: false,
@@ -3357,7 +3353,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
       fitted(
         "cradle",
         cradleUpgradeCost,
-        kit.level === 1 ? "Clone in 9 sec. 16 HP per jump." : "Clone in 7 sec. 25 HP per jump.",
+        kit.level === 1 ? tx("ui.GameApp.clone-in-9-sec-16-hp") : tx("ui.GameApp.clone-in-7-sec-25-hp"),
         (g) => upgradeCradle(g),
       );
     }
@@ -3369,7 +3365,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
       fitted(
         "sling",
         slingUpgradeCost,
-        kit.level === 1 ? "15 sec cooldown." : "10 sec cooldown.",
+        kit.level === 1 ? tx("ui.GameApp.15-sec-cooldown") : tx("ui.GameApp.10-sec-cooldown"),
         (g) => upgradeSling(g),
       );
     }
@@ -3377,7 +3373,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
   {
     const kit = game.player.kits.veil;
     if (kit) {
-      fitted("veil", veilUpgradeCost, kit.level === 1 ? "10 sec." : "15 sec.", (g) => upgradeVeil(g));
+      fitted("veil", veilUpgradeCost, kit.level === 1 ? tx("ui.GameApp.10-sec") : tx("ui.GameApp.15-sec"), (g) => upgradeVeil(g));
     }
   }
   {
@@ -3386,7 +3382,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
       fitted(
         "leash",
         (l) => LEASH_UPGRADE[l + 1] ?? null,
-        kit.level === 1 ? "+15 health, +25% combat damage, 20 sec." : "+30 health, +100% combat damage, 28 sec.",
+        kit.level === 1 ? tx("ui.GameApp.15-health-25-combat-damage-20") : tx("ui.GameApp.30-health-100-combat-damage-28"),
         (g) => upgradeLeash(g),
       );
     }
@@ -3395,7 +3391,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     const kit = game.player.kits.lance;
     if (kit) {
       const next = kit.level + 1;
-      fitted("lance", lanceUpgradeCost, LANCE_CHARGE[next] != null ? `${LANCE_CHARGE[next]} sec charge.` : "", (g) => upgradeLance(g));
+      fitted("lance", lanceUpgradeCost, LANCE_CHARGE[next] != null ? tx("ui.GameApp.sec-charge", { v: LANCE_CHARGE[next] }) : "", (g) => upgradeLance(g));
     }
   }
   {
@@ -3403,7 +3399,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
     if (kit) {
       const next = kit.level + 1;
       const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
-      fitted("flak", flakUpgradeCost, seconds != null ? `${seconds} sec charge.` : "", (g) => upgradeFlak(g));
+      fitted("flak", flakUpgradeCost, seconds != null ? tx("ui.GameApp.sec-charge-2", { seconds: seconds }) : "", (g) => upgradeFlak(g));
     }
   }
   {
@@ -3412,7 +3408,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
       fitted(
         "spike",
         spikeUpgradeCost,
-        kit.level === 1 ? "7 sec pulse." : "10 sec pulse.",
+        kit.level === 1 ? tx("ui.GameApp.7-sec-pulse") : tx("ui.GameApp.10-sec-pulse"),
         (g) => upgradeSpike(g),
       );
     }
@@ -3424,7 +3420,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
   sys("doors");
   {
     const kit = game.player.kits.cell;
-    if (kit) fitted("cell", cellUpgradeCost, "4 temporary power bars.", (g) => upgradeCell(g), true);
+    if (kit) fitted("cell", cellUpgradeCost, tx("ui.GameApp.4-temporary-power-bars"), (g) => upgradeCell(g), true);
   }
   return rows;
 }
@@ -3467,7 +3463,7 @@ function ShipSheet({ game }: { game: Game }) {
         <div
           className="ship-tabs"
           role="tablist"
-          aria-label="Ship"
+          aria-label={tx("ui.GameApp.ship")}
           onKeyDown={(e) => {
             if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
             e.preventDefault();
@@ -3535,8 +3531,8 @@ function ReactorTotal({ game }: { game: Game }) {
   const owned = Math.max(0, Math.min(REACTOR_CAP, game.player.reactor));
   const cost = upgradeCost("reactor", game.player.reactor);
   return (
-    <section className="reactor-total" aria-label={`Reactor, ${owned} of ${REACTOR_CAP} power bars`}>
-      <p className="reactor-total-title">Reactor</p>
+    <section className="reactor-total" aria-label={tx("ui.GameApp.reactor-of-power-bars", { owned: owned, REACTOR_CAP: REACTOR_CAP })}>
+      <p className="reactor-total-title">{tx("ui.GameApp.reactor")}</p>
       <div className="reactor-total-grid">
         {Array.from({ length: REACTOR_COLS }, (_, col) => (
           <span key={col} className="reactor-total-col">
@@ -3575,7 +3571,7 @@ function BuyButton({
   upgradeKey: string;
   onBuy: (() => void) | null;
 }) {
-  if (cost == null || !onBuy) return <span className="upg-max">MAX</span>;
+  if (cost == null || !onBuy) return <span className="upg-max">{tx("ui.GameApp.max")}</span>;
   const short = game.scrap < cost;
   return (
     <button
@@ -3583,8 +3579,8 @@ function BuyButton({
       className={`upg-buy${short ? " is-short" : ""}`}
       data-upgrade={upgradeKey}
       disabled={short}
-      aria-label={`Upgrade ${name} for ${cost} scrap`}
-      title={short ? `Needs ${cost - game.scrap} more scrap` : `Upgrade for ${cost} scrap`}
+      aria-label={tx("ui.GameApp.upgrade-for-scrap", { name: name, cost: cost })}
+      title={short ? tx("ui.GameApp.needs-more-scrap", { v: cost - game.scrap }) : tx("ui.GameApp.upgrade-for-scrap-2", { cost: cost })}
       onClick={onBuy}
     >
       <PixelIcon name="scrap" size={14} />
@@ -3603,7 +3599,7 @@ function UpgradeCard({ game, row }: { game: Game; row: UpgradeRow }) {
     <section
       className="reactor-total upgrade-card"
       data-upgrade-card={row.key}
-      aria-label={`${row.name}, level ${row.level} of ${top}`}
+      aria-label={tx("ui.GameApp.level-of", { name: row.name, level: row.level, top: top })}
     >
       <p className="reactor-total-title upgrade-card-title">
         {row.icon ? <PixelIcon name={row.icon} size={18} /> : null}
@@ -3642,7 +3638,7 @@ function UpgradeList({ game }: { game: Game }) {
   return (
     <div className="upgrade-list">
       <section className="sheet-group">
-        <h3 className="sheet-group-head">Reactor &amp; systems</h3>
+        <h3 className="sheet-group-head">{tx("ui.GameApp.reactor-systems")}</h3>
         <div className="upgrade-cards">
           <ReactorTotal game={game} />
           {systems.map((row) => (
@@ -3653,7 +3649,7 @@ function UpgradeList({ game }: { game: Game }) {
       {subsystems.length ? (
         <section className="sheet-group">
           <h3 className="sheet-group-head">
-            Subsystems <span className="mini">No reactor power needed.</span>
+            {tx("ui.GameApp.subsystems-2")}<span className="mini">{tx("ui.GameApp.no-reactor-power-needed")}</span>
           </h3>
           <div className="upgrade-cards">
             {subsystems.map((row) => (
@@ -3662,7 +3658,7 @@ function UpgradeList({ game }: { game: Game }) {
           </div>
         </section>
       ) : null}
-      <p className="mini sheet-note">Systems you do not have, and hull repair, are bought at a store.</p>
+      <p className="mini sheet-note">{tx("ui.GameApp.systems-you-do-not-have-and")}</p>
     </div>
   );
 }
@@ -3683,7 +3679,7 @@ function SkillBars({ crew }: { crew: Crew }) {
           <div
             key={name}
             className={`skill-cell is-rank-${rank}`}
-            title={`${SKILL_LABEL[name]}: level ${rank}${rank < 2 ? `, ${Math.floor(xp)} of ${need * (rank + 1)} XP` : ""}`}
+            title={tx("ui.GameApp.level", { v: SKILL_LABEL[name], rank: rank, v2: rank < 2 ? `, ${Math.floor(xp)} of ${need * (rank + 1)} XP` : "" })}
           >
             <span className="skill-name">{SKILL_LABEL[name]}</span>
             <span className="skill-segs" aria-label={`${SKILL_LABEL[name]} level ${rank} of 2`}>
@@ -3708,7 +3704,7 @@ function SkillBars({ crew }: { crew: Crew }) {
 function CrewManifest({ game }: { game: Game }) {
   const [confirm, setConfirm] = useState<string | null>(null);
   const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
-  if (crew.length === 0) return <p className="mini">No crew aboard.</p>;
+  if (crew.length === 0) return <p className="mini">{tx("ui.GameApp.no-crew-aboard")}</p>;
   return (
     <div className="manifest">
       {crew.map((c) => {
@@ -3722,7 +3718,7 @@ function CrewManifest({ game }: { game: Game }) {
               </span>
               <div className="manifest-id">
                 <input
-                  aria-label={`Crew name ${c.name}`}
+                  aria-label={tx("ui.GameApp.crew-name", { name: c.name })}
                   value={c.name}
                   maxLength={NAME_MAX}
                   autoComplete="off"
@@ -3744,7 +3740,7 @@ function CrewManifest({ game }: { game: Game }) {
                 />
                 <span className="manifest-meta">
                   <span>{kinLabel(c.kin)}</span>
-                  <span className={`manifest-hp${hp < 0.35 ? " is-low" : ""}`} aria-label={`Health ${Math.ceil(c.hp)} of ${c.maxHp}`}>
+                  <span className={`manifest-hp${hp < 0.35 ? " is-low" : ""}`} aria-label={tx("ui.GameApp.health-of", { ceil: Math.ceil(c.hp), maxHp: c.maxHp })}>
                     <i style={{ width: `${hp * 100}%` }} />
                   </span>
                   <span>
@@ -3758,16 +3754,16 @@ function CrewManifest({ game }: { game: Game }) {
                   className="text-btn manifest-dismiss"
                   data-dismiss={c.id}
                   disabled={!may}
-                  title={may ? undefined : "Only crew aboard your ship can be dismissed, and never the last one."}
+                  title={may ? undefined : tx("ui.GameApp.only-crew-aboard-your-ship-can")}
                   onClick={() => setConfirm(c.id)}
                 >
-                  Dismiss
+                  {tx("ui.GameApp.dismiss")}
                 </button>
               )}
             </header>
             {confirm === c.id ? (
-              <div className="manifest-confirm" role="alertdialog" aria-label={`Dismiss ${c.name}?`}>
-                <span>Dismiss {c.name}? They leave the ship for good.</span>
+              <div className="manifest-confirm" role="alertdialog" aria-label={tx("ui.GameApp.dismiss-2", { name: c.name })}>
+                <span>{tx("ui.GameApp.dismiss-3")}{c.name}{tx("ui.GameApp.they-leave-the-ship-for-good")}</span>
                 <button
                   type="button"
                   className="text-btn is-danger"
@@ -3779,10 +3775,10 @@ function CrewManifest({ game }: { game: Game }) {
                     });
                   }}
                 >
-                  Dismiss
+                  {tx("ui.GameApp.dismiss")}
                 </button>
                 <button type="button" className="text-btn" onClick={() => setConfirm(null)}>
-                  Keep
+                  {tx("ui.GameApp.keep")}
                 </button>
               </div>
             ) : null}
@@ -3817,9 +3813,9 @@ function CargoList({
     <div className="cargo-list">
       <section className="sheet-group">
         <h3 className="sheet-group-head">
-          Weapons{" "}
+          {tx("ui.GameApp.weapons-2")}{" "}
           <span className="mini">
-            {game.player.weapons.length}/{gunCap} slots. Drag to change the order.
+            {game.player.weapons.length}/{gunCap}{tx("ui.GameApp.slots-drag-to-change-the-order")}
           </span>
         </h3>
         <div className="cargo-slots">
@@ -3829,7 +3825,7 @@ function CargoList({
               return (
                 <div key={`empty-${index}`} className="cargo-slot is-empty">
                   <em className="cargo-slot-n">{index + 1}</em>
-                  <span>Empty</span>
+                  <span>{tx("ui.GameApp.empty")}</span>
                 </div>
               );
             }
@@ -3844,7 +3840,7 @@ function CargoList({
                 data-tray="sheet-weapons"
                 data-slot={index}
                 className={`cargo-slot sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                aria-label={`${name}, slot ${index + 1}`}
+                aria-label={tx("ui.GameApp.slot", { name: name, v: index + 1 })}
                 onPointerDown={(e) => guns.onPointerDown(index, e)}
                 onPointerMove={guns.onPointerMove}
                 onPointerUp={guns.onPointerUp}
@@ -3858,14 +3854,14 @@ function CargoList({
                 <span className="cargo-name">{name}</span>
                 {def ? (
                   <span className="cargo-stats">
-                    <span title="Power">
+                    <span title={tx("ui.GameApp.power")}>
                       <PixelIcon name="weapons" size={12} />
                       {def.power}
                     </span>
-                    <span title="Charge time">{def.charge}s</span>
-                    {def.damage > 0 ? <span title="Damage per shot">{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
+                    <span title={tx("ui.GameApp.charge-time")}>{def.charge}s</span>
+                    {def.damage > 0 ? <span title={tx("ui.GameApp.damage-per-shot")}>{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
                     {def.ammo ? (
-                      <span title="Uses a missile">
+                      <span title={tx("ui.GameApp.uses-a-missile")}>
                         <PixelIcon name="missile" size={12} />
                       </span>
                     ) : null}
@@ -3876,10 +3872,10 @@ function CargoList({
                 type="button"
                 className="cargo-move"
                 disabled={!cargoRoom}
-                aria-label={`Move ${name} to cargo`}
+                aria-label={tx("ui.GameApp.move-to-cargo", { name: name })}
                 onClick={() => act((g) => void stowWeapon(g, w.uid))}
               >
-                To cargo
+                {tx("ui.GameApp.to-cargo")}
               </button>
               </div>
             );
@@ -3887,11 +3883,11 @@ function CargoList({
         </div>
       </section>
       <section className="sheet-group">
-        <h3 className="sheet-group-head">Drones</h3>
+        <h3 className="sheet-group-head">{tx("ui.GameApp.drones-2")}</h3>
         {!game.player.kits.swarm ? (
-          <p className="mini">No Drone Control system.</p>
+          <p className="mini">{tx("ui.GameApp.no-drone-control-system")}</p>
         ) : slots.length === 0 ? (
-          <p className="mini">No drone schematics.</p>
+          <p className="mini">{tx("ui.GameApp.no-drone-schematics")}</p>
         ) : (
           <div className="cargo-slots">
             {slots.map((kind, index) => {
@@ -3906,7 +3902,7 @@ function CargoList({
                   data-tray="sheet-drones"
                   data-slot={index}
                   className={`cargo-slot sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-                  aria-label={`${name}, drone slot ${index + 1}`}
+                  aria-label={tx("ui.GameApp.drone-slot", { name: name, v: index + 1 })}
                   onPointerDown={(e) => drones.onPointerDown(index, e)}
                   onPointerMove={drones.onPointerMove}
                   onPointerUp={drones.onPointerUp}
@@ -3921,10 +3917,10 @@ function CargoList({
                   type="button"
                   className="cargo-move"
                   disabled={!cargoRoom}
-                  aria-label={`Move ${name} to cargo`}
+                  aria-label={tx("ui.GameApp.move-to-cargo", { name: name })}
                   onClick={() => act((g) => void stowDrone(g, index))}
                 >
-                  To cargo
+                  {tx("ui.GameApp.to-cargo")}
                 </button>
                 </div>
               );
@@ -3935,9 +3931,9 @@ function CargoList({
       {/* Per the user: the 4-slot cargo hold for weapons and drone schematics that are not fitted (wiki/make-room.ts). */}
       <section className="sheet-group">
         <h3 className="sheet-group-head">
-          Cargo{" "}
+          {tx("ui.GameApp.cargo")}{" "}
           <span className="mini">
-            {cargo.length}/{CARGO_SLOTS}. Weapons and drone schematics that are not fitted.
+            {cargo.length}/{CARGO_SLOTS}{tx("ui.GameApp.weapons-and-drone-schematics-that-are")}
           </span>
         </h3>
         <div className="cargo-slots">
@@ -3946,14 +3942,14 @@ function CargoList({
             if (!item) {
               return (
                 <div key={`cargo-empty-${index}`} className="cargo-slot is-empty">
-                  <span>Empty</span>
+                  <span>{tx("ui.GameApp.empty")}</span>
                 </div>
               );
             }
             const name = item.kind === "weapon" ? (WEAPONS[item.id]?.name ?? item.id) : droneName(item.id);
             const fits = canFitFromCargo(game, index);
             const why =
-              item.kind === "weapon" ? "Weapon slots full." : !game.player.kits.swarm ? "Needs Drone Control." : "Drone slots full.";
+              item.kind === "weapon" ? tx("ui.GameApp.weapon-slots-full") : !game.player.kits.swarm ? tx("ui.GameApp.needs-drone-control") : tx("ui.GameApp.drone-slots-full");
             return (
               <div key={`cargo-${index}-${item.id}`} className="cargo-cell">
                 <div className="cargo-slot">
@@ -3961,17 +3957,17 @@ function CargoList({
                     {item.kind === "weapon" ? <WeaponArt id={item.id} height={28} /> : <DroneArt kind={droneKeyOf(item.id)} height={24} />}
                   </span>
                   <span className="cargo-name">{name}</span>
-                  <span className="mini">{item.kind === "weapon" ? "Weapon" : "Drone schematic"}</span>
+                  <span className="mini">{item.kind === "weapon" ? tx("ui.GameApp.weapon") : tx("ui.GameApp.drone-schematic")}</span>
                 </div>
                 <button
                   type="button"
                   className="cargo-move"
                   disabled={!fits}
                   title={fits ? undefined : why}
-                  aria-label={`Fit ${name}`}
+                  aria-label={tx("ui.GameApp.fit", { name: name })}
                   onClick={() => act((g) => void fitFromCargo(g, index))}
                 >
-                  {fits ? "Fit" : why}
+                  {fits ? tx("ui.GameApp.fit-2") : why}
                 </button>
               </div>
             );
@@ -3980,7 +3976,7 @@ function CargoList({
       </section>
       <section className="sheet-group">
         <h3 className="sheet-group-head">
-          Augments{" "}
+          {tx("ui.GameApp.augments")}{" "}
           <span className="mini">
             {game.augments.length}/{augCap}
           </span>
@@ -3991,7 +3987,7 @@ function CargoList({
             if (!id) {
               return (
                 <div key={`aug-empty-${index}`} className="cargo-slot is-empty">
-                  <span>Empty</span>
+                  <span>{tx("ui.GameApp.empty")}</span>
                 </div>
               );
             }

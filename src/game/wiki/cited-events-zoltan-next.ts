@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Next Zoltan titles.
  * Redirects are not followed: Homeworlds, Shield Bypass, Trade Hub, free
@@ -36,16 +37,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:zoltan-odd-moon",
     aliases: ["Zoltan odd moon"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Something strikes you as odd about a moon in the distance.",
+    body: tx("wiki.cited-events-zoltan-next.something-strikes-you-as-odd-about"),
     choices: [
       {
         id: "c:zoltan-odd-moon:0",
-        label: "Check it out.",
-        fx: [{ k: "note", text: "The moon has more than one result." }],
+        label: tx("wiki.cited-events-zoltan-next.check-it-out"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-zoltan-next.the-moon-has-more-than-one") }],
       },
       {
         id: "c:zoltan-odd-moon:1",
-        label: "Leave it be.",
+        label: tx("wiki.cited-events-zoltan-next.leave-it-be"),
         fx: [{ k: "nothing" }],
       },
     ],
@@ -60,10 +61,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-zoltan",
     aliases: ["Refugee (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: tx("wiki.cited-events-zoltan-next.your-sensors-have-picked-up-a"),
     choices: [
-      { id: "c:refugee-zoltan:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a Zoltan ship." }] },
-      { id: "c:refugee-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-zoltan:0", label: tx("wiki.cited-events-zoltan-next.hail-them"), fx: [{ k: "note", text: tx("wiki.cited-events-zoltan-next.a-trade-or-a-zoltan-ship") }] },
+      { id: "c:refugee-zoltan:1", label: tx("wiki.cited-events-zoltan-next.ignore-the-refugees"), fx: [{ k: "nothing" }] },
     ],
   },
   // Refugee distress (Zoltan). Template:Drifting Refugee Ship, introtext=distress, type=zoltan.
@@ -75,10 +76,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-distress-zoltan",
     aliases: ["Refugee distress (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: tx("wiki.cited-events-zoltan-next.you-have-encountered-a-refugee-ship"),
     choices: [
-      { id: "c:refugee-distress-zoltan:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a Zoltan ship." }] },
-      { id: "c:refugee-distress-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress-zoltan:0", label: tx("wiki.cited-events-zoltan-next.hail-them"), fx: [{ k: "note", text: tx("wiki.cited-events-zoltan-next.a-trade-or-a-zoltan-ship") }] },
+      { id: "c:refugee-distress-zoltan:1", label: tx("wiki.cited-events-zoltan-next.ignore-the-refugees"), fx: [{ k: "nothing" }] },
     ],
   },
 ];

@@ -7,6 +7,7 @@
  * Drone Control (extras/swarm.ts, `kit.loadout`), Teleporter (extras/sling.ts, room "e-teleporter"), and
  * Mind Control (extras/leash.ts). sim.ts makeFlagship / advanceRam / bossThink call into this file.
  */
+import { tx } from "../../i18n/index.ts";
 import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
@@ -348,14 +349,14 @@ export function firePowerSurge(g: Game, ship: Ship) {
     state.split ??= rollSplit(g);
     for (let i = 0; i < state.split.beam; i++) state.surge.push({ id: "surge-" + nextId(g), kind: "beam", shots: 0, aux: 0 });
     for (let i = 0; i < state.split.striker; i++) state.surge.push({ id: "surge-" + nextId(g), kind: "striker", shots: 0, aux: 0 });
-    log(g, `Power surge: ${state.split.beam + state.split.striker} drones deploy.`);
+    log(g, tx("wiki.flagship-systems.power-surge-drones-deploy", { v: state.split.beam + state.split.striker }));
     return;
   }
   if (state.stage === 3) {
     if (state.lasers >= LASER_SURGES_PER_RESTORE) {
       state.lasers = 0;
       ship.zoltan = FLAGSHIP_ZOLTAN;
-      log(g, "Power surge: their Zoltan Shield is back online.");
+      log(g, tx("wiki.flagship-systems.power-surge-their-zoltan-shield-is"));
       return;
     }
     state.lasers += 1;
@@ -374,10 +375,10 @@ export function firePowerSurge(g: Game, ship: Ship) {
         wait: 0,
         t: 0,
         duration: 0.7,
-        label: "Surge",
+        label: tx("wiki.flagship-systems.surge"),
       });
     }
-    log(g, `Power surge: ${SURGE_LASERS} lasers.`);
+    log(g, tx("wiki.flagship-systems.power-surge-lasers", { SURGE_LASERS: SURGE_LASERS }));
   }
 }
 
@@ -446,7 +447,7 @@ function tickAi(g: Game, ship: Ship, state: FlagshipState, dt: number) {
     state.ai = true;
     // sim.ts present(): automated systems run with nobody aboard; crewai.ts stops planning.
     ship.automated = true;
-    log(g, "The Flagship's AI has taken control of the ship.");
+    log(g, tx("wiki.flagship-systems.the-flagship-s-ai-has-taken"));
   }
   for (const r of ship.rooms) {
     if (r.fire > 0 || r.breach > 0) continue;
@@ -536,7 +537,7 @@ export function surgeWarning(g: Game, ship: Ship, left: number) {
   const state = ship.flagship;
   if (!state || state.warned || left > SURGE_WARNING_S) return;
   state.warned = true;
-  log(g, "Warning: power surge in 5 seconds.");
+  log(g, tx("wiki.flagship-systems.warning-power-surge-in-5-seconds"));
   g.sfx.push("alarm");
 }
 

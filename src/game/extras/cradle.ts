@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { kitBars, log, playerMedicalOff, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -69,19 +70,19 @@ function poweredCradle(g: Game): Kit | null {
 export function installCradle(g: Game) {
   const cost = INSTALL_COST;
   if (cost == null) {
-    log(g, "Clone Bay price is not listed.");
+    log(g, tx("extras.cradle.clone-bay-price-is-not-listed"));
     return;
   }
   if (g.player.kits.cradle) return;
   if (g.scrap < cost) {
-    log(g, "Not enough scrap.");
+    log(g, tx("extras.cradle.not-enough-scrap"));
     return;
   }
   g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.cradle = blankCradle(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, "Clone Bay installed.");
+  log(g, tx("extras.cradle.clone-bay-installed"));
 }
 
 /** Clone Bay, "System Upgrades": level 2 costs 35, level 3 costs 45. Keyed by the level already owned. */
@@ -100,7 +101,7 @@ export function upgradeCradle(g: Game) {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, "Clone Bay raised.");
+  log(g, tx("extras.cradle.clone-bay-raised"));
 }
 
 /**
@@ -205,7 +206,7 @@ export function tickCradle(g: Game, dt: number) {
     if (kit.aux < 3) return;
     kit.aux = 0;
     dropClone(queued[queued.length - 1]);
-    log(g, "Clone Bay was dark. A copy is gone.");
+    log(g, tx("extras.cradle.clone-bay-was-dark-a-copy"));
     return;
   }
   kit.aux = 0;
@@ -218,7 +219,7 @@ export function tickCradle(g: Game, dt: number) {
   restoreSkills(head);
   // Crew skills, Combat: a body the bay returned is cloned crew. Killing it grants no combat experience.
   head.cloned = true;
-  log(g, `Clone Bay returned ${head.name}.`);
+  log(g, tx("extras.cradle.clone-bay-returned", { name: head.name }));
 }
 
 /**
@@ -294,7 +295,7 @@ function purgeEnemyClones(g: Game): boolean {
   const queued = enemyQueued(g);
   if (!queued.length) return false;
   for (const crew of queued) dropClone(crew);
-  log(g, "Their Clone Bay is wrecked. The clones are gone.");
+  log(g, tx("extras.cradle.their-clone-bay-is-wrecked-the"));
   return true;
 }
 
@@ -373,7 +374,7 @@ function tickEnemyCradle(g: Game, dt: number) {
     if (kit.aux < 3) return;
     kit.aux = 0;
     dropClone(queued[queued.length - 1]);
-    log(g, "Their Clone Bay went dark. A clone is lost.");
+    log(g, tx("extras.cradle.their-clone-bay-went-dark-a"));
     return;
   }
   kit.aux = 0;
@@ -387,7 +388,7 @@ function tickEnemyCradle(g: Game, dt: number) {
   head.path = [];
   restoreSkills(head);
   head.cloned = true;
-  log(g, `Their Clone Bay returned ${head.name}.`);
+  log(g, tx("extras.cradle.their-clone-bay-returned", { name: head.name }));
 }
 
 /** Head of the enemy cloning queue for the target panel: seconds left on the head clone and queue length. */

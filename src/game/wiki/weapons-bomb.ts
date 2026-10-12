@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 
 /**
@@ -13,7 +14,7 @@ import type { WeaponDef } from "../content.ts";
 export const BOMB_WEAPONS: WeaponDef[] = [
   {
     id: "smallbomb",
-    name: "Small Bomb",
+    name: tx("wiki.weapons-bomb.small-bomb"),
     kind: "bomb",
     // Bomb (Weapons) "Small Bomb": power requirement 1. Charge time 13 seconds.
     power: 1,
@@ -35,11 +36,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Small Bomb": purchase price 45 (store rarity 1).
     price: 45,
     blurb:
-      "Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-explosive-that-damages-systems"),
   },
   {
     id: "breach1",
-    name: "Breach Bomb Mark I",
+    name: tx("wiki.weapons-bomb.breach-bomb-mark-i"),
     kind: "bomb",
     // Bomb (Weapons) "Breach Bomb Mark I": power requirement 1. Charge time 9 seconds.
     power: 1,
@@ -61,11 +62,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Breach Bomb Mark I": sells for 25, "cannot be bought". price 0. Sell value is not the purchase price.
     price: 0,
     blurb:
-      "Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-explosive-designed-to-damage"),
   },
   {
     id: "breach2",
-    name: "Breach Bomb Mark II",
+    name: tx("wiki.weapons-bomb.breach-bomb-mark-ii"),
     kind: "bomb",
     // Bomb (Weapons) "Breach Bomb Mark II": power requirement 2. Charge time 17 seconds.
     power: 2,
@@ -87,11 +88,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Breach Bomb Mark II": purchase price 60 (store rarity 4).
     price: 60,
     blurb:
-      "Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.",
+      tx("wiki.weapons-bomb.slower-than-mark-1-but-breaches"),
   },
   {
     id: "ionbomb",
-    name: "Ion Bomb",
+    name: tx("wiki.weapons-bomb.ion-bomb"),
     kind: "bomb",
     // Bomb (Weapons) "Ion Bomb": power requirement 1. Charge time 22 seconds.
     power: 1,
@@ -113,11 +114,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Ion Bomb": purchase price 55 (store rarity 3).
     price: 55,
     blurb:
-      "Self-teleporting explosive that uses ion damage to disable systems. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-explosive-that-uses-ion"),
   },
   {
     id: "stunbomb",
-    name: "Stun Bomb",
+    name: tx("wiki.weapons-bomb.stun-bomb"),
     kind: "bomb",
     // Bomb (Weapons) "Stun Bomb": power requirement 1. Charge time 17 seconds.
     power: 1,
@@ -139,11 +140,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Stun Bomb": purchase price 45 (store rarity 2, Advanced Edition).
     price: 45,
     blurb:
-      "Self-teleporting explosive that does 1 ion damage and stuns all crew inside the room. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-explosive-that-does-1"),
   },
   {
     id: "healburst",
-    name: "Healing Burst",
+    name: tx("wiki.weapons-bomb.healing-burst"),
     kind: "bomb",
     // Bomb (Weapons) "Healing Burst": power requirement 1. Charge time 18 seconds.
     power: 1,
@@ -165,11 +166,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Healing Burst": purchase price 40 (store rarity 3).
     price: 40,
     blurb:
-      "Self-teleporting healing unit that instantly heals all friendly crew in the room. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-healing-unit-that-instantly"),
   },
   {
     id: "repairburst",
-    name: "Repair Burst",
+    name: tx("wiki.weapons-bomb.repair-burst"),
     kind: "bomb",
     // Bomb (Weapons) "Repair Burst": power requirement 1. Charge time 14 seconds.
     power: 1,
@@ -191,11 +192,11 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Repair Burst": purchase price 40 (store rarity 3, Advanced Edition).
     price: 40,
     blurb:
-      "Self-teleporting unit that floods a room with nano-bots capable of completely repairing all system damage.",
+      tx("wiki.weapons-bomb.self-teleporting-unit-that-floods-a"),
   },
   {
     id: "lockdown",
-    name: "Crystal Lockdown Bomb",
+    name: tx("wiki.weapons-bomb.crystal-lockdown-bomb"),
     kind: "bomb",
     // Bomb (Weapons) "Crystal Lockdown Bomb": power requirement 1. Charge time 15 seconds.
     power: 1,
@@ -217,7 +218,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Crystal Lockdown Bomb": purchase price 45. Rarity is not one number (0*, with a sector tooltip).
     price: 45,
     blurb:
-      "Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.",
+      tx("wiki.weapons-bomb.self-teleporting-explosive-that-does-no"),
   },
 ];
 
@@ -255,26 +256,26 @@ export const BOMB_CREW: Record<string, number> = {
 export const BOMB_GAPS: Record<string, string> = {
   // Bomb (Weapons) "Small Bomb": crew damage 30. Effect: low chance of fire (no percent). No stun number. No breach percent.
   smallbomb:
-    "Hull damage is 0. damage is system damage 2, not hull. Crew damage 30. No stun duration is printed. No breach guarantee and no breach percent. Effect: low chance of fire, no percent.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is"),
   // Bomb (Weapons) "Breach Bomb Mark I": crew damage 30. Effect: guaranteed breach. Sells for 25; cannot be bought.
   breach1:
-    "Hull damage is 0. damage is system damage 1, not hull. Crew damage 30. Effect: guaranteed breach. Sells for 25. Cannot be bought, so price is 0. No stun number. No fire percent.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-2"),
   // Bomb (Weapons) "Breach Bomb Mark II": crew damage 45. Effect: guaranteed breach.
   breach2:
-    "Hull damage is 0. damage is system damage 3, not hull. Crew damage 45. Effect: guaranteed breach. No stun number. No fire percent.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-3"),
   // Bomb (Weapons) "Ion Bomb": crew damage 0. Effect: low chance to stun (Advanced Edition), no duration. Lead: Ion Bombs deal double damage to Zoltan Shields.
   ionbomb:
-    "Hull damage is 0. damage is system damage 0, not hull. Crew damage 0. Ion damage 4 is WeaponDef.ion. Effect: low chance to stun crew, no stun duration printed. No fire percent. No breach percent. Lead: Ion Bombs deal double damage to Zoltan Shields.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-4"),
   // Bomb (Weapons) "Stun Bomb": crew damage 0. Effect: stun 15 seconds. Lead: Stun Bombs deal double damage to Zoltan Shields.
   stunbomb:
-    "Hull damage is 0. damage is system damage 0, not hull. Crew damage 0. Ion damage 1 is WeaponDef.ion. Effect: stuns all enemy and player crew and drones in the room for 15 seconds. No fire percent. No breach percent. Lead: Stun Bombs deal double damage to Zoltan Shields.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-5"),
   // Bomb (Weapons) "Healing Burst": heals 150. Not stored as damage. Lead: Healing Burst has no effect on Zoltan Shields.
   healburst:
-    "Hull damage is 0. damage is system damage 0, not hull. Crew damage 0. Heals personnel for 150 points (not stored as damage). Also heals mind-controlled crew, enemy or your own. No stun number. No fire percent. No breach percent. Lead: Healing Burst has no effect on Zoltan Shields.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-6"),
   // Bomb (Weapons) "Repair Burst": repairs 8 bars. Not stored as damage. Does not put out fires or seal hull breaches.
   repairburst:
-    "Hull damage is 0. damage is system damage 0, not hull. Crew damage 0. Repairs 8 bars of system damage (not stored as damage). Does not put out fires or seal hull breaches. No stun number. No fire percent. No breach percent. Lead: Repair Burst has no effect on Zoltan Shields.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-7"),
   // Bomb (Weapons) "Crystal Lockdown Bomb": lockdown 12 seconds. Broken by 4-5 crew. Resets door health.
   lockdown:
-    "Hull damage is 0. damage is system damage 0, not hull. Crew damage 0. Room lockdown lasts 12 seconds. Lockdown resets door health. Lockdown can be broken by 4-5 crew. No stun number. No fire percent. No breach percent. Lead: Lockdown Bombs have no effect on Zoltan Shields.",
+    tx("wiki.weapons-bomb.hull-damage-is-0-damage-is-8"),
 };

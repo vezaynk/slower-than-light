@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Slug titles from this batch.
  * A redirect has no Locations line. A title that starts with "No fuel:" stays out.
@@ -32,12 +33,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:slug-moons-question",
     aliases: ["Slug moons question"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive near the distress beacon's signal.",
+    body: tx("wiki.cited-events-slug-next.you-arrive-near-the-distress-beacon"),
     choices: [
       {
         id: "c:slug-moons-question:0",
-        label: "Investigate.",
-        fx: [{ k: "note", text: "The question follows." }],
+        label: tx("wiki.cited-events-slug-next.investigate"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-slug-next.the-question-follows") }],
       },
     ],
   },

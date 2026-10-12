@@ -4,6 +4,7 @@
  * INFERRED fills a gap the pages leave (they print ranges, not how a sector picks inside them).
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
+import { tx } from "../i18n/index.ts";
 import { WEAPONS } from "./content.ts";
 import type { KinId } from "./extras/kin.ts";
 import { rollPirateCrew } from "./wiki/skills.ts";
@@ -193,22 +194,22 @@ const KIT: Partial<Record<EnemySystem, KitId>> = {
 };
 
 const TITLE: Record<EnemySystem, string> = {
-  shields: "Shields",
-  engines: "Engines",
-  oxygen: "Oxygen",
-  weapons: "Weapons",
-  pilot: "Piloting",
-  medbay: "Medbay",
-  doors: "Doors",
-  sensors: "Sensors",
-  drones: "Drones",
-  hacking: "Hacking",
-  cloaking: "Cloaking",
-  teleporter: "Teleporter",
-  clonebay: "Clone Bay",
-  mindcontrol: "Mind Control",
-  battery: "Battery",
-  artillery: "Artillery",
+  shields: tx("game.enemy-gen.shields"),
+  engines: tx("game.enemy-gen.engines"),
+  oxygen: tx("game.enemy-gen.oxygen"),
+  weapons: tx("game.enemy-gen.weapons"),
+  pilot: tx("game.enemy-gen.piloting"),
+  medbay: tx("game.enemy-gen.medbay"),
+  doors: tx("game.enemy-gen.doors"),
+  sensors: tx("game.enemy-gen.sensors"),
+  drones: tx("game.enemy-gen.drones"),
+  hacking: tx("game.enemy-gen.hacking"),
+  cloaking: tx("game.enemy-gen.cloaking"),
+  teleporter: tx("game.enemy-gen.teleporter"),
+  clonebay: tx("game.enemy-gen.clone-bay"),
+  mindcontrol: tx("game.enemy-gen.mind-control"),
+  battery: tx("game.enemy-gen.battery"),
+  artillery: tx("game.enemy-gen.artillery"),
 };
 
 const KIN_OF: Record<string, KinId> = {
@@ -681,7 +682,7 @@ function seatTrace(
     const system = claim(r.system);
     const omit = r.omit?.length ? r.omit : undefined;
     const box = { x: r.x, y: r.y, w: r.w, h: r.h, ...(omit ? { omit } : {}) };
-    if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
+    if (!system) return { id: `e-h${hall++}`, title: tx("game.enemy-gen.hall"), system: null, ...box };
     taken.add(system);
     const kit = KIT[system];
     return { id: `e-${system}`, title: TITLE[system], system: RUN[system] ?? null, ...(kit ? { kit } : {}), ...box };
@@ -793,7 +794,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
       const n = lo + Math.floor(rand() * (hi - lo + 1));
       for (let i = 0; i < n && races.length < crewSize; i++) races.push(race);
     }
-    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? "Human");
+    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? tx("game.enemy-gen.human"));
   }
   const stations = STATION.map((id) => `e-${id}`).filter((id) => rooms.some((r) => r.id === id));
   const others = rooms.map((r) => r.id).filter((id) => !stations.includes(id));
@@ -806,7 +807,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
   const armed = arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand);
   const spec: EnemySpec = {
     classId: cls.id,
-    name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
+    name: pirate ? (cls.pirate ?? tx("game.enemy-gen.pirate", { join: cls.name.split(" ").slice(1).join(" ") })) : cls.name,
     pirate,
     automated,
     hull: hullFor(cls, ctx),

@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { HullSpec } from "../hulls.ts";
 
 /**
@@ -18,14 +19,14 @@ const sub = {
 export const CRYSTAL_HULLS: HullSpec[] = [
   {
     id: "crystal-a",
-    cruiser: "Crystal Cruiser",
+    cruiser: tx("wiki.hulls-crystal.crystal-cruiser"),
     layout: "A",
-    name: "Bravais",
+    name: tx("wiki.hulls-crystal.bravais"),
     quote:
-      "This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.",
+      tx("wiki.hulls-crystal.this-powerful-vessel-is-powered-by"),
     unlock:
-      "See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser. Alternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser).",
-    source: "The Crystal Cruiser, Layout A",
+      tx("wiki.hulls-crystal.see-ancestry-ship-achievement-and-its"),
+    source: tx("wiki.hulls-crystal.the-crystal-cruiser-layout-a"),
     reactor: 8,
     fuel: 16,
     missiles: 0,
@@ -58,13 +59,13 @@ export const CRYSTAL_HULLS: HullSpec[] = [
   },
   {
     id: "crystal-b",
-    cruiser: "Crystal Cruiser",
+    cruiser: tx("wiki.hulls-crystal.crystal-cruiser"),
     layout: "B",
-    name: "Carnelian",
+    name: tx("wiki.hulls-crystal.carnelian"),
     quote:
-      "Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.",
-    unlock: "Earn at least two out of three achievements for the Crystal Cruiser.",
-    source: "The Crystal Cruiser, Layout B",
+      tx("wiki.hulls-crystal.their-unique-racial-ability-makes-the"),
+    unlock: tx("wiki.hulls-crystal.earn-at-least-two-out-of"),
+    source: tx("wiki.hulls-crystal.the-crystal-cruiser-layout-b"),
     reactor: 8,
     fuel: 16,
     missiles: 0,

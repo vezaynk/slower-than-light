@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Stated outcomes from the pirate title list.
  * A page is absent when no opening choice has one resource amount, scrap tier,
@@ -36,7 +37,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:pirate-fight-in-nebula:0",
-        label: "Fight a Pirate ship",
+        label: tx("wiki.cited-events-pirate.fight-a-pirate-ship"),
         fx: [
           // "Fight a Pirate ship (default rewards)."
           { k: "fight", tier: "Pirate ship" },
@@ -53,10 +54,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-pirate",
     aliases: ["Refugee (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: tx("wiki.cited-events-pirate.your-sensors-have-picked-up-a"),
     choices: [
-      { id: "c:refugee-pirate:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }] },
-      { id: "c:refugee-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-pirate:0", label: tx("wiki.cited-events-pirate.hail-them"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.a-trade-or-a-pirate-ship") }] },
+      { id: "c:refugee-pirate:1", label: tx("wiki.cited-events-pirate.ignore-the-refugees"), fx: [{ k: "nothing" }] },
     ],
   },
   // Refugee distress (Pirate). Template:Drifting Refugee Ship, introtext=distress, type=pirate.
@@ -68,10 +69,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-distress-pirate",
     aliases: ["Refugee distress (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: tx("wiki.cited-events-pirate.you-have-encountered-a-refugee-ship"),
     choices: [
-      { id: "c:refugee-distress-pirate:0", label: "Hail them.", fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }] },
-      { id: "c:refugee-distress-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress-pirate:0", label: tx("wiki.cited-events-pirate.hail-them"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.a-trade-or-a-pirate-ship") }] },
+      { id: "c:refugee-distress-pirate:1", label: tx("wiki.cited-events-pirate.ignore-the-refugees"), fx: [{ k: "nothing" }] },
     ],
   },
   // Research station with no response. Pirate Controlled Sector. unique=true. LRSmap=noship.
@@ -83,12 +84,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:research-station-with-no-response",
     aliases: ["Research station with no response"],
     sectors: ["Pirate Controlled Sector"],
-    body: "You arrive to find a small research station putting out a distress signal. There is no response to your hails.",
+    body: tx("wiki.cited-events-pirate.you-arrive-to-find-a-small"),
     choices: [
-      { id: "c:research-station-with-no-response:0", label: "Dock with the station and investigate.", fx: [{ k: "note", text: "The station investigation." }] },
-      { id: "c:research-station-with-no-response:1", label: "Leave it alone.", fx: [{ k: "nothing" }] },
-      { id: "c:research-station-with-no-response:2", label: "Send your battle drone in to help.", fx: [{ k: "note", text: "Nothing, or medium scrap with resources." }] },
-      { id: "c:research-station-with-no-response:3", label: "Run advanced life scans.", fx: [{ k: "note", text: "Medium scrap with resources, or nothing." }] },
+      { id: "c:research-station-with-no-response:0", label: tx("wiki.cited-events-pirate.dock-with-the-station-and-investigate"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.the-station-investigation") }] },
+      { id: "c:research-station-with-no-response:1", label: tx("wiki.cited-events-pirate.leave-it-alone"), fx: [{ k: "nothing" }] },
+      { id: "c:research-station-with-no-response:2", label: tx("wiki.cited-events-pirate.send-your-battle-drone-in-to"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.nothing-or-medium-scrap-with-resources") }] },
+      { id: "c:research-station-with-no-response:3", label: tx("wiki.cited-events-pirate.run-advanced-life-scans"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.medium-scrap-with-resources-or-nothing") }] },
     ],
   },
 ];

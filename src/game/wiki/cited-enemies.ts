@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Crew, Game, Ship, SysId } from "../types.ts";
 import { WEAPONS } from "../content.ts";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
@@ -14,7 +15,7 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
   if (tier === "elite") {
     // Rebel Fleet: jumping into the fleet fights a Rebel Elite.
     // Elite Fighter and Elite Assault print ranges, not one loadout, so the grid stays.
-    ship.name = "Rebel Elite";
+    ship.name = tx("wiki.cited-enemies.rebel-elite");
     return;
   }
   if (tier !== "boss") {
@@ -24,7 +25,7 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
   const phase = FLAGSHIP_PHASES.find((row) => row.phase === stageNow(g, ship));
   if (!phase) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
-  ship.name = "Rebel Flagship";
+  ship.name = tx("wiki.cited-enemies.rebel-flagship");
   if (phase.hull != null) {
     ship.hull = phase.hull;
     ship.hullMax = phase.hull;
@@ -193,7 +194,7 @@ function addHumans(g: Game, ship: Ship, crew: Crew[], total: number) {
     crew.push({
       id: "u" + g.uid,
       // "1st Stage" / "General": "Crew 11 Humans." No personal names are printed.
-      name: "Human",
+      name: tx("wiki.cited-enemies.human"),
       side: "enemy",
       aboard: "enemy",
       hp: 100,

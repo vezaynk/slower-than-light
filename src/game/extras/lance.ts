@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { Game, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
@@ -7,7 +8,7 @@ import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
-export const DISPLAY_NAME = "Artillery Beam";
+export const DISPLAY_NAME = tx("extras.lance.artillery-beam");
 
 /**
  * Artillery Beam "Overview": pre-installed, not a store item. "System Upgrades" level 1 cost is "-".
@@ -94,7 +95,7 @@ export function upgradeLance(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, "Artillery Beam raised.");
+  log(g, tx("extras.lance.artillery-beam-raised"));
   return true;
 }
 
@@ -282,5 +283,5 @@ export function tickLance(g: Game, dt: number): void {
   noteArtillery(g);
   // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
   noteWeaponManning(g);
-  if (!held) log(g, `${DISPLAY_NAME} cuts ${enemy.name}.`);
+  if (!held) log(g, tx("extras.lance.cuts", { DISPLAY_NAME: DISPLAY_NAME, name: enemy.name }));
 }

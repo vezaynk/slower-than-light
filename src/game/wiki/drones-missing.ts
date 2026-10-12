@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Wiki page "Drone Control", section "Drone Schematics".
  * Schematic headings that are not the eight SwarmKind ids in swarm.ts.
@@ -14,67 +15,67 @@ export type DroneRow = {
 };
 
 function cite(heading: string): string {
-  return `Wiki page "Drone Control", section "${heading}"`;
+  return tx("wiki.drones-missing.wiki-page-drone-control-section", { heading: heading });
 }
 
 /** Printed under Shield Overcharger. The + heading says that schematic is identical except power. */
-const OVERCHARGER_COOLDOWN = "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers";
+const OVERCHARGER_COOLDOWN = tx("wiki.drones-missing.8s-10s-13s-16s-20s-for");
 
 export const MISSING_DRONES: DroneRow[] = [
   {
     id: "ionintruder",
-    name: "Ion Intruder Drone",
+    name: tx("wiki.drones-missing.ion-intruder-drone"),
     power: 3,
-    cooldown: "Pulse time varies between 8.2 and 10 seconds",
-    note: "Periodically emits an ion blast that deals 3 ion damage to the system and stuns enemy crew for 6 seconds.",
-    source: cite("Ion Intruder Drone"),
+    cooldown: tx("wiki.drones-missing.pulse-time-varies-between-8-2"),
+    note: tx("wiki.drones-missing.periodically-emits-an-ion-blast-that"),
+    source: cite(tx("wiki.drones-missing.ion-intruder-drone")),
   },
   {
     id: "combat2",
-    name: "Combat Drone Mark II",
+    name: tx("wiki.drones-missing.combat-drone-mark-ii"),
     power: 4,
     cooldown: null,
-    note: "Fires a laser blast that deals 1 hull/system damage per projectile, with a 10% chance to start fire in the hit room. The page prints no cooldown. Speed 28 is the orbit, and the shot wait is that leg.",
-    source: cite("Combat Drone Mark II"),
+    note: tx("wiki.drones-missing.fires-a-laser-blast-that-deals"),
+    source: cite(tx("wiki.drones-missing.combat-drone-mark-ii")),
   },
   {
     id: "beam2",
-    name: "Anti-Ship Beam Drone II",
+    name: tx("wiki.drones-missing.anti-ship-beam-drone-ii"),
     power: 3,
     cooldown: null,
-    note: "A beam of length 40 (0.9 tile diagonally) and speed 8 deals 1 hull/system damage per room crossed and 2 damage to a Zoltan Shield, with a 10% chance to set a tile on fire.",
-    source: cite("Anti-Ship Beam Drone II"),
+    note: tx("wiki.drones-missing.a-beam-of-length-40-0"),
+    source: cite(tx("wiki.drones-missing.anti-ship-beam-drone-ii")),
   },
   {
     id: "firedrone",
-    name: "Anti-Ship Fire Drone",
+    name: tx("wiki.drones-missing.anti-ship-fire-drone"),
     power: 3,
     cooldown: null,
-    note: "A fire beam of length 10 (0.2 tile diagonally) and speed 2 deals 1 damage to a Zoltan Shield and no hull damage unless the fire destroys a targeted system, with a 90% chance to set a tile on fire.",
-    source: cite("Anti-Ship Fire Drone"),
+    note: tx("wiki.drones-missing.a-fire-beam-of-length-10"),
+    source: cite(tx("wiki.drones-missing.anti-ship-fire-drone")),
   },
   {
     id: "antipersonnel",
-    name: "Anti-Personnel Drone",
+    name: tx("wiki.drones-missing.anti-personnel-drone"),
     power: 2,
     cooldown: null,
-    note: "Attacks intruders, dealing the same damage as an untrained Human.",
-    source: cite("Anti-Personnel Drone"),
+    note: tx("wiki.drones-missing.attacks-intruders-dealing-the-same-damage"),
+    source: cite(tx("wiki.drones-missing.anti-personnel-drone")),
   },
   {
     id: "overcharger",
-    name: "Shield Overcharger",
+    name: tx("wiki.drones-missing.shield-overcharger"),
     power: 3,
     cooldown: OVERCHARGER_COOLDOWN,
-    note: "Periodically adds 1 point of Zoltan Shield to regular shields.",
-    source: cite("Shield Overcharger"),
+    note: tx("wiki.drones-missing.periodically-adds-1-point-of-zoltan"),
+    source: cite(tx("wiki.drones-missing.shield-overcharger")),
   },
   {
     id: "overchargerplus",
-    name: "Shield Overcharger +",
+    name: tx("wiki.drones-missing.shield-overcharger-2"),
     power: 2,
     cooldown: OVERCHARGER_COOLDOWN,
-    note: "Totally identical to a regular Shield Overcharger Drone, except for the lower power requirement.",
-    source: cite("Shield Overcharger +"),
+    note: tx("wiki.drones-missing.totally-identical-to-a-regular-shield"),
+    source: cite(tx("wiki.drones-missing.shield-overcharger-2")),
   },
 ];

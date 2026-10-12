@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Crystal pages whose opening choice states one scrap amount, scrap tier,
  * hull number, fleet delay, or named fight.
@@ -34,18 +35,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:crystal-scrap-collector:0",
-        label: "Offer 35 scrap",
+        label: tx("wiki.cited-events-crystal-next.offer-35-scrap"),
         // "Offer 35 scrap."
         // sign -1
         // Crystal crewmember, Crystal Lockdown Bomb, or Crystal Burst Mark II. Branched reward is not granted.
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 35, hi: 35 },
-          { k: "note", text: "Branched crew and weapon rewards are not granted." },
+          { k: "note", text: tx("wiki.cited-events-crystal-next.branched-crew-and-weapon-rewards-are") },
         ],
       },
       {
         id: "c:crystal-scrap-collector:1",
-        label: "Turn him down",
+        label: tx("wiki.cited-events-crystal-next.turn-him-down"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },

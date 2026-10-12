@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import { CATALOG } from "../extras/augments.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
 import { WEAPONS } from "../content.ts";
@@ -25,16 +26,16 @@ type KitOffer = { slot: "kit"; ref: KitId; name: string; cost: number };
 type Offer = SysOffer | KitOffer;
 
 const SYSTEMS: readonly Offer[] = [
-  { slot: "sys", ref: "shields", name: "Shields", cost: 125 },
-  { slot: "sys", ref: "medbay", name: "Medbay", cost: 50 },
-  { slot: "kit", ref: "cradle", name: "Clone Bay", cost: 50 },
-  { slot: "kit", ref: "sling", name: "Crew Teleporter", cost: 90 },
-  { slot: "kit", ref: "veil", name: "Cloaking", cost: 150 },
-  { slot: "kit", ref: "leash", name: "Mind Control", cost: 75 },
-  { slot: "kit", ref: "spike", name: "Hacking", cost: 80 },
-  { slot: "sys", ref: "sensors", name: "Sensors", cost: 40 },
-  { slot: "sys", ref: "doors", name: "Door System", cost: 60 },
-  { slot: "kit", ref: "cell", name: "Backup Battery", cost: 35 },
+  { slot: "sys", ref: "shields", name: tx("wiki.cited-stores.shields"), cost: 125 },
+  { slot: "sys", ref: "medbay", name: tx("wiki.cited-stores.medbay"), cost: 50 },
+  { slot: "kit", ref: "cradle", name: tx("wiki.cited-stores.clone-bay"), cost: 50 },
+  { slot: "kit", ref: "sling", name: tx("wiki.cited-stores.crew-teleporter"), cost: 90 },
+  { slot: "kit", ref: "veil", name: tx("wiki.cited-stores.cloaking"), cost: 150 },
+  { slot: "kit", ref: "leash", name: tx("wiki.cited-stores.mind-control"), cost: 75 },
+  { slot: "kit", ref: "spike", name: tx("wiki.cited-stores.hacking"), cost: 80 },
+  { slot: "sys", ref: "sensors", name: tx("wiki.cited-stores.sensors"), cost: 40 },
+  { slot: "sys", ref: "doors", name: tx("wiki.cited-stores.door-system"), cost: 60 },
+  { slot: "kit", ref: "cell", name: tx("wiki.cited-stores.backup-battery"), cost: 35 },
 ];
 
 /**
@@ -90,19 +91,19 @@ const CREW: readonly { ref: KinId; cost: number }[] = [
  * Drone Control itself is the system bundle below, not a schematic row.
  */
 export const CITED_DRONES: readonly { ref: string; name: string; cost: number }[] = [
-  { ref: "striker", name: "Combat Drone Mark I", cost: 50 },
-  { ref: "combat2", name: "Combat Drone Mark II", cost: 75 },
-  { ref: "beam", name: "Anti-Ship Beam Drone I", cost: 50 },
-  { ref: "beam2", name: "Anti-Ship Beam Drone II", cost: 60 },
-  { ref: "ward", name: "Defense Drone Mark I", cost: 50 },
-  { ref: "ward2", name: "Defense Drone Mark II", cost: 70 },
-  { ref: "wardcut", name: "Anti-Combat Drone", cost: 35 },
-  { ref: "overcharger", name: "Shield Overcharger", cost: 60 },
-  { ref: "antipersonnel", name: "Anti-Personnel Drone", cost: 35 },
-  { ref: "patch", name: "System Repair Drone", cost: 30 },
-  { ref: "hull", name: "Hull Repair Drone", cost: 85 },
-  { ref: "board", name: "Boarding Drone", cost: 70 },
-  { ref: "ionintruder", name: "Ion Intruder Drone", cost: 65 },
+  { ref: "striker", name: tx("wiki.cited-stores.combat-drone-mark-i"), cost: 50 },
+  { ref: "combat2", name: tx("wiki.cited-stores.combat-drone-mark-ii"), cost: 75 },
+  { ref: "beam", name: tx("wiki.cited-stores.anti-ship-beam-drone-i"), cost: 50 },
+  { ref: "beam2", name: tx("wiki.cited-stores.anti-ship-beam-drone-ii"), cost: 60 },
+  { ref: "ward", name: tx("wiki.cited-stores.defense-drone-mark-i"), cost: 50 },
+  { ref: "ward2", name: tx("wiki.cited-stores.defense-drone-mark-ii"), cost: 70 },
+  { ref: "wardcut", name: tx("wiki.cited-stores.anti-combat-drone"), cost: 35 },
+  { ref: "overcharger", name: tx("wiki.cited-stores.shield-overcharger"), cost: 60 },
+  { ref: "antipersonnel", name: tx("wiki.cited-stores.anti-personnel-drone"), cost: 35 },
+  { ref: "patch", name: tx("wiki.cited-stores.system-repair-drone"), cost: 30 },
+  { ref: "hull", name: tx("wiki.cited-stores.hull-repair-drone"), cost: 85 },
+  { ref: "board", name: tx("wiki.cited-stores.boarding-drone"), cost: 70 },
+  { ref: "ionintruder", name: tx("wiki.cited-stores.ion-intruder-drone"), cost: 65 },
 ];
 
 type SlotKind = "systems" | "drones" | "augments" | "crew";
@@ -135,11 +136,11 @@ const AUGMENT_SELL: Partial<Record<AugmentId, number>> = {
 };
 
 const AUGMENT_SELL_NAME: Partial<Record<AugmentId, string>> = {
-  medbot: "Engi Med-bot Dispersal",
-  pheromone: "Mantis Pheromones",
-  gel: "Slug Repair Gel",
-  vengeance: "Crystal Vengeance",
-  zshield: "Zoltan Shield",
+  medbot: tx("wiki.cited-stores.engi-med-bot-dispersal"),
+  pheromone: tx("wiki.cited-stores.mantis-pheromones"),
+  gel: tx("wiki.cited-stores.slug-repair-gel"),
+  vengeance: tx("wiki.cited-stores.crystal-vengeance"),
+  zshield: tx("wiki.cited-stores.zoltan-shield"),
 };
 
 export type SellQuote = {
@@ -243,7 +244,7 @@ export function storeSections(g: Game): StoreSection[] {
  */
 function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   const bundle = swarmBundle(g);
-  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost };
+  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: tx("wiki.cited-stores.drone-control"), cost: bundle.cost };
   const missing = SYSTEMS.filter((row) => !ownedSystem(g, row));
   const drones = sections.includes("drones");
   const medical = (row: Offer) => row.ref === "medbay" || row.ref === "cradle";
@@ -270,8 +271,8 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
     name: row.name,
     detail:
       row.ref === "swarm"
-        ? `Drone Control, the paragraph above Overview. Bundled with ${bundle.label}.`
-        : `Template:Purchasable systems. ${row.name} ${row.cost}.`,
+        ? tx("wiki.cited-stores.drone-control-the-paragraph-above-overview", { label: bundle.label })
+        : tx("wiki.cited-stores.template-purchasable-systems", { name: row.name, cost: row.cost }),
     cost: row.cost,
     amount: 1,
   }));
@@ -291,7 +292,7 @@ function droneItems(g: Game): StockItem[] {
     kind: "drone" as const,
     ref: row.ref,
     name: row.name,
-    detail: `Drone Control, "${row.name}". Purchase price ${row.cost}.`,
+    detail: tx("wiki.cited-stores.drone-control-purchase-price", { name: row.name, cost: row.cost }),
     cost: row.cost,
     amount: 1,
   }));
@@ -327,7 +328,7 @@ function crewItems(g: Game): StockItem[] {
       kind: "crew" as const,
       ref: row.ref,
       name: kin.name,
-      detail: `Template:Crew races (comparison). ${kin.name} costs ${row.cost}. Health ${kin.hp}.`,
+      detail: tx("wiki.cited-stores.template-crew-races-comparison-costs-health", { name: kin.name, cost: row.cost, hp: kin.hp }),
       cost: row.cost,
       amount: 1,
     };
@@ -583,7 +584,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
       id: "d:overchargerplus",
       kind: "drone",
       ref: "overchargerplus",
-      name: "Shield Overcharger +",
+      name: tx("wiki.cited-stores.shield-overcharger-2"),
       scrap: OVERCHARGER_PLUS.sell,
     });
   }

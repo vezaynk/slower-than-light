@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 import type { WeaponDef } from "../content.ts";
 
 /**
@@ -11,7 +12,7 @@ import type { WeaponDef } from "../content.ts";
 export const ION_WEAPONS: WeaponDef[] = [
   {
     id: "ioncharger",
-    name: "Ion Charger",
+    name: tx("wiki.weapons-ion.ion-charger"),
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Ion Charger===.
     // Purchase price 50. Power requirement: 2 power. Charge time: 6 seconds per shot.
@@ -29,11 +30,11 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 50,
-    blurb: "This ion weapon can charge multiple times, giving it additional projectiles.",
+    blurb: tx("wiki.weapons-ion.this-ion-weapon-can-charge-multiple"),
   },
   {
     id: "chainion",
-    name: "Chain Ion",
+    name: tx("wiki.weapons-ion.chain-ion"),
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Chain Ion===.
     // Purchase price 55. Power requirement: 3 power. Charge time: 14 seconds. Shots: 1.
@@ -51,11 +52,11 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 55,
-    blurb: "This weapon's Ion damage increases each time it fires to a max of 4.",
+    blurb: tx("wiki.weapons-ion.this-weapon-s-ion-damage-increases"),
   },
   {
     id: "bossion",
-    name: "Boss Ion",
+    name: tx("wiki.weapons-ion.boss-ion"),
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Boss Ion===.
     // No purchase price is printed. Only the Rebel Flagship uses it, in Phase-1. price 0.
@@ -74,7 +75,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 0,
-    blurb: "Flagship artillery. Three shots of one ion. Not sold.",
+    blurb: tx("wiki.weapons-ion.flagship-artillery-three-shots-of-one"),
   },
 ];
 

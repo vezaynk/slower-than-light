@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * Wiki page "Sectors".
  * Each note is a mechanic from that heading. Counts below are the figures
@@ -16,226 +17,226 @@ export const SECTOR_TYPES: SectorType[] = [
   // wiki page "Sectors", heading "Civilian (Starting) Sector"
   {
     id: "civilian-start",
-    name: "Civilian (Starting) Sector",
+    name: tx("wiki.sectors.civilian-starting-sector"),
     group: "civilian",
     notes: [
-      "Always and only sector 1. It is not the usual Civilian Sector: fewer stores, items, quests, and nebulas.",
-      "The beacon list gives 1-2 stores, 1 quests event, and 0-4 nebula beacons.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.always-and-only-sector-1-it"),
+      tx("wiki.sectors.the-beacon-list-gives-1-2"),
+      tx("wiki.sectors.crew-bought-or-received-as-a"),
     ],
   },
   // wiki page "Sectors", heading "Civilian Sector"
   {
     id: "civilian",
-    name: "Civilian Sector",
+    name: tx("wiki.sectors.civilian-sector"),
     group: "civilian",
     notes: [
-      "Can occur multiple times per game, and it is a different sector from the starting one.",
-      "The beacon list gives 2-3 stores, 0-2 quests, and 0-8 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game"),
+      tx("wiki.sectors.the-beacon-list-gives-2-3"),
+      tx("wiki.sectors.crew-bought-or-received-as-a"),
     ],
   },
   // wiki page "Sectors", heading "Engi Controlled Sector"
   {
     id: "engi",
-    name: "Engi Controlled Sector",
+    name: tx("wiki.sectors.engi-controlled-sector"),
     group: "civilian",
     notes: [
-      "Can occur multiple times per game.",
-      "The beacon list gives 2-3 stores and 1 quest.",
-      "Crew bought or received as a crew-kill reward, common to rare: Engi rarity 1, Human 3, Zoltan 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.the-beacon-list-gives-2-3-2"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-2"),
     ],
   },
   // wiki page "Sectors", heading "Engi Homeworlds"
   {
     id: "engi-home",
-    name: "Engi Homeworlds",
+    name: tx("wiki.sectors.engi-homeworlds"),
     group: "civilian",
     notes: [
-      "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Engi fleet discussion event, 2-3 stores, and 1 quest.",
-      "Crew bought or received as a crew-kill reward, common to rare: Engi rarity 1, Human 3, Zoltan 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only"),
+      tx("wiki.sectors.the-beacon-list-places-1-engi"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-2"),
     ],
   },
   // wiki page "Sectors", heading "Zoltan Controlled Sector"
   {
     id: "zoltan",
-    name: "Zoltan Controlled Sector",
+    name: tx("wiki.sectors.zoltan-controlled-sector"),
     group: "civilian",
     notes: [
-      "Can occur multiple times per game.",
-      "The beacon list places 1 Zoltan research facility event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.the-beacon-list-places-1-zoltan"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-3"),
     ],
   },
   // wiki page "Sectors", heading "Zoltan Homeworlds"
   {
     id: "zoltan-home",
-    name: "Zoltan Homeworlds",
+    name: tx("wiki.sectors.zoltan-homeworlds"),
     group: "civilian",
     notes: [
-      "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Zoltan research facility event, 1 Unarmed Zoltan transport event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only"),
+      tx("wiki.sectors.the-beacon-list-places-1-zoltan-2"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-3"),
     ],
   },
   // wiki page "Sectors", heading "Abandoned Sector"
   {
     id: "abandoned",
-    name: "Abandoned Sector",
+    name: tx("wiki.sectors.abandoned-sector"),
     group: "hostile",
     notes: [
-      "Advanced Edition sector. Can occur multiple times per game.",
-      "The beacon list gives 2 stores and 0-1 quests.",
-      "Crew bought or received as a crew-kill reward, common to rare: Lanius and Human rarity 2, Engi, Mantis, and Rockmen 3, Zoltan and Slug 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.advanced-edition-sector-can-occur-multiple"),
+      tx("wiki.sectors.the-beacon-list-gives-2-stores"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-4"),
     ],
   },
   // wiki page "Sectors", heading "Mantis Controlled Sector"
   {
     id: "mantis",
-    name: "Mantis Controlled Sector",
+    name: tx("wiki.sectors.mantis-controlled-sector"),
     group: "hostile",
     notes: [
-      "Can occur multiple times per game.",
-      "The beacon list gives 1-2 stores.",
-      "Crew bought or received as a crew-kill reward, common to rare: Mantis rarity 1, Human 2, Engi 3, Rockmen 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.the-beacon-list-gives-1-2-2"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-5"),
     ],
   },
   // wiki page "Sectors", heading "Mantis Homeworlds"
   {
     id: "mantis-home",
-    name: "Mantis Homeworlds",
+    name: tx("wiki.sectors.mantis-homeworlds"),
     group: "hostile",
     notes: [
-      "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Legendary thief KazaaakplethKilik event and 1-2 stores.",
-      "Crew bought or received as a crew-kill reward, common to rare: Mantis rarity 1, Human 2, Engi 3, Rockmen 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only"),
+      tx("wiki.sectors.the-beacon-list-places-1-legendary"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-5"),
     ],
   },
   // wiki page "Sectors", heading "Pirate Controlled Sector"
   {
     id: "pirate",
-    name: "Pirate Controlled Sector",
+    name: tx("wiki.sectors.pirate-controlled-sector"),
     group: "hostile",
     notes: [
-      "Can occur multiple times per game.",
-      "The beacon list gives 1-2 stores, 0-1 quests, and 0-5 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.the-beacon-list-gives-1-2-3"),
+      tx("wiki.sectors.crew-bought-or-received-as-a"),
     ],
   },
   // wiki page "Sectors", heading "Rebel Controlled Sector"
   {
     id: "rebel",
-    name: "Rebel Controlled Sector",
+    name: tx("wiki.sectors.rebel-controlled-sector"),
     group: "hostile",
     notes: [
-      "Can occur multiple times per game.",
-      "The beacon list gives 1-2 stores, 0-2 quests, and 0-5 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.the-beacon-list-gives-1-2-4"),
+      tx("wiki.sectors.crew-bought-or-received-as-a"),
     ],
   },
   // wiki page "Sectors", heading "Rebel Stronghold"
   {
     id: "rebel-stronghold",
-    name: "Rebel Stronghold",
+    name: tx("wiki.sectors.rebel-stronghold"),
     group: "hostile",
     notes: [
-      "Only once per game, and only at sector 5 or higher.",
-      "The beacon list places 1 Rebel shipyard event, 1-2 stores, 0-2 quests, and 0-5 nebula spaces.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only-2"),
+      tx("wiki.sectors.the-beacon-list-places-1-rebel"),
+      tx("wiki.sectors.crew-bought-or-received-as-a"),
     ],
   },
   // wiki page "Sectors", heading "Rock Controlled Sector"
   {
     id: "rock",
-    name: "Rock Controlled Sector",
+    name: tx("wiki.sectors.rock-controlled-sector"),
     group: "hostile",
     notes: [
-      "Can occur multiple times per game.",
-      "Crystal Lockdown Bombs can be found or bought here, at a high rarity (4).",
-      "The beacon list gives 2 stores and 0-1 quests.",
-      "Crew bought or received as a crew-kill reward, common to rare: Rockmen rarity 1, Human 2, Zoltan 3. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.crystal-lockdown-bombs-can-be-found"),
+      tx("wiki.sectors.the-beacon-list-gives-2-stores"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-6"),
     ],
   },
   // wiki page "Sectors", heading "Rock Homeworlds"
   {
     id: "rock-home",
-    name: "Rock Homeworlds",
+    name: tx("wiki.sectors.rock-homeworlds"),
     group: "hostile",
     notes: [
-      "Only once per game, and only at sector 5 or higher.",
-      "Crystal Lockdown Bombs can be found or bought here, at an average rarity (2).",
-      "The beacon list places 1 Ancient device event, 1 Rock war vessel encounter event, 2 stores, and 0-1 quests.",
-      "Crew bought or received as a crew-kill reward, common to rare: Rockmen rarity 1, Human 2, Zoltan 3. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only-2"),
+      tx("wiki.sectors.crystal-lockdown-bombs-can-be-found-2"),
+      tx("wiki.sectors.the-beacon-list-places-1-ancient"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-6"),
     ],
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Slug Controlled Nebula"
   {
     id: "slug-nebula",
-    name: "Slug Controlled Nebula",
+    name: tx("wiki.sectors.slug-controlled-nebula"),
     group: "nebula",
     notes: [
-      "Can occur multiple times per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
-      "The beacon list gives 0-1 stores and 2 nebula stores.",
-      "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-3"),
+      tx("wiki.sectors.visiting-a-nebula-beacon-slows-the"),
+      tx("wiki.sectors.the-beacon-list-gives-0-1"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-7"),
     ],
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Slug Home Nebula"
   {
     id: "slug-home",
-    name: "Slug Home Nebula",
+    name: tx("wiki.sectors.slug-home-nebula"),
     group: "nebula",
     notes: [
-      "Only once per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
-      "The beacon list places 1 Slug Home Nebula surrender event, 0-1 stores, and 2 nebula stores.",
-      "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.only-once-per-game-and-only-3"),
+      tx("wiki.sectors.visiting-a-nebula-beacon-slows-the"),
+      tx("wiki.sectors.the-beacon-list-places-1-slug"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-7"),
     ],
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Uncharted Nebula"
   {
     id: "uncharted",
-    name: "Uncharted Nebula",
+    name: tx("wiki.sectors.uncharted-nebula"),
     group: "nebula",
     notes: [
-      "Can occur multiple times per game.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
-      "In normal circumstances the sector has 1-2 stores. Map generation leaves about 0.8% with no stores at all.",
-      "The beacon list also shows 0-1 stores and 1 nebula store.",
-      "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Slug 3, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.can-occur-multiple-times-per-game-2"),
+      tx("wiki.sectors.visiting-a-nebula-beacon-slows-the"),
+      tx("wiki.sectors.in-normal-circumstances-the-sector-has"),
+      tx("wiki.sectors.the-beacon-list-also-shows-0"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-8"),
     ],
   },
   // wiki page "Sectors", heading "Hidden Crystal Worlds"
   {
     id: "crystal-worlds",
-    name: "Hidden Crystal Worlds",
+    name: tx("wiki.sectors.hidden-crystal-worlds"),
     group: "hidden",
     notes: [
-      "Only once per game, and only through the Ancient device event. It is not technically part of the map.",
-      "It is a standalone sector, separate from Rock Homeworlds. The Rebels keep following you through it.",
-      "Exiting sends you to a random sector after the Rock Homeworlds. That next sector may not be connected to the Rock Homeworlds.",
-      "Stores and crew-kill rewards offer only crystal weapons, including the Lockdown Bomb. Only Crystal crew can be bought or received as a crew-kill reward.",
-      "The beacon list gives 2-3 stores.",
-      "Restarting while still in this sector drops the run into a Civilian sector. The exit will not open the sector map, so sector 2 is chosen at random.",
+      tx("wiki.sectors.only-once-per-game-and-only-4"),
+      tx("wiki.sectors.it-is-a-standalone-sector-separate"),
+      tx("wiki.sectors.exiting-sends-you-to-a-random"),
+      tx("wiki.sectors.stores-and-crew-kill-rewards-offer"),
+      tx("wiki.sectors.the-beacon-list-gives-2-3-3"),
+      tx("wiki.sectors.restarting-while-still-in-this-sector"),
     ],
   },
   // wiki page "Sectors", heading "The Last Stand"
   {
     id: "last-stand",
-    name: "The Last Stand",
+    name: tx("wiki.sectors.the-last-stand"),
     group: "last-stand",
     notes: [
-      "Always sector 8. As the final sector, it occurs only once.",
-      "At the start the ship receives 10 repairs and 10 fuel.",
-      "The Rebel Flagship spawns on the right and jumps every two jumps you make. A dotted or solid line shows whether it jumps this turn. Sharing its beacon starts the fight.",
-      "The Rebel Fleet does not advance from the left. It overtakes random beacons each turn, marked by flashing red outlines. The Flagship also overtakes the beacon it is on.",
-      "The Federation base sits slightly right of centre, and the Flagship jumps toward it. 3 consecutive jumps on the base lose the game.",
-      "The base is never overtaken. If the Flagship is forced off, it returns to Federation control. The base acts like an empty beacon.",
-      "Waiting is allowed even with fuel, and it advances the Flagship and the flashing beacons. A fight after a wait starts with full FTL charge.",
-      "Each repair beacon gives 15 repairs, 22-44 scrap, 5 fuel, 4 missiles, and 5 drones. Each can be used once, and it may be overtaken before you arrive.",
-      "The beacon list gives 1 store and 3 repair stations.",
-      "Crew bought or received as a reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
+      tx("wiki.sectors.always-sector-8-as-the-final"),
+      tx("wiki.sectors.at-the-start-the-ship-receives"),
+      tx("wiki.sectors.the-rebel-flagship-spawns-on-the"),
+      tx("wiki.sectors.the-rebel-fleet-does-not-advance"),
+      tx("wiki.sectors.the-federation-base-sits-slightly-right"),
+      tx("wiki.sectors.the-base-is-never-overtaken-if"),
+      tx("wiki.sectors.waiting-is-allowed-even-with-fuel"),
+      tx("wiki.sectors.each-repair-beacon-gives-15-repairs"),
+      tx("wiki.sectors.the-beacon-list-gives-1-store"),
+      tx("wiki.sectors.crew-bought-or-received-as-a-9"),
     ],
   },
 ];

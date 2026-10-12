@@ -1,3 +1,4 @@
+import { tx } from "../../i18n/index.ts";
 /**
  * @agent:surrender. Category:Ship surrender Events pages that no other cited table wires. Same format as the other
  * cited-events-*.ts tables: one card per page, stamped only in the sectors its {{Locations}} line names.
@@ -37,19 +38,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-surrender",
     aliases: ["Engi surrender", "Engi Surrender"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "An Engi ship in the vicinity, seeing you jump in armed to the teeth, immediately broadcasts its surrender. \"Subject goal: wealth. Engi motivation: survival. Transfer of goods acceptable?\"",
+    body: tx("wiki.cited-events-surrender.an-engi-ship-in-the-vicinity"),
     choices: [
       {
         id: "c:engi-surrender:0",
-        label: "Explain that you're friendly.",
+        label: tx("wiki.cited-events-surrender.explain-that-you-re-friendly"),
         // "You receive a random amount of scrap with resources." Random branch: surrender.ts PAGE_CHOICES.
-        fx: [{ k: "note", text: "The Engi answer." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.the-engi-answer") }],
       },
       {
         id: "c:engi-surrender:1",
-        label: "Accept their offer of surrender.",
+        label: tx("wiki.cited-events-surrender.accept-their-offer-of-surrender"),
         // "You receive a random amount of scrap with resources." Rolled in surrender.ts PAGE_CHOICES.
-        fx: [{ k: "note", text: "The Engi transfer the goods." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.the-engi-transfer-the-goods") }],
       },
     ],
   },
@@ -59,31 +60,31 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:destroyed-cargo-ship",
     aliases: ["Destroyed cargo ship", "Destroyed Cargo Ship"],
     sectors: ["Pirate Controlled Sector"],
-    body: "Not too far from the beacon, you detect a destroyed cargo ship with its cargo scattered nearby, intact.",
+    body: tx("wiki.cited-events-surrender.not-too-far-from-the-beacon"),
     choices: [
       {
         id: "c:destroyed-cargo-ship:0",
-        label: "Bring it aboard.",
+        label: tx("wiki.cited-events-surrender.bring-it-aboard"),
         // "beam aboard your ship and you fight a Pirate ship" Random branch: surrender.ts PAGE_CHOICES.
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
       {
         id: "c:destroyed-cargo-ship:1",
-        label: "Leave it alone, this looks suspicious.",
+        label: tx("wiki.cited-events-surrender.leave-it-alone-this-looks-suspicious"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:destroyed-cargo-ship:2",
-        label: "Run an advanced scan on the boxes.",
+        label: tx("wiki.cited-events-surrender.run-an-advanced-scan-on-the"),
         // Advanced Sensors level=2+. Three scan results: surrender.ts PAGE_CHOICES.
-        fx: [{ k: "note", text: "Scan the boxes." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.scan-the-boxes") }],
       },
       {
         id: "c:destroyed-cargo-ship:3",
-        label: "Run an advanced scan on the boxes.",
+        label: tx("wiki.cited-events-surrender.run-an-advanced-scan-on-the"),
         // Long-Ranged Scanners. The same three scan results: surrender.ts PAGE_CHOICES.
-        fx: [{ k: "note", text: "Scan the boxes." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.scan-the-boxes") }],
       },
     ],
   },
@@ -100,17 +101,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rock Controlled Sector",
       "Rock Homeworlds",
     ],
-    body: "You are immediately contacted by a settlement, \"Hello, travelers. Your ship seems to be outfitted for combat...care to take up a bit of mercenary work?\"",
+    body: tx("wiki.cited-events-surrender.you-are-immediately-contacted-by-a"),
     choices: [
       {
         id: "c:settlement-mercenary-work:0",
-        label: "Listen to their offer.",
+        label: tx("wiki.cited-events-surrender.listen-to-their-offer"),
         // "Fight a Pirate ship." One of two offers: surrender.ts PAGE_CHOICES.
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
       {
         id: "c:settlement-mercenary-work:1",
-        label: "Decline.",
+        label: tx("wiki.cited-events-surrender.decline"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -122,11 +123,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:the-black-raven",
     aliases: ["The Black Raven"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "As you jump in, you immediately see an impressive Slug pirate ship with \"The Black Raven\" painted on one side. They hail you, \"Greetingsss. I am the dreaded pirate, Captain Nights. You mussst be full of fear, no? You have heard of me... no?\"",
+    body: tx("wiki.cited-events-surrender.as-you-jump-in-you-immediately"),
     choices: [
       {
         id: "c:the-black-raven:0",
-        label: "No.",
+        label: tx("wiki.cited-events-surrender.no"),
         // "Fight the Black Raven" Dialogue first: surrender.ts PAGE_CHOICES. INFERRED tier: a Slug pirate ship.
         fx: [{ k: "fight", tier: "Slug pirate ship" }],
       },
@@ -139,17 +140,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // "Zoltan science ship" is the same page under its old title (the dump keeps both with the same text).
     aliases: ["Zoltan ship asks to dock", "Zoltan science ship"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "What appears to be a Zoltan science ship requests permission to dock.",
+    body: tx("wiki.cited-events-surrender.what-appears-to-be-a-zoltan"),
     choices: [
       {
         id: "c:zoltan-ship-asks-to-dock:0",
-        label: "Dock with them.",
+        label: tx("wiki.cited-events-surrender.dock-with-them"),
         // "Fight a Zoltan ship." Random branch (fight or gift): surrender.ts PAGE_CHOICES.
         fx: [{ k: "fight", tier: "Zoltan ship" }],
       },
       {
         id: "c:zoltan-ship-asks-to-dock:1",
-        label: "Have them keep their distance.",
+        label: tx("wiki.cited-events-surrender.have-them-keep-their-distance"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -162,17 +163,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:slug-comm-tapping",
     aliases: ["Slug comm tapping", "Slug Comm Tapping"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive to the sight of two Slug ships in communication range. They don't see you.",
+    body: tx("wiki.cited-events-surrender.you-arrive-to-the-sight-of"),
     choices: [
       {
         id: "c:slug-comm-tapping:0",
-        label: "Tap their comm frequency.",
+        label: tx("wiki.cited-events-surrender.tap-their-comm-frequency"),
         // "A quest marker is added to your map." wiki/quests.ts QUEST_CHOICES adds it.
-        fx: [{ k: "note", text: "A quest marker is added to your map." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.a-quest-marker-is-added-to") }],
       },
       {
         id: "c:slug-comm-tapping:1",
-        label: "Ignore them.",
+        label: tx("wiki.cited-events-surrender.ignore-them"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -185,25 +186,25 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-fleet-discussion",
     aliases: ["Engi fleet discussion", "Engi Fleet Discussion"],
     sectors: ["Engi Homeworlds"],
-    body: "You arrive near a small fleet of civilian Engi ships. A simple decryption and translation of their comm frequency tells you that they are having a frantic discussion about something obviously troubling them.",
+    body: tx("wiki.cited-events-surrender.you-arrive-near-a-small-fleet"),
     choices: [
       {
         id: "c:engi-fleet-discussion:0",
-        label: "Message them and ask if you can help.",
+        label: tx("wiki.cited-events-surrender.message-them-and-ask-if-you"),
         // "Nothing happens." (after the leader declines; the reply text is in wiki/quests.ts)
-        fx: [{ k: "note", text: "They decline." }],
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.they-decline") }],
       },
       {
         id: "c:engi-fleet-discussion:1",
-        label: "Ignore it and move on.",
+        label: tx("wiki.cited-events-surrender.ignore-it-and-move-on"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:engi-fleet-discussion:2",
         // {{Blue Option|Engi Crew|...}}: needs an Engi crewmember (wiki/quests.ts questChoiceDisabled).
-        label: "Have your Engi crewmember contact them.",
-        fx: [{ k: "note", text: "Two quest markers are added to your map." }],
+        label: tx("wiki.cited-events-surrender.have-your-engi-crewmember-contact-them"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.two-quest-markers-are-added-to") }],
       },
     ],
   },

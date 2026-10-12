@@ -2960,6 +2960,12 @@ function upgradeRows(game: Game): UpgradeRow[] {
 }
 
 /** Systems: Upgrades, the crew manifest, and Inventory are tabs of the Ship menu. */
+const SHIP_TABS = [
+  ["upgrades", "Upgrades"],
+  ["crew", "Crew"],
+  ["inventory", "Inventory"],
+] as const;
+
 function ShipSheet({ game }: { game: Game }) {
   const tab = game.shipTab ?? "upgrades";
   const guns = useTrayDrag("sheet-weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
@@ -2971,7 +2977,7 @@ function ShipSheet({ game }: { game: Game }) {
   );
   return (
     <div className="overlay">
-      <article className="sheet ftl-sheet has-x" data-sheet="ship">
+      <article className="sheet ftl-sheet ship-sheet has-x" data-sheet="ship">
         <CloseX
           onClose={() =>
             act((g) => {
@@ -2979,35 +2985,72 @@ function ShipSheet({ game }: { game: Game }) {
             })
           }
         />
-        <p className="kicker">{game.player.name}</p>
-        <div className="sheet-tabs" role="tablist">
-          {(
-            [
-              ["upgrades", "Upgrades"],
-              ["crew", "Crew"],
-              ["inventory", "Inventory"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              className="btn-ghost"
-              aria-selected={tab === id}
-              aria-pressed={tab === id}
-              onClick={() =>
-                act((g) => {
-                  g.shipTab = id;
-                })
-              }
-            >
-              {label}
-            </button>
-          ))}
+        {/* Per the user: a tabbed layout. Name and scrap on top, folder tabs with a count, then one fixed-size panel
+            that scrolls, so switching tabs never resizes the sheet. INVENTED look. */}
+        <header className="ship-sheet-head">
+          <h2 className="kicker">{game.player.name}</h2>
+          <span className="scrap-box ship-sheet-scrap" aria-label={`${game.scrap} scrap`}>
+            <PixelIcon name="scrap" size={18} />
+            <b>{game.scrap}</b>
+          </span>
+        </header>
+        <div
+          className="ship-tabs"
+          role="tablist"
+          aria-label="Ship"
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            const ids = SHIP_TABS.map(([id]) => id);
+            // From the focused tab (it may not be the open one), else the open one.
+            const focused = ids.indexOf((e.target as HTMLElement).id.replace("ship-tab-", "") as (typeof ids)[number]);
+            const at = focused >= 0 ? focused : ids.indexOf(tab);
+            const next = ids[(at + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]!;
+            act((g) => {
+              g.shipTab = next;
+            });
+            requestAnimationFrame(() => document.getElementById(`ship-tab-${next}`)?.focus());
+          }}
+        >
+          {SHIP_TABS.map(([id, label]) => {
+            const on = tab === id;
+            const count =
+              id === "crew"
+                ? game.crew.filter((c) => c.side === "player" && c.hp > 0).length
+                : id === "inventory"
+                  ? game.player.weapons.length + (game.player.kits.swarm?.loadout?.length ?? 0)
+                  : null;
+            const face = id === "crew" ? game.crew.find((c) => c.side === "player" && c.hp > 0) : undefined;
+            return (
+              <button
+                key={id}
+                id={`ship-tab-${id}`}
+                type="button"
+                role="tab"
+                className={`ship-tab${on ? " is-on" : ""}`}
+                aria-selected={on}
+                aria-controls="ship-tab-panel"
+                tabIndex={on ? 0 : -1}
+                onClick={() =>
+                  act((g) => {
+                    g.shipTab = id;
+                  })
+                }
+              >
+                {id === "upgrades" ? <PixelIcon name="upgrade" size={18} /> : null}
+                {id === "crew" && face ? <CrewFace crew={face} size={20} /> : null}
+                {id === "inventory" ? <PixelIcon name="weapons" size={18} /> : null}
+                <span>{label}</span>
+                {count != null ? <em className="ship-tab-count">{count}</em> : null}
+              </button>
+            );
+          })}
         </div>
-        {tab === "upgrades" ? <UpgradeList game={game} /> : null}
-        {tab === "crew" ? <CrewManifest game={game} /> : null}
-        {tab === "inventory" ? <CargoList game={game} guns={guns} drones={drones} /> : null}
+        <div className="ship-tab-panel" id="ship-tab-panel" role="tabpanel" aria-labelledby={`ship-tab-${tab}`}>
+          {tab === "upgrades" ? <UpgradeList game={game} /> : null}
+          {tab === "crew" ? <CrewManifest game={game} /> : null}
+          {tab === "inventory" ? <CargoList game={game} guns={guns} drones={drones} /> : null}
+        </div>
       </article>
     </div>
   );

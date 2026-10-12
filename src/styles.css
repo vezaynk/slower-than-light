@@ -5176,3 +5176,87 @@ button.modal-x.modal-x:focus-visible {
 }
 
 .install-card .install-now { border-color: var(--color-ok); color: var(--color-ok); margin-bottom: 4px; }
+
+/* Per the user: the ship sheet's tabbed layout (ShipSheet). A fixed-height sheet: header, folder tabs, one scrolling
+   panel, so the size never jumps between tabs. INVENTED look. */
+.overlay .sheet.ship-sheet {
+  height: 100%;
+  overflow: hidden;
+  gap: 0;
+  padding-bottom: 14px;
+}
+
+.ship-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 56px;
+  margin-bottom: 10px;
+}
+
+.ship-sheet-head .kicker { margin: 0; }
+
+.ship-sheet .ship-sheet-scrap { margin-left: auto; }
+
+.ship-tabs {
+  display: flex;
+  gap: 4px;
+  padding-left: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.ship-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 18px;
+  margin-bottom: -2px;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+  border-bottom-color: var(--color-line);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.ship-tab:hover { color: var(--color-fg); }
+
+.ship-tab.is-on {
+  color: var(--color-accent);
+  background: var(--color-surface);
+  border-color: var(--color-line);
+  border-bottom-color: var(--color-surface);
+}
+
+.ship-tab .px-icon,
+.ship-tab .crew-sprite { flex: none; }
+
+.ship-tab-count {
+  font-style: normal;
+  font-size: 15px;
+  min-width: 1.6em;
+  padding: 1px 6px;
+  text-align: center;
+  color: var(--color-ink);
+  background: var(--color-line-dim);
+  border-radius: 99px;
+}
+
+.ship-tab.is-on .ship-tab-count { background: var(--color-accent); }
+
+.ship-tab-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-line);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}

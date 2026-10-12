@@ -101,7 +101,7 @@ describe("Dense asteroid field distress", () => {
     assert.equal(g.augments.includes("stasis"), false);
   });
 
-  it("grabbing the pod mounts Damaged Stasis Pod with low scrap, and a full list does not take a fourth", () => {
+  it("grabbing the pod mounts Damaged Stasis Pod with low scrap, and a full list asks what to leave behind", () => {
     const g = createGame(3);
     g.augments.push("keel");
     open(g);
@@ -119,9 +119,11 @@ describe("Dense asteroid field distress", () => {
     open(full);
     fillerChoose(full, "c:dense-asteroid-field-distress:2");
     fillerChoose(full, "s:dense-asteroid-field-distress:pod");
-    assert.match(full.event?.body ?? "", /Three augments is the cap/);
+    // Augmentations: a full rack asks which one to leave behind (make-room.ts).
+    assert.match(full.event?.body ?? "", /choose what to leave behind/);
     assert.equal(full.augments.includes("stasis"), false);
     assert.equal(full.augments.length, 3);
+    assert.deepEqual(full.overflow, [{ kind: "augment", id: "stasis" }]);
     const paid = reward(full.event?.body ?? "");
     assert.ok(paid.scrap >= 7 && paid.scrap <= 10, full.event?.body);
   });

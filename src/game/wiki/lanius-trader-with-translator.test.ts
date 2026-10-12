@@ -115,15 +115,16 @@ describe("Lanius trader with translator", () => {
     assert.equal(again.crew.some((c) => c.name === "Translator"), false);
   });
 
-  it("a full crew does not pay the 40 scrap", () => {
+  it("a full crew still hires, and someone already aboard is relieved", () => {
     const g = createGame(4);
     open(g);
     g.scrap = 40;
-    while (joinCrew(g, "Human")) {}
-    assert.equal(g.crew.filter((c) => c.side === "player").length, 8);
+    while (g.crew.filter((c) => c.side === "player").length < 8) joinCrew(g, "Human");
     choose(g, "q:lanius-translator:buy");
-    assert.match(g.event?.body ?? "", /no room/);
-    assert.equal(g.scrap, 40);
-    assert.equal(g.crew.filter((c) => c.side === "player").length, 8);
+    // Crew: a hire at full crew relieves "one of the existing crewmembers" (make-room.ts keepNewHire).
+    assert.equal(g.scrap, 0);
+    const translator = g.crew.find((c) => c.name === "Translator");
+    assert.ok(translator);
+    assert.deepEqual(g.overflow, [{ kind: "crew", keep: translator.id }]);
   });
 });

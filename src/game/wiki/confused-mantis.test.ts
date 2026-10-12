@@ -128,7 +128,7 @@ describe("Confused Mantis", () => {
     assert.equal(seen, true);
   });
 
-  it("a human returns Robert Smith, or the ship is already full", () => {
+  it("a human returns Robert Smith, and a full ship picks who is relieved", () => {
     const g = createGame(1);
     kin(g, "plain");
     listen(g);
@@ -149,9 +149,10 @@ describe("Confused Mantis", () => {
     fillerChoose(full, "s:confused-mantis:human");
     fillerChoose(full, "s:confused-mantis:return");
     fillerChoose(full, "s:confused-mantis:hire");
-    assert.match(full.event?.body ?? "", /no room aboard for Robert Smith/);
-    assert.equal(players(full).filter((c) => c.name === "Robert Smith").length, 0);
-    assert.equal(players(full).length, CREW_CAP);
+    // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+    assert.equal(players(full).filter((c) => c.name === "Robert Smith").length, 1);
+    assert.equal(players(full).length, CREW_CAP + 1);
+    assert.deepEqual(full.overflow, [{ kind: "crew" }]);
   });
 
   it("the colony upgrades engines one level, and a maxed system stays put", () => {

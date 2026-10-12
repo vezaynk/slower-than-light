@@ -26,6 +26,7 @@ import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
+import { keepNewHire, receiveAugment } from "./make-room.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -2095,10 +2096,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "when you arrive there will be a nebula environment" stays unwired: there is no separate per-fight nebula here.
   "c:slocknog:0": (g) => {
     if (g.scrap < 55) return;
-    if (!joinCrew(g, "Slug", "Slocknog")) {
-      show(g, "There is no room aboard for Slocknog.");
-      return;
-    }
+    // Crew: at full crew a hire relieves someone already aboard (make-room.ts keepNewHire).
+    joinCrew(g, "Slug", "Slocknog");
+    keepNewHire(g);
     g.scrap -= 55;
     show(g, "You receive a Slug crewmember named Slocknog.", undefined, ["Scrap: -55."]);
   },
@@ -2144,7 +2144,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:dense-asteroid-field-distress:pod": (g) => {
     // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
-    const note = g.augments.length >= 3 ? "Three augments is the cap." : (g.augments.push("stasis"), "Damaged Stasis Pod.");
+    const note = receiveAugment(g, "stasis") === "queued" ? "No free augmentation slot for the Damaged Stasis Pod: choose what to leave behind." : "Damaged Stasis Pod.";
     show(g, "Your crew drags the pod back to your ship before the asteroid smashes into the ship, shattering through the crystal coating and destroying the ship. The pod appears to be functioning but you see nothing but shards of crystal inside. Perhaps someone else will know how to open it.", scrapOnly(g, "low"), [note]);
   },
 

@@ -186,15 +186,11 @@ describe("Lanius ship absorbing jump beacon", () => {
     const full = createGame(4);
     open(full);
     full.player.kits.swarm = drone("hull");
-    while (joinCrew(full, "Human")) {
-      // Fill the ship to the crew cap.
-    }
-    assert.equal(full.crew.filter((c) => c.side === "player").length, CREW_CAP);
-    const fullParts = full.player.parts;
+    while (full.crew.filter((c) => c.side === "player").length < CREW_CAP) joinCrew(full, "Human");
     choose(full, "c:lanius-ship-absorbing-jump-beacon:3");
-    assert.match(full.event?.body ?? "", /There is no room aboard for the new crewmember/);
-    assert.equal(full.crew.filter((c) => c.side === "player").length, CREW_CAP);
-    assert.equal(full.crew.filter((c) => c.kin === "voidlung").length, 0);
-    assert.equal(full.player.parts, fullParts);
+    // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+    assert.equal(full.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
+    assert.equal(full.crew.filter((c) => c.kin === "voidlung").length, 1);
+    assert.deepEqual(full.overflow, [{ kind: "crew" }]);
   });
 });

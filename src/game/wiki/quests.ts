@@ -62,6 +62,7 @@ import {
   type SurrenderOffer,
   type SurrenderTier,
 } from "./surrender.ts";
+import { keepNewHire, receiveAugment } from "./make-room.ts";
 
 /**
  * @agent:quests-a. One quest-opener module (quests-a.ts, quests-b.ts): its quest ids, arrival cards, choices, page wins
@@ -357,12 +358,14 @@ const AUG_NAMES: Partial<Record<AugmentId, string>> = {
   zshield: "Zoltan Shield",
 };
 
-/** A named augmentation. Three is the cap (augments.ts installAugment); a full rack loses it. INFERRED. */
+/**
+ * A named augmentation. Augmentations: up to three; on a full rack "you must choose one augment to leave behind"
+ * (make-room.ts). INFERRED: a named page reward the ship already has is not doubled and pays nothing.
+ */
 export function grantAug(g: Game, id: AugmentId): string {
   const name = AUG_NAMES[id] ?? id;
   if (g.augments.includes(id)) return `${name} is already fitted.`;
-  if (g.augments.length >= 3) return `No free augmentation slot for ${name}.`;
-  g.augments.push(id);
+  if (receiveAugment(g, id) === "queued") return `No free augmentation slot for ${name}: choose what to leave behind.`;
   return `${name} fitted.`;
 }
 
@@ -1025,13 +1028,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     ]);
   },
   // 40 scrap for a Lanius named Translator. The page prints no skill.
-  // INFERRED: a full crew of 8 does not pay the 40, because the crewmember does not come aboard.
+  // At full crew the hire goes ahead and someone already aboard is relieved (make-room.ts keepNewHire).
   "q:lanius-translator:buy": (g) => {
     if (g.scrap < 40) return;
-    if (!joinCrew(g, "Lanius", "Translator")) {
-      result(g, "There is no room aboard for the new crewmember.");
-      return;
-    }
+    joinCrew(g, "Lanius", "Translator");
+    keepNewHire(g);
     g.scrap -= 40;
     result(g, "Your ships dock and you are more than a little surprised when the Lanius you spoke with boards your ship. It appears the 'device' you purchased was one of the beings that learned your language.", undefined, ["A Lanius crewmember named Translator joins you."]);
   },

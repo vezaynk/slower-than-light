@@ -131,7 +131,7 @@ describe("Single life form on moon", () => {
     assert.deepEqual([...seen].sort(), [...SKILLS].sort());
   });
 
-  it("a full ship has no room for Charlie", () => {
+  it("a full ship takes Charlie and picks who is relieved", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = scene(seed, (game) => {
@@ -145,8 +145,9 @@ describe("Single life form on moon", () => {
       seen = true;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:invite");
-      assert.match(g.event?.body ?? "", /no room aboard for Charlie/);
-      assert.equal(g.crew.length, crew);
+      // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+      assert.equal(g.crew.length, crew + 1);
+      assert.deepEqual(g.overflow, [{ kind: "crew" }]);
     }
     assert.equal(seen, true);
   });

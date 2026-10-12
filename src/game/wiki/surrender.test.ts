@@ -279,16 +279,16 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
   });
 
-  it("Human crew: a full ship keeps the fight going", () => {
+  it("Human crew: a full ship takes them, picks who is relieved, and the fight goes on", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
     while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
     offer(g);
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "combat");
-    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP);
-    // INFERRED fallback: the wiki page does not print a no-room sentence.
-    assert.ok(g.log.includes("No room aboard. The fight continues."));
-    assert.equal(g.log.includes("They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free."), false);
+    // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
+    assert.deepEqual(g.overflow, [{ kind: "crew" }]);
+    assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
   });
 
   it("hull repairs: low fuel and scrap plus 8 repairs, and the fight ends", () => {

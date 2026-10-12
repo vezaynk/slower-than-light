@@ -396,16 +396,10 @@ describe("cited stores", () => {
       });
     }
     reseed(g, rolls("drones", "crew", "augments", "systems"));
+    // Crew: a full crew can still hire by relieving someone first, so the crew section stays.
     assert.deepEqual(
       citedStock(g).map((item) => item.kind),
-      ["drone", "drone", "drone"],
-    );
-    g.crew.pop();
-    assert.deepEqual(
-      citedStock(g)
-        .map((item) => item.kind)
-        .sort(),
-      ["crew", "drone", "drone", "drone"],
+      ["drone", "drone", "drone", "crew", "crew", "crew"],
     );
   });
 
@@ -611,9 +605,11 @@ describe("cited stores", () => {
     bare.stock = citedStock(bare);
     const beam = bare.stock.find((item) => item.ref === "beam");
     assert.ok(beam);
+    // Per the user: a schematic with nowhere to fit goes to the cargo hold (make-room.ts).
     buy(bare, beam.id);
-    assert.equal(bare.scrap, 50);
+    assert.equal(bare.scrap, 0);
     assert.equal(bare.player.kits.swarm, undefined);
+    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "beam" }]);
     const fitted = createGame(1);
     fitted.player.kits.swarm = kit("swarm", 2);
     fitted.seed = 2;
@@ -628,7 +624,7 @@ describe("cited stores", () => {
     );
   });
 
-  it("fits a bought schematic in a free slot and does not spend when the fit fails", () => {
+  it("fits a bought schematic in a free slot, else stows it in cargo, and never buys one already held", () => {
     const g = createGame(1);
     ownEveryPricedSystem(g);
     const swarm = g.player.kits.swarm;
@@ -650,10 +646,12 @@ describe("cited stores", () => {
     assert.equal(g.scrap, 0);
     assert.deepEqual(swarm.loadout, ["beam", "beam2"]);
     assert.equal(swarm.target, "beam");
+    // Per the user: with the schematic slots full it goes to cargo.
     g.scrap = 50;
     buy(g, ward.id);
-    assert.equal(g.scrap, 50);
+    assert.equal(g.scrap, 0);
     assert.deepEqual(swarm.loadout, ["beam", "beam2"]);
+    assert.deepEqual(g.cargo, [{ kind: "drone", id: "ward" }]);
 
     const bare = createGame(3);
     bare.scrap = 85;
@@ -669,8 +667,9 @@ describe("cited stores", () => {
       },
     ];
     buy(bare, "drone-hull");
-    assert.equal(bare.scrap, 85);
+    assert.equal(bare.scrap, 0);
     assert.equal(bare.player.kits.swarm, undefined);
+    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "hull" }]);
 
     g.stock = [beam];
     g.scrap = 50;
@@ -693,8 +692,9 @@ describe("cited stores", () => {
     assert.equal(engi.scrap, 70);
     assert.deepEqual(engi.player.kits.swarm?.loadout, ["striker", "beam", "hull"]);
     buy(engi, "d-board");
-    assert.equal(engi.scrap, 70);
+    assert.equal(engi.scrap, 0);
     assert.deepEqual(engi.player.kits.swarm?.loadout, ["striker", "beam", "hull"]);
+    assert.deepEqual(engi.cargo, [{ kind: "drone", id: "board" }]);
 
     const vortex = createGame(5);
     vortex.hullId = "engi-b";
@@ -705,8 +705,9 @@ describe("cited stores", () => {
     ];
     vortex.scrap = 85;
     buy(vortex, "d-hull");
-    assert.equal(vortex.scrap, 85);
+    assert.equal(vortex.scrap, 0);
     assert.deepEqual(vortex.player.kits.swarm?.loadout, ["patch", "patch"]);
+    assert.deepEqual(vortex.cargo, [{ kind: "drone", id: "hull" }]);
   });
 
   it("sells a fitted Zoltan Shield for 40 and does not let the next jump refill it", () => {

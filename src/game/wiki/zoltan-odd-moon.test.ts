@@ -196,14 +196,15 @@ describe("Zoltan odd moon", () => {
     assert.match(g.event?.body ?? "", /boarding drone/);
   });
 
-  it("does not add a ninth crewmember", () => {
+  it("a ninth crewmember asks who is relieved", () => {
     const g = open(7);
     fitBoard(g);
     g.player.parts = 2;
     while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
     choose(g, "c:zoltan-odd-moon:drone");
     assert.equal(g.player.parts, 1);
-    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP);
-    assert.match(g.event?.body ?? "", /There is no room aboard/);
+    // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
+    assert.deepEqual(g.overflow, [{ kind: "crew" }]);
   });
 });

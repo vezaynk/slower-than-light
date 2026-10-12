@@ -38,7 +38,7 @@ describe("Slocknog", () => {
     assert.match(g.event?.body ?? "", /named Slocknog/);
   });
 
-  it("refuses the hire below 55 scrap and when the ship is full", () => {
+  it("refuses the hire below 55 scrap, and a full ship relieves someone already aboard", () => {
     const short = createGame(1);
     short.scrap = 54;
     open(short);
@@ -52,9 +52,11 @@ describe("Slocknog", () => {
     while (players(full).length < CREW_CAP) assert.equal(joinCrew(full, "Human"), true);
     open(full);
     fillerChoose(full, "c:slocknog:0");
-    assert.match(full.event?.body ?? "", /no room aboard for Slocknog/);
-    assert.equal(full.scrap, 55);
-    assert.equal(players(full).some((c) => c.name === "Slocknog"), false);
+    // Crew: at full crew a hire relieves "one of the existing crewmembers" (make-room.ts keepNewHire).
+    assert.equal(full.scrap, 0);
+    const slug = players(full).find((c) => c.name === "Slocknog");
+    assert.ok(slug);
+    assert.deepEqual(full.overflow, [{ kind: "crew", keep: slug.id }]);
   });
 
   it("rescuing him after the plea is free, and leaving spends nothing", () => {

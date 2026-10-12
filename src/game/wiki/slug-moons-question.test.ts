@@ -95,14 +95,15 @@ describe("Slug moons question", () => {
     assert.match(g.event?.body ?? "", /You receive a Slug crewmember/);
   });
 
-  it("does not add a ninth crewmember", () => {
+  it("a ninth crewmember asks who is relieved", () => {
     const g = open(3);
     while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
     const n = moons(g.event?.body ?? "");
     choose(g, g.event?.choices[0]?.id ?? "");
     choose(g, `c:slug-moons-question:answer:${n}:${n}`);
-    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP);
-    assert.match(g.event?.body ?? "", /There is no room aboard/);
+    // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
+    assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
+    assert.deepEqual(g.overflow, [{ kind: "crew" }]);
     assert.match(g.event?.body ?? "", /That isss\.\.\. correct/);
   });
 

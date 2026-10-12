@@ -699,6 +699,21 @@ export type Phase =
 /** Score, lead formula: Easy, Normal, or Hard. D is 1, 1.25, or 1.5. */
 export type Difficulty = "easy" | "normal" | "hard";
 
+/**
+ * Per the user: the cargo hold, 4 slots for weapons and drone schematics that are not fitted (wiki/make-room.ts).
+ * Augmentations: "the cargo storage cannot hold any of them", and crew are not cargo.
+ * Weapon Control: "A weapon charge can be stored if a weapon is fully charged and then put into a cargo slot."
+ */
+export type CargoItem = { kind: "weapon"; id: string; charge?: number } | { kind: "drone"; id: string };
+
+/** wiki/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
+export type Overflow =
+  | { kind: "augment"; id: AugmentId }
+  | { kind: "weapon"; id: string }
+  | { kind: "drone"; id: string }
+  /** `keep`: a paid hire, who stays (Crew: relieve "one of the existing crewmembers before purchase/hire"). */
+  | { kind: "crew"; keep?: string };
+
 export type StockItem = {
   id: string;
   kind: "fuel" | "missiles" | "parts" | "weapon" | "repair" | "system" | "augment" | "drone" | "crew";
@@ -799,6 +814,13 @@ export type Game = {
    * unpauses a pause the player set). Not saved: loadGame clears it.
    */
   menuHold?: boolean;
+  /**
+   * Per the user: rewards that arrived to a full rack, waiting for the player to pick what is left behind
+   * (wiki/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
+   */
+  overflow?: Overflow[];
+  /** Per the user: the 4-slot cargo hold (CargoItem). Missing on older saves means empty. */
+  cargo?: CargoItem[];
   /**
    * Per the user: a beaten ship that did not explode (surrender accepted, crew killed, stalemate break-off) stays at
    * the beacon until the player jumps, so its panel stays up and crew still aboard can be teleported back. It is not

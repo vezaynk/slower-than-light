@@ -99,7 +99,7 @@ describe("Zoltan Great Eye", () => {
     assert.equal(seen, true);
   });
 
-  it("does not mount a second Healing Burst when the weapon list is full", () => {
+  it("stows a Healing Burst in cargo when the weapon list is full", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
@@ -120,7 +120,9 @@ describe("Zoltan Great Eye", () => {
       seen = true;
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.player.weapons.some((w) => w.defId === "healburst"), false);
-      assert.match(g.event?.body ?? "", /No free weapon slot/);
+      // Per the user: a full rack stows it in cargo (make-room.ts).
+      assert.match(g.event?.body ?? "", /stowed in cargo/);
+      assert.deepEqual(g.cargo, [{ kind: "weapon", id: "healburst" }]);
     }
     assert.equal(seen, true);
   });

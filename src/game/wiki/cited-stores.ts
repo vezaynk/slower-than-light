@@ -4,6 +4,7 @@ import { WEAPONS } from "../content.ts";
 import type { AugmentId, Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
+import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
@@ -313,13 +314,13 @@ function augmentItems(g: Game): StockItem[] {
 }
 
 function crewItems(g: Game): StockItem[] {
-  const aboard = g.crew.filter((c) => c.side === "player").length;
-  const free = CREW_CAP - aboard;
-  if (free <= 0) return [];
+  // Crew: "If the player wishes to replace a crewmember at a store or a hiring station while being at full crew count,
+  // the game will require to relieve one of the existing crewmembers before purchase/hire." So a full crew still sees
+  // the section; the store asks who leaves first (StoreBoard), and grantCrew keeps the cap of 8.
   // Sectors, "Hidden Crystal Worlds", "Crewmembers": only Crystal crew can be purchased.
   // Not a random draw. The run RNG is left alone. First rows of the comparison table that still fit.
   const rows = g.sectorName === "Hidden Crystal Worlds" ? CREW.filter((row) => row.ref === "shard") : CREW;
-  return rows.slice(0, Math.min(SLOT, free)).map((row) => {
+  return rows.slice(0, SLOT).map((row) => {
     const kin = KIN[row.ref];
     return {
       id: `crew-${row.ref}`,
@@ -414,7 +415,7 @@ function grantAugment(g: Game, item: StockItem): boolean {
   return true;
 }
 
-function fieldedSchematics(kit: Kit): string[] {
+export function fieldedSchematics(kit: Kit): string[] {
   if (kit.loadout?.length) return [...kit.loadout];
   return kit.target ? [kit.target] : [];
 }
@@ -434,8 +435,11 @@ function pairedRepair(kit: Kit): boolean {
   return (kit.loadout?.filter((kind) => kind === "patch").length ?? 0) > 1;
 }
 
+/** Per the user: a schematic that cannot be fitted goes to cargo. The store will not sell it when cargo is full too. */
 function grantDrone(g: Game, item: StockItem): boolean {
-  return fieldDroneSchematic(g, item.ref);
+  if (!canFieldDrone(g, item.ref) && cargoOf(g).length >= CARGO_SLOTS) return false;
+  const got = receiveDrone(g, item.ref);
+  return got === "fitted" || got === "cargo";
 }
 
 /** A schematic the ship can take now: Drone Control fitted, a free schematic slot, and not one it already fields. */
@@ -553,6 +557,13 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   }
+  // Per the user: weapons in cargo sell like fitted ones.
+  cargoOf(g).forEach((item, index) => {
+    if (item.kind !== "weapon") return;
+    const scrap = weaponSell(item.id);
+    if (scrap == null || scrap <= 0) return;
+    quotes.push({ id: `c:${index}:${item.id}`, kind: "weapon", ref: item.id, name: `${WEAPONS[item.id]?.name ?? item.id} (cargo)`, scrap });
+  });
   (g.augments ?? []).forEach((id, index) => {
     const scrap = augmentSell(id);
     if (scrap == null || scrap <= 0) return;
@@ -591,6 +602,14 @@ export function citedSell(g: Game, id: string): boolean {
     kit.left = 0;
     kit.aux = 0;
     delete kit.hp;
+    g.scrap += quote.scrap;
+    g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    return true;
+  }
+  if (quote.kind === "weapon" && id.startsWith("c:")) {
+    const index = Number(id.split(":")[1]);
+    if (cargoOf(g)[index]?.id !== quote.ref) return false;
+    g.cargo = cargoOf(g).filter((_, i) => i !== index);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     return true;

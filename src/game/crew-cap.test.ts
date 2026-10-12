@@ -8,7 +8,7 @@ function players(g: ReturnType<typeof createGame>) {
 }
 
 describe("crew cap", () => {
-  it("lets a ship carry eight and refuses a ninth", () => {
+  it("lets a ship carry eight, and a ninth asks who is relieved", () => {
     const g = createGame(1, "mantis-a");
     assert.ok(players(g).length > 0);
     assert.ok(players(g).length < CREW_CAP);
@@ -17,7 +17,9 @@ describe("crew cap", () => {
     const joined = players(g).at(-1);
     assert.equal(joined?.hp, 100);
     assert.equal(joined?.maxHp, 100);
-    assert.equal(joinCrew(g, "Human"), false);
-    assert.equal(players(g).length, 8);
+    // Crew: "If the player receives a 9th crew, the game will require to relieve one of the crewmembers".
+    assert.equal(joinCrew(g, "Human"), true);
+    assert.equal(players(g).length, 9);
+    assert.deepEqual(g.overflow, [{ kind: "crew" }]);
   });
 });

@@ -9,14 +9,15 @@ import { useState, type ReactNode } from "react";
 import { hullRepairPerPoint } from "@/game/content";
 import { droneKeyOf } from "@/game/gear-look";
 import type { IconName } from "@/game/icons";
-import { buy, CREW_CAP, leaveStore, repairHull, weaponSlotCap } from "@/game/sim";
+import { buy, canDismiss, CREW_CAP, dismissCrew, leaveStore, repairHull, weaponSlotCap } from "@/game/sim";
 import { useGame } from "@/game/store";
 import type { Game, StockItem } from "@/game/types";
 import type { KinId } from "@/game/extras/kin";
 import { canFieldDrone, citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
-import { UNIFORMS } from "@/game/crew-look";
+import { CARGO_SLOTS, cargoOf } from "@/game/wiki/make-room";
+import { kinLabel, UNIFORMS } from "@/game/crew-look";
 import { CloseX } from "./CloseX";
-import { CrewSprite } from "./CrewSprite";
+import { CrewFace, CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 
@@ -40,11 +41,11 @@ const RESOURCE: Record<"fuel" | "missiles" | "parts", [IconName, (g: Game) => nu
 
 /** Why a purchase would not go through, shown on the card. Mirrors the checks in buy and citedBuy. */
 function blocked(g: Game, item: StockItem): string | null {
-  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g)) return "No free weapon slot.";
-  if (item.kind === "drone" && !g.player.kits.swarm) return "Needs Drone Control.";
-  if (item.kind === "drone" && !canFieldDrone(g, item.ref)) return "No free drone schematic slot.";
+  // Per the user: what does not fit goes to cargo, so only a full cargo hold blocks a purchase.
+  const cargoFull = cargoOf(g).length >= CARGO_SLOTS;
+  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && cargoFull) return "No free weapon slot or cargo slot.";
+  if (item.kind === "drone" && !canFieldDrone(g, item.ref) && cargoFull) return "No free schematic slot or cargo slot.";
   if (item.kind === "augment" && g.augments.length >= 3) return "Three augments is the cap.";
-  if (item.kind === "crew" && g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return "Crew is full.";
   return null;
 }
 
@@ -66,15 +67,26 @@ function PriceButton({ cost, scrap, why, label, onBuy }: { cost: number; scrap: 
   );
 }
 
-function ItemCard({ game, item }: { game: Game; item: StockItem }) {
+function ItemCard({ game, item, onFullCrew }: { game: Game; item: StockItem; onFullCrew: (item: StockItem) => void }) {
   const why = blocked(game, item);
+  const fullCrew = item.kind === "crew" && game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
   return (
     <section className="store-card" data-kind={item.kind}>
       <span className="store-card-art">{itemArt(item)}</span>
       <b className="store-card-name">{item.name}</b>
       {item.kind === "weapon" || item.kind === "augment" ? <span className="store-card-note">{item.detail}</span> : null}
       {why ? <span className="offer-warn">{why}</span> : null}
-      <PriceButton cost={item.cost} scrap={game.scrap} why={why} label={`Buy ${item.name}`} onBuy={() => act((g) => buy(g, item.id))} />
+      {!why && ((item.kind === "weapon" && game.player.weapons.length >= weaponSlotCap(game)) || (item.kind === "drone" && !canFieldDrone(game, item.ref))) ? (
+        <span className="store-card-note">Goes to cargo.</span>
+      ) : null}
+      {fullCrew ? <span className="offer-warn">Crew is full: someone leaves first.</span> : null}
+      <PriceButton
+        cost={item.cost}
+        scrap={game.scrap}
+        why={why}
+        label={`Buy ${item.name}`}
+        onBuy={() => (fullCrew ? onFullCrew(item) : act((g) => buy(g, item.id)))}
+      />
     </section>
   );
 }
@@ -170,7 +182,66 @@ function SellList({ game }: { game: Game }) {
   );
 }
 
+/**
+ * Crew: at full crew a store hire requires relieving "one of the existing crewmembers before purchase/hire". Pick who
+ * leaves, then confirm; the hire and the dismissal happen together, so cancelling costs nothing. INVENTED look.
+ */
+function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onDone: () => void }) {
+  const [pick, setPick] = useState<string | null>(null);
+  const crew = game.crew.filter((c) => c.side === "player");
+  const chosen = crew.find((c) => c.id === pick && canDismiss(game, c.id));
+  return (
+    <div className="make-room-store" role="dialog" aria-label="Make room for the new hire">
+      <p className="event-lead">Hire {item.name}: who leaves?</p>
+      <p className="mini">A ship holds eight. Someone already aboard must be relieved before the hire.</p>
+      <div className="make-room-picks" role="radiogroup" aria-label="Relieve">
+        {crew.map((c) => {
+          const may = canDismiss(game, c.id);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={pick === c.id}
+              className={`make-room-pick${pick === c.id ? " is-on" : ""}`}
+              disabled={!may}
+              onClick={() => setPick(c.id)}
+            >
+              <span className="make-room-art">
+                <CrewFace crew={c} size={40} />
+              </span>
+              <b>{c.name}</b>
+              <span className="mini">{may ? kinLabel(c.kin) : c.aboard !== "player" ? "Not aboard." : "Can't leave now."}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="store-repair">
+        <button type="button" onClick={onDone}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="make-room-go"
+          disabled={!chosen || game.scrap < item.cost}
+          onClick={() => {
+            if (!chosen) return;
+            act((g) => {
+              if (g.scrap < item.cost || !dismissCrew(g, chosen.id)) return;
+              buy(g, item.id);
+            });
+            onDone();
+          }}
+        >
+          {chosen ? `Relieve ${chosen.name} and hire` : "Pick who leaves"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function StoreBoard({ game }: { game: Game }) {
+  const [hiring, setHiring] = useState<StockItem | null>(null);
   const stock = game.stock ?? [];
   const tabs: [Tab, string, IconName][] = [
     ["supplies", "Supplies", "fuel"],
@@ -250,12 +321,14 @@ export function StoreBoard({ game }: { game: Game }) {
         <div className="ship-tab-panel store-panel" id="store-tab-panel" role="tabpanel" aria-labelledby={`store-tab-${tab}`}>
           {tab === "supplies" ? <Supplies game={game} /> : null}
           {tab === "sell" ? <SellList game={game} /> : null}
-          {tab !== "supplies" && tab !== "sell" ? (
+          {hiring && stock.some((item) => item.id === hiring.id) ? (
+            <RelieveFirst game={game} item={hiring} onDone={() => setHiring(null)} />
+          ) : tab !== "supplies" && tab !== "sell" ? (
             <div className="store-cards">
               {stock
                 .filter((item) => item.kind === tab)
                 .map((item) => (
-                  <ItemCard key={item.id} game={game} item={item} />
+                  <ItemCard key={item.id} game={game} item={item} onFullCrew={setHiring} />
                 ))}
             </div>
           ) : null}

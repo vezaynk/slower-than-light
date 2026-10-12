@@ -5735,3 +5735,73 @@ body.page-turn-180 {
   from { opacity: 0.35; }
   to { opacity: 1; }
 }
+
+/* Per the user: the make-room choice (MakeRoomModal). It sits above every other card. INVENTED look. */
+.make-room-layer { z-index: 7; }
+/* The cards scroll inside the card, so the confirm below them is always in reach. */
+.make-room-card { max-width: min(760px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.make-room-card > p { flex: none; }
+.make-room-card .make-room-picks { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.make-room-card .make-room-go { flex: none; }
+
+.make-room-picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.make-room-pick {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  padding: 6px;
+  color: var(--color-fg);
+  background: #14110e;
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.make-room-pick b { font-family: var(--font-hud); font-size: 18px; font-weight: 400; letter-spacing: 0.04em; }
+.make-room-pick .mini { font-size: 12px; color: var(--color-muted); }
+.make-room-pick.is-new { border-color: var(--color-accent); }
+.make-room-pick.is-on { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 16%, #14110e); }
+.make-room-pick:disabled { opacity: 0.5; cursor: not-allowed; }
+.make-room-art { display: grid; place-items: center; min-height: 40px; }
+
+.make-room-new {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-style: normal;
+  font-family: var(--font-hud);
+  font-size: 14px;
+  color: var(--color-accent);
+}
+
+.make-room-go:not(:disabled) { border-color: var(--color-danger); color: var(--color-danger); }
+.make-room-store { display: flex; flex-direction: column; gap: 8px; }
+.make-room-store .event-lead, .make-room-store p { margin: 0; }
+
+/* Per the user: the cargo hold in the ship sheet's Inventory, and the "To cargo" / "Fit" moves. INVENTED look. */
+.cargo-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cargo-cell > .cargo-slot { flex: 1; }
+
+.cargo-move {
+  min-height: 32px;
+  padding: 2px 8px;
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+}
+
+.cargo-move:hover:not(:disabled) { border-color: var(--color-accent); color: var(--color-accent); }
+.cargo-move:disabled { color: var(--color-muted); cursor: not-allowed; font-size: 13px; }

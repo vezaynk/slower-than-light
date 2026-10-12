@@ -88,8 +88,8 @@ import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
-import { droneName, grantBonusAugment, rollBonusItem } from "./wiki/bonus-item.ts";
-import { fieldDroneSchematic } from "./wiki/cited-stores.ts";
+import { droneLine, grantBonusAugment, rollBonusItem } from "./wiki/bonus-item.ts";
+import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
 import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
@@ -4753,10 +4753,11 @@ function winCombat(g: Game) {
     const crystal = deadCrew && g.sectorName === "Hidden Crystal Worlds";
     const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
     if (item?.kind === "weapon") {
-      giveWeapon(g, item.id);
-      notes.push(`${WEAPONS[item.id]?.name ?? item.id} mounted.`);
+      const name = WEAPONS[item.id]?.name ?? item.id;
+      const got = receiveWeapon(g, item.id);
+      notes.push(got === "mounted" ? `${name} mounted.` : got === "cargo" ? `${name} stowed in cargo.` : `No room in cargo for ${name}: choose what to leave behind.`);
     } else if (item?.kind === "augment") notes.push(grantBonusAugment(g, item.id));
-    else if (item?.kind === "drone" && fieldDroneSchematic(g, item.id)) notes.push(`${droneName(item.id)} schematic fitted.`);
+    else if (item?.kind === "drone") notes.push(droneLine(g, item.id));
   }
   addScrap(g, scrap, eligible);
   g.reward = { scrap, note: notes.join(" ") };
@@ -4775,28 +4776,14 @@ export function weaponSlotCap(g: Game): number {
   return printedWeaponSlots(g.hullId) ?? 3;
 }
 
-function giveWeapon(g: Game, defId: string) {
-  if (g.player.weapons.length >= weaponSlotCap(g)) return;
-  if (g.player.weapons.some((w) => w.defId === defId)) return;
-  g.player.weapons.push({
-    uid: uid(g),
-    defId,
-    charge: 0,
-    enabled: false,
-    autofire: false,
-    target: null,
-  });
-}
-
 /**
  * Crew, and Ship: a player ship carries a maximum of 8 crewmembers.
- * A 9th is not added. Relieving someone already aboard is not drawn.
+ * A 9th comes aboard and the player picks who is relieved (wiki/make-room.ts).
  * Template:Crew races (comparison), Humans: maximum health 100.
  */
 export const CREW_CAP = 8;
 
 function addCrew(g: Game) {
-  if (g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return;
   const used = new Set(g.crew.map((c) => c.name));
   const name = CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
   g.crew.push({
@@ -4812,6 +4799,8 @@ function addCrew(g: Game) {
     think: 0,
     tone: g.crew.length % 3,
   });
+  // Crew: a 9th crewmember means relieving one (wiki/make-room.ts).
+  checkCrewRoom(g);
 }
 
 /**
@@ -6056,8 +6045,9 @@ export function buy(g: Game, id: string) {
   }
   // A drone schematic that did not fit spends nothing. citedBuy owns that grant.
   if (item.kind === "drone") return;
-  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g)) {
-    log(g, "No free weapon slot.");
+  // Per the user: a weapon with no free slot goes to cargo; the store will not sell it when cargo is full too.
+  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && (g.cargo?.length ?? 0) >= CARGO_SLOTS) {
+    log(g, "No free weapon slot or cargo slot.");
     return;
   }
   if (item.kind === "repair" && g.player.hull >= g.player.hullMax) return;
@@ -6081,7 +6071,7 @@ export function buy(g: Game, id: string) {
     noteAchieve(g, { k: "store", repair: true });
     noteAchieve(g, { k: "hull", before, after: g.player.hull });
   } else noteAchieve(g, { k: "store", repair: false });
-  if (item.kind === "weapon") giveWeapon(g, item.ref);
+  if (item.kind === "weapon") receiveWeapon(g, item.ref);
   g.stock = (g.stock ?? []).filter((s) => s.id !== id);
   sfx(g, "click");
   log(g, `Bought ${item.name}.`);
@@ -6781,9 +6771,12 @@ export function step(g: Game, dt: number) {
   flushSfx(g.sfx);
 }
 
-/** The clock is stopped: the player's pause, or the room radial menu's own hold (Game.menuHold). */
+/**
+ * The clock is stopped: the player's pause, the room radial menu's own hold (Game.menuHold), or a make-room choice
+ * waiting (Game.overflow).
+ */
 export function halted(g: Game): boolean {
-  return g.paused || !!g.menuHold;
+  return g.paused || !!g.menuHold || !!pendingOverflow(g);
 }
 
 /** Per the user: pause works wherever the ship's clock runs, not only in a fight (shipTicking's phases). */

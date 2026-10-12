@@ -54,6 +54,7 @@ import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
 import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
 import { canFieldDrone } from "@/game/wiki/cited-stores";
+import { CARGO_SLOTS, canFitFromCargo, cargoOf, fitFromCargo, pendingOverflow, resolveOverflow, stowDrone, stowWeapon } from "@/game/wiki/make-room";
 import { kinOf } from "@/game/extras/kin";
 import { UNIFORMS } from "@/game/crew-look";
 import { artilleryView } from "@/game/wiki/flagship-systems";
@@ -121,7 +122,7 @@ import {
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { AugmentId, BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
+import type { AugmentId, BeamLine, Crew, Game, Overflow, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
@@ -678,12 +679,15 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     game.phase === "store" ||
     (game.phase === "reward" && !!game.reward) ||
     game.phase === "victory" ||
-    game.phase === "defeat");
+    game.phase === "defeat" ||
+    !!pendingOverflow(game));
   const card = cardUp ? (
     <>
-      {game.phase === "event" && game.event ? <EventModal game={game} /> : null}
+      {/* A make-room choice is answered first; the card it came from waits under it. */}
+      {game.phase === "event" && game.event && !pendingOverflow(game) ? <EventModal game={game} /> : null}
       {game.phase === "store" ? <StoreBoard game={game} /> : null}
-      {game.phase === "reward" && game.reward ? <RewardModal game={game} /> : null}
+      {game.phase === "reward" && game.reward && !pendingOverflow(game) ? <RewardModal game={game} /> : null}
+      {pendingOverflow(game) ? <MakeRoomModal game={game} /> : null}
       {game.phase === "victory" || game.phase === "defeat" ? (
         <div className="modal-layer verdict-layer">
           <Verdict game={game} />
@@ -2308,6 +2312,120 @@ function EventCard({ game }: { game: Game }) {
   );
 }
 
+type RoomPick = { key: string; name: string; art: ReactNode; note?: string; isNew?: boolean; locked?: string };
+
+/** The rows a make-room choice offers: what is fitted now, then the arriving item. */
+function roomPicks(game: Game, item: Overflow): RoomPick[] {
+  if (item.kind === "crew") {
+    const crew = game.crew.filter((c) => c.side === "player");
+    const newest = crew[crew.length - 1]?.id;
+    return crew.map((c) => ({
+      key: c.id,
+      name: c.name,
+      art: <CrewFace crew={c} size={40} />,
+      note: kinLabel(c.kin),
+      isNew: c.id === newest,
+      locked:
+        c.id === item.keep ? "Just hired." : canDismiss(game, c.id) ? undefined : c.aboard !== "player" ? "Not aboard." : "Can't leave now.",
+    }));
+  }
+  // Per the user: a full rack and a full cargo hold: a fitted one of that kind, anything in cargo, or the new one.
+  const cargo: RoomPick[] = cargoOf(game).map((c, i) => ({
+    key: `c:${i}`,
+    name: c.kind === "weapon" ? (WEAPONS[c.id]?.name ?? c.id) : droneName(c.id),
+    art: c.kind === "weapon" ? <WeaponArt id={c.id} height={30} /> : <DroneArt kind={droneKeyOf(c.id)} height={30} />,
+    note: "Cargo",
+  }));
+  if (item.kind === "weapon") {
+    return [
+      ...game.player.weapons.map((w) => ({ key: w.uid, name: WEAPONS[w.defId]?.name ?? w.defId, art: <WeaponArt id={w.defId} height={30} />, note: "Fitted" })),
+      ...cargo,
+      { key: "new", name: WEAPONS[item.id]?.name ?? item.id, art: <WeaponArt id={item.id} height={30} />, isNew: true },
+    ];
+  }
+  if (item.kind === "drone") {
+    const kit = game.player.kits.swarm;
+    const have = kit ? (kit.loadout?.length ? kit.loadout : kit.target ? [kit.target] : []) : [];
+    return [
+      ...have.map((ref, i) => ({ key: `d:${i}`, name: droneName(ref), art: <DroneArt kind={droneKeyOf(ref)} height={30} />, note: "Fitted" })),
+      ...cargo,
+      { key: "new", name: droneName(item.id), art: <DroneArt kind={droneKeyOf(item.id)} height={30} />, isNew: true },
+    ];
+  }
+  return [
+    ...game.augments.map((id, i) => ({ key: `a:${i}`, name: augmentName(id), art: <PixelIcon name="upgrade" size={28} />, note: augmentDetail(id) })),
+    { key: "new", name: augmentName(item.id), art: <PixelIcon name="upgrade" size={28} />, note: augmentDetail(item.id), isNew: true },
+  ];
+}
+
+const ROOM_TEXT: Record<Overflow["kind"], [string, string]> = {
+  // Augmentations: "you must choose one augment to leave behind without receiving any scrap value".
+  augment: ["No room for another augmentation", "A ship holds three. Pick one to leave behind. It gives no scrap."],
+  // Crew: "the game will require to relieve one of the crewmembers, be it the new one or from the existing crew."
+  crew: ["Too many crew aboard", "A ship holds eight. Pick one to relieve."],
+  weapon: ["No room for another weapon", "Every weapon slot and the cargo hold are full. Pick one to leave behind."],
+  drone: ["No room for another drone schematic", "Every schematic slot and the cargo hold are full. Pick one to leave behind."],
+};
+
+/**
+ * Per the user: the make-room choice (wiki/make-room.ts). Tap one card, then confirm, so one stray tap loses nothing.
+ * It opens on its own, so it takes the arrival lock too. INVENTED look, on the offer cards.
+ */
+function MakeRoomModal({ game }: { game: Game }) {
+  const item = pendingOverflow(game);
+  if (!item) return null;
+  return <MakeRoomCard key={`${item.kind}:${"id" in item ? item.id : ""}:${game.overflow?.length ?? 0}`} game={game} item={item} />;
+}
+
+function MakeRoomCard({ game, item }: { game: Game; item: Overflow }) {
+  const locked = useArrivalLock();
+  const [pick, setPick] = useState<string | null>(null);
+  // The arriving item first, so it is never scrolled out of sight.
+  const picks = roomPicks(game, item).sort((a, b) => Number(!!b.isNew) - Number(!!a.isNew));
+  const chosen = picks.find((p) => p.key === pick && !p.locked);
+  const [title, body] = ROOM_TEXT[item.kind];
+  return (
+    <div className="modal-layer make-room-layer">
+      <article className="ftl-card make-room-card" aria-label={title}>
+        <p className="event-lead">{title}</p>
+        <p>{body}</p>
+        <div className="make-room-picks" role="radiogroup" aria-label="Leave behind">
+          {picks.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              role="radio"
+              aria-checked={pick === p.key}
+              className={`make-room-pick${pick === p.key ? " is-on" : ""}${p.isNew ? " is-new" : ""}`}
+              disabled={!!p.locked || locked}
+              onClick={() => setPick(p.key)}
+            >
+              {p.isNew ? <em className="make-room-new">NEW</em> : null}
+              <span className="make-room-art">{p.art}</span>
+              <b>{p.name}</b>
+              {p.locked ? <span className="mini">{p.locked}</span> : p.note ? <span className="mini">{p.note}</span> : null}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="choice-line make-room-go"
+          disabled={!chosen || locked}
+          onClick={() => {
+            if (!chosen) return;
+            noteChoice();
+            act((g) => {
+              resolveOverflow(g, chosen.key);
+            });
+          }}
+        >
+          {chosen ? `${item.kind === "crew" ? "Relieve" : "Leave behind"}: ${chosen.name}` : "Pick one to leave behind"}
+        </button>
+      </article>
+    </div>
+  );
+}
+
 /** INVENTED salvage lines. The scrap chip matches the event-screen reward. */
 function RewardModal({ game }: { game: Game }) {
   const reward = game.reward;
@@ -2403,7 +2521,11 @@ function OfferCards({
             </span>
           ) : null}
           {def?.blurb ? <span className="offer-note">{def.blurb}</span> : null}
-          {rackFull ? <span className="offer-warn">No free weapon slot: it would be lost.</span> : null}
+          {rackFull ? (
+            <span className="offer-warn">
+              {cargoOf(game).length < CARGO_SLOTS ? "No free weapon slot: it goes to cargo." : "No room in cargo: you pick what to leave behind."}
+            </span>
+          ) : null}
         </section>
       ) : null}
       {crew && kin && k ? (
@@ -2419,7 +2541,7 @@ function OfferCards({
             {k.fight !== 1 ? <span title="Combat damage">combat {pct(k.fight)}</span> : null}
             {k.move !== 1 ? <span title="Movement speed">move {pct(k.move)}</span> : null}
           </span>
-          {crewFull ? <span className="offer-warn">Crew is full (8): no room aboard.</span> : null}
+          {crewFull ? <span className="offer-warn">Crew is full (8): you pick who is relieved.</span> : null}
         </section>
       ) : null}
       {augment ? (
@@ -2431,7 +2553,7 @@ function OfferCards({
           <b className="offer-name">{augmentName(augment)}</b>
           <span className="offer-note">{augmentDetail(augment)}</span>
           {augFate === "scrap" ? <span className="offer-warn">Already fitted: 25 scrap instead.</span> : null}
-          {augFate === "full" ? <span className="offer-warn">No free augmentation slot: it would be left behind.</span> : null}
+          {augFate === "full" ? <span className="offer-warn">No free augmentation slot: you pick what to leave behind.</span> : null}
         </section>
       ) : null}
       {drone ? (
@@ -2441,7 +2563,11 @@ function OfferCards({
             <DroneArt kind={droneKey} height={34} />
           </span>
           <b className="offer-name">{droneName(drone)}</b>
-          {!canFieldDrone(game, drone) ? <span className="offer-warn">No free drone schematic slot: it would be lost.</span> : null}
+          {!canFieldDrone(game, drone) ? (
+            <span className="offer-warn">
+              {cargoOf(game).length < CARGO_SLOTS ? "No free schematic slot: it goes to cargo." : "No room in cargo: you pick what to leave behind."}
+            </span>
+          ) : null}
         </section>
       ) : null}
       {repairs ? (
@@ -3586,6 +3712,8 @@ function CargoList({
   const slots = playerDroneSlots(game.player.kits.swarm);
   const gunCap = Math.max(weaponSlotCap(game), game.player.weapons.length);
   const augCap = Math.max(3, game.augments.length);
+  const cargo = cargoOf(game);
+  const cargoRoom = cargo.length < CARGO_SLOTS;
   return (
     <div className="cargo-list">
       <section className="sheet-group">
@@ -3611,8 +3739,8 @@ function CargoList({
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
             return (
+              <div key={w.uid} className="cargo-cell">
               <button
-                key={w.uid}
                 type="button"
                 data-tray="sheet-weapons"
                 data-slot={index}
@@ -3645,6 +3773,16 @@ function CargoList({
                   </span>
                 ) : null}
               </button>
+              <button
+                type="button"
+                className="cargo-move"
+                disabled={!cargoRoom}
+                aria-label={`Move ${name} to cargo`}
+                onClick={() => act((g) => void stowWeapon(g, w.uid))}
+              >
+                To cargo
+              </button>
+              </div>
             );
           })}
         </div>
@@ -3663,8 +3801,8 @@ function CargoList({
               const dragging = drones.from === index;
               const drop = drones.over === index && drones.from !== index;
               return (
+                <div key={`${kind}-${index}`} className="cargo-cell">
                 <button
-                  key={`${kind}-${index}`}
                   type="button"
                   data-tray="sheet-drones"
                   data-slot={index}
@@ -3680,10 +3818,66 @@ function CargoList({
                   <span className="cargo-art">{key ? <DroneArt kind={key} height={24} /> : null}</span>
                   <span className="cargo-name">{name}</span>
                 </button>
+                <button
+                  type="button"
+                  className="cargo-move"
+                  disabled={!cargoRoom}
+                  aria-label={`Move ${name} to cargo`}
+                  onClick={() => act((g) => void stowDrone(g, index))}
+                >
+                  To cargo
+                </button>
+                </div>
               );
             })}
           </div>
         )}
+      </section>
+      {/* Per the user: the 4-slot cargo hold for weapons and drone schematics that are not fitted (wiki/make-room.ts). */}
+      <section className="sheet-group">
+        <h3 className="sheet-group-head">
+          Cargo{" "}
+          <span className="mini">
+            {cargo.length}/{CARGO_SLOTS}. Weapons and drone schematics that are not fitted.
+          </span>
+        </h3>
+        <div className="cargo-slots">
+          {Array.from({ length: CARGO_SLOTS }, (_, index) => {
+            const item = cargo[index];
+            if (!item) {
+              return (
+                <div key={`cargo-empty-${index}`} className="cargo-slot is-empty">
+                  <span>Empty</span>
+                </div>
+              );
+            }
+            const name = item.kind === "weapon" ? (WEAPONS[item.id]?.name ?? item.id) : droneName(item.id);
+            const fits = canFitFromCargo(game, index);
+            const why =
+              item.kind === "weapon" ? "Weapon slots full." : !game.player.kits.swarm ? "Needs Drone Control." : "Drone slots full.";
+            return (
+              <div key={`cargo-${index}-${item.id}`} className="cargo-cell">
+                <div className="cargo-slot">
+                  <span className="cargo-art">
+                    {item.kind === "weapon" ? <WeaponArt id={item.id} height={28} /> : <DroneArt kind={droneKeyOf(item.id)} height={24} />}
+                  </span>
+                  <span className="cargo-name">{name}</span>
+                  <span className="mini">{item.kind === "weapon" ? "Weapon" : "Drone schematic"}</span>
+                </div>
+                <button
+                  type="button"
+                  className="cargo-move"
+                  disabled={!fits}
+                  title={fits ? undefined : why}
+                  aria-label={`Fit ${name}`}
+                  onClick={() => act((g) => void fitFromCargo(g, index))}
+                >
+                  {fits ? "Fit" : why}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </section>
       <section className="sheet-group">
         <h3 className="sheet-group-head">

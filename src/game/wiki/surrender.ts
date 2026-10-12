@@ -15,10 +15,10 @@ import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { CREW_CAP, beginBoarding, log, rand, startCombat, weaponSlotCap } from "../sim.ts";
+import { beginBoarding, log, rand, startCombat } from "../sim.ts";
 import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
-import { droneName, grantBonusAugment, rollBonusItem } from "./bonus-item.ts";
-import { fieldDroneSchematic } from "./cited-stores.ts";
+import { droneLine, grantBonusAugment, rollBonusItem } from "./bonus-item.ts";
+import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { addQuest, questChoose } from "./quests.ts";
@@ -695,8 +695,8 @@ export function randomRace(g: Game): string {
  * @agent:quests: `name` and `skills` for a page's named crewmember (Kazaaak); exported for wiki/quests.ts.
  */
 export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["skills"]): boolean {
-  // Crew: "can carry a maximum of 8 crewmembers." A 9th is not added.
-  if (g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return false;
+  // Crew: "If the player receives a 9th crew, the game will require to relieve one of the crewmembers, be it the new
+  // one or from the existing crew." The 9th comes aboard; make-room.ts asks who is relieved.
   const kin = raceKin(race);
   const used = new Set(g.crew.map((c) => c.name));
   const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
@@ -720,6 +720,7 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
   });
   // Ancient device: gaining Ruwen turns that Rock Homeworlds beacon into a quest beacon.
   markRuwenEntry(g);
+  checkCrewRoom(g);
   return true;
 }
 
@@ -867,30 +868,30 @@ export function stalemateTick(g: Game, h: number): boolean {
   return true;
 }
 
-/** Pays an offer: resources, a free-slot weapon, a bonus augmentation or drone schematic, and the crew and repairs a scripted page names. */
-export function payOffer(g: Game, offer: SurrenderOffer, scripted: boolean): { weaponName?: string; extras: string[] } {
+/** Pays an offer: resources, a weapon, a bonus augmentation or drone schematic, and the crew and repairs a scripted page names. A full rack asks what to leave behind (make-room.ts). */
+export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { weaponName?: string; extras: string[] } {
   g.scrap += offer.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + offer.eligible;
   g.fuel += offer.fuel;
   g.missiles += offer.missiles;
   g.player.parts += offer.parts;
   let weaponName: string | undefined;
-  if (offer.weapon && g.player.weapons.length < weaponSlotCap(g) && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
-    // Same slot rule and id scheme as sim.ts giveWeapon.
-    g.uid = (g.uid + 1) >>> 0;
-    g.player.weapons.push({ uid: "u" + g.uid.toString(36), defId: offer.weapon, charge: 0, enabled: false, autofire: false, target: null });
+  // A full rack asks what to leave behind (make-room.ts).
+  const extras: string[] = [];
+  if (offer.weapon && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
     weaponName = WEAPONS[offer.weapon]?.name;
+    const got = receiveWeapon(g, offer.weapon);
+    if (got === "cargo") extras.push(`No free weapon slot: ${weaponName ?? offer.weapon} is stowed in cargo.`);
+    if (got === "queued") extras.push(`No room in cargo for ${weaponName ?? offer.weapon}: choose what to leave behind.`);
   }
   // Scripted surrenders (SCRIPTED_SURRENDERS): a crewmember and hull repairs the page names.
-  const extras: string[] = [];
   if (offer.crew) extras.push(joinCrew(g, offer.crew) ? `A ${offer.crew} crewmember joins you.` : "There is no room aboard for their crewmember.");
   if (offer.repairs) {
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + offer.repairs);
     extras.push(`Hull repairs: ${offer.repairs}.`);
   }
-  if (scripted && offer.weapon && !weaponName) extras.push("No free weapon slot for it.");
   if (offer.augment) extras.push(grantBonusAugment(g, offer.augment));
-  if (offer.drone) extras.push(fieldDroneSchematic(g, offer.drone) ? `${droneName(offer.drone)} schematic fitted.` : "No free drone schematic slot for it.");
+  if (offer.drone) extras.push(droneLine(g, offer.drone));
   return { weaponName, extras };
 }
 

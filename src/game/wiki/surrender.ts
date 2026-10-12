@@ -596,6 +596,11 @@ const RACES: [string, KinId][] = [
   ["Lanius", "voidlung"],
 ];
 
+/** The kin a surrender's crew race joins as (joinCrew), for the offer card's portrait too. */
+export function raceKin(race: string): KinId {
+  return RACES.find(([r]) => r === race)?.[1] ?? "plain";
+}
+
 function cap(t: string): string {
   return t[0].toUpperCase() + t.slice(1);
 }
@@ -687,7 +692,7 @@ export function randomRace(g: Game): string {
 export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["skills"]): boolean {
   // Crew: "can carry a maximum of 8 crewmembers." A 9th is not added.
   if (g.crew.filter((c) => c.side === "player").length >= CREW_CAP) return false;
-  const kin = RACES.find(([r]) => r === race)?.[1] ?? "plain";
+  const kin = raceKin(race);
   const used = new Set(g.crew.map((c) => c.name));
   const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
   const hp = kinOf(kin).hp;

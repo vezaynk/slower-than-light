@@ -51,7 +51,9 @@ import {
 import { create } from "zustand";
 import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
-import { surrenderOfferView } from "@/game/wiki/surrender";
+import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
+import { kinOf } from "@/game/extras/kin";
+import { UNIFORMS } from "@/game/crew-look";
 import { artilleryView } from "@/game/wiki/flagship-systems";
 import {
   aim,
@@ -84,6 +86,7 @@ import {
   powerDown,
   powerMask,
   powerUp,
+  CREW_CAP,
   REPAIR_SECONDS,
   shieldChargeShown,
   kitPowerUp,
@@ -120,7 +123,7 @@ import type { BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
-import { CrewFace } from "./CrewSprite";
+import { CrewFace, CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";
 import { PixelIcon } from "./PixelIcon";
@@ -2232,7 +2235,7 @@ function EventModal({ game }: { game: Game }) {
           <>
             <p className="surrender-sub">They offer:</p>
             <LootChips scrap={offer.scrap} res={offer} />
-            {offer.weapon ? <p className="surrender-sub">Plus a weapon from their racks.</p> : null}
+            <OfferCards game={game} weapon={offer.weapon} crew={offer.crew} />
           </>
         ) : null}
         <div className="choice-list">
@@ -2271,6 +2274,68 @@ function RewardModal({ game }: { game: Game }) {
           1. Continue...
         </button>
       </article>
+    </div>
+  );
+}
+
+/**
+ * Per the user: a surrender that offers a weapon or a crewmember shows a card for each, so you can judge it before
+ * answering: the weapon's art and numbers (WEAPONS) and the crewmember's race portrait and traits (kinOf). A full
+ * rack or a full crew is flagged, since the item is then lost (payOffer, joinCrew). INVENTED look.
+ */
+function OfferCards({ game, weapon, crew }: { game: Game; weapon?: string; crew?: string }) {
+  if (!weapon && !crew) return null;
+  const def = weapon ? WEAPONS[weapon] : undefined;
+  const rackFull = game.player.weapons.length >= weaponSlotCap(game);
+  const crewFull = game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
+  const kin = crew ? raceKin(crew) : undefined;
+  const k = kin ? kinOf(kin) : undefined;
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  return (
+    <div className="offer-cards">
+      {weapon ? (
+        <section className="offer-card" data-offer="weapon">
+          <p className="offer-kind">Weapon</p>
+          <span className="offer-art">
+            <WeaponArt id={weapon} height={34} />
+          </span>
+          <b className="offer-name">{def?.name ?? weapon}</b>
+          {def ? (
+            <span className="cargo-stats">
+              <span title="Power">
+                <PixelIcon name="weapons" size={12} />
+                {def.power}
+              </span>
+              <span title="Charge time">{def.charge}s</span>
+              {def.damage > 0 ? <span title="Damage per shot">{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
+              {def.ion > 0 ? <span title="Ion">{def.ion} ion</span> : null}
+              {def.ammo ? (
+                <span title="Uses a missile">
+                  <PixelIcon name="missile" size={12} />
+                </span>
+              ) : null}
+            </span>
+          ) : null}
+          {def?.blurb ? <span className="offer-note">{def.blurb}</span> : null}
+          {rackFull ? <span className="offer-warn">No free weapon slot: it would be lost.</span> : null}
+        </section>
+      ) : null}
+      {crew && kin && k ? (
+        <section className="offer-card" data-offer="crew">
+          <p className="offer-kind">Crewmember</p>
+          <span className="offer-art offer-face">
+            <CrewSprite kin={kin} uniform={UNIFORMS[0]} size={44} />
+          </span>
+          <b className="offer-name">{crew}</b>
+          <span className="cargo-stats">
+            <span title="Health">{k.hp} HP</span>
+            {k.repair !== 1 ? <span title="Repair speed">repair {pct(k.repair)}</span> : null}
+            {k.fight !== 1 ? <span title="Combat damage">combat {pct(k.fight)}</span> : null}
+            {k.move !== 1 ? <span title="Movement speed">move {pct(k.move)}</span> : null}
+          </span>
+          {crewFull ? <span className="offer-warn">Crew is full (8): no room aboard.</span> : null}
+        </section>
+      ) : null}
     </div>
   );
 }

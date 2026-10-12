@@ -5601,3 +5601,35 @@ body.page-turn-180 {
   box-shadow: inset 0 0 0 1px var(--color-ok), 0 0 12px rgba(180, 255, 230, 0.12);
 }
 .gun-slot.autofire-slot.is-on .autofire-state { color: var(--color-ok); }
+
+/* Per the user: the surrender offer's weapon and crew cards (OfferCards). INVENTED look. */
+.offer-cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 6px; }
+.offer-card {
+  flex: 1 1 220px;
+  max-width: 320px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: center;
+  padding: 8px 12px 10px;
+  background: #14110e;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius);
+  text-align: left;
+}
+.offer-kind {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.offer-art { grid-row: 2 / span 2; display: grid; place-items: center; min-width: 52px; min-height: 48px; }
+.offer-face { background: var(--color-panel-2); border: 2px solid var(--color-line-dim); }
+.offer-name { font-family: var(--font-hud); font-size: 20px; font-weight: 400; letter-spacing: 0.04em; color: var(--color-fg); }
+.offer-note { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; line-height: 1.35; color: var(--color-muted); }
+.offer-warn { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; color: var(--color-danger); }

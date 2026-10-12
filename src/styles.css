@@ -4639,14 +4639,23 @@ button.door-tick::before {
   color: #c9ced6;
 }
 
-/* Per the user: a room's icon in place of its name (ShipView .room-icon, which keeps the .room-name colours). */
+/*
+ * Per the user: a room's icon in place of its name, grey and centred in the room, on both ships and in the hangar.
+ * Under the room's furniture (terminal, Medbay bed) and the crew. INVENTED greys.
+ */
 .room-icon {
-  display: block;
-  flex: none;
-  width: 16px;
-  height: 16px;
-  margin: 1px 0 0 1px;
-  overflow: visible;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 20px;
+  height: 20px;
+  color: #8f949b;
+  pointer-events: none;
+}
+
+.room.is-unseen .room-icon {
+  color: #a7adb5;
 }
 
 .play .room.is-unseen .pixel-fill,

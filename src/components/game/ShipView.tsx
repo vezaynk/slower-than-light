@@ -489,13 +489,13 @@ export function ShipView({
             />
             <div className="room-body">
               {/*
-                Per the user: rooms show their system or subsystem icon, not a name (the name stays in the tooltip and
-                the aria-label). Halls show nothing. INFERRED: an unseen room keeps its icon, as the game draws it on a
+                Per the user: rooms show their system or subsystem icon, grey and centred, not a name (the name stays in
+                the tooltip and the aria-label). Halls show nothing. INFERRED: an unseen room keeps its icon, as the game draws it on a
                 dark room, so systems can be targeted without Sensors (Sensors, "Overview" does not list where systems
                 are among what its levels reveal).
               */}
               {room.system ?? room.kit ? (
-                <PixelIcon name={(room.system ?? room.kit)!} size={16} className="room-name room-icon" />
+                <PixelIcon name={(room.system ?? room.kit)!} size={20} className="room-icon" />
               ) : null}
               {open ? (
                 <div className="room-flags">

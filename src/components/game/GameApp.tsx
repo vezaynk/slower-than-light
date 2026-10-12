@@ -115,7 +115,6 @@ import type { BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
-import { FullscreenButton } from "./FullscreenButton";
 import { CrewFace } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";
@@ -825,7 +824,6 @@ function Hud({ game }: { game: Game }) {
         >
           <PixelIcon name="upgrade" size={20} />
         </button>
-        <FullscreenButton />
       </div>
     </header>
   );
@@ -2327,7 +2325,6 @@ function TitleScreen() {
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
     <section className="title-shot">
-      <FullscreenButton className="frame-btn title-fs" />
       <div
         className="title-frame"
         onClick={() => {

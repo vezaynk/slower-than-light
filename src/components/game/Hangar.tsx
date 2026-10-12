@@ -36,7 +36,6 @@ import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/un
 import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/unlocks";
 import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
-import { FullscreenButton } from "./FullscreenButton";
 import { CloseX } from "./CloseX";
 import { PixelHull } from "./PixelArt";
 import { PixelIcon } from "./PixelIcon";
@@ -173,7 +172,6 @@ export function Hangar() {
           <button type="button" className="hangar-start" onClick={start} disabled={locked} title={locked ? "Locked" : undefined}>
             START
           </button>
-          <FullscreenButton className="hangar-fs" />
         </div>
       </header>
 

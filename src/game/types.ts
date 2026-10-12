@@ -794,6 +794,11 @@ export type Game = {
   uid: number;
   phase: Phase;
   paused: boolean;
+  /**
+   * Per the user: the room radial menu holds the clock while it is open, apart from `paused` (closing it never
+   * unpauses a pause the player set). Not saved: loadGame clears it.
+   */
+  menuHold?: boolean;
   sector: number;
   sectorName: string;
   beacons: Beacon[];

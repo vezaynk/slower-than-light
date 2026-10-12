@@ -254,7 +254,7 @@ function hackRoomClick(roomId: string) {
   act((game) => {
     // @agent:hack-rules. "Once the game is unpaused, this choice is permanent": while paused the pick only queues.
     // A flagship artillery room aims at that room (spike.ts spikeAimId), not every gun.
-    if (game.paused) queueSpike(game, id);
+    if (game.paused || game.menuHold) queueSpike(game, id);
     else if (armSpike(game, id)) launchSpike(game);
   });
   setHackAim(false);
@@ -926,6 +926,8 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         }}
         onCrew={(id, shift) => act((g) => selectCrew(g, id, shift ? "toggle" : "replace"))}
         onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
+        onMenuHold={setMenuHold}
+        roomPower={(id) => <RadialPower game={game} roomId={id} />}
         onDoor={(a, b) => act((g) => toggleDoor(g, a, b))}
         aims={aimMarks(game)}
         droneHp={roomDroneHp(game.player, game)}
@@ -1151,6 +1153,7 @@ function TargetPanel({
             if (body?.side === "player") act((g) => selectCrew(g, id, shift ? "toggle" : "replace"));
           }}
           onDragCrew={(ids) => act((g) => selectCrewIds(g, ids))}
+          onMenuHold={setMenuHold}
           aims={aimMarks(game)}
           beamAnchor={game.targeting && !hackAiming ? game.beamAnchor : null}
           beamReach={game.targeting && !hackAiming ? armedBeamReach(game) : null}
@@ -1750,7 +1753,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
   );
 }
 
-function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locked?: boolean }) {
+function PowerStack({ game, id, locked = false, big = false }: { game: Game; id: SysId; locked?: boolean; big?: boolean }) {
   const sys = game.player.systems[id];
   const cap = Math.max(0, sys.level - sys.damage - sys.ion.length);
   const slots = sys.level;
@@ -1760,7 +1763,7 @@ function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locke
   const painted = batteryBarsOn(game.player, id);
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
   return (
-    <div className={`power-stack${locked ? " is-locked" : ""}`}>
+    <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}`}>
       <div className="power-col">
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
@@ -1798,6 +1801,66 @@ function PowerStack({ game, id, locked = false }: { game: Game; id: SysId; locke
         <PixelIcon name={id} size={16} />
       </span>
     </div>
+  );
+}
+
+/** Room radial menu: the clock holds while it is open (Game.menuHold), apart from the player's pause. */
+function setMenuHold(on: boolean) {
+  act((g) => {
+    g.menuHold = on;
+  });
+}
+
+/**
+ * Per the user: the room radial menu shows an enlarged power control for the room's system. Main systems get their
+ * bar column; Cloaking, the Teleporter and Mind Control get their on/off bars, as in the subsystem dock. Spare reactor
+ * bars sit on top. Rooms with no power control show nothing.
+ */
+function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
+  const room = game.player.rooms.find((r) => r.id === roomId);
+  if (!room) return null;
+  const spare = (
+    <span className="spare-pip radial-spare" title="Reactor bars not assigned">
+      <DigitSlot value={sparePower(game.player)} sample={29} />
+    </span>
+  );
+  if (room.system && MAIN_BARS.includes(room.system)) {
+    const id = room.system;
+    return (
+      <>
+        {spare}
+        <PowerStack game={game} id={id} big locked={id === "weapons" && weaponsPowerLocked(game)} />
+      </>
+    );
+  }
+  const kitId = room.kit;
+  const kit = kitId ? game.player.kits[kitId] : undefined;
+  if (!kitId || !kit || (kitId !== "veil" && kitId !== "sling" && kitId !== "leash")) return null;
+  return (
+    <>
+      {spare}
+      <div className="power-stack is-big">
+        <button
+          type="button"
+          className="sub-power"
+          aria-label={`${KIT_LABEL[kitId]} power`}
+          onClick={() => {
+            if (kitId === "veil") act((g) => toggleVeilPower(g));
+            else if (kitId === "sling") act((g) => toggleSlingPower(g));
+            else act((g) => toggleLeashPower(g));
+          }}
+        >
+          <i className="sub-bars" aria-hidden="true">
+            {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+              <b key={n} className={kitBarClass(game, kitId, kit.power, n)} />
+            ))}
+          </i>
+        </button>
+        <span className="sys-orb" title={KIT_LABEL[kitId]}>
+          <PixelIcon name={kitId} size={16} />
+        </span>
+      </div>
+    </>
   );
 }
 

@@ -5070,3 +5070,43 @@ button.modal-x.modal-x:focus-visible {
 
 .radial-door.is-airlock .radial-slab { background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px); }
 .radial-door.is-dead .radial-slab { background: var(--color-danger); }
+
+/* Room radial menu: the room's power control, beside the ring on the roomier side. Per the user: enlarged. INVENTED
+   size (bars 24x14, about 1.7x the dock's 14x10). */
+.radial-power {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(11, 17, 22, 0.94);
+  border: 2px solid var(--color-line);
+  border-radius: 4px;
+  pointer-events: auto;
+}
+
+.radial-power.is-right { left: calc(50% + var(--reach) + 6px); }
+.radial-power.is-left { right: calc(50% + var(--reach) + 6px); }
+
+.radial-power .radial-spare { align-self: center; font-size: 18px; min-width: 0; }
+
+.radial-power .power-stack.is-big .power-col { gap: 3px; }
+
+.radial-power .power-stack.is-big .power-col button {
+  width: 24px;
+  height: 14px;
+  border-radius: 0;
+}
+
+.radial-power .power-stack.is-big .sub-power { position: relative; width: 24px; }
+
+.radial-power .power-stack.is-big .sub-bars {
+  position: static;
+  transform: none;
+  gap: 3px;
+}
+
+.radial-power .power-stack.is-big .sub-bars b { width: 24px; height: 14px; }

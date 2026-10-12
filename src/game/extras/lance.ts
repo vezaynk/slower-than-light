@@ -243,7 +243,7 @@ export function tickLance(g: Game, dt: number): void {
     kit.aux = Math.max(0, kit.aux - dt / 2);
     return;
   }
-  if (g.paused || g.phase !== "combat" || !g.enemy) return;
+  if ((g.paused || !!g.menuHold) || g.phase !== "combat" || !g.enemy) return;
 
   // Beam (Weapons), Artillery Beam: the clock is the filled power level, not the installed level.
   const seconds = chargeSeconds(fed);

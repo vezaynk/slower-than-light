@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Crew } from "@/game/types";
-import { CrewFace } from "./CrewSprite";
+import { CrewFace, type CrewPose } from "./CrewSprite";
 import type { RadialDoor, Side } from "./room-doors";
 
 /** INVENTED: spread angles that would overlap so every button stays tappable, keeping their order around the ring. */
@@ -47,6 +47,8 @@ export function RoomRadial({
   turn,
   doors,
   crew,
+  lookOf,
+  power,
   picked,
   doorsDead,
   onDoor,
@@ -60,6 +62,10 @@ export function RoomRadial({
   turn: number;
   doors: RadialDoor[];
   crew: Crew[];
+  /** The pose the hull draws each crew member with, so fighting, manning and walking read in the grid too. */
+  lookOf: (c: Crew) => { pose: CrewPose; frame: number; cycle: boolean };
+  /** Per the user: an enlarged power control for the room's system, beside the ring on the roomier side. */
+  power?: ReactNode;
   picked: Set<string>;
   doorsDead?: boolean;
   onDoor?: (a: string, b: string) => void;
@@ -88,6 +94,8 @@ export function RoomRadial({
   const vh = typeof window === "undefined" ? 0 : window.innerHeight;
   const cx = vw ? Math.min(Math.max(at.x, reach), Math.max(reach, vw - reach)) : at.x;
   const cy = vh ? Math.min(Math.max(at.y, reach), Math.max(reach, vh - reach)) : at.y;
+  // The power panel goes on whichever side of the ring has more room.
+  const powerRight = !vw || vw - (cx + reach) >= cx - reach;
   // On screen, the wall a door sits on turns with the stage.
   const turnSide = (s: Side): Side => {
     const ring: Side[] = ["n", "e", "s", "w"];
@@ -141,13 +149,21 @@ export function RoomRadial({
                   title={c.name}
                   onClick={() => onPick(c.id)}
                 >
-                  <CrewFace crew={c} pose="idle" frame={0} cycle={false} />
+                  {(() => {
+                    const look = lookOf(c);
+                    return <CrewFace crew={c} pose={look.pose} frame={look.frame} cycle={look.cycle} />;
+                  })()}
                   <span className="crew-hp" aria-hidden="true">
                     <b style={{ width: `${hp}%` }} />
                   </span>
                 </button>
               );
             })}
+          </div>
+        ) : null}
+        {power ? (
+          <div className={`radial-power${powerRight ? " is-right" : " is-left"}`} style={{ ["--reach" as string]: `${reach}px` }}>
+            {power}
           </div>
         ) : null}
         {doors.map((d, i) => {

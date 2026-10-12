@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat, step } from "../sim.ts";
+import { createGame, DEPOWER_DRAIN_S, startCombat, step } from "../sim.ts";
 import type { Game, WeaponInst } from "../types.ts";
 import { chainChargeSeconds, chainIonAmount, nextChainStep } from "./cited-chain.ts";
 
@@ -120,6 +120,9 @@ describe("chain weapon profiles", () => {
     g.player.systems.weapons.power = 0;
     step(g, 0.05);
     assert.equal(w.chain, 0);
+    // Game patches, Weapon Depower Delay: the charge drains over a moment, not at once (sim drainOffline).
+    close(w.charge, 0.55 - 0.05 / DEPOWER_DRAIN_S);
+    for (let i = 0; i < 20; i++) step(g, 0.05);
     assert.equal(w.charge, 0);
     g.player.systems.weapons.power = 4;
     close(rate(g), 0.05 / 11.1);
@@ -129,7 +132,7 @@ describe("chain weapon profiles", () => {
     w.enabled = false;
     step(g, 0.05);
     assert.equal(w.chain, 0);
-    assert.equal(w.charge, 0);
+    close(w.charge, 1 - 0.05 / DEPOWER_DRAIN_S);
   });
 
   it("climbs Chain Ion from 1 to 4 and keeps the 14 second charge", () => {
@@ -152,10 +155,10 @@ describe("chain weapon profiles", () => {
     g.player.systems.weapons.ion = [5, 5, 5];
     step(g, 0.05);
     assert.equal(w.chain, 0);
-    assert.equal(w.charge, 0);
+    close(w.charge, 0.4 - 0.05 / DEPOWER_DRAIN_S);
   });
 
-  it("pauses a chain on a cloaked enemy and leaves an ordinary gun's charge when it loses power", () => {
+  it("pauses a chain on a cloaked enemy and drains an ordinary gun's charge when it loses power", () => {
     const g = createGame(8);
     startCombat(g, "scout");
     const w = mount(g, "chainlaser", 2);
@@ -187,7 +190,11 @@ describe("chain weapon profiles", () => {
     spark.charge = 0.4;
     plain.player.systems.weapons.power = 0;
     step(plain, 0.05);
-    assert.equal(spark.charge, 0.4);
+    // Per the user: lost power (damage or otherwise) drains it too, quickly but not at once.
+    close(spark.charge, 0.4 - 0.05 / DEPOWER_DRAIN_S);
     assert.equal(spark.chain, undefined);
+    plain.paused = true;
+    step(plain, 0.5);
+    close(spark.charge, 0.4 - 0.05 / DEPOWER_DRAIN_S);
   });
 });

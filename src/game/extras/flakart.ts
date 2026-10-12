@@ -255,7 +255,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
  */
 export function tickFlak(g: Game, dt: number): void {
   if (!(dt > 0)) return;
-  if (g.paused || g.phase !== "combat") return;
+  if ((g.paused || !!g.menuHold) || g.phase !== "combat") return;
   tickShip(g, g.player, "player", dt);
   if (g.enemy) tickShip(g, g.enemy, "enemy", dt);
 }

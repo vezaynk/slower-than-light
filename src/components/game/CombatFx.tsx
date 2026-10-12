@@ -292,7 +292,7 @@ export function CombatFx() {
 
       // Effects play out whenever the game runs, not only in a fight: when a fight ends, the last MISS / SHIELD /
       // damage numbers, rings and sparks still fade instead of freezing on screen. A pause still holds them.
-      const live = !g.paused;
+      const live = !g.paused && !g.menuHold;
       const time = now / 1000;
 
       // Drones on station. Positions feed the drone shots below.

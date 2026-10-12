@@ -224,7 +224,9 @@ describe("charger banks", () => {
     assert.equal(g.player.weapons[1].loaded, undefined);
   });
 
-  it("keeps the bank when the slot loses power", () => {
+  // Game patches, "Weapon Depower Delay": an offline weapon "will quickly lose its charge over time". INTENTIONALLY
+  // OVERRIDING the earlier inference that a charger kept its bank: the shot in progress drains, then the stored shots.
+  it("drains the shot in progress and then the bank when the slot loses power", () => {
     const g = fight();
     parkGunners(g);
     feed(g, 4, 4, ["ioncharger"]);
@@ -232,9 +234,12 @@ describe("charger banks", () => {
     w.loaded = 2;
     w.charge = 0.25;
     w.enabled = false;
-    for (let i = 0; i < 10; i++) step(g, 0.05);
+    for (let i = 0; i < 4; i++) step(g, 0.05);
     assert.equal(w.loaded, 2);
-    assert.equal(w.charge, 0.25);
+    assert.ok(w.charge > 0.04 && w.charge < 0.06, `${w.charge}`);
+    for (let i = 0; i < 80; i++) step(g, 0.05);
+    assert.equal(w.loaded, 0);
+    assert.equal(w.charge, 0);
   });
 
   it("banks Laser Charger (S) to 2 and Laser Charger Mark II to 4", () => {

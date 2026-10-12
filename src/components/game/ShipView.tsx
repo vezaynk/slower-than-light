@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
@@ -250,6 +250,10 @@ type Props = {
   onDragCrew?: (ids: string[]) => void;
   /** Light the room under the pointer while someone who can walk here is selected. */
   markDest?: boolean;
+  /** Room radial menu open (true) or closed (false). The game holds its clock meanwhile (Game.menuHold). */
+  onMenuHold?: (on: boolean) => void;
+  /** Room radial menu: a power control for this room's system, drawn beside the ring. Null for none. */
+  roomPower?: (roomId: string) => ReactNode;
   /** Player door bars. Absent leaves the bars as decoration. */
   onDoor?: (a: string, b: string) => void;
   doorsDead?: boolean;
@@ -289,6 +293,8 @@ export function ShipView({
   onRoom,
   onRoomMenu,
   onDragCrew,
+  onMenuHold,
+  roomPower,
   markDest,
   onDoor,
   doorsDead,
@@ -329,6 +335,27 @@ export function ShipView({
     }
     return stands.get(c.id);
   };
+  /** The pose and frame a crew sprite draws with. The room radial menu shows the same, so fighting and manning read there. */
+  const lookOf = (
+    c: Crew,
+    spot = standFor(c),
+    paint = walkPaint(ship, here, c),
+  ): { step: ReturnType<typeof walkStep>; pose: CrewPose; frame: number; cycle: boolean } => {
+    const step = walkStep(ship, c);
+    // An in-room walk to a new tile (settleTiles) uses the walking frames too.
+    // Fighting comes first: a crew member caught mid-shuffle by an intruder fights where they stand.
+    const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0 && !fighting.has(c.id);
+    const pose: CrewPose =
+      step || shuffling ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
+    const frame = step
+      ? Math.floor(paint!.t * paint!.steps * 4) % 4
+      : shuffling
+        ? Math.floor((c.shift?.t ?? 0) * 4) % 4
+        : pose === "fight"
+          ? Math.floor(((c.swing ?? 0) % 1) * 4) % 4
+          : 0;
+    return { step, pose, frame, cycle: pose === "idle" || pose === "work" };
+  };
   const hullRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; turn: QuarterTurn } | null>(null);
@@ -339,6 +366,14 @@ export function ShipView({
   const [radial, setRadial] = useState<{ room: string; at: { x: number; y: number }; turn: QuarterTurn } | null>(null);
   const radialPicks = useRef(0);
   const closeRadial = useCallback(() => setRadial(null), []);
+  const radialOpen = radial != null;
+  const holdRef = useRef(onMenuHold);
+  holdRef.current = onMenuHold;
+  useEffect(() => {
+    if (!radialOpen) return;
+    holdRef.current?.(true);
+    return () => holdRef.current?.(false);
+  }, [radialOpen]);
   // Room menu (RoomRadial): your crew in the room who can be seen, and on your hull the doors.
   const radialCrew = (roomId: string) =>
     here.filter((c) => c.room === roomId && c.side === "player" && ((seen ? seen(c.room) : true) || (crewLit?.(c) ?? false)));
@@ -721,25 +756,12 @@ export function ShipView({
           {here.map((c) => {
             const open = seen ? seen(c.room) : true;
             if (!open && !(crewLit?.(c) ?? false)) return null;
-            const step = walkStep(ship, c);
             const spot = standFor(c);
             const paint = walkPaint(ship, here, c);
             const at = crewPlace(ship, c, spot, paint);
             if (!at) return null;
             const faceLeft = at.faceLeft;
-            // An in-room walk to a new tile (settleTiles) uses the walking frames too.
-            // Fighting comes first: a crew member caught mid-shuffle by an intruder fights where they stand.
-            const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0 && !fighting.has(c.id);
-            const pose: CrewPose =
-              step || shuffling ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
-            const frame = step
-              ? Math.floor(paint!.t * paint!.steps * 4) % 4
-              : shuffling
-                ? Math.floor((c.shift?.t ?? 0) * 4) % 4
-                : pose === "fight"
-                ? Math.floor((((c.swing ?? 0) % 1) * 4)) % 4
-                : 0;
-            const cycle = pose === "idle" || pose === "work";
+            const { step, pose, frame, cycle } = lookOf(c, spot, paint);
             const nudge = spot && !step ? spot.stack * 4 : 0;
             // Seated at a terminal: back from the wall its monitor hangs on, facing it (the seat sits the same way).
             const seated = pose === "work" ? consoleSpot(ship.rooms.find((r) => r.id === c.room) ?? ship.rooms[0]!, ship) : null;
@@ -780,6 +802,8 @@ export function ShipView({
           turn={radial.turn}
           doors={radialDoors(radialRoom.id)}
           crew={radialCrew(radialRoom.id)}
+          lookOf={lookOf}
+          power={roomPower?.(radialRoom.id) ?? null}
           picked={picked}
           doorsDead={doorsDead}
           onDoor={onDoor}

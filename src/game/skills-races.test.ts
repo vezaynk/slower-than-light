@@ -1216,7 +1216,9 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
     assert.equal(crew.skills?.weapons ?? 0, 1);
     assert.equal(g.missiles, 3);
     const w = g.player.weapons[0]!;
-    w.enabled = true;
+    // Switching it back on draws its bars again (switching off returned them to the reactor).
+    toggleWeapon(g, "gun");
+    assert.equal(w.enabled, true);
     w.charge = 1;
     g.armed = "gun";
     g.targeting = true;

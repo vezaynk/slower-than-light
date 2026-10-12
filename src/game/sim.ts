@@ -1851,7 +1851,7 @@ export function armWeapon(g: Game, weaponUid: string) {
     // Weapon Control, Overview: ionized or hacked weapons cannot be powered manually.
     // A slot that is already on can still be aimed.
     if (weaponsPowerLocked(g)) return;
-    w.enabled = true;
+    if (!claimWeaponBars(g, w)) return;
     g.armed = weaponUid;
     g.targeting = false;
     sfx(g, "click");
@@ -1895,9 +1895,9 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   // Weapon Control, Overview: a hack pulse cannot fire, even with stored charger shots.
   // Ion does not block a slot that still has power.
   // Per the user: aimed during a pause, a ready gun waits and fires on the first tick after the pause (chargeSide).
-  if (!g.paused && !hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
+  if (!halted(g) && !hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
   else {
-    log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}${g.paused ? "; fires on unpause" : ""}.`);
+    log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}${halted(g) ? "; fires on unpause" : ""}.`);
     sfx(g, "click");
   }
   // INFERRED: confirming the room leaves targeting mode. The overview does not say the cursor stays.
@@ -1930,9 +1930,9 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
   g.beamAnchor = null;
   const titles = (rooms.length > 0 ? rooms : [w.target]).map((id) => roomById(enemy, id)?.title ?? "room");
   // Per the user: a beam aimed during a pause fires on the first tick after it (chargeSide).
-  if (!g.paused && powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
+  if (!halted(g) && powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
   else {
-    log(g, `${name} aimed across ${titles.join(", ")}${g.paused ? "; fires on unpause" : ""}.`);
+    log(g, `${name} aimed across ${titles.join(", ")}${halted(g) ? "; fires on unpause" : ""}.`);
     sfx(g, "click");
   }
   g.targeting = false;
@@ -1957,6 +1957,7 @@ export function depowerWeapon(g: Game, weaponUid: string) {
   // Weapon Control, Overview: ionized or hacked weapons cannot be depowered manually.
   if (weaponsPowerLocked(g)) return;
   w.enabled = false;
+  releaseWeaponBars(g);
   // Crew skills, Weapons: off just after the skill increment cancels that shot. The point stays.
   cancelMuzzle(g, w);
   stopTargeting(g);
@@ -2006,7 +2007,7 @@ export function fireReady(g: Game) {
     return;
   }
   // Per the user: nothing fires during a pause. Aimed, charged guns go on the first tick after it (chargeSide).
-  if (g.paused) {
+  if (halted(g)) {
     log(g, "Aimed weapons fire on unpause.");
     return;
   }
@@ -2023,9 +2024,87 @@ export function fireReady(g: Game) {
 export function toggleWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w || weaponsPowerLocked(g)) return;
-  w.enabled = !w.enabled;
-  if (!w.enabled) cancelMuzzle(g, w);
+  if (w.enabled) {
+    w.enabled = false;
+    releaseWeaponBars(g);
+    cancelMuzzle(g, w);
+  } else if (!claimWeaponBars(g, w)) return;
   sfx(g, "click");
+}
+
+/**
+ * Per the user: switching a weapon off returns its power to the reactor. Weapon Control bars drop to the fewest that
+ * still power every gun that was powered before. INFERRED from the game's Weapon Control, where the system's bars are
+ * the sum of its powered weapons.
+ */
+function releaseWeaponBars(g: Game) {
+  const sys = g.player.systems.weapons;
+  const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+  const keep = powerMask(g.player, bonus);
+  while (sys.power > 0) {
+    sys.power -= 1;
+    const next = powerMask(g.player, bonus);
+    if (keep.some((on, i) => on && !next[i])) {
+      sys.power += 1;
+      break;
+    }
+  }
+}
+
+/**
+ * The other half of releaseWeaponBars: switching a weapon on draws the bars it needs from the reactor. With too few
+ * spare bars it stays off. INFERRED, as above. INVENTED log line.
+ */
+function claimWeaponBars(g: Game, w: WeaponInst): boolean {
+  const sys = g.player.systems.weapons;
+  const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+  const index = g.player.weapons.indexOf(w);
+  const before = sys.power;
+  const keep = powerMask(g.player, bonus);
+  w.enabled = true;
+  // Slots draw power left to right, so a gun switched on must not take bars from one already running.
+  const done = () => {
+    const next = powerMask(g.player, bonus);
+    return !!next[index] && keep.every((on, i) => !on || next[i]);
+  };
+  while (!done() && sys.power < capOf(sys) && sparePower(g.player) > 0) sys.power += 1;
+  if (done()) return true;
+  sys.power = before;
+  w.enabled = false;
+  log(g, `Not enough power for ${WEAPONS[w.defId]?.name ?? "that weapon"}.`);
+  return false;
+}
+
+/**
+ * Game patches, "Weapon Depower Delay": "After removing or losing power a weapon will quickly lose its charge over
+ * time rather than immediately lose all charge" (Artillery Beam and Flak Artillery: "Powering off drains charge
+ * quickly"). Per the user: quickly but not instantly, and only while the clock runs (callers are unpaused ticks).
+ * INVENTED rate: a full charge drains in DEPOWER_DRAIN_S. A charger's stored shots drain after the shot in progress.
+ */
+export const DEPOWER_DRAIN_S = 1;
+
+function drainOffline(w: WeaponInst, dt: number) {
+  let left = dt / DEPOWER_DRAIN_S;
+  while (left > 0) {
+    if (w.charge > 0) {
+      const take = Math.min(w.charge, left);
+      w.charge -= take;
+      left -= take;
+      continue;
+    }
+    if ((w.loaded ?? 0) <= 0) break;
+    w.loaded = (w.loaded ?? 0) - 1;
+    w.charge = 1;
+  }
+  if (w.charge < 1e-9) w.charge = 0;
+}
+
+/** Out of a fight the guns do not charge, but an unpowered one still drains (Weapon Depower Delay, above). */
+function drainIdleWeapons(g: Game, dt: number) {
+  const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
+  g.player.weapons.forEach((w, i) => {
+    if (!mask[i]) drainOffline(w, dt);
+  });
 }
 
 /**
@@ -3026,8 +3105,13 @@ function tickCharger(
 ) {
   const max = chargerCap(w.defId);
   if (max == null) return;
-  // Not a chain: going offline keeps the bank and the shot in progress.
-  if (!mask[i] || hackDrainsGun(g, from, w.defId)) return;
+  // Weapon Depower Delay (drainOffline): going offline drains the shot in progress, then the bank.
+  // INTENTIONALLY OVERRIDING the earlier inference that a charger kept its bank offline.
+  if (!mask[i]) {
+    drainOffline(w, dt);
+    return;
+  }
+  if (hackDrainsGun(g, from, w.defId)) return;
   if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
   if (frozen) return;
   if ((w.loaded ?? 0) < max && def.charge > 0) w.charge += dt / (def.charge * mult);
@@ -3151,11 +3235,11 @@ function chargeSide(
     // Ion (Weapons), Chain Ion: INFERRED the same reset. The section prints the ion climb, not the reset.
     // A cloak pause and a weapons-hack hold freeze the charge and keep the step. They are not "offline".
     // A flagship artillery hack (hackDrainsGun) takes that one gun offline.
+    // Weapon Depower Delay (drainOffline): the charge itself drains over a moment, chain or not.
     if (!mask[i] || hackDrainsGun(g, from, w.defId)) {
-      if (isChainWeapon(w.defId)) {
-        w.chain = 0;
-        w.charge = 0;
-      }
+      if (isChainWeapon(w.defId)) w.chain = 0;
+      if (!mask[i]) drainOffline(w, dt);
+      else if (isChainWeapon(w.defId)) w.charge = 0;
       return;
     }
     // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
@@ -6408,14 +6492,14 @@ function finishIdleDeaths(g: Game) {
 }
 
 function idleShip(g: Game): boolean {
-  if (g.paused) return false;
+  if (halted(g)) return false;
   if (g.phase === "map" || g.phase === "event" || g.phase === "store" || g.phase === "reward") return true;
   return g.phase === "combat" && !g.enemy;
 }
 
 /** The play clock. Oxygen, vents, fires, and walking keep going outside a fight. A pause stops it. */
 export function shipTicking(g: Game): boolean {
-  if (g.paused) return false;
+  if (halted(g)) return false;
   return (
     g.phase === "combat" ||
     g.phase === "map" ||
@@ -6501,6 +6585,7 @@ function playerShipTick(g: Game, h: number) {
   tickExtras(g, h);
   swapZoltanCooldown(g);
   meltCoats(g);
+  drainIdleWeapons(g, h);
 }
 
 export function step(g: Game, dt: number) {
@@ -6519,7 +6604,7 @@ export function step(g: Game, dt: number) {
     flushSfx(g.sfx);
     return;
   }
-  if (g.paused || g.phase !== "combat" || !g.enemy) {
+  if (halted(g) || g.phase !== "combat" || !g.enemy) {
     // @agent:hacking. A latched enemy hacking drone leaves with its ship: clear the hacked-room and door marks.
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
     if (g.phase !== "combat") stopTargeting(g);
@@ -6620,6 +6705,11 @@ export function step(g: Game, dt: number) {
   flushSfx(g.sfx);
 }
 
+/** The clock is stopped: the player's pause, or the room radial menu's own hold (Game.menuHold). */
+export function halted(g: Game): boolean {
+  return g.paused || !!g.menuHold;
+}
+
 /** Per the user: pause works wherever the ship's clock runs, not only in a fight (shipTicking's phases). */
 export function togglePause(g: Game) {
   if (!["combat", "map", "event", "store", "reward"].includes(g.phase)) return;
@@ -6630,7 +6720,7 @@ export function saveGame(g: Game) {
   if (typeof localStorage === "undefined") return;
   if (g.phase === "title" || g.phase === "victory" || g.phase === "defeat") return;
   try {
-    const copy = { ...g, sfx: [], floaters: [] };
+    const copy = { ...g, sfx: [], floaters: [], menuHold: false };
     localStorage.setItem(SAVE_KEY, JSON.stringify(copy));
   } catch {
     /* ignore quota */
@@ -6647,6 +6737,7 @@ export function loadGame(): Game | null {
     g.sfx = [];
     g.floaters = [];
     g.manual = false;
+    g.menuHold = false;
     if (g.armed === undefined) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
     if (g.targeting == null) g.targeting = false;
     if (g.beamAnchor == null) g.beamAnchor = null;

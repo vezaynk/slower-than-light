@@ -83,6 +83,45 @@
   to { opacity: 0.35; }
 }
 
+/* Per the user: a hull breach is a hole in the floor with air streaking into it (ShipView BreachHoles). INVENTED art. */
+.room .breach-hole {
+  position: absolute;
+  z-index: 2;
+  min-width: 14px;
+  min-height: 14px;
+  max-width: 34px;
+  max-height: 34px;
+  transform: translate(-50%, -50%) scaleX(var(--flip, 1));
+  pointer-events: none;
+}
+
+.room .breach-hole svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.room .breach-air {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 1px;
+  background: rgba(244, 241, 232, 0.85);
+  opacity: 0;
+  animation: breach-air 0.9s steps(4, jump-none) infinite;
+}
+
+.room .breach-air:nth-of-type(1) { --ax: -14px; --ay: -9px; }
+.room .breach-air:nth-of-type(2) { --ax: 13px; --ay: -5px; animation-delay: -0.3s; }
+.room .breach-air:nth-of-type(3) { --ax: -6px; --ay: 12px; animation-delay: -0.6s; }
+
+@keyframes breach-air {
+  from { transform: translate(var(--ax), var(--ay)); opacity: 0.9; }
+  to { transform: translate(-1px, 0); opacity: 0; }
+}
+
 /* Door open/shut. Colours stay in styles.css. */
 .door-layer .door-slab {
   transition:
@@ -118,6 +157,7 @@
   .play .room.is-airless:not(.is-cut)::before,
   .play .room.is-airless.is-cut .pixel-fill,
   .play .room.is-low .o2 span,
+  .room .breach-air,
   .target-body.is-cloaked .hull {
     animation: none;
   }

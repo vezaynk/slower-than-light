@@ -1,5 +1,5 @@
 import { tx } from "../../i18n/index.ts";
-import { hurtKit, hurtSystem, log, noteCombatPoint, zoltanBars } from "../sim.ts";
+import { hurtKit, hurtSystem, log, noteCombatPoint, shakeShip, zoltanBars } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
 import { sideOf } from "./leash.ts";
 import { artilleryGun, hurtArtillery } from "../wiki/flagship-systems.ts";
@@ -97,6 +97,8 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
       // Fires: "Rock Plating and Titanium System Casing do not protect hull and systems from fire damage."
       // INFERRED: no hull or system negation applies to boarder sabotage either.
       ship.hull = Math.max(0, ship.hull - 1);
+      // Per the user: fires (and boarders) destroying a system shake the ship like any other hull damage.
+      if (ship === g.player) shakeShip(g);
       log(g, tx("extras.sabotage.destroyed-by-sabotage", { title: r.title }));
     }
   }

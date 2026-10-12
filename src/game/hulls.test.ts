@@ -114,6 +114,7 @@ describe("hangar hulls", () => {
     const [first, second] = g.player.weapons;
     const room = g.player.rooms[0]?.id ?? "";
     g.enemy = g.player;
+    g.phase = "combat";
     first.charge = 0;
     assert.equal(g.targeting, false);
     // Already charging: the click enters targeting. A room click is ignored until then.
@@ -131,11 +132,9 @@ describe("hangar hulls", () => {
     depowerWeapon(g, first.uid);
     assert.equal(first.enabled, false);
     assert.equal(g.targeting, false);
-    // A dark slot powers on the first click and targets on the next.
+    // Per the user: a click on a dark slot powers it and starts targeting at once.
     armWeapon(g, first.uid);
     assert.equal(first.enabled, true);
-    assert.equal(g.targeting, false);
-    armWeapon(g, first.uid);
     assert.equal(g.targeting, true);
     // Ctrl reverses one slot against the all-weapons setting.
     assert.equal(slotAutofire(g, first), false);

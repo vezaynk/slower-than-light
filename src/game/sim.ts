@@ -1248,6 +1248,7 @@ export function powerUp(g: Game, id: SysId) {
   if (sparePower(g.player) <= 0) return;
   if (sys.power >= capOf(sys)) return;
   sys.power += 1;
+  delete sys.want;
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   sfx(g, "click");
 }
@@ -1258,6 +1259,7 @@ export function powerDown(g: Game, id: SysId) {
   if (id === "weapons" && weaponsPowerLocked(g)) return;
   if (sys.power <= 0) return;
   sys.power -= 1;
+  delete sys.want;
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   sfx(g, "click");
 }
@@ -1859,20 +1861,33 @@ function dropQueued(w: WeaponInst) {
   w.own = false;
 }
 
+/** A live enemy hull to shoot at. Per the user: outside a fight weapons take power but never aim, charge or fire. */
+function weaponsLive(g: Game): boolean {
+  return g.phase === "combat" && !!g.enemy;
+}
+
+/** Per the user: after a battle every queued target is dropped and targeting ends. */
+function clearWeaponAim(g: Game) {
+  stopTargeting(g);
+  for (const w of g.player.weapons) if (w.target || w.beamLine || w.own) dropQueued(w);
+}
+
 export function armWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
   // A fresh aim starts at the first click. An unfinished beam start does not carry over.
   g.beamAnchor = null;
+  // Per the user: with nothing to fight, a tap only switches the weapon on or off.
+  if (!weaponsLive(g)) {
+    toggleWeapon(g, weaponUid);
+    stopTargeting(g);
+    return;
+  }
   if (!w.enabled) {
     // Weapon Control, Overview: ionized or hacked weapons cannot be powered manually.
-    // A slot that is already on can still be aimed.
+    // Per the user: a tap to aim powers the weapon first; without the power it cannot be aimed.
     if (weaponsPowerLocked(g)) return;
     if (!claimWeaponBars(g, w)) return;
-    g.armed = weaponUid;
-    g.targeting = false;
-    sfx(g, "click");
-    return;
   }
   g.armed = weaponUid;
   g.targeting = true;
@@ -1883,6 +1898,10 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   // Weapon Control, Overview: a target room is confirmed by a left click while the cursor is targeting.
   // Beam (Weapons), "Beam targeting and damage mechanics": the first click sets the start and the second click fires.
   if (!g.targeting) return;
+  if (!weaponsLive(g)) {
+    clearWeaponAim(g);
+    return;
+  }
   const enemyRoom = g.enemy ? roomById(g.enemy, roomId) : undefined;
   const ownRoom = roomById(g.player, roomId);
   // Per the user: a tap on something that is not a valid target clears the armed weapon's designated target
@@ -1985,6 +2004,7 @@ export function depowerWeapon(g: Game, weaponUid: string) {
   // Weapon Control, Overview: ionized or hacked weapons cannot be depowered manually.
   if (weaponsPowerLocked(g)) return;
   w.enabled = false;
+  delete g.player.systems.weapons.want;
   releaseWeaponBars(g);
   // Crew skills, Weapons: off just after the skill increment cancels that shot. The point stays.
   cancelMuzzle(g, w);
@@ -2054,6 +2074,7 @@ export function toggleWeapon(g: Game, weaponUid: string) {
   if (!w || weaponsPowerLocked(g)) return;
   if (w.enabled) {
     w.enabled = false;
+    delete g.player.systems.weapons.want;
     releaseWeaponBars(g);
     cancelMuzzle(g, w);
   } else if (!claimWeaponBars(g, w)) return;
@@ -2413,6 +2434,7 @@ export function kitPowerDown(g: Game, id: BarKit): boolean {
   const kit = g.player.kits[id];
   if (!kit || cooldownLocksPower(kit) || kit.power <= 0) return false;
   kit.power -= 1;
+  delete kit.want;
   return true;
 }
 
@@ -2472,7 +2494,9 @@ export function hurtKit(ship: Ship, id: KitId, amount: number) {
   const kit = ship.kits[id];
   if (!kit) return;
   kit.damage = Math.min(kit.level, (kit.damage ?? 0) + amount);
-  kit.power = Math.min(kit.power, kit.level - kit.damage);
+  const cap = kit.level - kit.damage;
+  if (kit.power > cap) kit.want = Math.max(kit.want ?? 0, kit.power);
+  kit.power = Math.min(kit.power, cap);
 }
 
 // exported for extras/sabotage.ts
@@ -2482,8 +2506,43 @@ export function hurtSystem(ship: Ship, id: SysId, amount: number, shieldBonus = 
   const applied = Math.min(amount, roomLeft);
   sys.damage += applied;
   const cap = capOf(sys);
-  if (isMain(id) && sys.power > cap) sys.power = cap;
+  if (isMain(id) && sys.power > cap) {
+    sys.want = Math.max(sys.want ?? 0, sys.power);
+    sys.power = cap;
+  }
   syncShields(ship, shieldBonus);
+}
+
+/**
+ * Per the user: "If a system is repaired and there is power available, the power should be routed to the repaired
+ * system." Each repaired bar takes back one reactor bar, up to what damage cut (`want`), while one is spare.
+ * INFERRED: a hand-set power level drops `want`, so a system the player turned down stays down.
+ */
+function rerouteRepaired(g: Game) {
+  const ship = g.player;
+  let shields = false;
+  for (const id of Object.keys(ship.systems) as SysId[]) {
+    const sys = ship.systems[id];
+    if (sys.want == null) continue;
+    if (!isMain(id)) {
+      delete sys.want;
+      continue;
+    }
+    const locked = id === "weapons" && weaponsPowerLocked(g);
+    while (!locked && sys.power < sys.want && sys.power < capOf(sys) && sparePower(ship) > 0) {
+      sys.power += 1;
+      if (id === "shields") shields = true;
+    }
+    if (sys.power >= sys.want || sys.damage <= 0) delete sys.want;
+  }
+  if (shields) syncShields(ship, zoltanBars(g.crew, ship, "player", "shields"));
+  for (const id of ["veil", "sling", "leash"] as const) {
+    const kit = ship.kits[id];
+    if (kit?.want == null) continue;
+    while (kit.power < kit.want && kitPowerUp(g, id));
+    if (kit.power >= kit.want || (kit.damage ?? 0) <= 0) delete kit.want;
+  }
+  for (const kit of Object.values(ship.kits)) if (kit && kit.want != null && (kit.damage ?? 0) <= 0) delete kit.want;
 }
 
 /** Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated while any ion point remains. */
@@ -2889,7 +2948,7 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     sfx(g, "shield");
     floatAt(g, tx("game.sim.shield"), playerTarget ? 68 : 32, 16);
-    if (playerTarget) g.trauma = Math.min(1, g.trauma + 0.18);
+    // Per the user: the ship shakes only on damage, so a shield block does not.
     return;
   }
   if (shot.kind !== "missile" && pierce > 0 && ship.shieldNow > 0) ship.shieldNow = 0;
@@ -2997,6 +3056,13 @@ function standingCell(room: Room): { x: number; y: number } | null {
   return null;
 }
 
+/** The player ship's damage shake and hit-stop. INVENTED feel values. */
+// exported for extras/sabotage.ts
+export function shakeShip(g: Game) {
+  g.trauma = Math.min(1, g.trauma + 0.48);
+  g.hitstop = Math.max(g.hitstop, 0.045);
+}
+
 function strikeRoom(
   g: Game,
   ship: Ship,
@@ -3022,6 +3088,7 @@ function strikeRoom(
   }
   // Bomb (Weapons) lead: bombs deal no hull damage. System damage above still lands.
   // Crew damage on a bomb is often its own figure (BOMB_GAPS). This still uses 15 per system point from Weapons, "Weapons: general information".
+  const hullBefore = ship.hull;
   if (shot.kind !== "bomb" && hull > 0) {
     const held = platingNegates(g, ship, playerHurt, shot.breachChance);
     const before = ship.hull;
@@ -3089,8 +3156,8 @@ function strikeRoom(
   floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30);
   sfx(g, "hit");
   if (playerHurt) {
-    g.trauma = Math.min(1, g.trauma + 0.48);
-    g.hitstop = Math.max(g.hitstop, 0.045);
+    // Per the user: shake only when the hull actually drops, not for a hit that leaves it whole.
+    if (ship.hull < hullBefore) shakeShip(g);
     log(g, tx("game.sim.hit-hull", { title: r.title, hull: ship.hull }));
     if (ship.hull > 0 && ship.hull <= 10 && !g.lowHull) {
       g.lowHull = true;
@@ -3931,7 +3998,9 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       for (const f of foesHit) strike(f, [...palsHit, ...walkingPals]);
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
-    } else if (fixing.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
+    } else if (fixing.length && r.breach > 0) {
+      // Ship, "Hull": a breach "needs to be sealed before a system can be manned or repaired", so crew seal it first
+      // (per the user), in any room.
       // Crew skills, Repair skill: "or to repair a breach" takes the same 12.5 seconds as one system bar. Skill speeds both.
       r.breachFix += fixing.reduce((sum, c) => sum + repairPace(c), 0) * dt;
       // Skills: "sealing hull breaches provides no experience", so no bumpXp here.
@@ -6654,6 +6723,7 @@ function tickBoarding(g: Game, dt: number) {
   tickDoors(g, g.player, dt);
   moveCrew(g, dt);
   life(g, g.player, "player", dt);
+  rerouteRepaired(g);
   reap(g);
   // Lanius drain is part of oxygen. A boarding fight has no enemy hull, so tickExtras is not on this path.
   tickLanius(g, dt);
@@ -6709,6 +6779,7 @@ function playerShipTick(g: Game, h: number) {
   tickLockdown(g, h);
   moveCrew(g, h);
   life(g, g.player, "player", h);
+  rerouteRepaired(g);
   finishIdleDeaths(g);
   noteZoltanKits(g);
   settleZoltanPower(g);
@@ -6759,7 +6830,7 @@ export function step(g: Game, dt: number) {
   if (halted(g) || g.phase !== "combat" || !g.enemy) {
     // @agent:hacking. A latched enemy hacking drone leaves with its ship: clear the hacked-room and door marks.
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
-    if (g.phase !== "combat") stopTargeting(g);
+    if (!weaponsLive(g)) clearWeaponAim(g);
     // A single step never advances more than 0.05s, matching the combat body below.
     // Boarders with no enemy hull (beginBoarding) use the crew fight; otherwise playerShipTick runs the player's hull.
     if (idleShip(g)) {
@@ -6787,6 +6858,7 @@ export function step(g: Game, dt: number) {
   tickLockdown(g, h);
   moveCrew(g, h);
   life(g, g.player, "player", h);
+  rerouteRepaired(g);
   life(g, g.enemy, "enemy", h);
   reap(g);
   // Zoltans: the kit bar is whoever is standing there after movement and deaths, before the kits tick.

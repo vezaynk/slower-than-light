@@ -3,7 +3,7 @@ import { animSpeed } from "./speed";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
-import { roomClip } from "@/game/layouts";
+import { cellOccupied, roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
@@ -564,6 +564,7 @@ export function ShipView({
             }}
           >
             {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
+            {open && room.breach > 0 ? <BreachHoles room={room} /> : null}
             <button
               type="button"
               className="room-hit"
@@ -861,6 +862,54 @@ export function ShipView({
  * Per the user: a room's system icon is yellow while the system is damaged and red once every level is destroyed
  * (Systems: "A system with all its levels damaged is considered destroyed"). Grey otherwise.
  */
+/**
+ * Per the user: hull breaches are drawn in the room. One hole per breach, on its own tile, with air streaking into it.
+ * INVENTED art and placement: tiles are picked from a hash of the room id so a hole does not jump between renders.
+ */
+function BreachHoles({ room }: { room: Ship["rooms"][number] }) {
+  const cells: { x: number; y: number }[] = [];
+  for (let y = room.y; y < room.y + room.h; y++) {
+    for (let x = room.x; x < room.x + room.w; x++) if (cellOccupied(room, x, y)) cells.push({ x, y });
+  }
+  if (!cells.length) return null;
+  let seed = 0;
+  for (const ch of room.id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const order = cells.map((c, i) => ({ c, k: ((seed ^ (i * 2654435761)) >>> 0) % 997 })).sort((a, b) => a.k - b.k);
+  const shown = order.slice(0, Math.min(room.breach, cells.length));
+  return (
+    <>
+      {shown.map(({ c }, i) => (
+        <i
+          key={`${c.x}-${c.y}`}
+          className="breach-hole"
+          aria-hidden="true"
+          style={{
+            left: `${((c.x - room.x + 0.5) / room.w) * 100}%`,
+            top: `${((c.y - room.y + 0.5) / room.h) * 100}%`,
+            width: `${(0.72 / room.w) * 100}%`,
+            height: `${(0.72 / room.h) * 100}%`,
+            ["--flip" as string]: i % 2 ? -1 : 1,
+          }}
+        >
+          <svg viewBox="0 0 16 16" shapeRendering="crispEdges">
+            <path
+              fill="#a7adb7"
+              d="M6 1h3v1h2v2h2v1h1v3h1v2h-1v2h-1v1h-2v1H9v1H6v-1H4v-1H3v-1H2V9H1V6h1V4h1V3h2V2h1z"
+            />
+            <path fill="#5b616b" d="M6 3h3v1h2v1h1v2h1v3h-1v1h-1v1H9v1H6v-1H5v-1H4V9H3V6h1V5h1V4h1z" />
+            <path fill="#05060c" d="M7 4h2v1h2v2h1v3h-1v1H9v1H7v-1H5V9H4V7h1V5h2z" />
+            <rect x="7" y="7" width="1" height="1" fill="#f4f1e8" />
+            <rect x="10" y="9" width="1" height="1" fill="#9fb8ff" />
+          </svg>
+          <b className="breach-air" />
+          <b className="breach-air" />
+          <b className="breach-air" />
+        </i>
+      ))}
+    </>
+  );
+}
+
 function iconState(ship: Ship, room: Ship["rooms"][number]): string {
   const sys = room.system ? ship.systems[room.system] : undefined;
   const kit = !sys && room.kit ? ship.kits[room.kit] : undefined;

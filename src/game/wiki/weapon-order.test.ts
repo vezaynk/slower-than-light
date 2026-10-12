@@ -266,6 +266,9 @@ describe("weapon power lock and order", () => {
   it("blocks reactor and slot power while ionized, and still reorders", () => {
     const g = createGame(11);
     feed(g, 6, 4, ["leto", "burst1", "charger"]);
+    // Per the user: weapons only aim in a fight.
+    g.enemy = g.player;
+    g.phase = "combat";
     g.player.weapons[2].loaded = 1;
     g.player.weapons[2].charge = 0.3;
     g.player.weapons[2].enabled = false;

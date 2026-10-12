@@ -29,6 +29,11 @@ export type SystemState = {
   ion: number[];
   fix: number;
   /**
+   * Bars powered before damage cut them. Per the user: a repaired bar takes reactor power back while it is spare.
+   * Absent once restored or once the player sets this system's power by hand.
+   */
+  want?: number;
+  /**
    * Reactor bars a standing Zoltan presence has already replaced.
    * Shields peel pairs and do not put them back. Engines, the medbay, and oxygen
    * replace a full system and do not put them back. Weapons put them back from spare
@@ -341,6 +346,8 @@ export type Kit = {
   damage?: number;
   /** Repair progress on the next damaged bar, in crew-seconds. */
   fix?: number;
+  /** Same as SystemState.want: bars powered before damage cut them. */
+  want?: number;
   /** System Repair drone's room. Absent until that crew drone is deployed. */
   room?: string;
   /** Rooms the System Repair drone has not entered yet. */

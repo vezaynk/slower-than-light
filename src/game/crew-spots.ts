@@ -27,22 +27,71 @@ export function mannableSystem(system: string | null | undefined): boolean {
   return !!system && MANNED.has(system);
 }
 
+type DoorSideName = "n" | "e" | "s" | "w";
+type DoorMarks = readonly { x: number; y: number; side: DoorSideName }[] | undefined;
+
+const STEP_SIDE: Record<DoorSideName, [number, number]> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
+const OPPOSITE: Record<DoorSideName, DoorSideName> = { n: "s", e: "w", s: "n", w: "e" };
+
+/** Every cell edge that holds a door, from both sides of it ("x,y,side"). */
+function doorEdges(marks: DoorMarks): Set<string> {
+  const out = new Set<string>();
+  for (const m of marks ?? []) {
+    out.add(`${m.x},${m.y},${m.side}`);
+    const [dx, dy] = STEP_SIDE[m.side];
+    out.add(`${m.x + dx},${m.y + dy},${OPPOSITE[m.side]}`);
+  }
+  return out;
+}
+
+function touchesDoor(cell: { x: number; y: number }, edges: Set<string>): boolean {
+  return (["n", "e", "s", "w"] as const).some((side) => edges.has(`${cell.x},${cell.y},${side}`));
+}
+
+export type ConsoleSpot = { x: number; y: number; wall: DoorSideName };
+
 /**
- * The terminal tile.
- * Door System room picture: "(console on the right)".
- * INFERRED: every other mannable room uses that same corner, the rightmost floor tile of the top row.
+ * The terminal tile, and the wall its display hangs on.
+ * Door System room picture: "(console on the right)". INFERRED: every mannable room prefers that corner, the rightmost
+ * floor tile of the top row, with the display on its right wall. Per the user, furniture stays clear of doors: the
+ * first tile (in that order) that touches no door and has an outer wall with no door wins, then any tile with a
+ * door-free outer wall, then the corner itself.
  * Artillery rooms stay system "weapons" for targeting, and Artillery Beam has no console.
  */
-export function roomConsole(room: Box, hull?: { flagship?: unknown } | null): { x: number; y: number } | null {
+export function consoleSpot(
+  room: Box,
+  hull?: { flagship?: unknown; doorMarks?: DoorMarks } | null,
+): ConsoleSpot | null {
   if (hull?.flagship && room.system === "weapons") return null;
   if (!mannableSystem(room.system)) return null;
-  const cells = floorCells(room);
+  const cells = floorCells(room).sort((a, b) => a.y - b.y || b.x - a.x);
   if (!cells.length) return null;
-  let best = cells[0]!;
-  for (const cell of cells) {
-    if (cell.y < best.y || (cell.y === best.y && cell.x > best.x)) best = cell;
+  const floor = new Set(cells.map((c) => `${c.x},${c.y}`));
+  const edges = doorEdges(hull?.doorMarks);
+  const walls = (c: { x: number; y: number }) =>
+    (["e", "n", "w", "s"] as const).filter((side) => {
+      const [dx, dy] = STEP_SIDE[side];
+      return !floor.has(`${c.x + dx},${c.y + dy}`);
+    });
+  const clearWall = (c: { x: number; y: number }) => walls(c).find((side) => !edges.has(`${c.x},${c.y},${side}`));
+  for (const c of cells) {
+    const wall = touchesDoor(c, edges) ? undefined : clearWall(c);
+    if (wall) return { x: c.x, y: c.y, wall };
   }
-  return best;
+  for (const c of cells) {
+    const wall = clearWall(c);
+    if (wall) return { x: c.x, y: c.y, wall };
+  }
+  return { x: cells[0]!.x, y: cells[0]!.y, wall: walls(cells[0]!)[0] ?? "e" };
+}
+
+/** The terminal tile (consoleSpot without the wall). */
+export function roomConsole(
+  room: Box,
+  hull?: { flagship?: unknown; doorMarks?: DoorMarks } | null,
+): { x: number; y: number } | null {
+  const spot = consoleSpot(room, hull);
+  return spot ? { x: spot.x, y: spot.y } : null;
 }
 
 /**
@@ -131,20 +180,30 @@ export function medicalLimit(room: Box, side: "player" | "enemy", interiorDoors:
  * Floor tiles nobody stands on: a Medbay or Clone Bay with more tiles than standing spots (medicalLimit) keeps the rest
  * for its machine, which ShipView draws there. Medbay, "Overview": a 4-tile player Medbay has 3 standing spots; Clone
  * Bay: "a 4-tile Clone Bay room ... only up to 3 standing crew", "a 2-tile Clone Bay room can accommodate only 1".
- * INFERRED: the machine takes the top-left tiles, opposite the top-right corner terminals use (roomConsole).
+ * INFERRED: the machine takes the top-left tiles, opposite the top-right corner terminals use (roomConsole), and per the
+ * user it avoids tiles that touch a door.
  */
-export function blockedCells(room: Box, side: "player" | "enemy", interiorDoors: number): { x: number; y: number }[] {
+export function blockedCells(
+  room: Box,
+  side: "player" | "enemy",
+  interiorDoors: number,
+  marks?: DoorMarks,
+): { x: number; y: number }[] {
   if (room.system !== "medbay" && room.kit !== "cradle") return [];
   const cells = floorCells(room);
   const extra = cells.length - medicalLimit(room, side, interiorDoors);
   if (extra <= 0) return [];
-  return cells.slice().sort((a, b) => a.y - b.y || a.x - b.x).slice(0, extra);
+  // Per the user, the machine stays clear of doors: door-free tiles first, each group top-left first.
+  const edges = doorEdges(marks);
+  const order = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+    Number(touchesDoor(a, edges)) - Number(touchesDoor(b, edges)) || a.y - b.y || a.x - b.x;
+  return cells.slice().sort(order).slice(0, extra);
 }
 
 /** blockedCells for a room on a hull, when the side and doors are known. */
 function blockedOn(room: Box, aboard: string | undefined, hull: StandHull | undefined): Set<string> {
   if (!hull?.doors || !room.id || (aboard !== "player" && aboard !== "enemy")) return new Set();
-  return new Set(blockedCells(room, aboard, interiorLinks(hull.doors, room.id)).map(cellKey));
+  return new Set(blockedCells(room, aboard, interiorLinks(hull.doors, room.id), hull.doorMarks).map(cellKey));
 }
 
 export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors: number): number {
@@ -182,7 +241,7 @@ export function heldTile(c: Pick<RosterCrew, "tile" | "path" | "room">): { x: nu
 
 const cellKey = (cell: { x: number; y: number }) => `${cell.x},${cell.y}`;
 
-type StandHull = { flagship?: unknown; doors?: { a: string; b: string | "void" }[] } | null;
+type StandHull = { flagship?: unknown; doors?: { a: string; b: string | "void" }[]; doorMarks?: DoorMarks } | null;
 
 /**
  * The crew member who stands at the terminal.

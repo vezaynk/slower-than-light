@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { blockedCells, claimPadTile, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
+import { blockedCells, claimPadTile, consoleSpot, floorCells, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
+import { HULLS } from "./hulls.ts";
 import {
   canDismiss,
   closeAllDoors,
@@ -51,7 +52,7 @@ describe("the medical machine's tile", () => {
     const g = createGame(6, "kestrel-a");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
-    const [blocked] = blockedCells(bay, "player", interiorLinks(g.player.doors, bay.id));
+    const [blocked] = blockedCells(bay, "player", interiorLinks(g.player.doors, bay.id), g.player.doorMarks);
     assert.ok(blocked, "a 4-tile Kestrel medbay has a machine tile");
     for (const c of g.crew.filter((x) => x.side === "player")) {
       c.room = bay.id;
@@ -61,6 +62,33 @@ describe("the medical machine's tile", () => {
     step(g, 0.05);
     for (const c of g.crew.filter((x) => x.side === "player")) {
       assert.notDeepEqual({ x: c.tile!.x, y: c.tile!.y }, { x: blocked.x, y: blocked.y }, c.name);
+    }
+  });
+});
+
+describe("furniture keeps clear of doors (per the user)", () => {
+  it("hangs every terminal display on a wall with no door, and puts medical machines on tiles no door touches", () => {
+    const step: Record<string, [number, number]> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
+    const opposite: Record<string, string> = { n: "s", e: "w", s: "n", w: "e" };
+    for (const hull of HULLS) {
+      const g = createGame(1, hull.id);
+      const ship = g.player;
+      const edges = new Set<string>();
+      for (const m of ship.doorMarks ?? []) {
+        edges.add(`${m.x},${m.y},${m.side}`);
+        edges.add(`${m.x + step[m.side]![0]},${m.y + step[m.side]![1]},${opposite[m.side]}`);
+      }
+      const touches = (c: { x: number; y: number }) => ["n", "e", "s", "w"].some((side) => edges.has(`${c.x},${c.y},${side}`));
+      for (const room of ship.rooms) {
+        const spot = consoleSpot(room, ship);
+        if (spot) assert.equal(edges.has(`${spot.x},${spot.y},${spot.wall}`), false, `${hull.id} ${room.id} display on a door`);
+        const machine = blockedCells(room, "player", interiorLinks(ship.doors, room.id), ship.doorMarks);
+        // Only where the room has enough tiles no door touches (Kestrel C's clone bay has none).
+        const clear = floorCells(room).filter((cell) => !touches(cell)).length;
+        if (clear >= machine.length) {
+          for (const cell of machine) assert.equal(touches(cell), false, `${hull.id} ${room.id} machine by a door`);
+        }
+      }
     }
   });
 });

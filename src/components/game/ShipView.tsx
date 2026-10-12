@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
-import { assignStands, blockedCells, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
+import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
-import { RoomProp, RoomSeat } from "./RoomConsole";
+import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
@@ -544,7 +544,7 @@ export function ShipView({
             </div>
             {open
               ? (() => {
-                  const cell = roomConsole(room, ship);
+                  const cell = consoleSpot(room, ship);
                   if (!cell || !room.system) return null;
                   // Seated and working: on the terminal tile, not still walking onto it, and not fighting an intruder.
                   const manned = here.some((c) => {
@@ -557,6 +557,7 @@ export function ShipView({
                     <i
                       className={"room-console" + (manned ? " is-on" : "")}
                       data-console={`${cell.x},${cell.y}`}
+                      data-wall={cell.wall}
                       data-manned={manned ? "1" : "0"}
                       aria-hidden="true"
                       style={{
@@ -567,7 +568,9 @@ export function ShipView({
                       }}
                     >
                       {/* Per the user: a wall display, black until manned, then shifting colours; the seat only while manned. */}
-                      <span className={"room-screen" + (manned ? " is-on" : "")} data-kind={room.system} />
+                      <span className="room-terminal" data-wall={cell.wall}>
+                        <WallTerminal kind={room.system} on={manned} />
+                      </span>
                       {manned ? (
                         <span className="room-seat">
                           <RoomSeat />
@@ -579,7 +582,7 @@ export function ShipView({
               : null}
             {/* The medical machine on the tile nobody stands on (crew-spots blockedCells). */}
             {open && (room.system === "medbay" || room.kit === "cradle")
-              ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id)).map((cell) => (
+              ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id), ship.doorMarks).map((cell) => (
                   <i
                     key={`prop-${cell.x},${cell.y}`}
                     className="room-prop"
@@ -706,6 +709,12 @@ export function ShipView({
                 : 0;
             const cycle = pose === "idle" || pose === "work";
             const nudge = spot && !step ? spot.stack * 4 : 0;
+            // Seated at a terminal: back from the wall its monitor hangs on, facing it (the seat sits the same way).
+            const seated = pose === "work" ? consoleSpot(ship.rooms.find((r) => r.id === c.room) ?? ship.rooms[0]!, ship) : null;
+            const back = seated ? { e: [-0.18, 0], w: [0.18, 0], n: [0, 0.18], s: [0, -0.18] }[seated.wall] : [0, 0];
+            const placeX = at.x + (back[0]! / ship.cols) * 100;
+            const placeY = at.y + (back[1]! / ship.rows) * 100;
+            const facing = seated ? seated.wall === "w" : faceLeft;
             return (
               <CrewToken
                 key={c.id}
@@ -716,11 +725,11 @@ export function ShipView({
                 pose={pose}
                 frame={frame}
                 cycle={cycle}
-                className={"crew-walker" + (faceLeft ? " is-face-left" : "")}
+                className={"crew-walker" + (facing ? " is-face-left" : "")}
                 style={{
-                  left: `${at.x}%`,
-                  top: `${at.y}%`,
-                  transform: faceLeft
+                  left: `${placeX}%`,
+                  top: `${placeY}%`,
+                  transform: facing
                     ? `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px)) scaleX(-1)`
                     : `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px))`,
                 }}

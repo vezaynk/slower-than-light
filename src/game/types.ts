@@ -799,6 +799,13 @@ export type Game = {
    * unpauses a pause the player set). Not saved: loadGame clears it.
    */
   menuHold?: boolean;
+  /**
+   * Per the user: a beaten ship that did not explode (surrender accepted, crew killed, stalemate break-off) stays at
+   * the beacon until the player jumps, so its panel stays up and crew still aboard can be teleported back. It is not
+   * a fight: no AI, guns or targeting. Cleared on jump and when a new fight starts. INFERRED from the Teleporter's
+   * recall and sling onJumpSling (crew left there when you jump are lost).
+   */
+  wreck?: Ship | null;
   sector: number;
   sectorName: string;
   beacons: Beacon[];

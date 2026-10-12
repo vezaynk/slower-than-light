@@ -496,7 +496,10 @@ export function GameApp() {
         steps += 1;
       }
       if (!ticking) acc = 0;
-      if (ticking && now - ui > 80) {
+      // A tick that stops the clock itself (a surrender offer, a win, a reward card) must be drawn at once: with the
+      // clock stopped nothing bumps again, and the screen stayed frozen on the frame before (bug reported by the user).
+      const stopped = ticking && !shipTicking(useGame.getState().game);
+      if (stopped || (ticking && now - ui > 80)) {
         ui = now;
         useGame.getState().bump();
       }
@@ -568,8 +571,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     const id = window.setTimeout(() => setLinger(null), 80);
     return () => window.clearTimeout(id);
   }, [linger, wrecking]);
-  const displayEnemy = game.enemy ?? linger;
-  const showTarget = !!displayEnemy && (linger != null || (!chart && (game.phase === "combat" || game.phase === "event")));
+  // Per the user: a beaten ship that is still in one piece (Game.wreck) keeps its panel until the jump, so crew still
+  // aboard can be teleported back (after a surrender, say).
+  const wreck = !game.enemy && !linger ? (game.wreck ?? null) : null;
+  const displayEnemy = game.enemy ?? linger ?? wreck;
+  const showTarget =
+    !!displayEnemy &&
+    (linger != null ||
+      (!chart && (game.phase === "combat" || game.phase === "event" || (wreck != null && (game.phase === "map" || game.phase === "reward")))));
   const ox = shake ? Math.sin(game.time * 40) * 7 * shake : 0;
   const oy = shake ? Math.cos(game.time * 33) * 5 * shake : 0;
   // @agent:hack-ui. Hack targeting only lasts while a launch is possible (fight over, power pulled, part spent...).
@@ -589,12 +598,15 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     clearAims();
     act((g) => cancelTargeting(g));
   };
+  // Per the user: the ship's break-up plays before the reward or victory card (the card waits while `linger` holds the
+  // exploding hull on screen).
   const cardUp =
-    (game.phase === "event" && !!game.event) ||
+    linger == null &&
+    ((game.phase === "event" && !!game.event) ||
     game.phase === "store" ||
     (game.phase === "reward" && !!game.reward) ||
     game.phase === "victory" ||
-    game.phase === "defeat";
+    game.phase === "defeat");
   const card = cardUp ? (
     <>
       {game.phase === "event" && game.event ? <EventModal game={game} /> : null}

@@ -738,6 +738,8 @@ export function here(g: Game) {
 export function closeFight(g: Game) {
   clearEnemyLeash(g);
   g.crew = g.crew.filter((c) => c.side === "player");
+  // Game.wreck: the ship that surrendered (or broke off) is still there until the jump, for a teleporter recall.
+  g.wreck = g.enemy && g.enemy.hull > 0 ? g.enemy : null;
   g.enemy = null;
   g.enemyEscape = null;
   g.enemyFlee = 0;

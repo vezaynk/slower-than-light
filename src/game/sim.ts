@@ -4630,6 +4630,8 @@ function winCombat(g: Game) {
   // Mind Control: an enemy hold ends with the fight.
   clearEnemyLeash(g);
   g.crew = g.crew.filter((c) => c.side === "player");
+  // Game.wreck: a hull that is still in one piece (its crew died) stays alongside until the jump.
+  g.wreck = foe && foe.hull > 0 ? foe : null;
   g.enemy = null;
   g.shots = [];
   // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
@@ -4975,6 +4977,7 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   // Mind Control: no hold from an earlier fight (fled or jumped away) carries into this one.
   clearEnemyLeash(g);
   g.crew.push(...built.crew);
+  g.wreck = null;
   for (const w of g.player.weapons) {
     w.charge = 0;
     w.target = null;
@@ -6769,6 +6772,7 @@ export function loadGame(): Game | null {
     g.floaters = [];
     g.manual = false;
     g.menuHold = false;
+    if (g.wreck === undefined) g.wreck = null;
     if (g.armed === undefined) g.armed = g.player.weapons.find((w) => w.enabled)?.uid ?? null;
     if (g.targeting == null) g.targeting = false;
     if (g.beamAnchor == null) g.beamAnchor = null;

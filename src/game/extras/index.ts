@@ -84,6 +84,8 @@ export function onPlayerJump(g: Game) {
     g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0).map((c) => c.id),
   );
   onJumpSling(g);
+  // Game.wreck: the beaten ship stays behind at the old beacon.
+  g.wreck = null;
   for (const c of g.crew) {
     if (c.hp <= 0 && !leftAlive.has(c.id)) onCradleDeath(g, c);
   }

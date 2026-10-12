@@ -357,17 +357,20 @@ export function ShadeFx() {
         crew.clear();
       }
 
-      // A combat pause holds the picture. Leaving combat (hull loss sets paused) still plays the blast.
+      // A combat pause holds the picture. Leaving combat (hull loss sets paused) still plays the blast: the enemy's
+      // break-up pieces always run, so the explosion plays out before the reward or victory card (per the user; the
+      // card waits on useEnemyWreck).
       const hold = g.paused || !!g.menuHold;
       const step = hold ? 0 : dt;
 
       for (let i = chunks.length - 1; i >= 0; i--) {
         const p = chunks[i]!;
-        if (step > 0) {
-          p.life -= step;
-          p.x += p.vx * step;
-          p.y += p.vy * step;
-          const drag = Math.exp(-1.4 * step);
+        const pStep = p.wreck ? dt : step;
+        if (pStep > 0) {
+          p.life -= pStep;
+          p.x += p.vx * pStep;
+          p.y += p.vy * pStep;
+          const drag = Math.exp(-1.4 * pStep);
           p.vx *= drag;
           p.vy *= drag;
         }

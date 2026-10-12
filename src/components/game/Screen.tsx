@@ -55,10 +55,27 @@ function deviceSize(rawW: number, rawH: number) {
   return { rawW: Math.max(rawW, sh), rawH: Math.max(rawH, sw) };
 }
 
-function readPx(name: string) {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(name);
-  const n = parseFloat(raw);
-  return Number.isFinite(n) ? n : 0;
+/**
+ * The safe-area insets in pixels (status bar, notch, home indicator). Reading the --sat style variables back gives the
+ * unresolved text "env(safe-area-inset-top, 0px)", which parsed as 0, so the game drew under the iOS status bar
+ * (bug reported by the user with forced landscape). A hidden probe's padding resolves env() to real pixels.
+ */
+let insetProbe: HTMLDivElement | null = null;
+function safeInsets(): { t: number; b: number; l: number; r: number } {
+  if (!insetProbe) {
+    insetProbe = document.createElement("div");
+    insetProbe.setAttribute("aria-hidden", "true");
+    insetProbe.style.cssText =
+      "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;" +
+      "padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";
+    document.documentElement.append(insetProbe);
+  }
+  const cs = getComputedStyle(insetProbe);
+  const px = (v: string) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+  return { t: px(cs.paddingTop), b: px(cs.paddingBottom), l: px(cs.paddingLeft), r: px(cs.paddingRight) };
 }
 
 /**
@@ -111,7 +128,7 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
     Math.abs(vvH - innerH) > 1;
   // Safe-area insets are physical; under a forced-landscape turn (turn.ts) each lands on a different page side.
   const turn = pageTurn();
-  const phys = { t: readPx("--sat"), b: readPx("--sab"), l: readPx("--sal"), r: readPx("--sar") };
+  const phys = safeInsets();
   const sides =
     turn === 90
       ? { t: phys.r, b: phys.l, l: phys.t, r: phys.b }

@@ -626,6 +626,33 @@ function InGameOptions() {
 
 const MAIN_BARS: SysId[] = ["shields", "engines", "medbay", "oxygen", "weapons"];
 
+/**
+ * Systems: "Subsystems are the same as systems, except they do not use power", and its "Main systems" list, "in the
+ * order which they appear in the game GUI from left to right": Shields, Engines, Medbay, Clone Bay, Oxygen, Crew
+ * Teleporter, Cloaking, Mind Control, Artillery Beam, Flak Artillery, Hacking, Weapon Control, Drone Control.
+ * Its "Subsystems" are Piloting, Sensors, Door System and Backup Battery, so only the battery kit sits in that dock.
+ */
+const MAIN_ORDER: (SysId | KitId)[] = [
+  "shields",
+  "engines",
+  "medbay",
+  "cradle",
+  "oxygen",
+  "sling",
+  "veil",
+  "leash",
+  "lance",
+  "flak",
+  "spike",
+  "weapons",
+  "swarm",
+];
+const SUB_KITS: KitId[] = ["cell"];
+
+function isKitId(id: SysId | KitId): id is KitId {
+  return id in KIT_LABEL;
+}
+
 /** INVENTED: the combat, event, and pause screens are the layout guide. No wiki page specifies this chrome. */
 function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   const sector = game.sectorMap && game.phase !== "victory" && game.phase !== "defeat";
@@ -1452,6 +1479,59 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const shown = swarm ? tab : "weapons";
   // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
   const hackedKit = hackedPlayerKit(game);
+  const kitPod = (id: KitId) => {
+    const kit = game.player.kits[id];
+    if (!kit) return null;
+    if (id === "spike") return <HackOrb key={id} game={game} aiming={hackAiming} hacked={hackedKit?.id === id ? hackedKit.phase : null} />;
+    // Hacking wiki, "Overview" (Cloaking): "ends an active cloak, and prevents the enemy from entering cloak".
+    const cloakLocked = id === "veil" && playerCloakHacked(game);
+    // A kit with no room on the player ship still carries the latched drone; mark its orb instead
+    // (Hacking wiki: "Launches a hacking drone that attaches to the enemy ship").
+    const hacked = hackedKit?.id === id ? hackedKit.phase : null;
+    const away = id === "sling" && game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+    const tip = cloakLocked
+      ? tx("ui.GameApp.hacked-cannot-cloak", { v: KIT_LABEL[id] })
+      : hacked
+        ? tx("ui.GameApp.hacking-drone-attached", { v: KIT_LABEL[id], v2: hacked === "pulse" ? " (pulse)" : "" })
+        : id === "sling"
+          ? away
+            ? tx("ui.GameApp.teleporter-recall-crew")
+            : tx("ui.GameApp.teleporter-send-crew")
+          : id === "leash"
+            ? tx("ui.GameApp.mind-control-pick-a-crewmember")
+            : KIT_LABEL[id];
+    const powered = id === "veil" || id === "sling" || id === "leash";
+    return (
+      <span key={id} className="sub-pod">
+        {powered ? (
+          <KitPowerButton game={game} id={id} />
+        ) : (
+          <i className="sub-bars" aria-hidden="true">
+            {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+              <KitBar key={n} game={game} id={id} kit={kit} n={n} />
+            ))}
+          </i>
+        )}
+        <button
+          type="button"
+          className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+          data-kit={id}
+          aria-label={tip}
+          title={tip}
+          disabled={cloakLocked}
+          onClick={() => {
+            if (id === "veil") act((g) => startVeil(g));
+            else if (id === "cell") act((g) => startCell(g));
+            else if (id === "sling") slingIconClick();
+            else if (id === "leash") leashIconClick();
+          }}
+        >
+          <PixelIcon name={id} size={16} />
+        </button>
+      </span>
+    );
+  };
+
   return (
     <footer className="dock">
       <div className="power-dock">
@@ -1465,9 +1545,13 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             ))}
           </i>
         ) : null}
-        {MAIN_BARS.map((id) => (
-          <PowerStack key={id} game={game} id={id} locked={id === "weapons" && weaponsPowerLocked(game)} />
-        ))}
+        {MAIN_ORDER.map((id) =>
+          isKitId(id) ? (
+            kitPod(id)
+          ) : game.player.systems[id].level > 0 ? (
+            <PowerStack key={id} game={game} id={id} locked={id === "weapons" && weaponsPowerLocked(game)} />
+          ) : null,
+        )}
       </div>
       <div className="weapon-dock">
         {shown === "weapons" ? (
@@ -1695,58 +1779,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               </span>
             );
           })}
-          {(Object.keys(KIT_LABEL) as KitId[]).map((id) => {
-            const kit = game.player.kits[id];
-            if (!kit) return null;
-            if (id === "spike") return <HackOrb key={id} game={game} aiming={hackAiming} hacked={hackedKit?.id === id ? hackedKit.phase : null} />;
-            // Hacking wiki, "Overview" (Cloaking): "ends an active cloak, and prevents the enemy from entering cloak".
-            const cloakLocked = id === "veil" && playerCloakHacked(game);
-            // A kit with no room on the player ship still carries the latched drone; mark its orb instead
-            // (Hacking wiki: "Launches a hacking drone that attaches to the enemy ship").
-            const hacked = hackedKit?.id === id ? hackedKit.phase : null;
-            const away = id === "sling" && game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
-            const tip = cloakLocked
-              ? tx("ui.GameApp.hacked-cannot-cloak", { v: KIT_LABEL[id] })
-              : hacked
-                ? tx("ui.GameApp.hacking-drone-attached", { v: KIT_LABEL[id], v2: hacked === "pulse" ? " (pulse)" : "" })
-                : id === "sling"
-                  ? away
-                    ? tx("ui.GameApp.teleporter-recall-crew")
-                    : tx("ui.GameApp.teleporter-send-crew")
-                  : id === "leash"
-                    ? tx("ui.GameApp.mind-control-pick-a-crewmember")
-                    : KIT_LABEL[id];
-            const powered = id === "veil" || id === "sling" || id === "leash";
-            return (
-              <span key={id} className="sub-pod">
-                {powered ? (
-                  <KitPowerButton game={game} id={id} />
-                ) : (
-                  <i className="sub-bars" aria-hidden="true">
-                    {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-                      <KitBar key={n} game={game} id={id} kit={kit} n={n} />
-                    ))}
-                  </i>
-                )}
-                <button
-                  type="button"
-                  className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
-                  data-kit={id}
-                  aria-label={tip}
-                  title={tip}
-                  disabled={cloakLocked}
-                  onClick={() => {
-                    if (id === "veil") act((g) => startVeil(g));
-                    else if (id === "cell") act((g) => startCell(g));
-                    else if (id === "sling") slingIconClick();
-                    else if (id === "leash") leashIconClick();
-                  }}
-                >
-                  <PixelIcon name={id} size={16} />
-                </button>
-              </span>
-            );
-          })}
+          {SUB_KITS.map((id) => kitPod(id))}
         </div>
         <span className="dock-label">{tx("ui.GameApp.subsystems")}</span>
       </div>

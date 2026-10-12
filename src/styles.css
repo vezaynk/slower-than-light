@@ -5900,3 +5900,7 @@ body.page-turn-180 {
    Slot names stay on one line; the full name is the card's tooltip. INVENTED. */
 .hangar-slot p { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hangar-drones .hangar-absent { min-height: 78px; margin: 0; display: flex; align-items: center; justify-content: center; }
+
+/* Systems, "Main systems": Cloaking, the Teleporter, Mind Control, Hacking, Drone Control, Clone Bay and Artillery sit
+   in the power row with Shields..Weapons, so their orbs match the main-system orb. */
+.power-dock .sub-orb { width: 28px; height: 28px; }

@@ -118,6 +118,7 @@ import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
+import { airShown } from "@/game/air";
 
 const SYS_ORDER: SysId[] = [
   "shields",
@@ -1889,7 +1890,7 @@ function PauseStamp() {
 
 function shipOxygen(ship: Game["player"]): number {
   if (!ship.rooms.length) return 100;
-  const sum = ship.rooms.reduce((n, room) => n + room.o2, 0);
+  const sum = ship.rooms.reduce((n, room) => n + airShown(room.o2), 0);
   return Math.round(sum / ship.rooms.length);
 }
 

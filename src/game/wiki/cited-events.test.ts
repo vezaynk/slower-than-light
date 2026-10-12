@@ -751,7 +751,8 @@ describe("Slug hacker (oxygen)", () => {
     const before = room.o2;
     step(g, 0.05);
     const change = room.o2 - before;
-    assert.ok(Math.abs(change) < 0.01, String(change));
+    // The hull leak (air.ts, toward space at -50%) takes about 0.01 a step; production would add 0.24.
+    assert.ok(Math.abs(change) < 0.02, String(change));
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.05);

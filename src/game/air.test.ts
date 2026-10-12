@@ -9,6 +9,8 @@ import {
   HULL_LEAK,
   OPEN_DOOR_C,
   REFILL,
+  SPACE_O2,
+  airShown,
   VACUUM_FALLOFF,
   VACUUM_REACH,
   stepAir,
@@ -45,8 +47,11 @@ function run(s: Ship, input: AirInputs, seconds: number, dt = 0.05) {
 
 const amount = (s: Ship) => s.rooms.reduce((n, r) => n + r.o2 * volume(r), 0);
 
-/** What the passive hull leak leaves of a room's air after `t` seconds. */
-const kept = (t: number) => Math.exp((-HULL_LEAK / 100) * t);
+/** A room's air after `t` seconds of only the hull leak, which pulls toward space's SPACE_O2. */
+const leak = (o2: number, t: number) => SPACE_O2 + (o2 - SPACE_O2) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * t);
+/** A room's air after `t` seconds through an opening of size `c` to space (air.ts vent). */
+const vented = (o2: number, c: number, v: number, t: number) =>
+  SPACE_O2 + (o2 - SPACE_O2) * Math.exp((-c * t * 100) / ((100 - SPACE_O2) * v));
 
 describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
   it("a full room pushes 16 tile-%/s into an empty one through an open door, and less as they converge", () => {
@@ -55,14 +60,14 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const s = ship([a, b], [door("a", "b")]);
     stepAir(s, off(), 0.001);
     // 16 tile-%/s for 1 ms over 2 tiles is 0.008% each way.
-    assert.ok(Math.abs(100 * kept(0.001) - a.o2 - 0.008) < 1e-4, `${a.o2}`);
-    assert.ok(Math.abs(b.o2 - 0.008) < 1e-4, `${b.o2}`);
+    assert.ok(Math.abs(leak(100, 0.001) - a.o2 - 0.008) < 1e-4, `${a.o2}`);
+    assert.ok(Math.abs(b.o2 - (leak(0, 0.001) + 0.008)) < 1e-4, `${b.o2}`);
     assert.equal(OPEN_DOOR_C * 100, 16);
     // Against a half-full neighbour the push is half as strong.
     const c = room("c", 2, 1, 100);
     const d = room("d", 2, 1, 50);
     stepAir(ship([c, d], [door("c", "d")]), off(), 0.001);
-    assert.ok(Math.abs(100 * kept(0.001) - c.o2 - 0.004) < 1e-4, `${c.o2}`);
+    assert.ok(Math.abs(leak(100, 0.001) - c.o2 - 0.004) < 1e-4, `${c.o2}`);
   });
 
   it("sealed rooms even out to their volume-weighted average and lose only the hull leak", () => {
@@ -71,8 +76,10 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const s = ship([big, small], [door("big", "small")]);
     const before = amount(s);
     run(s, off(), 60);
-    assert.ok(Math.abs(amount(s) - before * kept(60)) < 1e-6);
-    const even = 80 * kept(60);
+    // Doors move air without losing any; the leak is the same affine pull on every room.
+    const tiles = s.rooms.reduce((n, r) => n + volume(r), 0);
+    assert.ok(Math.abs(amount(s) - (SPACE_O2 * tiles + (before - SPACE_O2 * tiles) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * 60))) < 1e-6);
+    const even = leak(80, 60);
     assert.ok(Math.abs(big.o2 - even) < 0.1 && Math.abs(small.o2 - even) < 0.1, `${big.o2} ${small.o2}`);
   });
 
@@ -84,9 +91,9 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     stepAir(ship([small], []), off(), 1);
     stepAir(ship([big], []), off(), 1);
     // A 2-tile room loses about 8%/s when full; a 4-tile room about half that.
-    assert.ok(Math.abs(small.o2 - 100 * kept(1) * Math.exp(-BREACH_C / 2)) < 1e-9);
-    assert.ok(Math.abs(big.o2 - 100 * kept(1) * Math.exp(-BREACH_C / 4)) < 1e-9);
-    assert.ok(100 - small.o2 > 7.5 && 100 - small.o2 < 8);
+    assert.ok(Math.abs(small.o2 - vented(leak(100, 1), BREACH_C, 2, 1)) < 1e-9);
+    assert.ok(Math.abs(big.o2 - vented(leak(100, 1), BREACH_C, 4, 1)) < 1e-9);
+    assert.ok(100 - small.o2 > 7.5 && 100 - small.o2 < 8.3, `${small.o2}`);
     assert.ok(big.o2 > small.o2);
   });
 
@@ -152,7 +159,7 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
   it("a closed airlock seals; closed interior doors seep less at each Door System level", () => {
     const lock = room("lock", 2, 1);
     stepAir(ship([lock], [door("lock", "void", false)]), off(), 10);
-    assert.ok(Math.abs(lock.o2 - 100 * kept(10)) < 1e-9);
+    assert.ok(Math.abs(lock.o2 - leak(100, 10)) < 1e-9);
     const seep = (level: number) => {
       const a = room("a", 2, 1, 100);
       const b = room("b", 2, 1, 0);
@@ -169,12 +176,12 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const small = room("small", 1, 1, 50);
     const big = room("big", 2, 2, 50);
     stepAir(ship([small, big], []), off({ breathers: new Map([["small", 2], ["big", 2]]) }), 1);
-    assert.ok(Math.abs(small.o2 - (50 - 2 * BREATH_PER_CREW) * kept(1)) < 1e-9);
-    assert.ok(Math.abs(big.o2 - (50 - (2 * BREATH_PER_CREW) / 4) * kept(1)) < 1e-9);
+    assert.ok(Math.abs(small.o2 - leak(50 - 2 * BREATH_PER_CREW, 1)) < 1e-9);
+    assert.ok(Math.abs(big.o2 - leak(50 - (2 * BREATH_PER_CREW) / 4, 1)) < 1e-9);
     // A sealed, unpowered room with nobody in it loses only the hull leak.
     const empty = room("empty", 2, 1, 70);
     stepAir(ship([empty], []), off(), 10);
-    assert.ok(Math.abs(empty.o2 - 70 * kept(10)) < 1e-9);
+    assert.ok(Math.abs(empty.o2 - leak(70, 10)) < 1e-9);
   });
 
   it("Oxygen refills every room by the same %, 1.8/4.8/8.4 per second by level, and fire burns a fixed amount", () => {
@@ -182,14 +189,14 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
       const a = room("a", 1, 1, 50);
       const b = room("b", 2, 2, 50);
       stepAir(ship([a, b], []), off({ o2Bars: bars }), 1);
-      const want = (50 + rate) * kept(1);
+      const want = leak(50 + rate, 1);
       assert.ok(Math.abs(a.o2 - want) < 1e-9 && Math.abs(b.o2 - want) < 1e-9, `${bars}`);
     }
     assert.equal(REFILL, 1.2);
     const lit = room("lit", 2, 1, 50);
     lit.fire = 1;
     stepAir(ship([lit], []), off(), 1);
-    assert.ok(Math.abs(lit.o2 - (50 - FIRE_BURN / 2) * kept(1)) < 1e-9);
+    assert.ok(Math.abs(lit.o2 - leak(50 - FIRE_BURN / 2, 1)) < 1e-9);
   });
 
   it("crew breathe half the base refill and every room leaks a quarter of it", () => {
@@ -199,10 +206,10 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const idle = room("idle", 2, 2, 100);
     stepAir(ship([idle], []), off(), 1);
     assert.ok(Math.abs(100 - idle.o2 - 0.3) < 0.001, `${idle.o2}`);
-    // Level 1 gains on one crew member in a 1-tile room: 1.8 - 0.6 - about 0.16 (the leak near half air).
+    // Level 1 gains on one crew member in a 1-tile room: 1.8 - 0.6 - about 0.2 (the leak near half air).
     const cell = room("cell", 1, 1, 50);
     run(ship([cell], []), off({ o2Bars: 1, breathers: new Map([["cell", 1]]) }), 10);
-    assert.ok(cell.o2 > 60 && cell.o2 < 61, `${cell.o2}`);
+    assert.ok(cell.o2 > 59.5 && cell.o2 < 61, `${cell.o2}`);
     // Unpowered, that room thins.
     const dark = room("dark", 1, 1, 50);
     run(ship([dark], []), off({ breathers: new Map([["dark", 1]]) }), 10);
@@ -224,15 +231,43 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     const one = room("one", 2, 1);
     const two = room("two", 2, 1);
     stepAir(ship([one, two], []), off({ lanius: new Map([["one", 1], ["two", 2]]) }), 1);
-    assert.ok(Math.abs(one.o2 - 100 * kept(1) * Math.exp(-BREACH_C / 2)) < 1e-9);
-    assert.ok(Math.abs(two.o2 - 100 * kept(1) * Math.exp((-2 * BREACH_C) / 2)) < 1e-9);
+    assert.ok(Math.abs(one.o2 - vented(leak(100, 1), BREACH_C, 2, 1)) < 1e-9);
+    assert.ok(Math.abs(two.o2 - vented(leak(100, 1), 2 * BREACH_C, 2, 1)) < 1e-9);
   });
 
-  it("stays within 0-100 and is stable at any tick length", () => {
+  it("stays within -50 to 100 and is stable at any tick length", () => {
     const lock = room("lock", 1, 1);
     const next = room("next", 2, 2, 30);
     const s = ship([lock, next], [door("lock", "void"), door("lock", "next")]);
     stepAir(s, off({ o2Bars: 3 }), 5);
-    for (const r of s.rooms) assert.ok(r.o2 >= 0 && r.o2 <= 100, `${r.id} ${r.o2}`);
+    stepAir(s, off(), 500);
+    for (const r of s.rooms) assert.ok(r.o2 >= SPACE_O2 && r.o2 <= 100, `${r.id} ${r.o2}`);
+  });
+
+  it("space pulls an open room below 0% toward -50%, and only space does", () => {
+    // Per the user: a vented room keeps dropping past 0%, never past -50%.
+    const lock = room("lock", 2, 1);
+    const s = ship([lock], [door("lock", "void")]);
+    run(s, off(), 1);
+    assert.ok(lock.o2 < 0, `${lock.o2}`);
+    run(s, off(), 30);
+    assert.ok(lock.o2 >= SPACE_O2 && lock.o2 < SPACE_O2 + 1, `${lock.o2}`);
+    // Breathing and fire stop at 0%: below that, a crowded burning sealed room follows only the slow hull leak.
+    const sealed = room("sealed", 1, 1, 5);
+    sealed.fire = 1;
+    run(ship([sealed], []), off({ breathers: new Map([["sealed", 4]]) }), 20);
+    assert.ok(sealed.o2 < 0.01 && sealed.o2 >= leak(0, 20) - 1e-9, `${sealed.o2}`);
+    assert.equal(airShown(-30), 0);
+    assert.equal(airShown(42), 42);
+  });
+
+  it("a deeper deficit takes longer to refill", () => {
+    const refillFrom = (o2: number) => {
+      const r = room("r", 2, 1, o2);
+      let t = 0;
+      for (; r.o2 < 50 && t < 200; t += 0.05) stepAir(ship([r], []), off({ o2Bars: 1 }), 0.05);
+      return t;
+    };
+    assert.ok(refillFrom(-40) > refillFrom(0) + 15, `${refillFrom(-40)} vs ${refillFrom(0)}`);
   });
 });

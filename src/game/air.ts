@@ -4,7 +4,7 @@
  *
  * Every room holds an amount of air. Its volume is its floor tiles, and its pressure is amount / volume: the 0-100%
  * the sim stores in `room.o2` and crew breathe. Every opening moves air in proportion to the pressure difference across
- * it, flow = C * (p_from - p_to), in tile-% per second. Space is pressure 0 with no volume limit. So:
+ * it, flow = C * (p_from - p_to), in tile-% per second. Space is pressure -50 (SPACE_O2) with no volume limit. So:
  * - a bigger room holds more air and its % changes more slowly for the same flow;
  * - a full room next to an empty one pushes 16 tile-%/s through an open door (C = 0.16), less as they converge;
  * - sealed rooms joined by open doors settle at their volume-weighted average, with no air lost;
@@ -23,6 +23,18 @@
  * conserved between rooms. Pure: no sim import.
  */
 import type { Room, Ship } from "./types.ts";
+
+/**
+ * The pressure of space, in room-oxygen %. Per the user: rooms open to space keep losing air below 0% toward -50%, so
+ * the longer a room is vented, the deeper the deficit and the longer it takes to refill, and a room below 0% pulls
+ * harder on the rooms open to it. Breathing and fire stop at 0%. The screen still shows 0% at the bottom (airShown).
+ */
+export const SPACE_O2 = -50;
+
+/** A room's air as the player sees it: 0-100%, the deficit below 0% hidden. */
+export function airShown(o2: number): number {
+  return Math.max(0, Math.min(100, o2));
+}
 
 /** Open interior door: 16 tile-%/s from a full room into an empty one. */
 export const OPEN_DOOR_C = 0.16;
@@ -91,8 +103,12 @@ function exchange(a: Room, b: Room, c: number, dt: number) {
 
 /** Air leaves a room to space, exactly over dt. */
 function vent(r: Room, c: number, dt: number) {
-  r.o2 *= Math.exp((-c * dt) / volume(r));
+  // Scaled by 100 / (100 - SPACE_O2) so a full room still loses c/volume of 100% a second, as calibrated against a
+  // pressure-0 space (a breach: 8%/s from a full 2-tile room, which Oxygen-3 holds and Oxygen-2 does not).
+  r.o2 = SPACE_O2 + (r.o2 - SPACE_O2) * Math.exp((-c * dt * VENT_SCALE) / volume(r));
 }
+
+const VENT_SCALE = 100 / (100 - SPACE_O2);
 
 /**
  * A room's own opening to space, as a share of an open airlock: 1 with an airlock open, else BREACH_C / AIRLOCK_C per
@@ -156,10 +172,12 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
   for (const r of ship.rooms) {
     const v = volume(r);
     r.o2 += refill * dt;
-    r.o2 -= ((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW * dt) / v;
-    r.o2 -= (r.fire * FIRE_BURN * dt) / v;
-    r.o2 *= Math.exp((-HULL_LEAK / 100) * dt);
-    r.o2 = Math.max(0, Math.min(100, r.o2));
+    // Breathing and fire use air that is there: they stop at 0%. Only space drives a room below that.
+    const used = (((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW + r.fire * FIRE_BURN) * dt) / v;
+    if (r.o2 > 0) r.o2 = Math.max(0, r.o2 - used);
+    // The hull leak pulls toward space's -50%, scaled so a full room still loses HULL_LEAK %/s.
+    r.o2 = SPACE_O2 + (r.o2 - SPACE_O2) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * dt);
+    r.o2 = Math.max(SPACE_O2, Math.min(100, r.o2));
   }
   const byId = new Map(ship.rooms.map((r) => [r.id, r]));
   const closed = CLOSED_DOOR_C[Math.min(4, Math.max(0, Math.floor(input.doorLevel)))];
@@ -181,6 +199,6 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
   for (const r of ship.rooms) {
     const holes = r.breach + (input.lanius.get(r.id) ?? 0);
     if (holes > 0) vent(r, BREACH_C * holes, dt);
-    r.o2 = Math.max(0, Math.min(100, r.o2));
+    r.o2 = Math.max(SPACE_O2, Math.min(100, r.o2));
   }
 }

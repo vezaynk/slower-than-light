@@ -13,6 +13,7 @@ import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
+import { airShown } from "@/game/air";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
 export type AimMark = { room: string; slot: number; state: "charging" | "ready" | "auto" };
@@ -484,7 +485,7 @@ export function ShipView({
             style={{
               gridColumn: `${room.x + 1} / span ${room.w}`,
               gridRow: `${room.y + 1} / span ${room.h}`,
-              ["--air" as string]: room.o2,
+              ["--air" as string]: airShown(room.o2),
             }}
           >
             {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
@@ -541,7 +542,7 @@ export function ShipView({
               ) : null}
               {open ? (
                 <div className="o2" aria-hidden="true">
-                  <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${room.o2}%` }} />
+                  <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${airShown(room.o2)}%` }} />
                 </div>
               ) : null}
             </div>

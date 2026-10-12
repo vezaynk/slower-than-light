@@ -3,6 +3,7 @@
  * the run already stored. Each mark is the printed condition. Nothing here grants a reward.
  */
 import type { AchieveTally, Game } from "../types.ts";
+import { airShown } from "../air.ts";
 
 const LIFE_KEY = "stl-achieve-life-v1";
 const contributed = new WeakMap<Game, { scrap: number; kills: number }>();
@@ -98,7 +99,7 @@ function observe(g: Game) {
   const t = box(g);
   // Ship Achievements, Lanius: net oxygen, the same mean the asphyxiation line uses.
   if ((g.jumps ?? 0) > 0 && g.player.rooms.length > 0) {
-    const net = g.player.rooms.reduce((sum, r) => sum + r.o2, 0) / g.player.rooms.length;
+    const net = g.player.rooms.reduce((sum, r) => sum + airShown(r.o2), 0) / g.player.rooms.length;
     if (net > 20) t.o2Broke = true;
   }
   // Ship Achievements, Stealth: "get to sector 8 without jumping to a beacon with an environmental danger."
@@ -107,7 +108,7 @@ function observe(g: Game) {
   if (!enemy) return;
   if (enemy.rooms.length > 0 && enemy.rooms.every((r) => r.fire >= 1)) t.burnedAll = true;
   if (!enemy.automated && enemy.rooms.length > 0) {
-    const net = enemy.rooms.reduce((sum, r) => sum + r.o2, 0) / enemy.rooms.length;
+    const net = enemy.rooms.reduce((sum, r) => sum + airShown(r.o2), 0) / enemy.rooms.length;
     if (net < 5) t.asphyxia = true;
   }
   const ioned = Object.values(enemy.systems).filter((sys) => sys.ion.length > 0).length;

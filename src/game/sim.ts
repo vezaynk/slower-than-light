@@ -69,7 +69,7 @@ import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import { kinOf, type KinId } from "./extras/kin.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
-import { stepAir } from "./air.ts";
+import { SPACE_O2, stepAir } from "./air.ts";
 import {
   connectGrid,
   overtaken,
@@ -3445,7 +3445,7 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   }
   stepAir(ship, { o2Bars: o2, doorLevel: doorLevel(g, ship, aboard), breathers, lanius }, dt);
   for (const r of ship.rooms) {
-    r.o2 = Math.max(0, Math.min(100, r.o2));
+    r.o2 = Math.max(SPACE_O2, Math.min(100, r.o2));
     starveFire(g, ship, r, dt);
   }
 }

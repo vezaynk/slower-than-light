@@ -21,6 +21,7 @@ import { OVERCHARGER, OVERCHARGER_PLUS } from "../wiki/cited-overcharger.ts";
 import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 import { flagshipDronePower } from "../wiki/flagship-systems.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { airShown } from "../air.ts";
 
 /**
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
@@ -866,7 +867,7 @@ const PATCH_AIR = 25;
 function shipAir(ship: Ship): number {
   if (ship.rooms.length === 0) return 100;
   let sum = 0;
-  for (const room of ship.rooms) sum += room.o2;
+  for (const room of ship.rooms) sum += airShown(room.o2);
   return sum / ship.rooms.length;
 }
 

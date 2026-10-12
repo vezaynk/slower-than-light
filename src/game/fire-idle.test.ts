@@ -389,22 +389,24 @@ function seconds(g: Game, n: number) {
 }
 
 describe("Oxygen versus one breach", () => {
-  it("Oxygen-3 refills a shut breached room, and Oxygen-2 does not", () => {
+  it("Oxygen-3 holds a shut breached room, and Oxygen-2 does not", () => {
     const run = (bars: number) => {
       const g = ventFight(15);
       powerOxygen(g, bars);
       holdCrew(g, "p-pilot");
-      const room = g.player.rooms.find((r) => r.id === "p-doors")!;
-      room.o2 = 50;
+      // A 2-tile room, as air.ts calibrates the breach. A 1-tile room at half air now drains faster than Oxygen-3
+      // refills it, since a breach pulls toward space's -50% (air.ts SPACE_O2).
+      const room = g.player.rooms.find((r) => r.id === "p-shields")!;
+      room.o2 = 100;
       room.breach = 1;
-      seconds(g, 1);
+      seconds(g, 5);
       return room.o2;
     };
     const ox3 = run(3);
     const ox2 = run(2);
-    // 8.4 − 7.2 = +1.2%/s. 4.8 − 7.2 = −2.4%/s.
-    assert.ok(ox3 > 50, `${ox3}`);
-    assert.ok(ox2 < 50, `${ox2}`);
+    // From full, a breach takes 8%/s from a 2-tile room: 8.4 in holds it, 4.8 in loses about 3.5%/s.
+    assert.ok(ox3 > 99, `${ox3}`);
+    assert.ok(ox2 < 90, `${ox2}`);
   });
 
   it("an open door to a full room slows the Oxygen-2 drop", () => {

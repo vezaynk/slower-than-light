@@ -35,6 +35,7 @@
  */
 import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
+import { airShown } from "../air.ts";
 
 /** combat-ai, PrioritizeSystem: chance an Easy / Normal shot picks from system_targets. */
 export const SYSTEM_CHANCE = { easy: 0.2, normal: 0.33 } as const;
@@ -96,7 +97,7 @@ function intruders(g: Game): boolean {
 /** combat-ai: "average oxygen". INFERRED: a plain mean over rooms (not weighted by size); a hull with no rooms reads full. */
 function averageOxygen(ship: Ship): number {
   if (ship.rooms.length === 0) return 100;
-  return ship.rooms.reduce((n, r) => n + r.o2, 0) / ship.rooms.length;
+  return ship.rooms.reduce((n, r) => n + airShown(r.o2), 0) / ship.rooms.length;
 }
 
 /**

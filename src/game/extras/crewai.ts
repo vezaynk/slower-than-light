@@ -48,6 +48,7 @@ import { hackPulseOn } from "./spike.ts";
 import { kinOf } from "./kin.ts";
 import { sideOf } from "./leash.ts";
 import { artilleryGun } from "../wiki/flagship-systems.ts";
+import { airShown } from "../air.ts";
 
 /** INFERRED: the AI re-plans twice a second. The wiki gives no think rate. */
 export const PLAN_S = 0.5;
@@ -234,7 +235,7 @@ function roomSystem(ship: Ship, r: Room | undefined): System | undefined {
 
 /** INFERRED: "oxygen is below 25%" is the ship's average room oxygen. The notes do not say which oxygen. */
 function shipOxygen(ship: Ship): number {
-  return ship.rooms.length ? ship.rooms.reduce((n, r) => n + r.o2, 0) / ship.rooms.length : 100;
+  return ship.rooms.length ? ship.rooms.reduce((n, r) => n + airShown(r.o2), 0) / ship.rooms.length : 100;
 }
 
 /**

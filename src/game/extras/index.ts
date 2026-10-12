@@ -91,6 +91,12 @@ export function onPlayerJump(g: Game) {
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   onCradleJump(g);
+  // Per the user: weapons start at zero after a jump; the Weapon Pre-Igniter then primes the powered ones.
+  for (const w of g.player.weapons) {
+    w.charge = 0;
+    if (w.loaded) w.loaded = 0;
+    if (w.chain) w.chain = 0;
+  }
   primeWeapons(g);
   // Augmentations, Drone Recovery Arm: defense drones, including a Hull Repair drone still out after 2 repairs,
   // give a part back on this jump. A combat drone does too only once the fight is over. Boarding, ion, crew, and

@@ -338,6 +338,20 @@ export function ShipView({
     }
     return stands.get(c.id);
   };
+  /**
+   * Per the user: a crew member busy repairing is not manning. The sim already refuses manning in a room with a
+   * damaged system, a fire or a breach (manning); those are the rooms where idle crew repair (life). This mirrors it
+   * for the picture: the terminal stays dark and the crew member shows the repair loop, not the console pose.
+   */
+  const roomBusy = (roomId: string) => {
+    const r = ship.rooms.find((x) => x.id === roomId);
+    if (!r) return false;
+    const sys = r.system ? ship.systems[r.system] : undefined;
+    const kit = r.kit ? ship.kits[r.kit] : undefined;
+    return r.fire > 0 || r.breach > 0 || (sys?.damage ?? 0) > 0 || (kit?.damage ?? 0) > 0;
+  };
+  const repairing = (c: Crew) =>
+    c.path.length === 0 && (c.stun ?? 0) <= 0 && stationSide(c) === aboard && roomBusy(c.room);
   /** The pose and frame a crew sprite draws with. The room radial menu shows the same, so fighting and manning read there. */
   const lookOf = (
     c: Crew,
@@ -348,15 +362,25 @@ export function ShipView({
     // An in-room walk to a new tile (settleTiles) uses the walking frames too.
     // Fighting comes first: a crew member caught mid-shuffle by an intruder fights where they stand.
     const shuffling = !step && !!c.shift && (c.stun ?? 0) <= 0 && !fighting.has(c.id);
+    const fixing = !step && !shuffling && !fighting.has(c.id) && repairing(c);
     const pose: CrewPose =
-      step || shuffling ? "walk" : fighting.has(c.id) ? "fight" : atConsole(ship, c, spot) ? "work" : "idle";
+      step || shuffling
+        ? "walk"
+        : fighting.has(c.id) || fixing
+          ? "fight"
+          : atConsole(ship, c, spot)
+            ? "work"
+            : "idle";
+    // INVENTED: repairs borrow the fight frames as a hammering loop on the wall clock (the sim keeps no repair swing).
     const frame = step
       ? Math.floor(paint!.t * paint!.steps * 4) % 4
       : shuffling
         ? Math.floor((c.shift?.t ?? 0) * 4) % 4
-        : pose === "fight"
-          ? Math.floor(((c.swing ?? 0) % 1) * 4) % 4
-          : 0;
+        : fixing
+          ? Math.floor(performance.now() / 140) % 4
+          : pose === "fight"
+            ? Math.floor(((c.swing ?? 0) % 1) * 4) % 4
+            : 0;
     return { step, pose, frame, cycle: pose === "idle" || pose === "work" };
   };
   const hullRef = useRef<HTMLDivElement>(null);
@@ -601,7 +625,7 @@ export function ShipView({
                   const cell = consoleSpot(room, ship);
                   if (!cell || !room.system) return null;
                   // Seated and working: on the terminal tile, not still walking onto it, and not fighting an intruder.
-                  const manned = here.some((c) => {
+                  const manned = !roomBusy(room.id) && here.some((c) => {
                     if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard) return false;
                     if (c.shift || fighting.has(c.id)) return false;
                     const spot = stands.get(c.id);

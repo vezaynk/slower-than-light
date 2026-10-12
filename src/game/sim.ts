@@ -2110,11 +2110,18 @@ function drainOffline(w: WeaponInst, dt: number) {
   if (w.charge < 1e-9) w.charge = 0;
 }
 
-/** Out of a fight the guns do not charge, but an unpowered one still drains (Weapon Depower Delay, above). */
-function drainIdleWeapons(g: Game, dt: number) {
-  const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
+/**
+ * Per the user: weapons charge out of a fight as in one (and an unpowered one drains, Weapon Depower Delay above); they
+ * start at zero after a jump unless the Weapon Pre-Igniter primes them (onPlayerJump; Augmentations, Weapon
+ * Pre-Igniter: "Weapons are made immediately available after an FTL jump"). With no ship to shoot, nothing fires: the
+ * aim is held aside for the tick, so a gun fills its bar and holds one finished shot (chargeSide's no-target rule).
+ */
+function chargeIdleWeapons(g: Game, dt: number) {
+  const aims = g.player.weapons.map((w) => w.target);
+  for (const w of g.player.weapons) w.target = null;
+  chargeSide(g, g.player, "player", dt);
   g.player.weapons.forEach((w, i) => {
-    if (!mask[i]) drainOffline(w, dt);
+    w.target = aims[i] ?? null;
   });
 }
 
@@ -4989,8 +4996,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   clearEnemyLeash(g);
   g.crew.push(...built.crew);
   g.wreck = null;
+  // Per the user: the charge built since the jump carries into the fight (it was reset on the jump, onPlayerJump).
   for (const w of g.player.weapons) {
-    w.charge = 0;
     w.target = null;
     w.beamLine = null;
   }
@@ -6630,7 +6637,7 @@ function playerShipTick(g: Game, h: number) {
   tickExtras(g, h);
   swapZoltanCooldown(g);
   meltCoats(g);
-  drainIdleWeapons(g, h);
+  chargeIdleWeapons(g, h);
 }
 
 export function step(g: Game, dt: number) {

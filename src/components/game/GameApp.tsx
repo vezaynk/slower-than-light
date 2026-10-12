@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { resumeAudio, setMuted, unlockAudio } from "@/game/audio";
+import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
+import { OptionsPanel } from "./OptionsPanel";
 import {
   SECTOR_NAMES,
   SYS_LABEL,
@@ -124,7 +126,7 @@ import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
-import { AchievementsScreen, ControlsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
+import { AchievementsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
 import { airShown } from "@/game/air";
 
 const SYS_ORDER: SysId[] = [
@@ -342,10 +344,16 @@ export function GameApp() {
   const version = useGame((s) => s.version);
   const game = useGame.getState().game;
   void version;
-  const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    // Options, Sound: the saved mute and volume drive the mixer, now and on every change.
+    const applySound = () => {
+      const s = useSettings.getState();
+      setMuted(s.muted);
+      setVolume(s.volume);
+    };
+    applySound();
+    const stopSound = useSettings.subscribe(applySound);
     const onVis = () => {
       if (document.visibilityState === "visible") resumeAudio();
     };
@@ -360,10 +368,7 @@ export function GameApp() {
       }
       if (e.code === "KeyM" && plain) {
         e.preventDefault();
-        act((g) => {
-          g.muted = !g.muted;
-          setMuted(g.muted);
-        });
+        setSetting("muted", !useSettings.getState().muted);
         return;
       }
       // Configure controls: U opens Upgrades. I opens Inventory. Both work while that menu is already open.
@@ -516,12 +521,16 @@ export function GameApp() {
       cancelAnimationFrame(raf);
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("visibilitychange", onVis);
+      stopSound();
     };
   }, []);
 
+  // Options, Graphics: screen shake (off by default under reduced motion, settings.ts).
+  const shakeOn = useSettings((st) => st.shake);
+
   return (
     <Screen>
-      <GameShell game={game} shake={reduced ? 0 : game.trauma * game.trauma} />
+      <GameShell game={game} shake={shakeOn ? game.trauma * game.trauma : 0} />
     </Screen>
   );
 }
@@ -529,13 +538,36 @@ export function GameApp() {
 function GameShell({ game, shake }: { game: Game; shake: number }) {
   const manual = game.manual ? <Manual onClose={() => act((g) => { g.manual = false; })} /> : null;
   const sheet = game.shipSheet ? <ShipSheet game={game} /> : null;
+  // Options, Graphics: walk targets and room oxygen bars switch off by a class on the root.
+  const ghosts = useSettings((s) => s.ghosts);
+  const roomAir = useSettings((s) => s.roomAir);
+  const looks = `${ghosts ? "" : " no-ghosts"}${roomAir ? "" : " no-room-air"}`;
+  const optionsOpen = useOptionsOpen((s) => s.open) && game.phase !== "title";
   return (
-    <div className={game.phase === "title" ? "deck" : `deck play-root${game.paused ? " is-paused" : ""}`}>
+    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.paused ? " is-paused" : ""}${looks}`}>
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}
+      {optionsOpen ? <InGameOptions /> : null}
     </div>
   );
+}
+
+/**
+ * Per the user: the wrench opens Options in a run. The clock holds while it is open (Game.menuHold, the radial menu's
+ * hold), apart from the player's pause.
+ */
+function InGameOptions() {
+  useEffect(() => {
+    act((g) => {
+      g.menuHold = true;
+    });
+    return () =>
+      act((g) => {
+        g.menuHold = false;
+      });
+  }, []);
+  return <OptionsPanel onClose={() => useOptionsOpen.setState({ open: false })} />;
 }
 
 const MAIN_BARS: SysId[] = ["shields", "engines", "medbay", "oxygen", "weapons"];
@@ -813,16 +845,8 @@ function Hud({ game }: { game: Game }) {
         >
           <PixelIcon name="ship" size={20} />
         </button>
-        <button
-          type="button"
-          className="frame-btn"
-          aria-label="Upgrades"
-          title={infoLocked ? "In danger" : undefined}
-          disabled={infoLocked}
-          onClick={() =>
-            act((g) => openShipMenu(g, "upgrades"))
-          }
-        >
+        {/* Per the user: the wrench opens Options (graphics, sound, keyboard). Upgrades stay in the ship menu (U). */}
+        <button type="button" className="frame-btn" aria-label="Options" title="Options" onClick={() => useOptionsOpen.setState({ open: true })}>
           <PixelIcon name="upgrade" size={20} />
         </button>
       </div>
@@ -2350,7 +2374,7 @@ function TitleScreen() {
         ))}
         {view === "credits" ? <TitlePanel onClose={() => setView(null)} /> : null}
         {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
-        {view === "options" ? <ControlsScreen onClose={() => setView(null)} /> : null}
+        {view === "options" ? <OptionsPanel onClose={() => setView(null)} /> : null}
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
       </div>
     </section>

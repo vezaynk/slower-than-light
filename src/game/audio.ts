@@ -2,12 +2,21 @@
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let muted = false;
+/** Per the user: the Options screen's master volume, 0 to 1, on top of the INVENTED 0.35 mix level. */
+let volume = 1;
+
+function level() {
+  return muted ? 0 : 0.35 * volume;
+}
 
 export function setMuted(next: boolean) {
   muted = next;
-  if (master && ctx) {
-    master.gain.setTargetAtTime(next ? 0 : 0.35, ctx.currentTime, 0.02);
-  }
+  if (master && ctx) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.02);
+}
+
+export function setVolume(next: number) {
+  volume = Math.max(0, Math.min(1, next));
+  if (master && ctx) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.02);
 }
 
 export function unlockAudio() {
@@ -18,7 +27,7 @@ export function unlockAudio() {
   if (!ctx) {
     ctx = new AC({ latencyHint: "interactive" });
     master = ctx.createGain();
-    master.gain.value = muted ? 0 : 0.35;
+    master.gain.value = level();
     master.connect(ctx.destination);
   }
   if (ctx.state === "suspended") void ctx.resume();

@@ -4502,26 +4502,33 @@ button.door-tick::before {
   transition: transform 0.12s ease;
 }
 
-.map-beacon.is-linked:not(:disabled)::before {
-  background: var(--color-ok);
-  box-shadow: 0 0 0 4px rgba(62, 229, 106, 0.3);
+/* Map colours, highest first (user priority): Fleet > Visited > Jump. Nebula (not in that list, INFERRED) sits
+   between Visited and Jump as before. Every fill rule has the same specificity, so source order is the priority;
+   the halo follows the winning fill so a jumpable beacon still reads as jumpable. */
+.map-beacon:where(.is-linked:not(:disabled))::before {
+  --beacon-fill: var(--color-ok);
+  background: var(--beacon-fill);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--beacon-fill) 30%, transparent);
 }
 
-.map-beacon.is-linked:not(:disabled):hover::before,
-.map-beacon.is-linked:not(:disabled):focus-visible::before {
+.map-beacon:where(.is-linked:not(:disabled)):hover::before,
+.map-beacon:where(.is-linked:not(:disabled)):focus-visible::before {
   transform: translate(-50%, -50%) rotate(45deg) scale(1.35);
 }
 
-.map-beacon.is-visited::before {
-  background: var(--color-line-dim);
+.map-beacon.is-nebula::before {
+  --beacon-fill: #9b6dff;
+  background: var(--beacon-fill);
 }
 
-.map-beacon.is-nebula:not(.is-over)::before {
-  background: #9b6dff;
+.map-beacon.is-visited::before {
+  --beacon-fill: var(--color-line-dim);
+  background: var(--beacon-fill);
 }
 
 .map-beacon.is-over::before {
-  background: var(--color-danger);
+  --beacon-fill: var(--color-danger);
+  background: var(--beacon-fill);
 }
 
 .beacon-tag {

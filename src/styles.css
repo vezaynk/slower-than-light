@@ -3295,9 +3295,20 @@ button.door-tick::before {
   height: auto;
 }
 
+/* WAIT, with the distress beacon toggle under it (per the user; both only with no fuel). */
 .map-wait {
   position: absolute;
   z-index: 4;
+  top: 42%;
+  right: 0;
+  transform: translate(40%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.map-wait > button {
   font-family: var(--font-hud);
   letter-spacing: 0.08em;
   border: 2px solid var(--color-line);
@@ -3305,13 +3316,19 @@ button.door-tick::before {
   color: var(--color-fg);
 }
 
-.map-wait {
-  top: 42%;
-  right: 0;
-  transform: translate(40%, -50%);
-  padding: 8px 12px;
-  font-size: 22px;
+.map-wait-btn { padding: 8px 12px; font-size: 22px; }
+
+.map-distress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 1.1;
 }
+.map-distress b { font-weight: 400; font-size: 18px; color: var(--color-muted); }
+.map-distress.is-on { border-color: var(--color-danger); }
+.map-distress.is-on b { color: var(--color-danger); }
 
 .beacon-map.sector-map .beacon {
   width: 11px;

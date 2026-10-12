@@ -2958,10 +2958,30 @@ function MapScreen({ game }: { game: Game }) {
           })
         }
       />
-      {game.phase === "map" ? (
-        <button type="button" className="map-wait" onClick={() => act((g) => waitHere(g))}>
-          WAIT
-        </button>
+      {/* Per the user: WAIT and the distress beacon only show with no fuel left (Stores and resources, "Fuel": "If the
+          player attempts to perform an FTL Jump with no fuel remaining ... [the game] will instead offer the option to
+          Wait"; "A distress beacon can be activated before waiting"). Distress defaults to on. */}
+      {game.phase === "map" && game.fuel <= 0 ? (
+        <div className="map-wait">
+          <button type="button" className="map-wait-btn" onClick={() => act((g) => waitHere(g))}>
+            WAIT
+          </button>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={game.distress !== false}
+            className={`map-distress${game.distress !== false ? " is-on" : ""}`}
+            title="A distress beacon draws ships, hostile or friendly, while you wait."
+            onClick={() =>
+              act((g) => {
+                g.distress = g.distress === false;
+              })
+            }
+          >
+            <span>DISTRESS</span>
+            <b>{game.distress !== false ? "ON" : "OFF"}</b>
+          </button>
+        </div>
       ) : null}
       <div className="sector-board">
         <div className="sector-plot beacon-plot">

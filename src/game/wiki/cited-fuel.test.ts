@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
-import { EXTRA_EVENTS, citedFuelCandidates } from "./cited-fuel.ts";
+import { EXTRA_EVENTS, citedFuelCandidates, rollFuelWait } from "./cited-fuel.ts";
 
 function beacon(flag: string, name: string): Beacon {
   return {
@@ -127,5 +127,27 @@ describe("cited fuel candidates", () => {
     assert.ok(ev.body.length <= 240);
     // "You receive {{tooltip|medium|2-4}} [[Rewards#Fuel only|fuel]]."
     assert.deepEqual(ev.choices[0].fx, [{ k: "res", id: "fuel", sign: 1, lo: 2, hi: 4 }]);
+  });
+});
+
+describe("waiting with no fuel (per the user: distress beacon toggle)", () => {
+  it("plays the wait fail at its printed share and otherwise a page for the distress side", () => {
+    let seed = 1;
+    const roll = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (const on of [true, false]) {
+      let fails = 0;
+      const allowed = new Set(citedFuelCandidates(on).map((c) => c.flag));
+      for (let i = 0; i < 4000; i++) {
+        const pick = rollFuelWait(roll, on);
+        if ("fail" in pick) fails += 1;
+        else assert.ok(allowed.has(pick.flag), pick.flag);
+      }
+      const share = fails / 4000;
+      // No fuel: wait fail, Trivia: 16.7% with the beacon on, 36.4% with it off.
+      assert.ok(Math.abs(share - (on ? 0.167 : 0.364)) < 0.03, String(share));
+    }
   });
 });

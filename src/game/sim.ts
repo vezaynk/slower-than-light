@@ -94,6 +94,7 @@ import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
+import { rollFuelWait } from "./wiki/cited-fuel.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -6128,6 +6129,12 @@ export function choose(g: Game, id: string) {
     g.paused = false;
   };
   switch (id) {
+    // No fuel: wait fail. "Nothing happens." Back to the map, the beacon as it was.
+    case "fuel-wait-done":
+      g.event = null;
+      g.phase = "map";
+      g.paused = false;
+      break;
     case "exit-fight":
       g.pending = "exit-clear";
       g.event = null;
@@ -6481,6 +6488,22 @@ export function waitHere(g: Game) {
     return;
   }
   sfx(g, "click");
+  // Stores and resources, "Fuel": "A distress beacon can be activated before waiting. The distress beacon increases the
+  // chances of being found by a ship, either hostile or friendly". Template:Locations outoffuel=distresson/distressoff
+  // picks the page pool; wiki/cited-fuel.ts rollFuelWait picks one. Per the user: distress is on unless turned off.
+  if (g.fuel <= 0 && b) {
+    const pick = rollFuelWait(() => rand(g), g.distress !== false);
+    const event =
+      "fail" in pick
+        ? { title: "No fuel", body: pick.fail, choices: [{ id: "fuel-wait-done", label: "Continue..." }] }
+        : citedEvent(g, { ...b, flag: pick.flag, name: pick.dest });
+    if (event) {
+      g.event = event;
+      g.phase = "event";
+      g.paused = true;
+      g.picking = false;
+    }
+  }
 }
 
 export function upgrade(g: Game, id: SysId | "reactor") {

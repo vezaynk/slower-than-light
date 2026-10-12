@@ -748,9 +748,11 @@ export function here(g: Game) {
  */
 export function closeFight(g: Game) {
   clearEnemyLeash(g);
-  g.crew = g.crew.filter((c) => c.side === "player");
   // Game.wreck: the ship that surrendered (or broke off) is still there until the jump, for a teleporter recall.
   g.wreck = g.enemy && g.enemy.hull > 0 ? g.enemy : null;
+  // Per the user: that ship stays a running ship, now neutral (sim.ts truce): its crew stay aboard and keep working.
+  // INFERRED: their boarders on your ship are gone, as before.
+  g.crew = g.crew.filter((c) => c.side === "player" || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
   g.enemy = null;
   g.enemyEscape = null;
   g.enemyFlee = 0;

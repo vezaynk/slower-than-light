@@ -59,7 +59,7 @@ import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
 import { checkEnemyPower } from "./extras/ship-ai.ts";
-import { tickEnemyCrewAi } from "./extras/crewai.ts";
+import { tickEnemyCrewAi, tickNeutralCrew } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
@@ -1424,7 +1424,7 @@ export function lockdown(g: Game, crewId: string): boolean {
   const crew = g.crew.find((c) => c.id === crewId);
   if (!crew || crew.hp <= 0 || crew.kin !== "shard") return false;
   if ((crew.lockCool ?? 0) > 0) return false;
-  const ship = crew.aboard === "player" ? g.player : g.enemy;
+  const ship = crewHull(g, crew.aboard);
   if (!ship || !roomById(ship, crew.room)) return false;
   coatRoom(g, ship, crew.aboard, crew.room);
   crew.lockCool = 50;
@@ -1514,7 +1514,7 @@ function crystalInCloneBay(c: Crew, ship: Ship | null): boolean {
 function rechargeLockdown(g: Game) {
   for (const c of g.crew) {
     if (c.kin !== "shard") continue;
-    const ship = c.aboard === "player" ? g.player : g.enemy;
+    const ship = crewHull(g, c.aboard);
     if (crystalInCloneBay(c, ship)) continue;
     c.lockCool = 0;
   }
@@ -1606,6 +1606,19 @@ export function toggleVent(g: Game, roomId: string) {
 export function selectedIds(g: Game): string[] {
   const ids = g.squad ?? (g.selected ? [g.selected] : []);
   return ids.filter((id) => g.crew.some((c) => c.id === id));
+}
+
+/**
+ * The hull a crew member is standing on. "enemy" is the ship at the beacon: the one being fought, else a ship that is
+ * no longer fighting (Game.wreck, a neutral ship after a surrender or break-off).
+ */
+export function crewHull(g: Game, aboard: "player" | "enemy"): Ship | null {
+  return aboard === "player" ? g.player : (g.enemy ?? g.wreck ?? null);
+}
+
+/** Per the user: the ship alongside is neutral (no longer fighting) when only Game.wreck is set. */
+export function truce(g: Game): boolean {
+  return !g.enemy && !!g.wreck;
 }
 
 /** Drop one id from the selection. Mind control and a crew who changes sides use this. */
@@ -1715,7 +1728,7 @@ export function orderCrew(g: Game, crewId: string, dest: string): OrderResult {
   if (!c || c.side !== "player" || c.hp <= 0) return "skip";
   // Mind Control, "Overview": "you can't give them orders, rather they are under the AI control."
   if (heldByEnemy(c)) return "mind";
-  const ship = c.aboard === "player" ? g.player : g.enemy;
+  const ship = crewHull(g, c.aboard);
   const destRoom = ship ? roomById(ship, dest) : undefined;
   if (!ship || !destRoom) return "missing";
   // Crystal, "Crystal Lockdown": the coating prevents leaving, and prevents entering.
@@ -3343,7 +3356,7 @@ function moveCrew(g: Game, dt: number) {
       continue;
     }
     if (c.hp <= 0 || c.path.length === 0) continue;
-    const ship = c.aboard === "player" ? g.player : g.enemy;
+    const ship = crewHull(g, c.aboard);
     const next = c.path[0];
     if (!ship) continue;
     // Crystal, "Crystal Lockdown": nobody enters a coated room.
@@ -3423,7 +3436,8 @@ function moveCrew(g: Game, dt: number) {
   // settleTiles hands back the same Crew objects it was given.
   const tileSeconds = (c: object) => TILE_WALK_S / crewPace(g, c as Crew);
   settleTiles(g.crew, g.player, "player", dt, tileSeconds);
-  if (g.enemy) settleTiles(g.crew, g.enemy, "enemy", dt, tileSeconds);
+  const other = g.enemy ?? g.wreck;
+  if (other) settleTiles(g.crew, other, "enemy", dt, tileSeconds);
 }
 
 /**
@@ -3852,6 +3866,8 @@ export function healingIds(g: Game, ship: Ship, aboard: "player" | "enemy"): Set
 
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
+  // Per the user: a ship that is no longer fighting (truce) is neutral, so crew of both sides in one room do not fight.
+  const peace = truce(g);
   const closedSlow = doorSpreadSlow(g, ship, aboard);
   for (const r of ship.rooms) {
     const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
@@ -3879,7 +3895,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // The player copy is g.augments "gel". An enemy Slug ship has the augment by that lead sentence.
     const slugGel = aboard === "player" ? g.augments.includes("gel") : ship.faction === "slug";
     if (r.breach > 0 && slugGel) r.breachFix += 0.75 * dt;
-    if ((pals.length && (foes.length || walkingFoes.length)) || (foes.length && walkingPals.length)) {
+    if (!peace && ((pals.length && (foes.length || walkingFoes.length)) || (foes.length && walkingPals.length))) {
       // Boarding, Combat: "Every few moments, a crew will deal a random amount of damage to an enemy".
       // "an unskilled human crew deals per hit is 3 to 7 HP, an average of 5 damage per hit."
       // Template:Crew races (comparison): final_damage = skill_mult * damage_mult * mindControl_mult * damage.
@@ -3928,7 +3944,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       if (kit.fix >= REPAIR_SECONDS) {
         kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
         kit.fix = 0;
-        if (ship === g.enemy) kit.power = kit.level - kit.damage;
+        if (ship !== g.player) kit.power = kit.level - kit.damage;
         // Crew skills, Repair skill: "one point of experience for completing the repairs of one system or
         // subsystem level", "granted to the crew who performs the finishing repair animation." A partial bar grants none.
         // Helpers "are ordered to leave the room", so one crewmember receives the point.
@@ -4370,7 +4386,7 @@ function boarders(g: Game, dt: number) {
 export function leaveDeprivedAir(g: Game, c: Crew): boolean {
   if (c.hp <= 0 || (c.stun ?? 0) > 0) return false;
   if (kinOf(c.kin ?? "plain").suffocate <= 0) return false;
-  const ship = c.aboard === "player" ? g.player : g.enemy;
+  const ship = crewHull(g, c.aboard);
   if (!ship) return false;
   const here = roomById(ship, c.room);
   if (!here || here.o2 > 5 || coated(ship, c.room)) return false;
@@ -4664,9 +4680,9 @@ function winCombat(g: Game) {
   g.kills += 1;
   // Mind Control: an enemy hold ends with the fight.
   clearEnemyLeash(g);
-  g.crew = g.crew.filter((c) => c.side === "player");
-  // Game.wreck: a hull that is still in one piece (its crew died) stays alongside until the jump.
+  // Game.wreck: a hull that is still in one piece (its crew died) stays alongside until the jump, neutral (truce).
   g.wreck = foe && foe.hull > 0 ? foe : null;
+  g.crew = g.crew.filter((c) => c.side === "player" || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
   g.enemy = null;
   g.shots = [];
   // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
@@ -6652,6 +6668,25 @@ function playerShipTick(g: Game, h: number) {
   swapZoltanCooldown(g);
   meltCoats(g);
   chargeIdleWeapons(g, h);
+  neutralShipTick(g, h);
+}
+
+/**
+ * Per the user: a ship that is no longer fighting us (Game.wreck after a surrender, a crew kill or a stalemate
+ * break-off) keeps running like a ship, now neutral: its air, doors, shields, ion and fires tick, and its crew keep
+ * working (stations, repairs, fire-fighting, healing; extras/crewai.ts with the truce on). Nothing on it fights:
+ * no weapons, AI power plans, boarding or melee (life checks truce). Crew already moved in playerShipTick.
+ */
+function neutralShipTick(g: Game, h: number) {
+  const ship = g.wreck;
+  if (!ship || g.enemy) return;
+  airflow(g, ship, "enemy", h);
+  tickDoors(g, ship, h);
+  life(g, ship, "enemy", h);
+  shieldRegen(g, ship, "enemy", h);
+  tickIons(ship, h);
+  syncShields(ship, zoltanBars(g.crew, ship, "enemy", "shields"));
+  tickNeutralCrew(g, ship, h);
 }
 
 export function step(g: Game, dt: number) {

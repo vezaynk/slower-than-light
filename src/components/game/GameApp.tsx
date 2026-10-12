@@ -111,6 +111,7 @@ import {
   toggleDoor,
   togglePause,
   halted,
+  truce,
   waitHere,
   upgrade,
   weaponChargeShown,
@@ -1160,7 +1161,8 @@ function TargetPanel({
               </span>
             </span>
           </p>
-          <p>Relationship: Hostile</p>
+          {/* Per the user: a ship that is no longer fighting us (sim.ts truce) reads Neutral. */}
+          <p>Relationship: {truce(game) && enemy === game.wreck ? "Neutral" : "Hostile"}</p>
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               <span className="line-stack">

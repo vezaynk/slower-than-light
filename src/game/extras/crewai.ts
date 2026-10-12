@@ -43,7 +43,7 @@
  */
 import { interiorLinks, mayStand } from "../crew-spots.ts";
 import type { Crew, CrewAiState, CrewAiTask, Game, KitId, Room, Ship, SysId } from "../types.ts";
-import { bars, lockdown } from "../sim.ts";
+import { bars, lockdown, truce } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
 import { kinOf } from "./kin.ts";
 import { sideOf } from "./leash.ts";
@@ -166,6 +166,19 @@ export function manPriority(sys: System | undefined, hard: boolean): number {
 }
 
 /** Called once per combat tick from sim.ts step(). */
+/**
+ * Per the user: the crew of a ship that is no longer fighting (sim.ts truce) keep working on their own hull: stations,
+ * repairs, fires, breaches, healing. With the truce on, nobody aboard counts as hostile, so no one is sent to fight.
+ */
+export function tickNeutralCrew(g: Game, ship: Ship, dt: number) {
+  if (ship.automated) return;
+  const ai = (ship.crewAi ??= { t: 0, post: {}, task: {} });
+  ai.t -= dt;
+  if (ai.t > 0) return;
+  ai.t = PLAN_S;
+  planCrew(g, ship, ai);
+}
+
 export function tickEnemyCrewAi(g: Game, dt: number) {
   const ship = g.enemy;
   if (!ship || ship.automated || g.phase !== "combat") return;
@@ -445,6 +458,8 @@ export function jobsOn(g: Game, ship: Ship): Job[] {
 
 /** Hostile units in an enemy room: crew fighting for the player, plus the player's Ion Intruder drone. */
 function hostilesIn(g: Game, roomId: string): number {
+  // Per the user: a neutral ship (sim.ts truce) has no hostiles aboard.
+  if (truce(g)) return 0;
   let n = g.crew.filter((c) => c.aboard === "enemy" && c.room === roomId && c.hp > 0 && sideOf(c) === "player").length;
   const swarm = g.player.kits.swarm;
   if (swarm?.target === "ionintruder" && swarm.room === roomId) n += 1;

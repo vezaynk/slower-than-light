@@ -58,7 +58,7 @@ const SLOT = 3;
 const CREW_CAP = 8;
 
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
-const NOT_SOLD: ReadonlySet<AugmentId> = new Set(["keel", "casing"]);
+export const NOT_SOLD: ReadonlySet<AugmentId> = new Set(["keel", "casing"]);
 
 /**
  * Sectors, "Hidden Crystal Worlds", "Sector specifics": "only crystal weapons (including Lockdown Bomb)
@@ -435,7 +435,20 @@ function pairedRepair(kit: Kit): boolean {
 }
 
 function grantDrone(g: Game, item: StockItem): boolean {
-  const row = CITED_DRONES.find((entry) => entry.ref === item.ref);
+  return fieldDroneSchematic(g, item.ref);
+}
+
+/** A schematic the ship can take now: Drone Control fitted, a free schematic slot, and not one it already fields. */
+export function canFieldDrone(g: Game, ref: string): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit || !CITED_DRONES.some((entry) => entry.ref === ref)) return false;
+  const have = fieldedSchematics(kit);
+  return !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "patch");
+}
+
+/** Fits a drone schematic (a store purchase, or a loot bonus item). */
+export function fieldDroneSchematic(g: Game, ref: string): boolean {
+  const row = CITED_DRONES.find((entry) => entry.ref === ref);
   const kit = g.player.kits.swarm;
   if (!row || !kit) return false;
   const have = fieldedSchematics(kit);

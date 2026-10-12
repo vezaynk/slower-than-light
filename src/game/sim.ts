@@ -88,6 +88,8 @@ import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
+import { droneName, grantBonusAugment, rollBonusItem } from "./wiki/bonus-item.ts";
+import { fieldDroneSchematic } from "./wiki/cited-stores.ts";
 import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
@@ -4727,8 +4729,7 @@ function winCombat(g: Game) {
   // Template:Resources rewards, Low: fuel 1–3, missiles 1–2, drone parts 1.
   // INFERRED: each draw is uniform across the three, and the same resource may be drawn twice.
   // Rewards, "Standard": "roughly a 3% chance to include a bonus weapon, augmentation, or drone schematic."
-  // The roll uses that printed 3 percent. The page does not split the three, so a hit mounts a weapon (INFERRED).
-  // An augmentation or a drone schematic is unnamed and is not granted. A full rack pays no substitute scrap.
+  // The roll uses that printed 3 percent; wiki/bonus-item.ts draws which of the three (equal odds, INFERRED).
   const resourceKinds = ["fuel", "missiles", "parts"] as const;
   for (let draw = 0; draw < 2; draw++) {
     const kind = resourceKinds[irand(g, resourceKinds.length)];
@@ -4746,19 +4747,16 @@ function winCombat(g: Game) {
     }
   }
   if (rand(g) < 0.03) {
-    const owned = new Set(g.player.weapons.map((w) => w.defId));
-    let options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
     // Sectors, "Hidden Crystal Worlds", "Sector specifics": a crew-kill reward is a crystal weapon, including the Lockdown Bomb.
     // A hull kill keeps the priced pool.
-    if (deadCrew && g.sectorName === "Hidden Crystal Worlds") {
-      const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
-      options = options.filter((w) => allowed.has(w.id));
-    }
-    if (options.length && g.player.weapons.length < weaponSlotCap(g)) {
-      const def = pick(g, options);
-      giveWeapon(g, def.id);
-      notes.push(`${def.name} mounted.`);
-    }
+    const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
+    const crystal = deadCrew && g.sectorName === "Hidden Crystal Worlds";
+    const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
+    if (item?.kind === "weapon") {
+      giveWeapon(g, item.id);
+      notes.push(`${WEAPONS[item.id]?.name ?? item.id} mounted.`);
+    } else if (item?.kind === "augment") notes.push(grantBonusAugment(g, item.id));
+    else if (item?.kind === "drone" && fieldDroneSchematic(g, item.id)) notes.push(`${droneName(item.id)} schematic fitted.`);
   }
   addScrap(g, scrap, eligible);
   g.reward = { scrap, note: notes.join(" ") };

@@ -52,6 +52,8 @@ import { create } from "zustand";
 import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
+import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
+import { canFieldDrone } from "@/game/wiki/cited-stores";
 import { kinOf } from "@/game/extras/kin";
 import { UNIFORMS } from "@/game/crew-look";
 import { artilleryView } from "@/game/wiki/flagship-systems";
@@ -119,7 +121,7 @@ import {
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
+import type { AugmentId, BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
@@ -2235,7 +2237,7 @@ function EventModal({ game }: { game: Game }) {
           <>
             <p className="surrender-sub">They offer:</p>
             <LootChips scrap={offer.scrap} res={offer} />
-            <OfferCards game={game} weapon={offer.weapon} crew={offer.crew} />
+            <OfferCards game={game} weapon={offer.weapon} crew={offer.crew} augment={offer.augment} drone={offer.drone} repairs={offer.repairs} />
           </>
         ) : null}
         <div className="choice-list">
@@ -2283,8 +2285,24 @@ function RewardModal({ game }: { game: Game }) {
  * answering: the weapon's art and numbers (WEAPONS) and the crewmember's race portrait and traits (kinOf). A full
  * rack or a full crew is flagged, since the item is then lost (payOffer, joinCrew). INVENTED look.
  */
-function OfferCards({ game, weapon, crew }: { game: Game; weapon?: string; crew?: string }) {
-  if (!weapon && !crew) return null;
+function OfferCards({
+  game,
+  weapon,
+  crew,
+  augment,
+  drone,
+  repairs,
+}: {
+  game: Game;
+  weapon?: string;
+  crew?: string;
+  augment?: AugmentId;
+  drone?: string;
+  repairs?: number;
+}) {
+  if (!weapon && !crew && !augment && !drone && !repairs) return null;
+  const augFate = augment ? bonusAugmentFate(game, augment) : undefined;
+  const droneKey = drone ? droneKeyOf(drone) : null;
   const def = weapon ? WEAPONS[weapon] : undefined;
   const rackFull = game.player.weapons.length >= weaponSlotCap(game);
   const crewFull = game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
@@ -2334,6 +2352,40 @@ function OfferCards({ game, weapon, crew }: { game: Game; weapon?: string; crew?
             {k.move !== 1 ? <span title="Movement speed">move {pct(k.move)}</span> : null}
           </span>
           {crewFull ? <span className="offer-warn">Crew is full (8): no room aboard.</span> : null}
+        </section>
+      ) : null}
+      {augment ? (
+        <section className="offer-card" data-offer="augment">
+          <p className="offer-kind">Augmentation</p>
+          <span className="offer-art">
+            <PixelIcon name="upgrade" size={30} />
+          </span>
+          <b className="offer-name">{augmentName(augment)}</b>
+          <span className="offer-note">{augmentDetail(augment)}</span>
+          {augFate === "scrap" ? <span className="offer-warn">Already fitted: 25 scrap instead.</span> : null}
+          {augFate === "full" ? <span className="offer-warn">No free augmentation slot: it would be left behind.</span> : null}
+        </section>
+      ) : null}
+      {drone ? (
+        <section className="offer-card" data-offer="drone">
+          <p className="offer-kind">Drone schematic</p>
+          <span className="offer-art">
+            <DroneArt kind={droneKey} height={34} />
+          </span>
+          <b className="offer-name">{droneName(drone)}</b>
+          {!canFieldDrone(game, drone) ? <span className="offer-warn">No free drone schematic slot: it would be lost.</span> : null}
+        </section>
+      ) : null}
+      {repairs ? (
+        <section className="offer-card" data-offer="repairs">
+          <p className="offer-kind">Hull repairs</p>
+          <span className="offer-art">
+            <PixelIcon name="ship" size={30} />
+          </span>
+          <b className="offer-name">+{repairs} hull</b>
+          <span className="offer-note">
+            Hull {game.player.hull} → {Math.min(game.player.hullMax, game.player.hull + repairs)} of {game.player.hullMax}.
+          </span>
         </section>
       ) : null}
     </div>

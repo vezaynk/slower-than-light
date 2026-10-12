@@ -16,7 +16,9 @@ import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { CREW_CAP, beginBoarding, log, rand, startCombat, weaponSlotCap } from "../sim.ts";
-import type { Crew, Difficulty, Game } from "../types.ts";
+import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
+import { droneName, grantBonusAugment, rollBonusItem } from "./bonus-item.ts";
+import { fieldDroneSchematic } from "./cited-stores.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { addQuest, questChoose } from "./quests.ts";
@@ -36,6 +38,10 @@ export type SurrenderOffer = {
   parts: number;
   /** Rewards, "Stuff": the bonus item, when the 6% roll lands and a slot is free. A scripted surrender's named weapon. */
   weapon?: string;
+  /** Rewards, "Stuff": the bonus item when the roll lands on an augmentation (bonus-item.ts). */
+  augment?: AugmentId;
+  /** Rewards, "Stuff": the bonus item when the roll lands on a drone schematic (bonus-item.ts). */
+  drone?: string;
   /** Scripted surrender (SCRIPTED_SURRENDERS): a crewmember of this race joins. */
   crew?: string;
   /** Scripted surrender: hull repairs. */
@@ -561,7 +567,7 @@ export function between(g: Game, [lo, hi]: [number, number]): number {
  * rewards ... are random tier." "A successful 6% bonus item roll modifies the scrap part of the reward to match the
  * resources tier."
  * INFERRED: "random tier" is low, medium or high with equal odds; the two resources are different ones.
- * INFERRED: the bonus item is a weapon the ship does not own, and is dropped when the printed slot count is full.
+ * The bonus item is drawn by bonus-item.ts rollBonusItem (weapon, augmentation or drone schematic).
  */
 export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = false): SurrenderOffer {
   // A scripted page can name the tier ("high ... resources with some scrap"); the draw is skipped then.
@@ -574,11 +580,10 @@ export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = fal
   });
   // `noBonus`: a page gift (not a surrender) that names its reward; the unnamed bonus item is not granted there.
   const bonus = !noBonus && rand(g) < 0.06;
-  if (bonus && g.player.weapons.length < weaponSlotCap(g)) {
-    const owned = new Set(g.player.weapons.map((w) => w.defId));
-    const options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
-    if (options.length) offer.weapon = options[Math.min(options.length - 1, Math.floor(rand(g) * options.length))].id;
-  }
+  const item = bonus ? rollBonusItem(g) : undefined;
+  if (item?.kind === "weapon") offer.weapon = item.id;
+  else if (item?.kind === "augment") offer.augment = item.id;
+  else if (item?.kind === "drone") offer.drone = item.id;
   offer.eligible = between(g, scrapBand(g, bonus ? tier : "low"));
   offer.scrap = adjustScrap(g, offer.eligible);
   return offer;
@@ -613,7 +618,7 @@ function randomTier(g: Game): SurrenderTier {
  * @agent:surrender. Rewards, "Standard": "T scrap + low resources (2 random resources among fuel, missiles, and drone
  * parts) + roughly a 3% chance to include a bonus weapon, augmentation, or drone schematic."
  * No tier given = "a random amount" (Rewards: "Random (one of the other 3 tiers is randomly chosen)"). INFERRED:
- * equal odds. The 3% bonus item is unnamed and not granted.
+ * equal odds. The 3% bonus item is rolled by sim.ts winCombat, not here.
  */
 export function rollStandard(g: Game, tier?: SurrenderTier): SurrenderOffer {
   const t = tier ?? randomTier(g);
@@ -862,7 +867,7 @@ export function stalemateTick(g: Game, h: number): boolean {
   return true;
 }
 
-/** Pays an offer: resources, a free-slot weapon, and the crew and repairs a scripted page names. */
+/** Pays an offer: resources, a free-slot weapon, a bonus augmentation or drone schematic, and the crew and repairs a scripted page names. */
 export function payOffer(g: Game, offer: SurrenderOffer, scripted: boolean): { weaponName?: string; extras: string[] } {
   g.scrap += offer.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + offer.eligible;
@@ -884,6 +889,8 @@ export function payOffer(g: Game, offer: SurrenderOffer, scripted: boolean): { w
     extras.push(`Hull repairs: ${offer.repairs}.`);
   }
   if (scripted && offer.weapon && !weaponName) extras.push("No free weapon slot for it.");
+  if (offer.augment) extras.push(grantBonusAugment(g, offer.augment));
+  if (offer.drone) extras.push(fieldDroneSchematic(g, offer.drone) ? `${droneName(offer.drone)} schematic fitted.` : "No free drone schematic slot for it.");
   return { weaponName, extras };
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { roomClip } from "@/game/layouts";
@@ -13,6 +13,8 @@ import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
+import { RoomRadial } from "./RoomRadial";
+import { roomDoors } from "./room-doors";
 import { airShown } from "@/game/air";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
@@ -131,6 +133,7 @@ function CrewToken({
   picked,
   onCrew,
   onPlace,
+  onHold,
   pose,
   frame,
   cycle,
@@ -141,6 +144,8 @@ function CrewToken({
   picked: boolean;
   onCrew: (id: string, shift: boolean) => void;
   onPlace?: (roomId: string) => void;
+  /** Long tap or long click: the room menu for the room this crew member stands in. Absent means no hold. */
+  onHold?: (roomId: string) => (() => void) | null;
   pose: CrewPose;
   frame: number;
   cycle: boolean;
@@ -166,7 +171,8 @@ function CrewToken({
       title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
       aria-pressed={picked}
       onPointerDown={(e) => {
-        if (onPlace) armHold(e, () => onPlace(c.room));
+        const open = onHold?.(c.room);
+        if (open) armHold(e, open, { mouse: true });
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -330,6 +336,27 @@ export function ShipView({
   const [hover, setHover] = useState<BeamPoint | null>(null);
   const [destRoom, setDestRoom] = useState<string | null>(null);
   const [dragBox, setDragBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [radial, setRadial] = useState<{ room: string; at: { x: number; y: number }; turn: QuarterTurn } | null>(null);
+  const radialPicks = useRef(0);
+  const closeRadial = useCallback(() => setRadial(null), []);
+  // Room menu (RoomRadial): your crew in the room who can be seen, and on your hull the doors.
+  const radialCrew = (roomId: string) =>
+    here.filter((c) => c.room === roomId && c.side === "player" && ((seen ? seen(c.room) : true) || (crewLit?.(c) ?? false)));
+  const radialDoors = (roomId: string) => (onDoor ? roomDoors(ship, cells, roomId) : []);
+  /** The opener for a hold on this room, or null when its menu would be empty (the hold then leaves the click alone). */
+  const radialOpener = (roomId: string) => {
+    if (!radialCrew(roomId).length && !radialDoors(roomId).length) return null;
+    return () => {
+      const el = hullRef.current?.querySelector(`[data-room="${CSS.escape(roomId)}"]`);
+      if (!el) return;
+      const box = el.getBoundingClientRect();
+      radialPicks.current = 0;
+      setDragBox(null);
+      dragRef.current = null;
+      setRadial({ room: roomId, at: { x: box.left + box.width / 2, y: box.top + box.height / 2 }, turn: ancestorTurn(el as HTMLElement) });
+    };
+  };
+  const radialRoom = radial ? ship.rooms.find((r) => r.id === radial.room) : undefined;
   useEffect(() => {
     if (!beamAnchor) setHover(null);
   }, [beamAnchor]);
@@ -471,7 +498,9 @@ export function ShipView({
               title={room.title}
               onPointerDown={(e) => {
                 e.currentTarget.dataset.ptr = e.pointerType;
-                if (onRoomMenu) armHold(e, () => onRoomMenu(room.id));
+                // Per the user: a long tap or long click opens the room menu. Right-click keeps onRoomMenu.
+                const open = radialOpener(room.id);
+                if (open) armHold(e, open, { mouse: true });
               }}
               onClick={(e) => {
                 if (swallowHoldClick(e)) return;
@@ -725,6 +754,7 @@ export function ShipView({
                 picked={picked.has(c.id)}
                 onCrew={onCrew}
                 onPlace={onRoomMenu}
+                onHold={radialOpener}
                 pose={pose}
                 frame={frame}
                 cycle={cycle}
@@ -743,6 +773,24 @@ export function ShipView({
         </div>
       ) : null}
       <BeamOverlay hullRef={hullRef} lines={strokes} />
+      {radial && radialRoom ? (
+        <RoomRadial
+          title={radialRoom.title}
+          at={radial.at}
+          turn={radial.turn}
+          doors={radialDoors(radialRoom.id)}
+          crew={radialCrew(radialRoom.id)}
+          picked={picked}
+          doorsDead={doorsDead}
+          onDoor={onDoor}
+          onPick={(id) => {
+            // First pick replaces the selection, later picks add or remove (RoomRadial).
+            onCrew(id, radialPicks.current > 0);
+            radialPicks.current += 1;
+          }}
+          onClose={closeRadial}
+        />
+      ) : null}
     </div>
   );
 }

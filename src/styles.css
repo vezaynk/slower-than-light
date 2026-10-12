@@ -4968,3 +4968,105 @@ button.modal-x.modal-x:focus-visible {
 .room-prop-art[data-kind="cradle"] .ink-screen { fill: #2c6a58; }
 .room-prop-art[data-kind="cradle"] .ink-glow { fill: #9fe6c8; }
 .room-prop-art[data-kind="cradle"] .ink-pip { fill: #1a3a30; }
+
+/* Room radial menu (RoomRadial). Per the user: a long tap or long click on a room. INVENTED look and sizes, kept
+   small (the user wants the UI enlarged conservatively): 34px doors on a ring, a 34px crew grid in the middle. */
+.radial-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(2, 3, 8, 0.25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.radial {
+  position: absolute;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.radial-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 255, 240, 0.35);
+  background: radial-gradient(circle, rgba(11, 17, 22, 0.92) 0 62%, rgba(11, 17, 22, 0.55) 63%);
+}
+
+.radial-crew {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  gap: 4px;
+}
+
+.radial button {
+  pointer-events: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+}
+
+.radial-mate {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+}
+
+.radial-mate.is-on {
+  border-color: var(--color-ok);
+  box-shadow: 0 0 0 2px rgba(62, 229, 106, 0.35);
+}
+
+.radial-mate .crew-hp {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 2px;
+}
+
+.radial-door {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background: var(--color-panel);
+  border: 2px solid var(--color-line);
+  transition: gap 0.12s ease;
+}
+
+.radial-door:disabled { cursor: default; border-color: var(--color-line-dim); }
+
+/* The leaf lies along its wall: across for a door in a top or bottom wall, upright for a side wall. Open, it splits. */
+.radial-door.is-e,
+.radial-door.is-w { flex-direction: column; }
+
+.radial-slab { background: #e07020; flex: none; }
+.radial-door.is-n .radial-slab,
+.radial-door.is-s .radial-slab { width: 10px; height: 5px; }
+.radial-door.is-e .radial-slab,
+.radial-door.is-w .radial-slab { width: 5px; height: 10px; }
+
+.radial-door.is-open { gap: 10px; }
+.radial-door.is-open .radial-slab { opacity: 0.75; }
+.radial-door.is-n.is-open .radial-slab,
+.radial-door.is-s.is-open .radial-slab { width: 5px; }
+.radial-door.is-e.is-open .radial-slab,
+.radial-door.is-w.is-open .radial-slab { height: 5px; }
+
+.radial-door.is-airlock .radial-slab { background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px); }
+.radial-door.is-dead .radial-slab { background: var(--color-danger); }

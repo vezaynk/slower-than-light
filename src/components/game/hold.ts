@@ -3,7 +3,8 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 /**
  * Touch stand-in for a right-click. A still finger for ~400ms fires `onLong`.
  * Movement cancels it. The click that follows a completed hold is swallowed so
- * the left-click action does not also run. A mouse never arms a hold.
+ * the left-click action does not also run. A mouse arms one only when asked (`mouse`), with the left button: the
+ * room radial menu opens on a long click as well as a long tap (per the user).
  */
 const LONG_MS = 400;
 const MOVE_PX = 8;
@@ -28,8 +29,10 @@ function drop(target: EventTarget, keepFired = false) {
   if (!keepFired || !rec.fired) holds.delete(target);
 }
 
-export function armHold(e: ReactPointerEvent<Element>, onLong: () => void) {
-  if (e.pointerType !== "touch" || e.isPrimary === false) return;
+export function armHold(e: ReactPointerEvent<Element>, onLong: () => void, opts?: { mouse?: boolean }) {
+  if (e.isPrimary === false) return;
+  const mouse = opts?.mouse && e.pointerType !== "touch" && e.button === 0;
+  if (e.pointerType !== "touch" && !mouse) return;
   const target = e.currentTarget;
   const prev = holds.get(target);
   if (prev) {

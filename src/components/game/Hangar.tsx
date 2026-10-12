@@ -1,6 +1,6 @@
 /**
  * Ship bay from the hangar screenshot: the name plate, EASY / NORMAL / HARD,
- * START, SHIP, LIST, LAYOUT, TYPE, HIDE ROOMS, Available Achievements,
+ * START, SHIP, LIST, LAYOUT, TYPE, Available Achievements (per the user: no HIDE ROOMS),
  * the same ship a fight draws (rooms, doors, weapons, crew), the system icons,
  * CREW, WEAPONS, DRONES, AUGMENTATIONS.
  * Score, lead formula: the lit button sets initial scrap to 30, 10, or 0. The highlight starts on EASY.
@@ -98,7 +98,6 @@ function touchFirst(): boolean {
 export function Hangar({ onMenu }: { onMenu: () => void }) {
   const [pageIndex, setPageIndex] = useState(0);
   const [letter, setLetter] = useState<Letter>("A");
-  const [hideRooms, setHideRooms] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
   const [listOpen, setListOpen] = useState(false);
 
@@ -219,9 +218,6 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
             );
           })}
         </div>
-        <button type="button" aria-pressed={hideRooms} onClick={() => setHideRooms((value) => !value)}>
-          {tx("ui.Hangar.hide-rooms")}
-        </button>
         <div className="hangar-achieve">
           <p>{tx("ui.Hangar.available-achievements")}</p>
           <p>{tx("ui.Hangar.complete-2-3-to-unlock-a")}</p>
@@ -244,7 +240,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
         </div>
       </aside>
 
-      <div className={`hangar-stage${hideRooms ? " is-bare" : ""}${locked ? " is-locked" : ""}`}>
+      <div className={`hangar-stage${locked ? " is-locked" : ""}`}>
         <div
           className="hangar-figure"
           style={{
@@ -257,7 +253,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
             ship={preview.ship}
             crew={preview.crew}
             aboard="player"
-            showCrew={!hideRooms}
+            showCrew
             selectedId={null}
             ventMode={false}
             targetable={false}
@@ -420,7 +416,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               {weaponNames.map((weapon, index) => {
                 const power = weaponPower(weapon);
                 return (
-                  <article key={`${weapon}-${index}`} className="hangar-slot">
+                  <article key={`${weapon}-${index}`} className="hangar-slot" title={weapon}>
                     {power != null && power > 0 ? (
                       <span className="hangar-power" aria-hidden="true">
                         {Array.from({ length: power }, (_, index) => (
@@ -458,7 +454,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
                     <article
                       key={`${drone}-${index}`}
                       className={`hangar-slot${out ? " is-unfitted" : ""}`}
-                      title={out ? tx("ui.Hangar.not-fitted-in-this-build") : undefined}
+                      title={out ? `${drone}: ${tx("ui.Hangar.not-fitted-in-this-build")}` : drone}
                     >
                       <DroneArt kind={droneKeyForName(drone)} height={32} />
                       <p>{drone}</p>

@@ -3769,23 +3769,6 @@ button.door-tick::before {
 .beacon-map.sector-map .beacon.is-linked:not(:disabled) { transform: translate(-50%, -50%) rotate(45deg); }
 
 
-.hangar-stage.is-bare .hull { background: var(--hull-body, #c8c2b4); }
-
-.hangar-stage.is-bare .room,
-.hangar-stage.is-bare .pixel-room,
-.hangar-stage.is-bare .pixel-fill {
-  background: var(--hull-body, #c8c2b4) !important;
-  border-color: var(--hull-body, #c8c2b4);
-  box-shadow: none;
-}
-
-.hangar-stage.is-bare .room.is-cut { background: transparent !important; }
-
-.hangar-stage.is-bare .room-body,
-.hangar-stage.is-bare .door-tick,
-.hangar-stage.is-bare .token,
-.hangar-stage.is-bare .crew-walkers,
-.hangar-stage.is-bare .room-console { visibility: hidden; }
 
 .controls-cols li { align-items: center; }
 
@@ -5912,3 +5895,8 @@ body.page-turn-180 {
 
 /* hulls.ts `unfitted`: a drone the layout names but this build does not fly (Hangar). INVENTED dimming. */
 .hangar-slot.is-unfitted { opacity: 0.45; }
+
+/* Per the user: the drone panel keeps one height whatever it holds, so the bay never pushes into the ship column.
+   Slot names stay on one line; the full name is the card's tooltip. INVENTED. */
+.hangar-slot p { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hangar-drones .hangar-absent { min-height: 78px; margin: 0; display: flex; align-items: center; justify-content: center; }

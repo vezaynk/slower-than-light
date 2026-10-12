@@ -6520,7 +6520,6 @@
   "ui.Hangar.layout": "LAYOUT",
   "ui.Hangar.type": "TYPE {{itemLetter}}{{v}}",
   "ui.Hangar.type-2": "TYPE ",
-  "ui.Hangar.hide-rooms": "HIDE ROOMS",
   "ui.Hangar.available-achievements": "Available Achievements:",
   "ui.Hangar.complete-2-3-to-unlock-a": "Complete 2/3 to unlock a layout!",
   "ui.Hangar.developer-unlocks": "Developer unlocks",

@@ -2454,63 +2454,68 @@ button.door-tick::before {
   pointer-events: none;
 }
 
-/* Right of the manning tile, under the 16px room name and above a one-row oxygen bar. */
-.room-console-fit {
+/*
+ * Per the user: a terminal is a display on the room's right wall, black while unused and cycling colours while
+ * manned, and a seat that only appears under its operator. INVENTED look.
+ */
+.room-screen {
   position: absolute;
-  right: 1px;
-  bottom: 5px;
-  height: min(22px, calc(100% - 23px));
-  aspect-ratio: 1;
-  width: auto;
-  max-width: 68%;
+  right: 2px;
+  top: 34%;
+  width: 13%;
+  height: 46%;
+  background: #050607;
+  box-shadow: 0 0 0 1px #2c2a26, inset 0 0 0 1px #121414;
   pointer-events: none;
 }
 
-.room-console-art {
+.room-screen.is-on {
+  --s1: #3ee56a;
+  --s2: #1c8fd0;
+  --s3: #b6ff9a;
+  background: linear-gradient(180deg, var(--s1), var(--s2), var(--s3), var(--s1));
+  background-size: 100% 300%;
+  box-shadow: 0 0 0 1px #2c2a26, 0 0 4px var(--s1);
+  animation: room-screen-shift 2.4s steps(12) infinite;
+}
+
+.room-screen.is-on[data-kind="shields"] { --s1: #8fd4ff; --s2: #2a6cff; --s3: #e8f6ff; }
+.room-screen.is-on[data-kind="engines"] { --s1: #3ec8ff; --s2: #ff9b3a; --s3: #e7f8ff; }
+.room-screen.is-on[data-kind="weapons"] { --s1: #ff5a3c; --s2: #ffb04a; --s3: #ffe0d6; }
+.room-screen.is-on[data-kind="pilot"] { --s1: #7dff6a; --s2: #2fd0a0; --s3: #eaffee; }
+.room-screen.is-on[data-kind="sensors"] { --s1: #b6ff9a; --s2: #3a9cff; --s3: #7dff6a; }
+.room-screen.is-on[data-kind="doors"] { --s1: #ffb15a; --s2: #ff6a3a; --s3: #fff1d4; }
+
+@keyframes room-screen-shift {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-screen.is-on { animation: none; }
+}
+
+/* Under the operator's sprite (the crew layer sits above the rooms), at the foot of the tile. */
+.room-seat {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: 70%;
+  height: 70%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.room-seat-art {
   display: block;
   width: 100%;
   height: 100%;
-  overflow: visible;
-  shape-rendering: crispEdges;
   image-rendering: pixelated;
-  pointer-events: none;
 }
 
-.room-console-art .casing { fill: #3a3228; }
-.room-console-art .casing-d { fill: #1c1612; }
-.room-console-art .trim { fill: #c4b49a; }
-.room-console-art .screen { fill: #12181c; }
-.room-console-art .glow { fill: #3a342c; }
-.room-console-art .pip { fill: #4a4036; }
-
-.room-console-art[data-kind="pilot"] .screen { fill: #1c3324; }
-.room-console-art[data-kind="pilot"] .glow { fill: #2f6a3a; }
-.room-console-art[data-kind="engines"] .screen { fill: #163044; }
-.room-console-art[data-kind="engines"] .pip { fill: #245068; }
-.room-console-art[data-kind="shields"] .screen { fill: #243848; }
-.room-console-art[data-kind="shields"] .glow { fill: #4a7090; }
-.room-console-art[data-kind="weapons"] .screen { fill: #2a1814; }
-.room-console-art[data-kind="weapons"] .pip { fill: #6a3028; }
-.room-console-art[data-kind="weapons"] .glow { fill: #5a4038; }
-.room-console-art[data-kind="sensors"] .screen { fill: #101c14; }
-.room-console-art[data-kind="sensors"] .glow { fill: #2a5040; }
-.room-console-art[data-kind="sensors"] .pip { fill: #3a6850; }
-.room-console-art[data-kind="doors"] .screen { fill: #3a2c18; }
-.room-console-art[data-kind="doors"] .glow { fill: #6a5030; }
-
-.room-console-art.is-on[data-kind="pilot"] .screen { fill: #7dff6a; }
-.room-console-art.is-on[data-kind="pilot"] .glow { fill: #eaffee; }
-.room-console-art.is-on[data-kind="engines"] .screen { fill: #3ec8ff; }
-.room-console-art.is-on[data-kind="engines"] .pip { fill: #e7f8ff; }
-.room-console-art.is-on[data-kind="shields"] .screen { fill: #8fd4ff; }
-.room-console-art.is-on[data-kind="shields"] .glow { fill: #f4fbff; }
-.room-console-art.is-on[data-kind="weapons"] .screen { fill: #4a2018; }
-.room-console-art.is-on[data-kind="weapons"] .pip { fill: #ff5a3c; }
-.room-console-art.is-on[data-kind="weapons"] .glow { fill: #ffb0a0; }
-.room-console-art.is-on[data-kind="sensors"] .glow { fill: #b6ff9a; }
-.room-console-art.is-on[data-kind="sensors"] .pip { fill: #7dff6a; }
-.room-console-art.is-on[data-kind="doors"] .screen { fill: #ffb15a; }
-.room-console-art.is-on[data-kind="doors"] .glow { fill: #fff1d4; }
+.room-seat-art .casing { fill: #5a5248; }
+.room-seat-art .casing-d { fill: #2a241e; }
+.room-seat-art .trim { fill: #8a7e70; }
 
 .pad-pip {
   position: absolute;

@@ -7,7 +7,7 @@ import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
-import { RoomConsole, RoomProp } from "./RoomConsole";
+import { RoomProp, RoomSeat } from "./RoomConsole";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { HullPlate } from "./HullPlate";
@@ -546,8 +546,10 @@ export function ShipView({
               ? (() => {
                   const cell = roomConsole(room, ship);
                   if (!cell || !room.system) return null;
+                  // Seated and working: on the terminal tile, not still walking onto it, and not fighting an intruder.
                   const manned = here.some((c) => {
                     if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard) return false;
+                    if (c.shift || fighting.has(c.id)) return false;
                     const spot = stands.get(c.id);
                     return !!spot && spot.stack === 0 && spot.x === cell.x && spot.y === cell.y;
                   });
@@ -564,9 +566,13 @@ export function ShipView({
                         height: `${100 / room.h}%`,
                       }}
                     >
-                      <span className="room-console-fit">
-                        <RoomConsole kind={room.system} on={manned} />
-                      </span>
+                      {/* Per the user: a wall display, black until manned, then shifting colours; the seat only while manned. */}
+                      <span className={"room-screen" + (manned ? " is-on" : "")} data-kind={room.system} />
+                      {manned ? (
+                        <span className="room-seat">
+                          <RoomSeat />
+                        </span>
+                      ) : null}
                     </i>
                   );
                 })()

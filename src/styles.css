@@ -5805,3 +5805,8 @@ body.page-turn-180 {
 
 .cargo-move:hover:not(:disabled) { border-color: var(--color-accent); color: var(--color-accent); }
 .cargo-move:disabled { color: var(--color-muted); cursor: not-allowed; font-size: 13px; }
+
+/* Per the user: every pause (the pause button, the room menu, Options, a make-room choice; sim.ts halted) freezes the
+   manned terminals' screens where they are. */
+.is-halted .room-terminal-art,
+.is-halted .room-terminal-art * { animation-play-state: paused; }

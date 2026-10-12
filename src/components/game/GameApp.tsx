@@ -110,6 +110,7 @@ import {
   toggleAutoAll,
   toggleDoor,
   togglePause,
+  halted,
   waitHere,
   upgrade,
   weaponChargeShown,
@@ -583,7 +584,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
   const looks = `${ghosts ? "" : " no-ghosts"}${roomAir ? "" : " no-room-air"}`;
   const optionsOpen = useOptionsOpen((s) => s.open) && game.phase !== "title";
   return (
-    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.paused ? " is-paused" : ""}${looks}`}>
+    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.paused ? " is-paused" : ""}${halted(game) ? " is-halted" : ""}${looks}`}>
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}

@@ -411,10 +411,10 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
           <section className="hangar-panel">
             <h2>{tx("ui.Hangar.weapons")}</h2>
             <div className="hangar-slots">
-              {sheet.weapons.map((weapon) => {
+              {sheet.weapons.map((weapon, index) => {
                 const power = weaponPower(weapon);
                 return (
-                  <article key={weapon} className="hangar-slot">
+                  <article key={`${weapon}-${index}`} className="hangar-slot">
                     {power != null && power > 0 ? (
                       <span className="hangar-power" aria-hidden="true">
                         {Array.from({ length: power }, (_, index) => (
@@ -444,8 +444,8 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               <p className="hangar-absent">{tx("ui.Hangar.system-not-installed")}</p>
             ) : (
               <div className="hangar-slots">
-                {droneNames.map((drone) => (
-                  <article key={drone} className="hangar-slot">
+                {droneNames.map((drone, index) => (
+                  <article key={`${drone}-${index}`} className="hangar-slot">
                     <DroneArt kind={droneKeyForName(drone)} height={32} />
                     <p>{drone}</p>
                   </article>

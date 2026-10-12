@@ -70,6 +70,15 @@ function crewCards(text: string) {
   return cards.length ? cards : [text];
 }
 
+/** Per the user: "Basic Laser (x4)" is four Basic Lasers, one card each, as the run mounts them (hulls.ts). */
+function expandCount(items: string[]): string[] {
+  return items.flatMap((text) => {
+    const match = text.match(/^(.*?)\s*\(x(\d+)\)\s*$/i);
+    if (!match) return [text];
+    return Array.from({ length: Number(match[2]) }, () => match[1]);
+  });
+}
+
 export function layoutNeedsAe(layout: CruiserLayout) {
   return layout.lines.some((line) => line.text.includes("Advanced Edition"));
 }
@@ -93,9 +102,9 @@ export function hangarSheet(layout: CruiserLayout): HangarSheet {
       if (!match) return [];
       return [{ name: match[1], level: Number(match[2]) }];
     }),
-    weapons: weapons?.items ?? [],
+    weapons: expandCount(weapons?.items ?? []),
     weaponSlots: slotsFor(weapons?.header, slots?.header, "Weapon"),
-    drones: drones?.items ?? [],
+    drones: expandCount(drones?.items ?? []),
     droneSlots: slotsFor(drones?.header, slots?.header, "Drone"),
     augments: augments?.items ?? [],
     unlock: unlock?.items ?? [],

@@ -2753,7 +2753,7 @@ function TitleScreen() {
     });
   }
   const cruiser = view ? cruiserPage(view) : undefined;
-  if (view === "hangar") return <Hangar />;
+  if (view === "hangar") return <Hangar onMenu={() => setView(null)} />;
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (

@@ -99,7 +99,7 @@ function touchFirst(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 }
 
-export function Hangar() {
+export function Hangar({ onMenu }: { onMenu: () => void }) {
   const [pageIndex, setPageIndex] = useState(0);
   const [letter, setLetter] = useState<Letter>("A");
   const [hideRooms, setHideRooms] = useState(false);
@@ -154,7 +154,10 @@ export function Hangar() {
 
       <header className="hangar-top">
         {/* Per the user: no RENAME. The ship's name only shows in the Ship menu and the victory text, so every run
-            keeps its class name. */}
+            keeps its class name. Per the user: MENU takes RENAME's old spot and returns to the title screen. */}
+        <button type="button" className="hangar-menu" onClick={onMenu}>
+          {tx("ui.Hangar.menu")}
+        </button>
         <p className="hangar-name">{sheet.defaultName}</p>
         <div className="hangar-diff">
           <div className="hangar-diff-col">

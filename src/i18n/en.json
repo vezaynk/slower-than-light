@@ -6766,5 +6766,6 @@
   "ui.WikiViews.beacons-visited-2": "Beacons visited",
   "ui.WikiViews.score-3": "Score",
   "ui.WikiViews.flagship-defeated": "Flagship defeated",
-  "ui.WikiViews.unlocked": "Unlocked"
+  "ui.WikiViews.unlocked": "Unlocked",
+  "ui.Hangar.menu": "MENU"
 }

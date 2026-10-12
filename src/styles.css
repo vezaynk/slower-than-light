@@ -5572,3 +5572,32 @@ body.page-turn-180 {
 .opt-exit button .mini { font-size: 13px; }
 .opt-exit button.is-primary { border-color: var(--color-ok); }
 .opt-exit button.is-primary b { color: var(--color-ok); }
+
+/* Per the user: a bigger pause button in the top middle of the HUD. INVENTED size. */
+.hud { position: relative; }
+.hud-mid {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+.frame-btn.pause-btn { width: 76px; height: 76px; }
+
+/* Per the user: autofire at the end of the weapon row, the size of a weapon slot. */
+.gun-slot.autofire-slot {
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: var(--font-hud);
+}
+.autofire-slot .autofire-word { font-size: 22px; letter-spacing: 0.06em; }
+.autofire-slot .autofire-state { font-size: 16px; letter-spacing: 0.1em; color: var(--color-muted); }
+.gun-slot.autofire-slot.is-on {
+  background: #143024;
+  box-shadow: inset 0 0 0 1px var(--color-ok), 0 0 12px rgba(180, 255, 230, 0.12);
+}
+.gun-slot.autofire-slot.is-on .autofire-state { color: var(--color-ok); }

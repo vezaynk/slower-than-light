@@ -397,6 +397,31 @@ export function GameApp() {
         hackIconClick();
         return;
       }
+      // Per the user, and FTL's default controls (File:ConfigureControls1.png): C "Activate Cloaking", T "Teleport - Send",
+      // R "Teleport - Return". Each does what that system's dock icon does.
+      if (e.code === "KeyC" && plain && g.phase === "combat") {
+        e.preventDefault();
+        act((game) => startVeil(game));
+        return;
+      }
+      if (e.code === "KeyT" && plain && g.phase === "combat" && g.enemy && g.player.kits.sling) {
+        e.preventDefault();
+        if (useSlingAim.getState().on) {
+          setSlingAim(false);
+          return;
+        }
+        act((game) => cancelTargeting(game));
+        setHackAim(false);
+        setLeashAim(false);
+        setSlingAim(true);
+        return;
+      }
+      if (e.code === "KeyR" && plain && g.player.kits.sling) {
+        e.preventDefault();
+        setSlingAim(false);
+        act((game) => recallSling(game));
+        return;
+      }
       // Crystal, "Crystal Lockdown": Z opens every door and overrides the coating.
       if (e.code === "KeyZ" && plain) {
         e.preventDefault();
@@ -770,6 +795,20 @@ function Hud({ game }: { game: Game }) {
           </span>
         </div>
       </div>
+      <div className="hud-mid">
+        {/* Per the user: pause on a touch screen, where there is no Space bar (togglePause, as the key). Bigger, top middle. */}
+        <button
+          type="button"
+          className={`frame-btn pause-btn${game.paused ? " is-on" : ""}`}
+          aria-label={game.paused ? "Resume" : "Pause"}
+          aria-pressed={game.paused}
+          title={game.paused ? "Resume (Space)" : "Pause (Space)"}
+          disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
+          onClick={() => act((g) => togglePause(g))}
+        >
+          <PixelIcon name={game.paused ? "play" : "pause"} size={34} />
+        </button>
+      </div>
       <div className="hud-right">
         <button
           type="button"
@@ -819,18 +858,6 @@ function Hud({ game }: { game: Game }) {
             </p>
           </div>
         ) : null}
-        {/* Per the user: pause on a touch screen, where there is no Space bar. Same phases as the key (togglePause). */}
-        <button
-          type="button"
-          className={`frame-btn${game.paused ? " is-on" : ""}`}
-          aria-label={game.paused ? "Resume" : "Pause"}
-          aria-pressed={game.paused}
-          title={game.paused ? "Resume (Space)" : "Pause (Space)"}
-          disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
-          onClick={() => act((g) => togglePause(g))}
-        >
-          <PixelIcon name={game.paused ? "play" : "pause"} size={20} />
-        </button>
         <button
           type="button"
           className="frame-btn"
@@ -1487,6 +1514,17 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
             <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
           ))}
+          {/* Per the user: autofire sits at the end of the weapon row, the size of a weapon slot. */}
+          <button
+            type="button"
+            className={`gun-slot autofire-slot${game.autofireAll ? " is-on" : ""}`}
+            aria-pressed={!!game.autofireAll}
+            title="Autofire every weapon"
+            onClick={() => act((g) => toggleAutoAll(g))}
+          >
+            <span className="autofire-word">AUTOFIRE</span>
+            <span className="autofire-state">{game.autofireAll ? "ON" : "OFF"}</span>
+          </button>
         </div>
         {droneSlots.length > 0 ? (
           <div className="gun-tray drone-tray">
@@ -1539,14 +1577,6 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         {swarm ? <span className="dock-label dock-drones">DRONES</span> : null}
         <div className="dock-caption">
           <span className="dock-label">WEAPONS</span>
-          <button
-            type="button"
-            className={`autofire${game.autofireAll ? " is-on" : ""}`}
-            aria-pressed={!!game.autofireAll}
-            onClick={() => act((g) => toggleAutoAll(g))}
-          >
-            AUTOFIRE
-          </button>
         </div>
       </div>
       <div className="sub-dock">

@@ -5260,3 +5260,195 @@ button.modal-x.modal-x:focus-visible {
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
+
+/* Per the user: reworked ship sheet tabs (UpgradeList, CrewManifest, CargoList). INVENTED look throughout. */
+.ship-tab-panel .upgrade-list,
+.ship-tab-panel .manifest,
+.ship-tab-panel .cargo-list { gap: 14px; }
+
+.sheet-group { display: flex; flex-direction: column; gap: 8px; }
+
+.sheet-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  border-bottom: 1px solid var(--color-line-dim);
+  padding-bottom: 4px;
+}
+
+.sheet-group-head .mini { text-transform: none; font-size: 13px; }
+
+/* Upgrades: a grid that fills the panel; the reactor takes two cards' width. */
+.ship-tab-panel .upgrade-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 10px;
+}
+
+.ship-tab-panel .upgrade-cards > .reactor-total { width: auto; }
+.ship-tab-panel .upgrade-cards > .reactor-total:not(.upgrade-card) { grid-column: span 2; }
+.ship-tab-panel .upgrade-card { width: auto; }
+.ship-tab-panel .upgrade-card-next { min-height: 4.2em; }
+
+.ship-tab-panel .reactor-total-foot { align-items: center; }
+
+.upg-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 2px 10px;
+  font-family: var(--font-hud);
+  font-size: 18px;
+  color: var(--color-ink);
+  background: var(--color-ok);
+  border: 2px solid #b6ff6a;
+  border-radius: var(--radius);
+}
+
+.upg-buy:not(:disabled):hover { filter: brightness(1.1); }
+
+.upg-buy.is-short {
+  color: var(--color-muted);
+  background: transparent;
+  border-color: var(--color-line-dim);
+  cursor: default;
+}
+
+.upg-max {
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+/* Crew: cards two to a row. */
+.ship-tab-panel .manifest {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+  gap: 10px;
+}
+
+.ship-tab-panel .manifest-card { gap: 10px; padding: 10px 12px 12px; }
+
+.manifest-head { display: flex; align-items: center; gap: 12px; }
+
+.manifest-face {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+}
+
+.manifest-id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.ship-tab-panel .manifest-id input {
+  flex: none;
+  height: 36px;
+  min-height: 36px;
+  min-width: 0;
+  width: 100%;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+}
+
+.manifest-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.manifest-hp {
+  flex: 1;
+  max-width: 160px;
+  height: 8px;
+  background: #3a1d1d;
+}
+
+.manifest-hp i { display: block; height: 100%; background: var(--color-ok); }
+.manifest-hp.is-low i { background: var(--color-danger); }
+
+.ship-tab-panel .manifest-dismiss { align-self: flex-start; margin-left: 0; }
+
+.ship-tab-panel .skill-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 14px;
+}
+
+/* Inventory: numbered slots. */
+.cargo-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.cargo-slot {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
+  min-height: 64px;
+  padding: 8px 12px 8px 30px;
+  text-align: left;
+  color: var(--color-fg);
+  background: #14110e;
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+}
+
+button.cargo-slot { cursor: grab; }
+button.cargo-slot:hover { border-color: var(--color-line); }
+
+.cargo-slot-n {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  font-style: normal;
+  font-family: var(--font-hud);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.cargo-art { grid-row: 1 / span 2; display: grid; place-items: center; min-width: 44px; }
+.cargo-name { font-family: var(--font-hud); font-size: 18px; letter-spacing: 0.04em; }
+
+.cargo-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.cargo-stats > span { display: inline-flex; align-items: center; gap: 3px; }
+
+.cargo-slot.is-empty {
+  display: flex;
+  justify-content: center;
+  border-style: dashed;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-line-dim);
+}
+
+.cargo-slot.is-aug { grid-template-columns: 1fr; padding-left: 12px; }
+.cargo-detail { font-family: var(--font-mono); font-size: 12px; line-height: 1.35; color: var(--color-muted); }

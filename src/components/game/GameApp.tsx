@@ -3079,23 +3079,47 @@ function ReactorTotal({ game }: { game: Game }) {
         ))}
       </div>
       <div className="reactor-total-foot">
-        <span>Power bars</span>
-        {cost != null ? (
-          <button
-            type="button"
-            className="text-btn"
-            data-upgrade="reactor"
-            disabled={game.scrap < cost}
-            aria-label={`Upgrade Reactor for ${cost}`}
-            onClick={() => act((g) => upgrade(g, "reactor"))}
-          >
-            {cost}
-          </button>
-        ) : (
-          <span className="mini">Cap 25.</span>
-        )}
+        <span>
+          {owned}/{REACTOR_CAP}
+        </span>
+        <BuyButton game={game} cost={cost} name="Reactor" upgradeKey="reactor" onBuy={() => act((g) => upgrade(g, "reactor"))} />
       </div>
     </section>
+  );
+}
+
+/**
+ * Per the user (reworked upgrade cards): the price is a button with the scrap icon, dim when you are short; a maxed
+ * system shows MAX in its place. INVENTED look.
+ */
+function BuyButton({
+  game,
+  cost,
+  name,
+  upgradeKey,
+  onBuy,
+}: {
+  game: Game;
+  cost: number | null | undefined;
+  name: string;
+  upgradeKey: string;
+  onBuy: (() => void) | null;
+}) {
+  if (cost == null || !onBuy) return <span className="upg-max">MAX</span>;
+  const short = game.scrap < cost;
+  return (
+    <button
+      type="button"
+      className={`upg-buy${short ? " is-short" : ""}`}
+      data-upgrade={upgradeKey}
+      disabled={short}
+      aria-label={`Upgrade ${name} for ${cost} scrap`}
+      title={short ? `Needs ${cost - game.scrap} more scrap` : `Upgrade for ${cost} scrap`}
+      onClick={onBuy}
+    >
+      <PixelIcon name="scrap" size={14} />
+      {cost}
+    </button>
   );
 }
 
@@ -3128,23 +3152,13 @@ function UpgradeCard({ game, row }: { game: Game; row: UpgradeRow }) {
         <span>
           {row.level}/{top}
         </span>
-        {row.cost != null && row.buy ? (
-          <button
-            type="button"
-            className="text-btn"
-            data-upgrade={row.key}
-            disabled={game.scrap < row.cost}
-            aria-label={`Upgrade ${row.name} for ${row.cost}`}
-            onClick={() => {
-              const buy = row.buy;
-              if (buy) act(buy);
-            }}
-          >
-            {row.cost}
-          </button>
-        ) : (
-          <span className="mini">Max</span>
-        )}
+        <BuyButton
+          game={game}
+          cost={row.cost}
+          name={row.name}
+          upgradeKey={row.key}
+          onBuy={row.buy ? () => act(row.buy!) : null}
+        />
       </div>
     </section>
   );
@@ -3154,23 +3168,29 @@ function UpgradeList({ game }: { game: Game }) {
   const rows = upgradeRows(game).filter((row) => row.key !== "reactor");
   const systems = rows.filter((row) => !row.subsystem);
   const subsystems = rows.filter((row) => row.subsystem);
+  // Per the user (reworked): headed groups on a grid that fills the panel; the reactor spans two cards.
   return (
     <div className="upgrade-list">
-      <div className="upgrade-cards">
-        <ReactorTotal game={game} />
-        {systems.map((row) => (
-          <UpgradeCard key={row.key} game={game} row={row} />
-        ))}
-      </div>
+      <section className="sheet-group">
+        <h3 className="sheet-group-head">Reactor &amp; systems</h3>
+        <div className="upgrade-cards">
+          <ReactorTotal game={game} />
+          {systems.map((row) => (
+            <UpgradeCard key={row.key} game={game} row={row} />
+          ))}
+        </div>
+      </section>
       {subsystems.length ? (
-        <>
-          <p className="mini sheet-note">Subsystems need no reactor power.</p>
+        <section className="sheet-group">
+          <h3 className="sheet-group-head">
+            Subsystems <span className="mini">No reactor power needed.</span>
+          </h3>
           <div className="upgrade-cards">
             {subsystems.map((row) => (
               <UpgradeCard key={row.key} game={game} row={row} />
             ))}
           </div>
-        </>
+        </section>
       ) : null}
       <p className="mini sheet-note">Systems you do not have, and hull repair, are bought at a store.</p>
     </div>
@@ -3211,6 +3231,10 @@ function SkillBars({ crew }: { crew: Crew }) {
   );
 }
 
+/**
+ * Per the user (reworked): one card per crew member, two to a row. Portrait, editable name, kin and a health bar on
+ * top with Dismiss (confirmed inline); the six skills below in a 3 by 2 grid. INVENTED layout.
+ */
 function CrewManifest({ game }: { game: Game }) {
   const [confirm, setConfirm] = useState<string | null>(null);
   const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
@@ -3219,37 +3243,45 @@ function CrewManifest({ game }: { game: Game }) {
     <div className="manifest">
       {crew.map((c) => {
         const may = canDismiss(game, c.id);
+        const hp = Math.max(0, Math.min(1, c.hp / Math.max(1, c.maxHp)));
         return (
-          <div key={c.id} className="manifest-card">
-            <div className="manifest-row">
-              <i className="token is-sprite">
-                <CrewFace crew={c} size={16} />
-              </i>
-              <input
-                aria-label={`Crew name ${c.name}`}
-                value={c.name}
-                maxLength={NAME_MAX}
-                autoComplete="off"
-                onChange={(e) => {
-                  const value = e.target.value.slice(0, NAME_MAX);
-                  act((g) => {
-                    const body = g.crew.find((x) => x.id === c.id);
-                    if (body) body.name = value;
-                  });
-                }}
-                onBlur={() => {
-                  act((g) => {
-                    const living = g.crew.filter((x) => x.side === "player");
-                    const body = living.find((x) => x.id === c.id);
-                    if (!body) return;
-                    body.name = cleanName(body.name, Math.max(0, living.indexOf(body)));
-                  });
-                }}
-              />
-              <span className="mini">{kinLabel(c.kin)}</span>
-              <span className="mini">
-                {Math.ceil(c.hp)} / {c.maxHp}
+          <article key={c.id} className="manifest-card">
+            <header className="manifest-head">
+              <span className="manifest-face" aria-hidden="true">
+                <CrewFace crew={c} size={40} />
               </span>
+              <div className="manifest-id">
+                <input
+                  aria-label={`Crew name ${c.name}`}
+                  value={c.name}
+                  maxLength={NAME_MAX}
+                  autoComplete="off"
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, NAME_MAX);
+                    act((g) => {
+                      const body = g.crew.find((x) => x.id === c.id);
+                      if (body) body.name = value;
+                    });
+                  }}
+                  onBlur={() => {
+                    act((g) => {
+                      const living = g.crew.filter((x) => x.side === "player");
+                      const body = living.find((x) => x.id === c.id);
+                      if (!body) return;
+                      body.name = cleanName(body.name, Math.max(0, living.indexOf(body)));
+                    });
+                  }}
+                />
+                <span className="manifest-meta">
+                  <span>{kinLabel(c.kin)}</span>
+                  <span className={`manifest-hp${hp < 0.35 ? " is-low" : ""}`} aria-label={`Health ${Math.ceil(c.hp)} of ${c.maxHp}`}>
+                    <i style={{ width: `${hp * 100}%` }} />
+                  </span>
+                  <span>
+                    {Math.ceil(c.hp)}/{c.maxHp}
+                  </span>
+                </span>
+              </div>
               {confirm === c.id ? null : (
                 <button
                   type="button"
@@ -3262,7 +3294,7 @@ function CrewManifest({ game }: { game: Game }) {
                   Dismiss
                 </button>
               )}
-            </div>
+            </header>
             {confirm === c.id ? (
               <div className="manifest-confirm" role="alertdialog" aria-label={`Dismiss ${c.name}?`}>
                 <span>Dismiss {c.name}? They leave the ship for good.</span>
@@ -3285,13 +3317,18 @@ function CrewManifest({ game }: { game: Game }) {
               </div>
             ) : null}
             <SkillBars crew={c} />
-          </div>
+          </article>
         );
       })}
     </div>
   );
 }
 
+/**
+ * Per the user (reworked): three headed groups of slots. Weapons fill numbered slots up to the ship's cap (empty ones
+ * dashed) with each gun's art, power, charge and damage; drone schematics; three augment slots with their effect
+ * (Augmentations: "Your ship can have only up to three augmentations"). Weapons and drones still drag to reorder.
+ */
 function CargoList({
   game,
   guns,
@@ -3302,64 +3339,134 @@ function CargoList({
   drones: ReturnType<typeof useTrayDrag>;
 }) {
   const slots = playerDroneSlots(game.player.kits.swarm);
+  const gunCap = Math.max(weaponSlotCap(game), game.player.weapons.length);
+  const augCap = Math.max(3, game.augments.length);
   return (
     <div className="cargo-list">
-      <p className="mini">Drag a weapon or a drone schematic to change its order.</p>
-      {game.player.weapons.length === 0 ? <p className="mini">No weapons mounted.</p> : null}
-      {game.player.weapons.map((w, index) => {
-        const name = WEAPONS[w.defId]?.name ?? w.defId;
-        const dragging = guns.from === index;
-        const drop = guns.over === index && guns.from !== index;
-        return (
-          <button
-            key={w.uid}
-            type="button"
-            data-tray="sheet-weapons"
-            data-slot={index}
-            className={`btn-ghost sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-            aria-label={`${name}, slot ${index + 1}`}
-            onPointerDown={(e) => guns.onPointerDown(index, e)}
-            onPointerMove={guns.onPointerMove}
-            onPointerUp={guns.onPointerUp}
-            onClickCapture={guns.onClickCapture}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            <WeaponArt id={w.defId} height={24} />
-            <span>{name}</span>
-          </button>
-        );
-      })}
-      {slots.length === 0 ? <p className="mini">No drone schematics.</p> : null}
-      {slots.map((kind, index) => {
-        const key = droneKeyOf(kind);
-        const name = key ? DRONE_LOOKS[key].name : kind;
-        const dragging = drones.from === index;
-        const drop = drones.over === index && drones.from !== index;
-        return (
-          <button
-            key={`${kind}-${index}`}
-            type="button"
-            data-tray="sheet-drones"
-            data-slot={index}
-            className={`btn-ghost sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
-            aria-label={`${name}, drone slot ${index + 1}`}
-            onPointerDown={(e) => drones.onPointerDown(index, e)}
-            onPointerMove={drones.onPointerMove}
-            onPointerUp={drones.onPointerUp}
-            onClickCapture={drones.onClickCapture}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            {key ? <DroneArt kind={key} height={20} /> : null}
-            <span>{name}</span>
-          </button>
-        );
-      })}
-      {game.augments.length === 0 ? <p className="mini">No augments.</p> : null}
-      {game.augments.map((id) => (
-        <p key={id} className="mini">
-          {CATALOG.find((row) => row.id === id)?.name ?? id}
-        </p>
-      ))}
+      <section className="sheet-group">
+        <h3 className="sheet-group-head">
+          Weapons{" "}
+          <span className="mini">
+            {game.player.weapons.length}/{gunCap} slots. Drag to change the order.
+          </span>
+        </h3>
+        <div className="cargo-slots">
+          {Array.from({ length: gunCap }, (_, index) => {
+            const w = game.player.weapons[index];
+            if (!w) {
+              return (
+                <div key={`empty-${index}`} className="cargo-slot is-empty">
+                  <em className="cargo-slot-n">{index + 1}</em>
+                  <span>Empty</span>
+                </div>
+              );
+            }
+            const def = WEAPONS[w.defId];
+            const name = def?.name ?? w.defId;
+            const dragging = guns.from === index;
+            const drop = guns.over === index && guns.from !== index;
+            return (
+              <button
+                key={w.uid}
+                type="button"
+                data-tray="sheet-weapons"
+                data-slot={index}
+                className={`cargo-slot sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                aria-label={`${name}, slot ${index + 1}`}
+                onPointerDown={(e) => guns.onPointerDown(index, e)}
+                onPointerMove={guns.onPointerMove}
+                onPointerUp={guns.onPointerUp}
+                onClickCapture={guns.onClickCapture}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <em className="cargo-slot-n">{index + 1}</em>
+                <span className="cargo-art">
+                  <WeaponArt id={w.defId} height={28} />
+                </span>
+                <span className="cargo-name">{name}</span>
+                {def ? (
+                  <span className="cargo-stats">
+                    <span title="Power">
+                      <PixelIcon name="weapons" size={12} />
+                      {def.power}
+                    </span>
+                    <span title="Charge time">{def.charge}s</span>
+                    {def.damage > 0 ? <span title="Damage per shot">{def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg</span> : null}
+                    {def.ammo ? (
+                      <span title="Uses a missile">
+                        <PixelIcon name="missile" size={12} />
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+      <section className="sheet-group">
+        <h3 className="sheet-group-head">Drones</h3>
+        {!game.player.kits.swarm ? (
+          <p className="mini">No Drone Control system.</p>
+        ) : slots.length === 0 ? (
+          <p className="mini">No drone schematics.</p>
+        ) : (
+          <div className="cargo-slots">
+            {slots.map((kind, index) => {
+              const key = droneKeyOf(kind);
+              const name = key ? DRONE_LOOKS[key].name : kind;
+              const dragging = drones.from === index;
+              const drop = drones.over === index && drones.from !== index;
+              return (
+                <button
+                  key={`${kind}-${index}`}
+                  type="button"
+                  data-tray="sheet-drones"
+                  data-slot={index}
+                  className={`cargo-slot sheet-slot${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                  aria-label={`${name}, drone slot ${index + 1}`}
+                  onPointerDown={(e) => drones.onPointerDown(index, e)}
+                  onPointerMove={drones.onPointerMove}
+                  onPointerUp={drones.onPointerUp}
+                  onClickCapture={drones.onClickCapture}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  <em className="cargo-slot-n">{index + 1}</em>
+                  <span className="cargo-art">{key ? <DroneArt kind={key} height={24} /> : null}</span>
+                  <span className="cargo-name">{name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+      <section className="sheet-group">
+        <h3 className="sheet-group-head">
+          Augments{" "}
+          <span className="mini">
+            {game.augments.length}/{augCap}
+          </span>
+        </h3>
+        <div className="cargo-slots">
+          {Array.from({ length: augCap }, (_, index) => {
+            const id = game.augments[index];
+            if (!id) {
+              return (
+                <div key={`aug-empty-${index}`} className="cargo-slot is-empty">
+                  <span>Empty</span>
+                </div>
+              );
+            }
+            const row = CATALOG.find((r) => r.id === id);
+            return (
+              <div key={`${id}-${index}`} className="cargo-slot is-aug">
+                <span className="cargo-name">{row?.name ?? id}</span>
+                {row?.detail ? <span className="cargo-detail">{row.detail}</span> : null}
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

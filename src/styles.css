@@ -5828,15 +5828,21 @@ body.page-turn-180 {
 
 /* Per the user: whenever the clock is stopped (any pause; sim.ts halted) the game is slightly dimmed. The PAUSED mark,
    menus and cards stay at full brightness. */
-.play-root .play > .stage-slot,
+.play-root .play > .stage-slot > :not(.sector-map):not(.map-wait),
 .play-root .play > .crew-rail,
 .play-root .play > .target-panel,
 .play-root .play > .dock,
 .play-root .play > .fx-canvas,
 .play-root .hud > :not(.hud-mid) { transition: filter 0.15s; }
-.play-root.is-halted .play > .stage-slot,
+.play-root.is-halted .play > .stage-slot > :not(.sector-map):not(.map-wait),
 .play-root.is-halted .play > .crew-rail,
 .play-root.is-halted .play > .target-panel,
 .play-root.is-halted .play > .dock,
 .play-root.is-halted .play > .fx-canvas,
 .play-root.is-halted .hud > :not(.hud-mid) { filter: brightness(0.72); }
+
+/* Per the user: the beacon map is not dimmed, and nothing on the ship shows through it. Animated terminal screens are
+   their own compositing layers and iOS drew them over the map; they are hidden while the map is open (they sit under
+   it anyway), and the map gets its own layer. */
+.stage-slot > .beacon-map { isolation: isolate; transform: translateZ(0); }
+.stage-slot:has(> .beacon-map) .room-terminal { visibility: hidden; }

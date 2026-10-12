@@ -3633,6 +3633,56 @@ export function crewBlowDamage(g: Game): number {
   return 3 + rand(g) * 4;
 }
 
+/**
+ * The Medbay's heal on one room, in a fight (life) and out of one (step's idle path): Medbay, "Overview" heals
+ * "friendly crewmembers standing inside or moving through the room" whenever it is powered, not only in combat.
+ */
+function healMedbay(g: Game, ship: Ship, aboard: "player" | "enemy", r: Room, dt: number) {
+  if (r.system !== "medbay") return;
+  const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
+  // Mind Control, "Overview": the Medbay heals only crew on its own side (see life).
+  const withUs = (c: Crew) => sideOf(c) === friends;
+  const pals = g.crew.filter(
+    (c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0 && withUs(c) && (c.stun ?? 0) <= 0,
+  );
+  // Idle crew past the standing spots do not heal (medicalLimit).
+  const fixing = pals.slice().sort(byFile).slice(0, medicalLimit(r, aboard, interiorLinks(ship.doors, r.id)));
+  // Medbay: level 1 heals at 6.4 HP/s, level 2 at 9.6, level 3 at 19.2.
+  // Medbay page: level 1 equals the suffocation rate, so an airless level 1 bay negates a full-rate human
+  // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
+  // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.
+  // Slug hacker (medical): "Medbay / Clone Bay offline". The enemy medbay still heals.
+  // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders ... Lv1 Medbay can't
+  // out-heal Mantis combat damage", so it heals through a fight. Fires: an "operational Medbay on fire" is
+  // "capable of healing the crew more than the fire damaging them", so it heals while burning.
+  if (
+    mainBars(g, ship, aboard, "medbay") > 0 &&
+    !(aboard === "player" && playerMedicalOff(g))
+  ) {
+    const powered = mainBars(g, ship, aboard, "medbay");
+    const rate = powered >= 3 ? 19.2 : powered >= 2 ? 9.6 : 6.4;
+    // Idle crew heal only up to the standing spots. Crew ordered through the room heal while they are in it,
+    // which is how a 2-spot corner bay heals a third and fourth body.
+    const through = g.crew.filter(
+      (c) =>
+        c.aboard === aboard &&
+        c.room === r.id &&
+        c.hp > 0 &&
+        c.path.length > 0 &&
+        withUs(c) &&
+        (c.stun ?? 0) <= 0,
+    );
+    const healing: Crew[] = [];
+    const seen = new Set<string>();
+    for (const c of [...fixing, ...through]) {
+      if (seen.has(c.id)) continue;
+      seen.add(c.id);
+      healing.push(c);
+    }
+    for (const c of healing) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
+  }
+}
+
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
@@ -3736,41 +3786,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
       log(g, `${r.title} leak sealed.`);
     }
     spreadFire(g, ship, r, closedSlow, dt);
-    // Medbay: level 1 heals at 6.4 HP/s, level 2 at 9.6, level 3 at 19.2.
-    // Medbay page: level 1 equals the suffocation rate, so an airless level 1 bay negates a full-rate human
-    // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
-    // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.
-    // Slug hacker (medical): "Medbay / Clone Bay offline". The enemy medbay still heals.
-    // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders ... Lv1 Medbay can't
-    // out-heal Mantis combat damage", so it heals through a fight. Fires: an "operational Medbay on fire" is
-    // "capable of healing the crew more than the fire damaging them", so it heals while burning.
-    if (
-      mainBars(g, ship, aboard, "medbay") > 0 &&
-      r.system === "medbay" &&
-      !(aboard === "player" && playerMedicalOff(g))
-    ) {
-      const powered = mainBars(g, ship, aboard, "medbay");
-      const rate = powered >= 3 ? 19.2 : powered >= 2 ? 9.6 : 6.4;
-      // Idle crew heal only up to the standing spots. Crew ordered through the room heal while they are in it,
-      // which is how a 2-spot corner bay heals a third and fourth body.
-      const through = g.crew.filter(
-        (c) =>
-          c.aboard === aboard &&
-          c.room === r.id &&
-          c.hp > 0 &&
-          c.path.length > 0 &&
-          withUs(c) &&
-          (c.stun ?? 0) <= 0,
-      );
-      const healing: Crew[] = [];
-      const seen = new Set<string>();
-      for (const c of [...fixing, ...through]) {
-        if (seen.has(c.id)) continue;
-        seen.add(c.id);
-        healing.push(c);
-      }
-      for (const c of healing) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
-    }
+    healMedbay(g, ship, aboard, r, dt);
     // Oxygen: at 5% or less, crew lose 6.4 HP per second, scaled per crew (Emergency Respirators, then kin).
     if (r.o2 <= 5) suffocatePresent(g, present, dt);
     else burnIntruders(r, foes, dt);
@@ -6485,6 +6501,8 @@ export function step(g: Game, dt: number) {
         tickIdleFires(g, h);
         // A room order is taken on the map. Without this step the walker stays on the current room's center.
         moveCrew(g, h);
+        // Medbay, "Overview": a powered Medbay heals out of a fight too.
+        for (const r of g.player.rooms) healMedbay(g, g.player, "player", r, h);
         suffocateShip(g, g.player, "player", h);
         tickLanius(g, h);
         finishIdleDeaths(g);

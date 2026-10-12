@@ -150,6 +150,23 @@ describe("crew room orders", () => {
     assert.equal(nen.room, "p-medbay");
   });
 
+  it("heals out of a fight too, once the medbay has power", () => {
+    // Medbay, "Overview": it heals friendly crew in the room whenever it is powered.
+    const g = createGame(3, "kestrel-a");
+    g.phase = "map";
+    g.paused = false;
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const c = g.crew.find((x) => x.side === "player")!;
+    c.room = bay.id;
+    c.path = [];
+    delete c.tile;
+    c.hp = 40;
+    g.player.systems.weapons.power -= 1;
+    g.player.systems.medbay.power = 1;
+    for (let i = 0; i < 20; i++) step(g, 0.05);
+    assert.ok(Math.abs(c.hp - (40 + 6.4)) < 1e-6, String(c.hp));
+  });
+
   it("heals in a burning medbay and through a fight with a boarder", () => {
     // Fires: an "operational Medbay on fire" is "capable of healing the crew more than the fire damaging them".
     // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders".

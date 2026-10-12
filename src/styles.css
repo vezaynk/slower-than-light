@@ -5909,3 +5909,6 @@ body.page-turn-180 {
 .sub-bars b.is-hurting {
   background-image: linear-gradient(to right, var(--color-danger) var(--hurt, 0%), transparent var(--hurt, 0%));
 }
+
+/* hulls.ts `unfitted`: a drone the layout names but this build does not fly (Hangar). INVENTED dimming. */
+.hangar-slot.is-unfitted { opacity: 0.45; }

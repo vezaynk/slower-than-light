@@ -30,7 +30,7 @@ import { iconForName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
 import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
-import { hangarSheet } from "@/game/wiki/hangar-sheet";
+import { hangarSheet, orderByIds } from "@/game/wiki/hangar-sheet";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds } from "@/game/wiki/achievement-track";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
@@ -80,10 +80,6 @@ function seatsOf(layoutId: string, races: string[]): KinId[] {
 function weaponPower(name: string) {
   const id = weaponIdForName(name);
   return id ? (WEAPONS[id]?.power ?? null) : null;
-}
-
-function absentDrones(lines: string[]) {
-  return lines.length === 0 || lines.every((line) => /^none \(/i.test(line));
 }
 
 /** @agent:unlocks. Server render and first paint: only the start ship. The client store takes over after hydration. */
@@ -142,10 +138,20 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
     useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty], picks);
   }
 
-  const droneNames = sheet.drones.filter((line) => !/^none \(/i.test(line));
-  const dronesOut = absentDrones(sheet.drones);
+  // Per the user: weapon cards follow the slot order the run mounts (hulls.ts via hangarLoadout), so the cards and the
+  // guns drawn on the hull agree. hangarSheet already drops the "none" placeholder lines.
+  const weaponNames = orderByIds(
+    sheet.weapons,
+    preview.ship.weapons.map((weapon) => weapon.defId),
+    weaponIdForName,
+  );
+  const droneNames = sheet.drones;
+  // The layout's Systems list decides "system not installed", not the Drones placeholder line.
+  const dronesOut = !sheet.droneSystem;
+  const unfitted = new Set(hullById(layout.id)?.unfitted ?? []);
   const emptyWeapons =
-    sheet.weaponSlots != null ? Math.max(0, sheet.weaponSlots - sheet.weapons.length) : 0;
+    sheet.weaponSlots != null ? Math.max(0, sheet.weaponSlots - weaponNames.length) : 0;
+  const emptyDrones = sheet.droneSlots != null ? Math.max(0, sheet.droneSlots - droneNames.length) : 0;
   const emptyAugments = Math.max(0, 3 - sheet.augments.length);
 
   return (
@@ -411,7 +417,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
           <section className="hangar-panel">
             <h2>{tx("ui.Hangar.weapons")}</h2>
             <div className="hangar-slots">
-              {sheet.weapons.map((weapon, index) => {
+              {weaponNames.map((weapon, index) => {
                 const power = weaponPower(weapon);
                 return (
                   <article key={`${weapon}-${index}`} className="hangar-slot">
@@ -444,11 +450,23 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               <p className="hangar-absent">{tx("ui.Hangar.system-not-installed")}</p>
             ) : (
               <div className="hangar-slots">
-                {droneNames.map((drone, index) => (
-                  <article key={`${drone}-${index}`} className="hangar-slot">
-                    <DroneArt kind={droneKeyForName(drone)} height={32} />
-                    <p>{drone}</p>
-                  </article>
+                {droneNames.map((drone, index) => {
+                  // hulls.ts `unfitted`: named on the layout, but this build does not fly it (The Engi Cruiser, Layout B:
+                  // Anti-Personnel Drone). The card stays, dimmed, so the bay matches what the run can deploy.
+                  const out = unfitted.has(drone);
+                  return (
+                    <article
+                      key={`${drone}-${index}`}
+                      className={`hangar-slot${out ? " is-unfitted" : ""}`}
+                      title={out ? tx("ui.Hangar.not-fitted-in-this-build") : undefined}
+                    >
+                      <DroneArt kind={droneKeyForName(drone)} height={32} />
+                      <p>{drone}</p>
+                    </article>
+                  );
+                })}
+                {Array.from({ length: emptyDrones }, (_, index) => (
+                  <article key={`drone-empty-${index}`} className="hangar-slot is-empty" />
                 ))}
               </div>
             )}

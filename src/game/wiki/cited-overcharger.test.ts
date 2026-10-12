@@ -357,7 +357,9 @@ describe("Shield Overcharger +", () => {
     // The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
     // One spare reactor bar cannot feed its 2 power, so the slot stays unpowered. INFERRED.
     assert.equal(spec.unfitted.includes("Shield Overcharger +"), false);
-    assert.ok(spec.unfitted.includes("Anti-Drone"));
+    // Starting Drones also lists Anti-Drone (Anti-Combat Drone). It is fitted as the second schematic.
+    assert.equal(spec.unfitted.includes("Anti-Drone"), false);
+    assert.deepEqual(spec.kits.swarm?.loadout, ["overchargerplus", "wardcut"]);
     assert.equal(spec.kits.swarm?.target, "overchargerplus");
     assert.equal(spec.kits.swarm?.power, 0);
     const simo = createGame(19, "stealth-c");

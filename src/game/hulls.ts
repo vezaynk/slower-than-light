@@ -859,7 +859,9 @@ export const HULLS: HullSpec[] = [
    * The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
    * Drone Control is level 2. Engines 3 + oxygen 1 + weapons 2 = 6, and the reactor is 7.
    * Shield Overcharger + needs 2 power. One spare bar cannot feed it, so power stays 0. INFERRED.
-   * Anti-Drone is still a name only. It stays unfitted.
+   * Starting Drones also lists Anti-Drone, the Anti-Combat Drone: Wiki page "Drone Control",
+   * Combat Drone Mark II notes, "Anti-Combat Drone ... when playing Stealth C" (gear-look.ts "anti-drone" -> wardcut). Both
+   * schematics are fitted as the loadout. INFERRED: the player kit flies one drone at a time (extras/swarm.ts deploy).
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
@@ -892,10 +894,11 @@ export const HULLS: HullSpec[] = [
     ],
     kits: {
       cradle: { level: 1, power: 0 },
-      swarm: { level: 2, power: 0, target: "overchargerplus" },
+      // Wiki page "The Stealth Cruiser", section "Layout C": Starting Drones: Shield Overcharger +, Anti-Drone.
+      swarm: { level: 2, power: 0, target: "overchargerplus", loadout: ["overchargerplus", "wardcut"] },
     },
     augments: ["glass"],
-    unfitted: ["Anti-Drone"],
+    unfitted: [],
   },
   /**
    * Wiki page "The Lanius Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.

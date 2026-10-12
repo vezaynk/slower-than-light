@@ -87,15 +87,16 @@ export const MANTIS_HULLS: HullSpec[] = [
       { kin: "blade", room: "p-engines" },
     ],
     kits: {
-      // Wiki page "The Mantis Cruiser", section "Layout B": Drones (3). Boarding Drone takes the one schematic slot and 3 power.
-      swarm: { level: 3, power: 3, target: "board" },
+      // Wiki page "The Mantis Cruiser", section "Layout B": Drones (3); Starting Drones: Boarding Drone, Defense Drone I.
+      // Both schematics are fitted (loadout). Boarding Drone is the one deployed first and takes the 3 power. INFERRED:
+      // the player kit flies one drone at a time (extras/swarm.ts deploy), so Defense Drone I is a switch, not a second flyer.
+      swarm: { level: 3, power: 3, target: "board", loadout: ["board", "ward"] },
       // Wiki page "The Mantis Cruiser", section "Layout B": Teleporter (1).
       // The empty weapon bar is left off so this pad can take one bar. INFERRED.
       sling: { level: 1, power: 1 },
     },
     augments: ["pheromone"],
-    // Defense Drone I does not fit in the single schematic slot.
-    unfitted: [tx("wiki.hulls-mantis.defense-drone-i")],
+    unfitted: [],
   },
   {
     id: "mantis-c",

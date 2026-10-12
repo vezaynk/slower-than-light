@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { CRUISER_PAGES } from "./layout-pages.ts";
-import { hangarSheet, layoutNeedsAe } from "./hangar-sheet.ts";
+import { hangarSheet, layoutNeedsAe, orderByIds } from "./hangar-sheet.ts";
 
 const layouts = CRUISER_PAGES.flatMap((page) => page.layouts);
 
@@ -31,7 +31,9 @@ describe("hangar sheet", () => {
     );
     assert.deepEqual(row.weapons, ["Artemis Missiles", "Burst Laser II"]);
     assert.equal(row.weaponSlots, 4);
-    assert.deepEqual(row.drones, ["none (system not installed)"]);
+    // "none (system not installed)" is the empty bay, not a drone.
+    assert.deepEqual(row.drones, []);
+    assert.equal(row.droneSystem, false);
     assert.deepEqual(row.augments, []);
     assert.equal(
       row.unlock[0],
@@ -46,7 +48,8 @@ describe("hangar sheet", () => {
     assert.deepEqual(row.weapons, ["Ion Charger"]);
     assert.equal(row.systems.find((system) => system.name === "Weapons")?.level, 2);
     assert.equal(row.systems.find((system) => system.name === "Drones")?.level, 3);
-    assert.deepEqual(row.drones, ["none (requires system)", "Anti-Ship Beam Drone I"]);
+    assert.deepEqual(row.drones, ["Anti-Ship Beam Drone I"]);
+    assert.equal(row.droneSystem, true);
     assert.deepEqual(row.augments, ["Zoltan Shield"]);
   });
 
@@ -68,6 +71,18 @@ describe("hangar sheet", () => {
     const slug = sheet("slug-c");
     assert.equal(slug.defaultName, "Ariolimax");
     assert.deepEqual(slug.crew, ["Slug", "Slug", "Slug"]);
+  });
+
+  it("draws no card for a Weapons: none line, and reads bare Unlock headings", () => {
+    // "The Federation Cruiser", Layout C (The Fregatidae) and "The Crystal Cruiser", Layout B print Weapons: none.
+    assert.deepEqual(sheet("fed-c").weapons, []);
+    assert.deepEqual(sheet("crystal-b").weapons, []);
+    assert.equal(sheet("fed-c").weaponSlots, 4);
+    // "The Lanius Cruiser", Layout A: "Unlock" then "Unlock 4 ships (Excluding The Kestrel) to unlock this ship."
+    assert.deepEqual(sheet("lanius-a").unlock, ["Unlock 4 ships (Excluding The Kestrel) to unlock this ship."]);
+    // "The Mantis Cruiser", Layout C: the "Notes:" line is not an unlock line.
+    assert.equal(sheet("mantis-c").unlock.length, 1);
+    assert.deepEqual(orderByIds(["a1", "b1", "a2"], ["b", "a"], (name) => name[0]), ["b1", "a1", "a2"]);
   });
 
   it("marks Advanced Edition only where that layout's lines say so", () => {

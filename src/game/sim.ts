@@ -2111,9 +2111,13 @@ function drainOffline(w: WeaponInst, dt: number) {
 }
 
 /**
- * Per the user: guns do not charge out of a fight (after a battle they keep what they had). An unpowered one still
- * drains (Weapon Depower Delay, above). A jump resets them to zero and the Weapon Pre-Igniter then primes the powered
- * ones (onPlayerJump; Augmentations, Weapon Pre-Igniter: "Weapons are made immediately available after an FTL jump").
+ * Guns do not charge out of a fight; after a battle they keep what they had. Per the user (confirmed): no wiki line
+ * states this outright. The nearest the wiki comes: Augmentations, Weapon Pre-Igniter, "Weapons are made immediately
+ * available after an FTL jump", and Weapon Control, "Weapons can get a full charge with Weapon Pre-Igniter
+ * augmentation, when player's ship arrives at the next beacon", both of which only make sense if guns arrive
+ * uncharged; that is the jump reset in onPlayerJump.
+ * An unpowered gun still drains here: Game patches, "Weapon Depower Delay" ("After removing or losing power a weapon
+ * will quickly lose its charge over time"), see drainOffline above.
  */
 function chargeIdleWeapons(g: Game, dt: number) {
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));

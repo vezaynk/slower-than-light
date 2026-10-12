@@ -91,7 +91,10 @@ export function onPlayerJump(g: Game) {
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
   onCradleJump(g);
-  // Per the user: weapons start at zero after a jump; the Weapon Pre-Igniter then primes the powered ones.
+  // Weapons arrive at a beacon uncharged, then the Weapon Pre-Igniter primes the powered ones. Augmentations, Weapon
+  // Pre-Igniter: "Weapons are made immediately available after an FTL jump"; "Only works for weapons that were powered
+  // from the previous beacon". Weapon Control: "Weapons can get a full charge with Weapon Pre-Igniter augmentation, when
+  // player's ship arrives at the next beacon".
   for (const w of g.player.weapons) {
     w.charge = 0;
     if (w.loaded) w.loaded = 0;

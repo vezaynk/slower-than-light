@@ -3,8 +3,10 @@ import { describe, it } from "node:test";
 import { onPlayerJump } from "./extras/index.ts";
 import { createGame, startCombat, step } from "./sim.ts";
 
-// Per the user: weapons do not charge out of a fight, start at zero after a jump, and the Weapon Pre-Igniter primes them
-// (Augmentations, Weapon Pre-Igniter: "Weapons are made immediately available after an FTL jump").
+// Guns do not charge out of a fight (per the user; no wiki line states it), start at zero after a jump, and the Weapon
+// Pre-Igniter primes them (Augmentations, Weapon Pre-Igniter: "Weapons are made immediately available after an FTL
+// jump"; Weapon Control: "Weapons can get a full charge with Weapon Pre-Igniter augmentation, when player's ship
+// arrives at the next beacon").
 describe("weapons out of a fight", () => {
   it("do not charge on the map after a battle, and keep what they had", () => {
     const g = createGame(3, "kestrel-a");

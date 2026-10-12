@@ -156,8 +156,7 @@
   position: absolute;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(46, 214, 92, 0.9) 0%, rgba(46, 214, 92, 0.55) 45%, rgba(46, 214, 92, 0.1) 75%);
-  box-shadow: inset 0 0 0 2px rgba(46, 214, 92, 0.7);
+  background: radial-gradient(circle, rgba(46, 214, 92, 0.9) 0%, rgba(46, 214, 92, 0.55) 40%, rgba(46, 214, 92, 0) 70%);
   animation: heal-pulse 1.1s ease-in-out infinite;
 }
 

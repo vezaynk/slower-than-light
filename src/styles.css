@@ -82,7 +82,7 @@
   }
 }
 
-/* Fixed 1280x720 screen from Screen.tsx, scaled by --fit and centred in black bars.
+/* 720-high screen from Screen.tsx (1280 wide, wider on a wider display), scaled by --fit and centred.
    The box stretches to the window. A pinned pixel size is only for iOS chrome or a home-screen app. */
 .viewport {
   position: fixed;

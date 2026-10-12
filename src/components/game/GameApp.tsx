@@ -786,6 +786,18 @@ function Hud({ game }: { game: Game }) {
             </p>
           </div>
         ) : null}
+        {/* Per the user: pause on a touch screen, where there is no Space bar. Same phases as the key (togglePause). */}
+        <button
+          type="button"
+          className={`frame-btn${game.paused ? " is-on" : ""}`}
+          aria-label={game.paused ? "Resume" : "Pause"}
+          aria-pressed={game.paused}
+          title={game.paused ? "Resume (Space)" : "Pause (Space)"}
+          disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
+          onClick={() => act((g) => togglePause(g))}
+        >
+          <PixelIcon name={game.paused ? "play" : "pause"} size={20} />
+        </button>
         <button
           type="button"
           className="frame-btn"
@@ -2226,12 +2238,14 @@ function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missil
   );
 }
 
+/** Per the user: the stamp also resumes on a tap, and says so on a touch screen (no Space bar there). */
 function PauseStamp() {
+  const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   return (
-    <div className="pause-mark">
+    <button type="button" className="pause-mark" aria-label="Resume" onClick={() => act((g) => togglePause(g))}>
       <strong>PAUSED</strong>
-      <span>Press SPACE to resume</span>
-    </div>
+      <span>{touch ? "Tap to resume" : "Press SPACE or click to resume"}</span>
+    </button>
   );
 }
 

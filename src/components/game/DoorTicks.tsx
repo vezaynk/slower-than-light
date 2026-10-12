@@ -36,13 +36,25 @@ function doorState(door: Door | undefined, doorsDead: boolean | undefined): { op
   return { open, broken, dead, label: "Open door", title: "Shut" };
 }
 
-function doorClass(side: DoorMark["side"], state: { open: boolean; broken: boolean; dead: boolean }): string {
-  return "door-tick is-" + side + (state.open ? " is-open" : "") + (state.broken ? " is-broken" : "") + (state.dead ? " is-dead" : "");
+function doorClass(
+  side: DoorMark["side"],
+  state: { open: boolean; broken: boolean; dead: boolean },
+  airlock: boolean,
+): string {
+  return (
+    "door-tick is-" +
+    side +
+    (airlock ? " is-airlock" : "") +
+    (state.open ? " is-open" : "") +
+    (state.broken ? " is-broken" : "") +
+    (state.dead ? " is-dead" : "")
+  );
 }
 
 /**
  * One door per traced bar, painted on the hull grid so the room does not clip it.
- * The leaf stays parallel to its wall: shut fills the doorway, open slides to one end.
+ * The leaf stays parallel to its wall: shut fills the doorway; open, it compresses and slides along the wall past the
+ * doorway's end, so the way is fully clear (per the user).
  * Door System: a dead system turns the leaf red-orange.
  */
 export function DoorLayer({ marks, rooms, doors, cells, onToggle, doorsDead }: DoorPaint) {
@@ -57,7 +69,8 @@ export function DoorLayer({ marks, rooms, doors, cells, onToggle, doorsDead }: D
         const otherId = owners.get(`${other.x},${other.y}`) ?? "void";
         const door = doorOf(doors, here, otherId);
         const state = doorState(door, doorsDead);
-        const cls = doorClass(mark.side, state);
+        // Per the user: airlocks (a door to space) look different from interior doors.
+        const cls = doorClass(mark.side, state, otherId === "void");
         const style = { "--x": mark.x, "--y": mark.y } as CSSProperties;
         const slab = <span className="door-slab" aria-hidden="true" />;
         if (!onToggle) {

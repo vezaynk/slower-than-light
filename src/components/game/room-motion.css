@@ -87,7 +87,11 @@
 .door-layer .door-slab {
   transition:
     background 160ms steps(2, jump-end),
-    box-shadow 160ms steps(2, jump-end);
+    box-shadow 160ms steps(2, jump-end),
+    top 200ms ease-in-out,
+    left 200ms ease-in-out,
+    width 200ms ease-in-out,
+    height 200ms ease-in-out;
 }
 
 .door-layer .door-tick.is-broken .door-slab {

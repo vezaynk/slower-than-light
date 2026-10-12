@@ -2377,14 +2377,37 @@ button.gun-slot {
   background: linear-gradient(90deg, #ffd7a8, #ff8a14 42%, #e06a10);
 }
 
+/* Per the user: open, the leaf compresses and slides along the wall past the doorway's end, leaving it clear. */
 .door-layer .door-tick.is-open.is-e .door-slab,
 .door-layer .door-tick.is-open.is-w .door-slab {
   height: calc(var(--len) * 0.58);
+  top: calc(50% - var(--len) / 2 - var(--len) * 0.58);
 }
 
 .door-layer .door-tick.is-open.is-n .door-slab,
 .door-layer .door-tick.is-open.is-s .door-slab {
   width: calc(var(--len) * 0.58);
+  left: calc(50% - var(--len) / 2 - var(--len) * 0.58);
+}
+
+/*
+ * Per the user: airlocks (doors to space) differ from interior doors: a heavier leaf with hazard stripes and a steel
+ * edge. INVENTED look. Broken and dead-system colours below still win.
+ */
+.door-layer .door-tick.is-airlock {
+  --thick: clamp(4px, calc(var(--tile) * 0.13), 6px);
+}
+
+.door-layer .door-tick.is-airlock.is-e .door-slab,
+.door-layer .door-tick.is-airlock.is-w .door-slab {
+  background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px);
+  box-shadow: 0 0 0 1px #6c737c;
+}
+
+.door-layer .door-tick.is-airlock.is-n .door-slab,
+.door-layer .door-tick.is-airlock.is-s .door-slab {
+  background: repeating-linear-gradient(-45deg, #ffd23a 0 3px, #26221c 3px 6px);
+  box-shadow: 0 0 0 1px #6c737c;
 }
 
 /* Stuck open: the same single leaf, red, with a cross in the clear part of the doorway. */
@@ -2409,8 +2432,9 @@ button.gun-slot {
     linear-gradient(#ff3b30, #ff3b30) center / 2px 100% no-repeat;
 }
 
-/* Door System: a dead system is red-orange, shut or open. */
-.door-layer .door-tick.is-dead .door-slab {
+/* Door System: a dead system is red-orange, shut or open, airlocks included. */
+.door-layer .door-tick.is-dead .door-slab,
+.door-layer .door-tick.is-airlock.is-dead.is-dead .door-slab {
   background: #e2582a;
 }
 

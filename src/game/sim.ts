@@ -6772,11 +6772,12 @@ export function step(g: Game, dt: number) {
 }
 
 /**
- * The clock is stopped: the player's pause, the room radial menu's own hold (Game.menuHold), or a make-room choice
- * waiting (Game.overflow).
+ * The clock is stopped: the player's pause, the room radial menu's or Options' hold (Game.menuHold), a make-room choice
+ * waiting (Game.overflow), or, per the user ("Opening any overlay should pause the clock"), the ship menu, the manual,
+ * the beacon chart or the sector map. None of these touch `paused`, so closing one never undoes the player's pause.
  */
 export function halted(g: Game): boolean {
-  return g.paused || !!g.menuHold || !!pendingOverflow(g);
+  return g.paused || !!g.menuHold || g.shipSheet || g.manual || g.picking || !!g.sectorMap || !!pendingOverflow(g);
 }
 
 /** Per the user: pause works wherever the ship's clock runs, not only in a fight (shipTicking's phases). */

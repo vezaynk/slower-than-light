@@ -99,6 +99,7 @@ import {
   weaponsPowerLocked,
   canDismiss,
   dismissCrew,
+  healingIds,
 } from "@/game/sim";
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
@@ -891,6 +892,7 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
       {(game.player.zoltan ?? 0) > 0 ? <div className="shield-aura zoltan-aura" /> : null}
       <ShipView
         ship={game.player}
+        healing={healingIds(game, game.player, "player")}
         plateId={game.hullId}
         faction={(game.hullId ?? "kestrel").split("-")[0]}
         facing="right"
@@ -1110,6 +1112,7 @@ function TargetPanel({
       <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
         <ShipView
           ship={enemy}
+          healing={healingIds(game, enemy, "enemy")}
           plateId={enemy.flagship ? `flagship-${enemy.flagship.stage}` : enemy.classId}
           faction={enemy.flagship ? "rebel" : enemy.faction}
           pirate={enemy.pirate}

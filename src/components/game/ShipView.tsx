@@ -252,6 +252,8 @@ type Props = {
   showCrew: boolean;
   /** Room interior (fire, air, damage). Absent means every room is open. */
   seen?: (roomId: string) => boolean;
+  /** Crew the Medbay is healing right now (sim healingIds); their floor tile pulses green. */
+  healing?: ReadonlySet<string>;
   /** Crew still drawn when their room is closed. Slug life signs use this. */
   crewLit?: (c: Crew) => boolean;
   selectedId: string | null;
@@ -296,6 +298,7 @@ export function ShipView({
   aboard,
   showCrew,
   seen,
+  healing,
   crewLit,
   selectedId,
   selectedIds,
@@ -665,6 +668,27 @@ export function ShipView({
       <Mounts ship={ship} crew={crew} aboard={aboard} />
       {showCrew ? (
         <div className="crew-walkers" ref={layerRef}>
+          {/* Per the user: a green pulse on the floor tile under each crew member the Medbay is healing. INVENTED look. */}
+          {here.map((c) => {
+            if (!healing?.has(c.id) || c.path.length > 0) return null;
+            if (seen && !seen(c.room)) return null;
+            const spot = stands.get(c.id);
+            if (!spot) return null;
+            return (
+              <i
+                key={`heal-${c.id}`}
+                className="heal-tile"
+                data-heal={c.id}
+                aria-hidden="true"
+                style={{
+                  left: `${(spot.x / ship.cols) * 100}%`,
+                  top: `${(spot.y / ship.rows) * 100}%`,
+                  width: `${100 / ship.cols}%`,
+                  height: `${100 / ship.rows}%`,
+                }}
+              />
+            );
+          })}
           {/*
             INVENTED (per the user): a faint copy of each of your walking crew on the tile their walk ends on. The goal
             is the one the walk itself aims for (walkPaint), so the sprite lands exactly on its ghost.

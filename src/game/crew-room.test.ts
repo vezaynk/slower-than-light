@@ -4,6 +4,7 @@ import { blockedCells, claimPadTile, consoleSpot, floorCells, interiorLinks, med
 import { installSling, sendSling } from "./extras/sling.ts";
 import { HULLS } from "./hulls.ts";
 import {
+  healingIds,
   canDismiss,
   closeAllDoors,
   createGame,
@@ -176,6 +177,22 @@ describe("crew room orders", () => {
     assert.ok(nen.hp > 40);
     assert.equal(extra.hp, 40);
     assert.equal(nen.room, "p-medbay");
+  });
+
+  it("names the crew the medbay is healing right now: hurt, in the bay, and only while it has power", () => {
+    const g = createGame(3, "kestrel-a");
+    g.phase = "map";
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const [hurt, whole] = g.crew.filter((x) => x.side === "player");
+    for (const c of [hurt, whole]) {
+      c.room = bay.id;
+      c.path = [];
+    }
+    hurt.hp = 40;
+    assert.equal(healingIds(g, g.player, "player").size, 0, "unpowered");
+    g.player.systems.weapons.power -= 1;
+    g.player.systems.medbay.power = 1;
+    assert.deepEqual([...healingIds(g, g.player, "player")], [hurt.id]);
   });
 
   it("heals out of a fight too, once the medbay has power", () => {

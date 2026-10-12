@@ -3638,7 +3638,17 @@ export function crewBlowDamage(g: Game): number {
  * "friendly crewmembers standing inside or moving through the room" whenever it is powered, not only in combat.
  */
 function healMedbay(g: Game, ship: Ship, aboard: "player" | "enemy", r: Room, dt: number) {
-  if (r.system !== "medbay") return;
+  const heal = medbayHealing(g, ship, aboard, r);
+  if (!heal) return;
+  for (const c of heal.crew) c.hp = Math.min(c.maxHp, c.hp + heal.rate * dt);
+}
+
+/**
+ * Who the Medbay in `r` heals this tick, and how fast; null when it heals nobody. healMedbay applies it, and the ship
+ * view reads it (healingIds) to light the floor under them.
+ */
+function medbayHealing(g: Game, ship: Ship, aboard: "player" | "enemy", r: Room): { rate: number; crew: Crew[] } | null {
+  if (r.system !== "medbay") return null;
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
   // Mind Control, "Overview": the Medbay heals only crew on its own side (see life).
   const withUs = (c: Crew) => sideOf(c) === friends;
@@ -3679,8 +3689,21 @@ function healMedbay(g: Game, ship: Ship, aboard: "player" | "enemy", r: Room, dt
       seen.add(c.id);
       healing.push(c);
     }
-    for (const c of healing) c.hp = Math.min(c.maxHp, c.hp + rate * dt);
+    return { rate, crew: healing };
   }
+  return null;
+}
+
+/**
+ * Per the user: crew the Medbay is healing right now (hurt, and in medbayHealing), so the ship view can pulse the floor
+ * under them.
+ */
+export function healingIds(g: Game, ship: Ship, aboard: "player" | "enemy"): Set<string> {
+  const out = new Set<string>();
+  for (const r of ship.rooms) {
+    for (const c of medbayHealing(g, ship, aboard, r)?.crew ?? []) if (c.hp < c.maxHp) out.add(c.id);
+  }
+  return out;
 }
 
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {

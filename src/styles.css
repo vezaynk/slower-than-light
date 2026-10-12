@@ -4665,6 +4665,10 @@ button.door-tick::before {
   color: #a7adb5;
 }
 
+/* Per the user: damaged systems show a yellow icon, destroyed ones red (ShipView iconState). INVENTED shades. */
+.room .room-icon.is-damaged { color: #f2c94c; }
+.room .room-icon.is-destroyed { color: var(--color-danger); }
+
 .play .room.is-unseen .pixel-fill,
 .target-panel .room.is-unseen .pixel-fill {
   background: #2b2f36;

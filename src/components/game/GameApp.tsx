@@ -629,7 +629,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         armHold(e, cancelAim);
       }}
       onClick={(e) => {
-        swallowHoldClick(e);
+        if (swallowHoldClick(e)) return;
+        // Per the user: with a weapon armed, a tap on the ship stage or the target panel that is not a room (rooms aim,
+        // and aim clears an invalid one) clears that weapon's designated target. Buttons elsewhere (HUD, dock) do not.
+        const t = e.target as Element | null;
+        if (!useGame.getState().game.targeting || !t) return;
+        if (!t.closest(".stage-slot, .target-panel")) return;
+        if (t.closest("[data-room], button, a, input")) return;
+        act((g) => cancelTargeting(g));
       }}
       onContextMenu={(e) => {
         e.preventDefault();

@@ -82,6 +82,8 @@ export function ShadeFx() {
     const blinks: Blink[] = [];
     const cache: Partial<Record<Side, Box>> = {};
     const plates: Partial<Record<Side, Piece[]>> = {};
+    /** The target panel's ship view when the enemy broke up: its pieces are drawn inside it. */
+    let wreckClip: Box | null = null;
     const crew = new Map<string, CrewSnap>();
     let seenPlayerHull = 0;
     let seenEnemyHull: number | null = null;
@@ -232,7 +234,11 @@ export function ShadeFx() {
             wreck,
           });
         }
-        if (wreck) setEnemyWreck(true);
+        if (wreck) {
+          setEnemyWreck(true);
+          // Per the user: the break-up stays inside the target panel's ship view.
+          wreckClip = measure(host.querySelector(".target-body"));
+        }
         hullEl(side)?.classList.add("is-gone");
       };
 
@@ -366,6 +372,7 @@ export function ShadeFx() {
       for (let i = chunks.length - 1; i >= 0; i--) {
         const p = chunks[i]!;
         const pStep = p.wreck ? dt : step;
+        const clip = p.wreck ? wreckClip : null;
         if (pStep > 0) {
           p.life -= pStep;
           p.x += p.vx * pStep;
@@ -380,7 +387,14 @@ export function ShadeFx() {
         }
         ctx.globalAlpha = Math.max(0, p.life / p.max);
         ctx.fillStyle = p.color;
-        ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
+        if (clip) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(clip.x, clip.y, clip.w, clip.h);
+          ctx.clip();
+          ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
+          ctx.restore();
+        } else ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
       }
       if (!chunks.some((c) => c.wreck)) setEnemyWreck(false);
       ctx.globalAlpha = 1;

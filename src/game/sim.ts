@@ -1868,7 +1868,12 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   if (!g.targeting) return;
   const enemyRoom = g.enemy ? roomById(g.enemy, roomId) : undefined;
   const ownRoom = roomById(g.player, roomId);
-  if (!enemyRoom && !ownRoom) return;
+  // Per the user: a tap on something that is not a valid target clears the armed weapon's designated target
+  // (cancelTargeting), rather than leaving the old aim in place.
+  if (!enemyRoom && !ownRoom) {
+    cancelTargeting(g);
+    return;
+  }
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   let index = g.player.weapons.findIndex((w) => w.uid === g.armed);
   if (index < 0) index = g.player.weapons.findIndex((w, i) => w.enabled && mask[i]);
@@ -1882,11 +1887,17 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   const def = WEAPONS[w.defId];
   // Bomb (Weapons), lead: "Bombs are the only weapons that can be fired at your own ship."
   if (def?.kind === "beam") {
-    if (!enemyRoom || !g.enemy) return;
+    if (!enemyRoom || !g.enemy) {
+      cancelTargeting(g);
+      return;
+    }
     aimBeam(g, w, !!mask[index], roomId, point ?? roomCenter(enemyRoom));
     return;
   }
-  if (!enemyRoom && def?.kind !== "bomb") return;
+  if (!enemyRoom && def?.kind !== "bomb") {
+    cancelTargeting(g);
+    return;
+  }
   g.beamAnchor = null;
   w.beamLine = null;
   w.own = def?.kind === "bomb" && !enemyRoom;

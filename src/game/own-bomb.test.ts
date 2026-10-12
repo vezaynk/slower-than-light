@@ -139,6 +139,9 @@ describe("bombs aimed at your own ship", () => {
     aim(g, bay.id);
     assert.equal(g.player.weapons[0].target, null);
     assert.equal(g.shots.length, 0);
+    // Per the user: a tap that is not a valid target clears the aim and leaves targeting; select the gun again.
+    assert.equal(g.targeting, false);
+    armWeapon(g, "gun");
     const enemyRoom = g.enemy!.rooms[0];
     aim(g, enemyRoom.id);
     assert.equal(g.player.weapons[0].target, enemyRoom.id);
@@ -374,5 +377,22 @@ describe("ion stunner", () => {
     assert.equal(g.player.systems.shields.ion.length, 1);
     assert.equal(g.player.systems.weapons.ion.length, 0);
     assert.equal(crew[0].stun ?? 0, 0);
+  });
+});
+
+describe("an invalid tap clears the armed weapon's aim (per the user)", () => {
+  it("drops a laser's earlier target when its next tap lands on your own ship", () => {
+    const g = createGame(3, "kestrel-a");
+    startCombat(g, "scout");
+    const w = g.player.weapons[0]!;
+    const enemyRoom = g.enemy!.rooms[0]!;
+    g.paused = true;
+    armWeapon(g, w.uid);
+    aim(g, enemyRoom.id);
+    assert.equal(w.target, enemyRoom.id);
+    armWeapon(g, w.uid);
+    aim(g, g.player.rooms[0]!.id);
+    assert.equal(w.target, null);
+    assert.equal(g.targeting, false);
   });
 });

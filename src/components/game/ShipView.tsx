@@ -567,7 +567,7 @@ export function ShipView({
                 are among what its levels reveal).
               */}
               {room.system ?? room.kit ? (
-                <PixelIcon name={(room.system ?? room.kit)!} size={20} className="room-icon" />
+                <PixelIcon name={(room.system ?? room.kit)!} size={20} className={`room-icon${iconState(ship, room)}`} />
               ) : null}
               {open ? (
                 <div className="room-flags">
@@ -825,6 +825,19 @@ export function ShipView({
       ) : null}
     </div>
   );
+}
+
+/**
+ * Per the user: a room's system icon is yellow while the system is damaged and red once every level is destroyed
+ * (Systems: "A system with all its levels damaged is considered destroyed"). Grey otherwise.
+ */
+function iconState(ship: Ship, room: Ship["rooms"][number]): string {
+  const sys = room.system ? ship.systems[room.system] : undefined;
+  const kit = !sys && room.kit ? ship.kits[room.kit] : undefined;
+  const level = sys?.level ?? kit?.level ?? 0;
+  const damage = sys?.damage ?? kit?.damage ?? 0;
+  if (level <= 0 || damage <= 0) return "";
+  return damage >= level ? " is-destroyed" : " is-damaged";
 }
 
 type QuarterTurn = 0 | 90 | 180 | 270;

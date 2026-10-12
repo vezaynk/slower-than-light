@@ -227,6 +227,8 @@ describe("Oxygen outside a fight", () => {
     g.paused = true;
     assert.equal(shipTicking(g), false);
     g.paused = false;
+    // Open All: the first press opens the interior doors, the second the airlocks (per the user).
+    openAllDoors(g);
     openAllDoors(g);
     const voids = g.player.doors.filter((d) => d.b === "void");
     assert.ok(voids.length > 0);

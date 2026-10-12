@@ -383,3 +383,39 @@ describe("enemy breaches and doors", () => {
     assert.equal(door.stuck, 0);
   });
 });
+
+describe("Open All / Close All in two steps (per the user)", () => {
+  it("opens interior doors first, then airlocks; closes airlocks first, then interior doors", () => {
+    const g = createGame(5, "kestrel-a");
+    const inner = () => g.player.doors.filter((d) => d.b !== "void");
+    const locks = () => g.player.doors.filter((d) => d.b === "void");
+    for (const d of g.player.doors) d.open = false;
+    inner()[0]!.open = true;
+    // Some interior door is shut: only the interior doors open.
+    openAllDoors(g);
+    assert.ok(inner().every((d) => d.open));
+    assert.ok(locks().every((d) => !d.open));
+    // All interior doors open: now the airlocks open.
+    openAllDoors(g);
+    assert.ok(locks().every((d) => d.open));
+    // An airlock is open: only the airlocks close.
+    closeAllDoors(g);
+    assert.ok(locks().every((d) => !d.open));
+    assert.ok(inner().every((d) => d.open));
+    // All airlocks shut: now the interior doors close.
+    closeAllDoors(g);
+    assert.ok(inner().every((d) => !d.open));
+  });
+
+  it("moves on past an airlock stuck open, once it is marked to shut", () => {
+    const g = createGame(5, "kestrel-a");
+    for (const d of g.player.doors) d.open = true;
+    const lock = g.player.doors.find((d) => d.b === "void")!;
+    lock.stuck = 5;
+    closeAllDoors(g);
+    assert.equal(lock.open, true);
+    assert.equal(lock.seal, true);
+    closeAllDoors(g);
+    assert.ok(g.player.doors.filter((d) => d.b !== "void").every((d) => !d.open));
+  });
+});

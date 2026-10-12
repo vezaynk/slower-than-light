@@ -1456,7 +1456,11 @@ export function openAllDoors(g: Game) {
     log(g, "Door control is dead.");
     return;
   }
+  // Per the user: a first press opens the interior doors; only once they are all open does a press open the airlocks.
+  const interior = g.player.doors.filter((d) => d.b !== "void");
+  const airlocks = !interior.some((d) => !d.open);
   for (const door of g.player.doors) {
+    if ((door.b === "void") !== airlocks) continue;
     door.open = true;
     // Door System: Open All cancels a Close All that was waiting on a stuck door,
     // and overrides a crystal coating so the opened doors can be closed by hand.
@@ -1466,7 +1470,7 @@ export function openAllDoors(g: Game) {
     const room = roomById(g.player, door.a);
     if (room) room.venting = true;
   }
-  sfx(g, "vent");
+  sfx(g, airlocks ? "vent" : "click");
 }
 
 /**
@@ -1479,7 +1483,11 @@ export function closeAllDoors(g: Game) {
     log(g, "Door control is dead.");
     return;
   }
+  // Per the user: a first press shuts the airlocks; only once they are all shut does a press close the interior doors.
+  // An airlock stuck open that is already marked to shut (seal) counts as handled, so the next press moves on.
+  const airlocks = g.player.doors.some((d) => d.b === "void" && d.open && !d.seal);
   for (const door of g.player.doors) {
+    if ((door.b === "void") !== airlocks) continue;
     if (door.stuck > 0) {
       door.seal = true;
       continue;

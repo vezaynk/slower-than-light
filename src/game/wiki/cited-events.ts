@@ -32,6 +32,7 @@ import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { allMantisCrew, between, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { grantRandomItem } from "./bonus-item.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -78,7 +79,8 @@ export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapo
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
  * Engi cache stays in sim.ts. A page that only says "a random amount" is absent.
- * Blue options, crew, map reveals, upgrades, and unnamed items are not granted.
+ * Blue options, crew, map reveals, and upgrades are not granted. An unnamed weapon, augmentation or
+ * drone schematic is a random one (Rewards; the "item" fx, or grantRandomItem in a handler).
  * Template:Scrap rewards low and high columns are the WIKI-SPEC section 14 table.
  * Medium uses mediumScrapBand.
  */
@@ -92,6 +94,8 @@ type Fx =
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
+  /** Rewards, "Weapon" / "Augment" / "Drone": a random one the page does not name (bonus-item.ts grantRandomItem). */
+  | { k: "item"; item: "weapon" | "augment" | "drone" }
   | { k: "nothing" };
 
 type ChoiceDef = { id: string; label: string; fx: Fx[] };
@@ -897,15 +901,16 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:free-drone-schematic:0",
-        "label": "You receive low scrap",
+        "label": "You receive a drone schematic with low scrap",
         "fx": [
           {
             "k": "tier",
             "tier": "low"
           },
+          // Rewards, "Drone": "A random drone schematic & T scrap."
           {
-            "k": "note",
-            "text": "The page's item is not added."
+            "k": "item",
+            "item": "drone"
           }
         ]
       }
@@ -4337,6 +4342,18 @@ function zoltanOddCard(title: string): GameEvent {
   };
 }
 
+/** Rewards, "Scrap only": a random amount is a low, medium, or high band. INFERRED: equally likely. */
+function payRandomTier(ctx: CitedChoice): string {
+  const tier = (["low", "medium", "high"] as const)[ctx.irand(3)]!;
+  const [lo, hi] = band(ctx.g, tier);
+  const n = roll(ctx, lo, hi);
+  ctx.scrap(n);
+  const name = tier === "low" ? "Low" : tier === "medium" ? "Medium" : "High";
+  const line = `${name} scrap: ${n}.`;
+  ctx.note(line);
+  return line;
+}
+
 function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
   const [lo, hi] = band(ctx.g, tier);
   const n = roll(ctx, lo, hi);
@@ -4350,9 +4367,9 @@ function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
 /**
  * Zoltan odd moon. Check it out has four results and the explosives have three, and the page prints no odds.
  * INFERRED: each of those results is equally likely.
- * An unnamed weapon is not granted.
+ * Rewards, "Weapon": "A random weapon & T scrap." The page does not name either weapon, so it is a random one.
  * Rewards, "Scrap only": the remains' random scrap is a low, medium, or high band. The page prints no odds.
- * INFERRED: those three bands are equally likely.
+ * INFERRED: those three bands are equally likely. The base's "random amount" with its weapon uses the same draw.
  */
 function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
   if (!id.startsWith("c:zoltan-odd-moon:")) return null;
@@ -4378,7 +4395,9 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     }
     if (which === 1) {
       const line = payTier(ctx, "low");
-      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line]);
+      const item = grantRandomItem(g, "weapon");
+      ctx.note(item);
+      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line, item]);
       return true;
     }
     if (which === 2) {
@@ -4401,20 +4420,18 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     if (g.missiles < 1) return false;
     g.missiles -= 1;
     ctx.note("Missiles: -1.");
-    // Three results, no odds. INFERRED: equal. The unnamed weapon is not granted.
+    // Three results, no odds. INFERRED: equal.
     const which = ctx.irand(3);
     if (which === 0) {
-      citedResult(g, ZOLTAN_MOON_BASE, ["Missiles: -1."]);
+      // "You receive a weapon with a random amount of scrap."
+      const line = payRandomTier(ctx);
+      const item = grantRandomItem(g, "weapon");
+      ctx.note(item);
+      citedResult(g, ZOLTAN_MOON_BASE, ["You receive a weapon with a random amount of scrap.", line, item, "Missiles: -1."]);
       return true;
     }
     if (which === 1) {
-      const tier = (["low", "medium", "high"] as const)[ctx.irand(3)]!;
-      const [lo, hi] = band(g, tier);
-      const n = roll(ctx, lo, hi);
-      ctx.scrap(n);
-      const name = tier === "low" ? "Low" : tier === "medium" ? "Medium" : "High";
-      const line = `${name} scrap: ${n}.`;
-      ctx.note(line);
+      const line = payRandomTier(ctx);
       citedResult(g, ZOLTAN_MOON_REMAINS, ["You receive a random amount of scrap.", line, "Missiles: -1."]);
       return true;
     }
@@ -5380,6 +5397,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     }
   }
   for (const fx of choice.fx) {
+    if (fx.k === "item") ctx.note(grantRandomItem(g, fx.item));
+  }
+  for (const fx of choice.fx) {
     if (fx.k === "note") ctx.note(fx.text);
   }
   if (g.player.hull <= 0) {
@@ -5489,15 +5509,17 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     );
     return true;
   }
-  // Remote settlement. Fire Beam and Fire Bomb. The schematic is not named, so it is not granted.
-  // High scrap is already applied above. "You receive a drone schematic with high scrap."
+  // Remote settlement. Fire Beam and Fire Bomb. High scrap is already applied above.
+  // "You receive a drone schematic with high scrap." Rewards, "Drone": "A random drone schematic & T scrap."
   if (id === "c:remote-settlement:2" || id === "c:remote-settlement:3") {
+    const item = grantRandomItem(g, "drone");
+    ctx.note(item);
     citedResult(
       g,
       id === "c:remote-settlement:2"
         ? "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed."
         : "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.",
-      ["You receive a drone schematic with high scrap."],
+      ["You receive a drone schematic with high scrap.", item],
     );
     return true;
   }

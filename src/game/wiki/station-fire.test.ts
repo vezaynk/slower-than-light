@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
+import { heldSchematics } from "./make-room.ts";
 
 function beacon(): Beacon {
   return {
@@ -160,7 +161,8 @@ describe("Fire on research station", () => {
     assert.equal(g.phase, "map");
   });
 
-  it("a Rock pays high scrap and installs no augment", () => {
+  // Rewards, "Augment": "A random augmentation & T scrap."
+  it("a Rock pays high scrap and installs a random augment", () => {
     const g = createGame(3);
     g.crew[0].kin = "stone";
     g.augments = ["hook"];
@@ -169,21 +171,25 @@ describe("Fire on research station", () => {
     fillerChoose(g, "c:fire-on-research-station:3");
     assert.match(g.event?.body ?? "", /fire suppressant/);
     scrapOnly(g.event?.body ?? "", 19, 23);
-    assert.deepEqual(g.augments, ["hook"]);
+    assert.equal(g.augments.length, 2);
+    assert.equal(g.augments[0], "hook");
+    assert.match(g.event?.body ?? "", / fitted\.$/);
     assert.equal(g.player.weapons.length, weapons);
   });
 
-  it("a repair drone pays high scrap and grants no schematic", () => {
+  // Rewards, "Drone": "A random drone schematic & T scrap."
+  it("a repair drone pays high scrap and grants a random schematic", () => {
     const g = createGame(4);
     g.player.kits.swarm = repairDrone();
-    const loadout = g.player.kits.swarm.loadout?.slice();
+    const held = heldSchematics(g).length;
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:4");
     assert.match(g.event?.body ?? "", /repair drone/);
     scrapOnly(g.event?.body ?? "", 19, 23);
     assert.equal(g.player.kits.swarm.target, "patch");
-    assert.deepEqual(g.player.kits.swarm.loadout, loadout);
+    assert.equal(heldSchematics(g).length, held + 1);
+    assert.match(g.event?.body ?? "", /schematic (fitted|stowed in cargo)\.$/);
     assert.equal(g.player.weapons.length, weapons);
   });
 });

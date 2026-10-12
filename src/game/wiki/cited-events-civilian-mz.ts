@@ -1,7 +1,8 @@
 /**
  * Opening choices that state one amount, one hull number, or one named fight.
  * A choice with several possible results is omitted. Blue options, crew, map
- * reveals, upgrades, and unnamed items are not granted.
+ * reveals, and upgrades are not granted. An unnamed weapon, augmentation or drone
+ * schematic is a random one (Rewards).
  */
 
 export type CitedFx =
@@ -478,10 +479,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   /**
    * "Fight the pirate ship."
    * {{Blue Option|Fire Beam|Show the pirate how to intimidate settlers: burn their crops!}}
-   * "You receive a drone schematic with high scrap." The schematic is not named.
+   * "You receive a drone schematic with high scrap." Rewards, "Drone": "A random drone schematic & T scrap."
+   * The schematic is granted in cited-events.ts, after the scrap.
    * {{Blue Option|Fire Bomb|Show the pirate how to intimidate settlers: start fires in their crude dwellings.}}
    * [ {{Transaction|1|subtract_missiles}} ]
-   * Same unnamed drone schematic with high scrap.
+   * Same random drone schematic with high scrap.
    */
   {
     dest: "Remote settlement",

@@ -5,7 +5,8 @@
  * here, registered with wiki/quests.ts as PART_A (quests.ts reads it at call time).
  *
  * Same conventions as wiki/quests.ts: a page that lists N results without odds rolls them with equal odds
- * ({{DuplicateEvent|N}} counts N times), unnamed weapons / drone schematics / augments are not granted, and the
+ * ({{DuplicateEvent|N}} counts N times), unnamed weapons / drone schematics / augments are random ones (bonus-item.ts
+ * grantRandomItem, per Rewards "Weapon" / "Drone" / "Augment"), and the
  * one-word labels of "Fight ..." / "Continue" buttons and quest beacon names are INVENTED where the page prints none.
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
@@ -14,6 +15,7 @@ import { xpNeedFor } from "../extras/lineage.ts";
 import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
+import { grantRandomItem } from "./bonus-item.ts";
 import { EXTRA_EVENTS as ZOLTAN_PAGES } from "./cited-events-zoltan.ts";
 import {
   addQuest,
@@ -329,12 +331,12 @@ const CHOICES_A: QuestPart["choices"] = {
   "c:zoltan-research-facility:2": (g) => {
     if (medbayLevel(g) < 3) return;
     // "You receive a drone schematic with low (fuel: 1-3 ; missiles: 1-2 ; drone parts: 1) resources and scrap."
-    // The schematic is not named: only the resources and scrap.
-    result(g, "\"Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel. Please, accept this for your trouble.\"", rollSurrenderOffer(g, "low", true));
+    // The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
+    result(g, "\"Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel. Please, accept this for your trouble.\"", rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
   // After the pirate: "Please, take this." -> the same unnamed schematic with low resources and scrap.
   "qa:zrf:thanks": (g) => {
-    result(g, "\"Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this.\"", rollSurrenderOffer(g, "low", true));
+    result(g, "\"Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this.\"", rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
 
   // ---- Zoltan trade hub ----
@@ -366,9 +368,10 @@ const CHOICES_A: QuestPart["choices"] = {
     result(g, "\"You surprise me, off-worlder. Thank you. The passenger will be with you momentarily.\" She refuses to enter the main hold and prefers to wait in the cargo bay.", undefined, [addQuest(g, "rock-bride")]);
   },
   "c:rock-bride:1": (g) => result(g, "Arranged marriages aren't on your list of worthy causes. You leave the Rock to their business."),
-  // "You receive an augmentation with low scrap." The augmentation is not named: only the low scrap.
+  // "You receive an augmentation with low scrap." The augmentation is not named: Rewards, "Augment": "A random
+  // augmentation & T scrap."
   "qa:bride:hand": (g) => {
-    result(g, "\"May your children erode into dust!\" she screams as she's bundled into the waiting shuttle. The Rock guards on board hurriedly drop off an exotic piece of technology and return to the Grand Basilisk.", scrapOnly(g, "low"));
+    result(g, "\"May your children erode into dust!\" she screams as she's bundled into the waiting shuttle. The Rock guards on board hurriedly drop off an exotic piece of technology and return to the Grand Basilisk.", scrapOnly(g, "low"), [grantRandomItem(g, "augment")]);
   },
   // "You receive a Rockman crewmember named Ariadne and fight a Rock ship."
   "qa:bride:refuse": (g) => {

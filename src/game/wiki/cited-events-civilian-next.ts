@@ -27,7 +27,7 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Dense asteroid field distress. The search, the remains, and Rock Plating run in filler-events.ts.
-    // The weapon taken with the scrap is not named, so it is not installed.
+    // The weapon taken with the scrap is a random one there (Rewards, "Weapon": "A random weapon & T scrap.").
     dest: "Dense asteroid field distress",
     slug: "dense-asteroid-field-distress",
     flag: "cited:dense-asteroid-field-distress",

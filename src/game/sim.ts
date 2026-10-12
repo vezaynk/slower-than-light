@@ -88,7 +88,7 @@ import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
-import { droneLine, grantBonusAugment, rollBonusItem } from "./wiki/bonus-item.ts";
+import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
 import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
 import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
@@ -6172,11 +6172,13 @@ export function choose(g: Game, id: string) {
       resolve();
       break;
     case "engi-cache-secure": {
-      // Wiki page "Engi cache": medium scrap. The drone schematic is not named on the page.
+      // Wiki page "Engi cache": a drone schematic with medium scrap. Rewards, "Drone": "A random drone schematic & T
+      // scrap."
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       const n = lo + irand(g, hi - lo + 1);
       addScrap(g, n);
       log(g, `Medium scrap: ${n}.`);
+      log(g, grantRandomItem(g, "drone"));
       resolve();
       break;
     }

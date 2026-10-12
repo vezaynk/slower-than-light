@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
 import { choose, choiceDisabled, commitJump, createGame } from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
+import { heldSchematics } from "./make-room.ts";
 
 function land(sectorName: string) {
   const g = createGame(3, "kestrel-a", "normal");
@@ -54,18 +55,20 @@ describe("Engi cache", () => {
     assert.equal(g.event, null);
   });
 
-  it("grants medium scrap and does not add a schematic", () => {
+  // Rewards, "Drone": "A random drone schematic & T scrap."
+  it("grants medium scrap and a random drone schematic", () => {
     const { g } = land("Engi Controlled Sector");
     const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
     const scrap = g.scrap;
     const weapons = g.player.weapons.map((w) => w.defId).join(",");
-    const kits = JSON.stringify(g.player.kits);
+    const held = heldSchematics(g).length;
     const parts = g.player.parts;
     choose(g, "engi-cache-secure");
     const gained = g.scrap - scrap;
     assert.ok(gained >= lo && gained <= hi, `${gained} not in ${lo}-${hi}`);
     assert.equal(g.player.weapons.map((w) => w.defId).join(","), weapons);
-    assert.equal(JSON.stringify(g.player.kits), kits);
+    assert.equal(heldSchematics(g).length, held + 1);
+    assert.ok(g.log.some((l) => /schematic (fitted|stowed in cargo)\./.test(l)));
     assert.equal(g.player.parts, parts);
     assert.equal(g.phase, "map");
   });

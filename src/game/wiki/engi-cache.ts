@@ -6,7 +6,7 @@ import type { Game } from "../types.ts";
  * The page does not name which beacon in the sector.
  * Booby trap the cache spends 2 missiles and delays the Rebel Fleet for 2 turns.
  * Secure the cache grants a drone schematic with medium scrap.
- * The page does not name the schematic, so only the medium scrap is granted.
+ * The page does not name the schematic: a random one (Rewards, "Drone": "A random drone schematic & T scrap.").
  * Medium scrap is Template:Scrap rewards (Medium), the column for the hangar difficulty.
  */
 const SECTORS = new Set(["Engi Controlled Sector", "Engi Homeworlds"]);

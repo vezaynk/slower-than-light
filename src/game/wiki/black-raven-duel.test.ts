@@ -42,7 +42,7 @@ describe("The Black Raven mind duel", () => {
     assert.equal(g.phase, "event");
   });
 
-  it("a living Slug either beams 1-2 slug boarders into the fight or pays high scrap and no weapon", () => {
+  it("a living Slug either beams 1-2 slug boarders into the fight or pays high scrap and a random weapon", () => {
     let boarded = false;
     let paid = false;
     for (let seed = 1; seed <= 80 && !(boarded && paid); seed++) {
@@ -69,10 +69,12 @@ describe("The Black Raven mind duel", () => {
         assert.equal(g.enemy, null);
         assert.equal(slugsAboard(g).length, 0);
         assert.ok(g.scrap > scrap);
-        assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+        // "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
+        const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+        assert.equal(g.player.weapons.length + stowed, weapons.length + 1);
         assert.match(g.event!.body, /shakes off the daze and appears victorious/);
         assert.match(g.event!.body, /concedes his defeat/);
-        assert.doesNotMatch(g.event!.body, /weapon/i);
+        assert.match(g.event!.body, /mounted\.|stowed in cargo\.|choose what to leave behind\./);
       }
     }
     assert.ok(boarded && paid);

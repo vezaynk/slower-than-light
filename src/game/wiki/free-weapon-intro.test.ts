@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { cargoOf } from "./make-room.ts";
 
 const INTROS = [
   "Holy crap! A weapon is just floating in space!",
@@ -12,6 +13,11 @@ const INTROS = [
   `A small merchant ship messages you, "Underground Federation comm channels are all talking about your 'secret' mission. Let us install a weapon to help. Good luck!"`,
   "Debris from a battle is scattered around this system. A few pieces bounce against your ship. You passively scan them and discover there is a functioning weapon among them!",
 ];
+
+/** Weapons mounted plus weapons in cargo. A random weapon lands in one of the two. */
+function heldWeapons(g: Game): number {
+  return g.player.weapons.length + cargoOf(g).filter((c) => c.kind === "weapon").length;
+}
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,12 +44,13 @@ describe("Free weapon intro", () => {
       assert.equal(g.phase, "event");
       assert.equal(g.scrap, 10);
       assert.equal(g.enemy, null);
-      const weapons = g.player.weapons.length;
+      const weapons = heldWeapons(g);
       seen.add(body);
       choose(g, "c:free-weapon:0");
       assert.ok(g.scrap > 10);
-      assert.equal(g.player.weapons.length, weapons);
-      assert.ok(g.log.some((line) => line.includes("The page's item is not added.")));
+      // Rewards, "Weapon": "A random weapon & T scrap."
+      assert.equal(heldWeapons(g), weapons + 1);
+      assert.ok(g.log.some((line) => /(mounted|stowed in cargo)\.$/.test(line)), g.log.join("\n"));
     }
     assert.equal(seen.size, INTROS.length);
   });

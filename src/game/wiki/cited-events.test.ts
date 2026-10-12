@@ -6,6 +6,7 @@ import { choose, chooseSector, closeAllDoors, commitJump, createGame, doorLevel,
 import type { Beacon, Game } from "../types.ts";
 import { onCradleDeath } from "../extras/cradle.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
+import { heldSchematics } from "./make-room.ts";
 
 function beacon(name: string, flag = ""): Beacon {
   return {
@@ -126,6 +127,21 @@ describe("cited events", () => {
     assert.equal(g.player.parts, parts);
     assert.equal(g.crew.length, crew);
     assert.equal(g.augments.length, augments);
+  });
+
+  it("pays Free drone schematic's low scrap and a random drone schematic", () => {
+    const g = createGame(5, "kestrel-a", "normal");
+    const ev = citedEvent(g, beacon("Free drone schematic", "cited:free-drone-schematic"));
+    assert.ok(ev);
+    assert.equal(ev.choices[0]?.label, "You receive a drone schematic with low scrap");
+    const held = heldSchematics(g).length;
+    g.scrap = 0;
+    const run = harness(g, [0]);
+    assert.equal(citedChoose(run.ctx, "c:free-drone-schematic:0"), true);
+    assert.ok(g.scrap > 0);
+    // Rewards, "Drone": "A random drone schematic & T scrap."
+    assert.equal(heldSchematics(g).length, held + 1);
+    assert.ok(run.notes.some((n) => / schematic (fitted|stowed in cargo)\.$/.test(n)), run.notes.join("\n"));
   });
 
   it("leaves Free scrap with resources (Engi) unwired because the page states no amount", () => {

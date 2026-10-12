@@ -27,6 +27,7 @@ import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
+import { grantRandomItem } from "./bonus-item.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -53,8 +54,9 @@ import { keepNewHire, receiveAugment } from "./make-room.ts";
  * A row reuses the cited table card when one exists (looked up by dest or alias). FILLER_PAGES below are the list
  * pages no cited table has, in the cited-events-surrender.ts table format. They are not stamped by sector (no import
  * into cited-events.ts); their choices run in FILLER_CHOICES because most results are random (equal odds, INFERRED,
- * with {{DuplicateEvent|N}} counted N times) or open a follow-up card. Blue options, crew skills, drone schematics,
- * and map reveals are not granted, as in the other tables. A result that prints fires or a breach applies that hazard.
+ * with {{DuplicateEvent|N}} counted N times) or open a follow-up card. Blue options, crew skills and map reveals are
+ * not granted, as in the other tables. An unnamed weapon, augmentation or drone schematic is a random one
+ * (grantRandomItem, per the Rewards page). A result that prints fires or a breach applies that hazard.
  */
 
 export type FillerRow = { dest: string; unique: boolean };
@@ -634,7 +636,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // HELP_MINERS. Five missiles: 10 hull, a reactor step, or 15-25 scrap. No odds. INFERRED: equal.
   // Fifteen missiles: 15 hull and a reactor step, an unnamed augment, or 30-40 scrap and 5 hull.
-  // INFERRED: those three are equal. The augment is not named, so that result installs nothing.
+  // INFERRED: those three are equal. The unnamed augment is a random one (Rewards, "Augment").
   // The reactor step size is not printed. INFERRED: one bar, and not past the reactor maximum.
   // A missile weapon's launch offer does nothing and returns the non-blue choices.
   // Hull Missile is not a missile weapon for events.
@@ -756,7 +758,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // DISTRESS_STATION_DISEASE. Send the crew: lose a crewmember and medium resources, or nothing. No odds. INFERRED: equal.
   // Clone Bay has no effect. Ignore: nothing. A living Rock or Engi pays medium resources with some scrap.
   // Medbay level 2 or more opens the cure. Continue pays that same reward. Engi Med-bot Dispersal pays high scrap.
-  // The weapon on that result is not named, so it is not granted.
+  // Its weapon is not named: a random one (Rewards, "Weapon").
   {
     dest: "Unknown disease on mining colony",
     slug: "unknown-disease-on-mining-colony",
@@ -782,8 +784,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // DISTRESS_STATION_FIRE. Send the crew: lose a crewmember and low scrap, or high scrap. No odds. INFERRED: equal.
   // Clone Bay revives that crewmember. Docking: 4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap.
-  // INFERRED: equal. Leave: nothing. A living Rock pays high scrap. The augmentation is not named, so it is not installed.
-  // A Repair Drone pays high scrap. The schematic is not named, so it is not granted.
+  // INFERRED: equal. Leave: nothing. A living Rock pays high scrap and an unnamed augmentation. A Repair Drone pays high
+  // scrap and an unnamed drone schematic. Each is a random one (Rewards, "Augment" / "Drone").
   {
     dest: "Fire on research station",
     slug: "fire-on-research-station",
@@ -808,8 +810,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
       { id: "c:fire-on-research-station:0", label: "Send your crew in a shuttle to help put out the fire.", fx: [{ k: "note", text: "A crewmember and low scrap, or high scrap." }] },
       { id: "c:fire-on-research-station:1", label: "Dock and try to rescue the survivors.", fx: [{ k: "note", text: "4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap." }] },
       { id: "c:fire-on-research-station:2", label: "Leave.", fx: [{ k: "nothing" }] },
-      { id: "c:fire-on-research-station:3", label: "Send your Rock crew-member in.", fx: [{ k: "note", text: "High scrap. The augmentation is unnamed." }] },
-      { id: "c:fire-on-research-station:4", label: "Send your repair drone into the fire.", fx: [{ k: "note", text: "High scrap. The schematic is unnamed." }] },
+      { id: "c:fire-on-research-station:3", label: "Send your Rock crew-member in.", fx: [{ k: "note", text: "High scrap and a random augmentation." }] },
+      { id: "c:fire-on-research-station:4", label: "Send your repair drone into the fire.", fx: [{ k: "note", text: "High scrap and a random drone schematic." }] },
     ],
   },
   // STRANDED_BEACON. Go down: a survivor, or a man in a cave. No odds. INFERRED: equal.
@@ -1479,14 +1481,14 @@ function giveMiners(g: Game, n: 5 | 15) {
     return;
   }
   // No odds on the three results. INFERRED: equal.
-  // The augment result names no augment. That grant stays unwired.
+  // The augment result names no augment. Rewards, "Augment": "A random augmentation & T scrap." (no scrap printed).
   const r = weighted(g, [["both", 1], ["augment", 1], ["scrap", 1]] as const);
   if (r === "both") {
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + 15);
     const note = bumpReactor(g);
     show(g, "\"Wow. This will help our efforts considerably.\" They offer to have their engineers fix up your ship and upgrade your reactor.", undefined, ["Your ship receives 15 repairs.", note].filter(Boolean));
   } else if (r === "augment") {
-    show(g, "\"Wow. This will help our efforts considerably. What could I offer for your troubles...\" After some time they deliver a ship Augment for installation on your ship.");
+    show(g, "\"Wow. This will help our efforts considerably. What could I offer for your troubles...\" After some time they deliver a ship Augment for installation on your ship.", undefined, [grantRandomItem(g, "augment")]);
   } else {
     const base = between(g, [30, 40]);
     show(g, "\"Wow. This will help our efforts considerably. Let me see what I can scrounge up to offer you.\" They deliver some scrap and have their team try to repair part of your hull.", undefined, payMiners(g, base, 5));
@@ -2117,7 +2119,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
 
   // Dense asteroid field distress. Search lists three results and prints no odds. INFERRED: equal.
-  // The salvaged weapon is not named, so only the low scrap is paid.
+  // The salvaged weapon with low scrap: Rewards, "Weapon": "A random weapon & T scrap."
   "c:dense-asteroid-field-distress:0": (g) => {
     const r = weighted(g, [["hit", 1], ["scrap", 1], ["remains", 1]] as const);
     if (r === "hit") {
@@ -2140,7 +2142,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     asteroidRemains(g);
   },
   "s:dense-asteroid-field-distress:weapon": (g) => {
-    show(g, "Your crew grabs what they can and returns to the ship before the asteroid hits. You take a look at what you've recovered once you move clear of the asteroid field.", scrapOnly(g, "low"));
+    show(g, "Your crew grabs what they can and returns to the ship before the asteroid hits. You take a look at what you've recovered once you move clear of the asteroid field.", scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
   },
   "s:dense-asteroid-field-distress:pod": (g) => {
     // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
@@ -2562,7 +2564,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     const r = weighted(g, [["debris", 1], ["passenger", 1], ["tether", 1], ["schematic", 1], ["weapon", 1]] as const);
     if (r === "debris") {
       // "4 hull damage, a breach to a random system" and high resources with some scrap.
-      // The breach does not destroy the system. The drone schematic on the other result stays ungranted.
+      // The breach does not destroy the system.
       if (hurt(g, 4)) return;
       const breach = breachRandomSystem(g);
       show(g, "Despite your caution, the lack of detection equipment allows debris to crash into your ship, damaging the hull. You salvage what you can and prepare to jump before anything worse happens.", rollSurrenderOffer(g, "high", true), ["Hull damage: 4.", breach]);
@@ -2571,8 +2573,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     } else if (r === "tether") {
       show(g, "While the crew is off the ship searching through the wrecks, two hulls crash into each other breaking the crew's tethers. You have no time to react as someone is knocked away, floating helplessly into the gaseous clouds...", rollStandard(g, "low"), [loseCrew(g)]);
     } else if (r === "schematic") {
-      // The drone schematic is not granted (as in the other tables); the medium scrap is.
-      show(g, "Among the junk and scrap you find a salvageable drone schematic. You decide to quit while ahead and prepare to jump with your recent find.", scrapOnly(g, "medium"));
+      // A drone schematic with medium scrap. Rewards, "Drone": "A random drone schematic & T scrap."
+      show(g, "Among the junk and scrap you find a salvageable drone schematic. You decide to quit while ahead and prepare to jump with your recent find.", scrapOnly(g, "medium"), [grantRandomItem(g, "drone")]);
     } else {
       show(g, "Most of the debris is hardly even usable as scrap. However, you eventually find an intact weapon that can be mounted on your ship.", weaponOffer(g, "medium"));
     }
@@ -2816,13 +2818,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "c:fire-on-research-station:3": (g) => {
     if (!livingKin(g, "stone")) return;
-    // The augmentation is unnamed. That grant stays unwired. High scrap is printed.
-    show(g, "Your Rock soldier tears through the airlock directly into the fire. You've never seen someone that large move that fast. It disperses as much fire suppressant as possible into the heart of the blaze and eventually the fires start to die down. With most of the fire under control, the scientists are able to help secure the station. They offer you their sincere gratitude and a generous reward.", scrapOnly(g, "high"));
+    // An augmentation with high scrap. Rewards, "Augment": "A random augmentation & T scrap."
+    show(g, "Your Rock soldier tears through the airlock directly into the fire. You've never seen someone that large move that fast. It disperses as much fire suppressant as possible into the heart of the blaze and eventually the fires start to die down. With most of the fire under control, the scientists are able to help secure the station. They offer you their sincere gratitude and a generous reward.", scrapOnly(g, "high"), [grantRandomItem(g, "augment")]);
   },
   "c:fire-on-research-station:4": (g) => {
     if (!ownsDrone(g, "patch")) return;
-    // The drone schematic is unnamed. That grant stays unwired. High scrap is printed.
-    show(g, "You send the repair drone in and it methodically puts out the fires. Once it has made some progress, the rest of your crew helps to secure the station. They offer you their sincere gratitude; the station would have surely been destroyed without your assistance. They transfer a small reward and an additional drone schematic.", scrapOnly(g, "high"));
+    // A drone schematic with high scrap. Rewards, "Drone": "A random drone schematic & T scrap."
+    show(g, "You send the repair drone in and it methodically puts out the fires. Once it has made some progress, the rest of your crew helps to secure the station. They offer you their sincere gratitude; the station would have surely been destroyed without your assistance. They transfer a small reward and an additional drone schematic.", scrapOnly(g, "high"), [grantRandomItem(g, "drone")]);
   },
 
   // Single life form on moon. Two scenes, no odds. INFERRED: equal.
@@ -3078,8 +3080,8 @@ function chooseRolled(g: Game, id: string): boolean {
   }
   if (id === "s:unknown-disease:medbot") {
     if (!g.augments.includes("medbot")) return true;
-    // The weapon is unnamed. That grant stays unwired. High scrap is printed.
-    show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"));
+    // A weapon with high scrap. Rewards, "Weapon": "A random weapon & T scrap."
+    show(g, "You reconfigure your ship's nano dispersal system. In a matter of minutes all of the workers are cured. The leaders can hardly believe what you have achieved. They offer you what they can as payment.", scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
     return true;
   }
   const rock = id.match(/^s:rock-slug:(debt|upgrade):(\d+)$/);

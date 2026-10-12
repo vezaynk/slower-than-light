@@ -100,7 +100,9 @@ describe("Mantis ship attacking Slug ship", () => {
       choose(g, "q:mantis-slug:finish");
       const text = g.event?.body ?? "";
       assert.equal(g.player.weapons.length, beforeGuns);
-      assert.equal(g.augments.length, beforeAugs);
+      // "You receive an augmentation with low scrap." Rewards, "Augment": "A random augmentation & T scrap."
+      const queued = (g.overflow ?? []).filter((x) => x.kind === "augment").length;
+      assert.equal(g.augments.length + queued, beforeAugs + (/augmentation has already transported/.test(text) ? 1 : 0));
       const n = scraps(text)[0]!;
       if (/augmentation has already transported/.test(text)) {
         paidLow = true;

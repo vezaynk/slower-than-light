@@ -1,7 +1,8 @@
 /**
  * Leftover Zoltan pages. An opening choice is kept only when it states one
  * amount, scrap tier, hull number, fleet delay, or one named fight.
- * Winning branches, blue options, crew, map reveals, and unnamed items are not granted.
+ * Winning branches, blue options, crew, and map reveals are not granted. An unnamed
+ * weapon, augmentation or drone schematic is a random one (Rewards; the "item" fx).
  */
 
 export type CitedFx =
@@ -11,6 +12,8 @@ export type CitedFx =
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
+  /** Rewards, "Weapon" / "Augment" / "Drone": a random one the page does not name (bonus-item.ts grantRandomItem). */
+  | { k: "item"; item: "weapon" | "augment" | "drone" }
   | { k: "nothing" };
 
 export type CitedEventDef = {
@@ -196,6 +199,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
+    // Rewards, "Augment": "A random augmentation & T scrap." The page does not name the augmentation.
     dest: "Zoltan free augment",
     slug: "zoltan-free-augment",
     flag: "cited:zoltan-free-augment",
@@ -205,11 +209,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:zoltan-free-augment:0",
-        label: "You receive low scrap",
+        label: "You receive an augmentation with low scrap",
         fx: [
-          // "You receive an augmentation with low scrap."
+          // "You receive an augmentation with low scrap." The augmentation is a random one (Rewards, above).
           { k: "tier", tier: "low" },
-          { k: "note", text: "The page's augmentation is not added." },
+          { k: "item", item: "augment" },
         ],
       },
     ],

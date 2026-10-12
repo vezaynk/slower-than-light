@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { fillerChoose } from "./filler-events.ts";
+import { heldSchematics } from "./make-room.ts";
 
 const ID = "c:plasma-storm-incapacitated-ships:0";
 
@@ -15,6 +16,21 @@ function breached(g: Game) {
 }
 
 describe("Plasma storm incapacitated ships", () => {
+  // Rewards, "Drone": "A random drone schematic & T scrap."
+  it("the schematic result pays medium scrap and grants a random drone schematic", () => {
+    let hits = 0;
+    for (let seed = 1; seed <= 200 && hits < 3; seed++) {
+      const g = createGame(seed);
+      const held = heldSchematics(g).length;
+      fillerChoose(g, ID);
+      if (!g.event?.body.includes("salvageable drone schematic")) continue;
+      hits++;
+      assert.equal(heldSchematics(g).length, held + 1);
+      assert.match(g.event.body, /schematic (fitted|stowed in cargo)\./);
+    }
+    assert.ok(hits >= 1);
+  });
+
   it("the debris result deals 4 hull and breaches one system room without damaging it", () => {
     const titles = new Set<string>();
     let hits = 0;

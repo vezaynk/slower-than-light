@@ -9,7 +9,7 @@ import { CATALOG } from "../extras/augments.ts";
 import { rand } from "../sim.ts";
 import type { AugmentId, Game } from "../types.ts";
 import { CITED_DRONES, NOT_SOLD } from "./cited-stores.ts";
-import { heldSchematics, receiveAugment, receiveDrone } from "./make-room.ts";
+import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
 export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: AugmentId } | { kind: "drone"; id: string };
 
@@ -44,6 +44,36 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   if (kind === "augment") return { kind, id: pickOne(g, augs)!.id };
   if (kind === "drone") return { kind, id: pickOne(g, drones)!.ref };
   return undefined;
+}
+
+/**
+ * Rewards, "Weapon": "A random weapon & T scrap." "Augment": "A random augmentation & T scrap." "Drone": "A random drone
+ * schematic & T scrap." For an event result that gives one of these without naming it ("You receive a weapon with low
+ * scrap"). The caller pays the scrap. INFERRED: uniform over the same pools as the bonus item (rarity is not in the
+ * dump). Returns the line for the result card; a full rack goes to cargo or the make-room choice.
+ */
+export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): string {
+  if (kind === "weapon") {
+    const owned = new Set(g.player.weapons.map((w) => w.defId));
+    const def = pickOne(g, Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id)));
+    return def ? weaponLine(g, def.id) : "No weapon is left to give.";
+  }
+  if (kind === "augment") {
+    const id = pickOne(g, CATALOG.filter((row) => !NOT_SOLD.has(row.id)))?.id;
+    return id ? grantBonusAugment(g, id) : "No augmentation is left to give.";
+  }
+  const held = heldSchematics(g);
+  const ref = pickOne(g, CITED_DRONES.filter((row) => !held.includes(row.ref)))?.ref;
+  return ref ? droneLine(g, ref) : "No drone schematic is left to give.";
+}
+
+/** Receives a weapon and returns the line for the result card. */
+export function weaponLine(g: Game, defId: string): string {
+  const name = WEAPONS[defId]?.name ?? defId;
+  const got = receiveWeapon(g, defId);
+  if (got === "mounted") return `${name} mounted.`;
+  if (got === "cargo") return `No free weapon slot: ${name} is stowed in cargo.`;
+  return `No room in cargo for ${name}: choose what to leave behind.`;
 }
 
 /** What a looted augmentation does to this ship: fitted, 25 scrap for a duplicate, or a make-room choice. */

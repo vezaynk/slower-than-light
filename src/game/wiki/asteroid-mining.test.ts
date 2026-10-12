@@ -85,8 +85,9 @@ describe("Asteroid mining colony", () => {
         const augments = g.augments.length;
         fillerChoose(g, n === 5 ? "c:asteroid-mining-colony:1" : "c:asteroid-mining-colony:2");
         assert.equal(g.missiles, 0);
-        assert.equal(g.augments.length, augments);
         const body = g.event?.body ?? "";
+        // Rewards, "Augment": only the augment result installs one (a random augmentation).
+        assert.equal(g.augments.length, augments + (body.includes("ship Augment") ? 1 : 0), body);
         if (n === 5 && body.includes("repair some of your ship's hull")) {
           bag.add("hull");
           assert.equal(g.player.hull, g.player.hullMax - 10);
@@ -103,6 +104,7 @@ describe("Asteroid mining colony", () => {
           assert.equal(g.player.reactor, reactor + 1);
         } else if (n === 15 && body.includes("ship Augment")) {
           bag.add("augment");
+          assert.match(body, / fitted\.$/);
           assert.equal(g.player.hull, g.player.hullMax - 20);
           assert.equal(g.player.reactor, reactor);
         } else if (n === 15 && body.includes("repair part of your hull")) {

@@ -7,8 +7,8 @@
  *
  * EXTRA_EVENTS is only pages that are not already in cited-events.ts and that
  * keep at least one choice with one stated outcome. A choice with several
- * results is omitted. Blue options are not granted. Crew, a map reveal, an
- * upgrade, and an unnamed weapon, schematic, augment, or crew are not granted.
+ * results is omitted. Blue options are not granted. Crew, a map reveal, and an
+ * upgrade are not granted. No page kept here gives an unnamed weapon, schematic, or augment.
  *
  * Omitted: Slug fuel trader (the paid offer has two results; the single trade
  * is a Slug blue option). Drifting debris (the away team has several reports,

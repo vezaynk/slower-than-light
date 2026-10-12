@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
+import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
@@ -18,7 +18,7 @@ function open(g: Game) {
 }
 
 describe("Zoltan free augment hail", () => {
-  it("prints the full opening and leaves the unnamed augment ungranted", () => {
+  it("prints the full opening and grants nothing before the choice", () => {
     const g = createGame(1);
     const augments = g.augments.length;
     open(g);
@@ -31,5 +31,16 @@ describe("Zoltan free augment hail", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.augments.length, augments);
+  });
+
+  it("pays low scrap and fits a random augmentation", () => {
+    const g = createGame(1);
+    const augments = g.augments.length;
+    open(g);
+    choose(g, "c:zoltan-free-augment:0");
+    // Rewards, "Augment": "A random augmentation & T scrap."
+    assert.equal(g.augments.length, augments + 1);
+    assert.ok(g.scrap > 10);
+    assert.ok(g.log.some((line) => / fitted\.$/.test(line)), g.log.join("\n"));
   });
 });

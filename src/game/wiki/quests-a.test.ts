@@ -410,6 +410,8 @@ describe("quest openers (quests-a)", () => {
     choose(g, "qa:zrf:thanks");
     assert.ok(g.event!.body.startsWith("\"Thank you for rescuing us!"));
     assert.ok(g.scrap > scrap);
+    // "You receive a drone schematic with low ... resources and scrap." Rewards, "Drone": a random drone schematic.
+    assert.match(g.event!.body, / schematic (fitted|stowed in cargo)\.|choose what to leave behind\./);
   });
 
   it("Zoltan trade hub: blue options; the hub opens a store or adds the primitives marker, which shows that page's card", () => {
@@ -446,6 +448,12 @@ describe("quest openers (quests-a)", () => {
     choose(g, "ack");
     goToQuest(g, "rock-bride");
     assert.deepEqual(ids(g), ["qa:bride:hand", "qa:bride:refuse"]);
+    // "You receive an augmentation with low scrap." Rewards, "Augment": "A random augmentation & T scrap."
+    const hand = structuredClone(g);
+    const augs = hand.augments.length;
+    choose(hand, "qa:bride:hand");
+    assert.ok(hand.event!.body.includes("exotic piece of technology"));
+    assert.equal(hand.augments.length + (hand.overflow ?? []).filter((x) => x.kind === "augment").length, augs + 1);
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
     assert.ok(g.crew.some((c) => c.name === "Ariadne" && c.kin === "stone"));

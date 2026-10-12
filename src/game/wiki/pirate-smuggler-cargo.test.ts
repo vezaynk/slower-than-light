@@ -2,7 +2,24 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
+import { heldSchematics } from "./make-room.ts";
 import { pageWin } from "./quests.ts";
+
+/**
+ * Template:Pirate Smuggler / Rebel Transport. The unnamed weapon and drone schematic are random ones (Rewards,
+ * "Weapon" / "Drone"). Counts held anywhere: rack, cargo, or a make-room choice.
+ */
+function held(g: Game, kind: "weapon" | "drone"): number {
+  const queued = (g.overflow ?? []).filter((x) => x.kind === kind).length;
+  if (kind === "drone") return heldSchematics(g).length + queued;
+  return g.player.weapons.length + (g.cargo ?? []).filter((x) => x.kind === "weapon").length + queued;
+}
+
+/** The rows whose sentence hands over a weapon / a drone schematic. */
+function gives(text: string, kind: "weapon" | "drone"): number {
+  if (kind === "drone") return /military-grade Drone Schematics/.test(text) ? 1 : 0;
+  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(text) ? 1 : 0;
+}
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -21,13 +38,14 @@ function resourceLines(body: string): string[] {
 }
 
 describe("Pirate smuggler cargo", () => {
-  it("a destroyed ship pays the printed cargo table and does not grant an unnamed item", () => {
+  it("a destroyed ship pays the printed cargo table and grants the unnamed weapon or schematic as a random one", () => {
     const seen = new Set<string>();
     const randomTiers = new Set<string>();
     for (let seed = 1; seed <= 160; seed++) {
       const g = createGame(seed);
       open(g);
-      const guns = g.player.weapons.length;
+      const guns = held(g, "weapon");
+      const kits = held(g, "drone");
       const crew = g.crew.length;
       const visited = g.beacons.filter((b) => b.visited).length;
       assert.equal(pageWin(g, "pirate-smuggler", false), true);
@@ -37,7 +55,8 @@ describe("Pirate smuggler cargo", () => {
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.equal(g.scrap, 10 + paid[0]!);
-      assert.equal(g.player.weapons.length, guns, body);
+      assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
+      assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
       assert.equal(g.crew.length, crew, body);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       const lines = resourceLines(body);
@@ -66,12 +85,13 @@ describe("Pirate smuggler cargo", () => {
     assert.equal(randomTiers.has("low") && randomTiers.has("medium") && randomTiers.has("high"), true);
   });
 
-  it("a crew kill pays the printed cargo table and does not grant an unnamed item", () => {
+  it("a crew kill pays the printed cargo table and grants the unnamed weapon or schematic as a random one", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80; seed++) {
       const g = createGame(seed);
       open(g);
-      const guns = g.player.weapons.length;
+      const guns = held(g, "weapon");
+      const kits = held(g, "drone");
       const crew = g.crew.length;
       const visited = g.beacons.filter((b) => b.visited).length;
       assert.equal(pageWin(g, "pirate-smuggler", true), true);
@@ -81,7 +101,8 @@ describe("Pirate smuggler cargo", () => {
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.equal(g.scrap, 10 + paid[0]!);
-      assert.equal(g.player.weapons.length, guns);
+      assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
+      assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
       assert.equal(g.crew.length, crew);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       assert.equal(resourceLines(body).length, 0, body);

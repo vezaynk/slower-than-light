@@ -28,7 +28,7 @@ function paid(g: Game): number {
 }
 
 describe("Zoltan retake the ship reward", () => {
-  it("pays medium scrap when the ship is destroyed, high scrap on a crew kill, and hires a Zoltan for 40", () => {
+  it("pays medium scrap when the ship is destroyed, high scrap and a random augmentation on a crew kill, and hires a Zoltan for 40", () => {
     const won = createGame(1);
     open(won);
     const fuel = won.fuel;
@@ -98,7 +98,8 @@ describe("Zoltan retake the ship reward", () => {
     const [hlo, hhi] = scrapBand(killed, "high");
     assert.ok(high >= hlo && high <= hhi, `high ${high}`);
     assert.equal(killed.scrap, 10 + high);
-    assert.equal(killed.augments.length, before);
+    // "You receive an augmentation with high scrap." Rewards, "Augment": "A random augmentation & T scrap."
+    assert.equal(killed.augments.length + (killed.overflow ?? []).filter((x) => x.kind === "augment").length, before + 1);
     assert.equal(killed.event?.choices.some((c) => c.id === "s:zoltan-raft:hire"), false);
   });
 });

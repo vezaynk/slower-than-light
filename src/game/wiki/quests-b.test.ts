@@ -224,6 +224,8 @@ describe("Capture the ship", () => {
     assert.equal(a.phase, "event");
     assert.ok(a.event!.body.startsWith("You secure the ship"));
     assert.ok(a.scrap > scrap);
+    // Rewards, "Weapon": "A random weapon & T scrap."
+    assert.match(a.event!.body, /mounted\.|stowed in cargo\./);
     const b = setup();
     b.player.hull = b.player.hullMax;
     winByHull(b);
@@ -325,6 +327,21 @@ describe("Engi ship attacked by Mantis ship", () => {
     choose(g, "q:engi-station:protocol");
     assert.equal(g.player.hull, 15);
     assert.equal(questBeacons(g, "fed-base").length, 1);
+    assert.match(g.event!.body, /mounted\.|stowed in cargo\./);
+  });
+
+  // Rewards, "Weapon": "A random weapon & T scrap." "Drone": "A random drone schematic & T scrap."
+  it("requesting a weapon or a drone pays low scrap and grants a random one", () => {
+    const w = atCited(createGame(3), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+    const guns = w.player.weapons.length + (w.cargo ?? []).length;
+    const scrap = w.scrap;
+    choose(w, "q:engi-station:weapon");
+    assert.ok(w.scrap > scrap);
+    assert.equal(w.player.weapons.length + (w.cargo ?? []).length, guns + 1);
+    assert.match(w.event!.body, /mounted\.|stowed in cargo\./);
+    const d = atCited(createGame(4), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+    choose(d, "q:engi-station:drone");
+    assert.match(d.event!.body, /schematic (fitted|stowed in cargo)\./);
   });
 });
 
@@ -384,8 +401,11 @@ describe("Merchant's request", () => {
           return "remains";
         }
         const scrap = g.scrap;
-        assert.ok(arrive(g, "merchant-station").includes("days late"));
+        const paid = arrive(g, "merchant-station");
+        assert.ok(paid.includes("days late"));
         assert.ok(g.scrap > scrap);
+        // Rewards, "Drone": "A random drone schematic & T scrap."
+        assert.match(paid, /schematic (fitted|stowed in cargo)\./);
         return "remains";
       }
       const crew = g.crew.length;

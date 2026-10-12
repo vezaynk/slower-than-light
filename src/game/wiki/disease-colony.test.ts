@@ -156,7 +156,8 @@ describe("Unknown disease on mining colony", () => {
     mediumStuff(engi.event?.body ?? "");
   });
 
-  it("a level 2 medbay pays medium resources, and the med-bots pay high scrap without a weapon", () => {
+  // Rewards, "Weapon": "A random weapon & T scrap." The med-bots' weapon is unnamed, so it is a random one.
+  it("a level 2 medbay pays medium resources, and the med-bots pay high scrap and a random weapon", () => {
     const g = createGame(6);
     g.player.systems.medbay.level = 2;
     const weapons = g.player.weapons.length;
@@ -183,6 +184,8 @@ describe("Unknown disease on mining colony", () => {
     assert.equal(got.fuel, 0);
     assert.equal(got.missiles, 0);
     assert.equal(got.parts, 0);
-    assert.equal(bots.player.weapons.length, guns);
+    const stowed = (bots.cargo ?? []).filter((c) => c.kind === "weapon").length;
+    assert.equal(bots.player.weapons.length + stowed, guns + 1, body);
+    assert.match(body, /mounted\.|stowed in cargo/);
   });
 });

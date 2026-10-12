@@ -1,7 +1,8 @@
 /**
  * Leftover Civilian and Abandoned pages with one stated opening outcome.
  * A choice with several results is left out. Blue options, crew, map reveals,
- * upgrades, and unnamed items are not granted.
+ * and upgrades are not granted. An unnamed weapon, augmentation or drone schematic is a random one
+ * (Rewards; the "item" fx).
  */
 
 export type CitedFx =
@@ -11,6 +12,8 @@ export type CitedFx =
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
+  /** Rewards, "Weapon" / "Augment" / "Drone": a random one the page does not name (bonus-item.ts grantRandomItem). */
+  | { k: "item"; item: "weapon" | "augment" | "drone" }
   | { k: "nothing" };
 
 export type CitedEventDef = {
@@ -190,7 +193,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "You receive a weapon with low scrap",
         fx: [
           { k: "tier", tier: "low" },
-          { k: "note", text: "The page's item is not added." },
+          { k: "item", item: "weapon" },
         ],
       },
     ],

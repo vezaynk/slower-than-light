@@ -5,6 +5,11 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 
+/** Weapons held anywhere: rack, cargo, or a make-room choice. */
+function weaponsHeld(g: Game): number {
+  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+}
+
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
@@ -76,12 +81,13 @@ describe("Auto-ship attacking civilian", () => {
       g.phase = "combat";
       pageWin(g, "auto-ship-attacking-civilian", false);
       const before = g.scrap;
-      const guns = g.player.weapons.length;
+      const guns = weaponsHeld(g);
       const crew = g.crew.filter((c) => c.side === "player").length;
       g.player.hull = 20;
       choose(g, "q:lanius-civilian:contact");
       const body = g.event?.body ?? "";
-      assert.equal(g.player.weapons.length, guns);
+      // The shipwright's weapon is unnamed: Rewards, "Weapon": "A random weapon & T scrap."
+      assert.equal(weaponsHeld(g), guns + (/shipwright/.test(body) ? 1 : 0));
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       if (/shipwright/.test(body)) {
         const paid = scraps(body);

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { heldSchematics } from "./make-room.ts";
 import { scrapBand } from "./surrender.ts";
 
 const CROP =
@@ -91,7 +92,7 @@ describe("Remote settlement", () => {
     assert.equal(g.event?.body, body);
   });
 
-  it("a fire beam burns the crops, pays high scrap, and does not grant the schematic", () => {
+  it("a fire beam burns the crops, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
     g.player.weapons.push({ uid: "w-fire", defId: "firebeam", charge: 0, enabled: false, autofire: false, target: null });
@@ -99,10 +100,13 @@ describe("Remote settlement", () => {
     const parts = g.player.parts;
     const augments = g.augments.slice();
     const crew = g.crew.length;
-    const drone = g.player.kits.swarm?.target;
+    const schematics = heldSchematics(g).length;
     assert.equal(choiceDisabled(g, "c:remote-settlement:2"), null);
     choose(g, "c:remote-settlement:2");
-    assert.equal(g.event?.body, `${CROP}\n\n${SCHEMATIC}`);
+    // Rewards, "Drone": "A random drone schematic & T scrap."
+    assert.ok(g.event?.body.startsWith(`${CROP}\n\n${SCHEMATIC} `));
+    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\.$/);
+    assert.equal(heldSchematics(g).length, schematics + 1);
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
     assert.equal(g.sector, 1);
@@ -114,11 +118,10 @@ describe("Remote settlement", () => {
     assert.equal(g.player.parts, parts);
     assert.deepEqual(g.augments, augments);
     assert.equal(g.crew.length, crew);
-    assert.equal(g.player.kits.swarm?.target, drone);
     assert.equal(g.missiles, 0);
   });
 
-  it("a fire bomb spends 1 missile, pays high scrap, and does not grant the schematic", () => {
+  it("a fire bomb spends 1 missile, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
     g.player.weapons.push({ uid: "w-cask", defId: "cask", charge: 0, enabled: false, autofire: false, target: null });
@@ -127,10 +130,13 @@ describe("Remote settlement", () => {
     const parts = g.player.parts;
     const augments = g.augments.slice();
     const crew = g.crew.length;
-    const drone = g.player.kits.swarm?.target;
+    const schematics = heldSchematics(g).length;
     assert.equal(choiceDisabled(g, "c:remote-settlement:3"), null);
     choose(g, "c:remote-settlement:3");
-    assert.equal(g.event?.body, `${DWELLING}\n\n${SCHEMATIC}`);
+    // Rewards, "Drone": "A random drone schematic & T scrap."
+    assert.ok(g.event?.body.startsWith(`${DWELLING}\n\n${SCHEMATIC} `));
+    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\.$/);
+    assert.equal(heldSchematics(g).length, schematics + 1);
     assert.ok(g.event?.body.includes("'tribute'"));
     assert.equal(g.missiles, 0);
     assert.equal(g.phase, "event");
@@ -142,7 +148,6 @@ describe("Remote settlement", () => {
     assert.equal(g.player.parts, parts);
     assert.deepEqual(g.augments, augments);
     assert.equal(g.crew.length, crew);
-    assert.equal(g.player.kits.swarm?.target, drone);
   });
 
   it("a fire bomb with no missiles is refused and changes nothing", () => {

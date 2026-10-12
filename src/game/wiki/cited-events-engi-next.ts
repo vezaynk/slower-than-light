@@ -1,8 +1,8 @@
 /**
  * Engi candidate pages whose own text states one opening outcome and a
- * sector. Redirects are not followed. Engi cache is already partial in the
- * sim (2 missiles delay the fleet 2 turns; securing the cache grants medium
- * scrap; the unnamed schematic is not granted), so it is not exported.
+ * sector. Redirects are not followed. Engi cache already runs in the sim
+ * (engi-cache.ts: 2 missiles delay the fleet 2 turns; securing the cache grants
+ * medium scrap and a random drone schematic, per Rewards, "Drone"), so it is not exported.
  */
 
 export type CitedFx =

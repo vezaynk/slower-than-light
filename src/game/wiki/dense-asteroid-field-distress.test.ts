@@ -81,7 +81,8 @@ describe("Dense asteroid field distress", () => {
     assert.equal(hit && scrap && remains, true);
   });
 
-  it("taking the unnamed weapon pays low scrap and does not mount it", () => {
+  // Rewards, "Weapon": "A random weapon & T scrap."
+  it("taking the unnamed weapon pays low scrap and grants a random weapon", () => {
     const g = createGame(2);
     g.augments.push("keel");
     const guns = g.player.weapons.map((w) => w.defId);
@@ -97,7 +98,10 @@ describe("Dense asteroid field distress", () => {
     assert.equal(got.fuel, 0);
     assert.equal(got.missiles, 0);
     assert.equal(got.parts, 0);
-    assert.deepEqual(g.player.weapons.map((w) => w.defId), guns);
+    const added = g.player.weapons.map((w) => w.defId).filter((id) => !guns.includes(id));
+    const stowed = (g.cargo ?? []).filter((c) => c.kind === "weapon");
+    assert.equal(added.length + stowed.length, 1, body);
+    assert.match(body, /mounted\.|stowed in cargo/);
     assert.equal(g.augments.includes("stasis"), false);
   });
 

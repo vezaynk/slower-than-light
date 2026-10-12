@@ -5,8 +5,8 @@
  * win reward runs here. Registered in wiki/quests.ts PARTS (QuestPart), next to quests-a.ts.
  *
  * Conventions are wiki/quests.ts's (read its header): a page that lists N results without odds rolls them with equal
- * odds ({{DuplicateEvent|N}} counts N times); unnamed weapons, drone schematics and augments are not granted, only the
- * scrap / resources printed beside them; quest beacon names and "Fight ..." labels the page does not print are INVENTED.
+ * odds ({{DuplicateEvent|N}} counts N times); an unnamed weapon or drone schematic is a random one (grantRandomItem,
+ * per the Rewards page) beside the printed scrap; quest beacon names and "Fight ..." labels the page does not print are INVENTED.
  * Blue options on follow-up cards are listed only when the ship meets them (as quests.ts does); blue options on the
  * opening cited cards are always listed and disabled by PART_B.disabled.
  *
@@ -23,6 +23,7 @@ import { adjustScrap } from "../extras/index.ts";
 import { kinOf } from "../extras/kin.ts";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
+import { grantRandomItem } from "./bonus-item.ts";
 import {
   addQuest,
   arriveFedAssist,
@@ -221,11 +222,11 @@ function asteroidDrone(g: Game) {
   g.player.parts -= 1;
   if (rand(g) < 0.5) {
     // "4 hull damage, 1 damage to a random system, 1 damage with fire to a random room, and you receive a weapon with
-    // medium scrap." The weapon is not named: only the medium scrap.
+    // medium scrap." Rewards, "Weapon": "A random weapon & T scrap."
     if (damageHull(g, 4)) return;
     const sys = systemHit(g);
     const fire = roomHit(g);
-    result(g, "Your drone succeeds in keeping their ship from breaking apart while they fix it, however you take some damage while attempting to leave the asteroid field. They offer you some military supplies as thanks for saving them.", scrapOnly(g, "medium"), ["Hull damage: 4.", sys, fire]);
+    result(g, "Your drone succeeds in keeping their ship from breaking apart while they fix it, however you take some damage while attempting to leave the asteroid field. They offer you some military supplies as thanks for saving them.", scrapOnly(g, "medium"), ["Hull damage: 4.", sys, fire, grantRandomItem(g, "weapon")]);
   } else {
     result(g, "The drone keeps the ship stable enough to allow them to escape the asteroid field. They message you with map coordinates, \"You're that Federation ship the Rebels are after, aren't you? I can't offer much but I heard there was a Federation loyalist base nearby. Maybe they can help you?\"", undefined, [addQuest(g, "fed-base")]);
   }
@@ -295,8 +296,8 @@ function investigateCargo(g: Game) {
   if (r === "note") {
     result(g, "The cargo was some food and medical supplies, nothing that you need right now. You make a note of the delivery destination in case you want to drop off the cargo for the payment.", undefined, [addQuest(g, "merchant-station")]);
   } else if (r === "weapon") {
-    // "You receive a weapon." The weapon is not named: nothing is granted.
-    result(g, "You find a prototype weapon inside. You quickly install it on the ship.");
+    // "You receive a weapon." Not named: a random one, as Rewards, "Weapon": "A random weapon & T scrap." (no scrap here).
+    result(g, "You find a prototype weapon inside. You quickly install it on the ship.", undefined, [grantRandomItem(g, "weapon")]);
   } else {
     result(g, "There were general military supplies in the cargo crates. You take what you can use.", rollStandard(g, "high"));
   }
@@ -482,10 +483,10 @@ export const PART_B: QuestPart = {
         ]);
       }
     },
-    // Merchant's request, "Deliver to the Station quest marker": "a drone schematic with medium scrap". The schematic is
-    // not named: only the medium scrap.
+    // Merchant's request, "Deliver to the Station quest marker": "a drone schematic with medium scrap". Rewards,
+    // "Drone": "A random drone schematic & T scrap."
     "merchant-station": (g) => {
-      result(g, "You find the station that had ordered your cargo. You drop it off and they respond, \"Ignoring the fact that this is days late, we really appreciate that you delivered our materials. We realize how dangerous this sector is these days. Take this as payment.\"", scrapOnly(g, "medium"));
+      result(g, "You find the station that had ordered your cargo. You drop it off and they respond, \"Ignoring the fact that this is days late, we really appreciate that you delivered our materials. We realize how dangerous this sector is these days. Take this as payment.\"", scrapOnly(g, "medium"), [grantRandomItem(g, "drone")]);
     },
     // Nebula wreckage, "Quest Marker".
     abadoth: (g) => {
@@ -614,12 +615,14 @@ export const PART_B: QuestPart = {
     },
     "q:engi-station:contact": (g) => engiContact(g),
     "q:engi-station:fuel": (g) => result(g, "\"Request granted. Fuel transferring.\"", fuelAndScrap(g, "high")),
-    // "a weapon with low scrap" / "a drone schematic with low scrap": neither is named, only the low scrap is paid.
-    "q:engi-station:weapon": (g) => result(g, "\"Request granted. Weapon transferring.\"", scrapOnly(g, "low")),
-    "q:engi-station:drone": (g) => result(g, "\"Request granted. Drone schematic transferring.\"", scrapOnly(g, "low")),
-    // "a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker".
+    // "a weapon with low scrap" / "a drone schematic with low scrap". Rewards, "Weapon": "A random weapon & T scrap."
+    // "Drone": "A random drone schematic & T scrap."
+    "q:engi-station:weapon": (g) => result(g, "\"Request granted. Weapon transferring.\"", scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]),
+    "q:engi-station:drone": (g) => result(g, "\"Request granted. Drone schematic transferring.\"", scrapOnly(g, "low"), [grantRandomItem(g, "drone")]),
+    // "a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker". Rewards,
+    // "Weapon": "A random weapon & T scrap."
     "q:engi-station:protocol": (g) => {
-      result(g, "They respond, \"Understood. Re-establishment of Federation highest import. Transmitting hidden base coordinates. Repairing hull and attaching ship to ship ordnance.\"", scrapOnly(g, "low"), [repair(g, 10), addQuest(g, "fed-base")]);
+      result(g, "They respond, \"Understood. Re-establishment of Federation highest import. Transmitting hidden base coordinates. Repairing hull and attaching ship to ship ordnance.\"", scrapOnly(g, "low"), [grantRandomItem(g, "weapon"), repair(g, 10), addQuest(g, "fed-base")]);
     },
 
     // ---- Merchant's request ----
@@ -799,10 +802,10 @@ export const PART_B: QuestPart = {
 
   wins: {
     // Capture the ship: destroyed -> the chain explosion (applied by "q:capture:blast"); deadCrew -> "a weapon with high
-    // scrap" (the weapon is not named: only the high scrap).
+    // scrap". Rewards, "Weapon": "A random weapon & T scrap."
     "quest-capture-ship": (g, deadCrew) => {
       if (deadCrew) {
-        result(g, "You secure the ship and wait for the merchants to arrive. Upon arrival they message you, saying \"Good job. We would prefer if you did not speak of this to anyone.\"", scrapOnly(g, "high"));
+        result(g, "You secure the ship and wait for the merchants to arrive. Upon arrival they message you, saying \"Good job. We would prefer if you did not speak of this to anyone.\"", scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
         return;
       }
       card(g, "The explosion rocks the pirate ship and a brilliant light begins to shine from the wreckage. Before you can react the ship is consumed in a massive chain of explosions that send you careening toward a nearby planet. You struggle to put out the fires and your pilot desperately tries to get the controls online before you're dragged down to the surface. Apparently when they said the ship should not be destroyed they had good reason...", [

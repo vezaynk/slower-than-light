@@ -17,7 +17,7 @@ import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { beginBoarding, log, rand, startCombat } from "../sim.ts";
 import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
-import { droneLine, grantBonusAugment, rollBonusItem } from "./bonus-item.ts";
+import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
@@ -42,6 +42,11 @@ export type SurrenderOffer = {
   augment?: AugmentId;
   /** Rewards, "Stuff": the bonus item when the roll lands on a drone schematic (bonus-item.ts). */
   drone?: string;
+  /**
+   * Rewards, "Weapon": "A random weapon & T scrap." "Augment": "A random augmentation & T scrap." "Drone": "A random
+   * drone schematic & T scrap." An item the page gives without naming it; drawn when paid (bonus-item.ts grantRandomItem).
+   */
+  random?: "weapon" | "augment" | "drone";
   /** Scripted surrender (SCRIPTED_SURRENDERS): a crewmember of this race joins. */
   crew?: string;
   /** Scripted surrender: hull repairs. */
@@ -210,8 +215,8 @@ export type ScriptedReward =
   | { k: "weapon"; name: string }
   // Rewards, "Standard": T scrap + low resources. `race`: the page also names a crewmember of that race.
   | { k: "standard"; tier: SurrenderTier; race?: string }
-  // Rewards, "Scrap only" / "Weapon": T scrap. `unnamed`: an item the page gives without naming it; not granted.
-  | { k: "scrap"; tier: SurrenderTier; unnamed?: string }
+  // Rewards, "Scrap only" / "Weapon": T scrap. `unnamed`: an item the page gives without naming it, drawn at random.
+  | { k: "scrap"; tier: SurrenderTier; unnamed?: "weapon" | "augment" | "drone" }
   // @agent:quests. The page's accept line pays nothing (it adds a quest marker or opens a dialogue instead).
   | { k: "none" };
 
@@ -386,8 +391,8 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   },
   // "Settlement mercenary work", Accept: SQUAT_PIRATE_MERCENARY "(surrenders at 30-40% hull)"; the Category page:
   // "only the fight with a Pirate ship ... has a guaranteed surrender offer". "Let them live and then return to the
-  // settlement." -> "You receive a weapon with medium scrap." The weapon is not named: only the medium scrap is paid.
-  // The italic is the return to the settlement; the unnamed weapon is still not granted.
+  // settlement." -> "You receive a weapon with medium scrap." The weapon is not named: Rewards, "Weapon": "A random
+  // weapon & T scrap." The italic is the return to the settlement.
   "settlement-mercenary-work": {
     page: "Settlement mercenary work",
     chance: 100,
@@ -401,7 +406,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   },
   // "The Black Raven", Trivia: "proposes a surrender offer when its hull integrity falls down to 30-40%". The page
   // gives no percent chance; INFERRED 100% (a scripted surrender, listed in Category:Ship surrender Events).
-  // "Accept his surrender." -> "You receive a weapon with high scrap." The weapon is not named: only the high scrap.
+  // "Accept his surrender." -> "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
   "the-black-raven": {
     page: "The Black Raven",
     chance: 100,
@@ -411,7 +416,6 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     hail: "\"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame.\"",
     accept: "Accept his surrender.",
     refuse: "Ignore him and attack.",
-    // "He transfers over the goods and starts to repair his ship." The unnamed weapon stays ungranted.
     result: "He transfers over the goods and starts to repair his ship.",
   },
   // "Zoltan ship asks to dock" (old title "Zoltan science ship"), ZOLTAN_SCIENCE_DOCK: "Enemy ship has 50% chance to
@@ -481,7 +485,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     },
   },
   // "Mantis ship-collectors", Quest Marker: DONOR_MANTIS_CHASE2 "makes a surrender offer at 20% hull" (INFERRED 100%).
-  // "Let them live." -> "You receive a weapon with high scrap." The weapon is not named: only the high scrap is paid.
+  // "Let them live." -> "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
   "quest-mantis-chase": {
     page: "Mantis ship-collectors",
     chance: 100,
@@ -651,11 +655,13 @@ export function rollScriptedOffer(g: Game, s: ScriptedSurrender): SurrenderOffer
   }
   const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
   if (r.k === "scrap") {
-    // @agent:surrender. Rewards, "Scrap only" / "Weapon": T scrap. A weapon the page leaves unnamed is not granted.
+    // @agent:surrender. Rewards, "Scrap only" / "Weapon": T scrap. An unnamed item is drawn when paid (payOffer).
     offer.tier = r.tier;
     offer.eligible = between(g, scrapBand(g, r.tier));
     offer.scrap = adjustScrap(g, offer.eligible);
-    offer.note = `${cap(r.tier)} scrap.`;
+    const item = { weapon: "A weapon", augment: "An augmentation", drone: "A drone schematic" } as const;
+    offer.note = r.unnamed ? `${item[r.unnamed]} and ${r.tier} scrap.` : `${cap(r.tier)} scrap.`;
+    if (r.unnamed) offer.random = r.unnamed;
   } else if (r.k === "crew") {
     offer.crew = r.race ?? randomRace(g);
     offer.note = `A ${offer.crew} crewmember.`;
@@ -870,7 +876,7 @@ export function stalemateTick(g: Game, h: number): boolean {
   return true;
 }
 
-/** Pays an offer: resources, a weapon, a bonus augmentation or drone schematic, and the crew and repairs a scripted page names. A full rack asks what to leave behind (make-room.ts). */
+/** Pays an offer: resources, a weapon, a bonus augmentation or drone schematic, an unnamed (random) item, and the crew and repairs a scripted page names. A full rack asks what to leave behind (make-room.ts). */
 export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { weaponName?: string; extras: string[] } {
   g.scrap += offer.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + offer.eligible;
@@ -894,6 +900,7 @@ export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { 
   }
   if (offer.augment) extras.push(grantBonusAugment(g, offer.augment));
   if (offer.drone) extras.push(droneLine(g, offer.drone));
+  if (offer.random) extras.push(grantRandomItem(g, offer.random));
   return { weaponName, extras };
 }
 
@@ -1452,7 +1459,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       { id: "s:the-black-raven:duel", label: "Engage in a duel of the mind." },
     ]);
   },
-  // Two results, no odds. INFERRED: equal odds. The weapon is unnamed and is not granted. High scrap is.
+  // Two results, no odds. INFERRED: equal odds. The win gives a weapon with high scrap; the weapon is unnamed, so
+  // Rewards, "Weapon": "A random weapon & T scrap."
   // The stunned collapse prints no duration, so no stun is applied.
   "s:the-black-raven:duel": (g) => {
     if (!livingSlug(g)) return;
@@ -1469,7 +1477,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       pageResult(
         g,
         "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious.\n\nHis face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"",
-        { tier: "high", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 },
+        { tier: "high", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0, random: "weapon" },
       );
     }
   },

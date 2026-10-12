@@ -23,7 +23,8 @@
  * the right of the ship; with no such beacon it goes to the next sector. A beacon the ship already visited, one the fleet
  * has taken, and a ship-unlocking event page are not overwritten.
  * INFERRED everywhere below: a page that lists N results without odds rolls them with equal odds ({{DuplicateEvent|N}}
- * counts N times). Unnamed weapons, drone schematics and augments are not granted (as in surrender.ts); named ones are.
+ * counts N times). An unnamed weapon, drone schematic or augment is a random one (bonus-item.ts grantRandomItem, per
+ * Rewards "Weapon" / "Drone" / "Augment"); named ones are granted by name.
  * INVENTED: quest beacon names, and the one-word labels of "Fight ..." / "Continue" buttons where a page prints none.
  * Ship unlocks (Stealth, Mantis, Slug Cruisers) are not wired: hulls.ts says "unlock is a label, not a gate".
  */
@@ -35,6 +36,7 @@ import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openS
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
+import { grantRandomItem } from "./bonus-item.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
@@ -270,7 +272,8 @@ function engiDistressWin(g: Game, deadCrew: boolean) {
   );
 }
 
-/** Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed and not granted. */
+/** Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed: Rewards, "Drone": "A
+ * random drone schematic & T scrap." The page pays no scrap with it. */
 function engiDistressGift(g: Game) {
   if (g.scrap < 25) return;
   g.scrap -= 25;
@@ -290,7 +293,7 @@ function engiDistressGift(g: Game) {
       g,
       "The Engies are grateful. They don't have much by way of supplies but they do offer a drone schematic for your use.",
       undefined,
-      ["Scrap: -25."],
+      ["Scrap: -25.", grantRandomItem(g, "drone")],
     );
     return;
   }
@@ -551,8 +554,8 @@ export function arriveFedAssist(g: Game) {
 function arriveFedBase(g: Game) {
   const r = pick(g, ["schematic", "crew", "dock", "empty", "assist"] as const);
   if (r === "schematic") {
-    // "You receive a drone schematic with high scrap." The schematic is not named: only the high scrap.
-    result(g, "You find the planet at the indicated coordinates. Your initial scans show the planet to be barren and devoid of life, but you get a prompt reply when you broadcast on Federation frequencies. \"Hello! So nice to see friends. We'll bring you up some supplies.\"", scrapOnly(g, "high"));
+    // "You receive a drone schematic with high scrap." The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
+    result(g, "You find the planet at the indicated coordinates. Your initial scans show the planet to be barren and devoid of life, but you get a prompt reply when you broadcast on Federation frequencies. \"Hello! So nice to see friends. We'll bring you up some supplies.\"", scrapOnly(g, "high"), [grantRandomItem(g, "drone")]);
   } else if (r === "crew") {
     // "You receive a crewmember and low scrap with resources." Race not named: INFERRED random.
     const joined = crew(g, randomRace(g));
@@ -606,8 +609,8 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       arriveFedBase(g);
       break;
     case "thief-stash":
-      // "You receive a weapon with high scrap." The weapon is not named: only the high scrap.
-      result(g, "You arrive at small asteroid field and discover the hidden cache among the debris. You input the codes given to you by KazaaakplethKilik and find a weapon inside.", scrapOnly(g, "high"));
+      // "You receive a weapon with high scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
+      result(g, "You arrive at small asteroid field and discover the hidden cache among the debris. You input the codes given to you by KazaaakplethKilik and find a weapon inside.", scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
       break;
     case "slug-pirate-trap":
       // Not wired: "when you arrive there will be a nebula environment" (no per-fight nebula environment here).
@@ -817,11 +820,11 @@ const ZOLTAN_RAFT_NEXT: Choice[] = [
 
 /**
  * Zoltan retake the ship. Destroyed pays medium scrap with resources, then the hire.
- * A crew kill pays high scrap. The augmentation is unnamed and is not granted.
+ * A crew kill pays high scrap and an unnamed augmentation: Rewards, "Augment": "A random augmentation & T scrap."
  */
 function zoltanRaftWin(g: Game, deadCrew: boolean) {
   if (deadCrew) {
-    result(g, `The last pirate life-signs blink out and the Zoltan returns to his bridge. "Egalitarianism is a cornerstone of successful cohabitation. Please, enjoy the fruits of your labor."`, scrapOnly(g, "high"));
+    result(g, `The last pirate life-signs blink out and the Zoltan returns to his bridge. "Egalitarianism is a cornerstone of successful cohabitation. Please, enjoy the fruits of your labor."`, scrapOnly(g, "high"), [grantRandomItem(g, "augment")]);
     return;
   }
   result(
@@ -878,11 +881,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
   // Six results, no odds. The unnamed crewmember is not offered. INFERRED: the other five are equal.
-  // The weapon is unnamed and not granted; only the low scrap is paid.
+  // The weapon is unnamed: Rewards, "Weapon": "A random weapon & T scrap."
   "q:lanius-civilian:contact": (g) => {
     const kind = weighted(g, [["weapon", 1], ["repair", 1], ["medium", 1], ["low", 1], ["nothing", 1]] as const);
     if (kind === "weapon") {
-      result(g, "They respond, \"It's a good thing you came when you did; we'd be dead now otherwise. I'm a shipwright and I'd like to help you like you helped me.\" The captain offers to install a piece of equipment on your ship.", scrapOnly(g, "low"));
+      result(g, "They respond, \"It's a good thing you came when you did; we'd be dead now otherwise. I'm a shipwright and I'd like to help you like you helped me.\" The captain offers to install a piece of equipment on your ship.", scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
       return;
     }
     if (kind === "repair") {
@@ -1146,7 +1149,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
       { ...NEVER_RUN },
     );
   },
-  // Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed and not granted.
+  // Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is a random one (engiDistressGift).
   "q:engi-distress:scrap": (g) => {
     engiDistressGift(g);
   },
@@ -2117,15 +2120,16 @@ const CHOICES: Record<string, (g: Game) => void> = {
     result(g, "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while. You also are able to download data about the surrounding beacons.", undefined, ["The Rebel Fleet is delayed for 1 turn."]);
   },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
-  // The weapon and the drone schematic are unnamed and not granted. The low scrap still is.
+  // The weapon and the drone schematic are unnamed: Rewards, "Weapon": "A random weapon & T scrap." / "Drone": "A
+  // random drone schematic & T scrap."
   "q:auto-storage:investigate": (g) => {
     const kind = pick(g, ["weapon", "schematic", "resources", "nothing"] as const);
     if (kind === "weapon") {
-      result(g, "The station is a storage site for military grade weapons. You find one that can be easily attached to the ship.", scrapOnly(g, "low"));
+      result(g, "The station is a storage site for military grade weapons. You find one that can be easily attached to the ship.", scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
       return;
     }
     if (kind === "schematic") {
-      result(g, "The station was apparently designed to outfit Rebel ships with Drone Systems. You find a functioning Schematic.", scrapOnly(g, "low"));
+      result(g, "The station was apparently designed to outfit Rebel ships with Drone Systems. You find a functioning Schematic.", scrapOnly(g, "low"), [grantRandomItem(g, "drone")]);
       return;
     }
     if (kind === "resources") {
@@ -2428,8 +2432,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:fed-base:scan": (g) => {
     if (sensors(g) >= 3 || g.augments.includes("glass")) {
-      // "You receive a weapon with medium scrap." The weapon is not named: only the medium scrap.
-      result(g, "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.", scrapOnly(g, "medium"));
+      // "You receive a weapon with medium scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
+      result(g, "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.", scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
     } else {
       result(g, "Your Advanced Sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a supply cache whose Federation signal emitter has malfunctioned.", rollStandard(g, "medium"));
     }
@@ -2450,8 +2454,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:fed-assist:contact": (g) => {
     if (rand(g) < 0.5) {
-      // "You receive a crewmember and a weapon with low scrap." The weapon is not named.
-      result(g, "With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight.", scrapOnly(g, "low"), [crew(g, randomRace(g))]);
+      // "You receive a crewmember and a weapon with low scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
+      result(g, "With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight.", scrapOnly(g, "low"), [crew(g, randomRace(g)), grantRandomItem(g, "weapon")]);
     } else {
       result(g, "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"", rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
     }
@@ -2996,7 +3000,8 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
 }
 
 /**
- * Template:Pirate Smuggler / Rebel Transport. The weapon, drone schematic, and crewmember are not named,
+ * Template:Pirate Smuggler / Rebel Transport. The weapon and drone schematic are not named: Rewards, "Weapon": "A
+ * random weapon & T scrap." / "Drone": "A random drone schematic & T scrap." (`item`). The crewmember is not named,
  * so none is granted. The map sentence is not a reveal.
  * {{DuplicateEvent|2}} counts that result twice. The printed OR is the two sentences. INFERRED: those two
  * sentences are equal, and the other results are one each. A random scrap amount is low, medium, or high
@@ -3007,6 +3012,8 @@ type SmugglePay =
   | { k: "standard"; tier: SurrenderTier }
   | { k: "random" }
   | { k: "parts" };
+
+type SmuggleRow = { text: string; pay: SmugglePay; item?: "weapon" | "drone" };
 
 function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
   if (pay.k === "random") return scrapOnly(g, pick(g, ["low", "medium", "high"]));
@@ -3020,10 +3027,10 @@ function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
   return scrapOnly(g, pay.tier);
 }
 
-const SMUGGLE_HULL: [{ text: string; pay: SmugglePay }, number][] = [
-  [{ text: "You search the ship and discover that its cargo was new military-grade weaponry! It was somehow undamaged in the fight and can easily be mounted on the ship.", pay: { k: "scrap", tier: "medium" } }, 1],
-  [{ text: "The ship was transporting weaponry. You find a piece still intact, despite the battle.", pay: { k: "random" } }, 1],
-  [{ text: "Searching the remains, you find that the cargo was military-grade Drone Schematics! You bring them aboard to install in your ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+const SMUGGLE_HULL: [SmuggleRow, number][] = [
+  [{ text: "You search the ship and discover that its cargo was new military-grade weaponry! It was somehow undamaged in the fight and can easily be mounted on the ship.", pay: { k: "scrap", tier: "medium" }, item: "weapon" }, 1],
+  [{ text: "The ship was transporting weaponry. You find a piece still intact, despite the battle.", pay: { k: "random" }, item: "weapon" }, 1],
+  [{ text: "Searching the remains, you find that the cargo was military-grade Drone Schematics! You bring them aboard to install in your ship.", pay: { k: "scrap", tier: "medium" }, item: "drone" }, 1],
   [{ text: "You detect faint life signatures from an intact piece of the hull. They were transporting prisoners, and the sole survivor offers to join your crew, as a first step on his path to get revenge.", pay: { k: "standard", tier: "low" } }, 1],
   [{ text: "This ship's cargo was not salvageable. However, they seem to have been surveying the region; they possess detailed maps and data. You download what you can to the ship's map.", pay: { k: "scrap", tier: "medium" } }, 1],
   [{ text: "The ship was carrying military supplies. You pick up anything that looks salvageable from the debris.", pay: { k: "standard", tier: "high" } }, 1],
@@ -3034,9 +3041,9 @@ const SMUGGLE_HULL: [{ text: string; pay: SmugglePay }, number][] = [
   [{ text: "You search the remains of the ship, but only come across blueprints and debris from broken machinery. A shame, but you take what scrap you can salvage.", pay: { k: "standard", tier: "low" } }, 1],
 ];
 
-const SMUGGLE_CREW: [{ text: string; pay: SmugglePay }, number][] = [
-  [{ text: "With the crew dead, you search the ship. You find military-grade weaponry and take what looks most useful.", pay: { k: "scrap", tier: "medium" } }, 1],
-  [{ text: "Searching the remains you find that the cargo was military-grade Drone Schematics! You bring them aboard to install on your ship.", pay: { k: "scrap", tier: "medium" } }, 1],
+const SMUGGLE_CREW: [SmuggleRow, number][] = [
+  [{ text: "With the crew dead, you search the ship. You find military-grade weaponry and take what looks most useful.", pay: { k: "scrap", tier: "medium" }, item: "weapon" }, 1],
+  [{ text: "Searching the remains you find that the cargo was military-grade Drone Schematics! You bring them aboard to install on your ship.", pay: { k: "scrap", tier: "medium" }, item: "drone" }, 1],
   [{ text: "The ship refuses to fight, but you still detect life signatures. Apparently this was a prisoner transport. The single survivor offers to join your crew in exchange for their freedom.", pay: { k: "scrap", tier: "high" } }, 1],
   [{ text: "This ship was apparently carrying information about the surrounding beacons. You download what you can to the ship's map, and scrap the rest of the ship.", pay: { k: "scrap", tier: "medium" } }, 1],
 ];
@@ -3044,7 +3051,7 @@ const SMUGGLE_CREW: [{ text: string; pay: SmugglePay }, number][] = [
 /** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
 function smuggleCargoWin(g: Game, deadCrew: boolean) {
   const row = weighted(g, deadCrew ? SMUGGLE_CREW : SMUGGLE_HULL);
-  result(g, row.text, smugglePay(g, row.pay));
+  result(g, row.text, smugglePay(g, row.pay), row.item ? [grantRandomItem(g, row.item)] : []);
 }
 
 const CRYSTAL_CONTACT: Choice[] = [{ id: "q:crystal-pirate:contact", label: "Contact the Crystal ship." }];
@@ -3242,7 +3249,8 @@ function mantisSlugSaved(g: Game) {
   );
 }
 
-/** Finish them off. Two results, no odds. INFERRED: equal. The augmentation is not named, so none is granted.
+/** Finish them off. Two results, no odds. INFERRED: equal. The augmentation is not named: Rewards, "Augment": "A random
+ *  augmentation & T scrap."
  *  The loot is a random standard reward. INFERRED: low, medium, and high are equal. */
 function mantisSlugFinish(g: Game) {
   if (pick(g, ["augment", "loot"] as const) === "augment") {
@@ -3250,6 +3258,7 @@ function mantisSlugFinish(g: Game) {
       g,
       "The Slug captain hails you: \"A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported.\" You allow them to leave with their lives.",
       scrapOnly(g, "low"),
+      [grantRandomItem(g, "augment")],
     );
     return;
   }
@@ -3667,7 +3676,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
-  // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon, schematic, and crew are not granted.
+  // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon and schematic are random; crew is not granted.
   "pirate-smuggler": smuggleCargoWin,
   // Rebel transport ship. The same template. The 40 second run and the refusal to surrender stay in escape.ts and surrender.ts.
   "rebel-transport-ship": smuggleCargoWin,
@@ -3833,8 +3842,12 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-space-station-rebel": std("medium", "high", "You quickly salvage what you can from the ship.", "You quickly salvage what you can from the ship.", [
     { id: "q:station:contact", label: "Contact the cargo ship." },
   ]),
-  // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not named.
-  "quest-mantis-chase": std("medium", "high", "Their ship breaks apart and you salvage the two ships.", "You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible."),
+  // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not
+  // named: Rewards, "Weapon": "A random weapon & T scrap."
+  "quest-mantis-chase": (g, deadCrew) => {
+    const text = deadCrew ? "You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible." : "Their ship breaks apart and you salvage the two ships.";
+    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [grantRandomItem(g, "weapon")]);
+  },
   // Slug comm tapping marker: Engage -> medium / high; Head for the cache -> low / medium (scrap with resources).
   "quest-slug-pirate-trap-engage": std("medium", "high", "With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand."),
   "quest-slug-pirate-trap-cache": std("low", "medium", "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship.", "With the pirate defeated, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship."),

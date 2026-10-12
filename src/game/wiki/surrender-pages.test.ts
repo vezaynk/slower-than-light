@@ -10,6 +10,12 @@ import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID, SCRIPTED_SURRENDERS } from "./surre
 import { DUMP } from "./dump/index.ts";
 
 
+/** Weapons held anywhere: rack, cargo, or a make-room choice. Rewards, "Weapon": "A random weapon & T scrap." */
+function weaponsHeld(g: Game): number {
+  const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return g.player.weapons.length + stowed;
+}
+
 function pageText(title: string): string | null {
   if (!existsSync(DUMP)) return null;
   for (const line of readFileSync(DUMP, "utf8").split("\n")) {
@@ -179,17 +185,18 @@ describe("Settlement mercenary work", () => {
       assert.equal(g.enemyEscape!.mode, "never");
       assert.equal(g.enemySurrender!.chance, 100);
       assert.ok(g.enemySurrender!.threshold >= 30 && g.enemySurrender!.threshold <= 40);
-      const weapons = g.player.weapons.length;
+      const weapons = weaponsHeld(g);
       forceOffer(g);
       assert.equal(g.event!.choices[0].label, "Let them live and then return to the settlement.");
       assert.equal(g.event!.choices[1].label, "Forget your promise, they die!");
       const before = g.scrap;
       choose(g, ACCEPT_ID);
-      assert.equal(g.reward!.note, "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\"");
+      // "You receive a weapon with medium scrap." The unnamed weapon is a random one; its line follows the page text.
+      assert.ok(g.reward!.note.startsWith("With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\" "));
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       assert.ok(g.reward!.scrap > 0 && g.scrap - before === g.reward!.scrap);
       assert.ok(g.reward!.scrap >= Math.floor(lo * 0.5) && g.reward!.scrap <= hi * 2);
-      assert.equal(g.player.weapons.length, weapons);
+      assert.equal(weaponsHeld(g), weapons + 1);
       done = true;
     }
     assert.ok(done);
@@ -206,13 +213,15 @@ describe("The Black Raven", () => {
     assert.equal(g.enemy!.faction, "slug");
     assert.ok(g.enemy!.pirate);
     assert.equal(g.enemySurrender!.chance, 100);
+    const weapons = weaponsHeld(g);
     forceOffer(g);
     assert.equal(g.event!.choices[0].label, "Accept his surrender.");
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
-    assert.equal(g.reward!.note, "He transfers over the goods and starts to repair his ship.");
+    // "You receive a weapon with high scrap." The unnamed weapon is a random one.
+    assert.ok(g.reward!.note.startsWith("He transfers over the goods and starts to repair his ship. "));
     assert.ok(g.reward!.scrap > 0);
-    assert.equal(g.player.weapons.length, createGame(5).player.weapons.length);
+    assert.equal(weaponsHeld(g), weapons + 1);
   });
 
   it("ignoring his surrender logs the printed cut-off sentence and the fight continues", () => {

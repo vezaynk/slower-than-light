@@ -4,6 +4,7 @@ import { mediumScrapBand } from "../content.ts";
 import { CREW_CAP, choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
+import { cargoOf } from "./make-room.ts";
 import { joinCrew } from "./surrender.ts";
 
 function beacon(): Beacon {
@@ -34,6 +35,11 @@ function open(seed: number): Game {
   g.phase = "event";
   g.paused = true;
   return g;
+}
+
+/** Weapons mounted plus weapons in cargo. A random weapon lands in one of the two. */
+function heldWeapons(g: Game): number {
+  return g.player.weapons.length + cargoOf(g).filter((c) => c.kind === "weapon").length;
 }
 
 function look(g: Game) {
@@ -87,7 +93,7 @@ describe("Zoltan odd moon", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80; seed++) {
       const g = open(seed);
-      const weapons = g.player.weapons.length;
+      const weapons = heldWeapons(g);
       const fuel = g.fuel;
       const missiles = g.missiles;
       const parts = g.player.parts;
@@ -96,7 +102,9 @@ describe("Zoltan odd moon", () => {
       if (body.includes("hidden cavern")) seen.add("cave");
       else if (body.includes("still-functioning weapon")) {
         seen.add("shuttle");
-        assert.equal(g.player.weapons.length, weapons);
+        // Rewards, "Weapon": "A random weapon & T scrap."
+        assert.equal(heldWeapons(g), weapons + 1);
+        assert.match(body, /(mounted|stowed in cargo)\./);
         const paid = body.match(/Low scrap: (\d+)/);
         assert.ok(paid);
         const n = Number(paid[1]);
@@ -155,27 +163,32 @@ describe("Zoltan odd moon", () => {
     assert.equal(dry, true);
   });
 
-  it("spends one missile on a blast that grants no weapon, and pays a scrap band only for the remains", () => {
+  it("spends one missile; the base gives a weapon with a random scrap band, the remains a scrap band", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 120; seed++) {
       const g = open(seed);
       look(g);
       if (!g.event?.body.includes("hidden cavern")) continue;
-      const weapons = g.player.weapons.length;
+      const weapons = heldWeapons(g);
       const scrap = g.scrap;
       g.missiles = 4;
       choose(g, "c:zoltan-odd-moon:boom");
       assert.equal(g.missiles, 3);
-      assert.equal(g.player.weapons.length, weapons);
       const body = g.event?.body ?? "";
       if (body.includes("secret base")) {
-        assert.equal(g.scrap, scrap);
+        // "You receive a weapon with a random amount of scrap."
+        assert.ok(g.scrap > scrap);
+        assert.match(body, /(Low|Medium|High) scrap: \d+\./);
+        assert.equal(heldWeapons(g), weapons + 1);
+        assert.match(body, /(mounted|stowed in cargo)\./);
         seen.add("base");
       } else if (body.includes("subterranean base")) {
         assert.ok(g.scrap > scrap);
+        assert.equal(heldWeapons(g), weapons);
         seen.add("remains");
       } else if (body.includes("What a waste")) {
         assert.equal(g.scrap, scrap);
+        assert.equal(heldWeapons(g), weapons);
         seen.add("waste");
       } else assert.fail(body);
     }

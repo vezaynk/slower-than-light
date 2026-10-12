@@ -3,7 +3,18 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { heldSchematics } from "./make-room.ts";
 import { pageWin } from "./quests.ts";
+
+/** Weapons held anywhere: rack, cargo, or a make-room choice. */
+function weaponsHeld(g: Game): number {
+  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+}
+
+/** Drone schematics fielded, in cargo, or in a make-room choice. */
+function schematicsHeld(g: Game): number {
+  return heldSchematics(g).length + (g.overflow ?? []).filter((x) => x.kind === "drone").length;
+}
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -95,11 +106,14 @@ describe("Auto-ship near storage station", () => {
       g.phase = "combat";
       pageWin(g, "auto-ship-near-storage-station", false);
       const before = g.scrap;
-      const guns = g.player.weapons.length;
+      const guns = weaponsHeld(g);
+      const kits = schematicsHeld(g);
       const augs = g.augments.length;
       choose(g, "q:auto-storage:investigate");
       const body = g.event?.body ?? "";
-      assert.equal(g.player.weapons.length, guns);
+      // The weapon and the schematic are unnamed: Rewards, "Weapon" / "Drone": a random one & T scrap.
+      assert.equal(weaponsHeld(g), guns + (/military grade weapons/.test(body) ? 1 : 0));
+      assert.equal(schematicsHeld(g), kits + (/functioning Schematic/.test(body) ? 1 : 0));
       assert.equal(g.augments.length, augs);
       if (/military grade weapons/.test(body) || /functioning Schematic/.test(body)) {
         const paid = scraps(body);

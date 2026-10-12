@@ -6003,9 +6003,11 @@ function rollStock(g: Game): StockItem[] {
   const missileN = 2 + irand(g, 5);
   const partN = 2 + irand(g, 3);
   const items: StockItem[] = [
-    { id: "fuel", kind: "fuel", ref: "fuel", name: `Fuel ×${fuelN}`, detail: "3 scrap each.", cost: fuelN * 3, amount: fuelN },
-    { id: "missiles", kind: "missiles", ref: "missiles", name: `Missiles ×${missileN}`, detail: "6 scrap each.", cost: missileN * 6, amount: missileN },
-    { id: "parts", kind: "parts", ref: "parts", name: `Drone parts ×${partN}`, detail: "8 scrap each.", cost: partN * 8, amount: partN },
+    // Stores and resources: "Limited quantities of all resources". "Fuel, missiles, and drone parts stock varies, but the
+    // price for each type of resource is fixed." `cost` is that one-unit price and `amount` the stock; buy takes one.
+    { id: "fuel", kind: "fuel", ref: "fuel", name: "Fuel", detail: "3 scrap each.", cost: 3, amount: fuelN },
+    { id: "missiles", kind: "missiles", ref: "missiles", name: "Missiles", detail: "6 scrap each.", cost: 6, amount: missileN },
+    { id: "parts", kind: "parts", ref: "parts", name: "Drone parts", detail: "8 scrap each.", cost: 8, amount: partN },
     {
       id: "repair",
       kind: "repair",
@@ -6060,9 +6062,18 @@ export function buy(g: Game, id: string) {
   }
   if (item.kind === "repair" && g.player.hull >= g.player.hullMax) return;
   g.scrap -= item.cost;
-  if (item.kind === "fuel") g.fuel += item.amount;
-  if (item.kind === "missiles") g.missiles += item.amount;
-  if (item.kind === "parts") g.player.parts += item.amount;
+  // One unit per purchase (see rollStock); the row stays until its stock runs out.
+  if (item.kind === "fuel" || item.kind === "missiles" || item.kind === "parts") {
+    if (item.kind === "fuel") g.fuel += 1;
+    else if (item.kind === "missiles") g.missiles += 1;
+    else g.player.parts += 1;
+    item.amount -= 1;
+    if (item.amount <= 0) g.stock = (g.stock ?? []).filter((s) => s.id !== id);
+    noteAchieve(g, { k: "store", repair: false });
+    sfx(g, "click");
+    log(g, `Bought 1 ${item.name.toLowerCase()}.`);
+    return;
+  }
   if (item.kind === "repair") {
     const before = g.player.hull;
     const gain = Math.min(item.amount, g.player.hullMax - g.player.hull);

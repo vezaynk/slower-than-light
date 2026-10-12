@@ -5633,3 +5633,105 @@ body.page-turn-180 {
 .offer-name { font-family: var(--font-hud); font-size: 20px; font-weight: 400; letter-spacing: 0.04em; color: var(--color-fg); }
 .offer-note { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; line-height: 1.35; color: var(--color-muted); }
 .offer-warn { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; color: var(--color-danger); }
+
+/* Per the user: the tabbed store (StoreBoard.tsx), on the ship sheet's tabs. INVENTED look. */
+.store-sheet .ship-tabs { overflow-x: auto; scrollbar-width: none; }
+.store-sheet .ship-tab { flex: none; }
+
+.store-have {
+  display: inline-flex;
+  gap: 14px;
+  margin-left: auto;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  color: var(--color-fg);
+}
+
+.store-have > span { display: inline-flex; align-items: center; gap: 4px; }
+.store-sheet .ship-sheet-scrap { margin-left: 0; }
+
+.store-supplies { display: flex; flex-direction: column; gap: 14px; }
+
+.store-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.store-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr auto;
+  column-gap: 10px;
+  row-gap: 4px;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.store-card-art { grid-row: 1 / 3; display: grid; place-items: center; min-width: 44px; }
+.store-card-name { font-family: var(--font-hud); font-size: 20px; font-weight: 400; letter-spacing: 0.04em; color: var(--color-fg); min-width: 0; }
+.store-card-note { font-size: 12px; color: var(--color-muted); align-self: start; min-width: 0; }
+.store-card .offer-warn { grid-column: 1 / -1; }
+.store-card.is-sold-out { opacity: 0.55; }
+.store-stock { font-style: normal; color: var(--color-accent); margin-left: 4px; }
+
+.store-price,
+.store-sold {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius);
+}
+
+.store-price {
+  color: var(--color-accent);
+  background: var(--color-surface);
+  border: 2px solid var(--color-accent);
+}
+
+.store-price b { font-weight: 400; }
+.store-price:hover:not(:disabled) { background: var(--color-accent); color: var(--color-ink); }
+.store-price:disabled { color: var(--color-muted); border-color: var(--color-line-dim); cursor: not-allowed; }
+.store-price.is-poor:disabled b { color: var(--color-danger); }
+.store-sold { color: var(--color-muted); border: 2px dashed var(--color-line-dim); }
+
+.store-repair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.store-hull { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-hud); font-size: 22px; margin-right: 6px; }
+
+.store-repair button {
+  min-height: 40px;
+  padding: 4px 14px;
+  font-family: var(--font-hud);
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius);
+}
+
+.store-repair button small { font-size: 15px; color: var(--color-accent); margin-left: 4px; }
+.store-repair button:disabled { color: var(--color-muted); border-color: var(--color-line-dim); cursor: not-allowed; }
+.store-repair button:disabled small { color: inherit; }
+
+/* Per the user: a card that opened on its own ignores taps for half a second (useArrivalLock); the choices fade in over
+   that time so the wait reads as deliberate. INVENTED look. */
+.choice-list.is-arming .choice-line,
+.choice-line.is-arming {
+  animation: choice-arm 0.5s steps(5, end) both;
+}
+
+@keyframes choice-arm {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}

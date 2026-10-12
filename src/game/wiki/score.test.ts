@@ -78,11 +78,11 @@ describe("store resources", () => {
       const parts = g.stock?.find((item) => item.kind === "parts");
       assert.ok(fuel && missiles && parts);
       assert.ok(fuel.amount >= 3 && fuel.amount <= 7);
-      assert.equal(fuel.cost, fuel.amount * 3);
+      assert.equal(fuel.cost, 3);
       assert.ok(missiles.amount >= 2 && missiles.amount <= 6);
-      assert.equal(missiles.cost, missiles.amount * 6);
+      assert.equal(missiles.cost, 6);
       assert.ok(parts.amount >= 2 && parts.amount <= 4);
-      assert.equal(parts.cost, parts.amount * 8);
+      assert.equal(parts.cost, 8);
     }
   });
 
@@ -90,11 +90,20 @@ describe("store resources", () => {
     const g = openStore(2);
     const parts = g.stock?.find((item) => item.kind === "parts");
     assert.ok(parts);
+    // Stores and resources: the price is per unit and the stock is limited. One purchase is one part.
     g.scrap = parts.cost;
     const before = g.player.parts;
+    const stock = parts.amount;
     buy(g, parts.id);
-    assert.equal(g.player.parts, before + parts.amount);
+    assert.equal(g.player.parts, before + 1);
     assert.equal(g.scrap, 0);
+    assert.equal(g.stock?.find((item) => item.id === parts.id)?.amount ?? 0, stock - 1);
+    g.scrap = 999;
+    for (let i = 1; i < stock; i++) buy(g, parts.id);
+    assert.equal(g.player.parts, before + stock);
+    assert.equal(g.stock?.some((item) => item.id === parts.id), false);
+    buy(g, parts.id);
+    assert.equal(g.player.parts, before + stock);
 
     const easy = createGame(1);
     easy.scrap = 20;

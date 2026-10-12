@@ -133,7 +133,8 @@ import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
-import { AchievementsScreen, HelpScreen, StoreBoard, Verdict, sectorTone } from "./WikiViews";
+import { AchievementsScreen, HelpScreen, Verdict, sectorTone } from "./WikiViews";
+import { StoreBoard } from "./StoreBoard";
 import { airShown } from "@/game/air";
 
 const SYS_ORDER: SysId[] = [
@@ -473,13 +474,16 @@ export function GameApp() {
       const n = Number(digit[1]) - 1;
       if (g.phase === "event" && g.event && plain) {
         const choice = g.event.choices[n];
-        if (!choice || choiceDisabled(g, choice.id)) return;
+        if (!choice || choiceDisabled(g, choice.id) || choicesLocked()) return;
         e.preventDefault();
+        noteChoice();
         act((game) => choose(game, choice.id));
         return;
       }
       if (g.phase === "reward" && n === 0 && plain) {
         e.preventDefault();
+        if (choicesLocked()) return;
+        noteChoice();
         act((game) => continueReward(game));
         return;
       }
@@ -2223,7 +2227,45 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
 /** The click that ends a power drag must not also toggle the bar under the pointer. */
 const swallowNextClick = { current: false };
 
+/**
+ * Per the user: a card that opens on its own (a surrender offer, the reward after a kill, an arrival event) ignores
+ * taps for half a second, so a tap meant for the ship does not answer it. A card that follows the player's own answer
+ * (the next page of an event) is not locked. INVENTED timings besides the user's half second.
+ */
+const ARRIVAL_LOCK_MS = 500;
+/** A card this soon after a choice was opened by that choice. */
+const CHAIN_MS = 400;
+let lastChoiceAt = -Infinity;
+let choicesLockedUntil = 0;
+
+function noteChoice() {
+  lastChoiceAt = performance.now();
+}
+
+function choicesLocked(): boolean {
+  return performance.now() < choicesLockedUntil;
+}
+
+function useArrivalLock(): boolean {
+  const [locked, setLocked] = useState(() => performance.now() - lastChoiceAt > CHAIN_MS);
+  useEffect(() => {
+    if (!locked) return;
+    choicesLockedUntil = performance.now() + ARRIVAL_LOCK_MS;
+    const t = window.setTimeout(() => setLocked(false), ARRIVAL_LOCK_MS);
+    return () => window.clearTimeout(t);
+  }, [locked]);
+  return locked;
+}
+
 function EventModal({ game }: { game: Game }) {
+  const event = game.event;
+  if (!event) return null;
+  // A new page is a new card, with its own arrival lock.
+  return <EventCard key={`${event.title ?? ""}|${event.body}|${event.choices.map((c) => c.id).join(",")}`} game={game} />;
+}
+
+function EventCard({ game }: { game: Game }) {
+  const locked = useArrivalLock();
   const event = game.event;
   if (!event) return null;
   // @agent:surrender. Rewards, "Stuff": the offered resources and scrap, shown before the player answers.
@@ -2240,11 +2282,21 @@ function EventModal({ game }: { game: Game }) {
             <OfferCards game={game} weapon={offer.weapon} crew={offer.crew} augment={offer.augment} drone={offer.drone} repairs={offer.repairs} />
           </>
         ) : null}
-        <div className="choice-list">
+        <div className={`choice-list${locked ? " is-arming" : ""}`}>
           {event.choices.map((c, index) => {
             const why = choiceDisabled(game, c.id);
             return (
-              <button key={c.id} type="button" className="choice-line" data-phone-action="choice" disabled={!!why} onClick={() => act((g) => choose(g, c.id))}>
+              <button
+                key={c.id}
+                type="button"
+                className="choice-line"
+                data-phone-action="choice"
+                disabled={!!why || locked}
+                onClick={() => {
+                  noteChoice();
+                  act((g) => choose(g, c.id));
+                }}
+              >
                 {index + 1}. {c.label}
                 {why ? ` (${why})` : ""}
               </button>
@@ -2260,6 +2312,13 @@ function EventModal({ game }: { game: Game }) {
 function RewardModal({ game }: { game: Game }) {
   const reward = game.reward;
   if (!reward) return null;
+  return <RewardCard key={`${reward.note}|${reward.scrap}`} game={game} />;
+}
+
+function RewardCard({ game }: { game: Game }) {
+  const locked = useArrivalLock();
+  const reward = game.reward;
+  if (!reward) return null;
   return (
     <div className="modal-layer">
       <article className="ftl-card">
@@ -2272,7 +2331,16 @@ function RewardModal({ game }: { game: Game }) {
             <b>{reward.scrap}</b>
           </p>
         )}
-        <button type="button" className="choice-line" data-phone-action="choice" onClick={() => act((g) => continueReward(g))}>
+        <button
+          type="button"
+          className={`choice-line${locked ? " is-arming" : ""}`}
+          data-phone-action="choice"
+          disabled={locked}
+          onClick={() => {
+            noteChoice();
+            act((g) => continueReward(g));
+          }}
+        >
           1. Continue...
         </button>
       </article>

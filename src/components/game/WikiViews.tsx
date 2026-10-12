@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, noteRun } from "@/game/wiki/achievement-track";
-import { buy, leaveStore, repairHull, runScore } from "@/game/sim";
-import { citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
-import { goTitle, useGame, verdictRestart } from "@/game/store";
+import { runScore } from "@/game/sim";
+import { goTitle, verdictRestart } from "@/game/store";
 import type { Game, SectorNode } from "@/game/types";
-import { WeaponArt } from "./GearArt";
 import { PixelIcon } from "./PixelIcon";
 import { PixelHull } from "./PixelArt";
 import { CloseX } from "./CloseX";
-
-function act(fn: (g: Game) => void) {
-  useGame.getState().act(fn);
-}
 
 const GENERAL = [
   "just-getting-started",
@@ -321,119 +315,6 @@ export function Verdict({ game }: { game: Game }) {
         </button>
       </div>
     </article>
-  );
-}
-
-/** Crystal_Store.png: ITEMS, HIRE CREW, REPAIR, WEAPONS. SELL lists fitted weapons and augments. */
-export function StoreBoard({ game }: { game: Game }) {
-  const stock = game.stock ?? [];
-  const items = stock.filter((item) => item.kind === "fuel" || item.kind === "missiles" || item.kind === "parts");
-  const weapons = stock.filter((item) => item.kind === "weapon");
-  const crew = stock.filter((item) => item.kind === "crew");
-  const systems = stock.filter((item) => item.kind === "system");
-  const augments = stock.filter((item) => item.kind === "augment");
-  const drones = stock.filter((item) => item.kind === "drone");
-  const quotes = citedSellQuote(game);
-  const priced = (item: (typeof stock)[number]) => (
-    <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
-      <span style={{ minWidth: 0 }}>{item.name}</span>
-      <b style={{ flex: "none" }}>{item.cost}</b>
-    </button>
-  );
-  return (
-    <div
-      className="modal-layer"
-      onClick={() => act((g) => leaveStore(g))}
-    >
-      <section
-        className="store-board has-x"
-        style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", minWidth: 0 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <CloseX onClose={() => act((g) => leaveStore(g))} label="Leave the store" />
-        <div>
-          <h2>SELL</h2>
-          {quotes.length ? (
-            quotes.map((quote) => (
-              <button key={quote.id} type="button" onClick={() => act((g) => citedSell(g, quote.id))}>
-                <span style={{ minWidth: 0 }}>{quote.name}</span>
-                <b style={{ flex: "none" }}>{quote.scrap}</b>
-              </button>
-            ))
-          ) : (
-            <p className="store-note">Nothing fitted sells.</p>
-          )}
-        </div>
-        <div>
-          <h2>ITEMS</h2>
-          {items.map((item) => (
-            <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
-              <span>
-                {item.kind === "fuel" ? "Fuel" : item.kind === "missiles" ? "Missiles" : "Drone parts"} ×{item.amount}
-              </span>
-              <b>{item.cost}</b>
-            </button>
-          ))}
-        </div>
-        <div>
-          <h2>HIRE CREW</h2>
-          {crew.length ? crew.map(priced) : <p className="store-note">No one here is looking for a berth.</p>}
-        </div>
-        <div>
-          <h2>REPAIR</h2>
-          <div className="repair-row">
-            <button type="button" onClick={() => act((g) => repairHull(g, "one"))}>
-              FIX 1
-            </button>
-            <button type="button" onClick={() => act((g) => repairHull(g, "all"))}>
-              FIX ALL
-            </button>
-            <button type="button" onClick={() => act((g) => repairHull(g, "max"))}>
-              MAX
-            </button>
-          </div>
-          <p>
-            CURRENT HULL <b>{game.player.hull}</b>
-          </p>
-        </div>
-        {/* xftl doc/stores: weapons are a rolled section like the rest, so a store without one shows no shelf. */}
-        {weapons.length ? (
-          <div>
-            <h2>WEAPONS</h2>
-            <div className="weapon-row">
-              {weapons.map((item) => (
-                <button key={item.id} type="button" onClick={() => act((g) => buy(g, item.id))}>
-                  <WeaponArt id={item.ref} height={22} />
-                  <span>{item.name}</span>
-                  <b>{item.cost}</b>
-                </button>
-              ))}
-              {weapons.length < 3
-                ? Array.from({ length: 3 - weapons.length }, (_, i) => <span key={i} />)
-                : null}
-            </div>
-          </div>
-        ) : null}
-        {systems.length ? (
-          <div>
-            <h2>SYSTEMS</h2>
-            {systems.map(priced)}
-          </div>
-        ) : null}
-        {augments.length ? (
-          <div>
-            <h2>AUGMENTS</h2>
-            {augments.map(priced)}
-          </div>
-        ) : null}
-        {drones.length ? (
-          <div>
-            <h2>DRONES</h2>
-            {drones.map(priced)}
-          </div>
-        ) : null}
-      </section>
-    </div>
   );
 }
 

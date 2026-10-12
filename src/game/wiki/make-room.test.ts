@@ -52,7 +52,7 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     assert.equal(cargoOf(cargo).length, CARGO_SLOTS);
   });
 
-  it("moves weapons between the rack and cargo, keeping a stored charge", () => {
+  it("moves weapons between the rack and cargo, keeping only a full charge", () => {
     const g = createGame(1);
     const w = g.player.weapons[0]!;
     w.charge = 5;
@@ -61,6 +61,11 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     assert.equal(fitFromCargo(g, 0), true);
     assert.equal(cargoOf(g).length, 0);
     assert.equal(g.player.weapons.at(-1)!.charge, 5);
+    // Weapon Control: only a full charge is stored.
+    const half = g.player.weapons[0]!;
+    half.charge = 0.5;
+    stowWeapon(g, half.uid);
+    assert.deepEqual(cargoOf(g), [{ kind: "weapon", id: half.defId }]);
   });
 
   it("keeps a drone schematic in cargo without Drone Control", () => {

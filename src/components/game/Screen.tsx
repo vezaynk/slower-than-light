@@ -156,7 +156,10 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
       pin: false,
     };
   }
-  const physSized = deviceSize(vvW, vvH);
+  // A quarter turn lays the body across exactly innerWidth x innerHeight (applyTurn's --phys-w / --phys-h). The screen
+  // size (deviceSize) can be taller than that when iOS keeps the status bar outside the web view, and the box then ran
+  // past the body's clipped edge (bug reported by the user: the right side cut off in forced landscape).
+  const physSized = quarter ? { rawW: innerW, rawH: innerH } : deviceSize(vvW, vvH);
   const sized = quarter ? { rawW: physSized.rawH, rawH: physSized.rawW } : physSized;
   const w = Math.max(1, sized.rawW - sal - sar);
   const h = Math.max(1, sized.rawH - sat - sab);

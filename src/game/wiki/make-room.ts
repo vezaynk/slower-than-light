@@ -92,7 +92,10 @@ export function receiveDrone(g: Game, ref: string): "fitted" | "cargo" | "queued
   return "queued";
 }
 
-/** Inventory: a fitted weapon goes into cargo, keeping a full charge (Weapon Control). */
+/**
+ * Inventory: a fitted weapon goes into cargo. Weapon Control, Overview: "A weapon charge can be stored if a weapon is
+ * fully charged and then put into a cargo slot." A partial charge (below 1) is not kept.
+ */
 export function stowWeapon(g: Game, uid: string): boolean {
   const index = g.player.weapons.findIndex((w) => w.uid === uid);
   const w = g.player.weapons[index];
@@ -103,7 +106,7 @@ export function stowWeapon(g: Game, uid: string): boolean {
     g.targeting = false;
     g.beamAnchor = null;
   }
-  stow(g, { kind: "weapon", id: w.defId, ...(w.charge > 0 ? { charge: w.charge } : {}) });
+  stow(g, { kind: "weapon", id: w.defId, ...(w.charge >= 1 ? { charge: w.charge } : {}) });
   return true;
 }
 

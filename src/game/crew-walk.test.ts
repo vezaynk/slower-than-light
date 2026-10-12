@@ -344,3 +344,65 @@ describe("saved stations keep the exact tile (per the user)", () => {
     }
   });
 });
+
+describe("walking crew are not immune to damage (per the user)", () => {
+  /** A crew member mid-walk through `through`, toward the next room, held there by resetting the walk each tick. */
+  function walker(g: Game, through: string) {
+    const ship = g.player;
+    const c = g.crew.find((x) => x.side === "player")!;
+    const room = ship.rooms.find((r) => r.id === through)!;
+    const next = ship.doors.find((d) => d.b !== "void" && (d.a === through || d.b === through))!;
+    c.room = through;
+    c.path = [next.a === through ? next.b : next.a];
+    c.move = 0;
+    delete c.via;
+    const hold = () => {
+      c.room = through;
+      c.path = [next.a === through ? next.b : next.a];
+      c.move = 0;
+    };
+    return { c, room, hold };
+  }
+
+  it("suffocates in an airless room and burns in a fire while walking through", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    g.paused = false;
+    const { c, room, hold } = walker(g, "p-engines");
+    room.o2 = -20;
+    c.hp = 100;
+    step(g, 0.05);
+    assert.ok(c.hp < 100 - 0.25, `suffocation ${c.hp}`);
+    hold();
+    for (const r of g.player.rooms) r.o2 = 100;
+    room.fire = 1;
+    c.hp = 100;
+    step(g, 0.05);
+    assert.ok(c.hp < 100 - 0.05, `fire ${c.hp}`);
+  });
+
+  it("is struck by an enemy standing in the room it walks through", () => {
+    const g = createGame(4, "kestrel-a");
+    g.phase = "map";
+    startCombat(g, "scout");
+    const { c, hold } = walker(g, "p-engines");
+    // Nobody of ours stands in the room: those standing are struck before anyone walking through.
+    for (const other of g.crew) {
+      if (other.side === "player" && other !== c && other.room === "p-engines") {
+        other.room = "p-pilot";
+        other.path = [];
+      }
+    }
+    const foe = g.crew.find((x) => x.side === "enemy")!;
+    foe.aboard = "player";
+    foe.room = "p-engines";
+    foe.path = [];
+    foe.move = 0;
+    c.hp = 100;
+    for (let i = 0; i < 60; i++) {
+      hold();
+      step(g, 0.05);
+    }
+    assert.ok(c.hp < 100, `melee ${c.hp}`);
+  });
+});

@@ -3476,7 +3476,6 @@ function fightFire(r: Room, pals: Crew[], dt: number) {
     rate += FIRE_FIGHT_SHARE * repairPace(c) * scale;
   }
   r.fire = Math.max(0, r.fire - rate * dt);
-  for (const c of pals) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
 }
 
 /**
@@ -3550,10 +3549,13 @@ function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number
   }
 }
 
-/** Fires, lead: the same 2.128 HP/s hits boarders standing in the fire. Suffocation, when it applies, replaces this. */
-function burnIntruders(r: Room, foes: Crew[], dt: number) {
+/**
+ * Fires, lead: 2.128 HP/s per fire to everyone standing in it: firefighters, intruders, crew in a fight, and per the
+ * user crew walking through. Suffocation, when it applies, replaces this.
+ */
+function burnCrew(r: Room, crew: Crew[], dt: number) {
   if (r.fire <= 0) return;
-  for (const c of foes) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
+  for (const c of crew) c.hp -= 2.128 * r.fire * kinOf(c.kin ?? "plain").fireTaken * dt;
 }
 
 /**
@@ -3596,7 +3598,7 @@ function byFile(a: Crew, b: Crew): number {
   return (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 
-/** Oxygen, Overview: crew in a room at 5% or less lose 6.4 HP per second. Walking crew are not in `present`. */
+/** Oxygen, Overview: crew in a room at 5% or less lose 6.4 HP per second, walking through or standing (per the user). */
 function suffocatePresent(g: Game, present: Crew[], dt: number) {
   for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
 }
@@ -3605,8 +3607,8 @@ function suffocatePresent(g: Game, present: Crew[], dt: number) {
 function suffocateShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const r of ship.rooms) {
     if (r.o2 > 5) continue;
-    const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
-    suffocatePresent(g, present, dt);
+    const inRoom = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0);
+    suffocatePresent(g, inRoom, dt);
   }
 }
 
@@ -3717,6 +3719,11 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const withUs = (c: Crew) => sideOf(c) === friends;
     const pals = present.filter((c) => withUs(c) && (c.stun ?? 0) <= 0);
     const foes = present.filter((c) => !withUs(c));
+    // Per the user: walking crew are not immune to anything. They are in the room they are crossing (`inRoom`): they
+    // suffocate and burn like anyone there, and crew standing there strike them, though they do not stop to fight back.
+    const inRoom = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0);
+    const walkingPals = inRoom.filter((c) => c.path.length > 0 && withUs(c));
+    const walkingFoes = inRoom.filter((c) => c.path.length > 0 && !withUs(c));
     // Medbay and Clone Bay standing spots. Idle crew past the cap do not repair or count as standing.
     // Fights, fire-fighting, and suffocation still use every idle body.
     const spotRoom = r.system === "medbay" || r.kit === "cradle";
@@ -3730,7 +3737,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     // The player copy is g.augments "gel". An enemy Slug ship has the augment by that lead sentence.
     const slugGel = aboard === "player" ? g.augments.includes("gel") : ship.faction === "slug";
     if (r.breach > 0 && slugGel) r.breachFix += 0.75 * dt;
-    if (pals.length && foes.length) {
+    if ((pals.length && (foes.length || walkingFoes.length)) || (foes.length && walkingPals.length)) {
       // Boarding, Combat: "Every few moments, a crew will deal a random amount of damage to an enemy".
       // "an unskilled human crew deals per hit is 3 to 7 HP, an average of 5 damage per hit."
       // Template:Crew races (comparison): final_damage = skill_mult * damage_mult * mindControl_mult * damage.
@@ -3759,8 +3766,9 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         // Drones are not in this crew loop, so breaking one grants nothing.
         if (before > 0 && target.hp <= 0 && !target.cloned) noteCombatPoint(g, attacker);
       };
-      for (const p of palsHit) strike(p, foesHit);
-      for (const f of foesHit) strike(f, palsHit);
+      // Those standing are struck first; anyone walking through is struck after them (INFERRED order).
+      for (const p of palsHit) strike(p, [...foesHit, ...walkingFoes]);
+      for (const f of foesHit) strike(f, [...palsHit, ...walkingPals]);
     } else if (r.fire > 0 && pals.length) {
       fightFire(r, pals, dt);
     } else if (fixing.length && r.breach > 0 && r.system && (gun ?? ship.systems[r.system]).damage <= 0) {
@@ -3811,8 +3819,8 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     spreadFire(g, ship, r, closedSlow, dt);
     healMedbay(g, ship, aboard, r, dt);
     // Oxygen: at 5% or less, crew lose 6.4 HP per second, scaled per crew (Emergency Respirators, then kin).
-    if (r.o2 <= 5) suffocatePresent(g, present, dt);
-    else burnIntruders(r, foes, dt);
+    if (r.o2 <= 5) suffocatePresent(g, inRoom, dt);
+    else burnCrew(r, inRoom, dt);
     autoRepair(ship, r, dt);
     r.flash = Math.max(0, r.flash - dt);
   }
@@ -6402,7 +6410,9 @@ function tickIdleFires(g: Game, dt: number) {
     // Same priority as life(): crew who are trading blows do not also fight the fire. The blows themselves stay in life().
     if (!(pals.length && foes.length) && r.fire > 0 && pals.length) fightFire(r, pals, dt);
     spreadFire(g, ship, r, closedSlow, dt);
-    if (r.o2 > 5) burnIntruders(r, foes, dt);
+    // Everyone in a burning room burns, walking through included (per the user); suffocation replaces it below 5%.
+    const inRoom = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0);
+    if (r.o2 > 5) burnCrew(r, inRoom, dt);
   }
 }
 

@@ -1,4 +1,5 @@
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import { buzz } from "@/game/haptics";
 
 /**
  * Touch stand-in for a right-click. A still finger for ~400ms fires `onLong`.
@@ -84,6 +85,8 @@ export function armHold(e: ReactPointerEvent<Element>, onLong: () => void, opts?
     if (rec.done) return;
     rec.done = true;
     rec.fired = true;
+    // Per the user (haptics): a press that took is felt, whatever it opens.
+    buzz("hold");
     onLong();
   }, LONG_MS);
   holds.set(target, rec);

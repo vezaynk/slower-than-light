@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
+import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
 import { pageRect, toPage } from "./turn";
 import {
@@ -528,6 +529,8 @@ export function GameApp() {
         acc -= 1 / 30;
         steps += 1;
       }
+      // Per the user (haptics): your ship's hits, losses, jumps and wins (haptics.ts watchHaptics).
+      watchHaptics(useGame.getState().game);
       if (!ticking) acc = 0;
       // A tick that stops the clock itself (a surrender offer, a win, a reward card) must be drawn at once: with the
       // clock stopped nothing bumps again, and the screen stayed frozen on the frame before (bug reported by the user).
@@ -2190,6 +2193,8 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
       }
       const n = level(e.currentTarget, toPage(e.clientX, e.clientY).y);
       if (n === d.last) return;
+      // Per the user (haptics): each bar the drag crosses is felt.
+      if (d.last >= 0) buzz("step");
       d.last = n;
       act((g) => apply(g, n));
     },

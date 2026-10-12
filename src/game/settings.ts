@@ -19,13 +19,15 @@ export type Settings = {
    * elsewhere (Screen.tsx applies it only to an installed app on a touch screen).
    */
   rotate: "off" | "left" | "right";
+  /** Per the user: haptics (haptics.ts). */
+  haptics: boolean;
 };
 
 const KEY = "stl-settings-v1";
 
 function defaults(): Settings {
   const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off" };
+  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off", haptics: true };
 }
 
 function load(): Settings {
@@ -42,6 +44,7 @@ function load(): Settings {
       muted: typeof saved.muted === "boolean" ? saved.muted : base.muted,
       volume: typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,
       rotate: saved.rotate === "left" || saved.rotate === "right" ? saved.rotate : "off",
+      haptics: typeof saved.haptics === "boolean" ? saved.haptics : base.haptics,
     };
   } catch {
     return base;

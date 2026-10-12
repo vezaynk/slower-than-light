@@ -209,6 +209,12 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
           {tab === "sound" ? (
             <div className="opt-list">
               <Toggle label="Mute" note="Silence all sound. M toggles it in a game." value={s.muted} onChange={set("muted")} />
+              <Toggle
+                label="Haptics"
+                note="Phone vibration for hits, crew losses, jumps, wins and long presses. iPhone gives one light tap, for your own presses only."
+                value={s.haptics}
+                onChange={set("haptics")}
+              />
               <label className="opt-row">
                 <span className="opt-text">
                   <b>Volume</b>

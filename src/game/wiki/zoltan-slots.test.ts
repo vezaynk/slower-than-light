@@ -420,7 +420,9 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
     assert.equal(you.leashed, undefined);
   });
 
-  it("keeps a mind-control boost while a Zoltan bar remains", () => {
+  // Mind Control, Overview: the level is the powered bars, Zoltan bars included, and "Combat damage bonus and health
+  // boost are removed if the system level is decreased". So three Zoltan bars keep the level 3 boost; losing one drops it.
+  it("keeps a mind-control boost while Zoltan bars hold the level, and drops it when one leaves", () => {
     const g = createGame(43);
     startCombat(g, "scout");
     assert.ok(g.enemy);
@@ -436,7 +438,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
       id: "leash",
       level: 3,
       power: 0,
-      zoltan: 1,
+      zoltan: 3,
       on: true,
       left: 8,
       cool: 0,
@@ -445,7 +447,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
     };
     tickLeash(g, 0.05);
     assert.equal(foe.leashBoost, 30);
-    g.player.kits.leash.zoltan = 0;
+    g.player.kits.leash.zoltan = 2;
     tickLeash(g, 0.05);
     assert.equal(foe.leashBoost, undefined);
   });

@@ -12,7 +12,7 @@ import { navAllows } from "@/game/wiki/cited-nav";
 import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, overtaken } from "@/game/wiki/sector-map";
 import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCell } from "@/game/extras/cell";
 import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
-import { recallSling, sendSling, shipInDanger, slingUpgradeCost, toggleSlingPower, upgradeSling } from "@/game/extras/sling";
+import { recallSling, sendSling, shipInDanger, slingUpgradeCost, upgradeSling } from "@/game/extras/sling";
 import { activateDroneSlot, depowerDrone, playerDroneSlots, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
 import { beamTileLength } from "@/game/wiki/weapons-beam";
 import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
@@ -20,8 +20,8 @@ import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFl
 import { Hangar } from "./Hangar";
 import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDiagram, classOfPage } from "./PixelArt";
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
-import { startVeil, toggleVeilPower, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
-import { startLeash, toggleLeashPower, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
+import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
+import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
 import { cradleUpgradeCost, enemyCloneQueue, upgradeCradle } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
 import { shipSight } from "@/game/extras/slug-sight";
@@ -79,6 +79,10 @@ import {
   powerDown,
   powerMask,
   powerUp,
+  kitPowerUp,
+  kitPowerDown,
+  setKitBars,
+  type BarKit,
   reorderWeapons,
   reverseSlotAuto,
   returnToStations,
@@ -1536,22 +1540,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             return (
               <span key={id} className="sub-pod">
                 {powered ? (
-                  <button
-                    type="button"
-                    className="sub-power"
-                    aria-label={`${KIT_LABEL[id]} power`}
-                    onClick={() => {
-                      if (id === "veil") act((g) => toggleVeilPower(g));
-                      else if (id === "sling") act((g) => toggleSlingPower(g));
-                      else act((g) => toggleLeashPower(g));
-                    }}
-                  >
-                    <i className="sub-bars" aria-hidden="true">
-                      {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-                        <b key={n} className={kitBarClass(game, id, kit.power, n)} />
-                      ))}
-                    </i>
-                  </button>
+                  <KitPowerButton game={game} id={id} />
                 ) : (
                   <i className="sub-bars" aria-hidden="true">
                     {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
@@ -1762,7 +1751,7 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
   const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
   const painted = batteryBarsOn(game.player, id);
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
-  const drag = usePowerDrag(id, slots, cap);
+  const drag = usePowerDrag((g, n) => setBars(g, id, n), slots, cap);
   return (
     <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}`}>
       <div className="power-col" {...drag}>
@@ -1844,44 +1833,93 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
   if (!kitId || !kit || (kitId !== "veil" && kitId !== "sling" && kitId !== "leash")) return null;
-  const toggle = () => {
-    if (kitId === "veil") act((g) => toggleVeilPower(g));
-    else if (kitId === "sling") act((g) => toggleSlingPower(g));
-    else act((g) => toggleLeashPower(g));
-  };
+  const barKit: BarKit = kitId;
   return (
     <>
       {spare}
       <div className="radial-power-row">
-      <div className="power-stack is-big">
-        <button
-          type="button"
-          className="sub-power"
-          aria-label={`${KIT_LABEL[kitId]} power`}
-          onClick={toggle}
-        >
-          <i className="sub-bars" aria-hidden="true">
-            {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-              <b key={n} className={kitBarClass(game, kitId, kit.power, n)} />
-            ))}
-          </i>
-        </button>
-        <span className="sys-orb" title={KIT_LABEL[kitId]}>
-          <PixelIcon name={kitId} size={16} />
-        </span>
-      </div>
-      {/* These systems power all at once, so a step is the whole on/off. */}
-      <StepButtons
-        label={KIT_LABEL[kitId]}
-        onDown={() => {
-          if (kit.power > 0) toggle();
-        }}
-        onUp={() => {
-          if (kit.power <= 0) toggle();
-        }}
-      />
+        <KitPowerStack game={game} id={barKit} />
+        <StepButtons
+          label={KIT_LABEL[barKit]}
+          onDown={() => act((g) => kitPowerDown(g, barKit))}
+          onUp={() => act((g) => kitPowerUp(g, barKit))}
+        />
       </div>
     </>
+  );
+}
+
+/**
+ * Dock power for Cloaking, the Teleporter and Mind Control: one bar per tap (sim kitPowerUp), back to 0 from the top;
+ * right-click or a long press removes one bar (Systems: "Pressing the key powers one bar of the system and Shift-<key>
+ * unpowers one bar"); a vertical drag sets the level (usePowerDrag).
+ */
+function KitPowerButton({ game, id }: { game: Game; id: BarKit }) {
+  const kit = game.player.kits[id]!;
+  const drag = usePowerDrag((g, n) => setKitBars(g, id, n), Math.max(kit.level, 1), Math.max(0, kit.level - (kit.damage ?? 0)));
+  return (
+    <button
+      type="button"
+      className="sub-power"
+      aria-label={`${KIT_LABEL[id]} power`}
+      {...drag}
+      onPointerDown={(e) => {
+        drag.onPointerDown(e);
+        armHold(e, () => act((g) => kitPowerDown(g, id)));
+      }}
+      onClick={(e) => {
+        if (swallowHoldClick(e)) return;
+        act((g) => {
+          if (!kitPowerUp(g, id)) setKitBars(g, id, 0);
+        });
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (holdTookContext(e.currentTarget)) return;
+        act((g) => kitPowerDown(g, id));
+      }}
+    >
+      <i className="sub-bars" aria-hidden="true">
+        {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+          <b key={n} className={kitBarClass(game, id, kit.power, n)} />
+        ))}
+      </i>
+    </button>
+  );
+}
+
+/** The radial panel's enlarged column for those systems: tap a bar to set it, drag to set, like PowerStack. */
+function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
+  const kit = game.player.kits[id]!;
+  const slots = Math.max(kit.level, 1);
+  const cap = Math.max(0, kit.level - (kit.damage ?? 0));
+  const drag = usePowerDrag((g, n) => setKitBars(g, id, n), slots, cap);
+  return (
+    <div className="power-stack is-big">
+      <div className="power-col" {...drag}>
+        {Array.from({ length: slots }, (_, raw) => {
+          const i = slots - 1 - raw;
+          const cls = i < kit.power ? kitBarClass(game, id, kit.power, i) : i >= cap ? "is-dmg" : "";
+          return (
+            <button
+              key={i}
+              type="button"
+              className={cls}
+              aria-label={`${KIT_LABEL[id]} power ${i + 1}`}
+              onClick={() => {
+                if (i >= cap) return;
+                const next = i < kit.power ? i : i + 1;
+                act((g) => setKitBars(g, id, next));
+              }}
+            />
+          );
+        })}
+      </div>
+      <span className="sys-orb" title={KIT_LABEL[id]}>
+        <PixelIcon name={id} size={16} />
+      </span>
+    </div>
   );
 }
 
@@ -1904,20 +1942,21 @@ function StepButtons({ label, onUp, onDown }: { label: string; onUp: () => void;
  * the level; below the column is 0. A press that does not move stays a tap on one bar. INVENTED: 4px before a drag
  * starts.
  */
-function usePowerDrag(id: SysId, slots: number, cap: number) {
+function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: number) {
   const ref = useRef<{ y: number; moving: boolean; last: number } | null>(null);
   const level = (el: HTMLElement, y: number) => {
-    const box = el.getBoundingClientRect();
+    // A dock subsystem button draws its bars above itself (.sub-bars); measure those.
+    const box = (el.querySelector(".sub-bars") ?? el).getBoundingClientRect();
     if (slots <= 0 || box.height <= 0) return 0;
     const n = Math.ceil((box.bottom - y) / (box.height / slots));
     return Math.max(0, Math.min(cap, n));
   };
   return {
-    onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => {
+    onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
       if (e.button !== 0) return;
       ref.current = { y: e.clientY, moving: false, last: -1 };
     },
-    onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => {
+    onPointerMove: (e: ReactPointerEvent<HTMLElement>) => {
       const d = ref.current;
       if (!d) return;
       if (!d.moving) {
@@ -1932,7 +1971,7 @@ function usePowerDrag(id: SysId, slots: number, cap: number) {
       const n = level(e.currentTarget, e.clientY);
       if (n === d.last) return;
       d.last = n;
-      act((g) => setBars(g, id, n));
+      act((g) => apply(g, n));
     },
     onPointerUp: () => {
       const d = ref.current;
@@ -1942,7 +1981,7 @@ function usePowerDrag(id: SysId, slots: number, cap: number) {
     onPointerCancel: () => {
       ref.current = null;
     },
-    onClickCapture: (e: ReactMouseEvent<HTMLDivElement>) => {
+    onClickCapture: (e: ReactMouseEvent<HTMLElement>) => {
       if (!swallowNextClick.current) return;
       swallowNextClick.current = false;
       e.preventDefault();

@@ -2357,6 +2357,37 @@ function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void 
  */
 const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["veil", "spike", "sling", "leash"]);
 
+/**
+ * Systems, "Powering and upgrading systems": "Pressing the key powers one bar of the system and Shift-<key> unpowers one
+ * bar." Cloaking, the Crew Teleporter and Mind Control are main systems like the rest (per the user, INTENTIONALLY
+ * OVERRIDING the earlier one-bar on/off inference): one reactor bar per powered level, up to the undamaged level.
+ * "Powering a system additional levels will make it more powerful": each one reads its powered bars (kitBars).
+ */
+export type BarKit = "veil" | "sling" | "leash";
+
+export function kitPowerUp(g: Game, id: BarKit): boolean {
+  const kit = g.player.kits[id];
+  if (!kit || cooldownLocksPower(kit)) return false;
+  if (kit.power >= Math.max(0, kit.level - (kit.damage ?? 0)) || sparePower(g.player) < 1) return false;
+  kit.power += 1;
+  return true;
+}
+
+export function kitPowerDown(g: Game, id: BarKit): boolean {
+  const kit = g.player.kits[id];
+  if (!kit || cooldownLocksPower(kit) || kit.power <= 0) return false;
+  kit.power -= 1;
+  return true;
+}
+
+/** Steps the bars toward `next`, one at a time, stopping where the rules refuse. */
+export function setKitBars(g: Game, id: BarKit, next: number) {
+  const kit = g.player.kits[id];
+  if (!kit) return;
+  while (kit.power > next && kitPowerDown(g, id));
+  while (kit.power < next && kitPowerUp(g, id));
+}
+
 export function cooldownLocksPower(kit: Kit | undefined): boolean {
   return !!kit && kit.cool > 0 && COOLDOWN_LOCK.has(kit.id);
 }

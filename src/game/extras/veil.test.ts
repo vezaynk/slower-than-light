@@ -129,6 +129,26 @@ describe("veil", () => {
     assert.equal(veilEvade(g, g.player, "player"), 0);
   });
 
+  it("runs 5 seconds per powered bar, and a removed bar shortens a running cloak", () => {
+    const { g, kit } = fit(400);
+    upgradeVeil(g);
+    upgradeVeil(g);
+    arm(kit);
+    kit.power = 1;
+    startVeil(g);
+    assert.equal(kit.left, 5);
+    assert.equal(kit.level, 3);
+    kit.on = false;
+    kit.left = 0;
+    kit.cool = 0;
+    kit.power = 3;
+    startVeil(g);
+    assert.equal(kit.left, 15);
+    kit.power = 1;
+    tickVeil(g, 0);
+    assert.equal(kit.left, 5);
+  });
+
   it("upgrades for 30 then 50 and stretches the window to 10 and 15", () => {
     const { g, kit } = fit(200);
     assert.equal(g.scrap, 50);
@@ -136,6 +156,8 @@ describe("veil", () => {
     assert.equal(g.scrap, 20);
     assert.equal(kit.level, 2);
     arm(kit);
+    // Systems: the cloak runs 5 seconds per powered bar (veilSeconds), so both bars go on.
+    kit.power = 2;
     startVeil(g);
     assert.equal(kit.left, 10);
     tickVeil(g, 10);
@@ -153,6 +175,7 @@ describe("veil", () => {
     assert.equal(g.scrap, 0);
     upgradeVeil(g);
     assert.equal(kit.level, 3);
+    kit.power = 3;
     startVeil(g);
     assert.equal(kit.left, 15);
     tickVeil(g, 14);
@@ -206,7 +229,8 @@ describe("veil", () => {
     g.enemy.kits.veil = {
       id: "veil",
       level: 2,
-      power: 1,
+      // Enemy kits run at full power (sim enemy power-up); 5 seconds per powered bar.
+      power: 2,
       left: 0,
       cool: 0,
       target: null,

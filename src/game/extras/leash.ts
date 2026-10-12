@@ -1,5 +1,5 @@
 import { interiorLinks, mayStand } from "../crew-spots.ts";
-import { cooldownLocksPower, createGame, deselectCrew, kitBars, kitIonLocked, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import { cooldownLocksPower, createGame, deselectCrew, kitBars, kitIonLocked, kitPowerDown, kitPowerUp, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
@@ -215,14 +215,15 @@ export function upgradeLeash(g: Game) {
 }
 
 /**
+ * Add a bar (sim kitPowerUp); at the top, remove one, as toggleSlingPower does. The logs say why a first bar fails.
  * Mind Control wiki, "Overview": duration depends on system power level, and removing power can change it.
- * INFERRED: one reactor bar is the whole on switch. The page never states a bar count.
  */
 export function toggleLeashPower(g: Game) {
   const kit = g.player.kits.leash;
   if (!kit || cooldownLocksPower(kit)) return;
+  if (kitPowerUp(g, "leash")) return;
   if (kit.power >= 1) {
-    kit.power = 0;
+    kitPowerDown(g, "leash");
     return;
   }
   if (sparePower(g.player) < 1) {
@@ -291,7 +292,7 @@ export function startLeash(g: Game, crewId: string) {
   if (crew && heldByEnemy(crew) && crew.hp > 0) {
     clearCrew(crew);
     endEnemyLeash(g);
-    kit.left = durationOf(kit.level);
+    kit.left = durationOf(playerLevel(kit));
     kit.on = true;
     kit.target = null;
     log(g, `${crew.name} is freed from their mind control.`);
@@ -326,9 +327,9 @@ export function startLeash(g: Game, crewId: string) {
     // Only the player's own earlier hold ends here. Crew the enemy holds stay held (freeing is the branch above).
     if (other.leashed && other.side === "enemy") clearCrew(other);
   }
-  const duration = durationOf(kit.level);
+  const duration = durationOf(playerLevel(kit));
   crew.leashed = duration;
-  grantBoost(crew, levelOf(kit.level));
+  grantBoost(crew, levelOf(playerLevel(kit)));
   kit.left = duration;
   kit.on = true;
   kit.target = crew.id;
@@ -338,9 +339,8 @@ export function startLeash(g: Game, crewId: string) {
 
 /**
  * The player kit's working level, for "Combat damage bonus and health boost are removed if the system level is
- * decreased" (Mind Control wiki, "Overview"). INFERRED: the player kit is one on/off bar (toggleLeashPower), so
- * unpowered is level 0 and damage (`kit.damage`, sim hurtKit) knocks levels off the bought level. Upgrades never
- * lower `kit.level`; damage and depowering are the only decreases this tree has.
+ * decreased" (Mind Control wiki, "Overview"). `base` is the powered bars (playerLevel), so removing a bar lowers the
+ * level and damage (`kit.damage`, sim hurtKit) knocks levels off the bought level. Upgrades never lower `kit.level`.
  */
 function mindLevel(kit: Kit, base: number): number {
   const bought = Math.max(0, kit.level - (kit.damage ?? 0));
@@ -386,11 +386,10 @@ function enemyCrewInView(g: Game, crew: Crew): boolean {
 }
 
 function playerLevel(kit: Kit): number {
-  // Zoltans: a Zoltan bar keeps Mind Control up when a depower has removed the reactor bar.
-  // INFERRED: the player kit is one on/off bar, so any power or Zoltan keeps the bought level until ion lands.
-  const bought = Math.max(0, kit.level - (kit.damage ?? 0));
-  const base = kit.power < 1 && (kit.zoltan ?? 0) < 1 ? 0 : bought;
-  return mindLevel(kit, base);
+  // Mind Control, Overview: "Mind control duration depends on the system power level" and "can be manipulated by
+  // decreasing or removing power from the system with Zoltans". Systems: one bar per powered level (sim kitPowerUp),
+  // Zoltan bars included (kitBars). INTENTIONALLY OVERRIDING the earlier one-bar on/off inference.
+  return mindLevel(kit, kitBars(kit));
 }
 
 /** INFERRED: the printed duration row for the level that remains is the new maximum. */

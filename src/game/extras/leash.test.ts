@@ -76,7 +76,8 @@ describe("leash", () => {
   it("scales duration and damage with the upgrade table", () => {
     const mid = createGame(2);
     startCombat(mid, "Rebel ship");
-    pushKit(mid, 2, 1);
+    // Mind Control, Overview: duration follows the powered level, so both bars are on.
+    pushKit(mid, 2, 2);
     see(mid);
     const gunner = mid.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
     assert.ok(gunner);
@@ -87,7 +88,7 @@ describe("leash", () => {
 
     const high = createGame(3);
     startCombat(high, "Rebel ship");
-    pushKit(high, 3, 1);
+    pushKit(high, 3, 3);
     see(high);
     const pilot = enemyPilot(high);
     assert.ok(pilot);
@@ -98,6 +99,18 @@ describe("leash", () => {
     assert.ok((pilot.leashed ?? 0) > 0);
     tickLeash(high, 18);
     assert.equal(pilot.leashed, undefined);
+  });
+
+  it("holds for the powered level, not the bought level", () => {
+    const g = createGame(2);
+    startCombat(g, "Rebel ship");
+    pushKit(g, 3, 1);
+    see(g);
+    const gunner = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
+    assert.ok(gunner);
+    startLeash(g, gunner.id);
+    assert.equal(gunner.leashed, 14);
+    assert.equal(leashedDamageBonus(gunner), 1);
   });
 
   it("spends the sheet price and one spare bar", () => {

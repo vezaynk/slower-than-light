@@ -44,12 +44,12 @@ function blank(): Kit {
 
 /**
  * Crew Teleporter wiki, "Overview": a use needs the system powered, then it waits out its cooldown.
- * INFERRED: power must already equal the system level. The page never states a reactor-bar count.
+ * Systems: one bar per powered level (sim kitPowerUp); any powered bar runs it, and the cooldown follows the powered
+ * level ("The cooldown for Crew Teleporter depends on the system power level"; Hacking: "the duration is based on the
+ * power allocated to the system"). INTENTIONALLY OVERRIDING the earlier inference that it needed full power.
  */
 function canRun(kit: Kit): boolean {
-  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
-  // INFERRED: "full power" is every undamaged bar, and at least one must work.
-  return kitBars(kit) >= kit.level - (kit.damage ?? 0) && kitBars(kit) > 0 && kit.cool <= 0;
+  return kitBars(kit) > 0 && kit.cool <= 0;
 }
 
 function arm(kit: Kit, target: string | null) {
@@ -57,7 +57,7 @@ function arm(kit: Kit, target: string | null) {
   kit.target = target;
   kit.on = false;
   kit.left = 0;
-  kit.cool = cooldown(kit.level);
+  kit.cool = cooldown(kitBars(kit));
 }
 
 function livingOnLark(g: Game): Crew[] {
@@ -528,7 +528,7 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
     goHome(g, ship, b, c);
   }
   b.away = b.away.filter((id) => !pull.some((c) => c.id === id));
-  kit.cool = cooldown(kit.level);
+  kit.cool = cooldown(kitBars(kit));
   log(g, pull.length > 1 ? "They pull their boarders back." : "They pull a boarder back.");
 }
 
@@ -592,7 +592,7 @@ function sendParty(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   b.away.push(...party.map((c) => c.id));
   b.party = [];
   b.sent += 1;
-  kit.cool = cooldown(kit.level);
+  kit.cool = cooldown(kitBars(kit));
   log(g, "Boarders on the hull.");
 }
 

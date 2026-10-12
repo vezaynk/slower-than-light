@@ -4,6 +4,7 @@ import { createGame, startCombat } from "../sim.ts";
 import { clearEnemyLeash, heldByEnemy, leashedDamageBonus, startLeash, tickLeash } from "./leash.ts";
 import type { Crew, Game, Kit } from "../types.ts";
 
+// Mind Control, Overview: the hold follows the powered level, so a kit is fully powered unless a test says otherwise.
 function kit(level: number, power = level): Kit {
   return { id: "leash", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
@@ -33,7 +34,7 @@ describe("Mind Control health boost", () => {
       [3, 30, 28],
     ] as const) {
       const g = fight(20 + level);
-      g.player.kits.leash = kit(level, 1);
+      g.player.kits.leash = kit(level);
       const c = foe(g);
       const base = c.maxHp;
       const hp = c.hp;
@@ -50,7 +51,7 @@ describe("Mind Control health boost", () => {
 
   it("clamps hp to the base max when the boost ends (INFERRED)", () => {
     const g = fight(30);
-    g.player.kits.leash = kit(3, 1);
+    g.player.kits.leash = kit(3);
     const c = foe(g);
     const base = c.maxHp;
     startLeash(g, c.id);
@@ -101,7 +102,7 @@ describe("Mind Control health boost", () => {
     assert.equal(leashedDamageBonus(c), 1);
 
     const p = fight(34);
-    p.player.kits.leash = kit(2, 1);
+    p.player.kits.leash = kit(2);
     const f = foe(p);
     const fBase = f.maxHp;
     startLeash(p, f.id);
@@ -114,7 +115,7 @@ describe("Mind Control health boost", () => {
 
   it("keeps the damage multiplier across a JSON save/load", () => {
     const g = fight(35);
-    g.player.kits.leash = kit(3, 1);
+    g.player.kits.leash = kit(3);
     const c = foe(g);
     startLeash(g, c.id);
     const loaded = JSON.parse(JSON.stringify(g)) as Game;

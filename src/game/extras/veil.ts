@@ -1,6 +1,6 @@
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { cooldownLocksPower, kitBars, kitIonLocked, log, noteZoltanKits, rand, sparePower } from "../sim.ts";
+import { kitBars, kitIonLocked, kitPowerDown, kitPowerUp, log, noteZoltanKits, rand } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
@@ -85,21 +85,23 @@ export function upgradeVeil(g: Game) {
   noteAchieve(g, { k: "upgrade" });
 }
 
-/** INFERRED: one reactor bar. Wiki page "Cloaking" gives no power-bar count under "Overview" or "System Upgrades". */
+/** Add a bar (sim kitPowerUp); at the top, or with no spare bar, remove one, as toggleSlingPower does. */
 export function toggleVeilPower(g: Game) {
-  const kit = g.player.kits.veil;
-  if (!kit || cooldownLocksPower(kit)) return;
-  if (kit.power >= 1) {
-    kit.power -= 1;
-    return;
-  }
-  if (sparePower(g.player) < 1) return;
-  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
-  if (kit.level - (kit.damage ?? 0) < 1) return;
-  kit.power += 1;
+  if (kitPowerUp(g, "veil")) return;
+  kitPowerDown(g, "veil");
 }
 
-/** Wiki page "Cloaking", section "Overview": 5 seconds per level (5/10/15). "System Upgrades" lists the same. */
+/**
+ * Wiki page "Cloaking", "System Upgrades": 5/10/15 seconds. Read per powered bar (Systems: "Powering a system additional
+ * levels will make it more powerful"; Cloaking, Zoltan note: "Cloaking duration can be increased or decreased by adding
+ * or removing Zoltan power to the system ... the maximum cloak duration cannot exceed the maximum system level
+ * duration"). INTENTIONALLY OVERRIDING the earlier read of 5 seconds per bought level.
+ */
+export function veilSeconds(kit: Kit): number {
+  return 5 * kitBars(kit);
+}
+
+/** Wiki page "Cloaking": the cloak runs veilSeconds for the bars powered when it starts. */
 export function startVeil(g: Game) {
   const kit = g.player.kits.veil;
   if (!kit) return;
@@ -109,7 +111,7 @@ export function startVeil(g: Game) {
   if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
   kit.on = true;
   noteAchieve(g, { k: "cloak" });
-  kit.left = 5 * kit.level;
+  kit.left = veilSeconds(kit);
   kit.cool = 0;
   log(g, "Cloaking up.");
 }
@@ -119,6 +121,9 @@ export function startVeil(g: Game) {
  * Cloaking, "Enemy AI and Cloaking": an enemy with power cloaks as soon as it can, not after a delay.
  */
 export function tickVeil(g: Game, dt: number) {
+  // Cloaking, Zoltan note: removing power shortens a running cloak, down to "a fraction of a second".
+  capVeil(g.player.kits.veil);
+  capVeil(g.enemy?.kits.veil);
   tickKit(g.player.kits.veil, dt);
   const foe = g.enemy;
   if (!foe) return;
@@ -128,7 +133,7 @@ export function tickVeil(g: Game, dt: number) {
   // Zoltans: an ionized Cloaking system cannot be activated.
   if (kit.power >= 1 && kit.cool <= 0 && !kitIonLocked(kit)) {
     kit.on = true;
-    kit.left = 5 * kit.level;
+    kit.left = veilSeconds(kit);
     kit.cool = 0;
     // Cloaking, "Enemy AI and Cloaking": "They will randomly decide whether to fire weapons freely while cloaked,
     // or hold fire until cloaking ends; this pattern may change throughout the fight." Rolled per cloak.
@@ -140,6 +145,10 @@ export function tickVeil(g: Game, dt: number) {
 export function enemyHoldsFire(g: Game): boolean {
   const kit = g.enemy?.kits.veil;
   return !!kit && active(kit) && kit.target === "hold";
+}
+
+function capVeil(kit: Kit | undefined) {
+  if (kit && kit.on && kit.left > veilSeconds(kit)) kit.left = veilSeconds(kit);
 }
 
 /** Wiki page "Cloaking", section "Overview": flat +60 while that hull's Veil is up, powered, and still counting. */
@@ -166,7 +175,7 @@ export function veilBrokenByFire(g: Game, from: "player" | "enemy", kind: string
   const ship = from === "player" ? g.player : g.enemy;
   const kit = ship?.kits.veil;
   if (!kit || !active(kit)) return;
-  const full = 5 * kit.level;
+  const full = veilSeconds(kit);
   kit.left -= full * 0.2;
   if (kit.left <= 0) endVeil(kit);
 }

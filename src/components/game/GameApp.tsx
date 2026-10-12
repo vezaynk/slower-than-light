@@ -377,6 +377,12 @@ export function GameApp() {
         act((g) => togglePause(g));
         return;
       }
+      // Per the user: fast forward. F is free (crew are F1–F8).
+      if (e.code === "KeyF" && plain) {
+        e.preventDefault();
+        useFast.setState((s) => ({ on: !s.on }));
+        return;
+      }
       if (e.code === "KeyM" && plain) {
         e.preventDefault();
         setSetting("muted", !useSettings.getState().muted);
@@ -535,8 +541,11 @@ export function GameApp() {
       const g = useGame.getState().game;
       // Oxygen and venting keep counting on the map. A pause stops the clock.
       const ticking = shipTicking(g);
+      // Per the user: fast forward runs the clock at FAST_SPEED (more 1/30 s ticks per frame, never a longer tick).
+      const fast = useFast.getState().on && ticking;
+      if (fast) acc += dt * (FAST_SPEED - 1);
       let steps = 0;
-      while (acc >= 1 / 30 && steps < 4) {
+      while (acc >= 1 / 30 && steps < (fast ? 4 * FAST_SPEED : 4)) {
         useGame.getState().tick(1 / 30);
         acc -= 1 / 30;
         steps += 1;
@@ -741,8 +750,6 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
           <ShipStage game={game} shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined} />
         )}
         {chart ? <MapScreen game={game} /> : null}
-        {/* Per the user: pausing works with or without a fight, so the stamp shows for any pause. */}
-        {game.paused ? <PauseStamp /> : null}
       </div>
       {showTarget && displayEnemy ? (
         <TargetPanel game={game} enemy={displayEnemy} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} />
@@ -814,18 +821,24 @@ function Hud({ game }: { game: Game }) {
         </div>
       </div>
       <div className="hud-mid">
-        {/* Per the user: pause on a touch screen, where there is no Space bar (togglePause, as the key). Bigger, top middle. */}
-        <button
-          type="button"
-          className={`frame-btn pause-btn${game.paused ? " is-on" : ""}`}
-          aria-label={game.paused ? "Resume" : "Pause"}
-          aria-pressed={game.paused}
-          title={game.paused ? "Resume (Space)" : "Pause (Space)"}
-          disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
-          onClick={() => act((g) => togglePause(g))}
-        >
-          <PixelIcon name={game.paused ? "play" : "pause"} size={34} />
-        </button>
+        {/* Per the user: pause and fast forward, top middle. While paused, the PAUSED mark takes their place. */}
+        {game.paused ? (
+          <PauseStamp />
+        ) : (
+          <>
+            <button
+              type="button"
+              className="frame-btn pause-btn"
+              aria-label="Pause"
+              title="Pause (Space)"
+              disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
+              onClick={() => act((g) => togglePause(g))}
+            >
+              <PixelIcon name="pause" size={34} />
+            </button>
+            <FastButton />
+          </>
+        )}
       </div>
       <div className="hud-right">
         <button
@@ -2608,6 +2621,26 @@ function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missil
           </p>
         ))}
     </div>
+  );
+}
+
+/** Per the user: fast forward. INVENTED speed: the clock runs twice as fast. Not saved; a new page starts at 1x. */
+const FAST_SPEED = 2;
+const useFast = create<{ on: boolean }>(() => ({ on: false }));
+
+function FastButton() {
+  const on = useFast((s) => s.on);
+  return (
+    <button
+      type="button"
+      className={`frame-btn pause-btn fast-btn${on ? " is-on" : ""}`}
+      aria-label={on ? "Normal speed" : "Fast forward"}
+      aria-pressed={on}
+      title={on ? "Normal speed (F)" : `Fast forward ×${FAST_SPEED} (F)`}
+      onClick={() => useFast.setState({ on: !on })}
+    >
+      <PixelIcon name="fast" size={34} />
+    </button>
   );
 }
 

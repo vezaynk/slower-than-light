@@ -37,6 +37,7 @@ const KEYS: [string, [string, string][]][] = [
     "General",
     [
       ["Space", "Pause or resume"],
+      ["F", "Fast forward on or off"],
       ["M", "Mute or unmute sound"],
       ["U", "Ship menu: Upgrades"],
       ["I", "Ship menu: Inventory"],

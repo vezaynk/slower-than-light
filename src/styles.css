@@ -5810,3 +5810,33 @@ body.page-turn-180 {
    manned terminals' screens where they are. */
 .is-halted .room-terminal-art,
 .is-halted .room-terminal-art * { animation-play-state: paused; }
+
+/* Per the user: pause and fast forward side by side at the top middle; while paused the PAUSED mark takes their
+   place (PauseStamp, moved from the middle of the ship view). INVENTED sizes. */
+.hud-mid { display: flex; gap: 8px; align-items: flex-start; }
+.frame-btn.fast-btn.is-on { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 12px rgba(255, 210, 90, 0.25); }
+.hud-mid .pause-mark {
+  position: static;
+  transform: none;
+  min-width: 160px;
+  min-height: 76px;
+  padding: 6px 18px 8px;
+  box-sizing: border-box;
+}
+.hud-mid .pause-mark strong { font-size: 40px; }
+.hud-mid .pause-mark span { font-size: 12px; }
+
+/* Per the user: whenever the clock is stopped (any pause; sim.ts halted) the game is slightly dimmed. The PAUSED mark,
+   menus and cards stay at full brightness. */
+.play-root .play > .stage-slot,
+.play-root .play > .crew-rail,
+.play-root .play > .target-panel,
+.play-root .play > .dock,
+.play-root .play > .fx-canvas,
+.play-root .hud > :not(.hud-mid) { transition: filter 0.15s; }
+.play-root.is-halted .play > .stage-slot,
+.play-root.is-halted .play > .crew-rail,
+.play-root.is-halted .play > .target-panel,
+.play-root.is-halted .play > .dock,
+.play-root.is-halted .play > .fx-canvas,
+.play-root.is-halted .hud > :not(.hud-mid) { filter: brightness(0.72); }

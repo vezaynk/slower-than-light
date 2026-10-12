@@ -5110,3 +5110,20 @@ button.modal-x.modal-x:focus-visible {
 }
 
 .radial-power .power-stack.is-big .sub-bars b { width: 24px; height: 14px; }
+
+/* Radial power panel: the bar column with + and - beside it (per the user). INVENTED 30px buttons. */
+.radial-power-row { display: flex; align-items: center; gap: 8px; }
+.radial-steps { display: flex; flex-direction: column; gap: 6px; }
+.radial-power .radial-steps button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line);
+  color: var(--color-line);
+}
+.radial-power .radial-steps button:active { background: var(--color-surface-2); }
+
+/* Power columns take a vertical drag (usePowerDrag), so the page must not claim the gesture. */
+.power-col { touch-action: none; }

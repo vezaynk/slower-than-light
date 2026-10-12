@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, unlockAudio } from "@/game/audio";
 import {
   SECTOR_NAMES,
@@ -1762,9 +1762,10 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
   const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
   const painted = batteryBarsOn(game.player, id);
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
+  const drag = usePowerDrag(id, slots, cap);
   return (
     <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}`}>
-      <div className="power-col">
+      <div className="power-col" {...drag}>
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
           const ionStart = sys.level - sys.ion.length;
@@ -1829,26 +1830,35 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
     return (
       <>
         {spare}
-        <PowerStack game={game} id={id} big locked={id === "weapons" && weaponsPowerLocked(game)} />
+        <div className="radial-power-row">
+          <PowerStack game={game} id={id} big locked={id === "weapons" && weaponsPowerLocked(game)} />
+          <StepButtons
+            label={SYS_LABEL[id]}
+            onDown={() => act((g) => powerDown(g, id))}
+            onUp={() => act((g) => powerUp(g, id))}
+          />
+        </div>
       </>
     );
   }
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
   if (!kitId || !kit || (kitId !== "veil" && kitId !== "sling" && kitId !== "leash")) return null;
+  const toggle = () => {
+    if (kitId === "veil") act((g) => toggleVeilPower(g));
+    else if (kitId === "sling") act((g) => toggleSlingPower(g));
+    else act((g) => toggleLeashPower(g));
+  };
   return (
     <>
       {spare}
+      <div className="radial-power-row">
       <div className="power-stack is-big">
         <button
           type="button"
           className="sub-power"
           aria-label={`${KIT_LABEL[kitId]} power`}
-          onClick={() => {
-            if (kitId === "veil") act((g) => toggleVeilPower(g));
-            else if (kitId === "sling") act((g) => toggleSlingPower(g));
-            else act((g) => toggleLeashPower(g));
-          }}
+          onClick={toggle}
         >
           <i className="sub-bars" aria-hidden="true">
             {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
@@ -1860,9 +1870,89 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
           <PixelIcon name={kitId} size={16} />
         </span>
       </div>
+      {/* These systems power all at once, so a step is the whole on/off. */}
+      <StepButtons
+        label={KIT_LABEL[kitId]}
+        onDown={() => {
+          if (kit.power > 0) toggle();
+        }}
+        onUp={() => {
+          if (kit.power <= 0) toggle();
+        }}
+      />
+      </div>
     </>
   );
 }
+
+/** Per the user: + and - beside the radial power bar step it one bar at a time. */
+function StepButtons({ label, onUp, onDown }: { label: string; onUp: () => void; onDown: () => void }) {
+  return (
+    <span className="radial-steps">
+      <button type="button" aria-label={`Add power to ${label}`} title="Add power" onClick={onUp}>
+        <PixelIcon name="plus" size={12} />
+      </button>
+      <button type="button" aria-label={`Remove power from ${label}`} title="Remove power" onClick={onDown}>
+        <PixelIcon name="minus" size={12} />
+      </button>
+    </span>
+  );
+}
+
+/**
+ * Per the user: drag up and down on a power column to set the level. The pointer's bar (counted from the bottom) is
+ * the level; below the column is 0. A press that does not move stays a tap on one bar. INVENTED: 4px before a drag
+ * starts.
+ */
+function usePowerDrag(id: SysId, slots: number, cap: number) {
+  const ref = useRef<{ y: number; moving: boolean; last: number } | null>(null);
+  const level = (el: HTMLElement, y: number) => {
+    const box = el.getBoundingClientRect();
+    if (slots <= 0 || box.height <= 0) return 0;
+    const n = Math.ceil((box.bottom - y) / (box.height / slots));
+    return Math.max(0, Math.min(cap, n));
+  };
+  return {
+    onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      ref.current = { y: e.clientY, moving: false, last: -1 };
+    },
+    onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => {
+      const d = ref.current;
+      if (!d) return;
+      if (!d.moving) {
+        if (Math.abs(e.clientY - d.y) < 4) return;
+        d.moving = true;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          // The pointer may already be up.
+        }
+      }
+      const n = level(e.currentTarget, e.clientY);
+      if (n === d.last) return;
+      d.last = n;
+      act((g) => setBars(g, id, n));
+    },
+    onPointerUp: () => {
+      const d = ref.current;
+      ref.current = null;
+      if (d?.moving) swallowNextClick.current = true;
+    },
+    onPointerCancel: () => {
+      ref.current = null;
+    },
+    onClickCapture: (e: ReactMouseEvent<HTMLDivElement>) => {
+      if (!swallowNextClick.current) return;
+      swallowNextClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+  };
+}
+
+/** The click that ends a power drag must not also toggle the bar under the pointer. */
+const swallowNextClick = { current: false };
 
 function EventModal({ game }: { game: Game }) {
   const event = game.event;

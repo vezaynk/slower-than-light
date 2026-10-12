@@ -4624,7 +4624,7 @@ button.door-tick::before {
 }
 
 /*
- * A room Sensors cannot see into: dark, with its name and system icon still legible (ShipView room-sys-mark).
+ * A room Sensors cannot see into: dark, with its system icon still legible (ShipView .room-icon).
  * INFERRED colours, after the game's dark unseen rooms.
  */
 .play .room.is-unseen,
@@ -4639,13 +4639,14 @@ button.door-tick::before {
   color: #c9ced6;
 }
 
-.room-sys-mark {
-  position: absolute;
-  left: 50%;
-  top: calc(50% + 6px);
-  translate: -50% -50%;
-  color: #e6ebf2;
-  pointer-events: none;
+/* Per the user: a room's icon in place of its name (ShipView .room-icon, which keeps the .room-name colours). */
+.room-icon {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0 1px;
+  overflow: visible;
 }
 
 .play .room.is-unseen .pixel-fill,

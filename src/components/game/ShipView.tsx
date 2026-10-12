@@ -25,31 +25,6 @@ export type AimMark = { room: string; slot: number; state: "charging" | "ready" 
  */
 export type HackMark = { room: string; phase: "aim" | "latched" | "pulse"; left: number };
 
-/** One-tile rooms fit about five characters, so they get a short label. The full name stays in the aria-label. */
-const SHORT: Record<string, string> = {
-  piloting: "PILOT",
-  sensors: "SENS",
-  weapons: "WEAP",
-  engines: "ENG",
-  shields: "SHLD",
-  oxygen: "O2",
-  medbay: "MED",
-  doors: "DOOR",
-  cloaking: "CLOAK",
-  drones: "DRONE",
-  teleporter: "TELE",
-  hacking: "HACK",
-  "clone bay": "CLONE",
-  "mind control": "MIND",
-  artillery: "ARTY",
-  battery: "BATT",
-};
-
-function roomLabel(title: string, wide: number) {
-  if (wide > 1) return title;
-  return SHORT[title.toLowerCase()] ?? title.slice(0, 5);
-}
-
 /** Leashed crew fight for the other side (sim sideOf). */
 function effectiveSide(c: Crew): "player" | "enemy" {
   if ((c.leashed ?? 0) > 0) return c.side === "player" ? "enemy" : "player";
@@ -493,6 +468,7 @@ export function ShipView({
               type="button"
               className="room-hit"
               aria-label={(targetable ? "Target " : "Open ") + room.title}
+              title={room.title}
               onPointerDown={(e) => {
                 e.currentTarget.dataset.ptr = e.pointerType;
                 if (onRoomMenu) armHold(e, () => onRoomMenu(room.id));
@@ -512,13 +488,15 @@ export function ShipView({
               }}
             />
             <div className="room-body">
-              <div className="room-name">{roomLabel(room.title, room.w)}</div>
               {/*
-                INFERRED: an unseen room keeps its system icon, as the game draws it on a dark room, so systems can be
-                targeted without Sensors. Sensors, "Overview" lists interiors, weapon charge, and system detail as what
-                the levels reveal; where the systems are is not on that list.
+                Per the user: rooms show their system or subsystem icon, not a name (the name stays in the tooltip and
+                the aria-label). Halls show nothing. INFERRED: an unseen room keeps its icon, as the game draws it on a
+                dark room, so systems can be targeted without Sensors (Sensors, "Overview" does not list where systems
+                are among what its levels reveal).
               */}
-              {!open && room.system ? <PixelIcon name={room.system} size={20} className="room-sys-mark" /> : null}
+              {room.system ?? room.kit ? (
+                <PixelIcon name={(room.system ?? room.kit)!} size={16} className="room-name room-icon" />
+              ) : null}
               {open ? (
                 <div className="room-flags">
                   {room.fire > 0 ? <span>Fire</span> : null}

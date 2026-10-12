@@ -170,7 +170,7 @@ describe("Fires outside a fight", () => {
     assert.ok(room.fire > 0);
   });
 
-  it("does not repair or heal on the map, and still suffocates", () => {
+  it("repairs on the map as in a fight, and still suffocates", () => {
     const g = createGame(5);
     sealed(g, "p-oxygen");
     const med = g.player.rooms.find((r) => r.id === "p-medbay")!;
@@ -185,8 +185,10 @@ describe("Fires outside a fight", () => {
     // Oxygen, Overview: 6.4 HP/s while the room is at 5% or less. The room refills (and seeps from its full
     // neighbours) faster than one crew member breathes (air.ts), so the damage stops once it passes 5%.
     for (let i = 0; i < 20; i++) step(g, 0.05);
-    assert.equal(g.player.systems.medbay.fix, 0);
-    assert.equal(g.player.systems.medbay.damage, 1);
+    // Per the user, the ship behaves the same with or without a fight: once the room has air again (above 5%) the
+    // crew member starts repairing the broken Medbay, as in a fight.
+    const bay = g.player.systems.medbay;
+    assert.ok(bay.fix > 0 || bay.damage === 0, `fix ${bay.fix} damage ${bay.damage}`);
     assert.ok(crew.hp < 40 && crew.hp > 40 - 6.4, `${crew.hp}`);
     assert.ok(med.o2 > 4, `${med.o2}`);
   });

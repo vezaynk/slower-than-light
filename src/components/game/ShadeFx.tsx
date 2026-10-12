@@ -358,7 +358,7 @@ export function ShadeFx() {
       }
 
       // A combat pause holds the picture. Leaving combat (hull loss sets paused) still plays the blast.
-      const hold = g.paused && g.phase === "combat";
+      const hold = g.paused;
       const step = hold ? 0 : dt;
 
       for (let i = chunks.length - 1; i >= 0; i--) {

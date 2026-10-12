@@ -103,9 +103,9 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
 
 /** Boarders and fires sabotage the system in their room on both ships. */
 export function tickSabotage(g: Game, dt: number) {
-  if (g.phase !== "combat" || !g.enemy) return;
+  // Per the user: a fire on the player's ship damages its system with or without a fight on.
   sabotageShip(g, g.player, "player", dt);
-  sabotageShip(g, g.enemy, "enemy", dt);
+  if (g.phase === "combat" && g.enemy) sabotageShip(g, g.enemy, "enemy", dt);
 }
 
 /** Boarding with no enemy hull: the same 0.08/s, on the player ship only. */

@@ -632,7 +632,8 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
           <ShipStage game={game} shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined} />
         )}
         {chart ? <MapScreen game={game} /> : null}
-        {game.paused && game.phase === "combat" ? <PauseStamp /> : null}
+        {/* Per the user: pausing works with or without a fight, so the stamp shows for any pause. */}
+        {game.paused ? <PauseStamp /> : null}
       </div>
       {showTarget && displayEnemy ? (
         <TargetPanel game={game} enemy={displayEnemy} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} />

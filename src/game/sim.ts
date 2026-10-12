@@ -56,7 +56,7 @@ import {
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearBombSight, clearEnemyLeash, heldByEnemy, ionOnLeash, leashOnLeave, noteBombSight, sideOf } from "./extras/leash.ts";
 import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
-import { ionOnCell, shedOverAssigned, tickCell } from "./extras/cell.ts";
+import { ionOnCell, shedOverAssigned } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
 import { checkEnemyPower } from "./extras/ship-ai.ts";
 import { tickEnemyCrewAi } from "./extras/crewai.ts";
@@ -3618,15 +3618,6 @@ function suffocatePresent(g: Game, present: Crew[], dt: number) {
   for (const c of present) c.hp -= 6.4 * suffocateScale(g, c) * kinOf(c.kin ?? "plain").suffocate * dt;
 }
 
-/** Same suffocation as a fight. The Oxygen page does not limit it to combat. */
-function suffocateShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
-  for (const r of ship.rooms) {
-    if (r.o2 > 5) continue;
-    const inRoom = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0);
-    suffocatePresent(g, inRoom, dt);
-  }
-}
-
 /**
  * xftl doc/damage-notes: "When two crew members are punching each other, damage is done randomly between every
  * 500ms-650ms, and then an equal duration is spent letting the punch animation finish, so a full cycle is
@@ -6407,30 +6398,6 @@ function stepShots(g: Game, dt: number) {
   g.shots = g.shots.filter((s) => s.t < 1);
 }
 
-/**
- * Fires, lead: events start fires, and a fire spreads and burns crew whether or not a fight is on.
- * Oxygen loss, the die-out timer, refill, and venting are airflow(), which also runs on this tick.
- * Melee, repair, and medbay stay on the combat tick. System sabotage (0.08/s) stays there too.
- * Suffocation does not: Oxygen states it for the room, with no fight requirement.
- */
-function tickIdleFires(g: Game, dt: number) {
-  const ship = g.player;
-  if (!ship.rooms.some((r) => r.fire > 0)) return;
-  const aboard = "player" as const;
-  const closedSlow = doorSpreadSlow(g, ship, aboard);
-  for (const r of ship.rooms) {
-    const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
-    const pals = present.filter((c) => sideOf(c) === aboard && (c.stun ?? 0) <= 0);
-    const foes = present.filter((c) => sideOf(c) !== aboard);
-    // Same priority as life(): crew who are trading blows do not also fight the fire. The blows themselves stay in life().
-    if (!(pals.length && foes.length) && r.fire > 0 && pals.length) fightFire(r, pals, dt);
-    spreadFire(g, ship, r, closedSlow, dt);
-    // Everyone in a burning room burns, walking through included (per the user); suffocation replaces it below 5%.
-    const inRoom = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0);
-    if (r.o2 > 5) burnCrew(r, inRoom, dt);
-  }
-}
-
 /** A death from fire or from suffocation, with no enemy hull on the tick. */
 function finishIdleDeaths(g: Game) {
   if (!g.crew.some((c) => c.hp <= 0)) return;
@@ -6517,6 +6484,25 @@ function promptExitLane(g: Game) {
   };
 }
 
+/** The player's hull for one tick with no enemy ship: the combat body's player half (step). */
+function playerShipTick(g: Game, h: number) {
+  g.time += h;
+  airflow(g, g.player, "player", h);
+  tickDoors(g, g.player, h);
+  tickLockdown(g, h);
+  moveCrew(g, h);
+  life(g, g.player, "player", h);
+  finishIdleDeaths(g);
+  noteZoltanKits(g);
+  settleZoltanPower(g);
+  shieldRegen(g, g.player, "player", h);
+  tickIons(g.player, h);
+  syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
+  tickExtras(g, h);
+  swapZoltanCooldown(g);
+  meltCoats(g);
+}
+
 export function step(g: Game, dt: number) {
   promptExitLane(g);
   // Environmental Hazards: IN DANGER prevents opening the ship info screen.
@@ -6538,25 +6524,16 @@ export function step(g: Game, dt: number) {
     if (g.phase !== "combat" || !g.enemy) clearEnemyHackMarks(g);
     if (g.phase !== "combat") stopTargeting(g);
     // A single step never advances more than 0.05s, matching the combat body below.
-    // Boarders with no enemy hull (beginBoarding) use the crew fight. A fire on the map stays in tickIdleFires.
+    // Boarders with no enemy hull (beginBoarding) use the crew fight; otherwise playerShipTick runs the player's hull.
     if (idleShip(g)) {
       const h = Math.min(dt, 0.05);
       if (g.phase === "combat" && !g.enemy && enemyAboard(g)) tickBoarding(g, h);
       else {
-        // Oxygen, Overview, and Venting: refill, airlocks, breaches, suffocation, and open doors run with no fight on.
-        // Suffocation and the Lanius drain follow movement, as they do inside a fight.
-        airflow(g, g.player, "player", h);
-        tickIdleFires(g, h);
-        // A room order is taken on the map. Without this step the walker stays on the current room's center.
-        moveCrew(g, h);
-        // Medbay, "Overview": a powered Medbay heals out of a fight too.
-        for (const r of g.player.rooms) healMedbay(g, g.player, "player", r, h);
-        suffocateShip(g, g.player, "player", h);
-        tickLanius(g, h);
-        finishIdleDeaths(g);
-        // Backup Battery, Overview: the window can run out once the fight is over.
-        // INFERRED: those 30 seconds keep counting on the map. A fight still ticks the cell in tickExtras.
-        if (g.phase !== "combat") tickCell(g, h);
+        // Per the user: the ship behaves the same with or without a fight on. This is the combat body below with only
+        // the player's hull: air, doors, crew work (repairs, fires, the Medbay, suffocation), Zoltan power, shields,
+        // ion, and every fitted system (Clone Bay, Backup Battery, drones, Fire Suppression, sabotage). Only what
+        // needs an enemy ship (aiming and charging at it, boarders, its AI, surrender, escape) waits for a fight.
+        playerShipTick(g, h);
         // Environmental Hazards, Asteroid Field: the field stays after the enemy is gone, until the jump.
         if (g.phase !== "combat" && g.asteroid) tickLingeringAsteroids(g, h);
       }
@@ -6643,8 +6620,9 @@ export function step(g: Game, dt: number) {
   flushSfx(g.sfx);
 }
 
+/** Per the user: pause works wherever the ship's clock runs, not only in a fight (shipTicking's phases). */
 export function togglePause(g: Game) {
-  if (g.phase !== "combat") return;
+  if (!["combat", "map", "event", "store", "reward"].includes(g.phase)) return;
   g.paused = !g.paused;
 }
 

@@ -3965,21 +3965,35 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   }
 }
 
+/** Seconds the next shield layer takes, or null when none is charging (full, under 2 bars, or held by a hack). */
+function shieldNeed(g: Game, ship: Ship, aboard: "player" | "enemy"): number | null {
+  const cap = shieldCap(g, ship, aboard);
+  // @agent:hacking. Hacking, "Overview" (Shields): no recharge while an enemy pulse discharges them (extras/spike.ts).
+  if (!(ship.shieldNow < cap && mainBars(g, ship, aboard, "shields") >= 2 && !hackHoldsShields(g, ship))) return null;
+  const op = manningCrew(g, ship, aboard, "shields");
+  // Crew skills, Shields skill: recharge rate ×1.1 / ×1.2 / ×1.3. An undamaged auto-ship keeps the untrained ×1.1.
+  // "with fully trained crew, recharge time is divided by 1.3 -- so a 2 seconds recharge is reduced to 1.54 seconds."
+  const shields = ship.systems.shields;
+  const rate = ship.automated && shields.level > 0 && shields.damage === 0
+    ? SHIELD_RATE[0]
+    : op
+      ? SHIELD_RATE[rankOf(op, "shields")]
+      : 1;
+  return shieldLayerSeconds(ship.shieldNow + 1) / (rate * shieldBoost(g, aboard));
+}
+
+/** Per the user: the HUD's shield charge meter. 0 to 1 for the layer charging now, null when none is. */
+export function shieldChargeShown(g: Game): number | null {
+  const need = shieldNeed(g, g.player, "player");
+  if (need == null || need <= 0) return null;
+  return Math.max(0, Math.min(1, g.player.shieldCharge / need));
+}
+
 function shieldRegen(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const cap = shieldCap(g, ship, aboard);
   if (ship.shieldNow > cap) ship.shieldNow = cap;
-  // @agent:hacking. Hacking, "Overview" (Shields): no recharge while an enemy pulse discharges them (extras/spike.ts).
-  if (ship.shieldNow < cap && mainBars(g, ship, aboard, "shields") >= 2 && !hackHoldsShields(g, ship)) {
-    const op = manningCrew(g, ship, aboard, "shields");
-    // Crew skills, Shields skill: recharge rate ×1.1 / ×1.2 / ×1.3. An undamaged auto-ship keeps the untrained ×1.1.
-    // "with fully trained crew, recharge time is divided by 1.3 -- so a 2 seconds recharge is reduced to 1.54 seconds."
-    const shields = ship.systems.shields;
-    const rate = ship.automated && shields.level > 0 && shields.damage === 0
-      ? SHIELD_RATE[0]
-      : op
-        ? SHIELD_RATE[rankOf(op, "shields")]
-        : 1;
-    const need = shieldLayerSeconds(ship.shieldNow + 1) / (rate * shieldBoost(g, aboard));
+  const need = shieldNeed(g, ship, aboard);
+  if (need != null) {
     ship.shieldCharge += dt;
     if (ship.shieldCharge >= need) {
       ship.shieldCharge = 0;

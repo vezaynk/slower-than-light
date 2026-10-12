@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, unlockAudio } from "@/game/audio";
 import {
   SECTOR_NAMES,
@@ -79,6 +79,8 @@ import {
   powerDown,
   powerMask,
   powerUp,
+  REPAIR_SECONDS,
+  shieldChargeShown,
   kitPowerUp,
   kitBars,
   kitPowerDown,
@@ -109,7 +111,7 @@ import {
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { BeamLine, Crew, Game, KitId, Ship, SkillName, SysId } from "@/game/types";
+import type { BeamLine, Crew, Game, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
@@ -630,9 +632,16 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       }}
       onClick={(e) => {
         if (swallowHoldClick(e)) return;
+        const t = e.target as Element | null;
+        // Per the user: with crew selected, a tap that is not a crew order (on a weapon, a power bar, a button, empty
+        // space) drops the selection. Crew orders and picks stay: rooms, crew sprites, the crew list (with its
+        // save/return buttons), door bars on the hull, and the room radial menu. Bubble phase, so the click that ends
+        // a drag-select (the hull swallows it) does not undo that selection.
+        if (t && selectedIds(useGame.getState().game).length && !t.closest(".crew-rail, [data-room], .token, .door-tick, .radial-shade")) {
+          act((g) => selectCrewIds(g, []));
+        }
         // Per the user: with a weapon armed, a tap on the ship stage or the target panel that is not a room (rooms aim,
         // and aim clears an invalid one) clears that weapon's designated target. Buttons elsewhere (HUD, dock) do not.
-        const t = e.target as Element | null;
         if (!useGame.getState().game.targeting || !t) return;
         if (!t.closest(".stage-slot, .target-panel")) return;
         if (t.closest("[data-room], button, a, input")) return;
@@ -672,8 +681,13 @@ function Hud({ game }: { game: Game }) {
   const bubbles = game.player.shieldNow;
   const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles, 1);
   const spool = ftlSeconds(game, game.player);
-  const charging = game.phase === "combat" && game.flee < 1;
-  const ready = game.phase === "combat" && game.flee >= 1 && !game.picking;
+  // Per the user: the drive is not ready while Piloting is down or empty or the Engines are unpowered (sim jumpBlocked,
+  // the same check commitJump makes). The state then names the reason instead of CHARGING or READY.
+  const blocked = jumpBlocked(game);
+  const blockedWord = !blocked ? "" : blocked.startsWith("Nobody") ? "NO PILOT" : blocked.startsWith("Piloting") ? "PILOT DOWN" : "NO ENGINES";
+  const charging = !blocked && game.phase === "combat" && game.flee < 1;
+  const ready = !blocked && game.phase === "combat" && game.flee >= 1 && !game.picking;
+  const shieldFill = shieldChargeShown(game);
   // Environmental Hazards / Ship / Backup Battery: IN DANGER keeps the ship info screen closed.
   const infoLocked = shipInDanger(game);
   return (
@@ -697,6 +711,10 @@ function Hud({ game }: { game: Game }) {
             {Array.from({ length: cap }, (_, i) => (
               <i key={i} className={i < bubbles ? "on" : ""} />
             ))}
+          </span>
+          {/* Per the user: how far the next shield layer has charged, beside the count. Empty when none is charging. */}
+          <span className="shield-charge" role="meter" aria-label="Shield charge" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((shieldFill ?? 0) * 100)}>
+            <i style={{ width: `${Math.round((shieldFill ?? 0) * 100)}%` }} />
           </span>
           {game.player.zoltan != null ? (
             <span className="bubbles zoltan-pips" aria-label={`Zoltan Shield ${game.player.zoltan}`}>
@@ -722,7 +740,7 @@ function Hud({ game }: { game: Game }) {
       <div className="hud-right">
         <button
           type="button"
-          className={`ftl-drive${charging ? " is-charging" : " is-ready"}`}
+          className={`ftl-drive${blocked ? " is-blocked" : charging ? " is-charging" : " is-ready"}`}
           disabled={game.phase === "combat" && game.flee < 1}
           title={jumpBlocked(game) ?? (spool == null ? "FTL needs a pilot or engines." : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`)}
           onClick={() => {
@@ -744,14 +762,17 @@ function Hud({ game }: { game: Game }) {
             JUMP
           </span>
           <span className="ftl-meter">
-            <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : 1) * 100)}%` }} />
+            <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : blocked ? 0 : 1) * 100)}%` }} />
           </span>
           <em className="ftl-state">
             <span className={charging ? undefined : "is-reserve"} aria-hidden={charging ? undefined : true}>
               CHARGING
             </span>
-            <span className={charging ? "is-reserve" : undefined} aria-hidden={charging ? true : undefined}>
+            <span className={!blocked && !charging ? undefined : "is-reserve"} aria-hidden={!blocked && !charging ? undefined : true}>
               READY
+            </span>
+            <span className={blocked ? "ftl-blocked" : "is-reserve"} aria-hidden={blocked ? undefined : true}>
+              {blockedWord || "NO PILOT"}
             </span>
           </em>
         </button>
@@ -1511,9 +1532,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 }}
               >
                 <i className="sub-bars" aria-hidden="true">
-                  {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => (
-                    <b key={n} className={n < sys.level ? "on" : ""} />
-                  ))}
+                  {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
+                    const up = sys.level - sys.damage;
+                    const cls = n < up ? "on" : n === up && sys.damage > 0 ? "is-dmg is-fixing" : n < sys.level ? "is-dmg" : "";
+                    return <b key={n} className={cls} style={n === up && sys.damage > 0 ? fixStyle(sys.fix) : undefined} />;
+                  })}
                 </i>
                 <PixelIcon name={id} size={16} />
               </button>
@@ -1564,7 +1587,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 ) : (
                   <i className="sub-bars" aria-hidden="true">
                     {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-                      <b key={n} className={kitBarClass(game, id, kit.power, n)} />
+                      <KitBar key={n} game={game} id={id} kit={kit} n={n} />
                     ))}
                   </i>
                 )}
@@ -1789,13 +1812,16 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
                   : sys.ion.length > 0 && i >= ionStart
                     ? "is-ion"
                     : sys.damage > 0 && i >= dmgStart
-                      ? "is-dmg"
+                      ? i === dmgStart
+                        ? "is-dmg is-fixing"
+                        : "is-dmg"
                       : "";
           return (
             <button
               key={i}
               type="button"
               className={cls}
+              style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : undefined}
               aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
               aria-disabled={locked || undefined}
               onClick={() => {
@@ -1934,7 +1960,7 @@ function KitPowerButton({ game, id }: { game: Game; id: BarKit }) {
     >
       <i className="sub-bars" aria-hidden="true">
         {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
-          <b key={n} className={kitBarClass(game, id, kit.power, n)} />
+          <KitBar key={n} game={game} id={id} kit={kit} n={n} />
         ))}
       </i>
     </button>
@@ -1952,12 +1978,13 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
       <div className="power-col" {...drag}>
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
-          const cls = i < kit.power ? kitBarClass(game, id, kit.power, i) : i >= cap ? "is-dmg" : "";
+          const cls = i < kit.power ? kitBarClass(game, id, kit.power, i) : i === cap && kit.damage ? "is-dmg is-fixing" : i >= cap ? "is-dmg" : "";
           return (
             <button
               key={i}
               type="button"
               className={cls}
+              style={i === cap && kit.damage ? fixStyle(kit.fix) : undefined}
               aria-label={`${KIT_LABEL[id]} power ${i + 1}`}
               onClick={() => {
                 if (i >= cap) return;
@@ -3282,6 +3309,22 @@ function CargoList({
 }
 
 /** "Less" and "More" are INVENTED aria labels. */
+/**
+ * Per the user: the bar being repaired fills yellow left to right over the red damaged bar (sim REPAIR_SECONDS per bar;
+ * one bar is fixed at a time, the lowest damaged one).
+ */
+function fixStyle(fix: number | undefined): CSSProperties {
+  return { ["--fix" as string]: `${Math.round(Math.max(0, Math.min(1, (fix ?? 0) / REPAIR_SECONDS)) * 100)}%` };
+}
+
+/** A dock subsystem bar: powered, damaged (red), or the one being repaired (fixStyle). */
+function KitBar({ game, id, kit, n }: { game: Game; id: KitId; kit: Kit; n: number }) {
+  const up = Math.max(0, kit.level - (kit.damage ?? 0));
+  if (n < kit.power && n < up) return <b className={kitBarClass(game, id, kit.power, n)} />;
+  if ((kit.damage ?? 0) > 0 && n === up) return <b className="is-dmg is-fixing" style={fixStyle(kit.fix)} />;
+  return <b className={n >= up && n < kit.level ? "is-dmg" : ""} />;
+}
+
 function kitBarClass(game: Game, id: string, power: number, n: number): string {
   if (n >= power) return "";
   const painted = batteryBarsOn(game.player, id);

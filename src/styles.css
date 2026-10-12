@@ -5151,3 +5151,28 @@ button.modal-x.modal-x:focus-visible {
 }
 .radial-power .radial-act:disabled { opacity: 0.45; cursor: default; }
 .radial-power .radial-act svg { flex: none; }
+
+/* Per the user: the next shield layer's charge, beside the shield count (Hud). INVENTED size and colours. */
+.shield-charge {
+  display: inline-block;
+  width: 28px;
+  height: 6px;
+  align-self: center;
+  border: 1px solid #1d3a55;
+  background: #071018;
+}
+.shield-charge i { display: block; height: 100%; background: #6cc4ff; }
+
+/* Per the user: the FTL drive names why it cannot jump (no pilot, Piloting down, no engines). */
+.ftl-drive .ftl-state .ftl-blocked { color: var(--color-danger); }
+.ftl-drive.is-blocked .ftl-jump { opacity: 0.45; }
+
+/* Per the user: a damaged bar being repaired fills yellow left to right (GameApp fixStyle sets --fix). */
+.power-col button.is-dmg.is-fixing,
+.sub-bars b.is-dmg.is-fixing {
+  background: linear-gradient(to right, #f2c94c var(--fix, 0%), var(--color-danger) var(--fix, 0%));
+}
+.sub-bars b.is-dmg {
+  background: var(--color-danger);
+  border-color: #ff8a7a;
+}

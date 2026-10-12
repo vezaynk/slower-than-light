@@ -8,6 +8,8 @@
  * does not leave the screen short or scrolled under the URL bar.
  */
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useSettings } from "@/game/settings";
+import { canForceLandscape, installedApp, pageTurn, setPageTurn, type PageTurn } from "./turn";
 
 export const SCREEN_W = 1280;
 export const SCREEN_H = 720;
@@ -40,14 +42,6 @@ export function useScreenView() {
   return useContext(ScreenContext);
 }
 
-function installedApp() {
-  const nav = navigator as Navigator & { standalone?: boolean };
-  return !!(
-    nav.standalone ||
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches
-  );
-}
 
 function deviceSize(rawW: number, rawH: number) {
   // An iframe must stay inside the preview. A home-screen app can draw under the status bar.
@@ -67,6 +61,37 @@ function readPx(name: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Per the user (forced landscape): the phone's physical angle. 90 means its top (camera) is on the left, 270 on the
+ * right. screen.orientation.angle where there is one, else iOS's window.orientation (-90 is 270).
+ */
+function deviceAngle(): number {
+  const so = typeof screen !== "undefined" ? screen.orientation : undefined;
+  const legacy = (window as Window & { orientation?: number }).orientation;
+  const raw = typeof legacy === "number" ? legacy : (so?.angle ?? 0);
+  return ((raw % 360) + 360) % 360;
+}
+
+
+/** The CSS turn that shows the page in the chosen landscape, given how the phone is held now. */
+function wantedTurn(rotate: "off" | "left" | "right"): PageTurn {
+  if (rotate === "off" || !canForceLandscape()) return 0;
+  const target = rotate === "left" ? 90 : 270;
+  const turn = (((target - deviceAngle()) % 360) + 360) % 360;
+  return (turn === 90 || turn === 180 || turn === 270 ? turn : 0) as PageTurn;
+}
+
+/** Puts the body in the turn (styles.css .page-turn-*), with the physical size it is laid across. */
+function applyTurn(turn: PageTurn) {
+  setPageTurn(turn);
+  const body = document.body;
+  body.classList.toggle("page-turn-90", turn === 90);
+  body.classList.toggle("page-turn-180", turn === 180);
+  body.classList.toggle("page-turn-270", turn === 270);
+  body.style.setProperty("--phys-w", `${window.innerWidth}px`);
+  body.style.setProperty("--phys-h", `${window.innerHeight}px`);
+}
+
 function measure(box: { w: number; h: number } | null): ScreenView & { top: number; left: number } {
   const vv = window.visualViewport;
   const innerW = window.innerWidth;
@@ -84,13 +109,25 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
     Math.abs(offsetLeft) > 0.5 ||
     Math.abs(vvW - innerW) > 1 ||
     Math.abs(vvH - innerH) > 1;
-  const sat = readPx("--sat");
-  const sab = readPx("--sab");
-  const sal = readPx("--sal");
-  const sar = readPx("--sar");
+  // Safe-area insets are physical; under a forced-landscape turn (turn.ts) each lands on a different page side.
+  const turn = pageTurn();
+  const phys = { t: readPx("--sat"), b: readPx("--sab"), l: readPx("--sal"), r: readPx("--sar") };
+  const sides =
+    turn === 90
+      ? { t: phys.r, b: phys.l, l: phys.t, r: phys.b }
+      : turn === 270
+        ? { t: phys.l, b: phys.r, l: phys.b, r: phys.t }
+        : turn === 180
+          ? { t: phys.b, b: phys.t, l: phys.r, r: phys.l }
+          : phys;
+  const sat = sides.t;
+  const sab = sides.b;
+  const sal = sides.l;
+  const sar = sides.r;
+  const quarter = turn === 90 || turn === 270;
   if (!pin) {
-    const w = box && box.w > 0 ? box.w : innerW;
-    const h = box && box.h > 0 ? box.h : innerH;
+    const w = quarter ? innerH : box && box.w > 0 ? box.w : innerW;
+    const h = quarter ? innerW : box && box.h > 0 ? box.h : innerH;
     return {
       top: 0,
       left: 0,
@@ -102,12 +139,13 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
       pin: false,
     };
   }
-  const sized = deviceSize(vvW, vvH);
+  const physSized = deviceSize(vvW, vvH);
+  const sized = quarter ? { rawW: physSized.rawH, rawH: physSized.rawW } : physSized;
   const w = Math.max(1, sized.rawW - sal - sar);
   const h = Math.max(1, sized.rawH - sat - sab);
   return {
-    top: offsetTop + sat,
-    left: offsetLeft + sal,
+    top: (quarter ? 0 : offsetTop) + sat,
+    left: (quarter ? 0 : offsetLeft) + sal,
     w,
     h,
     width: screenWidth(w, h),
@@ -120,9 +158,13 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
 export function Screen({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<ReturnType<typeof measure> | null>(null);
+  const rotate = useSettings((s) => s.rotate);
 
   useBrowserLayoutEffect(() => {
     const update = () => {
+      // Forced landscape: Android's installed app takes a real orientation lock (the OS rotates, and the turn below
+      // comes out 0); iOS has none, so the page turns by CSS. Off restores everything.
+      applyTurn(wantedTurn(useSettings.getState().rotate));
       const el = ref.current;
       const rect = el?.getBoundingClientRect();
       const box = rect && rect.width > 0 && rect.height > 0 ? { w: rect.width, h: rect.height } : null;
@@ -147,6 +189,8 @@ export function Screen({ children }: { children: ReactNode }) {
     if (observed) obs.observe(observed);
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
+    const orient = typeof screen !== "undefined" ? screen.orientation : undefined;
+    orient?.addEventListener?.("change", update);
     window.visualViewport?.addEventListener("resize", update);
     window.visualViewport?.addEventListener("scroll", update);
     const editable = (target: EventTarget | null) =>
@@ -173,6 +217,7 @@ export function Screen({ children }: { children: ReactNode }) {
       obs.disconnect();
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
+      orient?.removeEventListener?.("change", update);
       window.visualViewport?.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("scroll", update);
       document.removeEventListener("selectstart", blockSelect);
@@ -182,6 +227,22 @@ export function Screen({ children }: { children: ReactNode }) {
       document.removeEventListener("touchmove", blockMultiTouch);
     };
   }, []);
+
+  useEffect(() => {
+    const orient = (typeof screen !== "undefined" ? screen.orientation : undefined) as
+      | (ScreenOrientation & { lock?: (type: string) => Promise<void>; unlock?: () => void })
+      | undefined;
+    if (rotate !== "off" && canForceLandscape() && orient?.lock) {
+      orient.lock(rotate === "left" ? "landscape-primary" : "landscape-secondary").catch(() => undefined);
+    } else if (rotate === "off") {
+      try {
+        orient?.unlock?.();
+      } catch {
+        /* nothing locked */
+      }
+    }
+    window.dispatchEvent(new Event("resize"));
+  }, [rotate]);
 
   const fit = view?.fit ?? 1;
   // The scale is an inline transform. A custom property used only inside scale()

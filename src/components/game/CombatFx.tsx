@@ -19,6 +19,7 @@ import { enemyHackView, playerHackView } from "@/game/extras/spike";
 import { surgeDroneView } from "@/game/wiki/flagship-systems";
 import { useGame } from "@/game/store";
 import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
+import { pageRect } from "./turn";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
@@ -243,7 +244,7 @@ export function CombatFx() {
       const g = useGame.getState().game;
 
       // Logical screen size and the scale the Screen wrapper applies.
-      const base = host.getBoundingClientRect();
+      const base = pageRect(host);
       const w = host.offsetWidth;
       const h = host.offsetHeight;
       if (!w || !h) return;
@@ -265,7 +266,7 @@ export function CombatFx() {
 
       const box = (el: Element | null): Box | null => {
         if (!el) return null;
-        const r = el.getBoundingClientRect();
+        const r = pageRect(el);
         return { x: (r.left - base.left) / scale, y: (r.top - base.top) / scale, w: r.width / scale, h: r.height / scale };
       };
       const hull = (side: "player" | "enemy") => box(host.querySelector(`.hull[data-ship="${side}"]`));

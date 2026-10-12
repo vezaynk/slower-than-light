@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import type { Crew } from "@/game/types";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import type { RadialDoor, Side } from "./room-doors";
+import { pageSize } from "./turn";
 
 /** INVENTED: spread angles that would overlap so every button stays tappable, keeping their order around the ring. */
 function spread(angles: number[], gap: number): number[] {
@@ -90,8 +91,9 @@ export function RoomRadial({
   const angles = spread(raw, 2 * Math.asin(Math.min(1, (DOOR_PX + 6) / 2 / radius)));
   // Keep the whole ring on screen.
   const reach = radius + DOOR_PX / 2 + 4;
-  const vw = typeof window === "undefined" ? 0 : window.innerWidth;
-  const vh = typeof window === "undefined" ? 0 : window.innerHeight;
+  const page = typeof window === "undefined" ? { w: 0, h: 0 } : pageSize();
+  const vw = page.w;
+  const vh = page.h;
   const cx = vw ? Math.min(Math.max(at.x, reach), Math.max(reach, vw - reach)) : at.x;
   const cy = vh ? Math.min(Math.max(at.y, reach), Math.max(reach, vh - reach)) : at.y;
   // The power panel goes on whichever side of the ring has more room.

@@ -6,6 +6,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
 import type { Ship } from "@/game/types";
+import { pageRect } from "./turn";
 
 /** True while the enemy ship's break-up tiles are still in the air. */
 let enemyWreck = false;
@@ -128,7 +129,7 @@ export function ShadeFx() {
       last = now;
       const g = useGame.getState().game;
 
-      const base = host.getBoundingClientRect();
+      const base = pageRect(host);
       const w = host.offsetWidth;
       const h = host.offsetHeight;
       if (!w || !h) return;
@@ -147,7 +148,7 @@ export function ShadeFx() {
 
       const measure = (el: Element | null): Box | null => {
         if (!el) return null;
-        const r = el.getBoundingClientRect();
+        const r = pageRect(el);
         if (r.width < 1 || r.height < 1) return null;
         return { x: (r.left - base.left) / scale, y: (r.top - base.top) / scale, w: r.width / scale, h: r.height / scale };
       };
@@ -163,7 +164,7 @@ export function ShadeFx() {
         if (!live || !hull) return;
         cache[side] = live;
         const bits: Piece[] = [];
-        const add = (r: DOMRect, color: string) => {
+        const add = (r: { left: number; top: number; width: number; height: number }, color: string) => {
           if (r.width < 1 || r.height < 1) return;
           bits.push({
             x: (r.left - base.left) / scale,
@@ -174,11 +175,11 @@ export function ShadeFx() {
           });
         };
         for (const rect of hull.querySelectorAll(".hull-plate rect")) {
-          add(rect.getBoundingClientRect(), rect.getAttribute("fill") || "#6a7078");
+          add(pageRect(rect), rect.getAttribute("fill") || "#6a7078");
         }
         for (const room of hull.querySelectorAll(".room, .pixel-fill")) {
           const color = paintOf(room);
-          if (color) add(room.getBoundingClientRect(), color);
+          if (color) add(pageRect(room), color);
         }
         if (bits.length) plates[side] = bits;
       };

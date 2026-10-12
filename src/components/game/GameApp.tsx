@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as Rea
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
 import { OptionsPanel } from "./OptionsPanel";
+import { pageRect, toPage } from "./turn";
 import {
   SECTOR_NAMES,
   SYS_LABEL,
@@ -567,7 +568,7 @@ function InGameOptions() {
         g.menuHold = false;
       });
   }, []);
-  return <OptionsPanel onClose={() => useOptionsOpen.setState({ open: false })} />;
+  return <OptionsPanel inGame onClose={() => useOptionsOpen.setState({ open: false })} />;
 }
 
 const MAIN_BARS: SysId[] = ["shields", "engines", "medbay", "oxygen", "weapons"];
@@ -2133,7 +2134,7 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
   const ref = useRef<{ y: number; moving: boolean; last: number } | null>(null);
   const level = (el: HTMLElement, y: number) => {
     // A dock subsystem button draws its bars above itself (.sub-bars); measure those.
-    const box = (el.querySelector(".sub-bars") ?? el).getBoundingClientRect();
+    const box = pageRect(el.querySelector(".sub-bars") ?? el);
     if (slots <= 0 || box.height <= 0) return 0;
     const n = Math.ceil((box.bottom - y) / (box.height / slots));
     return Math.max(0, Math.min(cap, n));
@@ -2143,13 +2144,13 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
       // A touch drag ends without a click; a new press means the swallow from the last drag is stale.
       swallowNextClick.current = false;
       if (e.button !== 0) return;
-      ref.current = { y: e.clientY, moving: false, last: -1 };
+      ref.current = { y: toPage(e.clientX, e.clientY).y, moving: false, last: -1 };
     },
     onPointerMove: (e: ReactPointerEvent<HTMLElement>) => {
       const d = ref.current;
       if (!d) return;
       if (!d.moving) {
-        if (Math.abs(e.clientY - d.y) < 4) return;
+        if (Math.abs(toPage(e.clientX, e.clientY).y - d.y) < 4) return;
         d.moving = true;
         try {
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -2157,7 +2158,7 @@ function usePowerDrag(apply: (g: Game, n: number) => void, slots: number, cap: n
           // The pointer may already be up.
         }
       }
-      const n = level(e.currentTarget, e.clientY);
+      const n = level(e.currentTarget, toPage(e.clientX, e.clientY).y);
       if (n === d.last) return;
       d.last = n;
       act((g) => apply(g, n));

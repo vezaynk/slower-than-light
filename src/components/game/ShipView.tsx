@@ -15,6 +15,7 @@ import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
 import { RoomRadial } from "./RoomRadial";
 import { roomDoors } from "./room-doors";
+import { pageRect, toPage } from "./turn";
 import { airShown } from "@/game/air";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
@@ -411,11 +412,14 @@ export function ShipView({
     return () => {
       const el = hullRef.current?.querySelector(`[data-room="${CSS.escape(roomId)}"]`);
       if (!el) return;
-      const box = el.getBoundingClientRect();
+      // Page coordinates: the menu is drawn in the page, which a forced landscape may rotate (turn.ts). Door angles
+      // turn only by rotation inside the page (the body's own turn rotates the menu with it).
+      const box = pageRect(el);
       radialPicks.current = 0;
       setDragBox(null);
       dragRef.current = null;
-      setRadial({ room: roomId, at: { x: box.left + box.width / 2, y: box.top + box.height / 2 }, turn: ancestorTurn(el as HTMLElement) });
+      const inner = (((ancestorTurn(el as HTMLElement) - ancestorTurn(document.body)) % 360) + 360) % 360;
+      setRadial({ room: roomId, at: { x: box.left + box.width / 2, y: box.top + box.height / 2 }, turn: inner as QuarterTurn });
     };
   };
   const radialRoom = radial ? ship.rooms.find((r) => r.id === radial.room) : undefined;
@@ -930,10 +934,12 @@ function dragRect(
 }
 
 function frac(el: HTMLElement, clientX: number, clientY: number): { x: number; y: number } {
-  const rect = el.getBoundingClientRect();
+  // Page coordinates, so a forced landscape rotation (turn.ts) maps the pointer onto the room the right way round.
+  const rect = pageRect(el);
+  const p = toPage(clientX, clientY);
   return {
-    x: rect.width > 0 ? (clientX - rect.left) / rect.width : 0.5,
-    y: rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5,
+    x: rect.width > 0 ? (p.x - rect.left) / rect.width : 0.5,
+    y: rect.height > 0 ? (p.y - rect.top) / rect.height : 0.5,
   };
 }
 
@@ -946,7 +952,8 @@ function pointOnHull(hull: HTMLElement, ship: Ship, clientX: number, clientY: nu
       return pointInRoom(room, f.x, f.y);
     }
   }
-  const rect = hull.getBoundingClientRect();
+  const rect = pageRect(hull);
+  const p = toPage(clientX, clientY);
   const cs = getComputedStyle(hull);
   const tile = parseFloat(cs.getPropertyValue("--tile")) || 0;
   const gap = parseFloat(cs.columnGap) || 0;
@@ -954,8 +961,8 @@ function pointOnHull(hull: HTMLElement, ship: Ship, clientX: number, clientY: nu
   const padY = parseFloat(cs.paddingTop) || 0;
   if (!(tile > 0)) return null;
   const pitch = tile + gap;
-  const localX = clientX - rect.left - padX;
-  const localY = clientY - rect.top - padY;
+  const localX = p.x - rect.left - padX;
+  const localY = p.y - rect.top - padY;
   const cx = Math.floor(localX / pitch);
   const cy = Math.floor(localY / pitch);
   if (cx < 0 || cy < 0 || cx >= ship.cols || cy >= ship.rows) return null;

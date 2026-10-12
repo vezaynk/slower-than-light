@@ -14,13 +14,18 @@ export type Settings = {
   muted: boolean;
   /** 0 to 1. */
   volume: number;
+  /**
+   * Per the user: force landscape in an installed phone app, with the phone's top (camera) on this side. Off
+   * elsewhere (Screen.tsx applies it only to an installed app on a touch screen).
+   */
+  rotate: "off" | "left" | "right";
 };
 
 const KEY = "stl-settings-v1";
 
 function defaults(): Settings {
   const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1 };
+  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off" };
 }
 
 function load(): Settings {
@@ -36,6 +41,7 @@ function load(): Settings {
       roomAir: typeof saved.roomAir === "boolean" ? saved.roomAir : base.roomAir,
       muted: typeof saved.muted === "boolean" ? saved.muted : base.muted,
       volume: typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,
+      rotate: saved.rotate === "left" || saved.rotate === "right" ? saved.rotate : "off",
     };
   } catch {
     return base;

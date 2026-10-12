@@ -5513,3 +5513,62 @@ button.cargo-slot:hover { border-color: var(--color-line); }
 /* Options, Graphics: walk targets and room oxygen bars off. */
 .deck.no-ghosts .crew-ghost { display: none; }
 .deck.no-room-air .room .o2 { display: none; }
+
+/* Per the user: forced landscape. When the OS cannot lock the orientation (iOS), the whole page turns (Screen.tsx sets
+   the class and the physical size; turn.ts maps pointer positions back). Body, so portals (the room menu) turn too. */
+body.page-turn-90,
+body.page-turn-270 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--phys-h);
+  height: var(--phys-w);
+  /* The base body rule's min-height: 100dvh is the physical height; the turned body is laid across it. */
+  min-height: 0;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+body.page-turn-90 { transform: rotate(90deg) translateY(-100%); }
+body.page-turn-270 { transform: rotate(-90deg) translateX(-100%); }
+body.page-turn-180 {
+  position: fixed;
+  inset: 0;
+  min-height: 0;
+  overflow: hidden;
+  transform: rotate(180deg);
+}
+
+/* Options: the landscape choice and the in-game Exit tab. */
+.opt-choice { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.opt-choice button {
+  min-height: 38px;
+  padding: 2px 12px;
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+  background: transparent;
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+}
+.opt-choice button[aria-pressed="true"] { color: var(--color-ink); background: var(--color-ok); border-color: #b6ff6a; }
+.opt-choice button:disabled { opacity: 0.45; cursor: default; }
+
+.opt-exit { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.opt-exit button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 16px;
+  text-align: left;
+  color: var(--color-fg);
+  background: #14110e;
+  border: 2px solid var(--color-line-dim);
+  border-radius: var(--radius);
+}
+.opt-exit button:hover { border-color: var(--color-line); }
+.opt-exit button b { font-family: var(--font-hud); font-size: 24px; font-weight: 400; letter-spacing: 0.06em; }
+.opt-exit button .mini { font-size: 13px; }
+.opt-exit button.is-primary { border-color: var(--color-ok); }
+.opt-exit button.is-primary b { color: var(--color-ok); }

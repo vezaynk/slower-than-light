@@ -4,15 +4,32 @@
  * INVENTED layout, on the ship sheet's tab styles.
  */
 import { useEffect, useState } from "react";
-import { setSetting, useSettings, type Settings } from "@/game/settings";
+import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/settings";
+import { saveGame } from "@/game/sim";
+import { useGame } from "@/game/store";
+import { canForceLandscape } from "./turn";
 import { CloseX } from "./CloseX";
 
-type Tab = "graphics" | "sound" | "keys";
+type Tab = "exit" | "graphics" | "sound" | "keys";
 const TABS: [Tab, string][] = [
   ["graphics", "Graphics"],
   ["sound", "Sound"],
   ["keys", "Keyboard"],
 ];
+/** Per the user: opened from a run, an Exit tab comes first (and opens first). */
+const GAME_TABS: [Tab, string][] = [["exit", "Exit"], ...TABS];
+
+/** Leave the run for the title or the hangar. The run is saved first, so CONTINUE picks it up. */
+function leaveRun(boot: "title" | "hangar") {
+  // The panel closes with the run, or CONTINUE would bring it straight back.
+  useOptionsOpen.setState({ open: false });
+  const store = useGame.getState();
+  store.act((g) => {
+    g.menuHold = false;
+  });
+  saveGame(store.game);
+  store.toTitle(boot);
+}
 
 /** Mirrors GameApp onKey (and the room menu's Esc, the ship sheet's arrows). Keep the two in step. */
 const KEYS: [string, [string, string][]][] = [
@@ -77,8 +94,10 @@ function Toggle({ label, note, value, onChange }: { label: string; note: string;
   );
 }
 
-export function OptionsPanel({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<Tab>("graphics");
+export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void; inGame?: boolean }) {
+  const tabs = inGame ? GAME_TABS : TABS;
+  const [tab, setTab] = useState<Tab>(inGame ? "exit" : "graphics");
+  const landscapeOk = canForceLandscape();
   const s = useSettings();
   const set = <K extends keyof Settings>(key: K) => (value: Settings[K]) => setSetting(key, value);
   useEffect(() => {
@@ -102,7 +121,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           onKeyDown={(e) => {
             if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
             e.preventDefault();
-            const ids = TABS.map(([id]) => id);
+            const ids = tabs.map(([id]) => id);
             const focused = ids.indexOf((e.target as HTMLElement).id.replace("opt-tab-", "") as Tab);
             const at = focused >= 0 ? focused : ids.indexOf(tab);
             const next = ids[(at + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]!;
@@ -110,7 +129,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             requestAnimationFrame(() => document.getElementById(`opt-tab-${next}`)?.focus());
           }}
         >
-          {TABS.map(([id, label]) => (
+          {tabs.map(([id, label]) => (
             <button
               key={id}
               id={`opt-tab-${id}`}
@@ -127,6 +146,22 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <div className="ship-tab-panel options-panel" id="opt-tab-panel" role="tabpanel" aria-labelledby={`opt-tab-${tab}`}>
+          {tab === "exit" ? (
+            <div className="opt-exit">
+              <button type="button" className="is-primary" onClick={onClose}>
+                <b>Resume</b>
+                <span className="mini">Back to the game.</span>
+              </button>
+              <button type="button" onClick={() => leaveRun("title")}>
+                <b>Save and exit</b>
+                <span className="mini">Save this run and go to the title screen. CONTINUE picks it up.</span>
+              </button>
+              <button type="button" onClick={() => leaveRun("hangar")}>
+                <b>Return to hangar</b>
+                <span className="mini">Save this run and pick a ship for a new one. Starting a new run replaces the save.</span>
+              </button>
+            </div>
+          ) : null}
           {tab === "graphics" ? (
             <div className="opt-list">
               <Toggle label="Screen shake" note="The ship view shakes when it is hit." value={s.shake} onChange={set("shake")} />
@@ -137,6 +172,35 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
                 onChange={set("ghosts")}
               />
               <Toggle label="Room oxygen bars" note="The oxygen level along each room's floor." value={s.roomAir} onChange={set("roomAir")} />
+              <div className="opt-row">
+                <span className="opt-text">
+                  <b>Lock to landscape</b>
+                  <span className="mini">
+                    {landscapeOk
+                      ? "Keep the game sideways however the phone is held, with the phone's top on this side."
+                      : "Only in the installed app on a phone (INSTALL APP on the title screen)."}
+                  </span>
+                </span>
+                <span className="opt-choice" role="group" aria-label="Lock to landscape">
+                  {(
+                    [
+                      ["off", "Off"],
+                      ["left", "Top on the left"],
+                      ["right", "Top on the right"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={s.rotate === value}
+                      disabled={!landscapeOk && value !== "off"}
+                      onClick={() => setSetting("rotate", value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </span>
+              </div>
             </div>
           ) : null}
           {tab === "sound" ? (

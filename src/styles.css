@@ -5888,6 +5888,22 @@ body.page-turn-180 {
 .store-row .zoltan-pips { margin-left: 4px; }
 .dock-label .count-chip.is-empty { color: #ff4b4b; }
 
+/* Per the user: WEAPONS / DRONES tabs switch the dock tray. The tray keeps the weapon slot size so nothing jumps. */
+.dock-tabs { justify-content: flex-start; gap: 22px; }
+.dock-tab {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 0 3px;
+  font-family: inherit;
+  opacity: 0.45;
+}
+.dock-tab.is-on { opacity: 1; border-bottom-color: var(--color-line); }
+.dock-tab:hover { opacity: 0.8; }
+.dock-tab.is-on:hover { opacity: 1; }
+.drone-tray.is-tabbed { margin-top: 0; }
+.drone-tray.is-tabbed .gun-slot { width: 150px; height: 90px; }
+
 /* Per the user: the bar about to break fills red left to right with the sabotage progress (GameApp hurtStyle). */
 .power-col button.is-hurting,
 .sub-bars b.is-hurting {

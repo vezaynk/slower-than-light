@@ -1447,6 +1447,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   );
   const swarm = game.player.kits.swarm;
   const droneSlots = playerDroneSlots(swarm);
+  // Per the user: with Drone Control installed, WEAPONS and DRONES are tabs that switch the one tray shown.
+  const [tab, setTab] = useState<"weapons" | "drones">("weapons");
+  const shown = swarm ? tab : "weapons";
   // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
   const hackedKit = hackedPlayerKit(game);
   return (
@@ -1467,7 +1470,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         ))}
       </div>
       <div className="weapon-dock">
-        <div className="gun-tray">
+        {shown === "weapons" ? (
+        <div className="gun-tray" role={swarm ? "tabpanel" : undefined}>
           {game.player.weapons.map((w, index) => {
             const def = WEAPONS[w.defId];
             const live = w.enabled && mask[index];
@@ -1555,8 +1559,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             <span className="autofire-state">{game.autofireAll ? tx("ui.GameApp.on") : tx("ui.GameApp.off")}</span>
           </button>
         </div>
-        {droneSlots.length > 0 ? (
-          <div className="gun-tray drone-tray">
+        ) : null}
+        {shown === "drones" ? (
+          <div className="gun-tray drone-tray is-tabbed" role="tabpanel">
             {droneSlots.map((kind, index) => {
               const key = droneKeyOf(kind);
               const name = key ? DRONE_LOOKS[key].name : kind;
@@ -1606,21 +1611,37 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES (beside WEAPONS when there is no Drone
             Control, since hacking spends them too). */}
         {swarm ? (
-          <span className="dock-label dock-drones">
-            {tx("ui.GameApp.drones")}
-            <PartsChip game={game} />
-          </span>
-        ) : null}
-        <div className="dock-caption">
-          <span className="dock-label">
-            {tx("ui.GameApp.weapons")}
-            <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title={tx("ui.GameApp.missiles")}>
-              <PixelIcon name="missile" />
-              {game.missiles}
+          <div className="dock-caption dock-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={shown === "weapons"}
+              className={`dock-label dock-tab${shown === "weapons" ? " is-on" : ""}`}
+              onClick={() => setTab("weapons")}
+            >
+              {tx("ui.GameApp.weapons")}
+              <MissileChip game={game} />
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={shown === "drones"}
+              className={`dock-label dock-tab${shown === "drones" ? " is-on" : ""}`}
+              onClick={() => setTab("drones")}
+            >
+              {tx("ui.GameApp.drones")}
+              <PartsChip game={game} />
+            </button>
+          </div>
+        ) : (
+          <div className="dock-caption">
+            <span className="dock-label">
+              {tx("ui.GameApp.weapons")}
+              <MissileChip game={game} />
+              <PartsChip game={game} />
             </span>
-            {swarm ? null : <PartsChip game={game} />}
-          </span>
-        </div>
+          </div>
+        )}
       </div>
       <div className="sub-dock">
         <div className="sub-row">
@@ -2641,6 +2662,15 @@ function LootChips({ scrap, res }: { scrap: number; res: { fuel?: number; missil
           </p>
         ))}
     </div>
+  );
+}
+
+function MissileChip({ game }: { game: Game }) {
+  return (
+    <span className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`} aria-label={`${game.missiles} missiles`} title={tx("ui.GameApp.missiles")}>
+      <PixelIcon name="missile" />
+      {game.missiles}
+    </span>
   );
 }
 

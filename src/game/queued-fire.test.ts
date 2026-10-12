@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { aim, armWeapon, cancelTargeting, createGame, startCombat, step, toggleAutoAll } from "./sim.ts";
+import { aim, armWeapon, cancelTargeting, createGame, fireReady, startCombat, step, toggleAutoAll } from "./sim.ts";
 import type { Game } from "./types.ts";
 
 function fight(): Game {
@@ -45,6 +45,25 @@ describe("queued fire", () => {
     chargeUp(g, w.uid);
     assert.ok(g.shots.some((s) => s.from === "player"));
     assert.equal(w.target, g.enemy!.rooms[0].id);
+  });
+
+  it("holds a charged gun aimed during a pause until the pause ends (per the user)", () => {
+    const g = fight();
+    const w = g.player.weapons[0];
+    w.charge = 1;
+    g.paused = true;
+    armWeapon(g, w.uid);
+    aim(g, g.enemy!.rooms[0].id);
+    fireReady(g);
+    step(g, 0.05);
+    const fired = () => g.shots.filter((s) => s.from === "player").length;
+    assert.equal(fired(), 0);
+    assert.equal(w.target, g.enemy!.rooms[0].id);
+    assert.equal(w.charge, 1);
+    g.paused = false;
+    step(g, 0.05);
+    // The whole volley goes out on the first tick (a Burst Laser is several projectiles).
+    assert.ok(fired() > 0);
   });
 
   it("drops a queued room when targeting is cancelled", () => {

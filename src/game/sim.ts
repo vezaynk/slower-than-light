@@ -1894,9 +1894,10 @@ export function aim(g: Game, roomId: string, point?: BeamPoint) {
   const title = (enemyRoom ?? ownRoom)?.title ?? "room";
   // Weapon Control, Overview: a hack pulse cannot fire, even with stored charger shots.
   // Ion does not block a slot that still has power.
-  if (!hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
+  // Per the user: aimed during a pause, a ready gun waits and fires on the first tick after the pause (chargeSide).
+  if (!g.paused && !hackHoldsWeapons(g, "player") && mask[index] && weaponReady(w)) launch(g, "player", w);
   else {
-    log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}.`);
+    log(g, `${WEAPONS[w.defId]?.name ?? "Gun"} aimed at ${title}${g.paused ? "; fires on unpause" : ""}.`);
     sfx(g, "click");
   }
   // INFERRED: confirming the room leaves targeting mode. The overview does not say the cursor stays.
@@ -1928,9 +1929,10 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
   w.target = rooms[0] ?? roomId;
   g.beamAnchor = null;
   const titles = (rooms.length > 0 ? rooms : [w.target]).map((id) => roomById(enemy, id)?.title ?? "room");
-  if (powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
+  // Per the user: a beam aimed during a pause fires on the first tick after it (chargeSide).
+  if (!g.paused && powered && w.charge >= 1 && !hackHoldsWeapons(g, "player")) launch(g, "player", w);
   else {
-    log(g, `${name} aimed across ${titles.join(", ")}.`);
+    log(g, `${name} aimed across ${titles.join(", ")}${g.paused ? "; fires on unpause" : ""}.`);
     sfx(g, "click");
   }
   g.targeting = false;
@@ -2001,6 +2003,11 @@ export function toggleAutoAll(g: Game) {
 export function fireReady(g: Game) {
   if (hackHoldsWeapons(g, "player")) {
     log(g, "Weapon Control is hacked.");
+    return;
+  }
+  // Per the user: nothing fires during a pause. Aimed, charged guns go on the first tick after it (chargeSide).
+  if (g.paused) {
+    log(g, "Aimed weapons fire on unpause.");
     return;
   }
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));

@@ -97,6 +97,10 @@ describe("cited zoltan next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Zoltan odd moon", "Refugee (Zoltan)", "Refugee distress (Zoltan)"]);

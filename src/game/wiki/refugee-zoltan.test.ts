@@ -26,6 +26,8 @@ function resources(body: string): number {
 
 describe("Refugee (Zoltan)", () => {
   it("is a Zoltan sector card with hail and ignore", () => {
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
     const pages = citedPagesFor("Zoltan Controlled Sector").filter((p) => p.dest === "Refugee (Zoltan)");
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Zoltan Controlled Sector", "Zoltan Homeworlds"]);

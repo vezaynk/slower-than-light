@@ -62,12 +62,19 @@ function fitBoard(g: Game) {
 
 describe("Zoltan odd moon", () => {
   it("is placed in the two Zoltan sectors", () => {
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
     assert.ok(citedPagesFor("Zoltan Controlled Sector").some((ev) => ev.dest === "Zoltan odd moon"));
     assert.ok(citedPagesFor("Zoltan Homeworlds").some((ev) => ev.dest === "Zoltan odd moon"));
     assert.equal(citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Zoltan odd moon"), false);
   });
 
   it("opens on the moon and hides the boarding drone", () => {
+    // Wiki citations:
+    // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
+    // > "Send a drone to probe the surface." — [[Zoltan odd moon]]
+    // > "(Boarding Drone)" — [[Zoltan odd moon]]
+    // > "Drone parts lost: 1" — [[Zoltan odd moon]]
     const g = open(1);
     assert.match(g.event?.body ?? "", /odd about a moon/);
     assert.deepEqual(
@@ -81,6 +88,9 @@ describe("Zoltan odd moon", () => {
   });
 
   it("leaves the moon and spends nothing", () => {
+    // Wiki citations:
+    // > "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     const g = open(2);
     const scrap = g.scrap;
     choose(g, "c:zoltan-odd-moon:leave");
@@ -90,6 +100,14 @@ describe("Zoltan odd moon", () => {
   });
 
   it("check it out reaches the cavern, the low scrap, the medium scrap, and nothing", () => {
+    // Wiki citations:
+    // > "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern." — [[Zoltan odd moon]]
+    // > "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!" — [[Zoltan odd moon]]
+    // > "You receive a weapon with low scrap." — [[Zoltan odd moon]]
+    // > "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction." — [[Zoltan odd moon]]
+    // > "You receive medium scrap." — [[Zoltan odd moon]]
+    // > "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80; seed++) {
       const g = open(seed);
@@ -133,6 +151,10 @@ describe("Zoltan odd moon", () => {
   });
 
   it("keeps the missile when excavation is not worth it, and refuses a dry magazine", () => {
+    // Wiki citations:
+    // > "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern." — [[Zoltan odd moon]]
+    // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     let spare = false;
     let dry = false;
     for (let seed = 1; seed <= 40 && (!spare || !dry); seed++) {
@@ -164,6 +186,13 @@ describe("Zoltan odd moon", () => {
   });
 
   it("spends one missile; the base gives a weapon with a random scrap band, the remains a scrap band", () => {
+    // Wiki citations:
+    // > "Missiles lost: 1" — [[Zoltan odd moon]]
+    // > "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship." — [[Zoltan odd moon]]
+    // > "You receive a weapon with a random amount of scrap." — [[Zoltan odd moon]]
+    // > "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful." — [[Zoltan odd moon]]
+    // > "You receive a random amount of scrap." — [[Zoltan odd moon]]
+    // > "The explosives are set remotely, but the detonation achieves nothing. What a waste." — [[Zoltan odd moon]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 120; seed++) {
       const g = open(seed);
@@ -196,6 +225,11 @@ describe("Zoltan odd moon", () => {
   });
 
   it("a boarding drone spends one part and a Zoltan joins", () => {
+    // Wiki citations:
+    // > "Drone parts lost: 1" — [[Zoltan odd moon]]
+    // > "Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below." — [[Zoltan odd moon]]
+    // > "Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew." — [[Zoltan odd moon]]
+    // > "You receive a Zoltan crewmember." — [[Zoltan odd moon]]
     const g = open(6);
     fitBoard(g);
     g.player.parts = 3;

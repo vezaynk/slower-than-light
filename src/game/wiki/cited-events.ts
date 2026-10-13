@@ -4365,13 +4365,32 @@ function zoltanMoonTitle(g: Game): string {
 }
 
 function zoltanOddCard(title: string): GameEvent {
+  // Wiki citations:
+  // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
   return {
     title,
     body: ZOLTAN_MOON_OPEN,
     choices: [
-      { id: "c:zoltan-odd-moon:look", label: tx("wiki.cited-events.check-it-out") },
-      { id: "c:zoltan-odd-moon:leave", label: tx("wiki.cited-events.leave-it-be") },
-      { id: "c:zoltan-odd-moon:drone", label: tx("wiki.cited-events.send-a-drone-to-probe-the") },
+      {
+        id: "c:zoltan-odd-moon:look",
+        // Wiki citations:
+        // > "Check it out." — [[Zoltan odd moon]]
+        label: tx("wiki.cited-events.check-it-out"),
+      },
+      {
+        id: "c:zoltan-odd-moon:leave",
+        // Wiki citations:
+        // > "Leave it be." — [[Zoltan odd moon]]
+        label: tx("wiki.cited-events.leave-it-be"),
+      },
+      {
+        id: "c:zoltan-odd-moon:drone",
+        // Wiki citations:
+        // > "Send a drone to probe the surface." — [[Zoltan odd moon]]
+        // > "(Boarding Drone)" — [[Zoltan odd moon]]
+        // > "Drone parts lost: 1" — [[Zoltan odd moon]]
+        label: tx("wiki.cited-events.send-a-drone-to-probe-the"),
+      },
     ],
   };
 }
@@ -4412,13 +4431,22 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     // Four results, no odds. INFERRED: equal.
     const which = ctx.irand(4);
     if (which === 0) {
+      // Wiki citations:
+      // > "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern." — [[Zoltan odd moon]]
       g.event = {
         title: zoltanMoonTitle(g),
         body: ZOLTAN_MOON_CAVE,
         choices: [
-          { id: "c:zoltan-odd-moon:boom", label: "Attempt to detonate some explosives to break through the surface." },
+          {
+            id: "c:zoltan-odd-moon:boom",
+            // Wiki citations:
+            // > "Attempt to detonate some explosives to break through the surface." — [[Zoltan odd moon]]
+            label: "Attempt to detonate some explosives to break through the surface.",
+          },
           {
             id: "c:zoltan-odd-moon:spare",
+            // Wiki citations:
+            // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
             label: "Explosives are too valuable to waste on excavation work. Let's get out of here.",
           },
         ],
@@ -4428,6 +4456,9 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       return true;
     }
     if (which === 1) {
+      // Wiki citations:
+      // > "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!" — [[Zoltan odd moon]]
+      // > "You receive a weapon with low scrap." — [[Zoltan odd moon]]
       const line = payTier(ctx, "low");
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
@@ -4435,18 +4466,30 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       return true;
     }
     if (which === 2) {
+      // Wiki citations:
+      // > "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction." — [[Zoltan odd moon]]
+      // > "You receive medium scrap." — [[Zoltan odd moon]]
       const line = payTier(ctx, "medium");
       citedResult(g, ZOLTAN_MOON_HEAP, [tx("wiki.cited-events.you-receive-medium-scrap"), line]);
       return true;
     }
+    // Wiki citations:
+    // > "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     citedResult(g, ZOLTAN_MOON_QUIET, [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:leave") {
+    // Wiki citations:
+    // > "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     citedResult(g, ZOLTAN_MOON_LEAVE, [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:spare") {
+    // Wiki citations:
+    // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     citedResult(g, tx("wiki.cited-events.nothing-happens"), [tx("wiki.cited-events.nothing-happens")]);
     return true;
   }
@@ -4454,10 +4497,15 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     if (g.missiles < 1) return false;
     g.missiles -= 1;
     ctx.note(tx("wiki.cited-events.missiles-1"));
+    // Wiki citations:
+    // > "Attempt to detonate some explosives to break through the surface." — [[Zoltan odd moon]]
+    // > "Missiles lost: 1" — [[Zoltan odd moon]]
     // Three results, no odds. INFERRED: equal.
     const which = ctx.irand(3);
     if (which === 0) {
-      // "You receive a weapon with a random amount of scrap."
+      // Wiki citations:
+      // > "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship." — [[Zoltan odd moon]]
+      // > "You receive a weapon with a random amount of scrap." — [[Zoltan odd moon]]
       const line = payRandomTier(ctx);
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
@@ -4465,14 +4513,27 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       return true;
     }
     if (which === 1) {
+      // Wiki citations:
+      // > "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful." — [[Zoltan odd moon]]
+      // > "You receive a random amount of scrap." — [[Zoltan odd moon]]
       const line = payRandomTier(ctx);
       citedResult(g, ZOLTAN_MOON_REMAINS, [tx("wiki.cited-events.you-receive-a-random-amount-of"), line, tx("wiki.cited-events.missiles-1")]);
       return true;
     }
+    // Wiki citations:
+    // > "The explosives are set remotely, but the detonation achieves nothing. What a waste." — [[Zoltan odd moon]]
+    // > "Nothing happens." — [[Zoltan odd moon]]
     citedResult(g, ZOLTAN_MOON_WASTE, [tx("wiki.cited-events.nothing-happens"), tx("wiki.cited-events.missiles-1")]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:drone") {
+    // Wiki citations:
+    // > "Send a drone to probe the surface." — [[Zoltan odd moon]]
+    // > "(Boarding Drone)" — [[Zoltan odd moon]]
+    // > "Drone parts lost: 1" — [[Zoltan odd moon]]
+    // > "Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below." — [[Zoltan odd moon]]
+    // > "Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew." — [[Zoltan odd moon]]
+    // > "You receive a Zoltan crewmember." — [[Zoltan odd moon]]
     if (!ownsBoardDrone(g) || g.player.parts < 1) return false;
     g.player.parts -= 1;
     ctx.note(tx("wiki.cited-events.drone-parts-1"));
@@ -5206,6 +5267,9 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   const missing = missingDisabled(g, id);
   if (missing) return missing;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
+  // Wiki citations:
+  // > "(Boarding Drone)" — [[Zoltan odd moon]]
+  // > "Drone parts lost: 1" — [[Zoltan odd moon]]
   if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return tx("wiki.cited-events.needs-a-boarding-drone");
   if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // No fuel: Engi ship repair. Hull Repair Drone, 1 drone part.

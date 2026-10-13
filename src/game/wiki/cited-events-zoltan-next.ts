@@ -34,6 +34,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Zoltan odd moon",
     slug: "zoltan-odd-moon",
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
+    // > "It is unique." — [[Zoltan odd moon]]
+    // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
     flag: "cited:zoltan-odd-moon",
     aliases: ["Zoltan odd moon"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
@@ -41,11 +45,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:zoltan-odd-moon:0",
+        // Wiki citations:
+        // > "Check it out." — [[Zoltan odd moon]]
         label: tx("wiki.cited-events-zoltan-next.check-it-out"),
         fx: [{ k: "note", text: tx("wiki.cited-events-zoltan-next.the-moon-has-more-than-one") }],
       },
       {
         id: "c:zoltan-odd-moon:1",
+        // Wiki citations:
+        // > "Leave it be." — [[Zoltan odd moon]]
+        // > "Nothing happens." — [[Zoltan odd moon]]
         label: tx("wiki.cited-events-zoltan-next.leave-it-be"),
         fx: [{ k: "nothing" }],
       },
@@ -58,6 +67,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Refugee (Zoltan)",
     slug: "refugee-zoltan",
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
     flag: "cited:refugee-zoltan",
     aliases: ["Refugee (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
@@ -73,6 +84,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Refugee distress (Zoltan)",
     slug: "refugee-distress-zoltan",
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
     flag: "cited:refugee-distress-zoltan",
     aliases: ["Refugee distress (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],

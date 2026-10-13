@@ -115,3 +115,44 @@ export function tickSabotage(g: Game, dt: number) {
 export function tickPlayerSabotage(g: Game, dt: number) {
   sabotageShip(g, g.player, "player", dt);
 }
+
+const BOARDER_DRONES = new Set(["board", "ionintruder"]);
+
+/** A crew boarder standing in this room and able to attack: not walking, not stunned. Mind control uses sideOf. */
+function crewAttacking(g: Game, aboard: "player" | "enemy", roomId: string): boolean {
+  for (const c of g.crew) {
+    if (c.aboard !== aboard || c.room !== roomId || c.hp <= 0 || c.path.length !== 0) continue;
+    if (sideOf(c) !== aboard && (c.stun ?? 0) <= 0) return true;
+  }
+  return false;
+}
+
+/** A boarding drone or ion intruder already inside this room. In flight, stunned, or walking does not count. */
+function droneAttacking(g: Game, aboard: "player" | "enemy", roomId: string): boolean {
+  if (aboard === "enemy") {
+    const kit = g.player.kits.swarm;
+    if (!kit?.on || kit.room !== roomId || !kit.target || !BOARDER_DRONES.has(kit.target)) return false;
+    if ((kit.stun ?? 0) > 0 || (kit.path?.length ?? 0) > 0) return false;
+    return kit.hp == null || kit.hp > 0;
+  }
+  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+    if (!unit.alive || unit.room !== roomId || !BOARDER_DRONES.has(unit.kind)) continue;
+    if ((unit.fly ?? 0) > 0 || (unit.stun ?? 0) > 0 || (unit.path?.length ?? 0) > 0) continue;
+    if ((unit.hp ?? 1) <= 0) continue;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Boarders are in this system's room and able to attack it.
+ * `id` is a system id, a kit id, or an artillery room id.
+ * A fire alone is not a boarder. Defenders do not clear the attack; they only pause sabotage.
+ */
+export function systemUnderBoarders(g: Game, ship: Ship, aboard: "player" | "enemy", id: string): boolean {
+  for (const r of ship.rooms) {
+    if (r.system !== id && r.kit !== id && r.id !== id) continue;
+    if (crewAttacking(g, aboard, r.id) || droneAttacking(g, aboard, r.id)) return true;
+  }
+  return false;
+}

@@ -2460,6 +2460,24 @@ button.gun-slot {
   box-shadow: 0 0 0 1px #6c737c;
 }
 
+/* Lost hits, still holding. The leaf flashes red the way a boarded system does. */
+.door-layer .door-tick.is-hurt.is-e .door-slab,
+.door-layer .door-tick.is-hurt.is-w .door-slab,
+.door-layer .door-tick.is-hurt.is-n .door-slab,
+.door-layer .door-tick.is-hurt.is-s .door-slab,
+.door-layer .door-tick.is-airlock.is-hurt.is-e .door-slab,
+.door-layer .door-tick.is-airlock.is-hurt.is-w .door-slab,
+.door-layer .door-tick.is-airlock.is-hurt.is-n .door-slab,
+.door-layer .door-tick.is-airlock.is-hurt.is-s .door-slab {
+  animation: door-hurt 0.5s steps(2, jump-none) infinite;
+  box-shadow: none;
+}
+
+@keyframes door-hurt {
+  0% { background: var(--color-danger); box-shadow: 0 0 6px var(--color-danger); }
+  100% { background: #3a1010; box-shadow: none; }
+}
+
 /* Stuck open: the same single leaf, red, with a cross in the clear part of the doorway. */
 .door-layer .door-tick.is-broken.is-e .door-slab,
 .door-layer .door-tick.is-broken.is-w .door-slab,
@@ -3827,7 +3845,7 @@ button.door-tick::before {
 /* Departure of a player shot, and the arrival of an enemy shot, paint under the target panel. */
 .fx-under { z-index: 2; }
 
-.target-panel .room:not(.is-unseen):not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless) {
+.target-panel .room:not(.is-unseen):not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless):not(.is-beam) {
   background: color-mix(in srgb, var(--color-room) 52%, transparent);
 }
 
@@ -3877,6 +3895,26 @@ button.door-tick::before {
 .beam-stroke .beam-ink { stroke: #1a1408; stroke-width: 5; }
 .beam-stroke .beam-hot { stroke: #f2e34a; stroke-width: 2; }
 .beam-stroke .is-preview { stroke-dasharray: 6 5; }
+
+/* Rooms the swipe will hit. The numbered reticle stays on the first room. */
+.play .room.is-beam,
+.play .room.is-beam.is-thin:not(.is-cut),
+.play .room.is-beam.is-airless:not(.is-cut),
+.play .room.is-beam.is-fire,
+.play .room.is-beam.is-vent,
+.play .room.is-beam.is-flash,
+.play .room.is-beam.is-unseen {
+  background: color-mix(in srgb, #f2e34a 46%, var(--color-room));
+  box-shadow: inset 0 0 0 3px #f2e34a;
+  outline: 3px solid #f2e34a;
+  outline-offset: -3px;
+}
+.play .room.is-beam .pixel-fill,
+.play .room.is-unseen.is-beam .pixel-fill,
+.target-panel .room.is-unseen.is-beam .pixel-fill {
+  background: color-mix(in srgb, #f2e34a 46%, #2b2f36);
+  opacity: 1;
+}
 .target-head .beam-hint { margin: 4px 0 0; font-family: var(--font-hud); font-size: 20px; letter-spacing: 0.04em; color: var(--color-accent); }
 
 @keyframes aim-blink { 50% { opacity: 0.35; } }
@@ -5049,6 +5087,11 @@ button.modal-x.modal-x:focus-visible {
 
 .radial-door.is-airlock .radial-slab { background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px); }
 .radial-door.is-dead .radial-slab { background: var(--color-danger); }
+.radial-door.is-hurt .radial-slab,
+.radial-door.is-airlock.is-hurt .radial-slab {
+  background: var(--color-danger);
+  animation: door-hurt 0.5s steps(2, jump-none) infinite;
+}
 
 /* Room radial menu: the room's power control, beside the ring on the roomier side. Per the user: enlarged. INVENTED
    size (bars 24x14, about 1.7x the dock's 14x10). */
@@ -5975,7 +6018,8 @@ body.page-turn-180 {
 .kit-act:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Lockout (ion, cooldown, a system that cannot take power) flashes blue.
-   An active hacking pulse flashes purple and wins over that blue. */
+   Boarders in the room flash red, over that blue.
+   An active hacking pulse flashes purple and wins over both. */
 @keyframes bar-flash-blue {
   0% { background-color: var(--color-ion); border-color: #d7ecff; }
   100% { background-color: #0c2236; border-color: #3d6f99; }
@@ -5983,6 +6027,10 @@ body.page-turn-180 {
 @keyframes bar-flash-purple {
   0% { background-color: #c084fc; border-color: #f3e8ff; }
   100% { background-color: #2a103c; border-color: #7c3aed; }
+}
+@keyframes bar-flash-red {
+  0% { background-color: var(--color-danger); border-color: #ffd0c8; }
+  100% { background-color: #3a1010; border-color: #8a3030; }
 }
 @keyframes orb-flash-blue {
   0% { color: #d7ecff; border-color: var(--color-ion); box-shadow: 0 0 10px var(--color-ion); }
@@ -5992,6 +6040,10 @@ body.page-turn-180 {
   0% { color: #f3e8ff; border-color: #c084fc; box-shadow: 0 0 10px #c084fc; }
   100% { color: var(--color-line); border-color: #5b2a86; box-shadow: none; }
 }
+@keyframes orb-flash-red {
+  0% { color: #ffd0c8; border-color: var(--color-danger); box-shadow: 0 0 10px var(--color-danger); }
+  100% { color: var(--color-line); border-color: #6a2424; box-shadow: none; }
+}
 @keyframes chip-flash-blue {
   0% { color: var(--color-ion); border-color: var(--color-ion); background-color: #12304a; }
   100% { color: #7aa4c4; border-color: #245078; background-color: var(--color-panel-2); }
@@ -6000,19 +6052,29 @@ body.page-turn-180 {
   0% { color: #e9d5ff; border-color: #c084fc; background-color: #3b1764; }
   100% { color: #c4a0dc; border-color: #5b2a86; background-color: var(--color-panel-2); }
 }
+@keyframes chip-flash-red {
+  0% { color: #ffd0c8; border-color: var(--color-danger); background-color: #4a1414; }
+  100% { color: #e07a72; border-color: #6a2424; background-color: var(--color-panel-2); }
+}
 
 .power-col button.is-flash-blue,
 .power-col button.is-flash-purple,
+.power-col button.is-flash-red,
 .power-col button.is-dmg.is-fixing.is-flash-blue,
 .power-col button.is-dmg.is-fixing.is-flash-purple,
+.power-col button.is-dmg.is-fixing.is-flash-red,
 .power-col button.is-hurting.is-flash-blue,
 .power-col button.is-hurting.is-flash-purple,
+.power-col button.is-hurting.is-flash-red,
 .sub-bars b.is-flash-blue,
 .sub-bars b.is-flash-purple,
+.sub-bars b.is-flash-red,
 .sub-bars b.is-dmg.is-fixing.is-flash-blue,
 .sub-bars b.is-dmg.is-fixing.is-flash-purple,
+.sub-bars b.is-dmg.is-fixing.is-flash-red,
 .sub-bars b.is-hurting.is-flash-blue,
-.sub-bars b.is-hurting.is-flash-purple {
+.sub-bars b.is-hurting.is-flash-purple,
+.sub-bars b.is-hurting.is-flash-red {
   background-image: none;
 }
 
@@ -6024,6 +6086,11 @@ body.page-turn-180 {
 .power-col button.is-flash-purple,
 .sub-bars b.is-flash-purple {
   animation: bar-flash-purple 0.5s steps(2, jump-none) infinite;
+}
+
+.power-col button.is-flash-red,
+.sub-bars b.is-flash-red {
+  animation: bar-flash-red 0.5s steps(2, jump-none) infinite;
 }
 
 .power-stack.is-flash-blue .sys-orb,
@@ -6040,12 +6107,23 @@ body.page-turn-180 {
   animation: orb-flash-purple 0.5s steps(2, jump-none) infinite;
 }
 
+.power-stack.is-flash-red .sys-orb,
+.sub-pod.is-flash-red .sub-orb,
+.hack-pod.is-flash-red .sub-orb,
+.sub-orb.is-flash-red {
+  animation: orb-flash-red 0.5s steps(2, jump-none) infinite;
+}
+
 .target-systems span.is-flash-blue {
   animation: chip-flash-blue 0.5s steps(2, jump-none) infinite;
 }
 
 .target-systems span.is-flash-purple {
   animation: chip-flash-purple 0.5s steps(2, jump-none) infinite;
+}
+
+.target-systems span.is-flash-red {
+  animation: chip-flash-red 0.5s steps(2, jump-none) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6069,6 +6147,16 @@ body.page-turn-180 {
     background-color: #c084fc;
     border-color: #f3e8ff;
   }
+  .power-col button.is-flash-red,
+  .power-col button.is-dmg.is-fixing.is-flash-red,
+  .power-col button.is-hurting.is-flash-red,
+  .sub-bars b.is-flash-red,
+  .sub-bars b.is-dmg.is-fixing.is-flash-red,
+  .sub-bars b.is-hurting.is-flash-red {
+    animation: none;
+    background-color: var(--color-danger);
+    border-color: #ffd0c8;
+  }
   .power-stack.is-flash-blue .sys-orb,
   .sub-pod.is-flash-blue .sub-orb,
   .hack-pod.is-flash-blue .sub-orb,
@@ -6077,8 +6165,13 @@ body.page-turn-180 {
   .sub-pod.is-flash-purple .sub-orb,
   .hack-pod.is-flash-purple .sub-orb,
   .sub-orb.is-flash-purple,
+  .power-stack.is-flash-red .sys-orb,
+  .sub-pod.is-flash-red .sub-orb,
+  .hack-pod.is-flash-red .sub-orb,
+  .sub-orb.is-flash-red,
   .target-systems span.is-flash-blue,
-  .target-systems span.is-flash-purple {
+  .target-systems span.is-flash-purple,
+  .target-systems span.is-flash-red {
     animation: none;
   }
   .power-stack.is-flash-blue .sys-orb,
@@ -6095,6 +6188,13 @@ body.page-turn-180 {
     color: #f3e8ff;
     border-color: #c084fc;
   }
+  .power-stack.is-flash-red .sys-orb,
+  .sub-pod.is-flash-red .sub-orb,
+  .hack-pod.is-flash-red .sub-orb,
+  .sub-orb.is-flash-red {
+    color: #ffd0c8;
+    border-color: var(--color-danger);
+  }
   .target-systems span.is-flash-blue {
     color: var(--color-ion);
     border-color: var(--color-ion);
@@ -6102,5 +6202,9 @@ body.page-turn-180 {
   .target-systems span.is-flash-purple {
     color: #e9d5ff;
     border-color: #c084fc;
+  }
+  .target-systems span.is-flash-red {
+    color: #ffd0c8;
+    border-color: var(--color-danger);
   }
 }

@@ -6245,6 +6245,7 @@
   "ui.CloseX.close": "Close",
   "ui.CombatFx.hack-s": "HACK {{ceil}}s",
   "ui.CombatFx.hack": "HACK",
+  "ui.DoorTicks.damaged": "Damaged",
   "ui.DoorTicks.broken-door": "Broken door",
   "ui.DoorTicks.broken": "Broken",
   "ui.DoorTicks.door-control-is-dead": "Door control is dead",

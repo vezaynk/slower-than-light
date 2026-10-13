@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
-import { SABOTAGE_RATE, tickSabotage } from "./sabotage.ts";
+import { SABOTAGE_RATE, systemUnderBoarders, tickSabotage } from "./sabotage.ts";
+import type { DroneUnit, Kit } from "../types.ts";
 
 function fight(seed = 7): Game {
   const g = createGame(seed);
@@ -65,6 +66,80 @@ describe("system sabotage by boarders and fires", () => {
     g.crew.push(body("b", "enemy", "player", r.id), body("d", "player", "player", r.id));
     run(g, 20);
     assert.equal(sys.damage, 0);
+  });
+
+  it("a system flashes as boarded only while a boarder can attack that room", () => {
+    const g = fight();
+    const shields = sysRoom(g.player);
+    const other = g.player.rooms.find((r) => r.system && r.id !== shields.id);
+    assert.ok(other?.system);
+    const id = shields.system!;
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+    g.crew.push(body("walk", "enemy", "player", shields.id, { path: ["x"] }));
+    g.crew.push(body("stun", "enemy", "player", shields.id, { stun: 4 }));
+    g.crew.push(body("own", "player", "player", shields.id));
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+    // A leashed enemy fights for the player, so it is not boarding its holder.
+    g.crew.push(body("held", "enemy", "player", shields.id, { leashed: 2 }));
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+    shields.fire = 2;
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+    g.crew.push(body("hit", "enemy", "player", shields.id));
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), true);
+    assert.equal(systemUnderBoarders(g, g.player, "player", other.system!), false);
+    // The player's own crew, turned by mind control, attacks the player ship.
+    g.crew = [body("turn", "player", "player", shields.id, { leashed: 2 })];
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), true);
+  });
+
+  it("a boarding drone in the room counts, and one still flying does not", () => {
+    const g = fight();
+    const room = sysRoom(g.player);
+    const id = room.system!;
+    const drone = (extra: Partial<DroneUnit>): DroneUnit => ({
+      id: "d",
+      kind: "board",
+      alive: true,
+      powered: true,
+      aux: 0,
+      cool: 0,
+      hp: 150,
+      fly: 0,
+      room: room.id,
+      ...extra,
+    });
+    g.enemy!.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+      drones: [drone({ fly: 2 })],
+    } satisfies Kit;
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+    g.enemy!.kits.swarm.drones = [drone({})];
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), true);
+    g.enemy!.kits.swarm.drones = [drone({ path: ["next"] })];
+    assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
+
+    const foe = sysRoom(g.enemy!);
+    g.player.kits.swarm = {
+      id: "swarm",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "board",
+      on: true,
+      aux: 0,
+      room: foe.id,
+    };
+    assert.equal(systemUnderBoarders(g, g.enemy!, "enemy", foe.system!), true);
+    g.player.kits.swarm.stun = 3;
+    assert.equal(systemUnderBoarders(g, g.enemy!, "enemy", foe.system!), false);
   });
 
   it("moving or stunned boarders do not sabotage", () => {

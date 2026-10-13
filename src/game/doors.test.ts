@@ -4,6 +4,9 @@ import {
   REPAIR_SECONDS,
   applyImpact,
   blastHits,
+  COATED_DOOR_HITS,
+  doorHurt,
+  noteDoorArmed,
   closeAllDoors,
   createGame,
   doorLevel,
@@ -78,6 +81,58 @@ function breachShot(from: "player" | "enemy", roomId: string): Shot {
     duration: 1,
   };
 }
+
+describe("damaged doors", () => {
+  it("is hurt only after it has lost hits, until it gives way or the health resets", () => {
+    const g = fight(11);
+    g.player.systems.doors.level = 2;
+    g.player.systems.doors.damage = 0;
+    g.player.systems.doors.ion = [];
+    const door = g.player.doors.find((d) => d.b !== "void");
+    assert.ok(door);
+    const max = blastHits(2);
+    noteDoorArmed(door, max);
+    door.hp = max;
+    door.stuck = 0;
+    assert.equal(doorHurt(door), false);
+    door.hp = max - 1;
+    assert.equal(doorHurt(door), true);
+    door.hp = 0;
+    door.stuck = 7;
+    assert.equal(doorHurt(door), false);
+    door.stuck = 0;
+    door.coat = COATED_DOOR_HITS;
+    assert.equal(doorHurt(door), false);
+    door.coat = COATED_DOOR_HITS - 1;
+    assert.equal(doorHurt(door), true);
+  });
+
+  it("flashes as hurt once a boarder has punched a blast door", () => {
+    const g = fight(4);
+    g.player.systems.doors.level = 2;
+    g.player.systems.doors.damage = 0;
+    g.player.systems.doors.ion = [];
+    const door = g.player.doors.find((d) => d.b !== "void");
+    assert.ok(door);
+    noteDoorArmed(door, blastHits(2));
+    door.hp = blastHits(2);
+    door.open = false;
+    door.stuck = 0;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
+    assert.ok(foe);
+    foe.aboard = "player";
+    foe.room = door.a;
+    foe.path = [door.b];
+    foe.move = 0;
+    foe.stun = 0;
+    foe.hp = 100;
+    assert.equal(doorHurt(door), false);
+    step(g, 0.05);
+    assert.equal(doorHurt(door), true);
+    assert.ok(door.hp > 0);
+    assert.equal(door.stuck, 0);
+  });
+});
 
 describe("broken doors", () => {
   it("lets a player door be closed after 7 seconds, and only auto-closes it when Close All was waiting", () => {

@@ -1324,14 +1324,157 @@ export function weaponsPowerLocked(g: Game): boolean {
   return g.player.systems.weapons.ion.length > 0 || hackHoldsWeapons(g, "player");
 }
 
+/**
+ * Shields, Overview: one layer per two powered bars. A lone bar does not raise a layer.
+ * Per the user: one click moves reactor power to the next complete pair (2, 4, 6, 8),
+ * counting a Zoltan bar toward that pair, and only when the whole step is available.
+ * Returns how many reactor bars to add or remove. 0 means the click changes nothing.
+ */
+function shieldPowerStep(g: Game, direction: 1 | -1): number {
+  const sys = g.player.systems.shields;
+  const bonus = zoltanBars(g.crew, g.player, "player", "shields");
+  const power = sys.power;
+  const now = bars(sys, bonus);
+  if (direction > 0) {
+    const room = Math.min(sparePower(g.player), capOf(sys) - power);
+    if (room <= 0) return 0;
+    const nextTotal = Math.floor(now / 2) * 2 + 2;
+    for (let k = 1; k <= room; k++) {
+      if (bars({ ...sys, power: power + k }, bonus) >= nextTotal) return k;
+    }
+    return 0;
+  }
+  if (power <= 0) return 0;
+  const prevTotal = Math.floor(Math.max(0, now - 1) / 2) * 2;
+  for (let p = 0; p < power; p++) {
+    if (bars({ ...sys, power: p }, bonus) === prevTotal) return power - p;
+  }
+  const prevLayers = Math.floor(prevTotal / 2);
+  let best = -1;
+  for (let p = 0; p < power; p++) {
+    if (Math.floor(bars({ ...sys, power: p }, bonus) / 2) === prevLayers) best = p;
+  }
+  return best < 0 ? 0 : power - best;
+}
+
+/** Least reactor power that keeps every flagged gun on. Unreachable sets keep the current bars. */
+function minReactorForWeapons(g: Game, flags: boolean[]): number {
+  const sys = g.player.systems.weapons;
+  const savedPower = sys.power;
+  const saved = g.player.weapons.map((w) => w.enabled);
+  const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+  g.player.weapons.forEach((w, i) => {
+    w.enabled = !!flags[i];
+  });
+  let need: number | null = null;
+  const cap = Math.max(savedPower, capOf(sys));
+  for (let p = 0; p <= cap; p++) {
+    sys.power = p;
+    const mask = powerMask(g.player, bonus);
+    if (flags.every((on, i) => !on || mask[i])) {
+      need = p;
+      break;
+    }
+  }
+  sys.power = savedPower;
+  g.player.weapons.forEach((w, i) => {
+    w.enabled = saved[i]!;
+  });
+  return need ?? savedPower;
+}
+
+/**
+ * Per the user: a weapon click adds or removes that gun's whole cost, not one bar.
+ * Up: the fewest bars that turn the next left-to-right gun on. A dearer gun is not skipped.
+ * Down: drop the rightmost gun that is on, and any bars that gun's cost does not need.
+ */
+function weaponPowerStep(g: Game, direction: 1 | -1): number {
+  const sys = g.player.systems.weapons;
+  if (direction > 0) {
+    const room = Math.min(sparePower(g.player), capOf(sys) - sys.power);
+    if (room <= 0) return 0;
+    const savedPower = sys.power;
+    const saved = g.player.weapons.map((w) => w.enabled);
+    let step = 0;
+    for (let k = 1; k <= room; k++) {
+      sys.power = savedPower + k;
+      g.player.weapons.forEach((w, i) => {
+        w.enabled = saved[i]!;
+      });
+      enableWeaponsForPower(g);
+      if (g.player.weapons.some((w, i) => w.enabled && !saved[i])) {
+        step = k;
+        break;
+      }
+    }
+    sys.power = savedPower;
+    g.player.weapons.forEach((w, i) => {
+      w.enabled = saved[i]!;
+    });
+    return step;
+  }
+  if (sys.power <= 0) return 0;
+  const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+  const mask = powerMask(g.player, bonus);
+  const flags = g.player.weapons.map((w, i) => w.enabled && !!mask[i]);
+  for (let i = flags.length - 1; i >= 0; i--) {
+    if (!flags[i]) continue;
+    flags[i] = false;
+    break;
+  }
+  return Math.max(0, sys.power - minReactorForWeapons(g, flags));
+}
+
+/**
+ * Per the user: Weapon Control's bars and each gun's on/off state are the same fact.
+ * Adding power turns guns on from the left. A gun that needs more bars than remain stays off,
+ * and so does every gun to its right, so a dearer slot is not skipped.
+ * A gun already on is left on.
+ */
+function enableWeaponsForPower(g: Game): void {
+  const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+  for (let i = 0; i < g.player.weapons.length; i++) {
+    const w = g.player.weapons[i]!;
+    if (w.enabled) continue;
+    const keep = powerMask(g.player, bonus);
+    w.enabled = true;
+    const next = powerMask(g.player, bonus);
+    const stole = keep.some((on, j) => on && !next[j]);
+    if (!next[i] || stole) {
+      w.enabled = false;
+      break;
+    }
+  }
+}
+
+/**
+ * Per the user: removing power turns off every gun the bars no longer cover.
+ * Weapon Control, Template:In-game tips: the leftmost slot is the last to lose power.
+ * Bars that are no longer enough for that slot are not handed to a gun further right.
+ */
+function disableUnpoweredWeapons(g: Game): void {
+  const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
+  let armedOff = false;
+  g.player.weapons.forEach((w, i) => {
+    if (!w.enabled || mask[i]) return;
+    w.enabled = false;
+    cancelMuzzle(g, w);
+    if (g.armed === w.uid) armedOff = true;
+  });
+  if (armedOff) stopTargeting(g);
+}
+
 export function powerUp(g: Game, id: SysId) {
   const sys = g.player.systems[id];
   if (!isMain(id)) return;
   if (id === "weapons" && weaponsPowerLocked(g)) return;
   if (sparePower(g.player) <= 0) return;
   if (sys.power >= capOf(sys)) return;
-  sys.power += 1;
+  const step = id === "shields" ? shieldPowerStep(g, 1) : id === "weapons" ? weaponPowerStep(g, 1) : 1;
+  if (step <= 0) return;
+  sys.power += step;
   delete sys.want;
+  if (id === "weapons") enableWeaponsForPower(g);
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   sfx(g, "click");
 }
@@ -1341,8 +1484,11 @@ export function powerDown(g: Game, id: SysId) {
   if (!isMain(id)) return;
   if (id === "weapons" && weaponsPowerLocked(g)) return;
   if (sys.power <= 0) return;
-  sys.power -= 1;
+  const step = id === "shields" ? shieldPowerStep(g, -1) : id === "weapons" ? weaponPowerStep(g, -1) : 1;
+  if (step <= 0) return;
+  sys.power -= step;
   delete sys.want;
+  if (id === "weapons") disableUnpoweredWeapons(g);
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
   sfx(g, "click");
 }
@@ -1397,6 +1543,26 @@ export function scaleDoorLeft(left: number, oldMax: number, newMax: number): num
 
 /** Max the current door.hp was armed against. Absent means the next punch arms it. */
 const doorArmedMax = new WeakMap<Door, number>();
+
+/** Remember the hit total this door's current hp counts against. */
+export function noteDoorArmed(door: Door, max: number): void {
+  if (max > 0) doorArmedMax.set(door, max);
+  else doorArmedMax.delete(door);
+}
+
+/**
+ * The door has lost hits and has not given way yet.
+ * A full door, a door whose health was reset, and a stuck-open door are not in this state.
+ * A crystal coating that has been punched counts; a fresh coating does not.
+ */
+export function doorHurt(door: Door): boolean {
+  if (door.stuck > 0) return false;
+  const coat = door.coat ?? 0;
+  if (coat > 1e-4 && coat < COATED_DOOR_HITS - 1e-4) return true;
+  const max = doorArmedMax.get(door);
+  if (max == null || !(door.hp > 0)) return false;
+  return door.hp < max - 1e-4;
+}
 
 /**
  * Crystal Lockdown: "at least 5 crew" punching from the start can break the door just before the
@@ -1472,6 +1638,7 @@ function coatRoom(g: Game, ship: Ship, aboard: "player" | "enemy", roomId: strin
   const hits = hackLatchedOn(g, ship, room) ? blastHits(HACKED_DOOR_LEVEL, g.difficulty) : blastHits(level, g.difficulty);
   for (const door of doorsOf(ship, roomId)) {
     door.hp = hits;
+    noteDoorArmed(door, hits);
     door.coat = COATED_DOOR_HITS;
     delete door.freed;
   }
@@ -1503,6 +1670,7 @@ export function noteHackPulseDuringLock(ship: Ship, systemId: string, difficulty
   for (const door of doorsOf(ship, room.id)) {
     if (door.stuck > 0) continue;
     door.hp = hits;
+    noteDoorArmed(door, hits);
   }
 }
 
@@ -3550,13 +3718,13 @@ function moveCrew(g: Game, dt: number) {
       if (max > 0) {
         if (door.hp <= 0) {
           door.hp = max;
-          doorArmedMax.set(door, max);
+          noteDoorArmed(door, max);
         } else {
           const armed = doorArmedMax.get(door);
-          if (armed == null) doorArmedMax.set(door, max);
+          if (armed == null) noteDoorArmed(door, max);
           else if (armed !== max) {
             door.hp = scaleDoorLeft(door.hp, armed, max);
-            doorArmedMax.set(door, max);
+            noteDoorArmed(door, max);
           }
         }
         door.hp -= dt;
@@ -3655,6 +3823,7 @@ function armDoors(ship: Ship, level: number, difficulty: Difficulty = "normal") 
   for (const d of ship.doors) {
     d.stuck = 0;
     d.hp = hits;
+    noteDoorArmed(d, hits);
     delete d.seal;
     delete d.freed;
     if (d.b === "void") {

@@ -31,6 +31,7 @@ import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
 import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
 import { cradleUpgradeCost, enemyCloneQueue, upgradeCradle } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
+import { systemUnderBoarders } from "@/game/extras/sabotage";
 import { shipSight } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
 import { hackedPlayerKit, playerCloneQueue } from "@/game/ui-views";
@@ -2073,22 +2074,30 @@ function columnLocked(game: Game, id: string): boolean {
   return cooldownLocksPower(kit) || kitIonLocked(kit) || (id === "cell" && kit.cool > 0);
 }
 
+/** Boarders standing in this player system or kit. The column flashes red while they can attack it. */
+function boarded(game: Game, id: string): boolean {
+  return systemUnderBoarders(game, game.player, "player", id);
+}
+
 /**
  * One bar. An active hack pulse flashes every bar purple.
+ * Boarders flash the working bars red, over a lockout.
  * Ion flashes the locked bars blue. A cooldown flashes the bars power is stuck in
  * (and every backup-battery pip, which has no reactor power of its own).
  * Damaged bars stay red unless a hack is pulsing.
  */
 function barFlashClass(game: Game, id: string, ionSlot: boolean, damaged: boolean, powered = false): string {
   if (hackActive(game, id)) return "is-flash-purple";
+  if (!damaged && boarded(game, id)) return "is-flash-red";
   if (damaged) return "";
   if (ionSlot || (columnLocked(game, id) && (powered || id === "cell"))) return "is-flash-blue";
   return "";
 }
 
-/** The system icon, when the system itself is locked out or a hack pulse is on it. Partial ion only flashes the locked bars. */
+/** The system icon, when boarders are in it, the system is locked out, or a hack pulse is on it. Partial ion only flashes the locked bars. */
 function systemFlashClass(game: Game, id: string): string {
   if (hackActive(game, id)) return "is-flash-purple";
+  if (boarded(game, id)) return "is-flash-red";
   if (columnLocked(game, id)) return "is-flash-blue";
   if (id === "weapons" && game.player.systems.weapons.ion.length > 0) return "is-flash-blue";
   const sys = game.player.systems[id as SysId];
@@ -2105,6 +2114,8 @@ function foeFlash(game: Game, id: string, reveal: boolean, ion = 0): string {
   const ship = game.enemy;
   if (!ship) return "";
   if (hackPulseOn(game, ship, id)) return "is-flash-purple";
+  // Your boarders are on screen at any sensors level. Ion still waits for Sensors to reveal it.
+  if (systemUnderBoarders(game, ship, "enemy", id)) return "is-flash-red";
   if (!reveal) return "";
   const sysId = (
     ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"] as const

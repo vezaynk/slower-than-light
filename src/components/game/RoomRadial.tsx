@@ -1,6 +1,7 @@
 import { tx } from "@/i18n";
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { doorHurt } from "@/game/sim";
 import type { Crew } from "@/game/types";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import type { RadialDoor, Side } from "./room-doors";
@@ -174,6 +175,7 @@ export function RoomRadial({
           const open = d.door?.open ?? false;
           const broken = (d.door?.stuck ?? 0) > 0;
           const dead = broken || !!doorsDead;
+          const hurt = !!d.door && doorHurt(d.door);
           const airlock = d.other === "void";
           const side = turnSide(d.side);
           return (
@@ -184,11 +186,12 @@ export function RoomRadial({
                 `radial-door is-${side}` +
                 (open ? " is-open" : "") +
                 (airlock ? " is-airlock" : "") +
-                (dead ? " is-dead" : "")
+                (dead ? " is-dead" : "") +
+                (hurt ? " is-hurt" : "")
               }
               style={{ left: radius + Math.cos(a) * radius, top: radius + Math.sin(a) * radius }}
               disabled={!onDoor || dead}
-              aria-label={`${airlock ? tx("ui.RoomRadial.airlock") : tx("ui.RoomRadial.door")}: ${broken ? "broken" : doorsDead ? "no door control" : open ? "close" : "open"}`}
+              aria-label={`${airlock ? tx("ui.RoomRadial.airlock") : tx("ui.RoomRadial.door")}: ${broken ? "broken" : hurt ? "damaged" : doorsDead ? "no door control" : open ? "close" : "open"}`}
               aria-pressed={open}
               onClick={() => onDoor?.(d.room, d.other)}
             >

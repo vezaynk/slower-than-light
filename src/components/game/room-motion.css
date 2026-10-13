@@ -196,8 +196,15 @@
   }
 
   .door-layer .door-slab,
-  .door-layer .door-tick.is-broken .door-slab {
+  .door-layer .door-tick.is-broken .door-slab,
+  .door-layer .door-tick.is-hurt .door-slab,
+  .radial-door.is-hurt .radial-slab {
     transition: none;
     animation: none;
+  }
+
+  .door-layer .door-tick.is-hurt .door-slab,
+  .radial-door.is-hurt .radial-slab {
+    background: var(--color-danger);
   }
 }

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, DEPOWER_DRAIN_S, depowerWeapon, powerMask, sparePower, startCombat, step, toggleWeapon } from "./sim.ts";
+import { createGame, DEPOWER_DRAIN_S, depowerWeapon, powerDown, powerMask, powerUp, sparePower, startCombat, step, toggleWeapon } from "./sim.ts";
+import type { WeaponInst } from "./types.ts";
 
 describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", () => {
   it("returns a switched-off weapon's bars to the reactor and draws them back when switched on", () => {
@@ -63,6 +64,56 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
     assert.equal(w.enabled, true);
     step(g, 0.05);
     assert.ok(w.charge < 0.5 && w.charge > 0.4);
+  });
+
+  it("enables weapons from the left when power is added, and disables them when it is removed", () => {
+    const g = createGame(3, "kestrel-a");
+    g.player.reactor = 25;
+    const sys = g.player.systems.weapons;
+    sys.level = 8;
+    sys.damage = 0;
+    sys.ion = [];
+    sys.power = 0;
+    const gun = (defId: string, uid: string): WeaponInst => ({
+      uid,
+      defId,
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
+    // Burst Laser II needs 2. Basic Laser needs 1. One click covers the whole cost.
+    g.player.weapons = [gun("lineburst", "burst"), gun("spark", "laser")];
+    powerUp(g, "weapons");
+    assert.equal(sys.power, 2);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    assert.deepEqual(powerMask(g.player), [true, false]);
+    powerUp(g, "weapons");
+    assert.equal(sys.power, 3);
+    assert.equal(g.player.weapons[1]!.enabled, true);
+    assert.deepEqual(powerMask(g.player), [true, true]);
+    powerDown(g, "weapons");
+    assert.equal(sys.power, 2);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    powerDown(g, "weapons");
+    assert.equal(sys.power, 0);
+    assert.equal(g.player.weapons[0]!.enabled, false);
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    assert.deepEqual(powerMask(g.player), [false, false]);
+  });
+
+  it("does not retarget weapon power when another system changes", () => {
+    const g = createGame(3, "kestrel-a");
+    const before = g.player.weapons.map((w) => w.enabled);
+    const engines = g.player.systems.engines.power;
+    if (sparePower(g.player) > 0 && engines < g.player.systems.engines.level) powerUp(g, "engines");
+    else powerDown(g, "engines");
+    assert.deepEqual(
+      g.player.weapons.map((w) => w.enabled),
+      before,
+    );
   });
 
   it("drains an unpowered gun outside a fight too", () => {

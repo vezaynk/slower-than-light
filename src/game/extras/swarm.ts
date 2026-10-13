@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, crewBlowDamage, crewBlowDue, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
+import { applyIon, blastHits, crewBlowDamage, crewBlowDue, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteDoorArmed, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -1255,7 +1255,10 @@ function chewDoor(
   const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard), g.difficulty);
   // Door System: crew, drones, and boarders move freely when there are no blast doors. The door stays shut.
   if (hits <= 0) return "clear";
-  if (door.hp <= 0) door.hp = hits;
+  if (door.hp <= 0) {
+    door.hp = hits;
+    noteDoorArmed(door, hits);
+  }
   const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
   if (walker.doorChew !== key) {
     walker.doorChew = key;

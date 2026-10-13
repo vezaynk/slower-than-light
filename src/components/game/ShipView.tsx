@@ -1,7 +1,7 @@
 import { tx } from "@/i18n";
 import { animSpeed } from "./speed";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
-import { clipBeamEnd, pointInRoom } from "@/game/beam-line";
+import { clipBeamEnd, pointInRoom, roomsOnSegment } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { cellOccupied, roomClip } from "@/game/layouts";
 import { powerMask, zoltanBars } from "@/game/sim";
@@ -434,6 +434,15 @@ export function ShipView({
     ...beamLines.map((line) => ({ a: line.a, b: line.b, preview: false })),
     ...(beamAnchor && previewEnd ? [{ a: beamAnchor, b: previewEnd, preview: true }] : []),
   ];
+  // Beam (Weapons), "Beam targeting and damage mechanics": a tiny edge of a room is a hit.
+  // The highlight is that same set: the live swipe, and any queued swipe that has not fired.
+  const beamHit = new Set<string>();
+  for (const line of strokes) {
+    for (const id of roomsOnSegment(ship, line.a, line.b)) beamHit.add(id);
+  }
+  if (beamAnchor && !previewEnd) {
+    for (const id of roomsOnSegment(ship, beamAnchor, beamAnchor)) beamHit.add(id);
+  }
   return (
     <div
       ref={hullRef}
@@ -552,6 +561,7 @@ export function ShipView({
               (markDest && destRoom === room.id ? " is-dest" : "") +
               (open ? "" : " is-unseen") +
               (targetable ? " is-aim" : "") +
+              (beamHit.has(room.id) ? " is-beam" : "") +
               // @agent:hacking. An enemy hacking drone on this room's system (extras/spike.ts, Room.hacked).
               (room.hacked ? ` is-hacked is-hacked-${room.hacked}` : "") +
               // @agent:hack-ui. Player hack targeting: valid rooms are lit, the rest are dimmed.

@@ -27,6 +27,16 @@ function open(g: Game) {
 
 describe("Crystal fight intro", () => {
   it("shows one of the seven printed intros, then fights a Crystal ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Crystal fight]]
+    // > "You arrive near a fleet of crystal ships, civilian or mercantile from the looks of them. You pause to scan one but they react immediately and send an escort to fight you off. Prepare to engage!" — [[Crystal fight]]
+    // > "You arrive at the Beacon and are immediately greeted by an automatic message or warning of some kind. The translator can't seem to discern its purpose but after a few short moments an alarm goes off and a hostile ship jumps in!" — [[Crystal fight]]
+    // > "You receive a message, \"Hah. It looks like another worthless alien-filled craft. Prepare to meet your maker!\" Weapon locks detected." — [[Crystal fight]]
+    // > "A Crystalline ship messages you, \"I've heard tales that our isolation has finally ended. As a warrior I must demand to test my skills against you!\" Before you can respond they move in to attack." — [[Crystal fight]]
+    // > "You arrive in a busy sector. At first no one pays any mind to your alien ship but soon you're registering a number of scan signatures. You get the feeling you're not wanted here just seconds before registering enemy weapon locks!" — [[Crystal fight]]
+    // > "You jump next to a node busy with traffic, but before long all nearby ships notice you and keep their distance, uncertain of your allegiance. After an awkward standoff, a military ship breaks away from the rest and charges you." — [[Crystal fight]]
+    // > "A barrage of rasps and clicks is broadcast over the comm; the universal translator understands little, but the words 'aliens', 'allowed' and 'no' come through quite clearly. You'll have to prove your right to be here in combat!" — [[Crystal fight]]
+    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
     assert.equal(INTROS.length, 7);
     assert.equal(new Set(INTROS).size, 7);
     const seen = new Set<string>();
@@ -53,6 +63,8 @@ describe("Crystal fight intro", () => {
   });
 
   it("starts the Crystal ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
     // The page has no choice. One of the seven printed intros, then "Fight a Crystal ship."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

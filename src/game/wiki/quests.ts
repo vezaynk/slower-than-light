@@ -1445,6 +1445,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Crystal fight choice. "Leave them alone." One printed result.
   "c:crystal-fight-choice:1": (g) => {
+    // Wiki citations:
+    // > "Leave them alone." — [[Crystal fight choice]]
+    // > "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump." — [[Crystal fight choice]]
+    // > "Nothing happens." — [[Crystal fight choice]]
     result(g, tx("wiki.quests.it-s-best-to-take-advantage"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Destroyed cargo ship. "Leave it alone, this looks suspicious." One printed result.
@@ -1453,6 +1457,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Pirate ship attacking Crystal. "Ignore them." One printed result.
   "c:pirate-ship-attacking-crystal:1": (g) => {
+    // Wiki citations:
+    // > "Ignore them." — [[Pirate ship attacking Crystal]]
+    // > "You assume the Crystalline ship can handle itself. You have enough of your own problems." — [[Pirate ship attacking Crystal]]
+    // > "Nothing happens." — [[Pirate ship attacking Crystal]]
     result(g, tx("wiki.quests.you-assume-the-crystalline-ship-can"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Escort civilians. "Decline." One printed result.
@@ -3369,6 +3377,12 @@ function rebelCheckpointContact(g: Game) {
  * Destroyed pays medium standard. A crew kill pays high.
  */
 function crystalPirateWin(g: Game, deadCrew: boolean) {
+  // Wiki citations:
+  // > "After destroying enemy ship The ship explodes and you scrap what you can." — [[Pirate ship attacking Crystal]]
+  // > "You receive medium scrap with resources." — [[Pirate ship attacking Crystal]]
+  // > "You contact the Crystal ship." — [[Pirate ship attacking Crystal]]
+  // > "After killing enemy crew With the crew dead you take as much salvage from the ship as possible." — [[Pirate ship attacking Crystal]]
+  // > "You receive high scrap with resources." — [[Pirate ship attacking Crystal]]
   const text = deadCrew
     ? tx("wiki.quests.with-the-crew-dead-you-take")
     : tx("wiki.quests.the-ship-explodes-and-you-scrap");

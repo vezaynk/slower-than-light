@@ -195,6 +195,13 @@ export const NO_SURRENDER_EVENTS = new Set([
 
 /** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */
 const CRYSTAL_FIGHT_HAILS = [
+  // Wiki citations:
+  // > "The surrender text varies, and could be any of the following:" — [[Crystal fight#The ship surrenders]]
+  // > "\"We yield, aliens. We have no wish to die fighting you.\"" — [[Crystal fight#The ship surrenders]]
+  // > "\"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace.\"" — [[Crystal fight#The ship surrenders]]
+  // > "They appear to be transmitting the universal signals for surrender. Will you let them go?" — [[Crystal fight#The ship surrenders]]
+  // > "They message you, \"I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?\"" — [[Crystal fight#The ship surrenders]]
+  // > "\"We cannot beat you, we surrender. Surely there is mercy wherever you come from.\"" — [[Crystal fight#The ship surrenders]]
   tx("wiki.surrender.we-yield-aliens-we-have-no"),
   tx("wiki.surrender.you-have-bested-us-i-will"),
   tx("wiki.surrender.they-appear-to-be-transmitting-the"),
@@ -204,6 +211,10 @@ const CRYSTAL_FIGHT_HAILS = [
 
 /** {{DuplicateEvent|3}} on the goods. The printed OR is the three sentences. INFERRED: equal inside that weight. */
 const CRYSTAL_FIGHT_GOODS = [
+  // Wiki citations:
+  // > "\"Thank you. I hope our early aggression will not prevent a future accord between our peoples.\" They transfer some goods as a means of compensation." — [[Crystal fight#The ship surrenders]]
+  // > "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\"." — [[Crystal fight#The ship surrenders]]
+  // > "\"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this.\"" — [[Crystal fight#The ship surrenders]]
   tx("wiki.surrender.thank-you-i-hope-our-early"),
   tx("wiki.surrender.they-thank-you-for-sparing-them"),
   tx("wiki.surrender.we-would-like-to-apologize-for"),
@@ -211,6 +222,9 @@ const CRYSTAL_FIGHT_GOODS = [
 
 /** {{DuplicateEvent|2}} on nothing. The printed OR is the two sentences. INFERRED: equal inside that weight. */
 const CRYSTAL_FIGHT_NOTHING = [
+  // Wiki citations:
+  // > "\"Thank you. We have misjudged you and will not forget your kindness.\" They leave without another word." — [[Crystal fight#The ship surrenders]]
+  // > "They respond, \"Good. I'm glad to hear that there are still those who value life throughout the galaxy.\" They abruptly cut communications and prepare to jump away." — [[Crystal fight#The ship surrenders]]
   tx("wiki.surrender.thank-you-we-have-misjudged-you"),
   tx("wiki.surrender.they-respond-good-i-m-glad"),
 ];
@@ -266,6 +280,9 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // The template uses the 40% and the 30-40 hull. It does not print the trailing 3-4.
   // Accept is a soldier (once), goods ({{DuplicateEvent|3}}), or nothing ({{DuplicateEvent|2}}). surrenderChoose.
   "crystal-fight": {
+    // Wiki citations:
+    // > "Accept their surrender." — [[Crystal fight#The ship surrenders]]
+    // > "Ignore them." — [[Crystal fight#The ship surrenders]]
     page: "Crystal fight",
     chance: 40,
     low: 30,
@@ -938,6 +955,8 @@ function crystalFightAccept(g: Game) {
     ["nothing", 2],
   ] as ["soldier" | "goods" | "nothing", number][]);
   if (kind === "soldier") {
+    // Wiki citations:
+    // > "What appears to be a young soldier pushes its way onto the vid screen, \"A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?\"" — [[Crystal fight#The ship surrenders]]
     pageCard(
       g,
       tx("wiki.surrender.what-appears-to-be-a-young"),
@@ -951,10 +970,14 @@ function crystalFightAccept(g: Game) {
   }
   closeFight(g);
   if (kind === "goods") {
+    // Wiki citations:
+    // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
     const line = CRYSTAL_FIGHT_GOODS[Math.min(CRYSTAL_FIGHT_GOODS.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_GOODS.length))]!;
     pageResult(g, line, rollStandard(g));
     return;
   }
+  // Wiki citations:
+  // > "Nothing happens." — [[Crystal fight#The ship surrenders]]
   const line = CRYSTAL_FIGHT_NOTHING[Math.min(CRYSTAL_FIGHT_NOTHING.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_NOTHING.length))]!;
   pageResult(g, tx("wiki.surrender.nothing-happens", { line: line }));
 }
@@ -986,6 +1009,8 @@ export function surrenderChoose(g: Game, id: string): boolean {
     // Crystal fight, Ignore them: "The fight continues."
     // Crystal fight with surrender offer (hull repairs), Finish them off: the fight continues.
     // Crystal fight with surrender offer (Human crew), Finish them off: the fight continues.
+    // Wiki citations:
+    // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
     log(g, plan.event === "crystal-fight"
       ? tx("wiki.surrender.you-cut-off-communications-and-prepare")
       : plan.event === "the-black-raven"
@@ -1505,6 +1530,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
 
   // Crystal fight, Accept, Yes. A Crystal crewmember. The ship still holds at most 8 (INFERRED: the page prints no ninth).
   "s:crystal-fight:yes": (g) => {
+    // Wiki citations:
+    // > "\"Great!\" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm." — [[Crystal fight#The ship surrenders]]
+    // > "You receive a Crystal crewmember." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
     const joined = joinCrew(g, tx("wiki.surrender.crystal"));
     pageResult(
@@ -1516,6 +1544,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
   // Crystal fight, Accept, No. "a random amount of resources with some scrap."
   "s:crystal-fight:no": (g) => {
+    // Wiki citations:
+    // > "\"I understand. We did try to kill you...\" They transfer some materials over before leaving." — [[Crystal fight#The ship surrenders]]
+    // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
     pageResult(g, tx("wiki.surrender.i-understand-we-did-try-to"), rollStandard(g));
   },

@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Pirate ship attacking Crystal ignore", () => {
   it("ignoring them prints the problems sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Ignore them." — [[Pirate ship attacking Crystal]]
+    // > "You assume the Crystalline ship can handle itself. You have enough of your own problems." — [[Pirate ship attacking Crystal]]
+    // > "Nothing happens." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
     g.fleet = 5;

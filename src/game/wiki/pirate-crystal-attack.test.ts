@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Pirate ship attacking Crystal attack", () => {
   it("attacking prints the chase sentence and starts a Pirate ship fight", () => {
+    // Wiki citations:
+    // > "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you." — [[Pirate ship attacking Crystal]]
+    // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-crystal:0");

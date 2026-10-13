@@ -26,6 +26,9 @@ function resources(body: string): number {
 
 describe("Pirate ship attacking Crystal", () => {
   it("attacking starts a pirate fight, and ignoring them does nothing", () => {
+    // Wiki citations:
+    // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
+    // > "Nothing happens." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-crystal:0");
@@ -43,6 +46,12 @@ describe("Pirate ship attacking Crystal", () => {
   });
 
   it("a destroyed ship pays medium scrap with resources, and a crew kill pays high", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship The ship explodes and you scrap what you can." — [[Pirate ship attacking Crystal]]
+    // > "You receive medium scrap with resources." — [[Pirate ship attacking Crystal]]
+    // > "You contact the Crystal ship." — [[Pirate ship attacking Crystal]]
+    // > "After killing enemy crew With the crew dead you take as much salvage from the ship as possible." — [[Pirate ship attacking Crystal]]
+    // > "You receive high scrap with resources." — [[Pirate ship attacking Crystal]]
     const destroyed = createGame(3);
     open(destroyed);
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-crystal", false), true);

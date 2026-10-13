@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Rebel fight (Crystal)", () => {
   it("shows the printed sentence, and the fight choice starts a Rebel combat", () => {
+    // Wiki citations:
+    // > "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail." — [[Rebel fight (Crystal)]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Crystal)]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
@@ -33,6 +36,9 @@ describe("Rebel fight (Crystal)", () => {
   });
 
   it("starts the Rebel ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail." — [[Rebel fight (Crystal)]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Crystal)]]
     // The page has no choice. The printed sentence, then "Fight a Rebel ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

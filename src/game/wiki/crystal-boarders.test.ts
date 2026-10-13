@@ -29,6 +29,9 @@ function boarded(g: Game) {
 
 describe("Boarders: Crystal", () => {
   it("is one Hidden Crystal Worlds card and beams 2-3 crystal boarders with no ship", () => {
+    // Wiki citations:
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Boarders: Crystal]]
+    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     const pages = citedPagesFor("Hidden Crystal Worlds").filter((e) => e.dest === DEST);
     assert.equal(pages.length, 1);
     assert.deepEqual([...pages[0].sectors], ["Hidden Crystal Worlds"]);
@@ -65,6 +68,8 @@ describe("Boarders: Crystal", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     // The page has no choice. "2-3 crystal boarders beam aboard your ship."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

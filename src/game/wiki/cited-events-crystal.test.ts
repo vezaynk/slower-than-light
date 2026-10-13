@@ -57,6 +57,12 @@ describe("cited crystal events", () => {
   const wiki = pages();
 
   it("exports only these titles and every Locations name", () => {
+    // Wiki citations:
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal fight]]
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal fight choice]]
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Pirate ship attacking Crystal]]
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Rebel fight (Crystal)]]
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Boarders: Crystal]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((e) => e.dest);
     assert.deepEqual(dests, [
@@ -98,9 +104,11 @@ describe("cited crystal events", () => {
       for (let i = 0; i < lines.length; i++) {
         const comment = lines[i].match(/^\s*\/\/\s?(.*)$/);
         if (!comment) continue;
+        // Quotation comments cite the rendered page. They are not the numbered wiki sentence this check locks.
+        if (comment[1] === "Wiki citations:" || comment[1].startsWith("> \"")) continue;
         assert.ok(page.includes(comment[1]), comment[1]);
         let j = i + 1;
-        while (j < lines.length && lines[j].trim() === "") j++;
+        while (j < lines.length && (lines[j].trim() === "" || /^\s*\/\/\s?(?:Wiki citations:|> ")/.test(lines[j]))) j++;
         assert.ok(lines[j].includes("{"));
         let depth = 0;
         const fx: string[] = [];

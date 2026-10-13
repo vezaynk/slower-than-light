@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Crystal fight choice engage", () => {
   it("engaging prints the obliteration sentence and starts a Crystal ship fight", () => {
+    // Wiki citations:
+    // > "Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!" — [[Crystal fight choice]]
+    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
     const g = createGame(1);
     open(g);
     choose(g, "c:crystal-fight-choice:0");

@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Crystal fight choice leave", () => {
   it("leaving them alone prints the jump sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump." — [[Crystal fight choice]]
+    // > "Nothing happens." — [[Crystal fight choice]]
     const g = createGame(1);
     open(g);
     g.fleet = 5;

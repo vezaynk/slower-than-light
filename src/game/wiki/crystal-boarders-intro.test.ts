@@ -33,6 +33,12 @@ function open(g: Game) {
 
 describe("Boarders: Crystal intros", () => {
   it("shows one of the three printed intros, then beams crystals with no ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Crystal]]
+    // > "You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off." — [[Boarders: Crystal]]
+    // > "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!" — [[Boarders: Crystal]]
+    // > "You pick up chatter from a nearby ship, \"Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens.\" Scanners indicate a remote teleporter was just used." — [[Boarders: Crystal]]
+    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

@@ -19,6 +19,10 @@ function open(g: Game) {
 
 describe("Pirate ship attacking Crystal hail", () => {
   it("prints the full opening sentence, then fights or ignores the pirate", () => {
+    // Wiki citations:
+    // > "A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed." — [[Pirate ship attacking Crystal]]
+    // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
+    // > "Ignore them." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Pirate ship attacking Crystal");

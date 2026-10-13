@@ -2902,6 +2902,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // INFERRED: the count is inclusive (between()). unique=false: Template:Locations says this event can occur multiple times per sector.
   // No ship. Not a crew grant.
   "c:boarders-crystal:0": (g) => {
+    // Wiki citations:
+    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     crystalBoarders(g, 2, 3);
     beginBoarding(g);
   },

@@ -3865,6 +3865,11 @@ const NEBULA_HUMAN_BOARDER_INTROS = [
 // Boarders: Crystal. The page prints three intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-crystal:0.
 const CRYSTAL_BOARDER_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Crystal]]
+  // > "You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off." — [[Boarders: Crystal]]
+  // > "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!" — [[Boarders: Crystal]]
+  // > "You pick up chatter from a nearby ship, \"Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens.\" Scanners indicate a remote teleporter was just used." — [[Boarders: Crystal]]
   tx("wiki.cited-events.you-detect-a-heavily-armed-crystalline"),
   tx("wiki.cited-events.you-arrive-near-a-small-settlement"),
   tx("wiki.cited-events.you-pick-up-chatter-from-a"),
@@ -4049,6 +4054,15 @@ const ZOLTAN_FIGHT_INTROS = [
 // Crystal fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:crystal-fight:0. The unique surrender is surrender.ts.
 const CRYSTAL_FIGHT_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Crystal fight]]
+  // > "You arrive near a fleet of crystal ships, civilian or mercantile from the looks of them. You pause to scan one but they react immediately and send an escort to fight you off. Prepare to engage!" — [[Crystal fight]]
+  // > "You arrive at the Beacon and are immediately greeted by an automatic message or warning of some kind. The translator can't seem to discern its purpose but after a few short moments an alarm goes off and a hostile ship jumps in!" — [[Crystal fight]]
+  // > "You receive a message, \"Hah. It looks like another worthless alien-filled craft. Prepare to meet your maker!\" Weapon locks detected." — [[Crystal fight]]
+  // > "A Crystalline ship messages you, \"I've heard tales that our isolation has finally ended. As a warrior I must demand to test my skills against you!\" Before you can respond they move in to attack." — [[Crystal fight]]
+  // > "You arrive in a busy sector. At first no one pays any mind to your alien ship but soon you're registering a number of scan signatures. You get the feeling you're not wanted here just seconds before registering enemy weapon locks!" — [[Crystal fight]]
+  // > "You jump next to a node busy with traffic, but before long all nearby ships notice you and keep their distance, uncertain of your allegiance. After an awkward standoff, a military ship breaks away from the rest and charges you." — [[Crystal fight]]
+  // > "A barrage of rasps and clicks is broadcast over the comm; the universal translator understands little, but the words 'aliens', 'allowed' and 'no' come through quite clearly. You'll have to prove your right to be here in combat!" — [[Crystal fight]]
   tx("wiki.cited-events.you-arrive-near-a-fleet-of"),
   tx("wiki.cited-events.you-arrive-at-the-beacon-and-3"),
   tx("wiki.cited-events.you-receive-a-message-hah-it"),
@@ -4938,6 +4952,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
   // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
   if (ev.slug === "crystal-fight") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Crystal fight]]
+    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
     return {
       title: ev.dest,
       body: CRYSTAL_FIGHT_INTROS[between(g, [0, 6])]!,
@@ -5228,6 +5245,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Boarders: Crystal. One of the three printed intros. The boarders stay c:boarders-crystal:0.
   if (ev.slug === "boarders-crystal") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Crystal]]
+    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     return {
       title: ev.dest,
       body: CRYSTAL_BOARDER_INTROS[between(g, [0, 2])]!,
@@ -5601,11 +5621,23 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-near-radar-station:0") ctx.note(tx("wiki.cited-events.the-ship-powers-up-and-targets"));
   // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
-  if (id === "c:crystal-fight-choice:0") ctx.note(tx("wiki.cited-events.before-you-can-engage-the-crystalline"));
+  if (id === "c:crystal-fight-choice:0") {
+    // Wiki citations:
+    // > "Engage the Rebel ship." — [[Crystal fight choice]]
+    // > "Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!" — [[Crystal fight choice]]
+    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
+    ctx.note(tx("wiki.cited-events.before-you-can-engage-the-crystalline"));
+  }
   // Lanius powered-down ship. "Scan the ship for lifeforms." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-powered-down-ship:0") ctx.note(tx("wiki.cited-events.as-you-scan-the-vessel-the"));
   // Pirate ship attacking Crystal. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:pirate-ship-attacking-crystal:0") ctx.note(tx("wiki.cited-events.you-chase-down-the-pirate-before"));
+  if (id === "c:pirate-ship-attacking-crystal:0") {
+    // Wiki citations:
+    // > "Attack the pirate." — [[Pirate ship attacking Crystal]]
+    // > "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you." — [[Pirate ship attacking Crystal]]
+    // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
+    ctx.note(tx("wiki.cited-events.you-chase-down-the-pirate-before"));
+  }
   // Remote settlement. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:remote-settlement:0") ctx.note(tx("wiki.cited-events.you-asked-for-it-they-pull"));
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.

@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Engi fleet discussion ignore", () => {
   it("ignoring the fleet shows the printed wonder sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Ignore it and move on." — [[Engi fleet discussion]]
+    // > "You can't help but wonder what they were discussing as you prepare to jump." — [[Engi fleet discussion]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;

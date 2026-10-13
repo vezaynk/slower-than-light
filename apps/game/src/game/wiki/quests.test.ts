@@ -263,6 +263,13 @@ describe("Cited events that add a marker", () => {
 
 describe("Slug comm tapping", () => {
   it("is a Slug nebula card whose tap adds the marker; engaging the pirate offers 'Let the pirate escape' for high scrap", () => {
+    // Wiki citations:
+    // > "Tap their comm frequency." — [[Slug comm tapping]]
+    // > "A quest marker is added to your map." — [[Slug comm tapping]]
+    // > "Engage the pirate." — [[Slug comm tapping#Quest Marker]]
+    // > "Let the pirate escape and go after the Slugman ship." — [[Slug comm tapping#Quest Marker]]
+    // > "The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. \"Ah, of courssse, we would never leave without providing the agreed upon ssspoils.\" They transfer over a decent chunk of the profits and set off." — [[Slug comm tapping#Quest Marker]]
+    // > "You receive high scrap." — [[Slug comm tapping#Quest Marker]]
     const ev = SURRENDER_PAGES.find((e) => e.dest === "Slug comm tapping")!;
     assert.deepEqual(ev.sectors, ["Slug Controlled Nebula", "Slug Home Nebula"]);
     const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
@@ -289,6 +296,10 @@ describe("Slug comm tapping", () => {
   });
 
   it("Head for the cache: no surrender; destroyed pays low scrap with resources", () => {
+    // Wiki citations:
+    // > "Head for the cache." — [[Slug comm tapping#Quest Marker]]
+    // > "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
+    // > "You receive low scrap with resources." — [[Slug comm tapping#Quest Marker]]
     const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
     choose(g, "c:slug-comm-tapping:0");
     choose(g, "ack");
@@ -305,6 +316,11 @@ describe("Slug comm tapping", () => {
 
 describe("Engi fleet discussion", () => {
   it("the Engi Crew blue option needs an Engi crewmember; it adds the real and the fake markers", () => {
+    // Wiki citations:
+    // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
+    // > "Offer your help." — [[Engi fleet discussion]]
+    // > "A quest marker is added to your map." — [[Engi fleet discussion]]
+    // > "A second quest marker is added to your map." — [[Engi fleet discussion]]
     const g = atCited(createGame(6), "Engi Homeworlds", "Engi fleet discussion");
     for (const c of g.crew) if (c.side === "player") c.kin = "plain";
     assert.equal(choiceDisabled(g, "c:engi-fleet-discussion:2"), "Needs an Engi crewmember");
@@ -320,6 +336,12 @@ describe("Engi fleet discussion", () => {
   });
 
   it("real marker: runs from the start (40 s); crew killed -> high reward and the final marker; final -> Victory", () => {
+    // Wiki citations:
+    // > "When the ship wants to escape As soon as they see you they power up their engines to jump away. Stop them!" — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "You receive high scrap with resources and a final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
+    // > "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your ship receives 20 repairs." — [[Engi fleet discussion#Victory]]
     const g = createGame(12);
     g.sector = 4;
     addQuest(g, "engi-real");
@@ -354,6 +376,10 @@ describe("Engi fleet discussion", () => {
   });
 
   it("real marker escaping fails the quest; fake marker surrender -> 'Let them go.' ends the fight with nothing", () => {
+    // Wiki citations:
+    // > "With the ship gone, you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "Let them go." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "The ship turns neutral." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     const g = createGame(13);
     addQuest(g, "engi-real");
     const real = questBeacons(g, "engi-real")[0];
@@ -416,6 +442,13 @@ describe("Other surrender pages with a marker", () => {
   });
 
   it("Settlement mercenary work: the space dock marker; the rescue pays medium scrap, 5 repairs, and opens a store", () => {
+    // Wiki citations:
+    // > "Agree to rescue the store." — [[Settlement mercenary work]]
+    // > "A quest marker is added to your map." — [[Settlement mercenary work]]
+    // > "Engage the Rebel and rescue the space dock." — [[Settlement mercenary work#Quest marker]]
+    // > "The \"SQUAT_STORE_RESCUE\" ship assaulting the space dock doesn't surrender, nor tries to escape." — [[Settlement mercenary work#Trivia]]
+    // > "The outpost hails you, \"Thank you! I don't know what we did to anger the Rebels, but they were ready to kill us. I'll show you our goods and patch up your hull.\"" — [[Settlement mercenary work#Quest marker]]
+    // > "You receive medium scrap, your ship receives 5 repairs and a store opens." — [[Settlement mercenary work#Quest marker]]
     let g: Game | null = null;
     for (let seed = 1; seed < 40 && !g; seed++) {
       const t = createGame(seed);
@@ -453,6 +486,15 @@ describe("Page win rewards (destroyed / crew killed)", () => {
   ];
   for (const [sector, dest, fightId, destroyed, killed] of cases) {
     it(`${dest}: the page's own text and scrap with resources replace the default salvage`, () => {
+      // Wiki citations:
+      // > "\"The Black Raven\" breaks apart and you salvage the remains." — [[The Black Raven#Fighting the Black Raven]]
+      // > "You receive medium scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
+      // > "The once-dreaded pirate Nights has been killed and you proceed to loot his ship." — [[The Black Raven#Fighting the Black Raven]]
+      // > "You receive high scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
+      // > "While you search the debris, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
+      // > "You receive low scrap with resources." — [[Zoltan ship asks to dock]]
+      // > "While you scrap their ship, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
+      // > "You receive medium scrap with resources." — [[Zoltan ship asks to dock]]
       for (const how of ["hull", "crew"] as const) {
         let g: Game | null = null;
         for (let seed = 1; seed < 40 && !g; seed++) {
@@ -475,6 +517,9 @@ describe("Page win rewards (destroyed / crew killed)", () => {
   }
 
   it("Settlement mercenary work, pirates dead: low scrap with resources", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump." — [[Settlement mercenary work]]
+    // > "You receive low scrap with resources." — [[Settlement mercenary work]]
     const g = atCited(createGame(1), "Civilian Sector", "Settlement mercenary work");
     choose(g, "s:settlement-mercenary-work:accept");
     g.enemySurrender!.chance = 0;

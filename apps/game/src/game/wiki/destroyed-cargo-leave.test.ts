@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Destroyed cargo ship leave", () => {
   it("leaving the cargo prints the jump sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Leave it alone, this looks suspicious." — [[Destroyed cargo ship]]
+    // > "You leave the cargo alone and prepare to jump." — [[Destroyed cargo ship]]
+    // > "Nothing happens." — [[Destroyed cargo ship]]
     const g = createGame(1);
     open(g);
     g.fleet = 5;

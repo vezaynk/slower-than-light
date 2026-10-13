@@ -28,6 +28,8 @@ function slugsAboard(g: Game) {
 
 describe("The Black Raven mind duel", () => {
   it("stays closed without a living Slug, including a dead one", () => {
+    // Wiki citations:
+    // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
     const g = arrive(4);
     assert.equal(choiceDisabled(g, DUEL), "Needs a Slug crewmember");
     const weapons = g.player.weapons.length;
@@ -43,6 +45,12 @@ describe("The Black Raven mind duel", () => {
   });
 
   it("a living Slug either beams 1-2 slug boarders into the fight or pays high scrap and a random weapon", () => {
+    // Wiki citations:
+    // > "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You can only wonder what is happening. After a short time your comrade grunts in pain and collapses onto the floor, stunned. Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"" — [[The Black Raven]]
+    // > "1-2 slug boarders beam aboard your ship and you fight the Black Raven." — [[The Black Raven]]
+    // > "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious." — [[The Black Raven]]
+    // > "His face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"" — [[The Black Raven]]
+    // > "You receive a weapon with high scrap." — [[The Black Raven]]
     let boarded = false;
     let paid = false;
     for (let seed = 1; seed <= 80 && !(boarded && paid); seed++) {

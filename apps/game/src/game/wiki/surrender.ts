@@ -167,6 +167,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   "quest-space-station-rebel",
   "quest-engi-final",
   "quest-mantis-war-camp",
+  // Wiki citations:
+  // > "The \"SQUAT_STORE_RESCUE\" ship assaulting the space dock doesn't surrender, nor tries to escape." — [[Settlement mercenary work#Trivia]]
   "quest-store-rescue",
   // Lanius ship absorbing automated scout: {{SurrenderEscape(alt)|escapechance|...|80|20-40|2-4}}.
   // escapechance is an escape attempt only. The 2-4 is the hull tooltip, not a timer.
@@ -422,6 +424,13 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // settlement." -> "You receive a weapon with medium scrap." The weapon is not named: Rewards, "Weapon": "A random
   // weapon & T scrap." The italic is the return to the settlement.
   "settlement-mercenary-work": {
+    // Wiki citations:
+    // > "When the ship surrenders They hail your ship saying, \"You win! We're not cut out for this!\" (surrenders at 30-40% hull)" — [[Settlement mercenary work]]
+    // > "Let them live and then return to the settlement." — [[Settlement mercenary work]]
+    // > "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\"" — [[Settlement mercenary work]]
+    // > "You receive a weapon with medium scrap." — [[Settlement mercenary work]]
+    // > "Forget your promise, they die!" — [[Settlement mercenary work]]
+    // > "The fight continues." — [[Settlement mercenary work]]
     page: "Settlement mercenary work",
     chance: 100,
     low: 30,
@@ -436,6 +445,13 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // gives no percent chance; INFERRED 100% (a scripted surrender, listed in Category:Ship surrender Events).
   // "Accept his surrender." -> "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
   "the-black-raven": {
+    // Wiki citations:
+    // > "When the ship surrenders \"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame.\"" — [[The Black Raven#Fighting the Black Raven]]
+    // > "Accept his surrender." — [[The Black Raven#Fighting the Black Raven]]
+    // > "He transfers over the goods and starts to repair his ship." — [[The Black Raven#Fighting the Black Raven]]
+    // > "You receive a weapon with high scrap." — [[The Black Raven#Fighting the Black Raven]]
+    // > "Ignore him and attack." — [[The Black Raven#Fighting the Black Raven]]
+    // > "The ship proposes a surrender offer when its hull integrity falls down to 30-40%." — [[The Black Raven#Trivia]]
     page: "The Black Raven",
     chance: 100,
     low: 30,
@@ -450,6 +466,10 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // surrender at 30-40% hull". -> "You receive a Zoltan crewmember and low scrap with resources." Trivia: "there is
   // no option or prompt to decline the surrender". INVENTED: the accept label (the page has no choice there).
   "zoltan-ship-asks-to-dock": {
+    // Wiki citations:
+    // > "When the ship surrenders The Zoltan captain sends an urgent hail: \"Wait, this was all a test! A test that you passed! A diverse crew, working together, surely a sight to warm the heart of any dispassionate observer. Come, I shall join your crew!\" (Enemy ship has 50% chance to surrender at 30-40% hull; never tries to escape )" — [[Zoltan ship asks to dock]]
+    // > "You receive a Zoltan crewmember and low scrap with resources." — [[Zoltan ship asks to dock]]
+    // > "If surrender is triggered, the fight is over: there is no option or prompt to decline the surrender to continue the fight." — [[Zoltan ship asks to dock#Trivia]]
     page: "Zoltan ship asks to dock",
     chance: 50,
     low: 30,
@@ -465,6 +485,13 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // percent is printed: INFERRED 100% (a scripted surrender). "Let the pirate escape and go after the Slugman ship."
   // -> "You receive high scrap." (Rewards#Scrap only).
   "quest-slug-pirate-trap-engage": {
+    // Wiki citations:
+    // > "When the ship surrenders When the pirate ship looks ready to break apart you notice the Slug ship has secured the loot and is preparing to jump away! (surrenders at 30-40% hull)" — [[Slug comm tapping#Quest Marker]]
+    // > "Continue fighting the pirate." — [[Slug comm tapping#Quest Marker]]
+    // > "The fight continues." — [[Slug comm tapping#Quest Marker]]
+    // > "Let the pirate escape and go after the Slugman ship." — [[Slug comm tapping#Quest Marker]]
+    // > "The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. \"Ah, of courssse, we would never leave without providing the agreed upon ssspoils.\" They transfer over a decent chunk of the profits and set off." — [[Slug comm tapping#Quest Marker]]
+    // > "You receive high scrap." — [[Slug comm tapping#Quest Marker]]
     page: "Slug comm tapping",
     chance: 100,
     low: 30,
@@ -479,6 +506,12 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // chance printed: INFERRED 100%. The page prints one answer, "Demand information on the stolen technology." -> "A final
   // quest marker is added to your map." -> "Let them go." So the card has no refuse (forced) and pays nothing.
   "quest-engi-real": {
+    // Wiki citations:
+    // > "When the ship surrenders \"Stop! This isn't worth dying for...\"" — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "Demand information on the stolen technology." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "\"Of course, that's why you're here. Yes, they passed by here but I had nothing to do with it, I don't know what they were carrying. I'll transmit coordinates. Now just let us go...\"" — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "A final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "You prepare an FTL message containing the coordinates to send to the Engies and get ready to jump." — [[Engi fleet discussion#First Quest Marker (Real)]]
     page: "Engi fleet discussion",
     chance: 100,
     low: 50,
@@ -495,6 +528,12 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Demand information on the stolen technology." opens the page's follow-up: "Let them go." ("The ship turns neutral.")
   // or "Ignore him and attack." ("Continue the fight."), handled in wiki/quests.ts.
   "quest-engi-fake": {
+    // Wiki citations:
+    // > "When the ship surrenders \"Stop! I don't want to die here.\"" — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "Demand information on the stolen technology." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "\"Ah, so that's what you're after. Too bad, you followed the wrong ship. The envoy that passed through here was a fake, to trick fools like you. Now let us go!\"" — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "Let them go." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "Ignore him and attack." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     page: "Engi fleet discussion",
     chance: 100,
     low: 40,
@@ -1017,6 +1056,9 @@ export function surrenderChoose(g: Game, id: string): boolean {
     log(g, plan.event === "crystal-fight"
       ? tx("wiki.surrender.you-cut-off-communications-and-prepare")
       : plan.event === "the-black-raven"
+        // Wiki citations:
+        // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
+        // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
         ? tx("wiki.surrender.wait-there-is-no-need-to")
         : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
           ? tx("wiki.surrender.they-wanted-to-pick-a-fight")
@@ -1355,12 +1397,18 @@ export const NEVER_RUN: EscapePlan = { mode: "never", seconds: 0, chance: 0, thr
 function cargoScan(g: Game) {
   const r = pick(g, ["dull", "supplies", "ambush"] as const);
   if (r === "dull") {
+    // Wiki citations:
+    // > "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "You receive Scrap gained: 20-35." — [[Destroyed cargo ship#Scan the boxes]]
     const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: between(g, [20, 35]), fuel: 0, missiles: 0, parts: 0 };
     offer.scrap = adjustScrap(g, offer.eligible);
     pageResult(g, tx("wiki.surrender.the-cargo-appears-to-contain-nothing"), offer);
     return;
   }
   if (r === "supplies") {
+    // Wiki citations:
+    // > "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "You receive medium scrap with resources." — [[Destroyed cargo ship#Scan the boxes]]
     pageResult(
       g,
       tx("wiki.surrender.your-advanced-sensors-are-able-to"),
@@ -1368,6 +1416,10 @@ function cargoScan(g: Game) {
     );
     return;
   }
+  // Wiki citations:
+  // > "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush." — [[Destroyed cargo ship#Scan the boxes]]
+  // > "Destroy the crates to prevent another ship from falling victim." — [[Destroyed cargo ship#Scan the boxes]]
+  // > "Leave it alone and prepare to jump." — [[Destroyed cargo ship#Scan the boxes]]
   pageCard(g, tx("wiki.surrender.your-advanced-sensors-pick-up-faint"), [
     { id: "s:destroyed-cargo-ship:destroy", label: tx("wiki.surrender.destroy-the-crates-to-prevent-another") },
     { id: "s:destroyed-cargo-ship:leave", label: tx("wiki.surrender.leave-it-alone-and-prepare-to") },
@@ -1379,8 +1431,14 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   // Explain that you're friendly. Two results: "Nothing happens." / "You receive a random amount of scrap with resources."
   "c:engi-surrender:0": (g) => {
     if (rand(g) < 0.5) {
+      // Wiki citations:
+      // > "The Engi seem relieved, and eager to get underway. They set off without saying goodbye." — [[Engi surrender]]
+      // > "Nothing happens." — [[Engi surrender]]
       pageResult(g, tx("wiki.surrender.the-engi-seem-relieved-and-eager"));
     } else {
+      // Wiki citations:
+      // > "The Engi are satisfied with your explanation. \"Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi.\" They send over the gear willingly, and you feel better for it." — [[Engi surrender]]
+      // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
       pageResult(
         g,
         tx("wiki.surrender.the-engi-are-satisfied-with-your"),
@@ -1390,6 +1448,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
   // Accept their offer of surrender. -> "You receive a random amount of scrap with resources."
   "c:engi-surrender:1": (g) => {
+    // Wiki citations:
+    // > "The Engi obediently transfer over the goods and get on their way. Money for nothing." — [[Engi surrender]]
+    // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
     pageResult(g, tx("wiki.surrender.the-engi-obediently-transfer-over-the"), rollStandard(g));
   },
 
@@ -1398,16 +1459,27 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   "c:destroyed-cargo-ship:0": (g) => {
     const r = pick(g, ["supplies", "goods", "boarders", "ambush"] as const);
     if (r === "supplies") {
+      // Wiki citations:
+      // > "They appear to be filled with military supplies! You take everything you can use and jettison the rest." — [[Destroyed cargo ship]]
+      // > "You receive medium scrap with resources." — [[Destroyed cargo ship]]
       pageResult(g, tx("wiki.surrender.they-appear-to-be-filled-with"), rollStandard(g, "medium"));
     } else if (r === "goods") {
+      // Wiki citations:
+      // > "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap." — [[Destroyed cargo ship]]
+      // > "You receive low scrap." — [[Destroyed cargo ship]]
       const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: between(g, scrapBand(g, "low")), fuel: 0, missiles: 0, parts: 0 };
       offer.scrap = adjustScrap(g, offer.eligible);
       pageResult(g, tx("wiki.surrender.the-cargo-was-primarily-consumer-goods"), offer);
     } else if (r === "boarders") {
+      // Wiki citations:
+      // > "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open..." — [[Destroyed cargo ship]]
       log(g, tx("wiki.surrender.once-you-bring-the-cargo-onto"));
       humanBoarders(g, 2, 4);
       beginBoarding(g);
     } else {
+      // Wiki citations:
+      // > "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!" — [[Destroyed cargo ship]]
+      // > "2-4 human boarders beam aboard your ship and you fight a Pirate ship (default rewards)." — [[Destroyed cargo ship]]
       // JELLY_PIRATE_WITHBOARDERS: "70% chance for escape attempt at 20-40% hull with 15 seconds countdown timer".
       const escape: EscapePlan = { ...NEVER_RUN, mode: "hull", seconds: HULL_RUN_SECONDS, chance: 70, threshold: 20 + rand(g) * 20 };
       pageFight(
@@ -1432,6 +1504,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     cargoScan(g);
   },
   "s:destroyed-cargo-ship:destroy": (g) => {
+    // Wiki citations:
+    // > "You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, \"You will pay for that!\"" — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Fight a Pirate ship (default rewards)." — [[Destroyed cargo ship#Scan the boxes]]
     // SurrenderEscape(alt) escape+surrender PIRATE: 50% escape at 20-40% hull and 50% surrender at 30-40% hull.
     // Those are the Pirate default rows. A new slug keeps the bring-aboard 100% offer off this fight.
     // The template's 2-4 and 3-4 are its actual-hull warning, the same reading as the other Pirate rows.
@@ -1443,6 +1518,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     );
   },
   "s:destroyed-cargo-ship:leave": (g) => {
+    // Wiki citations:
+    // > "Nothing happens." — [[Destroyed cargo ship#Scan the boxes]]
     // The page prints no italic before "Nothing happens."
     pageResult(g, tx("wiki.surrender.nothing-happens-2"));
   },
@@ -1450,6 +1527,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   // ---- "Settlement mercenary work", Listen to their offer. Two offers on the page. ----
   "c:settlement-mercenary-work:0": (g) => {
     if (rand(g) < 0.5) {
+      // Wiki citations:
+      // > "\"Some of our friends have taken to piracy in the recent chaos of the war. We'd like you to \"convince\" them of their poor decision by severely damaging the ship. We'll pay you well as long as you don't kill them all.\"" — [[Settlement mercenary work]]
       pageCard(
         g,
         tx("wiki.surrender.some-of-our-friends-have-taken"),
@@ -1460,6 +1539,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       );
     } else {
       // The space dock offer: "Agree to rescue the store." adds a quest marker (@agent:quests, wiki/quests.ts).
+      // Wiki citations:
+      // > "\"A space dock is under assault from the Rebels. Although the dock is... technically... illegal within their laws, it's very important for our trade. We'll pay you in fuel and scrap if you promise to save them.\"" — [[Settlement mercenary work]]
+      // > "Agree to rescue the store." — [[Settlement mercenary work]]
       pageCard(
         g,
         tx("wiki.surrender.a-space-dock-is-under-assault"),
@@ -1472,6 +1554,10 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
   // Accept. -> "Fight a Pirate ship." Trivia: "The 'SQUAT_PIRATE_MERCENARY' ship from the settlement never runs away."
   "s:settlement-mercenary-work:accept": (g) => {
+    // Wiki citations:
+    // > "\"Just be sure not to blow them up!\" they say nervously as they direct you to a nearby moon. You find the pirate ship docked there. They immediately respond to your appearance with, \"Your money or your life!\" They must be new to this." — [[Settlement mercenary work]]
+    // > "Fight a Pirate ship." — [[Settlement mercenary work]]
+    // > "The \"SQUAT_PIRATE_MERCENARY\" ship from the settlement never runs away." — [[Settlement mercenary work#Trivia]]
     pageFight(
       g,
       tx("wiki.surrender.just-be-sure-not-to-blow"),
@@ -1481,19 +1567,33 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     );
   },
   "s:settlement-mercenary-work:decline": (g) => {
+    // Wiki citations:
+    // > "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector." — [[Settlement mercenary work]]
+    // > "Nothing happens." — [[Settlement mercenary work]]
     pageResult(g, tx("wiki.surrender.fine-i-don-t-know-what"));
   },
   // "A quest marker is added to your map." @agent:quests: the space dock rescue (wiki/quests.ts "store-rescue").
   "s:settlement-mercenary-work:dock": (g) => {
+    // Wiki citations:
+    // > "They transmit the space dock's coordinates." — [[Settlement mercenary work]]
+    // > "A quest marker is added to your map." — [[Settlement mercenary work]]
     pageResult(g, tx("wiki.surrender.they-transmit-the-space-dock-s", { addQuest: addQuest(g, "store-rescue") }));
   },
   "s:settlement-mercenary-work:nodock": (g) => {
+    // Wiki citations:
+    // > "They regretfully accept your decision." — [[Settlement mercenary work]]
+    // > "Nothing happens." — [[Settlement mercenary work]]
     pageResult(g, tx("wiki.surrender.they-regretfully-accept-your-decision"));
   },
 
   // ---- "The Black Raven", No. -> the challenge. Both answers fight the Black Raven. ----
   // Trivia: "always a Slug Assault class": asked for by class (enemy-gen.ts classId), as a pirate (Captain Nights).
   "c:the-black-raven:0": (g) => {
+    // Wiki citations:
+    // > "\"Well I have heard of you and I must see if you are as dangerousss as they say. I challenge you!\"" — [[The Black Raven]]
+    // > "Accept his challenge." — [[The Black Raven]]
+    // > "Decline." — [[The Black Raven]]
+    // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
     pageCard(g, tx("wiki.surrender.well-i-have-heard-of-you"), [
       { id: "s:the-black-raven:accept", label: tx("wiki.surrender.accept-his-challenge") },
       { id: "s:the-black-raven:decline", label: tx("wiki.surrender.decline") },
@@ -1507,6 +1607,10 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   "s:the-black-raven:duel": (g) => {
     if (!livingSlug(g)) return;
     if (rand(g) < 0.5) {
+      // Wiki citations:
+      // > "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You can only wonder what is happening. After a short time your comrade grunts in pain and collapses onto the floor, stunned. Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"" — [[The Black Raven]]
+      // > "1-2 slug boarders beam aboard your ship and you fight the Black Raven." — [[The Black Raven]]
+      // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
       pageFight(
         g,
         tx("wiki.surrender.your-slug-crewman-s-eyes-glaze"),
@@ -1515,6 +1619,10 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       );
       slugBoarders(g, 1, 2);
     } else {
+      // Wiki citations:
+      // > "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious." — [[The Black Raven]]
+      // > "His face contorted with pain, Nights concedes his defeat: \"If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame.\"" — [[The Black Raven]]
+      // > "You receive a weapon with high scrap." — [[The Black Raven]]
       const eligible = between(g, scrapBand(g, "high"));
       pageResult(
         g,
@@ -1525,9 +1633,16 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   },
   // INVENTED: the log line (the page goes straight to the fight).
   "s:the-black-raven:accept": (g) => {
+    // Wiki citations:
+    // > "Fight the Black Raven." — [[The Black Raven]]
+    // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
     pageFight(g, tx("wiki.surrender.captain-nights-accepts-the-black-raven"), tx("wiki.surrender.slug-assault-pirate-ship"), "the-black-raven");
   },
   "s:the-black-raven:decline": (g) => {
+    // Wiki citations:
+    // > "\"I sssee... However you have no choice in the matter!\" They move in to attack." — [[The Black Raven]]
+    // > "Fight the Black Raven." — [[The Black Raven]]
+    // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
     pageFight(g, tx("wiki.surrender.i-sssee-however-you-have-no"), tx("wiki.surrender.slug-assault-pirate-ship"), "the-black-raven");
   },
 
@@ -1557,9 +1672,15 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
   // ---- "Zoltan ship asks to dock", Dock with them. Two results on the page. ----
   "c:zoltan-ship-asks-to-dock:0": (g) => {
     if (rand(g) < 0.5) {
+      // Wiki citations:
+      // > "You allow them to approach, but are caught unaware when they open fire!" — [[Zoltan ship asks to dock]]
+      // > "Fight a Zoltan ship." — [[Zoltan ship asks to dock]]
       // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in wiki/escape.ts already).
       pageFight(g, tx("wiki.surrender.you-allow-them-to-approach-but"), tx("wiki.surrender.zoltan-ship"), "zoltan-ship-asks-to-dock", { ...NEVER_RUN });
     } else {
+      // Wiki citations:
+      // > "We have been studying the relationships between the species and have determined that the 'Federation' still has potential to be a net positive for the galaxy. Please accept this gift to aid your journey." — [[Zoltan ship asks to dock]]
+      // > "You receive medium resources with some scrap." — [[Zoltan ship asks to dock]]
       // "You receive medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap." (Rewards#Stuff)
       pageResult(
         g,

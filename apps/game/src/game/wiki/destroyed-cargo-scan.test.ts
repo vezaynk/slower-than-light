@@ -24,6 +24,9 @@ function open(g: Game) {
 
 describe("Destroyed cargo ship scan", () => {
   it("stays closed without Sensors level 2 or Long-Ranged Scanners", () => {
+    // Wiki citations:
+    // > "(Advanced Sensors) Run an advanced scan on the boxes. (Requires level 2+ Sensors)" — [[Destroyed cargo ship]]
+    // > "(Long-Ranged Scanners) Run an advanced scan on the boxes." — [[Destroyed cargo ship]]
     const g = createGame(1);
     g.player.systems.sensors.level = 1;
     g.augments = g.augments.filter((id) => id !== "glass");
@@ -58,6 +61,13 @@ describe("Destroyed cargo ship scan", () => {
   });
 
   it("scans to dull scrap, military supplies, or the pirate ambush", () => {
+    // Wiki citations:
+    // > "Scan the boxes." — [[Destroyed cargo ship]]
+    // > "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "You receive Scrap gained: 20-35." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "You receive medium scrap with resources." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush." — [[Destroyed cargo ship#Scan the boxes]]
     let dull = false;
     let supplies = false;
     let ambush = false;
@@ -107,6 +117,12 @@ describe("Destroyed cargo ship scan", () => {
   });
 
   it("destroying the crates starts a Pirate fight, and leaving does nothing", () => {
+    // Wiki citations:
+    // > "Destroy the crates to prevent another ship from falling victim." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, \"You will pay for that!\"" — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Fight a Pirate ship (default rewards)." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Leave it alone and prepare to jump." — [[Destroyed cargo ship#Scan the boxes]]
+    // > "Nothing happens." — [[Destroyed cargo ship#Scan the boxes]]
     let fight: Game | null = null;
     let left: Game | null = null;
     for (let seed = 1; seed <= 80 && (!fight || !left); seed++) {

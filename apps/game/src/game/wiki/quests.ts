@@ -638,6 +638,11 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       result(g, tx("wiki.quests.you-arrive-at-small-asteroid-field"), scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
       break;
     case "slug-pirate-trap":
+      // Wiki citations:
+      // > "You catch up with the two Slug ships and they're already carrying out their raid! One is in close combat with the pirate, the other seems to be heading for a small space cache the pirate was protecting." — [[Slug comm tapping#Quest Marker]]
+      // > "Suddenly the first ship bursts into flames, and an urgent call arrives from the remaining Slugs. \"We sssugest you distract the pirate vesssel while we retrieve the valuables. Fifty fifty sssplit.\"" — [[Slug comm tapping#Quest Marker]]
+      // > "Engage the pirate." — [[Slug comm tapping#Quest Marker]]
+      // > "Head for the cache." — [[Slug comm tapping#Quest Marker]]
       // Not wired: "when you arrive there will be a nebula environment" (no per-fight nebula environment here).
       card(g, tx("wiki.quests.you-catch-up-with-the-two"), [
         { id: "q:slug-trap:engage", label: tx("wiki.quests.engage-the-pirate") },
@@ -646,11 +651,19 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       break;
     case "engi-real":
     case "engi-fake":
+      // Wiki citations:
+      // > "You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them." — [[Engi fleet discussion#First Quest Marker (Real)]]
+      // > "Fight the Rebel Ship." — [[Engi fleet discussion#First Quest Marker (Real)]]
+      // > "You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+      // > "Fight the Rebel Ship." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
       card(g, tx("wiki.quests.you-arrive-at-one-of-the"), [
         { id: `q:${b.quest}:fight`, label: tx("wiki.quests.fight-the-rebel-ship") },
       ]);
       break;
     case "engi-final":
+      // Wiki citations:
+      // > "You have finally caught up with the ships you've been hunting. A hangar-sized cargo ship is being escorted by a number of Mantis ships. As you reconsider the assault, a squadron of Engi ships with pirate emblems jump in and assist you. You prepare to fight the Mantis but scans indicate they are manned by Rebels!" — [[Engi fleet discussion#Final Quest Marker]]
+      // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
       card(g, tx("wiki.quests.you-have-finally-caught-up-with"), [
         { id: "q:engi-final:fight", label: tx("wiki.quests.fight-the-mantis-ship") },
       ]);
@@ -662,6 +675,10 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       ]);
       break;
     case "store-rescue":
+      // Wiki citations:
+      // > "Once you arrive at the beacon you detect a Rebel scout assaulting a compound on a nearby desolate moon." — [[Settlement mercenary work#Quest marker]]
+      // > "Engage the Rebel and rescue the space dock." — [[Settlement mercenary work#Quest marker]]
+      // > "Avoid a fight." — [[Settlement mercenary work#Quest marker]]
       card(g, tx("wiki.quests.once-you-arrive-at-the-beacon"), [
         { id: "q:store-rescue:engage", label: tx("wiki.quests.engage-the-rebel-and-rescue-the") },
         { id: "q:store-rescue:avoid", label: tx("wiki.quests.avoid-a-fight") },
@@ -714,6 +731,10 @@ function thiefDyingCard(g: Game, scan: boolean) {
 }
 
 function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
+  // Wiki citations:
+  // > "Victory." — [[Engi fleet discussion#Final Quest Marker]]
+  // > "The Engi emerge victorious from their battles with only minor losses. They message you, \"Project X-ME56 commissioned by Federation military research division. Advanced stealth cruiser. Project finished during rebellion. Unable to reconnect with Federation military command.\"" — [[Engi fleet discussion#Victory]]
+  // > "Ask about the Mantis ships." — [[Engi fleet discussion#Victory]]
   const body = tx("wiki.quests.the-engi-emerge-victorious-from-their");
   const choices = [{ id: "q:engi-victory:ask", label: tx("wiki.quests.ask-about-the-mantis-ships") }];
   if (offer) result(g, `${text}\n\n${body}`, offer, [], choices);
@@ -898,11 +919,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
   "c:slug-comm-tapping:0": (g) => {
+    // Wiki citations:
+    // > "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates." — [[Slug comm tapping]]
+    // > "A quest marker is added to your map." — [[Slug comm tapping]]
     const line = addQuest(g, "slug-pirate-trap");
     result(g, tx("wiki.quests.you-overhear-their-conversation-and-learn"), undefined, [line]);
   },
   // Slug comm tapping. "Ignore them." One printed result.
   "c:slug-comm-tapping:1": (g) => {
+    // Wiki citations:
+    // > "You have no interest in anything the Slugs could make business out of. Time to move on." — [[Slug comm tapping]]
+    // > "Nothing happens." — [[Slug comm tapping]]
     result(g, tx("wiki.quests.you-have-no-interest-in-anything"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
@@ -1467,6 +1494,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Destroyed cargo ship. "Leave it alone, this looks suspicious." One printed result.
   "c:destroyed-cargo-ship:1": (g) => {
+    // Wiki citations:
+    // > "You leave the cargo alone and prepare to jump." — [[Destroyed cargo ship]]
+    // > "Nothing happens." — [[Destroyed cargo ship]]
     result(g, tx("wiki.quests.you-leave-the-cargo-alone-and"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Pirate ship attacking Crystal. "Ignore them." One printed result.
@@ -1698,6 +1728,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan ship asks to dock. "Have them keep their distance." One printed result.
   "c:zoltan-ship-asks-to-dock:1": (g) => {
+    // Wiki citations:
+    // > "They leave without a word." — [[Zoltan ship asks to dock]]
+    // > "Nothing happens." — [[Zoltan ship asks to dock]]
     result(g, tx("wiki.quests.they-leave-without-a-word"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
@@ -2283,20 +2316,32 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
+    // Wiki citations:
+    // > "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"" — [[Engi fleet discussion]]
     result(g, tx("wiki.quests.slightly-shocked-at-your-question-their"));
   },
   // Engi fleet discussion. "Ignore it and move on." One printed result.
   "c:engi-fleet-discussion:1": (g) => {
+    // Wiki citations:
+    // > "You can't help but wonder what they were discussing as you prepare to jump." — [[Engi fleet discussion]]
     result(g, tx("wiki.quests.you-can-t-help-but-wonder"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // {{Blue Option|Engi Crew|Have your Engi crewmember contact them.}}
   "c:engi-fleet-discussion:2": (g) => {
     if (!hasEngi(g)) return;
+    // Wiki citations:
+    // > "Your crew member syncs with the comm unit to communicate with them directly. You offer your help and a summary of the ship's mission. They respond, \"Our goals have analogous elements. However, not all available for disclosure, discretion necessary.\"" — [[Engi fleet discussion]]
+    // > "Offer your help." — [[Engi fleet discussion]]
     card(g, tx("wiki.quests.your-crew-member-syncs-with-the"), [
       { id: "q:engi-fleet:offer", label: tx("wiki.quests.offer-your-help") },
     ]);
   },
   "q:engi-fleet:offer": (g) => {
+    // Wiki citations:
+    // > "\"Secret technologies stolen by Mantis. Implicit connection to Rebels. Implicit. Tracked Mantis to hidden Rebel base, uploading coordinates.\"" — [[Engi fleet discussion]]
+    // > "A quest marker is added to your map." — [[Engi fleet discussion]]
+    // > "\"However, tracked second ship to different base. Would calculate probability but data insufficient. Cannot risk obvious Rebel-Engi conflict. Also, need time to acquire military ships. Assist in finding technology?\"" — [[Engi fleet discussion]]
+    // > "A second quest marker is added to your map." — [[Engi fleet discussion]]
     // "A quest marker is added to your map." ... "A second quest marker is added to your map." -> "Agree."
     const first = addQuest(g, "engi-real");
     const second = addQuest(g, "engi-fake");
@@ -2678,26 +2723,41 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
 
   "q:slug-trap:engage": (g) => {
+    // Wiki citations:
+    // > "There's money to be made here. The Slugs know that. You turn on the pirate and intercept just before he can reach the cache!" — [[Slug comm tapping#Quest Marker]]
+    // > "Fight a Pirate ship." — [[Slug comm tapping#Quest Marker]]
     // INFERRED: the page prints no escape for this pirate.
     pageFight(g, tx("wiki.quests.there-s-money-to-be-made"), tx("wiki.quests.pirate-ship"), "quest-slug-pirate-trap-engage", { ...NEVER_RUN });
   },
   "q:slug-trap:cache": (g) => {
+    // Wiki citations:
+    // > "When he sees you making for the cache the Slug captain hails: \"Foolish alienss, no eye for profit. Bessst of luck to you.\" They jump off, leaving you toe to toe with the pirate!" — [[Slug comm tapping#Quest Marker]]
+    // > "Fight a Pirate ship." — [[Slug comm tapping#Quest Marker]]
     pageFight(g, tx("wiki.quests.when-he-sees-you-making-for"), tx("wiki.quests.pirate-ship"), "quest-slug-pirate-trap-cache", { ...NEVER_RUN });
   },
 
   // REBEL_ENGI_UNLOCK_2REAL / 2FAKE: "immediately starts to escape (40 seconds timer)".
   "q:engi-real:fight": (g) => {
+    // Wiki citations:
+    // > "When the ship wants to escape As soon as they see you they power up their engines to jump away. Stop them!" — [[Engi fleet discussion#First Quest Marker (Real)]]
     pageFight(g, tx("wiki.quests.as-soon-as-they-see-you"), tx("wiki.quests.rebel-ship"), "quest-engi-real", startRun(40));
   },
   "q:engi-fake:fight": (g) => {
+    // Wiki citations:
+    // > "When the ship wants to escape As soon as they see you, they power up their engines to jump away. Stop them!" — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     pageFight(g, tx("wiki.quests.as-soon-as-they-see-you-2"), tx("wiki.quests.rebel-ship"), "quest-engi-fake", startRun(40));
   },
   // Fake marker, after "Demand information": "Let them go." -> "The ship turns neutral." / "Ignore him and attack."
   "q:engi-fake:go": (g) => {
+    // Wiki citations:
+    // > "The ship turns neutral." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     closeFight(g);
     result(g, tx("wiki.quests.the-ship-turns-neutral-and-jumps"));
   },
   "q:engi-fake:attack": (g) => {
+    // Wiki citations:
+    // > "\"No, wait...\" You cut the transmission and continue the assault." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    // > "Continue the fight." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     const plan = g.enemySurrender;
     if (plan) plan.refused = true;
     g.event = null;
@@ -2707,6 +2767,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // MANTIS_ENGI_UNLOCK_3: "Fight the Mantis Ship controlled by Humans", {{SurrenderEscape(alt)|no|...}}.
   "q:engi-final:fight": (g) => {
+    // Wiki citations:
+    // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
     pageFight(g, tx("wiki.quests.the-mantis-escort-turns-to-meet"), tx("wiki.quests.mantis-ship"), "quest-engi-final", { ...NEVER_RUN });
     const hp = kinOf("plain").hp;
     for (const c of g.crew) {
@@ -2717,11 +2779,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
   },
   "q:engi-victory:ask": (g) => {
+    // Wiki citations:
+    // > "\"Likely ploy by Rebels to avoid breaking non-aggression pact with Engi. 97.56 percent likely. Your mission to assist last Federation fleet, correct? Coordinates?\"" — [[Engi fleet discussion#Victory]]
+    // > "Transmit coordinates of Federation command." — [[Engi fleet discussion#Victory]]
     card(g, tx("wiki.quests.likely-ploy-by-rebels-to-avoid"), [
       { id: "q:engi-victory:transmit", label: tx("wiki.quests.transmit-coordinates-of-federation-command") },
     ]);
   },
   "q:engi-victory:transmit": (g) => {
+    // Wiki citations:
+    // > "\"Satisfactory. Delivery of tech will assist in Federation cause. Gratitude alone insufficient. Commencing ship repair and compensation.\" Their crews deliver a weapon for installation but you're more pleased to hear that the Federation will have an improved arsenal." — [[Engi fleet discussion#Victory]]
+    // > "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your ship receives 20 repairs." — [[Engi fleet discussion#Victory]]
     // "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your
     // ship receives 20 repairs." The unlock is the grantUnlock line below.
     grantUnlock(g, "stealth-a"); // @agent:unlocks. "You unlock the Stealth Cruiser".
@@ -2764,9 +2832,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
 
   "q:store-rescue:engage": (g) => {
+    // Wiki citations:
+    // > "The \"SQUAT_STORE_RESCUE\" ship assaulting the space dock doesn't surrender, nor tries to escape." — [[Settlement mercenary work#Trivia]]
     pageFight(g, tx("wiki.quests.you-engage-the-rebel-scout"), tx("wiki.quests.rebel-ship"), "quest-store-rescue", { ...NEVER_RUN });
   },
   "q:store-rescue:avoid": (g) => {
+    // Wiki citations:
+    // > "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon." — [[Settlement mercenary work#Quest marker]]
+    // > "Nothing happens." — [[Settlement mercenary work#Quest marker]]
     result(g, tx("wiki.quests.after-a-time-the-ship-powers"));
   },
 
@@ -2828,6 +2901,8 @@ export function questChoose(g: Game, id: string): boolean {
 
 /** sim.ts choiceDisabled: a price or a blue-option requirement the ship does not meet. */
 export function questChoiceDisabled(g: Game, id: string): string | null {
+  // Wiki citations:
+  // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
   if (id === "c:engi-fleet-discussion:2" && !hasEngi(g)) return tx("wiki.quests.needs-an-engi-crewmember");
   // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
   if (id === "c:lanius-ship-in-rich-debris-field:3" && (g.player.systems.pilot?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-piloting");
@@ -2941,6 +3016,8 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
     if (have < cost) return tx("wiki.quests.need", { cost: cost, v: res === "parts" ? "drone parts" : res });
   }
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
+  // Wiki citations:
+  // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
   if (id === "s:the-black-raven:duel" && !hasSlug(g)) return tx("wiki.quests.needs-a-slug-crewmember");
   // Refueling platform garbled broadcast. Blast Doors, level 2+.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
@@ -3540,10 +3617,23 @@ function pirateCivilianWin(g: Game, deadCrew: boolean) {
 export const PAGE_WINS: Record<string, Win> = {
   // ---- Ship surrender Events pages (cited-events-surrender.ts) ----
   // Settlement mercenary work: "destroyed/deadCrew ... You receive low scrap with resources."
+  // Wiki citations:
+  // > "After destroying enemy ship or after killing enemy crew With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump." — [[Settlement mercenary work]]
+  // > "You receive low scrap with resources." — [[Settlement mercenary work]]
   "settlement-mercenary-work": std("low", "low", tx("wiki.quests.with-all-of-the-would-be")),
   // The Black Raven: destroyed -> medium, deadCrew -> high scrap with resources.
+  // Wiki citations:
+  // > "\"The Black Raven\" breaks apart and you salvage the remains." — [[The Black Raven#Fighting the Black Raven]]
+  // > "You receive medium scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
+  // > "The once-dreaded pirate Nights has been killed and you proceed to loot his ship." — [[The Black Raven#Fighting the Black Raven]]
+  // > "You receive high scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
   "the-black-raven": std("medium", "high", tx("wiki.quests.the-black-raven-breaks-apart-and"), tx("wiki.quests.the-once-dreaded-pirate-nights-has")),
   // Zoltan ship asks to dock: destroyed -> low, deadCrew -> medium scrap with resources.
+  // Wiki citations:
+  // > "While you search the debris, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
+  // > "You receive low scrap with resources." — [[Zoltan ship asks to dock]]
+  // > "While you scrap their ship, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
+  // > "You receive medium scrap with resources." — [[Zoltan ship asks to dock]]
   "zoltan-ship-asks-to-dock": std("low", "medium", tx("wiki.quests.while-you-search-the-debris-you"), tx("wiki.quests.while-you-scrap-their-ship-you")),
   // ---- Other cited pages with a quest branch ----
   // Mantis ship-collectors: destroyed -> medium, deadCrew -> high scrap with resources.
@@ -4049,20 +4139,41 @@ export const PAGE_WINS: Record<string, Win> = {
     result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [grantRandomItem(g, "weapon")]);
   },
   // Slug comm tapping marker: Engage -> medium / high; Head for the cache -> low / medium (scrap with resources).
+  // Wiki citations:
+  // > "After destroying enemy ship With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand." — [[Slug comm tapping#Quest Marker]]
+  // > "After killing enemy crew With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand." — [[Slug comm tapping#Quest Marker]]
+  // > "You receive medium scrap with resources." — [[Slug comm tapping#Quest Marker]]
+  // > "You receive high scrap with resources." — [[Slug comm tapping#Quest Marker]]
   "quest-slug-pirate-trap-engage": std("medium", "high", tx("wiki.quests.with-the-pirate-defeated-you-scan")),
+  // Wiki citations:
+  // > "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
+  // > "You receive low scrap with resources." — [[Slug comm tapping#Quest Marker]]
+  // > "With the pirate defeated, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
+  // > "You receive medium scrap with resources." — [[Slug comm tapping#Quest Marker]]
   "quest-slug-pirate-trap-cache": std("low", "medium", tx("wiki.quests.with-the-pirate-taken-care-of"), tx("wiki.quests.with-the-pirate-defeated-you-search")),
   // Engi fleet discussion, real marker: deadCrew -> "high scrap with resources and a final quest marker". The page prints
   // no destroyed result. INFERRED: a destroyed ship pays the default reward and the trail is lost.
   "quest-engi-real": (g, deadCrew) => {
     if (!deadCrew) return false;
+    // Wiki citations:
+    // > "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    // > "You receive high scrap with resources and a final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
     result(g, tx("wiki.quests.once-their-crew-is-dead-you"), rollStandard(g, "high"), [addQuest(g, "engi-final")]);
   },
   // Fake marker: destroyed / deadCrew -> medium scrap with resources.
+  // Wiki citations:
+  // > "You take what you can from the debris." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+  // > "A quick search of their communication logs shows that the tech you were searching for never passed through this base... It must have been a decoy! You strip what you can and prepare to jump." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+  // > "You receive medium scrap with resources." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
   "quest-engi-fake": std("medium", "medium", tx("wiki.quests.you-take-what-you-can-from"), tx("wiki.quests.a-quick-search-of-their-communication")),
   // Final marker: destroyed -> Victory; deadCrew -> medium scrap with resources, then Victory.
   "quest-engi-final": (g, deadCrew) => {
-    if (deadCrew) engiVictory(g, tx("wiki.quests.you-strip-what-you-can-and"), rollStandard(g, "medium"));
-    else engiVictory(g);
+    if (deadCrew) {
+      // Wiki citations:
+      // > "You strip what you can and contact the Engi ships." — [[Engi fleet discussion#Final Quest Marker]]
+      // > "You receive medium scrap with resources." — [[Engi fleet discussion#Final Quest Marker]]
+      engiVictory(g, tx("wiki.quests.you-strip-what-you-can-and"), rollStandard(g, "medium"));
+    } else engiVictory(g);
   },
   // Slug Home Nebula marker: the platform guard -> high scrap with resources.
   "quest-slug-platform": std("high", "high", tx("wiki.quests.with-the-assault-ship-taken-care")),
@@ -4073,6 +4184,9 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Settlement mercenary work marker: "medium scrap, your ship receives 5 repairs and a store opens."
   "quest-store-rescue": (g) => {
+    // Wiki citations:
+    // > "The outpost hails you, \"Thank you! I don't know what we did to anger the Rebels, but they were ready to kill us. I'll show you our goods and patch up your hull.\"" — [[Settlement mercenary work#Quest marker]]
+    // > "You receive medium scrap, your ship receives 5 repairs and a store opens." — [[Settlement mercenary work#Quest marker]]
     result(g, tx("wiki.quests.the-outpost-hails-you-thank-you"), scrapOnly(g, "medium"), [repair(g, 5)], STORE_CHOICES);
   },
   // Federation Base Assist (Auto-ship, weapon contact): "low scrap with resources", then that contact.
@@ -4125,8 +4239,16 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
     result(g, tx("wiki.quests.looks-like-they-got-away-at"), rollStandard(g, "high"));
   },
   // "Nothing happens. [unlock quest is failed]"
-  "quest-engi-real": (g) => result(g, tx("wiki.quests.with-the-ship-gone-you-search")),
-  "quest-engi-fake": (g) => result(g, tx("wiki.quests.with-the-ship-gone-you-search-2")),
+  "quest-engi-real": (g) => {
+    // Wiki citations:
+    // > "With the ship gone, you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#First Quest Marker (Real)]]
+    result(g, tx("wiki.quests.with-the-ship-gone-you-search"));
+  },
+  "quest-engi-fake": (g) => {
+    // Wiki citations:
+    // > "With the ship gone you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
+    result(g, tx("wiki.quests.with-the-ship-gone-you-search-2"));
+  },
   "quest-slug-interceptor": (g) => result(g, tx("wiki.quests.the-interceptor-jumps-away-with-the")),
   // The mid-run sentence "After watching their squadron get destroyed, it looks like their leader is prepared to turn tail and run." has no separate card hook.
   "quest-fed-assist-wing": (g) => {

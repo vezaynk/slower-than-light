@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Slug comm tapping ignore", () => {
   it("ignoring them shows the printed move-on sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Ignore them." — [[Slug comm tapping]]
+    // > "You have no interest in anything the Slugs could make business out of. Time to move on." — [[Slug comm tapping]]
+    // > "Nothing happens." — [[Slug comm tapping]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;

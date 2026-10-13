@@ -5433,6 +5433,9 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:no-fuel-engi-ship-repair:2" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
+  // Wiki citations:
+  // > "(Advanced Sensors) Run an advanced scan on the boxes. (Requires level 2+ Sensors)" — [[Destroyed cargo ship]]
+  // > "(Long-Ranged Scanners) Run an advanced scan on the boxes." — [[Destroyed cargo ship]]
   if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return tx("wiki.cited-events.needs-sensors-level-2");
   if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return tx("wiki.cited-events.needs-long-ranged-scanners");
   // Auto-ship carrying shield virus. Hacking, "Counter the remote hacking."

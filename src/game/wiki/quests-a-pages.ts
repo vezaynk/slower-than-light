@@ -16,6 +16,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Ancient device",
     slug: "ancient-device",
+    // Wiki citations:
+    // > "This random event occurs in Rock Homeworlds." — [[Ancient device]]
+    // > "It is unique." — [[Ancient device]]
+    // > "An ancient device is orbiting within the crystal rings of a nearby gas giant." — [[Ancient device]]
     flag: "cited:ancient-device",
     aliases: ["Ancient device", "Ancient Device"],
     sectors: ["Rock Homeworlds"],
@@ -23,19 +27,25 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:ancient-device:0",
+        // Wiki citations:
+        // > "Scrap it." — [[Ancient device]]
+        // > "You receive high scrap." — [[Ancient device]]
+        // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
         label: tx("wiki.quests-a-pages.scrap-it"),
-        // "You receive high scrap." / "Fight a Rock ship (default rewards)." Random branch: quests-a.ts.
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.you-break-it-apart-or-a") }],
       },
       {
         id: "c:ancient-device:1",
+        // Wiki citations:
+        // > "Leave it alone." — [[Ancient device]]
+        // > "Nothing happens." — [[Ancient device]]
         label: tx("wiki.quests-a-pages.leave-it-alone"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:ancient-device:2",
-        // {{Blue Option|Crystal Crew|Reactivate it.}}: needs a Crystal crewmember (quests-a.ts disabled).
+        // Wiki citations:
+        // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
         label: tx("wiki.quests-a-pages.reactivate-it"),
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.the-device-opens-a-wormhole") }],
       },
@@ -45,6 +55,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Rock war vessel encounter",
     slug: "rock-war-vessel-encounter",
+    // Wiki citations:
+    // > "This random event occurs in Rock Homeworlds." — [[Rock war vessel encounter]]
+    // > "It is unique." — [[Rock war vessel encounter]]
+    // > "You are immediately messaged by an imposing looking Rock war vessel" — [[Rock war vessel encounter]]
     flag: "cited:rock-war-vessel-encounter",
     aliases: ["Rock war vessel encounter", "Rock War Vessel Encounter"],
     sectors: ["Rock Homeworlds"],
@@ -52,20 +66,26 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-war-vessel-encounter:0",
+        // Wiki citations:
+        // > "We're going to save them or die trying." — [[Rock war vessel encounter]]
+        // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
         label: tx("wiki.quests-a-pages.we-re-going-to-save-them"),
-        // "A quest marker is added to your map."
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
       },
       {
         id: "c:rock-war-vessel-encounter:1",
+        // Wiki citations:
+        // > "We're strong enough to destroy you!" — [[Rock war vessel encounter]]
+        // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
         label: tx("wiki.quests-a-pages.we-re-strong-enough-to-destroy"),
-        // "A quest marker is added to your map."
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
       },
       {
         id: "c:rock-war-vessel-encounter:2",
+        // Wiki citations:
+        // > "Ignore them." — [[Rock war vessel encounter]]
+        // > "Nothing happens." — [[Rock war vessel encounter]]
         label: tx("wiki.quests-a-pages.ignore-them"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -74,6 +94,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Unarmed Zoltan transport",
     slug: "unarmed-zoltan-transport",
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Homeworlds." — [[Unarmed Zoltan transport]]
+    // > "It is unique." — [[Unarmed Zoltan transport]]
+    // > "An unarmed Zoltan transport vessel is slowly making its way toward the beacon here." — [[Unarmed Zoltan transport]]
     flag: "cited:unarmed-zoltan-transport",
     aliases: ["Unarmed Zoltan transport", "Unarmed Zoltan Transport"],
     sectors: ["Zoltan Homeworlds"],
@@ -81,20 +105,26 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:unarmed-zoltan-transport:0",
+        // Wiki citations:
+        // > "Attack them." — [[Unarmed Zoltan transport]]
+        // > "Fight an unarmed Zoltan ship." — [[Unarmed Zoltan transport]]
+        // > "Fight a Zoltan ship." — [[Unarmed Zoltan transport]]
         label: tx("wiki.quests-a-pages.attack-them"),
-        // "Fight an unarmed Zoltan ship." / "Fight a Zoltan ship." Random branch: quests-a.ts.
         fx: [{ k: "fight", tier: "Zoltan ship" }],
       },
       {
         id: "c:unarmed-zoltan-transport:1",
+        // Wiki citations:
+        // > "Hear them out." — [[Unarmed Zoltan transport]]
+        // > "A quest marker is added to your map." — [[Unarmed Zoltan transport]]
         label: tx("wiki.quests-a-pages.hear-them-out"),
-        // "A quest marker is added to your map."
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
       },
       {
         id: "c:unarmed-zoltan-transport:2",
+        // Wiki citations:
+        // > "Nothing happens." — [[Unarmed Zoltan transport]]
         label: tx("wiki.quests-a-pages.leave"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -145,6 +175,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Zoltan trade hub",
     slug: "zoltan-trade-hub",
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan trade hub]]
+    // > "It is unique." — [[Zoltan trade hub]]
+    // > "You come to a Zoltan trade and supply hub" — [[Zoltan trade hub]]
     flag: "cited:zoltan-trade-hub",
     aliases: ["Zoltan trade hub", "Zoltan Trade Hub"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
@@ -152,26 +186,32 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:zoltan-trade-hub:0",
+        // Wiki citations:
+        // > "Try to talk your way in." — [[Zoltan trade hub]]
+        // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship (default rewards)." — [[Zoltan trade hub]]
         label: tx("wiki.quests-a-pages.try-to-talk-your-way-in"),
-        // "2-4 zoltan boarders ... and you fight a Zoltan ship" / "In the Zoltan hub". Random branch: quests-a.ts.
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.you-try-your-luck-at-the") }],
       },
       {
         id: "c:zoltan-trade-hub:1",
-        // {{Blue_Option|Teleporter|Beam directly to the civilian deck.}} (quests-a.ts disabled).
+        // Wiki citations:
+        // > "(Teleporter) Beam directly to the civilian deck." — [[Zoltan trade hub]]
         label: tx("wiki.quests-a-pages.beam-directly-to-the-civilian-deck"),
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.in-the-zoltan-hub") }],
       },
       {
         id: "c:zoltan-trade-hub:2",
-        // {{Blue_Option|Zoltan Crew|...}}: "You lose 10 scrap." Paid in quests-a.ts; the price disables the choice here.
+        // Wiki citations:
+        // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
+        // > "You lose Scrap lost: 10." — [[Zoltan trade hub]]
         label: tx("wiki.quests-a-pages.present-his-official-documentation-and-pay"),
         fx: [{ k: "res", id: "scrap", sign: -1, lo: 10, hi: 10 }],
       },
       {
         id: "c:zoltan-trade-hub:3",
+        // Wiki citations:
+        // > "Nothing happens." — [[Zoltan trade hub]]
         label: tx("wiki.quests-a-pages.leave"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -180,6 +220,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Rock bride",
     slug: "rock-bride",
+    // Wiki citations:
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock bride]]
+    // > "It is unique." — [[Rock bride]]
+    // > "A rock captain hails you" — [[Rock bride]]
     flag: "cited:rock-bride",
     aliases: ["Rock bride", "Rock Bride", "Rock Bride Transport"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
@@ -187,14 +231,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rock-bride:0",
+        // Wiki citations:
+        // > "Accept the passenger." — [[Rock bride]]
+        // > "A quest marker is added to your map." — [[Rock bride]]
         label: tx("wiki.quests-a-pages.accept-the-passenger"),
-        // "A quest marker is added to your map."
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
       },
       {
         id: "c:rock-bride:1",
+        // Wiki citations:
+        // > "Nothing happens." — [[Rock bride]]
         label: tx("wiki.quests-a-pages.refuse"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],

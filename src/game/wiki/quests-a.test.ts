@@ -108,7 +108,11 @@ describe("enemy-gen: a fight can ask for one ship class", () => {
 describe("quest openers (quests-a)", () => {
   it("stamps the Sectors page's special lines in their homeworlds", () => {
     // Wiki citations:
+    // > "This random event occurs in Rock Homeworlds." — [[Ancient device]]
+    // > "This random event occurs in Rock Homeworlds." — [[Rock war vessel encounter]]
+    // > "This random event occurs in Zoltan Homeworlds." — [[Unarmed Zoltan transport]]
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan research facility]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock bride]]
     const flags = (name: string, seed: number) => {
       const g = createGame(seed);
       g.sector = 5;
@@ -128,6 +132,15 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Rock war vessel encounter: marker -> Rock Assault (Elite) that runs at 32 s -> got away -> shipyard unlocks the Rock Cruiser", () => {
+    // Wiki citations:
+    // > "We're going to save them or die trying." — [[Rock war vessel encounter]]
+    // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
+    // > "Fight the Rock Assault (Elite) ship." — [[Rock war vessel encounter#Sun Quest Marker]]
+    // > "ship starts to escape with 32 seconds countdown timer" — [[Rock war vessel encounter#Sun Quest Marker]]
+    // > "As they jump away they relay coordinates to your navigation system." — [[Rock war vessel encounter#Sun Quest Marker]]
+    // > "Another quest marker is added to your map." — [[Rock war vessel encounter#Sun Quest Marker]]
+    // > "You unlock the Rock Cruiser." — [[Rock war vessel encounter#Shipyard Quest Marker]]
+    // > "You receive Rock Plating augmentation and your ship receives 29 repairs." — [[Rock war vessel encounter#Shipyard Quest Marker]]
     const g = atCited(createGame(7), "Rock Homeworlds", "Rock war vessel encounter");
     g.sector = 5;
     choose(g, "c:rock-war-vessel-encounter:0");
@@ -152,6 +165,8 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Rock war vessel, Sun marker destroyed: medium scrap with resources and no shipyard", () => {
+    // Wiki citations:
+    // > "Their ship breaks apart and you feel a twinge of guilt." — [[Rock war vessel encounter#Sun Quest Marker]]
     const g = createGame(8);
     g.sector = 5;
     addQuest(g, "rock-sun");
@@ -163,6 +178,12 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Ancient device: the Crystal Crew option needs a Crystal crewmember; it leads to the Crystal Cruiser and Crystal Vengeance", () => {
+    // Wiki citations:
+    // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
+    // > "You receive Fuel gained: 1." — [[Ancient device]]
+    // > "You jump to the Hidden Crystal Worlds." — [[Ancient device]]
+    // > "The strength of enemy ships in the Crystal sector corresponds to the Rock Homeworlds sector number." — [[Ancient device#Notes]]
+    // > "You unlock the Crystal Cruiser; you receive medium fuel and scrap, Crystal Vengeance augmentation, and your ship receives 10 repairs." — [[Ancient device#Quest Marker]]
     const g = atCited(createGame(9), "Rock Homeworlds", "Ancient device");
     g.sector = 5;
     assert.equal(choiceDisabled(g, "c:ancient-device:2"), "Needs a Crystal crewmember");
@@ -187,6 +208,9 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Ancient device: the exit skips the chart and can land off the Rock Homeworlds links", () => {
+    // Wiki citations:
+    // > "When exiting the Crystal sector, a player has no option of choosing the next sector." — [[Ancient device#Notes]]
+    // > "the ship is teleported to the next random sector following the Rock Homeworlds sector number." — [[Ancient device#Notes]]
     const names = new Set<string>();
     let offChart = 0;
     for (let seed = 1; seed <= 24; seed++) {
@@ -239,6 +263,8 @@ describe("quest openers (quests-a)", () => {
     // Wiki citations:
     // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
     // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
+    // > "This event usually occurs at a normal beacon but will turn into a quest beacon if you have the Crystal Crew from the Stasis Pod (Ruwen)." — [[Ancient device]]
+    // > "only the Crystal Crew from the Stasis Pod (Ruwen) will mark the entry beacon as a quest in the Rock Homeworlds sector." — [[Ancient device#Notes]]
     const quiet = createGame(4);
     quiet.sector = 5;
     quiet.sectorName = "Rock Homeworlds";
@@ -341,6 +367,10 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {
+    // Wiki citations:
+    // > "Scrap it." — [[Ancient device]]
+    // > "You receive high scrap." — [[Ancient device]]
+    // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
       const g = atCited(createGame(seed), "Rock Homeworlds", "Ancient device");
@@ -351,6 +381,11 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Unarmed Zoltan transport: the unarmed ship has no guns or shields and surrenders; 'Let them go.' ends it with nothing", () => {
+    // Wiki citations:
+    // > "Fight an unarmed Zoltan ship." — [[Unarmed Zoltan transport]]
+    // > "We carry no weapons or shielding" — [[Unarmed Zoltan transport]]
+    // > "Let them go." — [[Unarmed Zoltan transport]]
+    // > "Nothing happens." — [[Unarmed Zoltan transport]]
     const g = seedWhere((x) => {
       atCited(x, "Zoltan Homeworlds", "Unarmed Zoltan transport");
       choose(x, "c:unarmed-zoltan-transport:0");
@@ -369,6 +404,11 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Unarmed Zoltan transport: hear them out -> marker; the bloodless answer unlocks the Zoltan Cruiser", () => {
+    // Wiki citations:
+    // > "Hear them out." — [[Unarmed Zoltan transport]]
+    // > "A quest marker is added to your map." — [[Unarmed Zoltan transport]]
+    // > "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap." — [[Unarmed Zoltan transport#Quest Marker]]
+    // > "You unlock the Zoltan Cruiser; receive a Zoltan crewmember named Envoy maxed in all skills and high scrap with resources." — [[Unarmed Zoltan transport#Quest Marker]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
       const g = atCited(createGame(seed), "Zoltan Homeworlds", "Unarmed Zoltan transport");
@@ -392,6 +432,8 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Unarmed Zoltan transport: a full augment rack does not take a fourth Zoltan Shield", () => {
+    // Wiki citations:
+    // > "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap." — [[Unarmed Zoltan transport#Quest Marker]]
     let full = false;
     let envoy = false;
     for (let seed = 1; seed < 80 && !(full && envoy); seed++) {
@@ -419,6 +461,8 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Unarmed Zoltan transport marker: the Rebel fights pay default rewards", () => {
+    // Wiki citations:
+    // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
     const g = createGame(11);
     g.sector = 4;
     addQuest(g, "zoltan-peace");
@@ -460,6 +504,11 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Zoltan trade hub: blue options; the hub opens a store or adds the primitives marker, which shows that page's card", () => {
+    // Wiki citations:
+    // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
+    // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship (default rewards)." — [[Zoltan trade hub]]
+    // > "A store opens." — [[Zoltan trade hub#In the Zoltan hub]]
+    // > "A quest marker is added to your map." — [[Zoltan trade hub#In the Zoltan hub]]
     const g0 = atCited(createGame(4), "Zoltan Controlled Sector", "Zoltan trade hub");
     g0.crew = g0.crew.filter((c) => c.kin !== "spark");
     assert.equal(choiceDisabled(g0, "c:zoltan-trade-hub:2"), "Needs a Zoltan crewmember");
@@ -487,6 +536,14 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Rock bride: marker; refusing adds Ariadne and fights a Rock ship for medium scrap with resources", () => {
+    // Wiki citations:
+    // > "Accept the passenger." — [[Rock bride]]
+    // > "A quest marker is added to your map." — [[Rock bride]]
+    // > "Hand her over." — [[Rock bride#Quest Marker]]
+    // > "You receive an augmentation with low scrap." — [[Rock bride#Quest Marker]]
+    // > "Refuse to comply." — [[Rock bride#Quest Marker]]
+    // > "You receive a Rockman crewmember named Ariadne and fight a Rock ship." — [[Rock bride#Quest Marker]]
+    // > "After destroying enemy ship His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach." — [[Rock bride#Quest Marker]]
     const g = atCited(createGame(6), "Rock Controlled Sector", "Rock bride");
     g.sector = 5;
     choose(g, "c:rock-bride:0");

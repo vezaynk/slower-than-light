@@ -15,6 +15,8 @@ export function markRuwenEntry(g: Game): void {
   // Wiki citations:
   // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
   // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
+  // > "This event usually occurs at a normal beacon but will turn into a quest beacon if you have the Crystal Crew from the Stasis Pod (Ruwen)." — [[Ancient device]]
+  // > "only the Crystal Crew from the Stasis Pod (Ruwen) will mark the entry beacon as a quest in the Rock Homeworlds sector." — [[Ancient device#Notes]]
   // A clone still in the bay (hp 0, cloneIn > 0) counts as alive. The marker stays through that timer.
   const alive = g.crew.some(
     (c) => c.side === "player" && c.kin === "shard" && c.name === "Ruwen" && (c.hp > 0 || (c.cloneIn ?? 0) > 0),

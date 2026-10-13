@@ -345,6 +345,12 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         : slotsHere.has(c);
   const queue: Record<EventClass, MixEvent[]> = { hostile: [], neutral: [], distress: [], items: [] };
   const specials = lines.flatMap((l) => (l.event ? [l.event] : []));
+  // Wiki citations:
+  // > "It is unique." — [[Ancient device]]
+  // > "It is unique." — [[Rock war vessel encounter]]
+  // > "It is unique." — [[Unarmed Zoltan transport]]
+  // > "It is unique." — [[Zoltan trade hub]]
+  // > "It is unique." — [[Rock bride]]
   for (const ev of events) {
     if (specials.some((name) => specialMatch(ev, name)) || g.beacons.some((b) => b.flag === ev.flag)) continue;
     // unique=false boarder page for this sector. It fills the boarders line, including both beacons, and is not also a one-shot neutral.

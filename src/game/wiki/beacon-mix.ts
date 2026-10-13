@@ -128,6 +128,8 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
   "Civilian Sector": CIVILIAN,
   "Engi Controlled Sector": ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
   "Engi Homeworlds": [special(tx("wiki.beacon-mix.engi-fleet-discussion")), ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters"))],
+  // Wiki citations:
+  // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
   "Zoltan Controlled Sector": [special(tx("wiki.beacon-mix.zoltan-research-facility")), ...ZOLTAN],
   "Zoltan Homeworlds": [special(tx("wiki.beacon-mix.zoltan-research-facility")), special(tx("wiki.beacon-mix.unarmed-zoltan-transport")), ...ZOLTAN],
   "Abandoned Sector": [
@@ -353,7 +355,9 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
   // These openers print nebula=true. The marker for the first two is marked separately in quests.ts.
   const NEBULA_OPENERS = new Set(["Slug comm tapping", "Slug Home Nebula surrender", "Nebula wreckage"]);
   // unique=false openers. After the first copy, one extra candidate on later leftover slots of the same class.
-  // Zoltan research is capped at two, and a sector that forces it as a special does not also draw a leftover copy.
+  // A sector that forces Zoltan research as a special does not also draw a leftover copy.
+  // Wiki citations:
+  // > "This event can occur multiple times per game" — [[Zoltan research facility#Trivia]]
   const REPEAT_DESTS = new Set(["Escort civilians", "Engi ship attacked by Mantis ship", "Zoltan research facility"]);
   const place = (b: Beacon, ev: MixEvent, kind: BeaconKind = "event") => {
     setKind(b, NEBULA_OPENERS.has(ev.dest) ? "nebula" : kind);
@@ -365,6 +369,8 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
     for (const ev of events) {
       if (!REPEAT_DESTS.has(ev.dest) || classifyEvent(ev) !== queuedAs) continue;
       if (lines.some((l) => l.slot === "special" && specialMatch(ev, l.event ?? ""))) continue;
+      // Wiki citations:
+      // > "at one or two beacons per Engi sector." — [[Zoltan research facility#Trivia]]
       const cap = ev.dest === "Zoltan research facility" ? 2 : Number.POSITIVE_INFINITY;
       const placed = g.beacons.filter((x) => x.flag === ev.flag).length;
       if (placed < 1 || placed >= cap) continue;

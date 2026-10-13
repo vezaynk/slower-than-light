@@ -20,7 +20,7 @@ export type Sighting = {
   cite: Cite;
 };
 
-const CHOICE = /^(?:c|qa|q):[a-z0-9-]+:\d+$/i;
+const CHOICE = /^(?:c|qa|q):[a-z0-9-]+(?::[a-z0-9-]+)+$/i;
 
 export function normTitle(s: string): string {
   return s.toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
@@ -190,7 +190,8 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         const rawTitle = pin[2]!.replace(/\s+/g, " ").trim();
         const section = pin[3]?.replace(/\s+/g, " ").trim() || undefined;
         const page = titleOf(rawTitle) ?? rawTitle;
-        if (usable(phrase, true)) {
+        // A pinned label is intentional, so a one-word button such as "Decline." still counts.
+        if (phrase.length >= 8 && !phrase.includes("{{") && !/^(?:c|qa|q|cited):/.test(phrase) && !phrase.startsWith("wiki.")) {
           out.push({
             phrase,
             pages: [page],
@@ -332,6 +333,8 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
     }
     if (c === "}") {
       if (frames.length > 1) frames.pop();
+      pendingFn = null;
+      pendingBinding = null;
       if (call) {
         callDepth--;
         if (callDepth <= 0) finishCall();

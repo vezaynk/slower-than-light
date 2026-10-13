@@ -107,6 +107,8 @@ describe("enemy-gen: a fight can ask for one ship class", () => {
 
 describe("quest openers (quests-a)", () => {
   it("stamps the Sectors page's special lines in their homeworlds", () => {
+    // Wiki citations:
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan research facility]]
     const flags = (name: string, seed: number) => {
       const g = createGame(seed);
       g.sector = 5;
@@ -234,6 +236,9 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Ruwen marks the Ancient device beacon in Rock Homeworlds, and another Crystal does not", () => {
+    // Wiki citations:
+    // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
+    // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
     const quiet = createGame(4);
     quiet.sector = 5;
     quiet.sectorName = "Rock Homeworlds";
@@ -318,6 +323,10 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("a Damaged Stasis Pod opens into Ruwen, and the button waits until the pod is aboard", () => {
+    // Wiki citations:
+    // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
+    // > "I've never seen a cryogenic system like this." — [[Zoltan research facility]]
+    // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
     const g = atCited(createGame(8), "Zoltan Homeworlds", "Zoltan research facility");
     assert.ok(ids(g).includes("c:zoltan-research-facility:3"));
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
@@ -421,6 +430,13 @@ describe("quest openers (quests-a)", () => {
   });
 
   it("Zoltan research facility: Advanced Medbay blue option; the ambush pirate never surrenders and pays twice", () => {
+    // Wiki citations:
+    // > "Requires level 3 Medbay" — [[Zoltan research facility]]
+    // > "doesn't surrender, nor tries to escape" — [[Zoltan research facility#Trivia]]
+    // > "2 boarders beam aboard your ship, and you fight a Pirate ship." — [[Zoltan research facility]]
+    // > "You take out the ship and contact the research station." — [[Zoltan research facility]]
+    // > "Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this." — [[Zoltan research facility]]
+    // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     const g0 = atCited(createGame(2), "Zoltan Controlled Sector", "Zoltan research facility");
     if ((g0.player.systems.medbay?.level ?? 0) < 3) assert.equal(choiceDisabled(g0, "c:zoltan-research-facility:2"), "Needs Medbay level 3");
     const g = seedWhere((x) => {

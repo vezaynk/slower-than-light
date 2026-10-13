@@ -208,6 +208,10 @@ describe("Skipped blue options", () => {
   });
 
   it("a Damaged Stasis Pod at the Zoltan research facility yields Ruwen", () => {
+    // Wiki citations:
+    // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
+    // > "I've never seen a cryogenic system like this." — [[Zoltan research facility]]
+    // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
     const g = createGame(4);
     openCited(g, "zoltan-research-facility", "Zoltan research facility");
     assert.ok(g.event?.choices.some((c) => c.id === "c:zoltan-research-facility:3"));

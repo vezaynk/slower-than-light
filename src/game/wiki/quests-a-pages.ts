@@ -99,12 +99,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
-  // "Zoltan research facility" ({{Locations|Engi Controlled Sector|Engi Homeworlds|Zoltan Controlled Sector|Zoltan
-  // Homeworlds|...|unique=false}}), ZOLTAN_CREW_STUDY, the Crystal Cruiser's 2nd step.
-  // {{Blue Option|Damaged Stasis Pod|Ask if they can fix this.}} opens Ruwen (quests-a.ts). The button stays visible.
+  // The stasis button stays visible until a pod is aboard.
   {
     dest: "Zoltan research facility",
     slug: "zoltan-research-facility",
+    // Wiki citations:
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan research facility]]
+    // > "You arrive at a Zoltan research facility." — [[Zoltan research facility]]
     flag: "cited:zoltan-research-facility",
     aliases: ["Zoltan research facility", "Zoltan Research Facility"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
@@ -112,25 +113,29 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:zoltan-research-facility:0",
+        // Wiki citations:
+        // > "Participate in their study." — [[Zoltan research facility]]
         label: tx("wiki.quests-a-pages.participate-in-their-study"),
-        // "You receive low scrap." / "2 boarders beam aboard your ship, and you fight a Pirate ship." Random branch: quests-a.ts.
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.the-zoltans-take-their-readings") }],
       },
       {
         id: "c:zoltan-research-facility:1",
+        // Wiki citations:
+        // > "Decline." — [[Zoltan research facility]]
         label: tx("wiki.quests-a-pages.decline"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:zoltan-research-facility:2",
-        // {{Blue Option|Advanced Medbay|Give them your medical records.|level=3}}: Medbay level 3 (quests-a.ts disabled).
+        // Wiki citations:
+        // > "Give them your medical records." — [[Zoltan research facility]]
         label: tx("wiki.quests-a-pages.give-them-your-medical-records"),
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.they-pay-for-the-data") }],
       },
       {
         id: "c:zoltan-research-facility:3",
-        // {{Blue Option|Damaged Stasis Pod|Ask if they can fix this.}} (quests-a.ts disabled).
+        // Wiki citations:
+        // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
         label: tx("wiki.quests-a.ask-if-they-can-fix-this"),
         fx: [{ k: "note", text: tx("wiki.quests-a.interesting-i-ve-never-seen") }],
       },

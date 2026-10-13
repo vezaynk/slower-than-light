@@ -12,6 +12,9 @@ export const RUWEN_ENTRY = "ruwen-entry";
 
 /** Marks the Ancient device beacon while Ruwen is alive, and clears it once Ruwen is gone. */
 export function markRuwenEntry(g: Game): void {
+  // Wiki citations:
+  // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
+  // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
   // A clone still in the bay (hp 0, cloneIn > 0) counts as alive. The marker stays through that timer.
   const alive = g.crew.some(
     (c) => c.side === "player" && c.kin === "shard" && c.name === "Ruwen" && (c.hp > 0 || (c.cloneIn ?? 0) > 0),

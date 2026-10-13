@@ -60,13 +60,14 @@ test("the arrival sentence cites the event slug, not a line", () => {
   const src = readFileSync(new URL("../game/wiki/quests-a-pages.ts", import.meta.url), "utf8");
   const titles = new Map([[normTitle("Zoltan research facility"), "Zoltan research facility"]]);
   const sightings = scanSource("src/game/wiki/quests-a-pages.ts", src, titles, new Map(Object.entries(en)));
-  const hit = sightings.find((s) => s.phrase.startsWith("You arrive at a Zoltan research facility"));
+  const hit = sightings.find((s) => s.cite.key === "wiki.quests-a-pages.you-arrive-at-a-zoltan-research");
   assert.ok(hit);
   assert.equal(hit.cite.file, "src/game/wiki/quests-a-pages.ts");
   assert.equal(hit.cite.anchor, "zoltan-research-facility");
   assert.deepEqual(hit.pages, ["Zoltan research facility"]);
-  assert.equal(hit.cite.key, "wiki.quests-a-pages.you-arrive-at-a-zoltan-research");
   assert.equal("line" in hit.cite, false);
+  const quoted = sightings.find((s) => s.phrase === "You arrive at a Zoltan research facility." && s.cite.pinned);
+  assert.equal(quoted?.cite.anchor, "zoltan-research-facility");
 });
 
 test("the stasis button cites its choice id", () => {
@@ -122,6 +123,26 @@ test("a wiki citation quotes the page once and keeps its section", () => {
   assert.equal(trivia[0]!.cite.anchor, "openPod");
   const tested = scanSource("src/game/wiki/quests-a.test.ts", src, titles, new Map());
   assert.equal(tested.find((s) => s.phrase === "Ask if they can fix this.")?.cite.kind, "test");
+  const label = scanSource(
+    "src/game/wiki/quests-a-pages.ts",
+    'export function leave() {\n  // > "Decline." — [[Zoltan research facility]]\n}\n',
+    titles,
+    new Map(),
+  );
+  assert.equal(label.length, 1);
+  assert.equal(label[0]!.phrase, "Decline.");
+  assert.equal(label[0]!.cite.pinned, true);
+  const chained =
+    "const CHOICES = {\n" +
+    '  "c:zoltan-research-facility:3": (g) => {\n' +
+    "    const joined = crew();\n" +
+    "  },\n" +
+    '  "qa:zrf:thanks": (g) => {\n' +
+    '    // > "Thank you for rescuing us." — [[Zoltan research facility]]\n' +
+    "  },\n" +
+    "};\n";
+  const thanks = scanSource("src/game/wiki/quests-a.ts", chained, titles, new Map());
+  assert.equal(thanks.find((s) => s.phrase.startsWith("Thank you"))?.cite.anchor, "qa:zrf:thanks");
 });
 
 test("a pinned citation warns only when the passage is not one block", () => {

@@ -313,7 +313,13 @@ const CHOICES_A: QuestPart["choices"] = {
 
   // ---- Zoltan research facility ----
   "c:zoltan-research-facility:0": (g) => {
-    // {{DuplicateEvent|2}} on the study; the ambush once.
+    // Wiki citations:
+    // > "2× Your crew calmly lines up for the Zoltans to take their readings." — [[Zoltan research facility]]
+    // > "You receive low scrap." — [[Zoltan research facility]]
+    // > "pirates burst on board and a hostile ship appears" — [[Zoltan research facility]]
+    // > "2 boarders beam aboard your ship, and you fight a Pirate ship." — [[Zoltan research facility]]
+    // > "doesn't surrender, nor tries to escape" — [[Zoltan research facility#Trivia]]
+    // The study is printed twice and the ambush once. Human boarders: the race is not named. INFERRED.
     const r = weighted(g, [
       ["study", 2],
       ["ambush", 1],
@@ -322,17 +328,21 @@ const CHOICES_A: QuestPart["choices"] = {
       result(g, tx("wiki.quests-a.your-crew-calmly-lines-up-for"), scrapOnly(g, "low"));
       return;
     }
-    // "2 boarders beam aboard your ship, and you fight a Pirate ship." INFERRED: Human boarders (the race is not named).
-    // Trivia: PIRATE_ZOLTAN_CREW_STUDY "doesn't surrender, nor tries to escape".
     pageFight(g, tx("wiki.quests-a.as-soon-as-you-dock-pirates"), tx("wiki.quests-a.pirate-ship"), "zoltan-research-facility", { ...NEVER_RUN });
     noOffer(g);
     humanBoarders(g, 2, 2);
   },
-  "c:zoltan-research-facility:1": (g) => result(g, tx("wiki.quests-a.alright-fly-safe-you-prepare-to")),
+  "c:zoltan-research-facility:1": (g) =>
+    // Wiki citations:
+    // > "Alright. Fly safe." — [[Zoltan research facility]]
+    // > "Nothing happens." — [[Zoltan research facility]]
+    result(g, tx("wiki.quests-a.alright-fly-safe-you-prepare-to")),
   "c:zoltan-research-facility:2": (g) => {
+    // Wiki citations:
+    // > "Requires level 3 Medbay" — [[Zoltan research facility]]
+    // > "Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel." — [[Zoltan research facility]]
+    // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     if (medbayLevel(g) < 3) return;
-    // "You receive a drone schematic with low (fuel: 1-3 ; missiles: 1-2 ; drone parts: 1) resources and scrap."
-    // The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
     result(g, tx("wiki.quests-a.thank-you-we-didn-t-expect"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
   // Zoltan quest primitives. Interfere: a Zoltan fight. Both endings double pursuit for 1 jump (pageWin).
@@ -353,16 +363,22 @@ const CHOICES_A: QuestPart["choices"] = {
       "zoltan-quest-primitives-protect",
     );
   },
-  // {{Blue Option|Damaged Stasis Pod}}. One pod opens one Crystal named Ruwen. joinCrew marks the Rock Homeworlds beacon.
   "c:zoltan-research-facility:3": (g) => {
+    // Wiki citations:
+    // > "I've never seen a cryogenic system like this." — [[Zoltan research facility]]
+    // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
+    // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
+    // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
     const i = g.augments.indexOf("stasis");
     if (i < 0) return;
     g.augments.splice(i, 1);
     const joined = crew(g, tx("wiki.surrender.crystal"), undefined, tx("wiki.quests-a.ruwen"));
     result(g, tx("wiki.quests-a.interesting-i-ve-never-seen"), undefined, [joined]);
   },
-  // After the pirate: "Please, take this." -> the same unnamed schematic with low resources and scrap.
   "qa:zrf:thanks": (g) => {
+    // Wiki citations:
+    // > "Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this." — [[Zoltan research facility]]
+    // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     result(g, tx("wiki.quests-a.thank-you-for-rescuing-us-they"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
 
@@ -411,6 +427,9 @@ const CHOICES_A: QuestPart["choices"] = {
 /** Blue options and prices (wiki/quests.ts questChoiceDisabled). */
 function disabledA(g: Game, id: string): string | null {
   if (id === "c:ancient-device:2" && !hasCrystal(g)) return tx("wiki.quests-a.needs-a-crystal-crewmember");
+  // Wiki citations:
+  // > "Requires level 3 Medbay" — [[Zoltan research facility]]
+  // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
   if (id === "c:zoltan-research-facility:2" && medbayLevel(g) < 3) return tx("wiki.quests-a.needs-medbay-level-3");
   if (id === "c:zoltan-research-facility:3" && !g.augments.includes("stasis")) return tx("wiki.quests-a.needs-a-damaged-stasis-pod");
   if (id === "c:zoltan-trade-hub:1" && !hasTeleporter(g)) return tx("wiki.quests-a.needs-a-teleporter");
@@ -446,7 +465,11 @@ const WINS_A: QuestPart["wins"] = {
     tx("wiki.quests-a.their-ship-breaks-apart-and-you"),
     tx("wiki.quests-a.their-ship-goes-quiet-and-you"),
   ),
-  // Zoltan research facility pirate: destroyed -> medium, deadCrew -> high; then "Please, take this." (qa:zrf:thanks).
+  // Wiki citations:
+  // > "You take out the ship and contact the research station." — [[Zoltan research facility]]
+  // > "You receive medium scrap with resources." — [[Zoltan research facility]]
+  // > "You disable the ship and contact the research station." — [[Zoltan research facility]]
+  // > "You receive high scrap with resources." — [[Zoltan research facility]]
   "zoltan-research-facility": std("medium", "high", tx("wiki.quests-a.you-take-out-the-ship-and"), tx("wiki.quests-a.you-disable-the-ship-and-contact"), CONTINUE),
   // Interfere. "pursuit is doubled for 1 jump". Destroyed is low scrap with resources. A crew kill is a random amount.
   "zoltan-quest-primitives-interfere": (g, deadCrew) => {

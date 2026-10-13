@@ -268,6 +268,8 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
   });
 
   it("never places a third escort or a third Zoltan research facility", () => {
+    // Wiki citations:
+    // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
     for (let seed = 1; seed <= 120; seed++) {
       const n = dealt(seed, "Civilian Sector").beacons.filter((b) => b.flag === "cited:escort-civilians").length;
       assert.ok(n <= 2, `Civilian Sector ${seed} ${n}`);

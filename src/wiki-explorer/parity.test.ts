@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { cover } from "./highlight.ts";
 import { normTitle, scanSource } from "./scan.ts";
-import { inlinePlain, parseWiki, plainText } from "./wikitext.ts";
+import { citationWarnings, inlinePlain, parseWiki, plainText } from "./wikitext.ts";
 
 const en = JSON.parse(readFileSync(new URL("../i18n/en.json", import.meta.url), "utf8"));
 
@@ -97,6 +97,49 @@ test("wikiCite records a paraphrase on the enclosing function", () => {
   assert.ok(hit);
   assert.equal(hit.cite.anchor, "openPod");
   assert.equal(hit.phrase, "They hook it up to their system.");
+});
+
+test("a wiki citation quotes the page once and keeps its section", () => {
+  const src =
+    'export function openPod() {\n' +
+    "  // Wiki citations:\n" +
+    '  // > "Ask if they can fix this." — [[Zoltan research facility]]\n' +
+    '  // > "doesn\'t surrender, nor tries to escape" — [[Zoltan research facility#Trivia]]\n' +
+    "}\n";
+  const titles = new Map([[normTitle("Zoltan research facility"), "Zoltan research facility"]]);
+  const sightings = scanSource("src/game/wiki/quests-a.ts", src, titles, new Map());
+  const ask = sightings.filter((s) => s.phrase === "Ask if they can fix this.");
+  assert.equal(ask.length, 1);
+  assert.equal(ask[0]!.cite.kind, "comment");
+  assert.equal(ask[0]!.cite.anchor, "openPod");
+  assert.equal(ask[0]!.cite.pinned, true);
+  assert.equal(ask[0]!.cite.section, undefined);
+  assert.deepEqual(ask[0]!.pages, ["Zoltan research facility"]);
+  const trivia = sightings.filter((s) => s.phrase === "doesn't surrender, nor tries to escape");
+  assert.equal(trivia.length, 1);
+  assert.equal(trivia[0]!.cite.section, "Trivia");
+  assert.equal(trivia[0]!.cite.pinned, true);
+  assert.equal(trivia[0]!.cite.anchor, "openPod");
+  const tested = scanSource("src/game/wiki/quests-a.test.ts", src, titles, new Map());
+  assert.equal(tested.find((s) => s.phrase === "Ask if they can fix this.")?.cite.kind, "test");
+});
+
+test("a pinned citation warns only when the passage is not one block", () => {
+  const wiki = [
+    "Lead sentence about scrap.",
+    "== Trivia ==",
+    "This event can occur multiple times per game.",
+    "",
+    "This event can occur multiple times per game.",
+    "== Other ==",
+    "A different line about scrap rewards.",
+  ].join("\n");
+  assert.equal(citationWarnings(wiki, "This event can occur multiple times per game.", "Trivia"), null);
+  assert.equal(citationWarnings(wiki, "This event can occur multiple times per game."), null);
+  assert.equal(citationWarnings(wiki, "Lead sentence about scrap.", "Trivia"), "outside the section");
+  assert.equal(citationWarnings(wiki, "no such sentence anywhere on this page"), "not on the page");
+  assert.equal(citationWarnings(wiki, "no such sentence anywhere on this page", "Nope"), "heading not on the page");
+  assert.equal(citationWarnings(wiki, "about scrap"), "matches 2 places");
 });
 
 test("the longer phrase keeps the highlight", () => {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import dumpRaw from "@/game/wiki/dump/pages.jsonl?raw";
 import type { Cite } from "./scan.ts";
 import { Article } from "./View.tsx";
-import { parseWiki } from "./wikitext.ts";
+import { parseWiki, wikiSlug } from "./wikitext.ts";
 import "./wiki.css";
 
 type Row = { title: string; ns?: number; text?: string; redirect?: string };
@@ -129,14 +129,26 @@ export function Explorer({
   useEffect(() => {
     const target = section || shown.section || "";
     if (!target || !doc) return;
-    const id = target.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    document.getElementById(id)?.scrollIntoView();
+    document.getElementById(wikiSlug(target))?.scrollIntoView();
   }, [section, shown.section, doc]);
 
   useEffect(() => {
     if (!active || !window.matchMedia("(max-width: 800px)").matches) return;
     document.getElementById("parity-wording")?.scrollIntoView({ block: "start" });
   }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
+    const named = cites?.hits.find((h) => h.phrase === active)?.cites.find((c) => c.section)?.section;
+    const root = document.querySelector(".parity-prose");
+    if (!root) return;
+    const nodes = [...root.querySelectorAll<HTMLElement>(".parity-hit")].filter((el) => el.dataset.phrase === active);
+    const slug = named ? wikiSlug(named) : "";
+    const scoped = slug
+      ? nodes.filter((el) => el.closest("[data-wiki-section]")?.getAttribute("data-wiki-section") === slug)
+      : nodes;
+    (scoped[0] ?? nodes[0])?.scrollIntoView({ block: "nearest" });
+  }, [active, cites, doc]);
 
   const picked = cites?.hits.find((h) => h.phrase === active) ?? null;
 
@@ -232,12 +244,12 @@ export function Explorer({
                     setActive(phrase);
                     setActiveLink(link ?? null);
                   }}
-                  onOpen={(next, section) => {
-                    if (!next && section) {
-                      document.getElementById(section.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""))?.scrollIntoView();
+                  onOpen={(next, hash) => {
+                    if (!next && hash) {
+                      document.getElementById(wikiSlug(hash))?.scrollIntoView();
                       return;
                     }
-                    onPage(next || shown.title, section);
+                    onPage(next || shown.title, hash);
                   }}
                 />
               ) : (
@@ -257,8 +269,8 @@ export function Explorer({
               wording itself joins the page to the code, so the cite stores neither a line number nor a character offset.
             </p>
             <p>
-              A paraphrase can be marked with <code>wikiCite(&quot;Page title&quot;, &quot;the wiki sentence&quot;)</code>{" "}
-              beside the code. The anchor is the enclosing function, or a third argument when you pass a choice id.
+              A quotation in the source is <code>&gt; &quot;the wiki words&quot; — [[Page]]</code>, or{" "}
+              <code>[[Page#Section]]</code> when the words sit under a heading. Selecting it scrolls to that passage.
             </p>
           </section>
           {picked ? (
@@ -274,9 +286,10 @@ export function Explorer({
               ) : null}
               <ul className="parity-cites">
                 {picked.cites.map((cite) => (
-                  <li key={`${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}`}>
+                  <li key={`${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`}>
                     <p className="parity-kind">{KIND[cite.kind]}</p>
                     <CiteCode file={cite.file} anchor={cite.anchor} />
+                    {cite.section ? <p>{`[[${shown.title}#${cite.section}]]`}</p> : null}
                     {cite.key ? <CiteCode className="parity-key" file="src/i18n/en.json" anchor={cite.key} /> : null}
                     <p className="parity-actions">
                       <button type="button" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>

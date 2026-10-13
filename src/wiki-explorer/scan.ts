@@ -8,6 +8,10 @@ export type Cite = {
   kind: CiteKind;
   /** i18n key, when the phrase is a translation value. */
   key?: string;
+  /** Heading after `#` in `[[Page#Section]]`. The reader scrolls within that section. */
+  section?: string;
+  /** A `> "…" — [[Page]]` quotation. Stripped before the index is written. */
+  pinned?: true;
 };
 
 export type Sighting = {
@@ -179,6 +183,22 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
     const kind: CiteKind = baseKind === "test" ? "test" : "comment";
     for (const raw of body.split("\n")) {
       const line = raw.trim();
+      if (/^Wiki citations:\s*$/.test(line)) continue;
+      const pin = /^>\s*"((?:[^"\\]|\\.)*)"\s*\u2014\s*\[\[([^\]#]+?)(?:#([^\]]+))?\]\]\s*$/.exec(line);
+      if (pin) {
+        const phrase = pin[1]!.replace(/\\(.)/g, "$1").replace(/\s+/g, " ").trim();
+        const rawTitle = pin[2]!.replace(/\s+/g, " ").trim();
+        const section = pin[3]?.replace(/\s+/g, " ").trim() || undefined;
+        const page = titleOf(rawTitle) ?? rawTitle;
+        if (usable(phrase, true)) {
+          out.push({
+            phrase,
+            pages: [page],
+            cite: { file, anchor: anchorOf(), kind, ...(section ? { section } : {}), pinned: true },
+          });
+        }
+        continue;
+      }
       const named = /^(.*?)\bpage\s*:\s*"([^"]+)"/.exec(line);
       if (named) {
         const who = named[1]!.replace(/["']$/g, "").trim();

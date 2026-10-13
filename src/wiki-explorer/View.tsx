@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { cover } from "./highlight.ts";
-import { inlinePlain, type Block, type Doc, type Inline } from "./wikitext.ts";
+import { inlinePlain, wikiSlug, type Block, type Doc, type Inline } from "./wikitext.ts";
 
 type PageLink = { page: string; hash?: string };
 type Pick = (phrase: string, link?: PageLink) => void;
@@ -33,6 +33,7 @@ function Marked({
         role="button"
         tabIndex={0}
         className="parity-hit"
+        data-phrase={r.phrase}
         onClick={(e) => {
           e.stopPropagation();
           onPick(r.phrase, link);
@@ -145,10 +146,22 @@ function Blocks({
   onOpen: (page: string, hash?: string) => void;
 }) {
   const markers = listMarkers(doc.blocks);
+  let section = "";
   return (
     <>
       {doc.blocks.map((b, i) => {
-        return <BlockView key={i} block={b} marker={markers[i] ?? ""} phrases={phrases} onPick={onPick} onOpen={onOpen} />;
+        if (b.k === "h") section = wikiSlug(inlinePlain(b.in));
+        return (
+          <BlockView
+            key={i}
+            block={b}
+            marker={markers[i] ?? ""}
+            section={section}
+            phrases={phrases}
+            onPick={onPick}
+            onOpen={onOpen}
+          />
+        );
       })}
       {doc.notes.length ? (
         <section className="parity-notes">
@@ -182,39 +195,50 @@ function listMarkers(blocks: Block[]): string[] {
   });
 }
 
+function sectionAttr(section: string): { "data-wiki-section"?: string } {
+  return section ? { "data-wiki-section": section } : {};
+}
+
 function BlockView({
   block,
   marker,
+  section,
   phrases,
   onPick,
   onOpen,
 }: {
   block: Block;
   marker: string;
+  section: string;
   phrases: readonly string[];
   onPick: Pick;
   onOpen: (page: string, hash?: string) => void;
 }) {
-  if (block.k === "hr") return <hr />;
-  if (block.k === "pre") return <pre className="parity-pre">{block.s}</pre>;
+  if (block.k === "hr") return <hr {...sectionAttr(section)} />;
+  if (block.k === "pre")
+    return (
+      <pre className="parity-pre" {...sectionAttr(section)}>
+        {block.s}
+      </pre>
+    );
   if (block.k === "h") {
     const Tag = block.n <= 2 ? "h2" : block.n === 3 ? "h3" : "h4";
-    const id = inlinePlain(block.in).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const id = wikiSlug(inlinePlain(block.in));
     return (
-      <Tag id={id}>
+      <Tag id={id} {...sectionAttr(section)}>
         <Nodes nodes={block.in} phrases={phrases} onPick={onPick} onOpen={onOpen} />
       </Tag>
     );
   }
   if (block.k === "p")
     return (
-      <p>
+      <p {...sectionAttr(section)}>
         <Nodes nodes={block.in} phrases={phrases} onPick={onPick} onOpen={onOpen} />
       </p>
     );
   if (block.k === "li") {
     return (
-      <div className="parity-li" style={{ marginLeft: `${(block.depth - 1) * 16}px` }}>
+      <div className="parity-li" style={{ marginLeft: `${(block.depth - 1) * 16}px` }} {...sectionAttr(section)}>
         {marker ? <span className="parity-marker">{marker}</span> : null}
         <div>
           <Nodes nodes={block.in} phrases={phrases} onPick={onPick} onOpen={onOpen} />
@@ -223,7 +247,7 @@ function BlockView({
     );
   }
   return (
-    <div className="parity-table-wrap">
+    <div className="parity-table-wrap" {...sectionAttr(section)}>
       <table>
         <tbody>
           {block.rows.map((row, r) => (

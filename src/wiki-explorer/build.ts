@@ -7,7 +7,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import en from "../i18n/en.json" with { type: "json" };
 import { type Cite, type Sighting, normTitle, scanSource } from "./scan.ts";
-import { norm, plainText } from "./wikitext.ts";
+import { norm, placeBlocks, plainText, type PlacedBlock, warnPlaced } from "./wikitext.ts";
 
 export type PhraseCite = { phrase: string; cites: Cite[] };
 export type PageCites = { hits: PhraseCite[]; gaps: PhraseCite[] };
@@ -25,7 +25,7 @@ const OUT = join(ROOT, "public/wiki-reader/parity.json");
 
 const KIND_RANK: Record<Cite["kind"], number> = { marker: 0, copy: 1, comment: 2, test: 3 };
 
-function loadDump(): { rows: Row[]; canonical: Map<string, string>; plain: Map<string, string> } {
+function loadDump(): { rows: Row[]; canonical: Map<string, string>; plain: Map<string, string>; texts: Map<string, string> } {
   const byTitle = new Map<string, Row>();
   for (const line of readFileSync(DUMP, "utf8").split("\n")) {
     if (!line) continue;
@@ -53,12 +53,16 @@ function loadDump(): { rows: Row[]; canonical: Map<string, string>; plain: Map<s
     if (!titleByNorm.has(lower)) titleByNorm.set(lower, can);
   }
   const plain = new Map<string, string>();
+  const texts = new Map<string, string>();
   for (const row of articles) {
     if (!row.text) continue;
     const can = canonical(row.title);
-    if (!plain.has(can)) plain.set(can, norm(plainText(row.text)));
+    if (!plain.has(can)) {
+      plain.set(can, norm(plainText(row.text)));
+      texts.set(can, row.text);
+    }
   }
-  return { rows: articles, canonical: titleByNorm, plain };
+  return { rows: articles, canonical: titleByNorm, plain, texts };
 }
 
 function walk(dir: string, out: string[]) {
@@ -70,16 +74,55 @@ function walk(dir: string, out: string[]) {
   }
 }
 
+function storedCite(cite: Cite): Cite {
+  const out: Cite = { file: cite.file, anchor: cite.anchor, kind: cite.kind };
+  if (cite.key) out.key = cite.key;
+  if (cite.section) out.section = cite.section;
+  return out;
+}
+
+function citeSig(cite: Cite): string {
+  return `${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`;
+}
+
 function mergeCite(list: Cite[], cite: Cite) {
-  const sig = `${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}`;
-  if (list.some((c) => `${c.file}#${c.anchor}#${c.kind}#${c.key ?? ""}` === sig)) return;
-  list.push(cite);
-  list.sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || a.file.localeCompare(b.file));
+  const next = storedCite(cite);
+  const sig = citeSig(next);
+  if (list.some((c) => citeSig(c) === sig)) return;
+  list.push(next);
+  list.sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || a.file.localeCompare(b.file) || (a.section ?? "").localeCompare(b.section ?? ""));
   if (list.length > 8) list.length = 8;
 }
 
-export function buildParity(): Parity {
-  const { canonical, plain } = loadDump();
+function citationReport(sightings: Sighting[], texts: Map<string, string>, canonical: Map<string, string>): string[] {
+  const warnings: string[] = [];
+  const seen = new Set<string>();
+  const placed = new Map<string, PlacedBlock[]>();
+  for (const s of sightings) {
+    if (!s.cite.pinned) continue;
+    for (const title of s.pages) {
+      const can = canonical.get(normTitle(title)) ?? canonical.get(title.toLowerCase()) ?? title;
+      const where = `${s.cite.file}#${s.cite.anchor}`;
+      const label = s.cite.section ? `[[${can}#${s.cite.section}]]` : `[[${can}]]`;
+      const key = `${where}|${label}|${norm(s.phrase)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const text = texts.get(can);
+      if (text == null) {
+        warnings.push(`${where}: ${label} is not a page — "${s.phrase}"`);
+        continue;
+      }
+      let blocks = placed.get(can);
+      if (!blocks) placed.set(can, (blocks = placeBlocks(text)));
+      const why = warnPlaced(blocks, s.phrase, s.cite.section);
+      if (why) warnings.push(`${where}: ${label} ${why} — "${s.phrase}"`);
+    }
+  }
+  return warnings;
+}
+
+export function buildParity(): { parity: Parity; warnings: string[] } {
+  const { canonical, plain, texts } = loadDump();
   const i18n = new Map<string, string>();
   for (const [key, value] of Object.entries(en)) if (typeof value === "string") i18n.set(key, value);
 
@@ -172,11 +215,12 @@ export function buildParity(): Parity {
     gapCount += g.length;
   }
   const pagesWithHits = Object.values(pages).filter((p) => p.hits.length > 0).length;
-  return { built: new Date().toISOString(), stats: { hits: hitCount, gaps: gapCount, pagesWithHits }, pages };
+  const parity = { built: new Date().toISOString(), stats: { hits: hitCount, gaps: gapCount, pagesWithHits }, pages };
+  return { parity, warnings: citationReport(sightings, texts, canonical) };
 }
 
-export function writeParity(parity = buildParity()): Parity {
+export function writeParity(built = buildParity()): { parity: Parity; warnings: string[] } {
   mkdirSync(dirname(OUT), { recursive: true });
-  writeFileSync(OUT, JSON.stringify(parity));
-  return parity;
+  writeFileSync(OUT, JSON.stringify(built.parity));
+  return built;
 }

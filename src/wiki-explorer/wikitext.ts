@@ -621,6 +621,74 @@ export function parseWiki(src: string): Doc {
   }
 }
 
+/** MediaWiki heading anchor: the visible heading, lowercased, with non-letters as hyphens. */
+export function wikiSlug(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+export type PlacedBlock = {
+  section: string;
+  sectionSlug: string;
+  text: string;
+  heading: boolean;
+  level: number;
+};
+
+/** Each visible block with the heading it sits under. The lead has an empty section. */
+export function placeBlocks(src: string): PlacedBlock[] {
+  const doc = parseWiki(src);
+  const out: PlacedBlock[] = [];
+  let section = "";
+  let sectionSlug = "";
+  let level = 0;
+  for (const b of doc.blocks) {
+    if (b.k === "hr") continue;
+    const text = blockText(b).replace(/\s+/g, " ").trim();
+    if (b.k === "h") {
+      section = text;
+      sectionSlug = wikiSlug(text);
+      level = b.n;
+    }
+    if (!text) continue;
+    out.push({ section, sectionSlug, text, heading: b.k === "h", level: b.k === "h" ? b.n : level });
+  }
+  return out;
+}
+
+/**
+ * Why a pinned quotation does not point at one passage, or null when it does.
+ * The same block repeated twice is one passage. Two different blocks that both
+ * contain the fragment are ambiguous.
+ */
+export function citationWarnings(src: string, phrase: string, section?: string): string | null {
+  return warnPlaced(placeBlocks(src), phrase, section);
+}
+
+export function warnPlaced(blocks: PlacedBlock[], phrase: string, section?: string): string | null {
+  const needle = norm(phrase);
+  if (!needle) return "not on the page";
+  const has = (list: PlacedBlock[]) => list.filter((b) => norm(b.text).includes(needle));
+  const ambiguous = (list: PlacedBlock[]) => new Set(list.map((b) => norm(b.text))).size > 1;
+  if (section) {
+    const slug = wikiSlug(section);
+    const start = blocks.findIndex((b) => b.heading && b.sectionSlug === slug);
+    if (start < 0) return "heading not on the page";
+    const floor = blocks[start]!.level;
+    const range = [blocks[start]!];
+    for (let i = start + 1; i < blocks.length; i++) {
+      const b = blocks[i]!;
+      if (b.heading && b.level <= floor) break;
+      range.push(b);
+    }
+    const hits = has(range);
+    if (!hits.length) return has(blocks).length ? "outside the section" : "not on the page";
+    return ambiguous(hits) ? `matches ${hits.length} places` : null;
+  }
+  const hits = has(blocks);
+  if (!hits.length) return "not on the page";
+  return ambiguous(hits) ? `matches ${hits.length} places` : null;
+}
+
 /** The words a reader sees, whitespace-collapsed. Used to join a code phrase to a page. */
 export function plainText(src: string): string {
   const doc = parseWiki(src);

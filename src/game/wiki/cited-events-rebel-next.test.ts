@@ -103,6 +103,8 @@ describe("cited rebel next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel defector]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Rebel defector"]);
@@ -140,6 +142,8 @@ describe("cited rebel next events", () => {
       }
     }
     const accept = EXTRA_EVENTS[0].choices[0];
+    // Wiki citations:
+    // > "Accept his proposal" — [[Rebel defector]]
     assert.equal(accept.label, "Accept his proposal");
     // The four results and the fight run in wiki/quests.ts. This fx must not start a second fight.
     assert.deepEqual(accept.fx, [{ k: "nothing" }]);

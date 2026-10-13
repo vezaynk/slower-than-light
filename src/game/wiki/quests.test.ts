@@ -220,6 +220,10 @@ describe("Cited events that add a marker", () => {
   });
 
   it("Rebel defector: reject -> the cache offer -> reluctant accept can add the cache marker", () => {
+    // Wiki citations:
+    // > "He offers to lead you to a secret cache of scrap nearby if you let him join your crew." — [[Rebel defector]]
+    // > "Reluctantly accept his proposal and fight the Rebel ship." — [[Rebel defector]]
+    // > "You receive a Human crewmember and a quest marker is added to your map; you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     let found = false;
     for (let seed = 1; seed < 120 && !found; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
@@ -477,6 +481,12 @@ function gun(defId: string) {
 
 describe("Rebel defector, Accept his proposal", () => {
   it("rolls join most often, then deceive, the trigger, and the evisceration, and adds no marker", () => {
+    // Wiki citations:
+    // > "3× Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks." — [[Rebel defector]]
+    // > "You receive a Human crewmember and fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled, and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage; 2 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "You lose a crewmember; 1 human boarder beams aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const seen = { join: 0, deceive: 0, trigger: 0, evisc: 0 };
     for (let seed = 1; seed <= 90; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
@@ -510,6 +520,8 @@ describe("Rebel defector, Accept his proposal", () => {
   });
 
   it("a clone bay keeps the eviscerated crewmember, and the last living crewmember is not removed", () => {
+    // Wiki citations:
+    // > "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge." — [[Rebel defector]]
     let cloned = false;
     for (let seed = 1; seed <= 80 && !cloned; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");

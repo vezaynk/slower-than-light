@@ -609,6 +609,11 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       arriveStation(g);
       break;
     case "defector-cache":
+      // Wiki citations:
+      // > "Arriving at the specified coordinates, you find a sizable stash of useful materials." — [[Rebel defector#Quest Marker]]
+      // > "You receive high resources with some scrap." — [[Rebel defector#Quest Marker]]
+      // > "You arrive at location of the hoard, but discover that it was not quite as large as advertised." — [[Rebel defector#Quest Marker]]
+      // > "You receive low scrap." — [[Rebel defector#Quest Marker]]
       // Rebel defector, "Quest Marker": two results.
       if (rand(g) < 0.5) {
         result(g, tx("wiki.quests.arriving-at-the-specified-coordinates-you"), rollSurrenderOffer(g, "high", true));
@@ -2268,6 +2273,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Rebel defector, "Accept his proposal." {{DuplicateEvent|3}} on the crew result; the other three once each.
   // No quest marker on any branch. The trigger branch does not damage piloting.
   "c:rebel-defector:0": (g) => {
+    // Wiki citations:
+    // > "Accept his proposal, and prepare to fight the Rebel ship." — [[Rebel defector]]
+    // > "3× Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks." — [[Rebel defector]]
+    // > "You receive a Human crewmember and fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "steals ship information before teleporting away." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled, and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "Your new crew-member smiles, then reveals a small remote trigger in the palm of his hand." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage; 2 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!" — [[Rebel defector]]
+    // > "You lose a crewmember; 1 human boarder beams aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge." — [[Rebel defector]]
     const r = weighted(g, [
       ["join", 3],
       ["deceive", 1],
@@ -2303,6 +2319,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Rebel defector, "Reject his offer. You can never trust these Rebels." Three results.
   "c:rebel-defector:1": (g) => {
+    // Wiki citations:
+    // > "Reject his offer. You can never trust these Rebels." — [[Rebel defector]]
+    // > "He offers to lead you to a secret cache of scrap nearby if you let him join your crew." — [[Rebel defector]]
+    // > "Attempting to deal with attacks from inside and out is never easy!" — [[Rebel defector]]
+    // > "Your fearless crew easily overcome the intruder, but the Rebel ship still needs to be dealt with." — [[Rebel defector]]
+    // > "You fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const r = pick(g, ["cache", "boarder", "fight"] as const);
     if (r === "cache") {
       card(g, tx("wiki.quests.he-offers-to-lead-you-to"), [
@@ -2318,6 +2340,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
   },
   "q:defector:reluctant": (g) => {
+    // Wiki citations:
+    // > "Reluctantly accept his proposal and fight the Rebel ship." — [[Rebel defector]]
+    // > "3× Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks." — [[Rebel defector]]
+    // > "You receive a Human crewmember and a quest marker is added to your map; you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "steals ship information before teleporting away." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled, and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "Your new crew-member smiles, then reveals a small remote trigger in the palm of his hand." — [[Rebel defector]]
+    // > "Your ship takes 3 hull damage, 1 damage to piloting; 2 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!" — [[Rebel defector]]
+    // > "You lose a crewmember; 1 human boarder beams aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    // > "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge." — [[Rebel defector]]
     // {{DuplicateEvent|3}} on the crew + quest result; the other three once each.
     const r = weighted(g, [
       ["join", 3],
@@ -2356,8 +2389,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
       humanBoarders(g, 1, 1);
     }
   },
-  "q:defector:execute": (g) => defectorFight(g, tx("wiki.quests.you-execute-the-defector-and-turn")),
+  "q:defector:execute": (g) => {
+    // Wiki citations:
+    // > "Reject him outright and execute him on the spot." — [[Rebel defector]]
+    // > "You fight a Rebel ship (default rewards)." — [[Rebel defector]]
+    defectorFight(g, tx("wiki.quests.you-execute-the-defector-and-turn"));
+  },
   "q:defector:again": (g) => {
+    // Wiki citations:
+    // > "Reject his offer again." — [[Rebel defector]]
     defectorFight(g, tx("wiki.quests.you-reject-his-offer-again"));
     humanBoarders(g, 1, 1);
   },

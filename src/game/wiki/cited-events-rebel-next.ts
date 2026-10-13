@@ -28,6 +28,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Rebel defector",
     slug: "rebel-defector",
+    // Wiki citations:
+    // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel defector]]
+    // > "It is unique." — [[Rebel defector]]
     flag: "cited:rebel-defector",
     aliases: ["Rebel defector"],
     sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
@@ -35,6 +38,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:rebel-defector:0",
+        // Wiki citations:
+        // > "Accept his proposal, and prepare to fight the Rebel ship." — [[Rebel defector]]
         label: tx("wiki.cited-events-rebel-next.accept-his-proposal"),
         // Accept's four results (crew, hull and engines, boarders, the evisceration) run in wiki/quests.ts.
         // This fx must not also start a fight.
@@ -45,6 +50,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       // format can say about it.
       {
         id: "c:rebel-defector:1",
+        // Wiki citations:
+        // > "Reject his offer. You can never trust these Rebels." — [[Rebel defector]]
         label: tx("wiki.cited-events-rebel-next.reject-his-offer-you-can-never"),
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },

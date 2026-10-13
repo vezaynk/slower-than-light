@@ -23,6 +23,10 @@ function resources(body: string): number {
 
 describe("Lanius ship absorbing rebel base", () => {
   it("leaves them with nothing spent", () => {
+    // Wiki citations:
+    // > "Leave them alone." — [[Lanius ship absorbing rebel base]]
+    // > "You decide it would be better to leave them be." — [[Lanius ship absorbing rebel base]]
+    // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-absorbing-rebel-base:1");
@@ -33,6 +37,13 @@ describe("Lanius ship absorbing rebel base", () => {
   });
 
   it("asking them delays the fleet with medium scrap, starts a Lanius fight, or does nothing", () => {
+    // Wiki citations:
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. They thank you for the tip and prepare to jump in the direction you came. That will hopefully delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
+    // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. You're not certain if you were misunderstood but they appear to scoff at your suggestion. Most ships continue what they were doing but a single ship moves to fight you." — [[Lanius ship absorbing rebel base]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius ship absorbing rebel base]]
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. However, either the translation device has failed or they're simply not interested. They cut the channel and continue to absorb the ships." — [[Lanius ship absorbing rebel base]]
+    // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
     let delay = false;
     let fight = false;
     let nothing = false;
@@ -66,6 +77,10 @@ describe("Lanius ship absorbing rebel base", () => {
   });
 
   it("a Lanius crewmember delays the fleet for medium scrap, and the button stays shut without one", () => {
+    // Wiki citations:
+    // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
+    // > "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
+    // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "c:lanius-ship-absorbing-rebel-base:2"), "Needs a Lanius crewmember");

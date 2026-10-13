@@ -40,12 +40,18 @@ function sameStock(g: Game, before: ReturnType<typeof stock>) {
 
 describe("Lanius craftsmen", () => {
   it("is one Abandoned Sector card", () => {
+    // Wiki citations:
+    // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
     const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Lanius craftsmen");
     assert.equal(pages.length, 1);
     assert.equal(citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius craftsmen"), false);
   });
 
   it("opens on the merchant sentence and does not sell the unnamed crafts", () => {
+    // Wiki citations:
+    // > "A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal." — [[Lanius craftsmen]]
+    // > "Inquire about the process." — [[Lanius craftsmen]]
+    // > "Leave them to their research." — [[Lanius craftsmen]]
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /studying the Lanius's ability to reshape metal/);
@@ -57,6 +63,15 @@ describe("Lanius craftsmen", () => {
   });
 
   it("inquiring can be declined, and nothing is spent", () => {
+    // Wiki citations:
+    // > "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"" — [[Lanius craftsmen]]
+    // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
+    // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
+    // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
+    // > "Decline their offer." — [[Lanius craftsmen]]
+    // > "Offer to help in the process." — [[Lanius craftsmen]]
+    // > "You thank them for the information and prepare to jump." — [[Lanius craftsmen]]
+    // > "Nothing happens." — [[Lanius craftsmen]]
     const g = createGame(2);
     open(g);
     const before = stock(g);
@@ -78,6 +93,12 @@ describe("Lanius craftsmen", () => {
   });
 
   it("a Lanius crewmember discounts the same crafts by 10 scrap", () => {
+    // Wiki citations:
+    // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
+    // > "Your crewmember offers to aid in the process to speed it along. They think it can be performed a bit more efficiently with the extra help and request less scrap." — [[Lanius craftsmen]]
+    // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the schematic. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content drone schematic." — [[Lanius craftsmen]]
     const g = createGame(4);
     open(g);
     g.scrap = 30;
@@ -106,6 +127,10 @@ describe("Lanius craftsmen", () => {
   });
 
   it("leaving them to their research does nothing", () => {
+    // Wiki citations:
+    // > "Leave them to their research." — [[Lanius craftsmen]]
+    // > "While replicating their innate ability would have immeasurable consequences on commercial manufacturing, your mission has a much higher priority at the moment." — [[Lanius craftsmen]]
+    // > "Nothing happens." — [[Lanius craftsmen]]
     const g = createGame(3);
     open(g);
     const before = stock(g);

@@ -57,12 +57,16 @@ function assertLaniusFight(g: Game) {
 
 describe("Lanius ship absorbing jump beacon", () => {
   it("is one Abandoned Sector card", () => {
+    // Wiki citations:
+    // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing jump beacon]]
     const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Lanius ship absorbing jump beacon");
     assert.equal(pages.length, 1);
     assert.equal(citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius ship absorbing jump beacon"), false);
   });
 
   it("opens on the printed dock sentence and does not offer the scrap gifts", () => {
+    // Wiki citations:
+    // > "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded." — [[Lanius ship absorbing jump beacon]]
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /damaged vessel docked with the jump beacon/);
@@ -79,6 +83,12 @@ describe("Lanius ship absorbing jump beacon", () => {
   });
 
   it("asking starts a Lanius fight or the translator, and leaving then is three nothings to one fight", () => {
+    // Wiki citations:
+    // > "You begin to message the ship but it quickly powers on its weapons defensively. It appears to be fully functional and looking for a fight!" — [[Lanius ship absorbing jump beacon]]
+    // > "After a long message the translator only able to spurt out \"critical... must... metal...\" You can only surmise they must be desperate for scrap." — [[Lanius ship absorbing jump beacon]]
+    // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
+    // > "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon." — [[Lanius ship absorbing jump beacon]]
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
     let fight = false;
     let quiet = false;
     let pulled = false;
@@ -114,6 +124,9 @@ describe("Lanius ship absorbing jump beacon", () => {
   });
 
   it("leaving does nothing three times as often as it starts a Lanius fight", () => {
+    // Wiki citations:
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
+    // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
     let quiet = 0;
     let fight = 0;
     for (let seed = 1; seed <= 80; seed++) {
@@ -135,6 +148,11 @@ describe("Lanius ship absorbing jump beacon", () => {
   });
 
   it("a Lanius crewmember can decline, and the button stays shut without one", () => {
+    // Wiki citations:
+    // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
+    // > "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials." — [[Lanius ship absorbing jump beacon]]
+    // > "Decline." — [[Lanius ship absorbing jump beacon]]
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
     const bare = createGame(1);
     open(bare);
     const before = stock(bare);
@@ -160,6 +178,10 @@ describe("Lanius ship absorbing jump beacon", () => {
   });
 
   it("a Hull Repair Drone adds a Lanius and spends no drone part", () => {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
+    // > "As soon as the drone gets close, a Lanius in a type of spacewalk maneuvering unit grabs it and immediately starts breaking it down for metal. You prepare for a fight but they appear quite grateful for the act. They start to use the metal to repair key portions of their ship. From what you can understand from the translator it appears one of their crew wishes to join you." — [[Lanius ship absorbing jump beacon]]
+    // > "You receive a Lanius crewmember." — [[Lanius ship absorbing jump beacon]]
     const bare = createGame(1);
     open(bare);
     const before = stock(bare);

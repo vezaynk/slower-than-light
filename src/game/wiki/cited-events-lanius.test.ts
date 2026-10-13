@@ -98,6 +98,10 @@ describe("cited lanius events", () => {
   const wiki = pages(TITLES);
 
   it("exports only candidate titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing jump beacon]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing rebel base]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, [

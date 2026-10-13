@@ -1933,6 +1933,10 @@ function asteroidRemains(g: Game) {
  * DuplicateEvent|3 is three copies of nothing and one Lanius fight. Established, not invented.
  */
 function beaconEaterLeave(g: Game) {
+  // Wiki citations:
+  // > "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon." — [[Lanius ship absorbing jump beacon]]
+  // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
+  // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
   if (weighted(g, [["nothing", 3], ["fight", 1]] as const) === "nothing") {
     show(g, tx("wiki.filler-events.you-prepare-to-jump-as-soon"), undefined, [tx("wiki.filler-events.nothing-happens")]);
     return;
@@ -1942,6 +1946,18 @@ function beaconEaterLeave(g: Game) {
 
 /** Lanius craftsmen. The discount is 10 scrap off 45, 50, and 40. INFERRED: the button prints that reduced price. */
 function craftsmenMenu(g: Game, discount: boolean) {
+  // Wiki citations:
+  // > "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"" — [[Lanius craftsmen]]
+  // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
+  // > "Scrap lost: 45" — [[Lanius craftsmen]]
+  // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
+  // > "Scrap lost: 50" — [[Lanius craftsmen]]
+  // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
+  // > "Scrap lost: 40" — [[Lanius craftsmen]]
+  // > "Decline their offer." — [[Lanius craftsmen]]
+  // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
+  // > "Your crewmember offers to aid in the process to speed it along. They think it can be performed a bit more efficiently with the extra help and request less scrap." — [[Lanius craftsmen]]
+  // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
   const aug = discount ? 35 : 45;
   const weapon = discount ? 40 : 50;
   const drone = discount ? 30 : 40;
@@ -2306,6 +2322,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Lanius ship absorbing rebel base. Three results and no odds. INFERRED: equal.
   // The fight pays default rewards, not up front.
   "c:lanius-ship-absorbing-rebel-base:0": (g) => {
+    // Wiki citations:
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. They thank you for the tip and prepare to jump in the direction you came. That will hopefully delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
+    // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. You're not certain if you were misunderstood but they appear to scoff at your suggestion. Most ships continue what they were doing but a single ship moves to fight you." — [[Lanius ship absorbing rebel base]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius ship absorbing rebel base]]
+    // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. However, either the translation device has failed or they're simply not interested. They cut the channel and continue to absorb the ships." — [[Lanius ship absorbing rebel base]]
+    // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
     const r = weighted(g, [["delay", 1], ["fight", 1], ["nothing", 1]] as const);
     if (r === "delay") {
       delayFleetOne(g);
@@ -2319,6 +2342,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, tx("wiki.filler-events.you-try-your-best-to-convey-3"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "c:lanius-ship-absorbing-rebel-base:1": (g) => {
+    // Wiki citations:
+    // > "Leave them alone." — [[Lanius ship absorbing rebel base]]
+    // > "You decide it would be better to leave them be." — [[Lanius ship absorbing rebel base]]
+    // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
     show(g, tx("wiki.filler-events.you-decide-it-would-be-better"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
 
@@ -2397,6 +2424,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, tx("wiki.filler-events.your-engi-crewmember-refuses-in-a"), rollSurrenderOffer(g, undefined, true));
   },
   "c:lanius-ship-absorbing-rebel-base:2": (g) => {
+    // Wiki citations:
+    // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
+    // > "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
+    // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
     if (!livingKin(g, "voidlung")) return;
     delayFleetOne(g);
     show(g, tx("wiki.filler-events.your-crewmember-tells-them-of-the"), rollStandard(g, "medium"), [tx("wiki.filler-events.rebel-fleet-is-delayed-for-1")]);
@@ -2404,6 +2435,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Lanius ship absorbing jump beacon. Two ask results and no odds. INFERRED: equal.
   // Giving them 30 scrap grants an unnamed augmentation and stays off this card.
   "c:lanius-ship-absorbing-jump-beacon:0": (g) => {
+    // Wiki citations:
+    // > "After a long message the translator only able to spurt out \"critical... must... metal...\" You can only surmise they must be desperate for scrap." — [[Lanius ship absorbing jump beacon]]
+    // > "You begin to message the ship but it quickly powers on its weapons defensively. It appears to be fully functional and looking for a fight!" — [[Lanius ship absorbing jump beacon]]
     if (weighted(g, [["talk", 1], ["fight", 1]] as const) === "fight") {
       fight(g, tx("wiki.filler-events.you-begin-to-message-the-ship"), tx("wiki.filler-events.lanius-ship"), "lanius-ship-absorbing-jump-beacon");
       return;
@@ -2412,49 +2446,110 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       { id: "s:lanius-beacon-eater:leave", label: tx("wiki.filler-events.leave") },
     ]);
   },
-  "c:lanius-ship-absorbing-jump-beacon:1": (g) => beaconEaterLeave(g),
-  "s:lanius-beacon-eater:leave": (g) => beaconEaterLeave(g),
+  "c:lanius-ship-absorbing-jump-beacon:1": (g) => {
+    // Wiki citations:
+    // > "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon." — [[Lanius ship absorbing jump beacon]]
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
+    // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
+    beaconEaterLeave(g);
+  },
+  "s:lanius-beacon-eater:leave": (g) => {
+    // Wiki citations:
+    // > "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon." — [[Lanius ship absorbing jump beacon]]
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
+    // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
+    beaconEaterLeave(g);
+  },
   // Lanius crew. Decline does nothing. The 30 scrap, 6 missile, and 6 drone-part trades grant an unnamed augmentation and stay unwired.
   "c:lanius-ship-absorbing-jump-beacon:2": (g) => {
+    // Wiki citations:
+    // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
+    // > "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials." — [[Lanius ship absorbing jump beacon]]
+    // > "Decline." — [[Lanius ship absorbing jump beacon]]
     if (!livingKin(g, "voidlung")) return;
     card(g, tx("wiki.filler-events.after-a-time-you-are-told"), [
       { id: "s:lanius-beacon-eater:decline", label: tx("wiki.filler-events.decline") },
     ]);
   },
   "s:lanius-beacon-eater:decline": (g) => {
+    // Wiki citations:
+    // > "Decline." — [[Lanius ship absorbing jump beacon]]
+    // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
     show(g, tx("wiki.filler-events.nothing-happens"));
   },
   // Lanius craftsmen. 45, 50, and 40 scrap. The item is not named: Rewards, "Augment" / "Weapon" / "Drone".
   // {{Blue Option|Lanius Crew|Offer to help in the process.}} is the same trades at a 10 scrap discount.
   "c:lanius-craftsmen:0": (g) => {
+    // Wiki citations:
+    // > "Inquire about the process." — [[Lanius craftsmen]]
+    // > "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"" — [[Lanius craftsmen]]
     craftsmenMenu(g, false);
   },
   "s:lanius-craftsmen:aug": (g) => {
+    // Wiki citations:
+    // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
+    // > "Scrap lost: 45" — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the augmentation. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content augmentation." — [[Lanius craftsmen]]
     craftItem(g, 45, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
   },
   "s:lanius-craftsmen:weapon": (g) => {
+    // Wiki citations:
+    // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
+    // > "Scrap lost: 50" — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the weapon. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content weapon." — [[Lanius craftsmen]]
     craftItem(g, 50, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
   },
   "s:lanius-craftsmen:drone": (g) => {
+    // Wiki citations:
+    // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
+    // > "Scrap lost: 40" — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the schematic. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content drone schematic." — [[Lanius craftsmen]]
     craftItem(g, 40, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
   },
   "s:lanius-craftsmen:help": (g) => {
+    // Wiki citations:
+    // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
+    // > "Your crewmember offers to aid in the process to speed it along. They think it can be performed a bit more efficiently with the extra help and request less scrap." — [[Lanius craftsmen]]
+    // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
     if (!livingKin(g, "voidlung")) return;
     craftsmenMenu(g, true);
   },
   "s:lanius-craftsmen:help:aug": (g) => {
+    // Wiki citations:
+    // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the augmentation. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content augmentation." — [[Lanius craftsmen]]
     craftItem(g, 35, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
   },
   "s:lanius-craftsmen:help:weapon": (g) => {
+    // Wiki citations:
+    // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the weapon. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content weapon." — [[Lanius craftsmen]]
     craftItem(g, 40, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
   },
   "s:lanius-craftsmen:help:drone": (g) => {
+    // Wiki citations:
+    // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
+    // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the schematic. You thank them and load it onto your ship." — [[Lanius craftsmen]]
+    // > "You receive an Advanced Edition Content drone schematic." — [[Lanius craftsmen]]
     craftItem(g, 30, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
   },
   "s:lanius-craftsmen:decline": (g) => {
+    // Wiki citations:
+    // > "Decline their offer." — [[Lanius craftsmen]]
+    // > "You thank them for the information and prepare to jump." — [[Lanius craftsmen]]
+    // > "Nothing happens." — [[Lanius craftsmen]]
     show(g, tx("wiki.filler-events.you-thank-them-for-the-information"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "c:lanius-craftsmen:1": (g) => {
+    // Wiki citations:
+    // > "Leave them to their research." — [[Lanius craftsmen]]
+    // > "While replicating their innate ability would have immeasurable consequences on commercial manufacturing, your mission has a much higher priority at the moment." — [[Lanius craftsmen]]
+    // > "Nothing happens." — [[Lanius craftsmen]]
     show(g, tx("wiki.filler-events.while-replicating-their-innate-ability-would"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   // Crew hiring station. "Don't hire anyone." Nothing happens.
@@ -2465,6 +2560,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Hull Repair Drone. The page prints no drone-part cost, so the part stays.
   // A full ship refuses the crewmember. INFERRED from the crew cap. The page does not print that sentence.
   "c:lanius-ship-absorbing-jump-beacon:3": (g) => {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
+    // > "As soon as the drone gets close, a Lanius in a type of spacewalk maneuvering unit grabs it and immediately starts breaking it down for metal. You prepare for a fight but they appear quite grateful for the act. They start to use the metal to repair key portions of their ship. From what you can understand from the translator it appears one of their crew wishes to join you." — [[Lanius ship absorbing jump beacon]]
+    // > "You receive a Lanius crewmember." — [[Lanius ship absorbing jump beacon]]
     if (!ownsDrone(g, "hull")) return;
     const joined = joinCrew(g, tx("wiki.filler-events.lanius"));
     show(g, tx("wiki.filler-events.as-soon-as-the-drone-gets"), undefined, [
@@ -3509,17 +3608,36 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:rock-mine:beam" && !ownsMineBeam(g)) return tx("wiki.filler-events.needs-a-beam-drone-2");
   if (id === "s:rock-mine:beam" && g.player.parts < 1) return tx("wiki.filler-events.need-1-drone-part");
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
+  // Wiki citations:
+  // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
   if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
   // Lanius ship absorbing jump beacon. INFERRED: the refusal lines. The page names the crew and the drone and prints no sentence.
+  // Wiki citations:
+  // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
   if (id === "c:lanius-ship-absorbing-jump-beacon:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
+  // Wiki citations:
+  // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
   if (id === "c:lanius-ship-absorbing-jump-beacon:3" && !ownsDrone(g, "hull")) return tx("wiki.filler-events.needs-a-hull-repair-drone");
   // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-attacking-civilian-distress:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
   // Lanius craftsmen. {{Blue Option|Lanius Crew}}. INFERRED: the refusal line. The page names a Lanius crewmember.
+  // Wiki citations:
+  // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
   if (id === "s:lanius-craftsmen:help" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
+  // Wiki citations:
+  // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
+  // > "Scrap lost: 45" — [[Lanius craftsmen]]
   if (id === "s:lanius-craftsmen:aug" && g.scrap < 45) return tx("wiki.filler-events.need-scrap", { v: 45 });
+  // Wiki citations:
+  // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
+  // > "Scrap lost: 50" — [[Lanius craftsmen]]
   if (id === "s:lanius-craftsmen:weapon" && g.scrap < 50) return tx("wiki.filler-events.need-scrap", { v: 50 });
+  // Wiki citations:
+  // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
+  // > "Scrap lost: 40" — [[Lanius craftsmen]]
   if (id === "s:lanius-craftsmen:drone" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
+  // Wiki citations:
+  // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
   if (id === "s:lanius-craftsmen:help:aug" && g.scrap < 35) return tx("wiki.filler-events.need-scrap", { v: 35 });
   if (id === "s:lanius-craftsmen:help:weapon" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
   if (id === "s:lanius-craftsmen:help:drone" && g.scrap < 30) return tx("wiki.filler-events.need-scrap", { v: 30 });

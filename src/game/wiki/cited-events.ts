@@ -3829,6 +3829,12 @@ const AUTO_SHIP_FIGHT_INTROS = [
 
 // Rebel fight with boarders. Four printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-with-boarders:0.
 const REBEL_BOARDER_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
+  // > "You receive a message from a nearby Rebel station, \"You have a lot of guts passing through our space, I'll give you that.\" He turns giving an order, \"Kill their crew, I want that ship intact.\"" — [[Rebel fight with boarders]]
+  // > "Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, \"Ready to die? I sure am ready to get a promotion!\"" — [[Rebel fight with boarders]]
+  // > "Incoming message, \"Hello Captain,\" says a Rebel in an officer's garb. \"How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient.\"" — [[Rebel fight with boarders]]
+  // > "You receive a message on a low-band channel. \"You're surrounded, just like the last of your Federation friends. Just die already.\" The enemy has teleported onto your ship!" — [[Rebel fight with boarders]]
   tx("wiki.cited-events.you-receive-a-message-from-a-2"),
   tx("wiki.cited-events.your-sensors-warn-of-an-incoming"),
   tx("wiki.cited-events.incoming-message-hello-captain-says-a"),
@@ -4043,6 +4049,15 @@ const CRYSTAL_FIGHT_INTROS = [
 // Rebel fight among Rebel fleet. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:rebel-fight-among-rebel-fleet:0. The low scrap and medium scrap payouts are not added here.
 const REBEL_FLEET_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
+  // > "Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack." — [[Rebel fight among Rebel fleet]]
+  // > "This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!" — [[Rebel fight among Rebel fleet]]
+  // > "You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!" — [[Rebel fight among Rebel fleet]]
+  // > "As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack." — [[Rebel fight among Rebel fleet]]
+  // > "Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!" — [[Rebel fight among Rebel fleet]]
+  // > "What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!" — [[Rebel fight among Rebel fleet]]
+  // > "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well." — [[Rebel fight among Rebel fleet]]
   tx("wiki.cited-events.although-you-were-expecting-the-rebels"),
   tx("wiki.cited-events.this-system-is-flooded-with-rebel"),
   tx("wiki.cited-events.you-arrive-to-find-a-rebel"),
@@ -4812,6 +4827,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
   if (ev.slug === "rebel-fight-with-boarders") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
     return {
       title: ev.dest,
       body: REBEL_BOARDER_INTROS[between(g, [0, 3])]!,
@@ -4915,6 +4932,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
   // One of the seven printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
   if (ev.slug === "rebel-fight-among-rebel-fleet") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
+    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
+    // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
     return {
       title: ev.dest,
       body: REBEL_FLEET_INTROS[between(g, [0, 6])]!,
@@ -5609,8 +5630,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
     if (id === "c:zoltan-border-police:0") zoltanBoarders(g, 3, 4);
     // Rebel fight with boarders has no choice. Arrival calls this id.
-    // "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    // Wiki citations:
+    // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, tx("wiki.cited-events.human-boarders-beam-aboard-your-ship"));
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
     if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, tx("wiki.cited-events.slug-boarders-beam-aboard-your-ship"));

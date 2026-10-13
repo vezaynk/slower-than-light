@@ -67,6 +67,9 @@ describe("cited rebel events", () => {
   const wiki = pages(TITLES);
 
   it("exports only these titles, with sectors copied from Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in The Last Stand." — [[Rebel fight among Rebel fleet]]
+    // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel fight with boarders]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Rebel fight among Rebel fleet", "Rebel fight with boarders"]);

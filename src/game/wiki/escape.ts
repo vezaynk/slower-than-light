@@ -120,6 +120,8 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   const own = ctx.event ? EVENT_HULL_ROWS[ctx.event] : undefined;
   if (own) return plan("hull", own.seconds ?? HULL_RUN_SECONDS, { chance: own.chance, threshold: own.low + rand() * (own.high - own.low) });
   // Rebel fight among Rebel fleet. The page prints surrenderno+escapeno. Surrender is already listed elsewhere.
+  // Wiki citations:
+  // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
   if (ctx.event === "rebel-fight-among-rebel-fleet") return plan("never", 0);
   // Rebel fight among Federation and Rebel fleets. The page prints surrenderno+escapeno.
   if (ctx.event === "rebel-fight-among-federation-and-rebel-fleets") return plan("never", 0);

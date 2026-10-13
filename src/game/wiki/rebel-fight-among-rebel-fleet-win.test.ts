@@ -26,6 +26,9 @@ function resources(body: string): number {
 
 describe("Rebel fight among Rebel fleet win", () => {
   it("pays low scrap only when the ship is destroyed", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!" — [[Rebel fight among Rebel fleet]]
+    // > "You receive low scrap." — [[Rebel fight among Rebel fleet]]
     const g = createGame(1);
     assert.equal(g.sector, 1);
     assert.equal(g.difficulty, "normal");
@@ -42,6 +45,9 @@ describe("Rebel fight among Rebel fleet win", () => {
   });
 
   it("pays medium scrap with resources on a crew kill, and no weapon", () => {
+    // Wiki citations:
+    // > "After killing enemy crew There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump." — [[Rebel fight among Rebel fleet]]
+    // > "You receive medium scrap with resources." — [[Rebel fight among Rebel fleet]]
     const g = createGame(1);
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "rebel-fight-among-rebel-fleet", true), true);
@@ -55,6 +61,9 @@ describe("Rebel fight among Rebel fleet win", () => {
   });
 
   it("fights a Rebel ship that never runs and never surrenders", () => {
+    // Wiki citations:
+    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
+    // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);

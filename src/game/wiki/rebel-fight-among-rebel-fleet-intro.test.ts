@@ -27,6 +27,16 @@ function open(g: Game) {
 
 describe("Rebel fight among Rebel fleet intro", () => {
   it("shows one of the seven printed intros, then fights a Rebel ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
+    // > "Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack." — [[Rebel fight among Rebel fleet]]
+    // > "This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!" — [[Rebel fight among Rebel fleet]]
+    // > "You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!" — [[Rebel fight among Rebel fleet]]
+    // > "As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack." — [[Rebel fight among Rebel fleet]]
+    // > "Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!" — [[Rebel fight among Rebel fleet]]
+    // > "What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!" — [[Rebel fight among Rebel fleet]]
+    // > "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well." — [[Rebel fight among Rebel fleet]]
+    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
     assert.equal(INTROS.length, 7);
     assert.equal(new Set(INTROS).size, 7);
     const seen = new Set<string>();
@@ -54,6 +64,9 @@ describe("Rebel fight among Rebel fleet intro", () => {
 
   it("starts the Rebel ship on arrival and leaves no button", () => {
     // The page has no choice. One of the seven printed intros, then "Fight a Rebel ship." unique=false.
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
+    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);

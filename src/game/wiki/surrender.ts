@@ -146,6 +146,8 @@ export const NO_SURRENDER_EVENTS = new Set([
   "lanius-ship-in-rich-debris-field",
   // Lanius fight with friendly ASB support. {{SurrenderEscape(alt)|no|LANIUS_BOARDERS_PDS}} prints never surrenders. Escape is not this line.
   "lanius-fight-with-friendly-asb-support",
+  // Wiki citations:
+  // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
   "rebel-fight-among-rebel-fleet",
   "rebel-fight-among-federation-and-rebel-fleets",
   "rebel-ship-attacking-crystal-ship",

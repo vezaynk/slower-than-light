@@ -487,6 +487,8 @@ describe("Boarders: Humans in plasma storm", () => {
 
 describe("Rebel fight with boarders", () => {
   it("beams 2-3 human boarders aboard with the Rebel ship and grants nothing else", () => {
+    // Wiki citations:
+    // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     const seen = new Set<number>();
     const hp = kinOf("plain").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
@@ -524,7 +526,9 @@ describe("Rebel fight with boarders", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "2-3 human boarders beam aboard your ship" and a Rebel ship.
+    // The page has no choice.
+    // Wiki citations:
+    // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);

@@ -3828,6 +3828,11 @@ export const PAGE_WINS: Record<string, Win> = {
   // Rebel fight among Rebel fleet. The page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.
   // The two endings are separate printed results. Default salvage is not paid.
   "rebel-fight-among-rebel-fleet": (g, deadCrew) => {
+    // Wiki citations:
+    // > "After destroying enemy ship There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!" — [[Rebel fight among Rebel fleet]]
+    // > "You receive low scrap." — [[Rebel fight among Rebel fleet]]
+    // > "After killing enemy crew There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump." — [[Rebel fight among Rebel fleet]]
+    // > "You receive medium scrap with resources." — [[Rebel fight among Rebel fleet]]
     if (deadCrew) {
       result(
         g,

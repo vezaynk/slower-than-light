@@ -24,6 +24,13 @@ function open(g: Game) {
 
 describe("Rebel fight with boarders intros", () => {
   it("shows one of the four intros, and the fight still beams human boarders", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
+    // > "You receive a message from a nearby Rebel station, \"You have a lot of guts passing through our space, I'll give you that.\" He turns giving an order, \"Kill their crew, I want that ship intact.\"" — [[Rebel fight with boarders]]
+    // > "Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, \"Ready to die? I sure am ready to get a promotion!\"" — [[Rebel fight with boarders]]
+    // > "Incoming message, \"Hello Captain,\" says a Rebel in an officer's garb. \"How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient.\"" — [[Rebel fight with boarders]]
+    // > "You receive a message on a low-band channel. \"You're surrounded, just like the last of your Federation friends. Just die already.\" The enemy has teleported onto your ship!" — [[Rebel fight with boarders]]
+    // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

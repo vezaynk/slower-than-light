@@ -38,6 +38,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "No fuel: Rebel fleet delay",
     slug: "no-fuel-rebel-fleet-delay",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Rebel fleet delay]]
     flag: "cited:no-fuel-rebel-fleet-delay",
     aliases: ["No fuel: Rebel fleet delay", "Fuel Fleet Delay", "Fuel Fleet delay"],
     sectors: [],
@@ -45,6 +47,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:no-fuel-rebel-fleet-delay:0",
+        // Wiki citations:
+        // > "Rebel Fleet pursuit is delayed for 1 jump." — [[No fuel: Rebel fleet delay]]
+        // > "Another out of fuel event occurs." — [[No fuel: Rebel fleet delay]]
         label: tx("wiki.cited-fuel.rebel-fleet-pursuit-is-delayed-for"),
         fx: [
           // "Rebel Fleet pursuit is delayed for 1 jump."
@@ -58,6 +63,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "No fuel: friendly refugee",
     slug: "no-fuel-friendly-refugee",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: friendly refugee]]
+    // > "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you." — [[No fuel: friendly refugee]]
     flag: "cited:no-fuel-friendly-refugee",
     aliases: ["No fuel: friendly refugee", "Friendly Refugee", "Friendly refugee"],
     sectors: [],
@@ -65,6 +73,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:no-fuel-friendly-refugee:0",
+        // Wiki citations:
+        // > "You receive medium fuel." — [[No fuel: friendly refugee]]
         label: tx("wiki.cited-fuel.you-receive-medium-fuel"),
         fx: [
           // "You receive {{tooltip|medium|2-4}} [[Rewards#Fuel only|fuel]]."
@@ -162,6 +172,20 @@ export function citedFuelCandidates(distressOn: boolean): { flag: string; dest: 
 /** No fuel: wait fail (distress off) / (distress on): "The text for this event varies, and could be any of the following". */
 const WAIT_FAIL: Record<"on" | "off", string[]> = {
   off: [
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: wait fail (distress off)]]
+    // > "The text for this event varies, and could be any of the following:" — [[No fuel: wait fail (distress off)]]
+    // > "No ship is in scanning range and no one arrives at the beacon." — [[No fuel: wait fail (distress off)]]
+    // > "Your waiting yields nothing while the fleet surely gets closer..." — [[No fuel: wait fail (distress off)]]
+    // > "A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away." — [[No fuel: wait fail (distress off)]]
+    // > "Small traffic passes within a short distance of you, but no one responds to your hails." — [[No fuel: wait fail (distress off)]]
+    // > "The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal." — [[No fuel: wait fail (distress off)]]
+    // > "As you wait, a small asteroid storm pelts softly against your shields and hull." — [[No fuel: wait fail (distress off)]]
+    // > "You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches." — [[No fuel: wait fail (distress off)]]
+    // > "You contemplate the vastness of space." — [[No fuel: wait fail (distress off)]]
+    // > "The prolonged wait in empty space is causing tension among the crew. Still no contact." — [[No fuel: wait fail (distress off)]]
+    // > "Cabin fever begins to spread among your crew." — [[No fuel: wait fail (distress off)]]
+    // > "Long range scanners detect a small settlement, but they refuse all contact." — [[No fuel: wait fail (distress off)]]
     tx("wiki.cited-fuel.no-ship-is-in-scanning-range"),
     tx("wiki.cited-fuel.your-waiting-yields-nothing-while-the"),
     tx("wiki.cited-fuel.a-freighter-suddenly-arrives-nearby-they"),
@@ -175,6 +199,16 @@ const WAIT_FAIL: Record<"on" | "off", string[]> = {
     tx("wiki.cited-fuel.long-range-scanners-detect-a-small"),
   ],
   on: [
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: wait fail (distress on)]]
+    // > "The text for this event varies, and could be any of the following:" — [[No fuel: wait fail (distress on)]]
+    // > "You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells." — [[No fuel: wait fail (distress on)]]
+    // > "Nothing happens. Your calls go unanswered." — [[No fuel: wait fail (distress on)]]
+    // > "The distress beacon's light is the only movement visible outside the ship." — [[No fuel: wait fail (distress on)]]
+    // > "No ships jump into the sector..." — [[No fuel: wait fail (distress on)]]
+    // > "A few passing ships seem oblivious to your distress call and ignore all hails." — [[No fuel: wait fail (distress on)]]
+    // > "A few civilian ships are within scanning range, yet none respond to your calls." — [[No fuel: wait fail (distress on)]]
+    // > "No ships pass through the area." — [[No fuel: wait fail (distress on)]]
     tx("wiki.cited-fuel.you-contemplate-that-it-is-fortunate"),
     tx("wiki.cited-fuel.nothing-happens-your-calls-go-unanswered"),
     tx("wiki.cited-fuel.the-distress-beacon-s-light-is"),
@@ -196,6 +230,10 @@ const WAIT_FAIL: Record<"on" | "off", string[]> = {
  * the page's printed lines, uniformly.
  */
 export function rollFuelWait(roll: () => number, distressOn: boolean): { flag: string; dest: string } | { fail: string } {
+  // Wiki citations:
+  // > "This event has a 36.4% chance of occurring when you wait at a beacon with your distress beacon off." — [[No fuel: wait fail (distress off)#Trivia]]
+  // > "This event has a 16.7% chance of occurring when you wait at a beacon with your distress beacon on." — [[No fuel: wait fail (distress on)#Trivia]]
+  // > "The event has a 9% chance of occurring when you wait at a beacon with your distress beacon off." — [[No fuel: Rebel fleet delay#Trivia]]
   const r = roll();
   const failShare = distressOn ? 0.167 : 0.364;
   if (r < failShare) {

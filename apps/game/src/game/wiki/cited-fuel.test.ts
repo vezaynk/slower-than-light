@@ -123,6 +123,9 @@ describe("cited fuel candidates", () => {
   });
 
   it("quotes the Rebel fleet delay as one jump, then another event", () => {
+    // Wiki citations:
+    // > "Rebel Fleet pursuit is delayed for 1 jump." — [[No fuel: Rebel fleet delay]]
+    // > "Another out of fuel event occurs." — [[No fuel: Rebel fleet delay]]
     const ev = EXTRA_EVENTS.find((row) => row.dest === "No fuel: Rebel fleet delay");
     assert.ok(ev);
     assert.equal(ev.body, "");
@@ -135,6 +138,9 @@ describe("cited fuel candidates", () => {
   });
 
   it("quotes the friendly refugee as medium fuel only, 2-4", () => {
+    // Wiki citations:
+    // > "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you." — [[No fuel: friendly refugee]]
+    // > "You receive medium fuel." — [[No fuel: friendly refugee]]
     const ev = EXTRA_EVENTS.find((row) => row.dest === "No fuel: friendly refugee");
     assert.ok(ev);
     assert.equal(
@@ -149,6 +155,9 @@ describe("cited fuel candidates", () => {
 
 describe("waiting with no fuel (per the user: distress beacon toggle)", () => {
   it("plays the wait fail at its printed share and otherwise a page for the distress side", () => {
+    // Wiki citations:
+    // > "This event has a 36.4% chance of occurring when you wait at a beacon with your distress beacon off." — [[No fuel: wait fail (distress off)#Trivia]]
+    // > "This event has a 16.7% chance of occurring when you wait at a beacon with your distress beacon on." — [[No fuel: wait fail (distress on)#Trivia]]
     let seed = 1;
     const roll = () => {
       seed = (seed * 16807) % 2147483647;

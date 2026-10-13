@@ -248,6 +248,13 @@ const LAST_STAND_INTROS = [
 ];
 
 const TRADER_OFF = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[No fuel: fuel trader (distress off)]]
+  // > "A merchant ship jumps into the sector and you quickly hail them asking for help. They respond, \"Perhaps we could work out an exchange...\"" — [[No fuel: fuel trader (distress off)]]
+  // > "A number of ships pass through the sector. You relay your message to each, and one finally responds. \"I can't help much right now but perhaps we can trade.\"" — [[No fuel: fuel trader (distress off)]]
+  // > "A nearby settlement sends a small ship in your direction. It keeps its distance and hails you, \"We can give you fuel for a price. Just don't even think of doing anything rash. We've got a teleporter at our base and a squad ready to defend us." — [[No fuel: fuel trader (distress off)]]
+  // > "A large caravan of merchant ships jumps to a location near your position. Sensing an opportunity, one ship breaks off from the fleet to offer you an exchange." — [[No fuel: fuel trader (distress off)]]
+  // > "A modified YT-1300 freighter jumps to an area near your sector. Your gut tells you these people are smugglers, but they seem to be feeling altruistic and present an offer of assistance." — [[No fuel: fuel trader (distress off)]]
   tx("wiki.cited-missing.trader-off-1"),
   tx("wiki.cited-missing.trader-off-2"),
   tx("wiki.cited-missing.trader-off-3"),
@@ -256,6 +263,12 @@ const TRADER_OFF = [
 ];
 
 const TRADER_ON = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[No fuel: fuel trader (distress on)]]
+  // > "A merchant ship jumps into the sector, obviously responding to your ship's distress beacon. They hail you offering a trade for fuel." — [[No fuel: fuel trader (distress on)]]
+  // > "A ship arrives at the beacon. \"We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade.\"" — [[No fuel: fuel trader (distress on)]]
+  // > "A ship traveling near the beacon approaches your ship and hails you. \"Out of fuel? This is a good opportunity for both of us... Care to trade?\"" — [[No fuel: fuel trader (distress on)]]
+  // > "A mercenary ship arrives at the beacon. \"We have a bit of extra fuel we can give you... for a price.\"" — [[No fuel: fuel trader (distress on)]]
   tx("wiki.cited-missing.trader-on-1"),
   tx("wiki.cited-missing.trader-on-2"),
   tx("wiki.cited-missing.trader-on-3"),
@@ -366,6 +379,8 @@ function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
   g.crew = g.crew.filter((c) => c.id !== lost.id);
   const line = tx("wiki.filler-events.is-lost", { name: lost.name });
   // Drifting debris prints the Clone Bay's silence. Buried leave prints no such line.
+  // Wiki citations:
+  // > "(Clone Bay) [no effect] Before preparing to jump you check the Clone Bay but there is no sign of activity." — [[No fuel: drifting debris]]
   if (quiet && g.player.kits.cradle) return `${line} ${tx("wiki.cited-missing.clone-bay-quiet")}`;
   return line;
 }
@@ -569,6 +584,12 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "no-fuel-slug-fuel-trader") {
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Slug fuel trader]]
+    // > "A poorly armed Slug ship cruises by and offers assistance. Their captain seems to be chuckling to himself, perhaps at the prices he's charging." — [[No fuel: Slug fuel trader]]
+    // > "Pay 15 scrap for 5 fuel. [ Scrap lost: 15 ]" — [[No fuel: Slug fuel trader]]
+    // > "Ignore the offer." — [[No fuel: Slug fuel trader]]
+    // > "(Slug Crew) Have your Slug make the purchase." — [[No fuel: Slug fuel trader]]
     return {
       title: ev.dest,
       body: tx("wiki.cited-missing.slug-trader-intro"),
@@ -580,6 +601,12 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "no-fuel-drifting-debris") {
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: drifting debris]]
+    // > "As you await either salvation or death, your attention is drawn to a sea of debris drifting past the starboard view port. The chunks gliding by grow bigger in size until the stern of a Rock frigate, gutted in some distant war, comes into view." — [[No fuel: drifting debris]]
+    // > "Send an away team." — [[No fuel: drifting debris]]
+    // > "Let it drift by." — [[No fuel: drifting debris]]
+    // > "(Life Scanner) Run additional scans." — [[No fuel: drifting debris]]
     return {
       title: ev.dest,
       body: tx("wiki.cited-missing.debris-intro"),
@@ -591,6 +618,13 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "no-fuel-fuel-trader-distress-off" || ev.slug === "no-fuel-fuel-trader-distress-on") {
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: fuel trader (distress off)]]
+    // > "Gladly trade. [ the actual trade offer is shown prior to the exchange ]" — [[No fuel: fuel trader (distress off)]]
+    // > "Respectfully decline." — [[No fuel: fuel trader (distress off)]]
+    // > "This random event occurs." — [[No fuel: fuel trader (distress on)]]
+    // > "Gladly trade. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: fuel trader (distress on)]]
+    // > "Respectfully decline." — [[No fuel: fuel trader (distress on)]]
     const intros = ev.slug.endsWith("off") ? TRADER_OFF : TRADER_ON;
     const intro = intros[between(g, [0, intros.length - 1])]!;
     const offer = rollTrade(g, HIGH_LIST);
@@ -604,6 +638,13 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "no-fuel-prepare-to-dock") {
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: prepare to dock]]
+    // > "A ship approaches. They hail you saying, \"You need some fuel? We'll prepare to dock to help.\"" — [[No fuel: prepare to dock]]
+    // > "Graciously accept their offer." — [[No fuel: prepare to dock]]
+    // > "Request they keep their distance." — [[No fuel: prepare to dock]]
+    // > "(Advanced Sensors) Run a detailed scan with your sensors before responding. (Requires level 3 Sensors)" — [[No fuel: prepare to dock]]
+    // > "(Long-Ranged Scanners) Run a detailed scan before responding." — [[No fuel: prepare to dock]]
     return {
       title: ev.dest,
       body: tx("wiki.cited-missing.prepare-intro"),
@@ -616,6 +657,17 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "no-fuel-refugee-trading") {
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: refugee trading]]
+    // > "This event varies, and could be any of the following:" — [[No fuel: refugee trading]]
+    // > "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you." — [[No fuel: refugee trading]]
+    // > "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it's hull looks damaged - it is in bad need of scrap and is willing to trade fuel for it." — [[No fuel: refugee trading]]
+    // > "Trade some scrap for fuel. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: refugee trading]]
+    // > "(Engi Crew) Negotiate a better trade." — [[No fuel: refugee trading]]
+    // > "Refuse their offer." — [[No fuel: refugee trading]]
+    // > "The helpless refugees make easy targets. Attack them." — [[No fuel: refugee trading]]
+    // > "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is bad need of armaments and is willing to trade for them." — [[No fuel: refugee trading]]
+    // > "Offer some missiles for fuel." — [[No fuel: refugee trading]]
     const variant = between(g, [0, 2]);
     if (variant === 0) {
       return {
@@ -707,6 +759,10 @@ export function missingDisabled(g: Game, id: string): string | null {
 }
 
 function payFifteen(ctx: Ctx, theft: boolean): boolean {
+  // Wiki citations:
+  // > "You doubt he is trustworthy but have no choice but to make the deal. However you complete the exchange without event." — [[No fuel: Slug fuel trader]]
+  // > "You receive Fuel gained: 5." — [[No fuel: Slug fuel trader]]
+  // > "Continue..." — [[No fuel: Slug fuel trader]]
   if (ctx.g.scrap < 15) return false;
   ctx.g.scrap -= 15;
   ctx.g.fuel += 5;
@@ -720,6 +776,10 @@ function payFifteen(ctx: Ctx, theft: boolean): boolean {
 }
 
 function betterTrade(ctx: Ctx, id: string): boolean {
+  // Wiki citations:
+  // > "The refugees thank you for the parts, and gladly pass along the much-needed fuel. They wish you well on your mission, and declare their support for the Federation." — [[No fuel: refugee trading]]
+  // > "You receive Fuel gained: 3 and lose Scrap lost: 10." — [[No fuel: refugee trading]]
+  // > "You receive Fuel gained: 6 and lose Scrap lost: 10." — [[No fuel: refugee trading]]
   if (ctx.g.scrap < 10) return false;
   ctx.g.scrap -= 10;
   ctx.g.fuel += id === "trade" ? 3 : 6;
@@ -1165,12 +1225,22 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
 
   if (slug === "no-fuel-slug-fuel-trader") {
     if (name === "pay") return payFifteen(ctx, ctx.irand(2) === 1);
-    if (name === "slug") return payFifteen(ctx, false);
+    if (name === "slug") {
+      // Wiki citations:
+      // > "You receive Fuel gained: 5 and lose Scrap lost: 15." — [[No fuel: Slug fuel trader]]
+      return payFifteen(ctx, false);
+    }
     if (name === "ignore") {
+      // Wiki citations:
+      // > "You know better than to do business with a Slugman who seems like he knows something you don't. He jumps off with another chuckle." — [[No fuel: Slug fuel trader]]
+      // > "Nothing happens." — [[No fuel: Slug fuel trader]]
       done(g, tx("wiki.cited-missing.slug-trader-ignore"));
       return true;
     }
     if (name === "theft") {
+      // Wiki citations:
+      // > "Everything looks secure but suddenly a number of supplies disappear ! He must have planted a portable teleporter into your cargo bay somehow. Before you can react the ship is long gone." — [[No fuel: Slug fuel trader]]
+      // > "You lose Missiles lost: 2-4 and Scrap lost: 20-35." — [[No fuel: Slug fuel trader]]
       const missiles = Math.min(g.missiles, span(ctx, 2, 4));
       const scrap = Math.min(g.scrap, span(ctx, 20, 35));
       g.missiles -= missiles;
@@ -1182,12 +1252,22 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
 
   if (slug === "no-fuel-drifting-debris") {
     if (name === "send") {
+      // Wiki citations:
+      // > "Perhaps there's some viable fuel left on board; a small away team boards the vessel." — [[No fuel: drifting debris]]
       card(g, tx("wiki.cited-missing.debris-board"), [
         { id: "c:no-fuel-drifting-debris:report", label: tx("wiki.cited-missing.report") },
       ]);
       return true;
     }
     if (name === "report") {
+      // Wiki citations:
+      // > "One of the crew reports that the main computer was housed in this section and is still partially operational. They're able to download local telemetry as well the location of the ship's reserve fuel! Your map has been updated." — [[No fuel: drifting debris]]
+      // > "You receive medium fuel and the current sector map is revealed." — [[No fuel: drifting debris]]
+      // > "The team returns home rather sooner than expected. Turns out just as they were making entry to the frigate, the ship's emergency fuel cell just happened to drift by!" — [[No fuel: drifting debris]]
+      // > "You receive medium fuel." — [[No fuel: drifting debris]]
+      // > "A short time later the team returns with a stash of ammunition and scrap - but all the fuel on board is long gone." — [[No fuel: drifting debris]]
+      // > "You receive medium missiles and scrap." — [[No fuel: drifting debris]]
+      // > "The away team reports in, but then screams are heard and the comm goes dead! When it comes back online a Rockman can be heard - he's the lone survivor from the frigate's crew, and completely mad. He demands you pay a scrap ransom in return for your crew-member's life!" — [[No fuel: drifting debris]]
       const branch = ctx.irand(4);
       if (branch === 0) {
         done(g, `${tx("wiki.cited-missing.debris-map")} ${tx("wiki.cited-events.the-current-sector-map-is-revealed")}`, fuelOnly(g, "medium"));
@@ -1204,6 +1284,8 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
         return true;
       }
       const cost = between(g, [25, 40]);
+      // Wiki citations:
+      // > "You lose Scrap lost: 25-40." — [[No fuel: drifting debris]]
       card(g, tx("wiki.cited-missing.debris-ransom"), [
         { id: `c:no-fuel-drifting-debris:pay:${cost}`, label: tx("wiki.cited-missing.pay-ransom", { cost }) },
         { id: "c:no-fuel-drifting-debris:refuse", label: tx("wiki.cited-missing.refuse") },
@@ -1211,6 +1293,8 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name.startsWith("pay:")) {
+      // Wiki citations:
+      // > "Despite his fragile condition, the Rockman is good to his word and returns your crew-member, who is suitably grateful. Sadly, gratitude doesn't power the FTL drive." — [[No fuel: drifting debris]]
       const cost = Number(name.slice(4));
       if (g.scrap < cost) return false;
       g.scrap -= cost;
@@ -1218,14 +1302,23 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "refuse") {
+      // Wiki citations:
+      // > "It's a tough call, but it's for the Federation and the liberty of all. You set off before you can change your mind." — [[No fuel: drifting debris]]
+      // > "You lose a crewmember." — [[No fuel: drifting debris]]
+      // > "(Clone Bay) [no effect] Before preparing to jump you check the Clone Bay but there is no sign of activity." — [[No fuel: drifting debris]]
       done(g, `${tx("wiki.cited-missing.debris-refused")}\n\n${loseCrew(ctx, true, true)}`);
       return true;
     }
     if (name === "drift") {
+      // Wiki citations:
+      // > "Nothing happens." — [[No fuel: drifting debris]]
       done(g, tx("wiki.cited-events.nothing-happens"));
       return true;
     }
     if (name === "scan") {
+      // Wiki citations:
+      // > "The ship appears to be entirely lifeless. Your crew is able to find some usable fuel cells after a brief search." — [[No fuel: drifting debris]]
+      // > "You receive medium fuel." — [[No fuel: drifting debris]]
       done(g, tx("wiki.cited-missing.debris-scan"), fuelOnly(g, "medium"));
       return true;
     }
@@ -1262,6 +1355,16 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
 
   if (slug === "no-fuel-prepare-to-dock") {
     if (name === "accept") {
+      // Wiki citations:
+      // > "They pull close to your ship and unload some fuel saying, \"Try not to run out of fuel again. These are dangerous times; who knows who could have showed up.\"" — [[No fuel: prepare to dock]]
+      // > "You receive Fuel gained: 2-6." — [[No fuel: prepare to dock]]
+      // > "They approach and dock with your ship. On board they present an offer." — [[No fuel: prepare to dock]]
+      // > "Gladly Trade. [ the actual trade offer is shown ]" — [[No fuel: prepare to dock]]
+      // > "Respectfully Decline." — [[No fuel: prepare to dock]]
+      // > "As they approach, you detect their weapons powering up. It seems their intentions are hostile!" — [[No fuel: prepare to dock]]
+      // > "Fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
+      // > "As their ship pulls up next to yours, their captain continues, \"Yes, we'll certainly help... Help to relieve you of that nice ship!\" Sensors detect a hidden teleporter has been activated. We've been boarded!" — [[No fuel: prepare to dock]]
+      // > "2-3 human boarders beam aboard your ship and you fight a Pirate ship (default rewards). (80 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
       const branch = ctx.irand(4);
       if (branch === 0) {
         done(g, tx("wiki.cited-missing.dock-fuel"), {
@@ -1283,6 +1386,13 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "distance") {
+      // Wiki citations:
+      // > "\"I assure you that we mean no harm. See, we'll send some fuel over on a transport.\" A small ship docks and offloads some fuel just as they said. They leave, saying, \"Stay cautious, friend.\"" — [[No fuel: prepare to dock]]
+      // > "You receive Fuel gained: 1-4." — [[No fuel: prepare to dock]]
+      // > "They reply,\"Keep our distance? Let's see if you can stop us!\" They power up their weapons and advance." — [[No fuel: prepare to dock]]
+      // > "Fight a Pirate ship (default rewards). (80 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
+      // > "\"No one trusts anyone these days...\" The ship jumps away." — [[No fuel: prepare to dock]]
+      // > "Nothing happens." — [[No fuel: prepare to dock]]
       const branch = ctx.irand(3);
       if (branch === 0) {
         done(g, tx("wiki.cited-missing.distance-fuel"), {
@@ -1299,12 +1409,20 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "sensors" || name === "scanners") {
+      // Wiki citations:
+      // > "Scan the ship." — [[No fuel: prepare to dock]]
       card(g, tx("wiki.cited-missing.scan-the-ship"), [
         { id: "c:no-fuel-prepare-to-dock:scan", label: tx("wiki.cited-missing.continue") },
       ]);
       return true;
     }
     if (name === "scan") {
+      // Wiki citations:
+      // > "Sensors indicate their ship is without military-grade weaponry, even small arms. You allow them to dock and they give you some fuel saying, \"I remember a time when we didn't have to be so paranoid about each others' intentions... Stay safe.\"" — [[No fuel: prepare to dock#Scan the ship]]
+      // > "You receive Fuel gained: 3-7." — [[No fuel: prepare to dock#Scan the ship]]
+      // > "Sensors are picking up armed crew and considerably more weaponry than is legal for a craft of this size. This is surely a trap." — [[No fuel: prepare to dock#Scan the ship]]
+      // > "Power up weapons and prepare for a fight." — [[No fuel: prepare to dock#Scan the ship]]
+      // > "(Cloaking) Cloak and get out of scanning range before they have a chance to lock on." — [[No fuel: prepare to dock#Scan the ship]]
       if (ctx.irand(2) === 0) {
         done(g, tx("wiki.cited-missing.scan-safe"), {
           tier: "low", scrap: 0, eligible: 0, fuel: span(ctx, 3, 7), missiles: 0, parts: 0,
@@ -1318,10 +1436,15 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "trap") {
+      // Wiki citations:
+      // > "Fight a Pirate ship (default rewards). (80 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock#Scan the ship]]
       pirateFight(ctx, "no-fuel-prepare-dock-80");
       return true;
     }
     if (name === "cloak") {
+      // Wiki citations:
+      // > "Your highly advanced cloaking system allows you to get out of range easily since they were still out of firing range. Eventually the ship jumps away." — [[No fuel: prepare to dock#Scan the ship]]
+      // > "Nothing happens." — [[No fuel: prepare to dock#Scan the ship]]
       done(g, tx("wiki.cited-missing.cloak-clear"));
       return true;
     }
@@ -1329,12 +1452,18 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
 
   if (slug === "no-fuel-refugee-trading") {
     if (name === "low") {
+      // Wiki citations:
+      // > "You receive low fuel." — [[No fuel: refugee trading]]
       done(g, tx("wiki.cited-missing.refugee-low-fuel"), fuelOnly(g, "low"));
       return true;
     }
     if (name === "trade") return betterTrade(ctx, "trade");
     if (name === "better" || name === "again") return betterTrade(ctx, "better");
     if (name === "engi") {
+      // Wiki citations:
+      // > "Your Engi analyzes scans of the extensive damage to their hull, calculating potential repair costs. The refugees grumble and protest, but in the end, they admit that their need for repairs is greater than their fuel surplus and offer a better trade." — [[No fuel: refugee trading]]
+      // > "Accept it. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: refugee trading]]
+      // > "Refuse it." — [[No fuel: refugee trading]]
       card(g, tx("wiki.cited-missing.refugee-engi"), [
         { id: "c:no-fuel-refugee-trading:better", label: tx("wiki.cited-missing.accept-6-for-10") },
         { id: "c:no-fuel-refugee-trading:better-no", label: tx("wiki.cited-missing.refuse") },
@@ -1342,10 +1471,16 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "better-no" || name === "again-no") {
+      // Wiki citations:
+      // > "Nothing happens." — [[No fuel: refugee trading]]
       done(g, tx("wiki.cited-events.nothing-happens"));
       return true;
     }
     if (name === "refuse") {
+      // Wiki citations:
+      // > "The refugee ship cuts communications and jumps from the system without another word, the galactic equivalent of giving you the cold shoulder." — [[No fuel: refugee trading]]
+      // > "The refugees become desperate at your refusal - apparently, their hull is even more damaged than it first appears. Almost begging, they offer a better trade than before." — [[No fuel: refugee trading]]
+      // > "Refuse their offer again." — [[No fuel: refugee trading]]
       if (ctx.irand(2) === 0) done(g, tx("wiki.cited-missing.refugee-cold"));
       else {
         card(g, tx("wiki.cited-missing.refugee-desperate"), [
@@ -1356,10 +1491,18 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "attack") {
+      // Wiki citations:
+      // > "Panicked, the refugees immediately surrender as your weapons power up. They pass along their fuel and what few other supplies they have left in exchange for their lives." — [[No fuel: refugee trading]]
+      // > "You receive medium fuel and scrap." — [[No fuel: refugee trading]]
       done(g, tx("wiki.cited-missing.refugee-surrender"), fuelAndScrap(g, "medium"));
       return true;
     }
     if (name === "missiles") {
+      // Wiki citations:
+      // > "The refugee ship makes the exchange, and wishes you well on your mission." — [[No fuel: refugee trading]]
+      // > "You lose Missiles lost: 1 and receive Fuel gained: 5-7." — [[No fuel: refugee trading]]
+      // > "Having traded supplies, the ship suddenly powers up and attacks - it's a pirate ship!" — [[No fuel: refugee trading]]
+      // > "You lose Missiles lost: 1, receive Fuel gained: 5-7, and you fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: refugee trading]]
       g.missiles -= 1;
       const fuel = span(ctx, 5, 7);
       g.fuel += fuel;
@@ -1372,6 +1515,13 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "arm-no") {
+      // Wiki citations:
+      // > "2× Taking your reluctance as weakness, the refugee ship suddenly bristles with weapons - it's a pirate ship, and it believes it's found easy prey!" — [[No fuel: refugee trading]]
+      // > "Fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: refugee trading]]
+      // > "Sensing your reluctance, the refugee ship nevertheless parts with a small amount of fuel. It warns you to leave the sector as quickly as possible before it is overtaken by Rebels, then it jumps and vanishes to parts unknown." — [[No fuel: refugee trading]]
+      // > "You receive low fuel." — [[No fuel: refugee trading]]
+      // > "The refugee ship apologizes, but they need their fuel. They wish you well, and then vanish from the system." — [[No fuel: refugee trading]]
+      // > "Nothing happens." — [[No fuel: refugee trading]]
       const branch = pickW(ctx, [2, 1, 1]);
       if (branch === 0) {
         ctx.note(tx("wiki.cited-missing.refugee-prey"));

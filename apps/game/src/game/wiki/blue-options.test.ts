@@ -142,6 +142,10 @@ describe("Skipped blue options", () => {
   });
 
   it("an Engi hull repair drone spends one drone part for 4-6 fuel", () => {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
+    // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
+    // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
     const bare = createGame(1);
     openCited(bare, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
     assert.ok(bare.event?.choices.some((c) => c.id === "c:no-fuel-engi-ship-repair:2"));

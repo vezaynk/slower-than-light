@@ -49,6 +49,9 @@ const RUN_FROM_START: Record<string, { seconds: number; pursuit: boolean }> = {
   "auto-ship-warning": { seconds: 40, pursuit: true },
   "auto-ship-warning-in-nebula": { seconds: 40, pursuit: true },
   // Enemy Ships: "exception: No fuel: Auto-ship warning has 40 seconds escape timer".
+  // Wiki citations:
+  // > "Rebel Fleet pursuit is doubled." — [[No fuel: Auto-ship warning]]
+  // > "Unlike the usual 80 seconds escape countdown timer in all other Out-of-fuel events or the 90 seconds escape countdown timer for any hostile ship encountered in other events after depleting your last fuel, the enemy auto-ship has 40 seconds escape countdown timer from the start, similarly to Auto-ship warning and Auto-ship warning in nebula (and Rebel ship warning) events." — [[No fuel: Auto-ship warning#Notes]]
   "no-fuel-auto-ship-warning": { seconds: 40, pursuit: true },
   "rebel-ship-warning": { seconds: 40, pursuit: true },
   "rebel-transport-ship": { seconds: 40, pursuit: false },
@@ -56,8 +59,13 @@ const RUN_FROM_START: Record<string, { seconds: number; pursuit: boolean }> = {
   "rock-war-vessel-encounter": { seconds: 32, pursuit: false },
   // Slug Home Nebula surrender is the Slug hull row (50% at 30-40%). The 35 second timer is the interceptor only.
   // No fuel: prepare to dock, the hostile accept: {{SurrenderEscape|timer|90}}.
+  // Wiki citations:
+  // > "Fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
   "no-fuel-prepare-dock-90": { seconds: 90, pursuit: false },
   // No fuel: refugee trading, every pirate fight: {{SurrenderEscape|timer|90}}.
+  // Wiki citations:
+  // > "You lose Missiles lost: 1, receive Fuel gained: 5-7, and you fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: refugee trading]]
+  // > "Fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: refugee trading]]
   "no-fuel-refugee-trading": { seconds: 90, pursuit: false },
 };
 
@@ -159,6 +167,13 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   if (ctx.event === "fight-in-last-stand") return plan("never", 0);
   // Enemy Ships: out of fuel and WAIT, "all ships start running" at 80 seconds. The "No fuel: …" event
   // pages are the ones reached by waiting with no fuel, so their slug marks the rule.
+  // Wiki citations:
+  // > "Fight a Mantis ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Mantis fight]]
+  // > "Fight a Rebel ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Rebel fight]]
+  // > "Fight a Slug ship that is running away. (80 seconds escape countdown timer if not interrupted)(no surrender offers)" — [[No fuel: Slug fuel depot]]
+  // > "Fight an Auto-ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: automated refueling ship]]
+  // > "2-3 human boarders beam aboard your ship and you fight a Pirate ship (default rewards). (80 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
+  // > "Fight a Pirate ship (default rewards). (80 seconds escape countdown timer if not interrupted)" — [[No fuel: prepare to dock]]
   if (ctx.event?.startsWith("no-fuel-")) return plan("start", OUT_OF_FUEL_WAIT_SECONDS);
   // Enemy Ships, "Never run away, never surrender": "Rebel Elite ships".
   // INFERRED for the boss: "The Rebel Flagship" is on no run list, and Template:SurrenderEscape reads a ship with

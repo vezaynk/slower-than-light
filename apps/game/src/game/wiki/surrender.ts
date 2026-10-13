@@ -151,7 +151,10 @@ export const NO_SURRENDER_EVENTS = new Set([
   "rebel-fight-among-rebel-fleet",
   "rebel-fight-among-federation-and-rebel-fleets",
   "rebel-ship-attacking-crystal-ship",
+  // Wiki citations:
+  // > "(no surrender offers)" — [[No fuel: Engi ship repair]]
   "no-fuel-engi-ship-repair",
+  // > "Fight a Slug ship that is running away. (80 seconds escape countdown timer if not interrupted)(no surrender offers)" — [[No fuel: Slug fuel depot]]
   "no-fuel-slug-fuel-depot",
   // Category:Ship surrender Events: "There are no surrenders in the 1st fight of [[Mantis ship-collectors]]". The wired
   // choice is that first fight (the Mantis Fighter).

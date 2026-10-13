@@ -117,6 +117,9 @@ describe("missing location pages", () => {
   });
 
   it("encodes a fuel-trader price and refuses a short stock", () => {
+    // Wiki citations:
+    // > "Gladly trade. [ the actual trade offer is shown prior to the exchange ]" — [[No fuel: fuel trader (distress off)]]
+    // > "Respectfully decline." — [[No fuel: fuel trader (distress off)]]
     const g = createGame(5);
     g.scrap = 0;
     g.missiles = 0;

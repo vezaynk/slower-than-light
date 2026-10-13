@@ -35,6 +35,8 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
   });
 
   it("uses 80 s for out-of-fuel events, except the 40 s auto-ship", () => {
+    // Wiki citations:
+    // > "Unlike the usual 80 seconds escape countdown timer in all other Out-of-fuel events or the 90 seconds escape countdown timer for any hostile ship encountered in other events after depleting your last fuel, the enemy auto-ship has 40 seconds escape countdown timer from the start, similarly to Auto-ship warning and Auto-ship warning in nebula (and Rebel ship warning) events." — [[No fuel: Auto-ship warning#Notes]]
     assert.equal(escapePlan({ tier: "scout", event: "no-fuel-engi-ship-repair" }, half).seconds, OUT_OF_FUEL_WAIT_SECONDS);
     assert.equal(escapePlan({ tier: "scout", event: "no-fuel-auto-ship-warning" }, half).seconds, 40);
   });

@@ -1604,6 +1604,9 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: Auto-ship warning",
     "slug": "no-fuel-auto-ship-warning",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Auto-ship warning]]
+    // > "A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship." — [[No fuel: Auto-ship warning]]
     "flag": "cited:no-fuel-auto-ship-warning",
     "aliases": [
       "No fuel: Auto-ship fight",
@@ -1614,6 +1617,8 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-auto-ship-warning:0",
+        // Wiki citations:
+        // > "Fight an Auto-ship that is running away." — [[No fuel: Auto-ship warning]]
         "label": tx("wiki.cited-events.fight-an-auto-ship-that-is"),
         "fx": [
           {
@@ -1627,6 +1632,8 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: Engi ship repair",
     "slug": "no-fuel-engi-ship-repair",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Engi ship repair]]
     "flag": "cited:no-fuel-engi-ship-repair",
     "aliases": [
       "Fuel Engi Ship Repair",
@@ -1637,6 +1644,9 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-engi-ship-repair:0",
+        // Wiki citations:
+        // > "Make the trade." — [[No fuel: Engi ship repair]]
+        // > "You lose Scrap lost: 10-20 and receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
         "label": tx("wiki.cited-events.make-the-trade"),
         "fx": [
           {
@@ -1657,6 +1667,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-engi-ship-repair:1",
+        // Wiki citations:
+        // > "Ignore them." — [[No fuel: Engi ship repair]]
+        // > "Nothing happens." — [[No fuel: Engi ship repair]]
         "label": tx("wiki.cited-events.ignore-them"),
         "fx": [
           {
@@ -1666,6 +1679,10 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-engi-ship-repair:2",
+        // Wiki citations:
+        // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
+        // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
+        // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
         "label": tx("wiki.cited-events.offer-to-help-repair-their-hull"),
         "fx": [
           {
@@ -1678,6 +1695,8 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: Mantis fight",
     "slug": "no-fuel-mantis-fight",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Mantis fight]]
     "flag": "cited:no-fuel-mantis-fight",
     "aliases": [
       "Mantis Fuel Attack",
@@ -1688,6 +1707,8 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-mantis-fight:0",
+        // Wiki citations:
+        // > "Fight a Mantis ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Mantis fight]]
         "label": tx("wiki.cited-events.fight-a-mantis-ship-that-is"),
         "fx": [
           {
@@ -1701,6 +1722,8 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: Rebel fight",
     "slug": "no-fuel-rebel-fight",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Rebel fight]]
     "flag": "cited:no-fuel-rebel-fight",
     "aliases": [
       "No fuel: Rebel assistant hails",
@@ -1711,6 +1734,8 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-rebel-fight:0",
+        // Wiki citations:
+        // > "Fight a Rebel ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Rebel fight]]
         "label": tx("wiki.cited-events.fight-a-rebel-ship-that-is"),
         "fx": [
           {
@@ -1724,6 +1749,9 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: Slug fuel depot",
     "slug": "no-fuel-slug-fuel-depot",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: Slug fuel depot]]
+    // > "A mobile Slugman fuel depot enters scanning range. \"My prices are fair, but I ask one thing - do not insult me with negotiation!\" You check out his price list." — [[No fuel: Slug fuel depot]]
     "flag": "cited:no-fuel-slug-fuel-depot",
     "aliases": [
       "No fuel: Slug fuel depot",
@@ -1734,6 +1762,9 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-slug-fuel-depot:0",
+        // Wiki citations:
+        // > "Buy 5 fuel for 50 scrap." — [[No fuel: Slug fuel depot]]
+        // > "You lose Scrap lost: 50 and receive Fuel gained: 5." — [[No fuel: Slug fuel depot]]
         "label": tx("wiki.cited-events.buy-5-fuel-for-50-scrap"),
         "fx": [
           {
@@ -1754,6 +1785,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-slug-fuel-depot:1",
+        // Wiki citations:
+        // > "Buy 10 fuel for 95 scrap. (BEST DEAL!)" — [[No fuel: Slug fuel depot]]
+        // > "You lose Scrap lost: 95 and receive Fuel gained: 10." — [[No fuel: Slug fuel depot]]
         "label": tx("wiki.cited-events.buy-10-fuel-for-95-scrap"),
         "fx": [
           {
@@ -1774,6 +1808,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-slug-fuel-depot:2",
+        // Wiki citations:
+        // > "Negotiate." — [[No fuel: Slug fuel depot]]
+        // > "Fight a Slug ship that is running away. (80 seconds escape countdown timer if not interrupted)(no surrender offers)" — [[No fuel: Slug fuel depot]]
         "label": tx("wiki.cited-events.negotiate"),
         "fx": [
           {
@@ -1787,6 +1824,8 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: automated refueling ship",
     "slug": "no-fuel-automated-refueling-ship",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: automated refueling ship]]
     "flag": "cited:no-fuel-automated-refueling-ship",
     "aliases": [
       "Automated Re-Fueling Ship",
@@ -1797,6 +1836,9 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-automated-refueling-ship:0",
+        // Wiki citations:
+        // > "Request emergency fuel reserves." — [[No fuel: automated refueling ship]]
+        // > "You receive low fuel." — [[No fuel: automated refueling ship]]
         "label": tx("wiki.cited-events.request-emergency-fuel-reserves"),
         "fx": [
           {
@@ -1810,6 +1852,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:1",
+        // Wiki citations:
+        // > "Buy 5 fuel for 20 scrap. [ Scrap lost: 20 ]" — [[No fuel: automated refueling ship]]
+        // > "You receive Fuel gained: 5." — [[No fuel: automated refueling ship]]
         "label": tx("wiki.cited-events.buy-5-fuel-for-20-scrap"),
         "fx": [
           {
@@ -1830,6 +1875,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:2",
+        // Wiki citations:
+        // > "Buy 2 fuel for 8 scrap. [ Scrap lost: 8 ]" — [[No fuel: automated refueling ship]]
+        // > "You receive Fuel gained: 2." — [[No fuel: automated refueling ship]]
         "label": tx("wiki.cited-events.buy-2-fuel-for-8-scrap"),
         "fx": [
           {
@@ -1850,6 +1898,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-automated-refueling-ship:3",
+        // Wiki citations:
+        // > "Attack the automated ship." — [[No fuel: automated refueling ship]]
+        // > "Fight an Auto-ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: automated refueling ship]]
         "label": tx("wiki.cited-events.attack-the-automated-ship"),
         "fx": [
           {
@@ -1863,6 +1914,9 @@ const CORE_EVENTS: EventDef[] = [
   {
     "dest": "No fuel: explore the system",
     "slug": "no-fuel-explore-the-system",
+    // Wiki citations:
+    // > "This random event occurs." — [[No fuel: explore the system]]
+    // > "Although your lack of fuel cells prevents your ship from jumping, you can still use your impulse engines. Will you spend some time exploring the nearby system?" — [[No fuel: explore the system]]
     "flag": "cited:no-fuel-explore-the-system",
     "aliases": [
       "Explore the System",
@@ -1873,6 +1927,9 @@ const CORE_EVENTS: EventDef[] = [
     "choices": [
       {
         "id": "c:no-fuel-explore-the-system:0",
+        // Wiki citations:
+        // > "Trade 20 scrap for 5 fuel. [ Scrap lost: 20 ]" — [[No fuel: explore the system]]
+        // > "You receive Fuel gained: 5." — [[No fuel: explore the system]]
         "label": tx("wiki.cited-events.trade-20-scrap-for-5-fuel"),
         "fx": [
           {
@@ -1893,6 +1950,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:1",
+        // Wiki citations:
+        // > "Trade 10 scrap for 2 fuel. [ Scrap lost: 10 ]" — [[No fuel: explore the system]]
+        // > "You receive Fuel gained: 2." — [[No fuel: explore the system]]
         "label": tx("wiki.cited-events.trade-10-scrap-for-2-fuel"),
         "fx": [
           {
@@ -1913,6 +1973,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:2",
+        // Wiki citations:
+        // > "Trade 5 scrap for 1 fuel. [ Scrap lost: 5 ]" — [[No fuel: explore the system]]
+        // > "You receive Fuel gained: 1." — [[No fuel: explore the system]]
         "label": tx("wiki.cited-events.trade-5-scrap-for-1-fuel"),
         "fx": [
           {
@@ -1933,6 +1996,9 @@ const CORE_EVENTS: EventDef[] = [
       },
       {
         "id": "c:no-fuel-explore-the-system:3",
+        // Wiki citations:
+        // > "Stay near the beacon." — [[No fuel: explore the system]]
+        // > "Nothing happens." — [[No fuel: explore the system]]
         "label": tx("wiki.cited-events.stay-near-the-beacon"),
         "fx": [
           {
@@ -5361,6 +5427,8 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // No fuel: Engi ship repair. Hull Repair Drone, 1 drone part.
   // INFERRED: the refusal lines. The page names the drone and the part.
+  // Wiki citations:
+  // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
   if (id === "c:no-fuel-engi-ship-repair:2" && !ownsHullRepair(g)) return tx("wiki.cited-events.needs-a-hull-repair-drone");
   if (id === "c:no-fuel-engi-ship-repair:2" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
@@ -5769,6 +5837,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // No fuel: Engi ship repair. Hull Repair Drone spends 1 drone part and pays 4-6 fuel.
   // citedChoose does not read citedChoiceDisabled, so a missing drone returns before the part is spent.
   if (id === "c:no-fuel-engi-ship-repair:2") {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
+    // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
+    // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
     if (!ownsHullRepair(g) || g.player.parts < 1) return false;
     g.player.parts -= 1;
     const fuel = roll(ctx, 4, 6);

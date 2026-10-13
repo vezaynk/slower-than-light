@@ -78,6 +78,11 @@ async function pageText(title: string): Promise<string> {
 
 describe("cited pirate events", () => {
   it("exports only these titles, with sectors and numbers cited", async () => {
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector, Uncharted Nebula." — [[Pirate fight in nebula]]
+    // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
+    // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
+    // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
     const src = readFileSync(new URL("./cited-events-pirate.ts", import.meta.url), "utf8");
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {

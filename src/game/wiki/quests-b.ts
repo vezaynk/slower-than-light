@@ -344,16 +344,30 @@ function researchDock(g: Game) {
   const r = pick(g, ["parts", "survivor", "infected"] as const);
   if (r === "parts") {
     // "medium (1 drone part) drone parts and scrap" (Rewards#Drone parts).
+    // Wiki citations:
+    // > "Inside there are signs of a great struggle; scientists lie dead where they fell, brutally dismembered. You grab a few research drone parts lying on a desk near the door and leave quickly." — [[Research station with no response]]
+    // > "You receive medium drone parts and scrap." — [[Research station with no response]]
     const offer = scrapOnly(g, "medium");
     offer.parts = 1;
     result(g, tx("wiki.quests-b.inside-there-are-signs-of-a"), offer);
   } else if (r === "survivor") {
+    // Wiki citations:
+    // > "You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, \"My... friends... They've gone insane... They're coming!\" You hand him a blaster and turn to see a number of people charging toward the ship." — [[Research station with no response]]
+    // > "You receive a crewmember." — [[Research station with no response]]
+    // > "Prepare for a fight!" — [[Research station with no response]]
+    // > "(Medbay) Have the advanced medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
     const joined = crew(g, randomRace(g));
     const choices: Choice[] = [{ id: "q:research:brace", label: tx("wiki.quests-b.prepare-for-a-fight") }];
     // {{Blue Option|Medbay|Have the advanced medbay analyze their condition.|level=3}}
     if (medbay(g) >= 3) choices.push({ id: "q:research:antidote", label: tx("wiki.quests-b.have-the-advanced-medbay-analyze-their") });
     card(g, tx("wiki.quests-b.you-dock-with-the-station-and", { joined: joined }), choices);
   } else {
+    // Wiki citations:
+    // > "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor." — [[Research station with no response]]
+    // > "Drag him back to the ship and prepare for a fight." — [[Research station with no response]]
+    // > "(Teleporter) Use your Teleporter to retrieve your crew." — [[Research station with no response]]
+    // > "(Medbay) Drag him back to the Medbay. (Requires level 2 Medbay)" — [[Research station with no response]]
+    // > "(Medbay) Have the Advanced Medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
     const choices: Choice[] = [{ id: "q:research:drag", label: tx("wiki.quests-b.drag-him-back-to-the-ship") }];
     if (hasTeleporter(g)) choices.push({ id: "q:research:beam", label: tx("wiki.quests-b.use-your-teleporter-to-retrieve-your") });
     if (medbay(g) >= 2) choices.push({ id: "q:research:medbay", label: tx("wiki.quests-b.drag-him-back-to-the-medbay") });
@@ -379,11 +393,20 @@ function researchDrone(g: Game) {
   if (!hasDrone(g, ["antipersonnel"])) return;
   const kind = weighted(g, [["nothing", 2], ["scrap", 1]] as const);
   if (kind === "nothing") {
+    // Wiki citations:
+    // > "You send your Anti-Personnel drone to explore the station. What you find is disconcerting... It appears that something has caused the scientists and guards to tear each other to pieces. You abandon the drone on the station for fear that it is contagious." — [[Research station with no response]]
+    // > "Once on board the station, your drone is immediately beset by frenzied scientists and guards. It eventually gets torn apart by the mob but it has bought you enough time to disengage from the station and escape into empty space." — [[Research station with no response]]
+    // > "Nothing happens." — [[Research station with no response]]
+    // > "Drone parts lost: 1" — [[Research station with no response]]
     if (!spendDronePart(g)) return;
     const text = pick(g, [APD_TEAR, APD_MOB] as const);
     result(g, text, undefined, [tx("wiki.quests-b.nothing-happens"), tx("wiki.quests-b.drone-parts-1")]);
     return;
   }
+  // Wiki citations:
+  // > "The cameras mounted to your Anti-Personnel drone show a chaotic scene. No people are to be found but the remnants of a recent battle on-board the ship are obvious. You instruct the drone to retrieve some useful materials before leaving." — [[Research station with no response]]
+  // > "You receive medium scrap with resources." — [[Research station with no response]]
+  // > "Drone parts lost: 1" — [[Research station with no response]]
   const hull = g.player.hull;
   const lines = g.log.slice();
   const offer = rollStandard(g, "medium");
@@ -399,9 +422,15 @@ function researchDrone(g: Game) {
 function researchScan(g: Game) {
   if (!g.augments.includes("pulseeye")) return;
   if (weighted(g, [["clear", 1], ["life", 1]] as const) === "clear") {
+    // Wiki citations:
+    // > "There are no life signs detected on the ship although there appears to be a number of deceased crew. There does not appear to be any airborn contagions so your crew quickly salvages what they can before moving on. You can only wonder what befell the station." — [[Research station with no response]]
+    // > "You receive medium scrap with resources." — [[Research station with no response]]
     result(g, SCAN_CLEAR, rollStandard(g, "medium"));
     return;
   }
+  // Wiki citations:
+  // > "Sensors show scattered signs of life although most of the crew are deceased. However the health signatures of the living indicate they are violent and unstable. You decide it's better to move on than risk engaging the remaining crew." — [[Research station with no response]]
+  // > "Nothing happens." — [[Research station with no response]]
   result(g, SCAN_LIFE, undefined, [tx("wiki.quests-b.nothing-happens")]);
 }
 
@@ -760,21 +789,34 @@ export const PART_B: QuestPart = {
     "q:research:dock": (g) => researchDock(g),
     "c:research-station-with-no-response:0": (g) => researchDock(g),
     // Standalone "Leave it alone." prints "Nothing happens." Merchant's Delivery still uses q:research:leave.
-    "c:research-station-with-no-response:1": (g) => result(g, tx("wiki.quests-b.nothing-happens")),
+    "c:research-station-with-no-response:1": (g) => {
+      // Wiki citations:
+      // > "Leave it alone." — [[Research station with no response]]
+      // > "Nothing happens." — [[Research station with no response]]
+      result(g, tx("wiki.quests-b.nothing-happens"));
+    },
     "q:research:drone": (g) => researchDrone(g),
     "c:research-station-with-no-response:2": (g) => researchDrone(g),
     "c:research-station-with-no-response:3": (g) => researchScan(g),
     "q:research:leave": (g) => done(g),
     // "3-4 human boarders beam aboard your ship." No enemy ship.
     "q:research:brace": (g) => {
+      // Wiki citations:
+      // > "Prepare for a fight!" — [[Research station with no response]]
       humanBoarders(g, 3, 4, tx("wiki.quests-b.human-boarders-beam-aboard"));
       beginBoarding(g);
     },
     "q:research:antidote": (g) => {
+      // Wiki citations:
+      // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is the cause of their frenzy. It synthesizes an antidote and releases it into the room. After a time, the scientists recover. One offers their services as thanks for saving them." — [[Research station with no response]]
+      // > "You receive a crewmember with 1 skill in repair and medium scrap." — [[Research station with no response]]
       result(g, tx("wiki.quests-b.you-hold-them-off-while-retreating"), scrapOnly(g, "medium"), [crew(g, randomRace(g), "repair")]);
     },
     // "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship."
     "q:research:drag": (g) => {
+      // Wiki citations:
+      // > "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship." — [[Research station with no response]]
+      // > "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship." — [[Research station with no response]]
       log(g, tx("wiki.quests-b.as-you-get-back-on-board"));
       turnCoat(g);
       humanBoarders(g, 3, 4, tx("wiki.quests-b.human-boarders-beam-aboard"));
@@ -782,6 +824,10 @@ export const PART_B: QuestPart = {
     },
     // Teleporter: "lose a crewmember, who becomes an enemy." No extra boarders. Last crew stays (the card remains).
     "q:research:beam": (g) => {
+      // Wiki citations:
+      // > "(Teleporter) Use your Teleporter to retrieve your crew." — [[Research station with no response]]
+      // > "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks." — [[Research station with no response]]
+      // > "You lose a crewmember, who becomes an enemy." — [[Research station with no response]]
       const text = tx("wiki.quests-b.you-beam-your-away-team-back");
       if (!turnCoat(g)) {
         result(g, text);
@@ -792,11 +838,18 @@ export const PART_B: QuestPart = {
     },
     // Medbay level 2: "3-4 human boarders beam aboard your ship." The crewmember recovers.
     "q:research:medbay": (g) => {
+      // Wiki citations:
+      // > "(Medbay) Drag him back to the Medbay. (Requires level 2 Medbay)" — [[Research station with no response]]
+      // > "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help." — [[Research station with no response]]
       log(g, tx("wiki.quests-b.you-hold-him-down-and-the"));
       humanBoarders(g, 3, 4, tx("wiki.quests-b.human-boarders-beam-aboard"));
       beginBoarding(g);
     },
     "q:research:cure": (g) => {
+      // Wiki citations:
+      // > "(Medbay) Have the Advanced Medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
+      // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is driving your crew member insane. It synthesizes an antidote and releases it into the ship. After a time, the frenzied scientists recover and one offers to help out as thanks for saving them." — [[Research station with no response]]
+      // > "You receive a crewmember." — [[Research station with no response]]
       result(g, tx("wiki.quests-b.you-hold-them-off-while-retreating-2"), undefined, [crew(g, randomRace(g))]);
     },
 
@@ -889,7 +942,11 @@ export const PART_B: QuestPart = {
     // the footnote waives it when the reward includes drone parts.
     // INFERRED: the refusal lines. The page names the drone and the scanner and does not print these sentences.
     if (id === "q:research:drone" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
+    // Wiki citations:
+    // > "(Anti-Personnel Drone) Send your battle drone in to help. [ Drone parts lost: 1 ]" — [[Research station with no response]]
     if (id === "c:research-station-with-no-response:2" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
+    // Wiki citations:
+    // > "(Life Scanner) Run advanced life scans." — [[Research station with no response]]
     if (id === "c:research-station-with-no-response:3" && !g.augments.includes("pulseeye")) return tx("wiki.quests-b.needs-a-lifeform-scanner");
     return null;
   },

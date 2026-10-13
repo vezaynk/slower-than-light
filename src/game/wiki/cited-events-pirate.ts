@@ -30,6 +30,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Pirate fight in nebula",
     slug: "pirate-fight-in-nebula",
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector, Uncharted Nebula." — [[Pirate fight in nebula]]
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
     flag: "cited:pirate-fight-in-nebula",
     aliases: ["Pirate fight in nebula"],
     sectors: ["Pirate Controlled Sector", "Uncharted Nebula"],
@@ -37,9 +40,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:pirate-fight-in-nebula:0",
+        // Wiki citations:
+        // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
         label: tx("wiki.cited-events-pirate.fight-a-pirate-ship"),
         fx: [
-          // "Fight a Pirate ship (default rewards)."
           { k: "fight", tier: "Pirate ship" },
         ],
       },
@@ -51,6 +55,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Refugee (Pirate)",
     slug: "refugee-pirate",
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
     flag: "cited:refugee-pirate",
     aliases: ["Refugee (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
@@ -66,6 +72,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Refugee distress (Pirate)",
     slug: "refugee-distress-pirate",
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
     flag: "cited:refugee-distress-pirate",
     aliases: ["Refugee distress (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
@@ -81,15 +89,44 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Research station with no response",
     slug: "research-station-with-no-response",
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
+    // > "It is unique." — [[Research station with no response]]
+    // > "You arrive to find a small research station putting out a distress signal. There is no response to your hails." — [[Research station with no response]]
     flag: "cited:research-station-with-no-response",
     aliases: ["Research station with no response"],
     sectors: ["Pirate Controlled Sector"],
     body: tx("wiki.cited-events-pirate.you-arrive-to-find-a-small"),
     choices: [
-      { id: "c:research-station-with-no-response:0", label: tx("wiki.cited-events-pirate.dock-with-the-station-and-investigate"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.the-station-investigation") }] },
-      { id: "c:research-station-with-no-response:1", label: tx("wiki.cited-events-pirate.leave-it-alone"), fx: [{ k: "nothing" }] },
-      { id: "c:research-station-with-no-response:2", label: tx("wiki.cited-events-pirate.send-your-battle-drone-in-to"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.nothing-or-medium-scrap-with-resources") }] },
-      { id: "c:research-station-with-no-response:3", label: tx("wiki.cited-events-pirate.run-advanced-life-scans"), fx: [{ k: "note", text: tx("wiki.cited-events-pirate.medium-scrap-with-resources-or-nothing") }] },
+      {
+        id: "c:research-station-with-no-response:0",
+        // Wiki citations:
+        // > "Dock with the station and investigate." — [[Research station with no response]]
+        label: tx("wiki.cited-events-pirate.dock-with-the-station-and-investigate"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-pirate.the-station-investigation") }],
+      },
+      {
+        id: "c:research-station-with-no-response:1",
+        // Wiki citations:
+        // > "Leave it alone." — [[Research station with no response]]
+        // > "Nothing happens." — [[Research station with no response]]
+        label: tx("wiki.cited-events-pirate.leave-it-alone"),
+        fx: [{ k: "nothing" }],
+      },
+      {
+        id: "c:research-station-with-no-response:2",
+        // Wiki citations:
+        // > "(Anti-Personnel Drone) Send your battle drone in to help. [ Drone parts lost: 1 ]" — [[Research station with no response]]
+        label: tx("wiki.cited-events-pirate.send-your-battle-drone-in-to"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-pirate.nothing-or-medium-scrap-with-resources") }],
+      },
+      {
+        id: "c:research-station-with-no-response:3",
+        // Wiki citations:
+        // > "(Life Scanner) Run advanced life scans." — [[Research station with no response]]
+        label: tx("wiki.cited-events-pirate.run-advanced-life-scans"),
+        fx: [{ k: "note", text: tx("wiki.cited-events-pirate.medium-scrap-with-resources-or-nothing") }],
+      },
     ],
   },
 ];

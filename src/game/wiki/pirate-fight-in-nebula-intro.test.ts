@@ -25,6 +25,14 @@ function open(g: Game) {
 
 describe("Pirate fight in nebula intro", () => {
   it("shows one of the five printed intros, then fights a pirate ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
+    // > "As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online." — [[Pirate fight in nebula]]
+    // > "A pirate ship pulls out of the ether and hails: \"You know what I love about this part of the galaxy? The explorers! You always carry such fine loot.\" They lock weapons." — [[Pirate fight in nebula]]
+    // > "As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers." — [[Pirate fight in nebula]]
+    // > "A hostile vessel descends from out of the nebula. Combat stations!" — [[Pirate fight in nebula]]
+    // > "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!" — [[Pirate fight in nebula]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
     assert.equal(INTROS.length, 5);
     assert.equal(new Set(INTROS).size, 5);
     const seen = new Set<string>();
@@ -49,6 +57,9 @@ describe("Pirate fight in nebula intro", () => {
 
   it("starts the Pirate ship on arrival and leaves no button", () => {
     // The page has no choice. One of the five printed intros, then "Fight a Pirate ship." nebula=true. unique=false. No nebula environment is added.
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);

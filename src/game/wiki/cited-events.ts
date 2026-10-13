@@ -3993,6 +3993,13 @@ const LANIUS_PIRATE_CIVILIAN_INTROS = [
 // Pirate fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:pirate-fight-in-nebula:0. Default rewards. No nebula environment is added.
 const NEBULA_PIRATE_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
+  // > "As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online." — [[Pirate fight in nebula]]
+  // > "A pirate ship pulls out of the ether and hails: \"You know what I love about this part of the galaxy? The explorers! You always carry such fine loot.\" They lock weapons." — [[Pirate fight in nebula]]
+  // > "As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers." — [[Pirate fight in nebula]]
+  // > "A hostile vessel descends from out of the nebula. Combat stations!" — [[Pirate fight in nebula]]
+  // > "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!" — [[Pirate fight in nebula]]
   tx("wiki.cited-events.as-you-drift-through-the-nebula"),
   tx("wiki.cited-events.a-pirate-ship-pulls-out-of"),
   tx("wiki.cited-events.as-you-coast-through-the-nebula"),
@@ -4741,6 +4748,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Pirate fight in nebula has no choice. Arrival calls this fight.
   // One of the five printed intros. "Fight a Pirate ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
   if (ev.slug === "pirate-fight-in-nebula") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
     return {
       title: ev.dest,
       body: NEBULA_PIRATE_INTROS[between(g, [0, 4])]!,

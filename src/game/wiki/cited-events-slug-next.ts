@@ -30,6 +30,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Slug moons question",
     slug: "slug-moons-question",
+    // Wiki citations:
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug moons question]]
+    // > "It is unique." — [[Slug moons question]]
+    // > "You arrive near the distress beacon's signal." — [[Slug moons question]]
     flag: "cited:slug-moons-question",
     aliases: ["Slug moons question"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
@@ -37,6 +41,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:slug-moons-question:0",
+        // Wiki citations:
+        // > "Investigate." — [[Slug moons question]]
         label: tx("wiki.cited-events-slug-next.investigate"),
         fx: [{ k: "note", text: tx("wiki.cited-events-slug-next.the-question-follows") }],
       },

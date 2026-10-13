@@ -4270,6 +4270,14 @@ function slugMoonWord(n: number): string {
  * beacon.kind "nebula" is that environment (fleet step and the anti-ship battery).
  */
 function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
+  // Wiki citations:
+  // > "this event occurs at a regular beacon, but when you arrive there will be a nebula environment." — [[Slug moons question]]
+  // > "You arrive near the distress beacon's signal." — [[Slug moons question]]
+  // > "You track the distress beacon with difficulty to one of the five moons of a planet hidden in the nebula." — [[Slug moons question]]
+  // > "You track the distress beacon with difficulty to one of the six moons of a planet hidden in the nebula." — [[Slug moons question]]
+  // > "You track the distress beacon with difficulty to one of the seven moons of a planet hidden in the nebula." — [[Slug moons question]]
+  // > "You track the distress beacon with difficulty to one of the eleven moons of a planet hidden in the nebula." — [[Slug moons question]]
+  // > "Investigate." — [[Slug moons question]]
   b.kind = "nebula";
   const n = SLUG_MOON_COUNTS[between(g, [0, SLUG_MOON_COUNTS.length - 1])]!;
   return {
@@ -4283,6 +4291,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   if (!id.startsWith("c:slug-moons-question:")) return null;
   const ask = SLUG_MOON_ASK.exec(id);
   if (ask) {
+    // Wiki citations:
+    // > "As you drift closer, you are contacted by a Slug marooned on the moon's surface." — [[Slug moons question]]
+    // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const n = Number(ask[1]);
     const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? tx("wiki.cited-events.slug-moons-question");
     ctx.g.event = {
@@ -4302,6 +4313,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   const correct = Number(answer[1]);
   const picked = Number(answer[2]);
   if (picked === correct) {
+    // Wiki citations:
+    // > "That isss... correct. You sssurprise me." — [[Slug moons question#Correct Answer]]
+    // > "You receive a Slug crewmember." — [[Slug moons question#Correct Answer]]
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
     const joined = joinCrew(ctx.g, tx("wiki.cited-events.slug"));
     const line = joined ? tx("wiki.cited-events.you-receive-a-slug-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
@@ -4309,6 +4323,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
     return true;
   }
+  // Wiki citations:
+  // > "That issss... incorrect." — [[Slug moons question#Incorrect Answer]]
+  // > "You lose Scrap lost: 35, Fuel lost: 2-4, Drone parts lost: 1-2." — [[Slug moons question#Incorrect Answer]]
   // "You lose 35 scrap, 2-4 fuel, and 1-2 drone parts." Inclusive ranges.
   // A shortfall returns before any spend, the same way a cited price does.
   const fuel = roll(ctx, 2, 4);

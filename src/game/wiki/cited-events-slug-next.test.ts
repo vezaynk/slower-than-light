@@ -94,6 +94,8 @@ describe("cited slug-next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only candidate titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug moons question]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Slug moons question"]);

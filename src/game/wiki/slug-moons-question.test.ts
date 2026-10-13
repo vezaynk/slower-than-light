@@ -52,6 +52,8 @@ describe("Slug moons question", () => {
   });
 
   it("stays a regular beacon until arrival, then the nebula environment is on", () => {
+    // Wiki citations:
+    // > "this event occurs at a regular beacon, but when you arrive there will be a nebula environment." — [[Slug moons question]]
     const g = createGame(4);
     g.sectorName = "Slug Home Nebula";
     const b = beacon();
@@ -66,6 +68,11 @@ describe("Slug moons question", () => {
   });
 
   it("shows each of the four printed moon counts", () => {
+    // Wiki citations:
+    // > "You track the distress beacon with difficulty to one of the five moons of a planet hidden in the nebula." — [[Slug moons question]]
+    // > "You track the distress beacon with difficulty to one of the six moons of a planet hidden in the nebula." — [[Slug moons question]]
+    // > "You track the distress beacon with difficulty to one of the seven moons of a planet hidden in the nebula." — [[Slug moons question]]
+    // > "You track the distress beacon with difficulty to one of the eleven moons of a planet hidden in the nebula." — [[Slug moons question]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80; seed++) {
       const found = open(seed).event?.body.match(/one of the (five|six|seven|eleven) moons/);
@@ -76,6 +83,10 @@ describe("Slug moons question", () => {
   });
 
   it("adds a Slug when the answer matches the tracking sentence", () => {
+    // Wiki citations:
+    // > "How many moons are there in orbit here?" — [[Slug moons question]]
+    // > "That isss... correct. You sssurprise me." — [[Slug moons question#Correct Answer]]
+    // > "You receive a Slug crewmember." — [[Slug moons question#Correct Answer]]
     const g = open(2);
     const before = g.crew.filter((c) => c.side === "player").length;
     const gels = g.crew.filter((c) => c.kin === "gel").length;
@@ -96,6 +107,8 @@ describe("Slug moons question", () => {
   });
 
   it("a ninth crewmember asks who is relieved", () => {
+    // Wiki citations:
+    // > "That isss... correct. You sssurprise me." — [[Slug moons question#Correct Answer]]
     const g = open(3);
     while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
     const n = moons(g.event?.body ?? "");
@@ -108,6 +121,9 @@ describe("Slug moons question", () => {
   });
 
   it("a wrong answer loses 35 scrap, 2-4 fuel, and 1-2 drone parts", () => {
+    // Wiki citations:
+    // > "That issss... incorrect." — [[Slug moons question#Incorrect Answer]]
+    // > "You lose Scrap lost: 35, Fuel lost: 2-4, Drone parts lost: 1-2." — [[Slug moons question#Incorrect Answer]]
     const fuels = new Set<number>();
     const parts = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) {
@@ -135,6 +151,8 @@ describe("Slug moons question", () => {
   });
 
   it("a shortfall spends nothing and leaves the question open", () => {
+    // Wiki citations:
+    // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const g = open(5);
     const n = moons(g.event?.body ?? "");
     const wrong = n === 11 ? 7 : 11;

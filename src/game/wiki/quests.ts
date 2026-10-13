@@ -622,6 +622,10 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       }
       break;
     case "mantis-chase":
+      // Wiki citations:
+      // > "You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!" — [[Mantis ship-collectors#Quest Marker]]
+      // > "\"Not YOU again! Do you know how much these repairs are going to cost me? Time to take out the big guns.\"" — [[Mantis ship-collectors#Quest Marker]]
+      // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
       card(g, tx("wiki.quests.you-catch-up-with-the-mantis"), [
         { id: "q:mantis-chase:fight", label: tx("wiki.quests.fight-the-mantis-bomber") },
       ]);
@@ -2504,12 +2508,24 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:station:none": (g) => result(g, tx("wiki.quests.i-see")),
 
   "q:mantis-collectors:follow": (g) => {
+    // Wiki citations:
+    // > "After them!" — [[Mantis ship-collectors]]
+    // > "You input their coordinates into your map and prepare to follow." — [[Mantis ship-collectors]]
+    // > "A quest marker is added to your map." — [[Mantis ship-collectors]]
     result(g, tx("wiki.quests.you-input-their-coordinates-into-your"), undefined, [addQuest(g, "mantis-chase")]);
   },
-  "q:mantis-collectors:forget": (g) => result(g, tx("wiki.quests.they-re-not-worth-the-trouble")),
+  "q:mantis-collectors:forget": (g) => {
+    // Wiki citations:
+    // > "Forget it." — [[Mantis ship-collectors]]
+    // > "They're not worth the trouble. You prepare to leave." — [[Mantis ship-collectors]]
+    // > "Nothing happens." — [[Mantis ship-collectors]]
+    result(g, tx("wiki.quests.they-re-not-worth-the-trouble"));
+  },
   // DONOR_MANTIS_CHASE2: "attempts to escape at 60% hull (12 seconds timer)". INFERRED: a certain attempt, like CHASE1.
   // "Fight a Mantis Bomber" with crew entirely composed of Mantis.
   "q:mantis-chase:fight": (g) => {
+    // Wiki citations:
+    // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
     pageFight(g, tx("wiki.quests.the-mantis-bomber-moves-in"), tx("wiki.quests.mantis-bomber"), "quest-mantis-chase", hullRun(100, 60, 12));
     allMantisCrew(g);
   },
@@ -3493,6 +3509,11 @@ export const PAGE_WINS: Record<string, Win> = {
   "zoltan-ship-asks-to-dock": std("low", "medium", tx("wiki.quests.while-you-search-the-debris-you"), tx("wiki.quests.while-you-scrap-their-ship-you")),
   // ---- Other cited pages with a quest branch ----
   // Mantis ship-collectors: destroyed -> medium, deadCrew -> high scrap with resources.
+  // Wiki citations:
+  // > "After destroying enemy ship Their ship breaks apart and you move in to scrap the remains." — [[Mantis ship-collectors]]
+  // > "You receive medium scrap with resources." — [[Mantis ship-collectors]]
+  // > "After killing enemy crew With no more crew on board you are free to salvage what you can from the remains." — [[Mantis ship-collectors]]
+  // > "You receive high scrap with resources." — [[Mantis ship-collectors]]
   "mantis-ship-collectors": std("medium", "high", tx("wiki.quests.their-ship-breaks-apart-and-you"), tx("wiki.quests.with-no-more-crew-on-board")),
   // Rebel ship attacking Federation loyalists: "medium scrap with resources" -> "Contact the Federation ship".
   "rebel-ship-attacking-federation-loyalists": std("medium", "medium", tx("wiki.quests.with-the-ship-destroyed-you-quickly"), tx("wiki.quests.with-the-crew-of-the-rebel"), [
@@ -3976,6 +3997,11 @@ export const PAGE_WINS: Record<string, Win> = {
   // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not
   // named: Rewards, "Weapon": "A random weapon & T scrap."
   "quest-mantis-chase": (g, deadCrew) => {
+    // Wiki citations:
+    // > "After destroying enemy ship Their ship breaks apart and you salvage the two ships." — [[Mantis ship-collectors#Quest Marker]]
+    // > "You receive a weapon and medium scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
+    // > "After killing enemy crew You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible." — [[Mantis ship-collectors#Quest Marker]]
+    // > "You receive a weapon and high scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
     const text = deadCrew ? tx("wiki.quests.you-find-an-intact-weapon-on") : tx("wiki.quests.their-ship-breaks-apart-and-you-3");
     result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [grantRandomItem(g, "weapon")]);
   },
@@ -4040,12 +4066,21 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
   },
   // Mantis ship-collectors: "After them!" -> quest marker / "Forget it." -> nothing.
   "mantis-ship-collectors": (g) => {
+    // Wiki citations:
+    // > "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want." — [[Mantis ship-collectors]]
+    // > "After them!" — [[Mantis ship-collectors]]
+    // > "Forget it." — [[Mantis ship-collectors]]
     card(g, tx("wiki.quests.the-ship-made-an-emergency-ftl"), [
       { id: "q:mantis-collectors:follow", label: tx("wiki.quests.after-them") },
       { id: "q:mantis-collectors:forget", label: tx("wiki.quests.forget-it") },
     ]);
   },
-  "quest-mantis-chase": (g) => result(g, tx("wiki.quests.looks-like-they-got-away-at"), rollStandard(g, "high")),
+  "quest-mantis-chase": (g) => {
+    // Wiki citations:
+    // > "Looks like they got away. At least you're able to scrap their abandoned fighter." — [[Mantis ship-collectors#Quest Marker]]
+    // > "You receive high scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
+    result(g, tx("wiki.quests.looks-like-they-got-away-at"), rollStandard(g, "high"));
+  },
   // "Nothing happens. [unlock quest is failed]"
   "quest-engi-real": (g) => result(g, tx("wiki.quests.with-the-ship-gone-you-search")),
   "quest-engi-fake": (g) => result(g, tx("wiki.quests.with-the-ship-gone-you-search-2")),

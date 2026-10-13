@@ -495,6 +495,12 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Mantis ship-collectors", Quest Marker: DONOR_MANTIS_CHASE2 "makes a surrender offer at 20% hull" (INFERRED 100%).
   // "Let them live." -> "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
   "quest-mantis-chase": {
+    // Wiki citations:
+    // > "\"Look, you proved your point. We don't want to die... Take this and let us go. Please?\"" — [[Mantis ship-collectors#Quest Marker]]
+    // > "Let them live." — [[Mantis ship-collectors#Quest Marker]]
+    // > "\"Thank you. But do you have any idea how much repairing TWO ships will set us back?...\" What an odd Mantis. You prepare to leave." — [[Mantis ship-collectors#Quest Marker]]
+    // > "You receive a weapon with high scrap." — [[Mantis ship-collectors#Quest Marker]]
+    // > "Finish them off." — [[Mantis ship-collectors#Quest Marker]]
     page: "Mantis ship-collectors",
     chance: 100,
     low: 20,

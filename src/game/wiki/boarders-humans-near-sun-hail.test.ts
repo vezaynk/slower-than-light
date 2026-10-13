@@ -19,6 +19,8 @@ function open(g: Game) {
 
 describe("Boarders: Humans near sun hail", () => {
   it("prints the full opening italic and leaves the boarder choice unpressed", () => {
+    // Wiki citations:
+    // > "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!" — [[Boarders: Humans near sun]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Boarders: Humans near sun");

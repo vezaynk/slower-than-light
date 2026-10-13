@@ -2857,6 +2857,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "2-4 human boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship.
   "c:boarders-humans-near-sun:0": (g) => {
+    // Wiki citations:
+    // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans near sun]]
     humanBoarders(g, 2, 4, tx("wiki.filler-events.human-boarders-beam-aboard-your-ship"));
     beginBoarding(g, false, true);
   },
@@ -2873,6 +2875,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "2-4 mantis boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
   "c:boarders-mantis:0": (g) => {
+    // Wiki citations:
+    // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
     mantisBoarders(g, 2, 4);
     beginBoarding(g);
   },
@@ -3115,9 +3119,20 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Escape pod. Three pry results, no odds. INFERRED: equal.
   "c:escape-pod:0": (g) => {
+    // Wiki citations:
+    // > "Jettison the pod." — [[Escape pod]]
+    // > "You send the pod back out the airlock. You're not stupid." — [[Escape pod]]
+    // > "Nothing happens." — [[Escape pod]]
     show(g, tx("wiki.filler-events.you-send-the-pod-back-out"));
   },
   "c:escape-pod:1": (g) => {
+    // Wiki citations:
+    // > "Pry it open." — [[Escape pod]]
+    // > "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt." — [[Escape pod]]
+    // > "1 mantis boarder beams aboard your ship and you lose a crewmember." — [[Escape pod]]
+    // > "The lost crewmember is revived." — [[Escape pod]]
+    // > "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew." — [[Escape pod]]
+    // > "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time." — [[Escape pod]]
     const r = weighted(g, [["boarder", 1], ["mantis", 1], ["human", 1]] as const);
     if (r === "boarder") {
       log(g, tx("wiki.filler-events.the-mantis-inside-is-furious-he"));

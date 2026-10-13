@@ -33,6 +33,12 @@ function open(g: Game) {
 
 describe("Boarders: Mantis intros", () => {
   it("shows one of the three printed intros, then beams mantis with no ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
+    // > "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!" — [[Boarders: Mantis]]
+    // > "Your world, all of a sudden, changes. The Mantis are on board your ship." — [[Boarders: Mantis]]
+    // > "You hear a grating rattle and a soft clicking. You reach for your pistol." — [[Boarders: Mantis]]
+    // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

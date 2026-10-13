@@ -55,6 +55,12 @@ async function pageText(title: string): Promise<string> {
 
 describe("cited mantis events", () => {
   it("keeps only these titles, their Locations names, and commented numbers", async () => {
+    // Wiki citations:
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight near sun]]
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis ship-collectors]]
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Boarders: Humans near sun]]
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Boarders: Mantis]]
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Escape pod]]
     const allowed = new Set<string>(TITLES);
     const src = readFileSync(new URL("./cited-events-mantis.ts", import.meta.url), "utf8");
     assert.ok(EXTRA_EVENTS.length >= 1);

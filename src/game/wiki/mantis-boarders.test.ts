@@ -30,6 +30,9 @@ function boarded(g: Game) {
 
 describe("Boarders: Mantis", () => {
   it("is one card in each named sector and beams 2-4 mantis with no ship", () => {
+    // Wiki citations:
+    // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Boarders: Mantis]]
+    // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
     for (const sector of SECTORS) {
       const pages = citedPagesFor(sector).filter((e) => e.dest === DEST);
       assert.equal(pages.length, 1, sector);
@@ -65,6 +68,8 @@ describe("Boarders: Mantis", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
     // The page has no choice. "2-4 mantis boarders beam aboard your ship."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

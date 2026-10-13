@@ -19,6 +19,9 @@ function open(g: Game) {
 
 describe("Mantis fight near sun", () => {
   it("prints the full opening sentence, then fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Mantis fight near sun");
@@ -33,6 +36,9 @@ describe("Mantis fight near sun", () => {
   });
 
   it("starts the Mantis ship beside a red giant on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
     // The page has no choice. The printed sentence, then "Fight a Mantis ship." redgiant=true. unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

@@ -3844,6 +3844,11 @@ const REBEL_BOARDER_INTROS = [
 // Boarders: Mantis. The page prints three intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-mantis:0.
 const MANTIS_BOARDER_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
+  // > "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!" — [[Boarders: Mantis]]
+  // > "Your world, all of a sudden, changes. The Mantis are on board your ship." — [[Boarders: Mantis]]
+  // > "You hear a grating rattle and a soft clicking. You reach for your pistol." — [[Boarders: Mantis]]
   tx("wiki.cited-events.a-derelict-and-still-smoking-mantis"),
   tx("wiki.cited-events.your-world-all-of-a-sudden"),
   tx("wiki.cited-events.you-hear-a-grating-rattle-and"),
@@ -5203,6 +5208,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     };
   }
   // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
+  // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
   if (ev.slug === "boarders-mantis") {
     return {
       title: ev.dest,
@@ -5647,7 +5655,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
     if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, tx("wiki.cited-events.slug-boarders-beam-aboard-your-ship"));
     // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship; Legendary thief KazaaakplethKilik).
-    if (id === "c:mantis-ship-collectors:0" || id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
+    // Wiki citations:
+    // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
+    if (id === "c:mantis-ship-collectors:0") allMantisCrew(g);
+    if (id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
     return true;
   }
   // Boarders: Humans in plasma storm has no choice. Arrival calls this id.

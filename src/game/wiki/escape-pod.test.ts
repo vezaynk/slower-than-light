@@ -23,6 +23,10 @@ function players(g: Game) {
 
 describe("Escape pod", () => {
   it("jettisoning the pod spends nothing", () => {
+    // Wiki citations:
+    // > "Jettison the pod." — [[Escape pod]]
+    // > "You send the pod back out the airlock. You're not stupid." — [[Escape pod]]
+    // > "Nothing happens." — [[Escape pod]]
     const g = createGame(1);
     const crew = g.crew.map((c) => c.name);
     open(g);
@@ -35,6 +39,12 @@ describe("Escape pod", () => {
   });
 
   it("prying it open boards one Mantis and loses a crewmember, or adds nobody", () => {
+    // Wiki citations:
+    // > "Pry it open." — [[Escape pod]]
+    // > "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt." — [[Escape pod]]
+    // > "1 mantis boarder beams aboard your ship and you lose a crewmember." — [[Escape pod]]
+    // > "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew." — [[Escape pod]]
+    // > "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time." — [[Escape pod]]
     let boarded = false;
     let mantis = false;
     let human = false;
@@ -65,6 +75,8 @@ describe("Escape pod", () => {
   });
 
   it("a clone bay revives the crewmember the Mantis kills", () => {
+    // Wiki citations:
+    // > "The lost crewmember is revived." — [[Escape pod]]
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);

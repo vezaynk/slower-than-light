@@ -195,6 +195,14 @@ describe("Cited events that add a marker", () => {
   });
 
   it("Mantis ship-collectors: the Fighter runs at 50% hull (5 s); 'After them!' adds the marker; the Bomber fight", () => {
+    // Wiki citations:
+    // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
+    // > "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want." — [[Mantis ship-collectors]]
+    // > "After them!" — [[Mantis ship-collectors]]
+    // > "Forget it." — [[Mantis ship-collectors]]
+    // > "You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!" — [[Mantis ship-collectors#Quest Marker]]
+    // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
+    // > "After killing enemy crew You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible." — [[Mantis ship-collectors#Quest Marker]]
     const g = atCited(createGame(5), "Mantis Controlled Sector", "Mantis ship-collectors");
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");

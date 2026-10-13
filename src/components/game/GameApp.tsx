@@ -808,7 +808,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
 
 function Hud({ game }: { game: Game }) {
   const bubbles = game.player.shieldNow;
-  const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles, 1);
+  const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles);
   // Engines, "FTL Drive charge time": the bar runs in a fight, and on the map while a hazard or a boarder remains.
   const spool = ftlDriveSeconds(game);
   // Per the user: the drive is not ready while Piloting is down or empty or the Engines are unpowered (sim jumpBlocked,
@@ -837,19 +837,25 @@ function Hud({ game }: { game: Game }) {
         </div>
         <div className="store-row">
           <span className="hud-word hud-shields">{tx("ui.GameApp.shields")}</span>
-          <span className="bubbles" aria-label={`${bubbles} shield bubbles`}>
-            {Array.from({ length: cap }, (_, i) => (
-              <i key={i} className={i < bubbles ? "on" : ""} />
-            ))}
-          </span>
-          {/* Per the user: how far the next shield layer has charged, beside the count. Empty when none is charging. */}
-          <span className="shield-charge" role="meter" aria-label={tx("ui.GameApp.shield-charge")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((shieldFill ?? 0) * 100)}>
-            <i style={{ width: `${Math.round((shieldFill ?? 0) * 100)}%` }} />
-          </span>
-          {game.player.zoltan != null ? (
+          {cap > 0 ? (
+            <span className="bubbles" aria-label={`${bubbles} shield bubbles`}>
+              {Array.from({ length: cap }, (_, i) => (
+                <i key={i} className={i < bubbles ? "on" : ""} />
+              ))}
+            </span>
+          ) : (
+            <span className="foe-none">{tx("ui.GameApp.none")}</span>
+          )}
+          {/* Per the user: how far the next shield layer has charged, beside the count. Hidden when none is charging. */}
+          {shieldFill != null ? (
+            <span className="shield-charge" role="meter" aria-label={tx("ui.GameApp.shield-charge")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(shieldFill * 100)}>
+              <i style={{ width: `${Math.round(shieldFill * 100)}%` }} />
+            </span>
+          ) : null}
+          {(game.player.zoltan ?? 0) > 0 ? (
             <span className="bubbles zoltan-pips" aria-label={tx("ui.GameApp.zoltan-shield", { zoltan: game.player.zoltan })}>
-              {Array.from({ length: 5 }, (_, i) => (
-                <i key={i} className={i < (game.player.zoltan ?? 0) ? "on" : ""} />
+              {Array.from({ length: game.player.zoltan ?? 0 }, (_, i) => (
+                <i key={i} className="on" />
               ))}
             </span>
           ) : null}

@@ -1228,6 +1228,8 @@ function settleShipZoltan(g: Game, ship: Ship, aboard: "player" | "enemy"): void
   settleDisplace(ship, swarm, z);
 }
 
+const ACTIVATED_KITS: ReadonlySet<KitId> = new Set<KitId>(["veil", "sling", "leash", "spike", "cell"]);
+
 function capOf(sys: SystemState): number {
   return Math.max(0, sys.level - sys.damage - sys.ion.length);
 }
@@ -5549,7 +5551,10 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       left: 0,
       cool: 0,
       target: kit.target ?? null,
-      on: kit.on ?? kit.power > 0,
+      // Cloaking, the Teleporter, Mind Control, Hacking and the Backup Battery read `on` as "the effect is running",
+      // so a powered one starts idle. Per the user (bug): Stealth A began every fight on a 20 s cloak cooldown, since a
+      // zero-second cloak ended on the first tick (veil.ts endVeil). Other kits read `on` as switched on.
+      on: kit.on ?? (kit.power > 0 && !ACTIVATED_KITS.has(kitId as KitId)),
       aux: 0,
     };
     // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.

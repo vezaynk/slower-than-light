@@ -109,7 +109,16 @@ export function startVeil(g: Game) {
   noteZoltanKits(g);
   // Zoltans: Cloaking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
-  if (kitBars(kit) < 1 || kit.cool > 0 || kit.on) return;
+  if (kit.on) return;
+  // Per the user: C or the CLOAK button says why nothing happened, as the Teleporter does.
+  if (kitBars(kit) < 1) {
+    log(g, tx("extras.veil.cloaking-has-no-power"));
+    return;
+  }
+  if (kit.cool > 0) {
+    log(g, tx("extras.veil.cloaking-is-still-cooling-down"));
+    return;
+  }
   kit.on = true;
   noteAchieve(g, { k: "cloak" });
   kit.left = veilSeconds(kit);

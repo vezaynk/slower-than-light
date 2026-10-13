@@ -6766,5 +6766,11 @@
   "ui.WikiViews.score-3": "Score",
   "ui.WikiViews.flagship-defeated": "Flagship defeated",
   "ui.WikiViews.unlocked": "Unlocked",
-  "ui.Hangar.menu": "MENU"
+  "ui.Hangar.menu": "MENU",
+  "ui.GameApp.act-cloak": "CLOAK",
+  "ui.GameApp.act-send": "SEND",
+  "ui.GameApp.act-return": "RETURN",
+  "ui.GameApp.act-mind": "MIND",
+  "extras.veil.cloaking-has-no-power": "Cloaking has no power.",
+  "extras.veil.cloaking-is-still-cooling-down": "Cloaking is still cooling down."
 }

@@ -254,6 +254,14 @@ function slingRoomClick(roomId: string) {
 }
 
 /** Mind Control, "Overview": click the system, then an enemy crewmember. Click again to leave aim. */
+/** The activation for a dock system: what its icon did before the icon took over power (per the user). */
+function activateKit(id: KitId) {
+  if (id === "veil") act((g) => startVeil(g));
+  else if (id === "cell") act((g) => startCell(g));
+  else if (id === "sling") slingIconClick();
+  else if (id === "leash") leashIconClick();
+}
+
 function leashIconClick() {
   if (useLeashAim.getState().on) {
     setLeashAim(false);
@@ -1540,22 +1548,56 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             ))}
           </i>
         )}
-        <button
-          type="button"
-          className={`sub-orb${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
-          data-kit={id}
-          aria-label={tip}
-          title={tip}
-          disabled={cloakLocked}
-          onClick={() => {
-            if (id === "veil") act((g) => startVeil(g));
-            else if (id === "cell") act((g) => startCell(g));
-            else if (id === "sling") slingIconClick();
-            else if (id === "leash") leashIconClick();
-          }}
-        >
-          <PixelIcon name={id} size={16} />
-        </button>
+        {powered ? (
+          // Per the user: the activation is its own button over the bars, since the icon now manages power.
+          <button
+            type="button"
+            className={`kit-act${kit.on ? " is-on" : ""}${cloakLocked ? " is-hack-locked" : ""}`}
+            style={{ ["--lv" as string]: Math.max(kit.level, 1) }}
+            aria-label={tip}
+            title={tip}
+            disabled={cloakLocked}
+            onClick={() => activateKit(id)}
+          >
+            {id === "veil" ? tx("ui.GameApp.act-cloak") : id === "sling" ? (away ? tx("ui.GameApp.act-return") : tx("ui.GameApp.act-send")) : tx("ui.GameApp.act-mind")}
+          </button>
+        ) : null}
+        {powered ? (
+          // Per the user: Cloaking, the Teleporter and Mind Control are main systems in the power row, so their icon
+          // manages power like the others. Systems, "Powering and upgrading systems": "To power a main system, left
+          // click on it in the system bar. To unpower it, right click."
+          <button
+            type="button"
+            className={`sub-orb${kit.on ? " is-on" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+            data-kit={id}
+            title={KIT_LABEL[id]}
+            aria-label={tx("ui.GameApp.add-power-right-click-removes", { label: KIT_LABEL[id] })}
+            onPointerDown={(e) => armHold(e, () => act((g) => kitPowerDown(g, id)))}
+            onClick={(e) => {
+              if (swallowHoldClick(e)) return;
+              act((g) => kitPowerUp(g, id));
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (holdTookContext(e.currentTarget)) return;
+              act((g) => kitPowerDown(g, id));
+            }}
+          >
+            <PixelIcon name={id} size={16} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`sub-orb${kit.on ? " is-on" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}`}
+            data-kit={id}
+            aria-label={tip}
+            title={tip}
+            onClick={() => activateKit(id)}
+          >
+            <PixelIcon name={id} size={16} />
+          </button>
+        )}
       </span>
     );
   };

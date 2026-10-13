@@ -5903,3 +5903,25 @@ body.page-turn-180 {
 /* Systems, "Main systems": Cloaking, the Teleporter, Mind Control, Hacking, Drone Control, Clone Bay and Artillery sit
    in the power row with Shields..Weapons, so their orbs match the main-system orb. */
 .power-dock .sub-orb { width: 28px; height: 28px; }
+
+/* Per the user: the activation button for Cloaking, the Teleporter and Mind Control, over that system's power bars
+   (--lv bars of 10px). The icon underneath manages power. INVENTED look. */
+.kit-act {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--lv, 1) * 10px + 8px);
+  transform: translateX(-50%);
+  min-height: 0;
+  padding: 2px 4px;
+  font-family: var(--font-hud);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--color-line);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+}
+.kit-act.is-on { color: #0b0d10; background: var(--color-line); }
+.kit-act:disabled { opacity: 0.45; cursor: not-allowed; }

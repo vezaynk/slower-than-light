@@ -71,6 +71,8 @@ describe("Boarders: Humans jammed sensors", () => {
       assert.ok(here?.links[0]);
       g.phase = "map";
       g.fuel = 3;
+      // Engines, "FTL Drive charge time": boarders with no hull wait on the 23s clock. The jam ends on the jump.
+      g.flee = 1;
       commitJump(g, here!.links[0]);
       assert.equal(playerSensorsOff(g), false);
       assert.ok(sensorLevel(g, g.player, "player") > 0);

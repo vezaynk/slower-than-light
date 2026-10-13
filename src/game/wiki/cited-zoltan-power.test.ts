@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Crew } from "../types.ts";
-import { createGame, startCombat, zoltanBars } from "../sim.ts";
+import { createGame, settleZoltanPower, startCombat, zoltanBars } from "../sim.ts";
 import { citedZoltanPower } from "./cited-zoltan-power.ts";
 
 type Body = Pick<Crew, "kin" | "hp" | "room">;
@@ -35,8 +35,10 @@ describe("citedZoltanPower", () => {
   });
 });
 
-describe("zoltanBars (INTENTIONALLY OVERRIDING SPEC)", () => {
-  it("an intruding Zoltan powers nothing on the other side's ship; a mind-controlled one powers its captor's", () => {
+describe("zoltanBars", () => {
+  it("powers the system of the room a Zoltan is standing in, including an intruder", () => {
+    // Zoltans, lead: "the ship system whose corresponding room they are currently standing in".
+    // Race characteristics: one yellow bar on an occupied system. Mind control leaves that bar where they stand.
     const g = createGame(6);
     startCombat(g, "scout");
     const zoltan = g.crew.find((c) => c.side === "enemy" && c.kin === "spark")!;
@@ -44,14 +46,53 @@ describe("zoltanBars (INTENTIONALLY OVERRIDING SPEC)", () => {
     zoltan.aboard = "player";
     zoltan.room = bay.id;
     zoltan.path = [];
-    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 0);
+    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 1);
     zoltan.leashed = 10;
     assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 1);
-    // At home it powers its own ship's system.
-    zoltan.leashed = 0;
+    // Zoltans: as many Zoltans as power levels replace reactor power in the Medbay.
+    g.player.systems.medbay.level = 1;
+    g.player.systems.medbay.power = 1;
+    g.player.systems.medbay.damage = 0;
+    g.player.systems.medbay.ion = [];
+    delete g.player.systems.medbay.zoltanHeld;
+    settleZoltanPower(g);
+    assert.equal(g.player.systems.medbay.power, 0);
+    assert.equal(g.player.systems.medbay.zoltanHeld, 1);
     const home = g.enemy!.rooms.find((r) => r.system === "shields")!;
+    zoltan.leashed = 10;
     zoltan.aboard = "enemy";
     zoltan.room = home.id;
     assert.equal(zoltanBars(g.crew, g.enemy!, "enemy", "shields"), 1);
+    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 0);
+  });
+
+  it("keeps a mind-controlled Zoltan's bar on the room they still occupy", () => {
+    const g = createGame(6);
+    startCombat(g, "scout");
+    const friend = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
+    const bay = g.player.rooms.find((r) => r.system === "medbay")!;
+    const shields = zoltanBars(g.crew, g.enemy!, "enemy", "shields");
+    friend.kin = "spark";
+    friend.room = bay.id;
+    friend.aboard = "player";
+    friend.path = [];
+    friend.leashed = 10;
+    assert.equal(zoltanBars(g.crew, g.player, "player", "medbay"), 1);
+    assert.equal(zoltanBars(g.crew, g.enemy!, "enemy", "shields"), shields);
+  });
+
+  it("powers the enemy system a boarding Zoltan stands in", () => {
+    const g = createGame(6);
+    startCombat(g, "scout");
+    const room = g.enemy!.rooms.find((r) => r.system === "engines")!;
+    const before = zoltanBars(g.crew, g.enemy!, "enemy", "engines");
+    const you = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
+    you.kin = "spark";
+    you.aboard = "enemy";
+    you.room = room.id;
+    you.path = [];
+    assert.equal(zoltanBars(g.crew, g.enemy!, "enemy", "engines"), before + 1);
+    you.leashed = 10;
+    assert.equal(zoltanBars(g.crew, g.enemy!, "enemy", "engines"), before + 1);
   });
 });

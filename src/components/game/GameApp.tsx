@@ -44,6 +44,7 @@ import {
   playerHackView,
   queueSpike,
   playerSensorLevel,
+  hackPulseOn,
   raiseSpikePower,
   spikeAimId,
   spikeRoomTargetable,
@@ -73,7 +74,8 @@ import {
   depowerWeapon,
   enemyEscapeView,
   evasionPercent,
-  ftlSeconds,
+  ftlDriveCharging,
+  ftlDriveSeconds,
   jumpBlocked,
   hasSave,
   isMain,
@@ -93,10 +95,13 @@ import {
   powerUp,
   CREW_CAP,
   REPAIR_SECONDS,
+  shieldChargeFraction,
   shieldChargeShown,
   kitPowerUp,
   kitBars,
   kitPowerDown,
+  cooldownLocksPower,
+  kitIonLocked,
   setKitBars,
   type BarKit,
   reorderWeapons,
@@ -137,6 +142,8 @@ import { PixelIcon } from "./PixelIcon";
 import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
+import { ShieldField } from "./ShieldField";
+import { HazardSky } from "./HazardSky";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, HelpScreen, Verdict, sectorTone } from "./WikiViews";
 import { StoreBoard } from "./StoreBoard";
@@ -802,12 +809,13 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
 function Hud({ game }: { game: Game }) {
   const bubbles = game.player.shieldNow;
   const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles, 1);
-  const spool = ftlSeconds(game, game.player);
+  // Engines, "FTL Drive charge time": the bar runs in a fight, and on the map while a hazard or a boarder remains.
+  const spool = ftlDriveSeconds(game);
   // Per the user: the drive is not ready while Piloting is down or empty or the Engines are unpowered (sim jumpBlocked,
   // the same check commitJump makes). The state then names the reason instead of CHARGING or READY.
   const blocked = jumpBlocked(game);
   const blockedWord = !blocked ? "" : blocked.startsWith("Nobody") ? tx("ui.GameApp.no-pilot") : blocked.startsWith("Piloting") ? tx("ui.GameApp.pilot-down") : tx("ui.GameApp.no-engines");
-  const charging = !blocked && game.phase === "combat" && game.flee < 1;
+  const charging = !blocked && ftlDriveCharging(game);
   const ready = !blocked && game.phase === "combat" && game.flee >= 1 && !game.picking;
   const shieldFill = shieldChargeShown(game);
   // Environmental Hazards / Ship / Backup Battery: IN DANGER keeps the ship info screen closed.
@@ -897,7 +905,7 @@ function Hud({ game }: { game: Game }) {
             {tx("ui.GameApp.jump")}
           </span>
           <span className="ftl-meter">
-            <i style={{ width: `${Math.round((game.phase === "combat" ? game.flee : blocked ? 0 : 1) * 100)}%` }} />
+            <i style={{ width: `${Math.round((game.phase === "combat" || charging ? game.flee : blocked ? 0 : 1) * 100)}%` }} />
           </span>
           <em className="ftl-state">
             <span className={charging ? undefined : "is-reserve"} aria-hidden={charging ? undefined : true}>
@@ -1083,13 +1091,12 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   const releasing = useDecloak(cloaked);
   const intruders = game.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
   const bubbles = game.player.shieldNow;
-  const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), 1);
+  const charge = shieldChargeFraction(game, game.player, "player");
   const sight = shipSight(game);
   return (
     <div className={`sky${cloakClass(cloaked, releasing)}`} style={shake}>
-      <div className="planet" />
-      <div className="shield-aura" style={{ opacity: 0.18 + 0.55 * (bubbles / cap) }} />
-      {(game.player.zoltan ?? 0) > 0 ? <div className="shield-aura zoltan-aura" /> : null}
+      <HazardSky game={game} />
+      <div className="ship-well">
       <ShipView
         ship={game.player}
         healing={healingIds(game, game.player, "player")}
@@ -1130,6 +1137,8 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         aims={aimMarks(game)}
         droneHp={roomDroneHp(game.player, game)}
       />
+      {game.player.hull > 0 ? <ShieldField layers={bubbles} charge={charge} zoltan={game.player.zoltan ?? 0} /> : null}
+      </div>
       {intruders ? (
         <p className="intruder-warn">
           {tx("ui.GameApp.warning")}
@@ -1215,6 +1224,12 @@ function TargetPanel({
   // so they always show. INFERRED: the same 30-segment bar as your own hull.
   const foeBubbles = enemy.shieldNow;
   const foeCap = Math.max(maxBubbles(enemy, zoltanBars(game.crew, enemy, "enemy", "shields")), foeBubbles, 0);
+  const foeCharge = shieldChargeFraction(game, enemy, "enemy");
+  // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
+  const foeTile = Math.max(
+    12,
+    Math.min(44, Math.floor(256 / (enemy.cols + 2)) - 2, Math.floor(216 / (enemy.rows + 2)) - 2),
+  );
   return (
     <aside className="target-panel">
       <div className="target-head">
@@ -1313,7 +1328,8 @@ function TargetPanel({
       </div>
       {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. */}
       {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
-      <div className={`target-body${cloakClass(cloaked, releasing)}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
+      <div className={`target-body${cloakClass(cloaked, releasing)}`} style={{ ["--foe-tile" as string]: `${foeTile}px` }}>
+        <div className="ship-well">
         <ShipView
           ship={enemy}
           healing={healingIds(game, enemy, "enemy")}
@@ -1362,6 +1378,8 @@ function TargetPanel({
           hackPick={hackAiming ? (id) => spikeRoomTargetable(game, id) : undefined}
           droneHp={roomDroneHp(enemy, game)}
         />
+        {enemy.hull > 0 ? <ShieldField layers={foeBubbles} charge={foeCharge} zoltan={enemy.zoltan ?? 0} /> : null}
+        </div>
         {cloaked ? <p className="cloak-tag">{tx("ui.GameApp.cloaked")}</p> : null}
       </div>
       <div className="target-systems">
@@ -1383,7 +1401,7 @@ function TargetPanel({
           // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
           const harm = sys.damage >= sys.level && sys.level > 0 ? "is-broken" : sys.damage > 0 ? "is-damaged" : "";
           return (
-            <span key={id} title={tip} className={[vision?.system === id ? "is-hack-seen" : "", harm].filter(Boolean).join(" ") || undefined}>
+            <span key={id} title={tip} className={[vision?.system === id ? "is-hack-seen" : "", harm, foeFlash(game, id, full)].filter(Boolean).join(" ") || undefined}>
               <PixelIcon name={id} size={16} />
               {full ? <b>{shown}</b> : null}
             </span>
@@ -1393,7 +1411,7 @@ function TargetPanel({
         {artilleryView(enemy).map((a) => {
           const name = WEAPONS[a.defId]?.name ?? a.defId;
           return (
-            <span key={a.room} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? tx("ui.GameApp.ion", { ion: a.ion }) : ""}`}>
+            <span key={a.room} className={foeFlash(game, a.room, true, a.ion) || undefined} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? tx("ui.GameApp.ion", { ion: a.ion }) : ""}`}>
               <PixelIcon name="weapons" size={16} />
               <small>{name.replace(/^Boss /, "").slice(0, 3).toUpperCase()}</small>
               <b>{a.bars}</b>
@@ -1408,7 +1426,7 @@ function TargetPanel({
             <span
               key={id}
               title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? tx("ui.GameApp.hacking-drone") : ""}`}
-              className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : ""].filter(Boolean).join(" ") || undefined}
+              className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : "", foeFlash(game, id, fullKit)].filter(Boolean).join(" ") || undefined}
             >
               <PixelIcon name={id} size={16} />
               {fullKit ? <b>{kit.level}</b> : null}
@@ -1537,8 +1555,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             ? tx("ui.GameApp.mind-control-pick-a-crewmember")
             : KIT_LABEL[id];
     const powered = id === "veil" || id === "sling" || id === "leash";
+    const flash = systemFlashClass(game, id);
     return (
-      <span key={id} className="sub-pod">
+      <span key={id} className={`sub-pod${flash ? ` ${flash}` : ""}`}>
         {powered ? (
           <KitPowerButton game={game} id={id} />
         ) : (
@@ -1801,10 +1820,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         <div className="sub-row">
           {(["pilot", "sensors", "doors"] as SysId[]).map((id) => {
             const sys = game.player.systems[id];
+            const flash = systemFlashClass(game, id);
             const orb = (
               <button
                 type="button"
-                className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}`}
+                className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}${flash ? ` ${flash}` : ""}`}
                 aria-label={id === "doors" ? tx("ui.GameApp.doors") : SYS_LABEL[id]}
                 aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
                 onClick={() => {
@@ -1817,16 +1837,22 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               >
                 <i className="sub-bars" aria-hidden="true">
                   {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
-                    const up = sys.level - sys.damage;
-                    const cls = n < up ? "on" : n === up && sys.damage > 0 ? "is-dmg is-fixing" : n < sys.level ? "is-dmg" : "";
-                    const hurt = n === up - 1 ? hurtStyle(game, id) : undefined;
-                    return (
-                      <b
-                        key={n}
-                        className={cls + (hurt ? " is-hurting" : "")}
-                        style={n === up && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
-                      />
-                    );
+                    // Ion locks the top bars, then damage, same stacking as PowerStack. column-reverse draws n = 0 at the bottom.
+                    const ionStart = sys.level - sys.ion.length;
+                    const dmgStart = ionStart - sys.damage;
+                    const ionSlot = sys.ion.length > 0 && n >= ionStart;
+                    const damaged = !ionSlot && sys.damage > 0 && n >= dmgStart;
+                    const hurt = n === dmgStart - 1 ? hurtStyle(game, id) : undefined;
+                    const cls = [
+                      n < dmgStart ? "on" : "",
+                      ionSlot ? "is-ion" : "",
+                      damaged ? (n === dmgStart ? "is-dmg is-fixing" : "is-dmg") : "",
+                      hurt ? "is-hurting" : "",
+                      barFlashClass(game, id, ionSlot, damaged),
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+                    return <b key={n} className={cls} style={damaged && n === dmgStart ? fixStyle(sys.fix) : hurt} />;
                   })}
                 </i>
                 <PixelIcon name={id} size={16} />
@@ -1888,8 +1914,9 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
           ? Math.max(0, Math.min(1, 1 - view.cool / 20)) * 100
           : 0;
   const show = (text: string) => status === text;
+  const flash = systemFlashClass(game, "spike");
   return (
-    <div className={`hack-pod is-${aiming ? "aiming" : view.state}`}>
+    <div className={`hack-pod is-${aiming ? "aiming" : view.state}${flash ? ` ${flash}` : ""}`}>
       {fight ? (
         <div className="hack-card" role="status">
           <span className="hack-card-title">
@@ -2016,13 +2043,72 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
       >
         <i className="sub-bars" aria-hidden="true">
           {Array.from({ length: Math.max(view.level, 1) }, (_, n) => (
-            <b key={n} className={kitBarClass(game, "spike", view.power, n)} />
+            <b key={n} className={[kitBarClass(game, "spike", view.power, n), barFlashClass(game, "spike", false, false, n < view.power)].filter(Boolean).join(" ")} />
           ))}
         </i>
         <PixelIcon name="spike" size={16} />
       </button>
     </div>
   );
+}
+
+/** Enemy hacking pulse on this player system or kit. Those bars flash purple. */
+function hackActive(game: Game, id: string): boolean {
+  return hackPulseOn(game, game.player, id);
+}
+
+/**
+ * The whole power column is locked: cooldown (cloak, teleporter, mind control, hacking),
+ * ion on an activation kit, or a backup battery sent to cooldown by ion.
+ */
+function columnLocked(game: Game, id: string): boolean {
+  const kit = game.player.kits[id as KitId];
+  if (!kit) return false;
+  return cooldownLocksPower(kit) || kitIonLocked(kit) || (id === "cell" && kit.cool > 0);
+}
+
+/**
+ * One bar. An active hack pulse flashes every bar purple.
+ * Ion flashes the locked bars blue. A cooldown flashes the bars power is stuck in
+ * (and every backup-battery pip, which has no reactor power of its own).
+ * Damaged bars stay red unless a hack is pulsing.
+ */
+function barFlashClass(game: Game, id: string, ionSlot: boolean, damaged: boolean, powered = false): string {
+  if (hackActive(game, id)) return "is-flash-purple";
+  if (damaged) return "";
+  if (ionSlot || (columnLocked(game, id) && (powered || id === "cell"))) return "is-flash-blue";
+  return "";
+}
+
+/** The system icon, when the system itself is locked out or a hack pulse is on it. Partial ion only flashes the locked bars. */
+function systemFlashClass(game: Game, id: string): string {
+  if (hackActive(game, id)) return "is-flash-purple";
+  if (columnLocked(game, id)) return "is-flash-blue";
+  if (id === "weapons" && game.player.systems.weapons.ion.length > 0) return "is-flash-blue";
+  const sys = game.player.systems[id as SysId];
+  // A subsystem with no working bar left is locked out. A partial ion only flashes those bars.
+  if (sys && !isMain(id as SysId) && sys.level - sys.damage - sys.ion.length <= 0 && sys.ion.length > 0) return "is-flash-blue";
+  return "";
+}
+
+/**
+ * Enemy system chip. A hacking pulse flashes purple at any sensors level (the player started it).
+ * Ion and cooldown flash blue only once Sensors would reveal that information.
+ */
+function foeFlash(game: Game, id: string, reveal: boolean, ion = 0): string {
+  const ship = game.enemy;
+  if (!ship) return "";
+  if (hackPulseOn(game, ship, id)) return "is-flash-purple";
+  if (!reveal) return "";
+  const sysId = (
+    ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"] as const
+  ).find((s) => s === id);
+  const kit = ship.kits[id as KitId];
+  const locked =
+    ion > 0 ||
+    (sysId != null && ship.systems[sysId].ion.length > 0) ||
+    (!!kit && (kitIonLocked(kit) || cooldownLocksPower(kit) || (id === "cell" && kit.cool > 0)));
+  return locked ? "is-flash-blue" : "";
 }
 
 function PowerStack({ game, id, locked = false, big = false }: { game: Game; id: SysId; locked?: boolean; big?: boolean }) {
@@ -2035,13 +2121,17 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
   const painted = batteryBarsOn(game.player, id);
   const live = bars(sys, zoltanBars(game.crew, game.player, "player", id));
   const drag = usePowerDrag((g, n) => setBars(g, id, n), slots, cap);
+  const flash = systemFlashClass(game, id);
   return (
-    <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}`}>
+    <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}${flash ? ` ${flash}` : ""}`}>
       <div className="power-col" {...drag}>
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
           const ionStart = sys.level - sys.ion.length;
           const dmgStart = ionStart - sys.damage;
+          // Zoltan power is not removed by ion, so a yellow bar in that range stays yellow.
+          const ionSlot = i >= live && sys.ion.length > 0 && i >= ionStart;
+          const damaged = !ionSlot && sys.damage > 0 && i >= dmgStart;
           const cls =
             i < green && i >= sys.power - painted
               ? "on is-battery"
@@ -2049,9 +2139,9 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
                 ? "on"
                 : i < live
                   ? "is-zoltan"
-                  : sys.ion.length > 0 && i >= ionStart
+                  : ionSlot
                     ? "is-ion"
-                    : sys.damage > 0 && i >= dmgStart
+                    : damaged
                       ? i === dmgStart
                         ? "is-dmg is-fixing"
                         : "is-dmg"
@@ -2061,7 +2151,7 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
             <button
               key={i}
               type="button"
-              className={cls + (hurt ? " is-hurting" : "")}
+              className={[cls, hurt ? "is-hurting" : "", barFlashClass(game, id, ionSlot, damaged)].filter(Boolean).join(" ")}
               style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
               aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
               aria-disabled={locked || undefined}
@@ -2214,18 +2304,21 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
   const slots = Math.max(kit.level, 1);
   const cap = Math.max(0, kit.level - (kit.damage ?? 0));
   const drag = usePowerDrag((g, n) => setKitBars(g, id, n), slots, cap);
+  const flash = systemFlashClass(game, id);
   return (
-    <div className="power-stack is-big">
+    <div className={`power-stack is-big${flash ? ` ${flash}` : ""}`}>
       <div className="power-col" {...drag}>
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;
-          const cls = i < kit.power ? kitBarClass(game, id, kit.power, i) : i === cap && kit.damage ? "is-dmg is-fixing" : i >= cap ? "is-dmg" : "";
+          const damaged = i >= cap && !!kit.damage;
+          const powered = i < kit.power && i < cap;
+          const cls = powered ? kitBarClass(game, id, kit.power, i) : i === cap && kit.damage ? "is-dmg is-fixing" : i >= cap ? "is-dmg" : "";
           const hurt = i === cap - 1 ? hurtStyle(game, id) : undefined;
           return (
             <button
               key={i}
               type="button"
-              className={cls + (hurt ? " is-hurting" : "")}
+              className={[cls, hurt ? "is-hurting" : "", barFlashClass(game, id, false, damaged, powered)].filter(Boolean).join(" ")}
               style={i === cap && kit.damage ? fixStyle(kit.fix) : hurt}
               aria-label={`${KIT_LABEL[id]} power ${i + 1}`}
               onClick={() => {
@@ -3263,7 +3356,7 @@ function MapScreen({ game }: { game: Game }) {
                   <button
                     type="button"
                     className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
-                    disabled={!open || (game.phase === "combat" && game.flee < 1)}
+                    disabled={!open || ftlDriveCharging(game)}
                     aria-label={tag || tx("ui.GameApp.beacon")}
                     onClick={() => act((g) => commitJump(g, b.id))}
                   />
@@ -4187,9 +4280,12 @@ function hurtStyle(game: Game, id: string): CSSProperties | undefined {
 function KitBar({ game, id, kit, n }: { game: Game; id: KitId; kit: Kit; n: number }) {
   const up = Math.max(0, kit.level - (kit.damage ?? 0));
   const hurt = n === up - 1 ? hurtStyle(game, id) : undefined;
-  if (n < kit.power && n < up) return <b className={kitBarClass(game, id, kit.power, n) + (hurt ? " is-hurting" : "")} style={hurt} />;
-  if ((kit.damage ?? 0) > 0 && n === up) return <b className="is-dmg is-fixing" style={fixStyle(kit.fix)} />;
-  return <b className={n >= up && n < kit.level ? "is-dmg" : ""} />;
+  const damaged = n >= up && n < kit.level;
+  const powered = n < kit.power && n < up;
+  const flash = barFlashClass(game, id, false, damaged, powered);
+  if (powered) return <b className={[kitBarClass(game, id, kit.power, n), hurt ? "is-hurting" : "", flash].filter(Boolean).join(" ")} style={hurt} />;
+  if ((kit.damage ?? 0) > 0 && n === up) return <b className={["is-dmg is-fixing", flash].filter(Boolean).join(" ")} style={fixStyle(kit.fix)} />;
+  return <b className={[damaged ? "is-dmg" : "", flash].filter(Boolean).join(" ")} />;
 }
 
 function kitBarClass(game: Game, id: string, power: number, n: number): string {

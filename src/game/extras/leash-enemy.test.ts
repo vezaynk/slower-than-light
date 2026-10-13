@@ -57,8 +57,13 @@ describe("enemy mind control", () => {
       assert.equal(c.leashed, undefined);
       assert.equal(sideOf(c), "player");
       assert.equal(k.on, false);
+      // Systems, "Systems cooldown": the effect wore off, so the usual 20 seconds starts.
+      assert.equal(k.cool, 20);
+      tickLeash(g, 0.01);
+      assert.equal(held(g), undefined);
+      tickLeash(g, 20);
       assert.equal(k.cool, 0);
-      // No ordinary wait: the next tick may fire at once.
+      assert.equal(held(g), undefined);
       tickLeash(g, 0.01);
       assert.ok(held(g));
     }

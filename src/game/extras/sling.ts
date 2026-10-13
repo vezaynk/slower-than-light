@@ -547,7 +547,9 @@ function recallWeather(g: Game, ship: Ship): boolean {
  * INFERRED: healthiest first, at least half health. The pilot stays at the helm.
  */
 function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
-  if (b.sent >= b.limit || b.away.length > 0 || b.party.length > 0) return;
+  // Crew Teleporter, "Enemy Crew Teleporter": usual hulls stop at 2 trips, elites at 3 or 4.
+  // The Flagship's phase 3 prints no trip count. `invasion` is that open send; 1 or 2 stay home.
+  if ((!b.invasion && b.sent >= b.limit) || b.away.length > 0 || b.party.length > 0) return;
   const home = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c));
   const keep = b.stay ?? 0;
   const padRoom = ship.rooms.find((r) => r.kit === "sling");

@@ -42,9 +42,19 @@ const DAMAGE_MULT_BY_LEVEL: Readonly<Record<number, number>> = {
 
 /**
  * Mind Control wiki, "Overview": if every level is ionized, the maximum cooldown is 25 seconds.
- * A normal end does not use this value. The page states no ordinary cooldown.
+ * Systems, "Systems cooldown": a normal end uses the usual 20 seconds, not this maximum.
  */
 export const ION_MAX_COOLDOWN = 25;
+
+/**
+ * Systems, "Systems cooldown": once the effect has worn off, the system self-ionizes.
+ * "This usually last 20 seconds." A 25 second ion cooldown already on the kit is left in place.
+ */
+const EFFECT_COOLDOWN = 20;
+
+function woreOff(kit: Kit) {
+  if (kit.cool < EFFECT_COOLDOWN) kit.cool = EFFECT_COOLDOWN;
+}
 
 /**
  * Mind Control, Overview: "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds."
@@ -135,7 +145,8 @@ function durationOf(level: number): number {
 
 /**
  * Backup Battery, Overview: losing the bar can end an active hold early.
- * Mind Control, Overview: no ordinary cooldown is stated, so this end does not start a numbered wait.
+ * Systems, "Systems cooldown": that end is the effect wearing off, so the usual 20 second cooldown starts.
+ * A 25 second ion cooldown already on the kit is left in place.
  * A hold that is already over is left alone.
  */
 export function interruptLeash(g: Game, kit: Kit) {
@@ -143,7 +154,7 @@ export function interruptLeash(g: Game, kit: Kit) {
   if (kitBars(kit) >= 1) return;
   kit.left = 0;
   kit.on = false;
-  kit.cool = 0;
+  woreOff(kit);
   const player = kit === g.player.kits.leash;
   for (const c of g.crew) {
     if (!c.leashed || c.leashed <= 0) continue;
@@ -403,8 +414,8 @@ function capDuration(kit: Kit, level: number) {
 
 /**
  * Mind Control wiki, "Overview": the effect lasts the power-level duration, then ends.
- * The page states no ordinary cooldown, so a normal end leaves cool at 0.
- * A positive cool is the ionized maximum and is not cleared here.
+ * Systems, "Systems cooldown": a normal end, or a power loss that ends the hold, starts the usual 20 seconds.
+ * A 25 second ion cooldown already on the kit is not replaced.
  * An FTL jump resets cooldown (leashOnLeave).
  */
 export function tickLeash(g: Game, dt: number) {
@@ -422,6 +433,7 @@ export function tickLeash(g: Game, dt: number) {
     if (level <= 0) {
       kit.left = 0;
       kit.on = false;
+      woreOff(kit);
       for (const c of g.crew) {
         if (c.leashed && c.leashed > 0 && c.side === "enemy") clearCrew(c);
       }
@@ -431,6 +443,7 @@ export function tickLeash(g: Game, dt: number) {
     kit.left = Math.max(0, kit.left - dt);
     if (kit.left <= 0) {
       kit.on = false;
+      woreOff(kit);
       for (const c of g.crew) {
         // The player's hold is on enemy crew only. Player crew held by the enemy run on the enemy's kit.
         if (c.leashed && c.leashed > 0 && c.side === "enemy") clearCrew(c);
@@ -475,8 +488,10 @@ function enemyKit(g: Game): Kit | undefined {
 }
 
 /**
- * Ends the enemy's current hold. Mind Control, Overview states no ordinary cooldown, so this does not start a wait.
- * Cool stays at 0 on a normal end. INFERRED: a 25 second ion cooldown already on the kit is not cleared here.
+ * Ends the enemy's current hold without starting a cooldown.
+ * A natural end and a power-loss end start the usual 20 seconds in tickEnemyLeash.
+ * A player cancel (startLeash) and a fight ending (clearEnemyLeash) leave cool alone.
+ * A 25 second ion cooldown already on the kit is not cleared here.
  * Crew are freed by the caller.
  */
 function endEnemyLeash(g: Game) {
@@ -633,6 +648,8 @@ function tickEnemyLeash(g: Game, dt: number) {
     const level = mindLevel(kit, kitBars(kit));
     if (level <= 0 || kit.left <= 0 || !held || !heldByEnemy(held) || held.hp <= 0) {
       clearEnemyLeash(g);
+      // Systems, "Systems cooldown": the effect wore off. A player cancel does not come through here.
+      woreOff(kit);
       if (held && held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
       return;
     }
@@ -640,6 +657,7 @@ function tickEnemyLeash(g: Game, dt: number) {
     kit.left = Math.max(0, kit.left - dt);
     if (kit.left <= 0) {
       clearEnemyLeash(g);
+      woreOff(kit);
       if (held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
       return;
     }

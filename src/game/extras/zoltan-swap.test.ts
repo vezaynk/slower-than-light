@@ -58,6 +58,33 @@ describe("Zoltan cooldown swap", () => {
     assert.deepEqual(g.player.kits.veil!.swap, ["z"]);
   });
 
+  it("frees one reactor bar when an intruding Zoltan walks into a cooling system", () => {
+    // Zoltans, lead: the bar belongs to the room they are standing in.
+    const g = createGame(8);
+    cloak(g);
+    swapZoltanCooldown(g);
+    const foe = spark("p-sensors", "intruder");
+    foe.side = "enemy";
+    g.crew.push(foe);
+    const spare = sparePower(g.player);
+    swapZoltanCooldown(g);
+    noteZoltanKits(g);
+    assert.equal(g.player.kits.veil!.power, 1);
+    assert.equal(g.player.kits.veil!.zoltan, 1);
+    assert.equal(sparePower(g.player), spare + 1);
+  });
+
+  it("frees one reactor bar when a mind-controlled Zoltan walks into their own cooling system", () => {
+    const g = createGame(9);
+    cloak(g);
+    swapZoltanCooldown(g);
+    const walker = spark("p-sensors", "walk");
+    walker.leashed = 10;
+    g.crew.push(walker);
+    swapZoltanCooldown(g);
+    assert.equal(g.player.kits.veil!.power, 1);
+  });
+
   it("frees one reactor bar when a Zoltan walks in, and keeps it free after they leave", () => {
     const g = createGame(4);
     cloak(g);

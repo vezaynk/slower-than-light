@@ -6,6 +6,7 @@ import {
   INSTALL_COST,
   installLeash,
   leashedDamageBonus,
+  interruptLeash,
   startLeash,
   tickLeash,
   toggleLeashPower,
@@ -69,7 +70,7 @@ describe("leash", () => {
     assert.equal(pilot.leashed, undefined);
     assert.equal(kit.on, false);
     assert.equal(kit.left, 0);
-    assert.equal(kit.cool, 0);
+    assert.equal(kit.cool, 20);
     assert.equal(leashedDamageBonus(pilot), 1);
   });
 
@@ -147,6 +148,27 @@ describe("leash", () => {
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, undefined);
     assert.equal(pilot.side, "enemy");
+  });
+
+  it("starts the usual 20 second cooldown when an active hold loses power", () => {
+    const g = createGame(8);
+    startCombat(g, "Rebel ship");
+    const kit = pushKit(g, 1, 1);
+    see(g);
+    const pilot = enemyPilot(g);
+    assert.ok(pilot);
+    startLeash(g, pilot.id);
+    kit.power = 0;
+    interruptLeash(g, kit);
+    assert.equal(kit.on, false);
+    assert.equal(pilot.leashed, undefined);
+    assert.equal(kit.cool, 20);
+    // Mind Control, Overview: full ion is 25 seconds and is not replaced by the usual 20.
+    kit.on = true;
+    kit.left = 5;
+    kit.cool = 25;
+    interruptLeash(g, kit);
+    assert.equal(kit.cool, 25);
   });
 
   it("does not leash an enemy crew member you cannot see, and does not spend the kit", () => {

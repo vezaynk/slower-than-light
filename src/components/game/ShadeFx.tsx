@@ -5,7 +5,8 @@
  */
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
-import { halted } from "@/game/sim";
+import { halted, shieldChargeFraction } from "@/game/sim";
+import { bubbleRoom, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import type { Ship } from "@/game/types";
 import { pageRect } from "./turn";
@@ -249,14 +250,22 @@ export function ShadeFx() {
         hullEl(side)?.classList.add("is-gone");
       };
 
+      const zPad = (side: Side, b: Box) => {
+        const ship = side === "player" ? g.player : g.enemy;
+        const layers = ship?.shieldNow ?? 0;
+        const charging = ship ? shieldChargeFraction(g, ship, side) != null : false;
+        return zoltanPad(bubbleRoom(hullEl(side), b, measure), layers, charging);
+      };
+
       const shieldOval = (side: Side, life: number, spread: number, width: number, color: string) => {
         const b = cache[side];
         if (!b) return;
+        const pad = zPad(side, b);
         ovals.push({
           x: b.x + b.w / 2,
           y: b.y + b.h / 2,
-          rx: b.w / 2 + 26,
-          ry: b.h / 2 + 26,
+          rx: b.w / 2 + pad,
+          ry: b.h / 2 + pad,
           life,
           max: life,
           spread,
@@ -270,8 +279,9 @@ export function ShadeFx() {
         if (!b) return;
         const cx = b.x + b.w / 2;
         const cy = b.y + b.h / 2;
-        const rx = b.w / 2 + 26;
-        const ry = b.h / 2 + 26;
+        const pad = zPad(side, b);
+        const rx = b.w / 2 + pad;
+        const ry = b.h / 2 + pad;
         shieldOval(side, 0.6, 40, 3, "#3ee56a");
         shieldOval(side, 0.6, 18, 2, "#e9ffe8");
         for (let i = 0; i < 28; i++) {

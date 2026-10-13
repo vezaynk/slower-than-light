@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, sparePower } from "../sim.ts";
-import type { Kit } from "../types.ts";
+import { createGame, fireReady, sparePower, startCombat } from "../sim.ts";
+import type { Kit, WeaponInst } from "../types.ts";
 import {
   installVeil,
   startVeil,
@@ -109,6 +109,55 @@ describe("veil", () => {
     assert.equal(veilEvade(g, g.player, "player"), 60);
     veilBrokenByFire(g, "player", "missile");
     assert.equal(kit.on, true);
+  });
+
+  it("cuts once per Ion Charger and Charger Laser I shot, and once for any other volley", () => {
+    // Cloaking, Overview: Ion Charger and Charger Laser I (Laser Charger, not Laser Charger (S)).
+    // Laser Charger II cuts once after the volley. A beam is exempt. Stealth Weapons skips the cut.
+    const cases: [string, Partial<WeaponInst>, number][] = [
+      ["ioncharger", { loaded: 3, charge: 0 }, 6],
+      ["charger", { loaded: 2, charge: 0 }, 9],
+      ["charger2", { loaded: 4, charge: 0 }, 12],
+      ["chargers", { loaded: 2, charge: 0 }, 12],
+      ["burst1", { charge: 1 }, 12],
+      ["mini", { charge: 1 }, 15],
+    ];
+    for (const [id, extra, left] of cases) {
+      const g = createGame(1);
+      startCombat(g, "scout");
+      const room = g.enemy!.rooms[0]!.id;
+      g.player.kits.veil = { id: "veil", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+      g.player.weapons = [
+        { uid: "w-" + id, defId: id, charge: 0, enabled: true, autofire: false, target: room, ...extra },
+      ];
+      g.player.systems.weapons.level = 8;
+      g.player.systems.weapons.power = 8;
+      g.player.systems.weapons.damage = 0;
+      g.player.systems.weapons.ion = [];
+      g.autofireAll = false;
+      fireReady(g);
+      assert.ok(g.shots.some((s) => s.defId === id), id);
+      assert.equal(g.player.kits.veil.left, left, id);
+      assert.equal(g.player.kits.veil.on, left > 0, id);
+    }
+
+    const quiet = createGame(2);
+    startCombat(quiet, "scout");
+    const room = quiet.enemy!.rooms[0]!.id;
+    quiet.player.kits.veil = { id: "veil", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    quiet.augments.push("quiet");
+    quiet.player.weapons = [
+      { uid: "w-ion", defId: "ioncharger", charge: 0, loaded: 3, enabled: true, autofire: false, target: room },
+    ];
+    quiet.player.systems.weapons.level = 8;
+    quiet.player.systems.weapons.power = 8;
+    quiet.player.systems.weapons.damage = 0;
+    quiet.player.systems.weapons.ion = [];
+    quiet.autofireAll = false;
+    fireReady(quiet);
+    assert.equal(quiet.shots.filter((s) => s.defId === "ioncharger").length, 3);
+    assert.equal(quiet.player.kits.veil!.on, true);
+    assert.equal(quiet.player.kits.veil!.left, 15);
   });
 
   it("refuses a short purse and will not start unpowered or early", () => {

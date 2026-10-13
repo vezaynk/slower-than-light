@@ -122,6 +122,8 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     g.fuel = 3;
     // Piloting, "Overview": a jump needs powered engines.
     g.player.systems.engines.power = 1;
+    // Engines, "FTL Drive charge time": the field is still a hazard, so the drive has to finish first.
+    g.flee = 1;
     commitJump(g, here.links[0]);
     assert.equal(g.asteroid, false);
   });

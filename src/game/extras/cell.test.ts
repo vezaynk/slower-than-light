@@ -311,7 +311,8 @@ describe("cell", () => {
     });
     tickCell(hold, 30);
     assert.equal(hold.player.kits.leash?.on, false);
-    assert.equal(hold.player.kits.leash?.cool, 0);
+    // Systems, "Systems cooldown": power loss ends the hold and starts the usual 20 seconds.
+    assert.equal(hold.player.kits.leash?.cool, 20);
     assert.equal(hold.player.kits.leash?.power, 0);
     assert.equal(hold.crew.find((c) => c.id === "foe")?.leashed, undefined);
     assert.equal(hold.player.systems.engines.power, 1);

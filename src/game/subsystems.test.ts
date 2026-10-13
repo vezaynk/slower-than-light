@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame, evasionPercent, ftlSeconds, jumpBlocked, manning, startCombat, step } from "./sim.ts";
+import { beginBoarding, commitJump, createGame, evasionPercent, ftlDriveCharging, ftlDriveSeconds, ftlQuietSeconds, ftlSeconds, jumpBlocked, manning, startCombat, step } from "./sim.ts";
 import { sensorLevel } from "./extras/sensors.ts";
-import type { Game } from "./types.ts";
+import type { Crew, Game } from "./types.ts";
 
 function calm(g: Game) {
   g.player.weapons = [];
@@ -127,5 +127,149 @@ describe("manning a damaged system", () => {
     assert.ok(room);
     room.o2 = 0;
     assert.equal(sensorLevel(g, g.player, "player"), 2);
+  });
+});
+
+function unmannedEngines(g: Game, level: number) {
+  g.player.systems.engines.level = level;
+  g.player.systems.engines.power = level;
+  g.player.systems.engines.damage = 0;
+  g.player.systems.engines.ion = [];
+  for (const c of g.crew) {
+    if (c.side !== "player" || c.room !== "p-engines") continue;
+    c.room = "p-medbay";
+    c.path = [];
+  }
+}
+
+function seconds(g: Game, n: number) {
+  const steps = Math.round(n / 0.05);
+  for (let i = 0; i < steps; i++) step(g, 0.05);
+}
+
+function plantBoarder(g: Game, room: string): Crew {
+  g.uid = (g.uid + 1) >>> 0;
+  const c: Crew = {
+    id: "u" + g.uid.toString(36),
+    name: "Human",
+    side: "enemy",
+    aboard: "player",
+    hp: 100,
+    maxHp: 100,
+    room,
+    path: [],
+    move: 0,
+    think: 9999,
+    tone: 3,
+    kin: "plain",
+  };
+  g.crew.push(c);
+  return c;
+}
+
+describe("FTL charge with no enemy hull", () => {
+  // Engines, "FTL Drive charge time": 23 seconds, further decreased by the same factors as the in-fight table.
+  // INFERRED: 23 is the unmanned level-1 cell (67.9s), scaled by this hull's in-fight time.
+  it("scales the 23 second base by the in-fight cell", () => {
+    const g = createGame(20);
+    unmannedEngines(g, 1);
+    assert.equal(ftlQuietSeconds(g), 23);
+    unmannedEngines(g, 2);
+    assert.ok(Math.abs(ftlQuietSeconds(g)! - (23 * 53.1) / 67.9) < 1e-9);
+  });
+
+  it("charges that clock through a hazard, and jumps at once once the hazard is gone", () => {
+    const g = createGame(21);
+    unmannedEngines(g, 1);
+    g.phase = "map";
+    g.paused = false;
+    g.flee = 0;
+    g.flare = true;
+    seconds(g, 1);
+    const rate = ftlQuietSeconds(g)!;
+    assert.equal(rate, 23);
+    assert.ok(Math.abs(g.flee - 1 / rate) < 1e-4);
+    assert.equal(ftlDriveCharging(g), true);
+    const to = jumpTarget(g);
+    commitJump(g, to);
+    assert.equal(g.jumps, 0);
+    g.flare = false;
+    assert.equal(ftlDriveSeconds(g), 0);
+    assert.equal(ftlDriveCharging(g), false);
+    commitJump(g, to);
+    assert.equal(g.jumps, 1);
+  });
+
+  it("does not treat a nebula or an ion storm as that hazard", () => {
+    const g = createGame(22);
+    unmannedEngines(g, 1);
+    g.flee = 0.25;
+    g.player.storm = true;
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here);
+    here.kind = "nebula";
+    assert.equal(ftlDriveCharging(g), false);
+    assert.equal(ftlDriveSeconds(g), 0);
+    commitJump(g, jumpTarget(g));
+    assert.equal(g.jumps, 1);
+  });
+
+  it("finishes a partial charge at once when the map is quiet", () => {
+    const g = createGame(23);
+    unmannedEngines(g, 1);
+    g.flee = 0.25;
+    step(g, 0.05);
+    assert.equal(g.flee, 1);
+  });
+
+  it("keeps the printed table while an enemy hull is on the scope", () => {
+    const g = fight(24);
+    unmannedEngines(g, 1);
+    g.asteroid = true;
+    assert.equal(ftlDriveSeconds(g), ftlSeconds(g, g.player));
+    assert.equal(ftlDriveSeconds(g), 67.9);
+    g.asteroid = false;
+    g.flee = 0;
+    seconds(g, 1);
+    assert.ok(Math.abs(g.flee - 1 / 67.9) < 1e-4);
+    const jumps = g.jumps;
+    commitJump(g, jumpTarget(g));
+    assert.equal(g.jumps, jumps);
+  });
+
+  it("uses the 23 second clock for boarders, then jumps at once when they are gone", () => {
+    const g = createGame(25);
+    unmannedEngines(g, 1);
+    const boarder = plantBoarder(g, "p-sensors");
+    beginBoarding(g);
+    assert.equal(g.enemy, null);
+    g.flee = 0;
+    seconds(g, 1);
+    assert.ok(Math.abs(g.flee - 1 / 23) < 1e-4);
+    const mate = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(mate);
+    boarder.room = mate.room;
+    boarder.hp = 0.2;
+    for (let i = 0; i < 80 && g.phase === "combat"; i++) step(g, 0.05);
+    assert.equal(g.phase, "map");
+    assert.equal(g.flee, 1);
+  });
+
+  it("keeps a partial charge when a sun is still up after the boarders die", () => {
+    const g = createGame(26);
+    unmannedEngines(g, 1);
+    const boarder = plantBoarder(g, "p-sensors");
+    beginBoarding(g, false, true);
+    g.flee = 0.4;
+    const mate = g.crew.find((c) => c.side === "player" && c.hp > 0);
+    assert.ok(mate);
+    boarder.room = mate.room;
+    boarder.hp = 0.2;
+    for (let i = 0; i < 80 && g.phase === "combat"; i++) step(g, 0.05);
+    assert.equal(g.phase, "map");
+    assert.equal(g.flare, true);
+    assert.ok(g.flee > 0.4 && g.flee < 1);
+    commitJump(g, jumpTarget(g));
+    assert.equal(g.jumps, 0);
   });
 });

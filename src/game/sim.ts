@@ -5,6 +5,7 @@ import { claimPadTile, consoleOperator, interiorLinks, mayStand, medicalLimit, p
 import {
   CREW_POOL,
   EVADE_TABLE,
+  FTL_HAZARD_BASE,
   FTL_SKILL,
   FTL_UNMANNED,
   SCRAP_MEDIUM,
@@ -56,7 +57,7 @@ import {
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import { clearBombSight, clearEnemyLeash, heldByEnemy, ionOnLeash, leashOnLeave, noteBombSight, sideOf } from "./extras/leash.ts";
-import { enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
+import { cloakVolleyCuts, enemyHoldsFire, veilBrokenByFire } from "./extras/veil.ts";
 import { ionOnCell, shedOverAssigned } from "./extras/cell.ts";
 import { relaxSling, shipInDanger, tickEnemyBoarding } from "./extras/sling.ts";
 import { checkEnemyPower } from "./extras/ship-ai.ts";
@@ -477,26 +478,21 @@ export function roomWith(ship: Ship, system: SysId): Room | undefined {
 }
 
 /**
- * Wiki page "Zoltans", lead and "Race characteristics": one bar per living Zoltan
- * standing in that room. Piloting, sensors, and doors get none.
- * Cloaking, hacking, the teleporter, mind control, drones, and the clone bay are kits.
- * noteZoltanKits counts those. This function stays on the five main systems.
+ * Crew physically aboard this hull. Zoltans, lead: a Zoltan powers "the ship system whose corresponding room they are
+ * currently standing in". Race characteristics: one yellow bar on an occupied system. An intruder powers that room.
+ * A mind-controlled Zoltan keeps the bar on the room they still occupy.
  */
-/**
- * Crew who can lend Zoltan power on the `aboard` hull: aboard it and fighting for it.
- * INTENTIONALLY OVERRIDING SPEC: Zoltans, "Race characteristics" says only "an occupied system"; per the user, an
- * intruding Zoltan does not power, replace, or swap power in the other side's systems.
- * INTENTIONAL (confirmed by the user): a mind-controlled Zoltan counts for the side it fights for (Mind Control: "Turns
- * one enemy crewmember into ally").
- */
-function hullCrew<C extends Pick<Crew, "aboard" | "side" | "leashed">>(crew: readonly C[], aboard: "player" | "enemy"): C[] {
-  const fightsFor = (c: C) => ((c.leashed ?? 0) > 0 ? (c.side === "player" ? "enemy" : "player") : c.side);
-  return crew.filter((c) => c.aboard === aboard && fightsFor(c) === aboard);
+function hullCrew<C extends Pick<Crew, "aboard">>(crew: readonly C[], aboard: "player" | "enemy"): C[] {
+  return crew.filter((c) => c.aboard === aboard);
 }
 
-/** Zoltan power on this hull's system, from its own side's Zoltans (hullCrew). */
+/**
+ * Wiki page "Zoltans", lead and "Race characteristics": one bar per living Zoltan standing in that room, on the hull
+ * they are aboard. Piloting, sensors, and doors get none. Cloaking, hacking, the teleporter, mind control, drones,
+ * and the clone bay are kits; noteZoltanKits counts those. This stays on the five main systems.
+ */
 export function zoltanBars(
-  crew: readonly Pick<Crew, "kin" | "hp" | "room" | "aboard" | "side" | "leashed">[],
+  crew: readonly Pick<Crew, "kin" | "hp" | "room" | "aboard">[],
   ship: Ship,
   aboard: "player" | "enemy",
   id: SysId,
@@ -950,7 +946,7 @@ export function jumpBlocked(g: Game): string | null {
   return null;
 }
 
-/** Engines, "FTL Charge Times": unmanned table, or the manned skill row. A body in piloting is required. */
+/** Engines, "FTL Drive charge time": the in-fight table. A body in piloting is required. */
 export function ftlSeconds(g: Game, ship: Ship): number | null {
   const eng = engineBars(g, ship, "player");
   if (eng <= 0) return null;
@@ -963,6 +959,63 @@ export function ftlSeconds(g: Game, ship: Ship): number | null {
   const base = crew ? FTL_SKILL[rankOf(crew, "engines")][eng] : FTL_UNMANNED[eng];
   if (base == null) return null;
   return base * ftlBoost(g);
+}
+
+/**
+ * Engines, "FTL Drive charge time": a hazard or a boarder, with no enemy ship.
+ * Nebula and plasma/ion storms are not that hazard. Combat itself is not, either: an enemy hull uses ftlSeconds.
+ */
+function ftlWaits(g: Game): boolean {
+  if (enemyAboard(g)) return true;
+  return !!(g.asteroid || g.pulsar || g.flare || g.asb);
+}
+
+/**
+ * Engines, "FTL Drive charge time": 23 seconds, "further decreased" by engine power, manning, skill, and
+ * FTL Recharge Boosters. The page prints no second table.
+ * INFERRED: 23 is the unmanned level-1 end of the in-fight table (the 67.9s cell), scaled by this hull's ftlSeconds.
+ */
+export function ftlQuietSeconds(g: Game): number | null {
+  const fight = ftlSeconds(g, g.player);
+  const slow = FTL_UNMANNED[1];
+  if (fight == null || !slow) return null;
+  return (FTL_HAZARD_BASE * fight) / slow;
+}
+
+/**
+ * Seconds the drive is counting toward, or 0 when the jump is instant, or null when the ship cannot charge.
+ * An enemy hull uses the in-fight table. A hazard or a boarder with no hull uses the 23s clock.
+ */
+export function ftlDriveSeconds(g: Game): number | null {
+  if (g.enemy) return ftlSeconds(g, g.player);
+  if (ftlWaits(g)) return ftlQuietSeconds(g);
+  if (ftlSeconds(g, g.player) == null) return null;
+  return 0;
+}
+
+/** True while commitJump must wait. A finished bar, and a quiet map, do not wait. */
+export function ftlDriveCharging(g: Game): boolean {
+  if (g.flee >= 1) return false;
+  if (g.enemy) return g.phase === "combat";
+  return ftlWaits(g);
+}
+
+/**
+ * Engines, "FTL Drive charge time": the in-fight table against a hull, the 23s clock for a hazard or a boarder
+ * with no hull, and an instant charge when neither is present. A ship that cannot charge does not snap the bar.
+ */
+function chargeFtl(g: Game, dt: number) {
+  if (g.enemy) {
+    const spool = ftlSeconds(g, g.player);
+    if (spool) g.flee = Math.min(1, g.flee + dt / spool);
+    return;
+  }
+  if (ftlWaits(g)) {
+    const spool = ftlQuietSeconds(g);
+    if (spool) g.flee = Math.min(1, g.flee + dt / spool);
+    return;
+  }
+  if (ftlSeconds(g, g.player) != null) g.flee = 1;
 }
 
 /**
@@ -2383,7 +2436,10 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   if (from === "player" && !slotAutofire(g, w)) dropQueued(w);
   const sound = def.kind === "flak" ? "laser" : def.kind === "bomb" ? "missile" : def.kind === "laser" ? "laser" : def.kind;
   sfx(g, sound);
-  veilBrokenByFire(g, from, def.kind);
+  // Cloaking, Overview: one cut per volley. Ion Charger and Charger Laser I cut once per shot.
+  // Laser Charger II cuts once, with the volley. These chargers print no gap, so the last shot leaves with the rest.
+  const cuts = cloakVolleyCuts(w.defId, count);
+  for (let i = 0; i < cuts; i++) veilBrokenByFire(g, from, def.kind);
   noteAchieve(g, { k: "shot", from, kind: def.kind, defId: w.defId, rooms });
   if (from === "player") {
     log(g, `${def.name} away.`);
@@ -2427,9 +2483,9 @@ function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void 
 
 /**
  * Zoltans, lead: Cloaking, Hacking, Crew Teleporter, and Mind Control lock reactor bars
- * during the cooldown after use. Mind Control's ordinary cooldown is still 0 (leash.ts);
- * this is true only while kit.cool is actually counting, including an enemy hold's wait
- * and Hacking's relaunch wait, which share that field.
+ * during the cooldown after use. Mind Control's usual cooldown is 20 seconds (Systems,
+ * "Systems cooldown"); full ion is 25 (leash.ts). The lock applies while kit.cool is counting,
+ * including an enemy hold's wait and Hacking's relaunch wait, which share that field.
  */
 const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["veil", "spike", "sling", "leash"]);
 
@@ -4091,11 +4147,16 @@ function shieldNeed(g: Game, ship: Ship, aboard: "player" | "enemy"): number | n
   return shieldLayerSeconds(ship.shieldNow + 1) / (rate * shieldBoost(g, aboard));
 }
 
+/** 0 to 1 for the layer charging now, null when none is. */
+export function shieldChargeFraction(g: Game, ship: Ship, aboard: "player" | "enemy"): number | null {
+  const need = shieldNeed(g, ship, aboard);
+  if (need == null || need <= 0) return null;
+  return Math.max(0, Math.min(1, ship.shieldCharge / need));
+}
+
 /** Per the user: the HUD's shield charge meter. 0 to 1 for the layer charging now, null when none is. */
 export function shieldChargeShown(g: Game): number | null {
-  const need = shieldNeed(g, g.player, "player");
-  if (need == null || need <= 0) return null;
-  return Math.max(0, Math.min(1, g.player.shieldCharge / need));
+  return shieldChargeFraction(g, g.player, "player");
 }
 
 function shieldRegen(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
@@ -5764,7 +5825,8 @@ export function commitJump(g: Game, id: string) {
     sfx(g, "click");
     return;
   }
-  if (g.phase === "combat" && g.flee < 1) {
+  // Engines, "FTL Drive charge time": a hazard or a boarder waits on the map too. A quiet map does not.
+  if (ftlDriveCharging(g)) {
     log(g, tx("game.sim.jump-drive-is-still-charging"));
     return;
   }
@@ -6782,8 +6844,8 @@ function tickBoarding(g: Game, dt: number) {
   wanderBoarders(g, dt);
   if (g.asb || g.asteroid || g.pulsar || g.flare) environment(g, dt);
   if (g.shots.length) stepShots(g, dt);
-  const spool = ftlSeconds(g, g.player);
-  if (spool) g.flee = Math.min(1, g.flee + dt / spool);
+  // Engines, "FTL Drive charge time": no enemy hull, so a boarder uses the 23s clock.
+  chargeFtl(g, dt);
   if (g.player.hull <= 0) {
     lose(g, "hull");
     return;
@@ -6798,7 +6860,9 @@ function tickBoarding(g: Game, dt: number) {
   g.shots = [];
   g.asb = false;
   g.phase = "map";
-  g.flee = 0;
+  // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
+  // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
+  if (!(g.asteroid || g.pulsar || g.flare)) g.flee = 1;
   log(g, tx("game.sim.the-boarders-are-dead"));
 }
 
@@ -6839,6 +6903,8 @@ function playerShipTick(g: Game, h: number) {
   meltCoats(g);
   chargeIdleWeapons(g, h);
   neutralShipTick(g, h);
+  // Engines, "FTL Drive charge time": the map keeps charging through a hazard, and finishes at once without one.
+  chargeFtl(g, h);
 }
 
 /**
@@ -6935,8 +7001,8 @@ export function step(g: Game, dt: number) {
   tickEnemyCrewAi(g, h);
   environment(g, h);
   bossThink(g, h);
-  const spool = ftlSeconds(g, g.player);
-  if (spool) g.flee = Math.min(1, g.flee + h / spool);
+  // Engines, "FTL Drive charge time": an enemy hull uses the printed table.
+  chargeFtl(g, h);
   // @agent:surrender. Surrender roll before the escape roll ("Enemies will never start running away if they have
   // already offered a surrender"), then the anti-stalemate clock. True means an offer opened or the fight ended.
   if (surrenderTick(g, h)) {

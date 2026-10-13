@@ -542,7 +542,7 @@ export type AugmentId =
 export type EnemyBoarding = {
   /** Boardings sent this fight. */
   sent: number;
-  /** Most boardings this hull may send: 2, or 3–4 for a Rebel Elite. */
+  /** Most boardings this hull may send: 2, or 3–4 for a Rebel Elite. Unused while `invasion` is set. */
   limit: number;
   /** Crew ids walking to, or standing on, the teleporter pads. */
   party: string[];

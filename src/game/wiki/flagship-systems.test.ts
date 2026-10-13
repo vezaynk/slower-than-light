@@ -147,8 +147,10 @@ describe("Rebel Flagship systems per stage", () => {
     assert.ok(e.rooms.some((r) => r.id === "e-teleporter" && r.kit === "sling"));
     assert.equal(e.zoltan, FLAGSHIP_ZOLTAN);
     assert.equal(enemyCrew(g).length, 9);
-    assert.ok(e.boards);
-    assert.ok((e.boarding?.limit ?? 0) > 2);
+    assert.equal(e.boards, true);
+    // Crew Teleporter, "Enemy Crew Teleporter": phase 3 prints no trip count. invasion is the open send.
+    assert.equal(e.boarding?.invasion, true);
+    assert.equal(e.boarding?.limit, 0);
   });
 
   it("clears fire and breaches between stages", () => {

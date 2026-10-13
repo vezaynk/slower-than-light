@@ -174,6 +174,22 @@ describe("enemy crew teleporter", () => {
     assert.equal(b.party.length, 1);
   });
 
+  it("phase 3 keeps sending after the usual trip count", () => {
+    const g = boarder(4);
+    g.enemy!.flagship = { stage: 3 } as never;
+    g.enemy!.boarding = { sent: 5, limit: 0, party: [], away: [], home: {}, invasion: true };
+    const party = send(g);
+    assert.ok(party.length > 0);
+    assert.equal(plan(g).sent, 6);
+
+    const capped = boarder(4);
+    capped.enemy!.boarding = { sent: 0, limit: 0, party: [], away: [], home: {}, stay: 1, invasion: false };
+    pad(capped).cool = 0;
+    capped.boardTimer = 0;
+    tickEnemyBoarding(capped, 0.01);
+    assert.equal(plan(capped).party.length, 0);
+  });
+
   it("the Flagship keeps 1 or 2 crew home and still recalls a boarder under 25% (wiki over xftl)", () => {
     // Crew Teleporter, "Enemy Crew Teleporter": "all its crew except for 1 or 2 crewmembers".
     const g = boarder(4);

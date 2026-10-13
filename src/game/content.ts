@@ -301,6 +301,13 @@ export const EVADE_TABLE = [0, 5, 10, 15, 20, 25, 28, 31, 35];
 /** Engines, "FTL Drive charge time", unmanned column, levels 1–8. Index 0 is unused. */
 export const FTL_UNMANNED = [0, 67.9, 53.1, 43.6, 36.9, 32.1, 28.3, 25.4, 23.0];
 
+/**
+ * Engines, "FTL Drive charge time": a hazard or a boarder, with no enemy ship, charges from 23 seconds.
+ * Nebula and plasma/ion storms are not that hazard. No hazard and no enemy charges instantly.
+ * The in-fight table above is a different clock, used only while an enemy hull is on the scope.
+ */
+export const FTL_HAZARD_BASE = 23;
+
 /** Engines, "FTL Drive charge time", manned columns, skill ranks 0 / 1 / 2. */
 export const FTL_SKILL = [
   [0, 61.8, 48.3, 39.6, 33.6, 29.0, 25.7, 23.1, 20.9],

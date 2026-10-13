@@ -200,16 +200,16 @@ export const FLAGSHIP_PARTS = 10;
 /**
  * Crew Teleporter, "Enemy Crew Teleporter": "The Rebel Flagship in phase 3 will send all its crew except for 1 or 2
  * crewmembers". sling.ts keeps those 1 or 2 home.
- * INFERRED: no cap on how many trips it makes (the regular hull's 2-boarding limit does not apply).
+ * The page does not print a trip count. `invasion` is that missing cap: formParty does not stop this hull at `limit`.
  */
-const PHASE3_BOARDINGS = 99;
 
 /** Apply the stage's kits, parts, and boarding plan to an already-built hull. */
 export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3) {
   ship.kits = flagshipKits(stage);
   ship.parts = FLAGSHIP_PARTS;
   ship.boards = stage === 3;
-  ship.boarding = stage === 3 ? { sent: 0, limit: PHASE3_BOARDINGS, party: [], away: [], home: {} } : undefined;
+  // limit is unused while invasion is set. A stored 99 was a stand-in, not a printed cap.
+  ship.boarding = stage === 3 ? { sent: 0, limit: 0, party: [], away: [], home: {}, invasion: true } : undefined;
   ship.crewAi = undefined;
   const prev = ship.flagship;
   // "Hull and system damage of the Rebel Flagship will be repaired on the next stage": fresh guns.

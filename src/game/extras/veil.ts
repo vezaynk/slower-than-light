@@ -175,9 +175,25 @@ export function veilBlocks(g: Game, from: "player" | "enemy"): boolean {
 }
 
 /**
+ * Cloaking, "Overview": a non-beam volley cuts 20% once, on the first projectile.
+ * Ion Charger and Charger Laser I cut 20% of the full cloak with each shot.
+ * Charger Laser I is Laser (Weapons), "Laser Charger" (the Laser_Charger_I.png row). Laser Charger (S)
+ * is a different section and is not named here, so it keeps the single cut.
+ * Laser Charger II cuts 20% once, after the final shot of the volley. These chargers have no printed
+ * gap, so that final shot leaves with the rest of the volley.
+ * Swarm Missiles and Pegasus are an untested note on that page; they keep the single cut.
+ */
+export function cloakVolleyCuts(defId: string, count: number): number {
+  if (count < 1) return 0;
+  if (defId === "ioncharger" || defId === "charger") return count;
+  return 1;
+}
+
+/**
  * Wiki page "Cloaking", "Overview": each non-beam shot removes 20% of the full cloak time.
  * Beams are exempt. Quiet Mounts skips the penalty (Stealth Weapons on that page).
  * A cloak that reaches 0 starts the 20s cooldown.
+ * A volley calls this once per cloakVolleyCuts, not once per projectile.
  */
 export function veilBrokenByFire(g: Game, from: "player" | "enemy", kind: string) {
   if (kind === "beam") return;

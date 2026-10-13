@@ -11,7 +11,8 @@
  */
 import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
-import { halted } from "@/game/sim";
+import { halted, shieldChargeFraction } from "@/game/sim";
+import { bubbleRoom, struckPad, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
@@ -71,8 +72,10 @@ type Seen = {
   side: "player" | "enemy";
   roomId: string;
   seg?: { a: Pt; b: Pt };
+  /** Environmental Hazards, Asteroid Field: an env laser is a rock, not a bolt. */
+  rock?: boolean;
 };
-type Ring = { box: Box; life: number; color?: string };
+type Ring = { box: Box; life: number; color?: string; pad: number };
 type Claim = { text: "SHIELD" | "MISS" | "HIT"; side: "player" | "enemy" };
 
 /** Same hull rule as applyImpact: `at` wins, an own bomb stays on the shooter, everything else crosses. */
@@ -185,6 +188,22 @@ function hash(id: string) {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
   return (h >>> 0) / 4294967295;
+}
+
+/** Environmental Hazards, Asteroid Field: a tumbling stone. `h` picks one of three silhouettes. */
+function drawAsteroid(ctx: CanvasRenderingContext2D, h: number) {
+  const body = h > 0.66 ? "#8d8476" : h > 0.33 ? "#6e675c" : "#7a7268";
+  ctx.fillStyle = "#3c3832";
+  ctx.fillRect(-8, -4, 16, 9);
+  ctx.fillStyle = body;
+  ctx.fillRect(-6, -7, 11, 8);
+  ctx.fillRect(-3, 2, 8, 4);
+  ctx.fillStyle = "#c4b8a4";
+  ctx.fillRect(-4, -5, 3, 2);
+  ctx.fillStyle = "#2e2a26";
+  ctx.fillRect(3, -1, 4, 3);
+  if (h > 0.66) ctx.fillRect(6, -6, 4, 4);
+  else if (h < 0.33) ctx.fillRect(-11, 0, 4, 4);
 }
 
 const droneSprites = new Map<string, HTMLCanvasElement>();
@@ -528,13 +547,18 @@ export function CombatFx() {
         const target = hull("player");
         if (swiper && target) {
           const green = token("--color-ok", "#3ee56a");
-          rings.push({ box: target, life: 0.45, color: green });
+          const pad = zoltanPad(
+            bubbleRoom(host.querySelector('.hull[data-ship="player"]'), target, box),
+            g.player.shieldNow,
+            shieldChargeFraction(g, g.player, "player") != null,
+          );
+          rings.push({ box: target, life: 0.45, color: green, pad });
           const p = enemyDroneAt.get(swiper.id);
           if (p) {
             const cx = target.x + target.w / 2;
             const cy = target.y + target.h / 2;
             const a = Math.atan2(p.y - cy, p.x - cx);
-            const edge = { x: cx + Math.cos(a) * (target.w / 2 + 26), y: cy + Math.sin(a) * (target.h / 2 + 26) };
+            const edge = { x: cx + Math.cos(a) * (target.w / 2 + pad), y: cy + Math.sin(a) * (target.h / 2 + pad) };
             ctx.strokeStyle = green;
             ctx.lineWidth = 4;
             line(ctx, p, edge);
@@ -682,8 +706,34 @@ export function CombatFx() {
         } else if (shot.from === "env" && targetSide(shot) === "enemy") {
           layer = "panel";
         }
-        const rec: Seen = { at: { x, y }, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom };
+        const rock = shot.from === "env" && shot.kind === "laser";
+        const rec: Seen = { at: { x, y }, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom, rock };
         seen.set(shot.id, rec);
+
+        if (rock) {
+          drawOn(layer, (c) => {
+            c.save();
+            c.translate(Math.round(x), Math.round(y));
+            c.rotate(t * 9 + hash(shot.id) * Math.PI * 2);
+            c.scale(2, 2);
+            drawAsteroid(c, hash(shot.id));
+            c.restore();
+          });
+          if (live && Math.random() < 0.65) {
+            sparks.push({
+              x: x - Math.cos(ang) * 8,
+              y: y - Math.sin(ang) * 8,
+              vx: -Math.cos(ang) * 24,
+              vy: -Math.sin(ang) * 24 + (Math.random() - 0.5) * 12,
+              life: 0.3,
+              max: 0.3,
+              color: "#a39888",
+              size: 2,
+              layer: layer === "world" ? "world" : undefined,
+            });
+          }
+          continue;
+        }
 
         if (shot.kind === "beam") {
           const hullSide = targetSide(shot);
@@ -828,6 +878,25 @@ export function CombatFx() {
         }
       };
       const kindImpact = (s: Seen) => {
+        if (s.rock) {
+          for (let i = 0; i < 8; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const v = 46 + Math.random() * 74;
+            sparks.push({
+              x: s.at.x,
+              y: s.at.y,
+              vx: Math.cos(a) * v,
+              vy: Math.sin(a) * v,
+              life: 0.42,
+              max: 0.42,
+              color: i % 2 ? "#8a8174" : "#d9cbb6",
+              size: i % 3 === 0 ? 3 : 2,
+              drag: 0.9,
+            });
+          }
+          marks.push({ x: s.at.x, y: s.at.y, w: 6, h: 6, life: 0.2, max: 0.2, color: "#c4b8a4", fill: true });
+          return;
+        }
         if (s.kind === "laser") {
           streaks.push({ x: s.at.x, y: s.at.y, ang: s.ang, len: 16, life: 0.16, max: 0.16, color: s.color });
           for (let i = 0; i < 6; i++) {
@@ -957,7 +1026,17 @@ export function CombatFx() {
         const target = hull(side);
         if (!target) continue;
         const color = f.text === "MISS" ? "#c8fff0" : f.text === "SHIELD" ? "#6cc4ff" : "#ff6a5a";
-        if (f.text === "SHIELD") rings.push({ box: target, life: 0.45 });
+        if (f.text === "SHIELD") {
+          const ship = side === "player" ? g.player : g.enemy;
+          const pad = ship
+            ? struckPad(
+                bubbleRoom(host.querySelector(`.hull[data-ship="${side}"]`), target, box),
+                ship.shieldNow,
+                (ship.zoltan ?? 0) > 0,
+              )
+            : 16;
+          rings.push({ box: target, life: 0.45, pad });
+        }
         // @agent:flagship. Stagger: a volley lands several numbers at once (the 7-laser surge printed "MMISS -11 -1").
         // Each new number takes the lowest slot not held by a still-fresh number over the same hull: three columns
         // 58 px apart, then rows 24 px higher.
@@ -1132,7 +1211,7 @@ export function CombatFx() {
         ctx.strokeStyle = r.color ?? "#6cc4ff";
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.ellipse(r.box.x + r.box.w / 2, r.box.y + r.box.h / 2, r.box.w / 2 + 26, r.box.h / 2 + 26, 0, 0, Math.PI * 2);
+        ctx.ellipse(r.box.x + r.box.w / 2, r.box.y + r.box.h / 2, r.box.w / 2 + r.pad, r.box.h / 2 + r.pad, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;

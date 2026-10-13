@@ -7,5 +7,5 @@ if curl -fsS -o /dev/null --max-time 1 http://127.0.0.1:8080/ 2>/dev/null; then
   exit 0
 fi
 # Detached from this shell, so the server outlives whatever started the script.
-setsid nohup npm run dev > /tmp/stl-dev.log 2>&1 < /dev/null &
+setsid nohup pnpm run dev > /tmp/stl-dev.log 2>&1 < /dev/null &
 exit 0

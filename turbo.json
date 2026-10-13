@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".output/**"]
+    },
+    "@stl/wiki#build": {
+      "dependsOn": ["parity", "^build"],
+      "outputs": ["dist/**"]
+    },
+    "parity": {
+      "outputs": ["public/parity.json"],
+      "inputs": ["src/**", "../../apps/game/src/**", "../../packages/wiki-dump/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {},
+    "test": {},
+    "lint": {}
+  }
+}

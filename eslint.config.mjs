@@ -13,8 +13,9 @@ export default tseslint.config(
       ".output/**",
       ".vercel/**",
       ".nitro/**",
+      ".turbo/**",
       "node_modules/**",
-      "src/routeTree.gen.ts",
+      "apps/game/src/routeTree.gen.ts",
     ],
   },
   js.configs.recommended,
@@ -44,4 +45,26 @@ export default tseslint.config(
   },
   // Disable rules that conflict with Prettier formatting.
   prettier,
+  {
+    files: ["apps/game/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@stl/wiki-dump",
+              message: "The running game does not import the wiki dump. Tests may.",
+            },
+            {
+              name: "@stl/wiki",
+              message: "The game does not link to the wiki explorer.",
+            },
+          ],
+          patterns: ["@stl/wiki-dump/*", "@stl/wiki/*"],
+        },
+      ],
+    },
+  },
 );

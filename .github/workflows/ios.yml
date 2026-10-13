@@ -20,26 +20,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       # The game is client-only, so the SPA shell prerenders to dist/client/index.html (as for GitHub Pages).
       - name: Build static web app
-        run: npm run build:pages
+        run: pnpm --filter @stl/game build:pages
         env:
           PAGES_BASE: /
 
       # The native project is generated here rather than committed.
       - name: Add and sync the iOS platform
+        working-directory: apps/game
         run: |
-          if [ ! -d ios ]; then npx cap add ios; fi
-          npx cap sync ios
+          if [ ! -d ios ]; then pnpm exec cap add ios; fi
+          pnpm exec cap sync ios
 
       - name: Lock to landscape
+        working-directory: apps/game
         run: |
           plist=ios/App/App/Info.plist
           for key in UISupportedInterfaceOrientations "UISupportedInterfaceOrientations~ipad"; do
@@ -50,7 +54,7 @@ jobs:
           done
 
       - name: Build for the simulator
-        working-directory: ios/App
+        working-directory: apps/game/ios/App
         run: |
           xcodebuild build \
             -project App.xcodeproj -scheme App \
@@ -60,7 +64,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
       - name: Build for devices (unsigned)
-        working-directory: ios/App
+        working-directory: apps/game/ios/App
         run: |
           xcodebuild build \
             -project App.xcodeproj -scheme App \
@@ -70,7 +74,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 
       - name: Package
-        working-directory: ios/App
+        working-directory: apps/game/ios/App
         run: |
           mkdir -p "$GITHUB_WORKSPACE/out"
           (cd "build/sim/Build/Products/${{ inputs.configuration }}-iphonesimulator" && zip -qry "$GITHUB_WORKSPACE/out/SlowerThanLight-simulator.app.zip" App.app)

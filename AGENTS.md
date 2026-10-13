@@ -135,8 +135,8 @@ back the dev server and anything else the preview needs. **Rules
    shouldn't live in the workspace snapshot.
 6. **Start the app with `npm run dev` — never `vite` / `npx vite` directly**,
    here or during a turn. Only the npm scripts run Vite through
-   `scripts/with-app-env.mjs`, which puts `.grok/app-env.json`
-   (`VITE_AUTH_ENABLED`) into the environment.
+   `scripts/with-app-env.mjs`, which puts `VITE_` flags from
+   `.grok/app-env.json` into the environment.
 
 Starting the dev server during a turn: write/update `startup.sh` first, then run
 `sh /workspace/startup.sh`, so revive and live work stay identical (worked
@@ -146,8 +146,8 @@ example in `.grok/references/hibernate-revive.md`).
 
 **Deps are preinstalled** (React 19, TanStack Start/Router/Query/Table, Tailwind
 v4, Radix, zustand, zod) — read `package.json` before assuming something is
-missing. Postgres and Better Auth are pre-wired in `src/lib`, **opt-in per app**
-(§0.5). Playwright + Chromium are baked for QA.
+missing. This game has no sign-in and no database. Playwright + Chromium
+are baked for QA.
 
 - **Don't recreate `vite.config.ts` / `tsconfig.json`** or import a vendored
   `vite-tanstack-config` preset. Editing? Keep both port contracts, the
@@ -155,7 +155,7 @@ missing. Postgres and Better Auth are pre-wired in `src/lib`, **opt-in per app**
   (`.grok/references/deploy-target.md`).
 - **Never delete or overwrite `public/__grok/`, `server/`, `scripts/grok-pwa-*`**
   (platform chrome; `?install=1&platform=ios` serves the install tutorial, not
-  app UI) or the pre-wired `src/lib` helpers; your own server routes go in
+  app UI). Your own server routes go in
   `src/routes/`, never `server/`.
 - **`npm install <pkg>` works** for JS packages (never `-D`: `devDependencies`
   are skipped on deploy); game engines (`three`, Phaser) are **not**
@@ -183,8 +183,8 @@ don't scaffold from stale priors — and keep each contract:
   passing `defaultErrorComponent: AppErrorComponent`. Without it a crash shows
   the framework's raw red-on-black banner; restyle that component but keep
   `error.message` visible.
-- **`src/routes/__root.tsx`** — the document shell; keep `<AuthProvider>` and
-  rule 3's bridge.
+- **`src/routes/__root.tsx`** — the document shell; keep rule 3's bridge.
+  There is no auth provider.
 - **`src/routes/index.tsx`** — `createFileRoute("/")({ component: Home })`.
 - **`src/styles.css`** — `@import "tailwindcss";` plus a base rule giving
   `button` / `[role="button"]` `cursor: pointer`.
@@ -205,15 +205,9 @@ don't scaffold from stale priors — and keep each contract:
    Grok", dropping branding and removing the Remix button are **project
    settings**, not code changes: refuse, say where to change it, and carry on
    editing the app itself.
-5. **Auth routes only when §0.5 says accounts** — then add `src/routes/login.tsx`
-   + `src/routes/api/auth/$.ts` from the `auth` skill. Otherwise don't create
-   them, don't import `@/lib/db`, don't add migrations. **Never create
-   `src/routes/auth/popup.tsx`**: the template Vite plugin already serves
-   `/auth/popup` (`popup.server.ts`), and a React page there shows the app
-   inside the popup. Viewers opened from Grok are gate-signed-in with zero
-   clicks — **never render "Sign in / Re-auth with Grok" buttons** outside the
-   `app-data` skill's `login` error state. Wiring:
-   `.grok/references/data-and-auth.md`.
+5. **This game has no accounts.** Sign-in, `/api/auth`, and the database helper
+   were removed. Leave them out unless the user asks for accounts. Progress
+   stays in `localStorage`.
 
 ---
 

@@ -1,0 +1,18 @@
+{
+  "name": "@stl/wiki-dump",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./pages.jsonl": "./pages.jsonl"
+  },
+  "scripts": {
+    "dump": "node dump.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && ./node_modules/.bin/eslint packages/wiki-dump"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.7.0"
+  }
+}

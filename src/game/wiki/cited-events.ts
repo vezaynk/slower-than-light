@@ -5142,7 +5142,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     };
   }
   // Space station under construction. {{Blue Option|Lanius Crew|Offer to have your crewmember help.}}
-  // The button stays visible. Selling that crewmember grants an unnamed augmentation, so that choice is not added.
+  // The button stays visible. Agreeing to the sale is the follow-up card in wiki/quests.ts.
   if (ev.slug === "space-station-under-construction") {
     return {
       title: ev.dest,

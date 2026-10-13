@@ -57,7 +57,8 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       choose(g, id);
       assert.equal(g.phase, "combat");
       if (kind === "auto") {
-        assert.equal(g.fightEvent, "quest-fed-assist");
+        assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
+        assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
         assert.equal(g.asb, false);
       } else if (kind === "asb") {
         assert.equal(g.fightEvent, "quest-fed-assist-asb");
@@ -78,8 +79,12 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       if (!g) continue;
       const kind = cardKind(g.event!.body);
       if (!kind) continue;
-      choose(g, g.event!.choices[0]!.id);
-      if (kind === "auto") assert.equal(g.fightEvent, "quest-fed-assist");
+      const id = g.event!.choices[0]!.id;
+      choose(g, id);
+      if (kind === "auto") {
+        assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
+        assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
+      }
       else if (kind === "asb") assert.equal(g.asb, true);
       else assert.equal(g.fightEvent, "quest-fed-assist-wing");
       seen.add(kind);
@@ -87,7 +92,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.deepEqual([...seen].sort(), ["asb", "auto", "wing"]);
   });
 
-  it("an Auto-ship battery win pays low scrap with resources, then high scrap, 7 repairs, and no crew", () => {
+  it("an Auto-ship battery win pays low scrap with resources, then a crewmember, high scrap, and 7 repairs", () => {
     const g = createGame(1);
     const crew = crewCount(g);
     const guns = g.player.weapons.length;
@@ -119,8 +124,9 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.equal(resources(contact), 2, contact);
     assert.equal(g.scrap, before + high[0]!);
     assert.match(contact, /Hull repairs: 7/);
+    assert.match(contact, /crewmember joins you/);
     assert.equal(g.player.hull, hull + 7);
-    assert.equal(crewCount(g), crew);
+    assert.equal(crewCount(g), crew + 1);
     assert.equal(g.player.weapons.length, guns);
 
     const killed = createGame(2);
@@ -182,9 +188,10 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.deepEqual(gone.event?.choices.map((c) => c.id), ["q:fed-assist-wing:contact"]);
     choose(gone, "q:fed-assist-wing:contact");
     const contact = gone.event?.body ?? "";
-    assert.equal(contact, "With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight.");
+    assert.ok(contact.startsWith("With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight."));
+    assert.match(contact, /crewmember joins you/);
     assert.equal(gone.scrap, 10);
-    assert.equal(crewCount(gone), goneCrew);
+    assert.equal(crewCount(gone), goneCrew + 1);
     assert.equal(scraps(contact).length, 0);
   });
 
@@ -198,5 +205,36 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     step(g, 0.05);
     assert.ok(g.log.includes("The planetary battery is aiming at the other ship."));
     assert.equal(g.asbPhase, "shot");
+  });
+
+  it("the weapon arrival pays a crewmember and a weapon with low scrap, and the repair arrival pays high scrap, a crewmember, and 7 repairs", () => {
+    const weapon = createGame(7);
+    const crew = crewCount(weapon);
+    const guns = weapon.player.weapons.length;
+    choose(weapon, "q:fed-assist:contact");
+    const paid = weapon.event?.body ?? "";
+    const low = scraps(paid);
+    assert.equal(low.length, 1, paid);
+    assert.ok(low[0]! >= 7 && low[0]! <= 10, paid);
+    assert.equal(resources(paid), 0, paid);
+    assert.match(paid, /crewmember joins you/);
+    assert.match(paid, /mounted\.|stowed in cargo\./);
+    assert.equal(crewCount(weapon), crew + 1);
+    assert.ok(weapon.player.weapons.length + (weapon.cargo ?? []).length > guns);
+
+    const repair = createGame(8);
+    repair.player.hull = repair.player.hullMax - 10;
+    const hull = repair.player.hull;
+    const before = crewCount(repair);
+    choose(repair, "q:fed-assist-repair:contact");
+    const contact = repair.event?.body ?? "";
+    const high = scraps(contact);
+    assert.equal(high.length, 1, contact);
+    assert.ok(high[0]! >= 19 && high[0]! <= 23, contact);
+    assert.equal(resources(contact), 2, contact);
+    assert.match(contact, /Hull repairs: 7/);
+    assert.match(contact, /crewmember joins you/);
+    assert.equal(repair.player.hull, hull + 7);
+    assert.equal(crewCount(repair), before + 1);
   });
 });

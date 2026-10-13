@@ -170,7 +170,8 @@ import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 import { SECTOR_TYPES } from "./wiki/sectors.ts";
 import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
-import { surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
+import { joinCrew, randomRace, scrapBand, surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
+import { markRuwenEntry } from "./wiki/ruwen-entry.ts";
 // @agent:filler. Documented events for plain beacons.
 import { drawFiller, emptyEvent, FILLER_FLAG, fillerChoiceDisabled, fillerChoose, fillerEvent, stampFiller } from "./wiki/filler-events.ts";
 // @agent:quests. Quest markers, quest-beacon events, page win rewards and "gotaway" results (wiki/quests.ts).
@@ -4772,6 +4773,8 @@ function reap(g: Game) {
     if (c.side === "player") log(g, tx("game.sim.is-gone", { name: c.name }));
   }
   g.crew = g.crew.filter((c) => c.hp > 0 || (c.cloneIn ?? 0) > 0);
+  // Ancient device: the Rock Homeworlds marker stays only while Ruwen is alive, including a clone still in the bay.
+  markRuwenEntry(g);
   if (g.squad) g.squad = g.squad.filter((id) => g.crew.some((c) => c.id === id));
   if (g.selected && !g.crew.some((c) => c.id === g.selected)) {
     g.selected = g.squad && g.squad.length ? g.squad[g.squad.length - 1]! : null;
@@ -4911,6 +4914,64 @@ function winCombat(g: Game) {
     const won = g.beacons.find((x) => x.id === g.here);
     if (won) won.resolved = true;
     g.fightEvent = null;
+    return;
+  }
+  // Template:Default rewards (generic). A crew kill rolls the printed weights (9). A destroyed ship stays the
+  // medium bundle below. Page wins already returned. A pending dive, survivor, or bonus keeps that bundle too.
+  if (deadCrew && !g.pending) {
+    const roll = irand(g, 9);
+    const notes: string[] = [];
+    const band = scrapBand(g, roll <= 2 ? "medium" : roll <= 6 ? "high" : "low");
+    const eligible = band[0] + irand(g, band[1] - band[0] + 1);
+    const scrap = adjustScrap(g, eligible);
+    if (roll <= 4) {
+      // 3 medium standard, 2 high standard. Two low resources, drawn with replacement. The 3% item is this path only.
+      const resourceKinds = ["fuel", "missiles", "parts"] as const;
+      for (let draw = 0; draw < 2; draw++) {
+        const kind = resourceKinds[irand(g, resourceKinds.length)];
+        if (kind === "fuel") {
+          const n = 1 + irand(g, 3);
+          g.fuel += n;
+          notes.push(tx("game.sim.low-fuel", { n: n }));
+        } else if (kind === "missiles") {
+          const n = 1 + irand(g, 2);
+          g.missiles += n;
+          notes.push(tx("game.sim.low-missiles", { n: n }));
+        } else {
+          g.player.parts += 1;
+          notes.push(tx("game.sim.low-drone-part-1"));
+        }
+      }
+      if (rand(g) < 0.03) {
+        const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
+        const crystal = g.sectorName === "Hidden Crystal Worlds";
+        const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
+        if (item?.kind === "weapon") {
+          const name = WEAPONS[item.id]?.name ?? item.id;
+          const got = receiveWeapon(g, item.id);
+          notes.push(got === "mounted" ? `${name} mounted.` : got === "cargo" ? tx("game.sim.stowed-in-cargo", { name: name }) : tx("game.sim.no-room-in-cargo-for-choose", { name: name }));
+        } else if (item?.kind === "augment") notes.push(grantBonusAugment(g, item.id));
+        else if (item?.kind === "drone") notes.push(droneLine(g, item.id));
+      }
+    } else if (roll <= 6) {
+      // 2 high fuel and scrap. Rewards, "Fuel": high scrap and 3-6 fuel. No 3% item.
+      const n = 3 + irand(g, 4);
+      g.fuel += n;
+      notes.push(tx("wiki.quests.fuel", { fuel: n }));
+    } else if (roll === 7) {
+      // 1 crewmember with low scrap. Sector races; Hidden Crystal Worlds is already crystal.
+      if (joinCrew(g, randomRace(g))) notes.push(tx("game.sim.a-survivor-comes-aboard"));
+    } else {
+      // 1 weapon with low scrap. A random weapon, not the crystal filter.
+      notes.push(grantRandomItem(g, "weapon"));
+    }
+    addScrap(g, scrap, eligible);
+    g.reward = { scrap, note: notes.join(" ") };
+    g.phase = "reward";
+    g.paused = true;
+    sfx(g, "win");
+    const taken = g.beacons.find((x) => x.id === g.here);
+    if (taken) taken.resolved = true;
     return;
   }
   const band = SCRAP_MEDIUM[Math.min(7, Math.max(0, g.sector - 1))];

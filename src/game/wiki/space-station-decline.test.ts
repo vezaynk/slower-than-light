@@ -61,7 +61,7 @@ describe("Space station under construction Lanius help", () => {
     assert.equal(g.event?.body, OFFER);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Our crew is not for sale."],
+      ["Ask your crew if they agree.", "Our crew is not for sale."],
     );
     const before = g.scrap;
     choose(g, "q:station:nosale");

@@ -310,6 +310,18 @@ describe("augments", () => {
     assert.equal(reveals(g, "hostile"), false);
   });
 
+  it("marks a ship on quest markers whose pages say a ship is there", () => {
+    const g = createGame(1);
+    const beacon = { kind: "event" as const, asteroid: false, flag: "", name: "Quest" };
+    const ships = ["zoltan-peace", "fed-assist", "capture-ship", "engi-real", "engi-fake", "engi-final", "rock-sun", "rock-shipyard", "mantis-chase"];
+    const dark = ["merchant-delivery", "fed-base", "slug-pirate-trap", "rock-bride", "slug-platform", "space-station"];
+    for (const quest of [...ships, ...dark]) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
+    g.augments = ["glass"];
+    for (const quest of ships) assert.equal(scanMark(g, { ...beacon, quest }).ship, true, quest);
+    for (const quest of dark) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
+    assert.equal(scanMark(g, beacon).ship, false);
+  });
+
   it("spends the catalog cost, caps at 3, and refuses duplicates", () => {
     const g = createGame(1);
     g.scrap = 10;

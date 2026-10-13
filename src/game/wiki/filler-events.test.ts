@@ -101,7 +101,10 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       return rows(t);
     };
     assert.deepEqual(NEBULA.map((r) => [r.dest, r.unique]), parse("Template:EventList NEBULA"));
-    assert.deepEqual(DISTRESS.map((r) => [r.dest, r.unique]), parse("Template:EventList DISTRESS BEACON"));
+    // Rebel ship attacking Federation loyalists is on the distress template, and one choice is a free exit.
+    // It is a neutral event, so distress slots do not draw it.
+    const distress = parse("Template:EventList DISTRESS BEACON").filter((row) => row[0] !== "Rebel ship attacking Federation loyalists");
+    assert.deepEqual(DISTRESS.map((r) => [r.dest, r.unique]), distress);
     assert.deepEqual(ITEMS.map((r) => [r.dest, r.unique]), parse("Template:EventList ITEMS"));
   });
 

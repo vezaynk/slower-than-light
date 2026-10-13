@@ -766,7 +766,7 @@ describe("Hidden Crystal Worlds stock", () => {
   it("gives a crystal weapon for a crew kill, and can still give another gun for a hull kill", () => {
     const fromCrew = new Set<string>();
     const fromHull = new Set<string>();
-    for (let seed = 1; seed <= 400; seed++) {
+    for (let seed = 1; seed <= 1600; seed++) {
       for (const mode of ["crew", "hull"] as const) {
         const g = createGame(seed);
         g.sectorName = "Hidden Crystal Worlds";
@@ -783,9 +783,15 @@ describe("Hidden Crystal Worlds stock", () => {
         }
         step(g, 0);
         if (g.phase !== "reward") continue;
-        for (const w of g.player.weapons) (mode === "crew" ? fromCrew : fromHull).add(w.defId);
+        const note = g.reward?.note ?? "";
+        const lowResources = /Low fuel|Low missiles|Low drone part/.test(note);
+        for (const w of g.player.weapons) {
+          if (mode === "hull") fromHull.add(w.defId);
+          else if (lowResources) fromCrew.add(w.defId);
+        }
       }
     }
+    // The 3% item on a standard crew kill is a crystal weapon. The 1-in-9 weapon row is not that filter.
     assert.ok(fromCrew.size > 0);
     for (const id of fromCrew) assert.ok(allowed.has(id), id);
     assert.ok([...fromHull].some((id) => !allowed.has(id)));

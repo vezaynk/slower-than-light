@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { pageWin } from "./quests.ts";
 
 const LEAD =
   "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.";
@@ -25,8 +26,26 @@ describe("Zoltan quest primitives protect", () => {
     choose(g, "c:zoltan-quest-primitives:1");
     assert.ok(g.log.includes(LEAD));
     assert.equal(g.phase, "combat");
-    assert.equal(g.fightEvent, "zoltan-quest-primitives");
+    assert.equal(g.fightEvent, "zoltan-quest-primitives-protect");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.scrap, 10);
+  });
+
+  it("pays a weapon with low scrap when the hull breaks, and medium scrap for a crew kill, with no resources", () => {
+    for (const deadCrew of [false, true]) {
+      const g = createGame(deadCrew ? 4 : 5);
+      open(g);
+      choose(g, "c:zoltan-quest-primitives:1");
+      assert.ok(!g.pursuitDouble);
+      assert.equal(pageWin(g, "zoltan-quest-primitives-protect", deadCrew), true);
+      assert.ok(!g.pursuitDouble);
+      const body = g.event?.body ?? "";
+      assert.ok(body.startsWith("The Zoltan hail once the smoke"));
+      assert.match(body, /mounted\.|stowed in cargo\./);
+      assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false, body);
+      const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
+      if (deadCrew) assert.ok(paid >= 12 && paid <= 19, body);
+      else assert.ok(paid >= 7 && paid <= 10, body);
+    }
   });
 });

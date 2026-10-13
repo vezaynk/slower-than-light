@@ -141,6 +141,7 @@ describe("cited rebel next events", () => {
     }
     const accept = EXTRA_EVENTS[0].choices[0];
     assert.equal(accept.label, "Accept his proposal");
-    assert.deepEqual(accept.fx, [{ k: "fight", tier: "Rebel ship" }]);
+    // The four results and the fight run in wiki/quests.ts. This fx must not start a second fight.
+    assert.deepEqual(accept.fx, [{ k: "nothing" }]);
   });
 });

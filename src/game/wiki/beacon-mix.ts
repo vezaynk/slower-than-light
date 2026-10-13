@@ -2,7 +2,7 @@ import { tx } from "../../i18n/index.ts";
 import type { Beacon, BeaconKind, Game } from "../types.ts";
 import { rand } from "../sim.ts";
 // @agent:filler. Documented fallback lists for plain slots (circular import: only used inside mixBeacons).
-import { drawFiller, stampEmptyNebula, stampFiller, type FillerList } from "./filler-events.ts";
+import { drawFiller, pageForRow, stampEmptyNebula, stampFiller, type FillerList } from "./filler-events.ts";
 
 /**
  * Wiki page "Sectors": each sector type's "Beacons:" list, and
@@ -211,7 +211,7 @@ const LIST_NEUTRAL = [
 const LIST_DISTRESS = [
   tx("wiki.beacon-mix.asteroid-belt-distress"), tx("wiki.beacon-mix.giant-alien-spiders"), tx("wiki.beacon-mix.malfunctioning-defense-system"), tx("wiki.beacon-mix.unknown-disease-on-mining-colony"),
   tx("wiki.beacon-mix.fire-on-research-station"), tx("wiki.beacon-mix.crushed-pirate"), tx("wiki.beacon-mix.escort-civilians-ftl-haywire"), tx("wiki.beacon-mix.friendly-ship-out-of-fuel"),
-  tx("wiki.beacon-mix.pirate-ship-attacking-civilian-distress"), tx("wiki.beacon-mix.rebel-ship-attacking-federation-loyalists"), tx("wiki.beacon-mix.refugee-distress"),
+  tx("wiki.beacon-mix.pirate-ship-attacking-civilian-distress"), tx("wiki.beacon-mix.refugee-distress"),
   tx("wiki.beacon-mix.refugee-comms-down"), tx("wiki.beacon-mix.single-life-form-on-moon"), tx("wiki.beacon-mix.pirate-ship-distress-trap"),
   tx("wiki.beacon-mix.slug-ship-boarding-rock-ship"),
   tx("wiki.beacon-mix.lanius-empty-distress-beacon-1"),
@@ -350,19 +350,45 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
     const c = classifyEvent(ev);
     queue[has(c) ? c : "neutral"].push(ev);
   }
-  const place = (b: Beacon, ev: MixEvent) => {
-    setKind(b, "event");
+  // These openers print nebula=true. The marker for the first two is marked separately in quests.ts.
+  const NEBULA_OPENERS = new Set(["Slug comm tapping", "Slug Home Nebula surrender", "Nebula wreckage"]);
+  // unique=false openers. After the first copy, one extra candidate on later leftover slots of the same class.
+  // Zoltan research is capped at two, and a sector that forces it as a special does not also draw a leftover copy.
+  const REPEAT_DESTS = new Set(["Escort civilians", "Engi ship attacked by Mantis ship", "Zoltan research facility"]);
+  const place = (b: Beacon, ev: MixEvent, kind: BeaconKind = "event") => {
+    setKind(b, NEBULA_OPENERS.has(ev.dest) ? "nebula" : kind);
     b.flag = ev.flag;
     b.name = ev.dest;
+  };
+  const repeatExtras = (queuedAs: EventClass) => {
+    const out = [];
+    for (const ev of events) {
+      if (!REPEAT_DESTS.has(ev.dest) || classifyEvent(ev) !== queuedAs) continue;
+      if (lines.some((l) => l.slot === "special" && specialMatch(ev, l.event ?? ""))) continue;
+      const cap = ev.dest === "Zoltan research facility" ? 2 : Number.POSITIVE_INFINITY;
+      const placed = g.beacons.filter((x) => x.flag === ev.flag).length;
+      if (placed < 1 || placed >= cap) continue;
+      const page = pageForRow(ev.dest);
+      if (page) out.push(page);
+    }
+    return out;
   };
   const take = (c: EventClass) => queue[c].shift();
   // @agent:filler. A plain slot left when this sector's pages run out draws from the documented list for its slot
   // type (wiki/filler-events.ts). Unique rows skip this sector's own pages, which the queue may still place.
   const reserved = new Set(events.map((e) => e.flag));
-  const plain = (b: Beacon, kind: BeaconKind, list: FillerList) => {
+  const plain = (b: Beacon, kind: BeaconKind, list: FillerList, queuedAs?: EventClass) => {
     setKind(b, kind);
-    const page = drawFiller(r, list, g.beacons, reserved);
-    if (page) stampFiller(b, page);
+    const extras = queuedAs ? repeatExtras(queuedAs) : [];
+    const page = drawFiller(r, list, g.beacons, reserved, extras);
+    if (!page) return;
+    if (extras.some((extra) => extra.flag === page.flag)) {
+      b.flag = page.flag;
+      b.name = page.dest;
+      if (NEBULA_OPENERS.has(page.dest)) setKind(b, "nebula");
+      return;
+    }
+    stampFiller(b, page);
   };
 
   let at = 0;
@@ -402,16 +428,16 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
       }
       case "distress": {
         const ev = take("distress");
-        return ev ? place(b, ev) : plain(b, "distress", "distress");
+        return ev ? place(b, ev, "distress") : plain(b, "distress", "distress", "distress");
       }
       case "neutral": {
         const ev = take("neutral");
         // Sectors, "Fallback events": leftover beacons take the NEUTRAL (OVERRIDE_NEUTRAL) list.
-        return ev ? place(b, ev) : plain(b, "event", "filler");
+        return ev ? place(b, ev) : plain(b, "event", "filler", "neutral");
       }
       case "nebula-neutral": {
         const ev = take("neutral");
-        return ev ? place(b, ev) : plain(b, "nebula", "nebula");
+        return ev ? place(b, ev) : plain(b, "nebula", "nebula", "neutral");
       }
       case "empty":
         // The sector's "Empty beacon (...)" page runs on arrival (filler-events.ts fillerEvent).

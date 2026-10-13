@@ -110,8 +110,10 @@ function roomHit(g: Game, breach = false): string {
   const r = pick(g, rooms);
   const sys = r.system && g.player.systems[r.system];
   if (sys && sys.level > 0) hurtSystem(g.player, r.system!, 1);
-  // Fires, "Fires and enemy AI": a room stacks to four flames. This hit still adds one.
-  r.fire = Math.min(4, r.fire + 1);
+  // Fires, "Fires and enemy AI": a room stacks to four flames. The icon says 1-2 fires and prints no odds.
+  // INFERRED: the second flame is a coin flip, the same reading as refuelEngines.
+  const flames = rand(g) < 0.5 ? 1 : 2;
+  r.fire = Math.min(4, r.fire + flames);
   if (breach) r.breach += 1;
   const line = breach ? tx("wiki.quests-b.a-fire-and-a-breach-break") : tx("wiki.quests-b.a-fire-breaks-out");
   log(g, line);
@@ -306,10 +308,11 @@ function investigateCargo(g: Game) {
 
 /** Research station with no response, as the Merchant's Delivery "station doesn't respond" subevent ({{:...}} include). */
 function researchStation(g: Game, intro: string) {
-  // The standalone card lists the Anti-Personnel Drone and the Lifeform Scanner. This include does not.
+  // The include lists the Anti-Personnel Drone beside dock and leave. Lifeform Scanner stays on the standalone card.
   card(g, tx("wiki.quests-b.you-find-the-small-research-station", { intro: intro }), [
     { id: "q:research:dock", label: tx("wiki.quests-b.dock-with-the-station-and-investigate") },
     { id: "q:research:leave", label: tx("wiki.quests-b.leave-it-alone") },
+    { id: "q:research:drone", label: tx("wiki.cited-events-pirate.send-your-battle-drone-in-to") },
   ]);
 }
 
@@ -440,7 +443,7 @@ export const PART_B: QuestPart = {
         { id: "q:capture:fight", label: tx("wiki.quests-b.fight-a-pirate-ship") },
       ]);
     },
-    // Template:Hidden federation base, "Federation Base Assist": the same three cards as arriveFedAssist.
+    // Template:Hidden federation base, "Federation Base Assist": the same four arrivals as arriveFedAssist.
     "fed-assist": (g) => {
       arriveFedAssist(g);
     },
@@ -694,6 +697,7 @@ export const PART_B: QuestPart = {
     "c:research-station-with-no-response:0": (g) => researchDock(g),
     // Standalone "Leave it alone." prints "Nothing happens." Merchant's Delivery still uses q:research:leave.
     "c:research-station-with-no-response:1": (g) => result(g, tx("wiki.quests-b.nothing-happens")),
+    "q:research:drone": (g) => researchDrone(g),
     "c:research-station-with-no-response:2": (g) => researchDrone(g),
     "c:research-station-with-no-response:3": (g) => researchScan(g),
     "q:research:leave": (g) => done(g),
@@ -796,6 +800,7 @@ export const PART_B: QuestPart = {
     // Research station with no response. The fitted schematic is kit.target. A missing part does not close the drone:
     // the footnote waives it when the reward includes drone parts.
     // INFERRED: the refusal lines. The page names the drone and the scanner and does not print these sentences.
+    if (id === "q:research:drone" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
     if (id === "c:research-station-with-no-response:2" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
     if (id === "c:research-station-with-no-response:3" && !g.augments.includes("pulseeye")) return tx("wiki.quests-b.needs-a-lifeform-scanner");
     return null;

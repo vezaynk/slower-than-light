@@ -2,7 +2,7 @@ import { tx } from "../../i18n/index.ts";
 /**
  * Next Rebel titles. Redirects are not followed. A chase that sometimes
  * fights, sometimes doubles pursuit, and sometimes does nothing is left out.
- * Branched crew, hull, pursuit, and boarders are not granted.
+ * Accept's four results run in wiki/quests.ts. Reject's three results run there too.
  */
 
 export type CitedFx =
@@ -36,14 +36,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       {
         id: "c:rebel-defector:0",
         label: tx("wiki.cited-events-rebel-next.accept-his-proposal"),
-        // "Accept his proposal, and prepare to fight the Rebel ship."
-        // "you fight a Rebel ship (default rewards)." Branched reward is not granted.
-        fx: [
-          {
-            k: "fight",
-            tier: "Rebel ship",
-          },
-        ],
+        // Accept's four results (crew, hull and engines, boarders, the evisceration) run in wiki/quests.ts.
+        // This fx must not also start a fight.
+        fx: [{ k: "nothing" }],
       },
       // @agent:quests. "Reject his offer. You can never trust these Rebels." Its three results (the cache offer that can
       // add a quest marker, boarders, the fight) run in wiki/quests.ts before citedChoose; this fx is what the table

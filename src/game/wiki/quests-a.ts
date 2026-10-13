@@ -222,7 +222,7 @@ const CHOICES_A: QuestPart["choices"] = {
     result(g, tx("wiki.quests-a.heh-like-i-expected-if-the"));
   },
   // "Fight the Rock Assault (Elite) ship" (ROCK_UNLOCK2), "(ship starts to escape with 32 seconds countdown timer)".
-  // INFERRED: no surrender (the page prints none). Not wired: the M-class star's heat (no star hazard in this build).
+  // INFERRED: no surrender (the page prints none). The M-class star's flares are cited-flare.ts eventHasFlare("quest-rock-sun").
   "qa:rock-sun:fight": (g) => {
     pageFight(g, tx("wiki.quests-a.the-rock-ship-starts-to-power"), tx("wiki.quests-a.rock-assault-elite"), "quest-rock-sun", startRun(32));
     noOffer(g);
@@ -335,6 +335,24 @@ const CHOICES_A: QuestPart["choices"] = {
     // The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
     result(g, tx("wiki.quests-a.thank-you-we-didn-t-expect"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
+  // Zoltan quest primitives. Interfere: a Zoltan fight. Both endings double pursuit for 1 jump (pageWin).
+  "c:zoltan-quest-primitives:0": (g) => {
+    pageFight(
+      g,
+      tx("wiki.cited-events.the-local-people-furry-one-eyed"),
+      tx("wiki.quests-a.zoltan-ship"),
+      "zoltan-quest-primitives-interfere",
+    );
+  },
+  // Protect: a Rebel fight. Destroyed pays a weapon with low scrap; a crew kill pays a weapon with medium scrap.
+  "c:zoltan-quest-primitives:1": (g) => {
+    pageFight(
+      g,
+      tx("wiki.cited-events.these-creatures-should-be-left-to"),
+      tx("wiki.quests.rebel-ship"),
+      "zoltan-quest-primitives-protect",
+    );
+  },
   // {{Blue Option|Damaged Stasis Pod}}. One pod opens one Crystal named Ruwen. joinCrew marks the Rock Homeworlds beacon.
   "c:zoltan-research-facility:3": (g) => {
     const i = g.augments.indexOf("stasis");
@@ -430,6 +448,26 @@ const WINS_A: QuestPart["wins"] = {
   ),
   // Zoltan research facility pirate: destroyed -> medium, deadCrew -> high; then "Please, take this." (qa:zrf:thanks).
   "zoltan-research-facility": std("medium", "high", tx("wiki.quests-a.you-take-out-the-ship-and"), tx("wiki.quests-a.you-disable-the-ship-and-contact"), CONTINUE),
+  // Interfere. "pursuit is doubled for 1 jump". Destroyed is low scrap with resources. A crew kill is a random amount.
+  "zoltan-quest-primitives-interfere": (g, deadCrew) => {
+    g.pursuitDouble = true;
+    log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for"));
+    result(
+      g,
+      tx("wiki.quests-a.the-rebel-contacts-you-lovely"),
+      rollStandard(g, deadCrew ? undefined : "low"),
+      [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
+    );
+  },
+  // Protect. A weapon with low scrap, or a weapon with medium scrap. The weapon is not named.
+  "zoltan-quest-primitives-protect": (g, deadCrew) => {
+    result(
+      g,
+      tx("wiki.quests-a.the-zoltan-hail-once-the-smoke"),
+      scrapOnly(g, deadCrew ? "medium" : "low"),
+      [grantRandomItem(g, "weapon")],
+    );
+  },
   // Rock bride, Quest Marker: destroyed -> medium, deadCrew -> high scrap with resources.
   "quest-rock-bride": std(
     "medium",

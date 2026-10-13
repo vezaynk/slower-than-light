@@ -361,10 +361,24 @@ export function onNewSector(g: Game) {
  * "If the scanners don't indicate a ship presence at a beacon, it may still result in a ship fight.
  * Likewise, even if a ship is detected, there may be options to avoid a fight."
  * False when glass is not fitted.
- * INFERRED: possible ship presence is only "hostile", "distress", or "boss".
- * INFERRED: "event", "store", "empty", "cache", "exit", "start", and "nebula" are not a ship.
+ * INFERRED: possible ship presence is "hostile", "distress", or "boss", plus a quest marker whose
+ * shipdetected line is ship. A quest marker is kind "event", so the kind alone would hide it.
+ * INFERRED: "event", "store", "empty", "cache", "exit", "start", and "nebula" are not a ship on their own.
  */
 const SHIP_PRESENCE: readonly BeaconKind[] = ["hostile", "distress", "boss"];
+
+/** Quest ids whose marker page prints shipdetected=ship (or ship plus a hazard). noship markers stay dark. */
+const QUEST_SHIPS = new Set([
+  "zoltan-peace",
+  "fed-assist",
+  "capture-ship",
+  "engi-real",
+  "engi-fake",
+  "engi-final",
+  "rock-sun",
+  "rock-shipyard",
+  "mantis-chase",
+]);
 
 export function reveals(g: Game, beaconKind: BeaconKind): boolean {
   if (!has(g, "glass")) return false;
@@ -392,11 +406,11 @@ function textHasHazard(text: string | undefined): boolean {
 
 export function scanMark(
   g: Game,
-  beacon: { kind: BeaconKind; asteroid?: boolean; flag?: string; name?: string },
+  beacon: { kind: BeaconKind; asteroid?: boolean; flag?: string; name?: string; quest?: string },
 ): { ship: boolean; hazard: boolean } {
   if (!has(g, "glass")) return { ship: false, hazard: false };
   return {
-    ship: reveals(g, beacon.kind),
+    ship: reveals(g, beacon.kind) || (!!beacon.quest && QUEST_SHIPS.has(beacon.quest)),
     hazard: beacon.asteroid === true || textHasHazard(beacon.flag) || textHasHazard(beacon.name),
   };
 }

@@ -54,7 +54,7 @@ const RUN_FROM_START: Record<string, { seconds: number; pursuit: boolean }> = {
   "rebel-transport-ship": { seconds: 40, pursuit: false },
   "engi-fleet-discussion": { seconds: 40, pursuit: false },
   "rock-war-vessel-encounter": { seconds: 32, pursuit: false },
-  "slug-home-nebula-surrender": { seconds: 35, pursuit: false },
+  // Slug Home Nebula surrender is the Slug hull row (50% at 30-40%). The 35 second timer is the interceptor only.
   // No fuel: prepare to dock, the hostile accept: {{SurrenderEscape|timer|90}}.
   "no-fuel-prepare-dock-90": { seconds: 90, pursuit: false },
   // No fuel: refugee trading, every pirate fight: {{SurrenderEscape|timer|90}}.

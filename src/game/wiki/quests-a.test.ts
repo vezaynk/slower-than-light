@@ -300,6 +300,35 @@ describe("quest openers (quests-a)", () => {
     entry.resolved = true;
     markRuwenEntry(g);
     assert.equal(entry.quest, undefined);
+
+    entry.resolved = false;
+    const ruwen = g.crew.find((c) => c.name === "Ruwen" && c.kin === "shard");
+    assert.ok(ruwen);
+    entry.quest = "ruwen-entry";
+    ruwen.hp = 0;
+    ruwen.cloneIn = 4;
+    markRuwenEntry(g);
+    assert.equal(entry.quest, "ruwen-entry");
+    ruwen.cloneIn = 0;
+    markRuwenEntry(g);
+    assert.equal(entry.quest, undefined);
+    assert.ok(joinCrew(g, "Crystal", "Sera"));
+    markRuwenEntry(g);
+    assert.equal(entry.quest, undefined);
+  });
+
+  it("a Damaged Stasis Pod opens into Ruwen, and the button waits until the pod is aboard", () => {
+    const g = atCited(createGame(8), "Zoltan Homeworlds", "Zoltan research facility");
+    assert.ok(ids(g).includes("c:zoltan-research-facility:3"));
+    assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
+    g.augments.push("stasis");
+    assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), null);
+    choose(g, "c:zoltan-research-facility:3");
+    assert.equal(g.augments.includes("stasis"), false);
+    const ruwen = g.crew.find((c) => c.name === "Ruwen");
+    assert.ok(ruwen);
+    assert.equal(ruwen.kin, "shard");
+    assert.ok(g.event!.body.includes("I've never seen a cryogenic system like this"));
   });
 
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {

@@ -10,12 +10,18 @@ import type { Game } from "../types.ts";
  */
 export const RUWEN_ENTRY = "ruwen-entry";
 
-/** Marks the Ancient device beacon when a living Crystal named Ruwen is aboard. */
+/** Marks the Ancient device beacon while Ruwen is alive, and clears it once Ruwen is gone. */
 export function markRuwenEntry(g: Game): void {
+  // A clone still in the bay (hp 0, cloneIn > 0) counts as alive. The marker stays through that timer.
+  const alive = g.crew.some(
+    (c) => c.side === "player" && c.kin === "shard" && c.name === "Ruwen" && (c.hp > 0 || (c.cloneIn ?? 0) > 0),
+  );
+  if (!alive) {
+    for (const b of g.beacons) if (b.quest === RUWEN_ENTRY) delete b.quest;
+    return;
+  }
   if (g.sectorName !== "Rock Homeworlds") return;
   // INFERRED: a dead Ruwen does not count as having that crew. The page prints no health check.
-  const alive = g.crew.some((c) => c.side === "player" && c.kin === "shard" && c.name === "Ruwen" && c.hp > 0);
-  if (!alive) return;
   for (const b of g.beacons) {
     // INFERRED: a beacon already visited is not marked again. The page prints no resolved check.
     if (b.flag !== "cited:ancient-device" || b.resolved) continue;

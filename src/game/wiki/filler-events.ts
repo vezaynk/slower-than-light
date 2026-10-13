@@ -116,7 +116,6 @@ export const DISTRESS: FillerRow[] = [
   { dest: "Escort civilians FTL haywire", unique: true },
   { dest: "Friendly ship out of fuel", unique: false },
   { dest: "Pirate ship attacking civilian distress", unique: false },
-  { dest: "Rebel ship attacking Federation loyalists", unique: true },
   { dest: "Refugee distress", unique: false },
   { dest: "Refugee comms down", unique: false },
   { dest: "Single life form on moon", unique: true },
@@ -976,7 +975,13 @@ function onMap(beacons: Beacon[], page: Page): boolean {
  * Draws one row from `list` that has a card. A unique row already on the map, or named in `reserved` (the sector's
  * own cited pages, which the mix may still place), is skipped. `r` is beacon-mix's shadow state or the live game.
  */
-export function drawFiller(r: Game, list: FillerList, beacons: Beacon[], reserved: ReadonlySet<string> = new Set()): Page | null {
+export function drawFiller(
+  r: Game,
+  list: FillerList,
+  beacons: Beacon[],
+  reserved: ReadonlySet<string> = new Set(),
+  extras: Page[] = [],
+): Page | null {
   const pool: Page[] = [];
   for (const row of LISTS[list]) {
     const page = pageForRow(row.dest);
@@ -984,6 +989,8 @@ export function drawFiller(r: Game, list: FillerList, beacons: Beacon[], reserve
     if (row.unique && (reserved.has(page.flag) || onMap(beacons, page))) continue;
     pool.push(page);
   }
+  // A repeatable opener already placed once is one more candidate, the same weight as one filler row.
+  for (const page of extras) if (!pool.includes(page)) pool.push(page);
   if (!pool.length) return null;
   return pool[Math.min(pool.length - 1, Math.floor(rand(r) * pool.length))];
 }

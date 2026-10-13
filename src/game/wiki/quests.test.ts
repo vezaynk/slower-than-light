@@ -4,9 +4,9 @@ import { choiceDisabled, choose, chooseSector, commitJump, createGame, step } fr
 import type { Beacon, Game } from "../types.ts";
 import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
 import { citedEvent } from "./cited-events.ts";
-import { addQuest, QUEST_ADDED, QUEST_CANCELLED, QUEST_NEXT, QUESTS } from "./quests.ts";
+import { addQuest, placeQueuedQuests, QUEST_ADDED, QUEST_CANCELLED, QUEST_NEXT, QUESTS } from "./quests.ts";
 import { fleetToReach, jumpsBetween } from "./sector-map.ts";
-import { ACCEPT_ID } from "./surrender.ts";
+import { ACCEPT_ID, joinCrew } from "./surrender.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -258,6 +258,7 @@ describe("Slug comm tapping", () => {
     assert.ok(g.event!.body.includes(QUEST_ADDED));
     choose(g, "ack");
     const [b] = questBeacons(g, "slug-pirate-trap");
+    assert.equal(b.kind, "nebula");
     jumpTo(g, b);
     assert.deepEqual(choiceIds(g), ["q:slug-trap:engage", "q:slug-trap:cache"]);
     choose(g, "q:slug-trap:engage");
@@ -389,6 +390,7 @@ describe("Other surrender pages with a marker", () => {
     assert.equal(g.enemy, null);
     const [b] = questBeacons(g, "slug-platform");
     assert.ok(b);
+    assert.equal(b.kind, "nebula");
     choose(g, "ack");
     jumpTo(g, b);
     for (const c of g.crew) if (c.side === "player") c.kin = "gel";
@@ -466,5 +468,257 @@ describe("Page win rewards (destroyed / crew killed)", () => {
     g.enemySurrender!.chance = 0;
     winByHull(g);
     assert.ok(g.event!.body.startsWith("With all of the would-be pirates dead"));
+  });
+});
+
+function gun(defId: string) {
+  return { uid: defId, defId, charge: 0, enabled: true, autofire: false, target: null };
+}
+
+describe("Rebel defector, Accept his proposal", () => {
+  it("rolls join most often, then deceive, the trigger, and the evisceration, and adds no marker", () => {
+    const seen = { join: 0, deceive: 0, trigger: 0, evisc: 0 };
+    for (let seed = 1; seed <= 90; seed++) {
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      g.player.hull = g.player.hullMax;
+      g.fleet = 4;
+      const hull = g.player.hull;
+      const engines = g.player.systems.engines!.damage;
+      const pilot = g.player.systems.pilot!.damage;
+      const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
+      choose(g, "c:rebel-defector:0");
+      assert.equal(g.phase, "combat", String(seed));
+      assert.equal(g.fightEvent, "rebel-defector");
+      assert.equal(g.beacons.some((b) => b.quest), false);
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length;
+      const left = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
+      const hullLost = hull - g.player.hull;
+      const engineHit = g.player.systems.engines!.damage > engines;
+      if (left === crew + 1 && hullLost === 0 && boarders === 0 && g.fleet === 4) seen.join++;
+      else if (hullLost === 3 && engineHit && g.fleet === 8 && boarders === 0 && g.player.systems.pilot!.damage === pilot) {
+        assert.ok(g.log.some((line) => line === "Rebel Fleet pursuit is doubled."));
+        seen.deceive++;
+      } else if (hullLost === 3 && !engineHit && boarders === 2 && g.player.systems.pilot!.damage === pilot && g.fleet === 4) seen.trigger++;
+      else if (hullLost === 0 && boarders === 1 && left === crew - 1) {
+        assert.ok(g.log.some((line) => line.endsWith("is gone.")));
+        seen.evisc++;
+      } else assert.fail(`${seed} hull ${hullLost} crew ${crew}->${left} boarders ${boarders} fleet ${g.fleet}`);
+      assert.equal(seen.join + seen.deceive + seen.trigger + seen.evisc, seed);
+    }
+    assert.ok(seen.deceive > 0 && seen.trigger > 0 && seen.evisc > 0, JSON.stringify(seen));
+    assert.ok(seen.join > seen.deceive && seen.join > seen.trigger && seen.join > seen.evisc, JSON.stringify(seen));
+  });
+
+  it("a clone bay keeps the eviscerated crewmember, and the last living crewmember is not removed", () => {
+    let cloned = false;
+    for (let seed = 1; seed <= 80 && !cloned; seed++) {
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      const crew = g.crew.filter((c) => c.side === "player").length;
+      choose(g, "c:rebel-defector:0");
+      if (!g.log.some((line) => line.includes("clone launches"))) continue;
+      cloned = true;
+      assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
+      assert.equal(g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
+      assert.equal(g.phase, "combat");
+    }
+    assert.ok(cloned);
+
+    let spared = false;
+    for (let seed = 1; seed <= 80 && !spared; seed++) {
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      g.player.hull = g.player.hullMax;
+      const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+      for (const c of living.slice(1)) c.hp = 0;
+      const kept = living[0]!.id;
+      choose(g, "c:rebel-defector:0");
+      const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length;
+      if (boarders !== 1 || g.player.hull !== g.player.hullMax) continue;
+      spared = true;
+      assert.equal(g.crew.some((c) => c.id === kept && c.hp > 0), true);
+      assert.equal(g.crew.filter((c) => c.side === "player" && c.hp > 0).length, 1);
+    }
+    assert.ok(spared);
+  });
+});
+
+describe("Space station under construction, Lanius sale", () => {
+  it("pays an augmentation and high scrap, and splices the Lanius out even with a clone bay", () => {
+    const g = atCited(createGame(3), "Civilian Sector", "Space station under construction");
+    assert.ok(joinCrew(g, "Lanius"));
+    g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const scrap = g.scrap;
+    choose(g, "c:space-station-under-construction:2");
+    assert.ok(choiceIds(g).includes("q:station:sale"));
+    choose(g, "q:station:sale");
+    const body = g.event!.body;
+    assert.ok(body.startsWith("Once your Lanius crewmember understands"));
+    const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
+    assert.ok(paid >= 19 && paid <= 23, body);
+    assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false);
+    assert.match(body, /fitted\.|stowed in cargo\./);
+    assert.equal(g.scrap, scrap + paid);
+    assert.equal(g.crew.some((c) => c.kin === "voidlung"), false);
+  });
+
+  it("pays nothing when that Lanius is the last living crewmember", () => {
+    const g = atCited(createGame(4), "Civilian Sector", "Space station under construction");
+    assert.ok(joinCrew(g, "Lanius"));
+    for (const c of g.crew) if (c.kin !== "voidlung") c.hp = 0;
+    const scrap = g.scrap;
+    const augs = g.augments.length;
+    choose(g, "c:space-station-under-construction:2");
+    choose(g, "q:station:sale");
+    assert.equal(g.scrap, scrap);
+    assert.equal(g.augments.length, augs);
+    assert.equal(g.crew.some((c) => c.kin === "voidlung" && c.hp > 0), true);
+  });
+});
+
+describe("Federation loyalists, Healing Burst", () => {
+  it("stays visible with no missiles, then spends one and sends an engineer toward the hidden base", () => {
+    let found = false;
+    for (let seed = 1; seed <= 80 && !found; seed++) {
+      const g = atCited(createGame(seed), "Civilian Sector", "Rebel ship attacking Federation loyalists");
+      choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
+      if (g.phase !== "combat") continue;
+      winByHull(g);
+      g.player.weapons.push(gun("healburst"));
+      g.missiles = 0;
+      choose(g, "q:loyalists:contact");
+      if (!choiceIds(g).includes("q:loyalists:heal")) continue;
+      found = true;
+      assert.equal(choiceDisabled(g, "q:loyalists:heal"), "Need 1 missiles");
+      g.missiles = 1;
+      const scrap = g.scrap;
+      const crew = g.crew.filter((c) => c.side === "player").length;
+      choose(g, "q:loyalists:heal");
+      const body = g.event!.body;
+      assert.ok(body.startsWith("You launch a healing bomb"));
+      assert.match(body, /Missiles: -1/);
+      assert.match(body, /crewmember joins you/);
+      const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
+      assert.ok(paid >= 12 && paid <= 19, body);
+      assert.equal(g.missiles, 0);
+      assert.equal(g.scrap, scrap + paid);
+      assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
+      assert.ok((g.crew[g.crew.length - 1]!.skills?.engines ?? 0) > 0);
+      assert.ok(body.includes(QUEST_ADDED) || body.includes(QUEST_NEXT));
+    }
+    assert.ok(found);
+  });
+});
+
+describe("Hidden Federation Base scans", () => {
+  function emptySearch(setup: (g: Game) => void): Game {
+    for (let seed = 1; seed <= 80; seed++) {
+      const g = createGame(seed);
+      assert.ok(g.player.systems.sensors);
+      setup(g);
+      if (addQuest(g, "fed-base") !== QUEST_ADDED) continue;
+      jumpTo(g, questBeacons(g, "fed-base")[0]!);
+      if (g.event?.body.includes("yields no results")) return g;
+    }
+    assert.fail("no empty search");
+  }
+
+  it("offers one scan button per requirement the ship meets", () => {
+    const none = emptySearch((g) => {
+      g.player.systems.sensors!.level = 0;
+      g.augments = g.augments.filter((id) => id !== "glass");
+    });
+    assert.deepEqual(choiceIds(none), ["ack"]);
+
+    const two = emptySearch((g) => {
+      g.player.systems.sensors!.level = 2;
+    });
+    assert.deepEqual(choiceIds(two), ["ack", "q:fed-base:scan-2"]);
+    choose(two, "q:fed-base:scan-2");
+    const level2 = two.event!.body;
+    assert.ok(level2.startsWith("Your Advanced Sensors pick faint signatures"));
+    assert.equal(["Fuel:", "Missiles:", "Drone parts:"].filter((label) => level2.includes(label)).length, 2);
+    const mid = Number(level2.match(/Scrap: (\d+)/)?.[1]);
+    assert.ok(mid >= 12 && mid <= 19, level2);
+
+    const three = emptySearch((g) => {
+      g.player.systems.sensors!.level = 3;
+      g.augments = g.augments.filter((id) => id !== "glass");
+    });
+    assert.deepEqual(choiceIds(three), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3"]);
+    choose(three, "q:fed-base:scan-3");
+    const level3 = three.event!.body;
+    assert.ok(level3.startsWith("Your sensors pick faint signatures"));
+    assert.match(level3, /mounted\.|stowed in cargo\./);
+    assert.equal(/Fuel:|Missiles:|Drone parts:/.test(level3), false);
+
+    const glass = emptySearch((g) => {
+      g.player.systems.sensors!.level = 0;
+      if (!g.augments.includes("glass")) g.augments.push("glass");
+    });
+    assert.deepEqual(choiceIds(glass), ["ack", "q:fed-base:scan-glass"]);
+
+    const both = emptySearch((g) => {
+      g.player.systems.sensors!.level = 3;
+      if (!g.augments.includes("glass")) g.augments.push("glass");
+    });
+    assert.deepEqual(choiceIds(both), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3", "q:fed-base:scan-glass"]);
+  });
+});
+
+describe("Mantis war camp, Missile Weapon", () => {
+  function arrive(defId: string): Game {
+    const g = createGame(6);
+    g.player.weapons = [gun(defId)];
+    g.missiles = 0;
+    assert.equal(addQuest(g, "mantis-war-camp"), QUEST_ADDED);
+    jumpTo(g, questBeacons(g, "mantis-war-camp")[0]!);
+    return g;
+  }
+
+  it("hides the button for a Hull Missile and shows it for a Leto", () => {
+    const hull = arrive("hullmissile");
+    assert.equal(choiceIds(hull).includes("q:war-camp:missile"), false);
+    const leto = arrive("leto");
+    assert.ok(choiceIds(leto).includes("q:war-camp:missile"));
+    assert.equal(choiceDisabled(leto, "q:war-camp:missile"), "Need 1 missiles");
+  });
+});
+
+describe("Quest markers sit to the right of the ship", () => {
+  function park(g: Game, col: number): Beacon {
+    const ship = g.beacons.find((b) => b.col === col && b.kind !== "exit" && b.kind !== "start")!;
+    g.here = ship.id;
+    g.fleet = 0;
+    g.questsNext = [];
+    for (const b of g.beacons) {
+      if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
+      b.visited = false;
+      delete b.quest;
+      b.flag = "";
+      b.asteroid = false;
+      b.resolved = false;
+      if (b.id === ship.id) continue;
+      b.kind = b.col <= ship.col ? "event" : "store";
+    }
+    return ship;
+  }
+
+  it("refuses a beacon at or left of the ship, and a forced placement may use one", () => {
+    const blocked = createGame(2);
+    const ship = park(blocked, 3);
+    assert.equal(addQuest(blocked, "escort"), QUEST_NEXT);
+    assert.equal(questBeacons(blocked).length, 0);
+    placeQueuedQuests(blocked);
+    const placed = questBeacons(blocked, "escort");
+    assert.equal(placed.length, 1);
+    assert.ok(placed[0]!.col <= ship.col);
+
+    const open = createGame(3);
+    const here = park(open, 3);
+    const right = open.beacons.find((b) => b.col > here.col && b.kind !== "exit" && b.kind !== "start" && b.kind !== "boss")!;
+    right.kind = "event";
+    right.flag = "";
+    assert.equal(addQuest(open, "escort"), QUEST_ADDED);
+    assert.equal(questBeacons(open, "escort")[0]!.id, right.id);
   });
 });

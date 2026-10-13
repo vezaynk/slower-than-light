@@ -13,7 +13,7 @@ function run(g: Game, seconds: number) {
 describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
   it("runs from the start with the event's timer", () => {
     assert.deepEqual(
-      ["auto-ship-warning", "rebel-ship-warning", "rebel-transport-ship", "rock-war-vessel-encounter", "slug-home-nebula-surrender"].map(
+      ["auto-ship-warning", "rebel-ship-warning", "rebel-transport-ship", "rock-war-vessel-encounter"].map(
         (event) => {
           const p = escapePlan({ tier: "scout", event }, half);
           return [p.mode, p.seconds, p.pursuit, p.running];
@@ -24,9 +24,14 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
         ["start", 40, true, true],
         ["start", 40, false, true],
         ["start", 32, false, true],
-        ["start", 35, false, true],
       ],
     );
+    const slug = escapePlan({ tier: "scout", faction: "slug", event: "slug-home-nebula-surrender" }, half);
+    assert.equal(slug.mode, "hull");
+    assert.equal(slug.seconds, HULL_RUN_SECONDS);
+    assert.equal(slug.chance, 50);
+    assert.equal(slug.threshold, 35);
+    assert.equal(slug.running, false);
   });
 
   it("uses 80 s for out-of-fuel events, except the 40 s auto-ship", () => {

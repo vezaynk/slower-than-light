@@ -108,10 +108,16 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         assert.equal(a.beacons.filter((x) => x.kind === "start").length, 1);
         const flags = a.beacons.map((x) => x.flag).filter((f) => f.startsWith("cited:"));
         // unique=false boarder pages may stamp the same flag on both beacons of the 1-2 line.
-        const repeatable =
-          name === "Abandoned Sector" ? "cited:boarders-humans-abandoned" :
-          name === "Hidden Crystal Worlds" ? "cited:boarders-crystal" : "";
-        const once = flags.filter((f) => f !== repeatable);
+        // unique=false openers (escorts, the Engi distress, Zoltan research) may share a flag. Zoltan research stops at two.
+        const repeatable = new Set([
+          "cited:boarders-humans-abandoned",
+          "cited:boarders-crystal",
+          "cited:escort-civilians",
+          "cited:engi-ship-attacked-by-mantis-ship",
+          "cited:zoltan-research-facility",
+        ]);
+        const once = flags.filter((f) => !repeatable.has(f));
+        assert.ok(flags.filter((f) => f === "cited:zoltan-research-facility").length <= 2, name);
         assert.equal(new Set(once).size, once.length, name);
         // Running the stamp again does not re-deal.
         const before = JSON.stringify(a.beacons);
@@ -212,6 +218,65 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       }
       const missing = pages.filter((p) => !seen.has(p.flag)).map((p) => p.dest);
       assert.deepEqual(missing, [], name);
+    }
+  });
+
+  it("keeps Federation loyalists off distress beacons, and haywire distress stays a distress beacon", () => {
+    assert.equal(classifyEvent(byDest("Rebel ship attacking Federation loyalists")), "neutral");
+    let haywire = 0;
+    for (let seed = 1; seed <= 80; seed++) {
+      const g = dealt(seed, "Civilian Sector");
+      for (const b of g.beacons) {
+        if (b.name === "Rebel ship attacking Federation loyalists" || b.flag === "cited:rebel-ship-attacking-federation-loyalists") {
+          assert.notEqual(b.kind, "distress");
+        }
+        // dealt() clears the flag and kind of a re-stamp but leaves the starting-sector name, so a
+        // hostile beacon can still be named haywire. Only a stamped haywire flag is this page.
+        if (
+          b.flag === "cited:escort-civilians-ftl-haywire" ||
+          b.flag === "filler:escort-civilians-ftl-haywire"
+        ) {
+          assert.equal(b.kind, "distress", b.flag);
+          haywire++;
+        }
+      }
+    }
+    assert.ok(haywire > 0);
+  });
+
+  it("puts nebula openers on nebula beacons", () => {
+    const byFlag = new Map([
+      ["cited:slug-comm-tapping", "Slug comm tapping"],
+      ["cited:slug-home-nebula-surrender", "Slug Home Nebula surrender"],
+      ["cited:nebula-wreckage", "Nebula wreckage"],
+    ]);
+    const seen = new Set<string>();
+    for (const sector of ["Slug Home Nebula", "Slug Controlled Nebula", "Uncharted Nebula"]) {
+      for (let seed = 1; seed <= 80; seed++) {
+        for (const b of dealt(seed, sector, 5).beacons) {
+          const name = byFlag.get(b.flag);
+          if (!name) continue;
+          assert.equal(b.kind, "nebula", `${sector} ${name}`);
+          assert.equal(b.name, name);
+          seen.add(b.flag);
+        }
+      }
+    }
+    // Slug comm tapping shares the last neutral line and is often never drawn. The two that do land are nebulae.
+    assert.ok(seen.has("cited:slug-home-nebula-surrender"));
+    assert.ok(seen.has("cited:nebula-wreckage"));
+  });
+
+  it("never places a third escort or a third Zoltan research facility", () => {
+    for (let seed = 1; seed <= 120; seed++) {
+      const n = dealt(seed, "Civilian Sector").beacons.filter((b) => b.flag === "cited:escort-civilians").length;
+      assert.ok(n <= 2, `Civilian Sector ${seed} ${n}`);
+    }
+    for (const sector of ["Zoltan Controlled Sector", "Zoltan Homeworlds"]) {
+      for (let seed = 1; seed <= 40; seed++) {
+        const n = dealt(seed, sector).beacons.filter((b) => b.flag === "cited:zoltan-research-facility").length;
+        assert.ok(n <= 2, `${sector} ${seed} ${n}`);
+      }
     }
   });
 });

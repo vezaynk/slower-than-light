@@ -179,6 +179,20 @@ describe("Asteroid belt distress", () => {
       return body.includes("substantial reward") ? "high" : body.includes("modest means") ? "medium" : "repair";
     });
   });
+
+  it("a successful shield lights one or two fires", () => {
+    const fires = new Set<number>();
+    for (let seed = 1; seed <= 80 && fires.size < 2; seed++) {
+      const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      choose(g, "c:asteroid-belt-distress:0");
+      choose(g, "q:asteroid:shield");
+      if (!g.event!.body.startsWith("You succeed")) continue;
+      const n = Math.max(...g.player.rooms.map((r) => r.fire));
+      assert.ok(n === 1 || n === 2, String(n));
+      fires.add(n);
+    }
+    assert.deepEqual([...fires].sort(), [1, 2]);
+  });
 });
 
 describe("Capture the ship", () => {
@@ -264,9 +278,9 @@ describe("Encrypted federation signal", () => {
         const body = arrive(g, "fed-assist");
         const id = g.event!.choices[0]!.id;
         if (body.includes("bombarded by an automated drone")) {
-          assert.equal(id, "q:fed-base:assist");
+          assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
           choose(g, id);
-          assert.equal(g.fightEvent, "quest-fed-assist");
+          assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
           assert.equal(g.asb, false);
         } else if (body.includes("using their Anti-Ship Battery")) {
           assert.equal(id, "q:fed-base:assist-asb");
@@ -357,7 +371,11 @@ describe("Merchant's request", () => {
       choose(g, "ack");
       const body = arrive(g, "merchant-delivery");
       if (body.includes("no response to your hails")) {
-        assert.deepEqual(ids(g), ["q:research:dock", "q:research:leave"]);
+        assert.deepEqual(ids(g), ["q:research:dock", "q:research:leave", "q:research:drone"]);
+        assert.equal(choiceDisabled(g, "q:research:drone"), "Needs an Anti-Personnel Drone");
+        g.player.kits.swarm = kit("swarm", "antipersonnel");
+        g.player.parts = 2;
+        assert.equal(choiceDisabled(g, "q:research:drone"), null);
         choose(g, "q:research:dock");
         assert.equal(g.phase, "event");
         return "station";

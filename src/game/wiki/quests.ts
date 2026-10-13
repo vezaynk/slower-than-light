@@ -19,14 +19,14 @@
  * on the map till they get overtaken by rebels". INFERRED: a quest beacon is the same. Once the fleet column covers it,
  * sim.ts commitJump's overtaken rule (a Rebel Elite) applies there and the quest is lost.
  *
- * INFERRED: "a couple jumps" / "don't have many jumps left" is read as: the marker goes on a beacon at least two columns to
- * the right of the ship; with no such beacon it goes to the next sector. A beacon the ship already visited, one the fleet
- * has taken, and a ship-unlocking event page are not overwritten.
+ * Beacons, "Quest (marker) beacon": a marker in the current sector goes on a beacon to the right of the ship. With no
+ * such beacon it goes to the next sector. A beacon the ship already visited, one the fleet has taken, and a
+ * ship-unlocking event page are not overwritten.
  * INFERRED everywhere below: a page that lists N results without odds rolls them with equal odds ({{DuplicateEvent|N}}
  * counts N times). An unnamed weapon, drone schematic or augment is a random one (bonus-item.ts grantRandomItem, per
  * Rewards "Weapon" / "Drone" / "Augment"); named ones are granted by name.
  * INVENTED: quest beacon names, and the one-word labels of "Fight ..." / "Continue" buttons where a page prints none.
- * Ship unlocks (Stealth, Mantis, Slug Cruisers) are not wired: hulls.ts says "unlock is a label, not a gate".
+ * Ship unlocks go through unlocks.ts grantUnlock.
  */
 import { tx } from "../../i18n/index.ts";
 import { upgradeCost, WEAPONS } from "../content.ts";
@@ -139,6 +139,11 @@ function canHold(g: Game, b: Beacon, from: Beacon | undefined, force: boolean): 
   if (b.kind === "nebula" || b.kind === "distress") return false;
   if (b.quest || b.visited || b.id === g.here || KEEP_FLAGS.has(b.flag)) return false;
   if (overtaken(g, b)) return false;
+  // Beacons: a marker in this sector is placed to the right of the ship. Next-sector placement (force) skips that test.
+  if (!force) {
+    const ship = g.beacons.find((x) => x.id === g.here);
+    if (ship && b.col <= ship.col) return false;
+  }
   const jumps = from ? jumpsBetween(g.beacons, from.id, b.id) : 0;
   if (!Number.isFinite(jumps)) return false;
   return force || jumps < fleetToReach(g, b) - g.fleet;
@@ -159,7 +164,8 @@ export function questSpot(g: Game, force = false): Beacon | undefined {
 
 function mark(b: Beacon, id: string) {
   b.quest = id;
-  b.kind = "event";
+  // Slug comm tapping and Slug Home Nebula: the marker beacon is a nebula. Other markers stay events.
+  b.kind = id === "slug-pirate-trap" || id === "slug-platform" ? "nebula" : "event";
   b.flag = `quest:${id}`;
   b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? tx("wiki.quests.quest");
   b.asteroid = false;
@@ -449,7 +455,8 @@ export function hasTeleporter(g: Game): boolean {
   return (g.player.kits.sling?.level ?? 0) > 0;
 }
 function hasMissileWeapon(g: Game): boolean {
-  return g.player.weapons.some((w) => WEAPONS[w.defId]?.kind === "missile");
+  // Weapons, Hull Missile: countedAsMissileInEvents is false. A Hull Missile does not open a Missile Weapon option.
+  return g.player.weapons.some((w) => w.defId !== "hullmissile" && WEAPONS[w.defId]?.kind === "missile");
 }
 
 function damageHull(g: Game, n: number): boolean {
@@ -530,12 +537,12 @@ function arriveStation(g: Game) {
 
 /**
  * Template:Hidden federation base, Federation Base Assist. Four arrival bullets, no odds.
- * The two non-AE sentences are the same text, so they are one card: do not double that weight.
- * INFERRED: equal among the three distinct cards (the header's equal-odds rule).
+ * INFERRED: equal among the four. The two non-AE sentences are the same text on two of those four.
+ * Each fight id fixes the contact, so the arrival is not rolled again after the fight.
  * Button labels the page does not print are INVENTED, in the style of "Fight the Auto-ship."
  */
 export function arriveFedAssist(g: Game) {
-  const r = pick(g, ["auto", "asb", "wing"] as const);
+  const r = pick(g, ["auto", "repair", "asb", "wing"] as const);
   if (r === "asb") {
     card(g, tx("wiki.quests.you-arrive-in-the-sector-to"), [
       { id: "q:fed-base:assist-asb", label: tx("wiki.quests.fight-the-auto-ship") },
@@ -543,6 +550,10 @@ export function arriveFedAssist(g: Game) {
   } else if (r === "wing") {
     card(g, tx("wiki.quests.you-arrive-in-the-sector-to-2"), [
       { id: "q:fed-base:assist-wing", label: tx("wiki.quests.fight-the-elite-rebel") },
+    ]);
+  } else if (r === "repair") {
+    card(g, tx("wiki.quests.you-arrive-in-the-sector-to-3"), [
+      { id: "q:fed-base:assist-repair", label: tx("wiki.quests.fight-the-auto-ship") },
     ]);
   } else {
     card(g, tx("wiki.quests.you-arrive-in-the-sector-to-3"), [
@@ -566,7 +577,11 @@ function arriveFedBase(g: Game) {
   } else if (r === "empty") {
     const choices: Choice[] = [{ id: "ack", label: tx("wiki.quests.leave") }];
     // {{Blue Option|Improved Sensors|...|level=2}} / {{Blue Option|Advanced Sensors|...|level=3}} / Long-Ranged Scanners.
-    if (sensors(g) >= 2 || g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan", label: tx("wiki.quests.run-a-second-scan-pass") });
+    // The same label is printed on each. A ship that meets more than one requirement can pick.
+    const scan = tx("wiki.quests.run-a-second-scan-pass");
+    if (sensors(g) >= 2) choices.push({ id: "q:fed-base:scan-2", label: scan });
+    if (sensors(g) >= 3) choices.push({ id: "q:fed-base:scan-3", label: scan });
+    if (g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan-glass", label: scan });
     card(g, tx("wiki.quests.you-search-near-the-coordinates-given"), choices);
   } else {
     arriveFedAssist(g);
@@ -1711,15 +1726,23 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:space-station-under-construction:1": (g) => {
     result(g, tx("wiki.quests.i-understand-transmission-has-been-cut"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
-  // Space station under construction. {{Blue Option|Lanius Crew}}. Two printed sentences, then the refusal.
-  // "Ask your crew if they agree" loses that crewmember and grants an unnamed augmentation, so it stays unwired.
+  // Space station under construction. {{Blue Option|Lanius Crew}}. The sale loses that Lanius.
+  // Clone Bay: "Your clonebay obviously does not revive your crewmember since they did not die."
   "c:space-station-under-construction:2": (g) => {
     if (!hasLanius(g)) return;
-    card(
-      g,
-      tx("wiki.quests.interesting-so-this-metal-man-can"),
-      [{ id: "q:station:nosale", label: tx("wiki.quests.our-crew-is-not-for-sale") }],
-    );
+    card(g, tx("wiki.quests.interesting-so-this-metal-man-can"), [
+      { id: "q:station:sale", label: tx("wiki.quests.ask-your-crew-if-they-agree") },
+      { id: "q:station:nosale", label: tx("wiki.quests.our-crew-is-not-for-sale") },
+    ]);
+  },
+  "q:station:sale": (g) => {
+    const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
+    const sold = living.find((c) => c.kin === "voidlung");
+    // The project does not remove the last living crewmember. A clone bay does not bring a sold Lanius back.
+    if (!sold || living.length < 2) return;
+    g.crew = g.crew.filter((c) => c.id !== sold.id);
+    log(g, tx("wiki.quests.is-gone", { name: sold.name }));
+    result(g, tx("wiki.quests.once-your-lanius-crewmember-understands"), scrapOnly(g, "high"), [grantRandomItem(g, "augment")]);
   },
   "q:station:nosale": (g) => {
     result(
@@ -2242,6 +2265,42 @@ const CHOICES: Record<string, (g: Game) => void> = {
       [{ id: "ack", label: tx("wiki.quests.agree") }],
     );
   },
+  // Rebel defector, "Accept his proposal." {{DuplicateEvent|3}} on the crew result; the other three once each.
+  // No quest marker on any branch. The trigger branch does not damage piloting.
+  "c:rebel-defector:0": (g) => {
+    const r = weighted(g, [
+      ["join", 3],
+      ["deceive", 1],
+      ["trigger", 1],
+      ["evisc", 1],
+    ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
+    if (r === "join") {
+      const joined = crew(g, tx("wiki.quests.human"));
+      log(g, joined);
+      defectorFight(g, tx("wiki.quests.relieved-and-light-headed-your-new"));
+    } else if (r === "deceive") {
+      if (damageHull(g, 3)) return;
+      hurtSystem(g.player, "engines", 1);
+      g.fleet *= 2;
+      log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled"));
+      defectorFight(g, tx("wiki.quests.the-dishonorable-rebel-has-deceived-you"));
+    } else if (r === "trigger") {
+      if (damageHull(g, 3)) return;
+      defectorFight(g, tx("wiki.quests.your-new-crew-member-smiles-then"));
+      humanBoarders(g, 2, 2);
+    } else {
+      // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). Never the last living crewmember.
+      const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+      if (g.player.kits.cradle) log(g, tx("wiki.quests.the-eviscerated-crewmember-s-clone-launches"));
+      else if (mine.length > 1) {
+        const lost = pick(g, mine);
+        g.crew = g.crew.filter((c) => c.id !== lost.id);
+        log(g, tx("wiki.quests.is-gone", { name: lost.name }));
+      }
+      defectorFight(g, tx("wiki.quests.the-rebel-makes-to-take-his"));
+      humanBoarders(g, 1, 1);
+    }
+  },
   // Rebel defector, "Reject his offer. You can never trust these Rebels." Three results.
   "c:rebel-defector:1": (g) => {
     const r = pick(g, ["cache", "boarder", "fight"] as const);
@@ -2447,15 +2506,24 @@ const CHOICES: Record<string, (g: Game) => void> = {
       addQuest(g, "fed-base"),
     ]);
   },
-  "q:fed-base:scan": (g) => {
-    if (sensors(g) >= 3 || g.augments.includes("glass")) {
-      // "You receive a weapon with medium scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
-      result(g, tx("wiki.quests.your-sensors-pick-faint-signatures-of"), scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
-    } else {
-      result(g, tx("wiki.quests.your-advanced-sensors-pick-faint-signatures"), rollStandard(g, "medium"));
-    }
+  // Improved Sensors, level 2: medium scrap with resources.
+  "q:fed-base:scan-2": (g) => {
+    if (sensors(g) < 2) return;
+    result(g, tx("wiki.quests.your-advanced-sensors-pick-faint-signatures"), rollStandard(g, "medium"));
+  },
+  // Advanced Sensors, level 3: a weapon with medium scrap.
+  "q:fed-base:scan-3": (g) => {
+    if (sensors(g) < 3) return;
+    result(g, tx("wiki.quests.your-sensors-pick-faint-signatures-of"), scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
+  },
+  // Long-Ranged Scanners: a weapon with medium scrap. The weapon is not named.
+  "q:fed-base:scan-glass": (g) => {
+    if (!g.augments.includes("glass")) return;
+    result(g, tx("wiki.quests.your-sensors-pick-faint-signatures-of"), scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
   },
   "q:fed-base:assist": (g) => pageFight(g, tx("wiki.quests.the-automated-drone-turns-on-you"), "Auto-ship", "quest-fed-assist"),
+  // The other non-AE arrival. Same sentence, a different contact.
+  "q:fed-base:assist-repair": (g) => pageFight(g, tx("wiki.quests.the-automated-drone-turns-on-you"), "Auto-ship", "quest-fed-assist-repair"),
   // AE Auto-ship. "periodically" prints no seconds: aidPlayerAsb is the existing friendly battery.
   "q:fed-base:assist-asb": (g) => {
     pageFight(g, tx("wiki.quests.you-move-in-to-assist"), "Auto-ship", "quest-fed-assist-asb");
@@ -2469,21 +2537,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, tx("wiki.quests.you-swoop-in-to-assist-taking"), "elite", "quest-fed-assist-wing", hullRun(20, 40 + rand(g) * 20, HULL_RUN_SECONDS));
     aidPlayerAsb(g);
   },
+  // Non-AE contact fixed by the weapon arrival: a crewmember and a weapon with low scrap.
   "q:fed-assist:contact": (g) => {
-    if (rand(g) < 0.5) {
-      // "You receive a crewmember and a weapon with low scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
-      result(g, tx("wiki.quests.with-the-threat-gone-you-contact"), scrapOnly(g, "low"), [crew(g, randomRace(g)), grantRandomItem(g, "weapon")]);
-    } else {
-      result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
-    }
+    result(g, tx("wiki.quests.with-the-threat-gone-you-contact"), scrapOnly(g, "low"), [crew(g, randomRace(g)), grantRandomItem(g, "weapon")]);
   },
-  // AE Auto-ship contact. The crewmember is unnamed: not granted.
+  // Non-AE contact fixed by the repair arrival: a crewmember, high scrap with resources, and 7 repairs.
+  "q:fed-assist-repair:contact": (g) => {
+    result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
+  },
+  // AE Auto-ship contact: a crewmember, high scrap with resources, and 7 repairs.
   "q:fed-assist-asb:contact": (g) => {
-    result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [repair(g, 7)]);
+    result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
   },
-  // AE Elite contact. The crewmember is unnamed: not granted. The footnote says that line's scrap is not awarded.
+  // AE Elite contact: a crewmember and no scrap. The footnote drops only the scrap.
   "q:fed-assist-wing:contact": (g) => {
-    result(g, tx("wiki.quests.with-the-threat-gone-you-contact"));
+    result(g, tx("wiki.quests.with-the-threat-gone-you-contact"), undefined, [crew(g, randomRace(g))]);
   },
 
   "q:thief:strip": (g) => {
@@ -3893,8 +3961,10 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-store-rescue": (g) => {
     result(g, tx("wiki.quests.the-outpost-hails-you-thank-you"), scrapOnly(g, "medium"), [repair(g, 5)], STORE_CHOICES);
   },
-  // Federation Base Assist (Auto-ship): "low scrap with resources", then one of two follow-ups.
+  // Federation Base Assist (Auto-ship, weapon contact): "low scrap with resources", then that contact.
   "quest-fed-assist": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
+  // The other non-AE Auto-ship. Same salvage, then the repair contact.
+  "quest-fed-assist-repair": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist-repair:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
   // AE Auto-ship. Destroyed, and INFERRED a crew-kill the template does not list, both use this sentence and low scrap.
   "quest-fed-assist-asb": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist-asb:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
   // AE Elite Rebel. Destroyed is low scrap with resources; a crew kill is medium. Then the outpost contact.

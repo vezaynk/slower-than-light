@@ -78,4 +78,63 @@ describe("default fight salvage", () => {
       assert.equal(g.player.weapons.length, 8);
     }
   });
+
+  it("a crew kill rolls the five default shapes, and a pending dive stays one fuel", () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 180 && seen.size < 4; seed++) {
+      const g = createGame(seed);
+      g.player.weapons = [];
+      const crew = g.crew.filter((c) => c.side === "player").length;
+      startCombat(g, "scout");
+      assert.ok(g.enemy);
+      g.fightEvent = null;
+      g.pending = null;
+      g.enemy.automated = false;
+      g.enemy.classId = g.enemy.classId || "cited";
+      if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
+      for (const w of g.enemy.weapons) w.enabled = false;
+      if (g.enemySurrender) g.enemySurrender.chance = 0;
+      if (g.enemyEscape) g.enemyEscape.mode = "never";
+      for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
+      step(g, 0);
+      assert.equal(g.phase, "reward", String(seed));
+      const note = g.reward?.note ?? "";
+      const low = note.match(/Low fuel|Low missiles|Low drone part/g) ?? [];
+      const fuel = note.match(/Fuel: (\d+)\./);
+      if (low.length === 2) {
+        const scrap = g.reward?.scrap ?? 0;
+        assert.ok(scrap >= 12 && scrap <= 23, note);
+        seen.add("resources");
+      } else if (fuel && low.length === 0) {
+        const n = Number(fuel[1]);
+        assert.ok(n >= 3 && n <= 6, note);
+        assert.ok((g.reward?.scrap ?? 0) >= 19 && (g.reward?.scrap ?? 0) <= 23, note);
+        assert.equal(g.player.weapons.length, 0);
+        seen.add("fuel");
+      } else if (note.includes("A survivor comes aboard.")) {
+        assert.ok((g.reward?.scrap ?? 0) >= 7 && (g.reward?.scrap ?? 0) <= 10, note);
+        assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
+        assert.equal(low.length, 0);
+        seen.add("survivor");
+      } else if (/mounted\.|stowed in cargo\./.test(note) && low.length === 0) {
+        assert.ok((g.reward?.scrap ?? 0) >= 7 && (g.reward?.scrap ?? 0) <= 10, note);
+        assert.ok(g.player.weapons.length > 0 || (g.cargo ?? []).length > 0);
+        seen.add("weapon");
+      } else assert.fail(note || "(empty)");
+    }
+    assert.deepEqual([...seen].sort(), ["fuel", "resources", "survivor", "weapon"]);
+
+    const dive = createGame(9);
+    startCombat(dive, "scout");
+    assert.ok(dive.enemy);
+    dive.fightEvent = null;
+    dive.pending = "dive:1";
+    dive.enemy.automated = false;
+    dive.enemy.classId = dive.enemy.classId || "cited";
+    for (const c of dive.crew) if (c.side === "enemy") c.hp = 0;
+    step(dive, 0);
+    assert.equal(dive.phase, "reward");
+    assert.equal(dive.reward?.note, "1 fuel.");
+    assert.equal(dive.reward?.scrap, 0);
+  });
 });

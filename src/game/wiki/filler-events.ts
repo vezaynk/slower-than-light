@@ -2724,6 +2724,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "3-5 human boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). No ship. No lungs. Not a crew grant.
   "c:boarders-humans-pirate:0": (g) => {
+    // Wiki citations:
+    // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
     humanBoarders(g, 3, 5, tx("wiki.filler-events.human-boarders-beam-aboard-your-ship"));
     beginBoarding(g);
   },

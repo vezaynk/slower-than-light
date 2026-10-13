@@ -31,6 +31,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // unique=true is the once-per-sector stamp. Not a crew grant. No ship (LRSmap=noship).
     dest: "Boarders: Humans (Pirate)",
     slug: "boarders-humans-pirate",
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Boarders: Humans (Pirate)]]
+    // > "It is unique." — [[Boarders: Humans (Pirate)]]
+    // > "What appears to be a civilian ship sends a friendly hail." — [[Boarders: Humans (Pirate)]]
+    // > "As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!" — [[Boarders: Humans (Pirate)]]
     flag: "cited:boarders-humans-pirate",
     aliases: ["Boarders: Humans (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
@@ -38,6 +43,8 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:boarders-humans-pirate:0",
+        // Wiki citations:
+        // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
         label: tx("wiki.cited-events-pirate-next.3-5-human-boarders-beam-aboard"),
         fx: [{ k: "nothing" }],
       },

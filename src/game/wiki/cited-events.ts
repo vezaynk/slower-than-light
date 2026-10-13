@@ -5144,6 +5144,17 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
   if (ev.slug === "boarders-humans-pirate") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Humans (Pirate)]]
+    // > "What appears to be a civilian ship sends a friendly hail." — [[Boarders: Humans (Pirate)]]
+    // > "As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!" — [[Boarders: Humans (Pirate)]]
+    // > "A heavily damaged ship is drifting near this beacon." — [[Boarders: Humans (Pirate)]]
+    // > "Nice of you to drop by. As you can see, our ship has seen better days." — [[Boarders: Humans (Pirate)]]
+    // > "I think we might be taking it from you now." — [[Boarders: Humans (Pirate)]]
+    // > "Intruders beam aboard." — [[Boarders: Humans (Pirate)]]
+    // > "You detect life-signs actually on the beacon itself! A teleporter signal warns you but it's too late, they've beamed from the beacon onto your ship and seem intent on taking it over." — [[Boarders: Humans (Pirate)]]
+    // > "Your ship detects a faint distress signal on a nearby moon. As you approach the rock, warning lights flash as hostiles beam aboard the ship from some hidden location." — [[Boarders: Humans (Pirate)]]
+    // > "As you arrive, you become aware of a small Rebel outpost near the beacon. You are hardly able to bark an order before a small team is beamed aboard your ship. They must have been expecting you..." — [[Boarders: Humans (Pirate)]]
     return {
       title: ev.dest,
       body: PIRATE_HUMAN_BOARDER_INTROS[between(g, [0, 4])]!,

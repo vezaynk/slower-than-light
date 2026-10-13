@@ -95,6 +95,8 @@ describe("cited pirate next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Boarders: Humans (Pirate)]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Boarders: Humans (Pirate)"]);

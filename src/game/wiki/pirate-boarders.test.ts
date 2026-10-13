@@ -30,6 +30,9 @@ function boarded(g: Game) {
 
 describe("Boarders: Humans (Pirate)", () => {
   it("is one Pirate Controlled Sector card and beams 3-5 humans with no ship", () => {
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector." — [[Boarders: Humans (Pirate)]]
+    // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
     const pages = citedPagesFor("Pirate Controlled Sector").filter((e) => e.dest === DEST);
     assert.equal(pages.length, 1);
     assert.deepEqual([...pages[0].sectors], ["Pirate Controlled Sector"]);
@@ -67,6 +70,8 @@ describe("Boarders: Humans (Pirate)", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
     // The page has no choice. "3-5 human boarders beam aboard your ship."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

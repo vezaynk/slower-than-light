@@ -3063,6 +3063,9 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
           <p>
             {tx("ui.GameApp.that-adapted-material-is-shared-under")}{link(SOURCE_URL, "github.com/vezaynk/slower-than-light")}).
           </p>
+          <p>
+            <a href={`${import.meta.env.BASE_URL}wiki`}>{tx("ui.GameApp.review-the-wiki-text-against")}</a>
+          </p>
         </section>
       </div>
       <p className="credits-version">{tx("ui.GameApp.v-0-1")}</p>

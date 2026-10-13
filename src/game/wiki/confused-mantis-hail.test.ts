@@ -19,6 +19,10 @@ function open(g: Game) {
 
 describe("Confused Mantis hail", () => {
   it("prints the full opening sentence and both choices without spending scrap", () => {
+    // Wiki citations:
+    // > "As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: \"Strange bug. Can you assist in debugging?\"" — [[Confused Mantis]]
+    // > "Listen to their problem." — [[Confused Mantis]]
+    // > "Explain that you can't do any programming and leave." — [[Confused Mantis]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Confused Mantis");

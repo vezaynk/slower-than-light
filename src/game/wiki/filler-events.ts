@@ -1783,6 +1783,13 @@ function ownsMindControl(g: Game): boolean {
 
 /** Confused Mantis, after listening. Blue options stay off until the ship has them. */
 function confusedMantisCard(g: Game) {
+  // Wiki citations:
+  // > "\"Found malfunctioning Mantis. Believes it is human. Will receive input only from human. Danger Evaluation: Extremely High. Provide assistance.\"" — [[Confused Mantis]]
+  // > "Send a shuttle with an away team to help." — [[Confused Mantis]]
+  // > "Leave them, a cornered Mantis is too dangerous." — [[Confused Mantis]]
+  // > "(Human Crew) Send your human crewmember to communicate with the Mantis." — [[Confused Mantis]]
+  // > "(Mantis Crew) Send your Mantis crewmember to communicate with the Mantis." — [[Confused Mantis]]
+  // > "(Mind Control) Use your Mind control system to calm him down." — [[Confused Mantis]]
   const choices = [
     { id: "s:confused-mantis:shuttle", label: tx("wiki.filler-events.send-a-shuttle-with-an-away") },
     { id: "s:confused-mantis:leave", label: tx("wiki.filler-events.leave-them-a-cornered-mantis-is") },
@@ -1794,6 +1801,10 @@ function confusedMantisCard(g: Game) {
 }
 
 function mantisColony(g: Game) {
+  // Wiki citations:
+  // > "The colony is a mining operation that specializes in FTL fuel. Robert's family, the head engineers, are excited to see him, and very grateful for his return. Apparently he ran away to 'join the Federation' like his older brother, but was never accepted onto a ship." — [[Confused Mantis#Mining Colony]]
+  // > "Offer him a position on your ship." — [[Confused Mantis#Mining Colony]]
+  // > "Ask if they can take a look at your engines." — [[Confused Mantis#Mining Colony]]
   card(g, tx("wiki.filler-events.the-colony-is-a-mining-operation"), [
     { id: "s:confused-mantis:hire", label: tx("wiki.filler-events.offer-him-a-position-on-your") },
     { id: "s:confused-mantis:engines", label: tx("wiki.filler-events.ask-if-they-can-take-a") },
@@ -2263,6 +2274,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Mantis fugitive. Each list prints no odds. INFERRED: equal.
   // The thanked Mantis is not named, so that crewmember is not added.
   "c:mantis-fugitive:0": (g) => {
+    // Wiki citations:
+    // > "It was a trap! The Mantis sabotages your ship before teleporting away." — [[Mantis fugitive]]
+    // > "Your ship takes 5 hull damage, 1 damage to a random system, 1 damage to a random room, and you fight a mantis-controlled Engi ship (default rewards)." — [[Mantis fugitive]]
+    // > "He expresses his thanks and prepares to help you fight his pursuer." — [[Mantis fugitive]]
     if (weighted(g, [["trap", 1], ["thanks", 1]] as const) === "trap") {
       if (hurt(g, 5)) return;
       const lines = [tx("wiki.filler-events.hull-damage-5"), hurtRandomSystem(g), roomBar(g)].filter(Boolean);
@@ -2274,6 +2289,13 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     fight(g, tx("wiki.filler-events.he-expresses-his-thanks-and-prepares"), tx("wiki.filler-events.engi-ship"), "mantis-fugitive");
   },
   "c:mantis-fugitive:1": (g) => {
+    // Wiki citations:
+    // > "The Engi captain is delighted, and quickly arranges for the transfer of the prisoner." — [[Mantis fugitive]]
+    // > "You receive high scrap." — [[Mantis fugitive]]
+    // > "Fury sparks in the eyes of the Mantis. He won't go easily, and causes serious damage before he can be captured." — [[Mantis fugitive]]
+    // > "Your ship takes 5 hull damage, 1 damage with alt=fire (S_fire2.png) to a random room, and you receive high scrap." — [[Mantis fugitive]]
+    // > "The pursuing ship responds with a completely unintelligible message. The young Mantis jerks to attention and assumes a battle stance. It was a trap!" — [[Mantis fugitive]]
+    // > "1 mantis boarder beams aboard your ship, and you fight a mantis-controlled Engi ship (default rewards)." — [[Mantis fugitive]]
     const r = weighted(g, [["scrap", 1], ["fire", 1], ["trap", 1]] as const);
     if (r === "scrap") {
       show(g, tx("wiki.filler-events.the-engi-captain-is-delighted-and"), scrapOnly(g, "high"));
@@ -3155,9 +3177,14 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Confused Mantis. Listening opens the assistance card. Leaving spends nothing.
   "c:confused-mantis:0": (g) => {
+    // Wiki citations:
+    // > "Listen to their problem." — [[Confused Mantis]]
     confusedMantisCard(g);
   },
   "c:confused-mantis:1": (g) => {
+    // Wiki citations:
+    // > "Explain that you can't do any programming and leave." — [[Confused Mantis]]
+    // > "Nothing happens." — [[Confused Mantis]]
     show(g, tx("wiki.filler-events.nothing-happens"));
   },
 
@@ -3390,6 +3417,9 @@ function confusedMantisChoice(g: Game, id: string): boolean {
   if (id === "s:confused-mantis:shuttle") {
     const r = weighted(g, [["home", 1], ["lose", 1], ["nothing", 1]] as const);
     if (r === "home") {
+      // Wiki citations:
+      // > "After an hour of convincing, the Mantis finally calms down and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there." — [[Confused Mantis]]
+      // > "Return him home." — [[Confused Mantis]]
       // The printed next step is Return him home, on this same page.
       card(g, tx("wiki.filler-events.after-an-hour-of-convincing-the"), [
         { id: "s:confused-mantis:return", label: tx("wiki.filler-events.return-him-home") },
@@ -3397,6 +3427,11 @@ function confusedMantisChoice(g: Game, id: string): boolean {
       return true;
     }
     if (r === "lose") {
+      // Wiki citations:
+      // > "The cornered and frightened Mantis attacks as soon as you approach. One of your crew is eviscerated before the rest are able to stop him. The Engi apologize for your loss." — [[Confused Mantis]]
+      // > "You lose a crewmember." — [[Confused Mantis]]
+      // > "(Clone Bay) Your crew's clone is waiting when you return to the ship." — [[Confused Mantis]]
+      // > "The lost crewmember is revived." — [[Confused Mantis]]
       const revived = !!g.player.kits.cradle;
       const note = loseCrew(g);
       const extras = revived ? [tx("wiki.filler-events.your-crew-s-clone-is-waiting")] : [];
@@ -3404,10 +3439,16 @@ function confusedMantisChoice(g: Game, id: string): boolean {
       show(g, tx("wiki.filler-events.the-cornered-and-frightened-mantis-attacks"), undefined, extras);
       return true;
     }
+    // Wiki citations:
+    // > "The cornered and frightened Mantis attacks as soon as you approach. You're able to subdue him and leave him at a Mantis colony in a neighboring system. They don't seem pleased or grateful at his return." — [[Confused Mantis]]
+    // > "Nothing happens." — [[Confused Mantis]]
     show(g, tx("wiki.filler-events.the-cornered-and-frightened-mantis-attacks-2"), undefined, [tx("wiki.filler-events.nothing-happens")]);
     return true;
   }
   if (id === "s:confused-mantis:human") {
+    // Wiki citations:
+    // > "The Mantis is grateful to see 'another human', and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there." — [[Confused Mantis]]
+    // > "Return him home." — [[Confused Mantis]]
     if (!livingKin(g, "plain")) return true;
     card(g, tx("wiki.filler-events.the-mantis-is-grateful-to-see"), [
       { id: "s:confused-mantis:return", label: tx("wiki.filler-events.return-him-home") },
@@ -3419,24 +3460,39 @@ function confusedMantisChoice(g: Game, id: string): boolean {
     return true;
   }
   if (id === "s:confused-mantis:leave") {
+    // Wiki citations:
+    // > "Leave them, a cornered Mantis is too dangerous." — [[Confused Mantis]]
+    // > "Nothing happens." — [[Confused Mantis]]
     show(g, tx("wiki.filler-events.nothing-happens"));
     return true;
   }
   if (id === "s:confused-mantis:mantis") {
+    // Wiki citations:
+    // > "The Mantis is terrified at the sight of your crewmember. He immediately attacks his Engi rescuers, and your crewmember is forced to kill him. The Engi are grateful for your help and offer a small reward." — [[Confused Mantis]]
+    // > "You receive low scrap with resources." — [[Confused Mantis]]
     if (!livingKin(g, "blade")) return true;
     show(g, tx("wiki.filler-events.the-mantis-is-terrified-at-the"), rollStandard(g, "low"));
     return true;
   }
   if (id === "s:confused-mantis:mind") {
+    // Wiki citations:
+    // > "The Mantis calms down and communicates thanks to the Engi and yourself for helping. He requests to be dropped off at a nearby planet, at the human colony where he was raised. They are grateful for his return and offer a reward." — [[Confused Mantis]]
+    // > "You receive medium scrap with resources." — [[Confused Mantis]]
     if (!ownsMindControl(g)) return true;
     show(g, tx("wiki.filler-events.the-mantis-calms-down-and-communicates"), rollStandard(g, "medium"));
     return true;
   }
   if (id === "s:confused-mantis:hire") {
+    // Wiki citations:
+    // > "He graciously accepts, having always wanted to serve in the Federation." — [[Confused Mantis#Mining Colony]]
+    // > "You receive a Mantis crewmember named Robert Smith." — [[Confused Mantis#Mining Colony]]
     show(g, tx("wiki.filler-events.he-graciously-accepts-having-always-wanted"), undefined, [robertJoins(g)]);
     return true;
   }
   if (id === "s:confused-mantis:engines") {
+    // Wiki citations:
+    // > "They are happy to take a look, and are able to offer some suggestions for improvements." — [[Confused Mantis#Mining Colony]]
+    // > "Your ship engines are upgraded." — [[Confused Mantis#Mining Colony]]
     show(g, tx("wiki.filler-events.they-are-happy-to-take-a"), undefined, [bumpEngines(g)]);
     return true;
   }

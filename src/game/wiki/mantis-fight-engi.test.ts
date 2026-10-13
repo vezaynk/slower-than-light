@@ -24,6 +24,9 @@ function open(g: Game) {
 
 describe("Mantis fight (Engi)", () => {
   it("shows one of the four printed intros, then fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -48,6 +51,8 @@ describe("Mantis fight (Engi)", () => {
   });
 
   it("starts the Mantis ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
     // The page has no choice. One of the four printed intros, then "Fight a Mantis ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

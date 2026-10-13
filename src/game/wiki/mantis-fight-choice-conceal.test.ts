@@ -45,6 +45,10 @@ describe("Mantis fight choice conceal", () => {
   });
 
   it("conceal fights twice as often as it slips away", () => {
+    // Wiki citations:
+    // > "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely." — [[Mantis fight choice]]
+    // > "Nothing happens." — [[Mantis fight choice]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
     let fights = 0;
     let hidden = 0;
     const lines = new Set<string>();
@@ -75,6 +79,11 @@ describe("Mantis fight choice conceal", () => {
   });
 
   it("cloaking slips away twice as often as it is spotted", () => {
+    // Wiki citations:
+    // > "(Cloaking) Cloak to stay hidden." — [[Mantis fight choice]]
+    // > "Nothing happens." — [[Mantis fight choice]]
+    // > "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage." — [[Mantis fight choice]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
     let away = 0;
     let fights = 0;
     const lines = new Set<string>();

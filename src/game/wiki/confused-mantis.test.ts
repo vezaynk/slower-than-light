@@ -56,6 +56,9 @@ function standard(body: string, lo: number, hi: number) {
 
 describe("Confused Mantis", () => {
   it("leaving without programming spends nothing", () => {
+    // Wiki citations:
+    // > "Explain that you can't do any programming and leave." — [[Confused Mantis]]
+    // > "Nothing happens." — [[Confused Mantis]]
     const g = createGame(1);
     const crew = players(g).length;
     open(g);
@@ -112,6 +115,9 @@ describe("Confused Mantis", () => {
   });
 
   it("a clone bay brings back the crewmember the Mantis kills", () => {
+    // Wiki citations:
+    // > "(Clone Bay) Your crew's clone is waiting when you return to the ship." — [[Confused Mantis]]
+    // > "The lost crewmember is revived." — [[Confused Mantis]]
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
@@ -180,6 +186,8 @@ describe("Confused Mantis", () => {
   });
 
   it("a Mantis crewmember pays low scrap and does not join", () => {
+    // Wiki citations:
+    // > "You receive low scrap with resources." — [[Confused Mantis]]
     const g = createGame(4);
     kin(g, "blade");
     const crew = players(g).length;
@@ -193,6 +201,8 @@ describe("Confused Mantis", () => {
   });
 
   it("Mind Control pays medium scrap and does not add Robert Smith", () => {
+    // Wiki citations:
+    // > "You receive medium scrap with resources." — [[Confused Mantis]]
     const g = createGame(5);
     kin(g, "plain");
     g.player.kits.leash = { id: "leash", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };

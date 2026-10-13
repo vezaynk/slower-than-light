@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Pirate fight (Engi)", () => {
   it("shows the printed intro, and the fight choice starts a pirate combat", () => {
+    // Wiki citations:
+    // > "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!" — [[Pirate fight (Engi)]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Engi)]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

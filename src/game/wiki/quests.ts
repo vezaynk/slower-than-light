@@ -1349,6 +1349,13 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Mantis fight choice. Conceal: {{DuplicateEvent|2}} on the fight, once on nothing.
   // The printed OR is the two fight sentences. INFERRED: those two are equal inside the doubled result.
   "c:mantis-fight-choice:1": (g) => {
+    // Wiki citations:
+    // > "Attempt to remain concealed." — [[Mantis fight choice]]
+    // > "You power down non-essential systems in an attempt to remain unnoticed. It looks like they are about to leave when suddenly they turn and set course toward you, weapons powered." — [[Mantis fight choice]]
+    // > "Before you have a chance to slink away the Mantis ship notices you and powers up their weapons." — [[Mantis fight choice]]
+    // > "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely." — [[Mantis fight choice]]
+    // > "Nothing happens." — [[Mantis fight choice]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
     const spotted = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
     if (!spotted) {
       result(g, tx("wiki.quests.you-power-down-non-essential-systems-2"), undefined, [tx("wiki.quests.nothing-happens")]);
@@ -1363,6 +1370,13 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Cloaking. {{DuplicateEvent|2}} on nothing, once on the fight.
   // The printed OR is the two nothing sentences. INFERRED: those two are equal inside the doubled result.
   "c:mantis-fight-choice:2": (g) => {
+    // Wiki citations:
+    // > "(Cloaking) Cloak to stay hidden." — [[Mantis fight choice]]
+    // > "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey." — [[Mantis fight choice]]
+    // > "You quickly cloak the ship and move out of immediate scanning range. You appear to have gotten away undetected." — [[Mantis fight choice]]
+    // > "Nothing happens." — [[Mantis fight choice]]
+    // > "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage." — [[Mantis fight choice]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
     const away = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
     if (away) {
@@ -2012,10 +2026,20 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Mantis ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Mantis ship fight.
   "c:mantis-ship-attacking-civilian:0": (g) => {
+    // Wiki citations:
+    // > "Aid the civilian ship." — [[Mantis ship attacking civilian]]
+    // > "You frown, power up the weapons and prepare to engage the Mantis ship. Not today." — [[Mantis ship attacking civilian]]
+    // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
     pageFight(g, tx("wiki.quests.you-frown-power-up-the-weapons"), tx("wiki.quests.mantis-ship"), "mantis-ship-attacking-civilian");
   },
   // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
   "c:mantis-ship-attacking-civilian:1": (g) => {
+    // Wiki citations:
+    // > "Stay out of it." — [[Mantis ship attacking civilian]]
+    // > "Smoking, the civilian ship limps on. You set your sights on the future." — [[Mantis ship attacking civilian]]
+    // > "The noise of the FTL spinning up almost drowns out the explosions. Almost." — [[Mantis ship attacking civilian]]
+    // > "You let them pass and try not to think about it." — [[Mantis ship attacking civilian]]
+    // > "Nothing happens." — [[Mantis ship attacking civilian]]
     const line = pick(g, [
       "Smoking, the civilian ship limps on. You set your sights on the future.",
       "The noise of the FTL spinning up almost drowns out the explosions. Almost.",
@@ -3824,6 +3848,11 @@ export const PAGE_WINS: Record<string, Win> = {
   // then Attempt to contact the civilian ship. Template:Save the Civilian Ship is the
   // same card as the Lanius civilian contact. Stay out of it is three sentences in CHOICES.
   "mantis-ship-attacking-civilian": (g, deadCrew) => {
+    // Wiki citations:
+    // > "The Mantis ship breaks apart." — [[Mantis ship attacking civilian]]
+    // > "No more life signs detected on the pirate ship. You hasten to contact the civilian ship." — [[Mantis ship attacking civilian]]
+    // > "You receive medium scrap with resources." — [[Mantis ship attacking civilian]]
+    // > "Attempt to contact the civilian ship." — [[Mantis ship attacking civilian]]
     const text = deadCrew
       ? tx("wiki.quests.no-more-life-signs-detected-on-3")
       : tx("wiki.quests.the-mantis-ship-breaks-apart");

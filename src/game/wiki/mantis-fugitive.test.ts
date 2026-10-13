@@ -34,6 +34,10 @@ function reward(body: string) {
 
 describe("Mantis fugitive", () => {
   it("siding with him is a trap or a thanks, and the unnamed Mantis does not join", () => {
+    // Wiki citations:
+    // > "It was a trap! The Mantis sabotages your ship before teleporting away." — [[Mantis fugitive]]
+    // > "Your ship takes 5 hull damage, 1 damage to a random system, 1 damage to a random room, and you fight a mantis-controlled Engi ship (default rewards)." — [[Mantis fugitive]]
+    // > "He expresses his thanks and prepares to help you fight his pursuer." — [[Mantis fugitive]]
     let trap = false;
     let thanks = false;
     for (let seed = 1; seed <= 40 && (!trap || !thanks); seed++) {
@@ -66,6 +70,10 @@ describe("Mantis fugitive", () => {
   });
 
   it("the bounty pays high scrap, or that scrap with hull and fire, or one Mantis boarder", () => {
+    // Wiki citations:
+    // > "You receive high scrap." — [[Mantis fugitive]]
+    // > "Fury sparks in the eyes of the Mantis. He won't go easily, and causes serious damage before he can be captured." — [[Mantis fugitive]]
+    // > "1 mantis boarder beams aboard your ship, and you fight a mantis-controlled Engi ship (default rewards)." — [[Mantis fugitive]]
     let scrap = false;
     let fire = false;
     let trap = false;

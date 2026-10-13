@@ -44,6 +44,11 @@ describe("Mantis ship attacking civilian", () => {
   });
 
   it("a destroyed ship or a crew kill pays medium scrap with resources, then the contact", () => {
+    // Wiki citations:
+    // > "The Mantis ship breaks apart." — [[Mantis ship attacking civilian]]
+    // > "No more life signs detected on the pirate ship. You hasten to contact the civilian ship." — [[Mantis ship attacking civilian]]
+    // > "You receive medium scrap with resources." — [[Mantis ship attacking civilian]]
+    // > "Attempt to contact the civilian ship." — [[Mantis ship attacking civilian]]
     for (const deadCrew of [false, true]) {
       const g = createGame(deadCrew ? 2 : 1);
       open(g);
@@ -127,6 +132,9 @@ describe("Mantis ship attacking civilian", () => {
   });
 
   it("staying out of it spends nothing", () => {
+    // Wiki citations:
+    // > "Stay out of it." — [[Mantis ship attacking civilian]]
+    // > "Nothing happens." — [[Mantis ship attacking civilian]]
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:1");

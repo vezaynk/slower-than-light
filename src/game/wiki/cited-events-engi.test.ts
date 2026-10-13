@@ -108,6 +108,14 @@ describe("cited Engi leftover events", () => {
   const notes = choiceNotes(src);
 
   it("exports only these titles, with sectors and numbers taken from the page", () => {
+    // Wiki citations:
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Mantis fight (Engi)]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight choice]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis ship attacking civilian]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Pirate fight (Engi)]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Rebel fight (Engi)]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Confused Mantis]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fugitive]]
     assert.deepEqual(
       EXTRA_EVENTS.map((ev) => ev.dest),
       [

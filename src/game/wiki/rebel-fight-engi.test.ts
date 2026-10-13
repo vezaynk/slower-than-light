@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Rebel fight (Engi)", () => {
   it("shows the printed intro, and the fight choice starts a Rebel combat", () => {
+    // Wiki citations:
+    // > "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage." — [[Rebel fight (Engi)]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Engi)]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

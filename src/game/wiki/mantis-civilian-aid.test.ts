@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Mantis ship attacking civilian aid", () => {
   it("aiding the civilian logs the printed lead-in and fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "You frown, power up the weapons and prepare to engage the Mantis ship. Not today." — [[Mantis ship attacking civilian]]
+    // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");

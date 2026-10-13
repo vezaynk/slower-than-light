@@ -3918,6 +3918,12 @@ const LANIUS_FIGHT_INTROS = [
 // Mantis fight (Engi). Four printed intros, no odds. INFERRED: equal.
 // The fight stays c:mantis-fight-engi:0. Default Mantis rewards are not a separate payout.
 const MANTIS_FIGHT_ENGI_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
+  // > "A mixed radar signal turns out to be a Mantis attack ship scavenging the remains of an Engi carrier. They turn and fight." — [[Mantis fight (Engi)]]
+  // > "You come across a Mantis raider taking pot shots at a defenceless Engi supply station. Discovering its weapons aren't much of a match for the station's armour, it turns on your ship. Battle stations!" — [[Mantis fight (Engi)]]
+  // > "The area looks clear, and you prepare to jump off, but a Mantis scout jumps in behind you! They're as surprised as you are, but their weapons are already online." — [[Mantis fight (Engi)]]
+  // > "You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!" — [[Mantis fight (Engi)]]
   tx("wiki.cited-events.a-mixed-radar-signal-turns-out"),
   tx("wiki.cited-events.you-come-across-a-mantis-raider"),
   tx("wiki.cited-events.the-area-looks-clear-and-you"),
@@ -3963,6 +3969,14 @@ const MANTIS_FIGHT_INTROS = [
 // Mantis fight choice. Six printed intros, no odds. INFERRED: equal.
 // Attack stays c:mantis-fight-choice:0. Conceal and cloaking are quests.ts.
 const MANTIS_CHOICE_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight choice]]
+  // > "You're greeted by a rare sight: a Mantis ship that appears not to have noticed you." — [[Mantis fight choice]]
+  // > "For once, you see the Mantis before they see you." — [[Mantis fight choice]]
+  // > "When they see the Mantis warship waiting in ambush at your intended coordinates, your crew is relieved to note you've jumped someway off the mark." — [[Mantis fight choice]]
+  // > "You overhear Mantis comm chatter: \"Negative, I have killed more humans!\" You gulp noticeably, but luckily they don't see you yet." — [[Mantis fight choice]]
+  // > "You overhear Mantis comm chatter: \"The one on the right is starting to rot. Take him down. Take off his fingers. Put him out of the airlock.\" They certainly don't seem to be friendly..." — [[Mantis fight choice]]
+  // > "You overhear Mantis comm chatter: \"Agreed. Next ship is your turn. Good hunting.\" They don't see you yet." — [[Mantis fight choice]]
   tx("wiki.cited-events.you-re-greeted-by-a-rare"),
   tx("wiki.cited-events.for-once-you-see-the-mantis"),
   tx("wiki.cited-events.when-they-see-the-mantis-warship"),
@@ -3974,6 +3988,13 @@ const MANTIS_CHOICE_INTROS = [
 // Mantis ship attacking civilian. Five printed intros, no odds. INFERRED: equal.
 // Aid stays c:mantis-ship-attacking-civilian:0. Stay out stays :1. The three stay-out sentences are quests.ts.
 const MANTIS_CIVILIAN_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Mantis ship attacking civilian]]
+  // > "You spot a Mantis ship hunting in the distance." — [[Mantis ship attacking civilian]]
+  // > "A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, \"Stay out of this human! Else you are next!\"" — [[Mantis ship attacking civilian]]
+  // > "Local sensors pick up two ships engaged in a heated battle. It seems the Mantis military ship will surely defeat its prey." — [[Mantis ship attacking civilian]]
+  // > "A Mantis vessel flashes past your view-screen, weapons and engines at full. A tiny blip on the sensor readout marks its quarry." — [[Mantis ship attacking civilian]]
+  // > "You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!" — [[Mantis ship attacking civilian]]
   tx("wiki.cited-events.you-spot-a-mantis-ship-hunting"),
   tx("wiki.cited-events.a-mantis-ship-engaging-a-civilian"),
   tx("wiki.cited-events.local-sensors-pick-up-two-ships"),
@@ -4884,6 +4905,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Mantis fight (Engi) has no choice. Arrival calls this fight.
   // One of the four printed intros. "Fight a Mantis ship (default rewards)." unique=false.
   if (ev.slug === "mantis-fight-engi") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
     return {
       title: ev.dest,
       body: MANTIS_FIGHT_ENGI_INTROS[between(g, [0, 3])]!,
@@ -4910,6 +4934,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
   if (ev.slug === "mantis-fight-choice") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight choice]]
     return {
       title: ev.dest,
       body: MANTIS_CHOICE_INTROS[between(g, [0, 5])]!,
@@ -4918,6 +4944,8 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Mantis ship attacking civilian. One of the five printed intros. Both printed choices stay.
   if (ev.slug === "mantis-ship-attacking-civilian") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis ship attacking civilian]]
     return {
       title: ev.dest,
       body: MANTIS_CIVILIAN_INTROS[between(g, [0, 4])]!,

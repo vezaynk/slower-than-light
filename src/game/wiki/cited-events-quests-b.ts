@@ -19,6 +19,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Asteroid belt distress",
     slug: "asteroid-belt-distress",
+    // Wiki citations:
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Uncharted Nebula." — [[Asteroid belt distress]]
+    // > "It is unique." — [[Asteroid belt distress]]
+    // > "You follow the distress beacon to a tiny asteroid belt." — [[Asteroid belt distress]]
     flag: "cited:asteroid-belt-distress",
     aliases: ["Asteroid belt distress", "Asteroid Belt Distress"],
     sectors: [
@@ -36,8 +40,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:asteroid-belt-distress:0",
+        // Wiki citations:
+        // > "Hail them to offer assistance." — [[Asteroid belt distress]]
+        // > "Help! Our shields are down and we won't last long!" — [[Asteroid belt distress]]
         label: tx("wiki.cited-events-quests-b.hail-them-to-offer-assistance"),
-        // "Help! Our shields are down and we won't last long!" Follow-up card: wiki/quests-b.ts.
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-beg-for-help") }],
       },
     ],
@@ -47,6 +53,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Capture the ship",
     slug: "capture-the-ship",
+    // Wiki citations:
+    // > "This random event occurs in Civilian Sector, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Capture the ship]]
+    // > "It is unique." — [[Capture the ship]]
+    // > "You arrive to find a number of ships convening around a station." — [[Capture the ship]]
     flag: "cited:capture-the-ship",
     aliases: ["Capture the ship", "Capture the Ship"],
     sectors: ["Civilian Sector", "Rock Controlled Sector", "Rock Homeworlds", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
@@ -54,31 +64,42 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:capture-the-ship:0",
+        // Wiki citations:
+        // > "Offer your services." — [[Capture the ship]]
+        // > "you are not \"properly equipped\" for this type of mission." — [[Capture the ship]]
+        // > "Nothing happens." — [[Capture the ship]]
         label: tx("wiki.cited-events-quests-b.offer-your-services"),
-        // "Nothing happens." (they say you are not "properly equipped"; the text is in wiki/quests-b.ts)
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-decline") }],
       },
       {
         id: "c:capture-the-ship:1",
+        // Wiki citations:
+        // > "Leave them alone." — [[Capture the ship]]
+        // > "Nothing happens." — [[Capture the ship]]
         label: tx("wiki.cited-events-quests-b.leave-them-alone"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:capture-the-ship:2",
-        // {{Blue Option|Teleporter|Offer to board their ship.}}
+        // Wiki citations:
+        // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
+        // > "Offer a solution." — [[Capture the ship]]
         label: tx("wiki.cited-events-quests-b.offer-to-board-their-ship"),
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
       {
         id: "c:capture-the-ship:3",
-        // {{Blue Option|Fire Bomb|Offer to burn the crew out.}}
+        // Wiki citations:
+        // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
+        // > "Offer a solution." — [[Capture the ship]]
         label: tx("wiki.cited-events-quests-b.offer-to-burn-the-crew-out"),
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
       {
         id: "c:capture-the-ship:4",
-        // {{Blue Option|Bio Beam|Offer to 'remove' their crew.|shortreq=Anti-Bio Beam}}
+        // Wiki citations:
+        // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
+        // > "Offer a solution." — [[Capture the ship]]
         label: tx("wiki.cited-events-quests-b.offer-to-remove-their-crew"),
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.they-hear-your-offer") }],
       },
@@ -90,6 +111,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Encrypted federation signal",
     slug: "encrypted-federation-signal",
+    // Wiki citations:
+    // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Encrypted federation signal]]
+    // > "It is unique." — [[Encrypted federation signal]]
+    // > "A Federation encrypted signal is being broadcast from a nearby planet." — [[Encrypted federation signal]]
     flag: "cited:encrypted-federation-signal",
     aliases: ["Encrypted federation signal", "Encrypted Federation Signal"],
     sectors: [
@@ -108,14 +133,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:encrypted-federation-signal:0",
+        // Wiki citations:
+        // > "Send an away party to investigate." — [[Encrypted federation signal]]
+        // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
         label: tx("wiki.cited-events-quests-b.send-an-away-party-to-investigate"),
-        // One of five results, one of them a Rebel ship fight. Random branch: wiki/quests-b.ts.
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.the-away-party-reports-back") }],
       },
       {
         id: "c:encrypted-federation-signal:1",
+        // Wiki citations:
+        // > "It could be a trap, let's move on." — [[Encrypted federation signal]]
+        // > "Nothing happens." — [[Encrypted federation signal]]
         label: tx("wiki.cited-events-quests-b.it-could-be-a-trap-let"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -124,6 +153,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Engi ship attacked by Mantis ship",
     slug: "engi-ship-attacked-by-mantis-ship",
+    // Wiki citations:
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi ship attacked by Mantis ship]]
+    // > "You receive a distress call from a nearby Engi ship." — [[Engi ship attacked by Mantis ship]]
     flag: "cited:engi-ship-attacked-by-mantis-ship",
     aliases: ["Engi ship attacked by Mantis ship", "Engi Ship Attacked by Mantis Ship"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
@@ -131,14 +163,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:engi-ship-attacked-by-mantis-ship:0",
+        // Wiki citations:
+        // > "Respond to the call and move in to assist." — [[Engi ship attacked by Mantis ship]]
+        // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
+        // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
         label: tx("wiki.cited-events-quests-b.respond-to-the-call-and-move"),
-        // Fight a Mantis ship, or a mantis-controlled Engi ship with boarders. Random branch: wiki/quests-b.ts.
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.you-move-in") }],
       },
       {
         id: "c:engi-ship-attacked-by-mantis-ship:1",
+        // Wiki citations:
+        // > "Keep your distance." — [[Engi ship attacked by Mantis ship]]
+        // > "Nothing happens." — [[Engi ship attacked by Mantis ship]]
         label: tx("wiki.cited-events-quests-b.keep-your-distance"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -148,6 +185,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Merchant's request",
     slug: "merchant-s-request",
+    // Wiki citations:
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Merchant's request]]
+    // > "It is unique." — [[Merchant's request]]
+    // > "You arrive at a populated sector." — [[Merchant's request]]
     flag: "cited:merchant-s-request",
     aliases: ["Merchant's request", "Merchant's Request"],
     sectors: [
@@ -162,14 +203,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:merchant-s-request:0",
+        // Wiki citations:
+        // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
+        // > "Merchant's Investigation quest marker is added to your map." — [[Merchant's request]]
         label: tx("wiki.cited-events-quests-b.yes"),
-        // One of two requests (a delivery or an investigation). Random branch: wiki/quests-b.ts.
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.the-merchant-explains") }],
       },
       {
         id: "c:merchant-s-request:1",
+        // Wiki citations:
+        // > "Nothing happens." — [[Merchant's request]]
         label: tx("wiki.cited-events-quests-b.no"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],
@@ -178,6 +222,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Nebula wreckage",
     slug: "nebula-wreckage",
+    // Wiki citations:
+    // > "This random event occurs in Slug Controlled Nebula, Uncharted Nebula." — [[Nebula wreckage]]
+    // > "It is unique." — [[Nebula wreckage]]
+    // > "This nebula looks like it's recently seen two ships exchange fire" — [[Nebula wreckage]]
     flag: "cited:nebula-wreckage",
     aliases: ["Nebula wreckage", "Nebula Wreckage"],
     sectors: ["Slug Controlled Nebula", "Uncharted Nebula"],
@@ -185,20 +233,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:nebula-wreckage:0",
-        // {{Blue Option|Slug Crew|Ask your Slug crew to scan for survivors.}}
+        // Wiki citations:
+        // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
         label: tx("wiki.cited-events-quests-b.ask-your-slug-crew-to-scan"),
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.your-slug-finds-a-survivor") }],
       },
       {
         id: "c:nebula-wreckage:1",
+        // Wiki citations:
+        // > "Investigate the battlefield." — [[Nebula wreckage]]
+        // > "3× The wreckage is drifting faster than it first appeared." — [[Nebula wreckage]]
+        // > "Your ship takes 5 hull damage" — [[Nebula wreckage]]
+        // > "You spot a life form floating within the wreckage." — [[Nebula wreckage]]
         label: tx("wiki.cited-events-quests-b.investigate-the-battlefield"),
-        // {{DuplicateEvent|3}} nothing, 5 hull damage with a fire, or a survivor. Random branch: wiki/quests-b.ts.
         fx: [{ k: "note", text: tx("wiki.cited-events-quests-b.you-search-the-wreckage") }],
       },
       {
         id: "c:nebula-wreckage:2",
+        // Wiki citations:
+        // > "Leave the battlefield before other ships arrive." — [[Nebula wreckage]]
+        // > "Nothing happens." — [[Nebula wreckage]]
         label: tx("wiki.cited-events-quests-b.leave-the-battlefield-before-other-ships"),
-        // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
     ],

@@ -87,6 +87,13 @@ function slugOf(title: string): string {
 
 describe("quests-b: opening cards (cited-events-quests-b.ts)", () => {
   it("each page's sectors are its {{Locations}} line, and ids follow the table format", () => {
+    // Wiki citations:
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Uncharted Nebula." — [[Asteroid belt distress]]
+    // > "This random event occurs in Civilian Sector, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Capture the ship]]
+    // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Encrypted federation signal]]
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi ship attacked by Mantis ship]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Merchant's request]]
+    // > "This random event occurs in Slug Controlled Nebula, Uncharted Nebula." — [[Nebula wreckage]]
     const want = new Set(EXTRA_EVENTS.map((e) => e.dest));
     const pages = new Map<string, string>();
     for (const line of readFileSync(DUMP, "utf8").split("\n")) {
@@ -118,6 +125,11 @@ describe("quests-b: opening cards (cited-events-quests-b.ts)", () => {
 
 describe("Asteroid belt distress", () => {
   it("hail -> shield: one of three results; leaving can double the pursuit", () => {
+    // Wiki citations:
+    // > "You succeed in preventing them from being entirely destroyed, but your ship took a number of hits in the process." — [[Asteroid belt distress]]
+    // > "Despite your best efforts, the civilian ship breaks apart from the constant barrage." — [[Asteroid belt distress]]
+    // > "You try your best but one stray rock hits a key structure in their ship." — [[Asteroid belt distress]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Asteroid belt distress]]
     reach(["saved", "lost", "rock"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
       choose(g, "c:asteroid-belt-distress:0");
@@ -148,6 +160,11 @@ describe("Asteroid belt distress", () => {
   });
 
   it("blue options: Defense Drone (1 part) can add the Hidden Federation Base; Teleporter can bring a survivor home", () => {
+    // Wiki citations:
+    // > "(Defense Drone) Use a Defense Drone to protect their ship." — [[Asteroid belt distress]]
+    // > "Hidden Federation Base quest marker is added to your map." — [[Asteroid belt distress]]
+    // > "(Teleporter) Offer to beam them aboard your ship." — [[Asteroid belt distress]]
+    // > "You receive a crewmember." — [[Asteroid belt distress]]
     reach(["damage", "marker"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
       g.player.kits.swarm = kit("swarm", "ward");
@@ -197,6 +214,12 @@ describe("Asteroid belt distress", () => {
 
 describe("Capture the ship", () => {
   it("blue options are disabled without their gear; Teleporter -> agree adds the marker", () => {
+    // Wiki citations:
+    // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
+    // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
+    // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
+    // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
+    // > "Fight a Pirate ship." — [[Capture the ship#Quest Marker]]
     const g = atCited(createGame(4), "Civilian Sector", "Capture the ship");
     assert.equal(choiceDisabled(g, "c:capture-the-ship:2"), "Needs a Teleporter");
     assert.equal(choiceDisabled(g, "c:capture-the-ship:3"), "Needs a Fire Bomb");
@@ -222,6 +245,10 @@ describe("Capture the ship", () => {
   });
 
   it("killing the crew pays high scrap; destroying the ship deals 15 hull damage", () => {
+    // Wiki citations:
+    // > "You secure the ship and wait for the merchants to arrive." — [[Capture the ship#Quest Marker]]
+    // > "You receive a weapon with high scrap." — [[Capture the ship#Quest Marker]]
+    // > "Your ship takes 15 hull damage, 1 damage to a random system" — [[Capture the ship#Quest Marker]]
     const setup = () => {
       const g = atCited(createGame(6), "Civilian Sector", "Capture the ship");
       g.player.kits.sling = kit("sling");
@@ -257,6 +284,10 @@ describe("Capture the ship", () => {
 
 describe("Encrypted federation signal", () => {
   it("the away party reaches all five results; the assist marker opens the Auto-ship fight", () => {
+    // Wiki citations:
+    // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
+    // > "A Hidden Federation Base quest marker is added to your map." — [[Encrypted federation signal]]
+    // > "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble." — [[Encrypted federation signal]]
     reach(["base", "assist", "cache", "trap", "empty"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Encrypted federation signal");
       choose(g, "c:encrypted-federation-signal:0");
@@ -306,6 +337,11 @@ describe("Encrypted federation signal", () => {
 
 describe("Engi ship attacked by Mantis ship", () => {
   it("a Mantis ship (page win, then contact) or a Mantis-crewed Engi ship with boarders", () => {
+    // Wiki citations:
+    // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
+    // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
+    // > "The Mantis ship breaks apart." — [[Engi ship attacked by Mantis ship]]
+    // > "Attempt to contact the Engi." — [[Engi ship attacked by Mantis ship]]
     reach(["mantis", "engi"], (seed) => {
       const g = atCited(createGame(seed), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
@@ -326,6 +362,9 @@ describe("Engi ship attacked by Mantis ship", () => {
   });
 
   it("contacting the Engi reaches all four results; Protocol 52.34 adds the Hidden Federation Base", () => {
+    // Wiki citations:
+    // > "(Engi Crew) Threat unresolved. Current Mission imperative: Protocol 52.34." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
+    // > "You receive a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker is added to your map." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     reach(["crew", "fuel", "empty", "request"], (seed) => {
       const g = atCited(createGame(seed), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
       choose(g, "q:engi-station:contact");
@@ -346,6 +385,9 @@ describe("Engi ship attacked by Mantis ship", () => {
 
   // Rewards, "Weapon": "A random weapon & T scrap." "Drone": "A random drone schematic & T scrap."
   it("requesting a weapon or a drone pays low scrap and grants a random one", () => {
+    // Wiki citations:
+    // > "You receive a weapon with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
+    // > "You receive a drone schematic with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     const w = atCited(createGame(3), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
     const guns = w.player.weapons.length + (w.cargo ?? []).length;
     const scrap = w.scrap;
@@ -361,6 +403,9 @@ describe("Engi ship attacked by Mantis ship", () => {
 
 describe("Merchant's request", () => {
   it("delivery: 5 drone parts and a marker; the station pays for them (or is the research station)", () => {
+    // Wiki citations:
+    // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
+    // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
     reach(["paltry", "station"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Merchant's request");
       choose(g, "c:merchant-s-request:0");
@@ -392,6 +437,10 @@ describe("Merchant's request", () => {
   });
 
   it("investigation: remains / survivors / pirate; the cargo can lead to the delivery station", () => {
+    // Wiki citations:
+    // > "Fight a Pirate ship." — [[Merchant's request#Merchant's Investigation]]
+    // > "You receive a crewmember and Deliver to the Station quest marker is added to your map." — [[Merchant's request#Merchant's Investigation]]
+    // > "You receive a drone schematic with medium scrap." — [[Merchant's request#Deliver to the Station quest marker]]
     reach(["remains", "crew", "pirate"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Merchant's request");
       choose(g, "c:merchant-s-request:0");
@@ -437,6 +486,11 @@ describe("Merchant's request", () => {
 
 describe("Nebula wreckage", () => {
   it("Slug option needs a Slug; investigating reaches nothing / damage / survivor", () => {
+    // Wiki citations:
+    // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
+    // > "3× The wreckage is drifting faster than it first appeared." — [[Nebula wreckage]]
+    // > "Your ship takes 5 hull damage" — [[Nebula wreckage]]
+    // > "You spot a life form floating within the wreckage." — [[Nebula wreckage]]
     const g = atCited(createGame(1), "Uncharted Nebula", "Nebula wreckage");
     assert.equal(choiceDisabled(g, "c:nebula-wreckage:0"), "Needs a Slug crewmember");
     reach(["nothing", "pummeled", "survivor"], (seed) => {
@@ -451,6 +505,11 @@ describe("Nebula wreckage", () => {
   });
 
   it("the dying survivor gives the coordinates; the Zoltan ship thanks ABADOTH and fights any other answer", () => {
+    // Wiki citations:
+    // > "the survivor simply says, \"ABADOTH\" and perishes." — [[Nebula wreckage#Assist the survivor]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump and you find a Zoltan ship." — [[Nebula wreckage#Quest Marker]]
+    // > "You receive medium scrap with resources." — [[Nebula wreckage#Find a Zoltan ship]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
     const setup = (seed: number) => {
       const g = atCited(createGame(seed), "Uncharted Nebula", "Nebula wreckage");
       g.crew.find((c) => c.side === "player")!.kin = "gel";

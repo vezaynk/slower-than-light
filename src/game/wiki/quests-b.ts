@@ -206,6 +206,14 @@ function mantisBoarders(g: Game, lo: number, hi: number) {
 // ---------------------------------------------------------------------------------------------------------------
 
 function asteroidCard(g: Game) {
+  // Wiki citations:
+  // > "Help! Our shields are down and we won't last long!" — [[Asteroid belt distress]]
+  // > "Try to shield their ship with yours and escort them out of the field." — [[Asteroid belt distress]]
+  // > "Don't risk our ship. Leave them to their fate." — [[Asteroid belt distress]]
+  // > "(Defense Drone) Use a Defense Drone to protect their ship." — [[Asteroid belt distress]]
+  // > "(Repair Drone) Send a Repair Drone to fix their Shields." — [[Asteroid belt distress]]
+  // > "(Teleporter) Offer to beam them aboard your ship." — [[Asteroid belt distress]]
+  // > "(Rock Armor) Shield their ship with yours and escort them out. (Requires Rock Plating)" — [[Asteroid belt distress]]
   const choices: Choice[] = [
     { id: "q:asteroid:shield", label: tx("wiki.quests-b.try-to-shield-their-ship-with") },
     { id: "q:asteroid:leave", label: tx("wiki.quests-b.don-t-risk-our-ship-leave") },
@@ -221,6 +229,11 @@ function asteroidCard(g: Game) {
 }
 
 function asteroidDrone(g: Game) {
+  // Wiki citations:
+  // > "Your drone succeeds in keeping their ship from breaking apart" — [[Asteroid belt distress]]
+  // > "Your ship takes 4 hull damage, 1 damage to a random system" — [[Asteroid belt distress]]
+  // > "you receive a weapon with medium scrap." — [[Asteroid belt distress]]
+  // > "Hidden Federation Base quest marker is added to your map." — [[Asteroid belt distress]]
   if (g.player.parts < 1) return;
   g.player.parts -= 1;
   if (rand(g) < 0.5) {
@@ -240,6 +253,10 @@ function asteroidDrone(g: Game) {
 // ---------------------------------------------------------------------------------------------------------------
 
 function captureOffer(g: Game) {
+  // Wiki citations:
+  // > "Offer a solution." — [[Capture the ship]]
+  // > "Agree to capture the ship." — [[Capture the ship#Offer a solution]]
+  // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
   card(g, tx("wiki.quests-b.they-quickly-scan-your-ship-and"), [
     { id: "q:capture:agree", label: tx("wiki.quests-b.agree-to-capture-the-ship") },
     { id: "q:capture:decline", label: tx("wiki.quests-b.decline") },
@@ -414,6 +431,8 @@ function zoltanCard(g: Game, lead: string) {
 const ZOLTAN_FIGHT = tx("wiki.quests-b.there-is-a-moment-of-silence");
 /** "Fight a Zoltan ship (default rewards)": no PAGE_WINS row, so winCombat pays the default salvage. */
 function zoltanFight(g: Game) {
+  // Wiki citations:
+  // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
   pageFight(g, ZOLTAN_FIGHT, tx("wiki.quests-b.zoltan-ship"), "quest-abadoth-zoltan");
 }
 function zoltanThanks(g: Game, lead: string) {
@@ -490,6 +509,8 @@ export const PART_B: QuestPart = {
     // Merchant's request, "Deliver to the Station quest marker": "a drone schematic with medium scrap". Rewards,
     // "Drone": "A random drone schematic & T scrap."
     "merchant-station": (g) => {
+      // Wiki citations:
+      // > "You receive a drone schematic with medium scrap." — [[Merchant's request#Deliver to the Station quest marker]]
       result(g, tx("wiki.quests-b.you-find-the-station-that-had"), scrapOnly(g, "medium"), [grantRandomItem(g, "drone")]);
     },
     // Nebula wreckage, "Quest Marker".
@@ -506,9 +527,15 @@ export const PART_B: QuestPart = {
     // ---- Asteroid belt distress ----
     "c:asteroid-belt-distress:0": (g) => asteroidCard(g),
     "q:asteroid:shield": (g) => {
+      // Wiki citations:
+      // > "You succeed in preventing them from being entirely destroyed, but your ship took a number of hits in the process." — [[Asteroid belt distress]]
+      // > "Your ship takes 1 hull damage" — [[Asteroid belt distress]]
+      // > "Despite your best efforts, the civilian ship breaks apart from the constant barrage." — [[Asteroid belt distress]]
+      // > "Your ship takes 4 hull damage, and you receive low scrap." — [[Asteroid belt distress]]
+      // > "You try your best but one stray rock hits a key structure in their ship." — [[Asteroid belt distress]]
+      // > "You receive low scrap." — [[Asteroid belt distress]]
       const r = pick(g, ["saved", "lost", "rock"] as const);
       if (r === "saved") {
-        // "1 hull damage, 1 damage with fire to a random room, and you receive high (3-6 fuel) fuel and scrap".
         if (damageHull(g, 1)) return;
         const fire = roomHit(g);
         result(g, tx("wiki.quests-b.you-succeed-in-preventing-them-from"), fuelAndScrap(g, "high"), [tx("wiki.quests-b.hull-damage-1"), fire]);
@@ -520,6 +547,9 @@ export const PART_B: QuestPart = {
       }
     },
     "q:asteroid:leave": (g) => {
+      // Wiki citations:
+      // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Asteroid belt distress]]
+      // > "Nothing happens." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
         result(g, tx("wiki.quests-b.you-regretfully-leave-the-area-not"), undefined, [doublePursuit(g)]);
       } else {
@@ -529,6 +559,9 @@ export const PART_B: QuestPart = {
     "q:asteroid:defense": (g) => asteroidDrone(g),
     "q:asteroid:repair": (g) => asteroidDrone(g),
     "q:asteroid:teleport": (g) => {
+      // Wiki citations:
+      // > "You receive a crewmember." — [[Asteroid belt distress]]
+      // > "Take them to the nearby planet, where they're from." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
         // "You receive a crewmember." Race not named: INFERRED random.
         result(g, tx("wiki.quests-b.they-reluctantly-agree-once-aboard-you"), undefined, [crew(g, randomRace(g))]);
@@ -550,6 +583,8 @@ export const PART_B: QuestPart = {
       }
     },
     "q:asteroid:rock": (g) => {
+      // Wiki citations:
+      // > "You receive medium fuel and scrap." — [[Asteroid belt distress]]
       result(g, tx("wiki.quests-b.you-succeed-in-preventing-them-from-2"), fuelAndScrap(g, "medium"));
     },
 
@@ -562,6 +597,8 @@ export const PART_B: QuestPart = {
     "c:capture-the-ship:3": (g) => captureOffer(g),
     "c:capture-the-ship:4": (g) => captureOffer(g),
     "q:capture:agree": (g) => {
+      // Wiki citations:
+      // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
       result(g, tx("wiki.quests-b.great-we-ll-relay-their-coordinates"), undefined, [addQuest(g, "capture-ship")]);
     },
     "q:capture:decline": (g) => {
@@ -569,18 +606,25 @@ export const PART_B: QuestPart = {
     },
     // PIRATE_QUEST_CREWDEAD, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line (the page prints none).
     "q:capture:fight": (g) => {
+      // Wiki citations:
+      // > "Fight a Pirate ship." — [[Capture the ship#Quest Marker]]
       noRun(g, tx("wiki.quests-b.the-pirate-ship-moves-to-engage"), tx("wiki.quests-b.pirate-ship"), "quest-capture-ship");
     },
     // {{Winning|destroyed=true}}: "15 hull damage, 1 damage to a random system, 1 damage with fire and a breach to a
     // random room". Applied on this card's button, not inside winCombat: a hull loss there would be overwritten by the
     // default salvage (sim.ts winCombat pays it when pageWin does not leave an event card).
     "q:capture:blast": (g) => {
+      // Wiki citations:
+      // > "Your ship takes 15 hull damage, 1 damage to a random system" — [[Capture the ship#Quest Marker]]
       if (damageHull(g, 15)) return;
       paid(g, undefined, [tx("wiki.quests-b.hull-damage-15"), systemHit(g), roomHit(g, true)]);
     },
 
     // ---- Encrypted federation signal ----
     "c:encrypted-federation-signal:0": (g) => {
+      // Wiki citations:
+      // > "A Hidden Federation Base quest marker is added to your map." — [[Encrypted federation signal]]
+      // > "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble." — [[Encrypted federation signal]]
       const r = pick(g, ["base", "assist", "cache", "trap", "empty"] as const);
       if (r === "base") {
         result(g, tx("wiki.quests-b.you-find-a-secret-federation-outpost"), undefined, [addQuest(g, "fed-base")]);
@@ -590,7 +634,8 @@ export const PART_B: QuestPart = {
       } else if (r === "cache") {
         result(g, tx("wiki.quests-b.you-find-a-small-cache-of"), rollStandard(g, "high"));
       } else if (r === "trap") {
-        // "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)". REBEL: default rows.
+        // Wiki citations:
+        // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
         pageFight(g, tx("wiki.quests-b.as-you-approach-the-signal-you"), tx("wiki.quests-b.rebel-ship"), "encrypted-federation-signal");
         humanBoarders(g, 2, 3);
       } else {
@@ -600,8 +645,10 @@ export const PART_B: QuestPart = {
 
     // ---- Engi ship attacked by Mantis ship ----
     "c:engi-ship-attacked-by-mantis-ship:0": (g) => {
+      // Wiki citations:
+      // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
+      // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
       if (rand(g) < 0.5) {
-        // "You fight a normal Mantis ship." MANTIS_ENGI_STATION, {{SurrenderEscape(alt)|no|...}}.
         noRun(g, tx("wiki.quests-b.you-approach-to-find-a-mantis"), tx("wiki.quests-b.mantis-ship"), ENGI_PAGE);
       } else {
         // "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)."
@@ -621,11 +668,22 @@ export const PART_B: QuestPart = {
     "q:engi-station:fuel": (g) => result(g, tx("wiki.quests-b.request-granted-fuel-transferring"), fuelAndScrap(g, "high")),
     // "a weapon with low scrap" / "a drone schematic with low scrap". Rewards, "Weapon": "A random weapon & T scrap."
     // "Drone": "A random drone schematic & T scrap."
-    "q:engi-station:weapon": (g) => result(g, tx("wiki.quests-b.request-granted-weapon-transferring"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]),
-    "q:engi-station:drone": (g) => result(g, tx("wiki.quests-b.request-granted-drone-schematic-transferring"), scrapOnly(g, "low"), [grantRandomItem(g, "drone")]),
+    "q:engi-station:weapon": (g) => {
+      // Wiki citations:
+      // > "You receive a weapon with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
+      result(g, tx("wiki.quests-b.request-granted-weapon-transferring"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
+    },
+    "q:engi-station:drone": (g) => {
+      // Wiki citations:
+      // > "You receive a drone schematic with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
+      result(g, tx("wiki.quests-b.request-granted-drone-schematic-transferring"), scrapOnly(g, "low"), [grantRandomItem(g, "drone")]);
+    },
     // "a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker". Rewards,
     // "Weapon": "A random weapon & T scrap."
     "q:engi-station:protocol": (g) => {
+      // Wiki citations:
+      // > "(Engi Crew) Threat unresolved. Current Mission imperative: Protocol 52.34." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
+      // > "You receive a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker is added to your map." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
       result(g, tx("wiki.quests-b.they-respond-understood-re-establishment-of"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon"), repair(g, 10), addQuest(g, "fed-base")]);
     },
 
@@ -645,6 +703,8 @@ export const PART_B: QuestPart = {
     },
     // "You receive 5 drone parts and Merchant's Delivery quest marker is added to your map."
     "q:merchant:deliver": (g) => {
+      // Wiki citations:
+      // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
       g.player.parts += PARTS_OWED;
       log(g, tx("wiki.quests-b.drone-parts-2", { PARTS_OWED: PARTS_OWED }));
       result(g, tx("wiki.quests-b.great-i-uploaded-their-location-to"), undefined, [tx("wiki.quests-b.drone-parts-2", { PARTS_OWED: PARTS_OWED }), addQuest(g, "merchant-delivery")]);
@@ -658,6 +718,8 @@ export const PART_B: QuestPart = {
     },
     // "You receive 20-30 scrap and lose 5 drone parts."
     "q:merchant:paltry": (g) => {
+      // Wiki citations:
+      // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
       const parts = payParts(g);
       result(g, tx("wiki.quests-b.you-drop-the-parts-off-and"), fixedScrap(g, 20, 30), [parts]);
     },
@@ -689,6 +751,8 @@ export const PART_B: QuestPart = {
     "q:merchant:cargo-beam": (g) => investigateCargo(g),
     // "You receive a crewmember and Deliver to the Station quest marker". Race not named: INFERRED random.
     "q:merchant:promise": (g) => {
+      // Wiki citations:
+      // > "You receive a crewmember and Deliver to the Station quest marker is added to your map." — [[Merchant's request#Merchant's Investigation]]
       result(g, tx("wiki.quests-b.they-upload-the-delivery-destination-once"), undefined, [crew(g, randomRace(g)), addQuest(g, "merchant-station")]);
     },
 
@@ -738,10 +802,17 @@ export const PART_B: QuestPart = {
 
     // ---- Nebula wreckage ----
     "c:nebula-wreckage:0": (g) => {
+      // Wiki citations:
+      // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
       if (!hasSlug(g)) return;
       card(g, tx("wiki.quests-b.despite-the-destruction-filling-the-system"), survivorChoices());
     },
     "c:nebula-wreckage:1": (g) => {
+      // Wiki citations:
+      // > "3× The wreckage is drifting faster than it first appeared." — [[Nebula wreckage]]
+      // > "Nothing happens." — [[Nebula wreckage]]
+      // > "Your ship takes 5 hull damage" — [[Nebula wreckage]]
+      // > "You spot a life form floating within the wreckage." — [[Nebula wreckage]]
       const r = weighted(g, [
         ["nothing", 3],
         ["pummeled", 1],
@@ -765,6 +836,9 @@ export const PART_B: QuestPart = {
       card(g, tx("wiki.quests-b.you-bring-the-survivor-aboard-but"), choices);
     },
     "q:nebula:comfort": (g) => {
+      // Wiki citations:
+      // > "the survivor simply says, \"ABADOTH\" and perishes." — [[Nebula wreckage#Assist the survivor]]
+      // > "A quest marker is added to your map." — [[Nebula wreckage#Assist the survivor]]
       result(g, tx("wiki.quests-b.on-their-death-bed-they-croak"), undefined, [addQuest(g, "abadoth")]);
     },
     // "You receive a crewmember." Race not named: INFERRED random.
@@ -776,18 +850,32 @@ export const PART_B: QuestPart = {
     },
     "q:abadoth:slug": (g) => zoltanCard(g, ""),
     "q:abadoth:scan": (g) => {
+      // Wiki citations:
+      // > "Rebel Fleet pursuit is doubled for 1 jump and you find a Zoltan ship." — [[Nebula wreckage#Quest Marker]]
       const line = doublePursuit(g);
       zoltanCard(g, tx("wiki.quests-b.you-start-the-arduous-task-of", { line: line }));
     },
-    "q:abadoth:explain": (g) => zoltanFight(g),
+    "q:abadoth:explain": (g) => {
+      // Wiki citations:
+      // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
+      zoltanFight(g);
+    },
     "q:abadoth:anodyne": (g) => zoltanFight(g),
     "q:abadoth:abatodh": (g) => zoltanFight(g),
-    "q:abadoth:abadoth": (g) => zoltanThanks(g, ""),
+    "q:abadoth:abadoth": (g) => {
+      // Wiki citations:
+      // > "You receive medium scrap with resources." — [[Nebula wreckage#Find a Zoltan ship]]
+      zoltanThanks(g, "");
+    },
     "q:abadoth:engi": (g) => zoltanThanks(g, tx("wiki.quests-b.your-engi-crewman-easily-recalls-the")),
   },
 
   disabled: (g, id) => {
-    // Opening-card blue options (always listed on the cited card).
+    // Wiki citations:
+    // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
+    // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
+    // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
+    // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
     if (id === "c:capture-the-ship:2" && !hasTeleporter(g)) return tx("wiki.quests-b.needs-a-teleporter");
     if (id === "c:capture-the-ship:3" && !hasWeapon(g, "cask")) return tx("wiki.quests-b.needs-a-fire-bomb");
     if (id === "c:capture-the-ship:4" && !hasWeapon(g, "antibio")) return tx("wiki.quests-b.needs-an-anti-bio-beam");
@@ -810,6 +898,10 @@ export const PART_B: QuestPart = {
     // Capture the ship: destroyed -> the chain explosion (applied by "q:capture:blast"); deadCrew -> "a weapon with high
     // scrap". Rewards, "Weapon": "A random weapon & T scrap."
     "quest-capture-ship": (g, deadCrew) => {
+      // Wiki citations:
+      // > "You secure the ship and wait for the merchants to arrive." — [[Capture the ship#Quest Marker]]
+      // > "You receive a weapon with high scrap." — [[Capture the ship#Quest Marker]]
+      // > "The explosion rocks the pirate ship and a brilliant light begins to shine from the wreckage." — [[Capture the ship#Quest Marker]]
       if (deadCrew) {
         result(g, tx("wiki.quests-b.you-secure-the-ship-and-wait"), scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
         return;
@@ -820,11 +912,20 @@ export const PART_B: QuestPart = {
     },
     // Engi ship attacked by Mantis ship: destroyed -> medium, deadCrew -> high scrap with resources, then "Attempt to
     // contact the Engi". The mantis-controlled Engi ship pays the default rewards (no row).
+    // Wiki citations:
+    // > "The Mantis ship breaks apart." — [[Engi ship attacked by Mantis ship]]
+    // > "You receive medium scrap with resources." — [[Engi ship attacked by Mantis ship]]
+    // > "No more life signs detected on the Mantis ship." — [[Engi ship attacked by Mantis ship]]
+    // > "You receive high scrap with resources." — [[Engi ship attacked by Mantis ship]]
+    // > "Attempt to contact the Engi." — [[Engi ship attacked by Mantis ship]]
     [ENGI_PAGE]: (g, deadCrew) =>
       std("medium", "high", tx("wiki.quests-b.the-mantis-ship-breaks-apart"), tx("wiki.quests-b.no-more-life-signs-detected-on"), [
         { id: "q:engi-station:contact", label: tx("wiki.quests-b.attempt-to-contact-the-engi") },
       ])(g, deadCrew),
     // Merchant's Investigation: {{Winning|destroyed/deadCrew=true}} -> medium scrap with resources.
+    // Wiki citations:
+    // > "Fight a Pirate ship." — [[Merchant's request#Merchant's Investigation]]
+    // > "You receive medium scrap with resources." — [[Merchant's request#Merchant's Investigation]]
     "quest-merchant-pirate": (g, deadCrew) =>
       std("medium", "medium", tx("wiki.quests-b.you-contact-the-delivery-ship-who"))(g, deadCrew),
   },

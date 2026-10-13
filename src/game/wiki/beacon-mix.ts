@@ -214,6 +214,10 @@ const LIST_DISTRESS = [
   tx("wiki.beacon-mix.pirate-ship-attacking-civilian-distress"), tx("wiki.beacon-mix.rebel-ship-attacking-federation-loyalists"), tx("wiki.beacon-mix.refugee-distress"),
   tx("wiki.beacon-mix.refugee-comms-down"), tx("wiki.beacon-mix.single-life-form-on-moon"), tx("wiki.beacon-mix.pirate-ship-distress-trap"),
   tx("wiki.beacon-mix.slug-ship-boarding-rock-ship"),
+  tx("wiki.beacon-mix.lanius-empty-distress-beacon-1"),
+  tx("wiki.beacon-mix.lanius-empty-distress-beacon-2"),
+  tx("wiki.beacon-mix.free-scrap-with-resources-zoltan"),
+  tx("wiki.beacon-mix.engi-research-station"),
 ];
 /** Template:EventList ITEMS (and OVERRIDE_ITEMS, same rows). */
 const LIST_ITEMS = [

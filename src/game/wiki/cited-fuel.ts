@@ -11,12 +11,8 @@ import { tx } from "../../i18n/index.ts";
  * results is omitted. Blue options are not granted. Crew, a map reveal, and an
  * upgrade are not granted. No page kept here gives an unnamed weapon, schematic, or augment.
  *
- * Omitted: Slug fuel trader (the paid offer has two results; the single trade
- * is a Slug blue option). Drifting debris (the away team has several reports,
- * including a map reveal and a crew ransom). Both fuel-trader pages (each
- * trade choice lists several offers). Prepare to dock (each reply has several
- * results). Refugee trading (three random meetings, not one menu). Both wait
- * fails ("Nothing happens.").
+ * The six pages below join the wait roll only. They name no sector. Their cards
+ * are built in cited-missing.ts. Both wait fails ("Nothing happens.") stay out.
  */
 
 export type CitedFx =
@@ -77,7 +73,26 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
     ],
   },
+  fuelStub("No fuel: Slug fuel trader"),
+  fuelStub("No fuel: drifting debris"),
+  fuelStub("No fuel: fuel trader (distress off)"),
+  fuelStub("No fuel: fuel trader (distress on)"),
+  fuelStub("No fuel: prepare to dock"),
+  fuelStub("No fuel: refugee trading"),
 ];
+
+function fuelStub(dest: string): CitedEventDef {
+  const slug = dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return {
+    dest,
+    slug,
+    flag: `cited:${slug}`,
+    aliases: [dest],
+    sectors: [],
+    body: "",
+    choices: [{ id: `c:${slug}:0`, label: tx("wiki.cited-missing.continue"), fx: [{ k: "nothing" }] }],
+  };
+}
 
 type OutOfFuel = "distresson" | "distressoff" | "distressboth";
 
@@ -110,6 +125,18 @@ const EXTRA_OUT: Record<string, OutOfFuel> = {
   "No fuel: Rebel fleet delay": "distressoff",
   // {{Locations|outoffuel=distressoff}}
   "No fuel: friendly refugee": "distressoff",
+  // {{Locations|outoffuel=distresson}}
+  "No fuel: Slug fuel trader": "distresson",
+  // {{Locations|outoffuel=distressoff}}
+  "No fuel: drifting debris": "distressoff",
+  // {{Locations|outoffuel=distressoff}}
+  "No fuel: fuel trader (distress off)": "distressoff",
+  // {{Locations|outoffuel=distresson}}
+  "No fuel: fuel trader (distress on)": "distresson",
+  // {{Locations|outoffuel=distressboth}}
+  "No fuel: prepare to dock": "distressboth",
+  // {{Locations|outoffuel=distresson}}
+  "No fuel: refugee trading": "distresson",
 };
 
 /**
@@ -165,8 +192,7 @@ const WAIT_FAIL: Record<"on" | "off", string[]> = {
  * delay: "9% chance of occurring when you wait at a beacon with your distress beacon off." Category:Out of Fuel
  * Distress ON Events lists 11 pages and OFF lists 8, each including its wait fail. The printed shares fit every other
  * page weighing 1 and the wait fail 2 (on: 2/12 = 16.7%) or 4 (off: 4/11 = 36.4%, one page 1/11 = 9%). INFERRED from
- * that arithmetic: the other pages share the rest equally. Some are not built here (both fuel traders, the Slug fuel
- * trader, drifting debris, prepare to dock, refugee trading), so the built ones take their share. A fail returns one of
+ * that arithmetic: the other pages share the rest equally. The wait fails stay out of that roll. A fail returns one of
  * the page's printed lines, uniformly.
  */
 export function rollFuelWait(roll: () => number, distressOn: boolean): { flag: string; dest: string } | { fail: string } {

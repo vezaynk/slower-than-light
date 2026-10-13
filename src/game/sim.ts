@@ -95,6 +95,7 @@ import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
+import { missingAutoFight, missingPageWin } from "./wiki/cited-missing.ts";
 import { rollFuelWait } from "./wiki/cited-fuel.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
@@ -752,6 +753,20 @@ function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
 type HalfId = "shields" | "oxygen" | "weapons" | "engines" | "medbay";
 const systemHalf = new WeakMap<Game, Set<HalfId>>();
 const weaponHalfShips = new WeakMap<Ship, true>();
+/** Slug store ship: Weapon Control stays offline after that fight, until the next jump. */
+const sealedWeapons = new WeakMap<Ship, true>();
+
+export function sealPlayerWeapons(ship: Ship): void {
+  sealedWeapons.set(ship, true);
+}
+
+export function weaponsSealed(ship: Ship): boolean {
+  return sealedWeapons.has(ship);
+}
+
+function clearWeaponSeal(ship: Ship): void {
+  sealedWeapons.delete(ship);
+}
 
 function rememberWeaponHalf(g: Game): void {
   if (systemHalf.get(g)?.has("weapons")) weaponHalfShips.set(g.player, true);
@@ -1053,6 +1068,8 @@ export function powerMask(ship: Ship, bonus = 0): boolean[] {
   // @agent:flagship. Flagship artillery has no shared Weapons pool (wiki/flagship-systems.ts flagshipPowerMask).
   const artillery = flagshipPowerMask(ship);
   if (artillery) return artillery;
+  // Slug store ship: "Weapon Control stays offline after the fight, and returns to normal after an FTL jump."
+  if (sealedWeapons.has(ship)) return ship.weapons.map(() => false);
   const sys = ship.systems.weapons;
   const capacity = Math.max(0, sys.level - sys.damage);
   const ionLocked = Math.min(Math.max(0, sys.ion.length), capacity);
@@ -4818,6 +4835,13 @@ function winCombat(g: Game) {
     g.fightEvent = null;
     return;
   }
+  // Slug repair station: destroyed and crew-kill lines replace the default salvage.
+  if (!g.pending && missingPageWin(g, g.fightEvent, deadCrew)) {
+    const won = g.beacons.find((x) => x.id === g.here);
+    if (won) won.resolved = true;
+    g.fightEvent = null;
+    return;
+  }
   const band = SCRAP_MEDIUM[Math.min(7, Math.max(0, g.sector - 1))];
   // Score, s: the band counts. Scrap Recovery Arm's extra does not. Repair Arm does not reduce s.
   let eligible = band[0] + irand(g, band[1] - band[0] + 1);
@@ -5766,6 +5790,7 @@ export function commitJump(g: Game, id: string) {
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearWeaponSeal(g.player);
   clearFriendlyAsb(g);
   // @agent:hacking. Mind Control holds end when the Lark jumps away; cooldown resets (extras/leash.ts leashOnLeave).
   leashOnLeave(g);
@@ -6035,6 +6060,11 @@ function arrive(g: Game, b: Beacon) {
       b.flag === "cited:mantis-ship-collectors") &&
     g.event?.choices[0]
   ) {
+    if (g.event.body) log(g, g.event.body);
+    choose(g, g.event.choices[0].id);
+  }
+  // Fight in Last Stand has no printed choice. Arrival starts the scout.
+  if (missingAutoFight(b.flag) && g.event?.choices[0]) {
     if (g.event.body) log(g, g.event.body);
     choose(g, g.event.choices[0].id);
   }
@@ -6312,30 +6342,42 @@ export function choose(g: Game, id: string) {
           {
             g,
             resolve,
-            fight: (tier, asteroid) => {
+            fight: (tier, asteroid, slug) => {
               g.event = null;
               // The event page that started the fight picks the escape rule (wiki/escape.ts).
-              startCombat(g, tier, asteroid, eventSlugOf(id));
-              // Pirate engine hacker: "Engines limited to level 1." After startCombat, which clears the cap.
-              const cap = citedEngineCap(id);
-              if (cap != null) limitPlayerEngines(g, cap);
-              // Auto-ship carrying shield virus: "your Shields halved". After startCombat, which clears the half.
-              if (citedShieldHalf(id)) halvePlayerShields(g);
-              // Slug hacker (choice): Shields, Oxygen, or Weapon Control, each halved. After startCombat clears it.
-              const halves = citedSystemHalf(id);
-              if (halves) halvePlayerSystems(g, halves);
-              // Slug hacker (doors): "Door System offline". After startCombat, which clears it.
-              // Slug hacker (oxygen): "Oxygen system offline".
-              const offline = citedSystemOff(id);
-              if (offline?.includes("doors")) shutPlayerDoors(g);
-              if (offline?.includes("oxygen")) shutPlayerOxygen(g);
-              // Slug hacker (medical): "Medbay / Clone Bay offline". The two slug boarders spawn in citedChoose after this fight.
-              if (offline?.includes("medbay")) shutPlayerMedical(g);
-              // Auto-ship carrying shield virus: "Fight an Auto-ship with your Hacking offline."
-              // After startCombat, which clears system-off. This choice does not halve shields.
-              if (id === "c:auto-ship-carrying-shield-virus:1") shutPlayerHacking(g);
-              // Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
-              if (citedFriendlyAsb(id)) aidPlayerAsb(g);
+              // A passed slug is that page's own fight (repair caps, the sealed store ship, a fuel timer).
+              const event = slug ?? eventSlugOf(id);
+              startCombat(g, tier, asteroid, event);
+              const capId = slug ? `c:${slug}:fight` : id;
+              const here = g.beacons.find((x) => x.id === g.here);
+              // Slug repair station, Trivia: a return visit drops the malfunction. The reward table stays.
+              const revisit =
+                here?.mark === "slug-repair" && (slug === "slug-repair-engines" || slug === "slug-repair-half");
+              if (!revisit) {
+                // Pirate engine hacker: "Engines limited to level 1." After startCombat, which clears the cap.
+                const cap = citedEngineCap(capId);
+                if (cap != null) limitPlayerEngines(g, cap);
+                // Auto-ship carrying shield virus: "your Shields halved". After startCombat, which clears the half.
+                if (citedShieldHalf(capId)) halvePlayerShields(g);
+                // Slug hacker (choice): Shields, Oxygen, or Weapon Control, each halved. After startCombat clears it.
+                const halves = citedSystemHalf(capId);
+                if (halves) halvePlayerSystems(g, halves);
+                // Slug hacker (doors): "Door System offline". After startCombat, which clears it.
+                // Slug hacker (oxygen): "Oxygen system offline".
+                const offline = citedSystemOff(capId);
+                if (offline?.includes("doors")) shutPlayerDoors(g);
+                if (offline?.includes("oxygen")) shutPlayerOxygen(g);
+                // Slug hacker (medical): "Medbay / Clone Bay offline". The two slug boarders spawn in citedChoose after this fight.
+                if (offline?.includes("medbay")) shutPlayerMedical(g);
+                // Auto-ship carrying shield virus: "Fight an Auto-ship with your Hacking offline."
+                // After startCombat, which clears system-off. This choice does not halve shields.
+                if (capId === "c:auto-ship-carrying-shield-virus:1") shutPlayerHacking(g);
+                // Lanius fight with friendly ASB support: "Anti-Ship Battery on your side."
+                if (citedFriendlyAsb(capId)) aidPlayerAsb(g);
+                if ((slug === "slug-repair-engines" || slug === "slug-repair-half") && here) here.mark = "slug-repair";
+              }
+              // Slug store ship: the seal outlasts the win. commitJump and the crystal jump clear it.
+              if (slug === "slug-store-weapons") sealPlayerWeapons(g.player);
             },
             scrap: (n) => addScrap(g, n),
             note: (text) => log(g, text),
@@ -6407,6 +6449,7 @@ export function enterHiddenCrystal(g: Game) {
   // INFERRED: leaving for the Hidden Crystal Worlds ends the shield-virus half.
   clearShieldHalf(g);
   clearSystemOff(g);
+  clearWeaponSeal(g.player);
   clearFriendlyAsb(g);
   leashOnLeave(g);
   rememberFlagship(g);

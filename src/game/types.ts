@@ -681,6 +681,11 @@ export type Beacon = {
    * Drawn as 'QUEST' on the map from any distance. Absent on every other beacon.
    */
   quest?: string;
+  /**
+   * Slug repair station, Trivia: revisiting removes the malfunction. The reward table stays.
+   * Set when that fight's engine cap or weapon half is applied. Absent on every other beacon.
+   */
+  mark?: string;
 };
 
 /** Between-sector chart. Names and colors come from the Sectors page. */

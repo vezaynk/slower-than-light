@@ -1,0 +1,1408 @@
+/**
+ * Location pages that were still only a title or a plain hostile ship.
+ * Sibling results with no printed odds roll equally (INFERRED). {{DuplicateEvent|N}} counts N times.
+ * An unnamed weapon, drone schematic, or augmentation is grantRandomItem. A crystal weapon is an even
+ * draw of the crystal guns already in the game. Out-of-fuel pages name no sector; they join the wait roll only.
+ */
+import { tx } from "../../i18n/index.ts";
+import { adjustScrap } from "../extras/index.ts";
+import type { KinId } from "../extras/kin.ts";
+import { beginBoarding, hurtSystem, openStoreHere } from "../sim.ts";
+import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
+import { grantRandomItem, weaponLine } from "./bonus-item.ts";
+import { CRYSTAL_SECTOR_WEAPONS } from "./cited-stores.ts";
+import {
+  between,
+  crystalBoarders,
+  humanBoarders,
+  pageCard,
+  pageResult,
+  payOffer,
+  rollStandard,
+  rollSurrenderOffer,
+  scrapBand,
+  slugBoarders,
+  type SurrenderOffer,
+  type SurrenderTier,
+} from "./surrender.ts";
+
+type Ctx = {
+  g: Game;
+  resolve: () => void;
+  fight: (tier: string, asteroid?: boolean, slug?: string) => void;
+  scrap: (n: number) => void;
+  note: (text: string) => void;
+  irand: (n: number) => number;
+};
+
+type FxBit = { k: "nothing" } | { k: "fight"; tier: string };
+
+type Choice = { id: string; label: string; fx: FxBit[] };
+
+type MissingEvent = {
+  dest: string;
+  slug: string;
+  flag: string;
+  aliases: string[];
+  sectors: string[];
+  body: string;
+  choices: Choice[];
+};
+
+const nothing = (): FxBit[] => [{ k: "nothing" }];
+
+function row(dest: string, sectors: string[], body: string, choices: Choice[]): MissingEvent {
+  const slug = dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return { dest, slug, flag: `cited:${slug}`, aliases: [dest], sectors, body, choices };
+}
+
+function choice(slug: string, name: string, label: string, fight?: string): Choice {
+  return {
+    id: `c:${slug}:${name}`,
+    label,
+    fx: fight ? [{ k: "fight", tier: fight }] : nothing(),
+  };
+}
+
+const CRYSTAL = "Hidden Crystal Worlds";
+const ENGI = ["Engi Controlled Sector", "Engi Homeworlds"];
+const ZOLTAN = ["Zoltan Controlled Sector", "Zoltan Homeworlds"];
+const SLUG = ["Slug Controlled Nebula", "Slug Home Nebula"];
+const ABANDONED = ["Abandoned Sector"];
+
+export const EXTRA_EVENTS: MissingEvent[] = [
+  row(
+    "Crystal chat",
+    [CRYSTAL],
+    tx("wiki.cited-missing.crystal-chat-intro"),
+    [
+      choice("crystal-chat", "yes", tx("wiki.cited-missing.yes")),
+      choice("crystal-chat", "no", tx("wiki.cited-missing.no")),
+      choice("crystal-chat", "crystal", tx("wiki.cited-missing.have-your-crew-speak")),
+    ],
+  ),
+  row(
+    "Crystalline cache",
+    [CRYSTAL],
+    tx("wiki.cited-missing.cache-intro"),
+    [
+      choice("crystalline-cache", "weapons", tx("wiki.cited-missing.attempt-to-break-through")),
+      choice("crystalline-cache", "breach", tx("wiki.cited-missing.use-a-breach-missile")),
+      choice("crystalline-cache", "crystal", tx("wiki.cited-missing.recalibrate-your-weapons")),
+    ],
+  ),
+  row(
+    "Crystalline men buried",
+    [CRYSTAL],
+    tx("wiki.cited-missing.buried-intro"),
+    [
+      choice("crystalline-men-buried", "send", tx("wiki.cited-missing.send-a-crewmember")),
+      choice("crystalline-men-buried", "refuse", tx("wiki.cited-missing.refuse")),
+    ],
+  ),
+  row(
+    "Crystalline research facility",
+    [CRYSTAL],
+    tx("wiki.cited-missing.research-intro"),
+    [
+      choice("crystalline-research-facility", "allow", tx("wiki.cited-missing.allow-tests")),
+      choice("crystalline-research-facility", "refuse", tx("wiki.cited-missing.refuse")),
+      choice("crystalline-research-facility", "rock", tx("wiki.cited-missing.send-your-rockman")),
+      choice("crystalline-research-facility", "dna", tx("wiki.cited-missing.send-your-crews-data")),
+    ],
+  ),
+  row(
+    "Engi research station",
+    ENGI,
+    tx("wiki.cited-missing.engi-station-intro"),
+    [
+      choice("engi-research-station", "board", tx("wiki.cited-missing.board-the-station")),
+      choice("engi-research-station", "ignore", tx("wiki.cited-missing.ignore-it")),
+      choice("engi-research-station", "sensors", tx("wiki.cited-missing.run-another-scan")),
+      choice("engi-research-station", "scanners", tx("wiki.cited-missing.run-another-scan-lrs")),
+    ],
+  ),
+  row(
+    "Free scrap with resources (Engi)",
+    ENGI,
+    "",
+    [choice("free-scrap-with-resources-engi", "take", tx("wiki.cited-missing.standard-gift"))],
+  ),
+  row(
+    "Free scrap with resources (Zoltan)",
+    ZOLTAN,
+    tx("wiki.cited-missing.zoltan-scrap-intro"),
+    [choice("free-scrap-with-resources-zoltan", "take", tx("wiki.cited-missing.standard-gift"))],
+  ),
+  row(
+    "Zoltan free map",
+    ZOLTAN,
+    `${tx("wiki.cited-missing.zoltan-map-body")}\n\n${tx("wiki.cited-events.the-current-sector-map-is-revealed")}`,
+    [choice("zoltan-free-map", "0", tx("wiki.cited-missing.continue"))],
+  ),
+  row(
+    "Lanius empty distress beacon 1",
+    ABANDONED,
+    tx("wiki.cited-missing.lanius-empty-1"),
+    [choice("lanius-empty-distress-beacon-1", "0", tx("wiki.cited-events.nothing-happens"))],
+  ),
+  row(
+    "Lanius empty distress beacon 2",
+    ABANDONED,
+    tx("wiki.cited-missing.lanius-empty-2"),
+    [choice("lanius-empty-distress-beacon-2", "0", tx("wiki.cited-events.nothing-happens"))],
+  ),
+  row(
+    "Lanius with Federation science craft",
+    ABANDONED,
+    tx("wiki.cited-missing.lanius-science-intro"),
+    [
+      choice("lanius-with-federation-science-craft", "ask", tx("wiki.cited-missing.ask-for-help")),
+      choice("lanius-with-federation-science-craft", "lanius", tx("wiki.cited-missing.offer-translator")),
+      choice("lanius-with-federation-science-craft", "leave", tx("wiki.cited-missing.leave")),
+    ],
+  ),
+  row(
+    "Fight in Last Stand",
+    ["The Last Stand"],
+    "",
+    [choice("fight-in-last-stand", "0", tx("wiki.cited-missing.fight-the-scout"), "Rebel ship")],
+  ),
+  row(
+    "Slug oxygen malfunction",
+    SLUG,
+    tx("wiki.cited-missing.oxygen-intro"),
+    [
+      choice("slug-oxygen-malfunction", "send", tx("wiki.cited-missing.send-some-crew")),
+      choice("slug-oxygen-malfunction", "ignore", tx("wiki.cited-missing.ignore-them")),
+      choice("slug-oxygen-malfunction", "mantis", tx("wiki.cited-missing.mantis-oversee")),
+    ],
+  ),
+  row(
+    "Slug repair station",
+    SLUG,
+    tx("wiki.cited-missing.repair-intro"),
+    [
+      choice("slug-repair-station", "no", tx("wiki.cited-missing.no-thanks")),
+      choice("slug-repair-station", "sure", tx("wiki.cited-missing.sure")),
+      choice("slug-repair-station", "pay", tx("wiki.cited-missing.ask-about-payment")),
+    ],
+  ),
+  row(
+    "Slug store ship",
+    SLUG,
+    tx("wiki.cited-missing.store-intro"),
+    [
+      choice("slug-store-ship", "decline", tx("wiki.cited-missing.decline")),
+      choice("slug-store-ship", "ask", tx("wiki.cited-missing.ask-to-see-the-goods")),
+    ],
+  ),
+  row(
+    "Slug and Rock standoff in nebula",
+    SLUG,
+    tx("wiki.cited-missing.standoff-nebula-intro"),
+    [
+      choice("slug-and-rock-standoff-in-nebula", "0", tx("wiki.cited-missing.get-closer")),
+      choice("slug-and-rock-standoff-in-nebula", "1", tx("wiki.cited-missing.ignore-them")),
+    ],
+  ),
+];
+
+const NEBULA_ON_ARRIVAL = new Set([
+  "slug-oxygen-malfunction",
+  "slug-repair-station",
+  "slug-store-ship",
+  "slug-and-rock-standoff-in-nebula",
+]);
+
+/** Printed hull counts from Fight in Last Stand, Notes (12 ships). */
+const LAST_STAND_HULLS = [
+  "Auto-Scout",
+  "Auto-Scout",
+  "Auto-Surveyor",
+  "Auto-Assault",
+  "Auto-Assault",
+  "Auto-Hacker",
+  "rebel-rigger",
+  "rebel-rigger",
+  "rebel-disruptor",
+  "rebel-fighter",
+  "rebel-fighter",
+  "rebel-invader",
+];
+
+const ENGI_GIFT_INTROS = [
+  tx("wiki.cited-missing.engi-gift-1"),
+  tx("wiki.cited-missing.engi-gift-2"),
+  tx("wiki.cited-missing.engi-gift-3"),
+  tx("wiki.cited-missing.engi-gift-4"),
+];
+
+const LAST_STAND_INTROS = [
+  tx("wiki.cited-missing.last-stand-1"),
+  tx("wiki.cited-missing.last-stand-2"),
+  tx("wiki.cited-missing.last-stand-3"),
+  tx("wiki.cited-missing.last-stand-4"),
+  tx("wiki.cited-missing.last-stand-5"),
+  tx("wiki.cited-missing.last-stand-6"),
+];
+
+const TRADER_OFF = [
+  tx("wiki.cited-missing.trader-off-1"),
+  tx("wiki.cited-missing.trader-off-2"),
+  tx("wiki.cited-missing.trader-off-3"),
+  tx("wiki.cited-missing.trader-off-4"),
+  tx("wiki.cited-missing.trader-off-5"),
+];
+
+const TRADER_ON = [
+  tx("wiki.cited-missing.trader-on-1"),
+  tx("wiki.cited-missing.trader-on-2"),
+  tx("wiki.cited-missing.trader-on-3"),
+  tx("wiki.cited-missing.trader-on-4"),
+];
+
+type PayKind = "parts" | "missiles" | "scrap";
+type TradeRow = { fuel: [number, number]; kind: PayKind; amt: [number, number] };
+
+/** Template:Fuel Trader High List. */
+const HIGH_LIST: TradeRow[] = [
+  { fuel: [2, 4], kind: "parts", amt: [1, 2] },
+  { fuel: [2, 5], kind: "missiles", amt: [2, 4] },
+  { fuel: [2, 5], kind: "scrap", amt: [15, 25] },
+];
+
+/** Template:Fuel Trader Pt2, the three Accept offers. */
+const PT2_LIST: TradeRow[] = [
+  { fuel: [4, 7], kind: "parts", amt: [1, 2] },
+  { fuel: [4, 7], kind: "missiles", amt: [1, 2] },
+  { fuel: [3, 7], kind: "scrap", amt: [5, 12] },
+];
+
+const FUEL_BAND: Record<SurrenderTier, [number, number]> = {
+  low: [1, 3],
+  medium: [2, 4],
+  high: [3, 6],
+};
+
+const OWNED = new Set(EXTRA_EVENTS.map((ev) => ev.slug).concat([
+  "no-fuel-slug-fuel-trader",
+  "no-fuel-drifting-debris",
+  "no-fuel-fuel-trader-distress-off",
+  "no-fuel-fuel-trader-distress-on",
+  "no-fuel-prepare-to-dock",
+  "no-fuel-refugee-trading",
+]));
+
+function slugOf(id: string): string | null {
+  return /^c:([^:]+):/.exec(id)?.[1] ?? null;
+}
+
+function tail(id: string): string {
+  const slug = slugOf(id);
+  return slug ? id.slice(`c:${slug}:`.length) : "";
+}
+
+function span(ctx: Ctx, lo: number, hi: number): number {
+  if (hi <= lo) return lo;
+  return lo + ctx.irand(hi - lo + 1);
+}
+
+/** Inclusive weights. A {{DuplicateEvent|N}} entry is weight N. */
+function pickW(ctx: Ctx, weights: number[]): number {
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  let roll = ctx.irand(total);
+  for (let i = 0; i < weights.length; i++) {
+    if (roll < weights[i]!) return i;
+    roll -= weights[i]!;
+  }
+  return weights.length - 1;
+}
+
+function hasCrew(g: Game, kin: KinId): boolean {
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === kin);
+}
+
+function done(g: Game, text: string, offer?: SurrenderOffer) {
+  pageResult(g, text, offer);
+  g.paused = true;
+}
+
+function card(g: Game, body: string, choices: { id: string; label: string }[]) {
+  pageCard(g, body, choices);
+  g.paused = true;
+}
+
+function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
+  const eligible = between(g, scrapBand(g, tier));
+  return { tier, scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 };
+}
+
+function fuelOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
+  return { tier, scrap: 0, eligible: 0, fuel: between(g, FUEL_BAND[tier]), missiles: 0, parts: 0 };
+}
+
+/** Rewards, "Fuel": T fuel and T scrap. No bonus item. */
+function fuelAndScrap(g: Game, tier: SurrenderTier): SurrenderOffer {
+  const offer = scrapOnly(g, tier);
+  offer.fuel = between(g, FUEL_BAND[tier]);
+  return offer;
+}
+
+function repairs(n: number): SurrenderOffer {
+  return { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, repairs: n };
+}
+
+/**
+ * "You lose a crewmember." Clone Bay revives unless the page says it has no effect.
+ * INFERRED: the last living crewmember stays, matching the other event pages.
+ */
+function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
+  const g = ctx.g;
+  if (!noClone && g.player.kits.cradle) return tx("wiki.filler-events.the-lost-crewmember-is-revived");
+  const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+  if (mine.length <= 1) return "";
+  const lost = mine[ctx.irand(mine.length)]!;
+  g.crew = g.crew.filter((c) => c.id !== lost.id);
+  const line = tx("wiki.filler-events.is-lost", { name: lost.name });
+  // Drifting debris prints the Clone Bay's silence. Buried leave prints no such line.
+  if (quiet && g.player.kits.cradle) return `${line} ${tx("wiki.cited-missing.clone-bay-quiet")}`;
+  return line;
+}
+
+function fleetJump(ctx: Ctx) {
+  ctx.g.fleet += 1;
+  ctx.note(tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for"));
+}
+
+function crystalGun(ctx: Ctx): string {
+  const id = CRYSTAL_SECTOR_WEAPONS[ctx.irand(CRYSTAL_SECTOR_WEAPONS.length)]!;
+  return weaponLine(ctx.g, id);
+}
+
+/** Crystalline cache, detonate: "Bugged: no fuel loss if the reward includes fuel (2/3 chance)." */
+export function cacheFuelLoss(current: number, rewardFuel: number): number {
+  if (rewardFuel > 0) return 0;
+  return Math.min(100, Math.max(0, current));
+}
+
+function stockOf(g: Game, kind: PayKind): number {
+  if (kind === "scrap") return g.scrap;
+  if (kind === "missiles") return g.missiles;
+  return g.player.parts;
+}
+
+function spendKind(g: Game, kind: PayKind, n: number) {
+  if (kind === "scrap") g.scrap -= n;
+  else if (kind === "missiles") g.missiles -= n;
+  else g.player.parts -= n;
+}
+
+function payWord(kind: PayKind): string {
+  if (kind === "parts") return tx("wiki.cited-missing.drone-parts");
+  if (kind === "missiles") return tx("wiki.cited-missing.missiles");
+  return tx("wiki.cited-missing.scrap");
+}
+
+function offerLine(fuel: number, kind: PayKind, amt: number): string {
+  return tx("wiki.cited-missing.receive-fuel-lose", { fuel, amt, pay: payWord(kind) });
+}
+
+function rollTrade(g: Game, table: TradeRow[]): { fuel: number; kind: PayKind; amt: number } {
+  const rowN = table[between(g, [0, table.length - 1])]!;
+  return { fuel: between(g, rowN.fuel), kind: rowN.kind, amt: between(g, rowN.amt) };
+}
+
+const TRADE_ID = /^(buy|pt2|high2):(\d+):(parts|missiles|scrap):(\d+)$/;
+
+function showTrader(g: Game, slug: string, intro: string) {
+  const offer = rollTrade(g, HIGH_LIST);
+  card(g, `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`, [
+    { id: `c:${slug}:buy:${offer.fuel}:${offer.kind}:${offer.amt}`, label: tx("wiki.cited-missing.gladly-trade") },
+    { id: `c:${slug}:decline`, label: tx("wiki.cited-missing.respectfully-decline") },
+  ]);
+}
+
+function showPt2(ctx: Ctx, slug: string) {
+  const branch = ctx.irand(3);
+  if (branch === 2) {
+    done(ctx.g, tx("wiki.cited-missing.unable-to-help"));
+    return;
+  }
+  const offer = rollTrade(ctx.g, branch === 0 ? PT2_LIST : HIGH_LIST);
+  const kind = branch === 0 ? "pt2" : "high2";
+  const intro = branch === 0 ? tx("wiki.cited-missing.seeing-that-youre-in-need") : tx("wiki.cited-missing.not-for-charity");
+  card(ctx.g, `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`, [
+    { id: `c:${slug}:${kind}:${offer.fuel}:${offer.kind}:${offer.amt}`, label: tx("wiki.cited-missing.accept") },
+    {
+      id: branch === 0 ? `c:${slug}:pity` : `c:${slug}:walk`,
+      label: tx("wiki.cited-missing.decline-again"),
+    },
+  ]);
+}
+
+function payTrade(ctx: Ctx, fuel: number, kind: PayKind, amt: number): boolean {
+  if (stockOf(ctx.g, kind) < amt) return false;
+  spendKind(ctx.g, kind, amt);
+  ctx.g.fuel += fuel;
+  done(ctx.g, offerLine(fuel, kind, amt));
+  return true;
+}
+
+function defeat(g: Game) {
+  g.phase = "defeat";
+  g.outcome = g.training ? "tutorial" : "hull";
+  g.paused = true;
+  g.event = null;
+}
+
+function hurtRandom(ctx: Ctx): string {
+  const g = ctx.g;
+  const ids = (Object.keys(g.player.systems) as SysId[]).filter((id) => (g.player.systems[id]?.level ?? 0) > 0);
+  if (!ids.length) return "";
+  const id = ids[ctx.irand(ids.length)]!;
+  hurtSystem(g.player, id, 1);
+  const room = g.player.rooms.find((r) => r.system === id);
+  return tx("wiki.cited-missing.system-damaged", { name: room?.title ?? id });
+}
+
+function investigate(ctx: Ctx) {
+  const branch = ctx.irand(3);
+  if (branch === 2) {
+    card(ctx.g, tx("wiki.cited-missing.cache-trap"), [
+      { id: "c:crystalline-cache:pull", label: tx("wiki.cited-missing.pull-out-now") },
+      { id: "c:crystalline-cache:detonate", label: tx("wiki.cited-missing.detonate-fuel") },
+      { id: "c:crystalline-cache:teleport", label: tx("wiki.cited-missing.beam-crew-back") },
+      { id: "c:crystalline-cache:engines", label: tx("wiki.cited-missing.rescue-with-engines") },
+    ]);
+    return;
+  }
+  const gun = crystalGun(ctx);
+  const offer = rollSurrenderOffer(ctx.g, "low", true);
+  if (branch === 1) {
+    const paid = payOffer(ctx.g, offer, true);
+    ctx.note(gun);
+    if (offer.scrap) ctx.note(tx("wiki.surrender.scrap", { scrap: offer.scrap }));
+    if (offer.fuel) ctx.note(tx("wiki.surrender.fuel", { fuel: offer.fuel }));
+    if (offer.missiles) ctx.note(tx("wiki.surrender.missiles", { missiles: offer.missiles }));
+    if (offer.parts) ctx.note(tx("wiki.surrender.drone-parts", { parts: offer.parts }));
+    for (const line of paid.extras) ctx.note(line);
+    crystalBoarders(ctx.g, 2, 3);
+    beginBoarding(ctx.g);
+    return;
+  }
+  done(ctx.g, `${tx("wiki.cited-missing.cache-weapons")}\n\n${gun}`, offer);
+}
+
+function digCard(ctx: Ctx, second: boolean) {
+  const slug = "crystalline-men-buried";
+  card(ctx.g, second ? tx("wiki.cited-missing.buried-waited") : tx("wiki.cited-missing.buried-dig"), [
+    { id: `c:${slug}:${second ? "leave2" : "leave"}`, label: tx("wiki.cited-missing.leave-them") },
+    { id: `c:${slug}:${second ? "pull2" : "pull"}`, label: tx("wiki.cited-missing.pull-them-out") },
+    { id: `c:${slug}:${second ? "wait2" : "wait"}`, label: tx("wiki.cited-missing.wait") },
+  ]);
+}
+
+function crystalFight(ctx: Ctx) {
+  ctx.note(tx("wiki.cited-missing.crystal-insult"));
+  ctx.fight(tx("wiki.cited-events.crystal-ship"));
+}
+
+function demandCard(ctx: Ctx, repairsN: number) {
+  const g = ctx.g;
+  g.player.hull = Math.min(g.player.hullMax, g.player.hull + repairsN);
+  ctx.note(tx("wiki.surrender.hull-repairs", { repairs: repairsN }));
+  card(g, tx(repairsN === 10 ? "wiki.cited-missing.repair-ten" : "wiki.cited-missing.repair-one"), [
+    { id: "c:slug-repair-station:demand", label: tx("wiki.cited-missing.demand-an-explanation") },
+  ]);
+}
+
+function engineFight(ctx: Ctx) {
+  ctx.note(tx("wiki.cited-missing.repair-engines-down"));
+  ctx.fight("Slug ship", undefined, "slug-repair-engines");
+}
+
+function halfFight(ctx: Ctx) {
+  ctx.note(tx("wiki.cited-missing.repair-weapons-half"));
+  ctx.fight("Slug ship", undefined, "slug-repair-half");
+}
+
+function sealFight(ctx: Ctx, boarders: number) {
+  ctx.fight("Slug ship", undefined, "slug-store-weapons");
+  slugBoarders(ctx.g, boarders, boarders);
+}
+
+function slugFight(ctx: Ctx, boarders: number) {
+  ctx.fight("Slug ship");
+  if (boarders > 0) slugBoarders(ctx.g, boarders, boarders);
+}
+
+function pirateFight(ctx: Ctx, slug: string, boarders = false) {
+  ctx.fight("Pirate ship", undefined, slug);
+  if (boarders) humanBoarders(ctx.g, 2, 3, tx("wiki.cited-events.human-boarders-beam-aboard-your-ship"));
+}
+
+export function missingAutoFight(flag: string): boolean {
+  return flag === "cited:fight-in-last-stand";
+}
+
+export function missingOwns(id: string): boolean {
+  const slug = slugOf(id);
+  return slug != null && OWNED.has(slug);
+}
+
+export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string }): GameEvent | null {
+  if (NEBULA_ON_ARRIVAL.has(ev.slug)) b.kind = "nebula";
+  if (ev.slug === "free-scrap-with-resources-engi") {
+    return {
+      title: ev.dest,
+      body: ENGI_GIFT_INTROS[between(g, [0, ENGI_GIFT_INTROS.length - 1])]!,
+      choices: [{ id: "c:free-scrap-with-resources-engi:take", label: tx("wiki.cited-missing.standard-gift") }],
+    };
+  }
+  if (ev.slug === "fight-in-last-stand") {
+    const hull = LAST_STAND_HULLS[between(g, [0, LAST_STAND_HULLS.length - 1])]!;
+    return {
+      title: ev.dest,
+      body: LAST_STAND_INTROS[between(g, [0, LAST_STAND_INTROS.length - 1])]!,
+      choices: [{ id: `c:fight-in-last-stand:go:${hull}`, label: tx("wiki.cited-missing.fight-the-scout") }],
+    };
+  }
+  if (ev.slug === "no-fuel-slug-fuel-trader") {
+    return {
+      title: ev.dest,
+      body: tx("wiki.cited-missing.slug-trader-intro"),
+      choices: [
+        { id: "c:no-fuel-slug-fuel-trader:pay", label: tx("wiki.cited-missing.pay-15-for-5") },
+        { id: "c:no-fuel-slug-fuel-trader:ignore", label: tx("wiki.cited-missing.ignore-the-offer") },
+        { id: "c:no-fuel-slug-fuel-trader:slug", label: tx("wiki.cited-missing.slug-makes-the-purchase") },
+      ],
+    };
+  }
+  if (ev.slug === "no-fuel-drifting-debris") {
+    return {
+      title: ev.dest,
+      body: tx("wiki.cited-missing.debris-intro"),
+      choices: [
+        { id: "c:no-fuel-drifting-debris:send", label: tx("wiki.cited-missing.send-an-away-team") },
+        { id: "c:no-fuel-drifting-debris:drift", label: tx("wiki.cited-missing.let-it-drift") },
+        { id: "c:no-fuel-drifting-debris:scan", label: tx("wiki.cited-missing.lifeform-scan") },
+      ],
+    };
+  }
+  if (ev.slug === "no-fuel-fuel-trader-distress-off" || ev.slug === "no-fuel-fuel-trader-distress-on") {
+    const intros = ev.slug.endsWith("off") ? TRADER_OFF : TRADER_ON;
+    const intro = intros[between(g, [0, intros.length - 1])]!;
+    const offer = rollTrade(g, HIGH_LIST);
+    return {
+      title: ev.dest,
+      body: `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`,
+      choices: [
+        { id: `c:${ev.slug}:buy:${offer.fuel}:${offer.kind}:${offer.amt}`, label: tx("wiki.cited-missing.gladly-trade") },
+        { id: `c:${ev.slug}:decline`, label: tx("wiki.cited-missing.respectfully-decline") },
+      ],
+    };
+  }
+  if (ev.slug === "no-fuel-prepare-to-dock") {
+    return {
+      title: ev.dest,
+      body: tx("wiki.cited-missing.prepare-intro"),
+      choices: [
+        { id: "c:no-fuel-prepare-to-dock:accept", label: tx("wiki.cited-missing.accept-their-offer") },
+        { id: "c:no-fuel-prepare-to-dock:distance", label: tx("wiki.cited-missing.keep-distance") },
+        { id: "c:no-fuel-prepare-to-dock:sensors", label: tx("wiki.cited-missing.scan-sensors") },
+        { id: "c:no-fuel-prepare-to-dock:scanners", label: tx("wiki.cited-missing.scan-lrs") },
+      ],
+    };
+  }
+  if (ev.slug === "no-fuel-refugee-trading") {
+    const variant = between(g, [0, 2]);
+    if (variant === 0) {
+      return {
+        title: ev.dest,
+        body: tx("wiki.cited-missing.refugee-low"),
+        choices: [{ id: "c:no-fuel-refugee-trading:low", label: tx("wiki.cited-missing.continue") }],
+      };
+    }
+    if (variant === 1) {
+      return {
+        title: ev.dest,
+        body: tx("wiki.cited-missing.refugee-hull"),
+        choices: [
+          { id: "c:no-fuel-refugee-trading:trade", label: tx("wiki.cited-missing.trade-10-for-3") },
+          { id: "c:no-fuel-refugee-trading:engi", label: tx("wiki.cited-missing.engi-negotiate") },
+          { id: "c:no-fuel-refugee-trading:refuse", label: tx("wiki.cited-missing.refuse-their-offer") },
+          { id: "c:no-fuel-refugee-trading:attack", label: tx("wiki.cited-missing.attack-them") },
+        ],
+      };
+    }
+    return {
+      title: ev.dest,
+      body: tx("wiki.cited-missing.refugee-arms"),
+      choices: [
+        { id: "c:no-fuel-refugee-trading:missiles", label: tx("wiki.cited-missing.offer-a-missile") },
+        { id: "c:no-fuel-refugee-trading:arm-no", label: tx("wiki.cited-missing.refuse-their-offer") },
+      ],
+    };
+  }
+  return null;
+}
+
+export function missingDisabled(g: Game, id: string): string | null {
+  const slug = slugOf(id);
+  if (!slug || !OWNED.has(slug)) return null;
+  const name = tail(id);
+  if (name === "crystal" && slug === "crystal-chat" && !hasCrew(g, "shard")) return tx("wiki.quests-a.needs-a-crystal-crewmember");
+  if (name === "crystal" && slug === "crystalline-cache" && !hasCrew(g, "shard")) return tx("wiki.quests-a.needs-a-crystal-crewmember");
+  if (name === "breach") {
+    if (!g.player.weapons.some((w) => w.defId === "breachmissiles")) return tx("wiki.cited-missing.needs-breach-missiles");
+    if (g.missiles < 1) return tx("wiki.quests.need-1-missiles");
+  }
+  if (name === "teleport" && (g.player.kits.sling?.level ?? 0) < 2) return tx("wiki.cited-missing.needs-teleporter-level-2");
+  if (name === "engines" && slug === "crystalline-cache" && (g.player.systems.engines?.level ?? 0) < 7) {
+    return tx("wiki.cited-missing.needs-engines-level-7");
+  }
+  if (name === "rock" && !hasCrew(g, "stone")) return tx("wiki.quests.needs-a-rock-crewmember");
+  if (name === "dna" && !g.augments.includes("dna")) return tx("wiki.cited-missing.needs-backup-dna-bank");
+  if (name === "sensors" && slug === "engi-research-station" && (g.player.systems.sensors?.level ?? 0) < 2) {
+    return tx("wiki.cited-events.needs-sensors-level-2");
+  }
+  if (name === "scanners" && slug === "engi-research-station" && !g.augments.includes("glass")) {
+    return tx("wiki.cited-events.needs-long-ranged-scanners");
+  }
+  if (name === "lanius" && !hasCrew(g, "voidlung")) return tx("wiki.quests.needs-a-lanius-crewmember");
+  if (name === "mantis" && !hasCrew(g, "blade")) return tx("wiki.quests.needs-a-mantis-crewmember");
+  if (name === "slug" && (slug === "no-fuel-slug-fuel-trader" || slug === "slug-store-ship") && !hasCrew(g, "gel")) {
+    return tx("wiki.quests.needs-a-slug-crewmember");
+  }
+  if (name === "scan" && slug === "no-fuel-drifting-debris" && !g.augments.includes("pulseeye")) {
+    return tx("wiki.filler-events.needs-a-lifeform-scanner");
+  }
+  if (name === "sensors" && slug === "no-fuel-prepare-to-dock" && (g.player.systems.sensors?.level ?? 0) < 3) {
+    return tx("wiki.quests.needs-sensors-level-3");
+  }
+  if (name === "scanners" && slug === "no-fuel-prepare-to-dock" && !g.augments.includes("glass")) {
+    return tx("wiki.cited-events.needs-long-ranged-scanners");
+  }
+  if (name === "cloak" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
+  if (name === "engi" && slug === "no-fuel-refugee-trading" && !hasCrew(g, "shell")) return tx("wiki.quests.needs-an-engi-crewmember");
+  if ((name === "pay" && slug === "no-fuel-slug-fuel-trader") || (name === "slug" && slug === "no-fuel-slug-fuel-trader")) {
+    if (g.scrap < 15) return tx("wiki.cited-events.need", { cost: 15, v: "scrap" });
+  }
+  if (name === "trade" || name === "better" || name === "again") {
+    if (g.scrap < 10) return tx("wiki.cited-events.need", { cost: 10, v: "scrap" });
+  }
+  if (name === "missiles" && slug === "no-fuel-refugee-trading" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
+  if (name === "fuel" && slug === "slug-repair-station" && g.fuel < 15) return tx("wiki.cited-events.need", { cost: 15, v: "fuel" });
+  if ((name === "scrap50" || name === "accept50") && g.scrap < 50) return tx("wiki.cited-events.need", { cost: 50, v: "scrap" });
+  const trade = TRADE_ID.exec(name);
+  if (trade && stockOf(g, trade[3] as PayKind) < Number(trade[4])) {
+    return tx("wiki.cited-events.need", { cost: Number(trade[4]), v: payWord(trade[3] as PayKind) });
+  }
+  const ransom = /^pay:(\d+)$/.exec(name);
+  if (ransom && slug === "no-fuel-drifting-debris" && g.scrap < Number(ransom[1])) {
+    return tx("wiki.cited-events.need", { cost: Number(ransom[1]), v: "scrap" });
+  }
+  return null;
+}
+
+function payFifteen(ctx: Ctx, theft: boolean): boolean {
+  if (ctx.g.scrap < 15) return false;
+  ctx.g.scrap -= 15;
+  ctx.g.fuel += 5;
+  const text = tx("wiki.cited-missing.slug-exchange");
+  if (!theft) {
+    done(ctx.g, text);
+    return true;
+  }
+  card(ctx.g, text, [{ id: "c:no-fuel-slug-fuel-trader:theft", label: tx("wiki.cited-missing.continue") }]);
+  return true;
+}
+
+function betterTrade(ctx: Ctx, id: string): boolean {
+  if (ctx.g.scrap < 10) return false;
+  ctx.g.scrap -= 10;
+  ctx.g.fuel += id === "trade" ? 3 : 6;
+  done(ctx.g, tx(id === "trade" ? "wiki.cited-missing.refugee-thanks" : "wiki.cited-missing.refugee-better-done"));
+  return true;
+}
+
+export function missingChoose(ctx: Ctx, id: string): boolean | null {
+  const slug = slugOf(id);
+  if (!slug || !OWNED.has(slug)) return null;
+  if (
+    id === "c:lanius-empty-distress-beacon-1:0" ||
+    id === "c:lanius-empty-distress-beacon-2:0" ||
+    id === "c:zoltan-free-map:0" ||
+    id.startsWith("c:slug-and-rock-standoff-in-nebula:")
+  ) {
+    return null;
+  }
+  if (missingDisabled(ctx.g, id)) return false;
+  const name = tail(id);
+  const g = ctx.g;
+
+  if (slug === "crystal-chat") {
+    if (name === "yes") {
+      card(g, tx("wiki.cited-missing.crystal-questions"), [
+        { id: "c:crystal-chat:answer", label: tx("wiki.cited-missing.try-to-answer") },
+        { id: "c:crystal-chat:busy", label: tx("wiki.cited-missing.no-time") },
+      ]);
+      return true;
+    }
+    if (name === "no") {
+      done(g, tx("wiki.cited-missing.crystal-busy"));
+      return true;
+    }
+    if (name === "busy") {
+      done(g, tx("wiki.cited-missing.crystal-next-time"));
+      return true;
+    }
+    if (name === "answer") {
+      const branch = ctx.irand(3);
+      if (branch === 0) {
+        ctx.note(tx("wiki.cited-missing.crystal-rebel"));
+        ctx.fight("Rebel ship");
+        return true;
+      }
+      if (branch === 1) {
+        done(g, tx("wiki.cited-missing.crystal-supplies"), rollSurrenderOffer(g));
+        return true;
+      }
+      done(g, tx("wiki.cited-missing.crystal-repairs"), repairs(6));
+      return true;
+    }
+    if (name === "crystal") {
+      const tier = (["low", "medium", "high"] as const)[ctx.irand(3)]!;
+      done(g, tx("wiki.cited-missing.crystal-kin"), fuelAndScrap(g, tier));
+      return true;
+    }
+  }
+
+  if (slug === "crystalline-cache") {
+    if (name === "weapons") {
+      if (ctx.irand(2) === 0) done(g, tx("wiki.cited-missing.cache-holds"));
+      else investigate(ctx);
+      return true;
+    }
+    if (name === "breach") {
+      g.missiles -= 1;
+      ctx.note(tx("wiki.cited-missing.missile-spent"));
+      investigate(ctx);
+      return true;
+    }
+    if (name === "crystal") {
+      investigate(ctx);
+      return true;
+    }
+    if (name === "pull") {
+      done(g, `${tx("wiki.cited-missing.cache-pull")}\n\n${loseCrew(ctx, false)}`);
+      return true;
+    }
+    if (name === "detonate") {
+      const offer = rollSurrenderOffer(g, "low", true);
+      offer.random = "weapon";
+      const loss = cacheFuelLoss(g.fuel, offer.fuel);
+      const text = loss
+        ? `${tx("wiki.cited-missing.cache-detonate")} ${tx("wiki.cited-missing.fuel-lost", { n: loss })}`
+        : tx("wiki.cited-missing.cache-detonate");
+      done(g, text, offer);
+      g.fuel = Math.max(0, g.fuel - loss);
+      return true;
+    }
+    if (name === "teleport") {
+      done(g, tx("wiki.cited-missing.cache-teleport"));
+      return true;
+    }
+    if (name === "engines") {
+      const offer = rollSurrenderOffer(g, "low", true);
+      offer.random = "weapon";
+      done(g, tx("wiki.cited-missing.cache-engines"), offer);
+      return true;
+    }
+  }
+
+  if (slug === "crystalline-men-buried") {
+    if (name === "send") {
+      digCard(ctx, false);
+      return true;
+    }
+    if (name === "refuse") {
+      done(g, tx("wiki.cited-missing.buried-refuse"));
+      return true;
+    }
+    if (name === "leave" || name === "leave2") {
+      const tier = name === "leave" ? "medium" : "high";
+      const lost = loseCrew(ctx, true);
+      done(g, `${tx("wiki.cited-missing.buried-leave")}\n\n${lost}`, fuelAndScrap(g, tier));
+      return true;
+    }
+    if (name === "pull" || name === "pull2") {
+      crystalFight(ctx);
+      return true;
+    }
+    if (name === "wait") {
+      fleetJump(ctx);
+      digCard(ctx, true);
+      return true;
+    }
+    if (name === "wait2") {
+      const line = weaponLine(g, "heavycrystal2");
+      fleetJump(ctx);
+      done(g, `${tx("wiki.cited-missing.buried-gift")}\n\n${line}\n\n${tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for")}`);
+      return true;
+    }
+  }
+
+  if (slug === "crystalline-research-facility") {
+    if (name === "allow") {
+      const branch = ctx.irand(3);
+      if (branch === 0) {
+        const offer = scrapOnly(g, "low");
+        offer.random = "weapon";
+        done(g, `${tx("wiki.cited-missing.research-broken")}\n\n${loseCrew(ctx, false)}`, offer);
+        return true;
+      }
+      if (branch === 1) {
+        done(g, tx("wiki.cited-missing.research-scans"), rollSurrenderOffer(g, "medium"));
+        return true;
+      }
+      const offer = scrapOnly(g, "low");
+      offer.random = "drone";
+      done(g, tx("wiki.cited-missing.research-genome"), offer);
+      return true;
+    }
+    if (name === "refuse") {
+      if (pickW(ctx, [2, 1]) === 0) done(g, tx("wiki.cited-missing.research-shame"));
+      else {
+        ctx.note(tx("wiki.cited-missing.research-submit"));
+        ctx.fight(tx("wiki.cited-events.crystal-ship"));
+      }
+      return true;
+    }
+    if (name === "rock") {
+      done(g, tx("wiki.cited-missing.research-rock"), rollStandard(g, "medium"));
+      return true;
+    }
+    if (name === "dna") {
+      const offer = scrapOnly(g, "medium");
+      offer.random = "weapon";
+      done(g, tx("wiki.cited-missing.research-dna"), offer);
+      return true;
+    }
+  }
+
+  if (slug === "engi-research-station") {
+    if (name === "board") {
+      if (ctx.irand(2) === 0) done(g, tx("wiki.cited-missing.engi-dead"));
+      else {
+        card(g, tx("wiki.cited-missing.engi-reactor"), [
+          { id: "c:engi-research-station:save-engi", label: tx("wiki.cited-missing.save-the-engi") },
+          { id: "c:engi-research-station:save-schematic", label: tx("wiki.cited-missing.save-the-schematic") },
+          { id: "c:engi-research-station:save-selves", label: tx("wiki.cited-missing.save-yourselves") },
+        ]);
+      }
+      return true;
+    }
+    if (name === "ignore") {
+      done(g, tx("wiki.cited-missing.engi-ignore"));
+      return true;
+    }
+    if (name === "sensors" || name === "scanners") {
+      card(g, tx("wiki.cited-missing.engi-second-scan"), [
+        { id: "c:engi-research-station:scan-engi", label: tx("wiki.cited-missing.save-the-engi") },
+        { id: "c:engi-research-station:scan-drone", label: tx("wiki.cited-missing.save-the-schematic") },
+      ]);
+      return true;
+    }
+    if (name === "save-engi") {
+      const lost = ctx.irand(2) === 0 ? loseCrew(ctx, false) : "";
+      const offer = scrapOnly(g, "low");
+      offer.crew = tx("wiki.surrender.engi");
+      done(g, `${lost || tx("wiki.cited-missing.engi-safe")}`, offer);
+      return true;
+    }
+    if (name === "save-schematic") {
+      if (ctx.irand(2) === 0) {
+        done(g, `${tx("wiki.cited-missing.engi-sucked-out")}\n\n${loseCrew(ctx, false)}`, scrapOnly(g, "low"));
+        return true;
+      }
+      const offer = scrapOnly(g, "low");
+      offer.random = "drone";
+      done(g, tx("wiki.cited-missing.engi-schematic-saved"), offer);
+      return true;
+    }
+    if (name === "save-selves") {
+      done(g, tx("wiki.cited-missing.engi-selves"), scrapOnly(g, "low"));
+      return true;
+    }
+    if (name === "scan-engi") {
+      const offer = scrapOnly(g, "low");
+      offer.crew = tx("wiki.surrender.engi");
+      done(g, tx("wiki.cited-missing.engi-scan-saved"), offer);
+      return true;
+    }
+    if (name === "scan-drone") {
+      const offer = scrapOnly(g, "low");
+      offer.random = "drone";
+      done(g, tx("wiki.cited-missing.engi-scan-drone"), offer);
+      return true;
+    }
+  }
+
+  if (slug === "lanius-with-federation-science-craft") {
+    if (name === "ask") {
+      const branch = ctx.irand(4);
+      if (branch === 0) {
+        done(g, `${tx("wiki.cited-missing.lanius-weapon")}\n\n${grantRandomItem(g, "weapon")}`);
+        return true;
+      }
+      if (branch === 1) {
+        const offer = scrapOnly(g, "medium");
+        offer.parts = 1;
+        done(g, tx("wiki.cited-missing.lanius-parts"), offer);
+        return true;
+      }
+      if (branch === 2) {
+        done(g, tx("wiki.cited-missing.lanius-scrap"), scrapOnly(g, "medium"));
+        return true;
+      }
+      done(g, tx("wiki.cited-missing.lanius-nothing"));
+      return true;
+    }
+    if (name === "lanius") {
+      const branch = ctx.irand(3);
+      const kind = (["weapon", "drone", "augment"] as const)[branch]!;
+      done(g, `${tx("wiki.cited-missing.lanius-blue")}\n\n${grantRandomItem(g, kind)}`);
+      return true;
+    }
+    if (name === "leave") {
+      done(g, tx("wiki.cited-missing.lanius-leave"));
+      return true;
+    }
+  }
+
+  if (slug === "free-scrap-with-resources-engi" || slug === "free-scrap-with-resources-zoltan") {
+    if (name === "take") {
+      done(g, tx("wiki.cited-missing.standard-gift"), rollStandard(g));
+      return true;
+    }
+  }
+
+  if (slug === "fight-in-last-stand") {
+    const hull = name.startsWith("go:") ? name.slice(3) : LAST_STAND_HULLS[between(g, [0, LAST_STAND_HULLS.length - 1])]!;
+    ctx.fight(hull, undefined, "fight-in-last-stand");
+    return true;
+  }
+
+  if (slug === "slug-oxygen-malfunction") {
+    if (name === "send") {
+      const branch = ctx.irand(3);
+      if (branch === 0) {
+        done(g, tx("wiki.cited-missing.oxygen-fixed"), scrapOnly(g, "high"));
+        return true;
+      }
+      if (branch === 1) {
+        ctx.note(tx("wiki.cited-missing.oxygen-boarded"));
+        ctx.fight("Slug ship");
+        slugBoarders(g, 1, 3);
+        return true;
+      }
+      ctx.note(`${tx("wiki.cited-missing.oxygen-shot")}\n\n${loseCrew(ctx, false)}`);
+      ctx.fight("Slug ship");
+      return true;
+    }
+    if (name === "ignore") {
+      done(g, tx("wiki.cited-missing.oxygen-ignore"));
+      return true;
+    }
+    if (name === "mantis") {
+      done(g, tx("wiki.cited-missing.oxygen-mantis"), scrapOnly(g, "high"));
+      return true;
+    }
+  }
+
+  if (slug === "slug-repair-station") {
+    if (name === "no") {
+      done(g, tx("wiki.cited-missing.repair-no"));
+      return true;
+    }
+    if (name === "sure") {
+      const branch = ctx.irand(3);
+      if (branch === 0) demandCard(ctx, 10);
+      else if (branch === 1) demandCard(ctx, 1);
+      else engineFight(ctx);
+      return true;
+    }
+    if (name === "engines") {
+      engineFight(ctx);
+      return true;
+    }
+    if (name === "pay") {
+      if (ctx.irand(2) === 0) {
+        ctx.note(tx("wiki.cited-missing.repair-ambush"));
+        ctx.fight("Slug ship");
+        return true;
+      }
+      card(g, tx("wiki.cited-missing.repair-price"), [
+        { id: "c:slug-repair-station:accept50", label: tx("wiki.cited-missing.accept-50") },
+        { id: "c:slug-repair-station:decline50", label: tx("wiki.cited-missing.decline") },
+      ]);
+      return true;
+    }
+    if (name === "accept50") {
+      g.scrap -= 50;
+      done(g, tx("wiki.cited-missing.repair-paid"), repairs(10));
+      return true;
+    }
+    if (name === "decline50") {
+      done(g, tx("wiki.cited-missing.repair-declined"));
+      return true;
+    }
+    if (name === "demand") {
+      if (ctx.irand(2) === 0) {
+        card(g, tx("wiki.cited-missing.repair-fuel-demand"), [
+          { id: "c:slug-repair-station:fuel", label: tx("wiki.cited-missing.give-15-fuel") },
+          { id: "c:slug-repair-station:ridiculous", label: tx("wiki.cited-missing.thats-ridiculous") },
+        ]);
+      } else {
+        card(g, tx("wiki.cited-missing.repair-scrap-demand"), [
+          { id: "c:slug-repair-station:scrap50", label: tx("wiki.cited-missing.give-50-scrap") },
+          { id: "c:slug-repair-station:half", label: tx("wiki.cited-missing.lets-get-out") },
+        ]);
+      }
+      return true;
+    }
+    if (name === "fuel") {
+      g.fuel -= 15;
+      done(g, tx("wiki.cited-missing.nothing-else"));
+      return true;
+    }
+    if (name === "ridiculous") {
+      g.player.hull = Math.max(0, g.player.hull - 5);
+      const sys = hurtRandom(ctx);
+      ctx.note(tx("wiki.cited-events.hull-damage", { v: 5 }));
+      if (sys) ctx.note(sys);
+      if (g.player.hull <= 0) {
+        defeat(g);
+        return true;
+      }
+      ctx.fight("Slug ship");
+      return true;
+    }
+    if (name === "scrap50") {
+      g.scrap -= 50;
+      done(g, tx("wiki.cited-missing.nothing-else"));
+      return true;
+    }
+    if (name === "half") {
+      halfFight(ctx);
+      return true;
+    }
+  }
+
+  if (slug === "slug-store-ship") {
+    if (name === "decline") {
+      done(g, tx("wiki.cited-missing.store-decline"));
+      return true;
+    }
+    if (name === "ask") {
+      card(g, tx("wiki.cited-missing.store-rules"), [
+        { id: "c:slug-store-ship:understood", label: tx("wiki.cited-missing.understood") },
+        { id: "c:slug-store-ship:forget-outer", label: tx("wiki.cited-missing.forget-this") },
+        { id: "c:slug-store-ship:slug", label: tx("wiki.cited-missing.slug-senses-someone") },
+      ]);
+      return true;
+    }
+    if (name === "forget-outer") {
+      done(g, tx("wiki.cited-missing.store-forget-outer"));
+      return true;
+    }
+    if (name === "slug") {
+      ctx.note(tx("wiki.cited-missing.store-slug-caught"));
+      ctx.fight("Slug ship");
+      return true;
+    }
+    if (name === "understood") {
+      card(g, tx("wiki.cited-missing.store-liability"), [
+        { id: "c:slug-store-ship:ok", label: tx("wiki.cited-missing.not-a-problem") },
+        { id: "c:slug-store-ship:forget-inner", label: tx("wiki.cited-missing.forget-this") },
+      ]);
+      return true;
+    }
+    if (name === "ok") {
+      const branch = ctx.irand(3);
+      if (branch === 0) {
+        g.fuel += 5;
+        ctx.note(tx("wiki.surrender.fuel", { fuel: 5 }));
+        openStoreHere(g);
+        return true;
+      }
+      if (branch === 1) {
+        ctx.note(tx("wiki.cited-missing.store-die"));
+        slugFight(ctx, 2);
+        return true;
+      }
+      ctx.note(tx("wiki.cited-missing.store-weapons-down"));
+      sealFight(ctx, 1);
+      return true;
+    }
+    if (name === "weapons") {
+      ctx.note(tx("wiki.cited-missing.store-weapons-down"));
+      sealFight(ctx, 1);
+      return true;
+    }
+    if (name === "forget-inner") {
+      if (ctx.irand(2) === 0) {
+        ctx.note(tx("wiki.cited-missing.store-red-alert"));
+        slugFight(ctx, 1);
+        return true;
+      }
+      done(g, tx("wiki.cited-missing.store-impatient"));
+      return true;
+    }
+  }
+
+  if (slug === "no-fuel-slug-fuel-trader") {
+    if (name === "pay") return payFifteen(ctx, ctx.irand(2) === 1);
+    if (name === "slug") return payFifteen(ctx, false);
+    if (name === "ignore") {
+      done(g, tx("wiki.cited-missing.slug-trader-ignore"));
+      return true;
+    }
+    if (name === "theft") {
+      const missiles = Math.min(g.missiles, span(ctx, 2, 4));
+      const scrap = Math.min(g.scrap, span(ctx, 20, 35));
+      g.missiles -= missiles;
+      g.scrap -= scrap;
+      done(g, tx("wiki.cited-missing.slug-theft", { missiles, scrap }));
+      return true;
+    }
+  }
+
+  if (slug === "no-fuel-drifting-debris") {
+    if (name === "send") {
+      card(g, tx("wiki.cited-missing.debris-board"), [
+        { id: "c:no-fuel-drifting-debris:report", label: tx("wiki.cited-missing.report") },
+      ]);
+      return true;
+    }
+    if (name === "report") {
+      const branch = ctx.irand(4);
+      if (branch === 0) {
+        done(g, `${tx("wiki.cited-missing.debris-map")} ${tx("wiki.cited-events.the-current-sector-map-is-revealed")}`, fuelOnly(g, "medium"));
+        return true;
+      }
+      if (branch === 1) {
+        done(g, tx("wiki.cited-missing.debris-cell"), fuelOnly(g, "medium"));
+        return true;
+      }
+      if (branch === 2) {
+        const offer = scrapOnly(g, "medium");
+        offer.missiles = between(g, [2, 4]);
+        done(g, tx("wiki.cited-missing.debris-ammo"), offer);
+        return true;
+      }
+      const cost = between(g, [25, 40]);
+      card(g, tx("wiki.cited-missing.debris-ransom"), [
+        { id: `c:no-fuel-drifting-debris:pay:${cost}`, label: tx("wiki.cited-missing.pay-ransom", { cost }) },
+        { id: "c:no-fuel-drifting-debris:refuse", label: tx("wiki.cited-missing.refuse") },
+      ]);
+      return true;
+    }
+    if (name.startsWith("pay:")) {
+      const cost = Number(name.slice(4));
+      if (g.scrap < cost) return false;
+      g.scrap -= cost;
+      done(g, tx("wiki.cited-missing.debris-paid", { cost }));
+      return true;
+    }
+    if (name === "refuse") {
+      done(g, `${tx("wiki.cited-missing.debris-refused")}\n\n${loseCrew(ctx, true, true)}`);
+      return true;
+    }
+    if (name === "drift") {
+      done(g, tx("wiki.cited-events.nothing-happens"));
+      return true;
+    }
+    if (name === "scan") {
+      done(g, tx("wiki.cited-missing.debris-scan"), fuelOnly(g, "medium"));
+      return true;
+    }
+  }
+
+  if (
+    slug === "no-fuel-fuel-trader-distress-off" ||
+    slug === "no-fuel-fuel-trader-distress-on" ||
+    slug === "no-fuel-prepare-to-dock"
+  ) {
+    const trade = TRADE_ID.exec(name);
+    if (trade) return payTrade(ctx, Number(trade[2]), trade[3] as PayKind, Number(trade[4]));
+    if (name === "decline") {
+      showPt2(ctx, slug);
+      return true;
+    }
+    if (name === "pity") {
+      if (ctx.irand(2) === 0) done(g, tx("wiki.cited-missing.pity-fuel"), {
+        tier: "low",
+        scrap: 0,
+        eligible: 0,
+        fuel: span(ctx, 1, 6),
+        missiles: 0,
+        parts: 0,
+      });
+      else done(g, tx("wiki.cited-missing.discussion-ends"));
+      return true;
+    }
+    if (name === "walk") {
+      done(g, tx("wiki.cited-missing.captain-leaves"));
+      return true;
+    }
+  }
+
+  if (slug === "no-fuel-prepare-to-dock") {
+    if (name === "accept") {
+      const branch = ctx.irand(4);
+      if (branch === 0) {
+        done(g, tx("wiki.cited-missing.dock-fuel"), {
+          tier: "low", scrap: 0, eligible: 0, fuel: span(ctx, 2, 6), missiles: 0, parts: 0,
+        });
+        return true;
+      }
+      if (branch === 1) {
+        showTrader(g, slug, tx("wiki.cited-missing.dock-and-trade"));
+        return true;
+      }
+      if (branch === 2) {
+        ctx.note(tx("wiki.cited-missing.dock-hostile"));
+        pirateFight(ctx, "no-fuel-prepare-dock-90");
+        return true;
+      }
+      ctx.note(tx("wiki.cited-missing.dock-boarded"));
+      pirateFight(ctx, "no-fuel-prepare-dock-80", true);
+      return true;
+    }
+    if (name === "distance") {
+      const branch = ctx.irand(3);
+      if (branch === 0) {
+        done(g, tx("wiki.cited-missing.distance-fuel"), {
+          tier: "low", scrap: 0, eligible: 0, fuel: span(ctx, 1, 4), missiles: 0, parts: 0,
+        });
+        return true;
+      }
+      if (branch === 1) {
+        ctx.note(tx("wiki.cited-missing.distance-fight"));
+        pirateFight(ctx, "no-fuel-prepare-dock-80");
+        return true;
+      }
+      done(g, tx("wiki.cited-missing.distance-leave"));
+      return true;
+    }
+    if (name === "sensors" || name === "scanners") {
+      card(g, tx("wiki.cited-missing.scan-the-ship"), [
+        { id: "c:no-fuel-prepare-to-dock:scan", label: tx("wiki.cited-missing.continue") },
+      ]);
+      return true;
+    }
+    if (name === "scan") {
+      if (ctx.irand(2) === 0) {
+        done(g, tx("wiki.cited-missing.scan-safe"), {
+          tier: "low", scrap: 0, eligible: 0, fuel: span(ctx, 3, 7), missiles: 0, parts: 0,
+        });
+        return true;
+      }
+      card(g, tx("wiki.cited-missing.scan-trap"), [
+        { id: "c:no-fuel-prepare-to-dock:trap", label: tx("wiki.cited-missing.power-weapons") },
+        { id: "c:no-fuel-prepare-to-dock:cloak", label: tx("wiki.cited-missing.cloak-away") },
+      ]);
+      return true;
+    }
+    if (name === "trap") {
+      pirateFight(ctx, "no-fuel-prepare-dock-80");
+      return true;
+    }
+    if (name === "cloak") {
+      done(g, tx("wiki.cited-missing.cloak-clear"));
+      return true;
+    }
+  }
+
+  if (slug === "no-fuel-refugee-trading") {
+    if (name === "low") {
+      done(g, tx("wiki.cited-missing.refugee-low-fuel"), fuelOnly(g, "low"));
+      return true;
+    }
+    if (name === "trade") return betterTrade(ctx, "trade");
+    if (name === "better" || name === "again") return betterTrade(ctx, "better");
+    if (name === "engi") {
+      card(g, tx("wiki.cited-missing.refugee-engi"), [
+        { id: "c:no-fuel-refugee-trading:better", label: tx("wiki.cited-missing.accept-6-for-10") },
+        { id: "c:no-fuel-refugee-trading:better-no", label: tx("wiki.cited-missing.refuse") },
+      ]);
+      return true;
+    }
+    if (name === "better-no" || name === "again-no") {
+      done(g, tx("wiki.cited-events.nothing-happens"));
+      return true;
+    }
+    if (name === "refuse") {
+      if (ctx.irand(2) === 0) done(g, tx("wiki.cited-missing.refugee-cold"));
+      else {
+        card(g, tx("wiki.cited-missing.refugee-desperate"), [
+          { id: "c:no-fuel-refugee-trading:again", label: tx("wiki.cited-missing.accept-6-for-10") },
+          { id: "c:no-fuel-refugee-trading:again-no", label: tx("wiki.cited-missing.refuse-again") },
+        ]);
+      }
+      return true;
+    }
+    if (name === "attack") {
+      done(g, tx("wiki.cited-missing.refugee-surrender"), fuelAndScrap(g, "medium"));
+      return true;
+    }
+    if (name === "missiles") {
+      g.missiles -= 1;
+      const fuel = span(ctx, 5, 7);
+      g.fuel += fuel;
+      if (ctx.irand(2) === 0) {
+        done(g, tx("wiki.cited-missing.refugee-missile-trade", { fuel }));
+        return true;
+      }
+      ctx.note(tx("wiki.cited-missing.refugee-missile-trap", { fuel }));
+      ctx.fight("Pirate ship", undefined, "no-fuel-refugee-trading");
+      return true;
+    }
+    if (name === "arm-no") {
+      const branch = pickW(ctx, [2, 1, 1]);
+      if (branch === 0) {
+        ctx.note(tx("wiki.cited-missing.refugee-prey"));
+        ctx.fight("Pirate ship", undefined, "no-fuel-refugee-trading");
+        return true;
+      }
+      if (branch === 1) {
+        done(g, tx("wiki.cited-missing.refugee-small-fuel"), fuelOnly(g, "low"));
+        return true;
+      }
+      done(g, tx("wiki.cited-missing.refugee-apologizes"));
+      return true;
+    }
+  }
+
+  return null;
+}
+
+const ENGINE_WIN_DESTROYED = tx("wiki.cited-missing.repair-engines-destroyed");
+const ENGINE_WIN_CREW = tx("wiki.cited-missing.repair-engines-crew");
+const HALF_WIN_DESTROYED = tx("wiki.cited-missing.repair-weapons-destroyed");
+const HALF_WIN_CREW = tx("wiki.cited-missing.repair-weapons-crew");
+
+/** Slug repair station wins that replace default salvage. */
+export function missingPageWin(g: Game, slug: string | null | undefined, deadCrew: boolean): boolean {
+  if (slug !== "slug-repair-engines" && slug !== "slug-repair-half") return false;
+  const text = slug === "slug-repair-engines"
+    ? (deadCrew ? ENGINE_WIN_CREW : ENGINE_WIN_DESTROYED)
+    : (deadCrew ? HALF_WIN_CREW : HALF_WIN_DESTROYED);
+  const tier: SurrenderTier = slug === "slug-repair-half" || deadCrew ? "high" : "medium";
+  done(g, text, rollStandard(g, tier));
+  g.sfx.push("win");
+  return true;
+}

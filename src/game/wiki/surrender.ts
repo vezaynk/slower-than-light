@@ -184,6 +184,11 @@ export const NO_SURRENDER_EVENTS = new Set([
   // Crystal ship attacking Federation loyalists. {{SurrenderEscape(alt)|no|CRYSTAL_FED}} prints never surrenders.
   // Crystal ships already never run. The page prints no percent.
   "crystal-ship-attacking-federation-loyalists",
+  // Crystalline men buried and Crystalline research facility: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}.
+  "crystalline-men-buried",
+  "crystalline-research-facility",
+  // Fight in Last Stand: {{SurrenderEscape(alt)|no|REBEL_AND_AUTO}}.
+  "fight-in-last-stand",
 ]);
 
 /** Crystal fight. Five surrender lines, no odds. INFERRED: equal. */

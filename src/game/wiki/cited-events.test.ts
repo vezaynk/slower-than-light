@@ -144,11 +144,16 @@ describe("cited events", () => {
     assert.ok(run.notes.some((n) => / schematic (fitted|stowed in cargo)\.$/.test(n)), run.notes.join("\n"));
   });
 
-  it("leaves Free scrap with resources (Engi) unwired because the page states no amount", () => {
+  it("pays Free scrap with resources (Engi) as a standard gift", () => {
     const g = createGame(6);
-    assert.equal(citedEvent(g, beacon("Free scrap with resources (Engi)")), null);
+    const ev = citedEvent(g, beacon("Free scrap with resources (Engi)"));
+    assert.ok(ev);
+    assert.notEqual(ev.body, "");
     assert.equal(citedEvent(g, beacon("Engi Free Stuff")), null);
-    assert.equal(citedChoose(harness(g, []).ctx, "c:free-scrap-with-resources-engi:0"), false);
+    g.scrap = 0;
+    const run = harness(g, []);
+    assert.equal(citedChoose(run.ctx, ev.choices[0]!.id), true);
+    assert.ok(g.scrap > 0);
   });
 
   it("stamps a named sector once and leaves an existing flag alone", () => {

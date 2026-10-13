@@ -28,6 +28,7 @@ import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
 // @agent:quests-a. Opening cards of the sector-special quest openers; their branches run in wiki/quests-a.ts.
 import { EXTRA_EVENTS as QUEST_A_PAGES } from "./quests-a-pages.ts";
 import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts"; // @agent:quests-b. Branches in wiki/quests-b.ts.
+import { EXTRA_EVENTS as MISSING_EVENTS, missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
@@ -38,6 +39,8 @@ import { grantRandomItem } from "./bonus-item.ts";
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
   if (id === "c:pirate-engine-hacker:0") return 1;
+  // Slug repair station: "Engines limited to level 1."
+  if (id === "c:slug-repair-engines:fight") return 1;
   return null;
 }
 
@@ -74,6 +77,8 @@ export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapo
   if (id === "c:slug-hacker-choice:2") return ["weapons"];
   // The Engi virus: "Engines and Shields systems halved" and "rounds down against you".
   if (id === "c:the-engi-virus:0") return ["engines", "shields"];
+  // Slug repair station: "Weapon Control halved" and "rounds down against you".
+  if (id === "c:slug-repair-half:fight") return ["weapons"];
   return null;
 }
 
@@ -3502,6 +3507,7 @@ const EVENTS: EventDef[] = [
   // @agent:quests-a.
   ...QUEST_A_PAGES,
   ...QUEST_B_PAGES, // @agent:quests-b.
+  ...MISSING_EVENTS,
 ];
 
 function band(g: Game, tier: "low" | "medium" | "high"): [number, number] {
@@ -3608,7 +3614,8 @@ export function citedOwns(id: string): boolean {
     findChoice(id) != null ||
     tradeTake(id) != null ||
     id.startsWith("c:slug-moons-question:") ||
-    id.startsWith("c:zoltan-odd-moon:")
+    id.startsWith("c:zoltan-odd-moon:") ||
+    missingOwns(id)
   );
 }
 
@@ -4456,6 +4463,8 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
+  const missing = missingCard(g, b, ev);
+  if (missing) return missing;
   if (ev.slug === "slug-moons-question") return slugMoonsCard(g, b, ev.dest);
   if (ev.slug === "zoltan-odd-moon") return zoltanOddCard(ev.dest);
   if (ev.slug === "lanius-trader") {
@@ -5150,6 +5159,8 @@ function ownsBoardDrone(g: Game): boolean {
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
+  const missing = missingDisabled(g, id);
+  if (missing) return missing;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
   if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return tx("wiki.cited-events.needs-a-boarding-drone");
   if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
@@ -5187,7 +5198,7 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
 export type CitedChoice = {
   g: Game;
   resolve: () => void;
-  fight: (tier: string, asteroid?: boolean) => void;
+  fight: (tier: string, asteroid?: boolean, slug?: string) => void;
   scrap: (n: number) => void;
   note: (text: string) => void;
   irand: (n: number) => number;
@@ -5306,6 +5317,22 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
 
 /** True only after the choice is applied. A shortfall returns false and changes nothing. */
 export function citedChoose(ctx: CitedChoice, id: string): boolean {
+  const missing = missingChoose(ctx, id);
+  if (missing !== null) return missing;
+  // Slug and Rock standoff in nebula: Get closer loads Rock and Slug standoff. The nebula stays.
+  if (id === "c:slug-and-rock-standoff-in-nebula:0") {
+    const b = ctx.g.beacons.find((x) => x.id === ctx.g.here);
+    if (!b) return false;
+    b.flag = "cited:rock-and-slug-standoff";
+    b.name = "Rock and Slug standoff";
+    b.kind = "nebula";
+    const card = citedEvent(ctx.g, b);
+    if (!card) return false;
+    ctx.g.event = card;
+    ctx.g.phase = "event";
+    ctx.g.paused = true;
+    return true;
+  }
   const moons = slugMoonsQuestion(ctx, id);
   if (moons !== null) return moons;
   const moon = zoltanOddMoon(ctx, id);

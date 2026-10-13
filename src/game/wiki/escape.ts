@@ -55,6 +55,10 @@ const RUN_FROM_START: Record<string, { seconds: number; pursuit: boolean }> = {
   "engi-fleet-discussion": { seconds: 40, pursuit: false },
   "rock-war-vessel-encounter": { seconds: 32, pursuit: false },
   "slug-home-nebula-surrender": { seconds: 35, pursuit: false },
+  // No fuel: prepare to dock, the hostile accept: {{SurrenderEscape|timer|90}}.
+  "no-fuel-prepare-dock-90": { seconds: 90, pursuit: false },
+  // No fuel: refugee trading, every pirate fight: {{SurrenderEscape|timer|90}}.
+  "no-fuel-refugee-trading": { seconds: 90, pursuit: false },
 };
 
 /** Enemy Ships: the typical hull-triggered escape timer. */
@@ -147,6 +151,10 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   if (ctx.event === "pirate-engine-hacker") return plan("never", 0);
   // Slug hacker (oxygen). The page prints the ship doesn't try to escape. Surrender is not this line.
   if (ctx.event === "slug-hacker-oxygen") return plan("never", 0);
+  // Crystalline men buried and Crystalline research facility: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}.
+  if (ctx.event === "crystalline-men-buried" || ctx.event === "crystalline-research-facility") return plan("never", 0);
+  // Fight in Last Stand: {{SurrenderEscape(alt)|no|REBEL_AND_AUTO}}. No surrender and no escape.
+  if (ctx.event === "fight-in-last-stand") return plan("never", 0);
   // Enemy Ships: out of fuel and WAIT, "all ships start running" at 80 seconds. The "No fuel: …" event
   // pages are the ones reached by waiting with no fuel, so their slug marks the rule.
   if (ctx.event?.startsWith("no-fuel-")) return plan("start", OUT_OF_FUEL_WAIT_SECONDS);

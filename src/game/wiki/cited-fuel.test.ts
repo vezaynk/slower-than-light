@@ -38,6 +38,14 @@ const DISTRESS_ON = [
   { flag: "cited:no-fuel-automated-refueling-ship", dest: "No fuel: automated refueling ship" },
   // {{Locations|outoffuel=distressboth}}
   { flag: "cited:no-fuel-explore-the-system", dest: "No fuel: explore the system" },
+  // {{Locations|outoffuel=distresson}}
+  { flag: "cited:no-fuel-slug-fuel-trader", dest: "No fuel: Slug fuel trader" },
+  // {{Locations|outoffuel=distresson}}
+  { flag: "cited:no-fuel-fuel-trader-distress-on", dest: "No fuel: fuel trader (distress on)" },
+  // {{Locations|outoffuel=distressboth}}
+  { flag: "cited:no-fuel-prepare-to-dock", dest: "No fuel: prepare to dock" },
+  // {{Locations|outoffuel=distresson}}
+  { flag: "cited:no-fuel-refugee-trading", dest: "No fuel: refugee trading" },
 ];
 
 const DISTRESS_OFF = [
@@ -49,15 +57,15 @@ const DISTRESS_OFF = [
   { flag: "cited:no-fuel-rebel-fleet-delay", dest: "No fuel: Rebel fleet delay" },
   // {{Locations|outoffuel=distressoff}}
   { flag: "cited:no-fuel-friendly-refugee", dest: "No fuel: friendly refugee" },
+  // {{Locations|outoffuel=distressoff}}
+  { flag: "cited:no-fuel-drifting-debris", dest: "No fuel: drifting debris" },
+  // {{Locations|outoffuel=distressoff}}
+  { flag: "cited:no-fuel-fuel-trader-distress-off", dest: "No fuel: fuel trader (distress off)" },
+  // {{Locations|outoffuel=distressboth}}
+  { flag: "cited:no-fuel-prepare-to-dock", dest: "No fuel: prepare to dock" },
 ];
 
 const SKIPPED = [
-  "No fuel: Slug fuel trader",
-  "No fuel: drifting debris",
-  "No fuel: fuel trader (distress off)",
-  "No fuel: fuel trader (distress on)",
-  "No fuel: prepare to dock",
-  "No fuel: refugee trading",
   "No fuel: wait fail (distress off)",
   "No fuel: wait fail (distress on)",
 ];
@@ -74,7 +82,7 @@ describe("cited fuel candidates", () => {
     assert.deepEqual(citedFuelCandidates(false), citedFuelCandidates(false));
     assert.ok(DISTRESS_OFF.length > 1);
     const both = DISTRESS_ON.filter((row) => DISTRESS_OFF.some((other) => other.flag === row.flag));
-    assert.deepEqual(both.map((row) => row.dest), ["No fuel: explore the system"]);
+    assert.deepEqual(both.map((row) => row.dest), ["No fuel: explore the system", "No fuel: prepare to dock"]);
   });
 
   it("resolves a flagged out-of-fuel page and does not place one that names no sector", () => {
@@ -95,7 +103,16 @@ describe("cited fuel candidates", () => {
     for (const title of SKIPPED) assert.equal(dests.includes(title), false);
     assert.deepEqual(
       EXTRA_EVENTS.map((ev) => ev.dest),
-      ["No fuel: Rebel fleet delay", "No fuel: friendly refugee"],
+      [
+        "No fuel: Rebel fleet delay",
+        "No fuel: friendly refugee",
+        "No fuel: Slug fuel trader",
+        "No fuel: drifting debris",
+        "No fuel: fuel trader (distress off)",
+        "No fuel: fuel trader (distress on)",
+        "No fuel: prepare to dock",
+        "No fuel: refugee trading",
+      ],
     );
     for (const ev of EXTRA_EVENTS) {
       assert.deepEqual(ev.sectors, []);

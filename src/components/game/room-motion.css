@@ -141,14 +141,44 @@
   to { filter: brightness(1.45); }
 }
 
-/* Enemy cloak. Opacity steps between the resting 0.3 so the hull reads as still cloaked. */
-.target-body.is-cloaked .hull {
-  animation: cloak-shimmer 2.2s steps(3, jump-none) infinite alternate;
+/* Cloak. Per the user: engaging flickers the hull out (cloak-engage), then it shimmers around its resting opacity;
+   dropping the cloak flickers it back (cloak-release). The enemy rests at 0.3; the player's own ship stays readable
+   at 0.55 so its crew can still be ordered. INVENTED art. */
+.target-body { --cloak-rest: 0.3; }
+.sky { --cloak-rest: 0.55; }
+
+.target-body.is-cloaked .hull,
+.sky.is-cloaked .hull {
+  opacity: var(--cloak-rest);
+  filter: saturate(0.2);
+  animation:
+    cloak-engage 0.6s steps(6, jump-none) both,
+    cloak-shimmer 2.2s 0.6s steps(3, jump-none) infinite alternate;
+}
+
+.target-body.is-decloaking .hull,
+.sky.is-decloaking .hull {
+  animation: cloak-release 0.5s steps(5, jump-none) both;
+}
+
+@keyframes cloak-engage {
+  0% { opacity: 1; filter: none; translate: 0 0; }
+  20% { opacity: 1; filter: brightness(1.8) hue-rotate(160deg) saturate(0.6); translate: 2px 0; }
+  40% { opacity: 0.8; filter: brightness(1.5) hue-rotate(160deg) saturate(0.4); translate: -2px 0; }
+  60% { opacity: calc(var(--cloak-rest) + 0.2); filter: brightness(1.3) saturate(0.3); translate: 1px 0; }
+  100% { opacity: var(--cloak-rest); filter: saturate(0.2); translate: 0 0; }
 }
 
 @keyframes cloak-shimmer {
-  from { opacity: 0.22; }
-  to { opacity: 0.4; }
+  from { opacity: calc(var(--cloak-rest) - 0.08); }
+  to { opacity: calc(var(--cloak-rest) + 0.1); }
+}
+
+@keyframes cloak-release {
+  0% { opacity: var(--cloak-rest); filter: saturate(0.2); translate: 0 0; }
+  40% { opacity: 0.7; filter: brightness(1.8) hue-rotate(160deg) saturate(0.6); translate: -2px 0; }
+  70% { opacity: 0.9; filter: brightness(1.3); translate: 1px 0; }
+  100% { opacity: 1; filter: none; translate: 0 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +188,10 @@
   .play .room.is-airless.is-cut .pixel-fill,
   .play .room.is-low .o2 span,
   .room .breach-air,
-  .target-body.is-cloaked .hull {
+  .target-body.is-cloaked .hull,
+  .sky.is-cloaked .hull,
+  .target-body.is-decloaking .hull,
+  .sky.is-decloaking .hull {
     animation: none;
   }
 

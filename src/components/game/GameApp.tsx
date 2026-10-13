@@ -4,7 +4,7 @@ import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
-import { applyCssSpeed, FAST_SPEED, useFast } from "./speed";
+import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
 import {
   SECTOR_NAMES,
@@ -1045,13 +1045,40 @@ function bombAiming(game: Game): boolean {
   return WEAPONS[w?.defId ?? ""]?.kind === "bomb";
 }
 
+/**
+ * Per the user: dropping a cloak plays a short release flicker. True for that moment after `cloaked` goes false
+ * (room-motion.css cloak-release).
+ */
+function useDecloak(cloaked: boolean): boolean {
+  const [releasing, setReleasing] = useState(false);
+  const was = useRef(cloaked);
+  useEffect(() => {
+    if (was.current && !cloaked) {
+      setReleasing(true);
+      const t = window.setTimeout(() => setReleasing(false), 500 / Math.max(0.1, animSpeed()));
+      was.current = cloaked;
+      return () => window.clearTimeout(t);
+    }
+    was.current = cloaked;
+    setReleasing(false);
+  }, [cloaked]);
+  return releasing;
+}
+
+function cloakClass(cloaked: boolean, releasing: boolean): string {
+  return cloaked ? " is-cloaked" : releasing ? " is-decloaking" : "";
+}
+
 function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } }) {
+  const veil = game.player.kits.veil;
+  const cloaked = !!veil?.on && veil.left > 0;
+  const releasing = useDecloak(cloaked);
   const intruders = game.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
   const bubbles = game.player.shieldNow;
   const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), 1);
   const sight = shipSight(game);
   return (
-    <div className="sky" style={shake}>
+    <div className={`sky${cloakClass(cloaked, releasing)}`} style={shake}>
       <div className="planet" />
       <div className="shield-aura" style={{ opacity: 0.18 + 0.55 * (bubbles / cap) }} />
       {(game.player.zoltan ?? 0) > 0 ? <div className="shield-aura zoltan-aura" /> : null}
@@ -1170,6 +1197,7 @@ function TargetPanel({
   const veil = enemy.kits.veil;
   const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const cloaked = !!veil?.on && veil.left > 0;
+  const releasing = useDecloak(cloaked);
   const sight = shipSight(game);
   // Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon." Shown here as a
   // countdown on the head clone plus the queue size. Hidden while cloaked, like the interior.
@@ -1277,7 +1305,7 @@ function TargetPanel({
       </div>
       {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. */}
       {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
-      <div className={`target-body${cloaked ? " is-cloaked" : ""}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
+      <div className={`target-body${cloakClass(cloaked, releasing)}`} style={{ ["--foe-tile" as string]: `${Math.max(14, Math.min(44, Math.floor(300 / (enemy.cols + 2)) - 2, Math.floor(260 / (enemy.rows + 2)) - 2))}px` }}>
         <ShipView
           ship={enemy}
           healing={healingIds(game, enemy, "enemy")}

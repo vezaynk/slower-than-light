@@ -1,6 +1,6 @@
 /**
  * Picture-only bursts. A destroyed ship breaks into its own tiles, a Zoltan shield
- * shatters, a crew death puffs, and a teleport blinks. The sim has already applied
+ * shatters, a crew death puffs, and a teleport beams out and in. The sim has already applied
  * the damage; this canvas does not change it.
  */
 import { useEffect, useRef, useSyncExternalStore } from "react";
@@ -58,8 +58,10 @@ type Oval = {
   width: number;
   color: string;
 };
-type Blink = { x: number; y: number; w: number; h: number; life: number; max: number };
-type CrewSnap = { kin?: string; room: string; aboard: Side; pathEmpty: boolean; move: number };
+type CrewSnap = { kin?: string; room: string; aboard: Side; pathEmpty: boolean; move: number; box?: Box | null };
+/** Per the user: a teleport is a column of light. `inward` closes onto an arriving crew member, otherwise it lifts away. */
+type Beam = { x: number; y: number; w: number; h: number; life: number; max: number; inward: boolean };
+type Arrival = { id: string; side: Side; room: string; tries: number };
 
 const ORANGE = ["#ff7a18", "#ffb15a", "#e23a22"];
 const WHITE = ["#fff6ea", "#ffffff"];
@@ -82,7 +84,8 @@ export function ShadeFx() {
     let last = performance.now();
     const chunks: Chunk[] = [];
     const ovals: Oval[] = [];
-    const blinks: Blink[] = [];
+    const beams: Beam[] = [];
+    const arrivals: Arrival[] = [];
     const cache: Partial<Record<Side, Box>> = {};
     const plates: Partial<Record<Side, Piece[]>> = {};
     /** The target panel's ship view when the enemy broke up: its pieces are drawn inside it. */
@@ -325,10 +328,32 @@ export function ShadeFx() {
       noteZ("player", seenPlayerZ, pz);
       seenPlayerZ = pz;
 
-      const blinkAt = (side: Side, id: string) => {
-        const b = roomBox(side, id);
-        if (!b) return;
-        blinks.push({ x: b.x, y: b.y, w: b.w, h: b.h, life: 0.2, max: 0.2 });
+      const crewBox = (side: Side, id: string): Box | null =>
+        measure(host.querySelector(`.hull[data-ship="${side}"] [data-crew="${CSS.escape(id)}"]`));
+      // INVENTED art: a teleport leaves as a rising column of orange and white pixels (the Teleporter colour) and
+      // arrives as a column closing onto the crew member, who flickers in.
+      const beamAt = (b: Box, inward: boolean) => {
+        const life = inward ? 0.55 : 0.5;
+        beams.push({ x: b.x, y: b.y, w: b.w, h: b.h, life, max: life, inward });
+        const cx = b.x + b.w / 2;
+        for (let i = 0; i < 12; i++) {
+          const off = (Math.random() - 0.5) * b.w;
+          push({
+            x: cx + off,
+            y: inward ? b.y - b.h * (0.4 + Math.random() * 0.6) : b.y + b.h * (0.3 + Math.random() * 0.7),
+            vx: inward ? -off * 1.2 : off * 0.4,
+            vy: inward ? 70 + Math.random() * 40 : -(60 + Math.random() * 50),
+            life: 0.45,
+            max: 0.45,
+            color: (i % 3 === 0 ? WHITE : ORANGE)[i % 2]!,
+            w: 2,
+            h: 2 + (i % 2),
+          });
+        }
+      };
+      const leave = (prev: CrewSnap) => {
+        const b = prev.box ?? roomBox(prev.aboard, prev.room);
+        if (b) beamAt(b, false);
       };
 
       if (g.phase === "combat") {
@@ -340,8 +365,8 @@ export function ShadeFx() {
             const aboardChanged = prev.aboard !== c.aboard;
             const snapped = prev.room !== c.room && prev.pathEmpty && prev.move === 0;
             if (aboardChanged || snapped) {
-              blinkAt(prev.aboard, prev.room);
-              if (prev.aboard !== c.aboard || prev.room !== c.room) blinkAt(c.aboard, c.room);
+              leave(prev);
+              if (prev.aboard !== c.aboard || prev.room !== c.room) arrivals.push({ id: c.id, side: c.aboard, room: c.room, tries: 0 });
             }
           }
           crew.set(c.id, {
@@ -350,6 +375,7 @@ export function ShadeFx() {
             aboard: c.aboard,
             pathEmpty: c.path.length === 0,
             move: c.move,
+            box: crewBox(c.aboard, c.id),
           });
         }
         for (const [id, prev] of crew) {
@@ -363,8 +389,30 @@ export function ShadeFx() {
           }
           crew.delete(id);
         }
+        // The arriving token renders a frame or two after the sim moves the crew member. Wait for it, up to ~10 frames,
+        // then fall back to the room.
+        for (let i = arrivals.length - 1; i >= 0; i--) {
+          const a = arrivals[i]!;
+          const el = host.querySelector(`.hull[data-ship="${a.side}"] [data-crew="${CSS.escape(a.id)}"]`);
+          const box = measure(el);
+          if (!box && a.tries++ < 10) continue;
+          arrivals.splice(i, 1);
+          const at = box ?? roomBox(a.side, a.room);
+          if (at) beamAt(at, true);
+          // Web Animations, so a React re-render of the token does not cut it short.
+          el?.animate(
+            [
+              { opacity: 0, filter: "brightness(2.4) sepia(1) hue-rotate(-20deg)" },
+              { opacity: 0.4, filter: "brightness(2) sepia(1) hue-rotate(-20deg)" },
+              { opacity: 0.2, filter: "brightness(1.6)" },
+              { opacity: 1, filter: "none" },
+            ],
+            { duration: 550 / Math.max(0.1, animSpeed()), easing: "steps(5, jump-none)" },
+          );
+        }
       } else {
         crew.clear();
+        arrivals.length = 0;
       }
 
       // A combat pause holds the picture. Leaving combat (hull loss sets paused) still plays the blast: the enemy's
@@ -420,27 +468,30 @@ export function ShadeFx() {
       }
       ctx.globalAlpha = 1;
 
-      for (let i = blinks.length - 1; i >= 0; i--) {
-        const b = blinks[i]!;
+      for (let i = beams.length - 1; i >= 0; i--) {
+        const b = beams[i]!;
         if (step > 0) b.life -= step;
         if (b.life <= 0) {
-          blinks.splice(i, 1);
+          beams.splice(i, 1);
           continue;
         }
-        ctx.globalAlpha = Math.max(0, b.life / b.max);
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
-        const x = Math.round(b.x);
-        const y = Math.round(b.y);
-        const bw = Math.round(b.w);
-        const bh = Math.round(b.h);
-        ctx.strokeRect(x + 1, y + 1, Math.max(2, bw - 2), Math.max(2, bh - 2));
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x, y, 2, 2);
-        ctx.fillRect(x + bw - 2, y, 2, 2);
-        ctx.fillRect(x, y + bh - 2, 2, 2);
-        ctx.fillRect(x + bw - 2, y + bh - 2, 2, 2);
-        ctx.fillRect(x + Math.round(bw / 2) - 1, y + Math.round(bh / 2) - 1, 2, 2);
+        const k = 1 - b.life / b.max;
+        // Inward: wide and faint, closing to a bright core. Outward: a bright core that widens and fades.
+        const span = b.inward ? 1.6 - 1.4 * k : 0.4 + 1.2 * k;
+        const alpha = b.inward ? 0.35 + 0.65 * k : 1 - k;
+        const cw = Math.max(2, Math.round(b.w * span));
+        const cx = Math.round(b.x + b.w / 2 - cw / 2);
+        const top = Math.round(b.y - b.h * 0.9);
+        const tall = Math.round(b.h * 1.9);
+        ctx.globalAlpha = Math.max(0, alpha) * 0.55;
+        ctx.fillStyle = "#ff7a4a";
+        // Scanlines, two pixels apart, marching with the beam's direction.
+        const shift = Math.floor(k * 12) % 4;
+        for (let y = 0; y < tall; y += 4) ctx.fillRect(cx, top + ((y + (b.inward ? shift : 4 - shift)) % tall), cw, 2);
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.fillStyle = "#fff6ea";
+        const core = Math.max(2, Math.round(cw / 4));
+        ctx.fillRect(Math.round(b.x + b.w / 2 - core / 2), top, core, tall);
       }
       ctx.globalAlpha = 1;
     };

@@ -3851,7 +3851,6 @@ button.door-tick::before {
 
 .target-body { position: relative; }
 
-.target-body.is-cloaked .hull { opacity: 0.3; filter: saturate(0.2); }
 
 .cloak-tag { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; font-family: var(--font-hud); font-size: 26px; letter-spacing: 0.12em; color: var(--color-line); pointer-events: none; }
 

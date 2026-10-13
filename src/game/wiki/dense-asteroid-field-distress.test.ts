@@ -31,6 +31,10 @@ function resourcesPaid(body: string): number {
 
 describe("Dense asteroid field distress", () => {
   it("avoiding the field spends nothing", () => {
+    // Wiki citations:
+    // > "Avoid the area." — [[Dense asteroid field distress]]
+    // > "Discretion is the better part of valor. Better not risk it." — [[Dense asteroid field distress]]
+    // > "Nothing happens." — [[Dense asteroid field distress]]
     const g = createGame(1);
     const hull = g.player.hull;
     open(g);
@@ -43,6 +47,13 @@ describe("Dense asteroid field distress", () => {
   });
 
   it("searching hits the hull and engines, pays random scrap, or opens the remains", () => {
+    // Wiki citations:
+    // > "Search for the ship." — [[Dense asteroid field distress]]
+    // > "You find what appears to be pieces of a derelict ship coated with ice or crystal." — [[Dense asteroid field distress]]
+    // > "Your ship takes 5 hull damage, 1 damage to engines." — [[Dense asteroid field distress]]
+    // > "You find a pirate ship, damaged and abandoned. You salvage what you can and move on." — [[Dense asteroid field distress]]
+    // > "You receive a random amount of scrap with resources." — [[Dense asteroid field distress]]
+    // > "You find the decaying remains of some kind of ship coated with ice or crystal." — [[Dense asteroid field distress#Find remains of a ship]]
     let hit = false;
     let scrap = false;
     let remains = false;
@@ -83,6 +94,10 @@ describe("Dense asteroid field distress", () => {
 
   // Rewards, "Weapon": "A random weapon & T scrap."
   it("taking the unnamed weapon pays low scrap and grants a random weapon", () => {
+    // Wiki citations:
+    // > "Take the weapon and any spare scrap." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "Your crew grabs what they can and returns to the ship before the asteroid hits." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "You receive a weapon with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     const g = createGame(2);
     g.augments.push("keel");
     const guns = g.player.weapons.map((w) => w.defId);
@@ -106,6 +121,10 @@ describe("Dense asteroid field distress", () => {
   });
 
   it("grabbing the pod mounts Damaged Stasis Pod with low scrap, and a full list asks what to leave behind", () => {
+    // Wiki citations:
+    // > "Grab the stasis chamber." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "The pod appears to be functioning but you see nothing but shards of crystal inside." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "You receive Damaged Stasis Pod augmentation with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     const g = createGame(3);
     g.augments.push("keel");
     open(g);
@@ -133,6 +152,9 @@ describe("Dense asteroid field distress", () => {
   });
 
   it("refuses the thorough search without Rock Plating", () => {
+    // Wiki citations:
+    // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
+    // > "A ship without life forms within a nearby dense asteroid field is giving off the distress call." — [[Dense asteroid field distress]]
     const g = createGame(5);
     const hull = g.player.hull;
     open(g);

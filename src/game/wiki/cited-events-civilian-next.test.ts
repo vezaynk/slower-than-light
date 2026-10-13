@@ -112,6 +112,8 @@ describe("cited civilian next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only qualifying titles, with sectors copied from filtered Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Dense asteroid field distress]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Dense asteroid field distress"]);

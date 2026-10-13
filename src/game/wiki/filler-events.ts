@@ -1917,6 +1917,11 @@ function standardLines(offer: SurrenderOffer): string[] {
 
 /** Dense asteroid field distress, "Find remains of a ship". Both the search and Rock Plating open this card. */
 function asteroidRemains(g: Game) {
+  // Wiki citations:
+  // > "Find remains of a ship." — [[Dense asteroid field distress]]
+  // > "You find the decaying remains of some kind of ship coated with ice or crystal." — [[Dense asteroid field distress#Find remains of a ship]]
+  // > "Take the weapon and any spare scrap." — [[Dense asteroid field distress#Find remains of a ship]]
+  // > "Grab the stasis chamber." — [[Dense asteroid field distress#Find remains of a ship]]
   card(g, tx("wiki.filler-events.you-find-the-decaying-remains-of"), [
     { id: "s:dense-asteroid-field-distress:weapon", label: tx("wiki.filler-events.take-the-weapon-and-any-spare") },
     { id: "s:dense-asteroid-field-distress:pod", label: tx("wiki.filler-events.grab-the-stasis-chamber") },
@@ -2164,6 +2169,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Dense asteroid field distress. Search lists three results and prints no odds. INFERRED: equal.
   // The salvaged weapon with low scrap: Rewards, "Weapon": "A random weapon & T scrap."
   "c:dense-asteroid-field-distress:0": (g) => {
+    // Wiki citations:
+    // > "Search for the ship." — [[Dense asteroid field distress]]
+    // > "You find what appears to be pieces of a derelict ship coated with ice or crystal." — [[Dense asteroid field distress]]
+    // > "Your ship takes 5 hull damage, 1 damage to engines." — [[Dense asteroid field distress]]
+    // > "You find a pirate ship, damaged and abandoned. You salvage what you can and move on." — [[Dense asteroid field distress]]
+    // > "You receive a random amount of scrap with resources." — [[Dense asteroid field distress]]
     const r = weighted(g, [["hit", 1], ["scrap", 1], ["remains", 1]] as const);
     if (r === "hit") {
       if (hurt(g, 5)) return;
@@ -2178,16 +2189,29 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     asteroidRemains(g);
   },
   "c:dense-asteroid-field-distress:1": (g) => {
+    // Wiki citations:
+    // > "Avoid the area." — [[Dense asteroid field distress]]
+    // > "Discretion is the better part of valor. Better not risk it." — [[Dense asteroid field distress]]
+    // > "Nothing happens." — [[Dense asteroid field distress]]
     show(g, tx("wiki.filler-events.discretion-is-the-better-part-of"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "c:dense-asteroid-field-distress:2": (g) => {
+    // Wiki citations:
+    // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
+    // > "Find remains of a ship." — [[Dense asteroid field distress]]
     if (!g.augments.includes("keel")) return;
     asteroidRemains(g);
   },
   "s:dense-asteroid-field-distress:weapon": (g) => {
+    // Wiki citations:
+    // > "Your crew grabs what they can and returns to the ship before the asteroid hits." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "You receive a weapon with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     show(g, tx("wiki.filler-events.your-crew-grabs-what-they-can"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
   },
   "s:dense-asteroid-field-distress:pod": (g) => {
+    // Wiki citations:
+    // > "The pod appears to be functioning but you see nothing but shards of crystal inside." — [[Dense asteroid field distress#Find remains of a ship]]
+    // > "You receive Damaged Stasis Pod augmentation with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
     const note = receiveAugment(g, "stasis") === "queued" ? tx("wiki.filler-events.no-free-augmentation-slot-for-the") : tx("wiki.filler-events.damaged-stasis-pod");
     show(g, tx("wiki.filler-events.your-crew-drags-the-pod-back"), scrapOnly(g, "low"), [note]);
@@ -3510,6 +3534,8 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return tx("wiki.filler-events.need-scrap", { v: m[1] });
   // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
+  // Wiki citations:
+  // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
   if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return tx("wiki.filler-events.needs-rock-plating");
   // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.
   if (id === "c:disabled-rock-ship:2" && !livingKin(g, "gel")) return tx("wiki.filler-events.needs-a-slug-crewmember");

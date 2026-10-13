@@ -94,6 +94,8 @@ describe("cited crystal next events", () => {
   const wiki = pages(TITLES);
 
   it("exports only these titles, with sectors copied from Locations", () => {
+    // Wiki citations:
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal scrap collector]]
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, ["Crystal scrap collector"]);
@@ -131,6 +133,11 @@ describe("cited crystal next events", () => {
       }
     }
     const offer = EXTRA_EVENTS[0].choices[0];
+    // Wiki citations:
+    // > "Offer 35 scrap." — [[Crystal scrap collector]]
+    // > "Scrap lost: 35" — [[Crystal scrap collector]]
+    // > "Turn him down." — [[Crystal scrap collector]]
+    // > "Nothing happens." — [[Crystal scrap collector]]
     assert.equal(offer.label, "Offer 35 scrap");
     assert.deepEqual(offer.fx, [
       { k: "res", id: "scrap", sign: -1, lo: 35, hi: 35 },

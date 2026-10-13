@@ -28,6 +28,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     dest: "Crystal scrap collector",
     slug: "crystal-scrap-collector",
+    // Wiki citations:
+    // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal scrap collector]]
+    // > "It is unique." — [[Crystal scrap collector]]
     flag: "cited:crystal-scrap-collector",
     aliases: ["Crystal scrap collector"],
     sectors: ["Hidden Crystal Worlds"],
@@ -35,6 +38,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     choices: [
       {
         id: "c:crystal-scrap-collector:0",
+        // Wiki citations:
+        // > "Offer 35 scrap." — [[Crystal scrap collector]]
+        // > "Scrap lost: 35" — [[Crystal scrap collector]]
         label: tx("wiki.cited-events-crystal-next.offer-35-scrap"),
         // "Offer 35 scrap."
         // sign -1
@@ -46,6 +52,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       },
       {
         id: "c:crystal-scrap-collector:1",
+        // Wiki citations:
+        // > "Turn him down." — [[Crystal scrap collector]]
+        // > "Nothing happens." — [[Crystal scrap collector]]
         label: tx("wiki.cited-events-crystal-next.turn-him-down"),
         // "Nothing happens."
         fx: [{ k: "nothing" }],

@@ -1141,7 +1141,17 @@ export function powerMask(ship: Ship, bonus = 0): boolean[] {
     pool.z = Math.min(pool.z, total);
     pool.r = total - pool.z;
   }
-  return ship.weapons.map((w) => takePowerSlot(WEAPONS[w.defId]?.power ?? 1, w.enabled, pool));
+  const walk = (occupy: boolean): boolean[] => {
+    const slot = { z: pool.z, r: pool.r, occupy };
+    return ship.weapons.map((w) => takePowerSlot(WEAPONS[w.defId]?.power ?? 1, w.enabled, slot));
+  };
+  const spent = walk(pool.occupy);
+  if (!pool.occupy) return spent;
+  // Zoltans, Weapon Control: a full system spends Zoltan bars from the left and wastes a partial bar.
+  // That leaves a 4-power weapon dark on 3 reactor bars plus the Zoltan in the room. Mix those bars
+  // when every weapon the separate spend had running stays running.
+  const mixed = walk(false);
+  return spent.every((on, i) => !on || mixed[i]) ? mixed : spent;
 }
 
 function reactorUsed(ship: Ship): number {

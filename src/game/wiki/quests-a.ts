@@ -335,6 +335,14 @@ const CHOICES_A: QuestPart["choices"] = {
     // The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
     result(g, tx("wiki.quests-a.thank-you-we-didn-t-expect"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
   },
+  // {{Blue Option|Damaged Stasis Pod}}. One pod opens one Crystal named Ruwen. joinCrew marks the Rock Homeworlds beacon.
+  "c:zoltan-research-facility:3": (g) => {
+    const i = g.augments.indexOf("stasis");
+    if (i < 0) return;
+    g.augments.splice(i, 1);
+    const joined = crew(g, tx("wiki.surrender.crystal"), undefined, tx("wiki.quests-a.ruwen"));
+    result(g, tx("wiki.quests-a.interesting-i-ve-never-seen"), undefined, [joined]);
+  },
   // After the pirate: "Please, take this." -> the same unnamed schematic with low resources and scrap.
   "qa:zrf:thanks": (g) => {
     result(g, tx("wiki.quests-a.thank-you-for-rescuing-us-they"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
@@ -386,6 +394,7 @@ const CHOICES_A: QuestPart["choices"] = {
 function disabledA(g: Game, id: string): string | null {
   if (id === "c:ancient-device:2" && !hasCrystal(g)) return tx("wiki.quests-a.needs-a-crystal-crewmember");
   if (id === "c:zoltan-research-facility:2" && medbayLevel(g) < 3) return tx("wiki.quests-a.needs-medbay-level-3");
+  if (id === "c:zoltan-research-facility:3" && !g.augments.includes("stasis")) return tx("wiki.quests-a.needs-a-damaged-stasis-pod");
   if (id === "c:zoltan-trade-hub:1" && !hasTeleporter(g)) return tx("wiki.quests-a.needs-a-teleporter");
   if (id === "c:zoltan-trade-hub:2" && !hasZoltan(g)) return tx("wiki.quests-a.needs-a-zoltan-crewmember");
   if (id === "c:zoltan-trade-hub:2" && g.scrap < 10) return tx("wiki.quests-a.need-10-scrap");

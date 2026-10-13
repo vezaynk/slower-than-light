@@ -101,7 +101,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Zoltan research facility" ({{Locations|Engi Controlled Sector|Engi Homeworlds|Zoltan Controlled Sector|Zoltan
   // Homeworlds|...|unique=false}}), ZOLTAN_CREW_STUDY, the Crystal Cruiser's 2nd step.
-  // Not wired: {{Blue Option|Damaged Stasis Pod|Ask if they can fix this.}}: this build has no Damaged Stasis Pod.
+  // {{Blue Option|Damaged Stasis Pod|Ask if they can fix this.}} opens Ruwen (quests-a.ts). The button stays visible.
   {
     dest: "Zoltan research facility",
     slug: "zoltan-research-facility",
@@ -127,6 +127,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // {{Blue Option|Advanced Medbay|Give them your medical records.|level=3}}: Medbay level 3 (quests-a.ts disabled).
         label: tx("wiki.quests-a-pages.give-them-your-medical-records"),
         fx: [{ k: "note", text: tx("wiki.quests-a-pages.they-pay-for-the-data") }],
+      },
+      {
+        id: "c:zoltan-research-facility:3",
+        // {{Blue Option|Damaged Stasis Pod|Ask if they can fix this.}} (quests-a.ts disabled).
+        label: tx("wiki.quests-a.ask-if-they-can-fix-this"),
+        fx: [{ k: "note", text: tx("wiki.quests-a.interesting-i-ve-never-seen") }],
       },
     ],
   },

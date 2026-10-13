@@ -519,6 +519,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
     choices: [
       { id: "c:nebula-lost-ship:0", label: tx("wiki.filler-events.attempt-to-follow-and-help-them"), fx: [{ k: "fight", tier: "Rebel ship" }] },
       { id: "c:nebula-lost-ship:1", label: tx("wiki.filler-events.keep-your-position-they-can-handle"), fx: [{ k: "nothing" }] },
+      // {{Blue Option|Teleporter}}. Crewmember and medium scrap. The button stays visible.
+      { id: "c:nebula-lost-ship:2", label: tx("wiki.filler-events.lock-onto-their-life-signs"), fx: [{ k: "nothing" }] },
+      // {{Blue Option|Long-ranged Scanner}}. A crewmember, or medium scrap. No odds. INFERRED: equal.
+      { id: "c:nebula-lost-ship:3", label: tx("wiki.filler-events.pump-extra-power-into-your-sensors"), fx: [{ k: "nothing" }] },
     ],
   },
   // STORM_ITEMS. Search: "4 hull damage" and high resources with some scrap; a crewmember and low scrap with resources;
@@ -533,6 +537,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
     choices: [
       { id: "c:plasma-storm-incapacitated-ships:0", label: tx("wiki.filler-events.manually-search-the-wreckage-for-survivors"), fx: [{ k: "hull", n: -4 }] },
       { id: "c:plasma-storm-incapacitated-ships:1", label: tx("wiki.filler-events.avoid-the-risk-and-wait-to"), fx: [{ k: "nothing" }] },
+      // {{Blue Option|Piloting|level=2+}}. Four results, no odds. INFERRED: equal. The weapon pays low scrap.
+      { id: "c:plasma-storm-incapacitated-ships:2", label: tx("wiki.filler-events.have-your-pilot-carefully-explore"), fx: [{ k: "nothing" }] },
     ],
   },
   // FRIENDLY_BEACON. Give "2-4" fuel: high scrap ({{DuplicateEvent|2}}); a weapon; the sector map (not wired); the
@@ -1922,6 +1928,35 @@ function beaconEaterLeave(g: Game) {
   fight(g, tx("wiki.filler-events.you-make-preparations-to-jump-but"), tx("wiki.filler-events.lanius-ship"), "lanius-ship-absorbing-jump-beacon");
 }
 
+/** Lanius craftsmen. The discount is 10 scrap off 45, 50, and 40. INFERRED: the button prints that reduced price. */
+function craftsmenMenu(g: Game, discount: boolean) {
+  const aug = discount ? 35 : 45;
+  const weapon = discount ? 40 : 50;
+  const drone = discount ? 30 : 40;
+  const id = discount ? "s:lanius-craftsmen:help" : "s:lanius-craftsmen";
+  const choices = [
+    { id: `${id}:aug`, label: tx("wiki.filler-events.give-n-scrap-to-craft-an", { n: aug }) },
+    { id: `${id}:weapon`, label: tx("wiki.filler-events.give-n-scrap-to-craft-a", { n: weapon }) },
+    { id: `${id}:drone`, label: tx("wiki.filler-events.give-n-scrap-to-craft-a-2", { n: drone }) },
+    { id: "s:lanius-craftsmen:decline", label: tx("wiki.filler-events.decline-their-offer") },
+  ];
+  if (!discount) choices.push({ id: "s:lanius-craftsmen:help", label: tx("wiki.filler-events.offer-to-help-in-the-process") });
+  card(
+    g,
+    discount ? tx("wiki.filler-events.your-crewmember-offers-to-aid-in") : tx("wiki.filler-events.they-respond-we-haven-t-the"),
+    choices,
+  );
+}
+
+/** Unnamed augmentation, weapon, or drone schematic. Rewards names the kind and not the item. */
+function craftItem(g: Game, cost: number, kind: "augment" | "weapon" | "drone", story: string) {
+  if (g.scrap < cost) return;
+  g.scrap -= cost;
+  const spent = tx("wiki.filler-events.scrap-2", { n: cost });
+  log(g, spent);
+  show(g, story, undefined, [spent, grantRandomItem(g, kind)]);
+}
+
 function parseTrade(id: string): { pay: "fuel" | "missiles" | "parts"; n: number; get: "fuel" | "missiles" | "parts"; m: number } | null {
   const m = id.match(/^s:refugee(?:-distress-zoltan|-distress-pirate|-distress-slug|-distress|-zoltan|-pirate|-slug)?:trade:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/);
   if (!m) return null;
@@ -2358,12 +2393,32 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "s:lanius-beacon-eater:decline": (g) => {
     show(g, tx("wiki.filler-events.nothing-happens"));
   },
-  // Lanius craftsmen. Decline does nothing. 45, 50, and 40 scrap grant an unnamed augmentation, weapon, or schematic and stay off this card.
-  // The Lanius discount is on those same trades and stays unwired.
+  // Lanius craftsmen. 45, 50, and 40 scrap. The item is not named: Rewards, "Augment" / "Weapon" / "Drone".
+  // {{Blue Option|Lanius Crew|Offer to help in the process.}} is the same trades at a 10 scrap discount.
   "c:lanius-craftsmen:0": (g) => {
-    card(g, tx("wiki.filler-events.they-respond-we-haven-t-the"), [
-      { id: "s:lanius-craftsmen:decline", label: tx("wiki.filler-events.decline-their-offer") },
-    ]);
+    craftsmenMenu(g, false);
+  },
+  "s:lanius-craftsmen:aug": (g) => {
+    craftItem(g, 45, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
+  },
+  "s:lanius-craftsmen:weapon": (g) => {
+    craftItem(g, 50, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
+  },
+  "s:lanius-craftsmen:drone": (g) => {
+    craftItem(g, 40, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
+  },
+  "s:lanius-craftsmen:help": (g) => {
+    if (!livingKin(g, "voidlung")) return;
+    craftsmenMenu(g, true);
+  },
+  "s:lanius-craftsmen:help:aug": (g) => {
+    craftItem(g, 35, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
+  },
+  "s:lanius-craftsmen:help:weapon": (g) => {
+    craftItem(g, 40, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
+  },
+  "s:lanius-craftsmen:help:drone": (g) => {
+    craftItem(g, 30, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
   },
   "s:lanius-craftsmen:decline": (g) => {
     show(g, tx("wiki.filler-events.you-thank-them-for-the-information"), undefined, [tx("wiki.filler-events.nothing-happens")]);
@@ -2501,13 +2556,30 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       humanBoarders(g, 2, 4, tx("wiki.filler-events.boarders-beam-aboard"));
       beginBoarding(g, true);
     } else if (r === "clone") {
-      // The Clonebay blue option is not wired; "Scrap the machinery." is.
+      // {{Blue Option|Clonebay|Search for a surviving DNA bank.}} The button stays visible.
       card(g, tx("wiki.filler-events.the-station-is-in-disarray-you"), [
+        { id: "s:abandoned-station:dna", label: tx("wiki.quests.search-for-a-surviving-dna-bank") },
         { id: "s:abandoned-station:scrap", label: tx("wiki.filler-events.scrap-the-machinery") },
       ]);
     } else show(g, tx("wiki.filler-events.as-you-approach-it-becomes-clear"));
   },
   "s:abandoned-station:scrap": (g) => show(g, tx("wiki.filler-events.you-take-what-you-can-and"), scrapOnly(g, "low")),
+  // Clonebay DNA. DuplicateEvent|2 calm crewmember, or 1 crazed boarder. No printed odds (weight 2 / 1).
+  // The two calm sentences are the duplicate. INFERRED: equal inside that weight. The boarder's race is not named.
+  "s:abandoned-station:dna": (g) => {
+    if ((g.player.kits.cradle?.level ?? 0) <= 0) return;
+    const rebuilt = tx("wiki.quests.while-the-cloning-facilities-are-no");
+    if (weighted(g, [["calm", 2], ["crazed", 1]] as const) === "crazed") {
+      log(g, tx("wiki.quests.the-clone-emerges-in-a-crazed", { rebuilt }));
+      humanBoarders(g, 1, 1, tx("wiki.quests.boarder-beams-aboard"));
+      beginBoarding(g);
+      return;
+    }
+    const calm = rand(g) < 0.5
+      ? tx("wiki.quests.the-clone-is-extremely-confused-but", { rebuilt })
+      : tx("wiki.quests.the-clone-is-extremely-confused-but-2", { rebuilt });
+    show(g, calm, undefined, [gainCrew(g)]);
+  },
   // Abandoned station. "Stay near the Beacon." One printed result.
   "c:abandoned-station:1": (g) => show(g, tx("wiki.filler-events.you-decide-it-s-not-worth"), undefined, [tx("wiki.filler-events.nothing-happens")]),
 
@@ -2559,6 +2631,17 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     else show(g, tx("wiki.filler-events.your-search-is-hopeless-your-sensors"));
   },
   "c:nebula-lost-ship:1": done,
+  // {{Blue Option|Teleporter}}. A crewmember and medium scrap.
+  "c:nebula-lost-ship:2": (g) => {
+    if ((g.player.kits.sling?.level ?? 0) <= 0) return;
+    show(g, tx("wiki.filler-events.you-beam-the-federation-crew-aboard"), scrapOnly(g, "medium"), [gainCrew(g)]);
+  },
+  // {{Blue Option|Long-ranged Scanner}}. A crewmember, or medium scrap. No odds. INFERRED: equal.
+  "c:nebula-lost-ship:3": (g) => {
+    if (!g.augments.includes("glass")) return;
+    if (rand(g) < 0.5) show(g, tx("wiki.filler-events.you-follow-the-faint-signatures"), undefined, [gainCrew(g)]);
+    else show(g, tx("wiki.filler-events.your-local-radar-flickers"), scrapOnly(g, "medium"));
+  },
 
   // ---- Plasma storm incapacitated ships ----
   "c:plasma-storm-incapacitated-ships:0": (g) => {
@@ -2581,6 +2664,21 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     }
   },
   "c:plasma-storm-incapacitated-ships:1": done,
+  // {{Blue Option|Piloting|level=2+}}. Four results, no odds. INFERRED: equal.
+  // The weapon result is low scrap. The manual search's weapon result is medium.
+  "c:plasma-storm-incapacitated-ships:2": (g) => {
+    if ((g.player.systems.pilot?.level ?? 0) < 2) return;
+    const r = weighted(g, [["passenger", 1], ["schematic", 1], ["weapon", 1], ["nothing", 1]] as const);
+    if (r === "passenger") {
+      show(g, tx("wiki.filler-events.within-the-ship-graveyard-you-find-2"), rollStandard(g, "low"), [gainCrew(g)]);
+    } else if (r === "schematic") {
+      show(g, tx("wiki.filler-events.among-the-junk-and-scrap-you"), scrapOnly(g, "medium"), [grantRandomItem(g, "drone")]);
+    } else if (r === "weapon") {
+      show(g, tx("wiki.filler-events.most-of-the-debris-is-hardly"), weaponOffer(g, "low"));
+    } else {
+      show(g, tx("wiki.filler-events.your-pilot-carefully-explores-the-wrecks"), undefined, [tx("wiki.filler-events.nothing-happens")]);
+    }
+  },
 
   // ---- Friendly ship out of fuel (the give id carries the amount; fillerChoose parses it) ----
   "c:friendly-ship-out-of-fuel:1": (g) => show(g, tx("wiki.filler-events.we-understand-please-send-help-our")),
@@ -3384,6 +3482,21 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:lanius-ship-absorbing-jump-beacon:3" && !ownsDrone(g, "hull")) return tx("wiki.filler-events.needs-a-hull-repair-drone");
   // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
   if (id === "c:lanius-ship-attacking-civilian-distress:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
+  // Lanius craftsmen. {{Blue Option|Lanius Crew}}. INFERRED: the refusal line. The page names a Lanius crewmember.
+  if (id === "s:lanius-craftsmen:help" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
+  if (id === "s:lanius-craftsmen:aug" && g.scrap < 45) return tx("wiki.filler-events.need-scrap", { v: 45 });
+  if (id === "s:lanius-craftsmen:weapon" && g.scrap < 50) return tx("wiki.filler-events.need-scrap", { v: 50 });
+  if (id === "s:lanius-craftsmen:drone" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
+  if (id === "s:lanius-craftsmen:help:aug" && g.scrap < 35) return tx("wiki.filler-events.need-scrap", { v: 35 });
+  if (id === "s:lanius-craftsmen:help:weapon" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
+  if (id === "s:lanius-craftsmen:help:drone" && g.scrap < 30) return tx("wiki.filler-events.need-scrap", { v: 30 });
+  // Nebula lost ship. Teleporter, and Long-Ranged Scanners. INFERRED: the refusal lines. The page names the gear.
+  if (id === "c:nebula-lost-ship:2" && (g.player.kits.sling?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-teleporter");
+  if (id === "c:nebula-lost-ship:3" && !g.augments.includes("glass")) return tx("wiki.filler-events.needs-long-ranged-scanners");
+  // Plasma storm incapacitated ships. Piloting level 2+. INFERRED: the refusal line. The page names the system.
+  if (id === "c:plasma-storm-incapacitated-ships:2" && (g.player.systems.pilot?.level ?? 0) < 2) return tx("wiki.filler-events.needs-level-2-piloting");
+  // Abandoned station. Clone Bay. INFERRED: the refusal line. The page names the system and prints no sentence.
+  if (id === "s:abandoned-station:dna" && (g.player.kits.cradle?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-clone-bay");
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return tx("wiki.filler-events.need-scrap", { v: m[1] });

@@ -11,6 +11,7 @@ import {
   settleZoltanPower,
   sparePower,
   startCombat,
+  toggleWeapon,
   zoltanBars,
 } from "../sim.ts";
 import type { Crew, Game, WeaponInst } from "../types.ts";
@@ -83,6 +84,28 @@ describe("Zoltan weapon slots", () => {
 
     g.player.weapons = ["leto", "halberd"].map(mount);
     assert.deepEqual(mask(g), [true, false]);
+  });
+
+  it("powers a 4-power weapon from 3 reactor bars and a Zoltan in the room", () => {
+    const g = createGame(39);
+    arm(g, 4, 4, ["glaive"]);
+    const room = g.player.rooms.find((r) => r.system === "weapons")!.id;
+    g.crew.push(spark(room, "za"));
+    settleZoltanPower(g);
+    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(g.player.systems.weapons.zoltanHeld, 1);
+    assert.deepEqual(mask(g), [true]);
+
+    g.player.weapons[0].enabled = false;
+    g.player.systems.weapons.power = 0;
+    const spare = sparePower(g.player);
+    g.player.reactor -= spare - 3;
+    assert.equal(sparePower(g.player), 3);
+    toggleWeapon(g, "glaive");
+    assert.equal(g.player.weapons[0].enabled, true);
+    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(g.log[0].includes("Not enough power"), false);
+    assert.deepEqual(mask(g), [true]);
   });
 
   it("powers a Burst Laser II from one Zoltan plus one reactor bar", () => {

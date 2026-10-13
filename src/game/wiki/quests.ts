@@ -669,9 +669,10 @@ function defectorFight(g: Game, text: string) {
 /** Rebel Defector victories after the Federation loyalists fight: "Contact the Federation ship". */
 function loyalistsRescueCard(g: Game) {
   const choices: Choice[] = [{ id: "q:loyalists:rescue", label: tx("wiki.quests.quickly-try-to-rescue-the-crew") }];
-  // {{Blue Option|Nano Med-bot Dispersal|...}} ("medbot"), {{Blue Option|Teleporter|...}}. Healing Burst is not wired.
+  // {{Blue Option|Nano Med-bot Dispersal|...}} ("medbot"), {{Blue Option|Teleporter|...}}, {{Blue Option|Healing Burst|...}}.
   if (g.augments.includes("medbot")) choices.push({ id: "q:loyalists:medbot", label: tx("wiki.quests.pump-their-ship-with-nano-med") });
   if (hasTeleporter(g)) choices.push({ id: "q:loyalists:teleport", label: tx("wiki.quests.lock-on-to-all-remaining-life") });
+  if (g.player.weapons.some((w) => w.defId === "healburst")) choices.push({ id: "q:loyalists:heal", label: tx("wiki.quests.use-a-healing-bomb-to-keep") });
   card(g, tx("wiki.quests.their-ship-looks-to-be-on"), choices);
 }
 
@@ -2383,7 +2384,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
       beginBoarding(g);
       return;
     }
-    result(g, tx("wiki.quests.the-clone-is-extremely-confused-but", { rebuilt: rebuilt }), undefined, [crew(g, randomRace(g))]);
+    // DuplicateEvent|2: calms down, or seems to accept. INFERRED: equal.
+    const calm = rand(g) < 0.5
+      ? tx("wiki.quests.the-clone-is-extremely-confused-but", { rebuilt: rebuilt })
+      : tx("wiki.quests.the-clone-is-extremely-confused-but-2", { rebuilt: rebuilt });
+    result(g, calm, undefined, [crew(g, randomRace(g))]);
   },
   "q:station:scrapmachines": (g) => result(g, tx("wiki.quests.you-take-what-you-can-and"), scrapOnly(g, "low")),
   "q:station:stay": (g) => result(g, tx("wiki.quests.you-decide-it-s-not-worth")),
@@ -2430,6 +2435,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:loyalists:teleport": (g) => {
     const joined = crew(g, randomRace(g), "combat");
     result(g, tx("wiki.quests.your-quick-reactions-allow-you-to"), scrapOnly(g, "medium"), [joined, addQuest(g, "fed-base")]);
+  },
+  // {{Blue Option|Healing Burst}}. 1 missile. A crewmember with 1 skill in engines, medium scrap, and the Federation base.
+  "q:loyalists:heal": (g) => {
+    if (g.missiles < 1 || !g.player.weapons.some((w) => w.defId === "healburst")) return;
+    g.missiles -= 1;
+    const joined = crew(g, randomRace(g), "engines");
+    result(g, tx("wiki.quests.you-launch-a-healing-bomb"), scrapOnly(g, "medium"), [
+      tx("wiki.quests.missiles-1"),
+      joined,
+      addQuest(g, "fed-base"),
+    ]);
   },
   "q:fed-base:scan": (g) => {
     if (sensors(g) >= 3 || g.augments.includes("glass")) {
@@ -2787,6 +2803,7 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:zoltan-raft:hire" && g.scrap < 40) return tx("wiki.quests.need-40-scrap");
   if (id === "s:refuel-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-door-system");
   if (id === "q:war-camp:missile" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
+  if (id === "q:loyalists:heal" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
   if (id === "q:war-camp:firebomb" && g.missiles < 2) return tx("wiki.quests.need-2-missiles");
   if (id === "q:station:fuel4" && g.fuel < 4) return tx("wiki.quests.need-4-fuel");
   if (id === "q:station:fuel1" && g.fuel < 1) return tx("wiki.quests.need-1-fuel");

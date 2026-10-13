@@ -1663,6 +1663,15 @@ const CORE_EVENTS: EventDef[] = [
             "k": "nothing"
           }
         ]
+      },
+      {
+        "id": "c:no-fuel-engi-ship-repair:2",
+        "label": tx("wiki.cited-events.offer-to-help-repair-their-hull"),
+        "fx": [
+          {
+            "k": "nothing"
+          }
+        ]
       }
     ]
   },
@@ -5158,12 +5167,23 @@ function ownsBoardDrone(g: Game): boolean {
   return kit.target === "board" || (kit.loadout ?? []).includes("board");
 }
 
+/** The fitted schematic is kit.target. A loadout entry counts the same way. */
+function ownsHullRepair(g: Game): boolean {
+  const kit = g.player.kits.swarm;
+  if (!kit) return false;
+  return kit.target === "hull" || (kit.loadout ?? []).includes("hull");
+}
+
 export function citedChoiceDisabled(g: Game, id: string): string | null {
   const missing = missingDisabled(g, id);
   if (missing) return missing;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
   if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return tx("wiki.cited-events.needs-a-boarding-drone");
   if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
+  // No fuel: Engi ship repair. Hull Repair Drone, 1 drone part.
+  // INFERRED: the refusal lines. The page names the drone and the part.
+  if (id === "c:no-fuel-engi-ship-repair:2" && !ownsHullRepair(g)) return tx("wiki.cited-events.needs-a-hull-repair-drone");
+  if (id === "c:no-fuel-engi-ship-repair:2" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
   if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return tx("wiki.cited-events.needs-sensors-level-2");
@@ -5549,6 +5569,20 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
         : tx("wiki.cited-events.the-pirate-watches-as-you-teleport"),
       [tx("wiki.cited-events.you-receive-a-drone-schematic-with-2"), item],
     );
+    return true;
+  }
+  // No fuel: Engi ship repair. Hull Repair Drone spends 1 drone part and pays 4-6 fuel.
+  // citedChoose does not read citedChoiceDisabled, so a missing drone returns before the part is spent.
+  if (id === "c:no-fuel-engi-ship-repair:2") {
+    if (!ownsHullRepair(g) || g.player.parts < 1) return false;
+    g.player.parts -= 1;
+    const fuel = roll(ctx, 4, 6);
+    g.fuel += fuel;
+    const spent = tx("wiki.cited-events.drone-parts-1");
+    const got = `${tx("wiki.cited-events.fuel")}: ${fuel}.`;
+    ctx.note(spent);
+    ctx.note(got);
+    citedResult(g, tx("wiki.cited-events.they-happily-accept-your-offer"), [got, spent]);
     return true;
   }
   ctx.resolve();

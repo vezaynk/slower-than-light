@@ -1443,6 +1443,7 @@ function enableWeaponsForPower(g: Game): void {
     const stole = keep.some((on, j) => on && !next[j]);
     if (!next[i] || stole) {
       w.enabled = false;
+      forgetAim(g, w);
       break;
     }
   }
@@ -1455,14 +1456,12 @@ function enableWeaponsForPower(g: Game): void {
  */
 function disableUnpoweredWeapons(g: Game): void {
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
-  let armedOff = false;
   g.player.weapons.forEach((w, i) => {
     if (!w.enabled || mask[i]) return;
     w.enabled = false;
     cancelMuzzle(g, w);
-    if (g.armed === w.uid) armedOff = true;
+    forgetAim(g, w);
   });
-  if (armedOff) stopTargeting(g);
 }
 
 export function powerUp(g: Game, id: SysId) {
@@ -2113,6 +2112,12 @@ function dropQueued(w: WeaponInst) {
   w.own = false;
 }
 
+/** Per the user: disabling a weapon drops its aim. Sliders stay only while that gun is still targeting somewhere. */
+function forgetAim(g: Game, w: WeaponInst) {
+  dropQueued(w);
+  if (g.armed === w.uid) stopTargeting(g);
+}
+
 /** A live enemy hull to shoot at. Per the user: outside a fight weapons take power but never aim, charge or fire. */
 function weaponsLive(g: Game): boolean {
   return g.phase === "combat" && !!g.enemy;
@@ -2310,7 +2315,7 @@ export function depowerWeapon(g: Game, weaponUid: string) {
   releaseWeaponBars(g);
   // Crew skills, Weapons: off just after the skill increment cancels that shot. The point stays.
   cancelMuzzle(g, w);
-  stopTargeting(g);
+  forgetAim(g, w);
   sfx(g, "click");
 }
 
@@ -2389,6 +2394,7 @@ export function toggleWeapon(g: Game, weaponUid: string) {
     delete g.player.systems.weapons.want;
     releaseWeaponBars(g);
     cancelMuzzle(g, w);
+    forgetAim(g, w);
   } else if (!claimWeaponBars(g, w)) return;
   sfx(g, "click");
 }
@@ -2432,6 +2438,7 @@ function claimWeaponBars(g: Game, w: WeaponInst): boolean {
   if (done()) return true;
   sys.power = before;
   w.enabled = false;
+  forgetAim(g, w);
   log(g, tx("game.sim.not-enough-power-for", { v: WEAPONS[w.defId]?.name ?? "that weapon" }));
   return false;
 }

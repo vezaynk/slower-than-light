@@ -116,6 +116,45 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
     );
   });
 
+  it("clears the aim of a weapon that is disabled, and leaves the other gun's aim", () => {
+    const g = createGame(3, "kestrel-a");
+    startCombat(g, "scout");
+    g.player.reactor = 25;
+    const sys = g.player.systems.weapons;
+    sys.level = 8;
+    sys.damage = 0;
+    sys.ion = [];
+    sys.power = 3;
+    const gun = (defId: string, uid: string, target: string): WeaponInst => ({
+      uid,
+      defId,
+      charge: 0,
+      enabled: true,
+      autofire: false,
+      target,
+    });
+    g.player.weapons = [gun("lineburst", "burst", "keep"), gun("spark", "laser", "drop")];
+    g.armed = "laser";
+    g.targeting = true;
+    g.beamAnchor = { x: 1, y: 1 };
+    powerDown(g, "weapons");
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    assert.equal(g.player.weapons[1]!.target, null);
+    assert.equal(g.player.weapons[0]!.target, "keep");
+    assert.equal(g.targeting, false);
+    assert.equal(g.beamAnchor, null);
+
+    g.player.weapons[0]!.target = "keep";
+    g.armed = "burst";
+    g.targeting = true;
+    depowerWeapon(g, "laser");
+    assert.equal(g.player.weapons[0]!.target, "keep");
+    assert.equal(g.targeting, true);
+    depowerWeapon(g, "burst");
+    assert.equal(g.player.weapons[0]!.target, null);
+    assert.equal(g.targeting, false);
+  });
+
   it("drains an unpowered gun outside a fight too", () => {
     const g = createGame(3, "kestrel-a");
     g.phase = "map";

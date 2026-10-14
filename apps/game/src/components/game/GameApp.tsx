@@ -1467,18 +1467,21 @@ function aimMarks(game: Game): AimMark[] {
  * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
  */
 function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: boolean }) {
-  // Per the user: the sliders sit on the target panel border, and only while a weapon is selected to aim.
+  // Per the user: the sliders sit on the target panel border. They stay on the last weapon aimed
+  // while that gun still has somewhere to shoot, and they show as soon as a weapon is selected to aim.
   // X travels the bottom edge, Y the right edge. A beam has a second thumb on each edge.
   // The travel stays inside the enemy's targetable floor.
   const span = targetableSpan(enemy);
   const [draft, setDraft] = useState<{ uid: string; a: BeamPoint; b: BeamPoint } | null>(null);
   const [dragging, setDragging] = useState(false);
-  // A drag confirms the aim, which leaves targeting mode. Keep the thumbs up until the pointer lets go.
-  if (hidden || !span || game.phase !== "combat" || (!game.targeting && !dragging)) return null;
+  if (hidden || !span || game.phase !== "combat") return null;
   const range = span;
   const gun = game.player.weapons.find((w) => w.uid === game.armed);
   const def = gun ? WEAPONS[gun.defId] : undefined;
   if (!gun || !def) return null;
+  // A disabled gun drops its aim in sim.ts. Until that lands, do not keep adjusting it.
+  const stillThere = gun.enabled && !!(gun.target || gun.beamLine);
+  if (!dragging && !game.targeting && !stillThere) return null;
   const beam = def.kind === "beam";
   const mid = { x: (range.minX + range.maxX) / 2, y: (range.minY + range.maxY) / 2 };
   const roomPoint = (id: string | null): BeamPoint | null => {

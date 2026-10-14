@@ -5818,8 +5818,6 @@ function makeMap(g: Game) {
   start.kind = "start";
   start.visited = true;
   start.resolved = true;
-  // INVENTED: the start beacon's name. The Beacons page names no label for it.
-  start.name = tx("game.sim.departure");
   let exit: Beacon;
   let base: Beacon | undefined;
   if (g.sector >= 8) {
@@ -5842,9 +5840,7 @@ function makeMap(g: Game) {
     g.ramId = null;
     g.ramClock = 2;
   }
-  // INVENTED: beacon names. Kind mix below is only the placeholder; a listed sector is re-dealt by beacon-mix.ts.
-  const names = [tx("game.sim.silt"), tx("game.sim.hinge"), tx("game.sim.marrow"), tx("game.sim.kite"), tx("game.sim.brine"), tx("game.sim.cask"), tx("game.sim.loom"), tx("game.sim.vesper"), tx("game.sim.nock"), tx("game.sim.quarry"), tx("game.sim.weld"), tx("game.sim.pell")];
-  let ni = 0;
+  // Kind mix below is only the placeholder; a listed sector is re-dealt by beacon-mix.ts.
   const middles = beacons.filter((b) => b !== start && b !== exit);
   for (const b of middles) b.kind = KINDS[irand(roll, KINDS.length)];
   // @agent:beacon-mix. These KINDS rolls are placeholders: the sector name is not known yet here.
@@ -5853,8 +5849,6 @@ function makeMap(g: Game) {
   // Stores, "Guaranteed stores": the count depends on sector type. Forcing one store is INFERRED.
   if (!middles.some((b) => b.kind === "store") && middles[0]) middles[0].kind = "store";
   for (const b of middles) {
-    b.name = names[ni % names.length];
-    ni += 1;
     if (b.kind === "hostile" || b.kind === "event") {
       b.tier = tierFor(g, false);
     }
@@ -5968,9 +5962,6 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       kin: seat.kin,
     });
   });
-  const guns = spec.weapons.map((id) => WEAPONS[id]?.name ?? id).join(", ");
-  log(g, tx("game.sim.leaves-the-hangar", { name: spec.name, v: guns ? ` ${guns}.` : "" }));
-  if (spec.unfitted.length) log(g, tx("game.sim.not-fitted", { join: spec.unfitted.join(", ") }));
 }
 
 /** The cruiser a hangar tile shows: the same rooms, doors, weapons, and crew a run starts with. */
@@ -6217,7 +6208,7 @@ export function commitJump(g: Game, id: string) {
 
 // Sectors, "The Last Stand": the Flagship jumps every two player jumps, toward the base.
 // The Rebel Flagship: three consecutive turns on the base end the game in a Rebel victory.
-// The name Wake is INVENTED. The log line is not printed.
+// The beacon it leaves is a plain Beacon again. The Flagship name moves with it.
 function stepRam(g: Game, ram: Beacon) {
   const base = g.beacons.find((b) => b.flag === "fed-base");
   const span = (a: Beacon, b: Beacon) => Math.abs(a.col - b.col) + Math.abs(a.row - b.row);
@@ -6243,14 +6234,13 @@ function stepRam(g: Game, ram: Beacon) {
   const next = [...options].sort((a, b) => span(a, base) - span(b, base) || a.col - b.col || a.row - b.row)[0];
   g.ramAtBase = 0;
   ram.kind = "empty";
-  ram.name = tx("game.sim.wake");
+  ram.name = tx("game.sim.beacon");
   ram.tier = "";
   next.kind = "boss";
   next.name = tx("game.sim.flagship");
   next.tier = "boss";
   next.resolved = false;
   g.ramId = next.id;
-  log(g, tx("game.sim.the-flagship-jumps-toward-the-federation"));
 }
 
 function arrive(g: Game, b: Beacon) {
@@ -7142,7 +7132,6 @@ function tickBoarding(g: Game, dt: number) {
   // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
   // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
   if (!(g.asteroid || g.pulsar || g.flare)) g.flee = 1;
-  log(g, tx("game.sim.the-boarders-are-dead"));
 }
 
 /**
@@ -7295,7 +7284,7 @@ export function step(g: Game, dt: number) {
       g.pursuitDouble = true;
       // Auto-ship warning: the red line when that ship escapes. "Rebel Fleet pursuit is doubled."
       log(g, tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled"));
-    } else log(g, tx("game.sim.they-charged-ftl-and-left"));
+    }
     g.enemy = null;
     g.enemyEscape = null;
     // INFERRED: their escape ends the engine cap. The page prints the restore on a win.

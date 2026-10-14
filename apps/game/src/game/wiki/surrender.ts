@@ -880,7 +880,7 @@ function openOffer(g: Game) {
   g.event = scripted
     ? {
         title: "Surrender",
-        body: plan.offer.note ? `${hail} They offer: ${plan.offer.note}` : hail!,
+        body: hail!,
         // @agent:surrender. A `forced` page ("no option or prompt to decline") shows only the accept choice.
         choices: [
           ...(scripted.forced

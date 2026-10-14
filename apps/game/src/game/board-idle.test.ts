@@ -58,7 +58,6 @@ describe("Boarders with no enemy ship", () => {
     assert.equal(g.crew.some((c) => c.side === "enemy" && c.hp > 0), false);
     assert.equal(g.kills, kills);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.log[0], "The boarders are dead.");
   });
 
   it("sabotages an empty system room at 0.08 per second", () => {

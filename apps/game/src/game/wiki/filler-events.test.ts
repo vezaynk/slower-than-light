@@ -286,4 +286,22 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       assert.equal(en.includes(t), false, t);
     }
   });
+
+  it("the unused invented labels are not stored", () => {
+    const sim = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
+    const en = readFileSync(new URL("../../i18n/en.json", import.meta.url), "utf8");
+    for (const t of [
+      "leaves the hangar",
+      "Not fitted:",
+      "The Flagship jumps toward the Federation base.",
+      "The boarders are dead.",
+      "They charged FTL and left.",
+      "\"Departure\"",
+      "\"Silt\"",
+      "\"Wake\"",
+    ]) {
+      assert.equal(sim.includes(t), false, t);
+      assert.equal(en.includes(t), false, t);
+    }
+  });
 });

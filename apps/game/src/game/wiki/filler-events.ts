@@ -1,7 +1,7 @@
 import { tx } from "../../i18n/index.ts";
-import { WEAPONS, XP_NEED, upgradeCost } from "../content.ts";
+import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { kinOf } from "../extras/kin.ts";
+import { allWeapons, crewDef, weaponDef } from "../pack/registry.ts";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
@@ -1207,7 +1207,7 @@ function resource(g: Game, id: "fuel" | "missiles" | "parts", range: [number, nu
 function weaponOffer(g: Game, tier: SurrenderTier): SurrenderOffer {
   const offer = scrapOnly(g, tier);
   const owned = new Set(g.player.weapons.map((w) => w.defId));
-  const options = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id));
+  const options = allWeapons().filter((w) => w.price > 0 && !owned.has(w.id));
   if (options.length) offer.weapon = options[Math.min(options.length - 1, Math.floor(rand(g) * options.length))].id;
   return offer;
 }
@@ -1283,7 +1283,7 @@ function roomBar(g: Game): string {
 
 /** Mantis fugitive, mantis-controlled Engi ship. INFERRED: the Engi hull's crew are Mantis. */
 function mantisControlled(g: Game) {
-  const hp = kinOf("blade").hp;
+  const hp = crewDef("blade").hp;
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "enemy") continue;
     c.kin = "blade";
@@ -1392,7 +1392,7 @@ function weighted<T>(g: Game, items: [T, number][]): T {
 
 /** Missile (Weapons), Hull Missile: "BUGGED: not considered a missile weapon for events." */
 function miningMissile(g: Game): boolean {
-  return g.player.weapons.some((w) => w.defId !== "hullmissile" && WEAPONS[w.defId]?.kind === "missile");
+  return g.player.weapons.some((w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile");
 }
 
 function miningOffers(): { id: string; label: string }[] {
@@ -1417,7 +1417,7 @@ function ownsAntiBio(g: Game): boolean {
 /** Malfunctioning defense system, Ion Weapon: kind ion, or any weapon that deals ion, including Ion Bomb and Stun Bomb. */
 function ownsIon(g: Game): boolean {
   return g.player.weapons.some((w) => {
-    const def = WEAPONS[w.defId];
+    const def = weaponDef(w.defId);
     return !!def && (def.kind === "ion" || def.ion > 0);
   });
 }
@@ -1431,7 +1431,7 @@ function cloakLevel(g: Game): number {
 function ownsCuttingBeam(g: Game): boolean {
   if ((g.player.kits.lance?.level ?? 0) > 0) return true;
   return g.player.weapons.some((w) => {
-    const def = WEAPONS[w.defId];
+    const def = weaponDef(w.defId);
     return def?.kind === "beam" && w.defId !== "antibio" && w.defId !== "firebeam";
   });
 }

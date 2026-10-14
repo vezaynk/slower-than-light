@@ -29,9 +29,9 @@
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
 import { tx } from "../../i18n/index.ts";
-import { upgradeCost, WEAPONS } from "../content.ts";
+import { upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { kinOf } from "../extras/kin.ts";
+import { crewDef, weaponDef } from "../pack/registry.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
@@ -458,7 +458,7 @@ export function hasTeleporter(g: Game): boolean {
 }
 function hasMissileWeapon(g: Game): boolean {
   // Weapons, Hull Missile: countedAsMissileInEvents is false. A Hull Missile does not open a Missile Weapon option.
-  return g.player.weapons.some((w) => w.defId !== "hullmissile" && WEAPONS[w.defId]?.kind === "missile");
+  return g.player.weapons.some((w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile");
 }
 
 function damageHull(g: Game, n: number): boolean {
@@ -1579,7 +1579,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (hit) hit.breach += 1;
     pageFight(g, tx("wiki.quests.your-ship-s-dash-suddenly-lights"), tx("wiki.quests.lanius-ship"), "refueling-platform-garbled-broadcast");
     const land = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
-    const hp = kinOf("voidlung").hp;
+    const hp = crewDef("voidlung").hp;
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
@@ -2853,7 +2853,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
     pageFight(g, tx("wiki.quests.the-mantis-escort-turns-to-meet"), tx("wiki.quests.mantis-ship"), "quest-engi-final", { ...NEVER_RUN });
-    const hp = kinOf("plain").hp;
+    const hp = crewDef("plain").hp;
     for (const c of g.crew) {
       if (c.side !== "enemy") continue;
       c.kin = "plain";

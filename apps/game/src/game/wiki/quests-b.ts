@@ -21,7 +21,7 @@
  */
 import { tx } from "../../i18n/index.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { kinOf } from "../extras/kin.ts";
+import { crewDef } from "../pack/registry.ts";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";
@@ -191,7 +191,7 @@ function noRun(g: Game, text: string, tier: string, slug: string) {
 /** "1-2 mantis boarders beam aboard your ship". INFERRED: each lands in a random room (as surrender.ts humanBoarders). */
 function mantisBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("blade").hp;
+  const hp = crewDef("blade").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -683,7 +683,7 @@ export const PART_B: QuestPart = {
         // "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)."
         // ENGI_MANTIS_CONTROLLED, {{SurrenderEscape(alt)|no|...}}. INFERRED: its crew are Mantis.
         noRun(g, tx("wiki.quests-b.you-receive-another-message-from-the"), tx("wiki.quests-b.engi-ship"), ENGI_PAGE_ENGI);
-        const hp = kinOf("blade").hp;
+        const hp = crewDef("blade").hp;
         for (const c of g.crew) {
           if (c.side !== "enemy") continue;
           c.kin = "blade";

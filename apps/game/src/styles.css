@@ -1535,7 +1535,8 @@ button:disabled {
 
 .target-panel {
   grid-area: target;
-  margin: 8px 10px 8px 0;
+  /* Per the user: a margin on every side, so the panel sits in from the stage, the HUD, and the screen edges. */
+  margin: 16px;
   border-radius: var(--radius);
   min-height: 0;
   display: flex;

@@ -8,6 +8,8 @@
  * The effect runs its own animation frame and reads the game store directly, so projectiles
  * move at display rate while the React UI keeps its slower refresh. Positions come from the
  * rooms and mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
+ * A miss keeps the bolt's inbound speed and flies it through the aim point until it leaves
+ * that camera. Beams never miss. Bombs teleport, so a miss stays a puff on the room.
  */
 import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
@@ -24,6 +26,7 @@ import { enemyHackView, playerHackView } from "@/game/extras/spike";
 import { surgeDroneView } from "@/game/wiki/flagship-systems";
 import { useGame } from "@/game/store";
 import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
+import { flightSpeed, leftCamera, MISS_EXIT_MARGIN, MISS_MAX_AGE, missVelocity, shotFliesPast } from "./miss-flight";
 import { pageRect } from "./turn";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -64,6 +67,7 @@ type Scorch = { a: Pt; b: Pt; life: number; max: number; color: string };
 type Streak = { x: number; y: number; ang: number; len: number; life: number; max: number; color: string };
 /** `side` / `slot`: @agent:flagship floater stagger (simultaneous numbers over one hull take separate slots). */
 type Text = { text: string; x: number; y: number; life: number; color: string; side?: "player" | "enemy"; slot?: number };
+type FxLayer = "world" | "panel" | "over";
 type Seen = {
   at: Pt;
   color: string;
@@ -75,6 +79,33 @@ type Seen = {
   seg?: { a: Pt; b: Pt };
   /** Environmental Hazards, Asteroid Field: an env laser is a rock, not a bolt. */
   rock?: boolean;
+  /** Room point the inbound leg was flying toward. */
+  aim: Pt;
+  /** Direction of that leg as it reaches the room. */
+  approachAng: number;
+  /** Pixels per second on the inbound leg. */
+  speed: number;
+  /** This frame is on the leg that reaches the target, not the outbound camera. */
+  onArrival: boolean;
+  /** Camera a miss keeps flying in. */
+  carryLayer: FxLayer;
+  spin: number;
+};
+/** A shot that already missed and is still crossing the camera. */
+type Flyby = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  ang: number;
+  kind: Shot["kind"];
+  color: string;
+  layer: FxLayer;
+  rock: boolean;
+  spin: number;
+  age: number;
+  /** Draw once at the handoff point before integrating. */
+  fresh: boolean;
 };
 type Ring = { box: Box; life: number; color?: string; pad: number };
 type Claim = { text: "SHIELD" | "MISS" | "HIT"; side: "player" | "enemy" };
@@ -191,6 +222,60 @@ function hash(id: string) {
   return (h >>> 0) / 4294967295;
 }
 
+/** Laser, ion, missile, flak, or a tumbling rock. The caller has already translated to the bolt. */
+function paintBolt(
+  c: CanvasRenderingContext2D,
+  kind: Shot["kind"],
+  color: string,
+  ang: number,
+  tumble: number,
+  rock: boolean,
+  spin: number,
+) {
+  c.save();
+  if (rock) {
+    c.rotate(tumble);
+    c.scale(2, 2);
+    drawAsteroid(c, spin);
+    c.restore();
+    return;
+  }
+  c.rotate(ang);
+  c.scale(1.4, 1.4);
+  if (kind === "laser") {
+    c.fillStyle = color;
+    c.globalAlpha = 0.35;
+    c.fillRect(-22, -2, 18, 4);
+    c.globalAlpha = 1;
+    c.fillRect(-10, -3, 16, 6);
+    c.fillStyle = "#ffffff";
+    c.fillRect(-6, -1, 10, 2);
+  } else if (kind === "ion") {
+    c.fillStyle = color;
+    c.globalAlpha = 0.3;
+    c.fillRect(-9, -9, 18, 18);
+    c.globalAlpha = 1;
+    c.fillRect(-5, -5, 10, 10);
+    c.fillStyle = "#e8f6ff";
+    c.fillRect(-2, -2, 4, 4);
+  } else if (kind === "missile") {
+    c.fillStyle = "#d8dde2";
+    c.fillRect(-9, -2, 14, 5);
+    c.fillStyle = "#6f7b86";
+    c.fillRect(-9, -4, 3, 9);
+    c.fillStyle = color;
+    c.fillRect(5, -2, 3, 5);
+  } else {
+    // Flak: a tumbling chunk.
+    c.rotate(tumble);
+    c.fillStyle = color;
+    c.fillRect(-3, -3, 6, 6);
+    c.fillStyle = "#ffe9b0";
+    c.fillRect(-1, -1, 2, 2);
+  }
+  c.restore();
+}
+
 /** Environmental Hazards, Asteroid Field: a tumbling stone. `h` picks one of three silhouettes. */
 function drawAsteroid(ctx: CanvasRenderingContext2D, h: number) {
   const body = h > 0.66 ? "#8d8476" : h > 0.33 ? "#6e675c" : "#7a7268";
@@ -244,6 +329,7 @@ export function CombatFx() {
     let raf = 0;
     let last = performance.now();
     const sparks: Spark[] = [];
+    const flybys: Flyby[] = [];
     const texts: Text[] = [];
     const rings: Ring[] = [];
     const marks: Mark[] = [];
@@ -728,16 +814,44 @@ export function CombatFx() {
           layer = "panel";
         }
         const rock = shot.from === "env" && shot.kind === "laser";
-        const rec: Seen = { at: { x, y }, color, kind: shot.kind, ang, side: targetSide(shot), roomId: shot.targetRoom, rock };
+        const spin = hash(shot.id);
+        // Inbound leg a miss continues along. Crossing shots spend the second half of the flight on it.
+        let aimFrom = from;
+        let approachAng = Math.atan2(to.y - from.y, to.x - from.x);
+        let aimSeconds = shot.duration;
+        if (crossing && panelBox && stageBox) {
+          const approach = approachAngle(g.time, shot);
+          const bounds =
+            shot.from === "player"
+              ? panelBox
+              : { x: -OFFSCREEN_PX, y: -OFFSCREEN_PX, w: w + OFFSCREEN_PX * 2, h: h + OFFSCREEN_PX * 2 };
+          aimFrom = entryPoint(to, approach, bounds);
+          approachAng = Math.atan2(to.y - aimFrom.y, to.x - aimFrom.x);
+          aimSeconds = shot.duration / 2;
+        }
+        const carryLayer: FxLayer = crossing ? (shot.from === "player" ? "panel" : "world") : layer;
+        const rec: Seen = {
+          at: { x, y },
+          color,
+          kind: shot.kind,
+          ang,
+          side: targetSide(shot),
+          roomId: shot.targetRoom,
+          rock,
+          aim: to,
+          approachAng,
+          speed: flightSpeed(aimFrom, to, aimSeconds),
+          onArrival: !outbound,
+          carryLayer,
+          spin,
+        };
         seen.set(shot.id, rec);
 
         if (rock) {
           drawOn(layer, (c) => {
             c.save();
             c.translate(Math.round(x), Math.round(y));
-            c.rotate(t * 9 + hash(shot.id) * Math.PI * 2);
-            c.scale(2, 2);
-            drawAsteroid(c, hash(shot.id));
+            paintBolt(c, shot.kind, color, ang, t * 9 + spin * Math.PI * 2, true, spin);
             c.restore();
           });
           if (live && Math.random() < 0.65) {
@@ -802,54 +916,22 @@ export function CombatFx() {
         drawOn(layer, (c) => {
           c.save();
           c.translate(Math.round(x), Math.round(y));
-          c.rotate(ang);
-          c.scale(1.4, 1.4);
-          if (shot.kind === "laser") {
-            c.fillStyle = color;
-            c.globalAlpha = 0.35;
-            c.fillRect(-22, -2, 18, 4);
-            c.globalAlpha = 1;
-            c.fillRect(-10, -3, 16, 6);
-            c.fillStyle = "#ffffff";
-            c.fillRect(-6, -1, 10, 2);
-          } else if (shot.kind === "ion") {
-            c.fillStyle = color;
-            c.globalAlpha = 0.3;
-            c.fillRect(-9, -9, 18, 18);
-            c.globalAlpha = 1;
-            c.fillRect(-5, -5, 10, 10);
-            c.fillStyle = "#e8f6ff";
-            c.fillRect(-2, -2, 4, 4);
-          } else if (shot.kind === "missile") {
-            c.fillStyle = "#d8dde2";
-            c.fillRect(-9, -2, 14, 5);
-            c.fillStyle = "#6f7b86";
-            c.fillRect(-9, -4, 3, 9);
-            c.fillStyle = color;
-            c.fillRect(5, -2, 3, 5);
-            if (live && Math.random() < 0.7) {
-              sparks.push({
-                x,
-                y,
-                vx: -Math.cos(ang) * 20,
-                vy: -Math.sin(ang) * 20 + (Math.random() - 0.5) * 10,
-                life: 0.6,
-                max: 0.6,
-                color: "#8a9096",
-                size: 3,
-                layer: layer === "world" ? "world" : undefined,
-              });
-            }
-          } else {
-            // Flak: a tumbling chunk.
-            c.rotate(t * 12);
-            c.fillStyle = color;
-            c.fillRect(-3, -3, 6, 6);
-            c.fillStyle = "#ffe9b0";
-            c.fillRect(-1, -1, 2, 2);
-          }
+          paintBolt(c, shot.kind, color, ang, t * 12, false, spin);
           c.restore();
         });
+        if (shot.kind === "missile" && live && Math.random() < 0.7) {
+          sparks.push({
+            x,
+            y,
+            vx: -Math.cos(ang) * 20,
+            vy: -Math.sin(ang) * 20 + (Math.random() - 0.5) * 10,
+            life: 0.6,
+            max: 0.6,
+            color: "#8a9096",
+            size: 3,
+            layer: layer === "world" ? "world" : undefined,
+          });
+        }
       }
 
       // Shots that left the list this frame landed, were dodged, or were shot down.
@@ -1020,7 +1102,25 @@ export function CombatFx() {
         const q = queues[s.side];
         const claim = q.shift();
         if (claim?.text === "MISS") {
-          missPuff(s.at);
+          // The dodge is already resolved. The bolt keeps flying through the room and out of the camera.
+          const start = s.onArrival ? s.at : s.aim;
+          const vel = shotFliesPast(s.kind) ? missVelocity(start, s.aim, s.approachAng, s.speed) : null;
+          if (vel) {
+            flybys.push({
+              x: start.x,
+              y: start.y,
+              vx: vel.vx,
+              vy: vel.vy,
+              ang: vel.ang,
+              kind: s.kind,
+              color: s.color,
+              layer: s.carryLayer,
+              rock: !!s.rock,
+              spin: s.spin,
+              age: 0,
+              fresh: true,
+            });
+          } else missPuff(s.at);
           continue;
         }
         // Shield ring is pushed with the floater below. A pure shield hit skips the hull burst.
@@ -1037,6 +1137,53 @@ export function CombatFx() {
         if (!target) continue;
         const at = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
         for (const c of queues[side]) if (c.text === "MISS") missPuff(at);
+      }
+
+      for (let i = flybys.length - 1; i >= 0; i--) {
+        const f = flybys[i];
+        if (live && !f.fresh) {
+          f.x += f.vx * dt;
+          f.y += f.vy * dt;
+          f.age += dt;
+        }
+        const bounds = f.layer === "panel" && panelBox ? panelBox : { x: 0, y: 0, w, h };
+        if (!f.fresh && (f.age > MISS_MAX_AGE || leftCamera({ x: f.x, y: f.y }, bounds, MISS_EXIT_MARGIN))) {
+          flybys.splice(i, 1);
+          continue;
+        }
+        const tumble = f.rock ? f.age * 9 + f.spin * Math.PI * 2 : f.age * 12;
+        drawOn(f.layer, (c) => {
+          c.save();
+          c.translate(Math.round(f.x), Math.round(f.y));
+          paintBolt(c, f.kind, f.color, f.ang, tumble, f.rock, f.spin);
+          c.restore();
+        });
+        if (live && f.rock && Math.random() < 0.65) {
+          sparks.push({
+            x: f.x - Math.cos(f.ang) * 8,
+            y: f.y - Math.sin(f.ang) * 8,
+            vx: -Math.cos(f.ang) * 24,
+            vy: -Math.sin(f.ang) * 24 + (Math.random() - 0.5) * 12,
+            life: 0.3,
+            max: 0.3,
+            color: "#a39888",
+            size: 2,
+            layer: f.layer === "world" ? "world" : undefined,
+          });
+        } else if (live && f.kind === "missile" && Math.random() < 0.7) {
+          sparks.push({
+            x: f.x,
+            y: f.y,
+            vx: -Math.cos(f.ang) * 20,
+            vy: -Math.sin(f.ang) * 20 + (Math.random() - 0.5) * 10,
+            life: 0.6,
+            max: 0.6,
+            color: "#8a9096",
+            size: 3,
+            layer: f.layer === "world" ? "world" : undefined,
+          });
+        }
+        if (live) f.fresh = false;
       }
 
       for (const f of g.floaters) {

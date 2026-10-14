@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { cellsOnSegment, clipBeamEnd, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
+import { beamStroke, cellsOnSegment, clipBeamEnd, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
 import { beamSwipeSeconds, beamTileLength } from "./wiki/weapons-beam.ts";
 import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
@@ -12,6 +12,23 @@ function grid(rooms: BeamGrid["rooms"], cols: number, rows: number): BeamGrid {
 function cell(id: string, x: number, y: number, w = 1, h = 1, omit?: { x: number; y: number }[]) {
   return { id, x, y, w, h, omit };
 }
+
+describe("beam stroke", () => {
+  it("keeps the printed length and walks the leading edge along the aim", () => {
+    const start = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 0, 3.8);
+    assert.deepEqual(start.head, { x: 0, y: 0 });
+    assert.ok(Math.abs(start.tail.x - -3.8) < 1e-9);
+    assert.equal(start.tail.y, 0);
+
+    const mid = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 0.5, 3.8);
+    assert.equal(mid.head.x, 2);
+    assert.ok(Math.abs(mid.head.x - mid.tail.x - 3.8) < 1e-9);
+
+    const end = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 1, 3.8);
+    assert.deepEqual(end.head, { x: 4, y: 0 });
+    assert.ok(Math.abs(end.tail.x - 0.2) < 1e-9);
+  });
+});
 
 describe("rooms on a beam segment", () => {
   const row = grid(

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { ARTILLERY_BEAM_PX, BEAM_CREW, BEAM_GAPS, BEAM_SPEED, BEAM_TILES, BEAM_WEAPONS, artillerySwipeSeconds, beamSwipeSeconds, beamTileLength } from "./weapons-beam.ts";
+import { ARTILLERY_BEAM_PX, BEAM_CREW, BEAM_GAPS, BEAM_SPEED, BEAM_TILES, BEAM_WEAPONS, artillerySwipeSeconds, beamBodyTiles, beamSwipeSeconds, beamTileLength } from "./weapons-beam.ts";
 
 function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
   return {
@@ -168,6 +168,8 @@ describe("beam weapons", () => {
     assert.equal(BEAM_TILES.antibio, 3.1);
     assert.equal(BEAM_TILES.bossbeam, 2.2);
     assert.equal(beamTileLength("artillery-beam"), null);
+    assert.equal(beamBodyTiles("shear"), 3.8);
+    assert.equal(beamBodyTiles("artillery-beam"), ARTILLERY_BEAM_PX / 45);
   });
 
   it("times a swipe from the Multiverse weapon database speed", () => {

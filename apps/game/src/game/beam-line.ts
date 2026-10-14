@@ -85,6 +85,22 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
  * X is the tile length. A second click farther than that stops on the way there.
  * A closer click is the end. This does not stretch a short swipe out to X.
  */
+/**
+ * The stroke while a beam is firing. The leading edge travels from `a` to `b` as `t` goes from 0 to 1.
+ * The stroke stays `length` long and trails behind that edge, so the beam is long for the whole swipe.
+ */
+export function beamStroke(a: BeamPoint, b: BeamPoint, t: number, length: number): { tail: BeamPoint; head: BeamPoint } {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const span = Math.hypot(dx, dy);
+  const ux = span > 1e-4 ? dx / span : 1;
+  const uy = span > 1e-4 ? dy / span : 0;
+  const k = Math.min(1, Math.max(0, t));
+  const head = { x: a.x + dx * k, y: a.y + dy * k };
+  const len = Math.max(0, length);
+  return { tail: { x: head.x - ux * len, y: head.y - uy * len }, head };
+}
+
 export function clipBeamEnd(a: BeamPoint, toward: BeamPoint, tiles: number): BeamPoint {
   const dx = toward.x - a.x;
   const dy = toward.y - a.y;

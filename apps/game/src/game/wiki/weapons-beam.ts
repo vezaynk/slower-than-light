@@ -203,6 +203,12 @@ export function beamTileLength(defId: string | undefined): number | null {
   return BEAM_TILES[defId];
 }
 
+/** Printed length of the stroke, in tiles. Artillery Beam is 500px, and 45px is one tile. */
+export function beamBodyTiles(defId: string | undefined): number | null {
+  if (defId === "artillery-beam") return ARTILLERY_BEAM_PX / 45;
+  return beamTileLength(defId);
+}
+
 /**
  * Swipe speed from https://ftlmultiverse.miraheze.org/wiki/Data:WeaponDatabase.map
  * matched by the vanilla blueprint id. The FTL wiki says the speed depends on the weapon and prints no number.

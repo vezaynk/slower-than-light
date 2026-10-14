@@ -3,7 +3,8 @@
  * impacts, and the MISS / SHIELD / damage floaters. The target panel is a second camera.
  * A player shot leaves its view going straight ahead. An enemy shot leaves the preview
  * going up. The arrival at the other ship uses the fight clock's bearing. Enemy bolts
- * start outside the screen; player bolts enter the preview frame. One canvas sits under
+ * start outside the screen; player bolts enter the preview frame. A beam does not travel
+ * that way: the stroke stays on the hull it hits for the whole swipe. One canvas sits under
  * that panel; the other sits over both ships.
  * The effect runs its own animation frame and reads the game store directly, so projectiles
  * move at display rate while the React UI keeps its slower refresh. Positions come from the
@@ -27,6 +28,8 @@ import { surgeDroneView } from "@/game/wiki/flagship-systems";
 import { useGame } from "@/game/store";
 import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
 import { flightSpeed, leftCamera, MISS_EXIT_MARGIN, MISS_MAX_AGE, missVelocity, shotFliesPast } from "./miss-flight";
+import { beamStroke } from "@/game/beam-line";
+import { beamBodyTiles } from "@/game/wiki/weapons-beam";
 import { pageRect } from "./turn";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -763,14 +766,64 @@ export function CombatFx() {
       for (const shot of g.shots) {
         if (shot.wait > 0) continue;
         alive.add(shot.id);
-        const from = muzzle(shot);
-        const to = aimAt(shot, shot.targetRoom);
-        if (!from || !to) continue;
         const prior = tickT.get(shot.id);
         if (!prior || prior.t !== shot.t) tickT.set(shot.id, { t: shot.t, at: now });
         const since = (now - (tickT.get(shot.id)?.at ?? now)) / 1000;
         const t = Math.min(1, shot.t + (live ? Math.min(since, 1 / 30) / shot.duration : 0));
         const color = shot.from === "env" ? "#c8b49a" : weaponPalette(shot.defId).glow;
+        if (shot.kind === "beam") {
+          // The swipe is the shot. The leading edge walks the aim, and the stroke stays the printed length behind it.
+          const side = targetSide(shot);
+          const lineEnds = shot.beamLine;
+          let a = lineEnds ? tileOnHull(side, lineEnds.a) : null;
+          let b = lineEnds ? tileOnHull(side, lineEnds.b) : null;
+          if (!a || !b) {
+            const ids = shot.beamRooms ?? [shot.targetRoom];
+            const pts = ids
+              .map((id) => {
+                const r = room(side, id);
+                return r ? { x: r.x + r.w / 2, y: r.y + r.h / 2 } : null;
+              })
+              .filter((p): p is Pt => !!p);
+            a = pts[0] ?? null;
+            b = pts[pts.length - 1] ?? a;
+          }
+          const tileDist = lineEnds ? Math.hypot(lineEnds.b.x - lineEnds.a.x, lineEnds.b.y - lineEnds.a.y) : 0;
+          // A one-room swipe has no second point. Cross that room so the long stroke still has a direction.
+          if (a && b && !(tileDist > 0.05) && Math.hypot(b.x - a.x, b.y - a.y) < 1) {
+            const r = room(side, shot.targetRoom);
+            if (r && r.w > 1) {
+              a = { x: r.x, y: r.y + r.h / 2 };
+              b = { x: r.x + r.w, y: r.y + r.h / 2 };
+            }
+          }
+          if (a && b) {
+            const hullEl = host.querySelector(`.hull[data-ship="${side}"]`);
+            const tile = hullEl ? parseFloat(getComputedStyle(hullEl).getPropertyValue("--tile")) || 0 : 0;
+            const screenSpan = Math.hypot(b.x - a.x, b.y - a.y);
+            const pxPerTile = tileDist > 0.05 ? screenSpan / tileDist : tile;
+            const body = beamBodyTiles(shot.defId);
+            const lengthPx = body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
+            const stroke = beamStroke(a, b, t, lengthPx);
+            const beamLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";
+            const rec: Seen = {
+              at: stroke.head,
+              color,
+              kind: "beam",
+              ang: Math.atan2(stroke.head.y - stroke.tail.y, stroke.head.x - stroke.tail.x),
+              side,
+              roomId: shot.targetRoom,
+              seg: { a: stroke.tail, b: stroke.head },
+            };
+            seen.set(shot.id, rec);
+            paintBeam(beamLayer, stroke.tail, stroke.head, color);
+            if (Math.random() < 0.6) burst(stroke.head, color, 1, 60);
+          }
+          continue;
+        }
+        const from = muzzle(shot);
+        const to = aimAt(shot, shot.targetRoom);
+        if (!from || !to) continue;
         const crossing = crossesCameras(shot) && !!panelBox && !!stageBox;
         // First half leaves the firing camera: ahead for the player, up for the enemy preview.
         // Second half arrives in the other camera.
@@ -867,32 +920,6 @@ export function CombatFx() {
               layer: layer === "world" ? "world" : undefined,
             });
           }
-          continue;
-        }
-
-        if (shot.kind === "beam") {
-          const hullSide = targetSide(shot);
-          const endA = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.a) : null;
-          const endB = shot.beamLine ? tileOnHull(hullSide, shot.beamLine.b) : null;
-          const rooms = (shot.beamRooms ?? [shot.targetRoom]).map((id) => aimAt(shot, id)).filter((p): p is Pt => !!p);
-          const a = endA && endB ? endA : (rooms[0] ?? to);
-          const b = endA && endB ? endB : (rooms[rooms.length - 1] ?? to);
-          if (crossing && outbound) {
-            // Straight out of the firing camera. The swipe on the other hull is the arrival half.
-            const tip = { x, y };
-            rec.at = tip;
-            paintBeam(layer, from, tip, color);
-            continue;
-          }
-          const sweep = { x: a.x + (b.x - a.x) * (crossing ? leg : t), y: a.y + (b.y - a.y) * (crossing ? leg : t) };
-          const origin = crossing ? a : from;
-          // The stroke this frame. When the shot leaves, the scorch uses this segment, not a point.
-          rec.seg = { a: origin, b: sweep };
-          rec.at = sweep;
-          rec.ang = Math.atan2(b.y - origin.y, b.x - origin.x);
-          const beamLayer: Layer = crossing ? (shot.from === "player" ? "panel" : "world") : "over";
-          paintBeam(beamLayer, origin, sweep, color);
-          if (Math.random() < 0.6) burst(sweep, color, 1, 60, beamLayer === "world" ? "world" : undefined);
           continue;
         }
 

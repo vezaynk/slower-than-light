@@ -6264,6 +6264,17 @@ body.page-turn-180 {
 .dock-tab.is-on:hover { opacity: 1; }
 .drone-tray.is-tabbed { margin-top: 0; min-height: 94px; }
 .drone-tray.is-tabbed .gun-slot { width: 150px; height: 90px; }
+/* Per the user: the drone bay explains the missing system instead of drawing slots. It stays inside the reserved width. */
+.drone-need {
+  margin: 0;
+  align-self: center;
+  min-width: 0;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  color: var(--color-fg);
+}
 
 /* Per the user: the bar about to break fills red left to right with the sabotage progress (GameApp hurtStyle). */
 .power-col button.is-hurting,

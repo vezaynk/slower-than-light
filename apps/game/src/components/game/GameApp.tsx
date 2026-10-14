@@ -2204,7 +2204,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         ) : null}
         {tab === "drones" ? (
           <div className="gun-tray drone-tray is-tabbed" role="tabpanel">
-            {droneSlots.map((kind, index) => {
+            {/* Per the user: no Drone Control means the bay says so, instead of drawing slots. */}
+            {!swarm ? <p className="drone-need">{tx("ui.GameApp.drone-control-required")}</p> : null}
+            {swarm ? droneSlots.map((kind, index) => {
               const key = droneKeyOf(kind);
               const name = key ? DRONE_LOOKS[key].name : kind;
               const dragging = drones.from === index;
@@ -2247,11 +2249,13 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   <span className="gun-name">{name}</span>
                 </button>
               );
-            })}
-            {/* Per the user: the same rule as weapons. No Drone Control means no slots, so the reserved width stays blank. */}
-            {Array.from({ length: Math.max(0, droneSlotCap(game) - droneSlots.length) }, (_, i) => (
-              <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
-            ))}
+            }) : null}
+            {/* Per the user: a dashed box is only a slot this ship has and has not filled. */}
+            {swarm
+              ? Array.from({ length: Math.max(0, droneSlotCap(game) - droneSlots.length) }, (_, i) => (
+                  <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
+                ))
+              : null}
           </div>
         ) : null}
         {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES. */}

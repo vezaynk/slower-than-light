@@ -6515,6 +6515,7 @@
   "ui.GameApp.to-cargo": "To cargo",
   "ui.GameApp.drones-2": "Drones",
   "ui.GameApp.no-drone-control-system": "No Drone Control system.",
+  "ui.GameApp.drone-control-required": "Drone control system is required to launch drones",
   "ui.GameApp.no-drone-schematics": "No drone schematics.",
   "ui.GameApp.drone-slot": "{{name}}, drone slot {{v}}",
   "ui.GameApp.weapons-and-drone-schematics-that-are": ". Weapons and drone schematics that are not fitted.",

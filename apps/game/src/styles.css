@@ -55,8 +55,7 @@
   }
 }
 
-/* 720-high screen from Screen.tsx (1280 wide, wider on a wider display), scaled by --fit and centred.
-   The box stretches to the window. A pinned pixel size is only for iOS chrome or a home-screen app. */
+/* 1280×720 screen from Screen.tsx, scaled by --fit and centred. Anything else letterboxes. */
 .viewport {
   position: fixed;
   top: var(--sat, 0px);
@@ -875,19 +874,25 @@ button:disabled {
     "dock dock";
 }
 
-/* Per the user: the fight gives the target panel the stage width the player ship is not using. */
-.play.is-battle {
-  grid-template-columns: 168px minmax(0, 1fr) minmax(220px, calc(340px + var(--battle-shift, 0px)));
+/* Per the user: the column is only as wide as the Rebel Flagship at the player's tile size. */
+.play.is-sized {
+  grid-template-columns: 168px minmax(0, 1fr) minmax(220px, var(--target-col, 340px));
 }
 
+.play.is-sized .target-panel {
+  height: min(var(--target-max-h, 100%), calc(100% - 32px));
+  align-self: start;
+}
+
+.play.is-sized .sky .hull {
+  --tile: var(--player-tile);
+}
+
+/* The player ship moves left only when the flagship needs width past the 340px column. */
 .play.is-battle .sky {
   place-items: center start;
   padding-left: 64px;
   box-sizing: border-box;
-}
-
-.play.is-battle .sky .hull {
-  --tile: var(--player-tile);
 }
 
 .hud {

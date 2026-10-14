@@ -1,8 +1,6 @@
 /**
- * INVENTED: every view renders on one 720-high screen, scaled uniformly to
- * fit the visible viewport. It is 1280 wide (16:9) and letterboxed on narrower displays; on a wider one
- * (a phone in landscape is about 19.5:9) it widens to the display's shape, up to MAX_ASPECT, so the game takes
- * the full width (per the user). Layout inside never sees the window
+ * INVENTED: every view renders on one 1280×720 screen (16:9), scaled uniformly to
+ * fit the visible viewport and letterboxed on every other shape. Layout inside never sees the window
  * size, so the aspect ratio is the same on every display and the page never scrolls.
  * The box is the visual viewport (not window.innerHeight) so iOS browser chrome
  * does not leave the screen short or scrolled under the URL bar.
@@ -14,21 +12,12 @@ import { canForceLandscape, installedApp, pageTurn, setPageTurn, type PageTurn }
 
 export const SCREEN_W = 1280;
 export const SCREEN_H = 720;
-/** INVENTED cap: wider than 2.4:1 letterboxes again, so an ultrawide monitor does not stretch the HUD apart. */
-const MAX_ASPECT = 2.4;
-
-/** Logical screen width for a viewport: 1280, or wider to fill a wider display. */
-function screenWidth(w: number, h: number): number {
-  if (!(w > 0) || !(h > 0) || h > w) return SCREEN_W;
-  const aspect = Math.min(MAX_ASPECT, w / h);
-  return Math.max(SCREEN_W, Math.round(SCREEN_H * aspect));
-}
 
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export type ScreenView = {
   fit: number;
-  /** Logical width of the screen box (SCREEN_W or wider). */
+  /** Logical size of the screen box. Always 1280×720. */
   width: number;
   portrait: boolean;
   /** Visual viewport is offset from the window, so the box is pinned in pixels. */
@@ -151,8 +140,8 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
       left: 0,
       w,
       h,
-      width: screenWidth(w, h),
-      fit: Math.min(w / screenWidth(w, h), h / SCREEN_H),
+      width: SCREEN_W,
+      fit: Math.min(w / SCREEN_W, h / SCREEN_H),
       portrait: h > w,
       pin: false,
     };
@@ -169,8 +158,8 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
     left: (quarter ? 0 : offsetLeft) + sal,
     w,
     h,
-    width: screenWidth(w, h),
-    fit: Math.min(w / screenWidth(w, h), h / SCREEN_H),
+    width: SCREEN_W,
+    fit: Math.min(w / SCREEN_W, h / SCREEN_H),
     portrait: sized.rawH > sized.rawW,
     pin: true,
   };

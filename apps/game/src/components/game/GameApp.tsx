@@ -828,18 +828,29 @@ function isKitId(id: SysId | KitId): id is KitId {
  * Per the user: in a fight the player ship sits as far left as it can without clipping.
  * ShieldField draws the outer bubble at most 56px past the hull (ROOM_MAX) plus 8px for the stroke.
  * The hull plate hangs one tile past the rooms, which at the 44px cap is inside that stroke.
- * The same 64px stays clear on the right. Everything wider than the hull plus those two margins
- * is given to the target panel.
+ * The target panel only grows past its 340px column by what the Rebel Flagship still needs.
+ * That hull is the biggest, 12 by 10 (wiki/flagship-layout.ts). Anything wider would be empty glass.
  */
 const BATTLE_CLEAR = 64;
+const FLAGSHIP_COLS = 12;
+const FLAGSHIP_ROWS = 10;
+/** Body padding plus the aim-rail gutter, and the 16px margin on both sides. */
+const PANEL_CHROME_X = 34 + 32;
+/** Vitals, the body's own padding, and two rows of system chips with the bottom rail. */
+const PANEL_CHROME_Y = 150;
 
-function useBattleShift(active: boolean, hullKey: string): { shift: number; tile: number } {
-  const [frame, setFrame] = useState({ shift: 0, tile: 0 });
+function platePx(rooms: number, tile: number): number {
+  const wall = 2 / 44;
+  return tile * (rooms + 2 + (rooms + 1) * wall);
+}
+
+function useBattleShift(active: boolean, hullKey: string): { shift: number; tile: number; col: number; panelH: number } {
+  const [frame, setFrame] = useState({ shift: 0, tile: 0, col: 340, panelH: 0 });
   const shiftRef = useRef(0);
   useLayoutEffect(() => {
     if (!active) {
       shiftRef.current = 0;
-      setFrame((prev) => (prev.shift === 0 ? prev : { shift: 0, tile: prev.tile }));
+      setFrame((prev) => (prev.shift === 0 && prev.col === 340 ? prev : { shift: 0, tile: prev.tile, col: 340, panelH: 0 }));
       return;
     }
     const root = document.querySelector(".play");
@@ -852,11 +863,20 @@ function useBattleShift(active: boolean, hullKey: string): { shift: number; tile
       if (!(sky instanceof HTMLElement) || !(well instanceof HTMLElement) || !(hull instanceof HTMLElement)) return;
       if (well.offsetWidth < 8) return;
       const tile = parseFloat(getComputedStyle(hull).gridTemplateColumns) || 0;
+      if (tile <= 0) return;
       const applied = shiftRef.current;
       const natural = sky.clientWidth + applied;
-      const next = Math.max(0, Math.floor(natural - well.offsetWidth - BATTLE_CLEAR * 2));
-      shiftRef.current = next;
-      setFrame((prev) => (prev.shift === next && Math.abs(prev.tile - tile) < 0.5 ? prev : { shift: next, tile }));
+      const spare = Math.max(0, Math.floor(natural - well.offsetWidth - BATTLE_CLEAR * 2));
+      const colNeeded = Math.ceil(platePx(FLAGSHIP_COLS, tile) + PANEL_CHROME_X);
+      const col = Math.max(220, Math.min(colNeeded, 340 + spare));
+      const shift = Math.max(0, col - 340);
+      const panelH = Math.ceil(platePx(FLAGSHIP_ROWS, tile) + PANEL_CHROME_Y);
+      shiftRef.current = shift;
+      setFrame((prev) =>
+        prev.shift === shift && prev.col === col && prev.panelH === panelH && Math.abs(prev.tile - tile) < 0.5
+          ? prev
+          : { shift, tile, col, panelH },
+      );
     };
     const schedule = () => {
       cancelAnimationFrame(raf);
@@ -989,8 +1009,13 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   ) : null;
   return (
     <div
-      className={`play${showTarget ? "" : " no-target"}${battleShift.shift > 0 && battleShift.tile > 0 ? " is-battle" : ""}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
-      style={{ ["--battle-shift" as string]: `${battleShift.shift}px`, ["--player-tile" as string]: `${battleShift.tile}px` }}
+      className={`play${showTarget ? "" : " no-target"}${showTarget && battleShift.tile > 0 ? " is-sized" : ""}${battleShift.shift > 0 && battleShift.tile > 0 ? " is-battle" : ""}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
+      style={{
+        ["--battle-shift" as string]: `${battleShift.shift}px`,
+        ["--player-tile" as string]: `${battleShift.tile}px`,
+        ["--target-col" as string]: `${battleShift.col}px`,
+        ["--target-max-h" as string]: `${battleShift.panelH}px`,
+      }}
       onPointerDown={(e) => {
         if (e.pointerType !== "touch") return;
         const t = e.target as Element | null;

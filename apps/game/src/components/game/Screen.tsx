@@ -1,8 +1,8 @@
 /**
- * INVENTED: every view renders on one 1280×720 screen (16:9). The box scales with a fit
- * strategy in CSS (the smaller of width-fit and height-fit) so it shrinks smoothly as either
- * side of the viewport changes, and letterboxes on every other shape. Layout inside never sees
- * the window size, so the aspect ratio is the same on every display and the page never scrolls.
+ * INVENTED: every view renders on one 1280×720 screen (16:9). It is scaled to fit the
+ * visible viewport: the smaller of the width ratio and the height ratio, so it shrinks with
+ * either side and letterboxes on the other. Layout inside never sees the window size, so the
+ * aspect ratio is the same on every display and the page never scrolls.
  * The box is the visual viewport (not window.innerHeight) so iOS browser chrome
  * does not leave the screen short or scrolled under the URL bar.
  */
@@ -12,6 +12,20 @@ import { canForceLandscape, installedApp, pageTurn, setPageTurn, type PageTurn }
 
 export const SCREEN_W = 1280;
 export const SCREEN_H = 720;
+
+function fitScale(w: number, h: number): number {
+  if (!(w > 0) || !(h > 0)) return 1;
+  return Math.min(w / SCREEN_W, h / SCREEN_H);
+}
+
+/** The fit scale, written on the element. A custom property inside scale() does not always refresh. */
+function paintFit(viewport: HTMLElement | null) {
+  const screen = viewport?.querySelector(":scope > .screen");
+  if (!(screen instanceof HTMLElement) || !viewport) return;
+  const fit = fitScale(viewport.clientWidth, viewport.clientHeight);
+  screen.style.setProperty("--fit", String(fit));
+  screen.style.transform = `translate(-50%, -50%) scale(${fit})`;
+}
 
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -141,7 +155,7 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
       w,
       h,
       width: SCREEN_W,
-      fit: Math.min(w / SCREEN_W, h / SCREEN_H),
+      fit: fitScale(w, h),
       portrait: h > w,
       pin: false,
     };
@@ -159,7 +173,7 @@ function measure(box: { w: number; h: number } | null): ScreenView & { top: numb
     w,
     h,
     width: SCREEN_W,
-    fit: Math.min(w / SCREEN_W, h / SCREEN_H),
+    fit: fitScale(w, h),
     portrait: sized.rawH > sized.rawW,
     pin: true,
   };
@@ -176,9 +190,10 @@ export function Screen({ children }: { children: ReactNode }) {
       // comes out 0); iOS has none, so the page turns by CSS. Off restores everything.
       applyTurn(wantedTurn(useSettings.getState().rotate));
       const el = ref.current;
-      const rect = el?.getBoundingClientRect();
-      const box = rect && rect.width > 0 && rect.height > 0 ? { w: rect.width, h: rect.height } : null;
+      // The layout box, not getBoundingClientRect: a turned page changes the visual box but the screen is laid out in this one.
+      const box = el && el.clientWidth > 0 && el.clientHeight > 0 ? { w: el.clientWidth, h: el.clientHeight } : null;
       const next = measure(box);
+      paintFit(el);
       setView((prev) =>
         prev &&
         prev.fit === next.fit &&
@@ -255,10 +270,9 @@ export function Screen({ children }: { children: ReactNode }) {
   }, [rotate]);
 
   const fit = view?.fit ?? 1;
-  // The visible scale is the CSS fit on .screen (min of width ratio and height ratio).
-  // It tracks the viewport container every frame. This number is the same ratio, for anything that reads it.
   const frame = {
     "--fit": fit,
+    transform: `translate(-50%, -50%) scale(${fit})`,
   } as CSSProperties;
   const box = view?.pin
     ? ({ top: view.top, left: view.left, width: view.w, height: view.h } as CSSProperties)

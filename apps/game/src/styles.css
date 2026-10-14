@@ -55,15 +55,14 @@
   }
 }
 
-/* 1280×720 screen from Screen.tsx. The viewport is a size container, and the screen uses a fit
-   scale: the smaller of "match the width" and "match the height", so it shrinks smoothly with either side. */
+/* 1280×720 screen from Screen.tsx. The viewport is the visible window. The screen is scaled
+   to fit it (the smaller of the width ratio and the height ratio) by an inline transform. */
 .viewport {
   position: fixed;
   top: var(--sat, 0px);
+  right: var(--sar, 0px);
+  bottom: var(--sab, 0px);
   left: var(--sal, 0px);
-  /* Explicit size so container-type: size cannot collapse the box. Fit reads this container. */
-  width: calc(100vw - var(--sal, 0px) - var(--sar, 0px));
-  height: calc(100dvh - var(--sat, 0px) - var(--sab, 0px));
   overflow: hidden;
   background: #000;
   touch-action: none;
@@ -71,8 +70,6 @@
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  container-type: size;
-  container-name: frame;
 }
 
 .viewport img,
@@ -97,11 +94,8 @@
   height: 720px;
   overflow: hidden;
   container: screen / size;
-  /* tan(atan2(a, b)) is a/b as a unitless number, so scale() can take the fit ratio.
-     A custom property inside scale() does not always refresh the matrix. */
-  transform: translate(-50%, -50%) scale(
-    min(tan(atan2(100cqw, 1280px)), tan(atan2(100cqh, 720px)))
-  );
+  /* Replaced as soon as the viewport is measured. A variable inside scale() does not always refresh. */
+  transform: translate(-50%, -50%) scale(1);
   visibility: hidden;
 }
 

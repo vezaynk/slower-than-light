@@ -1,10 +1,12 @@
-/** Find wording in the source and the stable `file#anchor` that holds it. Anchors are never line numbers. */
+/** Find wording in the source. `anchor` is a stable name; `line` is where that wording sits. */
 
 export type CiteKind = "copy" | "comment" | "test" | "marker";
 
 export type Cite = {
   file: string;
   anchor: string;
+  /** 1-based line of the wording. Never a choice index. */
+  line: number;
   kind: CiteKind;
   /** i18n key, when the phrase is a translation value. */
   key?: string;
@@ -75,10 +77,24 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
   let lastIdent: string | null = null;
   let colonField: string | null = null;
   let call: string | null = null;
+  let callAt = 0;
   let callDepth = 0;
   let callArgs: string[] = [];
   let i = 0;
   let prev: "op" | "expr" = "op";
+
+  const lineStarts = [0];
+  for (let p = 0; p < src.length; p++) if (src[p] === "\n") lineStarts.push(p + 1);
+  function lineNo(pos: number): number {
+    let lo = 0;
+    let hi = lineStarts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lineStarts[mid]! <= pos) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo + 1;
+  }
 
   const top = () => frames[frames.length - 1]!;
 
@@ -107,11 +123,15 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
     return "file";
   }
 
-  function add(phrase: string, pages: string[], kind: CiteKind, key?: string) {
+  function add(phrase: string, pages: string[], kind: CiteKind, at: number, key?: string) {
     const scoped = pages.length > 0;
     for (const piece of pieces(phrase)) {
       if (!usable(piece, scoped)) continue;
-      out.push({ phrase: piece, pages: [...pages], cite: { file, anchor: anchorOf(), kind, ...(key ? { key } : {}) } });
+      out.push({
+        phrase: piece,
+        pages: [...pages],
+        cite: { file, anchor: anchorOf(), line: lineNo(at), kind, ...(key ? { key } : {}) },
+      });
     }
   }
 
@@ -133,7 +153,7 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         out.push({
           phrase,
           pages: page ? [page] : pagesOf(),
-          cite: { file, anchor: explicit || anchorOf(), kind: "marker" },
+          cite: { file, anchor: explicit || anchorOf(), line: lineNo(callAt), kind: "marker" },
         });
       }
     }
@@ -142,7 +162,7 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
     callDepth = 0;
   }
 
-  function takeString(value: string) {
+  function takeString(value: string, at: number) {
     const gap = src.slice(i).match(/^\s*/)![0];
     const after = src[i + gap.length];
     if (after === ":") {
@@ -156,7 +176,7 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
       callArgs.push(value);
       if (call === "tx" || call === "t") {
         const text = i18n.get(value);
-        if (text) add(text, pagesOf(), baseKind, value);
+        if (text) add(text, pagesOf(), baseKind, at, value);
       } else if (call === "wikiPage") {
         const page = titleOf(value);
         if (page && !top().pages.includes(page)) top().pages.push(page);
@@ -182,12 +202,15 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
       if (page && !top().pages.includes(page)) top().pages.push(page);
       if (page && field !== "name") return;
     }
-    add(value, pagesOf(), baseKind);
+    add(value, pagesOf(), baseKind, at);
   }
 
-  function absorbComment(body: string) {
+  function absorbComment(body: string, at: number) {
     const kind: CiteKind = baseKind === "test" ? "test" : "comment";
+    let offset = 0;
     for (const raw of body.split("\n")) {
+      const here = at + 2 + offset;
+      offset += raw.length + 1;
       const line = raw.trim();
       if (/^Wiki citations:\s*$/.test(line)) continue;
       const pin = /^>\s*"((?:[^"\\]|\\.)*)"\s*\u2014\s*\[\[([^\]#]+?)(?:#([^\]]+))?\]\]\s*$/.exec(line);
@@ -201,7 +224,7 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
           out.push({
             phrase,
             pages: [page],
-            cite: { file, anchor: anchorOf(), kind, ...(section ? { section } : {}), pinned: true },
+            cite: { file, anchor: anchorOf(), line: lineNo(here), kind, ...(section ? { section } : {}), pinned: true },
           });
         }
         continue;
@@ -212,30 +235,33 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         const quote = named[2]!.trim();
         const page = /^same$/i.test(who) || who === "" ? commentPage : titleOf(who);
         if (page) commentPage = page;
-        add(quote, page ? [page] : pagesOf(), kind);
+        add(quote, page ? [page] : pagesOf(), kind, here);
         continue;
       }
-      for (const q of line.match(/"([^"]{12,})"/g) ?? []) add(q.slice(1, -1), commentPage ? [commentPage] : pagesOf(), kind);
+      for (const q of line.match(/"([^"]{12,})"/g) ?? []) add(q.slice(1, -1), commentPage ? [commentPage] : pagesOf(), kind, here);
     }
   }
 
   while (i < src.length) {
     const c = src[i]!;
     if (c === "/" && src[i + 1] === "/") {
+      const at = i;
       const end = src.indexOf("\n", i);
-      absorbComment(src.slice(i + 2, end < 0 ? src.length : end));
+      absorbComment(src.slice(i + 2, end < 0 ? src.length : end), at);
       i = end < 0 ? src.length : end;
       prev = "op";
       continue;
     }
     if (c === "/" && src[i + 1] === "*") {
+      const at = i;
       const end = src.indexOf("*/", i + 2);
-      absorbComment(src.slice(i + 2, end < 0 ? src.length : end));
+      absorbComment(src.slice(i + 2, end < 0 ? src.length : end), at);
       i = end < 0 ? src.length : end + 2;
       prev = "op";
       continue;
     }
     if (c === "'" || c === '"') {
+      const at = i;
       let s = "";
       const q = c;
       i++;
@@ -254,11 +280,12 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         s += d;
         i++;
       }
-      takeString(s);
+      takeString(s, at);
       prev = "expr";
       continue;
     }
     if (c === "`") {
+      const at = i;
       let s = "";
       let depth = 0;
       let interp = false;
@@ -293,7 +320,7 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         if (depth === 0) s += d;
         i++;
       }
-      if (!interp) add(s, pagesOf(), baseKind);
+      if (!interp) add(s, pagesOf(), baseKind, at);
       prev = "expr";
       continue;
     }
@@ -380,10 +407,12 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
         if (name) pendingBinding = name[1]!;
       } else if (word === "tx" || word === "wikiCite" || word === "wikiPage") {
         call = word;
+        callAt = start;
         callArgs = [];
         callDepth = 0;
       } else if (word === "t" && lastIdent === "i18n") {
         call = "t";
+        callAt = start;
         callArgs = [];
         callDepth = 0;
       }

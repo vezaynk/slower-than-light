@@ -87,14 +87,14 @@ function walk(dir: string, out: string[]) {
 }
 
 function storedCite(cite: Cite): Cite {
-  const out: Cite = { file: cite.file, anchor: cite.anchor, kind: cite.kind };
+  const out: Cite = { file: cite.file, anchor: cite.anchor, line: cite.line, kind: cite.kind };
   if (cite.key) out.key = cite.key;
   if (cite.section) out.section = cite.section;
   return out;
 }
 
 function citeSig(cite: Cite): string {
-  return `${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`;
+  return `${cite.file}#${cite.anchor}#${cite.line}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`;
 }
 
 function mergeCite(list: Cite[], cite: Cite) {
@@ -102,7 +102,13 @@ function mergeCite(list: Cite[], cite: Cite) {
   const sig = citeSig(next);
   if (list.some((c) => citeSig(c) === sig)) return;
   list.push(next);
-  list.sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || a.file.localeCompare(b.file) || (a.section ?? "").localeCompare(b.section ?? ""));
+  list.sort(
+    (a, b) =>
+      KIND_RANK[a.kind] - KIND_RANK[b.kind] ||
+      a.file.localeCompare(b.file) ||
+      a.line - b.line ||
+      (a.section ?? "").localeCompare(b.section ?? ""),
+  );
   if (list.length > 8) list.length = 8;
 }
 

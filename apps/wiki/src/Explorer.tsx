@@ -264,11 +264,7 @@ export function Explorer({
         <aside className="parity-side">
           <section>
             <h2>How a cite works</h2>
-            <p>
-              A cite is <code>file#anchor</code>. The anchor is a choice id, an i18n key, or the function or const that
-              holds the wording. Search the repo for that anchor and it still finds the code after lines move. The
-              wording itself joins the page to the code, so the cite stores neither a line number nor a character offset.
-            </p>
+            <p>The number is the line where this wording sits in the source. View file opens that line.</p>
             <p>
               A quotation in the source is <code>&gt; &quot;the wiki words&quot; — [[Page]]</code>, or{" "}
               <code>[[Page#Section]]</code> when the words sit under a heading. Selecting it scrolls to that passage.
@@ -287,16 +283,13 @@ export function Explorer({
               ) : null}
               <ul className="parity-cites">
                 {picked.cites.map((cite) => (
-                  <li key={`${cite.file}#${cite.anchor}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`}>
+                  <li key={`${cite.file}#${cite.anchor}#${cite.line}#${cite.kind}#${cite.key ?? ""}#${cite.section ?? ""}`}>
                     <p className="parity-kind">{KIND[cite.kind]}</p>
-                    <CiteCode file={cite.file} anchor={cite.anchor} />
+                    <CiteCode file={cite.file} line={cite.line} />
                     {cite.section ? <p>{`[[${shown.title}#${cite.section}]]`}</p> : null}
-                    {cite.key ? <CiteCode className="parity-key" file="src/i18n/en.json" anchor={cite.key} /> : null}
+                    {cite.key ? <code className="parity-cite parity-key">{cite.key}</code> : null}
                     <p className="parity-actions">
-                      <Button variant="ghost" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
-                        Copy cite
-                      </Button>
-                      <a href={`${REPO}${cite.file}`} target="_blank" rel="noreferrer">
+                      <a href={fileHref(cite.file, cite.line)} target="_blank" rel="noreferrer">
                         View file
                       </a>
                     </p>
@@ -316,11 +309,11 @@ export function Explorer({
                     <p>{gap.phrase}</p>
                     <ul className="parity-cites">
                       {gap.cites.map((cite) => (
-                        <li key={`${cite.file}#${cite.anchor}#${cite.key ?? ""}`}>
-                          <CiteCode file={cite.file} anchor={cite.anchor} />
-                          <Button variant="text" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
-                            Copy cite
-                          </Button>
+                        <li key={`${cite.file}#${cite.anchor}#${cite.line}#${cite.key ?? ""}`}>
+                          <CiteCode file={cite.file} line={cite.line} />
+                          <a href={fileHref(cite.file, cite.line)} target="_blank" rel="noreferrer">
+                            View file
+                          </a>
                         </li>
                       ))}
                     </ul>
@@ -338,17 +331,18 @@ export function Explorer({
   );
 }
 
-function copy(text: string) {
-  void navigator.clipboard?.writeText(text);
+function fileHref(file: string, line: number): string {
+  const at = line > 0 ? `#L${line}` : "";
+  return `${REPO}${file}${at}`;
 }
 
-/** Break a `file#anchor` after a slash or hash, never in the middle of a name. */
-function CiteCode({ file, anchor, className }: { file: string; anchor: string; className?: string }) {
-  const parts = `${file}#${anchor}`.split(/([/#])/);
+/** Break a path after a slash, and keep the line number on its own piece. */
+function CiteCode({ file, line, className }: { file: string; line: number; className?: string }) {
+  const parts = file.split(/(\/)/);
   return (
     <code className={className ? `parity-cite ${className}` : "parity-cite"}>
       {parts.map((part, i) =>
-        part === "/" || part === "#" ? (
+        part === "/" ? (
           <span key={i}>
             {part}
             <wbr />
@@ -357,6 +351,7 @@ function CiteCode({ file, anchor, className }: { file: string; anchor: string; c
           <span key={i}>{part}</span>
         ),
       )}
+      {line > 0 ? <span>:{line}</span> : null}
     </code>
   );
 }

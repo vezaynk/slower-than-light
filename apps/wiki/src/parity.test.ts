@@ -65,7 +65,7 @@ test("the arrival sentence cites the event slug, not a line", () => {
   assert.equal(hit.cite.file, "src/game/wiki/quests-a-pages.ts");
   assert.equal(hit.cite.anchor, "zoltan-research-facility");
   assert.deepEqual(hit.pages, ["Zoltan research facility"]);
-  assert.equal("line" in hit.cite, false);
+  assert.ok(hit.cite.line > 0);
   const quoted = sightings.find((s) => s.phrase === "You arrive at a Zoltan research facility." && s.cite.pinned);
   assert.equal(quoted?.cite.anchor, "zoltan-research-facility");
 });
@@ -161,6 +161,29 @@ test("a pinned citation warns only when the passage is not one block", () => {
   assert.equal(citationWarnings(wiki, "no such sentence anywhere on this page"), "not on the page");
   assert.equal(citationWarnings(wiki, "no such sentence anywhere on this page", "Nope"), "heading not on the page");
   assert.equal(citationWarnings(wiki, "about scrap"), "matches 2 places");
+});
+
+test("a file-level note cites its own line, and a choice cites the quotation line", () => {
+  const titles = new Map([[normTitle("Abandoned station"), "Abandoned station"]]);
+  const noted = scanSource(
+    "src/game/extras/spike.ts",
+    '/*\n * "Hacking lasts four seconds exactly before the system returns."\n */\nexport const x = 1;\n',
+    titles,
+    new Map(),
+  );
+  const note = noted.find((s) => s.phrase.startsWith("Hacking lasts"));
+  assert.ok(note);
+  assert.equal(note.cite.line, 2);
+  const chosen = scanSource(
+    "src/game/wiki/filler-events.ts",
+    'const CHOICES = {\n  "c:abandoned-station:0": () => {\n    // > "You dock with the station." — [[Abandoned station]]\n  },\n};\n',
+    titles,
+    new Map(),
+  );
+  const pin = chosen.find((s) => s.phrase === "You dock with the station.");
+  assert.ok(pin);
+  assert.equal(pin.cite.anchor, "c:abandoned-station:0");
+  assert.equal(pin.cite.line, 3);
 });
 
 test("the longer phrase keeps the highlight", () => {

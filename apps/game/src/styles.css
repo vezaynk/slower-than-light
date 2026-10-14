@@ -3521,6 +3521,77 @@ button.door-tick::before {
   color: var(--color-fg);
 }
 
+/* Per the user: fuel stays on the beacon map, and turns into a warning once it reaches 3. */
+.map-head {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  margin: 0 48px 6px 0;
+}
+.map-head h2 { margin: 0; }
+.map-fuel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: var(--color-fg);
+}
+.map-fuel b { font-weight: 400; }
+.map-fuel em { font-style: normal; font-size: 22px; letter-spacing: 0.1em; }
+.map-fuel.is-low,
+.map-fuel.is-low em { color: var(--color-danger); }
+
+/* Per the user: a jump that spends the last fuel asks before it leaves. */
+.map-confirm {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 11, 0.62);
+}
+.map-confirm-card {
+  position: relative;
+  width: min(440px, 86%);
+  padding: 16px 16px 14px;
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  box-shadow: var(--glow);
+}
+.map-confirm-card h3 {
+  margin: 0 40px 8px 0;
+  font-family: var(--font-hud);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--color-danger);
+}
+.map-confirm-card p {
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1.45;
+  color: var(--color-fg);
+}
+.map-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.map-confirm-actions button {
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 2px solid var(--color-line);
+  background: var(--color-panel-2);
+  color: var(--color-fg);
+}
+.map-confirm-actions button.is-jump { border-color: var(--color-danger); color: var(--color-danger); }
+
 .stage-slot > .beacon-map {
   position: absolute;
   z-index: 3;

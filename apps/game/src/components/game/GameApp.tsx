@@ -3756,6 +3756,19 @@ function mapY(row: number) {
 /** BEACON MAP: File:NO_FUEL.png. NO FUEL across the chart, WAIT, DISTRESS BEACON, SECTOR. STORE and EXIT labels stay. */
 function MapScreen({ game }: { game: Game }) {
   const here = game.beacons.find((b) => b.id === game.here);
+  // Per the user: a jump that spends the last fuel asks first. Fuel above 1 jumps immediately.
+  const [lastFuelJump, setLastFuelJump] = useState<string | null>(null);
+  const lowFuel = game.fuel <= 3;
+  useEffect(() => {
+    if (game.fuel !== 1) setLastFuelJump(null);
+  }, [game.fuel]);
+  const jumpTo = (id: string) => {
+    if (game.fuel === 1) {
+      setLastFuelJump(id);
+      return;
+    }
+    act((g) => commitJump(g, id));
+  };
   // xftl doc/sector-map: beacons sit at px positions in a 6x4 grid of 110px cells. The plot stretches the beacons'
   // own extent to fill the board on each axis (INVENTED view), keeping an inset so tap targets and labels stay whole.
   const xs = game.beacons.map((b) => beaconXY(b)[0]);
@@ -3788,7 +3801,15 @@ function MapScreen({ game }: { game: Game }) {
   const named = SECTOR_NAMES.includes(game.sectorName) ? "" : game.sectorName;
   return (
     <section className="sector-map beacon-map has-x">
-      <h2>{tx("ui.GameApp.beacon-map")}</h2>
+      <div className="map-head">
+        <h2>{tx("ui.GameApp.beacon-map")}</h2>
+        {/* Per the user: the map shows the fuel still aboard, and warns once it reaches 3. */}
+        <p className={`map-fuel${lowFuel ? " is-low" : ""}`} aria-label={tx(lowFuel ? "ui.GameApp.fuel-left-low" : "ui.GameApp.fuel-left", { n: game.fuel })}>
+          <PixelIcon name="fuel" size={18} />
+          <b>{game.fuel}</b>
+          {lowFuel ? <em>{tx("ui.GameApp.low-fuel")}</em> : null}
+        </p>
+      </div>
       <CloseX
         onClose={() =>
           act((g) => {
@@ -3907,7 +3928,7 @@ function MapScreen({ game }: { game: Game }) {
                     className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
                     disabled={!open || ftlDriveCharging(game)}
                     aria-label={tag || tx("ui.GameApp.beacon")}
-                    onClick={() => act((g) => commitJump(g, b.id))}
+                    onClick={() => jumpTo(b.id)}
                   />
                 )}
                 {tag ? <span className={`beacon-tag${below ? " is-below" : ""}${tag === "QUEST" ? " is-quest" : ""}`}>{tag}</span> : null}
@@ -3918,6 +3939,31 @@ function MapScreen({ game }: { game: Game }) {
           {game.fuel < 1 ? <p className="no-fuel">{tx("ui.GameApp.no-fuel")}</p> : null}
         </div>
       </div>
+      {lastFuelJump ? (
+        <div className="map-confirm" role="alertdialog" aria-modal="true" aria-labelledby="last-fuel-title" aria-describedby="last-fuel-body">
+          <div className="map-confirm-card has-x">
+            <CloseX onClose={() => setLastFuelJump(null)} />
+            <h3 id="last-fuel-title">{tx("ui.GameApp.low-fuel")}</h3>
+            <p id="last-fuel-body">{tx("ui.GameApp.last-fuel-jump")}</p>
+            <div className="map-confirm-actions">
+              <button type="button" autoFocus onClick={() => setLastFuelJump(null)}>
+                {tx("ui.GameApp.stay")}
+              </button>
+              <button
+                type="button"
+                className="is-jump"
+                onClick={() => {
+                  const id = lastFuelJump;
+                  setLastFuelJump(null);
+                  act((g) => commitJump(g, id));
+                }}
+              >
+                {tx("ui.GameApp.jump")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div className="sector-key beacon-foot">
         <span>{tx("ui.GameApp.sector")}{game.sector}</span>
         {named ? <span>{named}</span> : null}

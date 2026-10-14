@@ -466,7 +466,8 @@ export function GameApp() {
       const plain = !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey;
       if (e.code === "Space" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
-        act((g) => togglePause(g));
+        // A held Space repeats keydown. Pause toggles once per press.
+        if (!e.repeat) act((g) => togglePause(g));
         return;
       }
       // Per the user: fast forward. The key left of 1 is free; F powers Oxygen on the controls page.

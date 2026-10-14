@@ -212,6 +212,7 @@ export function Screen({ children }: { children: ReactNode }) {
     const observed = ref.current;
     const obs = new ResizeObserver(update);
     if (observed) obs.observe(observed);
+    obs.observe(document.documentElement);
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
     const orient = typeof screen !== "undefined" ? screen.orientation : undefined;
@@ -274,12 +275,9 @@ export function Screen({ children }: { children: ReactNode }) {
     "--fit": fit,
     transform: `translate(-50%, -50%) scale(${fit})`,
   } as CSSProperties;
-  const box = view?.pin
-    ? ({ top: view.top, left: view.left, width: view.w, height: view.h } as CSSProperties)
-    : undefined;
   return (
     <ScreenContext.Provider value={view}>
-      <div className="viewport" ref={ref} style={box}>
+      <div className="viewport" ref={ref}>
         <div className={`screen${view ? " is-fit" : ""}`} style={frame}>
           {children}
         </div>

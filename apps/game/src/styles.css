@@ -6125,13 +6125,22 @@ body.page-turn-180 {
 .hud-right .pause-mark {
   position: static;
   transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   min-width: 160px;
-  min-height: 76px;
-  padding: 6px 18px 8px;
+  height: 76px;
+  min-height: 0;
+  padding: 4px 16px;
   box-sizing: border-box;
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  line-height: 1;
 }
-.hud-right .pause-mark strong { font-size: 40px; }
-.hud-right .pause-mark span { font-size: 12px; }
+.hud-right .pause-mark strong { font-size: 40px; line-height: 1; }
+.hud-right .pause-mark span { margin-top: 0; font-size: 12px; line-height: 1; white-space: nowrap; }
 
 /* Per the user: whenever the clock is stopped (any pause; sim.ts halted) the game is slightly dimmed. The PAUSED mark,
    menus and cards stay at full brightness. */

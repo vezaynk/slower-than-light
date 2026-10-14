@@ -110,6 +110,8 @@ export function onPlayerJump(g: Game) {
   // hacking drones do not. A drone that already vanished (kit.on false) does not. One part each (moreaugs.ts partsBack).
   g.player.parts += partsBack(g);
   onJumpSwarm(g);
+  // Per the user: enemy boarding drones that lost power when that hull was destroyed are left behind on the jump.
+  g.boarded = undefined;
 }
 
 export function adjustScrap(g: Game, scrap: number): number {

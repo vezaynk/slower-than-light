@@ -464,7 +464,8 @@ export function CombatFx() {
       // Enemy drones: offensive ones orbit the player hull, defensive ones their own hull, boarders fly over
       // and then sit in a player room, crew drones sit in an enemy room. Positions feed enemy drone shots below.
       const enemyDroneAt = new Map<string, Pt>();
-      for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+      // Landed boarding drones stay on the player after that hull is destroyed (Game.boarded), drawn dim while unpowered.
+      for (const unit of [...(g.enemy?.kits.swarm?.drones ?? []), ...(g.boarded ?? [])]) {
         const spot = enemyDroneSpot(unit);
         const ekey = enemyDroneKey(unit);
         if (!spot || !ekey) continue;

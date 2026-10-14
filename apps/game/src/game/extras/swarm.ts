@@ -1479,6 +1479,7 @@ function tickEnemyDefense(g: Game, dt: number) {
 export function tickSwarm(g: Game, dt: number) {
   retireReady(g);
   if (!(dt > 0)) return;
+  tickStrandedBoarders(g, dt);
   tickEnemyDefense(g, dt);
   // @agent:drones. Enemy Drone Control: deploy on the first combat tick, then run every deployed drone.
   tickEnemyDrones(g, dt);
@@ -1699,6 +1700,10 @@ export function roomDroneHp(ship: Ship, g: Game): { room: string; shown: number 
     if (!unit.alive || unit.hp == null || !unit.room || !ids.has(unit.room)) continue;
     out.push({ room: unit.room, shown: shownDroneHp(unit.hp) });
   }
+  for (const unit of g.boarded ?? []) {
+    if (!unit.alive || unit.hp == null || !unit.room || !ids.has(unit.room)) continue;
+    out.push({ room: unit.room, shown: shownDroneHp(unit.hp) });
+  }
   return out;
 }
 
@@ -1731,6 +1736,12 @@ export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: stri
     unit.hp -= half;
     if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-hit-destroys-the-drone"));
   }
+  if (aboard !== "player") return;
+  for (const unit of g.boarded ?? []) {
+    if (!unit.alive || unit.hp == null || unit.room !== roomId) continue;
+    unit.hp -= half;
+    if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-hit-destroys-the-drone"));
+  }
 }
 
 export function zoltanBurstDrones(g: Game, dead: Crew): void {
@@ -1742,7 +1753,7 @@ export function zoltanBurstDrones(g: Game, dead: Crew): void {
     if (kit.hp <= 0) killPlayerDrone(g, tx("extras.swarm.the-zoltan-burst-destroys-the-drone"));
     return;
   }
-  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+  for (const unit of [...(g.enemy?.kits.swarm?.drones ?? []), ...(g.boarded ?? [])]) {
     if (!unit.alive || unit.hp == null || unit.room !== dead.room) continue;
     unit.hp -= ZOLTAN_DRONE_HP;
     if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-zoltan-burst-destroys-the-drone"));
@@ -1885,6 +1896,44 @@ export function reorderDroneSlots(kit: Kit, from: number, to: number) {
   if (drones && drones.length !== loadout.length) return;
   if (!slideList(loadout, from, to)) return;
   if (drones) slideList(drones, from, to);
+}
+
+/**
+ * Per the user: boarding drones already inside the player lose power when that hull is destroyed.
+ * Drones still in flight, and every other kind, go down with the ship. A crew kill does not call this.
+ */
+export function silenceBoarders(g: Game): void {
+  const kit = g.enemy?.kits.swarm;
+  const units = kit?.drones;
+  const kept = (g.boarded ?? []).filter((unit) => unit.alive && !!unit.room);
+  if (units && kit) {
+    const stay: DroneUnit[] = [];
+    for (const unit of units) {
+      const landed = unit.alive && BOARDERS.has(unit.kind) && (unit.fly ?? 0) <= 0 && !!unit.room;
+      if (!landed) {
+        stay.push(unit);
+        continue;
+      }
+      unit.powered = false;
+      kept.push(unit);
+    }
+    kit.drones = stay;
+  }
+  g.boarded = kept.length ? kept : undefined;
+}
+
+/** Unpowered boarders left aboard. Crew can still destroy them. They do not sabotage, ionize, or move. */
+function tickStrandedBoarders(g: Game, dt: number) {
+  const list = g.boarded;
+  if (!list?.length) return;
+  for (const unit of list) {
+    if (!unit.alive) continue;
+    unit.powered = false;
+    // tickUnit reads the ship only for a repair drone. An unpowered boarder never reaches that.
+    tickUnit(g, g.player, unit, dt);
+  }
+  const live = list.filter((unit) => unit.alive && !!unit.room);
+  g.boarded = live.length ? live : undefined;
 }
 
 export function tickEnemyDrones(g: Game, dt: number) {

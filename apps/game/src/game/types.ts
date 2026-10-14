@@ -848,6 +848,12 @@ export type Game = {
    * recall and sling onJumpSling (crew left there when you jump are lost).
    */
   wreck?: Ship | null;
+  /**
+   * Per the user: enemy boarding drones that had already landed lose power when that hull is destroyed
+   * and stay in the room until the player jumps. Drones still in flight go down with the ship.
+   * A crew kill, a surrender, or the enemy fleeing does not park them here. Absent means none.
+   */
+  boarded?: DroneUnit[];
   sector: number;
   sectorName: string;
   beacons: Beacon[];

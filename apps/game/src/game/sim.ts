@@ -65,7 +65,7 @@ import { tickEnemyCrewAi, tickNeutralCrew } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
-import { enemyDroneSpot, hurtRoomDrones, shotHitsDrone, zoltanBurstDrones } from "./extras/swarm.ts";
+import { enemyDroneSpot, hurtRoomDrones, shotHitsDrone, silenceBoarders, zoltanBurstDrones } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
@@ -3007,6 +3007,13 @@ function stunRoom(g: Game, roomId: string, aboard: "player" | "enemy", seconds: 
     if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
     unit.stun = Math.max(unit.stun ?? 0, seconds);
   }
+  // Boarding drones left behind after that hull was destroyed are no longer on the enemy list.
+  if (aboard === "player") {
+    for (const unit of g.boarded ?? []) {
+      if (!unit.alive || unit.room !== roomId) continue;
+      unit.stun = Math.max(unit.stun ?? 0, seconds);
+    }
+  }
 }
 
 function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
@@ -5147,6 +5154,8 @@ function winCombat(g: Game) {
   clearEnemyLeash(g);
   // Game.wreck: a hull that is still in one piece (its crew died) stays alongside until the jump, neutral (truce).
   g.wreck = foe && foe.hull > 0 ? foe : null;
+  // Per the user: boarding drones already inside your ship lose power when that hull is destroyed. They stay until you jump.
+  if (foe && foe.hull <= 0) silenceBoarders(g);
   // Per the user: defeating the enemy ship does not remove intruders from yours. They stay until they die.
   g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c) || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
   g.enemy = null;

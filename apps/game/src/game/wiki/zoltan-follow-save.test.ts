@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Zoltan ship follows Mantis ship save", () => {
   it("saving the Mantis logs the printed underdog sentence and fights a Zoltan ship in the asteroid field", () => {
+    // Wiki citations:
+    // > "Sometimes you have to bet on the underdog - even on the rare occasions that the underdog is a Mantis warship. You set off for the heart of the asteroid field and engage the Zoltan there." — [[Zoltan ship follows Mantis ship]]
+    // > "Fight a Zoltan ship." — [[Zoltan ship follows Mantis ship]]
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-ship-follows-mantis-ship:0");

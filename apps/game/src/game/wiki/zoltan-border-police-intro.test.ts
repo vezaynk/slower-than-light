@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Zoltan border police intro", () => {
   it("prints the full customs-check italic and keeps the Zoltan fight choice", () => {
+    // Wiki citations:
+    // > "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!" — [[Zoltan border police]]
+    // > "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)." — [[Zoltan border police]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

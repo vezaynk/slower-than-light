@@ -19,6 +19,8 @@ function open(g: Game) {
 
 describe("Zoltan ship follows Mantis ship hail", () => {
   it("prints the full opening sentence and the three choices without spending scrap", () => {
+    // Wiki citations:
+    // > "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, \"Your presence here will continue to be tolerated - but please, do not interfere.\"" — [[Zoltan ship follows Mantis ship]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Zoltan ship follows Mantis ship");

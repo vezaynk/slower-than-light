@@ -7,6 +7,9 @@ const BODY =
 
 describe("Mantis fight (Zoltan)", () => {
   it("starts the Mantis ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "You pick up the last broadcast from a rupturing Zoltan freighter: \"The Mantis, they're here, please-\" You're interrupted by fire off the port bow!" — [[Mantis fight (Zoltan)]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Zoltan)]]
     // The page has no choice. "Fight a Mantis ship (default rewards)."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

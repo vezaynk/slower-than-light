@@ -436,6 +436,10 @@ const CHOICES_A: QuestPart["choices"] = {
   },
   // Zoltan quest primitives. Interfere: a Zoltan fight. Both endings double pursuit for 1 jump (pageWin).
   "c:zoltan-quest-primitives:0": (g) => {
+    // Wiki citations:
+    // > "Interfere - make first contact with the primitive aliens." — [[Zoltan quest primitives]]
+    // > "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight." — [[Zoltan quest primitives]]
+    // > "Fight the Zoltan ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
       tx("wiki.cited-events.the-local-people-furry-one-eyed"),
@@ -445,6 +449,10 @@ const CHOICES_A: QuestPart["choices"] = {
   },
   // Protect: a Rebel fight. Destroyed pays a weapon with low scrap; a crew kill pays a weapon with medium scrap.
   "c:zoltan-quest-primitives:1": (g) => {
+    // Wiki citations:
+    // > "Protect the aliens' way of life - Attack the Rebel ship." — [[Zoltan quest primitives]]
+    // > "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence." — [[Zoltan quest primitives]]
+    // > "Fight the Rebel Ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
       tx("wiki.cited-events.these-creatures-should-be-left-to"),
@@ -605,19 +613,49 @@ const WINS_A: QuestPart["wins"] = {
   "zoltan-quest-primitives-interfere": (g, deadCrew) => {
     g.pursuitDouble = true;
     log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for"));
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
+      // > "Rebel Fleet pursuit is doubled for 1 jump and you receive a random amount of scrap with resources." — [[Zoltan quest primitives]]
+      result(
+        g,
+        tx("wiki.quests-a.the-rebel-contacts-you-lovely"),
+        rollStandard(g),
+        [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
+      );
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump and you receive low scrap with resources." — [[Zoltan quest primitives]]
     result(
       g,
       tx("wiki.quests-a.the-rebel-contacts-you-lovely"),
-      rollStandard(g, deadCrew ? undefined : "low"),
+      rollStandard(g, "low"),
       [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
     );
   },
   // Protect. A weapon with low scrap, or a weapon with medium scrap. The weapon is not named.
   "zoltan-quest-primitives-protect": (g, deadCrew) => {
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
+      // > "You receive a weapon with medium scrap." — [[Zoltan quest primitives]]
+      result(
+        g,
+        tx("wiki.quests-a.the-zoltan-hail-once-the-smoke"),
+        scrapOnly(g, "medium"),
+        [grantRandomItem(g, "weapon")],
+      );
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
+    // > "You receive a weapon with low scrap." — [[Zoltan quest primitives]]
     result(
       g,
       tx("wiki.quests-a.the-zoltan-hail-once-the-smoke"),
-      scrapOnly(g, deadCrew ? "medium" : "low"),
+      scrapOnly(g, "low"),
       [grantRandomItem(g, "weapon")],
     );
   },

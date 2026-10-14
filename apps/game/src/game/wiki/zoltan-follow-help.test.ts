@@ -18,6 +18,9 @@ function open(g: Game) {
 
 describe("Zoltan ship follows Mantis ship help", () => {
   it("helping the Zoltan logs the printed friends sentence and fights an all-Mantis ship in the asteroid field", () => {
+    // Wiki citations:
+    // > "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends." — [[Zoltan ship follows Mantis ship]]
+    // > "Fight a Mantis ship with crew entirely composed of Mantis." — [[Zoltan ship follows Mantis ship]]
     const hp = kinOf("blade").hp;
     const g = createGame(1);
     open(g);

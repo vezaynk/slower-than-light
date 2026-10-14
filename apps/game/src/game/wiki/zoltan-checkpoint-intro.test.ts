@@ -9,6 +9,8 @@ const BODY =
 
 describe("Zoltan security checkpoint intro", () => {
   it("prints the hail with the checkpoint sentence", () => {
+    // Wiki citations:
+    // > "You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. \"Traveling vessel, you will submit to crew profiling to identify fugitives of the empire.\"" — [[Zoltan security checkpoint]]
     const g = createGame(1);
     const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
     assert.ok(b);

@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Zoltan security checkpoint attack", () => {
   it("attacking logs the printed lead-in and fights a Zoltan ship", () => {
+    // Wiki citations:
+    // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]
+    // > "Expecting resistance, their Energy Shield is raised and ready for combat." — [[Zoltan security checkpoint]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-security-checkpoint:0");

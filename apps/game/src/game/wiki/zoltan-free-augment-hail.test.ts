@@ -19,6 +19,8 @@ function open(g: Game) {
 
 describe("Zoltan free augment hail", () => {
   it("prints the full opening and grants nothing before the choice", () => {
+    // Wiki citations:
+    // > "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you." — [[Zoltan free augment]]
     const g = createGame(1);
     const augments = g.augments.length;
     open(g);
@@ -34,6 +36,8 @@ describe("Zoltan free augment hail", () => {
   });
 
   it("pays low scrap and fits a random augmentation", () => {
+    // Wiki citations:
+    // > "You receive an augmentation with low scrap." — [[Zoltan free augment]]
     const g = createGame(1);
     const augments = g.augments.length;
     open(g);

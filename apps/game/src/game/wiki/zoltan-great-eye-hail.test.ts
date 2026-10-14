@@ -19,6 +19,8 @@ function open(g: Game) {
 
 describe("Zoltan Great Eye hail", () => {
   it("prints the full opening and the two choices without spending scrap", () => {
+    // Wiki citations:
+    // > "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye. A Zoltan elder hails you from the planet. \"Through luck or intent, you have discovered the Great Eye. Look into its depths and receive your just deserts.\"" — [[Zoltan Great Eye]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Zoltan Great Eye");

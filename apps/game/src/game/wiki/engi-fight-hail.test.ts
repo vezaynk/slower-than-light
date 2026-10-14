@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Engi fight", () => {
   it("shows the printed intro, and the fight choice starts an Engi combat", () => {
+    // Wiki citations:
+    // > "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails." — [[Engi fight]]
+    // > "Fight an Engi ship (default rewards)." — [[Engi fight]]
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
@@ -34,6 +37,8 @@ describe("Engi fight", () => {
   });
 
   it("starts the Engi ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight an Engi ship (default rewards)." — [[Engi fight]]
     // The page has no choice. "Fight an Engi ship (default rewards)."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

@@ -35,6 +35,12 @@ function boarders(g: Game): number {
 
 describe("Zoltan security checkpoint", () => {
   it("attacking starts a Zoltan fight, and the blue options stay closed", () => {
+    // Wiki citations:
+    // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]
+    // > "Expecting resistance, their Energy Shield is raised and ready for combat." — [[Zoltan security checkpoint]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
+    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
     const g = createGame(1);
     open(g);
     assert.deepEqual(
@@ -58,6 +64,15 @@ describe("Zoltan security checkpoint", () => {
   });
 
   it("profiling lets the crew pass, or takes one and does not clone them", () => {
+    // Wiki citations:
+    // > "Submit to profiling." — [[Zoltan security checkpoint]]
+    // > "After a few moments of uncertainty, your crew is allowed to pass." — [[Zoltan security checkpoint]]
+    // > "Nothing happens." — [[Zoltan security checkpoint]]
+    // > "The Zoltan security staff board your ship and begin scanning the crew's faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! \"This person is wanted on five charges of Utter Villainy! Surrender them to us!\"" — [[Zoltan security checkpoint]]
+    // > "Give up your crewmember." — [[Zoltan security checkpoint]]
+    // > "It's a tough call, but Zoltan law holds sway here. Besides, that one always seemed a bit shifty." — [[Zoltan security checkpoint]]
+    // > "You lose a crewmember." — [[Zoltan security checkpoint]]
+    // > "(Clone Bay) [no effect] Unfortunately your crewmember was taken away unharmed so your Clone Bay was unable to retrieve them." — [[Zoltan security checkpoint]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < 2; seed++) {
       const g = createGame(seed);
@@ -112,6 +127,14 @@ describe("Zoltan security checkpoint", () => {
   });
 
   it("refusing the surrender fights with halved weapons and 2-4 Zoltan boarders", () => {
+    // Wiki citations:
+    // > "Refuse and fight." — [[Zoltan security checkpoint]]
+    // > "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!" — [[Zoltan security checkpoint]]
+    // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship with your Weapon Control halved." — [[Zoltan security checkpoint]]
+    // > "After destroying enemy ship You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
+    // > "You receive low scrap with resources." — [[Zoltan security checkpoint]]
+    // > "After killing enemy crew You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
+    // > "You receive medium scrap with resources." — [[Zoltan security checkpoint]]
     let fought = false;
     for (let seed = 1; seed <= 40 && !fought; seed++) {
       const g = createGame(seed);
@@ -151,6 +174,13 @@ describe("Zoltan security checkpoint", () => {
   });
 
   it("a Slug or Mind Control is paid 2-4 fuel", () => {
+    // Wiki citations:
+    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+    // > "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions." — [[Zoltan security checkpoint]]
+    // > "You receive medium fuel." — [[Zoltan security checkpoint]]
+    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
+    // > "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass." — [[Zoltan security checkpoint]]
+    // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     const slug = createGame(7);
     open(slug);
     slug.crew[0]!.kin = "gel";

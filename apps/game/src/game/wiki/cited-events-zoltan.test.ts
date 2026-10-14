@@ -94,6 +94,21 @@ describe("cited zoltan events", () => {
   const wiki = pages();
 
   it("exports only these titles, with Locations sectors and commented numbers", () => {
+    // Wiki citations:
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Engi fight]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Mantis fight (Zoltan)]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate fight (Zoltan)]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate ships in plasma storm]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rock fight in nebula]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan border police]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan fight]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan fight in asteroid field]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan free augment]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan quest primitives]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan security checkpoint]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan ship follows Mantis ship]]
+    // > "This random event occurs in Pirate Controlled Sector, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: Humans jammed sensors]]
+    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan Great Eye]]
     assert.equal(wiki.size, TITLES.length);
     const seen = new Set<string>();
     const src = readFileSync(new URL("./cited-events-zoltan.ts", import.meta.url), "utf8");

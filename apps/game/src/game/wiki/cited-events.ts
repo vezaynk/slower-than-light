@@ -4157,6 +4157,15 @@ const NEBULA_AUTO_INTROS = [
 // Zoltan fight. Seven printed intros, no odds. INFERRED: equal.
 // The fight stays c:zoltan-fight:0. Default rewards. No extra payout is added here.
 const ZOLTAN_FIGHT_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Zoltan fight]]
+  // > "A Zoltan ship makes contact. \"The nature of the day is rotational. The fever is emaciated. The reason is-\" They've caught some nasty deep space dementia. Before you can consider finding help for them, they open fire." — [[Zoltan fight]]
+  // > "You're surprised when a stationary Zoltan ship opens fire. It appears there are aggressive pugilists even among the 'enlightened'." — [[Zoltan fight]]
+  // > "You receive a message, \"This area is off limits. Submit your ship to processing.\" It's only one guard ship in a lonely beacon. You decide to fight your way out." — [[Zoltan fight]]
+  // > "You discover a number of Zoltan civilian ships fighting off pirates. Unfortunately one ship mistakes your purpose and moves in to attack! They are refusing all communication; you have no choice but to fight." — [[Zoltan fight]]
+  // > "Like many areas in Zoltan space, the residents of this sector prepared well for Galactic war. The military here seem to have given up reasoning with foreigners, preferring instead to attack on sight!" — [[Zoltan fight]]
+  // > "A Zoltan ship is waiting at this beacon. They request your identification, but radiation from the sun in this system is disrupting your communications. They take your silence for aggression and move in to attack." — [[Zoltan fight]]
+  // > "The Zoltan ship patrolling this area hails you: \"This area is off limits. Secrecy is vital.\" They power their weapons." — [[Zoltan fight]]
   tx("wiki.cited-events.a-zoltan-ship-makes-contact-the"),
   tx("wiki.cited-events.you-re-surprised-when-a-stationary"),
   tx("wiki.cited-events.you-receive-a-message-this-area"),
@@ -4374,6 +4383,13 @@ const LANIUS_PIRATE_INTROS = [
 
 // Pirate fight (Zoltan). Five printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-zoltan:0.
 const ZOLTAN_PIRATE_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Zoltan)]]
+  // > "\"Emergency, all ships in range, we are under attack!\" The frequency matches a nearby Zoltan ship; you move in on their pursuer. They take your intervention as a cue to jump away. Cowards." — [[Pirate fight (Zoltan)]]
+  // > "You jump just in time to witness a Zoltan ship's FTL drive overload. In their final moments they implore you not to get involved, but it's too late - their attacker is already upon you!" — [[Pirate fight (Zoltan)]]
+  // > "Despite their precautions, pirates have begun to harass the local Zoltan settlements across this sector. One such pirate spots your ship and moves in to attack." — [[Pirate fight (Zoltan)]]
+  // > "A ship with pirate markings demand that you surrender. These are sad times when even Zoltan space is beset by pirates. You doubt these fools will be missed." — [[Pirate fight (Zoltan)]]
+  // > "You spot a pirate ship looting a small Zoltan cruiser. They spot you and move in to attack before your FTL drive has a chance to recharge." — [[Pirate fight (Zoltan)]]
   tx("wiki.cited-events.emergency-all-ships-in-range-we"),
   tx("wiki.cited-events.you-jump-just-in-time-to"),
   tx("wiki.cited-events.despite-their-precautions-pirates-have-begun"),
@@ -4797,6 +4813,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Zoltan security checkpoint. Profiling, a Slug, and Mind Control. The attack stays the fight.
   if (ev.slug === "zoltan-security-checkpoint") {
+    // Wiki citations:
+    // > "Submit to profiling." — [[Zoltan security checkpoint]]
+    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
     return {
       title: ev.dest,
       body: ev.body,
@@ -5106,6 +5126,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Zoltan fight has no choice. Arrival calls c:zoltan-fight:0.
   // One of the seven printed intros. "Fight a Zoltan ship (default rewards)." unique=false.
   if (ev.slug === "zoltan-fight") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Zoltan fight]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight]]
     return {
       title: ev.dest,
       body: ZOLTAN_FIGHT_INTROS[between(g, [0, 6])]!,
@@ -5294,6 +5317,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
   // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   if (ev.slug === "pirate-fight-zoltan") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Zoltan)]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Zoltan)]]
     return {
       title: ev.dest,
       body: ZOLTAN_PIRATE_INTROS[between(g, [0, 4])]!,
@@ -5890,7 +5916,11 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // Zoltan border police has no choice. Arrival calls this id.
     // "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
     // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
-    if (id === "c:zoltan-border-police:0") zoltanBoarders(g, 3, 4);
+    if (id === "c:zoltan-border-police:0") {
+      // Wiki citations:
+      // > "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)." — [[Zoltan border police]]
+      zoltanBoarders(g, 3, 4);
+    }
     // Rebel fight with boarders has no choice. Arrival calls this id.
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
     // Wiki citations:

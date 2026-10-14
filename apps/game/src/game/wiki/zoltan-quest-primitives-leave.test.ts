@@ -21,6 +21,9 @@ function open(g: Game) {
 
 describe("Zoltan quest primitives leave", () => {
   it("opening shows the two printed sentences", () => {
+    // Wiki citations:
+    // > "You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft." — [[Zoltan quest primitives]]
+    // > "You tap into their frequency and hear the Rebel captain yelling, \"We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!\"" — [[Zoltan quest primitives]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, OPENING);
@@ -29,6 +32,9 @@ describe("Zoltan quest primitives leave", () => {
   });
 
   it("leaving shows the printed solution sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave." — [[Zoltan quest primitives]]
+    // > "Nothing happens." — [[Zoltan quest primitives]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;

@@ -20,6 +20,11 @@ function open(g: Game) {
 
 describe("Pirate ships in plasma storm hail", () => {
   it("prints the full italic and keeps the existing choices", () => {
+    // Wiki citations:
+    // > "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm." — [[Pirate ships in plasma storm]]
+    // > "Secure the fuel supply." — [[Pirate ships in plasma storm]]
+    // > "Secure the ammunition." — [[Pirate ships in plasma storm]]
+    // > "Let them leave." — [[Pirate ships in plasma storm]]
     const g = createGame(1);
     open(g);
     const def = EXTRA_EVENTS.find((ev) => ev.flag === "cited:pirate-ships-in-plasma-storm");

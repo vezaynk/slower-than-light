@@ -7,6 +7,8 @@ const HACK = "Your hacking system automatically counters the digital assault. Yo
 
 describe("Boarders: Humans jammed sensors sentences", () => {
   it("continue logs the sensor sentence and stays in the boarder fight", () => {
+    // Wiki citations:
+    // > "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!" — [[Boarders: Humans jammed sensors]]
     const g = createGame(1);
     choose(g, "c:boarders-humans-jammed-sensors:0");
     assert.ok(g.log.includes(CONTINUE));
@@ -14,6 +16,8 @@ describe("Boarders: Humans jammed sensors sentences", () => {
   });
 
   it("hacking logs the counter sentence and stays in the boarder fight", () => {
+    // Wiki citations:
+    // > "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders." — [[Boarders: Humans jammed sensors]]
     const g = createGame(2);
     g.player.kits.spike = { id: "spike", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
     choose(g, "c:boarders-humans-jammed-sensors:1");

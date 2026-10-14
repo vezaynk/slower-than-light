@@ -37,6 +37,15 @@ function fitHacking(g: Game) {
 
 describe("Boarders: Humans jammed sensors", () => {
   it("disables sensors for 3-5 humans until the jump, and hacking only counters the jam", () => {
+    // Wiki citations:
+    // > "This random event occurs in Pirate Controlled Sector, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: Humans jammed sensors]]
+    // > "Continue..." — [[Boarders: Humans jammed sensors]]
+    // > "3-5 human boarders beam aboard your ship, and your Sensors are disabled." — [[Boarders: Humans jammed sensors]]
+    // > "If you don't counter the jam, the Sensors functionality is not restored till you jump to another beacon." — [[Boarders: Humans jammed sensors#Notes]]
+    // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
+    // > "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders." — [[Boarders: Humans jammed sensors]]
+    // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans jammed sensors]]
+    // > "If you counter the jam, the Hacking system is not disabled." — [[Boarders: Humans jammed sensors#Notes]]
     for (const sector of SECTORS) {
       const pages = citedPagesFor(sector).filter((e) => e.dest === DEST);
       assert.equal(pages.length, 1, sector);

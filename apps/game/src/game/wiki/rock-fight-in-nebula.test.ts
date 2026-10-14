@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Rock fight in nebula", () => {
   it("shows both printed sentences, and the fight choice starts a Rock ship combat", () => {
+    // Wiki citations:
+    // > "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!" — [[Rock fight in nebula]]
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight in nebula]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
@@ -33,6 +36,8 @@ describe("Rock fight in nebula", () => {
   });
 
   it("starts the Rock ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight in nebula]]
     // The page has no choice. The printed sentence, then "Fight a Rock ship." nebula=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

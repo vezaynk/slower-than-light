@@ -2172,8 +2172,14 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Zoltan Great Eye. Pulling closer lists four results and prints no odds. INFERRED: equal.
   // Clone Bay has no effect. Healing Burst is named. A full weapon list is not installed (INFERRED: the page prints no full-slot sentence).
   "c:zoltan-great-eye:0": (g) => {
+    // Wiki citations:
+    // > "Pull the ship in closer." — [[Zoltan Great Eye]]
     const r = weighted(g, [["lose", 1], ["fight", 1], ["scrap", 1], ["heal", 1]] as const);
     if (r === "lose") {
+      // Wiki citations:
+      // > "As you approach, a kaleidoscope of colours fills the view-screen and one of your crew begins to age rapidly in reverse, eventually disappearing into nothingness. Let's hope they've transcended physical existence, and not just been forced out of it." — [[Zoltan Great Eye]]
+      // > "You lose a crewmember." — [[Zoltan Great Eye]]
+      // > "(Clone Bay) [no effect] You check your Cloning Bay but it lies dormant. Whatever just happened to your crewmember must be irreversible." — [[Zoltan Great Eye]]
       const extras = [];
       if (g.player.kits.cradle) extras.push(tx("wiki.filler-events.you-check-your-cloning-bay-but"));
       const note = loseCrew(g, true);
@@ -2182,13 +2188,22 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       return;
     }
     if (r === "fight") {
+      // Wiki citations:
+      // > "You approach the planet and wait, but nothing happens. The Zoltan hail: \"And in the coming times, when the monolith speaks not with a man he has no future and must be left wanting.\"" — [[Zoltan Great Eye]]
+      // > "Fight a Zoltan ship (default rewards)." — [[Zoltan Great Eye]]
       fight(g, tx("wiki.filler-events.you-approach-the-planet-and-wait"), tx("wiki.filler-events.zoltan-ship"), "zoltan-great-eye");
       return;
     }
     if (r === "scrap") {
+      // Wiki citations:
+      // > "You approach the planet carefully, trying to keep your ship from breaking up in orbit. The monolith, whatever it is, must sense as much because the next thing you know you have enough scrap to patch up your damage and more besides!" — [[Zoltan Great Eye]]
+      // > "You receive high scrap." — [[Zoltan Great Eye]]
       show(g, tx("wiki.filler-events.you-approach-the-planet-carefully-trying"), scrapOnly(g, "high"));
       return;
     }
+    // Wiki citations:
+    // > "As you approach, an ancient alien voice speaks to you: \"Your mission has brought you great battles, and great losses. This will help ease the pain.\" A few minutes later someone reports medical equipment has appeared on the ship!" — [[Zoltan Great Eye]]
+    // > "You receive Healing Burst." — [[Zoltan Great Eye]]
     show(g, tx("wiki.filler-events.as-you-approach-an-ancient-alien"), {
       tier: "low",
       scrap: 0,
@@ -2200,6 +2215,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     });
   },
   "c:zoltan-great-eye:1": (g) => {
+    // Wiki citations:
+    // > "Your mission is to save the Federation, not discover new wonders around the galaxy. You prepare to jump." — [[Zoltan Great Eye]]
     show(g, tx("wiki.filler-events.your-mission-is-to-save-the"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
 
@@ -3086,6 +3103,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Boarders: Humans jammed sensors. "3-5 human boarders beam aboard your ship, and your Sensors are disabled."
   // INFERRED: the count is inclusive (between()). No ship. Not a crew grant.
   "c:boarders-humans-jammed-sensors:0": (g) => {
+    // Wiki citations:
+    // > "Continue..." — [[Boarders: Humans jammed sensors]]
+    // > "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!" — [[Boarders: Humans jammed sensors]]
+    // > "3-5 human boarders beam aboard your ship, and your Sensors are disabled." — [[Boarders: Humans jammed sensors]]
+    // > "If you don't counter the jam, the Sensors functionality is not restored till you jump to another beacon." — [[Boarders: Humans jammed sensors#Notes]]
     log(g, tx("wiki.filler-events.until-you-are-able-to-jump"));
     shutPlayerSensors(g);
     humanBoarders(g, 3, 5, tx("wiki.filler-events.human-boarders-beam-aboard-your-ship"));
@@ -3361,6 +3383,11 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Hacking blue option. "3-5 human boarders beam aboard your ship." Sensors flicker back on.
   // "If you counter the jam, the Hacking system is not disabled."
   "c:boarders-humans-jammed-sensors:1": (g) => {
+    // Wiki citations:
+    // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
+    // > "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders." — [[Boarders: Humans jammed sensors]]
+    // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans jammed sensors]]
+    // > "If you counter the jam, the Hacking system is not disabled." — [[Boarders: Humans jammed sensors#Notes]]
     if ((g.player.kits.spike?.level ?? 0) <= 0) return;
     log(g, tx("wiki.filler-events.your-hacking-system-automatically-counters-the"));
     restorePlayerSensors(g);
@@ -3967,7 +3994,11 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return tx("wiki.filler-events.needs-a-scrap-recovery-arm");
   // Boarders: Humans jammed sensors, {{Blue Option|Hacking System|...|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:boarders-humans-jammed-sensors:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-hacking-system");
+  if (id === "c:boarders-humans-jammed-sensors:1" && (g.player.kits.spike?.level ?? 0) <= 0) {
+    // Wiki citations:
+    // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
+    return tx("wiki.filler-events.needs-a-hacking-system");
+  }
   // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
   if (id === "c:slaver-hostile:1" && (g.player.systems.engines?.level ?? 0) < 6) return tx("wiki.filler-events.needs-engines-level-6");
   return null;

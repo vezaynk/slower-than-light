@@ -21,6 +21,10 @@ function open(g: Game) {
 
 describe("Zoltan quest primitives interfere", () => {
   it("interfering shows the printed chant sentence and starts a Zoltan fight", () => {
+    // Wiki citations:
+    // > "Interfere - make first contact with the primitive aliens." — [[Zoltan quest primitives]]
+    // > "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight." — [[Zoltan quest primitives]]
+    // > "Fight the Zoltan ship." — [[Zoltan quest primitives]]
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-quest-primitives:0");
@@ -32,6 +36,11 @@ describe("Zoltan quest primitives interfere", () => {
   });
 
   it("both endings double the pursuit for one jump and pay scrap with resources", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump and you receive low scrap with resources." — [[Zoltan quest primitives]]
+    // > "After killing enemy crew The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump and you receive a random amount of scrap with resources." — [[Zoltan quest primitives]]
     for (const deadCrew of [false, true]) {
       const g = createGame(deadCrew ? 2 : 3);
       open(g);

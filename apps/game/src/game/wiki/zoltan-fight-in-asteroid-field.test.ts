@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Zoltan fight in asteroid field", () => {
   it("shows the printed intro, and the fight choice starts a Zoltan combat in an asteroid field", () => {
+    // Wiki citations:
+    // > "You arrive in an asteroid field and are greeted by a Zoltan guard, \"By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing.\" You don't have time for this." — [[Zoltan fight in asteroid field]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight in asteroid field]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
@@ -34,6 +37,8 @@ describe("Zoltan fight in asteroid field", () => {
   });
 
   it("starts the Zoltan ship in an asteroid field on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight in asteroid field]]
     // The page has no choice. "Fight a Zoltan ship (default rewards)." asteroidfield=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

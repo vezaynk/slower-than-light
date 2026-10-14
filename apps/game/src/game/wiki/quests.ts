@@ -1174,6 +1174,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan quest primitives. "Leave." One printed result.
   "c:zoltan-quest-primitives:2": (g) => {
+    // Wiki citations:
+    // > "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave." — [[Zoltan quest primitives]]
+    // > "Nothing happens." — [[Zoltan quest primitives]]
     result(g, tx("wiki.quests.you-don-t-want-to-alert"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Escort civilians FTL haywire. "Decline." One printed result. No quest marker.
@@ -1307,6 +1310,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Pirate ships in plasma storm. Fuel cargo. The pirate escape row is already 50% at 20-40% hull.
   // "never surrenders" is NO_SURRENDER_EVENTS. The page prints no escape timer.
   "c:pirate-ships-in-plasma-storm:0": (g) => {
+    // Wiki citations:
+    // > "Secure the fuel supply." — [[Pirate ships in plasma storm]]
+    // > "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
     pageFight(
       g,
       tx("wiki.quests.you-jet-toward-the-pirate-with"),
@@ -1316,6 +1322,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Ammunition cargo. A second fight slug so the missile table is not the fuel table.
   "c:pirate-ships-in-plasma-storm:1": (g) => {
+    // Wiki citations:
+    // > "Secure the ammunition." — [[Pirate ships in plasma storm]]
+    // > "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
     pageFight(
       g,
       tx("wiki.quests.you-jet-toward-the-pirate-with-2"),
@@ -1325,6 +1334,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Pirate ships in plasma storm. "Let them leave." One printed result.
   "c:pirate-ships-in-plasma-storm:2": (g) => {
+    // Wiki citations:
+    // > "Let them leave." — [[Pirate ships in plasma storm]]
+    // > "Sometimes discretion is the better part of valor." — [[Pirate ships in plasma storm]]
+    // > "Nothing happens." — [[Pirate ships in plasma storm]]
     result(g, tx("wiki.quests.sometimes-discretion-is-the-better-part"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   "q:pirate-briber:gone": (g) => {
@@ -1757,6 +1770,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan ship follows Mantis ship. "Interfere and save the Mantis ship." One printed lead-in, then a Zoltan ship fight in the asteroid field.
   "c:zoltan-ship-follows-mantis-ship:0": (g) => {
+    // Wiki citations:
+    // > "Interfere and save the Mantis ship." — [[Zoltan ship follows Mantis ship]]
+    // > "Sometimes you have to bet on the underdog - even on the rare occasions that the underdog is a Mantis warship. You set off for the heart of the asteroid field and engage the Zoltan there." — [[Zoltan ship follows Mantis ship]]
+    // > "Fight a Zoltan ship." — [[Zoltan ship follows Mantis ship]]
     pageFight(
       g,
       tx("wiki.quests.sometimes-you-have-to-bet-on"),
@@ -1769,6 +1786,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Zoltan ship follows Mantis ship. "Interfere and help the Zoltan ship." One printed lead-in, then a Mantis ship fight in the asteroid field.
   // The page prints "crew entirely composed of Mantis." allMantisCrew replaces any other race after the fight starts.
   "c:zoltan-ship-follows-mantis-ship:1": (g) => {
+    // Wiki citations:
+    // > "Interfere and help the Zoltan ship." — [[Zoltan ship follows Mantis ship]]
+    // > "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends." — [[Zoltan ship follows Mantis ship]]
+    // > "Fight a Mantis ship with crew entirely composed of Mantis." — [[Zoltan ship follows Mantis ship]]
     pageFight(
       g,
       tx("wiki.quests.you-overtake-the-zoltan-and-catch"),
@@ -1781,6 +1802,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan ship follows Mantis ship. "Don't interfere." One printed result.
   "c:zoltan-ship-follows-mantis-ship:2": (g) => {
+    // Wiki citations:
+    // > "Don't interfere." — [[Zoltan ship follows Mantis ship]]
+    // > "The Zoltan know their business better than most - best to leave them to it. You prepare to jump." — [[Zoltan ship follows Mantis ship]]
+    // > "Nothing happens." — [[Zoltan ship follows Mantis ship]]
     result(g, tx("wiki.quests.the-zoltan-know-their-business-better"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Zoltan wise man. "Mantis." One printed lead-in, then a Mantis ship whose crew are all Mantis.
@@ -2040,6 +2065,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan security checkpoint. "You don't have time for this nonsense. Attack!" One printed lead-in, then a Zoltan ship fight.
   "c:zoltan-security-checkpoint:0": (g) => {
+    // Wiki citations:
+    // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]
+    // > "Expecting resistance, their Energy Shield is raised and ready for combat." — [[Zoltan security checkpoint]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
     pageFight(g, tx("wiki.quests.expecting-resistance-their-energy-shield-is"), tx("wiki.quests.zoltan-ship"), "zoltan-security-checkpoint");
   },
   // Lanius ship in rich debris field. "Attack the vessel." One printed lead-in, then a Lanius ship fight.
@@ -2126,10 +2155,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Zoltan security checkpoint. Two results, no odds. INFERRED: equal.
   "c:zoltan-security-checkpoint:1": (g) => {
+    // Wiki citations:
+    // > "Submit to profiling." — [[Zoltan security checkpoint]]
     if (pick(g, ["wanted", "pass"] as const) === "pass") {
+      // Wiki citations:
+      // > "After a few moments of uncertainty, your crew is allowed to pass." — [[Zoltan security checkpoint]]
+      // > "Nothing happens." — [[Zoltan security checkpoint]]
       result(g, tx("wiki.quests.after-a-few-moments-of-uncertainty"), undefined, [tx("wiki.quests.nothing-happens")]);
       return;
     }
+    // Wiki citations:
+    // > "The Zoltan security staff board your ship and begin scanning the crew's faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! \"This person is wanted on five charges of Utter Villainy! Surrender them to us!\"" — [[Zoltan security checkpoint]]
     card(g, tx("wiki.quests.the-zoltan-security-staff-board-your"), [
       { id: "q:zoltan-checkpoint:give", label: tx("wiki.quests.give-up-your-crewmember") },
       { id: "q:zoltan-checkpoint:fight", label: tx("wiki.quests.refuse-and-fight") },
@@ -2137,6 +2173,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Clone Bay has no effect. INFERRED: never the last crewmember.
   "q:zoltan-checkpoint:give": (g) => {
+    // Wiki citations:
+    // > "Give up your crewmember." — [[Zoltan security checkpoint]]
+    // > "It's a tough call, but Zoltan law holds sway here. Besides, that one always seemed a bit shifty." — [[Zoltan security checkpoint]]
+    // > "You lose a crewmember." — [[Zoltan security checkpoint]]
+    // > "(Clone Bay) [no effect] Unfortunately your crewmember was taken away unharmed so your Clone Bay was unable to retrieve them." — [[Zoltan security checkpoint]]
     const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
     const extras: string[] = [];
     if (mine.length > 1) {
@@ -2149,17 +2190,29 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // The scan fight is not the attack fight. Weapon Control is halved, and 2-4 Zoltan boarders come aboard.
   "q:zoltan-checkpoint:fight": (g) => {
+    // Wiki citations:
+    // > "Refuse and fight." — [[Zoltan security checkpoint]]
+    // > "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!" — [[Zoltan security checkpoint]]
+    // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship with your Weapon Control halved." — [[Zoltan security checkpoint]]
     pageFight(g, tx("wiki.quests.you-re-not-going-to-leave"), tx("wiki.quests.zoltan-ship"), "zoltan-security-checkpoint-scan");
     halvePlayerSystems(g, ["weapons"]);
     zoltanBoarders(g, 2, 4);
   },
   // {{Blue Option|Slug Crew}}. Medium fuel, 2-4. A dead Slug does not count.
   "c:zoltan-security-checkpoint:2": (g) => {
+    // Wiki citations:
+    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+    // > "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions." — [[Zoltan security checkpoint]]
+    // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if (!hasSlug(g)) return;
     zoltanCheckpointFuel(g, tx("wiki.quests.you-give-the-guards-permission-to"));
   },
   // {{Blue Option|Mind Control}}. Medium fuel, 2-4.
   "c:zoltan-security-checkpoint:3": (g) => {
+    // Wiki citations:
+    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
+    // > "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass." — [[Zoltan security checkpoint]]
+    // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if ((g.player.kits.leash?.level ?? 0) <= 0) return;
     zoltanCheckpointFuel(g, tx("wiki.quests.the-captain-of-the-guard-appears"));
   },
@@ -3015,8 +3068,16 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
   if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return tx("wiki.quests.needs-adv-ftl-navigation");
   // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.
-  if (id === "c:zoltan-security-checkpoint:2" && !hasSlug(g)) return tx("wiki.quests.needs-a-slug-crewmember");
-  if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) return tx("wiki.quests.needs-mind-control");
+  if (id === "c:zoltan-security-checkpoint:2" && !hasSlug(g)) {
+    // Wiki citations:
+    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+    return tx("wiki.quests.needs-a-slug-crewmember");
+  }
+  if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) {
+    // Wiki citations:
+    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
+    return tx("wiki.quests.needs-mind-control");
+  }
   // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
   if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return tx("wiki.quests.needs-level-6-weapons");
   // Pirate smuggler. Improved Weapons is level 6+. The button stays visible.
@@ -4101,17 +4162,31 @@ export const PAGE_WINS: Record<string, Win> = {
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
   "pirate-ships-in-plasma-storm": (g, deadCrew) => {
-    const text = deadCrew
-      ? tx("wiki.quests.with-the-ship-in-one-piece")
-      : tx("wiki.quests.the-ship-obliterated-only-scant-fuel");
-    result(g, text, cargoAndScrap(g, deadCrew ? "high" : "low", "fuel"));
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the fuel supplies before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+      // > "You receive high fuel and scrap." — [[Pirate ships in plasma storm]]
+      result(g, tx("wiki.quests.with-the-ship-in-one-piece"), cargoAndScrap(g, "high", "fuel"));
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship The ship obliterated, only scant fuel canisters can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive low fuel and scrap." — [[Pirate ships in plasma storm]]
+    result(g, tx("wiki.quests.the-ship-obliterated-only-scant-fuel"), cargoAndScrap(g, "low", "fuel"));
   },
   // Destroyed: low missiles (1-2) and low scrap. Crew kill: high missiles (4-8) and high scrap.
   "pirate-ships-in-plasma-storm-ammo": (g, deadCrew) => {
-    const text = deadCrew
-      ? tx("wiki.quests.with-the-ship-in-one-piece-2")
-      : tx("wiki.quests.the-ship-obliterated-only-scant-ammunition");
-    result(g, text, cargoAndScrap(g, deadCrew ? "high" : "low", "missiles"));
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the ammunition before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+      // > "You receive high missiles and scrap." — [[Pirate ships in plasma storm]]
+      result(g, tx("wiki.quests.with-the-ship-in-one-piece-2"), cargoAndScrap(g, "high", "missiles"));
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship The ship obliterated, only scant ammunition crates can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive low missiles and scrap." — [[Pirate ships in plasma storm]]
+    result(g, tx("wiki.quests.the-ship-obliterated-only-scant-ammunition"), cargoAndScrap(g, "low", "missiles"));
   },
   // Mantis ship attacking Slug ship. Saving the Slugs pays medium either way. Killing them pays high either way.
   "mantis-ship-attacking-slug-ship": (g) => {
@@ -4125,7 +4200,17 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
   "zoltan-security-checkpoint-scan": (g, deadCrew) => {
-    result(g, tx("wiki.quests.you-scrap-what-you-can-and"), rollStandard(g, deadCrew ? "medium" : "low"));
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
+      // > "You receive medium scrap with resources." — [[Zoltan security checkpoint]]
+      result(g, tx("wiki.quests.you-scrap-what-you-can-and"), rollStandard(g, "medium"));
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
+    // > "You receive low scrap with resources." — [[Zoltan security checkpoint]]
+    result(g, tx("wiki.quests.you-scrap-what-you-can-and"), rollStandard(g, "low"));
   },
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.

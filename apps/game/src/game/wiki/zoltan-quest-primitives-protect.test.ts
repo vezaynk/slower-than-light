@@ -21,6 +21,10 @@ function open(g: Game) {
 
 describe("Zoltan quest primitives protect", () => {
   it("protecting the aliens shows the printed firing sentence and starts a Rebel fight", () => {
+    // Wiki citations:
+    // > "Protect the aliens' way of life - Attack the Rebel ship." — [[Zoltan quest primitives]]
+    // > "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence." — [[Zoltan quest primitives]]
+    // > "Fight the Rebel Ship." — [[Zoltan quest primitives]]
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-quest-primitives:1");
@@ -32,6 +36,11 @@ describe("Zoltan quest primitives protect", () => {
   });
 
   it("pays a weapon with low scrap when the hull breaks, and medium scrap for a crew kill, with no resources", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
+    // > "You receive a weapon with low scrap." — [[Zoltan quest primitives]]
+    // > "After killing enemy crew The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
+    // > "You receive a weapon with medium scrap." — [[Zoltan quest primitives]]
     for (const deadCrew of [false, true]) {
       const g = createGame(deadCrew ? 4 : 5);
       open(g);

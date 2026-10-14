@@ -29,6 +29,14 @@ function amount(body: string, label: string): number | undefined {
 
 describe("Pirate ships in plasma storm", () => {
   it("lets them leave, and each cargo fight is a pirate that never surrenders", () => {
+    // Wiki citations:
+    // > "Let them leave." — [[Pirate ships in plasma storm]]
+    // > "Sometimes discretion is the better part of valor." — [[Pirate ships in plasma storm]]
+    // > "Nothing happens." — [[Pirate ships in plasma storm]]
+    // > "Secure the fuel supply." — [[Pirate ships in plasma storm]]
+    // > "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
+    // > "Secure the ammunition." — [[Pirate ships in plasma storm]]
+    // > "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
     const leave = createGame(1);
     open(leave);
     const fuelBefore = leave.fuel;
@@ -67,6 +75,11 @@ describe("Pirate ships in plasma storm", () => {
   });
 
   it("pays low fuel and scrap when the fuel ship is destroyed, and high fuel and scrap on a crew kill", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship The ship obliterated, only scant fuel canisters can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive low fuel and scrap." — [[Pirate ships in plasma storm]]
+    // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the fuel supplies before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive high fuel and scrap." — [[Pirate ships in plasma storm]]
     for (const deadCrew of [false, true]) {
       const g = createGame(deadCrew ? 4 : 5);
       open(g);
@@ -99,6 +112,11 @@ describe("Pirate ships in plasma storm", () => {
   });
 
   it("pays low missiles and scrap when the ammunition ship is destroyed, and high missiles and scrap on a crew kill", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship The ship obliterated, only scant ammunition crates can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive low missiles and scrap." — [[Pirate ships in plasma storm]]
+    // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the ammunition before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
+    // > "You receive high missiles and scrap." — [[Pirate ships in plasma storm]]
     for (const deadCrew of [false, true]) {
       const g = createGame(deadCrew ? 6 : 7);
       open(g);

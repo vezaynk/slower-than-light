@@ -30,6 +30,8 @@ function reward(body: string) {
 
 describe("Zoltan Great Eye", () => {
   it("leaving spends nothing", () => {
+    // Wiki citations:
+    // > "Your mission is to save the Federation, not discover new wonders around the galaxy. You prepare to jump." — [[Zoltan Great Eye]]
     const g = createGame(1);
     const crew = players(g).length;
     open(g);
@@ -41,6 +43,16 @@ describe("Zoltan Great Eye", () => {
   });
 
   it("pulling closer loses a crewmember, fights a Zoltan ship, pays high scrap, or mounts Healing Burst", () => {
+    // Wiki citations:
+    // > "Pull the ship in closer." — [[Zoltan Great Eye]]
+    // > "As you approach, a kaleidoscope of colours fills the view-screen and one of your crew begins to age rapidly in reverse, eventually disappearing into nothingness. Let's hope they've transcended physical existence, and not just been forced out of it." — [[Zoltan Great Eye]]
+    // > "You lose a crewmember." — [[Zoltan Great Eye]]
+    // > "You approach the planet and wait, but nothing happens. The Zoltan hail: \"And in the coming times, when the monolith speaks not with a man he has no future and must be left wanting.\"" — [[Zoltan Great Eye]]
+    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan Great Eye]]
+    // > "You approach the planet carefully, trying to keep your ship from breaking up in orbit. The monolith, whatever it is, must sense as much because the next thing you know you have enough scrap to patch up your damage and more besides!" — [[Zoltan Great Eye]]
+    // > "You receive high scrap." — [[Zoltan Great Eye]]
+    // > "As you approach, an ancient alien voice speaks to you: \"Your mission has brought you great battles, and great losses. This will help ease the pain.\" A few minutes later someone reports medical equipment has appeared on the ship!" — [[Zoltan Great Eye]]
+    // > "You receive Healing Burst." — [[Zoltan Great Eye]]
     let lose = false;
     let fight = false;
     let scrap = false;
@@ -83,6 +95,8 @@ describe("Zoltan Great Eye", () => {
   });
 
   it("a clone bay does not bring the lost crewmember back", () => {
+    // Wiki citations:
+    // > "(Clone Bay) [no effect] You check your Cloning Bay but it lies dormant. Whatever just happened to your crewmember must be irreversible." — [[Zoltan Great Eye]]
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);

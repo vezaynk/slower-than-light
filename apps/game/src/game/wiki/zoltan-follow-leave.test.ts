@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Zoltan ship follows Mantis ship leave", () => {
   it("leaving shows the printed business sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Don't interfere." — [[Zoltan ship follows Mantis ship]]
+    // > "The Zoltan know their business better than most - best to leave them to it. You prepare to jump." — [[Zoltan ship follows Mantis ship]]
+    // > "Nothing happens." — [[Zoltan ship follows Mantis ship]]
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-ship-follows-mantis-ship:2");

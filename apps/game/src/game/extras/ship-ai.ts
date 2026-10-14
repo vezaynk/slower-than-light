@@ -14,8 +14,8 @@
  * locking, hacking"), and that power still comes out of the pool. The Rebel Flagship keeps its own power code
  * (wiki/flagship-systems.ts).
  */
-import { WEAPONS } from "../content.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
+import { weaponDef } from "../pack/registry.ts";
 import { kitIonLocked, zoltanBars } from "../sim.ts";
 import type { Game, Kit, KitId, Ship, SysId, SystemState } from "../types.ts";
 import { stormReactor } from "../wiki/cited-sectors.ts";
@@ -53,7 +53,7 @@ function dronePowers(kit: Kit): number[] {
 
 /** Seconds a weapon has been charging. */
 function chargingTime(defId: string, charge: number): number {
-  return charge * (WEAPONS[defId]?.charge ?? 0);
+  return charge * (weaponDef(defId)?.charge ?? 0);
 }
 
 /** Run CheckPowerLevels on the enemy hull. Called each combat tick before weapons charge. */
@@ -110,7 +110,7 @@ export function checkEnemyPower(g: Game): void {
       }
     }
     if (!best) return false;
-    const need = WEAPONS[best.defId]?.power ?? 1;
+    const need = weaponDef(best.defId)?.power ?? 1;
     if (!add("weapons", need)) return false;
     on.add(best.uid);
     return true;

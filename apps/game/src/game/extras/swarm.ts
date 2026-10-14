@@ -6,7 +6,8 @@ import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
-import { kinOf } from "./kin.ts";
+import "../pack/base.ts";
+import { crewDef } from "../pack/registry.ts";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -849,7 +850,7 @@ function stepFinishedBoard(
  * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
  */
 function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {
-  const pace = kinOf("shell").repair;
+  const pace = crewDef("shell").repair;
   if (room.fire > 0) {
     room.fire = Math.max(0, room.fire - FIRE_FIGHT_SHARE * pace * dt);
     return;
@@ -1071,7 +1072,7 @@ function tickDyingRepair(
     finish();
     return;
   }
-  const pace = kinOf("shell").repair;
+  const pace = crewDef("shell").repair;
   if (job.kind === "system" && job.room.system) {
     const sys = ship.systems[job.room.system];
     const before = sys.damage;
@@ -1643,7 +1644,7 @@ function accrueBar(holder: { fix?: number }, dt: number): boolean {
  */
 function crewBlow(g: Game, c: Crew, dt: number): number {
   if (!crewBlowDue(g, c, dt)) return 0;
-  return crewBlowDamage(g) * kinOf(c.kin ?? "plain").fight * crewCombat(c);
+  return crewBlowDamage(g) * crewDef(c.kin ?? "plain").fight * crewCombat(c);
 }
 
 /** Crew skills, Combat skill: "increases the damage dealt to crewmembers and onboard drones". Level 0 stays ×1, level 2 is 20% more. */
@@ -1745,7 +1746,7 @@ export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: stri
 }
 
 export function zoltanBurstDrones(g: Game, dead: Crew): void {
-  if (dead.kin !== "spark" || !dead.room) return;
+  if (!crewDef(dead.kin).hasDeathExplosion || !dead.room) return;
   if (dead.side === "enemy") {
     const kit = g.player.kits.swarm;
     if (!kit?.on || kit.hp == null || kit.room !== dead.room) return;

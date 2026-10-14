@@ -6431,6 +6431,8 @@
   "ui.GameApp.that-adapted-material-is-shared-under": "That adapted material is shared under the same licence, CC BY-SA 3.0.",
   "ui.GameApp.v-0-1": "v. 0.1",
   "ui.GameApp.ftl": "FTL",
+  "ui.GameApp.loading-the-ship-pack": "Loading the ship pack",
+  "ui.GameApp.the-ship-pack-did-not-load": "The ship pack did not load.",
   "ui.GameApp.quest": "QUEST",
   "ui.GameApp.store": "STORE",
   "ui.GameApp.exit": "EXIT",

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import "../pack/base.ts";
+import { crewDef } from "../pack/registry.ts";
 import { KIN, kinOf, type KinId } from "./kin.ts";
 
 const IDS: KinId[] = [
@@ -68,6 +70,29 @@ describe("kin", () => {
     assert.equal(gel.fight, plain.fight);
     assert.equal(gel.suffocate, plain.suffocate);
     assert.equal(gel.fireTaken, plain.fireTaken);
+  });
+
+  it("the loaded race copies the authored row", () => {
+    const authored = kinOf("spark");
+    const loaded = crewDef("spark");
+    assert.equal(loaded.hp, authored.hp);
+    assert.equal(loaded.move, authored.move);
+    assert.equal(loaded.repair, authored.repair);
+    assert.equal(loaded.fight, authored.fight);
+    assert.equal(loaded.suffocate, authored.suffocate);
+    assert.equal(loaded.fireTaken, authored.fireTaken);
+    assert.equal(loaded.name, authored.name);
+    assert.equal(loaded.bonusPower, 1);
+    assert.equal(loaded.hasDeathExplosion, true);
+    assert.equal(crewDef("voidlung").drainsOxygen, true);
+    assert.equal(crewDef("gel").detectsLifeforms, true);
+    assert.equal(crewDef("gel").resistsMindControl, true);
+    assert.equal(crewDef("shard").lockdown, true);
+    assert.equal(crewDef("shard").lockCooldown, 50);
+    assert.equal(crewDef("stone").fireRepairMultiplier, 1.67);
+    assert.equal(crewDef("shard").fireRepairMultiplier, 0.83);
+    assert.equal(crewDef("plain").bonusPower, 0);
+    assert.notEqual(loaded, authored);
   });
 
   it("display names match the crew table", () => {

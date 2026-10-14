@@ -1,3 +1,5 @@
+import "../pack/base.ts";
+import { crewDef } from "../pack/registry.ts";
 import type { Crew, Game, Room } from "../types.ts";
 import { hackVision, playerSensorLevel } from "./spike.ts";
 
@@ -18,7 +20,7 @@ export function shareEdge(a: Pick<Room, "x" | "y" | "w" | "h">, b: Pick<Room, "x
 }
 
 function playerSlugs(g: Game, aboard: "player" | "enemy"): Crew[] {
-  return g.crew.filter((c) => c.side === "player" && c.kin === "gel" && c.hp > 0 && c.aboard === aboard);
+  return g.crew.filter((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0 && c.aboard === aboard);
 }
 
 /** Rooms a living player Slug occupies or touches on that hull. */
@@ -71,7 +73,7 @@ export function shipSight(g: Game): ShipSight {
   const cloaked = enemyCloaked(g);
   const ownAboard = g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const life =
-    g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0) || g.augments.includes("pulseeye");
+    g.crew.some((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0) || g.augments.includes("pulseeye");
 
   // A room your own crew stand in is always seen, on either hull. We're in position!: boarding crew give "vision of
   // ... the enemy ship without functioning sensors". INFERRED: the room each crew member stands in.

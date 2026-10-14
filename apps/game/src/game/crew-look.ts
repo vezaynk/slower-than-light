@@ -5,7 +5,9 @@
  */
 import { tx } from "../i18n/index.ts";
 import { CREW_POOL } from "./content.ts";
-import { KIN, type KinId } from "./extras/kin.ts";
+import { type KinId } from "./extras/kin.ts";
+import "./pack/base.ts";
+import { crewDef } from "./pack/registry.ts";
 import type { Crew } from "./types.ts";
 
 /** Uniform swatches. Index 5 is the enemy red and is not offered in the hangar. */
@@ -30,8 +32,8 @@ export const NAME_MAX = 14;
 /** What the hangar hands to a new run for one seat. */
 export type CrewPick = { name: string; uniform: number };
 
-export function kinLabel(kin: KinId | undefined) {
-  return KIN[kin ?? "plain"].name;
+export function kinLabel(kin: string | undefined) {
+  return crewDef(kin).name;
 }
 
 export function defaultPick(seat: number): CrewPick {

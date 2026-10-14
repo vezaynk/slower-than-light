@@ -12,10 +12,13 @@ import { pageRect, toPage } from "./turn";
 import {
   SECTOR_NAMES,
   SYS_LABEL,
-  WEAPONS,
   upgradeBlurb,
   upgradeCost,
 } from "@/game/content";
+import { aimedBeamTiles } from "@/game/pack/beams";
+import { loadBasePackXml } from "@/game/pack/boot";
+import "@/game/pack/base";
+import { crewDef, weaponDef } from "@/game/pack/registry";
 import { CATALOG, scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, overtaken } from "@/game/wiki/sector-map";
@@ -23,7 +26,7 @@ import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCel
 import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
 import { recallSling, sendSling, shipInDanger, slingUpgradeCost, upgradeSling } from "@/game/extras/sling";
 import { activateDroneSlot, depowerDrone, lowerSwarmPower, playerDroneSlots, raiseSwarmPower, reorderDroneSlots, roomDroneHp, toggleSwarmPower } from "@/game/extras/swarm";
-import { beamTileLength } from "@/game/wiki/weapons-beam";
+
 import { clampTargetPoint, roomAtPoint, roomCenter, targetableSpan } from "@/game/beam-line";
 import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
 import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFlakPower, upgradeFlak } from "@/game/extras/flakart";
@@ -63,7 +66,7 @@ import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
 import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
 import { canFieldDrone, droneSlotCap } from "@/game/wiki/cited-stores";
 import { CARGO_SLOTS, canFitFromCargo, cargoOf, fitFromCargo, pendingOverflow, resolveOverflow, stowDrone, stowWeapon } from "@/game/wiki/make-room";
-import { kinOf } from "@/game/extras/kin";
+
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
@@ -1321,7 +1324,7 @@ function CrewRail({ game }: { game: Game }) {
               {tx("ui.GameApp.mc")}
             </button>
           ) : null}
-          {c.kin === "shard" ? (
+          {crewDef(c.kin).lockdown ? (
             <button
               type="button"
               className="lock-pip"
@@ -1387,7 +1390,7 @@ function crewOn(game: Game, aboard: "player" | "enemy"): boolean {
 function bombAiming(game: Game): boolean {
   if (!game.targeting) return false;
   const w = game.player.weapons.find((item) => item.uid === game.armed);
-  return WEAPONS[w?.defId ?? ""]?.kind === "bomb";
+  return weaponDef(w?.defId ?? "")?.kind === "bomb";
 }
 
 /**
@@ -1489,7 +1492,7 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
 function armedBeamReach(game: Game): number | null {
   if (!game.targeting || !game.beamAnchor) return null;
   const armed = game.player.weapons.find((w) => w.uid === game.armed);
-  return beamTileLength(armed?.defId);
+  return aimedBeamTiles(armed?.defId);
 }
 
 /** Queued player beam swipes. A powered gun keeps the segment it will fire. */
@@ -1522,9 +1525,11 @@ function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: 
   const [dragging, setDragging] = useState(false);
   if (hidden || !span || game.phase !== "combat") return null;
   const range = span;
-  const gun = game.player.weapons.find((w) => w.uid === game.armed);
-  const def = gun ? WEAPONS[gun.defId] : undefined;
-  if (!gun || !def) return null;
+  const armed = game.player.weapons.find((w) => w.uid === game.armed);
+  if (!armed) return null;
+  const gun = armed;
+  const def = weaponDef(gun.defId);
+  if (!def) return null;
   // A disabled gun drops its aim in sim.ts. Until that lands, do not keep adjusting it.
   const stillThere = gun.enabled && !!(gun.target || gun.beamLine);
   if (!dragging && !game.targeting && !stillThere) return null;
@@ -1878,7 +1883,7 @@ function TargetPanel({
         })}
         {/* @agent:flagship. "Each located in its own room": one artillery chip per gun (wiki/flagship-systems.ts). */}
         {artilleryView(enemy).map((a) => {
-          const name = WEAPONS[a.defId]?.name ?? a.defId;
+          const name = weaponDef(a.defId)?.name ?? a.defId;
           const rim = clockRim(ionClock(artilleryGun(enemy, a.room)?.ion));
           return (
             <span
@@ -1914,7 +1919,7 @@ function TargetPanel({
       {sensors >= 3 ? (
         <div className="foe-charges" aria-label={tx("ui.GameApp.enemy-weapon-charge")}>
           {enemy.weapons.map((w) => {
-            const name = WEAPONS[w.defId]?.name ?? w.defId;
+            const name = weaponDef(w.defId)?.name ?? w.defId;
             const filled = Math.round(weaponChargeShown(w) * CHARGE_PIPS);
             const cap = chargerCap(w.defId);
             const bank = cap != null ? tx("ui.GameApp.of-shots", { v: w.loaded ?? 0, cap: cap }) : "";
@@ -2125,7 +2130,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         {tab === "weapons" ? (
         <div className="gun-tray" role="tabpanel">
           {game.player.weapons.map((w, index) => {
-            const def = WEAPONS[w.defId];
+            const def = weaponDef(w.defId);
             const live = w.enabled && mask[index];
             const auto = slotAutofire(game, w);
             const hot = live && weaponAccentHot(w);
@@ -3099,15 +3104,15 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
   // Per the user: a full rack and a full cargo hold: a fitted one of that kind, anything in cargo, or the new one.
   const cargo: RoomPick[] = cargoOf(game).map((c, i) => ({
     key: `c:${i}`,
-    name: c.kind === "weapon" ? (WEAPONS[c.id]?.name ?? c.id) : droneName(c.id),
+    name: c.kind === "weapon" ? (weaponDef(c.id)?.name ?? c.id) : droneName(c.id),
     art: c.kind === "weapon" ? <WeaponArt id={c.id} height={30} /> : <DroneArt kind={droneKeyOf(c.id)} height={30} />,
     note: tx("ui.GameApp.cargo"),
   }));
   if (item.kind === "weapon") {
     return [
-      ...game.player.weapons.map((w) => ({ key: w.uid, name: WEAPONS[w.defId]?.name ?? w.defId, art: <WeaponArt id={w.defId} height={30} />, note: tx("ui.GameApp.fitted") })),
+      ...game.player.weapons.map((w) => ({ key: w.uid, name: weaponDef(w.defId)?.name ?? w.defId, art: <WeaponArt id={w.defId} height={30} />, note: tx("ui.GameApp.fitted") })),
       ...cargo,
-      { key: "new", name: WEAPONS[item.id]?.name ?? item.id, art: <WeaponArt id={item.id} height={30} />, isNew: true },
+      { key: "new", name: weaponDef(item.id)?.name ?? item.id, art: <WeaponArt id={item.id} height={30} />, isNew: true },
     ];
   }
   if (item.kind === "drone") {
@@ -3256,11 +3261,11 @@ function OfferCards({
   if (!weapon && !crew && !augment && !drone && !repairs) return null;
   const augFate = augment ? bonusAugmentFate(game, augment) : undefined;
   const droneKey = drone ? droneKeyOf(drone) : null;
-  const def = weapon ? WEAPONS[weapon] : undefined;
+  const def = weapon ? weaponDef(weapon) : undefined;
   const rackFull = game.player.weapons.length >= weaponSlotCap(game);
   const crewFull = game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
   const kin = crew ? raceKin(crew) : undefined;
-  const k = kin ? kinOf(kin) : undefined;
+  const k = kin ? crewDef(kin) : undefined;
   const pct = (n: number) => `${Math.round(n * 100)}%`;
   return (
     <div className="offer-cards">
@@ -3570,10 +3575,34 @@ function Portrait({ crew }: { crew: Crew }) {
 function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
   const [view, setView] = useState<string | null>(null);
+  const [packRatio, setPackRatio] = useState(0);
+  const [packReady, setPackReady] = useState(false);
+  const [packError, setPackError] = useState(false);
+  const [packBar, setPackBar] = useState(true);
   const boot = useGame((s) => s.boot);
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
+  useEffect(() => {
+    let live = true;
+    loadBasePackXml((ratio) => {
+      if (live) setPackRatio(ratio);
+    })
+      .then(() => {
+        if (live) setPackReady(true);
+      })
+      .catch(() => {
+        if (live) setPackError(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!packReady) return;
+    const hide = setTimeout(() => setPackBar(false), 700);
+    return () => clearTimeout(hide);
+  }, [packReady]);
   useEffect(() => {
     if (boot === "hangar") {
       setView("hangar");
@@ -3611,7 +3640,7 @@ function TitleScreen() {
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
-    <section className="title-shot">
+    <section className="title-shot" aria-busy={!packReady}>
       <InstallButton className="title-install" />
       <div
         className="title-frame"
@@ -3619,14 +3648,14 @@ function TitleScreen() {
           if (view === "stats" || view === "options" || view === "credits") setView(null);
         }}
       >
-        <PixelMenu continueReady={saveReady} />
+        <PixelMenu continueReady={saveReady && packReady} />
         {TITLE_MENU_ART.map((item) => (
           <button
             key={item.id}
             type="button"
             className="menu-hit"
             aria-label={item.label}
-            disabled={item.id === "continue" && !saveReady}
+            disabled={!packReady || (item.id === "continue" && !saveReady)}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {
               e.stopPropagation();
@@ -3638,6 +3667,21 @@ function TitleScreen() {
         {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
         {view === "options" ? <OptionsPanel onClose={() => setView(null)} /> : null}
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
+        {packBar ? (
+          <div className="pack-boot">
+            <p>{packError ? tx("ui.GameApp.the-ship-pack-did-not-load") : tx("ui.GameApp.loading-the-ship-pack")}</p>
+            <div
+              className="pack-boot-track"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(packRatio * 100)}
+              aria-label={tx("ui.GameApp.loading-the-ship-pack")}
+            >
+              <div className="pack-boot-fill" style={{ width: `${packRatio * 100}%` }} />
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -4752,7 +4796,7 @@ function CargoList({
                 </div>
               );
             }
-            const def = WEAPONS[w.defId];
+            const def = weaponDef(w.defId);
             const name = def?.name ?? w.defId;
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
@@ -4869,7 +4913,7 @@ function CargoList({
                 </div>
               );
             }
-            const name = item.kind === "weapon" ? (WEAPONS[item.id]?.name ?? item.id) : droneName(item.id);
+            const name = item.kind === "weapon" ? (weaponDef(item.id)?.name ?? item.id) : droneName(item.id);
             const fits = canFitFromCargo(game, index);
             const why =
               item.kind === "weapon" ? tx("ui.GameApp.weapon-slots-full") : !game.player.kits.swarm ? tx("ui.GameApp.needs-drone-control") : tx("ui.GameApp.drone-slots-full");

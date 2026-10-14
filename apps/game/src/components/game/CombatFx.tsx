@@ -29,7 +29,8 @@ import { useGame } from "@/game/store";
 import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
 import { flightSpeed, leftCamera, MISS_EXIT_MARGIN, MISS_MAX_AGE, missVelocity, shotFliesPast } from "./miss-flight";
 import { beamStroke } from "@/game/beam-line";
-import { beamBodyTiles } from "@/game/wiki/weapons-beam";
+import { drawnBeamTiles } from "@/game/pack/beams";
+import "@/game/pack/base";
 import { pageRect } from "./turn";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -823,7 +824,7 @@ export function CombatFx() {
             const tile = hullEl ? parseFloat(getComputedStyle(hullEl).getPropertyValue("--tile")) || 0 : 0;
             const screenSpan = Math.hypot(b.x - a.x, b.y - a.y);
             const pxPerTile = tileDist > 0.05 ? screenSpan / tileDist : tile;
-            const body = beamBodyTiles(shot.defId);
+            const body = drawnBeamTiles(shot.defId);
             const lengthPx = body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
             const stroke = beamStroke(a, b, t, lengthPx);
             const beamLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";

@@ -45,7 +45,8 @@ import { interiorLinks, mayStand } from "../crew-spots.ts";
 import type { Crew, CrewAiState, CrewAiTask, Game, KitId, Room, Ship, SysId } from "../types.ts";
 import { bars, lockdown, truce } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
-import { kinOf } from "./kin.ts";
+import "../pack/base.ts";
+import { crewDef } from "../pack/registry.ts";
 import { sideOf } from "./leash.ts";
 import { artilleryGun } from "../wiki/flagship-systems.ts";
 import { airShown } from "../air.ts";
@@ -202,7 +203,7 @@ export function tickEnemyCrewAi(g: Game, dt: number) {
 export function enemyCrystalLockdown(g: Game) {
   const coatedRoom = new Set<string>();
   for (const c of g.crew) {
-    if (c.side !== "enemy" || c.kin !== "shard" || c.hp <= 0) continue;
+    if (c.side !== "enemy" || !crewDef(c.kin).lockdown || c.hp <= 0) continue;
     if (sideOf(c) !== "enemy") continue;
     if ((c.stun ?? 0) > 0 || (c.lockCool ?? 0) > 0 || c.path.length > 0) continue;
     const ship = c.aboard === "player" ? g.player : g.enemy;
@@ -236,7 +237,7 @@ export function aiCrew(g: Game, ship: Ship): Crew[] {
 
 /** True when the crew member is "bad at combat": "<1x damage or <100hp" (xftl doc/crew-ai, PrioritizeTask). */
 function badFighter(c: Crew): boolean {
-  return kinOf(c.kin ?? "plain").fight < 1 || c.maxHp < 100;
+  return crewDef(c.kin ?? "plain").fight < 1 || c.maxHp < 100;
 }
 
 /** The system a room houses, for the priority tables. */
@@ -515,7 +516,7 @@ function medbayFor(g: Game, ship: Ship, c: Crew): Room | undefined {
  */
 function unsafe(g: Game, ship: Ship, c: Crew, r: Room, hackCounts = true): boolean {
   if (ship.doors.some((d) => d.open && d.b === "void" && d.a === r.id)) return true;
-  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && kinOf(c.kin ?? "plain").suffocate > 0) return true;
+  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && crewDef(c.kin ?? "plain").suffocate > 0) return true;
   if (r.fire > 0) {
     if (fullFire(r) && r.breach > 0) return true;
     if (!fireProof(c) && (r.fire >= 4 || c.hp <= c.maxHp * FIRE_FLEE_AT)) return true;
@@ -572,7 +573,7 @@ function fullFire(r: Room, minTiles = 2): boolean {
 
 /** Rockmen (and any lineage that takes no fire damage) are immune. */
 function fireProof(c: Crew): boolean {
-  return kinOf(c.kin ?? "plain").fireTaken <= 0;
+  return crewDef(c.kin ?? "plain").fireTaken <= 0;
 }
 
 function coated(ship: Ship, id: string): boolean {

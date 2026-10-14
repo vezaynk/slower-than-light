@@ -2,7 +2,8 @@ import { tx } from "../../i18n/index.ts";
 import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, deselectCrew, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
-import { WEAPONS } from "../content.ts";
+import "../pack/base.ts";
+import { crewDef, weaponDef } from "../pack/registry.ts";
 import { sensorLevel } from "./sensors.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
@@ -618,7 +619,7 @@ function pulseTheirMind(g: Game, kit: Kit) {
     return;
   }
   kit.hackHeld = undefined;
-  const pool = g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && (c.leashed ?? 0) <= 0 && c.kin !== "gel");
+  const pool = g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && (c.leashed ?? 0) <= 0 && !crewDef(c.kin).resistsMindControl);
   if (!pool.length) return;
   const c = pool[Math.floor(rand(g) * pool.length) % pool.length];
   c.leashed = kit.left;
@@ -1086,7 +1087,7 @@ function pulseMind(g: Game, kit: Kit) {
     return;
   }
   kit.hackHeld = undefined;
-  const pool = g.crew.filter((c) => c.side === "player" && c.hp > 0 && (c.leashed ?? 0) <= 0 && c.kin !== "gel");
+  const pool = g.crew.filter((c) => c.side === "player" && c.hp > 0 && (c.leashed ?? 0) <= 0 && !crewDef(c.kin).resistsMindControl);
   if (!pool.length) return;
   const c = pool[Math.floor(rand(g) * pool.length) % pool.length];
   c.leashed = kit.left;
@@ -1168,7 +1169,7 @@ function drainGuns(weapons: Ship["weapons"], dt: number, only: string | null) {
     // Weapon Control, Overview: stored charger charges "cannot be removed by hacking disruptions".
     // The in-progress shot is part of that store. Ordinary weapons still drain to just under a full bar.
     if (chargerCap(w.defId) != null) continue;
-    const seconds = WEAPONS[w.defId]?.charge;
+    const seconds = weaponDef(w.defId)?.charge;
     if (seconds == null || seconds <= 0) continue;
     w.charge = Math.min(0.99, Math.max(0, w.charge - dt / seconds));
   }

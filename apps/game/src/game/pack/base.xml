@@ -1,0 +1,1003 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Base pack written from the loaded crew and weapon records.
+  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
+  sp is shield layers pierced. power is reactor bars.
+  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
+  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
+-->
+<FTL>
+  <crew>
+    <race name="plain">
+      <title>Human</title>
+      <maxHealth>100</maxHealth>
+      <moveSpeedMultiplier>1</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="shell">
+      <title>Engi</title>
+      <maxHealth>100</maxHealth>
+      <moveSpeedMultiplier>1</moveSpeedMultiplier>
+      <repairSpeed>2</repairSpeed>
+      <damageMultiplier>0.5</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="spark">
+      <title>Zoltan</title>
+      <maxHealth>70</maxHealth>
+      <moveSpeedMultiplier>1</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>1</bonusPower>
+      <hasDeathExplosion>true</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="blade">
+      <title>Mantis</title>
+      <maxHealth>100</maxHealth>
+      <moveSpeedMultiplier>1.2</moveSpeedMultiplier>
+      <repairSpeed>0.5</repairSpeed>
+      <damageMultiplier>1.5</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="gel">
+      <title>Slug</title>
+      <maxHealth>100</maxHealth>
+      <moveSpeedMultiplier>1</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>true</detectsLifeforms>
+      <resistsMindControl>true</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="stone">
+      <title>Rock</title>
+      <maxHealth>150</maxHealth>
+      <moveSpeedMultiplier>0.5</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>1</suffocationModifier>
+      <fireDamageMultiplier>0</fireDamageMultiplier>
+      <fireRepairMultiplier>1.67</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="voidlung">
+      <title>Lanius</title>
+      <maxHealth>100</maxHealth>
+      <moveSpeedMultiplier>0.85</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>0</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>1</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>-0.5</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>false</lockdown>
+        <cooldown>0</cooldown>
+      </powerEffect>
+    </race>
+    <race name="shard">
+      <title>Crystal</title>
+      <maxHealth>125</maxHealth>
+      <moveSpeedMultiplier>0.8</moveSpeedMultiplier>
+      <repairSpeed>1</repairSpeed>
+      <damageMultiplier>1</damageMultiplier>
+      <suffocationModifier>0.5</suffocationModifier>
+      <fireDamageMultiplier>1</fireDamageMultiplier>
+      <fireRepairMultiplier>0.83</fireRepairMultiplier>
+      <bonusPower>0</bonusPower>
+      <hasDeathExplosion>false</hasDeathExplosion>
+      <oxygenChangeSpeed>0</oxygenChangeSpeed>
+      <detectsLifeforms>false</detectsLifeforms>
+      <resistsMindControl>false</resistsMindControl>
+      <powerEffect>
+        <lockdown>true</lockdown>
+        <cooldown>50</cooldown>
+      </powerEffect>
+    </race>
+  </crew>
+  <weaponBlueprint name="lineburst">
+    <type>LASER</type>
+    <title>Burst Laser II</title>
+    <tooltip>Three bolts. The first one only buys down a shield layer.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>2</power>
+    <cooldown>12</cooldown>
+    <cost>80</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0.28</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="spark">
+    <type>LASER</type>
+    <title>Basic Laser</title>
+    <tooltip>One bolt. A shield layer stops it whole.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>10</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="twin">
+    <type>LASER</type>
+    <title>Dual Lasers</title>
+    <tooltip>Two bolts from a single power bar.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>1</power>
+    <cooldown>10</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0.3</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavy">
+    <type>LASER</type>
+    <title>Heavy Laser</title>
+    <tooltip>Two hull if it lands. One shield layer still eats the entire shot.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>9</cooldown>
+    <cost>50</cost>
+    <fireChance>3</fireChance>
+    <breachChance>3</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="dart">
+    <type>MISSILE</type>
+    <title>Dart</title>
+    <tooltip>Ignores shields. Spends one missile. Can still miss.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>14</cooldown>
+    <cost>40</cost>
+    <fireChance>1</fireChance>
+    <breachChance>2.5</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="needle">
+    <type>ION</type>
+    <title>Ion Blast</title>
+    <tooltip>No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>8</cooldown>
+    <cost>30</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="artemis">
+    <type>MISSILE</type>
+    <title>Artemis Missiles</title>
+    <tooltip>Ignores shields. Two damage. Spends one missile. Can still miss.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>11</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="leto">
+    <type>MISSILE</type>
+    <title>Leto Missiles</title>
+    <tooltip>Ignores shields. One damage. Spends one missile. Can still miss.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>9</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="ion2">
+    <type>ION</type>
+    <title>Ion Blast II</title>
+    <tooltip>No hull damage. Locks one power bar for 5 seconds if it gets past the shields.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>4</cooldown>
+    <cost>70</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavyion">
+    <type>ION</type>
+    <title>Heavy Ion</title>
+    <tooltip>No hull damage. Two ion if it lands, which is two locked bars.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>13</cooldown>
+    <cost>45</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>2</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="stunner">
+    <type>ION</type>
+    <title>Ion Stunner</title>
+    <tooltip>No hull damage. One ion if it lands. Stuns the room for 5 seconds.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>10</cooldown>
+    <cost>35</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="shear">
+    <type>BEAM</type>
+    <title>Pike Beam</title>
+    <tooltip>One evade roll for the whole sweep. Shields subtract damage and stay up.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>16</cooldown>
+    <cost>55</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>171</length>
+    <speed>9</speed>
+    <crewDamage>15</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="scatter">
+    <type>BURST</type>
+    <title>Flak I</title>
+    <tooltip>Three pellets. Each is one damage, can miss alone, and one shield layer stops one.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>2</power>
+    <cooldown>10</cooldown>
+    <cost>65</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="cask">
+    <type>BOMB</type>
+    <title>Fire Bomb</title>
+    <tooltip>Hits the room. No hull. One or two fires. Spends a missile. Ignores shields. Can still miss.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>15</cooldown>
+    <cost>50</cost>
+    <fireChance>10</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="burst1">
+    <type>LASER</type>
+    <title>Burst Laser Mark I</title>
+    <tooltip>This simple burst laser isn't flashy but it gets the job done.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>2</power>
+    <cooldown>11</cooldown>
+    <cost>50</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="burst3">
+    <type>LASER</type>
+    <title>Burst Laser Mark III</title>
+    <tooltip>Powerful burst laser that fires off an impressive barrage.</tooltip>
+    <damage>1</damage>
+    <shots>5</shots>
+    <power>4</power>
+    <cooldown>19</cooldown>
+    <cost>95</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavypierce">
+    <type>LASER</type>
+    <title>Heavy Pierce Laser Mark I</title>
+    <tooltip>Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>10</cooldown>
+    <cost>0</cost>
+    <fireChance>3</fireChance>
+    <breachChance>3</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavy2">
+    <type>LASER</type>
+    <title>Heavy Laser Mark II</title>
+    <tooltip>This heavy laser fires two shots in quick succession, each dealing 2 damage</tooltip>
+    <damage>2</damage>
+    <shots>2</shots>
+    <power>3</power>
+    <cooldown>13</cooldown>
+    <cost>65</cost>
+    <fireChance>3</fireChance>
+    <breachChance>3</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="hullsmash">
+    <type>LASER</type>
+    <title>Hull Smasher Laser</title>
+    <tooltip>A powerful laser designed to maximize hull damage.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>2</power>
+    <cooldown>14</cooldown>
+    <cost>55</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="hullsmash2">
+    <type>LASER</type>
+    <title>Hull Smasher Laser Mark II</title>
+    <tooltip>This powerful counterpart to the Hull Smasher Mark I fires more projectiles per shot.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>3</power>
+    <cooldown>15</cooldown>
+    <cost>75</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="chainlaser">
+    <type>LASER</type>
+    <title>Chain Burst Laser</title>
+    <tooltip>This dual shot laser decreases in cooldown the more it fires. After 3 volleys it only takes 7 seconds to charge.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>2</power>
+    <cooldown>16</cooldown>
+    <cost>65</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="vulcan">
+    <type>LASER</type>
+    <title>Chain Vulcan</title>
+    <tooltip>This laser weapon takes a long time to warm up. Each time it fires it decreases the cooldown, eventually able to take down any amount of shields.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>4</power>
+    <cooldown>11.1</cooldown>
+    <cost>95</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="chargers">
+    <type>LASER</type>
+    <title>Laser Charger (S)</title>
+    <tooltip>This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>1</power>
+    <cooldown>5.5</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="charger">
+    <type>LASER</type>
+    <title>Laser Charger</title>
+    <tooltip>This laser weapon can charge two times, giving it an extra projectile.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>2</power>
+    <cooldown>6</cooldown>
+    <cost>55</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="charger2">
+    <type>LASER</type>
+    <title>Laser Charger Mark II</title>
+    <tooltip>This laser weapon can charge multiple times, giving it additional projectiles.</tooltip>
+    <damage>1</damage>
+    <shots>4</shots>
+    <power>3</power>
+    <cooldown>5</cooldown>
+    <cost>70</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="mini">
+    <type>BEAM</type>
+    <title>Mini Beam</title>
+    <tooltip>Extremely cheap and weak beam weapon.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>12</cooldown>
+    <cost>0</cost>
+    <fireChance>1</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>45</length>
+    <speed>3</speed>
+    <crewDamage>15</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="hullbeam">
+    <type>BEAM</type>
+    <title>Hull Beam</title>
+    <tooltip>This beam is most powerful when targeting large, empty sections of hull.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>14</cooldown>
+    <cost>70</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>99.00000000000001</length>
+    <speed>5</speed>
+    <crewDamage>15</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="halberd">
+    <type>BEAM</type>
+    <title>Halberd Beam</title>
+    <tooltip>Slow but reliably powerful standard beam weapon.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>17</cooldown>
+    <cost>65</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>81</length>
+    <speed>5</speed>
+    <crewDamage>30</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="glaive">
+    <type>BEAM</type>
+    <title>Glaive Beam</title>
+    <tooltip>One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.</tooltip>
+    <damage>3</damage>
+    <shots>1</shots>
+    <power>4</power>
+    <cooldown>25</cooldown>
+    <cost>95</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>81</length>
+    <speed>5</speed>
+    <crewDamage>45</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="firebeam">
+    <type>BEAM</type>
+    <title>Fire Beam</title>
+    <tooltip>This terrifying beam does no physical damage but ignites fires.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>20</cooldown>
+    <cost>50</cost>
+    <fireChance>8</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>139.5</length>
+    <speed>5</speed>
+  </weaponBlueprint>
+  <weaponBlueprint name="antibio">
+    <type>BEAM</type>
+    <title>Anti-Bio Beam</title>
+    <tooltip>This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>16</cooldown>
+    <cost>50</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>139.5</length>
+    <speed>30</speed>
+    <crewDamage>60</crewDamage>
+  </weaponBlueprint>
+  <weaponBlueprint name="ioncharger">
+    <type>ION</type>
+    <title>Ion Charger</title>
+    <tooltip>This ion weapon can charge multiple times, giving it additional projectiles.</tooltip>
+    <damage>0</damage>
+    <shots>3</shots>
+    <power>2</power>
+    <cooldown>6</cooldown>
+    <cost>50</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="chainion">
+    <type>ION</type>
+    <title>Chain Ion</title>
+    <tooltip>This weapon's Ion damage increases each time it fires to a max of 4.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>14</cooldown>
+    <cost>55</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="bossion">
+    <type>ION</type>
+    <title>Boss Ion</title>
+    <tooltip>Flagship artillery. Three shots of one ion. Not sold.</tooltip>
+    <damage>0</damage>
+    <shots>3</shots>
+    <power>3</power>
+    <cooldown>35</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="artemisEnemy">
+    <type>MISSILE</type>
+    <title>Artemis Missiles (enemy)</title>
+    <tooltip></tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>10</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="hermes">
+    <type>MISSILE</type>
+    <title>Hermes Missile</title>
+    <tooltip>Standard but powerful missile.</tooltip>
+    <damage>3</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>14</cooldown>
+    <cost>45</cost>
+    <fireChance>3</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="breachmissiles">
+    <type>MISSILE</type>
+    <title>Breach Missiles</title>
+    <tooltip>These missiles are designed to cause maximum destruction to ship hull armor.</tooltip>
+    <damage>4</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>22</cooldown>
+    <cost>65</cost>
+    <fireChance>3</fireChance>
+    <breachChance>5.6000000000000005</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="hullmissile">
+    <type>MISSILE</type>
+    <title>Hull Missile</title>
+    <tooltip>High hull damage plus a decent breach chance.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>17</cooldown>
+    <cost>65</cost>
+    <fireChance>0</fireChance>
+    <breachChance>2.7</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="swarmmissiles">
+    <type>MISSILE</type>
+    <title>Swarm Missiles</title>
+    <tooltip>If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>2</power>
+    <cooldown>7</cooldown>
+    <cost>65</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="pegasus">
+    <type>MISSILE</type>
+    <title>Pegasus Missile</title>
+    <tooltip>Creative missile design allows for two projectiles for the cost of one!</tooltip>
+    <damage>2</damage>
+    <shots>2</shots>
+    <power>3</power>
+    <cooldown>20</cooldown>
+    <cost>60</cost>
+    <fireChance>3</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="bossmissile">
+    <type>MISSILE</type>
+    <title>Boss Missile</title>
+    <tooltip></tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>4</power>
+    <cooldown>28.75</cooldown>
+    <cost>0</cost>
+    <fireChance>3</fireChance>
+    <breachChance>1.4000000000000001</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="smallbomb">
+    <type>BOMB</type>
+    <title>Small Bomb</title>
+    <tooltip>Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>13</cooldown>
+    <cost>45</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="breach1">
+    <type>BOMB</type>
+    <title>Breach Bomb Mark I</title>
+    <tooltip>Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.</tooltip>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>9</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>10</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="breach2">
+    <type>BOMB</type>
+    <title>Breach Bomb Mark II</title>
+    <tooltip>Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.</tooltip>
+    <damage>3</damage>
+    <shots>1</shots>
+    <power>2</power>
+    <cooldown>17</cooldown>
+    <cost>60</cost>
+    <fireChance>0</fireChance>
+    <breachChance>10</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="ionbomb">
+    <type>BOMB</type>
+    <title>Ion Bomb</title>
+    <tooltip>Self-teleporting explosive that uses ion damage to disable systems. Can target your own ship.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>22</cooldown>
+    <cost>55</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>4</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="stunbomb">
+    <type>BOMB</type>
+    <title>Stun Bomb</title>
+    <tooltip>Self-teleporting explosive that does 1 ion damage and stuns all crew inside the room. Can target your own ship.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>17</cooldown>
+    <cost>45</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>1</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="healburst">
+    <type>BOMB</type>
+    <title>Healing Burst</title>
+    <tooltip>Self-teleporting healing unit that instantly heals all friendly crew in the room. Can target your own ship.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>18</cooldown>
+    <cost>40</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="repairburst">
+    <type>BOMB</type>
+    <title>Repair Burst</title>
+    <tooltip>Self-teleporting unit that floods a room with nano-bots capable of completely repairing all system damage.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>14</cooldown>
+    <cost>40</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="lockdown">
+    <type>BOMB</type>
+    <title>Crystal Lockdown Bomb</title>
+    <tooltip>Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>15</cooldown>
+    <cost>45</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <missiles>1</missiles>
+  </weaponBlueprint>
+  <weaponBlueprint name="advflak">
+    <type>BURST</type>
+    <title>Adv. Flak Gun</title>
+    <tooltip>Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>1</power>
+    <cooldown>8</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="flak2">
+    <type>BURST</type>
+    <title>Flak Gun Mark II</title>
+    <tooltip>Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.</tooltip>
+    <damage>1</damage>
+    <shots>7</shots>
+    <power>3</power>
+    <cooldown>21</cooldown>
+    <cost>80</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="crystalburst">
+    <type>LASER</type>
+    <title>Crystal Burst Mark I</title>
+    <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
+    <damage>1</damage>
+    <shots>2</shots>
+    <power>2</power>
+    <cooldown>15</cooldown>
+    <cost>20</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="crystalburst2">
+    <type>LASER</type>
+    <title>Crystal Burst Mark II</title>
+    <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>3</power>
+    <cooldown>17</cooldown>
+    <cost>20</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavycrystal">
+    <type>LASER</type>
+    <title>Heavy Crystal Mark I</title>
+    <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>13</cooldown>
+    <cost>20</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="heavycrystal2">
+    <type>LASER</type>
+    <title>Heavy Crystal Mark II</title>
+    <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
+    <damage>4</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>19</cooldown>
+    <cost>20</cost>
+    <fireChance>0</fireChance>
+    <breachChance>10</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="bosslaser">
+    <type>LASER</type>
+    <title>Boss Laser</title>
+    <tooltip></tooltip>
+    <damage>1</damage>
+    <shots>3</shots>
+    <power>4</power>
+    <cooldown>25</cooldown>
+    <cost>0</cost>
+    <fireChance>1</fireChance>
+    <breachChance>0.8999999999999999</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+  </weaponBlueprint>
+  <weaponBlueprint name="bossbeam">
+    <type>BEAM</type>
+    <title>Boss Beam</title>
+    <tooltip></tooltip>
+    <damage>2</damage>
+    <shots>1</shots>
+    <power>3</power>
+    <cooldown>32.5</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <shotGap>0</shotGap>
+    <length>99.00000000000001</length>
+    <speed>5</speed>
+  </weaponBlueprint>
+</FTL>

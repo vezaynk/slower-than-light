@@ -5,7 +5,8 @@
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
 import { tx } from "../i18n/index.ts";
-import { WEAPONS } from "./content.ts";
+import "./pack/base.ts";
+import { weaponDef } from "./pack/registry.ts";
 import type { KinId } from "./extras/kin.ts";
 import { rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
@@ -510,13 +511,13 @@ export function enemyMayMount(id: string): boolean {
 /** Mathchamp's first flag: "a weapon that is either a LASER, or is a MISSILE with at most 3 shield piercing. In vanilla,
  * this is met by lasers, ions, and crystal weapons." Crystal weapons are lasers in content.ts. */
 function laserFlag(id: string): boolean {
-  const kind = WEAPONS[id]?.kind;
+  const kind = weaponDef(id)?.kind;
   return kind === "laser" || kind === "ion";
 }
 
 /** Mathchamp's second flag: "A weapon that deals normal damage (i.e. hull damage)". Bombs never damage hull (Bomb (Weapons)). */
 function hullFlag(id: string): boolean {
-  const def = WEAPONS[id];
+  const def = weaponDef(id);
   return !!def && def.damage > 0 && def.kind !== "bomb";
 }
 
@@ -538,13 +539,13 @@ export type ArmResult = { weapons: string[]; flags: { laser: boolean; hull: bool
 export function arm(pool: string[], level: number, rand: () => number): ArmResult {
   const ids = pool
     .map((n) => weaponIdForName(n))
-    .filter((id): id is string => !!id && !!WEAPONS[id] && enemyMayMount(id));
+    .filter((id): id is string => !!id && !!weaponDef(id) && enemyMayMount(id));
   const flags = { laser: true, hull: true };
   const out: string[] = [];
   let left = level;
   while (left > 0 && out.length < ENEMY_WEAPON_SLOTS) {
     const ok = ids.filter((id) => {
-      const p = WEAPONS[id].power;
+      const p = weaponDef(id)!.power;
       if (p > left) return false;
       if (!(p < level || p === 1)) return false;
       if (out.length === 0 && level >= 3 && p < 2) return false;
@@ -555,13 +556,13 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
     if (!ok.length) break;
     const id = ok[Math.floor(rand() * ok.length) % ok.length];
     out.push(id);
-    left -= WEAPONS[id].power;
+    left -= weaponDef(id)!.power;
     if (laserFlag(id)) flags.laser = false;
     if (hullFlag(id)) flags.hull = false;
   }
   // INFERRED (see above): nothing eligible still mounts the cheapest gun.
   if (!out.length && ids.length) {
-    const cheapest = [...ids].sort((a, b) => WEAPONS[a].power - WEAPONS[b].power)[0];
+    const cheapest = [...ids].sort((a, b) => weaponDef(a)!.power - weaponDef(b)!.power)[0];
     out.push(cheapest);
   }
   return { weapons: out, flags };

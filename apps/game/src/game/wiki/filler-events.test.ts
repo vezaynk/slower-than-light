@@ -228,7 +228,12 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       if (phase === "store" || phase === "reward") g.phase = "map";
       if ((g.phase as Game["phase"]) === "map") g.event = null;
       step(g, 0.05);
-      assert.ok(g.event?.choices.some((c) => c.id === "exit-leave"));
+      assert.equal(g.event?.title, "Exit beacon");
+      assert.equal(
+        g.event?.body,
+        "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
+      );
+      assert.equal(g.event?.choices.find((c) => c.id === "exit-leave")?.label, "Continue...");
     }
     // An even split between the two halves.
     assert.ok(halves.neutral >= 10 && halves.items >= 10, JSON.stringify(halves));
@@ -244,6 +249,41 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     commitJump(g, exit.id);
     assert.equal(g.event?.body, "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.");
     assert.deepEqual(g.event?.choices.map((c) => c.id), ["exit-leave"]);
+    assert.equal(g.event?.choices[0]?.label, "Continue...");
     assert.equal(exit.flag, "");
+  });
+
+  it("an old picket flag starts the Rebel fight and does not print a hail", () => {
+    const g = createGame(3);
+    const exit = g.beacons.find((b) => b.kind === "exit")!;
+    exit.flag = "picket";
+    const from = g.beacons.find((b) => b.id === g.here)!;
+    if (!from.links.includes(exit.id)) from.links.push(exit.id);
+    g.fuel = 5;
+    commitJump(g, exit.id);
+    assert.equal(g.phase, "combat");
+    assert.equal(g.pending, "exit-clear");
+    assert.equal(g.event, null);
+  });
+
+  it("the invented exit sentences are not stored", () => {
+    const sim = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
+    const en = readFileSync(new URL("../../i18n/en.json", import.meta.url), "utf8");
+    for (const t of [
+      "The picket is scrap",
+      "The exit buoy is green",
+      "Take the lane",
+      "Lane clear",
+      "Lane out",
+      "A picket sits on the only",
+      "Push through",
+      "Departure buoy",
+      "The line starts over",
+      "You hold. The line advances",
+      "The buoy is quiet",
+    ]) {
+      assert.equal(sim.includes(t), false, t);
+      assert.equal(en.includes(t), false, t);
+    }
   });
 });

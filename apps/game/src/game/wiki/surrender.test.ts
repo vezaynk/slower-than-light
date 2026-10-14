@@ -373,6 +373,12 @@ describe("scripted surrenders (event pages)", () => {
     const o = surrenderOfferView(g)!;
     assert.equal(o.crew, undefined);
     assert.equal(o.repairs, undefined);
+    // Enemy Ships, "Surrenders and escape attempts": no generic hail is printed.
+    assert.equal(g.event?.body, "Enemies may also surrender after dropping below a hull threshold.");
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.label),
+      ["Accept their surrender.", "Refuse. Keep firing."],
+    );
   });
 
   it("an unnamed crew reward follows the sector list; a named race stays named", () => {

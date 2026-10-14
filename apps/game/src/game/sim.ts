@@ -5818,7 +5818,7 @@ function makeMap(g: Game) {
   start.kind = "start";
   start.visited = true;
   start.resolved = true;
-  // INVENTED: beacon names Departure and Lane out.
+  // INVENTED: the start beacon's name. The Beacons page names no label for it.
   start.name = tx("game.sim.departure");
   let exit: Beacon;
   let base: Beacon | undefined;
@@ -5834,7 +5834,8 @@ function makeMap(g: Game) {
   } else {
     exit = pickExit(beacons, start, r) ?? beacons[beacons.length - 1];
     exit.kind = "exit";
-    exit.name = tx("game.sim.lane-out");
+    // Beacons, "Exit beacon": marked on the map as 'EXIT'.
+    exit.name = tx("ui.GameApp.exit");
     // The exit's event is drawn on arrival (eventFor, Category:Exit Beacon Events). The old picket roll is still burned
     // with the legacy map so later draws keep their stream; its result is unused.
     void picket;
@@ -6014,7 +6015,7 @@ export function createGame(
     enemy: null,
     crew: starterCrew(),
     shots: [],
-    log: [tx("game.sim.departure-buoy-the-fleet-is-still")],
+    log: [],
     selected: null,
     mode: "crew",
     armed: "w-line",
@@ -6209,7 +6210,6 @@ export function commitJump(g: Game, id: string) {
   }
   if (dest.resolved && dest.kind !== "boss") {
     g.phase = "map";
-    log(g, tx("game.sim.is-already-quiet", { name: dest.name }));
     return;
   }
   arrive(g, dest);
@@ -6266,6 +6266,13 @@ function arrive(g: Game, b: Beacon) {
     g.stock = rollStock(g);
     g.phase = "store";
     g.paused = true;
+    return;
+  }
+  // Beacons, "Exit beacon": rebels already at the exit mean a Rebel fight before the beacon can be used.
+  // Old saves stored that guard as flag "picket". New maps do not.
+  if (b.kind === "exit" && b.flag === "picket") {
+    g.pending = "exit-clear";
+    startCombat(g, tierFor(g, true));
     return;
   }
   g.phase = "event";
@@ -6421,6 +6428,20 @@ function arrive(g: Game, b: Beacon) {
   }
 }
 
+/**
+ * FINISH_BEACON / FINISH_BEACON_NEBULA (FTL events.xml, as transcribed on hugomg.github.io/ftl-cheatsheet).
+ * A nebula sector uses the nebula line. Continue... is the event's own label.
+ */
+function longRangeExit(g: Game, choiceId: "exit-leave" | "exit-continue"): NonNullable<Game["event"]> {
+  return {
+    title: tx("game.sim.exit-beacon"),
+    body: tx(
+      nebulaSector(g.sectorName) ? "game.sim.this-long-range-beacon-is-almost" : "game.sim.you-ve-arrived-at-the-long",
+    ),
+    choices: [{ id: choiceId, label: tx("game.sim.continue") }],
+  };
+}
+
 // Plain beacons run documented events: wiki/filler-events.ts (Sectors, "Fallback events", and the EventList templates).
 function eventFor(g: Game, b: Beacon): Game["event"] {
   if (b.flag === "engi-cache") return engiCacheEvent();
@@ -6444,33 +6465,9 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
     // events.xml, as transcribed on hugomg.github.io/ftl-cheatsheet) print the arrival text below. An exit the fleet
     // holds never gets here unflagged (the dive fight runs first).
     // INFERRED: a nebula sector's exit is the beacon "contained within a nebula".
-    if (!b.flag && nebulaSector(g.sectorName)) {
-      return {
-        title: tx("game.sim.exit-beacon"),
-        body: tx("game.sim.this-long-range-beacon-is-almost"),
-        choices: [{ id: "exit-leave", label: tx("game.sim.take-the-lane") }],
-      };
-    }
-    if (!b.flag && !overtaken(g, b)) {
-      return {
-        title: tx("game.sim.exit-beacon"),
-        body: tx("game.sim.you-ve-arrived-at-the-long"),
-        choices: [{ id: "exit-continue", label: tx("game.sim.continue") }],
-      };
-    }
-    // INVENTED: the exit text, and the picket card kept for a save made before exit events.
-    if (b.flag === "picket") {
-      return {
-        title: tx("game.sim.lane-out"),
-        body: tx("game.sim.a-picket-sits-on-the-only"),
-        choices: [{ id: "exit-fight", label: tx("game.sim.push-through") }],
-      };
-    }
-    return {
-      title: tx("game.sim.lane-out"),
-      body: tx("game.sim.the-exit-buoy-is-green-the"),
-      choices: [{ id: "exit-leave", label: tx("game.sim.take-the-lane") }],
-    };
+    if (!b.flag && nebulaSector(g.sectorName)) return longRangeExit(g, "exit-leave");
+    if (!b.flag && !overtaken(g, b)) return longRangeExit(g, "exit-continue");
+    return longRangeExit(g, "exit-leave");
   }
   // Anything else (an unknown flag): the sector's empty beacon page, "Nothing happens."
   return emptyEvent(g);
@@ -6596,7 +6593,7 @@ export function leaveStore(g: Game) {
   g.paused = false;
 }
 
-// Event card choices. The exit and picket payouts are INVENTED; plain beacons run wiki/filler-events.ts.
+// Event card choices. An exit's Continue... is FINISH_BEACON; plain beacons run wiki/filler-events.ts.
 export function choose(g: Game, id: string) {
   // @agent:surrender. Accept or refuse an enemy's surrender offer (wiki/surrender.ts).
   if (surrenderChoose(g, id)) return;
@@ -6628,11 +6625,7 @@ export function choose(g: Game, id: string) {
       const exit = hereBeacon(g);
       const page = exit ? drawFiller(g, rand(g) < 0.5 ? "exitNeutral" : "exitItems", g.beacons) : null;
       const card = exit && page ? (stampFiller(exit, page), (exit.kind = "exit"), fillerEvent(g, exit)) : null;
-      g.event = card ?? {
-        title: "Exit beacon",
-        body: "The exit buoy is green. The next sector is already louder.",
-        choices: [{ id: "exit-leave", label: "Take the lane" }],
-      };
+      g.event = card ?? longRangeExit(g, "exit-leave");
       g.phase = "event";
       g.paused = true;
       break;
@@ -6940,7 +6933,7 @@ function nextSector(g: Game, name?: string) {
   g.paused = false;
   g.event = null;
   g.sectorMap = false;
-  log(g, tx("game.sim.the-line-starts-over-closer-than", { sectorName: g.sectorName }));
+  log(g, g.sectorName);
   sfx(g, "click");
 }
 
@@ -6952,11 +6945,7 @@ export function continueReward(g: Game) {
   if (b?.kind === "exit" && !b.flag) {
     g.phase = "event";
     g.paused = true;
-    g.event = {
-      title: "Lane clear",
-      body: "The picket is scrap. The exit buoy turns green.",
-      choices: [{ id: "exit-leave", label: "Take the lane" }],
-    };
+    g.event = longRangeExit(g, "exit-leave");
   }
 }
 
@@ -6973,7 +6962,6 @@ export function waitHere(g: Game) {
   // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
   if (b && !wasPast && overtaken(g, b) && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
   syncIonStorm(g);
-  log(g, tx("game.sim.you-hold-the-line-advances"));
   onCradleJump(g); // Clone Bay, "Overview": waiting applies the jump heal (extras/cradle.ts)
   // Rebel Fleet: out of fuel when they take your beacon. Destroying that Elite yields 4 fuel.
   if (b && g.sector < 8 && g.fuel <= 0 && overtaken(g, b) && !b.resolved) {
@@ -7158,8 +7146,8 @@ function tickBoarding(g: Game, dt: number) {
 }
 
 /**
- * After an exit beacon's event settles back to the map, the lane out is offered (the exit beacon "allows navigation
- * through the Sector Map to another sector"). INVENTED: the card text.
+ * After an exit beacon's event settles back to the map, the same Long-Range Beacon card offers the jump.
+ * Beacons, "Exit beacon": the exit "allows navigation through the Sector Map to another sector."
  */
 function promptExitLane(g: Game) {
   if (g.phase !== "map" || g.event) return;
@@ -7167,11 +7155,7 @@ function promptExitLane(g: Game) {
   if (b?.kind !== "exit" || !b.flag.startsWith(FILLER_FLAG)) return;
   g.phase = "event";
   g.paused = true;
-  g.event = {
-    title: "Lane out",
-    body: "The exit buoy is green. The next sector is already louder.",
-    choices: [{ id: "exit-leave", label: "Take the lane" }],
-  };
+  g.event = longRangeExit(g, "exit-leave");
 }
 
 /** The player's hull for one tick with no enemy ship: the combat body's player half (step). */
@@ -7309,7 +7293,8 @@ export function step(g: Game, dt: number) {
     // Rebel Fleet: letting a charging Rebel scout or auto-ship escape doubles the pursuit for one turn.
     if (g.enemyEscape?.pursuit) {
       g.pursuitDouble = true;
-      log(g, tx("game.sim.they-got-away-the-fleet-will"));
+      // Auto-ship warning: the red line when that ship escapes. "Rebel Fleet pursuit is doubled."
+      log(g, tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled"));
     } else log(g, tx("game.sim.they-charged-ftl-and-left"));
     g.enemy = null;
     g.enemyEscape = null;

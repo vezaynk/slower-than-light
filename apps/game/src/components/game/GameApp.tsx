@@ -2898,7 +2898,7 @@ function RewardCard({ game }: { game: Game }) {
   return (
     <div className="modal-layer">
       <article className="ftl-card">
-        <p>{reward.note || tx("ui.GameApp.the-buoy-is-quiet")}</p>
+        {reward.note ? <p>{reward.note}</p> : null}
         {reward.res ? (
           <LootChips scrap={reward.scrap} res={reward.res} />
         ) : (

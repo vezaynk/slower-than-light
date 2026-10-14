@@ -872,7 +872,8 @@ function openOffer(g: Game) {
   g.paused = true;
   g.targeting = false;
   g.beamAnchor = null;
-  // INVENTED: the hail text. The page gives no generic surrender line. A scripted surrender uses its page's text.
+  // A scripted surrender uses its page's hail. A generic offer has no hail on Enemy Ships, so the card
+  // uses that page's sentence and two printed choice labels.
   const hail = scripted?.hails?.length
     ? scripted.hails[Math.min(scripted.hails.length - 1, Math.floor(rand(g) * scripted.hails.length))]!
     : scripted?.hail;
@@ -894,13 +895,12 @@ function openOffer(g: Game) {
       }
     : {
         title: "Surrender",
-        body: `${g.enemy?.name ?? "The enemy"} hails you: "Enough! We surrender. Take our cargo and let us go."`,
+        body: tx("wiki.surrender.enemies-may-also-surrender-after-dropping"),
         choices: [
-          { id: ACCEPT_ID, label: "Accept their surrender." },
-          { id: REFUSE_ID, label: "Refuse. Keep firing." },
+          { id: ACCEPT_ID, label: tx("wiki.surrender.accept-their-surrender") },
+          { id: REFUSE_ID, label: tx("wiki.surrender.refuse-keep-firing") },
         ],
       };
-  log(g, tx("wiki.surrender.the-enemy-is-offering-to-surrender"));
   g.sfx.push("alarm");
 }
 

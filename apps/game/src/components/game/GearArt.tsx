@@ -24,7 +24,7 @@ function PixelSvg({ art, height, className }: { art: Art; height: number; classN
       width={(height * art.w) / art.h}
       shapeRendering="crispEdges"
       aria-hidden="true"
-      style={{ ["--gear-glow" as string]: glow }}
+      style={{ ["--gear-glow" as string]: glow, aspectRatio: `${art.w} / ${art.h}` }}
     >
       {runs.map((r) => (
         <rect

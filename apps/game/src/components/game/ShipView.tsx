@@ -819,6 +819,8 @@ export function ShipView({
             const placeX = at.x + (back[0]! / ship.cols) * 100;
             const placeY = at.y + (back[1]! / ship.rows) * 100;
             const facing = seated ? seated.wall === "w" : faceLeft;
+            // Stacked crew step aside by 4px at a full tile. The target panel's --ship-scale keeps that step with the rooms.
+            const place = `translate(calc(-50% + ${nudge}px * var(--ship-scale, 1)), calc(-50% + ${nudge}px * var(--ship-scale, 1)))`;
             return (
               <CrewToken
                 key={c.id}
@@ -834,9 +836,7 @@ export function ShipView({
                 style={{
                   left: `${placeX}%`,
                   top: `${placeY}%`,
-                  transform: facing
-                    ? `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px)) scaleX(-1)`
-                    : `translate(calc(-50% + ${nudge}px), calc(-50% + ${nudge}px))`,
+                  transform: facing ? `${place} scaleX(-1)` : place,
                 }}
               />
             );

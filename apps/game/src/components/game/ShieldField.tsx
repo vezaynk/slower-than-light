@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { bubbleLayout, frameRoom } from "./shield-bubble";
+import { bubbleLayout, frameRoom, readShipScale } from "./shield-bubble";
 
 /**
  * Concentric shield bubbles around one hull. One blue ellipse per live layer, a filling
@@ -17,7 +17,7 @@ export function ShieldField({
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const gradId = `shield-${useId().replace(/:/g, "")}`;
-  const [box, setBox] = useState({ w: 0, h: 0, room: 56 });
+  const [box, setBox] = useState({ w: 0, h: 0, room: 56, scale: 1 });
 
   useLayoutEffect(() => {
     const svg = ref.current;
@@ -28,7 +28,10 @@ export function ShieldField({
       const w = well.offsetWidth;
       const h = well.offsetHeight;
       const room = frameRoom(frame.clientWidth, frame.clientHeight, w, h);
-      setBox((prev) => (prev.w === w && prev.h === h && prev.room === room ? prev : { w, h, room }));
+      const scale = readShipScale(well.querySelector(".hull"));
+      setBox((prev) =>
+        prev.w === w && prev.h === h && prev.room === room && prev.scale === scale ? prev : { w, h, room, scale },
+      );
     };
     read();
     const obs = new ResizeObserver(read);
@@ -37,10 +40,10 @@ export function ShieldField({
     return () => obs.disconnect();
   }, []);
 
-  const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0);
+  const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0, box.scale);
   const visible = box.w > 1 && box.h > 1 && (layout.live.length > 0 || layout.charge != null || layout.zoltan != null);
   const out =
-    Math.max(layout.live[layout.live.length - 1] ?? 0, layout.charge ?? 0, layout.zoltan ?? 0, 0) + 8;
+    Math.max(layout.live[layout.live.length - 1] ?? 0, layout.charge ?? 0, layout.zoltan ?? 0, 0) + 8 * box.scale;
   const vw = Math.max(1, box.w + out * 2);
   const vh = Math.max(1, box.h + out * 2);
   const cx = box.w / 2 + out;
@@ -78,7 +81,7 @@ export function ShieldField({
                 fill={edge ? `url(#${gradId})` : "none"}
                 stroke={edge ? "#c8ecff" : "#6cc4ff"}
                 strokeOpacity={edge ? 0.95 : 0.55 + (i / layout.live.length) * 0.25}
-                strokeWidth={edge ? 2.4 : 1.6}
+                strokeWidth={(edge ? 2.4 : 1.6) * box.scale}
               />
             );
           })
@@ -92,7 +95,7 @@ export function ShieldField({
           ry={box.h / 2 + layout.live[outer]!}
           fill="none"
           stroke="#f4fbff"
-          strokeWidth="2.4"
+          strokeWidth={2.4 * box.scale}
           pathLength={100}
           strokeDasharray="9 91"
           strokeLinecap="round"
@@ -108,7 +111,7 @@ export function ShieldField({
             fill="none"
             stroke="#6cc4ff"
             strokeOpacity={0.28}
-            strokeWidth="1.4"
+            strokeWidth={1.4 * box.scale}
             strokeDasharray="4 6"
           />
           <ellipse
@@ -120,7 +123,7 @@ export function ShieldField({
             fill="none"
             stroke="#e7f6ff"
             strokeOpacity={0.45 + 0.55 * fill}
-            strokeWidth="2.2"
+            strokeWidth={2.2 * box.scale}
             pathLength={100}
             strokeDasharray={`${Math.max(6, fill * 100)} ${Math.max(0, 100 - fill * 100)}`}
             strokeLinecap="round"
@@ -137,7 +140,7 @@ export function ShieldField({
             fill="rgba(62, 229, 106, 0.07)"
             stroke="#3ee56a"
             strokeOpacity="0.4"
-            strokeWidth="7"
+            strokeWidth={7 * box.scale}
           />
           <ellipse
             cx={cx}
@@ -146,7 +149,7 @@ export function ShieldField({
             ry={box.h / 2 + layout.zoltan}
             fill="none"
             stroke="#d8ffe6"
-            strokeWidth="2.2"
+            strokeWidth={2.2 * box.scale}
           />
         </>
       ) : null}

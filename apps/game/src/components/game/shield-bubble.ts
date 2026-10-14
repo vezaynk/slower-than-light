@@ -40,7 +40,14 @@ export function bubbleRoom(
   return frameRoom(fr.w, fr.h, hull.w, hull.h);
 }
 
-export function bubbleLayout(room: number, layers: number, charging: boolean, zoltan: boolean): BubbleLayout {
+export function bubbleLayout(
+  room: number,
+  layers: number,
+  charging: boolean,
+  zoltan: boolean,
+  /** 1 on the player hull. The target panel passes its ship scale so the pad shrinks with the rooms. */
+  scale = 1,
+): BubbleLayout {
   const liveCount = Math.max(0, Math.floor(layers));
   const slots: Array<"live" | "charge" | "zoltan"> = [];
   for (let i = 0; i < liveCount; i++) slots.push("live");
@@ -48,10 +55,11 @@ export function bubbleLayout(room: number, layers: number, charging: boolean, zo
   if (zoltan) slots.push("zoltan");
   if (slots.length === 0) return { live: [], charge: null, zoltan: null };
 
-  const usable = Math.max(8, room - STROKE_ROOM);
-  const preferLast = PAD0 + (slots.length - 1) * GAP;
-  const scale = preferLast > usable ? usable / preferLast : 1;
-  const at = (i: number) => (PAD0 + i * GAP) * scale;
+  const s = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  const usable = Math.max(8 * s, room - STROKE_ROOM * s);
+  const preferLast = (PAD0 + (slots.length - 1) * GAP) * s;
+  const fit = preferLast > usable ? usable / preferLast : 1;
+  const at = (i: number) => (PAD0 + i * GAP) * s * fit;
 
   const live: number[] = [];
   let charge: number | null = null;
@@ -66,12 +74,21 @@ export function bubbleLayout(room: number, layers: number, charging: boolean, zo
 }
 
 /** Radius of the regular bubble a shot just removed. `layersLeft` is the count still up. */
-export function struckPad(room: number, layersLeft: number, zoltanUp: boolean): number {
-  const layout = bubbleLayout(room, Math.max(0, layersLeft) + 1, false, zoltanUp);
-  return layout.live[layout.live.length - 1] ?? PAD0;
+export function struckPad(room: number, layersLeft: number, zoltanUp: boolean, scale = 1): number {
+  const s = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  const layout = bubbleLayout(room, Math.max(0, layersLeft) + 1, false, zoltanUp, s);
+  return layout.live[layout.live.length - 1] ?? PAD0 * s;
 }
 
 /** Radius of the Zoltan bubble while it is up. */
-export function zoltanPad(room: number, layers: number, charging: boolean): number {
-  return bubbleLayout(room, layers, charging, true).zoltan ?? PAD0;
+export function zoltanPad(room: number, layers: number, charging: boolean, scale = 1): number {
+  const s = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  return bubbleLayout(room, layers, charging, true, s).zoltan ?? PAD0 * s;
+}
+
+/** `--ship-scale` on a hull. Missing or invalid reads as 1, which is the player ship. */
+export function readShipScale(el: Element | null): number {
+  if (!el || typeof getComputedStyle !== "function") return 1;
+  const raw = parseFloat(getComputedStyle(el).getPropertyValue("--ship-scale"));
+  return Number.isFinite(raw) && raw > 0 ? raw : 1;
 }

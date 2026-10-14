@@ -430,7 +430,7 @@ button:disabled {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 1px 2px;
+  padding: calc(1px * var(--ship-scale, 1)) calc(2px * var(--ship-scale, 1));
   gap: 0;
 }
 
@@ -444,17 +444,17 @@ button:disabled {
 
 .room-flags {
   display: flex;
-  gap: 0.35rem;
-  min-height: 0.8rem;
+  gap: calc(0.35rem * var(--ship-scale, 1));
+  min-height: calc(0.8rem * var(--ship-scale, 1));
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: calc(12px * var(--ship-scale, 1));
   color: var(--color-danger);
   text-transform: uppercase;
 }
 
 .o2 {
   margin-top: auto;
-  height: 0.18rem;
+  height: calc(0.18rem * var(--ship-scale, 1));
   background: var(--color-bg);
 }
 
@@ -503,25 +503,25 @@ button:disabled {
 .token.is-selected::after {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: calc(-3px * var(--ship-scale, 1));
   pointer-events: none;
   background:
-    linear-gradient(#f4fff8, #f4fff8) top left / 4px 1px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top left / 1px 4px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top right / 4px 1px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top right / 1px 4px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom left / 4px 1px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom left / 1px 4px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom right / 4px 1px no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom right / 1px 4px no-repeat;
+    linear-gradient(#f4fff8, #f4fff8) top left / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top left / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat;
 }
 
 .crew-hp {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -3px;
-  height: 2px;
+  bottom: calc(-3px * var(--ship-scale, 1));
+  height: calc(2px * var(--ship-scale, 1));
   background: #1a120c;
   pointer-events: none;
 }
@@ -1418,7 +1418,9 @@ button:disabled {
 }
 
 .target-body .hull {
-  --tile: var(--foe-tile, 48px);
+  /* --ship-scale is 1 at a 44px tile. It shrinks the gap with the rooms. */
+  --tile: var(--foe-tile, 44px);
+  --wall: calc(2px * var(--ship-scale, 1));
   background: transparent;
   box-shadow: none;
   padding: 0;
@@ -1426,8 +1428,8 @@ button:disabled {
 
 .play .room {
   background: var(--color-room);
-  border: 2px solid #6d6862;
-  box-shadow: inset 0 0 0 1px #f7f4ee;
+  border: calc(2px * var(--ship-scale, 1)) solid #6d6862;
+  box-shadow: inset 0 0 0 calc(1px * var(--ship-scale, 1)) #f7f4ee;
 }
 
 /* Oxygen, Overview: white at full air, pink/red as it falls. A clipped room's floor is .pixel-fill. */
@@ -1437,11 +1439,11 @@ button:disabled {
 }
 
 .play .room.is-dest {
-  box-shadow: inset 0 0 0 2px var(--color-accent);
+  box-shadow: inset 0 0 0 calc(2px * var(--ship-scale, 1)) var(--color-accent);
 }
 
 .play .room.is-lock {
-  box-shadow: inset 0 0 0 3px #6ee7ff;
+  box-shadow: inset 0 0 0 calc(3px * var(--ship-scale, 1)) #6ee7ff;
 }
 
 .play .room-name {
@@ -1457,14 +1459,14 @@ button:disabled {
 
 .play .room-flags {
   color: #9d2c22;
-  font-size: 14px;
+  font-size: calc(14px * var(--ship-scale, 1));
   font-family: var(--font-hud);
   min-height: 0;
 }
 
 .play .token {
-  width: 16px;
-  height: 16px;
+  width: calc(16px * var(--ship-scale, 1));
+  height: calc(16px * var(--ship-scale, 1));
 }
 
 .intruder-warn {
@@ -2132,7 +2134,7 @@ button.gun-slot {
 
 .play.is-targeting .target-body .room,
 .play.is-targeting .hull-own .room.is-aim {
-  outline: 1px solid rgba(255, 255, 255, 0.75);
+  outline: calc(1px * var(--ship-scale, 1)) solid rgba(255, 255, 255, 0.75);
 }
 
 .title-figure-hit {
@@ -2338,10 +2340,11 @@ button.gun-slot {
 }
 
 .door-layer .door-tick {
-  --len: clamp(11px, calc(var(--tile) * 0.46), 22px);
-  --thick: clamp(3px, calc(var(--tile) * 0.09), 4px);
-  --hit-along: clamp(18px, calc(var(--tile) * 0.62), 28px);
-  --hit-across: clamp(12px, calc(var(--tile) * 0.32), 16px);
+  /* Floors and caps track --ship-scale, so a shrunk enemy hull keeps the same fraction of a tile. At 1 the clamps are unchanged. */
+  --len: clamp(calc(11px * var(--ship-scale, 1)), calc(var(--tile) * 0.46), calc(22px * var(--ship-scale, 1)));
+  --thick: clamp(calc(3px * var(--ship-scale, 1)), calc(var(--tile) * 0.09), calc(4px * var(--ship-scale, 1)));
+  --hit-along: clamp(calc(18px * var(--ship-scale, 1)), calc(var(--tile) * 0.62), calc(28px * var(--ship-scale, 1)));
+  --hit-across: clamp(calc(12px * var(--ship-scale, 1)), calc(var(--tile) * 0.32), calc(16px * var(--ship-scale, 1)));
   z-index: 2;
   background: transparent;
   min-width: 0;
@@ -2435,19 +2438,19 @@ button.gun-slot {
  * edge. INVENTED look. Broken and dead-system colours below still win.
  */
 .door-layer .door-tick.is-airlock {
-  --thick: clamp(4px, calc(var(--tile) * 0.13), 6px);
+  --thick: clamp(calc(4px * var(--ship-scale, 1)), calc(var(--tile) * 0.13), calc(6px * var(--ship-scale, 1)));
 }
 
 .door-layer .door-tick.is-airlock.is-e .door-slab,
 .door-layer .door-tick.is-airlock.is-w .door-slab {
-  background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px);
-  box-shadow: 0 0 0 1px #6c737c;
+  background: repeating-linear-gradient(45deg, #ffd23a 0 calc(3px * var(--ship-scale, 1)), #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1)));
+  box-shadow: 0 0 0 calc(1px * var(--ship-scale, 1)) #6c737c;
 }
 
 .door-layer .door-tick.is-airlock.is-n .door-slab,
 .door-layer .door-tick.is-airlock.is-s .door-slab {
-  background: repeating-linear-gradient(-45deg, #ffd23a 0 3px, #26221c 3px 6px);
-  box-shadow: 0 0 0 1px #6c737c;
+  background: repeating-linear-gradient(-45deg, #ffd23a 0 calc(3px * var(--ship-scale, 1)), #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1)));
+  box-shadow: 0 0 0 calc(1px * var(--ship-scale, 1)) #6c737c;
 }
 
 /* Lost hits, still holding. The leaf flashes red the way a boarded system does. */
@@ -2464,7 +2467,7 @@ button.gun-slot {
 }
 
 @keyframes door-hurt {
-  0% { background: var(--color-danger); box-shadow: 0 0 6px var(--color-danger); }
+  0% { background: var(--color-danger); box-shadow: 0 0 calc(6px * var(--ship-scale, 1)) var(--color-danger); }
   100% { background: #3a1010; box-shadow: none; }
 }
 
@@ -2481,13 +2484,13 @@ button.gun-slot {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 7px;
-  height: 7px;
+  width: calc(7px * var(--ship-scale, 1));
+  height: calc(7px * var(--ship-scale, 1));
   transform: translate(-50%, -50%) rotate(45deg);
   pointer-events: none;
   background:
-    linear-gradient(#ff3b30, #ff3b30) center / 100% 2px no-repeat,
-    linear-gradient(#ff3b30, #ff3b30) center / 2px 100% no-repeat;
+    linear-gradient(#ff3b30, #ff3b30) center / 100% calc(2px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#ff3b30, #ff3b30) center / calc(2px * var(--ship-scale, 1)) 100% no-repeat;
 }
 
 /* Door System: a dead system is red-orange, shut or open, airlocks included. */
@@ -2498,8 +2501,8 @@ button.gun-slot {
 
 .door-layer button.door-tick:hover,
 .door-layer button.door-tick:focus-visible {
-  outline: 2px solid #fff4d0;
-  outline-offset: 1px;
+  outline: calc(2px * var(--ship-scale, 1)) solid #fff4d0;
+  outline-offset: calc(1px * var(--ship-scale, 1));
 }
 
 button.door-tick {
@@ -2518,7 +2521,7 @@ button.door-tick::before {
 
 .door-tick.is-open {
   background: transparent;
-  box-shadow: inset 0 0 0 2px #e07020;
+  box-shadow: inset 0 0 0 calc(2px * var(--ship-scale, 1)) #e07020;
 }
 
 .door-tick.is-dead {
@@ -2527,7 +2530,7 @@ button.door-tick::before {
 
 .door-tick.is-open.is-dead {
   background: transparent;
-  box-shadow: inset 0 0 0 2px #d04028;
+  box-shadow: inset 0 0 0 calc(2px * var(--ship-scale, 1)) #d04028;
 }
 
 .room-console {
@@ -2611,7 +2614,7 @@ button.door-tick::before {
 .room-terminal-art .t-sweep {
   fill: var(--s2);
   transform-box: view-box;
-  transform-origin: 10.9px 8px;
+  transform-origin: calc(10.9px * var(--ship-scale, 1)) calc(8px * var(--ship-scale, 1));
   animation: term-sweep 2s linear infinite;
 }
 .room-terminal-art .t-blip { fill: var(--s2); animation: term-blink 1s steps(2) infinite; }
@@ -2622,7 +2625,7 @@ button.door-tick::before {
 @keyframes term-ring { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.35); opacity: 0; } }
 @keyframes term-bar { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
 @keyframes term-charge { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes term-star { from { transform: translateY(0); opacity: 1; } to { transform: translateY(8.2px); opacity: 0.2; } }
+@keyframes term-star { from { transform: translateY(0); opacity: 1; } to { transform: translateY(calc(8.2px * var(--ship-scale, 1))); opacity: 0.2; } }
 @keyframes term-sweep { to { transform: rotate(360deg); } }
 @keyframes term-lamp { 50% { fill: var(--s2); } }
 
@@ -2661,9 +2664,9 @@ button.door-tick::before {
 .pad-pip {
   position: absolute;
   z-index: 2;
-  width: 4px;
-  height: 4px;
-  margin: -2px 0 0 -2px;
+  width: calc(4px * var(--ship-scale, 1));
+  height: calc(4px * var(--ship-scale, 1));
+  margin: calc(-2px * var(--ship-scale, 1)) 0 0 calc(-2px * var(--ship-scale, 1));
   background: #3a4038;
   pointer-events: none;
 }
@@ -3851,9 +3854,16 @@ button.door-tick::before {
 
 .hull-foe .mount { transform: translateX(50%) rotate(-90deg); transform-origin: left center; }
 
-.mount.is-top { bottom: 100%; margin-bottom: -3px; }
+.mount.is-top { bottom: 100%; margin-bottom: calc(-3px * var(--ship-scale, 1)); }
 
-.mount.is-bottom { top: 100%; margin-top: -3px; }
+.mount.is-bottom { top: 100%; margin-top: calc(-3px * var(--ship-scale, 1)); }
+
+/* Enemy barrels are 16px at a full tile. Width follows the viewBox so the picture does not stretch. */
+.hull-foe .mount .gear-art {
+  height: calc(16px * var(--ship-scale, 1));
+  width: auto;
+  max-width: none;
+}
 
 .mount.is-cold { filter: saturate(0.25) brightness(0.6); }
 
@@ -3871,7 +3881,7 @@ button.door-tick::before {
 
 .play .mount.is-ready .px-accent,
 .play .gun-slot.is-ready .px-accent {
-  filter: drop-shadow(0 0 1px var(--gear-glow));
+  filter: drop-shadow(0 0 calc(1px * var(--ship-scale, 1)) var(--gear-glow));
   animation: weapon-accent 0.5s steps(2, jump-none) infinite;
 }
 
@@ -3894,11 +3904,11 @@ button.door-tick::before {
 
 .aim-marks { position: absolute; inset: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0; pointer-events: none; }
 
-.aim-mark { position: relative; width: 26px; height: 26px; color: var(--color-accent); filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9)); }
+.aim-mark { position: relative; width: calc(26px * var(--ship-scale, 1)); height: calc(26px * var(--ship-scale, 1)); color: var(--color-accent); filter: drop-shadow(0 0 calc(2px * var(--ship-scale, 1)) rgba(0, 0, 0, 0.9)); }
 
-.aim-mark .px-icon { display: block; }
+.aim-mark .px-icon { display: block; width: 100%; height: 100%; }
 
-.aim-mark b { position: absolute; inset: 7px; display: grid; place-items: center; font-family: var(--font-hud); font-size: 16px; font-weight: 400; line-height: 1; color: #1a1408; background: var(--color-accent); }
+.aim-mark b { position: absolute; inset: calc(7px * var(--ship-scale, 1)); display: grid; place-items: center; font-family: var(--font-hud); font-size: calc(16px * var(--ship-scale, 1)); font-weight: 400; line-height: 1; color: #1a1408; background: var(--color-accent); }
 
 
 
@@ -3908,14 +3918,14 @@ button.door-tick::before {
 
 .aim-mark.is-auto { color: var(--color-line); }
 
-.aim-mark.is-auto b { background: var(--color-line); font-size: 13px; }
+.aim-mark.is-auto b { background: var(--color-line); font-size: calc(13px * var(--ship-scale, 1)); }
 
 /* Player beam swipe (ShipView BeamOverlay). The segment is the two clicks. */
 .beam-stroke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: visible; }
 .beam-stroke line { stroke-linecap: round; }
-.beam-stroke .beam-ink { stroke: #1a1408; stroke-width: 5; }
-.beam-stroke .beam-hot { stroke: #f2e34a; stroke-width: 2; }
-.beam-stroke .is-preview { stroke-dasharray: 6 5; }
+.beam-stroke .beam-ink { stroke: #1a1408; stroke-width: calc(5px * var(--ship-scale, 1)); }
+.beam-stroke .beam-hot { stroke: #f2e34a; stroke-width: calc(2px * var(--ship-scale, 1)); }
+.beam-stroke .is-preview { stroke-dasharray: calc(6px * var(--ship-scale, 1)) calc(5px * var(--ship-scale, 1)); }
 
 /* Rooms the swipe will hit. The numbered reticle stays on the first room. */
 .play .room.is-beam,
@@ -3926,9 +3936,9 @@ button.door-tick::before {
 .play .room.is-beam.is-flash,
 .play .room.is-beam.is-unseen {
   background: color-mix(in srgb, #f2e34a 46%, var(--color-room));
-  box-shadow: inset 0 0 0 3px #f2e34a;
-  outline: 3px solid #f2e34a;
-  outline-offset: -3px;
+  box-shadow: inset 0 0 0 calc(3px * var(--ship-scale, 1)) #f2e34a;
+  outline: calc(3px * var(--ship-scale, 1)) solid #f2e34a;
+  outline-offset: calc(-3px * var(--ship-scale, 1));
 }
 .play .room.is-beam .pixel-fill,
 .play .room.is-unseen.is-beam .pixel-fill,
@@ -3981,8 +3991,8 @@ button.door-tick::before {
 .token.is-leashed {
   --mind: var(--color-mind, #e04cff);
   position: relative;
-  outline: 2px solid var(--mind);
-  outline-offset: 1px;
+  outline: calc(2px * var(--ship-scale, 1)) solid var(--mind);
+  outline-offset: calc(1px * var(--ship-scale, 1));
   animation: mind-pulse 1.1s steps(2, end) infinite;
 }
 
@@ -3991,12 +4001,12 @@ button.door-tick::before {
 .token.is-leashed::after {
   content: "";
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 4px;
-  height: 4px;
+  top: calc(-5px * var(--ship-scale, 1));
+  right: calc(-5px * var(--ship-scale, 1));
+  width: calc(4px * var(--ship-scale, 1));
+  height: calc(4px * var(--ship-scale, 1));
   background: var(--mind);
-  box-shadow: 0 0 0 1px var(--color-bg);
+  box-shadow: 0 0 0 calc(1px * var(--ship-scale, 1)) var(--color-bg);
   pointer-events: none;
 }
 
@@ -4025,10 +4035,10 @@ button.door-tick::before {
   pointer-events: none;
   background: repeating-linear-gradient(
     135deg,
-    color-mix(in srgb, var(--hack) 28%, transparent) 0 3px,
-    transparent 3px 7px
+    color-mix(in srgb, var(--hack) 28%, transparent) 0 calc(3px * var(--ship-scale, 1)),
+    transparent calc(3px * var(--ship-scale, 1)) calc(7px * var(--ship-scale, 1))
   );
-  box-shadow: inset 0 0 0 2px var(--hack);
+  box-shadow: inset 0 0 0 calc(2px * var(--ship-scale, 1)) var(--hack);
 }
 
 .room.is-hacked-latched .hack-mark {
@@ -4042,14 +4052,14 @@ button.door-tick::before {
 /* Pixel drone glyph latched in the room's top-right corner. */
 .room.is-hacked .hack-drone {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 8px;
-  height: 8px;
+  top: calc(2px * var(--ship-scale, 1));
+  right: calc(2px * var(--ship-scale, 1));
+  width: calc(8px * var(--ship-scale, 1));
+  height: calc(8px * var(--ship-scale, 1));
   background: var(--hack);
   box-shadow:
-    -2px 2px 0 0 #0b2a22,
-    2px -2px 0 0 #0b2a22;
+    calc(-2px * var(--ship-scale, 1)) calc(2px * var(--ship-scale, 1)) 0 0 #0b2a22,
+    calc(2px * var(--ship-scale, 1)) calc(-2px * var(--ship-scale, 1)) 0 0 #0b2a22;
 }
 
 @keyframes hack-pulse {
@@ -4350,7 +4360,7 @@ button.door-tick::before {
 }
 
 .play.is-hack-targeting .target-body .room.is-hack-pick {
-  box-shadow: inset 0 0 0 2px var(--color-ion);
+  box-shadow: inset 0 0 0 calc(2px * var(--ship-scale, 1)) var(--color-ion);
 }
 
 .play.is-hack-targeting .target-body .room.is-hack-nopick {
@@ -4364,36 +4374,38 @@ button.door-tick::before {
 /* The player's drone on an enemy room: a square ion-blue reticle in the bottom-left corner (gun marks are centred). */
 .hack-reticle {
   position: absolute;
-  left: 2px;
-  bottom: 2px;
+  left: calc(2px * var(--ship-scale, 1));
+  bottom: calc(2px * var(--ship-scale, 1));
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: calc(2px * var(--ship-scale, 1));
   pointer-events: none;
-  filter: drop-shadow(0 0 2px var(--color-bg));
+  filter: drop-shadow(0 0 calc(2px * var(--ship-scale, 1)) var(--color-bg));
 }
 
 .hack-reticle-box {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: calc(22px * var(--ship-scale, 1));
+  height: calc(22px * var(--ship-scale, 1));
   background: var(--color-ink);
   color: var(--color-ion);
-  border: 2px solid var(--color-ion);
+  border: calc(2px * var(--ship-scale, 1)) solid var(--color-ion);
 }
 
 .hack-reticle-box .px-icon {
   display: block;
+  width: calc(16px * var(--ship-scale, 1));
+  height: calc(16px * var(--ship-scale, 1));
 }
 
 .hack-reticle b {
   font-family: var(--font-hud);
-  font-size: 18px;
+  font-size: calc(18px * var(--ship-scale, 1));
   font-weight: 400;
   line-height: 1;
-  padding: 0 3px;
+  padding: 0 calc(3px * var(--ship-scale, 1));
   color: var(--color-ink);
   background: var(--color-ion);
 }
@@ -4672,7 +4684,7 @@ button.door-tick::before {
 .target-panel .room.is-unseen {
   background: #2b2f36;
   border-color: #4b505a;
-  box-shadow: inset 0 0 0 1px #3a3f48;
+  box-shadow: inset 0 0 0 calc(1px * var(--ship-scale, 1)) #3a3f48;
 }
 
 .play .room.is-unseen .room-name,
@@ -4689,8 +4701,8 @@ button.door-tick::before {
   left: 50%;
   top: 50%;
   translate: -50% -50%;
-  width: 20px;
-  height: 20px;
+  width: calc(20px * var(--ship-scale, 1));
+  height: calc(20px * var(--ship-scale, 1));
   color: #8f949b;
   pointer-events: none;
 }

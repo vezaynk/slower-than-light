@@ -134,10 +134,10 @@
 
 @keyframes crew-stun-wobble {
   from {
-    transform: translateX(-1px) rotate(-7deg);
+    transform: translateX(calc(-1px * var(--ship-scale, 1))) rotate(-7deg);
   }
   to {
-    transform: translateX(1px) rotate(7deg);
+    transform: translateX(calc(1px * var(--ship-scale, 1))) rotate(7deg);
   }
 }
 

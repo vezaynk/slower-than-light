@@ -15,7 +15,7 @@
 import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
 import { halted, shieldChargeFraction } from "@/game/sim";
-import { bubbleRoom, struckPad, zoltanPad } from "./shield-bubble";
+import { bubbleRoom, readShipScale, struckPad, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
@@ -110,7 +110,7 @@ type Flyby = {
   /** Draw once at the handoff point before integrating. */
   fresh: boolean;
 };
-type Ring = { box: Box; life: number; color?: string; pad: number };
+type Ring = { box: Box; life: number; color?: string; pad: number; scale?: number };
 type Claim = { text: "SHIELD" | "MISS" | "HIT"; side: "player" | "enemy" };
 
 /** Same hull rule as applyImpact: `at` wins, an own bomb stays on the shooter, everything else crosses. */
@@ -234,11 +234,13 @@ function paintBolt(
   tumble: number,
   rock: boolean,
   spin: number,
+  /** 1 in the main view. A rock on the enemy hull uses that hull's scale. */
+  scale = 1,
 ) {
   c.save();
   if (rock) {
     c.rotate(tumble);
-    c.scale(2, 2);
+    c.scale(2 * scale, 2 * scale);
     drawAsteroid(c, spin);
     c.restore();
     return;
@@ -425,6 +427,8 @@ export function CombatFx() {
       };
 
       // Drones on station. Positions feed the drone shots below.
+      // A drone on the enemy hull uses that hull's scale, so it matches the shrunk rooms.
+      const foeScale = readShipScale(host.querySelector('.hull[data-ship="enemy"]'));
       const droneAt = new Map<DroneKey, Pt>();
       const kit = g.player.kits.swarm;
       const key = kit?.on ? droneKeyOf(kit.target) : null;
@@ -434,19 +438,25 @@ export function CombatFx() {
         const a = follow(`p:${key}`, outbound ? 0.9 : 0.6, cruising, outbound ? Math.PI : 0);
         const around = hull(outbound ? "enemy" : "player");
         if (around) {
+          const s = outbound ? foeScale : 1;
           const cx = around.x + around.w / 2;
           const cy = around.y + around.h / 2;
-          const p = { x: cx + Math.cos(a) * (around.w / 2 + 22), y: cy + Math.sin(a) * (around.h / 2 + 18) };
+          const p = { x: cx + Math.cos(a) * (around.w / 2 + 22 * s), y: cy + Math.sin(a) * (around.h / 2 + 18 * s) };
           droneAt.set(key, p);
           const sprite = droneSprite(key);
-          const size = 27;
+          const size = 27 * s;
           ctx.globalAlpha = cruising ? 1 : 0.4;
           ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
           ctx.globalAlpha = 1;
           // Defense drones hold a faint guard ring; the outbound ones trail a thruster pixel.
           ctx.fillStyle = DRONE_LOOKS[key].glow;
           ctx.globalAlpha = (cruising ? 0.5 : 0.2) + (cruising ? 0.5 : 0.15) * Math.sin(time * 6);
-          ctx.fillRect(Math.round(p.x - Math.cos(a + Math.PI / 2) * 14) - 1, Math.round(p.y - Math.sin(a + Math.PI / 2) * 12) - 1, 3, 3);
+          ctx.fillRect(
+            Math.round(p.x - Math.cos(a + Math.PI / 2) * 14 * s) - 1,
+            Math.round(p.y - Math.sin(a + Math.PI / 2) * 12 * s) - 1,
+            Math.max(1, 3 * s),
+            Math.max(1, 3 * s),
+          );
           ctx.globalAlpha = 1;
         }
       }
@@ -461,15 +471,18 @@ export function CombatFx() {
         const phase = hash(unit.id) * Math.PI * 2;
         let p: Pt | null = null;
         let size = 27;
+        let s = 1;
         if (spot.at === "player-orbit" || spot.at === "enemy-orbit") {
           // Opposite spin to the player's own drone, so the two read apart.
           const omega = spot.at === "player-orbit" ? -0.8 : -0.55;
           const a = follow(`e:${unit.id}`, omega, unit.powered, phase);
           const around = hull(spot.at === "player-orbit" ? "player" : "enemy");
           if (around) {
+            s = spot.at === "enemy-orbit" ? foeScale : 1;
+            size = 27 * s;
             p = {
-              x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22),
-              y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 18),
+              x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22 * s),
+              y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 18 * s),
             };
           }
         } else if (spot.at === "flying") {
@@ -477,9 +490,11 @@ export function CombatFx() {
           const b = hull("player");
           if (a && b) {
             const k = Math.min(1, Math.max(0, spot.progress));
+            s = foeScale + (1 - foeScale) * k;
+            size = 27 * s;
             p = {
               x: a.x + a.w / 2 + (b.x + b.w / 2 - (a.x + a.w / 2)) * k,
-              y: a.y + a.h / 2 + (b.y + b.h / 2 - (a.y + a.h / 2)) * k + Math.sin(k * Math.PI) * -30,
+              y: a.y + a.h / 2 + (b.y + b.h / 2 - (a.y + a.h / 2)) * k + Math.sin(k * Math.PI) * -30 * s,
             };
           }
         } else {
@@ -489,8 +504,9 @@ export function CombatFx() {
           const bob = follow(`bob:${unit.id}`, 2, unit.powered, phase);
           const r = room(side, spot.room);
           if (r) {
-            size = 21;
-            p = { x: r.x + r.w / 2 + Math.sin(bob) * 3, y: r.y + r.h / 2 };
+            s = side === "enemy" ? foeScale : 1;
+            size = 21 * s;
+            p = { x: r.x + r.w / 2 + Math.sin(bob) * 3 * s, y: r.y + r.h / 2 };
           }
         }
         if (!p) continue;
@@ -501,11 +517,12 @@ export function CombatFx() {
         ctx.globalAlpha = 1;
         // Enemy drones carry a red tag pixel pair so they never read as yours.
         ctx.fillStyle = "#ff5a4a";
-        ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - size / 2) - 4, 3, 2);
+        ctx.fillRect(Math.round(p.x - s), Math.round(p.y - size / 2) - 4 * s, Math.max(1, 3 * s), Math.max(1, 2 * s));
         if (stunned) {
           ctx.strokeStyle = "#b48cff";
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(Math.round(p.x - size / 2) - 2, Math.round(p.y - size / 2) - 2, size + 4, size + 4);
+          ctx.lineWidth = 1.5 * s;
+          const pad = 2 * s;
+          ctx.strokeRect(Math.round(p.x - size / 2) - pad, Math.round(p.y - size / 2) - pad, size + pad * 2, size + pad * 2);
         }
         // The fire drone's swipe makes no shot; draw it here for its first 0.4 s.
         if (unit.kind === "fire" && unit.room && (unit.fired ?? 99) < 0.4) {
@@ -657,12 +674,15 @@ export function CombatFx() {
         const target = hull("player");
         if (swiper && target) {
           const green = token("--color-ok", "#3ee56a");
+          const hullNode = host.querySelector('.hull[data-ship="player"]');
+          const scale = readShipScale(hullNode);
           const pad = zoltanPad(
-            bubbleRoom(host.querySelector('.hull[data-ship="player"]'), target, box),
+            bubbleRoom(hullNode, target, box),
             g.player.shieldNow,
             shieldChargeFraction(g, g.player, "player") != null,
+            scale,
           );
-          rings.push({ box: target, life: 0.45, color: green, pad });
+          rings.push({ box: target, life: 0.45, color: green, pad, scale });
           const p = enemyDroneAt.get(swiper.id);
           if (p) {
             const cx = target.x + target.w / 2;
@@ -670,7 +690,7 @@ export function CombatFx() {
             const a = Math.atan2(p.y - cy, p.x - cx);
             const edge = { x: cx + Math.cos(a) * (target.w / 2 + pad), y: cy + Math.sin(a) * (target.h / 2 + pad) };
             ctx.strokeStyle = green;
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 4 * scale;
             line(ctx, p, edge);
             // burst() is declared below; the same spray inline.
             for (let i = 0; i < 8; i++) {
@@ -746,18 +766,18 @@ export function CombatFx() {
         }
         fn(context);
       };
-      const paintBeam = (layer: Layer, a: Pt, b: Pt, color: string) => {
+      const paintBeam = (layer: Layer, a: Pt, b: Pt, color: string, scale = 1) => {
         drawOn(layer, (c) => {
           c.lineCap = "square";
           c.strokeStyle = color;
           c.globalAlpha = 0.35;
-          c.lineWidth = 9;
+          c.lineWidth = 9 * scale;
           line(c, a, b);
           c.globalAlpha = 1;
-          c.lineWidth = 4;
+          c.lineWidth = 4 * scale;
           line(c, a, b);
           c.strokeStyle = "#ffffff";
-          c.lineWidth = 1.5;
+          c.lineWidth = 1.5 * scale;
           line(c, a, b);
         });
       };
@@ -824,7 +844,7 @@ export function CombatFx() {
               spin: hash(shot.id),
             };
             seen.set(shot.id, rec);
-            paintBeam(beamLayer, stroke.tail, stroke.head, color);
+            paintBeam(beamLayer, stroke.tail, stroke.head, color, readShipScale(hullEl));
             if (Math.random() < 0.6) burst(stroke.head, color, 1, 60);
           }
           continue;
@@ -909,10 +929,11 @@ export function CombatFx() {
         seen.set(shot.id, rec);
 
         if (rock) {
+          const rockScale = layer === "panel" ? foeScale : 1;
           drawOn(layer, (c) => {
             c.save();
             c.translate(Math.round(x), Math.round(y));
-            paintBolt(c, shot.kind, color, ang, t * 9 + spin * Math.PI * 2, true, spin);
+            paintBolt(c, shot.kind, color, ang, t * 9 + spin * Math.PI * 2, true, spin, rockScale);
             c.restore();
           });
           if (live && Math.random() < 0.65) {
@@ -934,16 +955,18 @@ export function CombatFx() {
         if (shot.kind === "bomb") {
           // Bombs teleport in: a closing ring at the target room, then the impact.
           rec.at = to;
-          const bombLayer: Layer = targetSide(shot) === "enemy" ? "panel" : "over";
+          const bombSide = targetSide(shot);
+          const bombScale = readShipScale(host.querySelector(`.hull[data-ship="${bombSide}"]`));
+          const bombLayer: Layer = bombSide === "enemy" ? "panel" : "over";
           drawOn(bombLayer, (c) => {
-            const r = 22 * (1 - t) + 4;
+            const r = (22 * (1 - t) + 4) * bombScale;
             c.strokeStyle = color;
-            c.lineWidth = 2;
+            c.lineWidth = 2 * bombScale;
             c.globalAlpha = 0.4 + 0.6 * t;
             c.strokeRect(Math.round(to.x - r), Math.round(to.y - r), Math.round(r * 2), Math.round(r * 2));
             c.globalAlpha = 1;
             c.fillStyle = color;
-            c.fillRect(Math.round(to.x) - 2, Math.round(to.y) - 2, 4, 4);
+            c.fillRect(Math.round(to.x) - 2 * bombScale, Math.round(to.y) - 2 * bombScale, 4 * bombScale, 4 * bombScale);
           });
           continue;
         }
@@ -1190,7 +1213,7 @@ export function CombatFx() {
         drawOn(f.layer, (c) => {
           c.save();
           c.translate(Math.round(f.x), Math.round(f.y));
-          paintBolt(c, f.kind, f.color, f.ang, tumble, f.rock, f.spin);
+          paintBolt(c, f.kind, f.color, f.ang, tumble, f.rock, f.spin, f.rock && f.layer === "panel" ? foeScale : 1);
           c.restore();
         });
         if (live && f.rock && Math.random() < 0.65) {
@@ -1231,14 +1254,12 @@ export function CombatFx() {
         const color = f.text === "MISS" ? "#c8fff0" : f.text === "SHIELD" ? "#6cc4ff" : "#ff6a5a";
         if (f.text === "SHIELD") {
           const ship = side === "player" ? g.player : g.enemy;
+          const hullNode = host.querySelector(`.hull[data-ship="${side}"]`);
+          const scale = readShipScale(hullNode);
           const pad = ship
-            ? struckPad(
-                bubbleRoom(host.querySelector(`.hull[data-ship="${side}"]`), target, box),
-                ship.shieldNow,
-                (ship.zoltan ?? 0) > 0,
-              )
-            : 16;
-          rings.push({ box: target, life: 0.45, pad });
+            ? struckPad(bubbleRoom(hullNode, target, box), ship.shieldNow, (ship.zoltan ?? 0) > 0, scale)
+            : 16 * scale;
+          rings.push({ box: target, life: 0.45, pad, scale });
         }
         // @agent:flagship. Stagger: a volley lands several numbers at once (the 7-laser surge printed "MMISS -11 -1").
         // Each new number takes the lowest slot not held by a still-fresh number over the same hull: three columns
@@ -1412,7 +1433,7 @@ export function CombatFx() {
         }
         ctx.globalAlpha = r.life / 0.45;
         ctx.strokeStyle = r.color ?? "#6cc4ff";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * (r.scale ?? 1);
         ctx.beginPath();
         ctx.ellipse(r.box.x + r.box.w / 2, r.box.y + r.box.h / 2, r.box.w / 2 + r.pad, r.box.h / 2 + r.pad, 0, 0, Math.PI * 2);
         ctx.stroke();

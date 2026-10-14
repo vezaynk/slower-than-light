@@ -6,7 +6,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
 import { halted, shieldChargeFraction } from "@/game/sim";
-import { bubbleRoom, zoltanPad } from "./shield-bubble";
+import { bubbleRoom, readShipScale, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import type { Ship } from "@/game/types";
 import { pageRect } from "./turn";
@@ -254,7 +254,8 @@ export function ShadeFx() {
         const ship = side === "player" ? g.player : g.enemy;
         const layers = ship?.shieldNow ?? 0;
         const charging = ship ? shieldChargeFraction(g, ship, side) != null : false;
-        return zoltanPad(bubbleRoom(hullEl(side), b, measure), layers, charging);
+        const el = hullEl(side);
+        return zoltanPad(bubbleRoom(el, b, measure), layers, charging, readShipScale(el));
       };
 
       const shieldOval = (side: Side, life: number, spread: number, width: number, color: string) => {
@@ -269,7 +270,7 @@ export function ShadeFx() {
           life,
           max: life,
           spread,
-          width,
+          width: width * readShipScale(hullEl(side)),
           color,
         });
       };

@@ -34,4 +34,13 @@ describe("shield bubbles", () => {
     assert.equal(frameRoom(800, 600, 200, 120), 56);
     assert.equal(frameRoom(100, 80, 90, 70), 12);
   });
+
+  it("shrinks the pads with the target ship's scale", () => {
+    const half = bubbleLayout(80, 2, true, true, 0.5);
+    assert.deepEqual(half.live, [8, 12]);
+    assert.equal(half.charge, 16);
+    assert.equal(half.zoltan, 20);
+    assert.equal(struckPad(80, 1, false, 0.5), 12);
+    assert.equal(zoltanPad(80, 2, false, 0.5), 16);
+  });
 });

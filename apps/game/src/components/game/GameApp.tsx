@@ -1385,9 +1385,11 @@ function TargetPanel({
   const foeCap = Math.max(maxBubbles(enemy, zoltanBars(game.crew, enemy, "enemy", "shields")), foeBubbles, 0);
   const foeCharge = shieldChargeFraction(game, enemy, "enemy");
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
+  // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
+  const FOE_TILE_FULL = 44;
   const foeTile = Math.max(
     12,
-    Math.min(44, Math.floor(256 / (enemy.cols + 2)) - 2, Math.floor(216 / (enemy.rows + 2)) - 2),
+    Math.min(FOE_TILE_FULL, Math.floor(256 / (enemy.cols + 2)) - 2, Math.floor(216 / (enemy.rows + 2)) - 2),
   );
   return (
     <aside className="target-panel">
@@ -1485,9 +1487,16 @@ function TargetPanel({
           ) : null}
         </div>
       </div>
-      {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. */}
+      {/* Tiles shrink so the rooms and the one-tile hull plate fit the panel. --ship-scale
+          keeps crew and the other fixed-size pieces in proportion with those tiles. */}
       {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
-      <div className={`target-body${cloakClass(cloaked, releasing)}`} style={{ ["--foe-tile" as string]: `${foeTile}px` }}>
+      <div
+        className={`target-body${cloakClass(cloaked, releasing)}`}
+        style={{
+          ["--foe-tile" as string]: `${foeTile}px`,
+          ["--ship-scale" as string]: String(foeTile / FOE_TILE_FULL),
+        }}
+      >
         <div className="ship-well">
         <ShipView
           ship={enemy}

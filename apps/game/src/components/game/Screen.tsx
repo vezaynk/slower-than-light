@@ -1,11 +1,11 @@
 /**
- * INVENTED: every view renders on one 1280×720 screen (16:9), scaled uniformly to
- * fit the visible viewport and letterboxed on every other shape. Layout inside never sees the window
- * size, so the aspect ratio is the same on every display and the page never scrolls.
+ * INVENTED: every view renders on one 1280×720 screen (16:9). The box scales with a fit
+ * strategy in CSS (the smaller of width-fit and height-fit) so it shrinks smoothly as either
+ * side of the viewport changes, and letterboxes on every other shape. Layout inside never sees
+ * the window size, so the aspect ratio is the same on every display and the page never scrolls.
  * The box is the visual viewport (not window.innerHeight) so iOS browser chrome
  * does not leave the screen short or scrolled under the URL bar.
  */
-import { tx } from "@/i18n";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useSettings } from "@/game/settings";
 import { canForceLandscape, installedApp, pageTurn, setPageTurn, type PageTurn } from "./turn";
@@ -255,12 +255,10 @@ export function Screen({ children }: { children: ReactNode }) {
   }, [rotate]);
 
   const fit = view?.fit ?? 1;
-  // The scale is an inline transform. A custom property used only inside scale()
-  // can keep the previous matrix when the window changes.
+  // The visible scale is the CSS fit on .screen (min of width ratio and height ratio).
+  // It tracks the viewport container every frame. This number is the same ratio, for anything that reads it.
   const frame = {
     "--fit": fit,
-    width: view?.width ?? SCREEN_W,
-    transform: tx("ui.Screen.translate-50-50-scale", { fit: fit }),
   } as CSSProperties;
   const box = view?.pin
     ? ({ top: view.top, left: view.left, width: view.w, height: view.h } as CSSProperties)

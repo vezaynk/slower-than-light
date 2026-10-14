@@ -62,7 +62,8 @@ import { canFieldDrone } from "@/game/wiki/cited-stores";
 import { CARGO_SLOTS, canFitFromCargo, cargoOf, fitFromCargo, pendingOverflow, resolveOverflow, stowDrone, stowWeapon } from "@/game/wiki/make-room";
 import { kinOf } from "@/game/extras/kin";
 import { UNIFORMS } from "@/game/crew-look";
-import { artilleryView } from "@/game/wiki/flagship-systems";
+import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
+import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
   aim,
   armWeapon,
@@ -143,6 +144,7 @@ import { CrewFace, CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";
 import { PixelIcon } from "./PixelIcon";
+import { SystemClockRing } from "./SystemClock";
 import type { IconName } from "@/game/icons";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
@@ -1560,7 +1562,10 @@ function TargetPanel({
           const harm = sys.damage >= sys.level && sys.level > 0 ? "is-broken" : sys.damage > 0 ? "is-damaged" : "";
           return (
             <span key={id} title={tip} className={[vision?.system === id ? "is-hack-seen" : "", harm, foeFlash(game, id, full)].filter(Boolean).join(" ") || undefined}>
-              <PixelIcon name={id} size={16} />
+              <i className="chip-clock">
+                <PixelIcon name={id} size={16} />
+                <SystemClockRing clock={enemySystemClock(enemy, id, full)} />
+              </i>
               {full ? <b>{shown}</b> : null}
             </span>
           );
@@ -1570,7 +1575,10 @@ function TargetPanel({
           const name = WEAPONS[a.defId]?.name ?? a.defId;
           return (
             <span key={a.room} className={foeFlash(game, a.room, true, a.ion) || undefined} title={`${name} artillery ${a.bars} of ${a.level}${a.ion ? tx("ui.GameApp.ion", { ion: a.ion }) : ""}`}>
-              <PixelIcon name="weapons" size={16} />
+              <i className="chip-clock">
+                <PixelIcon name="weapons" size={16} />
+                <SystemClockRing clock={ionClock(artilleryGun(enemy, a.room)?.ion)} />
+              </i>
               <small>{name.replace(/^Boss /, "").slice(0, 3).toUpperCase()}</small>
               <b>{a.bars}</b>
             </span>
@@ -1586,7 +1594,10 @@ function TargetPanel({
               title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? tx("ui.GameApp.hacking-drone") : ""}`}
               className={[kit.on ? "is-on" : "", vision?.system === id ? "is-hack-seen" : "", foeFlash(game, id, fullKit)].filter(Boolean).join(" ") || undefined}
             >
-              <PixelIcon name={id} size={16} />
+              <i className="chip-clock">
+                <PixelIcon name={id} size={16} />
+                <SystemClockRing clock={enemySystemClock(enemy, id, fullKit)} />
+              </i>
               {fullKit ? <b>{kit.level}</b> : null}
             </span>
           );
@@ -1762,6 +1773,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             }}
           >
             <PixelIcon name={id} size={16} />
+            <SystemClockRing clock={systemClock(game.player, id)} />
           </button>
         ) : (
           <button
@@ -1773,6 +1785,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             onClick={() => activateKit(id)}
           >
             <PixelIcon name={id} size={16} />
+            <SystemClockRing clock={systemClock(game.player, id)} />
           </button>
         )}
       </span>
@@ -2014,6 +2027,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   })}
                 </i>
                 <PixelIcon name={id} size={16} />
+                <SystemClockRing clock={systemClock(game.player, id)} />
               </button>
             );
             if (id !== "doors") return <span key={id}>{orb}</span>;
@@ -2205,6 +2219,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
           ))}
         </i>
         <PixelIcon name="spike" size={16} />
+        <SystemClockRing clock={systemClock(game.player, "spike")} />
       </button>
     </div>
   );
@@ -2333,6 +2348,7 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
         })}
       </div>
       <PowerOrb
+        ship={game.player}
         icon={id}
         label={SYS_LABEL[id]}
         onUp={() => act((g) => powerUp(g, id))}
@@ -2347,7 +2363,7 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
  * long press on touch). Systems, "Powering and upgrading systems": "To power a main system, left click on it in the
  * system bar. To unpower it, right click."
  */
-function PowerOrb({ icon, label, onUp, onDown }: { icon: IconName; label: string; onUp: () => void; onDown: () => void }) {
+function PowerOrb({ ship, icon, label, onUp, onDown }: { ship: Ship; icon: IconName; label: string; onUp: () => void; onDown: () => void }) {
   return (
     <button
       type="button"
@@ -2367,6 +2383,7 @@ function PowerOrb({ icon, label, onUp, onDown }: { icon: IconName; label: string
       }}
     >
       <PixelIcon name={icon} size={16} />
+      <SystemClockRing clock={systemClock(ship, icon)} />
     </button>
   );
 }
@@ -2499,6 +2516,7 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
         })}
       </div>
       <PowerOrb
+        ship={game.player}
         icon={id}
         label={KIT_LABEL[id]}
         onUp={() => act((g) => kitPowerUp(g, id))}

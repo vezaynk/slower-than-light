@@ -1684,6 +1684,7 @@ button:disabled {
 
 .sys-orb,
 .sub-orb {
+  position: relative;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -1694,6 +1695,45 @@ button:disabled {
   border: 2px solid var(--color-line);
   padding: 0;
   min-height: 0;
+}
+
+/* Per the user: a countdown (cloak, ion, cooldown) traces a circle on the system icon. */
+.sys-clock {
+  position: absolute;
+  inset: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  pointer-events: none;
+  overflow: visible;
+  color: #ffb020;
+  z-index: 1;
+}
+
+.sys-clock.is-live { color: #f4f0c8; }
+.sys-clock.is-ion { color: var(--color-ion); }
+
+.sys-clock circle {
+  transition: stroke-dashoffset 80ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sys-clock circle { transition: none; }
+}
+
+.chip-clock {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-style: normal;
+}
+
+.chip-clock .sys-clock {
+  inset: -3px;
+  width: calc(100% + 6px);
+  height: calc(100% + 6px);
 }
 
 .weapon-dock {

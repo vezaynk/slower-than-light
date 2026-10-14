@@ -1958,9 +1958,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   );
   const swarm = game.player.kits.swarm;
   const droneSlots = playerDroneSlots(swarm);
-  // Per the user: with Drone Control installed, WEAPONS and DRONES are tabs that switch the one tray shown.
+  // Per the user: WEAPONS and DRONES are always tabs, and either one can be selected.
   const [tab, setTab] = useState<"weapons" | "drones">("weapons");
-  const shown = swarm ? tab : "weapons";
   // @agent:combat-ui. The enemy hacking drone on a roomless player kit (ui-views.ts).
   const hackedKit = hackedPlayerKit(game);
   const kitPod = (id: KitId) => {
@@ -2077,8 +2076,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
       </div>
       <div className="weapon-dock">
         <div className="weapon-main">
-        {shown === "weapons" ? (
-        <div className="gun-tray" role={swarm ? "tabpanel" : undefined}>
+        {tab === "weapons" ? (
+        <div className="gun-tray" role="tabpanel">
           {game.player.weapons.map((w, index) => {
             const def = WEAPONS[w.defId];
             const live = w.enabled && mask[index];
@@ -2156,7 +2155,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           ))}
         </div>
         ) : null}
-        {shown === "drones" ? (
+        {tab === "drones" ? (
           <div className="gun-tray drone-tray is-tabbed" role="tabpanel">
             {droneSlots.map((kind, index) => {
               const key = droneKeyOf(kind);
@@ -2204,40 +2203,29 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             })}
           </div>
         ) : null}
-        {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES (beside WEAPONS when there is no Drone
-            Control, since hacking spends them too). */}
-        {swarm ? (
-          <div className="dock-caption dock-tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={shown === "weapons"}
-              className={`dock-label dock-tab${shown === "weapons" ? " is-on" : ""}`}
-              onClick={() => setTab("weapons")}
-            >
-              {tx("ui.GameApp.weapons")}
-              <MissileChip game={game} />
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={shown === "drones"}
-              className={`dock-label dock-tab${shown === "drones" ? " is-on" : ""}`}
-              onClick={() => setTab("drones")}
-            >
-              {tx("ui.GameApp.drones")}
-              <PartsChip game={game} />
-            </button>
-          </div>
-        ) : (
-          <div className="dock-caption">
-            <span className="dock-label">
-              {tx("ui.GameApp.weapons")}
-              <MissileChip game={game} />
-              <PartsChip game={game} />
-            </span>
-          </div>
-        )}
+        {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES. */}
+        <div className="dock-caption dock-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "weapons"}
+            className={`dock-label dock-tab${tab === "weapons" ? " is-on" : ""}`}
+            onClick={() => setTab("weapons")}
+          >
+            {tx("ui.GameApp.weapons")}
+            <MissileChip game={game} />
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "drones"}
+            className={`dock-label dock-tab${tab === "drones" ? " is-on" : ""}`}
+            onClick={() => setTab("drones")}
+          >
+            {tx("ui.GameApp.drones")}
+            <PartsChip game={game} />
+          </button>
+        </div>
         </div>
         {/* Per the user: subsystems sit on the right of the weapon tray, not under the target panel. */}
         <div className="sub-dock">

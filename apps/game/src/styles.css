@@ -1544,6 +1544,7 @@ button:disabled {
 }
 
 .target-systems span {
+  position: relative;
   width: auto;
   height: 26px;
   border-radius: var(--radius);
@@ -1697,43 +1698,54 @@ button:disabled {
   min-height: 0;
 }
 
-/* Per the user: a countdown (cloak, ion, cooldown) traces a circle on the system icon. */
-.sys-clock {
-  position: absolute;
-  inset: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
-  pointer-events: none;
-  overflow: visible;
-  color: #ffb020;
-  z-index: 1;
+/* A countdown traces the icon's own 2px border, clockwise from the top. */
+@property --clock-p {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 0%;
 }
 
-.sys-clock.is-live { color: #f4f0c8; }
-.sys-clock.is-ion { color: var(--color-ion); }
+.sys-orb.is-clock,
+.sub-orb.is-clock,
+.target-systems span.is-clock {
+  --clock: #ffb020;
+  transition: --clock-p 80ms linear;
+}
 
-.sys-clock circle {
-  transition: stroke-dashoffset 80ms linear;
+.sys-orb.is-clock.is-live,
+.sub-orb.is-clock.is-live,
+.target-systems span.is-clock.is-live { --clock: #f4f0c8; }
+
+.sys-orb.is-clock.is-ion,
+.sub-orb.is-clock.is-ion,
+.target-systems span.is-clock.is-ion { --clock: var(--color-ion); }
+
+.sys-orb.is-clock::before,
+.sub-orb.is-clock::before,
+.target-systems span.is-clock::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(var(--clock) var(--clock-p), transparent 0);
+  pointer-events: none;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sys-clock circle { transition: none; }
-}
-
-.chip-clock {
-  position: relative;
-  width: 16px;
-  height: 16px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  font-style: normal;
-}
-
-.chip-clock .sys-clock {
-  inset: -3px;
-  width: calc(100% + 6px);
-  height: calc(100% + 6px);
+  .sys-orb.is-clock,
+  .sub-orb.is-clock,
+  .target-systems span.is-clock { transition: none; }
 }
 
 .weapon-dock {

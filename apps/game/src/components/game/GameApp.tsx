@@ -2154,17 +2154,6 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
             <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
           ))}
-          {/* Per the user: autofire sits at the end of the weapon row, the size of a weapon slot. */}
-          <button
-            type="button"
-            className={`gun-slot autofire-slot${game.autofireAll ? " is-on" : ""}`}
-            aria-pressed={!!game.autofireAll}
-            title={tx("ui.GameApp.autofire-every-weapon")}
-            onClick={() => act((g) => toggleAutoAll(g))}
-          >
-            <span className="autofire-word">{tx("ui.GameApp.autofire")}</span>
-            <span className="autofire-state">{game.autofireAll ? tx("ui.GameApp.on") : tx("ui.GameApp.off")}</span>
-          </button>
         </div>
         ) : null}
         {shown === "drones" ? (
@@ -2561,6 +2550,18 @@ function foeFlash(game: Game, id: string, reveal: boolean, ion = 0): string {
   return locked ? "is-flash-blue" : "";
 }
 
+/** The weapons column is narrower than AUTOFIRE, so the label can break in half. */
+function AutofireWord({ word }: { word: string }) {
+  const mid = Math.ceil(word.length / 2);
+  return (
+    <>
+      {word.slice(0, mid)}
+      <wbr />
+      {word.slice(mid)}
+    </>
+  );
+}
+
 function PowerStack({ game, id, locked = false, big = false }: { game: Game; id: SysId; locked?: boolean; big?: boolean }) {
   const sys = game.player.systems[id];
   const cap = Math.max(0, sys.level - sys.damage - sys.ion.length);
@@ -2574,6 +2575,18 @@ function PowerStack({ game, id, locked = false, big = false }: { game: Game; id:
   const flash = systemFlashClass(game, id);
   return (
     <div className={`power-stack${locked ? " is-locked" : ""}${big ? " is-big" : ""}${flash ? ` ${flash}` : ""}`}>
+      {!big && id === "weapons" ? (
+        // Per the user: autofire sits above the weapons bars, the same kind of button as CLOAK.
+        <button
+          type="button"
+          className={`kit-act${game.autofireAll ? " is-on" : ""}`}
+          aria-pressed={!!game.autofireAll}
+          title={tx("ui.GameApp.autofire-every-weapon")}
+          onClick={() => act((g) => toggleAutoAll(g))}
+        >
+          <AutofireWord word={tx("ui.GameApp.autofire")} />
+        </button>
+      ) : null}
       <div className="power-col" {...drag}>
         {Array.from({ length: slots }, (_, raw) => {
           const i = slots - 1 - raw;

@@ -931,7 +931,6 @@ button:disabled {
 .target-flag,
 .pause-mark strong,
 .scrap-box b,
-.autofire,
 .ftl-drive span,
 .ftl-drive em {
   font-family: var(--font-hud);
@@ -1062,7 +1061,6 @@ button:disabled {
 
 .ftl-drive,
 .frame-btn,
-.autofire,
 .gun-slot,
 .target-panel,
 .ftl-card,
@@ -1805,6 +1803,7 @@ button:disabled {
 }
 
 .power-stack {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2076,14 +2075,6 @@ button:disabled {
   line-height: 1;
 }
 
-.autofire {
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: var(--radius);
-  font-size: 22px;
-}
-
-.autofire.is-on,
 .sub-orb.is-on {
   background: #143024;
   box-shadow: inset 0 0 0 1px var(--color-ok), 0 0 12px rgba(180, 255, 230, 0.12);
@@ -5889,24 +5880,6 @@ body.page-turn-180 {
 }
 .frame-btn.pause-btn { width: 76px; height: 76px; }
 
-/* Per the user: autofire at the end of the weapon row, the size of a weapon slot. */
-.gun-slot.autofire-slot {
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px;
-  cursor: pointer;
-  touch-action: manipulation;
-  font-family: var(--font-hud);
-}
-.autofire-slot .autofire-word { font-size: 22px; letter-spacing: 0.06em; }
-.autofire-slot .autofire-state { font-size: 16px; letter-spacing: 0.1em; color: var(--color-muted); }
-.gun-slot.autofire-slot.is-on {
-  background: #143024;
-  box-shadow: inset 0 0 0 1px var(--color-ok), 0 0 12px rgba(180, 255, 230, 0.12);
-}
-.gun-slot.autofire-slot.is-on .autofire-state { color: var(--color-ok); }
-
 /* Per the user: the surrender offer's weapon and crew cards (OfferCards). INVENTED look. */
 .offer-cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 6px; }
 .offer-card {
@@ -6222,7 +6195,8 @@ body.page-turn-180 {
 .power-dock .sub-orb { width: 28px; height: 28px; }
 
 /* Per the user: the activation button for Cloaking, the Teleporter and Mind Control, over that system's power bars
-   (--lv bars of 10px). The icon underneath manages power. INVENTED look. */
+   (--lv bars of 10px). The icon underneath manages power. Autofire uses the same button over the weapons column.
+   Those bars are already in the column, so it only needs the gap; kit bars hang above the orb. INVENTED look. */
 .kit-act {
   position: absolute;
   left: 50%;
@@ -6239,6 +6213,14 @@ body.page-turn-180 {
   background: var(--color-panel);
   border: 1px solid var(--color-line);
   border-radius: var(--radius);
+}
+.power-stack .kit-act {
+  bottom: calc(100% + 8px);
+  z-index: 2;
+  max-width: 36px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1;
 }
 .kit-act.is-on { color: #0b0d10; background: var(--color-line); }
 .kit-act:disabled { opacity: 0.45; cursor: not-allowed; }

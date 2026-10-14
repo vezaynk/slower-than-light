@@ -56,7 +56,7 @@
 }
 
 /* The viewport stretches to the window. Width and height stay auto so they follow the window
-   instead of a pixel size captured once. The 1280×720 screen inside is scaled to fit. */
+   instead of a pixel size captured once. The 1560×720 screen inside is scaled to fit. */
 .viewport {
   position: fixed;
   top: env(safe-area-inset-top, 0px);
@@ -92,7 +92,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1280px;
+  width: 1560px;
   height: 720px;
   overflow: hidden;
   container: screen / size;

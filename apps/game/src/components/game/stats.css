@@ -1,5 +1,5 @@
 /* Per the user: the reworked Stats window (AchievementsScreen), on the ship sheet's tabs (.ship-tabs, .ship-tab-panel)
-   and the Options rows. INVENTED look throughout. Every view is one scaled 1280×720 screen (Screen.tsx), so these sizes
+   and the Options rows. INVENTED look throughout. Every view is one scaled 1560×720 screen (Screen.tsx), so these sizes
    are logical pixels and hold on a phone in landscape too. */
 
 .stats-sheet {

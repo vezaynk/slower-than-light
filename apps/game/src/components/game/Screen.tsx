@@ -1,5 +1,5 @@
 /**
- * INVENTED: every view renders on one 1280×720 screen (16:9). The viewport stretches
+ * INVENTED: every view renders on one 1560×720 screen (19.5:9). The viewport stretches
  * with the window. The screen scales by the smaller of the width ratio and the height
  * ratio, so it shrinks with either side and letterboxes on the other.
  */
@@ -7,12 +7,12 @@ import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { useSettings } from "@/game/settings";
 import { canForceLandscape, setPageTurn, type PageTurn } from "./turn";
 
-export const SCREEN_W = 1280;
+export const SCREEN_W = 1560;
 export const SCREEN_H = 720;
 
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** Fit the 1280×720 screen to the viewport's box. */
+/** Fit the 1560×720 screen to the viewport's box. */
 function paintFit(viewport: HTMLElement | null, screen: HTMLElement | null) {
   if (!viewport || !screen) return;
   const w = viewport.clientWidth;
@@ -125,7 +125,7 @@ export function Screen({ children }: { children: ReactNode }) {
 
   return (
     <div className="viewport" ref={viewportRef}>
-      <div className="screen" ref={screenRef}>{children}</div>
+      <div className="screen" ref={screenRef} style={{ width: SCREEN_W, height: SCREEN_H }}>{children}</div>
     </div>
   );
 }

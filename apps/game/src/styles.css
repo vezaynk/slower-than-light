@@ -2999,6 +2999,46 @@ button.door-tick::before {
   cursor: default;
 }
 
+/* The credit line is the bottom of the title art. This row stays in the starfield above the wordmark. */
+.title-frame .pack-boot {
+  position: absolute;
+  top: 1.6%;
+  right: 3%;
+  z-index: 3;
+  width: min(560px, 48%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+  background: #07060d;
+  pointer-events: none;
+}
+
+.title-frame .pack-boot-track {
+  flex: 1 1 120px;
+  min-width: 120px;
+  height: 14px;
+  border: 2px solid var(--color-line);
+  background: #07060d;
+}
+
+.title-frame .pack-boot-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-accent);
+  transition: width 0.35s linear;
+}
+
+.title-frame .pack-boot p {
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
 .title-panel {
   position: absolute;
   left: 28%;

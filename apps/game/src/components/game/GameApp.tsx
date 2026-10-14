@@ -16,6 +16,7 @@ import {
   upgradeCost,
 } from "@/game/content";
 import { aimedBeamTiles } from "@/game/pack/beams";
+import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
 import { crewDef, weaponDef } from "@/game/pack/registry";
 import { CATALOG, scanMark } from "@/game/extras/augments";
@@ -3574,10 +3575,34 @@ function Portrait({ crew }: { crew: Crew }) {
 function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
   const [view, setView] = useState<string | null>(null);
+  const [packRatio, setPackRatio] = useState(0);
+  const [packReady, setPackReady] = useState(false);
+  const [packError, setPackError] = useState(false);
+  const [packBar, setPackBar] = useState(true);
   const boot = useGame((s) => s.boot);
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
+  useEffect(() => {
+    let live = true;
+    loadBasePackXml((ratio) => {
+      if (live) setPackRatio(ratio);
+    })
+      .then(() => {
+        if (live) setPackReady(true);
+      })
+      .catch(() => {
+        if (live) setPackError(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!packReady) return;
+    const hide = setTimeout(() => setPackBar(false), 700);
+    return () => clearTimeout(hide);
+  }, [packReady]);
   useEffect(() => {
     if (boot === "hangar") {
       setView("hangar");
@@ -3615,7 +3640,7 @@ function TitleScreen() {
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
-    <section className="title-shot">
+    <section className="title-shot" aria-busy={!packReady}>
       <InstallButton className="title-install" />
       <div
         className="title-frame"
@@ -3623,14 +3648,14 @@ function TitleScreen() {
           if (view === "stats" || view === "options" || view === "credits") setView(null);
         }}
       >
-        <PixelMenu continueReady={saveReady} />
+        <PixelMenu continueReady={saveReady && packReady} />
         {TITLE_MENU_ART.map((item) => (
           <button
             key={item.id}
             type="button"
             className="menu-hit"
             aria-label={item.label}
-            disabled={item.id === "continue" && !saveReady}
+            disabled={!packReady || (item.id === "continue" && !saveReady)}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {
               e.stopPropagation();
@@ -3642,6 +3667,21 @@ function TitleScreen() {
         {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
         {view === "options" ? <OptionsPanel onClose={() => setView(null)} /> : null}
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
+        {packBar ? (
+          <div className="pack-boot">
+            <p>{packError ? tx("ui.GameApp.the-ship-pack-did-not-load") : tx("ui.GameApp.loading-the-ship-pack")}</p>
+            <div
+              className="pack-boot-track"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(packRatio * 100)}
+              aria-label={tx("ui.GameApp.loading-the-ship-pack")}
+            >
+              <div className="pack-boot-fill" style={{ width: `${packRatio * 100}%` }} />
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );

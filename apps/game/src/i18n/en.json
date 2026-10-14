@@ -6678,7 +6678,6 @@
   "ui.PixelArt.v-0-1": "v. 0.1",
   "ui.RoomRadial.airlock": "Airlock",
   "ui.RoomRadial.door": "Door",
-  "ui.Screen.translate-50-50-scale": "translate(-50%, -50%) scale({{fit}})",
   "ui.ShipView.mind-controlled-s": "{{name}}: mind-controlled, {{ceil}}s",
   "ui.ShipView.target": "Target ",
   "ui.ShipView.open": "Open ",

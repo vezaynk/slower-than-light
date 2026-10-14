@@ -96,7 +96,6 @@
   height: 720px;
   overflow: hidden;
   container: screen / size;
-  /* Replaced as soon as the viewport is measured. A variable inside scale() does not always refresh. */
   transform: translate(-50%, -50%) scale(1);
   visibility: hidden;
 }

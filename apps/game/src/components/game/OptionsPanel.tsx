@@ -3,6 +3,7 @@
  * button in a run. Keyboard only lists the shortcuts GameApp's key handler answers; they are not configurable.
  * INVENTED layout, on the ship sheet's tab styles.
  */
+import { Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useState } from "react";
 import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/settings";
@@ -111,7 +112,7 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
       <article className="sheet ftl-sheet ship-sheet options-sheet has-x" aria-label={tx("ui.OptionsPanel.options")}>
         <CloseX onClose={onClose} />
         <header className="ship-sheet-head">
-          <h2 className="kicker">{tx("ui.OptionsPanel.options")}</h2>
+          <Kicker as="h2">{tx("ui.OptionsPanel.options")}</Kicker>
         </header>
         <div
           className="ship-tabs"

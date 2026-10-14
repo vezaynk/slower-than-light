@@ -1,33 +1,6 @@
 @import "tailwindcss";
-
-@theme {
-  /* One palette for every screen. Panels are dark with a mint line; yellow marks selection. */
-  --color-bg: #020308;
-  --color-panel: #0b1116;
-  --color-panel-2: #141d24;
-  --color-surface: #10161c;
-  --color-surface-2: #182430;
-  --color-fg: #f4fff8;
-  --color-muted: #9fbfb5;
-  --color-primary: #c8fff0;
-  --color-line: #c8fff0;
-  --color-line-dim: #4b6660;
-  --color-accent: #f2e34a;
-  --color-ok: #3ee56a;
-  --color-ion: #8ecbff;
-  --color-danger: #e23a3a;
-  --color-border: #9be7d2;
-  --color-ink: #04140e;
-  --color-room: #e6e1d6;
-  --color-room-ink: #2a241c;
-  --font-sans: "IBM Plex Mono", ui-monospace, monospace;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-hud: "VT323", "IBM Plex Mono", ui-monospace, monospace;
-  --radius: 2px;
-  --glow: 0 0 12px rgba(180, 255, 230, 0.12);
-  --tile: 22px;
-  --wall: 2px;
-}
+@import "@stl/ui/tokens.css";
+@import "@stl/ui/chrome.css";
 
 @layer base {
   button:not(:disabled),
@@ -152,7 +125,6 @@
   z-index: 2;
 }
 
-.kicker,
 .mini,
 .fine,
 .room-name,
@@ -164,15 +136,6 @@
   letter-spacing: 0.04em;
 }
 
-.kicker {
-  text-transform: uppercase;
-  color: var(--color-fg);
-  margin-bottom: 0.25rem;
-  font-family: var(--font-hud);
-  font-size: 28px;
-  letter-spacing: 0.1em;
-}
-
 .mode-row,
 .title-actions,
 .stack {
@@ -182,9 +145,6 @@
 }
 
 .icon-btn,
-.btn-primary,
-.btn-ghost,
-.text-btn,
 .beacon {
   border: 2px solid var(--color-line);
   background: var(--color-panel-2);
@@ -208,30 +168,8 @@
   place-items: center;
 }
 
-.btn-primary {
-  background: var(--color-panel-2);
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  font-weight: 400;
-}
-
-.btn-ghost[aria-pressed="true"] {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
 button:disabled {
   opacity: 0.45;
-}
-
-.text-btn {
-  min-height: 1.75rem;
-  padding: 0 0.4rem;
-  background: transparent;
-  font-family: var(--font-hud);
-  font-size: 20px;
-  color: var(--color-primary);
-  border-color: transparent;
 }
 
 .resources {

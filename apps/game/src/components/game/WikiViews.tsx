@@ -1,3 +1,4 @@
+import { Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
@@ -152,7 +153,7 @@ export function AchievementsScreen({
     <section className="wiki-screen ach-screen stats-sheet has-x" onClick={(e) => e.stopPropagation()} aria-label={tx("ui.WikiViews.stats")}>
       <CloseX onClose={onClose} />
       <header className="ship-sheet-head">
-        <h2 className="kicker">{tx("ui.WikiViews.stats")}</h2>
+        <Kicker as="h2">{tx("ui.WikiViews.stats")}</Kicker>
         <span className="stats-progress">
           <span>
             <b>{got}</b> / {total}

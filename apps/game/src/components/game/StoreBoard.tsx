@@ -5,6 +5,7 @@
  * slots of systems, weapons, drone schematics, augmentations, and crewmembers". Resources are one unit per purchase at
  * a fixed price; ×N is what the store has left (sim.ts rollStock).
  */
+import { Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import { hullRepairPerPoint } from "@/game/content";
@@ -258,7 +259,7 @@ export function StoreBoard({ game }: { game: Game }) {
       <article className="sheet ftl-sheet ship-sheet store-sheet has-x" aria-label={tx("ui.StoreBoard.store")}>
         <CloseX onClose={leave} label={tx("ui.StoreBoard.leave-the-store")} />
         <header className="ship-sheet-head">
-          <h2 className="kicker">{tx("ui.StoreBoard.store")}</h2>
+          <Kicker as="h2">{tx("ui.StoreBoard.store")}</Kicker>
           <span className="store-have" aria-label={tx("ui.StoreBoard.your-supplies")}>
             <span title={tx("ui.StoreBoard.hull")}>
               <PixelIcon name="ship" size={16} />

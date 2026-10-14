@@ -16,6 +16,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {
+    "@stl/ui": "workspace:*",
     "@capacitor/cli": "^8.5.3",
     "@capacitor/core": "^8.5.3",
     "@capacitor/ios": "^8.5.3",

@@ -1,3 +1,4 @@
+import { Button, Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
@@ -1012,25 +1013,23 @@ function CrewRail({ game }: { game: Game }) {
       ))}
       {/* The controls list's Save Stations (/) and Return to Stations (Return), as buttons under the crew (per the user). */}
       <div className="station-btns">
-        <button
-          type="button"
-          className="text-btn"
+        <Button
+          variant="text"
           aria-label={tx("ui.GameApp.save-stations")}
           title={tx("ui.GameApp.save-where-every-crew-member-stands")}
           onClick={() => act((g) => saveStations(g))}
         >
           {tx("ui.GameApp.save")}
-        </button>
-        <button
-          type="button"
-          className="text-btn"
+        </Button>
+        <Button
+          variant="text"
           aria-label={tx("ui.GameApp.return-to-stations")}
           title={tx("ui.GameApp.send-the-crew-back-to-their")}
           disabled={!crew.some((c) => c.station)}
           onClick={() => act((g) => returnToStations(g))}
         >
           {tx("ui.GameApp.return")}
-        </button>
+        </Button>
       </div>
       {/* Clone Bay, Overview: "Portraits of the crew in the cloning queue are shown above the system icon. Up to 3
           portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
@@ -3497,7 +3496,7 @@ function Manual({ onClose }: { onClose: () => void }) {
     <div className="overlay">
       <article className="sheet manual ftl-sheet has-x">
         <CloseX onClose={onClose} />
-        <p className="kicker">{tx("ui.GameApp.manual")}</p>
+        <Kicker>{tx("ui.GameApp.manual")}</Kicker>
         <div className="manual-body">
           <h3>{tx("ui.GameApp.getting-out")}</h3>
           <ul>
@@ -3721,7 +3720,7 @@ function ShipSheet({ game }: { game: Game }) {
         {/* Per the user: a tabbed layout. Name and scrap on top, folder tabs with a count, then one fixed-size panel
             that scrolls, so switching tabs never resizes the sheet. INVENTED look. */}
         <header className="ship-sheet-head">
-          <h2 className="kicker">{game.player.name}</h2>
+          <Kicker as="h2">{game.player.name}</Kicker>
           <span className="scrap-box ship-sheet-scrap" aria-label={`${game.scrap} scrap`}>
             <PixelIcon name="scrap" size={18} />
             <b>{game.scrap}</b>
@@ -4016,24 +4015,24 @@ function CrewManifest({ game }: { game: Game }) {
                 </span>
               </div>
               {confirm === c.id ? null : (
-                <button
-                  type="button"
-                  className="text-btn manifest-dismiss"
+                <Button
+                  variant="text"
+                  className="manifest-dismiss"
                   data-dismiss={c.id}
                   disabled={!may}
                   title={may ? undefined : tx("ui.GameApp.only-crew-aboard-your-ship-can")}
                   onClick={() => setConfirm(c.id)}
                 >
                   {tx("ui.GameApp.dismiss")}
-                </button>
+                </Button>
               )}
             </header>
             {confirm === c.id ? (
               <div className="manifest-confirm" role="alertdialog" aria-label={tx("ui.GameApp.dismiss-2", { name: c.name })}>
                 <span>{tx("ui.GameApp.dismiss-3")}{c.name}{tx("ui.GameApp.they-leave-the-ship-for-good")}</span>
-                <button
-                  type="button"
-                  className="text-btn is-danger"
+                <Button
+                  variant="text"
+                  className="is-danger"
                   data-dismiss-yes={c.id}
                   onClick={() => {
                     setConfirm(null);
@@ -4043,10 +4042,10 @@ function CrewManifest({ game }: { game: Game }) {
                   }}
                 >
                   {tx("ui.GameApp.dismiss")}
-                </button>
-                <button type="button" className="text-btn" onClick={() => setConfirm(null)}>
+                </Button>
+                <Button variant="text" onClick={() => setConfirm(null)}>
                   {tx("ui.GameApp.keep")}
-                </button>
+                </Button>
               </div>
             ) : null}
             <SkillBars crew={c} />

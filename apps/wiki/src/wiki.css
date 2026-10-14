@@ -13,11 +13,18 @@
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.5;
+  box-sizing: border-box;
 }
 
-.parity button,
+.parity *,
+.parity *::before,
+.parity *::after {
+  box-sizing: border-box;
+}
+
 .parity input,
-.parity a {
+.parity a,
+.parity-list li button {
   font-family: inherit;
 }
 
@@ -39,9 +46,6 @@
 
 .parity-kicker {
   color: var(--color-muted);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .parity-bar h1 {
@@ -130,27 +134,15 @@
   gap: 4px;
 }
 
-.parity-filters button,
-.parity-list-toggle,
-.parity-actions button,
-.parity-cites button,
-.parity-redirect button {
-  background: transparent;
-  color: var(--color-muted);
-  border: 1px solid var(--color-line-dim);
-  border-radius: 2px;
-  padding: 4px 8px;
-  min-height: 32px;
-}
-
-.parity-filters button[aria-pressed="true"] {
-  color: var(--color-ink);
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+.parity-filters .btn-ghost {
+  padding: 0 8px;
+  font-size: 18px;
+  white-space: nowrap;
 }
 
 .parity-list-toggle {
   display: none;
+  width: 100%;
 }
 
 .parity-list ul,
@@ -391,12 +383,7 @@
   color: var(--color-primary);
 }
 
-.parity-gaps > li > button {
-  background: transparent;
-  border: 0;
-  color: var(--color-fg);
-  text-align: left;
-  padding: 0;
+.parity-gaps .text-btn {
   margin-bottom: 4px;
 }
 

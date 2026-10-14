@@ -12,6 +12,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/wiki"
   },
   "dependencies": {
+    "@stl/ui": "workspace:*",
     "@stl/wiki-dump": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"

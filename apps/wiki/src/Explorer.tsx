@@ -1,3 +1,4 @@
+import { Button, Kicker } from "@stl/ui";
 import { useEffect, useMemo, useState } from "react";
 import dumpRaw from "@stl/wiki-dump/pages.jsonl?raw";
 import type { Cite } from "./scan.ts";
@@ -156,7 +157,7 @@ export function Explorer({
     <div className="parity">
       <header className="parity-bar">
         <div>
-          <p className="parity-kicker">Code and wiki</p>
+          <Kicker className="parity-kicker">Code and wiki</Kicker>
           <h1>Wiki parity</h1>
         </div>
         <p className="parity-stats">
@@ -191,14 +192,14 @@ export function Explorer({
                   ["all", "All"],
                 ] as const
               ).map(([id, label]) => (
-                <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>
+                <Button key={id} variant="ghost" aria-pressed={filter === id} onClick={() => setFilter(id)}>
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
-            <button type="button" className="parity-list-toggle" onClick={() => setListOpen((v) => !v)}>
+            <Button variant="ghost" className="parity-list-toggle" onClick={() => setListOpen((v) => !v)}>
               {listOpen ? "Hide pages" : `Pages (${titles.length})`}
-            </button>
+            </Button>
           </div>
           <ul>
             {titles.map((row) => (
@@ -222,9 +223,9 @@ export function Explorer({
           {shown.from ? (
             <p className="parity-redirect">
               {shown.from} redirects here.{" "}
-              <button type="button" onClick={() => onPage(shown.title)}>
+              <Button variant="text" onClick={() => onPage(shown.title)}>
                 {shown.title}
-              </button>
+              </Button>
             </p>
           ) : null}
           {page ? (
@@ -279,9 +280,9 @@ export function Explorer({
               <blockquote>{picked.phrase}</blockquote>
               {activeLink?.page ? (
                 <p className="parity-actions">
-                  <button type="button" onClick={() => onPage(activeLink.page, activeLink.hash)}>
+                  <Button variant="ghost" onClick={() => onPage(activeLink.page, activeLink.hash)}>
                     Open {activeLink.page}
-                  </button>
+                  </Button>
                 </p>
               ) : null}
               <ul className="parity-cites">
@@ -292,9 +293,9 @@ export function Explorer({
                     {cite.section ? <p>{`[[${shown.title}#${cite.section}]]`}</p> : null}
                     {cite.key ? <CiteCode className="parity-key" file="src/i18n/en.json" anchor={cite.key} /> : null}
                     <p className="parity-actions">
-                      <button type="button" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
+                      <Button variant="ghost" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
                         Copy cite
-                      </button>
+                      </Button>
                       <a href={`${REPO}${cite.file}`} target="_blank" rel="noreferrer">
                         View file
                       </a>
@@ -317,9 +318,9 @@ export function Explorer({
                       {gap.cites.map((cite) => (
                         <li key={`${cite.file}#${cite.anchor}#${cite.key ?? ""}`}>
                           <CiteCode file={cite.file} anchor={cite.anchor} />
-                          <button type="button" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
+                          <Button variant="text" onClick={() => copy(`${cite.file}#${cite.anchor}`)}>
                             Copy cite
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>

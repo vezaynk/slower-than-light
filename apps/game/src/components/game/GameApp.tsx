@@ -59,7 +59,7 @@ import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
 import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
-import { canFieldDrone } from "@/game/wiki/cited-stores";
+import { canFieldDrone, droneSlotCap } from "@/game/wiki/cited-stores";
 import { CARGO_SLOTS, canFitFromCargo, cargoOf, fitFromCargo, pendingOverflow, resolveOverflow, stowDrone, stowWeapon } from "@/game/wiki/make-room";
 import { kinOf } from "@/game/extras/kin";
 import { UNIFORMS } from "@/game/crew-look";
@@ -2151,6 +2151,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               </button>
             );
           })}
+          {/* Per the user: a dashed box is only a slot this ship has and has not filled. The tray's reserved width covers the rest. */}
           {Array.from({ length: Math.max(0, weaponSlotCap(game) - game.player.weapons.length) }, (_, i) => (
             <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
           ))}
@@ -2202,6 +2203,10 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 </button>
               );
             })}
+            {/* Per the user: the same rule as weapons. No Drone Control means no slots, so the reserved width stays blank. */}
+            {Array.from({ length: Math.max(0, droneSlotCap(game) - droneSlots.length) }, (_, i) => (
+              <span key={`empty-${i}`} className="gun-slot is-empty" aria-hidden="true" />
+            ))}
           </div>
         ) : null}
         {/* Per the user: missiles beside WEAPONS and drone parts beside DRONES. */}

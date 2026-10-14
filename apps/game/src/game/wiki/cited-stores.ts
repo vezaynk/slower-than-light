@@ -431,6 +431,12 @@ function schematicCap(g: Game): number {
   return 2;
 }
 
+/** Schematic slots this hull can field. Zero when Drone Control is not installed — there is no slot to draw. */
+export function droneSlotCap(g: Game): number {
+  if (!g.player.kits.swarm) return 0;
+  return schematicCap(g);
+}
+
 /** The Engi Cruiser, Layout B: two System Repair ids are two drones, not one swapped schematic. */
 function pairedRepair(kit: Kit): boolean {
   return (kit.loadout?.filter((kind) => kind === "patch").length ?? 0) > 1;

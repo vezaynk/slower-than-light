@@ -1942,6 +1942,8 @@ button:disabled {
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 4px;
+  /* Per the user: reserve a full bay (4 slots, the most any hull prints). A slot this ship does not have is blank, not a dashed empty slot. */
+  min-width: calc(4 * 150px + 3 * 6px);
 }
 
 .gun-slot {

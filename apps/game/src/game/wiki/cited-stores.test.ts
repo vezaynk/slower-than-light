@@ -9,6 +9,7 @@ import {
   citedSell,
   citedSellQuote,
   citedStock,
+  droneSlotCap,
   storeSections,
   type StoreSection,
 } from "./cited-stores.ts";
@@ -708,6 +709,22 @@ describe("cited stores", () => {
     assert.equal(vortex.scrap, 0);
     assert.deepEqual(vortex.player.kits.swarm?.loadout, ["patch", "patch"]);
     assert.deepEqual(vortex.cargo, [{ kind: "drone", id: "hull" }]);
+  });
+
+  it("counts drone slots only when Drone Control is installed", () => {
+    const kestrel = createGame(1, "kestrel-a");
+    assert.equal(kestrel.player.kits.swarm, undefined);
+    assert.equal(droneSlotCap(kestrel), 0);
+    kestrel.player.kits.swarm = kit("swarm", 2);
+    assert.equal(droneSlotCap(kestrel), 2);
+
+    const engi = createGame(1, "engi-a");
+    assert.equal(droneSlotCap(engi), 3);
+    const stealth = createGame(1, "stealth-c");
+    assert.equal(droneSlotCap(stealth), 3);
+    const nesasio = createGame(1, "stealth-a");
+    assert.equal(nesasio.player.kits.swarm, undefined);
+    assert.equal(droneSlotCap(nesasio), 0);
   });
 
   it("sells a fitted Zoltan Shield for 40 and does not let the next jump refill it", () => {

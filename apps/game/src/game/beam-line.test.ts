@@ -107,6 +107,39 @@ describe("slider aim", () => {
     assert.ok(w.beamLine);
     assert.equal(g.shots.length, 0);
   });
+
+  it("lets either beam thumb pull the other once the swipe is at full length", () => {
+    const g = createGame(1, "slug-a");
+    startCombat(g, "scout");
+    const w = g.player.weapons.find((gun) => gun.defId === "antibio");
+    assert.ok(w);
+    w.charge = 0;
+    armWeapon(g, w.uid);
+    const rooms = g.enemy!.rooms;
+    const start = roomCenter(rooms[0]);
+    const far = roomCenter(rooms[rooms.length - 1]);
+    nudgeAim(g, "a", start);
+    nudgeAim(g, "b", far);
+    assert.ok(w.beamLine);
+    const tiles = beamTileLength("antibio") ?? 0;
+    const span = (line: { a: { x: number; y: number }; b: { x: number; y: number } }) =>
+      Math.hypot(line.b.x - line.a.x, line.b.y - line.a.y);
+    assert.ok(span(w.beamLine) <= tiles + 0.05);
+    const before = { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } };
+    nudgeAim(g, "b", { x: far.x + 30, y: far.y + 30 });
+    assert.ok(w.beamLine);
+    assert.ok(span(w.beamLine) <= tiles + 0.05);
+    if (Math.hypot(far.x - start.x, far.y - start.y) > tiles) {
+      assert.ok(Math.hypot(w.beamLine.a.x - before.a.x, w.beamLine.a.y - before.a.y) > 0.2);
+    }
+    const mid = { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } };
+    nudgeAim(g, "a", { x: start.x - 30, y: start.y - 30 });
+    assert.ok(w.beamLine);
+    assert.ok(span(w.beamLine) <= tiles + 0.05);
+    if (Math.hypot(far.x - start.x, far.y - start.y) > tiles) {
+      assert.ok(Math.hypot(w.beamLine.b.x - mid.b.x, w.beamLine.b.y - mid.b.y) > 0.2);
+    }
+  });
 });
 
 describe("rooms on a beam segment", () => {

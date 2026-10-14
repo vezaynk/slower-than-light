@@ -834,10 +834,10 @@ function isKitId(id: SysId | KitId): id is KitId {
 const BATTLE_CLEAR = 64;
 const FLAGSHIP_COLS = 12;
 const FLAGSHIP_ROWS = 10;
-/** Body padding plus the aim-rail gutter, and the 16px margin on both sides. */
-const PANEL_CHROME_X = 34 + 32;
-/** Vitals, the body's own padding, and two rows of system chips with the bottom rail. */
-const PANEL_CHROME_Y = 150;
+/** Body padding on both sides, and the 16px margin on both sides. The aim thumbs do not reserve a gutter. */
+const PANEL_CHROME_X = 16 + 32;
+/** Vitals, the body's own padding, and two rows of system chips. */
+const PANEL_CHROME_Y = 132;
 
 function platePx(rooms: number, tile: number): number {
   const wall = 2 / 44;

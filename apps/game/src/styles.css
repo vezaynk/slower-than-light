@@ -1582,26 +1582,22 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Per the user: aim sliders ride the borders of the target panel. X is the bottom edge, Y the right edge.
-   A beam adds a second thumb on each edge. */
+/* Per the user: the thumbs sit on the panel border. They do not pad the card, and the track has no line. */
 .target-panel { position: relative; }
-.target-panel:has(.aim-rails) .target-head { padding-right: 28px; }
-.target-panel:has(.aim-rails) .target-body { padding-right: 26px; }
-.target-panel:has(.aim-rails) .target-systems { padding-right: 28px; padding-bottom: 28px; }
 
 .aim-rails { pointer-events: none; }
 
 .aim-rail {
   position: absolute;
   z-index: 6;
-  pointer-events: auto;
+  pointer-events: none;
   touch-action: none;
-  background: rgba(11, 17, 22, 0.92);
+  background: none;
 }
 
 .aim-rail-x {
   left: 0;
-  right: 22px;
+  right: 0;
   bottom: 0;
   height: 22px;
 }
@@ -1609,29 +1605,8 @@ button:disabled {
 .aim-rail-y {
   top: 0;
   right: 0;
-  bottom: 22px;
+  bottom: 0;
   width: 22px;
-}
-
-.aim-rail-x::before,
-.aim-rail-y::before {
-  content: "";
-  position: absolute;
-  background: var(--color-line-dim);
-}
-
-.aim-rail-x::before {
-  left: 8px;
-  right: 8px;
-  top: 50%;
-  height: 2px;
-}
-
-.aim-rail-y::before {
-  top: 8px;
-  bottom: 8px;
-  left: 50%;
-  width: 2px;
 }
 
 .aim-thumb {
@@ -1641,6 +1616,7 @@ button:disabled {
   background: var(--color-accent);
   box-shadow: var(--glow);
   touch-action: none;
+  pointer-events: auto;
 }
 
 .aim-thumb-x {

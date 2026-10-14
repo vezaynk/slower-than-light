@@ -2267,24 +2267,18 @@ export function nudgeAim(g: Game, which: "point" | "a" | "b", raw: BeamPoint) {
     return;
   }
   const tiles = beamTileLength(w.defId);
-  if (which === "b") {
-    const start = clampTargetPoint(enemy, g.beamAnchor ?? w.beamLine?.a ?? point) ?? point;
-    const end = clampBeamEnd(enemy, start, point, tiles);
-    if (!end) return;
-    const rooms = roomsOnSegment(enemy, start, end);
+  // Either thumb can force the other. Dragging one end past the printed length pulls the
+  // other end along, so the swipe stays that long instead of only the start being able to drag the end.
+  if (which === "b" || (which === "a" && w.beamLine)) {
+    const otherRaw = which === "b" ? (g.beamAnchor ?? w.beamLine?.a ?? point) : w.beamLine!.b;
+    const other = clampTargetPoint(enemy, otherRaw) ?? otherRaw;
+    const pulled = clampBeamEnd(enemy, point, other, tiles) ?? other;
+    const a = which === "a" ? point : pulled;
+    const b = which === "b" ? point : pulled;
+    const rooms = roomsOnSegment(enemy, a, b);
     if (!rooms.length) return;
-    w.beamLine = { a: start, b: end };
+    w.beamLine = { a, b };
     w.target = rooms[0] ?? w.target;
-    g.beamAnchor = null;
-    g.targeting = false;
-    return;
-  }
-  if (w.beamLine) {
-    const end = clampBeamEnd(enemy, point, w.beamLine.b, tiles);
-    if (!end) return;
-    const rooms = roomsOnSegment(enemy, point, end);
-    w.beamLine = { a: point, b: end };
-    if (rooms[0]) w.target = rooms[0];
     g.beamAnchor = null;
     g.targeting = false;
     return;

@@ -3857,7 +3857,38 @@ button.door-tick::before {
 
 .mount.is-cold { filter: saturate(0.25) brightness(0.6); }
 
-.mount.is-ready { filter: drop-shadow(0 0 3px rgba(255, 240, 180, 0.9)); }
+/* Combat weapon art keeps its glow pixels dark until the charge bar is full.
+   Store, hangar, and cargo art stay at the designed colour (no --accent-ink). */
+.play .mount .gear-art.is-weapon,
+.play .gun-slot .gear-art.is-weapon {
+  --accent-ink: color-mix(in srgb, var(--gear-glow) 18%, #12100e);
+}
+
+.play .mount.is-ready .gear-art.is-weapon,
+.play .gun-slot.is-ready .gear-art.is-weapon {
+  --accent-ink: var(--gear-glow);
+}
+
+.play .mount.is-ready .px-accent,
+.play .gun-slot.is-ready .px-accent {
+  filter: drop-shadow(0 0 1px var(--gear-glow));
+  animation: weapon-accent 0.5s steps(2, jump-none) infinite;
+}
+
+@keyframes weapon-accent {
+  0% { fill: var(--gear-glow); }
+  100% { fill: color-mix(in srgb, var(--gear-glow) 42%, #fff6e0); }
+}
+
+.play-root.is-halted .px-accent { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .play .mount.is-ready .px-accent,
+  .play .gun-slot.is-ready .px-accent {
+    animation: none;
+    fill: var(--gear-glow);
+  }
+}
 
 /* Queued targets (ShipView aim-marks): numbered reticles on enemy rooms. */
 

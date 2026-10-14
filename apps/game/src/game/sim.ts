@@ -3482,6 +3482,22 @@ export function weaponChargeShown(w: WeaponInst): number {
   return Math.min(1, (loaded + filling) / cap);
 }
 
+/** Pips on the dock charge row and the enemy charge row. The hull accent uses the same full bar. */
+export const CHARGE_PIPS = 7;
+
+/**
+ * Weapon art accents (the glow pixels) light when a shot is ready to leave.
+ * The seven pips all read full at this point, a moment before charge hits 1, so a gun that
+ * fires as it completes still shows the light. A charger with a shot already in the bank
+ * stays lit: that shot can leave while the next one fills.
+ */
+export function weaponAccentHot(w: WeaponInst): boolean {
+  const cap = chargerCap(w.defId);
+  if (cap != null && (w.loaded ?? 0) >= 1) return true;
+  const charge = Math.min(1, Math.max(0, w.charge));
+  return Math.round(charge * CHARGE_PIPS) >= CHARGE_PIPS;
+}
+
 /** Move finished charger time into the bank. A full bank drops leftover progress. */
 function absorbCharger(w: WeaponInst, max: number) {
   let loaded = w.loaded ?? 0;

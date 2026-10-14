@@ -24,15 +24,17 @@ function PixelSvg({ art, height, className }: { art: Art; height: number; classN
       width={(height * art.w) / art.h}
       shapeRendering="crispEdges"
       aria-hidden="true"
+      style={{ ["--gear-glow" as string]: glow }}
     >
       {runs.map((r) => (
         <rect
           key={`${r.x}-${r.y}`}
+          className={r.c === "g" ? "px-accent" : undefined}
           x={r.x}
           y={r.y}
           width={r.w}
           height={1}
-          fill={r.c === "b" ? body : r.c === "t" ? trim : r.c === "g" ? glow : INK}
+          fill={r.c === "b" ? body : r.c === "t" ? trim : r.c === "g" ? "var(--accent-ink, var(--gear-glow))" : INK}
         />
       ))}
     </svg>

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { clipBeamEnd, pointInRoom, roomsOnSegment } from "@/game/beam-line";
 import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
 import { cellOccupied, roomClip } from "@/game/layouts";
-import { powerMask, zoltanBars } from "@/game/sim";
+import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
@@ -212,7 +212,8 @@ function Mounts({ ship, crew, aboard }: { ship: Ship; crew: Crew[]; aboard: "pla
         const edge = foe || i % 2 === 0 ? "top" : "bottom";
         const along = 38 + ((foe ? i : Math.floor(i / 2)) + 0.5) * (52 / perEdge);
         const powered = mask[i] ?? false;
-        const ready = powered && w.charge >= 1;
+        // Accents stay dark until the charge bar reads full. An unpowered gun never reads as about to fire.
+        const ready = powered && weaponAccentHot(w);
         return (
           <span
             key={w.uid}

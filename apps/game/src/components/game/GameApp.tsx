@@ -126,6 +126,8 @@ import {
   truce,
   waitHere,
   upgrade,
+  CHARGE_PIPS,
+  weaponAccentHot,
   weaponChargeShown,
   weaponSlotCap,
   weaponsPowerLocked,
@@ -1612,15 +1614,14 @@ function TargetPanel({
         <div className="foe-charges" aria-label={tx("ui.GameApp.enemy-weapon-charge")}>
           {enemy.weapons.map((w) => {
             const name = WEAPONS[w.defId]?.name ?? w.defId;
-            const pips = 7;
-            const filled = Math.round(weaponChargeShown(w) * pips);
+            const filled = Math.round(weaponChargeShown(w) * CHARGE_PIPS);
             const cap = chargerCap(w.defId);
             const bank = cap != null ? tx("ui.GameApp.of-shots", { v: w.loaded ?? 0, cap: cap }) : "";
             return (
               <div key={w.uid} className="foe-charge" aria-label={`${name} charge${bank}`}>
                 <span className="foe-charge-name">{name}</span>
                 <span className="charge-pips" aria-hidden="true">
-                  {Array.from({ length: pips }, (_, i) => (
+                  {Array.from({ length: CHARGE_PIPS }, (_, i) => (
                     <i key={i} className={i < filled ? "on" : ""} />
                   ))}
                 </span>
@@ -1826,8 +1827,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             const def = WEAPONS[w.defId];
             const live = w.enabled && mask[index];
             const auto = slotAutofire(game, w);
-            const pips = 7;
-            const filled = Math.round(weaponChargeShown(w) * pips);
+            const hot = live && weaponAccentHot(w);
+            const filled = Math.round(weaponChargeShown(w) * CHARGE_PIPS);
             const name = def?.name ?? w.defId;
             const cap = chargerCap(w.defId);
             const bank = cap != null ? tx("ui.GameApp.of-shots-2", { v: w.loaded ?? 0, cap: cap }) : "";
@@ -1843,7 +1844,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                 data-tray="weapons"
                 data-slot={index}
                 draggable={false}
-                className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
+                className={`gun-slot${game.armed === w.uid ? " is-armed" : ""}${live ? "" : " is-dark"}${hot ? " is-ready" : ""}${auto ? " is-auto" : ""}${game.targeting && game.armed === w.uid ? " is-targeting" : ""}${dragging ? " is-dragging" : ""}${drop ? " is-drop" : ""}`}
                 aria-label={`${name}.${bank} ${w.enabled ? tx("ui.GameApp.powered") : tx("ui.GameApp.depowered")}. ${auto ? tx("ui.GameApp.autofire-on") : tx("ui.GameApp.autofire-off")}.`}
                 onPointerDown={(e) => {
                   guns.onPointerDown(index, e);
@@ -1886,7 +1887,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   ) : null}
                 </span>
                 <span className="charge-pips" aria-hidden="true">
-                  {Array.from({ length: pips }, (_, i) => (
+                  {Array.from({ length: CHARGE_PIPS }, (_, i) => (
                     <i key={i} className={i < filled ? "on" : ""} />
                   ))}
                 </span>

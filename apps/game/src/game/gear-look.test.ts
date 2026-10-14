@@ -33,6 +33,16 @@ describe("gear art", () => {
     assert.equal(shapes.size, keys.length, "two drones share a silhouette");
   });
 
+  it("gives every weapon a glow accent that can light when charged", () => {
+    for (const id of Object.keys(WEAPONS)) {
+      assert.equal(
+        weaponPixels(id).rows.some((row) => row.includes("g")),
+        true,
+        `${id} has no glow pixel`,
+      );
+    }
+  });
+
   it("keeps every weapon silhouette apart, not just their colours", () => {
     const ids = Object.keys(WEAPONS);
     const shapes = new Set(ids.map((id) => shape(weaponPixels(id))));

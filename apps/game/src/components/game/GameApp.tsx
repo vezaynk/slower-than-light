@@ -3037,8 +3037,7 @@ function TitleScreen() {
  */
 const WIKI_URL = "https://ftl.fandom.com/wiki/FTL:_Faster_Than_Light_Wiki";
 const CC_BY_SA_URL = "https://creativecommons.org/licenses/by-sa/3.0/";
-const SOURCE_URL = "https://github.com/vezaynk/slower-than-light";
-const AUTHOR_URL = "https://knyazev.io/ftl";
+const AUTHOR_URL = "https://knyazev.io/stl";
 
 function TitlePanel({ onClose }: { onClose: () => void }) {
   const link = (href: string, text: string) => (
@@ -3053,7 +3052,7 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
       <div className="credits-body">
         <section>
           <h3>{tx("ui.GameApp.development")}</h3>
-          <p>{tx("ui.GameApp.slava-knyazev")}{link(AUTHOR_URL, "knyazev.io/ftl")})</p>
+          <p>{tx("ui.GameApp.slava-knyazev")}({link(AUTHOR_URL, "knyazev.io/stl")})</p>
         </section>
         <section>
           <h3>{tx("ui.GameApp.about")}</h3>
@@ -3071,7 +3070,7 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
             {link(CC_BY_SA_URL, tx("ui.GameApp.creative-commons-attribution-sharealike-3-0"))}{tx("ui.GameApp.licence-the-material-was-changed-condensed")}
           </p>
           <p>
-            {tx("ui.GameApp.that-adapted-material-is-shared-under")}{link(SOURCE_URL, "github.com/vezaynk/slower-than-light")}).
+            {tx("ui.GameApp.that-adapted-material-is-shared-under")}.
           </p>
         </section>
       </div>

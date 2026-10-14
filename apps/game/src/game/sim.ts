@@ -92,7 +92,7 @@ import { hullById } from "./hulls.ts";
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
 import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
-import { cellsOnSegment, clipBeamEnd, roomCenter, roomsOnSegment } from "./beam-line.ts";
+import { cellsOnSegment, clampBeamEnd, clampTargetPoint, clipBeamEnd, roomAtPoint, roomCenter, roomsOnSegment } from "./beam-line.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
@@ -2235,6 +2235,62 @@ function aimBeam(g: Game, w: WeaponInst, powered: boolean, roomId: string, point
     sfx(g, "click");
   }
   g.targeting = false;
+}
+
+/**
+ * Per the user: the target pane's sliders move the aim without a tap, and nudge it after it is set.
+ * A point weapon follows the room under the point. A beam has a start (`a`) and an end (`b`).
+ * The point is pulled onto the enemy's targetable floor first. This does not launch; a charged gun
+ * still fires on the next tick once a target is set, the same as a click.
+ */
+export function nudgeAim(g: Game, which: "point" | "a" | "b", raw: BeamPoint) {
+  if (!weaponsLive(g) || !g.enemy) return;
+  const enemy = g.enemy;
+  let index = g.player.weapons.findIndex((w) => w.uid === g.armed);
+  if (index < 0) {
+    index = g.player.weapons.findIndex((w) => w.target || w.beamLine);
+  }
+  const w = g.player.weapons[index];
+  const def = w ? WEAPONS[w.defId] : undefined;
+  if (!w || !def) return;
+  const point = clampTargetPoint(enemy, raw);
+  if (!point) return;
+  g.armed = w.uid;
+  if (def.kind !== "beam") {
+    const room = roomAtPoint(enemy, point);
+    if (!room) return;
+    w.own = false;
+    w.beamLine = null;
+    w.target = room;
+    g.beamAnchor = null;
+    g.targeting = false;
+    return;
+  }
+  const tiles = beamTileLength(w.defId);
+  if (which === "b") {
+    const start = clampTargetPoint(enemy, g.beamAnchor ?? w.beamLine?.a ?? point) ?? point;
+    const end = clampBeamEnd(enemy, start, point, tiles);
+    if (!end) return;
+    const rooms = roomsOnSegment(enemy, start, end);
+    if (!rooms.length) return;
+    w.beamLine = { a: start, b: end };
+    w.target = rooms[0] ?? w.target;
+    g.beamAnchor = null;
+    g.targeting = false;
+    return;
+  }
+  if (w.beamLine) {
+    const end = clampBeamEnd(enemy, point, w.beamLine.b, tiles);
+    if (!end) return;
+    const rooms = roomsOnSegment(enemy, point, end);
+    w.beamLine = { a: point, b: end };
+    if (rooms[0]) w.target = rooms[0];
+    g.beamAnchor = null;
+    g.targeting = false;
+    return;
+  }
+  g.beamAnchor = point;
+  g.targeting = true;
 }
 
 /**

@@ -1537,6 +1537,32 @@ button:disabled {
   overflow: hidden;
 }
 
+/* Per the user: x/y sliders on the target pane. A beam has a second pair for the other end. */
+.aim-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 10px 8px;
+  background: rgba(11, 17, 22, 0.82);
+}
+
+.aim-sliders label {
+  display: grid;
+  grid-template-columns: 4.6em minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.aim-sliders input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
 .target-systems {
   flex-wrap: wrap;
   justify-content: center;

@@ -34,6 +34,94 @@ export function pointInRoom(
   };
 }
 
+const CELL_EDGE = 1e-4;
+
+/** Occupied floor cells. An omitted cell is hull, not a place a shot can land. */
+export function targetableCells(ship: BeamGrid): { x: number; y: number }[] {
+  const cells: { x: number; y: number }[] = [];
+  for (const room of ship.rooms) {
+    for (let y = room.y; y < room.y + room.h; y++) {
+      for (let x = room.x; x < room.x + room.w; x++) {
+        if (cellOccupied(room, x, y)) cells.push({ x, y });
+      }
+    }
+  }
+  return cells;
+}
+
+/** Inclusive slider range over the targetable cells. The far edge stays inside the last cell. */
+export function targetableSpan(ship: BeamGrid): { minX: number; maxX: number; minY: number; maxY: number } | null {
+  const cells = targetableCells(ship);
+  if (!cells.length) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const cell of cells) {
+    minX = Math.min(minX, cell.x);
+    minY = Math.min(minY, cell.y);
+    maxX = Math.max(maxX, cell.x + 1 - CELL_EDGE);
+    maxY = Math.max(maxY, cell.y + 1 - CELL_EDGE);
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+/** The room whose floor contains the point, or null when the point is hull or outside the grid. */
+export function roomAtPoint(ship: BeamGrid, point: BeamPoint): string | null {
+  const ix = Math.floor(point.x);
+  const iy = Math.floor(point.y);
+  for (const room of ship.rooms) {
+    if (cellOccupied(room, ix, iy)) return room.id;
+  }
+  return null;
+}
+
+/**
+ * Pull a point back onto targetable floor. Inside a room it stays put.
+ * A point past the rooms, or on hull between them, snaps to the nearest occupied cell.
+ */
+export function clampTargetPoint(ship: BeamGrid, point: BeamPoint): BeamPoint | null {
+  const span = targetableSpan(ship);
+  const cells = targetableCells(ship);
+  if (!span || !cells.length) return null;
+  const x = Math.min(span.maxX, Math.max(span.minX, point.x));
+  const y = Math.min(span.maxY, Math.max(span.minY, point.y));
+  if (roomAtPoint(ship, { x, y })) return { x, y };
+  let best = cells[0]!;
+  let bestD = Number.POSITIVE_INFINITY;
+  let bestX = best.x;
+  let bestY = best.y;
+  for (const cell of cells) {
+    const cx = Math.min(cell.x + 1 - CELL_EDGE, Math.max(cell.x, x));
+    const cy = Math.min(cell.y + 1 - CELL_EDGE, Math.max(cell.y, y));
+    const d = (cx - x) ** 2 + (cy - y) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = cell;
+      bestX = cx;
+      bestY = cy;
+    }
+  }
+  return { x: bestX, y: bestY };
+}
+
+/**
+ * Beam end: stay on targetable floor, and do not run past the printed tile length.
+ * A snap back onto a room that would stretch the swipe keeps the clipped point instead.
+ */
+export function clampBeamEnd(ship: BeamGrid, start: BeamPoint, toward: BeamPoint, tiles: number | null): BeamPoint | null {
+  const a = clampTargetPoint(ship, start);
+  const b = clampTargetPoint(ship, toward);
+  if (!a || !b) return null;
+  if (tiles == null || !(tiles > 0)) return b;
+  const clipped = clipBeamEnd(a, b, tiles);
+  if (roomAtPoint(ship, clipped)) return clipped;
+  const stayed = clampTargetPoint(ship, clipped);
+  if (!stayed) return clipped;
+  if (Math.hypot(stayed.x - a.x, stayed.y - a.y) > tiles + 1e-6) return clipped;
+  return stayed;
+}
+
 /**
  * Integer cells the segment crosses, in the same order as the walk inside
  * roomsOnSegment, including the two side cells when it passes through a grid corner.

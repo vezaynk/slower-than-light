@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { beamStroke, cellsOnSegment, clipBeamEnd, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
+import { beamStroke, cellsOnSegment, clampBeamEnd, clampTargetPoint, clipBeamEnd, pointInRoom, roomAtPoint, roomCenter, roomsOnSegment, targetableSpan, type BeamGrid } from "./beam-line.ts";
 import { beamSwipeSeconds, beamTileLength } from "./wiki/weapons-beam.ts";
-import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
+import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, nudgeAim, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
 
 function grid(rooms: BeamGrid["rooms"], cols: number, rows: number): BeamGrid {
@@ -27,6 +27,85 @@ describe("beam stroke", () => {
     const end = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 1, 3.8);
     assert.deepEqual(end.head, { x: 4, y: 0 });
     assert.ok(Math.abs(end.tail.x - 0.2) < 1e-9);
+  });
+});
+
+describe("targetable slider range", () => {
+  const ship = grid([cell("left", 1, 1, 1, 2), cell("right", 4, 1)], 6, 4);
+
+  it("stops at the occupied floor and will not sit on hull", () => {
+    const span = targetableSpan(ship);
+    assert.ok(span);
+    assert.equal(span.minX, 1);
+    assert.equal(span.minY, 1);
+    assert.ok(span.maxX < 5);
+    assert.ok(span.maxX > 4);
+    assert.ok(span.maxY < 3);
+    const outside = clampTargetPoint(ship, { x: -4, y: 20 });
+    assert.ok(outside);
+    assert.equal(roomAtPoint(ship, outside), "left");
+    const gap = clampTargetPoint(ship, { x: 2.4, y: 1.2 });
+    assert.ok(gap);
+    assert.ok(roomAtPoint(ship, gap));
+    const inside = clampTargetPoint(ship, { x: 4.2, y: 1.4 });
+    assert.deepEqual(inside, { x: 4.2, y: 1.4 });
+  });
+
+  it("keeps a beam end on the floor and inside its tile length", () => {
+    const start = { x: 1.2, y: 1.2 };
+    const end = clampBeamEnd(ship, start, { x: 40, y: 1.2 }, 1.5);
+    assert.ok(end);
+    assert.ok(roomAtPoint(ship, end) || Math.hypot(end.x - start.x, end.y - start.y) <= 1.5 + 1e-6);
+    assert.ok(Math.hypot(end.x - start.x, end.y - start.y) <= 1.5 + 1e-6 || roomAtPoint(ship, end));
+    assert.ok(end.x <= (targetableSpan(ship)?.maxX ?? 0) + 1e-6);
+    assert.ok(end.y <= (targetableSpan(ship)?.maxY ?? 0) + 1e-6);
+  });
+});
+
+describe("slider aim", () => {
+  it("moves a queued laser onto the room under the point and does not fire", () => {
+    const g = createGame(1, "slug-a");
+    startCombat(g, "scout");
+    const laser = g.player.weapons.find((gun) => gun.defId !== "antibio" && gun.enabled);
+    assert.ok(laser);
+    const rooms = g.enemy!.rooms;
+    laser.charge = 1;
+    armWeapon(g, laser.uid);
+    const spot = roomCenter(rooms[rooms.length - 1]);
+    nudgeAim(g, "point", spot);
+    assert.equal(laser.target, rooms[rooms.length - 1].id);
+    assert.equal(g.shots.some((s) => s.defId === laser.defId), false);
+    nudgeAim(g, "point", { x: spot.x + 80, y: spot.y - 80 });
+    assert.ok(rooms.some((room) => room.id === laser.target));
+    assert.equal(g.shots.some((s) => s.defId === laser.defId), false);
+  });
+
+  it("sets a beam from two points and will not leave the enemy floor", () => {
+    const g = createGame(1, "slug-a");
+    startCombat(g, "scout");
+    const w = g.player.weapons.find((gun) => gun.defId === "antibio");
+    assert.ok(w);
+    w.charge = 0;
+    armWeapon(g, w.uid);
+    const rooms = g.enemy!.rooms;
+    const start = roomCenter(rooms[0]);
+    nudgeAim(g, "a", start);
+    assert.equal(g.targeting, true);
+    assert.equal(w.beamLine ?? null, null);
+    assert.equal(g.shots.length, 0);
+    nudgeAim(g, "b", { x: 80, y: -10 });
+    assert.ok(w.beamLine);
+    const span = targetableSpan(g.enemy!);
+    assert.ok(span);
+    assert.ok(w.beamLine.a.x >= span.minX && w.beamLine.a.x <= span.maxX);
+    assert.ok(w.beamLine.b.x >= span.minX - 1e-6 && w.beamLine.b.x <= span.maxX + 1e-6);
+    assert.ok(w.beamLine.b.y >= span.minY - 1e-6 && w.beamLine.b.y <= span.maxY + 1e-6);
+    const tiles = beamTileLength("antibio") ?? 0;
+    assert.ok(Math.hypot(w.beamLine.b.x - w.beamLine.a.x, w.beamLine.b.y - w.beamLine.a.y) <= tiles + 0.05);
+    assert.equal(g.shots.length, 0);
+    nudgeAim(g, "a", roomCenter(rooms[Math.min(1, rooms.length - 1)]));
+    assert.ok(w.beamLine);
+    assert.equal(g.shots.length, 0);
   });
 });
 

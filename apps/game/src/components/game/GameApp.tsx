@@ -22,6 +22,7 @@ import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
 import { recallSling, sendSling, shipInDanger, slingUpgradeCost, upgradeSling } from "@/game/extras/sling";
 import { activateDroneSlot, depowerDrone, lowerSwarmPower, playerDroneSlots, raiseSwarmPower, reorderDroneSlots, roomDroneHp, toggleSwarmPower } from "@/game/extras/swarm";
 import { beamTileLength } from "@/game/wiki/weapons-beam";
+import { clampTargetPoint, roomAtPoint, roomCenter, targetableSpan } from "@/game/beam-line";
 import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
 import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFlakPower, upgradeFlak } from "@/game/extras/flakart";
 import { Hangar } from "./Hangar";
@@ -87,6 +88,7 @@ import {
   zoltanBars,
   closeAllDoors,
   lockdown,
+  nudgeAim,
   lockdownSelected,
   openAllDoors,
   shipTicking,
@@ -138,7 +140,7 @@ import {
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { AugmentId, BeamLine, Crew, Game, Overflow, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
+import type { AugmentId, BeamLine, BeamPoint, Crew, Game, Overflow, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
@@ -927,7 +929,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         // and aim clears an invalid one) clears that weapon's designated target. Buttons elsewhere (HUD, dock) do not.
         if (!useGame.getState().game.targeting || !t) return;
         if (!t.closest(".stage-slot, .target-panel")) return;
-        if (t.closest("[data-room], button, a, input")) return;
+        if (t.closest("[data-room], button, a, input, .aim-sliders")) return;
         act((g) => cancelTargeting(g));
       }}
       onContextMenu={(e) => {
@@ -1323,6 +1325,85 @@ function aimMarks(game: Game): AimMark[] {
  * @agent:hack-ui. The player's hacking reticle on the enemy hull: the latched drone, or the room being aimed at.
  * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
  */
+function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: boolean }) {
+  // Per the user: sliders on the target pane aim without a tap, and nudge a target that is already set.
+  // A beam has a start and an end, so it gets an x and a y for each. The range is the targetable floor.
+  const span = targetableSpan(enemy);
+  const [draft, setDraft] = useState<{ uid: string; a: BeamPoint; b: BeamPoint } | null>(null);
+  if (hidden || !span || game.phase !== "combat") return null;
+  const armed = game.player.weapons.find((gun) => gun.uid === game.armed);
+  const w = armed ?? game.player.weapons.find((gun) => gun.target || gun.beamLine);
+  if (!w) return null;
+  const gun = w;
+  const def = WEAPONS[gun.defId];
+  if (!def) return null;
+  const aiming = game.targeting && game.armed === gun.uid;
+  if (!aiming && !gun.target && !gun.beamLine && !(game.beamAnchor && game.armed === gun.uid)) return null;
+  const beam = def.kind === "beam";
+  const mid = { x: (span.minX + span.maxX) / 2, y: (span.minY + span.maxY) / 2 };
+  const roomPoint = (id: string | null): BeamPoint | null => {
+    const room = id ? enemy.rooms.find((r) => r.id === id) : undefined;
+    return room ? roomCenter(room) : null;
+  };
+  let a: BeamPoint;
+  let b: BeamPoint;
+  if (gun.beamLine) {
+    a = gun.beamLine.a;
+    b = gun.beamLine.b;
+  } else if (game.beamAnchor && game.armed === gun.uid) {
+    a = game.beamAnchor;
+    b = draft?.uid === gun.uid ? draft.b : game.beamAnchor;
+  } else if (!beam && gun.target && draft?.uid === gun.uid && roomAtPoint(enemy, draft.a) === gun.target) {
+    a = draft.a;
+    b = draft.a;
+  } else {
+    const pinned = roomPoint(gun.target);
+    a = pinned ?? (draft?.uid === gun.uid ? draft.a : mid);
+    b = pinned ?? (draft?.uid === gun.uid ? draft.b : mid);
+  }
+  function slide(which: "a" | "b", axis: "x" | "y", raw: number) {
+    const current = which === "a" ? a : b;
+    const next = clampTargetPoint(enemy, { ...current, [axis]: raw }) ?? { ...current, [axis]: raw };
+    const pair = { a: which === "a" ? next : a, b: which === "b" ? next : b };
+    setDraft({ uid: gun.uid, ...pair });
+    act((g) => nudgeAim(g, beam ? which : "point", next));
+  }
+  const row = (which: "a" | "b", point: BeamPoint, xLabel: string, yLabel: string) => (
+    <>
+      <label>
+        {xLabel}
+        <input
+          type="range"
+          min={span.minX}
+          max={span.maxX}
+          step={0.05}
+          value={point.x}
+          aria-label={xLabel}
+          onInput={(e) => slide(which, "x", Number(e.currentTarget.value))}
+        />
+      </label>
+      <label>
+        {yLabel}
+        <input
+          type="range"
+          min={span.minY}
+          max={span.maxY}
+          step={0.05}
+          value={point.y}
+          aria-label={yLabel}
+          onInput={(e) => slide(which, "y", Number(e.currentTarget.value))}
+        />
+      </label>
+    </>
+  );
+  return (
+    <div className="aim-sliders">
+      {row("a", a, beam ? tx("ui.GameApp.start-x") : tx("ui.GameApp.aim-x"), beam ? tx("ui.GameApp.start-y") : tx("ui.GameApp.aim-y"))}
+      {beam ? row("b", b, tx("ui.GameApp.end-x"), tx("ui.GameApp.end-y")) : null}
+    </div>
+  );
+}
+
 function hackMarkOf(game: Game): HackMark | null {
   const view = playerHackView(game);
   if (!view || !view.room || !game.enemy) return null;
@@ -1537,6 +1618,7 @@ function TargetPanel({
         </div>
         {cloaked ? <p className="cloak-tag">{tx("ui.GameApp.cloaked")}</p> : null}
       </div>
+      <AimSliders game={game} enemy={enemy} hidden={hackAiming || slingAiming || leashAiming} />
       <div className="target-systems">
         {SYS_ORDER.map((id) => {
           const sys = enemy.systems[id];

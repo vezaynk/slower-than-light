@@ -6118,7 +6118,9 @@ body.page-turn-180 {
 
 /* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
    place (PauseStamp). INVENTED sizes. */
-.hud-right { display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end; }
+/* The HUD is padded 10px from the edge. The target panel's right border is 16px in, so this
+   margin lines the rightmost button's border up with that panel border. */
+.hud-right { display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end; margin-right: 6px; }
 .frame-btn.fast-btn.is-on { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 12px rgba(255, 210, 90, 0.25); }
 .hud-right .pause-mark {
   position: static;

@@ -1,4 +1,3 @@
-import type { KinId } from "./extras/kin.ts";
 import type { EscapePlan } from "./wiki/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";
@@ -174,8 +173,8 @@ export type Crew = {
   /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */
   uniform?: number;
   skills?: Partial<Record<SkillName, number>>;
-  /** Lineage id from extras/kin.ts. Absent means the baseline row. */
-  kin?: KinId;
+  /** Crew definition id. Absent means the plain race. Campaign ids live in extras/kin.ts. */
+  kin?: string;
   /** Seconds left fighting for the other side. */
   leashed?: number;
   /** Mind Control health boost (+15 at level 2, +30 at level 3) added to maxHp and hp while leashed (extras/leash.ts). */

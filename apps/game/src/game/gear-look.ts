@@ -5,7 +5,8 @@
  * fitted weapon and every drone renders to a different picture.
  */
 import { tx } from "../i18n/index.ts";
-import { WEAPONS } from "./content.ts";
+import "./pack/base.ts";
+import { allWeapons, weaponDef } from "./pack/registry.ts";
 import type { SwarmKind } from "./extras/swarm.ts";
 
 /** b = body, t = trim, g = glow, o = outline (added last), . = empty. */
@@ -322,7 +323,7 @@ export function weaponPalette(id: string | undefined): Palette {
 }
 
 function fallbackWeapon(id: string) {
-  const kind = WEAPONS[id]?.kind;
+  const kind = weaponDef(id)?.kind;
   if (kind === "missile") return "artemis";
   if (kind === "ion") return "needle";
   if (kind === "beam") return "shear";
@@ -448,7 +449,7 @@ function normal(name: string) {
 export function weaponIdForName(name: string): string | null {
   const key = normal(name);
   if (WEAPON_ALIASES[key]) return WEAPON_ALIASES[key];
-  const row = Object.values(WEAPONS).find((weapon) => normal(weapon.name) === key);
+  const row = allWeapons().find((weapon) => normal(weapon.name) === key);
   return row?.id ?? null;
 }
 

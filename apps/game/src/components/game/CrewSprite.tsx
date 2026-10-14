@@ -185,7 +185,7 @@ export function CrewSprite({
   loopAll = false,
   phase = 0,
 }: {
-  kin: KinId | undefined;
+  kin: string | undefined;
   uniform: string;
   size?: number;
   className?: string;
@@ -198,7 +198,7 @@ export function CrewSprite({
   phase?: number;
 }) {
   const id = kin ?? "plain";
-  const skin = KIN_SKIN[id];
+  const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.plain;
   const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
   const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
   const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""].filter(Boolean).join(" ");
@@ -215,7 +215,7 @@ export function CrewSprite({
     >
       {frames.map((fi) => (
         <g key={fi} className={looping ? `crew-frame is-f${fi}` : undefined}>
-          {RUNS[id][pose][fi]!.map((r) => (
+          {(id in RUNS ? RUNS[id as KinId] : RUNS.plain)[pose][fi]!.map((r) => (
             <rect
               key={`${fi}-${r.x}-${r.y}-${r.w}-${r.c}`}
               x={r.x}

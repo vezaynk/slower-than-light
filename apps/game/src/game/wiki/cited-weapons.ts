@@ -1,3 +1,5 @@
+import "../pack/base.ts";
+import { weaponDef } from "../pack/registry.ts";
 import type { Shot } from "../types.ts";
 import { BEAM_CREW } from "./weapons-beam.ts";
 import { BOMB_CREW } from "./weapons-bomb.ts";
@@ -19,6 +21,8 @@ const CREW_BY_ID: Record<string, number> = {
 };
 
 export function citedCrewDamage(shot: Shot, _damage: number): number | null {
+  const packed = shot.defId ? weaponDef(shot.defId)?.crewDamage : undefined;
+  if (packed != null) return packed;
   if (!shot.defId || !Object.prototype.hasOwnProperty.call(CREW_BY_ID, shot.defId)) return null;
   return CREW_BY_ID[shot.defId];
 }
@@ -49,6 +53,8 @@ export function systemlessHull(defId: string | undefined): number | null {
 const PIERCE_ONE = new Set(["heavypierce", "crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2"]);
 
 export function citedPierce(defId: string | undefined): number {
+  const packed = defId ? weaponDef(defId)?.pierce : undefined;
+  if (packed != null) return packed;
   if (!defId || !PIERCE_ONE.has(defId)) return 0;
   return 1;
 }

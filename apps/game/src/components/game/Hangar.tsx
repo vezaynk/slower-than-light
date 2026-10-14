@@ -11,7 +11,8 @@
  */
 import { tx } from "@/i18n";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { WEAPONS } from "@/game/content";
+import "@/game/pack/base";
+import { weaponDef } from "@/game/pack/registry";
 import {
   NAME_MAX,
   PLAYER_UNIFORMS,
@@ -79,7 +80,7 @@ function seatsOf(layoutId: string, races: string[]): KinId[] {
 
 function weaponPower(name: string) {
   const id = weaponIdForName(name);
-  return id ? (WEAPONS[id]?.power ?? null) : null;
+  return id ? (weaponDef(id)?.power ?? null) : null;
 }
 
 /** @agent:unlocks. Server render and first paint: only the start ship. The client store takes over after hydration. */

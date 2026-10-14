@@ -1,7 +1,7 @@
 {
   "name": "@stl/game",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": ["**/*.css", "src/game/pack/base.ts"],
   "type": "module",
   "scripts": {
     "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",

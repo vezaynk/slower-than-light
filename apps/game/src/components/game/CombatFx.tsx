@@ -806,14 +806,22 @@ export function CombatFx() {
             const lengthPx = body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
             const stroke = beamStroke(a, b, t, lengthPx);
             const beamLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";
+            const ang = Math.atan2(stroke.head.y - stroke.tail.y, stroke.head.x - stroke.tail.x);
+            // A finished swipe stays on the hull. Beams never continue as a bolt.
             const rec: Seen = {
               at: stroke.head,
               color,
               kind: "beam",
-              ang: Math.atan2(stroke.head.y - stroke.tail.y, stroke.head.x - stroke.tail.x),
+              ang,
               side,
               roomId: shot.targetRoom,
               seg: { a: stroke.tail, b: stroke.head },
+              aim: b,
+              approachAng: ang,
+              speed: 0,
+              onArrival: true,
+              carryLayer: beamLayer,
+              spin: hash(shot.id),
             };
             seen.set(shot.id, rec);
             paintBeam(beamLayer, stroke.tail, stroke.head, color);

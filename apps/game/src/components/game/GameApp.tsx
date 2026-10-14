@@ -1221,7 +1221,7 @@ function FoeReadout({ game, foe }: { game: Game; foe: Ship | null }) {
           <p className="hud-class">
             <span className="line-stack">
               <span className={vision?.evasion != null ? "is-reserve" : undefined} aria-hidden={vision?.evasion != null || undefined}>
-                {tx("ui.GameApp.class")}{foe.name}
+                {foe.name}
               </span>
               <span
                 className={`hack-evasion${vision?.evasion != null ? "" : " is-reserve"}`}
@@ -1233,7 +1233,7 @@ function FoeReadout({ game, foe }: { game: Game; foe: Ship | null }) {
             </span>
           </p>
           {/* Per the user: a ship that is no longer fighting us (sim.ts truce) reads Neutral. */}
-          <p className="hud-relation">{tx("ui.GameApp.relationship")}{truce(game) && foe === game.wreck ? tx("ui.GameApp.neutral") : tx("ui.GameApp.hostile")}</p>
+          <p className="hud-relation">{truce(game) && foe === game.wreck ? tx("ui.GameApp.neutral") : tx("ui.GameApp.hostile")}</p>
         </>
       ) : null}
     </div>

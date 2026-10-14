@@ -2843,7 +2843,7 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
     );
   if (room.system === "weapons") {
     // Per the user: autofire is with the weapons power controls, including this room's menu.
-    add("autofire", tx("ui.GameApp.autofire"), <PixelIcon name="weapons" size={14} />, () => act((g) => toggleAutoAll(g)), false, !!game.autofireAll);
+    add("autofire", tx("ui.GameApp.autofire"), null, () => act((g) => toggleAutoAll(g)), false, !!game.autofireAll);
   }
   if (room.system === "doors") {
     add("open", tx("ui.GameApp.open-all"), <DoorAllIcon open />, () => act((g) => openAllDoors(g)), playerDoorsLocked(game));

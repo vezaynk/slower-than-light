@@ -1190,7 +1190,9 @@ function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
         {/* Per the user: the open space left of pause holds the danger mark and the target's class and relationship. */}
         <FoeReadout game={game} foe={foe} />
         {/* Per the user: pause and fast forward, top right. While paused, the PAUSED mark takes their place. */}
-        <ClockControls paused={!!game.userPaused} phase={game.phase} />
+        <div className="hud-clock">
+          <ClockControls paused={!!game.userPaused} phase={game.phase} />
+        </div>
       </div>
     </header>
   );
@@ -1201,7 +1203,6 @@ function FoeReadout({ game, foe }: { game: Game; foe: Ship | null }) {
   const pulse = !!game.pulsarWarned;
   const vision = foe ? hackVision(game) : null;
   const hack = foe ? playerHackView(game) : null;
-  if (!foe && !danger && !pulse) return null;
   return (
     <div className="hud-beside">
       {danger || pulse ? (

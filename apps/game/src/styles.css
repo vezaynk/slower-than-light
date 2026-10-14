@@ -1099,7 +1099,7 @@ button:disabled {
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  max-width: 220px;
+  width: 100%;
 }
 
 .danger-mark,
@@ -1109,6 +1109,7 @@ button:disabled {
   letter-spacing: 0.08em;
   line-height: 1.1;
   text-align: right;
+  white-space: nowrap;
   color: #ff4b4b;
 }
 
@@ -1120,14 +1121,16 @@ button:disabled {
   font-size: 13px;
 }
 
-/* Per the user: danger, class, and relationship sit in the space left of the pause button. */
+/* Per the user: danger, class, and relationship sit in the space left of the pause button.
+   The slot is the widest line that can land here: "Pirate Light-Surveyor" at 18px (171px). */
 .hud-beside {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
   gap: 2px;
-  max-width: 240px;
+  flex: none;
+  width: 171px;
   min-height: 76px;
   text-align: right;
 }
@@ -1135,9 +1138,11 @@ button:disabled {
 .hud-beside .hud-class,
 .hud-beside .hud-relation {
   margin: 0;
+  max-width: 100%;
   font-family: var(--font-hud);
   letter-spacing: 0.04em;
   line-height: 1.15;
+  white-space: nowrap;
 }
 
 .hud-beside .hud-class { font-size: 18px; color: var(--color-fg); }
@@ -6091,10 +6096,19 @@ body.page-turn-180 {
 .is-halted .room-terminal-art * { animation-play-state: paused; }
 
 /* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
-   place (PauseStamp). INVENTED sizes. */
+   place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
+   The two buttons sit at the right of that same width. INVENTED sizes. */
 /* The HUD is padded 10px from the edge. The target panel's right border is 16px in, so this
    margin lines the rightmost button's border up with that panel border. */
 .hud-right { display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end; margin-right: 6px; }
+.hud-clock {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px;
+  width: 274px;
+}
 .frame-btn.fast-btn.is-on { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 12px rgba(255, 210, 90, 0.25); }
 .hud-right .pause-mark {
   position: static;
@@ -6104,7 +6118,7 @@ body.page-turn-180 {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 160px;
+  width: 100%;
   height: 76px;
   min-height: 0;
   padding: 4px 16px;

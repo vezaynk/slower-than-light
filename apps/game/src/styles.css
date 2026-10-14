@@ -881,7 +881,8 @@ button:disabled {
 }
 
 .play.is-sized .target-panel {
-  height: min(var(--target-max-h, 100%), calc(100% - 32px));
+  /* 16px top margin, 16px below the rail, and the rail itself. */
+  height: min(var(--target-max-h, 100%), calc(100% - 32px - var(--aim-thick)));
   align-self: start;
 }
 
@@ -1541,13 +1542,17 @@ button:disabled {
 
 .target-panel {
   grid-area: target;
-  /* Per the user: a margin on every side, so the panel sits in from the stage, the HUD, and the screen edges. */
-  margin: 16px;
+  /* Per the user: a margin on every side, so the panel sits in from the stage, the HUD, and the screen edges.
+     The right and bottom margins also hold the aim rails, which hang outside the 2px border. */
+  --aim-thick: 40px;
+  --aim-grip: 40px;
+  margin: 16px calc(16px + var(--aim-thick)) calc(16px + var(--aim-thick)) 16px;
   border-radius: var(--radius);
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Visible so the rails, which sit outside the border, are not clipped. The cutaway clips itself. */
+  overflow: visible;
   z-index: 2;
   /* A second camera laid over the main view. The glass stays translucent so a shot
      leaving the player can be seen passing under it on the way off the right edge. */
@@ -1583,55 +1588,67 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Per the user: the thumbs sit on the panel border. They do not pad the card, and the track has no line. */
+/* Per the user: the thumbs ride the outside of the panel border. The track has no line.
+   The whole rail is the grab, so a miss along the edge still catches the slider. */
 .target-panel { position: relative; }
 
-.aim-rails { pointer-events: none; }
+.aim-rails {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
 
 .aim-rail {
   position: absolute;
-  z-index: 6;
-  pointer-events: none;
+  pointer-events: auto;
   touch-action: none;
   background: none;
 }
 
 .aim-rail-x {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 22px;
+  left: -2px;
+  right: -2px;
+  bottom: calc(-2px - var(--aim-thick));
+  height: var(--aim-thick);
+  cursor: ew-resize;
 }
 
 .aim-rail-y {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 22px;
+  top: -2px;
+  bottom: -2px;
+  right: calc(-2px - var(--aim-thick));
+  width: var(--aim-thick);
+  cursor: ns-resize;
 }
 
 .aim-thumb {
   position: absolute;
+  margin: 0;
   padding: 0;
+  box-sizing: border-box;
   border: 2px solid var(--color-line);
   background: var(--color-accent);
   box-shadow: var(--glow);
   touch-action: none;
   pointer-events: auto;
+  cursor: grab;
 }
+
+.aim-thumb:active { cursor: grabbing; }
 
 .aim-thumb-x {
   top: 0;
-  width: 16px;
-  height: 22px;
-  left: calc(var(--t) * (100% - 16px));
+  width: var(--aim-grip);
+  height: 100%;
+  left: calc(var(--t) * (100% - var(--aim-grip)));
 }
 
 .aim-thumb-y {
   left: 0;
-  width: 22px;
-  height: 16px;
-  top: calc(var(--t) * (100% - 16px));
+  width: 100%;
+  height: var(--aim-grip);
+  top: calc(var(--t) * (100% - var(--aim-grip)));
 }
 
 .aim-thumb.is-end { background: var(--color-ok); }

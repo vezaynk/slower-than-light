@@ -834,8 +834,10 @@ function isKitId(id: SysId | KitId): id is KitId {
 const BATTLE_CLEAR = 64;
 const FLAGSHIP_COLS = 12;
 const FLAGSHIP_ROWS = 10;
-/** Body padding on both sides, and the 16px margin on both sides. The aim thumbs do not reserve a gutter. */
-const PANEL_CHROME_X = 16 + 32;
+/** Exterior aim rail on the right. Keep in step with --aim-thick on .target-panel. */
+const AIM_RAIL = 40;
+/** Body padding on both sides, the 16px margin on both sides, and the right aim rail. */
+const PANEL_CHROME_X = 16 + 32 + AIM_RAIL;
 /** Vitals, the body's own padding, and two rows of system chips. */
 const PANEL_CHROME_Y = 132;
 
@@ -1467,7 +1469,7 @@ function aimMarks(game: Game): AimMark[] {
  * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
  */
 function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: boolean }) {
-  // Per the user: the sliders ride the borders of the target panel, not a block inside the card.
+  // Per the user: the sliders ride the outside of the target panel's border.
   // X travels the bottom edge, Y the right edge. A beam has a second thumb on each edge.
   // The travel stays inside the enemy's targetable floor.
   const span = targetableSpan(enemy);

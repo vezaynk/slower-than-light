@@ -186,6 +186,22 @@ test("a file-level note cites its own line, and a choice cites the quotation lin
   assert.equal(pin.cite.line, 3);
 });
 
+test("a resource id does not attach the Fuel page to the rest of the file", () => {
+  const src = 'function resource(id: "fuel" | "missiles") {\n  return tx("k");\n}\nfunction later() {\n  return tx("k");\n}\n';
+  const titles = new Map([
+    ["fuel", "Fuel"],
+    ["giant alien spiders", "Giant alien spiders"],
+  ]);
+  const i18n = new Map([["k", "You give them fuel and they thank you for the help today."]]);
+  const hits = scanSource("src/game/wiki/filler-events.ts", src, titles, i18n);
+  assert.equal(hits.length, 2);
+  assert.deepEqual(hits[0]!.pages, []);
+  assert.deepEqual(hits[1]!.pages, []);
+  const choice = 'const CHOICES = {\n  "c:giant-alien-spiders:0": () => {\n    tx("k");\n  },\n};\n';
+  const scoped = scanSource("src/game/wiki/filler-events.ts", choice, titles, i18n);
+  assert.deepEqual(scoped[0]!.pages, ["Giant alien spiders"]);
+});
+
 test("the longer phrase keeps the highlight", () => {
   const text = "You arrive at a Zoltan research facility and stay.";
   const marks = cover(text, ["Zoltan research facility", text]);

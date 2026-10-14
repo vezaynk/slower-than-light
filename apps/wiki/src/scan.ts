@@ -186,10 +186,13 @@ export function scanSource(file: string, src: string, titleByNorm: Map<string, s
     const field = colonField;
     if (field === "id" || field === "slug" || field === "dest" || field === "page" || field === "name" || field === "aliases") {
       if (field !== "aliases") colonField = null;
-      if (field === "id" && isChoice(value)) {
-        top().choice = value;
-        const page = pageFromChoice(value);
-        if (page && !top().pages.includes(page)) top().pages.push(page);
+      if (field === "id") {
+        // A resource id such as "fuel" is not an event. Only a choice id names a page.
+        if (isChoice(value)) {
+          top().choice = value;
+          const page = pageFromChoice(value);
+          if (page && !top().pages.includes(page)) top().pages.push(page);
+        }
         return;
       }
       if (field === "slug") {

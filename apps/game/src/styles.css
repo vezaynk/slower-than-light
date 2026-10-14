@@ -881,8 +881,7 @@ button:disabled {
 }
 
 .play.is-sized .target-panel {
-  /* 16px top margin, 16px below the rail, and the rail itself. */
-  height: min(var(--target-max-h, 100%), calc(100% - 32px - var(--aim-thick)));
+  height: min(var(--target-max-h, 100%), calc(100% - 32px));
   align-self: start;
 }
 
@@ -1543,10 +1542,10 @@ button:disabled {
 .target-panel {
   grid-area: target;
   /* Per the user: a margin on every side, so the panel sits in from the stage, the HUD, and the screen edges.
-     The right and bottom margins also hold the aim rails, which hang outside the 2px border. */
-  --aim-thick: 40px;
-  --aim-grip: 40px;
-  margin: 16px calc(16px + var(--aim-thick)) calc(16px + var(--aim-thick)) 16px;
+     The aim thumbs lie on the border itself, so the margin does not grow to hold them. */
+  --aim-flat: 14px;
+  --aim-long: 64px;
+  margin: 16px;
   border-radius: var(--radius);
   min-height: 0;
   display: flex;
@@ -1588,8 +1587,8 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Per the user: the thumbs ride the outside of the panel border. The track has no line.
-   The whole rail is the grab, so a miss along the edge still catches the slider. */
+/* Per the user: flat thumbs centered on the panel border, only while aiming.
+   Chevrons and a grip mark show the thumb slides along that edge. */
 .target-panel { position: relative; }
 
 .aim-rails {
@@ -1607,48 +1606,99 @@ button:disabled {
 }
 
 .aim-rail-x {
-  left: -2px;
-  right: -2px;
-  bottom: calc(-2px - var(--aim-thick));
-  height: var(--aim-thick);
+  left: 0;
+  right: 0;
+  height: var(--aim-flat);
+  bottom: calc(-1 * (var(--aim-flat) + 2px) / 2);
   cursor: ew-resize;
 }
 
 .aim-rail-y {
-  top: -2px;
-  bottom: -2px;
-  right: calc(-2px - var(--aim-thick));
-  width: var(--aim-thick);
+  top: 0;
+  bottom: 0;
+  width: var(--aim-flat);
+  right: calc(-1 * (var(--aim-flat) + 2px) / 2);
   cursor: ns-resize;
 }
 
 .aim-thumb {
   position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: 0;
-  padding: 0;
   box-sizing: border-box;
   border: 2px solid var(--color-line);
   background: var(--color-accent);
+  color: var(--color-ink);
   box-shadow: var(--glow);
   touch-action: none;
   pointer-events: auto;
   cursor: grab;
+  line-height: 0;
 }
 
 .aim-thumb:active { cursor: grabbing; }
 
 .aim-thumb-x {
   top: 0;
-  width: var(--aim-grip);
+  width: var(--aim-long);
   height: 100%;
-  left: calc(var(--t) * (100% - var(--aim-grip)));
+  padding: 0 5px;
+  left: calc(var(--t) * (100% - var(--aim-long)));
 }
 
 .aim-thumb-y {
   left: 0;
   width: 100%;
-  height: var(--aim-grip);
-  top: calc(var(--t) * (100% - var(--aim-grip)));
+  height: var(--aim-long);
+  padding: 5px 0;
+  flex-direction: column;
+  top: calc(var(--t) * (100% - var(--aim-long)));
+}
+
+.aim-chev {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.aim-thumb-x .aim-chev {
+  border-width: 4px 5px 4px 0;
+  border-color: transparent currentColor transparent transparent;
+}
+
+.aim-thumb-x .aim-chev.is-far {
+  border-width: 4px 0 4px 5px;
+  border-color: transparent transparent transparent currentColor;
+}
+
+.aim-thumb-y .aim-chev {
+  border-width: 0 4px 5px 4px;
+  border-color: transparent transparent currentColor transparent;
+}
+
+.aim-thumb-y .aim-chev.is-far {
+  border-width: 5px 4px 0 4px;
+  border-color: currentColor transparent transparent transparent;
+}
+
+.aim-grip-mark {
+  flex: none;
+  background: currentColor;
+}
+
+.aim-thumb-x .aim-grip-mark {
+  width: 10px;
+  height: 8px;
+  background: repeating-linear-gradient(to right, currentColor 0 2px, transparent 2px 4px);
+}
+
+.aim-thumb-y .aim-grip-mark {
+  width: 8px;
+  height: 10px;
+  background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 4px);
 }
 
 .aim-thumb.is-end { background: var(--color-ok); }

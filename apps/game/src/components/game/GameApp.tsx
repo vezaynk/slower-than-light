@@ -834,10 +834,8 @@ function isKitId(id: SysId | KitId): id is KitId {
 const BATTLE_CLEAR = 64;
 const FLAGSHIP_COLS = 12;
 const FLAGSHIP_ROWS = 10;
-/** Exterior aim rail on the right. Keep in step with --aim-thick on .target-panel. */
-const AIM_RAIL = 40;
-/** Body padding on both sides, the 16px margin on both sides, and the right aim rail. */
-const PANEL_CHROME_X = 16 + 32 + AIM_RAIL;
+/** Body padding on both sides, and the 16px margin on both sides. */
+const PANEL_CHROME_X = 16 + 32;
 /** Vitals, the body's own padding, and two rows of system chips. */
 const PANEL_CHROME_Y = 132;
 
@@ -1469,21 +1467,18 @@ function aimMarks(game: Game): AimMark[] {
  * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
  */
 function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: boolean }) {
-  // Per the user: the sliders ride the outside of the target panel's border.
+  // Per the user: the sliders sit on the target panel border, and only while a weapon is selected to aim.
   // X travels the bottom edge, Y the right edge. A beam has a second thumb on each edge.
   // The travel stays inside the enemy's targetable floor.
   const span = targetableSpan(enemy);
   const [draft, setDraft] = useState<{ uid: string; a: BeamPoint; b: BeamPoint } | null>(null);
-  if (hidden || !span || game.phase !== "combat") return null;
+  const [dragging, setDragging] = useState(false);
+  // A drag confirms the aim, which leaves targeting mode. Keep the thumbs up until the pointer lets go.
+  if (hidden || !span || game.phase !== "combat" || (!game.targeting && !dragging)) return null;
   const range = span;
-  const armed = game.player.weapons.find((gun) => gun.uid === game.armed);
-  const w = armed ?? game.player.weapons.find((gun) => gun.target || gun.beamLine);
-  if (!w) return null;
-  const gun = w;
-  const def = WEAPONS[gun.defId];
-  if (!def) return null;
-  const aiming = game.targeting && game.armed === gun.uid;
-  if (!aiming && !gun.target && !gun.beamLine && !(game.beamAnchor && game.armed === gun.uid)) return null;
+  const gun = game.player.weapons.find((w) => w.uid === game.armed);
+  const def = gun ? WEAPONS[gun.defId] : undefined;
+  if (!gun || !def) return null;
   const beam = def.kind === "beam";
   const mid = { x: (range.minX + range.maxX) / 2, y: (range.minY + range.maxY) / 2 };
   const roomPoint = (id: string | null): BeamPoint | null => {
@@ -1528,10 +1523,12 @@ function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: 
     e.stopPropagation();
     const rail = e.currentTarget.closest(".aim-rail");
     if (!(rail instanceof HTMLElement)) return;
+    setDragging(true);
     const apply = (clientX: number, clientY: number) => slide(which, axis, fromPointer(rail, axis, clientX, clientY));
     apply(e.clientX, e.clientY);
     const move = (ev: PointerEvent) => apply(ev.clientX, ev.clientY);
     const up = () => {
+      setDragging(false);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
@@ -1571,7 +1568,11 @@ function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: 
         e.preventDefault();
         slide(which, axis, (axis === "x" ? point.x : point.y) + dir * step);
       }}
-    />
+    >
+      <span className="aim-chev" aria-hidden="true" />
+      <span className="aim-grip-mark" aria-hidden="true" />
+      <span className="aim-chev is-far" aria-hidden="true" />
+    </button>
   );
   return (
     <div className="aim-rails">

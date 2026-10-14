@@ -246,7 +246,7 @@ type Props = {
   selectedIds?: string[];
   ventMode: boolean;
   targetable: boolean;
-  onRoom: (id: string, point?: BeamPoint, how?: { touch?: boolean }) => void;
+  onRoom: (id: string, point?: BeamPoint, how?: { touch?: boolean; autofire?: boolean }) => void;
   /** Right-click a room to move the crew who can walk on this hull. */
   onRoomMenu?: (id: string) => void;
   /** Drag box. The ids are every living crew member whose sprite fell inside it. */
@@ -590,7 +590,7 @@ export function ShipView({
                 if (swallowHoldClick(e)) return;
                 const f = frac(e.currentTarget, e.clientX, e.clientY);
                 const touch = e.currentTarget.dataset.ptr === "touch";
-                onRoom(room.id, pointInRoom(room, f.x, f.y), { touch });
+                onRoom(room.id, pointInRoom(room, f.x, f.y), { touch, autofire: e.ctrlKey && !e.metaKey });
               }}
               onContextMenu={(e) => {
                 if (!onRoomMenu) return;

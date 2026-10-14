@@ -231,11 +231,25 @@ export function toggleSwarmPower(g: Game): void {
   if (!kit) return;
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) >= 1) {
-    kit.power += 1;
+    raiseSwarmPower(g);
     return;
   }
   // Zoltans: dropping a reactor bar does not undeploy a drone those Zoltan bars still cover alone.
-  if (kit.power > 0) kit.power -= 1;
+  lowerSwarmPower(g);
+}
+
+/** Configure controls, page 2: E adds one Drone Control bar. */
+export function raiseSwarmPower(g: Game): void {
+  const kit = g.player.kits.swarm;
+  if (!kit) return;
+  if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) >= 1) kit.power += 1;
+}
+
+/** Systems, "Powering and upgrading systems": Shift plus the power key removes one bar. */
+export function lowerSwarmPower(g: Game): void {
+  const kit = g.player.kits.swarm;
+  if (!kit || kit.power <= 0) return;
+  kit.power -= 1;
 }
 
 /**

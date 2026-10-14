@@ -471,6 +471,17 @@ export function Verdict({ game }: { game: Game }) {
       setHigh(true);
     }
   }, [copy.score, score, step]);
+  // Game patches: the credits close only with Escape, not a stray key. A click still leaves them.
+  useEffect(() => {
+    if (step !== "cinema") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      setStep("card");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step]);
   if (stats) return <AchievementsScreen game={game} onClose={() => setStats(false)} />;
   if (step === "cinema") {
     const names = game.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.name);

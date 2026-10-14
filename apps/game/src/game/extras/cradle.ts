@@ -112,15 +112,29 @@ export function toggleCradlePower(g: Game) {
   const kit = g.player.kits.cradle;
   if (!kit || kit.level <= 0) return;
   if (kit.power >= 1) {
-    kit.power = 0;
-    kit.on = false;
+    lowerCradlePower(g);
     return;
   }
+  raiseCradlePower(g);
+}
+
+/** Configure controls, page 2: D adds one bar to Medbay or Clone Bay. Clone Bay keeps a single bar. */
+export function raiseCradlePower(g: Game) {
+  const kit = g.player.kits.cradle;
+  if (!kit || kit.level <= 0 || kit.power >= 1) return;
   if (sparePower(g.player) < 1) return;
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (kit.level - (kit.damage ?? 0) < 1) return;
   kit.power = 1;
   kit.on = true;
+}
+
+/** Systems, "Powering and upgrading systems": Shift plus the power key removes one bar. */
+export function lowerCradlePower(g: Game) {
+  const kit = g.player.kits.cradle;
+  if (!kit || kit.power <= 0) return;
+  kit.power = 0;
+  kit.on = false;
 }
 
 /**

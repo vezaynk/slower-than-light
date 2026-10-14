@@ -1953,13 +1953,13 @@ button:disabled {
 }
 
 .ftl-card p {
-  font-size: 15px;
+  font-size: calc(15px + var(--event-font, 0) * 2px);
   line-height: 1.45;
   color: var(--color-fg);
 }
 
 .event-lead {
-  font-size: 28px !important !important;
+  font-size: calc(28px + var(--event-font, 0) * 2px) !important !important;
   margin-bottom: 14px;
   font-family: var(--font-hud);
   letter-spacing: 0.04em;
@@ -1979,7 +1979,7 @@ button:disabled {
   color: var(--color-fg);
   text-align: left;
   font: inherit;
-  font-size: 15px;
+  font-size: calc(15px + var(--event-font, 0) * 2px);
   padding: 8px 12px;
   min-height: 40px;
   display: block;

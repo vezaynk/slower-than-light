@@ -2,7 +2,7 @@ import { Button, Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
-import { setSetting, useOptionsOpen, useSettings } from "@/game/settings";
+import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
@@ -20,7 +20,7 @@ import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, o
 import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCell } from "@/game/extras/cell";
 import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
 import { recallSling, sendSling, shipInDanger, slingUpgradeCost, upgradeSling } from "@/game/extras/sling";
-import { activateDroneSlot, depowerDrone, playerDroneSlots, reorderDroneSlots, roomDroneHp } from "@/game/extras/swarm";
+import { activateDroneSlot, depowerDrone, lowerSwarmPower, playerDroneSlots, raiseSwarmPower, reorderDroneSlots, roomDroneHp, toggleSwarmPower } from "@/game/extras/swarm";
 import { beamTileLength } from "@/game/wiki/weapons-beam";
 import { CHARGE_SECONDS as LANCE_CHARGE, lanceUpgradeCost, lowerLancePower, raiseLancePower, upgradeLance } from "@/game/extras/lance";
 import { CHARGE_SECONDS as FLAK_CHARGE, flakUpgradeCost, lowerFlakPower, raiseFlakPower, upgradeFlak } from "@/game/extras/flakart";
@@ -30,7 +30,7 @@ import { PixelHull, PixelLayout, PixelMenu, PixelTitle, TITLE_MENU_ART, UnlockDi
 import { PLAYABLE_SHIPS, cruiserPage, type CruiserLayout, type WikiLine } from "@/game/wiki/layout-pages";
 import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
 import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
-import { cradleUpgradeCost, enemyCloneQueue, upgradeCradle } from "@/game/extras/cradle";
+import { cradleUpgradeCost, enemyCloneQueue, lowerCradlePower, raiseCradlePower, toggleCradlePower, upgradeCradle } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
 import { systemUnderBoarders } from "@/game/extras/sabotage";
 import { shipSight } from "@/game/extras/slug-sight";
@@ -120,6 +120,8 @@ import {
   toggleDoor,
   togglePause,
   halted,
+  holdAutofire,
+  pressJump,
   truce,
   waitHere,
   upgrade,
@@ -208,7 +210,7 @@ function clearAims() {
 }
 
 /**
- * @agent:hack-ui. The hacking drone icon (dock orb, or H). Hacking wiki, "Choosing your hacking target":
+ * @agent:hack-ui. The hacking drone icon (dock orb, or N). Hacking wiki, "Choosing your hacking target":
  * - no drone yet: enter hack targeting; "you can cancel the hack launch by clicking on the drone icon again".
  * - drone attached: start the hacking pulse ("Overview", Hacking pulse: 4 / 7 / 10 seconds, then "20 seconds cooldown
  *   before activating the next pulse"). spike.ts launchSpike re-pulses a latched drone without a new part.
@@ -269,6 +271,71 @@ function activateKit(id: KitId) {
   else if (id === "cell") act((g) => startCell(g));
   else if (id === "sling") slingIconClick();
   else if (id === "leash") leashIconClick();
+  else if (id === "cradle") act((g) => toggleCradlePower(g));
+  else if (id === "swarm") act((g) => toggleSwarmPower(g));
+}
+
+/**
+ * Configure controls, page 2: A shields, S engines, F oxygen, D medbay or clone bay, G teleporter,
+ * H cloaking, K mind control, L hacking, Y artillery, W weapons, E drones.
+ * Systems, "Powering and upgrading systems": Shift plus that key removes one bar.
+ * Artillery is one key. Artillery Beam takes it when both artillery kits are fitted.
+ */
+function powerHotkey(code: string, down: boolean): boolean {
+  const sys: Partial<Record<string, SysId>> = {
+    KeyA: "shields",
+    KeyS: "engines",
+    KeyF: "oxygen",
+    KeyW: "weapons",
+  };
+  const hit = sys[code];
+  if (hit) {
+    act((g) => (down ? powerDown(g, hit) : powerUp(g, hit)));
+    return true;
+  }
+  const kit: Partial<Record<string, BarKit>> = {
+    KeyG: "sling",
+    KeyH: "veil",
+    KeyK: "leash",
+  };
+  const bar = kit[code];
+  if (bar) {
+    act((g) => (down ? kitPowerDown(g, bar) : kitPowerUp(g, bar)));
+    return true;
+  }
+  if (code === "KeyD") {
+    act((g) => {
+      if (g.player.systems.medbay.level > 0) {
+        if (down) powerDown(g, "medbay");
+        else powerUp(g, "medbay");
+        return;
+      }
+      if (down) lowerCradlePower(g);
+      else raiseCradlePower(g);
+    });
+    return true;
+  }
+  if (code === "KeyL") {
+    act((g) => (down ? lowerSpikePower(g) : raiseSpikePower(g)));
+    return true;
+  }
+  if (code === "KeyY") {
+    act((g) => {
+      if (g.player.kits.lance) {
+        if (down) lowerLancePower(g);
+        else raiseLancePower(g);
+        return;
+      }
+      if (down) lowerFlakPower(g);
+      else raiseFlakPower(g);
+    });
+    return true;
+  }
+  if (code === "KeyE") {
+    act((g) => (down ? lowerSwarmPower(g) : raiseSwarmPower(g)));
+    return true;
+  }
+  return false;
 }
 
 function leashIconClick() {
@@ -396,17 +463,32 @@ export function GameApp() {
         act((g) => togglePause(g));
         return;
       }
-      // Per the user: fast forward. F is free (crew are F1–F8).
-      if (e.code === "KeyF" && plain) {
+      // Per the user: fast forward. The key left of 1 is free; F powers Oxygen on the controls page.
+      if (e.code === "Backquote" && plain) {
         e.preventDefault();
         useFast.setState((s) => ({ on: !s.on }));
         return;
       }
-      if (e.code === "KeyM" && plain) {
+      // Mute stays off the letter row. M is Mind Control on the controls page.
+      if (e.code === "Backslash" && plain) {
         e.preventDefault();
         setSetting("muted", !useSettings.getState().muted);
         return;
       }
+      // Configure controls, page 1: `-` increases event text and `=` decreases it.
+      if ((e.code === "Minus" || e.code === "NumpadSubtract") && plain) {
+        e.preventDefault();
+        stepEventFont(1);
+        return;
+      }
+      if (e.code === "Equal" && plain) {
+        e.preventDefault();
+        stepEventFont(-1);
+        return;
+      }
+      const phase = useGame.getState().game.phase;
+      // Game patches: the credits close only with Escape (Verdict). These screens take no ship keys.
+      if (phase === "title" || phase === "victory" || phase === "defeat") return;
       // Configure controls: U opens Upgrades. I opens Inventory. Both work while that menu is already open.
       if (e.code === "KeyU" && plain) {
         e.preventDefault();
@@ -418,18 +500,65 @@ export function GameApp() {
         act((g) => openShipMenu(g, "inventory"));
         return;
       }
+      // Configure controls, page 1: O opens options. Escape opens that menu when nothing else is open.
+      // A panel with an × already consumes Escape (CloseX). A room menu sets menuHold and closes itself.
+      if (e.code === "KeyO" && plain) {
+        e.preventDefault();
+        useOptionsOpen.setState((s) => ({ open: !s.open }));
+        return;
+      }
+      if (e.code === "Escape") {
+        const gameNow = useGame.getState().game;
+        // A room menu sets menuHold and closes itself. Options is already open, so Escape must not reopen it.
+        if (gameNow.menuHold || useOptionsOpen.getState().open) return;
+        e.preventDefault();
+        useOptionsOpen.setState({ open: true });
+        return;
+      }
+      // The options panel is up. O already toggled it. Ship keys wait until it closes.
+      if (useOptionsOpen.getState().open) return;
       const g = useGame.getState().game;
       if (g.manual || g.shipSheet) return;
+      // Configure controls, page 2: one bar per key. Systems: Shift plus that key removes one bar.
+      const shiftOnly = e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey;
+      if ((plain || shiftOnly) && powerHotkey(e.code, shiftOnly)) {
+        e.preventDefault();
+        return;
+      }
       // Crystal, "Crystal Lockdown": the default shortcut is P. The Crystal page calls the ability Lockdown.
       if (e.code === "KeyP" && plain) {
         e.preventDefault();
         act((game) => lockdownSelected(game));
         return;
       }
-      // @agent:hack-ui. INVENTED key: H acts as the hacking drone icon (aim / cancel, or pulse once attached).
-      if (e.code === "KeyH" && plain && g.phase === "combat") {
+      // Configure controls, page 1: N starts hacking. H is the Cloaking power bar (powerHotkey).
+      if (e.code === "KeyN" && plain && g.phase === "combat") {
         e.preventDefault();
         hackIconClick();
+        return;
+      }
+      // Configure controls, page 1: M starts mind control.
+      if (e.code === "KeyM" && plain && g.phase === "combat" && g.enemy && g.player.kits.leash) {
+        e.preventDefault();
+        leashIconClick();
+        return;
+      }
+      // Configure controls, page 1: B activates the battery.
+      if (e.code === "KeyB" && plain) {
+        e.preventDefault();
+        act((game) => startCell(game));
+        return;
+      }
+      // Configure controls, page 1: V toggles autofire for every weapon.
+      if (e.code === "KeyV" && plain) {
+        e.preventDefault();
+        act((game) => toggleAutoAll(game));
+        return;
+      }
+      // Configure controls, page 1: J is the FTL jump, the same control as the drive button.
+      if (e.code === "KeyJ" && plain) {
+        e.preventDefault();
+        act((game) => pressJump(game));
         return;
       }
       // Per the user, and FTL's default controls (File:ConfigureControls1.png): C "Activate Cloaking", T "Teleport - Send",
@@ -538,7 +667,17 @@ export function GameApp() {
         act((game) => armWeapon(game, weapon.uid));
       }
     };
+    // Game patches: the middle mouse button pauses, the same action as Space.
+    // mousedown is the pause. mouseup and auxclick only swallow the browser's autoscroll and paste.
+    const onMiddle = (e: MouseEvent) => {
+      if (e.button !== 1) return;
+      e.preventDefault();
+      if (e.type === "mousedown") act((g) => togglePause(g));
+    };
     window.addEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onMiddle);
+    window.addEventListener("mouseup", onMiddle);
+    window.addEventListener("auxclick", onMiddle);
     document.addEventListener("visibilitychange", onVis);
     const w = window as unknown as {
       __stl?: { game: () => Game; act: (fn: (g: Game) => void) => void };
@@ -591,6 +730,9 @@ export function GameApp() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("mousedown", onMiddle);
+      window.removeEventListener("mouseup", onMiddle);
+      window.removeEventListener("auxclick", onMiddle);
       document.removeEventListener("visibilitychange", onVis);
       stopSound();
     };
@@ -614,8 +756,12 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
   const roomAir = useSettings((s) => s.roomAir);
   const looks = `${ghosts ? "" : " no-ghosts"}${roomAir ? "" : " no-room-air"}`;
   const optionsOpen = useOptionsOpen((s) => s.open) && game.phase !== "title";
+  const eventFont = useSettings((s) => s.eventFont);
   return (
-    <div className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.userPaused ? " is-paused" : ""}${halted(game) ? " is-halted" : ""}${looks}`}>
+    <div
+      className={game.phase === "title" ? `deck${looks}` : `deck play-root${game.userPaused ? " is-paused" : ""}${halted(game) ? " is-halted" : ""}${looks}`}
+      style={{ ["--event-font" as string]: eventFont }}
+    >
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}
@@ -1122,7 +1268,10 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
         doorsDead={playerDoorsLocked(game)}
         onRoom={(id, _point, how) => {
           if (game.targeting) {
-            act((g) => aim(g, id));
+            act((g) => {
+              if (how?.autofire) holdAutofire(g);
+              aim(g, id);
+            });
             return;
           }
           // A touch on your own room orders the selected crew. A mouse click still does not.
@@ -1353,10 +1502,13 @@ function TargetPanel({
           ventMode={false}
           targetable
           markDest={crewOn(game, "enemy")}
-          onRoom={(id, point) => {
+          onRoom={(id, point, how) => {
             if (hackAiming) hackRoomClick(id);
             else if (slingAiming) slingRoomClick(id);
-            else act((g) => aim(g, id, point));
+            else act((g) => {
+              if (how?.autofire) holdAutofire(g);
+              aim(g, id, point);
+            });
           }}
           onRoomMenu={(id) => {
             if (crewOn(game, "enemy")) act((g) => orderSelected(g, id, "enemy"));
@@ -1909,7 +2061,7 @@ function HackOrb({ game, aiming, hacked }: { game: Game; aiming: boolean; hacked
       : view.state === "queued"
         ? "cancel the queued launch"
         : "aim the hacking drone";
-  const tip = tx("ui.GameApp.hacking-2", { power: view.power, level: view.level, toLowerCase: status.toLowerCase(), v: usable ? `. Click or H to ${verb}` : "" });
+  const tip = tx("ui.GameApp.hacking-2", { power: view.power, level: view.level, toLowerCase: status.toLowerCase(), v: usable ? `. Click or N to ${verb}` : "" });
   const metered = view.state === "pulse" || view.state === "flying" || view.state === "cooldown";
   const meterPct =
     view.state === "pulse"
@@ -2903,7 +3055,7 @@ function FastButton() {
       className={`frame-btn pause-btn fast-btn${on ? " is-on" : ""}`}
       aria-label={on ? tx("ui.GameApp.normal-speed") : tx("ui.GameApp.fast-forward")}
       aria-pressed={on}
-      title={on ? tx("ui.GameApp.normal-speed-f") : tx("ui.GameApp.fast-forward-f", { FAST_SPEED: FAST_SPEED })}
+      title={on ? tx("ui.GameApp.normal-speed-backquote") : tx("ui.GameApp.fast-forward-backquote", { FAST_SPEED: FAST_SPEED })}
       onClick={() => useFast.setState({ on: !on })}
     >
       <PixelIcon name="fast" size={34} />

@@ -21,13 +21,26 @@ export type Settings = {
   rotate: "off" | "left" | "right";
   /** Per the user: haptics (haptics.ts). */
   haptics: boolean;
+  /**
+   * Configure controls, page 1: `-` increases event text and `=` decreases it.
+   * Steps of 2px around the 15px body. Clamped so a line still fits the card.
+   */
+  eventFont: number;
 };
+
+export const EVENT_FONT_MIN = -2;
+export const EVENT_FONT_MAX = 6;
 
 const KEY = "stl-settings-v1";
 
 function defaults(): Settings {
   const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off", haptics: true };
+  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off", haptics: true, eventFont: 0 };
+}
+
+function eventFontOf(n: unknown): number {
+  if (typeof n !== "number" || !Number.isFinite(n)) return 0;
+  return Math.max(EVENT_FONT_MIN, Math.min(EVENT_FONT_MAX, Math.round(n)));
 }
 
 function load(): Settings {
@@ -45,6 +58,7 @@ function load(): Settings {
       volume: typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,
       rotate: saved.rotate === "left" || saved.rotate === "right" ? saved.rotate : "off",
       haptics: typeof saved.haptics === "boolean" ? saved.haptics : base.haptics,
+      eventFont: eventFontOf(saved.eventFont),
     };
   } catch {
     return base;
@@ -64,3 +78,8 @@ export function setSetting<K extends keyof Settings>(key: K, value: Settings[K])
 
 /** The in-game Options panel is open (the HUD wrench). UI state, not saved. */
 export const useOptionsOpen = create<{ open: boolean }>(() => ({ open: false }));
+
+/** Configure controls, page 1: one step of event text size, kept inside the clamp. */
+export function stepEventFont(dir: 1 | -1) {
+  setSetting("eventFont", eventFontOf(useSettings.getState().eventFont + dir));
+}

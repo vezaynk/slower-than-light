@@ -2295,6 +2295,16 @@ export function reverseSlotAuto(g: Game, weaponUid: string) {
   sfx(g, "click");
 }
 
+/**
+ * Configure controls, page 1: Left Ctrl is the Autofire Modifier, held while aiming.
+ * The aimed weapon ends that aim on autofire. A weapon already set to autofire stays there.
+ */
+export function holdAutofire(g: Game): void {
+  const w = g.player.weapons.find((x) => x.uid === g.armed);
+  if (!w || slotAutofire(g, w)) return;
+  reverseSlotAuto(g, w.uid);
+}
+
 /** Weapon Control, Overview: autofire can be enabled or disabled for all weapons. */
 export function toggleAutoAll(g: Game) {
   g.autofireAll = !g.autofireAll;
@@ -7323,6 +7333,19 @@ export function togglePause(g: Game) {
   if (!["combat", "map", "event", "store", "reward"].includes(g.phase)) return;
   // Per the user: the player's pause is its own source (Game.userPaused). A card's hold (`paused`) is untouched.
   g.userPaused = !g.userPaused;
+}
+
+/**
+ * Configure controls, page 1: J is FTL jump. Same result as the FTL drive button.
+ * On the map, J shows or hides the beacon chart. While a chart is already open, J closes it.
+ * In a fight, a charged drive with a pilot and powered engines opens the chart.
+ */
+export function pressJump(g: Game): void {
+  if (g.phase === "map" || g.picking) {
+    g.picking = g.phase === "map" ? !g.picking : false;
+    return;
+  }
+  if (g.phase === "combat" && g.flee >= 1 && !jumpBlocked(g)) g.picking = true;
 }
 
 export function saveGame(g: Game) {

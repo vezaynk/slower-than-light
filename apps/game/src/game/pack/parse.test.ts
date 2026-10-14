@@ -38,7 +38,7 @@ const XML = `
   <tooltip>A short bolt.</tooltip>
   <damage>3</damage>
   <shots>2</shots>
-  <sp>1</sp>
+  <power>1</power>
   <cooldown>7</cooldown>
   <cost>20</cost>
   <fireChance>3</fireChance>
@@ -55,7 +55,7 @@ const XML = `
   <length>90</length>
   <speed>4</speed>
   <crewDamage>12</crewDamage>
-  <pierce>1</pierce>
+  <sp>1</sp>
 </weaponBlueprint>
 <weaponBlueprint name="SKIP">
   <title>No type</title>

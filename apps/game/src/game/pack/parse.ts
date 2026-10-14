@@ -13,13 +13,22 @@ const KINDS: Record<string, WeaponKind> = {
   FLAK: "flak",
 };
 
+function decode(text: string): string {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
 function parseAttrs(raw: string): Record<string, string> {
   const attrs: Record<string, string> = {};
   const re = /([A-Za-z_:][\w:.-]*)\s*=\s*"([^"]*)"|([A-Za-z_:][\w:.-]*)\s*=\s*'([^']*)'/g;
   let match: RegExpExecArray | null;
   while ((match = re.exec(raw))) {
-    if (match[1]) attrs[match[1]] = match[2] ?? "";
-    else if (match[3]) attrs[match[3]] = match[4] ?? "";
+    if (match[1]) attrs[match[1]] = decode(match[2] ?? "");
+    else if (match[3]) attrs[match[3]] = decode(match[4] ?? "");
   }
   return attrs;
 }
@@ -43,7 +52,7 @@ function parseXml(xml: string): Node[] {
         if (!self) stack.push(node);
       }
     } else if (match[5] && stack.length > 1) {
-      stack[stack.length - 1]!.text += match[5];
+      stack[stack.length - 1]!.text += decode(match[5]);
     }
   }
   return root.children;
@@ -147,10 +156,10 @@ function readWeapon(node: Node): WeaponBlueprint | undefined {
     id,
     name: textOf(node, "title") ?? id,
     kind,
-    power: numOf(node, "sp") ?? numOf(node, "power") ?? 0,
+    power: numOf(node, "power") ?? 0,
     charge: numOf(node, "cooldown") ?? 0,
     shots: numOf(node, "shots") ?? 0,
-    gap: 0,
+    gap: numOf(node, "shotGap") ?? 0,
     damage: numOf(node, "damage") ?? 0,
     ion: numOf(node, "ion") ?? 0,
     fire: (numOf(node, "fireChance") ?? 0) / 10,
@@ -165,7 +174,8 @@ function readWeapon(node: Node): WeaponBlueprint | undefined {
   if (speed != null) row.speed = speed;
   const crew = numOf(node, "crewDamage");
   if (crew != null) row.crewDamage = crew;
-  const pierce = numOf(node, "pierce");
+  // FTL names shield pierce <sp>. <pierce> is the same field.
+  const pierce = numOf(node, "sp") ?? numOf(node, "pierce");
   if (pierce != null) row.pierce = pierce;
   return row;
 }

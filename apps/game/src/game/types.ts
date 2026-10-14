@@ -253,7 +253,7 @@ export type WeaponInst = {
   chain?: number;
   /**
    * Crew skills, Weapons: seconds left to turn this gun off and drop the shot that just trained.
-   * INFERRED: 0.15. The page prints no duration. A beam flight is 0.32s, so the shot has not landed.
+   * INFERRED: 0.15. The page prints no duration. A beam that is still crossing can still be dropped.
    */
   muzzle?: number;
   /** Shot ids from the launch that opened `muzzle`. */

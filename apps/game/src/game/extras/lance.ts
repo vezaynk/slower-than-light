@@ -2,6 +2,7 @@ import { tx } from "../../i18n/index.ts";
 import type { Game, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
 import { noteAchieve, noteArtillery } from "../wiki/achieve-notes.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -223,7 +224,8 @@ function nick(g: Game, ship: Ship, room: Room): void {
  * for each level above 1 to a minimum of 20s for level 4."
  * Working bars are kitBars: reactor power plus a Zoltan bar already stamped on the kit.
  * The Zoltan bar counts as a power level and does not change kit.power.
- * On completion, hull and system damage are applied directly so shield layers are neither popped nor subtracted.
+ * On completion the beam starts its swipe. Template:Beam weapons gives Artillery Beam speed 13 and length 500.
+ * Hull and system damage land when that swipe finishes, and shield layers are neither popped nor subtracted.
  * Artillery Beam "Overview": the beam pierces regular shields.
  * Artillery Beam "Overview": a full charge fires on its own. The swipe still cannot be aimed; a room is chosen when the bar fills.
  * "Overview": powering off drains charge. INFERRED: a full bar empties in 2 seconds.
@@ -236,12 +238,99 @@ function nick(g: Game, ship: Ship, room: Room): void {
  * "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship weapons: drains charge (same effect as
  * on weapons)", and on weapons "Draining speed is the same as speed as the base-level charging speed".
  */
+function clearArtilleryShot(g: Game): void {
+  g.shots = g.shots.filter((shot) => shot.label !== ARTILLERY_SHOT_LABEL);
+}
+
+/** Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total. */
+function landCut(g: Game, ship: Ship, ids: string[]): void {
+  const rooms = ids.map((id) => ship.rooms.find((room) => room.id === id)).filter((room): room is Room => !!room);
+  clearArtilleryShot(g);
+  if (rooms.length === 0) return;
+  // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
+  const bubble = ship.zoltan ?? 0;
+  if (bubble > 0) ship.zoltan = Math.max(0, bubble - 2);
+  const held = bubble > 2;
+  if (!held) {
+    const shieldNow = ship.shieldNow;
+    for (const room of rooms) nick(g, ship, room);
+    ship.shieldNow = shieldNow;
+    log(g, tx("extras.lance.cuts", { DISPLAY_NAME: DISPLAY_NAME, name: ship.name }));
+  }
+}
+
+/** Time still crossing. Returns whatever part of `dt` is left after the swipe. */
+function advanceSwipe(g: Game, dt: number): number {
+  const kit = g.player.kits.lance;
+  const enemy = g.enemy;
+  if (!kit || !(kit.left > 0) || !kit.path?.length || !enemy) return dt;
+  const step = Math.min(dt, kit.left);
+  kit.left -= step;
+  if (kit.left > 0) return 0;
+  const ids = kit.path;
+  kit.left = 0;
+  kit.path = undefined;
+  landCut(g, enemy, ids);
+  return dt - step;
+}
+
+function beginSwipe(g: Game, enemy: Ship): void {
+  const kit = g.player.kits.lance;
+  if (!kit) return;
+  // xftl doc/artillery: "it randomly selects one room" each shot (the wiki's uncontrolled swipe).
+  const first = enemy.rooms[Math.floor(rand(g) * enemy.rooms.length)];
+  if (!first) return;
+  const rooms = cutLine(enemy, first.id);
+  if (rooms.length === 0) return;
+  kit.target = null;
+  kit.aux = 0;
+  kit.path = rooms.map((room) => room.id);
+  kit.left = artillerySwipeSeconds();
+  const from = centre(rooms[0]);
+  const to = centre(rooms[rooms.length - 1]);
+  g.uid = (g.uid + 1) >>> 0;
+  clearArtilleryShot(g);
+  g.shots.push({
+    id: "u" + g.uid.toString(36),
+    kind: "beam",
+    from: "player",
+    damage: 0,
+    ion: 0,
+    fireChance: 0,
+    breachChance: 0,
+    targetRoom: rooms[0].id,
+    beamRooms: rooms.map((room) => room.id),
+    beamLine: { a: { x: from[0], y: from[1] }, b: { x: to[0], y: to[1] } },
+    defId: "artillery-beam",
+    wait: 0,
+    t: 0,
+    duration: kit.left,
+    label: ARTILLERY_SHOT_LABEL,
+  });
+  noteArtillery(g);
+  // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
+  noteWeaponManning(g);
+}
+
 export function tickLance(g: Game, dt: number): void {
   const kit = g.player.kits.lance;
   if (!kit || !(dt > 0)) return;
+  let left = dt;
+  if (kit.left > 0 && kit.path?.length) {
+    if (g.paused || !!g.menuHold) return;
+    if (g.phase !== "combat" || !g.enemy) {
+      kit.left = 0;
+      kit.path = undefined;
+      clearArtilleryShot(g);
+      return;
+    }
+    advanceSwipe(g, left);
+    return;
+  }
+
   const fed = kitBars(kit);
   if (fed < 1) {
-    kit.aux = Math.max(0, kit.aux - dt / 2);
+    kit.aux = Math.max(0, kit.aux - left / 2);
     return;
   }
   if ((g.paused || !!g.menuHold) || g.phase !== "combat" || !g.enemy) return;
@@ -249,7 +338,7 @@ export function tickLance(g: Game, dt: number): void {
   // Beam (Weapons), Artillery Beam: the clock is the filled power level, not the installed level.
   const seconds = chargeSeconds(fed);
   if (hackPulseOn(g, g.player, "lance")) {
-    kit.aux = Math.max(0, kit.aux - dt / seconds);
+    kit.aux = Math.max(0, kit.aux - left / seconds);
     return;
   }
   // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
@@ -258,30 +347,14 @@ export function tickLance(g: Game, dt: number): void {
   // Artillery Beam, Overview: "Automated Re-loaders augmentations work." The system "cannot be manned
   // to reduce the charge time", so crew skill stays out. Augmentations, Automated Re-loader: one copy
   // divides cooldown by 1.1, and three raise firing rate by 30%. The unpowered drain stays dt/2.
-  if (kit.aux < 1) kit.aux = Math.min(1, kit.aux + (dt * feedRate(g, "player")) / seconds);
-  if (kit.aux < 1) return;
-  // xftl doc/artillery: "it randomly selects one room" each shot (the wiki's uncontrolled swipe).
-  const first = g.enemy.rooms[Math.floor(rand(g) * g.enemy.rooms.length)];
-  if (!first) return;
-  kit.target = null;
-
-  const enemy = g.enemy;
-  const rooms = cutLine(enemy, first.id);
-  if (rooms.length === 0) return;
-
-  // Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total.
-  // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
-  const bubble = enemy.zoltan ?? 0;
-  if (bubble > 0) enemy.zoltan = Math.max(0, bubble - 2);
-  const held = bubble > 2;
-  if (!held) {
-    const shieldNow = enemy.shieldNow;
-    for (const room of rooms) nick(g, enemy, room);
-    enemy.shieldNow = shieldNow;
+  const rate = feedRate(g, "player");
+  const need = kit.aux >= 1 ? 0 : ((1 - kit.aux) * seconds) / rate;
+  if (left < need) {
+    kit.aux += (left * rate) / seconds;
+    return;
   }
-  kit.aux = 0;
-  noteArtillery(g);
-  // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
-  noteWeaponManning(g);
-  if (!held) log(g, tx("extras.lance.cuts", { DISPLAY_NAME: DISPLAY_NAME, name: enemy.name }));
+  left -= need;
+  kit.aux = 1;
+  beginSwipe(g, g.enemy);
+  if (kit.left > 0) advanceSwipe(g, left);
 }

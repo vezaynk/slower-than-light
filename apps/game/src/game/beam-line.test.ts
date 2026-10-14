@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { cellsOnSegment, clipBeamEnd, pointInRoom, roomCenter, roomsOnSegment, type BeamGrid } from "./beam-line.ts";
-import { beamTileLength } from "./wiki/weapons-beam.ts";
+import { beamSwipeSeconds, beamTileLength } from "./wiki/weapons-beam.ts";
 import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
 
@@ -129,6 +129,7 @@ describe("player beam aim", () => {
     const shot = g.shots.find((s) => s.defId === "antibio");
     assert.ok(shot);
     assert.deepEqual(shot.beamRooms, [room.id]);
+    assert.equal(shot.duration, 1 / 60);
     assert.equal(g.targeting, false);
     assert.equal(w.target, null);
     assert.equal(w.beamLine, null);
@@ -149,6 +150,8 @@ describe("player beam aim", () => {
     assert.deepEqual(shot.beamRooms, roomsOnSegment(g.enemy!, center(start), clipped));
     assert.equal(shot.beamRooms?.[0], shot.targetRoom);
     assert.deepEqual(shot.beamLine, { a: center(start), b: clipped });
+    const span = Math.hypot(clipped.x - center(start).x, clipped.y - center(start).y);
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("antibio", span) ?? 0, 1 / 60));
   });
 
   it("queues the segment while the beam is still charging", () => {
@@ -231,6 +234,40 @@ describe("enemy beam aim", () => {
       );
       assert.equal(linked, true);
     }
+    let tiles = 0;
+    if (shot.beamRooms.length >= 2) {
+      const a = g.player.rooms.find((room) => room.id === shot.beamRooms?.[0]);
+      const b = g.player.rooms.find((room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1]);
+      assert.ok(a && b);
+      const ca = roomCenter(a);
+      const cb = roomCenter(b);
+      tiles = Math.hypot(cb.x - ca.x, cb.y - ca.y);
+    }
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("mini", tiles) ?? 0, 1 / 60));
+  });
+
+  it("swipes the Boss Beam at the printed speed of 5", () => {
+    const g = createGame(4);
+    startCombat(g, "scout");
+    for (const w of g.player.weapons) w.enabled = false;
+    const enemy = g.enemy!;
+    enemy.weapons = [
+      { uid: "e-beam", defId: "bossbeam", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+    ];
+    step(g, 0.05);
+    const shot = g.shots.find((s) => s.from === "enemy" && s.kind === "beam");
+    assert.ok(shot);
+    assert.equal(shot.defId, "bossbeam");
+    let tiles = 0;
+    if ((shot.beamRooms?.length ?? 0) >= 2) {
+      const a = g.player.rooms.find((room) => room.id === shot.beamRooms?.[0]);
+      const b = g.player.rooms.find((room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1]);
+      assert.ok(a && b);
+      const ca = roomCenter(a);
+      const cb = roomCenter(b);
+      tiles = Math.hypot(cb.x - ca.x, cb.y - ca.y);
+    }
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("bossbeam", tiles) ?? 0, 1 / 60));
   });
 });
 

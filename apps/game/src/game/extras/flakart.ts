@@ -2,6 +2,7 @@ import { tx } from "../../i18n/index.ts";
 import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
+import { projectileFlightSeconds } from "../wiki/projectile-speed.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";
@@ -89,10 +90,10 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 };
 
 /**
- * INFERRED: 0.7s flight, same as the host's other non-missile projectiles.
- * Wiki page "Flak (Weapons)", section "Flak weapons table": speed 26, which is not a second count.
+ * Template:Flak weapons, Flak Artillery: speed 26.
+ * Speed 60 stays 0.7s, so this flight is 42/26 seconds. projectile-speed.ts holds that scale.
  */
-const FLIGHT_SECONDS = 0.7;
+const FLIGHT_SECONDS = projectileFlightSeconds("flak-artillery") ?? 0.7;
 
 function blank(level: FlakLevel): Kit {
   return { id: "flak", level, power: 0, left: 0, cool: 0, target: null, on: true, aux: 0 };

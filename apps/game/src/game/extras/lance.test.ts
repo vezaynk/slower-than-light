@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { cellOccupied } from "../layouts.ts";
 import { createGame, log, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game, Room, Ship } from "../types.ts";
+import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
 import {
   CHARGE_SECONDS,
   DISPLAY_NAME,
@@ -16,6 +17,13 @@ import {
   raiseLancePower,
   toggleLancePower,
 } from "./lance.ts";
+
+/** The charge tick starts the swipe. The next tick of the time still left lands the cut. */
+function land(g: Game, chargeDt: number): void {
+  tickLance(g, chargeDt);
+  const kit = g.player.kits.lance;
+  if (kit && kit.left > 0) tickLance(g, kit.left);
+}
 
 /** A Federation A hull with its beam taken off, so installLance fits a fresh one. */
 function fedFresh(seed: number): Game {
@@ -55,6 +63,16 @@ describe("lance", () => {
     g.enemy.rooms = [room];
     log(g, "mark");
     tickLance(g, 0.1);
+    // Template:Beam weapons: speed 13 over 500px. The cut waits until that swipe finishes.
+    assert.equal(g.enemy.hull, hull);
+    assert.equal(g.shots.length, 1);
+    assert.equal(g.shots[0]?.label, ARTILLERY_SHOT_LABEL);
+    assert.equal(g.shots[0]?.duration, artillerySwipeSeconds());
+    assert.equal(g.player.kits.lance?.aux, 0);
+    assert.equal(g.log[0], "mark");
+    const left = g.player.kits.lance?.left ?? 0;
+    assert.ok(left > 0);
+    tickLance(g, left);
     assert.ok(g.enemy.hull < hull);
     assert.equal(g.enemy.shieldNow, bubble);
     assert.equal(g.enemy.systems.shields.damage, broken + 1);
@@ -81,7 +99,7 @@ describe("lance", () => {
     const c = (r: (typeof line)[number]) => [r.x + r.w / 2, r.y + r.h / 2];
     const d = (r: (typeof line)[number]) => Math.hypot(c(r)[0] - c(first)[0], c(r)[1] - c(first)[1]);
     assert.equal(d(line[line.length - 1]), Math.max(...g.enemy.rooms.map(d)));
-    tickLance(g, 0.1);
+    land(g, 0.1);
     assert.equal(g.enemy.hull, hull - line.length);
     assert.equal(g.enemy.shieldNow, bubble);
   });
@@ -126,8 +144,22 @@ describe("lance", () => {
     let fires = 0;
     for (let i = 0; i < tiles; i++) if (rand(g) < 0.1) fires += 1;
     g.seed = saved;
-    tickLance(g, 0.1);
+    land(g, 0.1);
     assert.equal(room.fire, Math.min(4, fires));
+  });
+
+  it("finishes a swipe that already started after the bars go dark", () => {
+    const g = armed(15);
+    assert.ok(g.enemy);
+    const hull = g.enemy.hull;
+    tickLance(g, 0.1);
+    const kit = g.player.kits.lance;
+    assert.ok(kit && kit.left > 0);
+    kit.power = 0;
+    tickLance(g, kit.left);
+    assert.ok(g.enemy.hull < hull);
+    assert.equal(g.shots.length, 0);
+    assert.equal(kit.aux, 0);
   });
 
   it("does not charge without a reactor bar, and a stored charge drains", () => {
@@ -157,6 +189,10 @@ describe("lance", () => {
     assert.equal(g.enemy.hull, hull);
     tickLance(g, 25);
     assert.equal(kit.aux, 0);
+    assert.equal(g.enemy.hull, hull);
+    assert.ok(kit.left > 0);
+    tickLance(g, kit.left);
+    assert.equal(kit.aux, 0);
     assert.ok(g.enemy.hull < hull);
   });
 
@@ -176,6 +212,9 @@ describe("lance", () => {
     assert.equal(once.enemy.hull, hull);
     assert.ok(kit.aux < 1);
     tickLance(once, 0.1);
+    assert.equal(once.enemy.hull, hull);
+    assert.ok(kit.left > 0);
+    tickLance(once, kit.left);
     assert.ok(once.enemy.hull < hull);
 
     const triple = armed(61);
@@ -189,6 +228,9 @@ describe("lance", () => {
     tickLance(triple, 50 / 1.3 - 0.05);
     assert.equal(triple.enemy.hull, before);
     tickLance(triple, 0.1);
+    assert.equal(triple.enemy.hull, before);
+    assert.ok(fast.left > 0);
+    tickLance(triple, fast.left);
     assert.ok(triple.enemy.hull < before);
 
     const draining = armed(62);
@@ -212,7 +254,7 @@ describe("lance", () => {
     assert.ok(room?.system);
     const broken = held.enemy.systems[room.system].damage;
     aimLance(held, room.id);
-    tickLance(held, 0.1);
+    land(held, 0.1);
     assert.equal(held.enemy.zoltan, 3);
     assert.equal(held.enemy.hull, hull);
     assert.equal(held.enemy.systems[room.system].damage, broken);
@@ -225,7 +267,7 @@ describe("lance", () => {
     const target = open.enemy.rooms.find((r) => r.system);
     assert.ok(target);
     aimLance(open, target.id);
-    tickLance(open, 0.1);
+    land(open, 0.1);
     assert.equal(open.enemy.zoltan, 0);
     assert.ok(open.enemy.hull < before);
   });
@@ -265,6 +307,9 @@ describe("lance", () => {
     four.aux = 0;
     const hull = fast.enemy.hull;
     tickLance(fast, 20);
+    assert.equal(fast.enemy.hull, hull);
+    assert.ok(four.left > 0);
+    tickLance(fast, four.left);
     assert.ok(fast.enemy.hull < hull);
   });
 

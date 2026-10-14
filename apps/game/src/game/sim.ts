@@ -154,7 +154,8 @@ import {
 } from "./wiki/cited-asteroid.ts";
 import { CRYSTAL_SECTOR_WEAPONS, citedBuy, citedStock, storeSections } from "./wiki/cited-stores.ts";
 import { citedCrewDamage, citedPierce, systemlessHull } from "./wiki/cited-weapons.ts";
-import { beamTileLength } from "./wiki/weapons-beam.ts";
+import { shotFlightSeconds } from "./wiki/projectile-speed.ts";
+import { ARTILLERY_SHOT_LABEL, beamSwipeSeconds, beamTileLength } from "./wiki/weapons-beam.ts";
 import { FLAK1_FAKE, FLAK1_FAKE_LABEL, flak1AimRolls, flak1Landing } from "./extras/ordnance.ts";
 import {
   ADV_FLAK_FAKE,
@@ -661,7 +662,7 @@ export function noteWeaponManning(g: Game) {
 /**
  * Crew skills, Weapons: "turning them off just after you receive the skill increment" drops the shot.
  * The point stays. INFERRED: 0.15 seconds. The page prints no duration.
- * Shorter than a beam flight (0.32s), so the shot has not landed.
+ * A beam that is still crossing can still be dropped. A full Mini swipe is about 0.94s.
  */
 export const MUZZLE_S = 0.15;
 
@@ -2476,6 +2477,28 @@ function enemyBeamRooms(ship: Ship, origin: string): string[] {
   return prefer ? [origin, prefer] : [origin];
 }
 
+/**
+ * Seconds the swipe takes to cross `rooms` or `line`.
+ * Data:WeaponDatabase.map speed, 16 pixels per point per second, 45 pixels per tile.
+ * A listed beam with no distance still takes one frame. A beam with no listed speed stays 0.32s.
+ */
+function beamFlightSeconds(defId: string, ship: Ship, rooms: string[], line?: { a: { x: number; y: number }; b: { x: number; y: number } }): number {
+  let tiles = 0;
+  if (line) tiles = Math.hypot(line.b.x - line.a.x, line.b.y - line.a.y);
+  else if (rooms.length >= 2) {
+    const a = roomById(ship, rooms[0]);
+    const b = roomById(ship, rooms[rooms.length - 1]);
+    if (a && b) {
+      const ca = roomCenter(a);
+      const cb = roomCenter(b);
+      tiles = Math.hypot(cb.x - ca.x, cb.y - ca.y);
+    }
+  }
+  const seconds = beamSwipeSeconds(defId, tiles);
+  if (seconds == null) return 0.32;
+  return Math.max(seconds, 1 / 60);
+}
+
 function beamSwipe(from: "player" | "enemy", ship: Ship, w: WeaponInst): string[] {
   if (from === "player") {
     if (w.beamLine) {
@@ -2489,7 +2512,9 @@ function beamSwipe(from: "player" | "enemy", ship: Ship, w: WeaponInst): string[
 
 function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: number) {
   // Weapons, "Missiles" and "Bombs": one ammunition per shot.
-  // INFERRED: flight 0.7s, missiles and bombs 1.35s, beams 0.32s. "Weapons timing and travel times" lists no seconds.
+  // Projectile speed is the template Speed column. Speed 60 stays 0.7s, and the other speeds scale from it.
+  // Bombs have no speed cell, so the 1.35s teleport delay stays. "Weapons timing and travel times" lists no seconds.
+  // Beam swipe time is beamFlightSeconds. A beam with no listed speed stays 0.32s.
   const def = WEAPONS[w.defId];
   const cap = def ? chargerCap(w.defId) : null;
   if (!def || !w.target) return;
@@ -2559,7 +2584,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
         defId: w.defId,
         wait: 0,
         t: 0,
-        duration: 0.7,
+        duration: shotFlightSeconds(def.kind, w.defId),
         label: FLAK1_FAKE_LABEL,
       });
     }
@@ -2605,7 +2630,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       offRoom: offRoom ? true : undefined,
       wait: i * def.gap,
       t: 0,
-      duration: def.kind === "missile" || def.kind === "bomb" ? 1.35 : def.kind === "beam" ? 0.32 : 0.7,
+      duration: def.kind === "beam" ? beamFlightSeconds(w.defId, targetShip, rooms, line) : shotFlightSeconds(def.kind, w.defId),
     });
   }
   const next = nextChainStep(w.defId, step);
@@ -3100,24 +3125,22 @@ export function applyImpact(g: Game, shot: Shot) {
       if (openRooms.length === 0) return;
     }
     // Zoltan Shield, lead: if the bubble breaks before the swipe ends, the beam continues against regular shields or hull.
-    // Beam (Weapons), "Beam targeting and damage mechanics": each shield layer cuts the room's damage by 1, and the beam does not pop a layer.
-    // Hull Beam's systemless 2 is cut the same way, per room. A system room at 1 damage still skids off one layer.
-    const reduce = ship.shieldNow;
+    // Beam (Weapons), "Beam targeting and damage mechanics": "The damage is applied at the first moment that a beam enters a room."
+    // Each shield layer up at that moment cuts the room by 1. The beam does not pop a layer the way a laser does.
+    // Shields, Overview: a barrier needs two powered bars. System damage that leaves fewer bars drops the bubble
+    // before the next room is entered. A Halberd through one layer deals 1 to a Shields-2 room and 2 to every room after it.
+    // Hull Beam's systemless 2 is cut the same way, from the layers up when that room is entered.
     // Fires: "Fire beams can be blocked by a regular shield barrier (1 is enough)".
     // Beam (Weapons): "even one shield layer is enough to block most beam weapons."
     // Anti-Bio and Fire Beam print damage "-". One regular layer blocks the fire roll and the 60 HP.
-    // Zoltan Shield damage is already spent above. Regular layers are not popped.
-    // A damage number, even 1, is still cut by each layer below.
+    // A damage number, even 1, is still cut by each layer up when the beam enters the room.
     const dashed = shot.damage <= 0;
-    if (dashed && reduce > 0) {
-      log(g, tx("game.sim.beam-skids-off-the-shields"));
-      sfx(g, "shield");
-      return;
-    }
     let landed = false;
     for (const id of openRooms) {
       const room = roomById(ship, id);
       if (!room) continue;
+      const reduce = ship.shieldNow;
+      if (dashed && reduce > 0) continue;
       const system = dashed ? 0 : Math.max(0, shot.damage - reduce);
       const hull = dashed ? 0 : roomHull(shot, room, system, reduce);
       const roomEffect = dashed && (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
@@ -3247,7 +3270,7 @@ export function applyImpact(g: Game, shot: Shot) {
 /**
  * Hull damage for one room.
  * systemDamage is the system-room figure after shield reduction (beams) or after a Zoltan leftover (other shots).
- * shieldCut is how many shield layers already came off a beam. Other shots pass 0; a shield still up stops them earlier.
+ * shieldCut is how many shield layers are up when a beam enters this room. Other shots pass 0; a shield still up stops them earlier.
  * A system or kit room keeps systemDamage. A systemless room uses the printed hull figure, cut by shieldCut for a beam.
  * A Zoltan leftover (systemDamage !== shot.damage, and not a beam) is not raised again.
  */
@@ -7014,6 +7037,8 @@ function stepShots(g: Game, dt: number) {
     }
     shot.t += dt / shot.duration;
     if (shot.t >= 1) {
+      // Artillery Beam's drawn swipe. tickLance lands the cut. This shot is the stroke.
+      if (shot.label === ARTILLERY_SHOT_LABEL) continue;
       // Drone Control, Defense Drone: one incoming shot per cooldown, before it lands.
       // Environmental Hazards, Asteroid Field: a rock aimed at the enemy is their incoming shot.
       const rockAtEnemy = shot.from === "env" && shot.label === "Rock" && shot.at === "enemy";

@@ -171,12 +171,12 @@ export const BEAM_WEAPONS: WeaponDef[] = [
 /**
  * Crew-damage HP printed on Beam (Weapons).
  * Fire Beam's crew line is "-", not a number. Boss Beam prints no crew line.
- * Artillery Beam prints 15 HP per room tile, and lance.ts does not launch a shot.
+ * Artillery Beam prints 15 HP per room tile. lance.ts applies the cut when the swipe finishes.
  */
 /**
  * Beam (Weapons): the parenthetical tile count, not the pixel figure.
  * `shear` is the fitted id of the Pike Beam row.
- * Artillery Beam and Boss Beam are not aimed with this line.
+ * Artillery Beam is not aimed with this line. Its length is ARTILLERY_BEAM_PX.
  */
 export const BEAM_TILES: Record<string, number> = {
   // "Beam length: 45 (1 tile diagonally)"
@@ -194,11 +194,61 @@ export const BEAM_TILES: Record<string, number> = {
   firebeam: 3.1,
   // "Beam length: 140 (3.1 tiles diagonally)"
   antibio: 3.1,
+  // Beam (Weapons), Boss Beam: "Beam length: 100 (2.2 tiles diagonally)".
+  bossbeam: 2.2,
 };
 
 export function beamTileLength(defId: string | undefined): number | null {
   if (!defId || !Object.prototype.hasOwnProperty.call(BEAM_TILES, defId)) return null;
   return BEAM_TILES[defId];
+}
+
+/**
+ * Swipe speed from https://ftlmultiverse.miraheze.org/wiki/Data:WeaponDatabase.map
+ * matched by the vanilla blueprint id. The FTL wiki says the speed depends on the weapon and prints no number.
+ * Multiverse Beam page: speed 5 moves 80 pixels in one second, so pixels per second are speed × 16.
+ * Beam (Weapons) counts 45 pixels as one diagonal tile, the same unit as BEAM_TILES and clipBeamEnd.
+ * Boss Beam and Artillery Beam are not in that database. Their speeds are the FTL template column.
+ */
+export const BEAM_SPEED: Record<string, number> = {
+  // BEAM_1, 'Spetum' Beam, speed 3.
+  mini: 3,
+  // BEAM_LONG, 'Pike' Beam, speed 9. Fitted id is shear.
+  pike: 9,
+  shear: 9,
+  // BEAM_HULL, 'Lucerne' Beam, speed 5.
+  hullbeam: 5,
+  // BEAM_2, 'Halberd' Beam, speed 5.
+  halberd: 5,
+  // BEAM_3, 'Glaive' Beam, speed 5.
+  glaive: 5,
+  // BEAM_FIRE, 'Torch' Beam, speed 5.
+  firebeam: 5,
+  // BEAM_BIO, 'Faucon' Rad-Beam, speed 30.
+  antibio: 30,
+  // Template:Beam weapons, Boss Beam: speed 5. Length 100 (2.2 tiles) is BEAM_TILES.
+  bossbeam: 5,
+  // Template:Beam weapons, Artillery Beam: speed 13. Length 500 is ARTILLERY_BEAM_PX.
+  "artillery-beam": 13,
+};
+
+/** Template:Beam weapons, Artillery Beam: length 500. The swipe is this long, not the span of the target hull. */
+export const ARTILLERY_BEAM_PX = 500;
+
+/** Drawn shot label. stepShots animates it and does not apply weapon damage; tickLance lands the cut. */
+export const ARTILLERY_SHOT_LABEL = "artillery-beam";
+
+/** Seconds for the printed 500px Artillery Beam swipe at speed 13. */
+export function artillerySwipeSeconds(): number {
+  return beamSwipeSeconds("artillery-beam", ARTILLERY_BEAM_PX / 45) ?? 0;
+}
+
+/** Seconds for a swipe of `tiles` at this weapon's speed, or null when no speed is listed. */
+export function beamSwipeSeconds(defId: string | undefined, tiles: number): number | null {
+  if (!defId || !Object.prototype.hasOwnProperty.call(BEAM_SPEED, defId)) return null;
+  const speed = BEAM_SPEED[defId];
+  if (!(speed > 0)) return null;
+  return (Math.max(0, tiles) * 45) / (speed * 16);
 }
 
 export const BEAM_CREW: Record<string, number> = {

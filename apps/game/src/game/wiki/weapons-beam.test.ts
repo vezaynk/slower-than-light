@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { BEAM_CREW, BEAM_GAPS, BEAM_TILES, BEAM_WEAPONS, beamTileLength } from "./weapons-beam.ts";
+import { ARTILLERY_BEAM_PX, BEAM_CREW, BEAM_GAPS, BEAM_SPEED, BEAM_TILES, BEAM_WEAPONS, artillerySwipeSeconds, beamSwipeSeconds, beamTileLength } from "./weapons-beam.ts";
 
 function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
   return {
@@ -166,7 +166,32 @@ describe("beam weapons", () => {
     assert.equal(BEAM_TILES.glaive, 1.8);
     assert.equal(BEAM_TILES.firebeam, 3.1);
     assert.equal(BEAM_TILES.antibio, 3.1);
+    assert.equal(BEAM_TILES.bossbeam, 2.2);
     assert.equal(beamTileLength("artillery-beam"), null);
+  });
+
+  it("times a swipe from the Multiverse weapon database speed", () => {
+    // Data:WeaponDatabase.map. Speed 5 is 80 pixels per second. 45 pixels is one diagonal tile.
+    assert.deepEqual(BEAM_SPEED, {
+      mini: 3,
+      pike: 9,
+      shear: 9,
+      hullbeam: 5,
+      halberd: 5,
+      glaive: 5,
+      firebeam: 5,
+      antibio: 30,
+      bossbeam: 5,
+      "artillery-beam": 13,
+    });
+    assert.equal(beamSwipeSeconds("mini", 1), 45 / (3 * 16));
+    assert.equal(beamSwipeSeconds("shear", BEAM_TILES.shear), (3.8 * 45) / (9 * 16));
+    assert.equal(beamSwipeSeconds("halberd", BEAM_TILES.halberd), (1.8 * 45) / (5 * 16));
+    assert.equal(beamSwipeSeconds("antibio", BEAM_TILES.antibio), (3.1 * 45) / (30 * 16));
+    assert.equal(beamSwipeSeconds("bossbeam", BEAM_TILES.bossbeam), (2.2 * 45) / (5 * 16));
+    assert.equal(artillerySwipeSeconds(), ARTILLERY_BEAM_PX / (13 * 16));
+    assert.equal(beamSwipeSeconds("firebeam", 0), 0);
+    assert.equal(beamSwipeSeconds(undefined, 1), null);
   });
 
   it("parks length, rooms, pierce, and anti-bio crew damage in gaps", () => {
@@ -244,6 +269,112 @@ describe("beam weapons", () => {
     assert.equal(two.shields, 2);
     assert.equal(two.system, 1);
     assert.equal(two.hull, 1);
+  });
+
+  function armed(level: number, power: number, layers: number): Game {
+    const g = createGame(3);
+    g.player.systems.engines.power = 0;
+    g.player.zoltan = 0;
+    g.player.systems.shields.level = level;
+    g.player.systems.shields.power = power;
+    g.player.systems.shields.damage = 0;
+    g.player.shieldNow = layers;
+    return g;
+  }
+
+  it("deals full damage to rooms entered after a Shields-2 hit drops the layer", () => {
+    // Beam (Weapons), "Beam targeting and damage mechanics": damage is applied when the beam enters a room.
+    // Shields, Overview: one barrier for every two powered bars. Halberd's 1 point through one layer
+    // leaves a Shields-2 system with one bar, so the bubble is gone before the next room.
+    const g = armed(2, 2, 1);
+    const hull = g.player.hull;
+    applyImpact(
+      g,
+      beamShot({
+        damage: 2,
+        defId: "halberd",
+        beamRooms: ["p-shields", "p-weapons", "p-engines"],
+        targetRoom: "p-shields",
+      }),
+    );
+    assert.equal(g.player.shieldNow, 0);
+    assert.equal(g.player.systems.shields.damage, 1);
+    assert.equal(systemDamage(g, "p-weapons"), 2);
+    assert.equal(systemDamage(g, "p-engines"), 2);
+    assert.equal(hull - g.player.hull, 5);
+  });
+
+  it("keeps the layer cut on rooms the beam already entered", () => {
+    const g = armed(2, 2, 1);
+    const hull = g.player.hull;
+    applyImpact(
+      g,
+      beamShot({
+        damage: 2,
+        defId: "halberd",
+        beamRooms: ["p-weapons", "p-shields", "p-engines"],
+        targetRoom: "p-weapons",
+      }),
+    );
+    assert.equal(systemDamage(g, "p-weapons"), 1);
+    assert.equal(g.player.systems.shields.damage, 1);
+    assert.equal(g.player.shieldNow, 0);
+    assert.equal(systemDamage(g, "p-engines"), 2);
+    assert.equal(hull - g.player.hull, 4);
+  });
+
+  it("leaves the bubble up when one point of beam damage still leaves two shield bars", () => {
+    // Shields-3 holds one layer and one buffer bar. The 1 point through that layer does not drop it.
+    const g = armed(3, 2, 1);
+    applyImpact(
+      g,
+      beamShot({
+        damage: 2,
+        defId: "halberd",
+        beamRooms: ["p-shields", "p-weapons"],
+        targetRoom: "p-shields",
+      }),
+    );
+    assert.equal(g.player.systems.shields.damage, 1);
+    assert.equal(g.player.shieldNow, 1);
+    assert.equal(systemDamage(g, "p-weapons"), 1);
+  });
+
+  it("drops one of two layers when the pierce damage hits Shields-4, then uses the layer that remains", () => {
+    // Glaive deals 1 through two layers. That point takes Shields-4 from four bars to three, so one bubble remains.
+    const g = armed(4, 4, 2);
+    const hull = g.player.hull;
+    applyImpact(
+      g,
+      beamShot({
+        damage: 3,
+        defId: "glaive",
+        beamRooms: ["p-shields", "p-weapons"],
+        targetRoom: "p-shields",
+      }),
+    );
+    assert.equal(g.player.systems.shields.damage, 1);
+    assert.equal(g.player.shieldNow, 1);
+    assert.equal(systemDamage(g, "p-weapons"), 2);
+    assert.equal(hull - g.player.hull, 3);
+  });
+
+  it("does not pop a layer when every room's damage is cut to zero", () => {
+    const g = armed(4, 4, 2);
+    const hull = g.player.hull;
+    applyImpact(
+      g,
+      beamShot({
+        damage: 2,
+        defId: "halberd",
+        beamRooms: ["p-shields", "p-weapons"],
+        targetRoom: "p-shields",
+      }),
+    );
+    assert.equal(g.player.shieldNow, 2);
+    assert.equal(g.player.systems.shields.damage, 0);
+    assert.equal(systemDamage(g, "p-weapons"), 0);
+    assert.equal(g.player.hull, hull);
   });
 
   it("spends a Zoltan Shield at 33% and 80% of the path, once each", () => {

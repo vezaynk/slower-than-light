@@ -20,6 +20,14 @@
   pointer-events: auto;
 }
 
+/* Per the user: a crew member standing on a room must not take the click that aims a weapon, a hack, or a
+   teleporter. The room under the sprite receives it, including a bomb aimed at your own ship. Mind control still
+   aims at the crew member, so those sprites keep the click. */
+.play.is-targeting:not(.is-leash-targeting) .target-body .crew-walkers .token.crew-walker,
+.play.is-targeting .hull-own:has(.room.is-aim) .crew-walkers .token.crew-walker {
+  pointer-events: none;
+}
+
 .token.is-sprite {
   position: relative;
 }

@@ -1014,26 +1014,6 @@ function Hud({ game }: { game: Game }) {
         </div>
       </div>
       <div className="hud-mid">
-        {/* Per the user: pause and fast forward, top middle. While paused, the PAUSED mark takes their place. */}
-        {game.userPaused ? (
-          <PauseStamp />
-        ) : (
-          <>
-            <button
-              type="button"
-              className="frame-btn pause-btn"
-              aria-label={tx("ui.GameApp.pause")}
-              title={tx("ui.GameApp.pause-space")}
-              disabled={!["combat", "map", "event", "store", "reward"].includes(game.phase)}
-              onClick={() => act((g) => togglePause(g))}
-            >
-              <PixelIcon name="pause" size={34} />
-            </button>
-            <FastButton />
-          </>
-        )}
-      </div>
-      <div className="hud-right">
         {/* Per the user: fuel sits beside the FTL Drive it feeds. */}
         <span className={`count-chip hud-fuel${game.fuel < 1 ? " is-empty" : ""}`} aria-label={`${game.fuel} fuel`} title={tx("ui.GameApp.fuel")}>
           <PixelIcon name="fuel" />
@@ -1106,6 +1086,10 @@ function Hud({ game }: { game: Game }) {
         <button type="button" className="frame-btn" aria-label={tx("ui.GameApp.options")} title={tx("ui.GameApp.options")} onClick={() => useOptionsOpen.setState({ open: true })}>
           <PixelIcon name="upgrade" size={20} />
         </button>
+      </div>
+      <div className="hud-right">
+        {/* Per the user: pause and fast forward, top right. While paused, the PAUSED mark takes their place. */}
+        <ClockControls paused={!!game.userPaused} phase={game.phase} />
       </div>
     </header>
   );
@@ -3100,11 +3084,96 @@ function FastButton() {
   );
 }
 
-/** Per the user: the stamp also resumes on a tap, and says so on a touch screen (no Space bar there). */
-function PauseStamp() {
-  const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+/** A hold this long on the paused mark runs the sim until the pointer comes up. Shorter is a tap, which resumes. */
+const PEEK_MS = 280;
+
+function ClockControls({ paused, phase }: { paused: boolean; phase: Game["phase"] }) {
+  // Per the user: holding the unpause mark plays until release, then pauses again. The mark stays up while that runs,
+  // or the pause button would mount under the finger and the release would land on it.
+  const [peek, setPeek] = useState(false);
+  if (paused || peek) return <PauseStamp onPeekStart={() => setPeek(true)} onPeekEnd={() => setPeek(false)} />;
   return (
-    <button type="button" className="pause-mark" aria-label={tx("ui.GameApp.resume")} onClick={() => act((g) => togglePause(g))}>
+    <>
+      <button
+        type="button"
+        className="frame-btn pause-btn"
+        aria-label={tx("ui.GameApp.pause")}
+        title={tx("ui.GameApp.pause-space")}
+        disabled={!["combat", "map", "event", "store", "reward"].includes(phase)}
+        onClick={() => act((g) => togglePause(g))}
+      >
+        <PixelIcon name="pause" size={34} />
+      </button>
+      <FastButton />
+    </>
+  );
+}
+
+/** Per the user: the stamp also resumes on a tap, and says so on a touch screen (no Space bar there). */
+function PauseStamp({ onPeekStart, onPeekEnd }: { onPeekStart: () => void; onPeekEnd: () => void }) {
+  const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+  const peeking = useRef(false);
+  const swallowClick = useRef(false);
+  const timer = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(timer.current);
+      if (!peeking.current) return;
+      peeking.current = false;
+      act((g) => {
+        g.userPaused = true;
+      });
+    };
+  }, []);
+
+  function endPeek() {
+    window.clearTimeout(timer.current);
+    if (!peeking.current) return;
+    peeking.current = false;
+    swallowClick.current = true;
+    act((g) => {
+      g.userPaused = true;
+    });
+    onPeekEnd();
+  }
+
+  function down(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (e.button !== 0) return;
+    swallowClick.current = false;
+    window.clearTimeout(timer.current);
+    const up = () => {
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      endPeek();
+    };
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    timer.current = window.setTimeout(() => {
+      peeking.current = true;
+      onPeekStart();
+      act((g) => {
+        g.userPaused = false;
+      });
+    }, PEEK_MS);
+  }
+
+  return (
+    <button
+      type="button"
+      className="pause-mark"
+      aria-label={tx("ui.GameApp.resume")}
+      onPointerDown={down}
+      onClick={() => {
+        window.clearTimeout(timer.current);
+        if (swallowClick.current) {
+          swallowClick.current = false;
+          return;
+        }
+        if (peeking.current) return;
+        act((g) => togglePause(g));
+      }}
+    >
       <strong>{tx("ui.GameApp.paused")}</strong>
       <span>{touch ? tx("ui.GameApp.tap-to-resume") : tx("ui.GameApp.press-space-or-click-to-resume")}</span>
     </button>

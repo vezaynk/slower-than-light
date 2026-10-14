@@ -1,10 +1,12 @@
 import { Button, Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
+import { HOLD_MS, momentDown, momentLive, momentMarkHeld, momentUp, type Moment } from "./moment";
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
 import {
@@ -458,7 +460,8 @@ export function GameApp() {
     applySound();
     const stopSound = useSettings.subscribe(applySound);
     const onVis = () => {
-      if (document.visibilityState === "visible") resumeAudio();
+      if (document.visibilityState === "hidden") finishSpace();
+      else resumeAudio();
     };
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
@@ -466,8 +469,8 @@ export function GameApp() {
       const plain = !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey;
       if (e.code === "Space" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
-        // A held Space repeats keydown. Pause toggles once per press.
-        if (!e.repeat) act((g) => togglePause(g));
+        // Per the user: a short Space toggles pause. Holding it flips pause until the key comes up.
+        if (!e.repeat) beginSpace();
         return;
       }
       // Per the user: fast forward. The key left of 1 is free; F powers Oxygen on the controls page.
@@ -674,6 +677,42 @@ export function GameApp() {
         act((game) => armWeapon(game, weapon.uid));
       }
     };
+    // Per the user: holding Space plays while paused, and pauses while playing, until the key comes up.
+    let spaceHold: { timer: number; moment: Moment } | null = null;
+    const writePaused = (next: boolean) => {
+      act((g) => {
+        if (!!g.userPaused === next) return;
+        togglePause(g);
+      });
+    };
+    const finishSpace = () => {
+      const hold = spaceHold;
+      if (!hold) return;
+      window.clearTimeout(hold.timer);
+      spaceHold = null;
+      if (hold.moment.held) writePaused(momentUp(hold.moment));
+    };
+    const beginSpace = () => {
+      if (spaceHold) return;
+      const was = !!useGame.getState().game.userPaused;
+      let flipped = false;
+      act((g) => {
+        const before = !!g.userPaused;
+        togglePause(g);
+        flipped = !!g.userPaused !== before;
+      });
+      if (!flipped) return;
+      const moment = momentDown(was);
+      spaceHold = {
+        moment,
+        timer: window.setTimeout(() => {
+          if (spaceHold) spaceHold.moment = momentMarkHeld(spaceHold.moment);
+        }, HOLD_MS),
+      };
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") finishSpace();
+    };
     // Game patches: the middle mouse button pauses, the same action as Space.
     // mousedown is the pause. mouseup and auxclick only swallow the browser's autoscroll and paste.
     const onMiddle = (e: MouseEvent) => {
@@ -682,6 +721,8 @@ export function GameApp() {
       if (e.type === "mousedown") act((g) => togglePause(g));
     };
     window.addEventListener("keydown", onKey);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", finishSpace);
     window.addEventListener("mousedown", onMiddle);
     window.addEventListener("mouseup", onMiddle);
     window.addEventListener("auxclick", onMiddle);
@@ -736,7 +777,10 @@ export function GameApp() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      finishSpace();
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", finishSpace);
       window.removeEventListener("mousedown", onMiddle);
       window.removeEventListener("mouseup", onMiddle);
       window.removeEventListener("auxclick", onMiddle);
@@ -3345,8 +3389,91 @@ function PartsChip({ game }: { game: Game }) {
   );
 }
 
+/** A click that belongs to a press arrives just after pointerup. A stale swallow must not eat the next tap. */
+const SWALLOW_MS = 500;
+
+/**
+ * Per the user: the press flips `read` at once. A short press keeps that. A long one restores it on release.
+ * `pin` keeps this control mounted while the flip would otherwise swap it out from under the finger.
+ */
+function useMomentPress(read: () => boolean, write: (next: boolean) => void, pin?: (on: boolean) => void) {
+  const readRef = useRef(read);
+  const writeRef = useRef(write);
+  const pinRef = useRef(pin);
+  readRef.current = read;
+  writeRef.current = write;
+  pinRef.current = pin;
+  const moment = useRef<Moment | null>(null);
+  const timer = useRef(0);
+  const swallow = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(timer.current);
+      window.clearTimeout(swallow.current);
+      const m = moment.current;
+      moment.current = null;
+      if (m?.held) writeRef.current(m.was);
+      pinRef.current?.(false);
+    };
+  }, []);
+
+  function down(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const m = momentDown(readRef.current());
+    moment.current = m;
+    window.clearTimeout(timer.current);
+    // Pin before the flip, or the control unmounts and the release never arrives.
+    if (pinRef.current) flushSync(() => pinRef.current!(true));
+    writeRef.current(momentLive(m));
+    timer.current = window.setTimeout(() => {
+      if (moment.current) moment.current = momentMarkHeld(moment.current);
+    }, HOLD_MS);
+  }
+
+  function up(e: ReactPointerEvent<HTMLButtonElement>) {
+    const m = moment.current;
+    if (!m) return;
+    window.clearTimeout(timer.current);
+    moment.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    writeRef.current(momentUp(m));
+    pinRef.current?.(false);
+    swallow.current = window.setTimeout(() => {
+      swallow.current = 0;
+    }, SWALLOW_MS);
+  }
+
+  return {
+    onPointerDown: down,
+    onPointerUp: up,
+    onPointerCancel: up,
+    onClick: (e: ReactMouseEvent<HTMLButtonElement>) => {
+      if (swallow.current) {
+        window.clearTimeout(swallow.current);
+        swallow.current = 0;
+        e.preventDefault();
+        return;
+      }
+      writeRef.current(!readRef.current());
+    },
+  };
+}
+
+function writeUserPaused(next: boolean) {
+  act((g) => {
+    if (!!g.userPaused === next) return;
+    togglePause(g);
+  });
+}
+
 function FastButton() {
   const on = useFast((s) => s.on);
+  const press = useMomentPress(
+    () => useFast.getState().on,
+    (next) => useFast.setState({ on: next }),
+  );
   return (
     <button
       type="button"
@@ -3354,103 +3481,49 @@ function FastButton() {
       aria-label={on ? tx("ui.GameApp.normal-speed") : tx("ui.GameApp.fast-forward")}
       aria-pressed={on}
       title={on ? tx("ui.GameApp.normal-speed-backquote") : tx("ui.GameApp.fast-forward-backquote", { FAST_SPEED: FAST_SPEED })}
-      onClick={() => useFast.setState({ on: !on })}
+      {...press}
     >
       <PixelIcon name="fast" size={34} />
     </button>
   );
 }
 
-/** A hold this long on the paused mark runs the sim until the pointer comes up. Shorter is a tap, which resumes. */
-const PEEK_MS = 280;
+function PauseButton({ phase, pin }: { phase: Game["phase"]; pin: (on: boolean) => void }) {
+  const press = useMomentPress(() => !!useGame.getState().game.userPaused, writeUserPaused, pin);
+  return (
+    <button
+      type="button"
+      className="frame-btn pause-btn"
+      aria-label={tx("ui.GameApp.pause")}
+      title={tx("ui.GameApp.pause-space")}
+      disabled={!["combat", "map", "event", "store", "reward"].includes(phase)}
+      {...press}
+    >
+      <PixelIcon name="pause" size={34} />
+    </button>
+  );
+}
 
 function ClockControls({ paused, phase }: { paused: boolean; phase: Game["phase"] }) {
-  // Per the user: holding the unpause mark plays until release, then pauses again. The mark stays up while that runs,
-  // or the pause button would mount under the finger and the release would land on it.
-  const [peek, setPeek] = useState(false);
-  if (paused || peek) return <PauseStamp onPeekStart={() => setPeek(true)} onPeekEnd={() => setPeek(false)} />;
+  // Per the user: the control under the finger stays mounted for the whole press. A pause would otherwise
+  // swap in the stamp, and a resume would swap in the pause button, so the release would land on the other one.
+  const [pinButtons, setPinButtons] = useState(false);
+  const [pinStamp, setPinStamp] = useState(false);
+  if ((paused || pinStamp) && !pinButtons) return <PauseStamp pin={setPinStamp} />;
   return (
     <>
-      <button
-        type="button"
-        className="frame-btn pause-btn"
-        aria-label={tx("ui.GameApp.pause")}
-        title={tx("ui.GameApp.pause-space")}
-        disabled={!["combat", "map", "event", "store", "reward"].includes(phase)}
-        onClick={() => act((g) => togglePause(g))}
-      >
-        <PixelIcon name="pause" size={34} />
-      </button>
+      <PauseButton phase={phase} pin={setPinButtons} />
       <FastButton />
     </>
   );
 }
 
 /** Per the user: the stamp also resumes on a tap, and says so on a touch screen (no Space bar there). */
-function PauseStamp({ onPeekStart, onPeekEnd }: { onPeekStart: () => void; onPeekEnd: () => void }) {
+function PauseStamp({ pin }: { pin: (on: boolean) => void }) {
   const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-  const peeking = useRef(false);
-  const swallowClick = useRef(false);
-  const timer = useRef(0);
-
-  useEffect(() => {
-    return () => {
-      window.clearTimeout(timer.current);
-      if (!peeking.current) return;
-      peeking.current = false;
-      act((g) => {
-        g.userPaused = true;
-      });
-    };
-  }, []);
-
-  function endPeek() {
-    window.clearTimeout(timer.current);
-    if (!peeking.current) return;
-    peeking.current = false;
-    swallowClick.current = true;
-    act((g) => {
-      g.userPaused = true;
-    });
-    onPeekEnd();
-  }
-
-  function down(e: ReactPointerEvent<HTMLButtonElement>) {
-    if (e.button !== 0) return;
-    swallowClick.current = false;
-    window.clearTimeout(timer.current);
-    const up = () => {
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
-      endPeek();
-    };
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", up);
-    timer.current = window.setTimeout(() => {
-      peeking.current = true;
-      onPeekStart();
-      act((g) => {
-        g.userPaused = false;
-      });
-    }, PEEK_MS);
-  }
-
+  const press = useMomentPress(() => !!useGame.getState().game.userPaused, writeUserPaused, pin);
   return (
-    <button
-      type="button"
-      className="pause-mark"
-      aria-label={tx("ui.GameApp.resume")}
-      onPointerDown={down}
-      onClick={() => {
-        window.clearTimeout(timer.current);
-        if (swallowClick.current) {
-          swallowClick.current = false;
-          return;
-        }
-        if (peeking.current) return;
-        act((g) => togglePause(g));
-      }}
-    >
+    <button type="button" className="pause-mark" aria-label={tx("ui.GameApp.resume")} {...press}>
       <strong>{tx("ui.GameApp.paused")}</strong>
       <span>{touch ? tx("ui.GameApp.tap-to-resume") : tx("ui.GameApp.press-space-or-click-to-resume")}</span>
     </button>

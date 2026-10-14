@@ -176,6 +176,23 @@ function powered(kit: Kit, kind: SwarmKind): boolean {
   return kit.on && !kit.idle && fedBars(kit) >= DRONE_POWER[kind];
 }
 
+function flightPower(kind: string): number | undefined {
+  if (isKind(kind)) return DRONE_POWER[kind];
+  if (kind === "overchargerplus") return OVERCHARGER_PLUS.power;
+  return SCHEMATIC_POWER[kind];
+}
+
+/**
+ * True while the deployed player drone has the bars to keep flying.
+ * Short bars, or a manual idle, leave it out: the sprite coasts to a stop
+ * instead of being recalled. Hull Repair still removes itself (tickSwarm).
+ */
+export function playerDroneCruising(kit: Kit): boolean {
+  if (!kit.on || kit.idle || !kit.target) return false;
+  const need = flightPower(kit.target);
+  return need != null && fedBars(kit) >= need;
+}
+
 function blank(): Kit {
   return {
     id: "swarm",

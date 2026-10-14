@@ -15,7 +15,8 @@ import { halted, shieldChargeFraction } from "@/game/sim";
 import { bubbleRoom, struckPad, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
-import { DRONE_LABEL, enemyDroneSpot } from "@/game/extras/swarm";
+import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
+import { stepDrift, type DroneDrift } from "@/game/drone-drift";
 import { roomInterior } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
 import { enemyHackView, playerHackView } from "@/game/extras/spike";
@@ -254,6 +255,9 @@ export function CombatFx() {
     const seenBlast = new Set<string>();
     /** Last canvas point per drone, so a kill this tick still bursts on the orbit. */
     const droneMem = new Map<string, Pt>();
+    /** Orbit angle and speed. Pause holds both. A power loss eases the speed to a stop. */
+    const drift = new Map<string, DroneDrift>();
+    const driftSeen = new Set<string>();
     /** Shot progress as of the last sim tick, to smooth between 30 Hz ticks. */
     const tickT = new Map<string, { t: number; at: number }>();
     /** Player Zoltan Shield last frame, to spot an enemy beam drone draining it. */
@@ -318,26 +322,41 @@ export function CombatFx() {
       // damage numbers, rings and sparks still fade instead of freezing on screen. A pause still holds them.
       const live = !halted(g);
       const time = now / 1000;
+      // Per the user: pause holds each drone where it is. Losing power eases the orbit to a stop;
+      // power coming back eases it up to cruise. The angle is kept here, not on the clock.
+      driftSeen.clear();
+      const follow = (id: string, omega: number, cruising: boolean, seed: number) => {
+        driftSeen.add(id);
+        let body = drift.get(id);
+        if (!body) {
+          body = { angle: seed, rate: cruising ? 1 : 0 };
+          drift.set(id, body);
+        }
+        return stepDrift(body, dt, cruising, omega, !live);
+      };
 
       // Drones on station. Positions feed the drone shots below.
       const droneAt = new Map<DroneKey, Pt>();
       const kit = g.player.kits.swarm;
       const key = kit?.on ? droneKeyOf(kit.target) : null;
-      if (key) {
+      if (kit && key) {
         const outbound = OUTBOUND.has(key);
+        const cruising = playerDroneCruising(kit);
+        const a = follow(`p:${key}`, outbound ? 0.9 : 0.6, cruising, outbound ? Math.PI : 0);
         const around = hull(outbound ? "enemy" : "player");
         if (around) {
-          const a = (live ? time : 0) * (outbound ? 0.9 : 0.6) + (outbound ? Math.PI : 0);
           const cx = around.x + around.w / 2;
           const cy = around.y + around.h / 2;
           const p = { x: cx + Math.cos(a) * (around.w / 2 + 22), y: cy + Math.sin(a) * (around.h / 2 + 18) };
           droneAt.set(key, p);
           const sprite = droneSprite(key);
           const size = 27;
+          ctx.globalAlpha = cruising ? 1 : 0.4;
           ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+          ctx.globalAlpha = 1;
           // Defense drones hold a faint guard ring; the outbound ones trail a thruster pixel.
           ctx.fillStyle = DRONE_LOOKS[key].glow;
-          ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 6);
+          ctx.globalAlpha = (cruising ? 0.5 : 0.2) + (cruising ? 0.5 : 0.15) * Math.sin(time * 6);
           ctx.fillRect(Math.round(p.x - Math.cos(a + Math.PI / 2) * 14) - 1, Math.round(p.y - Math.sin(a + Math.PI / 2) * 12) - 1, 3, 3);
           ctx.globalAlpha = 1;
         }
@@ -351,14 +370,14 @@ export function CombatFx() {
         const ekey = enemyDroneKey(unit);
         if (!spot || !ekey) continue;
         const phase = hash(unit.id) * Math.PI * 2;
-        const t = live ? time : 0;
         let p: Pt | null = null;
         let size = 27;
         if (spot.at === "player-orbit" || spot.at === "enemy-orbit") {
+          // Opposite spin to the player's own drone, so the two read apart.
+          const omega = spot.at === "player-orbit" ? -0.8 : -0.55;
+          const a = follow(`e:${unit.id}`, omega, unit.powered, phase);
           const around = hull(spot.at === "player-orbit" ? "player" : "enemy");
           if (around) {
-            // Opposite spin to the player's own drone, so the two read apart.
-            const a = -t * (spot.at === "player-orbit" ? 0.8 : 0.55) + phase;
             p = {
               x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22),
               y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 18),
@@ -378,10 +397,11 @@ export function CombatFx() {
           // Slugs: a crew drone in a closed room has no life sign, so it is not drawn.
           const side = spot.at === "player-room" ? "player" : "enemy";
           if (!roomInterior(g, side, spot.room)) continue;
+          const bob = follow(`bob:${unit.id}`, 2, unit.powered, phase);
           const r = room(side, spot.room);
           if (r) {
             size = 21;
-            p = { x: r.x + r.w / 2 + Math.sin(t * 2 + phase) * 3, y: r.y + r.h / 2 };
+            p = { x: r.x + r.w / 2 + Math.sin(bob) * 3, y: r.y + r.h / 2 };
           }
         }
         if (!p) continue;
@@ -416,10 +436,10 @@ export function CombatFx() {
       // The page names no way to shoot them down (a defense drone hits projectiles), so they are drawn, not targetable.
       const surge = surgeDroneView(g.enemy);
       surge.forEach((d, i) => {
+        const seed = hash(d.id) * Math.PI * 2 + (i / Math.max(1, surge.length)) * Math.PI * 2;
+        const a = follow(`surge:${d.id}`, -1.1, true, seed);
         const around = hull("player");
         if (!around) return;
-        const t = live ? time : 0;
-        const a = -t * 1.1 + hash(d.id) * Math.PI * 2 + (i / Math.max(1, surge.length)) * Math.PI * 2;
         const p = {
           x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 34),
           y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 28),
@@ -437,6 +457,7 @@ export function CombatFx() {
         ctx.fillStyle = "#ff5a4a";
         ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - size / 2) - 4, 3, 2);
       });
+      for (const id of drift.keys()) if (!driftSeen.has(id)) drift.delete(id);
 
       // Enemy hacking drone. Hacking wiki: "Launches a hacking drone that attaches to the enemy ship"; it "takes
       // about 2--3 seconds to reach" (spike.ts hackFly). It flies from the enemy hull to the hacked player room (or the

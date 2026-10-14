@@ -912,7 +912,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
       onPointerDown={(e) => {
         if (e.pointerType !== "touch") return;
         const t = e.target as Element | null;
-        if (t?.closest("button, a, input, textarea, select")) return;
+        if (t?.closest("button, a, input, textarea, select, .aim-rails")) return;
         armHold(e, cancelAim);
       }}
       onClick={(e) => {
@@ -929,7 +929,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         // and aim clears an invalid one) clears that weapon's designated target. Buttons elsewhere (HUD, dock) do not.
         if (!useGame.getState().game.targeting || !t) return;
         if (!t.closest(".stage-slot, .target-panel")) return;
-        if (t.closest("[data-room], button, a, input, .aim-sliders")) return;
+        if (t.closest("[data-room], button, a, input, .aim-rails")) return;
         act((g) => cancelTargeting(g));
       }}
       onContextMenu={(e) => {
@@ -1326,11 +1326,13 @@ function aimMarks(game: Game): AimMark[] {
  * Hacking wiki, "Overview" (passive effects): the drone stays on that system; the pulse marks it as running.
  */
 function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: boolean }) {
-  // Per the user: sliders on the target pane aim without a tap, and nudge a target that is already set.
-  // A beam has a start and an end, so it gets an x and a y for each. The range is the targetable floor.
+  // Per the user: the sliders ride the borders of the target panel, not a block inside the card.
+  // X travels the bottom edge, Y the right edge. A beam has a second thumb on each edge.
+  // The travel stays inside the enemy's targetable floor.
   const span = targetableSpan(enemy);
   const [draft, setDraft] = useState<{ uid: string; a: BeamPoint; b: BeamPoint } | null>(null);
   if (hidden || !span || game.phase !== "combat") return null;
+  const range = span;
   const armed = game.player.weapons.find((gun) => gun.uid === game.armed);
   const w = armed ?? game.player.weapons.find((gun) => gun.target || gun.beamLine);
   if (!w) return null;
@@ -1340,7 +1342,7 @@ function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: 
   const aiming = game.targeting && game.armed === gun.uid;
   if (!aiming && !gun.target && !gun.beamLine && !(game.beamAnchor && game.armed === gun.uid)) return null;
   const beam = def.kind === "beam";
-  const mid = { x: (span.minX + span.maxX) / 2, y: (span.minY + span.maxY) / 2 };
+  const mid = { x: (range.minX + range.maxX) / 2, y: (range.minY + range.maxY) / 2 };
   const roomPoint = (id: string | null): BeamPoint | null => {
     const room = id ? enemy.rooms.find((r) => r.id === id) : undefined;
     return room ? roomCenter(room) : null;
@@ -1368,38 +1370,76 @@ function AimSliders({ game, enemy, hidden }: { game: Game; enemy: Ship; hidden: 
     setDraft({ uid: gun.uid, ...pair });
     act((g) => nudgeAim(g, beam ? which : "point", next));
   }
-  const row = (which: "a" | "b", point: BeamPoint, xLabel: string, yLabel: string) => (
-    <>
-      <label>
-        {xLabel}
-        <input
-          type="range"
-          min={span.minX}
-          max={span.maxX}
-          step={0.05}
-          value={point.x}
-          aria-label={xLabel}
-          onInput={(e) => slide(which, "x", Number(e.currentTarget.value))}
-        />
-      </label>
-      <label>
-        {yLabel}
-        <input
-          type="range"
-          min={span.minY}
-          max={span.maxY}
-          step={0.05}
-          value={point.y}
-          aria-label={yLabel}
-          onInput={(e) => slide(which, "y", Number(e.currentTarget.value))}
-        />
-      </label>
-    </>
+  function fromPointer(rail: HTMLElement, axis: "x" | "y", clientX: number, clientY: number) {
+    const box = pageRect(rail);
+    const p = toPage(clientX, clientY);
+    const spanPx = axis === "x" ? box.width : box.height;
+    const along = axis === "x" ? p.x - box.left : p.y - box.top;
+    const frac = spanPx > 0 ? Math.min(1, Math.max(0, along / spanPx)) : 0;
+    const min = axis === "x" ? range.minX : range.minY;
+    const max = axis === "x" ? range.maxX : range.maxY;
+    return min + frac * (max - min);
+  }
+  function beginDrag(e: ReactPointerEvent<HTMLElement>, which: "a" | "b", axis: "x" | "y") {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    const rail = e.currentTarget.closest(".aim-rail");
+    if (!(rail instanceof HTMLElement)) return;
+    const apply = (clientX: number, clientY: number) => slide(which, axis, fromPointer(rail, axis, clientX, clientY));
+    apply(e.clientX, e.clientY);
+    const move = (ev: PointerEvent) => apply(ev.clientX, ev.clientY);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  }
+  function onTrack(e: ReactPointerEvent<HTMLDivElement>, axis: "x" | "y") {
+    if ((e.target as Element).closest(".aim-thumb")) return;
+    const raw = fromPointer(e.currentTarget, axis, e.clientX, e.clientY);
+    const value = axis === "x" ? (point: BeamPoint) => point.x : (point: BeamPoint) => point.y;
+    const which = !beam || Math.abs(value(a) - raw) <= Math.abs(value(b) - raw) ? "a" : "b";
+    beginDrag(e, which, axis);
+  }
+  const frac = (axis: "x" | "y", point: BeamPoint) => {
+    const min = axis === "x" ? range.minX : range.minY;
+    const max = axis === "x" ? range.maxX : range.maxY;
+    return max > min ? ( (axis === "x" ? point.x : point.y) - min) / (max - min) : 0;
+  };
+  const thumb = (which: "a" | "b", axis: "x" | "y", point: BeamPoint, label: string) => (
+    <button
+      type="button"
+      role="slider"
+      className={`aim-thumb aim-thumb-${axis}${which === "b" ? " is-end" : ""}`}
+      style={{ ["--t" as string]: String(Math.min(1, Math.max(0, frac(axis, point)))) }}
+      aria-label={label}
+      aria-orientation={axis === "x" ? "horizontal" : "vertical"}
+      aria-valuemin={axis === "x" ? range.minX : range.minY}
+      aria-valuemax={axis === "x" ? range.maxX : range.maxY}
+      aria-valuenow={axis === "x" ? point.x : point.y}
+      onPointerDown={(e) => beginDrag(e, which, axis)}
+      onKeyDown={(e) => {
+        const step = e.shiftKey ? 0.5 : 0.05;
+        const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+        if (!dir || (axis === "x" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") || (axis === "y" && e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+        e.preventDefault();
+        slide(which, axis, (axis === "x" ? point.x : point.y) + dir * step);
+      }}
+    />
   );
   return (
-    <div className="aim-sliders">
-      {row("a", a, beam ? tx("ui.GameApp.start-x") : tx("ui.GameApp.aim-x"), beam ? tx("ui.GameApp.start-y") : tx("ui.GameApp.aim-y"))}
-      {beam ? row("b", b, tx("ui.GameApp.end-x"), tx("ui.GameApp.end-y")) : null}
+    <div className="aim-rails">
+      <div className="aim-rail aim-rail-x" onPointerDown={(e) => onTrack(e, "x")}>
+        {thumb("a", "x", a, beam ? tx("ui.GameApp.start-x") : tx("ui.GameApp.aim-x"))}
+        {beam ? thumb("b", "x", b, tx("ui.GameApp.end-x")) : null}
+      </div>
+      <div className="aim-rail aim-rail-y" onPointerDown={(e) => onTrack(e, "y")}>
+        {thumb("a", "y", a, beam ? tx("ui.GameApp.start-y") : tx("ui.GameApp.aim-y"))}
+        {beam ? thumb("b", "y", b, tx("ui.GameApp.end-y")) : null}
+      </div>
     </div>
   );
 }

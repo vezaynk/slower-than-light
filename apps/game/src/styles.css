@@ -1537,31 +1537,82 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Per the user: x/y sliders on the target pane. A beam has a second pair for the other end. */
-.aim-sliders {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px 10px 8px;
-  background: rgba(11, 17, 22, 0.82);
+/* Per the user: aim sliders ride the borders of the target panel. X is the bottom edge, Y the right edge.
+   A beam adds a second thumb on each edge. */
+.target-panel { position: relative; }
+.target-panel:has(.aim-rails) .target-head { padding-right: 28px; }
+.target-panel:has(.aim-rails) .target-body { padding-right: 26px; }
+.target-panel:has(.aim-rails) .target-systems { padding-right: 28px; padding-bottom: 28px; }
+
+.aim-rails { pointer-events: none; }
+
+.aim-rail {
+  position: absolute;
+  z-index: 6;
+  pointer-events: auto;
+  touch-action: none;
+  background: rgba(11, 17, 22, 0.92);
 }
 
-.aim-sliders label {
-  display: grid;
-  grid-template-columns: 4.6em minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-hud);
-  font-size: 16px;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
+.aim-rail-x {
+  left: 0;
+  right: 22px;
+  bottom: 0;
+  height: 22px;
 }
 
-.aim-sliders input[type="range"] {
-  width: 100%;
-  margin: 0;
-  accent-color: var(--color-accent);
+.aim-rail-y {
+  top: 0;
+  right: 0;
+  bottom: 22px;
+  width: 22px;
 }
+
+.aim-rail-x::before,
+.aim-rail-y::before {
+  content: "";
+  position: absolute;
+  background: var(--color-line-dim);
+}
+
+.aim-rail-x::before {
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 2px;
+}
+
+.aim-rail-y::before {
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 2px;
+}
+
+.aim-thumb {
+  position: absolute;
+  padding: 0;
+  border: 2px solid var(--color-line);
+  background: var(--color-accent);
+  box-shadow: var(--glow);
+  touch-action: none;
+}
+
+.aim-thumb-x {
+  top: 0;
+  width: 16px;
+  height: 22px;
+  left: calc(var(--t) * (100% - 16px));
+}
+
+.aim-thumb-y {
+  left: 0;
+  width: 22px;
+  height: 16px;
+  top: calc(var(--t) * (100% - 16px));
+}
+
+.aim-thumb.is-end { background: var(--color-ok); }
 
 .target-systems {
   flex-wrap: wrap;

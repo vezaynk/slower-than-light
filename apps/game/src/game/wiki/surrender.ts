@@ -12,9 +12,10 @@
  * enemyEscapeStep, and choose routes the two offer choices here.
  */
 import { tx } from "../../i18n/index.ts";
-import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
+import { CREW_POOL, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { kinOf, type KinId } from "../extras/kin.ts";
+import { type KinId } from "../extras/kin.ts";
+import { allWeapons, crewDef, weaponDef } from "../pack/registry.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
 import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
@@ -759,7 +760,7 @@ export function rollScriptedOffer(g: Game, s: ScriptedSurrender): SurrenderOffer
   } else if (r.k === "none") {
     // @agent:quests. Nothing is handed over; the page's answer is a quest marker or a follow-up card.
   } else {
-    offer.weapon = Object.values(WEAPONS).find((w) => w.name === r.name)?.id;
+    offer.weapon = allWeapons().find((w) => w.name === r.name)?.id;
     offer.note = tx("wiki.surrender.the", { name: r.name });
   }
   if (s.continues) offer.continues = true;
@@ -790,7 +791,7 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
   const kin = raceKin(race);
   const used = new Set(g.crew.map((c) => c.name));
   const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? tx("wiki.surrender.rook-vale");
-  const hp = kinOf(kin).hp;
+  const hp = crewDef(kin).hp;
   const roomId = g.player.rooms.find((x) => x.id === "p-medbay")?.id ?? g.player.rooms[0]?.id ?? "p-medbay";
   g.uid = (g.uid + 1) >>> 0;
   g.crew.push({
@@ -971,7 +972,7 @@ export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { 
   // A full rack asks what to leave behind (make-room.ts).
   const extras: string[] = [];
   if (offer.weapon && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
-    weaponName = WEAPONS[offer.weapon]?.name;
+    weaponName = weaponDef(offer.weapon)?.name;
     const got = receiveWeapon(g, offer.weapon);
     if (got === "cargo") extras.push(tx("wiki.surrender.no-free-weapon-slot-is-stowed", { v: weaponName ?? offer.weapon }));
     if (got === "queued") extras.push(tx("wiki.surrender.no-room-in-cargo-for-choose", { v: weaponName ?? offer.weapon }));
@@ -1181,7 +1182,7 @@ export function pageFight(g: Game, text: string, tier: string, slug: string, esc
  */
 export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lungs = false) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("plain").hp;
+  const hp = crewDef("plain").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -1223,7 +1224,7 @@ export function plasmaHumanBoarders(g: Game) {
  */
 export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("gel").hp;
+  const hp = crewDef("gel").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -1251,11 +1252,11 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
  * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
  * INFERRED: the count is an inclusive whole number from 1 to 3, and each boarder lands in a random player room,
  * the same pattern as humanBoarders. INFERRED: the display name is "Rock" because the page does not print names.
- * HP is kinOf("stone").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("stone").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 export function rockBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("stone").hp;
+  const hp = crewDef("stone").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -1283,11 +1284,11 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
  * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
  * INFERRED: the count is an inclusive whole number from 2 to 3, and each boarder lands in a random player room,
  * the same pattern as rockBoarders. INFERRED: the display name is "Mantis" because the page does not print names.
- * HP is kinOf("blade").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("blade").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 export function mantisBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("blade").hp;
+  const hp = crewDef("blade").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -1315,16 +1316,16 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
  * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
  * INFERRED: the count is an inclusive whole number from 3 to 4, and each boarder lands in a random player room,
  * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
- * HP is kinOf("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 /**
  * "crew entirely composed of Mantis."
  * Call this after startCombat. The class mix can still roll an Engi; this replaces that crew.
  * INFERRED: only enemy crew aboard the enemy ship change. A Mantis already there keeps the health
- * startCombat gave them. A converted crew member uses kinOf("blade") health. The display name is "Mantis".
+ * startCombat gave them. A converted crew member uses crewDef("blade") health. The display name is "Mantis".
  */
 export function allMantisCrew(g: Game) {
-  const hp = kinOf("blade").hp;
+  const hp = crewDef("blade").hp;
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "enemy") continue;
     if (c.kin === "blade") continue;
@@ -1337,7 +1338,7 @@ export function allMantisCrew(g: Game) {
 
 export function zoltanBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("spark").hp;
+  const hp = crewDef("spark").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
@@ -1363,12 +1364,12 @@ export function zoltanBoarders(g: Game, lo: number, hi: number) {
 /**
  * Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
  * INFERRED: the count is inclusive (between()), and each boarder lands in a random player room.
- * INFERRED: the display name is "Crystal" because the page does not print names. HP is kinOf("shard").hp.
+ * INFERRED: the display name is "Crystal" because the page does not print names. HP is crewDef("shard").hp.
  * Not a crew grant. No ship.
  */
 export function crystalBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf("shard").hp;
+  const hp = crewDef("shard").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";

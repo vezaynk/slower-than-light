@@ -11,7 +11,7 @@
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
 import { tx } from "../../i18n/index.ts";
-import { kinOf } from "../extras/kin.ts";
+import { crewDef } from "../pack/registry.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
@@ -58,7 +58,7 @@ function noOffer(g: Game) {
 /** Same as surrender.ts humanBoarders, for another race ("2-4 zoltan boarders"). INFERRED: each lands in a random room. */
 function boarders(g: Game, race: string, kin: "spark", lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = kinOf(kin).hp;
+  const hp = crewDef(kin).hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";

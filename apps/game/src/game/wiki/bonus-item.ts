@@ -5,7 +5,7 @@
  * grantBonusAugment for a duplicate augmentation.
  */
 import { tx } from "../../i18n/index.ts";
-import { WEAPONS } from "../content.ts";
+import { allWeapons, weaponDef } from "../pack/registry.ts";
 import { CATALOG } from "../extras/augments.ts";
 import { rand } from "../sim.ts";
 import type { AugmentId, Game } from "../types.ts";
@@ -28,7 +28,7 @@ function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
 /** Draws the bonus item, or nothing when no kind fits. `weapons` narrows the weapon pool (Hidden Crystal Worlds). */
 export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): BonusItem | undefined {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
-  const guns = Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)));
+  const guns = allWeapons().filter((w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)));
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
   const augs = CATALOG.filter((row) => !NOT_SOLD.has(row.id));
   const held = heldSchematics(g);
@@ -56,7 +56,7 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
 export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): string {
   if (kind === "weapon") {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
-    const def = pickOne(g, Object.values(WEAPONS).filter((w) => w.price > 0 && !owned.has(w.id)));
+    const def = pickOne(g, allWeapons().filter((w) => w.price > 0 && !owned.has(w.id)));
     return def ? weaponLine(g, def.id) : tx("wiki.bonus-item.no-weapon-is-left-to-give");
   }
   if (kind === "augment") {
@@ -70,7 +70,7 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
 
 /** Receives a weapon and returns the line for the result card. */
 export function weaponLine(g: Game, defId: string): string {
-  const name = WEAPONS[defId]?.name ?? defId;
+  const name = weaponDef(defId)?.name ?? defId;
   const got = receiveWeapon(g, defId);
   if (got === "mounted") return `${name} mounted.`;
   if (got === "cargo") return tx("wiki.bonus-item.no-free-weapon-slot-is-stowed", { name: name });

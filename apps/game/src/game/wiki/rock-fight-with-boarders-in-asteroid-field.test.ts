@@ -22,6 +22,11 @@ function open(g: Game) {
 
 describe("Rock fight with boarders in asteroid field", () => {
   it("shows one of the two intros, and the fight still beams Rock boarders in an asteroid field", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
+    // > "You arrive in an asteroid field and immediately begin evasive maneuvers when a loud clunk reverberates through the ship. At first you think the hull has been hit, but the noise came from some Rock intruders teleporting aboard the ship!" — [[Rock fight with boarders in asteroid field]]
+    // > "''Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.'" — [[Rock fight with boarders in asteroid field]]
+    // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -49,6 +54,8 @@ describe("Rock fight with boarders in asteroid field", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     // The page has no choice. "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

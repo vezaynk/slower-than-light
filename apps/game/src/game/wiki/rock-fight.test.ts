@@ -28,6 +28,17 @@ function open(g: Game) {
 
 describe("Rock fight", () => {
   it("shows one of the eight intros, and the fight choice starts a Rock ship combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
+    // > "You encounter a Rock vessel and attempt to open trading frequencies, but they take it as an act of cultural transgression and open fire." — [[Rock fight]]
+    // > "You jump into the middle of a Rock excavation project on a nearby moon. Unimpressed with your intrusion they move to defend themselves!" — [[Rock fight]]
+    // > "You intercept chatter from an approaching Rock ship: \"Weapons, moving in to engage, arm the tubes.\" There is no talking to these guys." — [[Rock fight]]
+    // > "As you jump in, a vast figure appears on the view-screen. The Rock captain rubs the green, moss-like appendage on his chin and then orders his crew to open fire." — [[Rock fight]]
+    // > "It looks quiet, but you realize your computer is being scanned. A hidden Rock vessel hails you: \"Why do you fill your computer with lies?! These are not the holy words!\" Before you can interject they open fire." — [[Rock fight]]
+    // > "You notice a Rock ship performing combat exercises. However, they quickly change their course to engage your ship. They apparently treat unregistered alien ships as handy target practice." — [[Rock fight]]
+    // > "A loud 'thud' resounds through the ship after jump completion - you've just shunted a Rock fighter and he's already preparing to fire!" — [[Rock fight]]
+    // > "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship." — [[Rock fight]]
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -50,6 +61,8 @@ describe("Rock fight", () => {
   });
 
   it("starts the Rock ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight]]
     // The page has no choice. One of the eight printed intros, then "Fight a Rock ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

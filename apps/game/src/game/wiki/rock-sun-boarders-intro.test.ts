@@ -32,6 +32,11 @@ function open(g: Game) {
 
 describe("Boarders: Rockmen near sun intros", () => {
   it("shows one of the two printed intros, then beams rocks with no ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Rockmen near sun]]
+    // > "As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, \"Prepare to burn, fleshy meat-sack aliens!\"" — [[Boarders: Rockmen near sun]]
+    // > "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement." — [[Boarders: Rockmen near sun]]
+    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

@@ -37,6 +37,13 @@ function breaches(g: Game): number {
 
 describe("Rock live mine", () => {
   it("always bites down, then defusing pays medium scrap or opens the wires", () => {
+    // Wiki citations:
+    // > "Attempt evasive maneuvers." — [[Rock live mine]]
+    // > "The ship's turning circle proves too wide and the mine bites down onto the hull. You can hear it now, chewing through the armor." — [[Rock live mine]]
+    // > "Send someone out there to defuse it." — [[Rock live mine]]
+    // > "Your crewmember dons a space suit and exits the airlock. They make quick work of the basic device and return inside to relief all round. The mine makes good scrap pickings too." — [[Rock live mine]]
+    // > "You receive medium scrap." — [[Rock live mine]]
+    // > "Your crewmember dons a space suit and exits the airlock. When they open up the mine housing, though, they panic. The red wire or the blue?! 3... 2... 1..." — [[Rock live mine]]
     let paid = false;
     let wires = false;
     for (let seed = 1; seed <= 40 && (!paid || !wires); seed++) {
@@ -68,6 +75,13 @@ describe("Rock live mine", () => {
   });
 
   it("cutting either wire pays medium scrap, or deals 6 hull, a breach, and loses a crewmember", () => {
+    // Wiki citations:
+    // > "Cut the wire." — [[Rock live mine]]
+    // > "You open your eyes and everything is still where it was a moment ago. You did it!" — [[Rock live mine#Cut the wire]]
+    // > "You receive medium scrap." — [[Rock live mine#Cut the wire]]
+    // > "The weapon detonates. Everything goes dark, the bridge illuminated by flames pouring from the hull, your bomb disposal volunteer spinning off toward a nearby sun. You put out the fires and prepare to move on." — [[Rock live mine#Cut the wire]]
+    // > "Your ship takes 6 hull damage, 1 damage with a breach to a random room, and you lose a crewmember." — [[Rock live mine#Cut the wire]]
+    // > "The lost crewmember is revived." — [[Rock live mine#Cut the wire]]
     let safe = false;
     let boom = false;
     let revived = false;
@@ -114,6 +128,10 @@ describe("Rock live mine", () => {
   });
 
   it("a missile weapon deals 4 hull and 1 system damage for low scrap and spends no missile", () => {
+    // Wiki citations:
+    // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
+    // > "After drawing straws, a crewmember goes out to fix a modified warhead to the mine. You detonate the missile in a way that dislodges the mine. It blows up shortly after. The ship takes some damage in the blasts, but you're still sailing." — [[Rock live mine]]
+    // > "Your ship takes 4 hull damage, 1 damage to a random system, and you receive low scrap." — [[Rock live mine]]
     const bare = createGame(1);
     open(bare);
     bare.player.weapons = [gun("hullmissile")];
@@ -145,6 +163,9 @@ describe("Rock live mine", () => {
   });
 
   it("a Beam Drone spends one drone part for low scrap", () => {
+    // Wiki citations:
+    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+    // > "Carefully guided from the bridge, your beam drone removes the mine's grappling arms and sends it drifting off into space, where you shoot at it until it detonates at a safe distance." — [[Rock live mine]]
     const bare = createGame(1);
     open(bare);
     choose(bare, "c:rock-live-mine:0");
@@ -179,6 +200,10 @@ describe("Rock live mine", () => {
   });
 
   it("level 5 engines outrun the mine and spend nothing", () => {
+    // Wiki citations:
+    // > "(Improved Engines) Reverse thrusters! (Requires level 5+ Engines)" — [[Rock live mine]]
+    // > "It stresses the inertial dampeners, but you reverse course and outrun the mine. You prepare to jump off." — [[Rock live mine]]
+    // > "Nothing happens." — [[Rock live mine]]
     const low = createGame(1);
     open(low);
     assert.equal(choiceDisabled(low, "c:rock-live-mine:1"), "Needs Engines level 5");

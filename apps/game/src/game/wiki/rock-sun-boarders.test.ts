@@ -30,6 +30,9 @@ function boarded(g: Game) {
 
 describe("Boarders: Rockmen near sun", () => {
   it("is one card in each named sector and beams 2-3 rocks under a red giant", () => {
+    // Wiki citations:
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Boarders: Rockmen near sun]]
+    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     for (const sector of SECTORS) {
       const pages = citedPagesFor(sector).filter((e) => e.dest === DEST);
       assert.equal(pages.length, 1, sector);
@@ -66,6 +69,8 @@ describe("Boarders: Rockmen near sun", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     // The page has no choice. "2-3 rock boarders beam aboard your ship." redgiant=true.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

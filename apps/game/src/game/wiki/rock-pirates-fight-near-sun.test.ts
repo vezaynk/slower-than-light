@@ -22,6 +22,11 @@ function open(g: Game) {
 
 describe("Rock pirates fight near sun", () => {
   it("shows one of the two intros, and the fight starts beside a red giant", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
+    // > "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship." — [[Rock pirates fight near sun]]
+    // > "A Rock ship is silhouetted against a sun in supernova. They hail: \"Even out here you follow us! We only wish to be left alone!\" Out of panic or anger, they charge their weapons." — [[Rock pirates fight near sun]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -45,6 +50,8 @@ describe("Rock pirates fight near sun", () => {
   });
 
   it("starts the Rock pirate ship beside a red giant on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
     // The page has no choice. One of the two printed intros, then "Fight a Rock pirate ship." redgiant=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

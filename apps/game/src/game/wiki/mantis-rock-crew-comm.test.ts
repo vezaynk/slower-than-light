@@ -20,6 +20,8 @@ function open(g: Game) {
 
 describe("Mantis ship with Rock body parts Rock crew", () => {
   it("stays closed without a Rock crewmember", () => {
+    // Wiki citations:
+    // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
     assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:2" && c.label === "Put your Rock crewmember on the comm."));
@@ -31,6 +33,9 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
   });
 
   it("putting a Rock on the comm shows the printed pebble-man sentence and starts a Mantis fight", () => {
+    // Wiki citations:
+    // > "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"" — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     const g = createGame(2);
     const pilot = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(pilot);

@@ -3859,6 +3859,16 @@ const PIRATE_PULSAR_INTROS = [
 
 // Rock fight. Eight printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight:0.
 const ROCK_FIGHT_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
+  // > "You encounter a Rock vessel and attempt to open trading frequencies, but they take it as an act of cultural transgression and open fire." — [[Rock fight]]
+  // > "You jump into the middle of a Rock excavation project on a nearby moon. Unimpressed with your intrusion they move to defend themselves!" — [[Rock fight]]
+  // > "You intercept chatter from an approaching Rock ship: \"Weapons, moving in to engage, arm the tubes.\" There is no talking to these guys." — [[Rock fight]]
+  // > "As you jump in, a vast figure appears on the view-screen. The Rock captain rubs the green, moss-like appendage on his chin and then orders his crew to open fire." — [[Rock fight]]
+  // > "It looks quiet, but you realize your computer is being scanned. A hidden Rock vessel hails you: \"Why do you fill your computer with lies?! These are not the holy words!\" Before you can interject they open fire." — [[Rock fight]]
+  // > "You notice a Rock ship performing combat exercises. However, they quickly change their course to engage your ship. They apparently treat unregistered alien ships as handy target practice." — [[Rock fight]]
+  // > "A loud 'thud' resounds through the ship after jump completion - you've just shunted a Rock fighter and he's already preparing to fire!" — [[Rock fight]]
+  // > "You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship." — [[Rock fight]]
   tx("wiki.cited-events.you-encounter-a-rock-vessel-and"),
   tx("wiki.cited-events.you-jump-into-the-middle-of"),
   tx("wiki.cited-events.you-intercept-chatter-from-an-approaching"),
@@ -3881,6 +3891,10 @@ const LANIUS_REBEL_INTROS = [
 
 // Rock fight with boarders. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-with-boarders:0.
 const ROCK_BOARDER_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders]]
+  // > "You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!" — [[Rock fight with boarders]]
+  // > "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!" — [[Rock fight with boarders]]
   tx("wiki.cited-events.you-passively-scan-a-small-rock"),
   tx("wiki.cited-events.you-find-a-rock-ship-docked"),
 ];
@@ -3950,6 +3964,10 @@ const CRYSTAL_BOARDER_INTROS = [
 // Boarders: Rockmen near sun. The page prints two intros and no odds.
 // INFERRED: equal. The boarders stay c:boarders-rockmen-near-sun:0.
 const ROCK_SUN_BOARDER_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Rockmen near sun]]
+  // > "As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, \"Prepare to burn, fleshy meat-sack aliens!\"" — [[Boarders: Rockmen near sun]]
+  // > "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement." — [[Boarders: Rockmen near sun]]
   tx("wiki.cited-events.as-soon-as-you-arrive-you"),
   tx("wiki.cited-events.with-their-high-resistance-to-heat"),
 ];
@@ -3967,6 +3985,10 @@ const PIRATE_HUMAN_BOARDER_INTROS = [
 // Rock fight with boarders in asteroid field. Two printed intros, no odds. INFERRED: equal.
 // The fight stays c:rock-fight-with-boarders-in-asteroid-field:0, which already beams 1-2 Rock boarders inside an asteroid field.
 const ROCK_BOARDER_ASTEROID_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
+  // > "You arrive in an asteroid field and immediately begin evasive maneuvers when a loud clunk reverberates through the ship. At first you think the hull has been hit, but the noise came from some Rock intruders teleporting aboard the ship!" — [[Rock fight with boarders in asteroid field]]
+  // > "''Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.'" — [[Rock fight with boarders in asteroid field]]
   tx("wiki.cited-events.you-arrive-in-an-asteroid-field"),
   tx("wiki.cited-events.your-shields-are-being-taxed-as"),
 ];
@@ -4287,18 +4309,31 @@ const FUEL_FOR_DRONES_INTROS = [
 
 // Rock pirates fight near sun. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-near-sun:0.
 const ROCK_PIRATE_SUN_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
+  // > "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship." — [[Rock pirates fight near sun]]
+  // > "A Rock ship is silhouetted against a sun in supernova. They hail: \"Even out here you follow us! We only wish to be left alone!\" Out of panic or anger, they charge their weapons." — [[Rock pirates fight near sun]]
   tx("wiki.cited-events.unusual-solar-activity-in-this-region"),
   tx("wiki.cited-events.a-rock-ship-is-silhouetted-against"),
 ];
 
 // Rock pirates fight in asteroid field. Two printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight-in-asteroid-field:0.
 const ROCK_PIRATE_ASTEROID_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
+  // > "Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship." — [[Rock pirates fight in asteroid field]]
+  // > "You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!" — [[Rock pirates fight in asteroid field]]
   tx("wiki.cited-events.minute-fissures-in-the-shields-spark"),
   tx("wiki.cited-events.you-exit-the-jump-surrounded-by"),
 ];
 
 // Rock fight in asteroid field. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-fight-in-asteroid-field:0.
 const ROCK_ASTEROID_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
+  // > "A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!" — [[Rock fight in asteroid field]]
+  // > "A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in." — [[Rock fight in asteroid field]]
+  // > "The captain of a Rock freighter lost in the asteroid field hails you: \"Our co-ordinates led us here, but only death greets us. What must be must be. Death to all.\" You power up the battle systems and wonder how long they've been stuck here." — [[Rock fight in asteroid field]]
   tx("wiki.cited-events.a-rock-mining-vessel-is-harvesting"),
   tx("wiki.cited-events.a-rookie-rock-cargo-ship-has"),
   tx("wiki.cited-events.the-captain-of-a-rock-freighter"),
@@ -4348,6 +4383,11 @@ const ZOLTAN_PIRATE_INTROS = [
 
 // Rock pirates fight. Three printed intros, no odds. INFERRED: equal. The fight stays c:rock-pirates-fight:0.
 const ROCK_PIRATE_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
+  // > "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type." — [[Rock pirates fight]]
+  // > "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!" — [[Rock pirates fight]]
+  // > "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!" — [[Rock pirates fight]]
   tx("wiki.cited-events.as-a-naturally-warlike-species-with"),
   tx("wiki.cited-events.a-rock-ship-flies-past-your"),
   tx("wiki.cited-events.a-motley-collection-of-rock-ships"),
@@ -4939,6 +4979,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
   if (ev.slug === "rock-fight-with-boarders") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders]]
+    // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     return {
       title: ev.dest,
       body: ROCK_BOARDER_INTROS[between(g, [0, 1])]!,
@@ -4976,6 +5019,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Rock fight with boarders in asteroid field. One of the two printed intros. The fight stays c:rock-fight-with-boarders-in-asteroid-field:0.
   if (ev.slug === "rock-fight-with-boarders-in-asteroid-field") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
+    // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     return {
       title: ev.dest,
       body: ROCK_BOARDER_ASTEROID_INTROS[between(g, [0, 1])]!,
@@ -5179,6 +5225,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rock pirates fight near sun has no choice. Arrival calls this fight.
   // One of the two printed intros. "Fight a Rock pirate ship (default rewards)." redgiant=true. unique=true.
   if (ev.slug === "rock-pirates-fight-near-sun") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
     return {
       title: ev.dest,
       body: ROCK_PIRATE_SUN_INTROS[between(g, [0, 1])]!,
@@ -5188,6 +5237,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rock pirates fight in asteroid field has no choice. Arrival calls this fight.
   // One of the two printed intros. "Fight a Rock pirate ship (default rewards)." asteroidfield=true. unique=true.
   if (ev.slug === "rock-pirates-fight-in-asteroid-field") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
     return {
       title: ev.dest,
       body: ROCK_PIRATE_ASTEROID_INTROS[between(g, [0, 1])]!,
@@ -5197,6 +5249,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rock fight in asteroid field has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Rock ship (default rewards)." asteroidfield=true. unique=true.
   if (ev.slug === "rock-fight-in-asteroid-field") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
     return {
       title: ev.dest,
       body: ROCK_ASTEROID_INTROS[between(g, [0, 2])]!,
@@ -5248,6 +5303,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rock pirates fight has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Rock pirate ship (default rewards)." unique=false.
   if (ev.slug === "rock-pirates-fight") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     return {
       title: ev.dest,
       body: ROCK_PIRATE_INTROS[between(g, [0, 2])]!,
@@ -5266,6 +5324,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rock fight has no choice. Arrival calls this fight.
   // One of the eight printed intros. "Fight a Rock ship (default rewards)." unique=false.
   if (ev.slug === "rock-fight") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
+    // > "Fight a Rock ship (default rewards)." — [[Rock fight]]
     return {
       title: ev.dest,
       body: ROCK_FIGHT_INTROS[between(g, [0, 7])]!,
@@ -5386,6 +5447,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
   if (ev.slug === "boarders-rockmen-near-sun") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Rockmen near sun]]
+    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     return {
       title: ev.dest,
       body: ROCK_SUN_BOARDER_INTROS[between(g, [0, 1])]!,
@@ -5750,7 +5814,12 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // Mantis ship attacking Crystal. "Attack the Mantis." One printed lead-in, then a Mantis ship fight.
   if (id === "c:mantis-ship-attacking-crystal:0") ctx.note(tx("wiki.cited-events.you-activate-your-impulse-engines-and"));
   // Mantis ship with Rock body parts. "Attack!" One printed lead-in, then a Mantis ship fight.
-  if (id === "c:mantis-ship-with-rock-body-parts:0") ctx.note(tx("wiki.cited-events.no-species-deserves-a-mantis-hunter"));
+  if (id === "c:mantis-ship-with-rock-body-parts:0") {
+    // Wiki citations:
+    // > "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!" — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
+    ctx.note(tx("wiki.cited-events.no-species-deserves-a-mantis-hunter"));
+  }
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-lone-ship:0") ctx.note(tx("wiki.cited-events.the-civilian-ship-hastily-retreats-while"));
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
@@ -5804,8 +5873,16 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // Rock fight with boarders in asteroid field has no choice. Arrival calls this id.
     // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
     // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
-    if (id === "c:rock-fight-with-boarders:0") rockBoarders(g, 1, 3);
-    if (id === "c:rock-fight-with-boarders-in-asteroid-field:0") rockBoarders(g, 1, 2);
+    if (id === "c:rock-fight-with-boarders:0") {
+      // Wiki citations:
+      // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
+      rockBoarders(g, 1, 3);
+    }
+    if (id === "c:rock-fight-with-boarders-in-asteroid-field:0") {
+      // Wiki citations:
+      // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
+      rockBoarders(g, 1, 2);
+    }
     // Mantis outcasts has no choice. Arrival calls this id.
     // "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
     // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.

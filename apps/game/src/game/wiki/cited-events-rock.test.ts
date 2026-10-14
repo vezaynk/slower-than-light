@@ -62,6 +62,20 @@ function slug(title: string): string {
 
 describe("cited rock events", () => {
   it("keeps only these titles and the sector names on each Locations line", () => {
+    // Wiki citations:
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Mantis ship with Rock body parts]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight in asteroid field]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight with boarders]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight with boarders in asteroid field]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight in asteroid field]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight near sun]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Boarders: Rockmen near sun]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Disabled Rock ship]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock and Slug standoff]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Mantis ships battle for Rock freighter]]
+    // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock live mine]]
     const found = pages();
     assert.equal(found.size, TITLES.length);
     const seen = new Set<string>();
@@ -127,6 +141,8 @@ function arrive(seed: number, dest: string): Game {
 
 describe("Rock fight with boarders", () => {
   it("beams 1-3 Rock boarders aboard after the Rock ship fight and grants nothing else", () => {
+    // Wiki citations:
+    // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     const seen = new Set<number>();
     const hp = kinOf("stone").hp;
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
@@ -183,6 +199,8 @@ describe("Rock fight with boarders", () => {
   });
 
   it("beams 1-2 Rock boarders aboard in the asteroid field and grants nothing else", () => {
+    // Wiki citations:
+    // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     const field = EXTRA_EVENTS.find((e) => e.dest === "Rock fight with boarders in asteroid field")!;
     assert.equal(field.choices[0].fx.some((fx) => fx.k === "note"), false);
     const seen = new Set<number>();

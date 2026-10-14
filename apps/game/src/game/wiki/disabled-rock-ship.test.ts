@@ -31,6 +31,12 @@ function raised(g: Game, fuel: number, missiles: number, parts: number): number 
 
 describe("Disabled Rock ship", () => {
   it("stripping pays random scrap, and a patrol may arrive after that scrap", () => {
+    // Wiki citations:
+    // > "Strip the ship." — [[Disabled Rock ship]]
+    // > "A Rock patrol ship jumps in while you are salvaging the ship. They message you, \"Filthy pirates! Prepare to die!\" You doubt explaining your mission will convince them of your need." — [[Disabled Rock ship]]
+    // > "You salvage what you can from the ship. No one bothers you during the operation." — [[Disabled Rock ship]]
+    // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
+    // > "Fight a Rock Ship (default rewards)." — [[Disabled Rock ship]]
     let quiet = false;
     let patrol = false;
     for (let seed = 1; seed <= 40 && (!quiet || !patrol); seed++) {
@@ -63,6 +69,12 @@ describe("Disabled Rock ship", () => {
   });
 
   it("leaving spends nothing twice as often as it starts a Rock fight", () => {
+    // Wiki citations:
+    // > "Leave it alone." — [[Disabled Rock ship]]
+    // > "2× The Rock people are not known for setting traps but you hasten to leave anyway." — [[Disabled Rock ship]]
+    // > "Nothing happens." — [[Disabled Rock ship]]
+    // > "Before you have a chance to leave, a Rock patrol ship arrives and you intercept their comm chatter, \"...appears we've finally found them. Their killing spree ends now!\" Before you can plead your innocence they move in to attack." — [[Disabled Rock ship]]
+    // > "Fight a Rock Ship (default rewards)." — [[Disabled Rock ship]]
     let nothing = 0;
     let fight = 0;
     for (let seed = 1; seed <= 60; seed++) {
@@ -86,6 +98,11 @@ describe("Disabled Rock ship", () => {
   });
 
   it("a Slug lookout pays random scrap, and the choice stays shut without one", () => {
+    // Wiki citations:
+    // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
+    // > "You salvage what you can from the ship. No lifeforms or ships are detected nearby." — [[Disabled Rock ship]]
+    // > "You begin the salvage operation but before long your crew warns you of an approaching ship. You hasten to leave before they get within firing range." — [[Disabled Rock ship]]
+    // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "c:disabled-rock-ship:2"), "Needs a Slug crewmember");

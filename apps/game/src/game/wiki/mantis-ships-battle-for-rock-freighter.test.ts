@@ -30,6 +30,12 @@ function resources(body: string): number {
 
 describe("Mantis ships battle for Rock freighter", () => {
   it("waits, then fights a weakened Mantis ship or a normal one", () => {
+    // Wiki citations:
+    // > "Wait, then attack the surviving Mantis." — [[Mantis ships battle for Rock freighter]]
+    // > "The Mantis craft are both too busy slaughtering one another to notice you. Eventually the smaller ship gets the upper hand, but they must have blown a fuse in the assault and their weapons system is inoperable. Now is the time to attack!" — [[Mantis ships battle for Rock freighter]]
+    // > "Fight a Mantis ship whose Weapon Control system power level is reduced by 2." — [[Mantis ships battle for Rock freighter]]
+    // > "The Mantis craft may have their differences, but when it comes to you they are of one mind. The smaller ship suffers a power failure as it moves to engage, but the larger one lets off a volley of fire and moves in to attack!" — [[Mantis ships battle for Rock freighter]]
+    // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
     let weak = false;
     let full = false;
     let dropped = false;
@@ -59,6 +65,10 @@ describe("Mantis ships battle for Rock freighter", () => {
   });
 
   it("ignoring them spends nothing", () => {
+    // Wiki citations:
+    // > "Ignore them." — [[Mantis ships battle for Rock freighter]]
+    // > "There's quite enough action here already - prepare for light speed." — [[Mantis ships battle for Rock freighter]]
+    // > "Nothing happens." — [[Mantis ships battle for Rock freighter]]
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ships-battle-for-rock-freighter:1");
@@ -68,6 +78,10 @@ describe("Mantis ships battle for Rock freighter", () => {
   });
 
   it("a Repair Drone pays high scrap, and skips the part when that reward includes drone parts", () => {
+    // Wiki citations:
+    // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    // > "While the two Mantis fight you approach the Rock ship and send a repair drone through one of the many breaches. It fixes the ship up enough to make at least a single jump. You're surprised when, instead, they embark on a kamikaze run on the two Mantis, which results in the obliteration of all three!" — [[Mantis ships battle for Rock freighter]]
+    // > "You receive high scrap with resources." — [[Mantis ships battle for Rock freighter]]
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "c:mantis-ships-battle-for-rock-freighter:2"), "Needs a Repair Drone");
@@ -106,6 +120,10 @@ describe("Mantis ships battle for Rock freighter", () => {
   });
 
   it("a Hull Repair Drone spends one drone part and fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    // > "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you." — [[Mantis ships battle for Rock freighter]]
+    // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
     const bare = createGame(1);
     open(bare);
     const parts = bare.player.parts;
@@ -137,6 +155,9 @@ describe("Mantis ships battle for Rock freighter", () => {
   });
 
   it("winning either ending pays medium scrap", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels." — [[Mantis ships battle for Rock freighter]]
+    // > "You receive medium scrap with resources." — [[Mantis ships battle for Rock freighter]]
     for (const dead of [false, true]) {
       const g = createGame(dead ? 2 : 1);
       open(g);

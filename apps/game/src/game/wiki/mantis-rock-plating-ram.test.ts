@@ -19,6 +19,8 @@ function open(g: Game) {
 
 describe("Mantis ship with Rock body parts Rock Plating ram", () => {
   it("stays closed without Rock Plating", () => {
+    // Wiki citations:
+    // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
     const hull = g.player.hull;
@@ -32,6 +34,9 @@ describe("Mantis ship with Rock body parts Rock Plating ram", () => {
   });
 
   it("ramming with Rock Plating disables the Mantis engines and leaves the hull untouched", () => {
+    // Wiki citations:
+    // > "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack." — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards), whose engines are disabled." — [[Mantis ship with Rock body parts]]
     const g = createGame(2);
     g.augments.push("keel");
     open(g);

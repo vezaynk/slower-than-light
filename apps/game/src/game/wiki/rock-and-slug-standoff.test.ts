@@ -26,6 +26,9 @@ function resources(body: string): number {
 
 describe("Rock and Slug standoff", () => {
   it("leaves them with nothing spent", () => {
+    // Wiki citations:
+    // > "Leave them be." — [[Rock and Slug standoff]]
+    // > "Nothing happens." — [[Rock and Slug standoff]]
     const g = createGame(1);
     open(g);
     choose(g, "c:rock-and-slug-standoff:1");
@@ -35,6 +38,9 @@ describe("Rock and Slug standoff", () => {
   });
 
   it("shows a 10-15 debt and refuses a shortfall", () => {
+    // Wiki citations:
+    // > "Hail them to see what's wrong." — [[Rock and Slug standoff]]
+    // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     const g = createGame(3);
     open(g);
     choose(g, "c:rock-and-slug-standoff:0");
@@ -52,6 +58,11 @@ describe("Rock and Slug standoff", () => {
   });
 
   it("paying the debt spends that scrap and the Slug captain answers", () => {
+    // Wiki citations:
+    // > "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful." — [[Rock and Slug standoff]]
+    // > "The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!" — [[Rock and Slug standoff#Slug reward]]
+    // > "The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price." — [[Rock and Slug standoff#Slug reward]]
+    // > "The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission." — [[Rock and Slug standoff#Slug reward]]
     let free = false;
     let price = false;
     let thanks = false;
@@ -86,6 +97,13 @@ describe("Rock and Slug standoff", () => {
   });
 
   it("demanding payment agrees, fights a Rock ship, or deals 5 hull and two system bars", () => {
+    // Wiki citations:
+    // > "Demand the Rock ship pay the agreed upon price." — [[Rock and Slug standoff]]
+    // > "With much grumbling, the Rock Captain agrees to pay the price." — [[Rock and Slug standoff]]
+    // > "Apparently the Rock Captain was more annoyed than you thought, they shut off all communication and turn on you, the 'slime balls' defender." — [[Rock and Slug standoff]]
+    // > "Fight a Rock ship." — [[Rock and Slug standoff]]
+    // > "A massive explosion emanates from the Rock Ship, shattering its hull and sending debris on an unavoidable collision course to your ship. Seems like that reactor upgrade was poorly done after all, and the Slugs took the opportunity to jump away." — [[Rock and Slug standoff]]
+    // > "Your ship takes 5 hull damage, 1 damage to each of 2 random systems." — [[Rock and Slug standoff]]
     let pay = false;
     let fight = false;
     let boom = false;
@@ -120,6 +138,11 @@ describe("Rock and Slug standoff", () => {
   });
 
   it("winning pays low scrap for the hull and medium scrap for the crew, then the Slug captain", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship With the Rock Ship destroyed, you take the time to collect what little scrap remains." — [[Rock and Slug standoff]]
+    // > "You receive low scrap with resources." — [[Rock and Slug standoff]]
+    // > "After killing enemy crew With the Rock crew dead, you scrap the ship for supplies." — [[Rock and Slug standoff]]
+    // > "You receive medium scrap with resources." — [[Rock and Slug standoff]]
     let free = false;
     let price = false;
     let thanks = false;
@@ -157,6 +180,13 @@ describe("Rock and Slug standoff", () => {
   });
 
   it("the priced upgrade spends the shown scrap, and a full reactor stays at 25", () => {
+    // Wiki citations:
+    // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
+    // > "You let their team on board and after a short time they finish their work." — [[Rock and Slug standoff#Slug reward]]
+    // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
+    // > "Decline the offer." — [[Rock and Slug standoff#Slug reward]]
+    // > "You break communications and prepare to move on." — [[Rock and Slug standoff#Slug reward]]
+    // > "Nothing happens." — [[Rock and Slug standoff#Slug reward]]
     let agreed = false;
     let declined = false;
     let capped = false;

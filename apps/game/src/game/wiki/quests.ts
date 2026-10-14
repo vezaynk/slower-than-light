@@ -1484,6 +1484,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Mantis ship with Rock body parts. "Ignore them." One printed result.
   "c:mantis-ship-with-rock-body-parts:1": (g) => {
+    // Wiki citations:
+    // > "Ignore them." — [[Mantis ship with Rock body parts]]
+    // > "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure." — [[Mantis ship with Rock body parts]]
+    // > "Nothing happens." — [[Mantis ship with Rock body parts]]
     result(g, tx("wiki.quests.the-mantis-take-no-interest-in"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   // Lanius lone ship. "Stay out of it." One printed result.
@@ -1951,12 +1955,20 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Mantis ship with Rock body parts. "Put your Rock crewmember on the comm." One printed lead-in, then a Mantis ship.
   // This handler returns before citedChoose so the Rock requirement can close the button.
   "c:mantis-ship-with-rock-body-parts:2": (g) => {
+    // Wiki citations:
+    // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
+    // > "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"" — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     pageFight(g, tx("wiki.quests.the-two-aliens-face-one-another"), tx("wiki.quests.mantis-ship"), "mantis-ship-with-rock-body-parts");
   },
   // Mantis ship with Rock body parts. "Ram the bastards." One printed lead-in, then a Mantis ship.
   // The page says their engines are disabled. INFERRED: every installed engine bar is damaged. The page prints no bar count.
   // This handler returns before citedChoose so the Rock Plating requirement can close the button.
   "c:mantis-ship-with-rock-body-parts:3": (g) => {
+    // Wiki citations:
+    // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
+    // > "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack." — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards), whose engines are disabled." — [[Mantis ship with Rock body parts]]
     pageFight(g, tx("wiki.quests.before-they-have-a-chance-you"), tx("wiki.quests.mantis-ship"), "mantis-ship-with-rock-body-parts");
     const engines = g.enemy?.systems.engines;
     if (g.enemy && engines && engines.level > engines.damage) hurtSystem(g.enemy, "engines", engines.level - engines.damage);
@@ -2985,10 +2997,18 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return tx("wiki.quests.needs-a-mantis-crewmember");
   // Mantis ship with Rock body parts. {{Blue Option|Rock Crew|Put your Rock crewmember on the comm.}}.
   // INFERRED: the refusal line. A dead Rock does not count. The page names the crew and does not print this sentence.
-  if (id === "c:mantis-ship-with-rock-body-parts:2" && !hasRock(g)) return tx("wiki.quests.needs-a-rock-crewmember");
+  if (id === "c:mantis-ship-with-rock-body-parts:2" && !hasRock(g)) {
+    // Wiki citations:
+    // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
+    return tx("wiki.quests.needs-a-rock-crewmember");
+  }
   // Mantis ship with Rock body parts. {{Blue Option|Rock Ship|Ram the bastards.|shortreq=Rock Plating}}.
   // INFERRED: the refusal line. The page names Rock Plating and does not print this sentence.
-  if (id === "c:mantis-ship-with-rock-body-parts:3" && !g.augments.includes("keel")) return tx("wiki.quests.needs-rock-plating");
+  if (id === "c:mantis-ship-with-rock-body-parts:3" && !g.augments.includes("keel")) {
+    // Wiki citations:
+    // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
+    return tx("wiki.quests.needs-rock-plating");
+  }
   // Pirate engine hacker. {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
   if (id === "c:pirate-engine-hacker:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
@@ -3135,6 +3155,8 @@ export function std(destroyed: SurrenderTier, killed: SurrenderTier, textD: stri
  * Template:Reactor power cost caps the reactor at 25. Past that the bar does not move.
  */
 function eventReactor(g: Game): string {
+  // Wiki citations:
+  // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
   if (upgradeCost("reactor", g.player.reactor) == null) return "";
   g.player.reactor += 1;
   noteReactorEvent(g);
@@ -3158,11 +3180,18 @@ function offerLines(g: Game, offer: SurrenderOffer): string[] {
 export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []) {
   const kind = weighted(g, [["free", 1], ["price", 1], ["thanks", 1]] as const);
   if (kind === "free") {
+    // Wiki citations:
+    // > "The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!" — [[Rock and Slug standoff#Slug reward]]
+    // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
     const note = eventReactor(g);
     result(g, tx("wiki.quests.the-slug-captain-offers-a-free", { lead: lead }), undefined, [...extras, note].filter(Boolean));
     return;
   }
   if (kind === "price") {
+    // Wiki citations:
+    // > "The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price." — [[Rock and Slug standoff#Slug reward]]
+    // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
+    // > "Decline the offer." — [[Rock and Slug standoff#Slug reward]]
     const n = between(g, [10, 15]);
     const tail = extras.length ? ` ${extras.join(" ")}` : "";
     card(g, tx("wiki.quests.the-slug-captain-thankful-for-your", { lead: lead, tail: tail }), [
@@ -3171,6 +3200,9 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     ]);
     return;
   }
+  // Wiki citations:
+  // > "The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission." — [[Rock and Slug standoff#Slug reward]]
+  // > "Nothing happens." — [[Rock and Slug standoff#Slug reward]]
   result(g, tx("wiki.quests.the-slugs-offer-their-thanks-for", { lead: lead }), undefined, [...extras, tx("wiki.quests.nothing-happens")]);
 }
 
@@ -3180,9 +3212,16 @@ export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boole
   g.scrap -= n;
   log(g, tx("wiki.quests.scrap-3", { n: n }));
   if (kind === "debt") {
+    // Wiki citations:
+    // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
+    // > "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful." — [[Rock and Slug standoff]]
     slugCaptainGrateful(g, tx("wiki.quests.you-pay-off-the-debt-the"), [tx("wiki.quests.scrap-3", { n: n })]);
     return true;
   }
+  // Wiki citations:
+  // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
+  // > "You let their team on board and after a short time they finish their work." — [[Rock and Slug standoff#Slug reward]]
+  // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
   const note = eventReactor(g);
   result(g, tx("wiki.quests.you-let-their-team-on-board"), undefined, [tx("wiki.quests.scrap-3", { n: n }), note].filter(Boolean));
   return true;
@@ -3719,6 +3758,9 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Mantis ships battle for Rock freighter. Both endings pay medium standard. Default salvage is not paid.
   "mantis-ships-battle-for-rock-freighter": (g) => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels." — [[Mantis ships battle for Rock freighter]]
+    // > "You receive medium scrap with resources." — [[Mantis ships battle for Rock freighter]]
     result(g, tx("wiki.quests.in-the-time-it-took-you"), rollStandard(g, "medium"));
   },
   // Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect.
@@ -4153,10 +4195,17 @@ export const PAGE_WINS: Record<string, Win> = {
   },
   // Rock and Slug standoff. Destroyed pays low standard. A crew kill pays medium. Then the Slug captain.
   "rock-and-slug-standoff": (g, deadCrew) => {
-    const text = deadCrew
-      ? tx("wiki.quests.with-the-rock-crew-dead-you")
-      : tx("wiki.quests.with-the-rock-ship-destroyed-you");
-    slugCaptainGrateful(g, text, offerLines(g, rollStandard(g, deadCrew ? "medium" : "low")));
+    if (deadCrew) {
+      // Wiki citations:
+      // > "After killing enemy crew With the Rock crew dead, you scrap the ship for supplies." — [[Rock and Slug standoff]]
+      // > "You receive medium scrap with resources." — [[Rock and Slug standoff]]
+      slugCaptainGrateful(g, tx("wiki.quests.with-the-rock-crew-dead-you"), offerLines(g, rollStandard(g, "medium")));
+      return;
+    }
+    // Wiki citations:
+    // > "After destroying enemy ship With the Rock Ship destroyed, you take the time to collect what little scrap remains." — [[Rock and Slug standoff]]
+    // > "You receive low scrap with resources." — [[Rock and Slug standoff]]
+    slugCaptainGrateful(g, tx("wiki.quests.with-the-rock-ship-destroyed-you"), offerLines(g, rollStandard(g, "low")));
   },
   // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
   "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {

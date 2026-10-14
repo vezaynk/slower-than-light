@@ -1227,9 +1227,16 @@ function hurt(g: Game, n: number): boolean {
 /** Cut the wire. Medium scrap, or 6 hull, a breached room, and a lost crewmember. Clone Bay brings them back. */
 function cutMineWire(g: Game) {
   if (weighted(g, [["safe", 1], ["boom", 1]] as const) === "safe") {
+    // Wiki citations:
+    // > "You open your eyes and everything is still where it was a moment ago. You did it!" — [[Rock live mine#Cut the wire]]
+    // > "You receive medium scrap." — [[Rock live mine#Cut the wire]]
     show(g, tx("wiki.filler-events.you-open-your-eyes-and-everything"), scrapOnly(g, "medium"));
     return;
   }
+  // Wiki citations:
+  // > "The weapon detonates. Everything goes dark, the bridge illuminated by flames pouring from the hull, your bomb disposal volunteer spinning off toward a nearby sun. You put out the fires and prepare to move on." — [[Rock live mine#Cut the wire]]
+  // > "Your ship takes 6 hull damage, 1 damage with a breach to a random room, and you lose a crewmember." — [[Rock live mine#Cut the wire]]
+  // > "The lost crewmember is revived." — [[Rock live mine#Cut the wire]]
   if (hurt(g, 6)) return;
   const note = loseCrew(g);
   show(g, tx("wiki.filler-events.the-weapon-detonates-everything-goes-dark"), undefined, [tx("wiki.filler-events.hull-damage-6"), roomBreach(g), note].filter(Boolean));
@@ -2289,25 +2296,49 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Disabled Rock ship. Strip lists two results and prints no odds. INFERRED: equal.
   // Leave prints the nothing result twice. The Slug lookout's two sentences are alternatives. INFERRED: equal.
   "c:disabled-rock-ship:0": (g) => {
+    // Wiki citations:
+    // > "Strip the ship." — [[Disabled Rock ship]]
     const offer = rollStandard(g);
     if (weighted(g, [["patrol", 1], ["quiet", 1]] as const) === "patrol") {
+      // Wiki citations:
+      // > "A Rock patrol ship jumps in while you are salvaging the ship. They message you, \"Filthy pirates! Prepare to die!\" You doubt explaining your mission will convince them of your need." — [[Disabled Rock ship]]
+      // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
+      // > "Fight a Rock Ship (default rewards)." — [[Disabled Rock ship]]
       payOffer(g, offer, true);
       for (const line of standardLines(offer)) log(g, line);
       fight(g, tx("wiki.filler-events.a-rock-patrol-ship-jumps-in"), tx("wiki.filler-events.rock-ship"), "disabled-rock-ship");
       return;
     }
+    // Wiki citations:
+    // > "You salvage what you can from the ship. No one bothers you during the operation." — [[Disabled Rock ship]]
+    // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
     show(g, tx("wiki.filler-events.you-salvage-what-you-can-from"), offer);
   },
   "c:disabled-rock-ship:1": (g) => {
+    // Wiki citations:
+    // > "Leave it alone." — [[Disabled Rock ship]]
     if (weighted(g, [["nothing", 2], ["fight", 1]] as const) === "nothing") {
+      // Wiki citations:
+      // > "2× The Rock people are not known for setting traps but you hasten to leave anyway." — [[Disabled Rock ship]]
+      // > "Nothing happens." — [[Disabled Rock ship]]
       show(g, tx("wiki.filler-events.the-rock-people-are-not-known"), undefined, [tx("wiki.filler-events.nothing-happens")]);
       return;
     }
+    // Wiki citations:
+    // > "Before you have a chance to leave, a Rock patrol ship arrives and you intercept their comm chatter, \"...appears we've finally found them. Their killing spree ends now!\" Before you can plead your innocence they move in to attack." — [[Disabled Rock ship]]
+    // > "Fight a Rock Ship (default rewards)." — [[Disabled Rock ship]]
     fight(g, tx("wiki.filler-events.before-you-have-a-chance-to"), tx("wiki.filler-events.rock-ship"), "disabled-rock-ship");
   },
   "c:disabled-rock-ship:2": (g) => {
+    // Wiki citations:
+    // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
+    // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
     if (!livingKin(g, "gel")) return;
-    const line = weighted(g, [["clear", 1], ["ship", 1]] as const) === "clear"
+    const clear = weighted(g, [["clear", 1], ["ship", 1]] as const) === "clear";
+    // Wiki citations:
+    // > "You salvage what you can from the ship. No lifeforms or ships are detected nearby." — [[Disabled Rock ship]]
+    // > "You begin the salvage operation but before long your crew warns you of an approaching ship. You hasten to leave before they get within firing range." — [[Disabled Rock ship]]
+    const line = clear
       ? tx("wiki.filler-events.you-salvage-what-you-can-from-2")
       : tx("wiki.filler-events.you-begin-the-salvage-operation-but");
     show(g, line, rollStandard(g));
@@ -2388,6 +2419,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Rock and Slug standoff. The debt is 10-15 scrap, shown on the button. Demand lists three results and prints no odds. INFERRED: equal.
   "c:rock-and-slug-standoff:0": (g) => {
+    // Wiki citations:
+    // > "Hail them to see what's wrong." — [[Rock and Slug standoff]]
+    // > "The Slug captain explains that they upgraded the Rock ship's reactor and now the 'thick boulder heads' are refusing to pay for the work done. The Rock Captain says the 'slime balls' did a poor job that is not worth their agreed upon price." — [[Rock and Slug standoff]]
+    // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
+    // > "Demand the Rock ship pay the agreed upon price." — [[Rock and Slug standoff]]
+    // > "You have better things to attend to, leave them." — [[Rock and Slug standoff]]
     const debt = between(g, [10, 15]);
     card(g, tx("wiki.filler-events.the-slug-captain-explains-that-they"), [
       { id: `s:rock-slug:debt:${debt}`, label: tx("wiki.filler-events.offer-to-pay-off-the-rock", { debt: debt }) },
@@ -2396,6 +2433,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     ]);
   },
   "c:rock-and-slug-standoff:1": (g) => {
+    // Wiki citations:
+    // > "Leave them be." — [[Rock and Slug standoff]]
+    // > "Nothing happens." — [[Rock and Slug standoff]]
     show(g, tx("wiki.filler-events.nothing-happens"));
   },
 
@@ -2432,19 +2472,36 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Mantis ships battle for Rock freighter. Two fights and no odds. INFERRED: equal.
   // The weakened ship has Weapon Control reduced by 2. A ship with fewer bars loses only those bars. INFERRED.
   "c:mantis-ships-battle-for-rock-freighter:0": (g) => {
+    // Wiki citations:
+    // > "Wait, then attack the surviving Mantis." — [[Mantis ships battle for Rock freighter]]
     const weak = weighted(g, [["weak", 1], ["full", 1]] as const) === "weak";
-    const text = weak
-      ? tx("wiki.filler-events.the-mantis-craft-are-both-too")
-      : tx("wiki.filler-events.the-mantis-craft-may-have-their");
-    fight(g, text, tx("wiki.filler-events.mantis-ship"), "mantis-ships-battle-for-rock-freighter");
-    if (weak && g.enemy) hurtSystem(g.enemy, "weapons", 2);
+    if (weak) {
+      // Wiki citations:
+      // > "The Mantis craft are both too busy slaughtering one another to notice you. Eventually the smaller ship gets the upper hand, but they must have blown a fuse in the assault and their weapons system is inoperable. Now is the time to attack!" — [[Mantis ships battle for Rock freighter]]
+      // > "Fight a Mantis ship whose Weapon Control system power level is reduced by 2." — [[Mantis ships battle for Rock freighter]]
+      fight(g, tx("wiki.filler-events.the-mantis-craft-are-both-too"), tx("wiki.filler-events.mantis-ship"), "mantis-ships-battle-for-rock-freighter");
+      if (g.enemy) hurtSystem(g.enemy, "weapons", 2);
+      return;
+    }
+    // Wiki citations:
+    // > "The Mantis craft may have their differences, but when it comes to you they are of one mind. The smaller ship suffers a power failure as it moves to engage, but the larger one lets off a volley of fire and moves in to attack!" — [[Mantis ships battle for Rock freighter]]
+    // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
+    fight(g, tx("wiki.filler-events.the-mantis-craft-may-have-their"), tx("wiki.filler-events.mantis-ship"), "mantis-ships-battle-for-rock-freighter");
   },
   "c:mantis-ships-battle-for-rock-freighter:1": (g) => {
+    // Wiki citations:
+    // > "Ignore them." — [[Mantis ships battle for Rock freighter]]
+    // > "There's quite enough action here already - prepare for light speed." — [[Mantis ships battle for Rock freighter]]
+    // > "Nothing happens." — [[Mantis ships battle for Rock freighter]]
     show(g, tx("wiki.filler-events.there-s-quite-enough-action-here"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   // Repair Drone. High standard. Printed bug: no drone part is required when that reward includes drone parts.
   // The unnamed standard bonus stays unwired.
   "c:mantis-ships-battle-for-rock-freighter:2": (g) => {
+    // Wiki citations:
+    // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    // > "While the two Mantis fight you approach the Rock ship and send a repair drone through one of the many breaches. It fixes the ship up enough to make at least a single jump. You're surprised when, instead, they embark on a kamikaze run on the two Mantis, which results in the obliteration of all three!" — [[Mantis ships battle for Rock freighter]]
+    // > "You receive high scrap with resources." — [[Mantis ships battle for Rock freighter]]
     if (!ownsDrone(g, "patch")) return;
     const hull = g.player.hull;
     const lines = g.log.slice();
@@ -2452,6 +2509,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   // Hull Repair Drone. One drone part, then a Mantis ship. The bug note is not on this choice.
   "c:mantis-ships-battle-for-rock-freighter:3": (g) => {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    // > "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you." — [[Mantis ships battle for Rock freighter]]
+    // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
     if (!ownsDrone(g, "hull") || g.player.parts < 1) return;
     g.player.parts -= 1;
     log(g, tx("wiki.filler-events.drone-parts-1"));
@@ -2460,6 +2521,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Rock live mine. The turning circle always fails. The defuse lists two results and prints no odds. INFERRED: equal.
   "c:rock-live-mine:0": (g) => {
+    // Wiki citations:
+    // > "Attempt evasive maneuvers." — [[Rock live mine]]
+    // > "The ship's turning circle proves too wide and the mine bites down onto the hull. You can hear it now, chewing through the armor." — [[Rock live mine]]
+    // > "Send someone out there to defuse it." — [[Rock live mine]]
+    // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
+    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
     card(g, tx("wiki.filler-events.the-ship-s-turning-circle-proves"), [
       { id: "s:rock-mine:defuse", label: tx("wiki.filler-events.send-someone-out-there-to-defuse") },
       { id: "s:rock-mine:missile", label: tx("wiki.filler-events.attempt-a-controlled-detonation-using-a") },
@@ -2467,30 +2534,56 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     ]);
   },
   "c:rock-live-mine:1": (g) => {
+    // Wiki citations:
+    // > "(Improved Engines) Reverse thrusters! (Requires level 5+ Engines)" — [[Rock live mine]]
+    // > "It stresses the inertial dampeners, but you reverse course and outrun the mine. You prepare to jump off." — [[Rock live mine]]
+    // > "Nothing happens." — [[Rock live mine]]
     if ((g.player.systems.engines?.level ?? 0) < 5) return;
     show(g, tx("wiki.filler-events.it-stresses-the-inertial-dampeners-but"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "s:rock-mine:defuse": (g) => {
+    // Wiki citations:
+    // > "Send someone out there to defuse it." — [[Rock live mine]]
     if (weighted(g, [["scrap", 1], ["wires", 1]] as const) === "scrap") {
+      // Wiki citations:
+      // > "Your crewmember dons a space suit and exits the airlock. They make quick work of the basic device and return inside to relief all round. The mine makes good scrap pickings too." — [[Rock live mine]]
+      // > "You receive medium scrap." — [[Rock live mine]]
       show(g, tx("wiki.filler-events.your-crewmember-dons-a-space-suit"), scrapOnly(g, "medium"));
       return;
     }
+    // Wiki citations:
+    // > "Your crewmember dons a space suit and exits the airlock. When they open up the mine housing, though, they panic. The red wire or the blue?! 3... 2... 1..." — [[Rock live mine]]
     card(g, tx("wiki.filler-events.your-crewmember-dons-a-space-suit-2"), [
       { id: "s:rock-mine:red", label: tx("wiki.filler-events.red") },
       { id: "s:rock-mine:blue", label: tx("wiki.filler-events.blue") },
     ]);
   },
   // Both colors load Cut the wire. Two results and no odds. INFERRED: equal.
-  "s:rock-mine:red": (g) => cutMineWire(g),
-  "s:rock-mine:blue": (g) => cutMineWire(g),
+  "s:rock-mine:red": (g) => {
+    // Wiki citations:
+    // > "Cut the wire." — [[Rock live mine]]
+    cutMineWire(g);
+  },
+  "s:rock-mine:blue": (g) => {
+    // Wiki citations:
+    // > "Cut the wire." — [[Rock live mine]]
+    cutMineWire(g);
+  },
   // Trivia: the missile item type is misspelled, so the ammo is not spent. Hull Missile does not count.
   "s:rock-mine:missile": (g) => {
+    // Wiki citations:
+    // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
+    // > "After drawing straws, a crewmember goes out to fix a modified warhead to the mine. You detonate the missile in a way that dislodges the mine. It blows up shortly after. The ship takes some damage in the blasts, but you're still sailing." — [[Rock live mine]]
+    // > "Your ship takes 4 hull damage, 1 damage to a random system, and you receive low scrap." — [[Rock live mine]]
     if (!miningMissile(g)) return;
     if (hurt(g, 4)) return;
     show(g, tx("wiki.filler-events.after-drawing-straws-a-crewmember-goes"), scrapOnly(g, "low"), [tx("wiki.filler-events.hull-damage-4"), hurtRandomSystem(g)]);
   },
   // Beam Drone. One drone part, then low scrap. The Anti-Ship Fire Drone does not count.
   "s:rock-mine:beam": (g) => {
+    // Wiki citations:
+    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+    // > "Carefully guided from the bridge, your beam drone removes the mine's grappling arms and sends it drifting off into space, where you shoot at it until it detonates at a safe distance." — [[Rock live mine]]
     if (!ownsMineBeam(g) || g.player.parts < 1) return;
     g.player.parts -= 1;
     log(g, tx("wiki.filler-events.drone-parts-1"));
@@ -2947,6 +3040,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // "2-3 rock boarders beam aboard your ship." is the outcome, not a button.
   // INFERRED: the count is inclusive (between()). redgiant=true arms the existing flare clock. No ship. Not a crew grant.
   "c:boarders-rockmen-near-sun:0": (g) => {
+    // Wiki citations:
+    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     rockBoarders(g, 2, 3);
     beginBoarding(g, false, true);
   },
@@ -3420,24 +3515,41 @@ function chooseRolled(g: Game, id: string): boolean {
   const rock = id.match(/^s:rock-slug:(debt|upgrade):(\d+)$/);
   if (rock) return rockSlugPay(g, rock[1] === "debt" ? "debt" : "upgrade", Number(rock[2]));
   if (id === "s:rock-slug:decline") {
+    // Wiki citations:
+    // > "Decline the offer." — [[Rock and Slug standoff#Slug reward]]
+    // > "You break communications and prepare to move on." — [[Rock and Slug standoff#Slug reward]]
+    // > "Nothing happens." — [[Rock and Slug standoff#Slug reward]]
     show(g, tx("wiki.filler-events.you-break-communications-and-prepare-to"), undefined, [tx("wiki.filler-events.nothing-happens")]);
     return true;
   }
   if (id === "s:rock-slug:leave") {
+    // Wiki citations:
+    // > "You have better things to attend to, leave them." — [[Rock and Slug standoff]]
+    // > "Nothing happens." — [[Rock and Slug standoff]]
     show(g, tx("wiki.filler-events.nothing-happens"));
     return true;
   }
   if (id === "s:rock-slug:demand") {
+    // Wiki citations:
+    // > "Demand the Rock ship pay the agreed upon price." — [[Rock and Slug standoff]]
     // Agree, a Rock fight, or the explosion. No odds. INFERRED: equal.
     const r = weighted(g, [["pay", 1], ["fight", 1], ["boom", 1]] as const);
     if (r === "pay") {
+      // Wiki citations:
+      // > "With much grumbling, the Rock Captain agrees to pay the price." — [[Rock and Slug standoff]]
       slugCaptainGrateful(g, tx("wiki.filler-events.with-much-grumbling-the-rock-captain"));
       return true;
     }
     if (r === "fight") {
+      // Wiki citations:
+      // > "Apparently the Rock Captain was more annoyed than you thought, they shut off all communication and turn on you, the 'slime balls' defender." — [[Rock and Slug standoff]]
+      // > "Fight a Rock ship." — [[Rock and Slug standoff]]
       fight(g, tx("wiki.filler-events.apparently-the-rock-captain-was-more"), tx("wiki.filler-events.rock-ship"), "rock-and-slug-standoff");
       return true;
     }
+    // Wiki citations:
+    // > "A massive explosion emanates from the Rock Ship, shattering its hull and sending debris on an unavoidable collision course to your ship. Seems like that reactor upgrade was poorly done after all, and the Slugs took the opportunity to jump away." — [[Rock and Slug standoff]]
+    // > "Your ship takes 5 hull damage, 1 damage to each of 2 random systems." — [[Rock and Slug standoff]]
     if (hurt(g, 5)) return true;
     const sys = twoSystems(g);
     show(g, tx("wiki.filler-events.a-massive-explosion-emanates-from-the"), undefined, [sys].filter(Boolean));
@@ -3746,14 +3858,42 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
   if (id === "c:engi-smashed-ships:2" && !livingKin(g, "shell")) return tx("wiki.filler-events.needs-an-engi-crewmember");
   // Mantis ships battle for Rock freighter. INFERRED: the refusal line. The page names the drone and prints no sentence.
-  if (id === "c:mantis-ships-battle-for-rock-freighter:2" && !ownsDrone(g, "patch")) return tx("wiki.filler-events.needs-a-repair-drone");
-  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && !ownsDrone(g, "hull")) return tx("wiki.filler-events.needs-a-hull-repair-drone");
-  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && g.player.parts < 1) return tx("wiki.filler-events.need-1-drone-part");
+  if (id === "c:mantis-ships-battle-for-rock-freighter:2" && !ownsDrone(g, "patch")) {
+    // Wiki citations:
+    // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    return tx("wiki.filler-events.needs-a-repair-drone");
+  }
+  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && !ownsDrone(g, "hull")) {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    return tx("wiki.filler-events.needs-a-hull-repair-drone");
+  }
+  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && g.player.parts < 1) {
+    // Wiki citations:
+    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+    return tx("wiki.filler-events.need-1-drone-part");
+  }
   // Rock live mine. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:rock-live-mine:1" && (g.player.systems.engines?.level ?? 0) < 5) return tx("wiki.filler-events.needs-engines-level-5");
-  if (id === "s:rock-mine:missile" && !miningMissile(g)) return tx("wiki.filler-events.needs-a-missile-weapon");
-  if (id === "s:rock-mine:beam" && !ownsMineBeam(g)) return tx("wiki.filler-events.needs-a-beam-drone-2");
-  if (id === "s:rock-mine:beam" && g.player.parts < 1) return tx("wiki.filler-events.need-1-drone-part");
+  if (id === "c:rock-live-mine:1" && (g.player.systems.engines?.level ?? 0) < 5) {
+    // Wiki citations:
+    // > "(Improved Engines) Reverse thrusters! (Requires level 5+ Engines)" — [[Rock live mine]]
+    return tx("wiki.filler-events.needs-engines-level-5");
+  }
+  if (id === "s:rock-mine:missile" && !miningMissile(g)) {
+    // Wiki citations:
+    // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
+    return tx("wiki.filler-events.needs-a-missile-weapon");
+  }
+  if (id === "s:rock-mine:beam" && !ownsMineBeam(g)) {
+    // Wiki citations:
+    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+    return tx("wiki.filler-events.needs-a-beam-drone-2");
+  }
+  if (id === "s:rock-mine:beam" && g.player.parts < 1) {
+    // Wiki citations:
+    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+    return tx("wiki.filler-events.need-1-drone-part");
+  }
   // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
   // Wiki citations:
   // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
@@ -3797,13 +3937,22 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "s:abandoned-station:dna" && (g.player.kits.cradle?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-clone-bay");
   // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
-  if (m && g.scrap < Number(m[1])) return tx("wiki.filler-events.need-scrap", { v: m[1] });
+  if (m && g.scrap < Number(m[1])) {
+    // Wiki citations:
+    // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
+    // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
+    return tx("wiki.filler-events.need-scrap", { v: m[1] });
+  }
   // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
   // Wiki citations:
   // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
   if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return tx("wiki.filler-events.needs-rock-plating");
   // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.
-  if (id === "c:disabled-rock-ship:2" && !livingKin(g, "gel")) return tx("wiki.filler-events.needs-a-slug-crewmember");
+  if (id === "c:disabled-rock-ship:2" && !livingKin(g, "gel")) {
+    // Wiki citations:
+    // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
+    return tx("wiki.filler-events.needs-a-slug-crewmember");
+  }
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
     const missiles = Number(m[1]);

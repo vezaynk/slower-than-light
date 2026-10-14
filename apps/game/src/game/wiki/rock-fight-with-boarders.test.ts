@@ -22,6 +22,11 @@ function open(g: Game) {
 
 describe("Rock fight with boarders", () => {
   it("shows one of the two intros, and the fight still beams Rock boarders", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders]]
+    // > "You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!" — [[Rock fight with boarders]]
+    // > "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!" — [[Rock fight with boarders]]
+    // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -48,6 +53,8 @@ describe("Rock fight with boarders", () => {
   });
 
   it("applies the red line on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     // The page has no choice. "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);

@@ -23,6 +23,12 @@ function open(g: Game) {
 
 describe("Rock pirates fight", () => {
   it("shows one of the three intros, and the fight choice starts a Rock pirate combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
+    // > "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type." — [[Rock pirates fight]]
+    // > "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!" — [[Rock pirates fight]]
+    // > "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!" — [[Rock pirates fight]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -45,6 +51,8 @@ describe("Rock pirates fight", () => {
   });
 
   it("starts the Rock pirate ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     // The page has no choice. One of the three printed intros, then "Fight a Rock pirate ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

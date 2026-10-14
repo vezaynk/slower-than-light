@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Mantis ship with Rock body parts", () => {
   it("attacking prints the lead-in and starts a Mantis ship fight", () => {
+    // Wiki citations:
+    // > "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!" — [[Mantis ship with Rock body parts]]
+    // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-with-rock-body-parts:0");
@@ -28,6 +31,10 @@ describe("Mantis ship with Rock body parts", () => {
   });
 
   it("ignoring them prints the wait sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Ignore them." — [[Mantis ship with Rock body parts]]
+    // > "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure." — [[Mantis ship with Rock body parts]]
+    // > "Nothing happens." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
     g.fleet = 5;

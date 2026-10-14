@@ -22,6 +22,11 @@ function open(g: Game) {
 
 describe("Rock pirates fight in asteroid field", () => {
   it("shows one of the two intros, and the fight starts inside an asteroid field", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
+    // > "Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship." — [[Rock pirates fight in asteroid field]]
+    // > "You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!" — [[Rock pirates fight in asteroid field]]
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -45,6 +50,8 @@ describe("Rock pirates fight in asteroid field", () => {
   });
 
   it("starts the Rock pirate ship inside an asteroid field on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
     // The page has no choice. One of the two printed intros, then "Fight a Rock pirate ship." asteroidfield=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

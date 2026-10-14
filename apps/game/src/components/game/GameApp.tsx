@@ -2833,20 +2833,24 @@ function radialPanel(game: Game, roomId: string, close: () => void): ReactNode {
 
 /**
  * The system's own operations, as on the dock: Door System open and close all (two-step), Cloaking, the Backup Battery,
- * the Teleporter (send, or recall crew already aboard), Mind Control and Hacking. Send, Mind Control and Hacking go on
- * to aim at the enemy ship, so they close the menu first. Labels INVENTED.
+ * the Teleporter (send, or recall crew already aboard), Mind Control, Hacking, and autofire on Weapons. Send, Mind
+ * Control and Hacking go on to aim at the enemy ship, so they close the menu first. Labels INVENTED.
  */
 function radialActions(game: Game, roomId: string, close: () => void): ReactNode {
   const room = game.player.rooms.find((r) => r.id === roomId);
   if (!room) return null;
   const buttons: ReactNode[] = [];
-  const add = (key: string, label: string, icon: ReactNode, run: () => void, disabled = false) =>
+  const add = (key: string, label: string, icon: ReactNode, run: () => void, disabled = false, pressed = false) =>
     buttons.push(
-      <button key={key} type="button" className="radial-act" disabled={disabled} onClick={run}>
+      <button key={key} type="button" className={`radial-act${pressed ? " is-on" : ""}`} aria-pressed={pressed || undefined} disabled={disabled} onClick={run}>
         {icon}
         <span>{label}</span>
       </button>,
     );
+  if (room.system === "weapons") {
+    // Per the user: autofire is with the weapons power controls, including this room's menu.
+    add("autofire", tx("ui.GameApp.autofire"), <PixelIcon name="weapons" size={14} />, () => act((g) => toggleAutoAll(g)), false, !!game.autofireAll);
+  }
   if (room.system === "doors") {
     add("open", tx("ui.GameApp.open-all"), <DoorAllIcon open />, () => act((g) => openAllDoors(g)), playerDoorsLocked(game));
     add("close", tx("ui.GameApp.close-all"), <DoorAllIcon />, () => act((g) => closeAllDoors(g)), playerDoorsLocked(game));

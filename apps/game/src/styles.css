@@ -5370,6 +5370,7 @@ button.modal-x.modal-x:focus-visible {
   text-transform: uppercase;
   white-space: nowrap;
 }
+.radial-power .radial-act.is-on { color: #0b0d10; background: var(--color-line); }
 .radial-power .radial-act:disabled { opacity: 0.45; cursor: default; }
 .radial-power .radial-act svg { flex: none; }
 

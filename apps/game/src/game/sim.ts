@@ -4296,8 +4296,9 @@ export function healingIds(g: Game, ship: Ship, aboard: "player" | "enemy"): Set
 
 function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   const friends: "player" | "enemy" = aboard === "player" ? "player" : "enemy";
-  // Per the user: a ship that is no longer fighting (truce) is neutral, so crew of both sides in one room do not fight.
-  const peace = truce(g);
+  // Per the user: a ship that is no longer fighting (truce) is neutral, so crew of both sides in one room of that
+  // hull do not fight. Intruders still on your ship keep fighting until they die.
+  const peace = truce(g) && aboard === "enemy";
   const closedSlow = doorSpreadSlow(g, ship, aboard);
   for (const r of ship.rooms) {
     const present = g.crew.filter((c) => c.aboard === aboard && c.room === r.id && c.hp > 0 && c.path.length === 0);
@@ -5146,7 +5147,8 @@ function winCombat(g: Game) {
   clearEnemyLeash(g);
   // Game.wreck: a hull that is still in one piece (its crew died) stays alongside until the jump, neutral (truce).
   g.wreck = foe && foe.hull > 0 ? foe : null;
-  g.crew = g.crew.filter((c) => c.side === "player" || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
+  // Per the user: defeating the enemy ship does not remove intruders from yours. They stay until they die.
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c) || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
   g.enemy = null;
   g.shots = [];
   // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
@@ -5538,7 +5540,8 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
     g.enemy.storm = true;
     shedOverAssigned(g, g.enemy, "enemy");
   }
-  g.crew = g.crew.filter((c) => c.side === "player");
+  // Per the user: a new fight does not remove intruders already on your ship.
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   // Mind Control: no hold from an earlier fight (fled or jumped away) carries into this one.
   clearEnemyLeash(g);
   g.crew.push(...built.crew);
@@ -5605,8 +5608,13 @@ export function startCombat(g: Game, tier: string, asteroid = false, event?: str
   noteAchieve(g, { k: "fight" });
 }
 
+/** Living enemy crew on the player's hull. Per the user: they stay until they are killed. */
+export function intruderOnPlayer(c: Crew): boolean {
+  return c.side === "enemy" && c.aboard === "player" && c.hp > 0;
+}
+
 function enemyAboard(g: Game): boolean {
-  return g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
+  return g.crew.some(intruderOnPlayer);
 }
 
 /**
@@ -6224,7 +6232,8 @@ export function commitJump(g: Game, id: string) {
   g.pending = null;
   g.enemy = null;
   g.shots = [];
-  g.crew = g.crew.filter((c) => c.side === "player");
+  // Per the user: jumping away does not remove intruders from your ship. Enemy crew still on the other hull stay behind.
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   g.asteroid = false;
   g.asb = false;
   g.pulsar = false;
@@ -6847,7 +6856,8 @@ export function enterHiddenCrystal(g: Game) {
   dropOvercharged(g.player);
   rechargeZoltan(g.player);
   rechargeLockdown(g);
-  g.crew = g.crew.filter((c) => c.side === "player");
+  // Per the user: this jump does not remove intruders from your ship either.
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   g.enemy = null;
   g.shots = [];
   g.asteroid = false;
@@ -7224,6 +7234,8 @@ function playerShipTick(g: Game, h: number) {
   meltCoats(g);
   chargeIdleWeapons(g, h);
   neutralShipTick(g, h);
+  // Per the user: intruders left aboard after a win or a jump keep choosing rooms until they die.
+  if (enemyAboard(g)) wanderBoarders(g, h);
   // Engines, "FTL Drive charge time": the map keeps charging through a hazard, and finishes at once without one.
   chargeFtl(g, h);
 }
@@ -7275,7 +7287,8 @@ export function step(g: Game, dt: number) {
         // Per the user: the ship behaves the same with or without a fight on. This is the combat body below with only
         // the player's hull: air, doors, crew work (repairs, fires, the Medbay, suffocation), Zoltan power, shields,
         // ion, and every fitted system (Clone Bay, Backup Battery, drones, Fire Suppression, sabotage). Only what
-        // needs an enemy ship (aiming and charging at it, boarders, its AI, surrender, escape) waits for a fight.
+        // needs an enemy ship (aiming and charging at it, sending boarders, its AI, surrender, escape) waits for a fight.
+        // Intruders already on your ship keep fighting here, including after that ship is gone.
         playerShipTick(g, h);
         // Environmental Hazards, Asteroid Field: the field stays after the enemy is gone, until the jump.
         if (g.phase !== "combat" && g.asteroid) tickLingeringAsteroids(g, h);
@@ -7332,8 +7345,8 @@ export function step(g: Game, dt: number) {
   }
   enemyEscapeStep(g, h);
   if (g.enemyFlee >= 1 && g.enemy) {
-    // INFERRED: crew still on the other hull are left behind. The engines page does not say this in one line.
-    g.crew = g.crew.filter((c) => c.side === "player" && c.aboard === "player");
+    // Per the user: their jump does not take intruders off your ship. Crew still on their hull, including yours, are left behind.
+    g.crew = g.crew.filter((c) => c.aboard === "player" && (c.side === "player" || intruderOnPlayer(c)));
     // @agent:hacking. INFERRED: an enemy hold ends when they jump away too (extras/leash.ts leashOnLeave).
     leashOnLeave(g);
     // Rebel Fleet: letting a charging Rebel scout or auto-ship escape doubles the pursuit for one turn.

@@ -1,3 +1,4 @@
+import { intruderOnPlayer } from "../sim.ts";
 import type { Crew, Game, Ship } from "../types";
 import {
   adjustScrapAmount,
@@ -86,7 +87,8 @@ export function onPlayerJump(g: Game) {
   onJumpSling(g);
   // Game.wreck: the beaten ship stays behind at the old beacon, with its crew. A ship still fighting (a retreat) is
   // dropped later in the jump, after rememberFlagship has read the Flagship's crew.
-  if (g.wreck && !g.enemy) g.crew = g.crew.filter((c) => c.side === "player");
+  // Per the user: intruders on your ship come with you. Only the wreck's own crew are left at that beacon.
+  if (g.wreck && !g.enemy) g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   g.wreck = null;
   for (const c of g.crew) {
     if (c.hp <= 0 && !leftAlive.has(c.id)) onCradleDeath(g, c);

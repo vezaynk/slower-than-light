@@ -16,7 +16,7 @@ import { CREW_POOL, WEAPONS, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { kinOf, type KinId } from "../extras/kin.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { beginBoarding, log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
 import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
@@ -841,8 +841,8 @@ export function closeFight(g: Game) {
   // Game.wreck: the ship that surrendered (or broke off) is still there until the jump, for a teleporter recall.
   g.wreck = g.enemy && g.enemy.hull > 0 ? g.enemy : null;
   // Per the user: that ship stays a running ship, now neutral (sim.ts truce): its crew stay aboard and keep working.
-  // INFERRED: their boarders on your ship are gone, as before.
-  g.crew = g.crew.filter((c) => c.side === "player" || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
+  // Per the user: intruders on your ship stay until they are killed. A surrender does not remove them.
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c) || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
   g.enemy = null;
   g.enemyEscape = null;
   g.enemyFlee = 0;

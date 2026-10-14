@@ -863,7 +863,7 @@ button:disabled {
   grid-template-areas:
     "hud hud hud"
     "crew stage target"
-    "dock dock dock";
+    "dock dock target";
   color: var(--color-fg);
 }
 
@@ -873,6 +873,21 @@ button:disabled {
     "hud hud"
     "crew stage"
     "dock dock";
+}
+
+/* Per the user: the fight gives the target panel the stage width the player ship is not using. */
+.play.is-battle {
+  grid-template-columns: 168px minmax(0, 1fr) minmax(220px, calc(340px + var(--battle-shift, 0px)));
+}
+
+.play.is-battle .sky {
+  place-items: center start;
+  padding-left: 64px;
+  box-sizing: border-box;
+}
+
+.play.is-battle .sky .hull {
+  --tile: var(--player-tile);
 }
 
 .hud {
@@ -1078,9 +1093,9 @@ button:disabled {
 .hud-alerts {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 2px;
-  max-width: 148px;
+  max-width: 220px;
 }
 
 .danger-mark,
@@ -1089,7 +1104,7 @@ button:disabled {
   font-family: var(--font-hud);
   letter-spacing: 0.08em;
   line-height: 1.1;
-  text-align: center;
+  text-align: right;
   color: #ff4b4b;
 }
 
@@ -1100,6 +1115,30 @@ button:disabled {
 .hazard-mark {
   font-size: 13px;
 }
+
+/* Per the user: danger, class, and relationship sit in the space left of the pause button. */
+.hud-beside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  max-width: 240px;
+  min-height: 76px;
+  text-align: right;
+}
+
+.hud-beside .hud-class,
+.hud-beside .hud-relation {
+  margin: 0;
+  font-family: var(--font-hud);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.hud-beside .hud-class { font-size: 18px; color: var(--color-fg); }
+.hud-beside .hud-relation { font-size: 14px; color: var(--color-muted); }
+.hud-beside .hack-evasion { font-family: var(--font-hud); color: var(--color-ion); }
 
 .ftl-drive em {
   font-style: normal;
@@ -1674,7 +1713,7 @@ button:disabled {
 .dock {
   grid-area: dock;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: end;
   padding: 0 10px 8px;
@@ -1827,8 +1866,21 @@ button:disabled {
   .target-systems span.is-clock { transition: none; }
 }
 
+/* Per the user: subsystems sit to the right of the weapon tray, so the target panel can use the space below it. */
 .weapon-dock {
   min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.weapon-main {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.weapon-dock .sub-dock {
+  flex: none;
 }
 
 .gun-tray {
@@ -6016,7 +6068,7 @@ body.page-turn-180 {
 
 /* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
    place (PauseStamp). INVENTED sizes. */
-.hud-right { display: flex; gap: 8px; align-items: flex-start; }
+.hud-right { display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end; }
 .frame-btn.fast-btn.is-on { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 12px rgba(255, 210, 90, 0.25); }
 .hud-right .pause-mark {
   position: static;

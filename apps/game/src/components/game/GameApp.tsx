@@ -1,6 +1,6 @@
 import { Button, Kicker } from "@stl/ui";
 import { tx } from "@/i18n";
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
@@ -823,6 +823,86 @@ function isKitId(id: SysId | KitId): id is KitId {
 }
 
 /** INVENTED: the combat, event, and pause screens are the layout guide. No wiki page specifies this chrome. */
+
+/**
+ * Per the user: in a fight the player ship sits as far left as it can without clipping.
+ * ShieldField draws the outer bubble at most 56px past the hull (ROOM_MAX) plus 8px for the stroke.
+ * The hull plate hangs one tile past the rooms, which at the 44px cap is inside that stroke.
+ * The same 64px stays clear on the right. Everything wider than the hull plus those two margins
+ * is given to the target panel.
+ */
+const BATTLE_CLEAR = 64;
+
+function useBattleShift(active: boolean, hullKey: string): { shift: number; tile: number } {
+  const [frame, setFrame] = useState({ shift: 0, tile: 0 });
+  const shiftRef = useRef(0);
+  useLayoutEffect(() => {
+    if (!active) {
+      shiftRef.current = 0;
+      setFrame((prev) => (prev.shift === 0 ? prev : { shift: 0, tile: prev.tile }));
+      return;
+    }
+    const root = document.querySelector(".play");
+    if (!root) return;
+    let raf = 0;
+    const read = () => {
+      const sky = root.querySelector(".sky");
+      const well = sky?.querySelector(":scope > .ship-well");
+      const hull = well?.querySelector(".hull");
+      if (!(sky instanceof HTMLElement) || !(well instanceof HTMLElement) || !(hull instanceof HTMLElement)) return;
+      if (well.offsetWidth < 8) return;
+      const tile = parseFloat(getComputedStyle(hull).gridTemplateColumns) || 0;
+      const applied = shiftRef.current;
+      const natural = sky.clientWidth + applied;
+      const next = Math.max(0, Math.floor(natural - well.offsetWidth - BATTLE_CLEAR * 2));
+      shiftRef.current = next;
+      setFrame((prev) => (prev.shift === next && Math.abs(prev.tile - tile) < 0.5 ? prev : { shift: next, tile }));
+    };
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(read);
+    };
+    schedule();
+    const obs = new ResizeObserver(schedule);
+    const sky = root.querySelector(".sky");
+    const well = sky?.querySelector(":scope > .ship-well");
+    if (sky) obs.observe(sky);
+    if (well) obs.observe(well);
+    return () => {
+      cancelAnimationFrame(raf);
+      obs.disconnect();
+    };
+  }, [active, hullKey]);
+  return frame;
+}
+
+function useFoeTile(cols: number, rows: number, playerTile: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tile, setTile] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || playerTile <= 0) return;
+    const read = () => {
+      const cs = getComputedStyle(el);
+      const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+      const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+      const w = Math.max(0, el.clientWidth - padX);
+      const h = Math.max(0, el.clientHeight - padY);
+      // The plate is one pitch around the rooms. Pitch is the tile plus the 2px wall at a 44px tile.
+      const wall = 2 / 44;
+      const widthUnits = cols + 2 + (cols + 1) * wall;
+      const heightUnits = rows + 2 + (rows + 1) * wall;
+      const fit = Math.min(w / Math.max(1, widthUnits), h / Math.max(1, heightUnits));
+      const next = Math.max(12, Math.min(44, playerTile, fit));
+      setTile((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
+    };
+    read();
+    const obs = new ResizeObserver(read);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [cols, rows, playerTile]);
+  return { ref, tile };
+}
 function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   const sector = game.sectorMap && game.phase !== "victory" && game.phase !== "defeat";
   // File:NO_FUEL.png and File:3_store.jpg: the beacon chart is a panel over the ship, opened with JUMP.
@@ -863,6 +943,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
     !!displayEnemy &&
     (linger != null ||
       (!chart && (game.phase === "combat" || game.phase === "event" || (wreck != null && (game.phase === "map" || game.phase === "reward")))));
+  const battleShift = useBattleShift(showTarget && !sector, `${game.hullId}:${game.player.cols}x${game.player.rows}`);
   const ox = shake ? Math.sin(game.time * 40) * 7 * shake : 0;
   const oy = shake ? Math.cos(game.time * 33) * 5 * shake : 0;
   // @agent:hack-ui. Hack targeting only lasts while a launch is possible (fight over, power pulled, part spent...).
@@ -908,7 +989,8 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   ) : null;
   return (
     <div
-      className={`play${showTarget ? "" : " no-target"}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
+      className={`play${showTarget ? "" : " no-target"}${battleShift.shift > 0 && battleShift.tile > 0 ? " is-battle" : ""}${game.targeting || hackAiming || slingOn || leashOn ? " is-targeting" : ""}${hackAiming ? " is-hack-targeting" : ""}${slingOn ? " is-sling-targeting" : ""}${leashOn ? " is-leash-targeting" : ""}`}
+      style={{ ["--battle-shift" as string]: `${battleShift.shift}px`, ["--player-tile" as string]: `${battleShift.tile}px` }}
       onPointerDown={(e) => {
         if (e.pointerType !== "touch") return;
         const t = e.target as Element | null;
@@ -939,7 +1021,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         cancelAim();
       }}
     >
-      <Hud game={game} />
+      <Hud game={game} foe={showTarget && displayEnemy ? displayEnemy : null} />
       <CombatFx />
       <ShadeFx />
       <CrewRail game={game} />
@@ -952,7 +1034,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         {chart ? <MapScreen game={game} /> : null}
       </div>
       {showTarget && displayEnemy ? (
-        <TargetPanel game={game} enemy={displayEnemy} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} />
+        <TargetPanel game={game} enemy={displayEnemy} playerTile={battleShift.tile} hackAiming={hackAiming} slingAiming={slingOn} leashAiming={leashOn} />
       ) : null}
       <Dock game={game} hackAiming={hackAiming} />
       {card}
@@ -960,7 +1042,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   );
 }
 
-function Hud({ game }: { game: Game }) {
+function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
   const bubbles = game.player.shieldNow;
   const cap = Math.max(maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")), bubbles);
   // Engines, "FTL Drive charge time": the bar runs in a fight, and on the map while a hazard or a boarder remains.
@@ -1059,16 +1141,6 @@ function Hud({ game }: { game: Game }) {
             </span>
           </em>
         </button>
-        {shipInDanger(game) || game.pulsarWarned ? (
-          <div className="hud-alerts">
-            <p className={`danger-mark${shipInDanger(game) ? "" : " is-reserve"}`} role="status" aria-hidden={shipInDanger(game) ? undefined : true}>
-              {tx("ui.GameApp.danger")}
-            </p>
-            <p className={`hazard-mark${game.pulsarWarned ? "" : " is-reserve"}`} role="status" aria-hidden={game.pulsarWarned ? undefined : true}>
-              {tx("ui.GameApp.ion-pulse-imminent")}
-            </p>
-          </div>
-        ) : null}
         <button
           type="button"
           className="frame-btn"
@@ -1090,10 +1162,54 @@ function Hud({ game }: { game: Game }) {
         </button>
       </div>
       <div className="hud-right">
+        {/* Per the user: the open space left of pause holds the danger mark and the target's class and relationship. */}
+        <FoeReadout game={game} foe={foe} />
         {/* Per the user: pause and fast forward, top right. While paused, the PAUSED mark takes their place. */}
         <ClockControls paused={!!game.userPaused} phase={game.phase} />
       </div>
     </header>
+  );
+}
+
+function FoeReadout({ game, foe }: { game: Game; foe: Ship | null }) {
+  const danger = shipInDanger(game);
+  const pulse = !!game.pulsarWarned;
+  const vision = foe ? hackVision(game) : null;
+  const hack = foe ? playerHackView(game) : null;
+  if (!foe && !danger && !pulse) return null;
+  return (
+    <div className="hud-beside">
+      {danger || pulse ? (
+        <div className="hud-alerts">
+          <p className={`danger-mark${danger ? "" : " is-reserve"}`} role="status" aria-hidden={danger ? undefined : true}>
+            {tx("ui.GameApp.danger")}
+          </p>
+          <p className={`hazard-mark${pulse ? "" : " is-reserve"}`} role="status" aria-hidden={pulse ? undefined : true}>
+            {tx("ui.GameApp.ion-pulse-imminent")}
+          </p>
+        </div>
+      ) : null}
+      {foe ? (
+        <>
+          <p className="hud-class">
+            <span className="line-stack">
+              <span className={vision?.evasion != null ? "is-reserve" : undefined} aria-hidden={vision?.evasion != null || undefined}>
+                {tx("ui.GameApp.class")}{foe.name}
+              </span>
+              <span
+                className={`hack-evasion${vision?.evasion != null ? "" : " is-reserve"}`}
+                title={vision?.evasion != null ? tx("ui.GameApp.hacking-drone-on", { v: hack?.label ?? vision.system }) : undefined}
+                aria-hidden={vision?.evasion != null ? undefined : true}
+              >
+                {tx("ui.GameApp.evasion-2")}<DigitSlot value={vision?.evasion ?? 0} sample={100} />%
+              </span>
+            </span>
+          </p>
+          {/* Per the user: a ship that is no longer fighting us (sim.ts truce) reads Neutral. */}
+          <p className="hud-relation">{tx("ui.GameApp.relationship")}{truce(game) && foe === game.wreck ? tx("ui.GameApp.neutral") : tx("ui.GameApp.hostile")}</p>
+        </>
+      ) : null}
+    </div>
   );
 }
 
@@ -1457,12 +1573,14 @@ function hackMarkOf(game: Game): HackMark | null {
 function TargetPanel({
   game,
   enemy,
+  playerTile,
   hackAiming,
   slingAiming,
   leashAiming,
 }: {
   game: Game;
   enemy: Ship;
+  playerTile: number;
   hackAiming: boolean;
   slingAiming: boolean;
   leashAiming: boolean;
@@ -1492,31 +1610,20 @@ function TargetPanel({
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
   // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
   const FOE_TILE_FULL = 44;
-  const foeTile = Math.max(
+  const fitted = useFoeTile(enemy.cols, enemy.rows, playerTile);
+  const foeTile = fitted.tile || Math.max(
     12,
     Math.min(FOE_TILE_FULL, Math.floor(256 / (enemy.cols + 2)) - 2, Math.floor(216 / (enemy.rows + 2)) - 2),
   );
+  const beamHint = game.targeting && game.beamAnchor && !hackAiming;
+  const hackNote = !!(hack && (hack.latched || hack.state === "pulse") && hack.label);
+  const headNote = !!escape || hackNote || !!clones || beamHint;
   return (
     <aside className="target-panel">
+      {headNote ? (
       <div className="target-head">
         <span className="target-flag">{tx("ui.GameApp.target")}</span>
         <div>
-          <p className="target-id">
-            <span className="line-stack">
-              <span className={vision?.evasion != null ? "is-reserve" : undefined} aria-hidden={vision?.evasion != null || undefined}>
-                {tx("ui.GameApp.class")}{enemy.name}
-              </span>
-              <span
-                className={`hack-evasion${vision?.evasion != null ? "" : " is-reserve"}`}
-                title={vision?.evasion != null ? tx("ui.GameApp.hacking-drone-on", { v: hack?.label ?? vision.system }) : undefined}
-                aria-hidden={vision?.evasion != null ? undefined : true}
-              >
-                {tx("ui.GameApp.evasion-2")}<DigitSlot value={vision?.evasion ?? 0} sample={100} />%
-              </span>
-            </span>
-          </p>
-          {/* Per the user: a ship that is no longer fighting us (sim.ts truce) reads Neutral. */}
-          <p>{tx("ui.GameApp.relationship")}{truce(game) && enemy === game.wreck ? tx("ui.GameApp.neutral") : tx("ui.GameApp.hostile")}</p>
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               <span className="line-stack">
@@ -1529,7 +1636,7 @@ function TargetPanel({
               </span>
             </p>
           ) : null}
-          {hack && (hack.latched || hack.state === "pulse") && hack.label ? (
+          {hack && hack.label && hackNote ? (
             <p className={`hack-line${hack.state === "pulse" ? " is-pulse" : ""}`} role="status">
               <span className="line-stack">
                 <span className={hack.state === "pulse" ? "is-reserve" : undefined} aria-hidden={hack.state === "pulse" || undefined}>
@@ -1557,11 +1664,12 @@ function TargetPanel({
               </span>
             </p>
           ) : null}
-          {game.targeting && game.beamAnchor && !hackAiming ? (
+          {beamHint ? (
             <p className="beam-hint">{tx("ui.GameApp.click-the-end-of-the-beam")}</p>
           ) : null}
         </div>
       </div>
+      ) : null}
       <div className="foe-vitals">
         <div className="hull-row">
           <span className="hud-word">{tx("ui.GameApp.hull")}</span>
@@ -1596,6 +1704,7 @@ function TargetPanel({
           keeps crew and the other fixed-size pieces in proportion with those tiles. */}
       {/* @agent:flagship. The 10-row Rebel Flagship cutaway also needs a height bound. */}
       <div
+        ref={fitted.ref}
         className={`target-body${cloakClass(cloaked, releasing)}`}
         style={{
           ["--foe-tile" as string]: `${foeTile}px`,
@@ -1936,6 +2045,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         )}
       </div>
       <div className="weapon-dock">
+        <div className="weapon-main">
         {shown === "weapons" ? (
         <div className="gun-tray" role={swarm ? "tabpanel" : undefined}>
           {game.player.weapons.map((w, index) => {
@@ -2108,8 +2218,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             </span>
           </div>
         )}
-      </div>
-      <div className="sub-dock">
+        </div>
+        {/* Per the user: subsystems sit on the right of the weapon tray, not under the target panel. */}
+        <div className="sub-dock">
         <div className="sub-row">
           {(["pilot", "sensors", "doors"] as SysId[]).map((id) => {
             const sys = game.player.systems[id];
@@ -2173,6 +2284,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           {SUB_KITS.map((id) => kitPod(id))}
         </div>
         <span className="dock-label">{tx("ui.GameApp.subsystems")}</span>
+      </div>
       </div>
     </footer>
   );

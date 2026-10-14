@@ -100,7 +100,13 @@ export function stormReactor(reactor: number): number {
  * Slug fight in plasma storm: "This event has a plasma storm environment, but the beacon is not inside a nebula."
  * Fleet pursuit stays the full non-nebula step because this does not change beacon.kind.
  */
-const PLASMA_STORM_FLAGS = new Set(["cited:rebel-fight-in-plasma-storm", "cited:slug-fight-in-plasma-storm"]);
+const PLASMA_STORM_FLAGS = new Set([
+  "cited:rebel-fight-in-plasma-storm",
+  // Wiki citations:
+  // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
+  // > "Despite being a plasma storm, this event only occurs at non-nebula beacons. Fleet pursuit will be the full amount, instead of the 80% that you would have when jumping from a nebula beacon in a Slug sector." — [[Slug fight in plasma storm#Trivia]]
+  "cited:slug-fight-in-plasma-storm",
+]);
 const PLASMA_STORM_NAMES = new Set(["Rebel fight in plasma storm", "Slug fight in plasma storm"]);
 
 function plasmaStormEvent(beacon: Pick<Beacon, "flag" | "name">): boolean {

@@ -7,6 +7,9 @@ const BODY =
 
 describe("Slug fight", () => {
   it("starts the Slug ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!" — [[Slug fight]]
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight]]
     // The page has no choice. "Fight a Slug ship (default rewards)."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

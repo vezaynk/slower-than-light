@@ -19,6 +19,9 @@ function open(g: Game) {
 
 describe("Mantis fight (Slug) hail", () => {
   it("prints the full opening sentence, then fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "You intercept comm chatter from an incoming Mantis ship. \"Look. This ship appears not to be owned by the squishy ones. Maybe they won't smell so bad when we cut them open.\" They move in on your position." — [[Mantis fight (Slug)]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Slug)]]
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
@@ -35,6 +38,8 @@ describe("Mantis fight (Slug) hail", () => {
   });
 
   it("starts the Mantis ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Slug)]]
     // The page has no choice. The printed sentence, then "Fight a Mantis ship." unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

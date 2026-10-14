@@ -106,6 +106,23 @@ describe("EXTRA_EVENTS slug list", () => {
   });
 
   it("uses every sector name on that page's Locations line", () => {
+    // Wiki citations:
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis fight (Slug)]]
+    // > "This random event occurs in Uncharted Nebula." — [[Mantis fight choice in nebula]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis fight in nebula (Slug)]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis ship attacking Slug ship]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Pirate fight (Slug)]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Pirate fight choice in nebula]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Rebel fight (Slug)]]
+    // > "This random event occurs in Slug Home Nebula." — [[Slug Home Nebula surrender]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight in nebula]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight in plasma storm]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula." — [[Rebel fight chance in nebula]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slocknog]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug ship boarding Rock ship]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee (Slug)]]
+    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
     for (const event of EXTRA_EVENTS) {
       const text = dump.get(event.dest);
       assert.ok(text, event.dest);

@@ -19,6 +19,10 @@ function open(g: Game) {
 
 describe("Mantis fight choice in nebula hail", () => {
   it("prints the full opening before the fight and the move-on choice", () => {
+    // Wiki citations:
+    // > "Navigating the fog blind, you practically bump hulls with a Mantis ship. They hail you: \"Pah! This transgression will be overlooked. Nebula, very dangerous. Next time, humans all die.\"" — [[Mantis fight choice in nebula]]
+    // > "There won't be a next time. Open fire!" — [[Mantis fight choice in nebula]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice in nebula]]
     const g = createGame(1);
     const crew = g.crew.filter((c) => c.side === "player").length;
     open(g);

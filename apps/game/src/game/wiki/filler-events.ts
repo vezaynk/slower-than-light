@@ -2105,32 +2105,59 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Rebel fight chance in nebula. The chase lists three results and prints no odds. INFERRED: equal.
   "c:rebel-fight-chance-in-nebula:0": (g) => {
+    // Wiki citations:
+    // > "Stay hidden." — [[Rebel fight chance in nebula]]
+    // > "You try and stay out of sight. You doubt they saw you." — [[Rebel fight chance in nebula]]
+    // > "Nothing happens." — [[Rebel fight chance in nebula]]
     show(g, tx("wiki.filler-events.you-try-and-stay-out-of"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "c:rebel-fight-chance-in-nebula:1": (g) => {
+    // Wiki citations:
+    // > "Prepare to chase them!" — [[Rebel fight chance in nebula]]
     const r = weighted(g, [["fight", 1], ["double", 1], ["none", 1]] as const);
     if (r === "fight") {
+      // Wiki citations:
+      // > "You follow their vapour trails and surf onto their six o' clock, weapons hot." — [[Rebel fight chance in nebula]]
+      // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
       fight(g, tx("wiki.filler-events.you-follow-their-vapour-trails-and"), tx("wiki.filler-events.rebel-ship"), "rebel-fight-chance-in-nebula");
       return;
     }
     if (r === "double") {
       // "Rebel Fleet pursuit is doubled." No jump count is printed. INFERRED: the current fleet position doubles, the same step as cited-events.ts fx double.
+      // Wiki citations:
+      // > "You get disoriented in the nebula and lose your bearings completely. It takes some time to get back to the beacon. It's likely the fleet has had time to advance closer to your position." — [[Rebel fight chance in nebula]]
+      // > "Rebel Fleet pursuit is doubled." — [[Rebel fight chance in nebula]]
       g.fleet *= 2;
       show(g, tx("wiki.filler-events.you-get-disoriented-in-the-nebula"), undefined, [tx("wiki.filler-events.rebel-fleet-pursuit-is-doubled")]);
       return;
     }
+    // Wiki citations:
+    // > "Without sensors you can't maintain a lock for long. The rebels slip away." — [[Rebel fight chance in nebula]]
+    // > "Nothing happens." — [[Rebel fight chance in nebula]]
     show(g, tx("wiki.filler-events.without-sensors-you-can-t-maintain"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   // Advanced Sensors level=3: at least that level. Long-Ranged Scanners and Lifeform Scanner each start the same Rebel fight.
   "c:rebel-fight-chance-in-nebula:2": (g) => {
+    // Wiki citations:
+    // > "(Advanced Sensors) Try to track them as you move to engage. (Requires level 3 Sensors)" — [[Rebel fight chance in nebula]]
+    // > "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range." — [[Rebel fight chance in nebula]]
+    // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
     if (sensorsLevel(g) < 3) return;
     fight(g, tx("wiki.filler-events.as-soon-as-they-see-you"), tx("wiki.filler-events.rebel-ship"), "rebel-fight-chance-in-nebula");
   },
   "c:rebel-fight-chance-in-nebula:3": (g) => {
+    // Wiki citations:
+    // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
+    // > "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range." — [[Rebel fight chance in nebula]]
+    // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
     if (!g.augments.includes("glass")) return;
     fight(g, tx("wiki.filler-events.as-soon-as-they-see-you"), tx("wiki.filler-events.rebel-ship"), "rebel-fight-chance-in-nebula");
   },
   "c:rebel-fight-chance-in-nebula:4": (g) => {
+    // Wiki citations:
+    // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
+    // > "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight." — [[Rebel fight chance in nebula]]
+    // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
     if (!g.augments.includes("pulseeye")) return;
     fight(g, tx("wiki.filler-events.your-augment-s-ability-to-keep"), tx("wiki.filler-events.rebel-ship"), "rebel-fight-chance-in-nebula");
   },
@@ -2172,6 +2199,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Slocknog. Hire costs 55 scrap. The page says the skills are shown and prints no numbers, so none are stored.
   // "when you arrive there will be a nebula environment" stays unwired: there is no separate per-fight nebula here.
   "c:slocknog:0": (g) => {
+    // Wiki citations:
+    // > "Hire Slocknog." — [[Slocknog]]
+    // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
+    // > "Scrap lost: 55" — [[Slocknog]]
     if (g.scrap < 55) return;
     // Crew: at full crew a hire relieves someone already aboard (make-room.ts keepNewHire).
     joinCrew(g, tx("wiki.filler-events.slug"), tx("wiki.filler-events.slocknog"));
@@ -2180,16 +2211,27 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, tx("wiki.filler-events.you-receive-a-slug-crewmember-named"), undefined, [tx("wiki.filler-events.scrap-55")]);
   },
   "c:slocknog:1": (g) => {
+    // Wiki citations:
+    // > "Ignore Slocknog." — [[Slocknog]]
+    // > "You power up the FTL, at which point the Slug sends an urgent plea. \"Please, I ssee you are a sssly captain. You have an advantage. Very well. I will join your crew - but please remove me from this rock!\"" — [[Slocknog]]
     card(g, tx("wiki.filler-events.you-power-up-the-ftl-at"), [
       { id: "s:slocknog:rescue", label: tx("wiki.filler-events.rescue-him") },
       { id: "s:slocknog:leave", label: tx("wiki.filler-events.leave-him") },
     ]);
   },
   "s:slocknog:rescue": (g) => {
+    // Wiki citations:
+    // > "Rescue him." — [[Slocknog]]
+    // > "When he sees the shuttle headed for his position the Slug thanks you with what looks like sincerity. He readily joins your crew." — [[Slocknog]]
+    // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
     const note = joinCrew(g, tx("wiki.filler-events.slug"), tx("wiki.filler-events.slocknog")) ? tx("wiki.filler-events.slocknog-joins-you") : tx("wiki.filler-events.there-is-no-room-aboard-for-4");
     show(g, tx("wiki.filler-events.when-he-sees-the-shuttle-headed"), undefined, [note]);
   },
   "s:slocknog:leave": (g) => {
+    // Wiki citations:
+    // > "Leave him." — [[Slocknog]]
+    // > "You close the frequency and continue jump prep. If this Slug is such a hero he'll find a way off that moon on his own." — [[Slocknog]]
+    // > "Nothing happens." — [[Slocknog]]
     show(g, tx("wiki.filler-events.you-close-the-frequency-and-continue"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
 
@@ -2314,17 +2356,33 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   // Slug ship boarding Rock ship. Engage lists a fight and a back-down and prints no odds. INFERRED: equal.
   // Ignore prints the nothing result twice.
   "c:slug-ship-boarding-rock-ship:0": (g) => {
+    // Wiki citations:
+    // > "Engage the Slug ship." — [[Slug ship boarding Rock ship]]
     if (weighted(g, [["fight", 1], ["down", 1]] as const) === "fight") {
+      // Wiki citations:
+      // > "You charge weapons and the Slugs quickly change course to meet your charge." — [[Slug ship boarding Rock ship]]
+      // > "Fight a Slug ship." — [[Slug ship boarding Rock ship]]
       fight(g, tx("wiki.filler-events.you-charge-weapons-and-the-slugs"), tx("wiki.filler-events.slug-ship"), "slug-ship-boarding-rock-ship");
       return;
     }
+    // Wiki citations:
+    // > "You charge your weapons and the Slugs immediately back down. When you return to the freighter, the Rockmen have already repaired the worst of their damage and jump away without another word." — [[Slug ship boarding Rock ship]]
+    // > "Nothing happens." — [[Slug ship boarding Rock ship]]
     show(g, tx("wiki.filler-events.you-charge-your-weapons-and-the"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
   "c:slug-ship-boarding-rock-ship:1": (g) => {
+    // Wiki citations:
+    // > "Ignore them." — [[Slug ship boarding Rock ship]]
     if (weighted(g, [["nothing", 2], ["fight", 1]] as const) === "nothing") {
+      // Wiki citations:
+      // > "2× You have no desire to provoke Slugs in their own territory. You leave them alone." — [[Slug ship boarding Rock ship]]
+      // > "Nothing happens." — [[Slug ship boarding Rock ship]]
       show(g, tx("wiki.filler-events.you-have-no-desire-to-provoke"), undefined, [tx("wiki.filler-events.nothing-happens")]);
       return;
     }
+    // Wiki citations:
+    // > "After the Slugs board the ship, you are surprised to see the Rock ship spring to life and decimate the other ship. They message you, \"Pathetic. You are either a coward or an ally of the Slugs. Either way, you don't deserve to live.\"" — [[Slug ship boarding Rock ship]]
+    // > "Fight a Rock ship (default rewards)." — [[Slug ship boarding Rock ship]]
     fight(g, tx("wiki.filler-events.after-the-slugs-board-the-ship"), tx("wiki.filler-events.rock-ship"), "slug-ship-boarding-rock-ship-rock");
   },
 
@@ -3665,10 +3723,26 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (id === "c:rebel-fight-chance:3" && sensorsLevel(g) < 3) return tx("wiki.filler-events.needs-sensors-level-3");
   // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
   // Advanced Sensors level=3 means at least that installed level.
-  if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) return tx("wiki.filler-events.needs-sensors-level-3");
-  if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) return tx("wiki.filler-events.needs-long-ranged-scanners");
-  if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) return tx("wiki.filler-events.needs-a-lifeform-scanner");
-  if (id === "c:slocknog:0" && g.scrap < 55) return tx("wiki.filler-events.need-55-scrap");
+  if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) {
+    // Wiki citations:
+    // > "(Advanced Sensors) Try to track them as you move to engage. (Requires level 3 Sensors)" — [[Rebel fight chance in nebula]]
+    return tx("wiki.filler-events.needs-sensors-level-3");
+  }
+  if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) {
+    // Wiki citations:
+    // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
+    return tx("wiki.filler-events.needs-long-ranged-scanners");
+  }
+  if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) {
+    // Wiki citations:
+    // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
+    return tx("wiki.filler-events.needs-a-lifeform-scanner");
+  }
+  if (id === "c:slocknog:0" && g.scrap < 55) {
+    // Wiki citations:
+    // > "Scrap lost: 55" — [[Slocknog]]
+    return tx("wiki.filler-events.need-55-scrap");
+  }
   // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
   if (id === "c:engi-smashed-ships:2" && !livingKin(g, "shell")) return tx("wiki.filler-events.needs-an-engi-crewmember");
   // Mantis ships battle for Rock freighter. INFERRED: the refusal line. The page names the drone and prints no sentence.

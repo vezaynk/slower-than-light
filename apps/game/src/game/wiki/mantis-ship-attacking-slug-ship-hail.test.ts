@@ -19,6 +19,11 @@ function open(g: Game) {
 
 describe("Mantis ship attacking Slug ship hail", () => {
   it("prints the full distress sentence and the three choices without spending scrap", () => {
+    // Wiki citations:
+    // > "The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: \"Please, we'll give you all we have if you sssave ussss!\"" — [[Mantis ship attacking Slug ship]]
+    // > "Attack the Mantis ship." — [[Mantis ship attacking Slug ship]]
+    // > "Attack the Slug ship." — [[Mantis ship attacking Slug ship]]
+    // > "Of all the species in the galaxy, these two deserve one another. You power up the jump drive." — [[Mantis ship attacking Slug ship]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Mantis ship attacking Slug ship");

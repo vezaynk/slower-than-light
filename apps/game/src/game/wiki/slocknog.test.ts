@@ -23,6 +23,10 @@ function players(g: Game) {
 
 describe("Slocknog", () => {
   it("hiring him costs 55 scrap and stores no skills", () => {
+    // Wiki citations:
+    // > "Hire Slocknog." — [[Slocknog]]
+    // > "Scrap lost: 55" — [[Slocknog]]
+    // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
     const g = createGame(1);
     g.scrap = 55;
     const crew = players(g).length;
@@ -39,6 +43,8 @@ describe("Slocknog", () => {
   });
 
   it("refuses the hire below 55 scrap, and a full ship relieves someone already aboard", () => {
+    // Wiki citations:
+    // > "Scrap lost: 55" — [[Slocknog]]
     const short = createGame(1);
     short.scrap = 54;
     open(short);
@@ -60,6 +66,15 @@ describe("Slocknog", () => {
   });
 
   it("rescuing him after the plea is free, and leaving spends nothing", () => {
+    // Wiki citations:
+    // > "Ignore Slocknog." — [[Slocknog]]
+    // > "You power up the FTL, at which point the Slug sends an urgent plea. \"Please, I ssee you are a sssly captain. You have an advantage. Very well. I will join your crew - but please remove me from this rock!\"" — [[Slocknog]]
+    // > "Rescue him." — [[Slocknog]]
+    // > "When he sees the shuttle headed for his position the Slug thanks you with what looks like sincerity. He readily joins your crew." — [[Slocknog]]
+    // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
+    // > "Leave him." — [[Slocknog]]
+    // > "You close the frequency and continue jump prep. If this Slug is such a hero he'll find a way off that moon on his own." — [[Slocknog]]
+    // > "Nothing happens." — [[Slocknog]]
     const g = createGame(3);
     const crew = players(g).length;
     open(g);

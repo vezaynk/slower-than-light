@@ -21,6 +21,10 @@ function open(g: Game) {
 
 describe("Slocknog", () => {
   it("shows the printed hire sentence", () => {
+    // Wiki citations:
+    // > "You detect life signs on a nearby moon - a lone Slug marooned on its surface. \"Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum.\"" — [[Slocknog]]
+    // > "Hire Slocknog." — [[Slocknog]]
+    // > "Ignore Slocknog." — [[Slocknog]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

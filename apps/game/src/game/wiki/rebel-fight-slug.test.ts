@@ -23,6 +23,12 @@ function open(g: Game) {
 
 describe("Rebel fight (Slug)", () => {
   it("shows one of the three intros, and the fight choice starts a Rebel ship combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
+    // > "As you arrive at the beacon, a hostile ship immediately registers on your scanners. You didn't expect to see Rebels extending their reach into Slug territory. Charge the weapons!" — [[Rebel fight (Slug)]]
+    // > "You jump into empty space and are relieved to see your sensors blink back to life. However, you are less pleased to see them immediately register a rebel ship on an approach vector!" — [[Rebel fight (Slug)]]
+    // > "You receive a message from a nearby ship, \"Looks like our intelligence was correct! Sneaking through the clouds with the Slugs... No one can hide from the rebellion!\"" — [[Rebel fight (Slug)]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -45,6 +51,8 @@ describe("Rebel fight (Slug)", () => {
   });
 
   it("starts the Rebel ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
     // The page has no choice. One of the three printed intros, then "Fight a Rebel ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

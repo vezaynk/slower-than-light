@@ -393,6 +393,17 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // marker is added to your map.", is the `extra` answer (wiki/quests.ts). The Slug Cruiser unlock is the interceptor
   // fight on that marker, not this offer (@agent:unlocks, wiki/quests.ts grantUnlock).
   "slug-home-nebula-surrender": {
+    // Wiki citations:
+    // > "Fight a Slug ship (default rewards). (surrender offer: 100% chance at 30-40% hull; escape attempt: 50% chance at 30-40% hull)" — [[Slug Home Nebula surrender]]
+    // > "\"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?\"" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "Let them live." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "\"Take thisss newly developed weapon we're transporting... They're not going to be happy we gave it up, that isss for ssure...\"" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "Accept the prototype weapon." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "You receive Anti-Bio Beam." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "We don't want the weapon, we want information." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "We will not accept surrender!" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "Continue the fight." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     page: "Slug Home Nebula surrender",
     chance: 100,
     low: 30,

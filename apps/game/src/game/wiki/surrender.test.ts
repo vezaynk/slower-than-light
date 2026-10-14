@@ -353,6 +353,9 @@ describe("scripted surrenders (event pages)", () => {
   });
 
   it("Slug Home Nebula: the Anti-Bio Beam", () => {
+    // Wiki citations:
+    // > "You receive Anti-Bio Beam." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     const g = eventFight("Slug ship", "slug-home-nebula-surrender");
     offer(g);
     assert.equal(surrenderOfferView(g)!.weapon, "antibio");

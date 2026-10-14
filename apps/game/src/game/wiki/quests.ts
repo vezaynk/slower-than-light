@@ -165,6 +165,8 @@ export function questSpot(g: Game, force = false): Beacon | undefined {
 function mark(b: Beacon, id: string) {
   b.quest = id;
   // Slug comm tapping and Slug Home Nebula: the marker beacon is a nebula. Other markers stay events.
+  // Wiki citations:
+  // > "Note: this event occurs at a regular quest marker beacon, but when you arrive there will be a nebula environment." — [[Slug Home Nebula surrender#Quest Marker]]
   b.kind = id === "slug-pirate-trap" || id === "slug-platform" ? "nebula" : "event";
   b.flag = `quest:${id}`;
   b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? tx("wiki.quests.quest");
@@ -669,6 +671,10 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       ]);
       break;
     case "slug-platform":
+      // Wiki citations:
+      // > "You arrive to discover an impressive cruiser being worked on by a few smaller ships and guarded by an assault ship. The mobile construction platform is slowly slipping into the clouds. You have not yet been noticed." — [[Slug Home Nebula surrender#Quest Marker]]
+      // > "Charge them before they escape." — [[Slug Home Nebula surrender#Quest Marker]]
+      // > "Try to tail them without being noticed." — [[Slug Home Nebula surrender#Quest Marker]]
       card(g, tx("wiki.quests.you-arrive-to-discover-an-impressive"), [
         { id: "q:slug-platform:charge", label: tx("wiki.quests.charge-them-before-they-escape") },
         { id: "q:slug-platform:tail", label: tx("wiki.quests.try-to-tail-them-without-being") },
@@ -2082,13 +2088,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
   "c:mantis-ship-attacking-slug-ship:0": (g) => {
+    // Wiki citations:
+    // > "Attack the Mantis ship." — [[Mantis ship attacking Slug ship]]
+    // > "You lock onto the Mantis ship and engage." — [[Mantis ship attacking Slug ship]]
+    // > "Fight a Mantis Ship." — [[Mantis ship attacking Slug ship]]
     pageFight(g, tx("wiki.quests.you-lock-onto-the-mantis-ship"), tx("wiki.quests.mantis-ship"), "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
   },
   // The Slug fight must not use the Mantis win. It does not surrender or escape.
   "c:mantis-ship-attacking-slug-ship:1": (g) => {
+    // Wiki citations:
+    // > "Attack the Slug ship." — [[Mantis ship attacking Slug ship]]
+    // > "You move to finish what the Mantis have started." — [[Mantis ship attacking Slug ship]]
+    // > "Fight a Slug ship." — [[Mantis ship attacking Slug ship]]
     pageFight(g, tx("wiki.quests.you-move-to-finish-what-the"), tx("wiki.quests.slug-ship"), "mantis-ship-attacking-slug-ship-slug", { ...NEVER_RUN });
   },
   "q:mantis-slug:leave": (g) => {
+    // Wiki citations:
+    // > "Leave them be." — [[Mantis ship attacking Slug ship]]
+    // > "These wretches aren't worth fighting. Time to spin up and jump off." — [[Mantis ship attacking Slug ship]]
+    // > "Nothing happens." — [[Mantis ship attacking Slug ship]]
     result(g, tx("wiki.quests.these-wretches-aren-t-worth-fighting"), undefined, [tx("wiki.quests.nothing-happens")]);
   },
   "q:mantis-slug:finish": (g) => {
@@ -2828,6 +2846,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // "This ship starts to escape with 35 seconds countdown timer."
   "q:slug-platform:interceptor": (g) => {
+    // Wiki citations:
+    // > "Fight the interceptor." — [[Slug Home Nebula surrender#Quest Marker]]
+    // > "This ship starts to escape with 35 seconds countdown timer. It is always a Slug Interceptor class." — [[Slug Home Nebula surrender#Fight the interceptor]]
+    // > "When the ship wants to escape The interceptor powers up its FTL drive in preparation to escape. At the same time, the cruiser's FTL drive does the same. They must be linked! Don't let them get away!" — [[Slug Home Nebula surrender#Fight the interceptor]]
     pageFight(g, tx("wiki.quests.the-interceptor-powers-up-its-ftl"), tx("wiki.quests.slug-interceptor"), "quest-slug-interceptor", startRun(35));
   },
 
@@ -2845,6 +2867,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
 
   // Slug Home Nebula surrender, "Let them live." -> "We don't want the weapon, we want information." (the `extra` answer).
   "s:slug-home-nebula-surrender:info": (g) => {
+    // Wiki citations:
+    // > "We don't want the weapon, we want information." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "You ask where they were delivering the weapon. \"By telling you we will probably die jussst as like as not... Oh well.\" They give you the coordinates of the a prototype cruiser's mobile construction platform." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "A quest marker is added to your map." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     if (!g.enemy) return;
     // Score, k: "k = ships defeated by reducing hull or crew to zero. Defeating the flagship does NOT increase the count
     // (none of the 3 phases)." Letting them live and taking information does not reduce hull or crew to zero.
@@ -3497,6 +3523,9 @@ const MANTIS_SLUG_AFTER: Choice[] = [
 
 /** Mantis ship attacking Slug ship. Both endings pay medium standard, then the Slug vessel. */
 function mantisSlugSaved(g: Game) {
+  // Wiki citations:
+  // > "After destroying enemy ship or after killing enemy crew The Mantis defeated, you contact the weakened Slug vessel. \"You ssseee,\" they begin, \"we are are most grateful, but, that is, we do not currently have the liquid asssets to reward you at this time.\"" — [[Mantis ship attacking Slug ship]]
+  // > "You receive medium scrap with resources." — [[Mantis ship attacking Slug ship]]
   result(
     g,
     tx("wiki.quests.the-mantis-defeated-you-contact-the"),
@@ -3510,7 +3539,12 @@ function mantisSlugSaved(g: Game) {
  *  augmentation & T scrap."
  *  The loot is a random standard reward. INFERRED: low, medium, and high are equal. */
 function mantisSlugFinish(g: Game) {
+  // Wiki citations:
+  // > "Finish them off." — [[Mantis ship attacking Slug ship]]
   if (pick(g, ["augment", "loot"] as const) === "augment") {
+    // Wiki citations:
+    // > "The Slug captain hails you: \"A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported.\" You allow them to leave with their lives." — [[Mantis ship attacking Slug ship]]
+    // > "You receive an augmentation with low scrap." — [[Mantis ship attacking Slug ship]]
     result(
       g,
       tx("wiki.quests.the-slug-captain-hails-you-a"),
@@ -3519,6 +3553,9 @@ function mantisSlugFinish(g: Game) {
     );
     return;
   }
+  // Wiki citations:
+  // > "It doesn't look like they can stand much more damage. After a few shots their ship breaks apart and you move in to loot the remains." — [[Mantis ship attacking Slug ship]]
+  // > "You receive a random amount of scrap with resources." — [[Mantis ship attacking Slug ship]]
   result(
     g,
     tx("wiki.quests.it-doesn-t-look-like-they"),
@@ -3650,11 +3687,17 @@ export const PAGE_WINS: Record<string, Win> = {
   // Slug ship boarding Rock ship: both endings pay medium scrap, then the freighter.
   // The nothing result is printed twice. The two sentences are alternatives. INFERRED: equal.
   "slug-ship-boarding-rock-ship": (g, deadCrew) => {
+    // Wiki citations:
+    // > "After destroying enemy ship With the Slug ship destroyed, you retrieve some scrap and return to the Rock ship.After killing enemy crew With the Slugs no longer a threat, you strip the ship and return to the Rockmen." — [[Slug ship boarding Rock ship]]
+    // > "You receive medium scrap with resources." — [[Slug ship boarding Rock ship]]
     const text = deadCrew
       ? tx("wiki.quests.with-the-slugs-no-longer-a")
       : tx("wiki.quests.with-the-slug-ship-destroyed-you");
     const extras: string[] = [];
     if (weighted(g, [["nothing", 2], ["abandoned", 1]] as const) === "abandoned") {
+      // Wiki citations:
+      // > "It appears the Rock ship was long since abandoned. You strip what you can from it." — [[Slug ship boarding Rock ship]]
+      // > "You receive medium scrap with resources." — [[Slug ship boarding Rock ship]]
       const more = rollStandard(g, "medium");
       payOffer(g, more, true);
       extras.push(tx("wiki.quests.it-appears-the-rock-ship-was"));
@@ -3664,6 +3707,9 @@ export const PAGE_WINS: Record<string, Win> = {
       if (more.parts) extras.push(tx("wiki.quests.drone-parts", { parts: more.parts }));
       for (const line of extras.slice(1)) log(g, line);
     } else {
+      // Wiki citations:
+      // > "2× It appears that the Rock ship left during your battle. You doubt they could have been more ungrateful for your assistance. OR After the battle the Rock ship hails you. Their captain simply says, \"Thanks.\" and jumps away. That's pretty gracious of them, considering the Rockmen's reputation." — [[Slug ship boarding Rock ship]]
+      // > "Nothing happens." — [[Slug ship boarding Rock ship]]
       const line = weighted(g, [["left", 1], ["thanks", 1]] as const) === "left"
         ? tx("wiki.quests.it-appears-that-the-rock-ship")
         : tx("wiki.quests.after-the-battle-the-rock-ship");
@@ -4030,6 +4076,9 @@ export const PAGE_WINS: Record<string, Win> = {
     mantisSlugSaved(g);
   },
   "mantis-ship-attacking-slug-ship-slug": (g) => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis." — [[Mantis ship attacking Slug ship]]
+    // > "You receive high scrap with resources." — [[Mantis ship attacking Slug ship]]
     result(g, tx("wiki.quests.at-last-the-slugs-prized-possessions"), rollStandard(g, "high"));
   },
   // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
@@ -4179,6 +4228,9 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-slug-platform": std("high", "high", tx("wiki.quests.with-the-assault-ship-taken-care")),
   // The interceptor: "receive high scrap with resources and Slug Repair Gel augmentation". The Slug Cruiser unlock is the grantUnlock line.
   "quest-slug-interceptor": (g) => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!" — [[Slug Home Nebula surrender#Fight the interceptor]]
+    // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
     grantUnlock(g, "slug-a"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
     result(g, tx("wiki.quests.with-the-escort-destroyed-you-take"), rollStandard(g, "high"), [grantAug(g, "gel")]);
   },
@@ -4249,7 +4301,11 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
     // > "With the ship gone you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     result(g, tx("wiki.quests.with-the-ship-gone-you-search-2"));
   },
-  "quest-slug-interceptor": (g) => result(g, tx("wiki.quests.the-interceptor-jumps-away-with-the")),
+  "quest-slug-interceptor": (g) => {
+    // Wiki citations:
+    // > "After the ship successfully escaped The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..." — [[Slug Home Nebula surrender#Fight the interceptor]]
+    result(g, tx("wiki.quests.the-interceptor-jumps-away-with-the"));
+  },
   // The mid-run sentence "After watching their squadron get destroyed, it looks like their leader is prepared to turn tail and run." has no separate card hook.
   "quest-fed-assist-wing": (g) => {
     card(g, tx("wiki.quests.the-rebel-ship-jumped-away"), [{ id: "q:fed-assist-wing:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]);

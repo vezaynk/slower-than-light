@@ -25,6 +25,14 @@ function open(g: Game) {
 
 describe("Slug fight in nebula intro", () => {
   it("shows one of the five printed intros, then fights a Slug ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in nebula]]
+    // > "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!" — [[Slug fight in nebula]]
+    // > "The Slug vessel you encounter here has obviously made a big score and is looking to test its new armaments. They picked the wrong ship to attack." — [[Slug fight in nebula]]
+    // > "A Slug passenger ship hails: \"Please, your worthy alien highnessesss, we are unarmed and sseeking asssylum.\" You approach cautiously, and weapons immediately spring from their hull!" — [[Slug fight in nebula]]
+    // > "A Slug ship - a rogue, you suspect - approaches, but when he sees you're Federation he thinks better of the sneak attack and fires everything he has." — [[Slug fight in nebula]]
+    // > "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!" — [[Slug fight in nebula]]
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
     assert.equal(INTROS.length, 5);
     assert.equal(new Set(INTROS).size, 5);
     const seen = new Set<string>();
@@ -49,6 +57,8 @@ describe("Slug fight in nebula intro", () => {
   });
 
   it("starts the Slug ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
     // The page has no choice. One of the five printed intros, then "Fight a Slug ship." nebula=true. unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

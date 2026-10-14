@@ -411,6 +411,12 @@ describe("Engi fleet discussion", () => {
 
 describe("Other surrender pages with a marker", () => {
   it("Slug Home Nebula surrender: 'we want information' adds the platform marker; the interceptor pays Slug Repair Gel", () => {
+    // Wiki citations:
+    // > "We don't want the weapon, we want information." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "A quest marker is added to your map." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
+    // > "Note: this event occurs at a regular quest marker beacon, but when you arrive there will be a nebula environment." — [[Slug Home Nebula surrender#Quest Marker]]
+    // > "This ship starts to escape with 35 seconds countdown timer. It is always a Slug Interceptor class." — [[Slug Home Nebula surrender#Fight the interceptor]]
+    // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
     const g = createGame(15);
     g.sectorName = "Slug Home Nebula";
     g.phase = "map";

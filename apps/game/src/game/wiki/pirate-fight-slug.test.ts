@@ -23,6 +23,12 @@ function open(g: Game) {
 
 describe("Pirate fight (Slug)", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
+    // > "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous." — [[Pirate fight (Slug)]]
+    // > "\"We knew anyone foolish enough to try and sneak through a Slug nebula would stick to open space. Yield your goods and we may let you live.\" You cut the transmission in lieu of a response." — [[Pirate fight (Slug)]]
+    // > "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire." — [[Pirate fight (Slug)]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);
@@ -44,6 +50,8 @@ describe("Pirate fight (Slug)", () => {
   });
 
   it("starts the Pirate ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
     // The page has no choice. One of the three printed intros, then "Fight a Pirate ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

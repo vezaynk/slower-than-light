@@ -3820,6 +3820,12 @@ const PIRATE_DISTRESS_TRAP_INTROS = [
 ];
 
 const SLUG_PLASMA_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
+  // > "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures." — [[Slug fight in plasma storm]]
+  // > "The Slug ship that descends into view as you enter the ion storm must have sensed your distress - defensive action!" — [[Slug fight in plasma storm]]
+  // > "You arrive in the middle of an ion storm. Slugs generally avoid these storms but you find one waiting in ambush. Prepare for a fight!" — [[Slug fight in plasma storm]]
+  // > "You find yourself stuck in the middle of an ion storm with a Slug ship just a short distance away, refusing all hails. You cautiously try to slip further into the clouds, but they turn suddenly to attack!" — [[Slug fight in plasma storm]]
   tx("wiki.cited-events.the-ion-storm-here-threatens-to"),
   tx("wiki.cited-events.the-slug-ship-that-descends-into"),
   tx("wiki.cited-events.you-arrive-in-the-middle-of-2"),
@@ -4249,6 +4255,13 @@ const PIRATE_BRIBER_INTROS = [
 // Slug fight in nebula. Five printed intros, no odds. INFERRED: equal.
 // The fight stays c:slug-fight-in-nebula:0. No nebula environment is added. Surrender stays the Slug row.
 const NEBULA_SLUG_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in nebula]]
+  // > "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!" — [[Slug fight in nebula]]
+  // > "The Slug vessel you encounter here has obviously made a big score and is looking to test its new armaments. They picked the wrong ship to attack." — [[Slug fight in nebula]]
+  // > "A Slug passenger ship hails: \"Please, your worthy alien highnessesss, we are unarmed and sseeking asssylum.\" You approach cautiously, and weapons immediately spring from their hull!" — [[Slug fight in nebula]]
+  // > "A Slug ship - a rogue, you suspect - approaches, but when he sees you're Federation he thinks better of the sneak attack and fires everything he has." — [[Slug fight in nebula]]
+  // > "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!" — [[Slug fight in nebula]]
   tx("wiki.cited-events.your-sensors-are-no-match-for"),
   tx("wiki.cited-events.the-slug-vessel-you-encounter-here"),
   tx("wiki.cited-events.a-slug-passenger-ship-hails-please"),
@@ -4293,6 +4306,11 @@ const ROCK_ASTEROID_INTROS = [
 
 // Rebel fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:rebel-fight-slug:0.
 const SLUG_REBEL_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
+  // > "As you arrive at the beacon, a hostile ship immediately registers on your scanners. You didn't expect to see Rebels extending their reach into Slug territory. Charge the weapons!" — [[Rebel fight (Slug)]]
+  // > "You jump into empty space and are relieved to see your sensors blink back to life. However, you are less pleased to see them immediately register a rebel ship on an approach vector!" — [[Rebel fight (Slug)]]
+  // > "You receive a message from a nearby ship, \"Looks like our intelligence was correct! Sneaking through the clouds with the Slugs... No one can hide from the rebellion!\"" — [[Rebel fight (Slug)]]
   tx("wiki.cited-events.as-you-arrive-at-the-beacon"),
   tx("wiki.cited-events.you-jump-into-empty-space-and"),
   tx("wiki.cited-events.you-receive-a-message-from-a-3"),
@@ -4300,6 +4318,11 @@ const SLUG_REBEL_INTROS = [
 
 // Pirate fight (Slug). Three printed intros, no odds. INFERRED: equal. The fight stays c:pirate-fight-slug:0.
 const SLUG_PIRATE_INTROS = [
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
+  // > "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous." — [[Pirate fight (Slug)]]
+  // > "\"We knew anyone foolish enough to try and sneak through a Slug nebula would stick to open space. Yield your goods and we may let you live.\" You cut the transmission in lieu of a response." — [[Pirate fight (Slug)]]
+  // > "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire." — [[Pirate fight (Slug)]]
   tx("wiki.cited-events.there-appears-to-be-a-pirate"),
   tx("wiki.cited-events.we-knew-anyone-foolish-enough-to"),
   tx("wiki.cited-events.before-you-can-take-a-moment"),
@@ -5103,6 +5126,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Slug fight in nebula has no choice. Arrival calls this fight.
   // One of the five printed intros. "Fight a Slug ship (default rewards)." nebula=true. unique=false. No nebula environment is added. Surrender stays the Slug row.
   if (ev.slug === "slug-fight-in-nebula") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in nebula]]
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
     return {
       title: ev.dest,
       body: NEBULA_SLUG_INTROS[between(g, [0, 4])]!,
@@ -5180,6 +5206,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rebel fight (Slug) has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Rebel ship (default rewards)." unique=false.
   if (ev.slug === "rebel-fight-slug") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
     return {
       title: ev.dest,
       body: SLUG_REBEL_INTROS[between(g, [0, 2])]!,
@@ -5189,6 +5218,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Pirate fight (Slug) has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   if (ev.slug === "pirate-fight-slug") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
     return {
       title: ev.dest,
       body: SLUG_PIRATE_INTROS[between(g, [0, 2])]!,
@@ -5312,6 +5344,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Slug fight in plasma storm has no choice. Arrival calls this fight.
   // One of the four printed intros. "Fight a Slug ship (default rewards)." plasmastorm=true. unique=false. The beacon stays outside a nebula. Surrender stays the Slug row.
   if (ev.slug === "slug-fight-in-plasma-storm") {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
+    // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
     return {
       title: ev.dest,
       body: SLUG_PLASMA_INTROS[between(g, [0, 3])]!,

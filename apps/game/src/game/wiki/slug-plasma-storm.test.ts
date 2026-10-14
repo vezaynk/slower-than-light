@@ -29,6 +29,15 @@ function open(g: Game) {
 
 describe("Slug fight in plasma storm", () => {
   it("shows one of the four printed intros, then storms a non-nebula beacon", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
+    // > "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures." — [[Slug fight in plasma storm]]
+    // > "The Slug ship that descends into view as you enter the ion storm must have sensed your distress - defensive action!" — [[Slug fight in plasma storm]]
+    // > "You arrive in the middle of an ion storm. Slugs generally avoid these storms but you find one waiting in ambush. Prepare for a fight!" — [[Slug fight in plasma storm]]
+    // > "You find yourself stuck in the middle of an ion storm with a Slug ship just a short distance away, refusing all hails. You cautiously try to slip further into the clouds, but they turn suddenly to attack!" — [[Slug fight in plasma storm]]
+    // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
+    // > "Despite being a plasma storm, this event only occurs at non-nebula beacons. Fleet pursuit will be the full amount, instead of the 80% that you would have when jumping from a nebula beacon in a Slug sector." — [[Slug fight in plasma storm#Trivia]]
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
     assert.equal(INTROS.length, 4);
     assert.equal(new Set(INTROS).size, 4);
     const seen = new Set<string>();
@@ -63,6 +72,8 @@ describe("Slug fight in plasma storm", () => {
   });
 
   it("starts the Slug ship on arrival and leaves no button", () => {
+    // Wiki citations:
+    // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
     // The page has no choice. One of the four printed intros, then "Fight a Slug ship." plasmastorm=true. unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);

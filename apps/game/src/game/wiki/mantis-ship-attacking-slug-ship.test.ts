@@ -28,6 +28,15 @@ function resources(body: string): number {
 
 describe("Mantis ship attacking Slug ship", () => {
   it("leaving spends nothing, and attacking starts the named fight", () => {
+    // Wiki citations:
+    // > "Of all the species in the galaxy, these two deserve one another. You power up the jump drive." — [[Mantis ship attacking Slug ship]]
+    // > "Nothing happens." — [[Mantis ship attacking Slug ship]]
+    // > "Attack the Mantis ship." — [[Mantis ship attacking Slug ship]]
+    // > "You lock onto the Mantis ship and engage." — [[Mantis ship attacking Slug ship]]
+    // > "Fight a Mantis Ship." — [[Mantis ship attacking Slug ship]]
+    // > "Attack the Slug ship." — [[Mantis ship attacking Slug ship]]
+    // > "You move to finish what the Mantis have started." — [[Mantis ship attacking Slug ship]]
+    // > "Fight a Slug ship." — [[Mantis ship attacking Slug ship]]
     const out = createGame(1);
     open(out);
     choose(out, "c:mantis-ship-attacking-slug-ship:2");
@@ -54,6 +63,17 @@ describe("Mantis ship attacking Slug ship", () => {
   });
 
   it("saving the Slugs pays medium scrap with resources, then leaving or finishing them", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew The Mantis defeated, you contact the weakened Slug vessel. \"You ssseee,\" they begin, \"we are are most grateful, but, that is, we do not currently have the liquid asssets to reward you at this time.\"" — [[Mantis ship attacking Slug ship]]
+    // > "You receive medium scrap with resources." — [[Mantis ship attacking Slug ship]]
+    // > "Leave them be." — [[Mantis ship attacking Slug ship]]
+    // > "These wretches aren't worth fighting. Time to spin up and jump off." — [[Mantis ship attacking Slug ship]]
+    // > "Nothing happens." — [[Mantis ship attacking Slug ship]]
+    // > "Finish them off." — [[Mantis ship attacking Slug ship]]
+    // > "The Slug captain hails you: \"A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported.\" You allow them to leave with their lives." — [[Mantis ship attacking Slug ship]]
+    // > "You receive an augmentation with low scrap." — [[Mantis ship attacking Slug ship]]
+    // > "It doesn't look like they can stand much more damage. After a few shots their ship breaks apart and you move in to loot the remains." — [[Mantis ship attacking Slug ship]]
+    // > "You receive a random amount of scrap with resources." — [[Mantis ship attacking Slug ship]]
     const saved = createGame(4);
     open(saved);
     const fuel = saved.fuel;
@@ -126,6 +146,9 @@ describe("Mantis ship attacking Slug ship", () => {
   });
 
   it("destroying the Slug ship pays high scrap with resources either way", () => {
+    // Wiki citations:
+    // > "After destroying enemy ship or after killing enemy crew At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis." — [[Mantis ship attacking Slug ship]]
+    // > "You receive high scrap with resources." — [[Mantis ship attacking Slug ship]]
     for (const dead of [false, true]) {
       const g = createGame(dead ? 7 : 8);
       open(g);

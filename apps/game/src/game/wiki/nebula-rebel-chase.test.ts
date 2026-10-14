@@ -22,6 +22,10 @@ function open(g: Game) {
 
 describe("Rebel fight chance in nebula", () => {
   it("staying hidden spends nothing", () => {
+    // Wiki citations:
+    // > "Stay hidden." — [[Rebel fight chance in nebula]]
+    // > "You try and stay out of sight. You doubt they saw you." — [[Rebel fight chance in nebula]]
+    // > "Nothing happens." — [[Rebel fight chance in nebula]]
     const g = createGame(1);
     g.fleet = 4;
     open(g);
@@ -34,6 +38,14 @@ describe("Rebel fight chance in nebula", () => {
   });
 
   it("a chase finds the Rebel ship, doubles pursuit, or loses the lock", () => {
+    // Wiki citations:
+    // > "Prepare to chase them!" — [[Rebel fight chance in nebula]]
+    // > "You follow their vapour trails and surf onto their six o' clock, weapons hot." — [[Rebel fight chance in nebula]]
+    // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
+    // > "You get disoriented in the nebula and lose your bearings completely. It takes some time to get back to the beacon. It's likely the fleet has had time to advance closer to your position." — [[Rebel fight chance in nebula]]
+    // > "Rebel Fleet pursuit is doubled." — [[Rebel fight chance in nebula]]
+    // > "Without sensors you can't maintain a lock for long. The rebels slip away." — [[Rebel fight chance in nebula]]
+    // > "Nothing happens." — [[Rebel fight chance in nebula]]
     let fight = false;
     let doubled = false;
     let gone = false;
@@ -64,6 +76,13 @@ describe("Rebel fight chance in nebula", () => {
   });
 
   it("Sensors level 3, Long-Ranged Scanners, or a Lifeform Scanner start a Rebel fight", () => {
+    // Wiki citations:
+    // > "(Advanced Sensors) Try to track them as you move to engage. (Requires level 3 Sensors)" — [[Rebel fight chance in nebula]]
+    // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
+    // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
+    // > "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range." — [[Rebel fight chance in nebula]]
+    // > "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight." — [[Rebel fight chance in nebula]]
+    // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, SENSORS), "Needs Sensors level 3");

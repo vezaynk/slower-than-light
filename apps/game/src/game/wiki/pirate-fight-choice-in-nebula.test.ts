@@ -20,6 +20,11 @@ function open(g: Game) {
 
 describe("Pirate fight choice in nebula", () => {
   it("shows both sentences, attacking starts a pirate fight, and keeping distance does nothing", () => {
+    // Wiki citations:
+    // > "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider." — [[Pirate fight choice in nebula]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight choice in nebula]]
+    // > "Keep your distance and hope they haven't seen you yet." — [[Pirate fight choice in nebula]]
+    // > "Nothing happens." — [[Pirate fight choice in nebula]]
     const attack = createGame(1);
     open(attack);
     assert.equal(attack.event?.body, BODY);

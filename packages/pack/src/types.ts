@@ -279,6 +279,8 @@ export type EventDef = {
   aliases: string[];
   sectors: string[];
   body: string;
+  /** Opening sentences. The sim still picks one. Stored when a page has more than one. */
+  texts?: string[];
   choices: EventChoice[];
   surrender?: SurrenderOfferDef;
 };

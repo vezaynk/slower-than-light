@@ -9,6 +9,7 @@ import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
+import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
@@ -123,6 +124,8 @@ function eventRow(row: EventDef): EventDef {
       fx: choice.fx.map((fx) => ({ ...fx })),
     })),
   };
+  const texts = OPENING_TEXTS[row.id];
+  if (texts && texts.length > 1) copy.texts = [...texts];
   if (row.surrender) copy.surrender = surrenderRow(row.surrender);
   return copy;
 }

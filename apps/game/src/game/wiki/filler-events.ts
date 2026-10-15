@@ -261,17 +261,6 @@ function friendlyCard(g: Game, page: Page): GameEvent {
   };
 }
 
-/**
- * Trade scrap for upgrades. The intro "can be any of the following".
- * INFERRED: the four printed texts are equally likely.
- */
-const TRADE_INTROS = [
-  tx("wiki.filler-events.you-pick-up-an-automated-message"),
-  tx("wiki.filler-events.there-are-a-number-of-privately"),
-  tx("wiki.filler-events.you-receive-a-message-from-a-2"),
-  tx("wiki.filler-events.you-are-immediately-hailed-by-a"),
-];
-
 type TradeId = "oxygen" | "pilot" | "doors" | "sensors" | "reactor";
 
 type TradeOffer = { id: TradeId; name: string; lo: number; hi: number; next: number };
@@ -299,24 +288,27 @@ function tradeOffers(g: Game): TradeOffer[] {
   return out;
 }
 
+/** One packed opening sentence. Filler pages that use rand keep that draw. */
+function randOpening(g: Game, id: string): string {
+  const texts = eventDef(id)?.texts ?? [];
+  if (texts.length === 0) return "";
+  return texts[Math.min(texts.length - 1, Math.floor(rand(g) * texts.length))] ?? "";
+}
+
+/** One packed opening sentence. Pages that use between keep that draw. */
+function betweenOpening(g: Game, id: string): string {
+  const texts = eventDef(id)?.texts ?? [];
+  const hi = texts.length > 0 ? texts.length - 1 : 0;
+  return texts[between(g, [0, hi])] ?? "";
+}
+
 function tradeIntro(g: Game, page: Page): GameEvent {
-  const text = TRADE_INTROS[Math.min(TRADE_INTROS.length - 1, Math.floor(rand(g) * TRADE_INTROS.length))];
+  const text = randOpening(g, page.slug);
   return { title: page.dest, body: text, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
-/**
- * Crew hiring station. "The intro text for this event varies, and could be any of the following".
- * Three texts and no odds. INFERRED: equal.
- * The hire prices grant an unnamed crewmember and stay off this card.
- */
-const HIRE_INTROS = [
-  tx("wiki.filler-events.this-beacon-seems-to-serve-as"),
-  tx("wiki.filler-events.you-find-a-space-station-set"),
-  tx("wiki.filler-events.there-are-a-number-of-ships"),
-];
-
 function hireCard(g: Game, page: Page): GameEvent {
-  const text = HIRE_INTROS[Math.min(HIRE_INTROS.length - 1, Math.floor(rand(g) * HIRE_INTROS.length))];
+  const text = randOpening(g, page.slug);
   return { title: page.dest, body: text, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
 
@@ -740,11 +732,6 @@ function giveMiners(g: Game, n: 5 | 15) {
   }
 }
 
-const SUPPLY_INTROS = [
-  tx("wiki.filler-events.you-look-like-a-military-vessel"),
-  tx("wiki.filler-events.you-receive-a-message-from-a"),
-];
-
 /** Missiles, drone parts, fuel. A 0-wide band stays 0. */
 const SUPPLY_BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
   { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
@@ -770,7 +757,7 @@ function supplyPrice(missiles: number, parts: number, fuel: number): string {
 
 /** The bundle is rolled when the card opens, so the price is on the button. */
 function supplyCard(g: Game, page: Page): GameEvent {
-  const intro = SUPPLY_INTROS[Math.min(SUPPLY_INTROS.length - 1, Math.floor(rand(g) * SUPPLY_INTROS.length))];
+  const intro = randOpening(g, page.slug);
   const bundle = SUPPLY_BUNDLES[Math.min(SUPPLY_BUNDLES.length - 1, Math.floor(rand(g) * SUPPLY_BUNDLES.length))];
   const missiles = between(g, bundle.missiles);
   const parts = between(g, bundle.parts);
@@ -912,63 +899,32 @@ function moonCave(g: Game) {
   card(g, tx("wiki.filler-events.you-find-a-man-living-alone"), choices);
 }
 
-const TRAP_INTRO = [
-  tx("wiki.filler-events.you-arrive-at-the-beacon-and-2"),
-  tx("wiki.filler-events.haha-i-knew-someone-would-fall"),
-  tx("wiki.filler-events.your-cockpit-lights-up-with-warning"),
-  tx("wiki.filler-events.as-soon-as-you-arrive-at"),
-];
-
 /** Four printed intros, no odds. INFERRED: equal. */
 function trapCard(g: Game, page: Page): GameEvent {
-  const body = TRAP_INTRO[Math.min(TRAP_INTRO.length - 1, Math.floor(rand(g) * TRAP_INTRO.length))];
+  const body = randOpening(g, "pirate-ship-distress-trap");
   return { title: page.dest, body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
 }
-
-// Abandoned station. The page prints three opening intros and no odds.
-// INFERRED: equal. Examine and stay stay the existing choices.
-const ABANDONED_STATION_INTROS = [
-  tx("wiki.filler-events.you-arrive-to-find-what-appears"),
-  tx("wiki.filler-events.you-find-a-small-space-station"),
-  tx("wiki.filler-events.this-area-shows-signs-of-a"),
-];
 
 function abandonedStationCard(g: Game, page: Page): GameEvent {
   return {
     title: page.dest,
-    body: ABANDONED_STATION_INTROS[between(g, [0, 2])]!,
+    body: betweenOpening(g, page.slug),
     choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
   };
 }
-
-// Rebel fight chance. The page prints four opening intros and no odds.
-// INFERRED: equal. The search, the jump, and the two scans stay the existing choices.
-const REBEL_CHANCE_INTROS = [
-  tx("wiki.filler-events.you-arrive-at-a-beacon-located"),
-  tx("wiki.filler-events.as-soon-as-you-arrive-you"),
-  tx("wiki.filler-events.you-begin-charging-your-ftl-drive"),
-  tx("wiki.filler-events.you-jump-into-a-field-of"),
-];
 
 function rebelChanceCard(g: Game, page: Page): GameEvent {
   return {
     title: page.dest,
-    body: REBEL_CHANCE_INTROS[between(g, [0, 3])]!,
+    body: betweenOpening(g, page.slug),
     choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
   };
 }
 
-// Battlefield wreckage. The page prints two opening intros and no odds.
-// INFERRED: equal. Investigate, ignore, and the sensors scan stay the existing choices.
-const WRECKAGE_INTROS = [
-  tx("wiki.filler-events.what-at-first-seems-to-be"),
-  tx("wiki.filler-events.you-have-jumped-into-the-aftermath"),
-];
-
 function wreckageCard(g: Game, page: Page): GameEvent {
   return {
     title: page.dest,
-    body: WRECKAGE_INTROS[between(g, [0, 1])]!,
+    body: betweenOpening(g, page.slug),
     choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
   };
 }
@@ -2503,7 +2459,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
   // Pirate ship distress trap. Default rewards. The PIRATE surrender and escape rows are that faction's plan.
   "c:pirate-ship-distress-trap:0": (g) => {
-    fight(g, g.event?.body ?? TRAP_INTRO[0], tx("wiki.filler-events.pirate-ship"), "pirate-ship-distress-trap");
+    fight(g, g.event?.body ?? eventDef("pirate-ship-distress-trap")?.texts?.[0] ?? "", tx("wiki.filler-events.pirate-ship"), "pirate-ship-distress-trap");
   },
 
   // Malfunctioning defense system. Promise opens the options. Leave them alone does nothing.

@@ -24,6 +24,9 @@ const HEADER = `
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
+  Several text tags are the opening sentences. The first is the page body.
+  An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
+  The sim still picks one sentence when the card opens.
   Filler opening cards use that same tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
@@ -104,11 +107,15 @@ function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
 }
 
 function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
-  const node = element(doc, "eventBlueprint", { name: event.id, flag: event.flag });
+  const texts = event.texts ?? [];
+  const attrs: Record<string, string> = { name: event.id, flag: event.flag };
+  if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
+  const node = element(doc, "eventBlueprint", attrs);
   add(node, leaf(doc, "title", event.dest), 2);
   for (const alias of event.aliases) add(node, leaf(doc, "alias", alias), 2);
   for (const sector of event.sectors) add(node, leaf(doc, "sector", sector), 2);
-  add(node, leaf(doc, "text", event.body), 2);
+  const lines = texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
+  for (const line of lines) add(node, leaf(doc, "text", line), 2);
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
     add(choiceNode, leaf(doc, "text", choice.label), 3);

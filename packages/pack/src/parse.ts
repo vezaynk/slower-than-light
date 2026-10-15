@@ -481,8 +481,13 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const aliases: string[] = [];
   const sectors: string[] = [];
   const choices: EventChoice[] = [];
+  const lines: string[] = [];
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
+    if (item.tagName === "text") {
+      lines.push(ownText(item).trim());
+      continue;
+    }
     if (item.tagName === "surrender") {
       surrender = readSurrender(item);
       continue;
@@ -514,11 +519,21 @@ function readEvent(node: XmlElement): EventDef | undefined {
     flag: attr(node, "flag")?.trim() || `cited:${id}`,
     aliases,
     sectors,
-    body: textOf(node, "text") ?? "",
+    body: lines[0] ?? "",
     choices,
   };
+  const texts = openingTexts(node, lines);
+  if (texts) event.texts = texts;
   if (surrender) event.surrender = surrender;
   return event;
+}
+
+/** Sentences after the page body. One text is just the body. */
+function openingTexts(node: XmlElement, lines: string[]): string[] | undefined {
+  if (lines.length < 2) return undefined;
+  const aside = node.getAttribute("intro") === "after" || lines[0] === "";
+  const texts = aside ? lines.slice(1) : lines;
+  return texts.length > 1 ? texts : undefined;
 }
 
 function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {

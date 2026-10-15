@@ -3,6 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import { allEvents, eventDef, fillerList, loadPack, resetPackForTests } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import "./base.ts";
+import { citedEvent } from "../wiki/cited-events.ts";
 import {
   DISTRESS,
   EXIT_ITEMS,
@@ -123,6 +124,17 @@ describe("filler lists", () => {
     assert.equal(packed, 24);
     assert.equal(eventDef("refueling-station")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
     assert.equal(eventDef("pirate-ship-distress-trap")?.body, "");
+    assert.equal(eventDef("pirate-ship-distress-trap")?.texts?.length, 4);
+    assert.equal(eventDef("pirate-fight")?.body, "");
+    assert.equal(eventDef("pirate-fight")?.texts?.length, 5);
+    const hire = eventDef("crew-hiring-station");
+    assert.equal(hire?.texts?.length, 3);
+    assert.equal(hire?.body, hire?.texts?.[0]);
+    const slugFight = eventDef("rebel-fight-slug");
+    assert.ok(slugFight?.texts && slugFight.texts.length > 1);
+    assert.notEqual(slugFight.body, slugFight.texts?.[0]);
+    assert.equal(eventDef("auto-ship-warning")?.texts?.length, 9);
+    assert.deepEqual(eventDef("auto-ship-warning")?.texts, eventDef("auto-ship-fight")?.texts);
     const before = allEvents().length;
     loadPack(
       {
@@ -145,6 +157,21 @@ describe("filler lists", () => {
     assert.equal(drawFiller(createGame(1), "ember-list", [])?.body, "Replaced.");
     resetPackForTests();
     assert.equal(eventDef("large-asteroid-field")?.dest, "Large asteroid field");
+  });
+
+  it("rolls an appended opening list and restores the campaign sentences", () => {
+    const row = eventDef("pirate-fight");
+    assert.ok(row);
+    loadPack({ events: [{ ...row, texts: ["Ember one.", "Ember two."] }] }, "append");
+    const g = createGame(1);
+    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    assert.ok(beacon);
+    beacon.flag = row.flag;
+    const body = citedEvent(g, beacon)?.body ?? "";
+    assert.ok(body === "Ember one." || body === "Ember two.", body);
+    resetPackForTests();
+    assert.equal(eventDef("pirate-fight")?.texts?.length, 5);
+    assert.equal(eventDef("pirate-fight")?.texts?.includes("Ember one."), false);
   });
 
   it("opens the filler card for a shared slug and rolls the fuel gift", () => {

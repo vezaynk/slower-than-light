@@ -5,6 +5,7 @@
  * draw of the crystal guns already in the game. Out-of-fuel pages name no sector; they join the wait roll only.
  */
 import { tx } from "../../i18n/index.ts";
+import { eventDef } from "@stl/pack";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { adjustScrap } from "../extras/index.ts";
 import type { KinId } from "../extras/kin.ts";
@@ -57,50 +58,6 @@ const LAST_STAND_HULLS = [
   "rebel-fighter",
   "rebel-fighter",
   "rebel-invader",
-];
-
-const ENGI_GIFT_INTROS = [
-  tx("wiki.cited-missing.engi-gift-1"),
-  tx("wiki.cited-missing.engi-gift-2"),
-  tx("wiki.cited-missing.engi-gift-3"),
-  tx("wiki.cited-missing.engi-gift-4"),
-];
-
-const LAST_STAND_INTROS = [
-  tx("wiki.cited-missing.last-stand-1"),
-  tx("wiki.cited-missing.last-stand-2"),
-  tx("wiki.cited-missing.last-stand-3"),
-  tx("wiki.cited-missing.last-stand-4"),
-  tx("wiki.cited-missing.last-stand-5"),
-  tx("wiki.cited-missing.last-stand-6"),
-];
-
-const TRADER_OFF = [
-  // Wiki citations:
-  // > "The intro text for this event varies, and could be any of the following:" — [[No fuel: fuel trader (distress off)]]
-  // > "A merchant ship jumps into the sector and you quickly hail them asking for help. They respond, \"Perhaps we could work out an exchange...\"" — [[No fuel: fuel trader (distress off)]]
-  // > "A number of ships pass through the sector. You relay your message to each, and one finally responds. \"I can't help much right now but perhaps we can trade.\"" — [[No fuel: fuel trader (distress off)]]
-  // > "A nearby settlement sends a small ship in your direction. It keeps its distance and hails you, \"We can give you fuel for a price. Just don't even think of doing anything rash. We've got a teleporter at our base and a squad ready to defend us." — [[No fuel: fuel trader (distress off)]]
-  // > "A large caravan of merchant ships jumps to a location near your position. Sensing an opportunity, one ship breaks off from the fleet to offer you an exchange." — [[No fuel: fuel trader (distress off)]]
-  // > "A modified YT-1300 freighter jumps to an area near your sector. Your gut tells you these people are smugglers, but they seem to be feeling altruistic and present an offer of assistance." — [[No fuel: fuel trader (distress off)]]
-  tx("wiki.cited-missing.trader-off-1"),
-  tx("wiki.cited-missing.trader-off-2"),
-  tx("wiki.cited-missing.trader-off-3"),
-  tx("wiki.cited-missing.trader-off-4"),
-  tx("wiki.cited-missing.trader-off-5"),
-];
-
-const TRADER_ON = [
-  // Wiki citations:
-  // > "The intro text for this event varies, and could be any of the following:" — [[No fuel: fuel trader (distress on)]]
-  // > "A merchant ship jumps into the sector, obviously responding to your ship's distress beacon. They hail you offering a trade for fuel." — [[No fuel: fuel trader (distress on)]]
-  // > "A ship arrives at the beacon. \"We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade.\"" — [[No fuel: fuel trader (distress on)]]
-  // > "A ship traveling near the beacon approaches your ship and hails you. \"Out of fuel? This is a good opportunity for both of us... Care to trade?\"" — [[No fuel: fuel trader (distress on)]]
-  // > "A mercenary ship arrives at the beacon. \"We have a bit of extra fuel we can give you... for a price.\"" — [[No fuel: fuel trader (distress on)]]
-  tx("wiki.cited-missing.trader-on-1"),
-  tx("wiki.cited-missing.trader-on-2"),
-  tx("wiki.cited-missing.trader-on-3"),
-  tx("wiki.cited-missing.trader-on-4"),
 ];
 
 type PayKind = "parts" | "missiles" | "scrap";
@@ -394,12 +351,19 @@ export function missingOwns(id: string): boolean {
   return slug != null && OWNED.has(slug);
 }
 
+/** One opening sentence from the packed page. The draw stays between, over the packed list. */
+function opening(g: Game, id: string): string {
+  const texts = eventDef(id)?.texts ?? [];
+  const hi = texts.length > 0 ? texts.length - 1 : 0;
+  return texts[between(g, [0, hi])] ?? "";
+}
+
 export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string }): GameEvent | null {
   if (NEBULA_ON_ARRIVAL.has(ev.slug)) b.kind = "nebula";
   if (ev.slug === "free-scrap-with-resources-engi") {
     return {
       title: ev.dest,
-      body: ENGI_GIFT_INTROS[between(g, [0, ENGI_GIFT_INTROS.length - 1])]!,
+      body: opening(g, "free-scrap-with-resources-engi"),
       choices: [{ id: "c:free-scrap-with-resources-engi:take", label: tx("wiki.cited-missing.standard-gift") }],
     };
   }
@@ -407,7 +371,7 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     const hull = LAST_STAND_HULLS[between(g, [0, LAST_STAND_HULLS.length - 1])]!;
     return {
       title: ev.dest,
-      body: LAST_STAND_INTROS[between(g, [0, LAST_STAND_INTROS.length - 1])]!,
+      body: opening(g, "fight-in-last-stand"),
       choices: [{ id: `c:fight-in-last-stand:go:${hull}`, label: tx("wiki.cited-missing.fight-the-scout") }],
     };
   }
@@ -453,8 +417,7 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     // > "This random event occurs." — [[No fuel: fuel trader (distress on)]]
     // > "Gladly trade. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: fuel trader (distress on)]]
     // > "Respectfully decline." — [[No fuel: fuel trader (distress on)]]
-    const intros = ev.slug.endsWith("off") ? TRADER_OFF : TRADER_ON;
-    const intro = intros[between(g, [0, intros.length - 1])]!;
+    const intro = opening(g, ev.slug);
     const offer = rollTrade(g, HIGH_LIST);
     return {
       title: ev.dest,

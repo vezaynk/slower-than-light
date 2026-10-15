@@ -71,7 +71,7 @@ import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look
 import "./pack/base.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
 import type { WeaponBlueprint } from "./pack/types.ts";
-import { allWeapons, crewDef, hullDef, weaponDef } from "./pack/registry.ts";
+import { allSectors, allWeapons, crewDef, hullDef, sectorDef, weaponDef } from "./pack/registry.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
 import {
@@ -168,7 +168,7 @@ import {
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
-import { SECTOR_TYPES } from "./wiki/sectors.ts";
+
 import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import { joinCrew, randomRace, scrapBand, surrenderChoose, surrenderPlan, surrenderTick } from "./wiki/surrender.ts";
@@ -5725,9 +5725,10 @@ function colourBag<T extends { group: string }>(pool: readonly T[], colour: Sect
  */
 function colouredName(g: Game, names: readonly string[]): string {
   const colour = sectorColour(rand(g));
+  const rows = allSectors();
   const pool = names.map((name) => ({
     name,
-    group: SECTOR_TYPES.find((sector) => sector.name === name)?.group ?? "",
+    group: rows.find((sector) => sector.name === name)?.group ?? "",
   }));
   const choices = colourBag(pool, colour);
   return choices[irand(g, choices.length)].name;
@@ -5768,22 +5769,25 @@ export function columnLinks(prev: number, now: number): [number, number][] {
 /** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
-  const start = SECTOR_TYPES.find((s) => s.id === "civilian-start");
-  const last = SECTOR_TYPES.find((s) => s.id === "last-stand");
+  const rows = allSectors();
+  const start = rows.find((s) => s.id === "civilian-start");
+  const last = rows.find((s) => s.id === "last-stand");
+  const groupOf = (group: string): SectorNode["group"] =>
+    group === "hostile" || group === "nebula" ? group : "civilian";
   const nodes: SectorNode[] = [
     {
       id: "sec-0",
       name: start?.name ?? tx("game.sim.civilian-starting-sector"),
-      group: "civilian",
+      group: groupOf(start?.group ?? "civilian"),
       col: 0,
       row: 1,
       links: [],
     },
   ];
-  const groupOf = (group: string): SectorNode["group"] =>
-    group === "hostile" || group === "nebula" ? group : "civilian";
+  // Homeworlds, the Rebel Stronghold, and the Slug nebulae keep the page's sector gates.
+  // Any other civilian, hostile, or nebula id is eligible in the columns those gates allow.
   const poolFor = (sector: number) =>
-    SECTOR_TYPES.filter((s) => {
+    allSectors().filter((s) => {
       if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand") return false;
       if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
       if (used.has(s.id)) return false;
@@ -6840,12 +6844,13 @@ export function chooseSector(g: Game, id: string) {
 
 /** Chart eligibility for one sector number. The crystal exit is not limited to the two linked nodes. */
 function sectorPool(g: Game, sector: number): string[] {
+  const rows = allSectors();
   const used = new Set(
     (g.route ?? [])
-      .map((n) => SECTOR_TYPES.find((s) => s.name === n.name)?.id)
+      .map((n) => rows.find((s) => s.name === n.name)?.id)
       .filter((id): id is string => !!id && ONCE_SECTOR.has(id)),
   );
-  return SECTOR_TYPES.filter((s) => {
+  return rows.filter((s) => {
     if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand") return false;
     if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
     if (used.has(s.id)) return false;
@@ -6888,7 +6893,7 @@ export function enterHiddenCrystal(g: Game) {
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   makeMap(g);
-  g.sectorName = "Hidden Crystal Worlds";
+  g.sectorName = sectorDef("crystal-worlds")?.name ?? "Hidden Crystal Worlds";
   stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
@@ -6913,8 +6918,8 @@ export function enterHiddenCrystal(g: Game) {
  * A restart that is not in that sector leaves the new run alone.
  */
 export function dropCrystalRestart(prev: Game, next: Game): void {
-  if (prev.sectorName !== "Hidden Crystal Worlds") return;
-  next.sectorName = "Civilian Sector";
+  if (prev.sectorName !== (sectorDef("crystal-worlds")?.name ?? "Hidden Crystal Worlds")) return;
+  next.sectorName = sectorDef("civilian")?.name ?? "Civilian Sector";
   // INFERRED: the starting-sector beacons are cleared so this map is the Civilian sector's list. The page does not say to keep both.
   for (const b of next.beacons) {
     if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
@@ -6975,7 +6980,7 @@ function blindSectorTwo(g: Game) {
  * Homeworlds number, and it may not be a sector connected to the Rock Homeworlds. Sector 8 stays The Last Stand.
  */
 function leaveHiddenCrystal(g: Game) {
-  if (g.sector >= 7) nextSector(g, tx("game.sim.the-last-stand"));
+  if (g.sector >= 7) nextSector(g, sectorDef("last-stand")?.name ?? tx("game.sim.the-last-stand"));
   else {
     const pool = sectorPool(g, g.sector + 1);
     // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.

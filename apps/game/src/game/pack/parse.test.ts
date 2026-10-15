@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, systemDef, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -146,12 +146,25 @@ const XML = `
 <shipBlueprint>
   <title>No name</title>
 </shipBlueprint>
+<sectorDescription name="embersector">
+  <title>Ember Reach</title>
+  <type>hostile</type>
+  <note>A later column.</note>
+  <note>Stores stay put.</note>
+  <minSector>4</minSector>
+</sectorDescription>
+<sectorDescription name="baresector">
+  <title></title>
+</sectorDescription>
+<sectorDescription>
+  <title>No name</title>
+</sectorDescription>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, system, and hull tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, hull, and sector tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
@@ -159,6 +172,7 @@ describe("parsePack", () => {
     assert.equal(pack.drones?.length, 2);
     assert.equal(pack.systems?.length, 2);
     assert.equal(pack.hulls?.length, 2);
+    assert.equal(pack.sectors?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -257,6 +271,16 @@ describe("parsePack", () => {
     assert.deepEqual(bareHull?.weapons, []);
     assert.deepEqual(bareHull?.crew, []);
     assert.equal(hullDef("No name"), undefined);
+
+    const emberSector = sectorDef("embersector");
+    assert.equal(emberSector?.name, "Ember Reach");
+    assert.equal(emberSector?.group, "hostile");
+    assert.deepEqual(emberSector?.notes, ["A later column.", "Stores stay put."]);
+    const bareSector = sectorDef("baresector");
+    assert.equal(bareSector?.name, "baresector");
+    assert.equal(bareSector?.group, "");
+    assert.deepEqual(bareSector?.notes, []);
+    assert.equal(sectorDef("No name"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

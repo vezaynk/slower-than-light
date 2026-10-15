@@ -3,9 +3,10 @@ import { afterEach, describe, it } from "node:test";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { HULLS } from "../hulls.ts";
+import { SECTOR_TYPES } from "../wiki/sectors.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
-import { allAugments, allDrones, allHulls, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allHulls, allSectors, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, systemDef, weaponDef } from "./registry.ts";
 import type { HullDef } from "./types.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
@@ -184,6 +185,33 @@ describe("content pack", () => {
     assert.equal(hullDef("spark"), undefined);
     assert.equal(hullDef("kestrel-a")?.name, campaign?.name);
     assert.equal(hullDef("kestrel-a")?.reactor, campaign?.reactor);
+  });
+
+  it("loads the sector catalog in its authored order", () => {
+    assert.deepEqual(
+      allSectors().map((row) => row.id),
+      SECTOR_TYPES.map((row) => row.id),
+    );
+    const start = SECTOR_TYPES.find((row) => row.id === "civilian-start");
+    assert.equal(sectorDef("civilian-start")?.name, start?.name);
+    assert.equal(sectorDef("civilian-start")?.group, start?.group);
+    assert.deepEqual(sectorDef("civilian-start")?.notes, start?.notes);
+  });
+
+  it("keeps a sector id apart from a race, a weapon, an augment, a drone, a system, and a hull", () => {
+    loadPack({ sectors: [{ id: "spark", name: "Not the laser", group: "nebula", notes: ["Later."] }] }, "append");
+    assert.equal(sectorDef("spark")?.name, "Not the laser");
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(droneDef("spark"), undefined);
+    assert.equal(systemDef("spark"), undefined);
+    assert.equal(hullDef("spark"), undefined);
+    assert.equal(allSectors().at(-1)?.id, "spark");
+    const campaign = SECTOR_TYPES.find((row) => row.id === "civilian-start");
+    resetPackForTests();
+    assert.equal(sectorDef("spark"), undefined);
+    assert.equal(sectorDef("civilian-start")?.name, campaign?.name);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

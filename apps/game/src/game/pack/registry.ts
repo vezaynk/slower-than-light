@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -6,12 +6,14 @@ const augments = new Map<string, AugmentDef>();
 const drones = new Map<string, DroneDef>();
 const systems = new Map<string, SystemDef>();
 const hulls = new Map<string, HullDef>();
+const sectors = new Map<string, SectorDef>();
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
 let baseDrones: DroneDef[] = [];
 let baseSystems: SystemDef[] = [];
 let baseHulls: HullDef[] = [];
+let baseSectors: SectorDef[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   return { ...row };
@@ -41,6 +43,10 @@ function copyKit(kit: HullKitDef): HullKitDef {
   return copy;
 }
 
+function copySector(row: SectorDef): SectorDef {
+  return { ...row, notes: [...row.notes] };
+}
+
 function copyHull(row: HullDef): HullDef {
   const systems: Record<string, [number, number]> = {};
   for (const [id, pair] of Object.entries(row.systems)) systems[id] = [pair[0], pair[1]];
@@ -66,12 +72,14 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     drones.clear();
     systems.clear();
     hulls.clear();
+    sectors.clear();
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
     baseDrones = (pack.drones ?? []).map(copyDrone);
     baseSystems = (pack.systems ?? []).map(copySystem);
     baseHulls = (pack.hulls ?? []).map(copyHull);
+    baseSectors = (pack.sectors ?? []).map(copySector);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? [])) weapons.set(row.id, copyWeapon(row));
@@ -79,6 +87,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   for (const row of mode === "base" ? baseDrones : (pack.drones ?? [])) drones.set(row.id, copyDrone(row));
   for (const row of mode === "base" ? baseSystems : (pack.systems ?? [])) systems.set(row.id, copySystem(row));
   for (const row of mode === "base" ? baseHulls : (pack.hulls ?? [])) hulls.set(row.id, copyHull(row));
+  for (const row of mode === "base" ? baseSectors : (pack.sectors ?? [])) sectors.set(row.id, copySector(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */
@@ -143,6 +152,16 @@ export function allHulls(): HullDef[] {
   return [...hulls.values()];
 }
 
+export function sectorDef(id: string | undefined): SectorDef | undefined {
+  if (!id) return undefined;
+  return sectors.get(id);
+}
+
+/** Page order. An appended id sits at the end, so the campaign chart rows stay put. */
+export function allSectors(): SectorDef[] {
+  return [...sectors.values()];
+}
+
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
   crew.clear();
@@ -151,10 +170,12 @@ export function resetPackForTests(): void {
   drones.clear();
   systems.clear();
   hulls.clear();
+  sectors.clear();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
   for (const row of baseDrones) drones.set(row.id, copyDrone(row));
   for (const row of baseSystems) systems.set(row.id, copySystem(row));
   for (const row of baseHulls) hulls.set(row.id, copyHull(row));
+  for (const row of baseSectors) sectors.set(row.id, copySector(row));
 }

@@ -1,6 +1,6 @@
 export { emitPack } from "./emit.ts";
 export { prettyXml } from "./format.ts";
-export { packFromFtl } from "./ftl.ts";
+export { joinFtlPack, packFromFtl } from "./ftl.ts";
 export { fetchPackXml } from "./fetch-pack.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile } from "./ftl.ts";

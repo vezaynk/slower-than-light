@@ -131,6 +131,9 @@ importers:
       '@stl/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../../packages/ftldat
       '@stl/pack':
         specifier: workspace:*
         version: link:../../packages/pack

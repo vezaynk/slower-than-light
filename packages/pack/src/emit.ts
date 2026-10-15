@@ -505,6 +505,8 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint): XmlElement {
 function raceElement(doc: XmlDocument, race: CrewDef): XmlElement {
   const node = element(doc, "race", { name: race.id });
   add(node, leaf(doc, "title", race.name));
+  if (race.detail) add(node, leaf(doc, "desc", race.detail));
+  if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
   add(node, leaf(doc, "maxHealth", race.hp));
   add(node, leaf(doc, "moveSpeedMultiplier", race.move));
   add(node, leaf(doc, "repairSpeed", race.repair));

@@ -19,7 +19,7 @@ import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
 import { SECTOR_NAMES, SYS_LABEL, upgradeBlurb, upgradeCost } from "@/game/content";
 import { aimedBeamTiles } from "@/game/pack/beams";
-import { loadBasePackXml } from "@/game/pack/boot";
+import { loadFtlDat } from "@/game/pack/boot";
 import "@/game/pack/base";
 import { augmentDef, crewDef, weaponDef } from "@stl/pack";
 import { scanMark } from "@/game/extras/augments";
@@ -4285,26 +4285,42 @@ function TitleScreen() {
   const [packRatio, setPackRatio] = useState(0);
   const [packReady, setPackReady] = useState(false);
   const [packError, setPackError] = useState(false);
+  const [packBusy, setPackBusy] = useState(false);
   const [packBar, setPackBar] = useState(true);
+  const packLive = useRef(true);
+  const packPick = useRef(0);
   const boot = useGame((s) => s.boot);
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
   useEffect(() => {
-    let live = true;
-    loadBasePackXml((ratio) => {
-      if (live) setPackRatio(ratio);
-    })
-      .then(() => {
-        if (live) setPackReady(true);
-      })
-      .catch(() => {
-        if (live) setPackError(true);
-      });
+    packLive.current = true;
     return () => {
-      live = false;
+      packLive.current = false;
     };
   }, []);
+  function chooseArchive(file: File | undefined) {
+    if (!file) return;
+    const mine = ++packPick.current;
+    setPackError(false);
+    setPackReady(false);
+    setPackBusy(true);
+    setPackBar(true);
+    setPackRatio(0);
+    loadFtlDat(file, (ratio) => {
+      if (packLive.current && mine === packPick.current) setPackRatio(ratio);
+    })
+      .then(() => {
+        if (!packLive.current || mine !== packPick.current) return;
+        setPackBusy(false);
+        setPackReady(true);
+      })
+      .catch(() => {
+        if (!packLive.current || mine !== packPick.current) return;
+        setPackBusy(false);
+        setPackError(true);
+      });
+  }
   useEffect(() => {
     if (!packReady) return;
     const hide = setTimeout(() => setPackBar(false), 700);
@@ -4376,17 +4392,38 @@ function TitleScreen() {
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
         {packBar ? (
           <div className="pack-boot">
-            <p>{packError ? "The ship pack did not load." : "Loading the ship pack"}</p>
-            <div
-              className="pack-boot-track"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(packRatio * 100)}
-              aria-label={"Loading the ship pack"}
-            >
-              <div className="pack-boot-fill" style={{ width: `${packRatio * 100}%` }} />
-            </div>
+            <p>
+              {packError
+                ? "That file is not an FTL 1.6 ftl.dat."
+                : packBusy
+                  ? "Loading the ship pack"
+                  : "An FTL 1.6 ftl.dat is required"}
+            </p>
+            {packBusy ? (
+              <div
+                className="pack-boot-track"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(packRatio * 100)}
+                aria-label="Loading the ship pack"
+              >
+                <div className="pack-boot-fill" style={{ width: `${packRatio * 100}%` }} />
+              </div>
+            ) : (
+              <label className="pack-boot-file">
+                Choose ftl.dat
+                <input
+                  type="file"
+                  accept=".dat,application/octet-stream"
+                  onChange={(e) => {
+                    const file = e.currentTarget.files?.[0];
+                    e.currentTarget.value = "";
+                    chooseArchive(file);
+                  }}
+                />
+              </label>
+            )}
           </div>
         ) : null}
       </div>

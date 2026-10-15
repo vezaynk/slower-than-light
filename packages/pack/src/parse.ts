@@ -159,6 +159,10 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   const row = blankCrew(id);
   const title = textOf(node, "title");
   if (title) row.name = title;
+  const detail = textOf(node, "desc");
+  if (detail) row.detail = detail;
+  const cost = numOf(node, "cost");
+  if (cost != null) row.cost = cost;
   const hp = numOf(node, "maxHealth");
   if (hp != null) row.hp = hp;
   const move = numOf(node, "moveSpeedMultiplier");

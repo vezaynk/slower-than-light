@@ -2994,13 +2994,32 @@ button.door-tick::before {
   top: 1.6%;
   right: 3%;
   z-index: 3;
-  width: min(560px, 48%);
+  width: min(640px, 92%);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 2px 0;
   background: #07060d;
   pointer-events: none;
+}
+
+.title-frame .pack-boot-file {
+  pointer-events: auto;
+  cursor: pointer;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
+
+.title-frame .pack-boot-file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .title-frame .pack-boot-track {

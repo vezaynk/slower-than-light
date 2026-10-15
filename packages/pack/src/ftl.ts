@@ -1,12 +1,39 @@
 import type { Document as XmlDocument, Element as XmlElement } from "@xmldom/xmldom";
-import type { ContentPack, CrewDef, SystemDef, SystemSlot, TuneDef, TuneStep } from "./types.ts";
-import { attr, child, elements, numOf, readAugment, readDocument, readDrone, readWeapon, tagged, textOf } from "./parse.ts";
+import type {
+  ContentPack,
+  CrewDef,
+  StoreDef,
+  SystemDef,
+  SystemSlot,
+  TuneDef,
+  TuneStep,
+} from "./types.ts";
+import {
+  attr,
+  child,
+  elements,
+  numOf,
+  readAugment,
+  readDocument,
+  readDrone,
+  readWeapon,
+  tagged,
+  textOf,
+} from "./parse.ts";
 
 /**
  * FTL system ids that install into a kit slot. Artillery ids share that slot.
  * Every other system id installs as a system.
  */
-const KIT_SYSTEMS = new Set(["battery", "cloaking", "clonebay", "drones", "hacking", "mind", "teleporter"]);
+const KIT_SYSTEMS = new Set([
+  "battery",
+  "cloaking",
+  "clonebay",
+  "drones",
+  "hacking",
+  "mind",
+  "teleporter",
+]);
 
 export type FtlBlueprintFile = {
   path: string;
@@ -17,7 +44,9 @@ export type FtlBlueprintFile = {
  * Weapons, augments, drones, systems, tunes, and crew identity from blueprint XML.
  * Files are applied in order, and a later blueprint with the same id replaces the earlier one.
  * Crew combat stats stay at neutral defaults. A `<facts/>` marker and a `<names>` list are kept.
- * Stores, hulls, sectors, and events stay out of this catalog.
+ * A weaponAnim `<time>` is the seconds between shots in one volley. It is written onto the
+ * weapon whose `<weaponArt>` names that animation. Vanilla weapon animations omit `<time>`,
+ * and those weapons keep gap 0. Stores, hulls, sectors, and events stay out of this catalog.
  */
 export function packFromFtl(documents: readonly FtlBlueprintFile[]): ContentPack {
   const weapons = new Catalog<NonNullable<ContentPack["weapons"]>[number]>();
@@ -28,6 +57,8 @@ export function packFromFtl(documents: readonly FtlBlueprintFile[]): ContentPack
   const crew = new Catalog<CrewDef>();
   let facts = false;
   let names: ContentPack["names"];
+  const arts = new Map<string, string>();
+  const animTime = new Map<string, number>();
   for (const source of documents) {
     let doc;
     try {
@@ -38,7 +69,16 @@ export function packFromFtl(documents: readonly FtlBlueprintFile[]): ContentPack
     }
     for (const node of tagged(doc, "weaponBlueprint")) {
       const row = readWeapon(node);
-      if (row) weapons.put(row);
+      if (!row) continue;
+      weapons.put(row);
+      const art = textOf(node, "weaponArt")?.trim();
+      if (art) arts.set(row.id, art);
+      else arts.delete(row.id);
+    }
+    for (const node of tagged(doc, "weaponAnim")) {
+      const name = attr(node, "name")?.trim();
+      const time = numOf(node, "time");
+      if (name && time != null) animTime.set(name, time);
     }
     for (const node of tagged(doc, "augBlueprint")) {
       const row = readAugment(node);
@@ -61,6 +101,10 @@ export function packFromFtl(documents: readonly FtlBlueprintFile[]): ContentPack
     if (tagged(doc, "facts").length > 0) facts = true;
     const read = readNames(doc);
     if (read) names = read;
+  }
+  for (const row of weapons.rows) {
+    const time = animTime.get(arts.get(row.id) ?? "");
+    if (time != null) row.gap = time;
   }
   const pack: ContentPack = {
     weapons: weapons.rows,
@@ -116,6 +160,70 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
   return row;
+}
+
+/**
+ * The archive is the base pack. Rules supply only what the archive does not:
+ * crew combat stats (joined by id, leaving the archive name, blurb, and hire price),
+ * the store shelf, hulls, sectors, events, filler lists, and empty beacons.
+ * A rules weapon, augment, drone, system, or tune is dropped so it cannot replace the archive row.
+ * A rules race whose id is not in the archive is kept, so a hull seat that still uses that id can resolve.
+ */
+export function joinFtlPack(archive: ContentPack, rules: ContentPack): ContentPack {
+  const crew = mergeCrew(archive.crew ?? [], rules.crew ?? []);
+  return {
+    weapons: (archive.weapons ?? []).map((row) => ({ ...row })),
+    augments: (archive.augments ?? []).map((row) => ({ ...row })),
+    drones: (archive.drones ?? []).map((row) => ({ ...row })),
+    systems: (archive.systems ?? []).map((row) => ({ ...row })),
+    tunes: (archive.tunes ?? []).map((row) => ({
+      ...row,
+      costs: row.costs.map((step) => ({ ...step })),
+    })),
+    crew,
+    stores: (rules.stores ?? []).map((row) => withCrewPrices(row, crew)),
+    hulls: rules.hulls ?? [],
+    sectors: rules.sectors ?? [],
+    events: rules.events ?? [],
+    lists: rules.lists ?? [],
+    empties: rules.empties ?? [],
+  };
+}
+
+function mergeCrew(archive: readonly CrewDef[], rules: readonly CrewDef[]): CrewDef[] {
+  const rows = archive.map((row) => ({ ...row }));
+  const index = new Map(rows.map((row, i) => [row.id, i]));
+  for (const rule of rules) {
+    const at = index.get(rule.id);
+    if (at == null) {
+      index.set(rule.id, rows.length);
+      rows.push({ ...rule });
+      continue;
+    }
+    const kept = rows[at];
+    if (!kept) continue;
+    const next: CrewDef = { ...rule, id: kept.id, name: kept.name };
+    if (kept.detail != null) next.detail = kept.detail;
+    else delete next.detail;
+    if (kept.cost != null) next.cost = kept.cost;
+    else delete next.cost;
+    rows[at] = next;
+  }
+  return rows;
+}
+
+function withCrewPrices(store: StoreDef, crew: readonly CrewDef[]): StoreDef {
+  const byId = new Map(crew.map((row) => [row.id, row]));
+  return {
+    ...store,
+    sections: [...store.sections],
+    lines: store.lines.map((line) => {
+      if (line.kind !== "crew") return { ...line };
+      const race = byId.get(line.id);
+      if (!race) return { ...line };
+      return { ...line, name: race.name, cost: race.cost ?? line.cost };
+    }),
+  };
 }
 
 class Catalog<T extends { id: string }> {

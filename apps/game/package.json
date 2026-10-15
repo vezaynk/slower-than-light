@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@stl/catalog": "workspace:*",
+    "@stl/ftldat": "workspace:*",
     "@stl/pack": "workspace:*",
     "@stl/ui": "workspace:*",
     "@capacitor/cli": "^8.5.3",

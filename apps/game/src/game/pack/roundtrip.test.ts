@@ -2,7 +2,23 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import "./base.ts";
-import { allAugments, allCrew, allDrones, allEmptyBeacons, allEvents, allFillerLists, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, emitPack, parsePack, resetPackForTests } from "@stl/pack";
+import {
+  allAugments,
+  allCrew,
+  allDrones,
+  allEmptyBeacons,
+  allEvents,
+  allFillerLists,
+  allHulls,
+  allSectors,
+  allStores,
+  allSystems,
+  allTunes,
+  allWeapons,
+  emitPack,
+  parsePack,
+  resetPackForTests,
+} from "@stl/pack";
 
 describe("base pack xml", () => {
   it("round-trips the loaded records and matches the snapshot", () => {
@@ -35,7 +51,19 @@ describe("base pack xml", () => {
     assert.deepEqual(back.events, pack.events);
     assert.deepEqual(back.lists, pack.lists);
     assert.deepEqual(back.empties, pack.empties);
-    const golden = readFileSync(new URL("../../../../../packages/campaign/base.xml", import.meta.url), "utf8");
-    assert.equal(xml, golden);
+    const rules = emitPack({
+      crew: pack.crew,
+      hulls: pack.hulls,
+      sectors: pack.sectors,
+      stores: pack.stores,
+      events: pack.events,
+      lists: pack.lists,
+      empties: pack.empties,
+    });
+    const golden = readFileSync(
+      new URL("../../../../../packages/campaign/base.xml", import.meta.url),
+      "utf8",
+    );
+    assert.equal(rules, golden);
   });
 });

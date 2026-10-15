@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -482,10 +482,16 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const sectors: string[] = [];
   const choices: EventChoice[] = [];
   const lines: string[] = [];
+  const offers: OfferRow[] = [];
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       lines.push(ownText(item).trim());
+      continue;
+    }
+    if (item.tagName === "offer") {
+      const offer = readOffer(item);
+      if (offer) offers.push(offer);
       continue;
     }
     if (item.tagName === "surrender") {
@@ -524,8 +530,63 @@ function readEvent(node: XmlElement): EventDef | undefined {
   };
   const texts = openingTexts(node, lines);
   if (texts) event.texts = texts;
+  if (offers.length > 0) event.offers = offers;
   if (surrender) event.surrender = surrender;
   return event;
+}
+
+function bandOf(raw: string | undefined): [number, number] | undefined {
+  if (!raw) return undefined;
+  const match = /^(-?\d+)-(-?\d+)$/.exec(raw.trim());
+  if (!match) return undefined;
+  return [Number(match[1]), Number(match[2])];
+}
+
+function offerRes(raw: string | undefined): OfferRes | undefined {
+  if (raw === "fuel" || raw === "missiles" || raw === "parts") return raw;
+  return undefined;
+}
+
+function offerPay(raw: string | undefined): OfferPay | undefined {
+  if (raw === "parts" || raw === "missiles" || raw === "scrap") return raw;
+  return undefined;
+}
+
+/** One direct offer child. A row missing its bands is skipped. */
+function readOffer(node: XmlElement): OfferRow | undefined {
+  const kind = attr(node, "k");
+  if (kind === "trade") {
+    const pay = offerRes(attr(node, "pay"));
+    const get = offerRes(attr(node, "get"));
+    const cost = bandOf(attr(node, "cost"));
+    const gain = bandOf(attr(node, "gain"));
+    if (!pay || !get || !cost || !gain) return undefined;
+    return { k: "trade", pay, cost, get, gain };
+  }
+  if (kind === "fuel") {
+    const band = attr(node, "band");
+    const fuel = bandOf(attr(node, "fuel"));
+    const pay = offerPay(attr(node, "pay"));
+    const amt = bandOf(attr(node, "amt"));
+    if ((band !== "high" && band !== "pt2") || !fuel || !pay || !amt) return undefined;
+    return { k: "fuel", band, fuel, pay, amt };
+  }
+  if (kind === "lanius") {
+    const band = attr(node, "band");
+    const res = offerRes(attr(node, "res"));
+    const cost = bandOf(attr(node, "cost"));
+    const scrap = bandOf(attr(node, "scrap"));
+    if ((band !== "base" && band !== "better") || !res || !cost || !scrap) return undefined;
+    return { k: "lanius", band, res, cost, scrap };
+  }
+  if (kind === "supply") {
+    const missiles = bandOf(attr(node, "missiles"));
+    const parts = bandOf(attr(node, "parts"));
+    const fuel = bandOf(attr(node, "fuel"));
+    if (!missiles || !parts || !fuel) return undefined;
+    return { k: "supply", missiles, parts, fuel };
+  }
+  return undefined;
 }
 
 /** Sentences after the page body. One text is just the body. */

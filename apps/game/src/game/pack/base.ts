@@ -10,12 +10,13 @@ import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { OPENING_TEXTS } from "../wiki/event-intros.ts";
+import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventDef, FillerListDef, HullDef, HullKitDef, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventDef, FillerListDef, HullDef, HullKitDef, OfferRow, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -126,8 +127,21 @@ function eventRow(row: EventDef): EventDef {
   };
   const texts = OPENING_TEXTS[row.id];
   if (texts && texts.length > 1) copy.texts = [...texts];
+  const offers = OFFER_ROWS[row.id];
+  if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   if (row.surrender) copy.surrender = surrenderRow(row.surrender);
   return copy;
+}
+
+function copyBand(band: [number, number]): [number, number] {
+  return [band[0], band[1]];
+}
+
+function copyOffer(row: OfferRow): OfferRow {
+  if (row.k === "trade") return { k: "trade", pay: row.pay, cost: copyBand(row.cost), get: row.get, gain: copyBand(row.gain) };
+  if (row.k === "fuel") return { k: "fuel", band: row.band, fuel: copyBand(row.fuel), pay: row.pay, amt: copyBand(row.amt) };
+  if (row.k === "lanius") return { k: "lanius", band: row.band, res: row.res, cost: copyBand(row.cost), scrap: copyBand(row.scrap) };
+  return { k: "supply", missiles: copyBand(row.missiles), parts: copyBand(row.parts), fuel: copyBand(row.fuel) };
 }
 
 function hullRow(spec: HullSpec): HullDef {

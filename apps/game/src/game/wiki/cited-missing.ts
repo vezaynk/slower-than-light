@@ -61,21 +61,6 @@ const LAST_STAND_HULLS = [
 ];
 
 type PayKind = "parts" | "missiles" | "scrap";
-type TradeRow = { fuel: [number, number]; kind: PayKind; amt: [number, number] };
-
-/** Template:Fuel Trader High List. */
-const HIGH_LIST: TradeRow[] = [
-  { fuel: [2, 4], kind: "parts", amt: [1, 2] },
-  { fuel: [2, 5], kind: "missiles", amt: [2, 4] },
-  { fuel: [2, 5], kind: "scrap", amt: [15, 25] },
-];
-
-/** Template:Fuel Trader Pt2, the three Accept offers. */
-const PT2_LIST: TradeRow[] = [
-  { fuel: [4, 7], kind: "parts", amt: [1, 2] },
-  { fuel: [4, 7], kind: "missiles", amt: [1, 2] },
-  { fuel: [3, 7], kind: "scrap", amt: [5, 12] },
-];
 
 const FUEL_BAND: Record<SurrenderTier, [number, number]> = {
   low: [1, 3],
@@ -208,15 +193,22 @@ function offerLine(fuel: number, kind: PayKind, amt: number): string {
   return tx("wiki.cited-missing.receive-fuel-lose", { fuel, amt, pay: payWord(kind) });
 }
 
-function rollTrade(g: Game, table: TradeRow[]): { fuel: number; kind: PayKind; amt: number } {
+/** Fuel-trader rows of one band. The draw stays between: the row, then the fuel, then the payment. */
+function fuelRows(id: string, band: "high" | "pt2") {
+  const rows = [];
+  for (const row of eventDef(id)?.offers ?? []) if (row.k === "fuel" && row.band === band) rows.push(row);
+  return rows;
+}
+
+function rollTrade(g: Game, table: ReturnType<typeof fuelRows>): { fuel: number; kind: PayKind; amt: number } {
   const rowN = table[between(g, [0, table.length - 1])]!;
-  return { fuel: between(g, rowN.fuel), kind: rowN.kind, amt: between(g, rowN.amt) };
+  return { fuel: between(g, rowN.fuel), kind: rowN.pay, amt: between(g, rowN.amt) };
 }
 
 const TRADE_ID = /^(buy|pt2|high2):(\d+):(parts|missiles|scrap):(\d+)$/;
 
 function showTrader(g: Game, slug: string, intro: string) {
-  const offer = rollTrade(g, HIGH_LIST);
+  const offer = rollTrade(g, fuelRows(slug, "high"));
   card(g, `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`, [
     { id: `c:${slug}:buy:${offer.fuel}:${offer.kind}:${offer.amt}`, label: tx("wiki.cited-missing.gladly-trade") },
     { id: `c:${slug}:decline`, label: tx("wiki.cited-missing.respectfully-decline") },
@@ -229,7 +221,7 @@ function showPt2(ctx: Ctx, slug: string) {
     done(ctx.g, tx("wiki.cited-missing.unable-to-help"));
     return;
   }
-  const offer = rollTrade(ctx.g, branch === 0 ? PT2_LIST : HIGH_LIST);
+  const offer = rollTrade(ctx.g, fuelRows(slug, branch === 0 ? "pt2" : "high"));
   const kind = branch === 0 ? "pt2" : "high2";
   const intro = branch === 0 ? tx("wiki.cited-missing.seeing-that-youre-in-need") : tx("wiki.cited-missing.not-for-charity");
   card(ctx.g, `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`, [
@@ -418,7 +410,7 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     // > "Gladly trade. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: fuel trader (distress on)]]
     // > "Respectfully decline." — [[No fuel: fuel trader (distress on)]]
     const intro = opening(g, ev.slug);
-    const offer = rollTrade(g, HIGH_LIST);
+    const offer = rollTrade(g, fuelRows(ev.slug, "high"));
     return {
       title: ev.dest,
       body: `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`,

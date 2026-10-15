@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SystemDef, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -7,6 +7,7 @@ const drones = new Map<string, DroneDef>();
 const systems = new Map<string, SystemDef>();
 const hulls = new Map<string, HullDef>();
 const sectors = new Map<string, SectorDef>();
+const stores = new Map<string, StoreDef>();
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -14,6 +15,7 @@ let baseDrones: DroneDef[] = [];
 let baseSystems: SystemDef[] = [];
 let baseHulls: HullDef[] = [];
 let baseSectors: SectorDef[] = [];
+let baseStores: StoreDef[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   return { ...row };
@@ -47,6 +49,14 @@ function copySector(row: SectorDef): SectorDef {
   return { ...row, notes: [...row.notes] };
 }
 
+function copyLine(line: StoreLine): StoreLine {
+  return { ...line };
+}
+
+function copyStore(row: StoreDef): StoreDef {
+  return { ...row, sections: [...row.sections], lines: row.lines.map(copyLine) };
+}
+
 function copyHull(row: HullDef): HullDef {
   const systems: Record<string, [number, number]> = {};
   for (const [id, pair] of Object.entries(row.systems)) systems[id] = [pair[0], pair[1]];
@@ -73,6 +83,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     systems.clear();
     hulls.clear();
     sectors.clear();
+    stores.clear();
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -80,6 +91,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseSystems = (pack.systems ?? []).map(copySystem);
     baseHulls = (pack.hulls ?? []).map(copyHull);
     baseSectors = (pack.sectors ?? []).map(copySector);
+    baseStores = (pack.stores ?? []).map(copyStore);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? [])) weapons.set(row.id, copyWeapon(row));
@@ -88,6 +100,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   for (const row of mode === "base" ? baseSystems : (pack.systems ?? [])) systems.set(row.id, copySystem(row));
   for (const row of mode === "base" ? baseHulls : (pack.hulls ?? [])) hulls.set(row.id, copyHull(row));
   for (const row of mode === "base" ? baseSectors : (pack.sectors ?? [])) sectors.set(row.id, copySector(row));
+  for (const row of mode === "base" ? baseStores : (pack.stores ?? [])) stores.set(row.id, copyStore(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */
@@ -162,6 +175,16 @@ export function allSectors(): SectorDef[] {
   return [...sectors.values()];
 }
 
+export function storeDef(id: string | undefined): StoreDef | undefined {
+  if (!id) return undefined;
+  return stores.get(id);
+}
+
+/** Catalog order. An appended id sits at the end, so the campaign store stays put. */
+export function allStores(): StoreDef[] {
+  return [...stores.values()];
+}
+
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
   crew.clear();
@@ -171,6 +194,7 @@ export function resetPackForTests(): void {
   systems.clear();
   hulls.clear();
   sectors.clear();
+  stores.clear();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
@@ -178,4 +202,5 @@ export function resetPackForTests(): void {
   for (const row of baseSystems) systems.set(row.id, copySystem(row));
   for (const row of baseHulls) hulls.set(row.id, copyHull(row));
   for (const row of baseSectors) sectors.set(row.id, copySector(row));
+  for (const row of baseStores) stores.set(row.id, copyStore(row));
 }

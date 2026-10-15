@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, systemDef, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -159,12 +159,33 @@ const XML = `
 <sectorDescription>
   <title>No name</title>
 </sectorDescription>
+<storeBlueprint name="emberstore">
+  <title>Ember</title>
+  <slot>1</slot>
+  <weapons>4</weapons>
+  <section>crew</section>
+  <section>relics</section>
+  <stock id="fuel" kind="fuel" min="1" max="2">
+    <title>Ember Fuel</title>
+    <cost>4</cost>
+  </stock>
+  <stock id="bareline" min="2">
+    <cost>5</cost>
+  </stock>
+  <minSector>4</minSector>
+</storeBlueprint>
+<storeBlueprint name="barestore">
+  <title></title>
+</storeBlueprint>
+<storeBlueprint>
+  <title>No name</title>
+</storeBlueprint>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, system, hull, and sector tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, hull, sector, and store tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
@@ -173,6 +194,7 @@ describe("parsePack", () => {
     assert.equal(pack.systems?.length, 2);
     assert.equal(pack.hulls?.length, 2);
     assert.equal(pack.sectors?.length, 2);
+    assert.equal(pack.stores?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -281,6 +303,29 @@ describe("parsePack", () => {
     assert.equal(bareSector?.group, "");
     assert.deepEqual(bareSector?.notes, []);
     assert.equal(sectorDef("No name"), undefined);
+
+    const emberStore = storeDef("emberstore");
+    assert.equal(emberStore?.name, "Ember");
+    assert.equal(emberStore?.slot, 1);
+    assert.equal(emberStore?.weapons, 4);
+    assert.deepEqual(emberStore?.sections, ["crew", "relics"]);
+    assert.equal(emberStore?.lines[0]?.name, "Ember Fuel");
+    assert.equal(emberStore?.lines[0]?.kind, "fuel");
+    assert.equal(emberStore?.lines[0]?.cost, 4);
+    assert.equal(emberStore?.lines[0]?.min, 1);
+    assert.equal(emberStore?.lines[0]?.max, 2);
+    assert.equal(emberStore?.lines[1]?.name, "bareline");
+    assert.equal(emberStore?.lines[1]?.kind, "");
+    assert.equal(emberStore?.lines[1]?.cost, 5);
+    assert.equal(emberStore?.lines[1]?.min, 2);
+    assert.equal(emberStore?.lines[1]?.max, 2);
+    const bareStore = storeDef("barestore");
+    assert.equal(bareStore?.name, "barestore");
+    assert.equal(bareStore?.slot, 3);
+    assert.equal(bareStore?.weapons, 2);
+    assert.deepEqual(bareStore?.sections, []);
+    assert.deepEqual(bareStore?.lines, []);
+    assert.equal(storeDef("No name"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

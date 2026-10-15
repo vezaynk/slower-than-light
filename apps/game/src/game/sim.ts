@@ -71,7 +71,7 @@ import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look
 import "./pack/base.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
 import type { WeaponBlueprint } from "./pack/types.ts";
-import { allSectors, allWeapons, crewDef, hullDef, sectorDef, weaponDef } from "./pack/registry.ts";
+import { allSectors, allWeapons, crewDef, hullDef, sectorDef, storeDef, weaponDef } from "./pack/registry.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
 import {
@@ -6557,37 +6557,56 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
 
 // Template:Stores: resources in stores: fuel stock 3–7 at 3, missiles 2–6 at 6, drone parts 2–4 at 8.
 // INVENTED: Dart is pinned in the stock. The missile price is the store price, not a Dart price.
-function rollStock(g: Game): StockItem[] {
+function resourceDetail(kind: string, cost: number): string {
+  if (kind === "fuel" && cost === 3) return tx("game.sim.3-scrap-each");
+  if (kind === "missiles" && cost === 6) return tx("game.sim.6-scrap-each");
+  if (kind === "parts" && cost === 8) return tx("game.sim.8-scrap-each");
+  return `${cost} scrap each.`;
+}
+
+function rollStock(g: Game, storeId = "standard"): StockItem[] {
+  const store = storeDef(storeId);
   const owned = new Set(g.player.weapons.map((w) => w.defId));
   // Sectors, "Hidden Crystal Worlds", "Sector specifics": the shelf is crystal weapons, including the Lockdown Bomb.
-  // The two-gun count below is the same as every other sector. Dart stays pinned only outside this sector.
+  // The weapon count below is the store record's. Dart stays pinned only outside this sector.
   const crystal = g.sectorName === "Hidden Crystal Worlds";
   const guns = crystal
     ? CRYSTAL_SECTOR_WEAPONS.map((id) => weaponDef(id)).filter((w): w is WeaponBlueprint => !!w && w.price > 0 && !owned.has(w.id))
     : allWeapons().filter((w) => w.price > 0 && !owned.has(w.id));
-  const fuelN = 3 + irand(g, 5);
-  const missileN = 2 + irand(g, 5);
-  const partN = 2 + irand(g, 3);
-  const items: StockItem[] = [
+  const items: StockItem[] = [];
+  for (const line of store?.lines ?? []) {
+    if (line.kind !== "fuel" && line.kind !== "missiles" && line.kind !== "parts" && line.kind !== "repair") continue;
     // Stores and resources: "Limited quantities of all resources". "Fuel, missiles, and drone parts stock varies, but the
     // price for each type of resource is fixed." `cost` is that one-unit price and `amount` the stock; buy takes one.
-    { id: "fuel", kind: "fuel", ref: "fuel", name: tx("game.sim.fuel"), detail: tx("game.sim.3-scrap-each"), cost: 3, amount: fuelN },
-    { id: "missiles", kind: "missiles", ref: "missiles", name: tx("game.sim.missiles"), detail: tx("game.sim.6-scrap-each"), cost: 6, amount: missileN },
-    { id: "parts", kind: "parts", ref: "parts", name: tx("game.sim.drone-parts"), detail: tx("game.sim.8-scrap-each"), cost: 8, amount: partN },
-    {
-      id: "repair",
-      kind: "repair",
-      ref: "repair",
-      name: tx("game.sim.hull-patch-5"),
-      detail: tx("game.sim.scrap-a-point", { hullRepairPerPoint: hullRepairPerPoint(g.sector) }),
-      cost: Math.min(5, g.player.hullMax - g.player.hull) * hullRepairPerPoint(g.sector),
-      amount: 5,
-    },
-  ];
+    const amount = line.max > line.min ? line.min + irand(g, line.max - line.min + 1) : line.min;
+    if (line.kind === "repair") {
+      const rate = hullRepairPerPoint(g.sector);
+      items.push({
+        id: line.id,
+        kind: "repair",
+        ref: line.id,
+        name: line.name,
+        detail: tx("game.sim.scrap-a-point", { hullRepairPerPoint: rate }),
+        cost: Math.min(line.min, g.player.hullMax - g.player.hull) * rate,
+        amount: line.min,
+      });
+      continue;
+    }
+    items.push({
+      id: line.id,
+      kind: line.kind as "fuel" | "missiles" | "parts",
+      ref: line.id,
+      name: line.name,
+      detail: resourceDetail(line.kind, line.cost),
+      cost: line.cost,
+      amount,
+    });
+  }
   const dart = guns.find((w) => w.id === "dart");
   const pool = dart && !owned.has("dart") ? [dart, ...guns.filter((w) => w.id !== "dart")] : guns;
   // xftl doc/stores, "Section generation": weapons are one of the rolled sections (storeSections), not a fixed shelf.
-  for (const def of storeSections(g).includes("weapons") ? pool.slice(0, 2) : []) {
+  const weaponCount = store?.weapons ?? 2;
+  for (const def of storeSections(g, storeId).includes("weapons") ? pool.slice(0, weaponCount) : []) {
     items.push({
       id: "gun-" + def.id,
       kind: "weapon",
@@ -6598,7 +6617,7 @@ function rollStock(g: Game): StockItem[] {
       amount: 1,
     });
   }
-  items.push(...citedStock(g));
+  items.push(...citedStock(g, storeId));
   const repair = items.findIndex((item) => item.kind === "repair");
   if (repair >= 0 && items[repair].cost <= 0) items.splice(repair, 1);
   return items;
@@ -6655,14 +6674,14 @@ export function buy(g: Game, id: string) {
 }
 
 /** @agent:quests. A quest result that "opens a store" at this beacon (wiki/quests.ts). */
-export function openStoreHere(g: Game) {
+export function openStoreHere(g: Game, storeId = "standard") {
   const b = hereBeacon(g);
   if (b) {
     b.kind = "store";
     b.resolved = false;
   }
   g.event = null;
-  g.stock = rollStock(g);
+  g.stock = rollStock(g, storeId);
   g.phase = "store";
   g.paused = true;
 }

@@ -135,6 +135,36 @@ export type SectorDef = {
   notes: string[];
 };
 
+/**
+ * One line on a store shelf. Resource kinds are fuel, missiles, parts, and repair.
+ * Crew hires use kind `crew`. Any other kind is stored and left off the shelf.
+ * A repair line's `min` is the hull points. Its cost is stored; the sector rate prices it.
+ */
+export type StoreLine = {
+  id: string;
+  kind: string;
+  name: string;
+  cost: number;
+  min: number;
+  max: number;
+};
+
+/**
+ * A store. `sections` are the kinds it may roll. Unknown kinds are stored and skipped.
+ * Weapon, drone, augment, and system shelves still draw from those catalogs.
+ * Section count, the systems coin-flip, and drone stand-ins stay in the store code.
+ */
+export type StoreDef = {
+  id: string;
+  name: string;
+  /** Items in one rolled section. */
+  slot: number;
+  /** Weapons offered when that section rolls. */
+  weapons: number;
+  sections: string[];
+  lines: StoreLine[];
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
@@ -143,4 +173,5 @@ export type ContentPack = {
   systems?: SystemDef[];
   hulls?: HullDef[];
   sectors?: SectorDef[];
+  stores?: StoreDef[];
 };

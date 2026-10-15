@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, WeaponBlueprint } from "./types.ts";
 
 type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
 
@@ -79,6 +79,12 @@ function numOf(node: Node, tag: string): number | undefined {
   const text = textOf(node, tag);
   if (text == null) return undefined;
   const value = Number(text);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function attrNum(raw: string | undefined): number | undefined {
+  if (raw == null || raw.trim() === "") return undefined;
+  const value = Number(raw);
   return Number.isFinite(value) ? value : undefined;
 }
 
@@ -292,6 +298,40 @@ function readHull(node: Node): HullDef | undefined {
   };
 }
 
+function readStore(node: Node): StoreDef | undefined {
+  const id = node.attrs.name?.trim();
+  if (!id) return undefined;
+  const sections: string[] = [];
+  const lines: StoreLine[] = [];
+  for (const item of node.children) {
+    if (item.tag === "section") {
+      const text = item.text.trim();
+      if (text) sections.push(text);
+      continue;
+    }
+    if (item.tag !== "stock") continue;
+    const lineId = item.attrs.id?.trim();
+    if (!lineId) continue;
+    const min = attrNum(item.attrs.min) ?? 0;
+    lines.push({
+      id: lineId,
+      kind: item.attrs.kind?.trim() ?? "",
+      name: textOf(item, "title") ?? lineId,
+      cost: numOf(item, "cost") ?? 0,
+      min,
+      max: attrNum(item.attrs.max) ?? min,
+    });
+  }
+  return {
+    id,
+    name: textOf(node, "title") ?? id,
+    slot: numOf(node, "slot") ?? 3,
+    weapons: numOf(node, "weapons") ?? 2,
+    sections,
+    lines,
+  };
+}
+
 function readSector(node: Node): SectorDef | undefined {
   const id = node.attrs.name?.trim();
   if (!id) return undefined;
@@ -309,7 +349,7 @@ function readSector(node: Node): SectorDef | undefined {
   };
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, and sector tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, and store tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
@@ -318,6 +358,7 @@ export function parsePack(xml: string): ContentPack {
   const systems: SystemDef[] = [];
   const hulls: HullDef[] = [];
   const sectors: SectorDef[] = [];
+  const stores: StoreDef[] = [];
   walk(parseXml(xml), (node) => {
     if (node.tag === "race") {
       const row = readCrew(node);
@@ -340,7 +381,10 @@ export function parsePack(xml: string): ContentPack {
     } else if (node.tag === "sectorDescription") {
       const row = readSector(node);
       if (row) sectors.push(row);
+    } else if (node.tag === "storeBlueprint") {
+      const row = readStore(node);
+      if (row) stores.push(row);
     }
   });
-  return { crew, weapons, augments, drones, systems, hulls, sectors };
+  return { crew, weapons, augments, drones, systems, hulls, sectors, stores };
 }

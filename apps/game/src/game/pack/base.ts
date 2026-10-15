@@ -6,10 +6,11 @@ import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
+import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -52,6 +53,17 @@ function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
 
 function sectorRow(row: SectorType): SectorDef {
   return { id: row.id, name: row.name, group: row.group, notes: [...row.notes] };
+}
+
+function storeRow(row: StoreDef): StoreDef {
+  return {
+    id: row.id,
+    name: row.name,
+    slot: row.slot,
+    weapons: row.weapons,
+    sections: [...row.sections],
+    lines: row.lines.map((line) => ({ ...line })),
+  };
 }
 
 function hullRow(spec: HullSpec): HullDef {
@@ -108,6 +120,7 @@ loadPack(
     systems: CITED_SYSTEMS.map(systemRow),
     hulls: HULLS.map(hullRow),
     sectors: SECTOR_TYPES.map(sectorRow),
+    stores: STORES.map(storeRow),
   },
   "base",
 );

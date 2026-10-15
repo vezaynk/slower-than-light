@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import "./base.ts";
 import { emitPack } from "./emit.ts";
 import { parsePack } from "./parse.ts";
-import { allAugments, allCrew, allDrones, allHulls, allSectors, allSystems, allWeapons, resetPackForTests } from "./registry.ts";
+import { allAugments, allCrew, allDrones, allHulls, allSectors, allStores, allSystems, allWeapons, resetPackForTests } from "./registry.ts";
 
 describe("base pack xml", () => {
   it("round-trips the loaded records and matches the snapshot", () => {
@@ -17,6 +17,7 @@ describe("base pack xml", () => {
       systems: allSystems(),
       hulls: allHulls(),
       sectors: allSectors(),
+      stores: allStores(),
     };
     const xml = emitPack(pack);
     const back = parsePack(xml);
@@ -27,6 +28,7 @@ describe("base pack xml", () => {
     assert.deepEqual(back.systems, pack.systems);
     assert.deepEqual(back.hulls, pack.hulls);
     assert.deepEqual(back.sectors, pack.sectors);
+    assert.deepEqual(back.stores, pack.stores);
     const golden = readFileSync(new URL("./base.xml", import.meta.url), "utf8");
     assert.equal(xml, golden);
   });

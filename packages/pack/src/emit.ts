@@ -1,5 +1,5 @@
 import { DOMImplementation, XMLSerializer, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventDef, EventEffect, FillerListDef, HullDef, OfferRow, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventDef, EventEffect, FillerListDef, HullDef, OfferRow, RollEntry, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -29,6 +29,8 @@ const HEADER = `
   The sim still picks one sentence when the card opens.
   An offer tag is one row of the table that card rolls. The sim still picks the row and still rolls its bands.
   Fuel rows name band high or pt2. Lanius rows name band base or better. A supply row can hold a 0-0 band.
+  A roll tag is one entry of a list the card draws. A repeated hull is a heavier weight.
+  A hull entry is a ship id. A label entry is a button sentence. A count entry is a number and its word.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
@@ -119,6 +121,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const lines = texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line), 2);
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
+  for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
     add(choiceNode, leaf(doc, "text", choice.label), 3);
@@ -146,6 +149,15 @@ function offerElement(doc: XmlDocument, offer: OfferRow): XmlElement {
     return element(doc, "offer", { k: "lanius", band: offer.band, res: offer.res, cost: span(offer.cost), scrap: span(offer.scrap) });
   }
   return element(doc, "offer", { k: "supply", missiles: span(offer.missiles), parts: span(offer.parts), fuel: span(offer.fuel) });
+}
+
+function rollElement(doc: XmlDocument, roll: RollEntry): XmlElement {
+  const text = roll.k === "hull" ? roll.id : roll.k === "label" ? roll.text : roll.word;
+  const attrs: Record<string, string> = { k: roll.k };
+  if (roll.k === "count") attrs.n = num(roll.n);
+  const node = element(doc, "roll", attrs);
+  node.appendChild(doc.createTextNode(text));
+  return node;
 }
 
 function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElement {

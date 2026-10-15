@@ -44,22 +44,6 @@ const NEBULA_ON_ARRIVAL = new Set([
   "slug-and-rock-standoff-in-nebula",
 ]);
 
-/** Printed hull counts from Fight in Last Stand, Notes (12 ships). */
-const LAST_STAND_HULLS = [
-  "Auto-Scout",
-  "Auto-Scout",
-  "Auto-Surveyor",
-  "Auto-Assault",
-  "Auto-Assault",
-  "Auto-Hacker",
-  "rebel-rigger",
-  "rebel-rigger",
-  "rebel-disruptor",
-  "rebel-fighter",
-  "rebel-fighter",
-  "rebel-invader",
-];
-
 type PayKind = "parts" | "missiles" | "scrap";
 
 const FUEL_BAND: Record<SurrenderTier, [number, number]> = {
@@ -343,6 +327,18 @@ export function missingOwns(id: string): boolean {
   return slug != null && OWNED.has(slug);
 }
 
+/** Last-stand hulls. A repeated name stays repeated. The draw stays between, before the opening sentence. */
+function hullList(id: string): string[] {
+  const rows = [];
+  for (const row of eventDef(id)?.rolls ?? []) if (row.k === "hull") rows.push(row.id);
+  return rows;
+}
+
+function rollHull(g: Game, id: string): string {
+  const rows = hullList(id);
+  return rows[between(g, [0, rows.length - 1])]!;
+}
+
 /** One opening sentence from the packed page. The draw stays between, over the packed list. */
 function opening(g: Game, id: string): string {
   const texts = eventDef(id)?.texts ?? [];
@@ -360,7 +356,7 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     };
   }
   if (ev.slug === "fight-in-last-stand") {
-    const hull = LAST_STAND_HULLS[between(g, [0, LAST_STAND_HULLS.length - 1])]!;
+    const hull = rollHull(g, "fight-in-last-stand");
     return {
       title: ev.dest,
       body: opening(g, "fight-in-last-stand"),
@@ -833,7 +829,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
   }
 
   if (slug === "fight-in-last-stand") {
-    const hull = name.startsWith("go:") ? name.slice(3) : LAST_STAND_HULLS[between(g, [0, LAST_STAND_HULLS.length - 1])]!;
+    const hull = name.startsWith("go:") ? name.slice(3) : rollHull(g, "fight-in-last-stand");
     ctx.fight(hull, undefined, "fight-in-last-stand");
     return true;
   }

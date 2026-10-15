@@ -232,6 +232,16 @@ export type OfferRow =
   | { k: "lanius"; band: "base" | "better"; res: OfferRes; cost: [number, number]; scrap: [number, number] }
   | { k: "supply"; missiles: [number, number]; parts: [number, number]; fuel: [number, number] };
 
+/**
+ * One entry of a list the card draws when it opens.
+ * A repeated hull entry is a heavier weight. The sim still draws with between.
+ * A label is a button sentence. A count is a number and the word that fills a sentence.
+ */
+export type RollEntry =
+  | { k: "hull"; id: string }
+  | { k: "label"; text: string }
+  | { k: "count"; n: number; word: string };
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -301,6 +311,11 @@ export type EventDef = {
   texts?: string[];
   /** Offer rows. The sim still picks one and still rolls the numbers inside it. */
   offers?: OfferRow[];
+  /**
+   * One list the card draws with between. A repeated hull is a heavier weight.
+   * Stored when a page has at least one entry.
+   */
+  rolls?: RollEntry[];
   choices: EventChoice[];
   surrender?: SurrenderOfferDef;
 };

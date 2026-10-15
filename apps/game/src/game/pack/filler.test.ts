@@ -214,6 +214,56 @@ describe("filler lists", () => {
     assert.equal(eventDef("trade-resources")?.offers?.length, 4);
   });
 
+  it("stores the campaign roll lists and draws an appended entry", () => {
+    const hulls = eventDef("fight-in-last-stand")?.rolls ?? [];
+    assert.equal(hulls.length, 12);
+    assert.equal(hulls.filter((row) => row.k === "hull" && row.id === "Auto-Scout").length, 2);
+    const labels = eventDef("rebel-checkpoint")?.rolls ?? [];
+    assert.deepEqual(labels.map((row) => row.k === "label" ? row.text : ""), [
+      "Fly behind a moon and stay hidden.",
+      "Shut down all non-vital systems and stay hidden.",
+      "Stay quiet and hope they don't notice you.",
+      "Stay out of their way and charge your FTL drive.",
+    ]);
+    const moons = eventDef("slug-moons-question")?.rolls ?? [];
+    assert.deepEqual(moons, [
+      { k: "count", n: 5, word: "five" },
+      { k: "count", n: 6, word: "six" },
+      { k: "count", n: 7, word: "seven" },
+      { k: "count", n: 11, word: "eleven" },
+    ]);
+
+    const stand = eventDef("fight-in-last-stand");
+    assert.ok(stand);
+    loadPack({ events: [{ ...stand, rolls: [{ k: "hull", id: "Ember" }] }] }, "append");
+    const g = createGame(1);
+    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    assert.ok(beacon);
+    beacon.flag = stand.flag;
+    assert.equal(citedEvent(g, beacon)?.choices[0]?.id, "c:fight-in-last-stand:go:Ember");
+    resetPackForTests();
+    assert.equal(eventDef("fight-in-last-stand")?.rolls?.length, 12);
+
+    const checkpoint = eventDef("rebel-checkpoint");
+    assert.ok(checkpoint);
+    loadPack({ events: [{ ...checkpoint, rolls: [{ k: "label", text: "Ember hide." }] }] }, "append");
+    beacon.flag = checkpoint.flag;
+    const card = citedEvent(createGame(1), beacon);
+    assert.equal(card?.choices.find((choice) => choice.id === "c:rebel-checkpoint:1")?.label, "Ember hide.");
+    resetPackForTests();
+    assert.equal(eventDef("rebel-checkpoint")?.rolls?.length, 4);
+
+    const moonsPage = eventDef("slug-moons-question");
+    assert.ok(moonsPage);
+    loadPack({ events: [{ ...moonsPage, rolls: [{ k: "count", n: 9, word: "nine" }] }] }, "append");
+    beacon.flag = moonsPage.flag;
+    const moonCard = citedEvent(createGame(1), beacon);
+    assert.match(moonCard?.body ?? "", /one of the nine moons/);
+    assert.equal(moonCard?.choices[0]?.id, "c:slug-moons-question:ask:9");
+    resetPackForTests();
+    assert.equal(eventDef("slug-moons-question")?.rolls?.length, 4);
+  });
+
   it("opens the filler card for a shared slug and rolls the fuel gift", () => {
     const g = createGame(1);
     const beacon = g.beacons[0];

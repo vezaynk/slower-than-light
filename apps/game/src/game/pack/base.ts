@@ -4,9 +4,10 @@ import { KIN, type KinId } from "../extras/kin.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
+import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -43,6 +44,10 @@ function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
   return { id: row.ref, name: row.name, cost: row.cost };
 }
 
+function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
+  return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+}
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
@@ -58,6 +63,7 @@ loadPack(
     weapons: Object.keys(WEAPONS).map(weaponRow),
     augments: CATALOG.map(augmentRow),
     drones: CITED_DRONES.map(droneRow),
+    systems: CITED_SYSTEMS.map(systemRow),
   },
   "base",
 );

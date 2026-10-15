@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
 
@@ -201,12 +201,24 @@ function readDrone(node: Node): DroneDef | undefined {
   };
 }
 
-/** Reads the crew, weapon, augment, and drone tags this milestone stores. Other tags are ignored. */
+function readSystem(node: Node): SystemDef | undefined {
+  const id = node.attrs.name?.trim();
+  if (!id) return undefined;
+  return {
+    id,
+    name: textOf(node, "title") ?? id,
+    cost: numOf(node, "cost") ?? 0,
+    slot: textOf(node, "slot") === "kit" ? "kit" : "sys",
+  };
+}
+
+/** Reads the crew, weapon, augment, drone, and system tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
   const augments: AugmentDef[] = [];
   const drones: DroneDef[] = [];
+  const systems: SystemDef[] = [];
   walk(parseXml(xml), (node) => {
     if (node.tag === "race") {
       const row = readCrew(node);
@@ -220,7 +232,10 @@ export function parsePack(xml: string): ContentPack {
     } else if (node.tag === "droneBlueprint") {
       const row = readDrone(node);
       if (row) drones.push(row);
+    } else if (node.tag === "systemBlueprint") {
+      const row = readSystem(node);
+      if (row) systems.push(row);
     }
   });
-  return { crew, weapons, augments, drones };
+  return { crew, weapons, augments, drones, systems };
 }

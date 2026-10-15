@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, and drone records.
+  Base pack written from the loaded crew, weapon, augment, drone, and system records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
+  System tags are the listing id, title, store cost, and install slot.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -1179,4 +1180,54 @@
     <title>Ion Intruder Drone</title>
     <cost>65</cost>
   </droneBlueprint>
+  <systemBlueprint name="shields">
+    <title>Shields</title>
+    <cost>125</cost>
+    <slot>sys</slot>
+  </systemBlueprint>
+  <systemBlueprint name="medbay">
+    <title>Medbay</title>
+    <cost>50</cost>
+    <slot>sys</slot>
+  </systemBlueprint>
+  <systemBlueprint name="cradle">
+    <title>Clone Bay</title>
+    <cost>50</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
+  <systemBlueprint name="sling">
+    <title>Crew Teleporter</title>
+    <cost>90</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
+  <systemBlueprint name="veil">
+    <title>Cloaking</title>
+    <cost>150</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
+  <systemBlueprint name="leash">
+    <title>Mind Control</title>
+    <cost>75</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
+  <systemBlueprint name="spike">
+    <title>Hacking</title>
+    <cost>80</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
+  <systemBlueprint name="sensors">
+    <title>Sensors</title>
+    <cost>40</cost>
+    <slot>sys</slot>
+  </systemBlueprint>
+  <systemBlueprint name="doors">
+    <title>Door System</title>
+    <cost>60</cost>
+    <slot>sys</slot>
+  </systemBlueprint>
+  <systemBlueprint name="cell">
+    <title>Backup Battery</title>
+    <cost>35</cost>
+    <slot>kit</slot>
+  </systemBlueprint>
 </FTL>

@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -85,17 +85,32 @@ const XML = `
   <title>No name</title>
   <cost>4</cost>
 </droneBlueprint>
+<systemBlueprint name="embersys">
+  <title>Ember</title>
+  <cost>15</cost>
+  <slot>kit</slot>
+  <maxPower>8</maxPower>
+</systemBlueprint>
+<systemBlueprint name="baresys">
+  <cost>0</cost>
+</systemBlueprint>
+<systemBlueprint>
+  <title>No name</title>
+  <cost>4</cost>
+  <slot>kit</slot>
+</systemBlueprint>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, and drone tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, and system tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
     assert.equal(pack.augments?.length, 2);
     assert.equal(pack.drones?.length, 2);
+    assert.equal(pack.systems?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -156,6 +171,16 @@ describe("parsePack", () => {
     assert.equal(bareDrone?.name, "baredrone");
     assert.equal(bareDrone?.cost, 0);
     assert.equal(droneDef("No name"), undefined);
+
+    const emberSys = systemDef("embersys");
+    assert.equal(emberSys?.name, "Ember");
+    assert.equal(emberSys?.cost, 15);
+    assert.equal(emberSys?.slot, "kit");
+    const bareSys = systemDef("baresys");
+    assert.equal(bareSys?.name, "baresys");
+    assert.equal(bareSys?.cost, 0);
+    assert.equal(bareSys?.slot, "sys");
+    assert.equal(systemDef("No name"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

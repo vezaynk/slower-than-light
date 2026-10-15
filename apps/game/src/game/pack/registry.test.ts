@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
+import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
-import { allAugments, allDrones, allWeapons, augmentDef, crewDef, droneDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allSystems, allWeapons, augmentDef, crewDef, droneDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
 afterEach(() => resetPackForTests());
@@ -111,6 +112,26 @@ describe("content pack", () => {
     resetPackForTests();
     assert.equal(droneDef("spark"), undefined);
     assert.equal(allDrones().some((row) => row.id === "spark"), false);
+  });
+
+  it("loads the system catalog in its authored order", () => {
+    assert.deepEqual(
+      allSystems().map((row) => ({ id: row.id, name: row.name, cost: row.cost, slot: row.slot })),
+      CITED_SYSTEMS.map((row) => ({ id: row.ref, name: row.name, cost: row.cost, slot: row.slot })),
+    );
+  });
+
+  it("keeps a system id apart from a race, a weapon, an augment, and a drone", () => {
+    loadPack({ systems: [{ id: "spark", name: "Not the laser", cost: 9, slot: "sys" }] }, "append");
+    assert.equal(systemDef("spark")?.name, "Not the laser");
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(droneDef("spark"), undefined);
+    assert.equal(allSystems().at(-1)?.id, "spark");
+    resetPackForTests();
+    assert.equal(systemDef("spark"), undefined);
+    assert.equal(systemDef("shields")?.cost, CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

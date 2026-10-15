@@ -1,5 +1,32 @@
-import { DOMImplementation, XMLSerializer, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventDef, EventEffect, FillerListDef, HullDef, OfferRow, RollEntry, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
+import {
+  DOMImplementation,
+  XMLSerializer,
+  type Document as XmlDocument,
+  type Element as XmlElement,
+} from "@xmldom/xmldom";
+import type {
+  AugmentDef,
+  ChoiceReq,
+  ContentPack,
+  CrewDef,
+  DroneDef,
+  EmptyBeaconDef,
+  EventCard,
+  EventDef,
+  EventEffect,
+  FillerListDef,
+  HullDef,
+  OfferRow,
+  RollEntry,
+  SectorDef,
+  StoreDef,
+  SurrenderOfferDef,
+  SurrenderReward,
+  SystemDef,
+  TuneDef,
+  WeaponBlueprint,
+  WeaponKind,
+} from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -34,7 +61,8 @@ const HEADER = `
   A card tag is one whole opening the page draws. The sim still draws one with between.
   The buttons on that opening stay handlers in code.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
-  A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
+  A choice is its id, label, effects, and req locks. A req is checked in order and its text is the refusal.
+  A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
   The sim still checks the hull and still hands that reward over.
@@ -120,7 +148,8 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   add(node, leaf(doc, "title", event.dest), 2);
   for (const alias of event.aliases) add(node, leaf(doc, "alias", alias), 2);
   for (const sector of event.sectors) add(node, leaf(doc, "sector", sector), 2);
-  const lines = texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
+  const lines =
+    texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line), 2);
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
@@ -128,6 +157,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
     add(choiceNode, leaf(doc, "text", choice.label), 3);
+    for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req), 3);
     for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx), 3);
     end(choiceNode, 2);
     add(node, choiceNode, 2);
@@ -143,21 +173,45 @@ function span(band: [number, number]): string {
 
 function offerElement(doc: XmlDocument, offer: OfferRow): XmlElement {
   if (offer.k === "trade") {
-    return element(doc, "offer", { k: "trade", pay: offer.pay, cost: span(offer.cost), get: offer.get, gain: span(offer.gain) });
+    return element(doc, "offer", {
+      k: "trade",
+      pay: offer.pay,
+      cost: span(offer.cost),
+      get: offer.get,
+      gain: span(offer.gain),
+    });
   }
   if (offer.k === "fuel") {
-    return element(doc, "offer", { k: "fuel", band: offer.band, fuel: span(offer.fuel), pay: offer.pay, amt: span(offer.amt) });
+    return element(doc, "offer", {
+      k: "fuel",
+      band: offer.band,
+      fuel: span(offer.fuel),
+      pay: offer.pay,
+      amt: span(offer.amt),
+    });
   }
   if (offer.k === "lanius") {
-    return element(doc, "offer", { k: "lanius", band: offer.band, res: offer.res, cost: span(offer.cost), scrap: span(offer.scrap) });
+    return element(doc, "offer", {
+      k: "lanius",
+      band: offer.band,
+      res: offer.res,
+      cost: span(offer.cost),
+      scrap: span(offer.scrap),
+    });
   }
-  return element(doc, "offer", { k: "supply", missiles: span(offer.missiles), parts: span(offer.parts), fuel: span(offer.fuel) });
+  return element(doc, "offer", {
+    k: "supply",
+    missiles: span(offer.missiles),
+    parts: span(offer.parts),
+    fuel: span(offer.fuel),
+  });
 }
 
 function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
   const node = element(doc, "card", {});
   add(node, leaf(doc, "text", card.body), 3);
-  for (const choice of card.choices) add(node, choiceElement(doc, choice.id, choice.label, 3), 3);
+  for (const choice of card.choices)
+    add(node, choiceElement(doc, choice.id, choice.label, 3, choice.reqs), 3);
   end(node, 2);
   return node;
 }
@@ -181,7 +235,8 @@ function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElemen
   if (offer.forced) attrs.forced = "true";
   if (offer.quest) attrs.quest = offer.quest;
   const node = element(doc, "surrender", attrs);
-  for (const hail of offer.hails?.length ? offer.hails : [offer.hail]) add(node, leaf(doc, "text", hail), 3);
+  for (const hail of offer.hails?.length ? offer.hails : [offer.hail])
+    add(node, leaf(doc, "text", hail), 3);
   add(node, rewardElement(doc, offer.reward), 3);
   if (offer.result) add(node, leaf(doc, "result", offer.result), 3);
   add(node, choiceElement(doc, "surrender-accept", offer.accept, 3), 3);
@@ -190,7 +245,8 @@ function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElemen
   if (offer.card) {
     const card = element(doc, "card", {});
     add(card, leaf(doc, "text", offer.card.body), 4);
-    for (const choice of offer.card.choices) add(card, choiceElement(doc, choice.id, choice.label, 4), 4);
+    for (const choice of offer.card.choices)
+      add(card, choiceElement(doc, choice.id, choice.label, 4), 4);
     end(card, 3);
     add(node, card, 3);
   }
@@ -198,10 +254,30 @@ function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElemen
   return node;
 }
 
-function choiceElement(doc: XmlDocument, id: string, label: string, depth: number): XmlElement {
+function choiceElement(
+  doc: XmlDocument,
+  id: string,
+  label: string,
+  depth: number,
+  reqs?: ChoiceReq[],
+): XmlElement {
   const node = element(doc, "choice", { name: id });
   add(node, leaf(doc, "text", label), depth + 1);
+  for (const req of reqs ?? []) add(node, reqElement(doc, req), depth + 1);
   end(node, depth);
+  return node;
+}
+
+function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {
+  const attrs: Record<string, string> = { k: req.k, id: req.id };
+  if (req.k === "system") attrs.level = num(req.level);
+  if (req.k === "band") {
+    attrs.lo = num(req.lo);
+    attrs.hi = num(req.hi);
+  }
+  if (req.k === "stock") attrs.n = num(req.n);
+  const node = element(doc, "req", attrs);
+  node.appendChild(doc.createTextNode(req.text));
   return node;
 }
 
@@ -229,7 +305,13 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
   if (fx.k === "item") return element(doc, "effect", { k: "item", item: fx.item });
   if (fx.k === "hull") return element(doc, "effect", { k: "hull", n: num(fx.n) });
   if (fx.k === "res") {
-    return element(doc, "effect", { k: "res", id: fx.id, sign: num(fx.sign), lo: num(fx.lo), hi: num(fx.hi) });
+    return element(doc, "effect", {
+      k: "res",
+      id: fx.id,
+      sign: num(fx.sign),
+      lo: num(fx.lo),
+      hi: num(fx.hi),
+    });
   }
   if (fx.k === "tier") {
     const attrs: Record<string, string> = { k: "tier", tier: fx.tier };
@@ -320,7 +402,8 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   add(node, weapons, 2);
 
   const crew = doc.createElement("crewList");
-  for (const seat of hull.crew) add(crew, element(doc, "crewMember", { kin: seat.kin, room: seat.room }), 3);
+  for (const seat of hull.crew)
+    add(crew, element(doc, "crewMember", { kin: seat.kin, room: seat.room }), 3);
   end(crew, 2);
   add(node, crew, 2);
 

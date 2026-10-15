@@ -32,6 +32,8 @@ import { citedPagesFor } from "./cited-events.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { ownedLock } from "./choice-locks.ts";
+import { FILLER_LOCKS } from "./choice-reqs.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -2984,7 +2986,7 @@ export function fillerChoose(g: Game, id: string): boolean {
   return fillerOwns(id) ? chooseRolled(g, id) : false;
 }
 
-/** sim.ts choiceDisabled: a rolled price the ship cannot pay. */
+/** sim.ts choiceDisabled: a rolled price parsed from the choice id, then a lock stored on the choice. */
 export function fillerChoiceDisabled(g: Game, id: string): string | null {
   const trade = parseTrade(id);
   if (trade && stock(g, trade.pay) < trade.n) return tx("wiki.filler-events.need", { n: trade.n, v: WORD[trade.pay] });
@@ -2994,172 +2996,13 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   if (m && g.scrap < Number(m[1])) return tx("wiki.filler-events.need-scrap", { v: m[1] });
   m = id.match(/^s:trade-scrap-for-upgrades:agree:(?:oxygen|pilot|doors|sensors|reactor):(\d+)$/);
   if (m && g.scrap < Number(m[1])) return tx("wiki.filler-events.need-scrap", { v: m[1] });
-  if (id === "c:refueling-station:0" && g.scrap < 12) return tx("wiki.filler-events.need-12-scrap");
-  if (id === "c:refueling-station:1" && g.scrap < 6) return tx("wiki.filler-events.need-6-scrap");
-  if (id === "c:refueling-station:2" && g.scrap < 2) return tx("wiki.filler-events.need-2-scrap");
-  if (id === "c:asteroid-mining-colony:0" && !miningMissile(g)) return tx("wiki.filler-events.needs-a-missile-weapon");
-  if (id === "c:asteroid-mining-colony:1" && g.missiles < 5) return tx("wiki.filler-events.need-5-missiles");
-  if (id === "c:asteroid-mining-colony:2" && g.missiles < 15) return tx("wiki.filler-events.need-15-missiles");
-  // Giant alien spiders blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  // Pirate ship selling weapon. {{Blue Option|Mind Control}}.
-  // INFERRED: the refusal line. The page names Mind Control and does not print this sentence.
-  if (id === "c:pirate-ship-selling-weapon:2" && !ownsMindControl(g)) return tx("wiki.filler-events.needs-mind-control");
-  if (id === "c:giant-alien-spiders:2" && !ownsDrone(g, "personnel")) return tx("wiki.filler-events.needs-an-anti-personnel-drone");
-  if (id === "c:giant-alien-spiders:3" && !ownsDrone(g, "board")) return tx("wiki.filler-events.needs-a-boarding-drone");
-  if (id === "c:giant-alien-spiders:4" && !ownsAntiBio(g)) return tx("wiki.filler-events.needs-an-anti-bio-beam");
-  // Malfunctioning defense system blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:malfunctioning-defense-system:3" && !ownsIon(g)) return tx("wiki.filler-events.needs-an-ion-weapon");
-  if (id === "c:malfunctioning-defense-system:4" && cloakLevel(g) < 1) return tx("wiki.filler-events.needs-cloaking");
-  if (id === "c:malfunctioning-defense-system:5" && cloakLevel(g) < 2) return tx("wiki.filler-events.needs-improved-cloaking");
-  if (id === "c:malfunctioning-defense-system:6" && cloakLevel(g) < 3) return tx("wiki.filler-events.needs-advanced-cloaking");
-  if (id === "c:malfunctioning-defense-system:7" && !livingKin(g, "shell")) return tx("wiki.filler-events.needs-an-engi-crewmember");
-  // Crushed pirate blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:crushed-pirate:2" && !ownsCuttingBeam(g)) return tx("wiki.filler-events.needs-a-beam-weapon");
-  if (id === "c:crushed-pirate:3" && !ownsBeamDrone(g)) return tx("wiki.filler-events.needs-a-beam-drone");
-  // Unknown disease blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:unknown-disease-on-mining-colony:2" && !livingKin(g, "stone")) return tx("wiki.filler-events.needs-a-rock-crewmember");
-  if (id === "c:unknown-disease-on-mining-colony:3" && !livingKin(g, "shell")) return tx("wiki.filler-events.needs-an-engi-crewmember");
-  if (id === "c:unknown-disease-on-mining-colony:4" && medbayLevel(g) < 2) return tx("wiki.filler-events.needs-a-level-2-medbay");
-  // Plagued station. Improved Medbay level=2+. INFERRED: the refusal line. The page names the system and prints no refusal sentence.
-  if (id === "s:plagued-station:cure" && medbayLevel(g) < 2) return tx("wiki.filler-events.needs-a-level-2-medbay");
-  if (id === "s:unknown-disease:medbot" && !g.augments.includes("medbot")) return tx("wiki.filler-events.needs-engi-med-bot-dispersal");
-  // Fire on research station blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:fire-on-research-station:3" && !livingKin(g, "stone")) return tx("wiki.filler-events.needs-a-rock-crewmember");
-  if (id === "c:fire-on-research-station:4" && !ownsDrone(g, "patch")) return tx("wiki.filler-events.needs-a-repair-drone");
-  // Single life form on moon blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if ((id === "s:moon:medbay2" || id === "s:moon:collapse-medbay") && medbayLevel(g) < 2) return tx("wiki.filler-events.needs-a-level-2-medbay");
-  if (id === "s:moon:medbay3" && medbayLevel(g) < 3) return tx("wiki.filler-events.needs-a-level-3-medbay");
-  if (id === "s:moon:collapse-clone" && clonebayLevel(g) < 2) return tx("wiki.filler-events.needs-a-level-2-clone-bay");
-  if (id === "s:moon:slug" && !livingKin(g, "gel")) return tx("wiki.filler-events.needs-a-slug-crewmember");
-  // Confused Mantis blue options. INFERRED: the refusal line. The page names the crew or system and prints no sentence.
-  if (id === "s:confused-mantis:human" && !livingKin(g, "plain")) return tx("wiki.filler-events.needs-a-human-crewmember");
-  if (id === "s:confused-mantis:mantis" && !livingKin(g, "blade")) return tx("wiki.filler-events.needs-a-mantis-crewmember");
-  if (id === "s:confused-mantis:mind" && !ownsMindControl(g)) return tx("wiki.filler-events.needs-mind-control");
-  // Battlefield wreckage. Improved Sensors level=2. INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.
-  if (id === "c:battlefield-wreckage:2" && sensorsLevel(g) < 2) return tx("wiki.filler-events.needs-sensors-level-2");
-  // Rebel fight chance. Improved Sensors level=2. INFERRED: the refusal line. The page names the system and prints no sentence.
-  if (id === "c:rebel-fight-chance:2" && sensorsLevel(g) < 2) return tx("wiki.filler-events.needs-sensors-level-2");
-  // Rebel fight chance. Advanced Sensors level=3. INFERRED: the refusal line. The page names the system and prints no sentence.
-  if (id === "c:rebel-fight-chance:3" && sensorsLevel(g) < 3) return tx("wiki.filler-events.needs-sensors-level-3");
-  // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  // Advanced Sensors level=3 means at least that installed level.
-  if (id === "c:rebel-fight-chance-in-nebula:2" && sensorsLevel(g) < 3) {
-    // Wiki citations:
-    // > "(Advanced Sensors) Try to track them as you move to engage. (Requires level 3 Sensors)" — [[Rebel fight chance in nebula]]
-    return tx("wiki.filler-events.needs-sensors-level-3");
-  }
-  if (id === "c:rebel-fight-chance-in-nebula:3" && !g.augments.includes("glass")) {
-    // Wiki citations:
-    // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
-    return tx("wiki.filler-events.needs-long-ranged-scanners");
-  }
-  if (id === "c:rebel-fight-chance-in-nebula:4" && !g.augments.includes("pulseeye")) {
-    // Wiki citations:
-    // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
-    return tx("wiki.filler-events.needs-a-lifeform-scanner");
-  }
-  if (id === "c:slocknog:0" && g.scrap < 55) {
-    // Wiki citations:
-    // > "Scrap lost: 55" — [[Slocknog]]
-    return tx("wiki.filler-events.need-55-scrap");
-  }
-  // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
-  if (id === "c:engi-smashed-ships:2" && !livingKin(g, "shell")) return tx("wiki.filler-events.needs-an-engi-crewmember");
-  // Mantis ships battle for Rock freighter. INFERRED: the refusal line. The page names the drone and prints no sentence.
-  if (id === "c:mantis-ships-battle-for-rock-freighter:2" && !ownsDrone(g, "patch")) {
-    // Wiki citations:
-    // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
-    return tx("wiki.filler-events.needs-a-repair-drone");
-  }
-  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && !ownsDrone(g, "hull")) {
-    // Wiki citations:
-    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
-    return tx("wiki.filler-events.needs-a-hull-repair-drone");
-  }
-  if (id === "c:mantis-ships-battle-for-rock-freighter:3" && g.player.parts < 1) {
-    // Wiki citations:
-    // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
-    return tx("wiki.filler-events.need-1-drone-part");
-  }
-  // Rock live mine. INFERRED: the refusal line. The page names the gear and prints no sentence.
-  if (id === "c:rock-live-mine:1" && (g.player.systems.engines?.level ?? 0) < 5) {
-    // Wiki citations:
-    // > "(Improved Engines) Reverse thrusters! (Requires level 5+ Engines)" — [[Rock live mine]]
-    return tx("wiki.filler-events.needs-engines-level-5");
-  }
-  if (id === "s:rock-mine:missile" && !miningMissile(g)) {
-    // Wiki citations:
-    // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
-    return tx("wiki.filler-events.needs-a-missile-weapon");
-  }
-  if (id === "s:rock-mine:beam" && !ownsMineBeam(g)) {
-    // Wiki citations:
-    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
-    return tx("wiki.filler-events.needs-a-beam-drone-2");
-  }
-  if (id === "s:rock-mine:beam" && g.player.parts < 1) {
-    // Wiki citations:
-    // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
-    return tx("wiki.filler-events.need-1-drone-part");
-  }
-  // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
-  // Wiki citations:
-  // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
-  if (id === "c:lanius-ship-absorbing-rebel-base:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
-  // Lanius ship absorbing jump beacon. INFERRED: the refusal lines. The page names the crew and the drone and prints no sentence.
-  // Wiki citations:
-  // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
-  if (id === "c:lanius-ship-absorbing-jump-beacon:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
-  // Wiki citations:
-  // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
-  if (id === "c:lanius-ship-absorbing-jump-beacon:3" && !ownsDrone(g, "hull")) return tx("wiki.filler-events.needs-a-hull-repair-drone");
-  // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
-  if (id === "c:lanius-ship-attacking-civilian-distress:2" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
-  // Lanius craftsmen. {{Blue Option|Lanius Crew}}. INFERRED: the refusal line. The page names a Lanius crewmember.
-  // Wiki citations:
-  // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
-  if (id === "s:lanius-craftsmen:help" && !livingKin(g, "voidlung")) return tx("wiki.filler-events.needs-a-lanius-crewmember");
-  // Wiki citations:
-  // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
-  // > "Scrap lost: 45" — [[Lanius craftsmen]]
-  if (id === "s:lanius-craftsmen:aug" && g.scrap < 45) return tx("wiki.filler-events.need-scrap", { v: 45 });
-  // Wiki citations:
-  // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
-  // > "Scrap lost: 50" — [[Lanius craftsmen]]
-  if (id === "s:lanius-craftsmen:weapon" && g.scrap < 50) return tx("wiki.filler-events.need-scrap", { v: 50 });
-  // Wiki citations:
-  // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
-  // > "Scrap lost: 40" — [[Lanius craftsmen]]
-  if (id === "s:lanius-craftsmen:drone" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
-  // Wiki citations:
-  // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
-  if (id === "s:lanius-craftsmen:help:aug" && g.scrap < 35) return tx("wiki.filler-events.need-scrap", { v: 35 });
-  if (id === "s:lanius-craftsmen:help:weapon" && g.scrap < 40) return tx("wiki.filler-events.need-scrap", { v: 40 });
-  if (id === "s:lanius-craftsmen:help:drone" && g.scrap < 30) return tx("wiki.filler-events.need-scrap", { v: 30 });
-  // Nebula lost ship. Teleporter, and Long-Ranged Scanners. INFERRED: the refusal lines. The page names the gear.
-  if (id === "c:nebula-lost-ship:2" && (g.player.kits.sling?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-teleporter");
-  if (id === "c:nebula-lost-ship:3" && !g.augments.includes("glass")) return tx("wiki.filler-events.needs-long-ranged-scanners");
-  // Plasma storm incapacitated ships. Piloting level 2+. INFERRED: the refusal line. The page names the system.
-  if (id === "c:plasma-storm-incapacitated-ships:2" && (g.player.systems.pilot?.level ?? 0) < 2) return tx("wiki.filler-events.needs-level-2-piloting");
-  // Abandoned station. Clone Bay. INFERRED: the refusal line. The page names the system and prints no sentence.
-  if (id === "s:abandoned-station:dna" && (g.player.kits.cradle?.level ?? 0) <= 0) return tx("wiki.filler-events.needs-a-clone-bay");
-  // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
+  // Rock and Slug standoff. The button shows the rolled 10-15 scrap.
   m = id.match(/^s:rock-slug:(?:debt|upgrade):(\d+)$/);
   if (m && g.scrap < Number(m[1])) {
     // Wiki citations:
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
     return tx("wiki.filler-events.need-scrap", { v: m[1] });
-  }
-  // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
-  // Wiki citations:
-  // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
-  if (id === "c:dense-asteroid-field-distress:2" && !g.augments.includes("keel")) return tx("wiki.filler-events.needs-rock-plating");
-  // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.
-  if (id === "c:disabled-rock-ship:2" && !livingKin(g, "gel")) {
-    // Wiki citations:
-    // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
-    return tx("wiki.filler-events.needs-a-slug-crewmember");
   }
   m = id.match(/^s:improve-reactor-for-supplies:agree:(\d+):(\d+):(\d+)$/);
   if (m) {
@@ -3170,19 +3013,88 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
     if (g.player.parts < parts) return tx("wiki.filler-events.need-drone-parts", { parts: parts });
     if (g.fuel < fuel) return tx("wiki.filler-events.need-fuel-2", { fuel: fuel });
   }
-  if (id === "s:terraforming-scan:sensors" && sensorsLevel(g) < 2) return tx("wiki.filler-events.needs-sensors-level-2");
-  if (id === "s:terraforming-scan:zoltan" && !livingZoltan(g)) return tx("wiki.filler-events.needs-a-zoltan-crewmember");
-  if (id === "c:large-asteroid-field:2" && !g.augments.includes("hook")) return tx("wiki.filler-events.needs-a-scrap-recovery-arm");
+  // Giant alien spiders blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Pirate ship selling weapon. {{Blue Option|Mind Control}}.
+  // INFERRED: the refusal line. The page names Mind Control and does not print this sentence.
+  // Malfunctioning defense system blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Crushed pirate blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Unknown disease blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Plagued station. Improved Medbay level=2+. INFERRED: the refusal line. The page names the system and prints no refusal sentence.
+  // Fire on research station blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Single life form on moon blue options. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Confused Mantis blue options. INFERRED: the refusal line. The page names the crew or system and prints no sentence.
+  // Battlefield wreckage. Improved Sensors level=2. INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.
+  // Rebel fight chance. Improved Sensors level=2. INFERRED: the refusal line. The page names the system and prints no sentence.
+  // Rebel fight chance. Advanced Sensors level=3. INFERRED: the refusal line. The page names the system and prints no sentence.
+  // Rebel fight chance in nebula. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Advanced Sensors level=3 means at least that installed level.
+  // Wiki citations:
+  // > "(Advanced Sensors) Try to track them as you move to engage. (Requires level 3 Sensors)" — [[Rebel fight chance in nebula]]
+  // Wiki citations:
+  // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
+  // Wiki citations:
+  // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
+  // Wiki citations:
+  // > "Scrap lost: 55" — [[Slocknog]]
+  // Engi smashed ships. INFERRED: the refusal line. The page names an Engi crewmember.
+  // Mantis ships battle for Rock freighter. INFERRED: the refusal line. The page names the drone and prints no sentence.
+  // Wiki citations:
+  // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+  // Wiki citations:
+  // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+  // Wiki citations:
+  // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
+  // Rock live mine. INFERRED: the refusal line. The page names the gear and prints no sentence.
+  // Wiki citations:
+  // > "(Improved Engines) Reverse thrusters! (Requires level 5+ Engines)" — [[Rock live mine]]
+  // Wiki citations:
+  // > "(Missile Weapon) Attempt a controlled detonation using a missile. [ Icon missiles (cropped).png1 ] -- bugged: Hull Missile doesn't count" — [[Rock live mine]]
+  // Wiki citations:
+  // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+  // Wiki citations:
+  // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
+  // Lanius ship absorbing rebel base. INFERRED: the refusal line. The page names a Lanius crewmember.
+  // Wiki citations:
+  // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
+  // Lanius ship absorbing jump beacon. INFERRED: the refusal lines. The page names the crew and the drone and prints no sentence.
+  // Wiki citations:
+  // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
+  // Wiki citations:
+  // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
+  // Lanius ship attacking civilian distress. INFERRED: the refusal line. The page names a Lanius crewmember.
+  // Lanius craftsmen. {{Blue Option|Lanius Crew}}. INFERRED: the refusal line. The page names a Lanius crewmember.
+  // Wiki citations:
+  // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
+  // Wiki citations:
+  // > "Give 45 scrap to craft an augmentation." — [[Lanius craftsmen]]
+  // > "Scrap lost: 45" — [[Lanius craftsmen]]
+  // Wiki citations:
+  // > "Give 50 scrap to craft a weapon." — [[Lanius craftsmen]]
+  // > "Scrap lost: 50" — [[Lanius craftsmen]]
+  // Wiki citations:
+  // > "Give 40 scrap to craft a drone schematic." — [[Lanius craftsmen]]
+  // > "Scrap lost: 40" — [[Lanius craftsmen]]
+  // Wiki citations:
+  // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
+  // Nebula lost ship. Teleporter, and Long-Ranged Scanners. INFERRED: the refusal lines. The page names the gear.
+  // Plasma storm incapacitated ships. Piloting level 2+. INFERRED: the refusal line. The page names the system.
+  // Abandoned station. Clone Bay. INFERRED: the refusal line. The page names the system and prints no sentence.
+  // Rock and Slug standoff. INFERRED: the refusal line. The button shows the rolled 10-15 scrap.
+  // Wiki citations:
+  // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
+  // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
+  // Dense asteroid field distress. INFERRED: the refusal line. The page names Rock Plating and prints no sentence.
+  // Wiki citations:
+  // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
+  // Disabled Rock ship. INFERRED: the refusal line. The page names a Slug crewmember and prints no sentence.
+  // Wiki citations:
+  // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
   // Boarders: Humans jammed sensors, {{Blue Option|Hacking System|...|shortreq=Hacking}}.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:boarders-humans-jammed-sensors:1" && (g.player.kits.spike?.level ?? 0) <= 0) {
-    // Wiki citations:
-    // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
-    return tx("wiki.filler-events.needs-a-hacking-system");
-  }
+  // Wiki citations:
+  // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
   // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
-  if (id === "c:slaver-hostile:1" && (g.player.systems.engines?.level ?? 0) < 6) return tx("wiki.filler-events.needs-engines-level-6");
-  return null;
+  return ownedLock(g, id, FILLER_LOCKS);
 }
 
 /** The sector's "Empty beacon (...)" card ("Nothing happens."), for sim.ts eventFor's last resort. */

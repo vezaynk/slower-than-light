@@ -2,7 +2,16 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
 import { parsePack } from "./parse.ts";
-import { crewDef, emptyBeacon, eventDef, fillerList, loadPack, resetPackForTests, tuneDef, weaponDef } from "./registry.ts";
+import {
+  crewDef,
+  emptyBeacon,
+  eventDef,
+  fillerList,
+  loadPack,
+  resetPackForTests,
+  tuneDef,
+  weaponDef,
+} from "./registry.ts";
 import type { ContentPack, WeaponBlueprint } from "./types.ts";
 
 const laser: WeaponBlueprint = {
@@ -139,10 +148,45 @@ describe("pack document", () => {
 
   it("keeps a page body apart from its opening sentences", () => {
     const events = [
-      { id: "one", dest: "One", flag: "cited:one", aliases: [], sectors: [], body: "Only", choices: [] },
-      { id: "blank", dest: "Blank", flag: "cited:blank", aliases: [], sectors: [], body: "", texts: ["Alpha", "Beta"], choices: [] },
-      { id: "same", dest: "Same", flag: "cited:same", aliases: [], sectors: [], body: "Alpha", texts: ["Alpha", "Beta"], choices: [] },
-      { id: "aside", dest: "Aside", flag: "cited:aside", aliases: [], sectors: [], body: "Static", texts: ["Alpha", "Beta"], choices: [] },
+      {
+        id: "one",
+        dest: "One",
+        flag: "cited:one",
+        aliases: [],
+        sectors: [],
+        body: "Only",
+        choices: [],
+      },
+      {
+        id: "blank",
+        dest: "Blank",
+        flag: "cited:blank",
+        aliases: [],
+        sectors: [],
+        body: "",
+        texts: ["Alpha", "Beta"],
+        choices: [],
+      },
+      {
+        id: "same",
+        dest: "Same",
+        flag: "cited:same",
+        aliases: [],
+        sectors: [],
+        body: "Alpha",
+        texts: ["Alpha", "Beta"],
+        choices: [],
+      },
+      {
+        id: "aside",
+        dest: "Aside",
+        flag: "cited:aside",
+        aliases: [],
+        sectors: [],
+        body: "Static",
+        texts: ["Alpha", "Beta"],
+        choices: [],
+      },
     ];
     const xml = emitPack({ events });
     assert.deepEqual(parsePack(xml).events, events);
@@ -164,10 +208,33 @@ describe("pack document", () => {
         sectors: [],
         body: "Deal.",
         offers: [
-          { k: "trade" as const, pay: "parts" as const, cost: [1, 2] as [number, number], get: "fuel" as const, gain: [5, 10] as [number, number] },
-          { k: "fuel" as const, band: "high" as const, fuel: [0, 0] as [number, number], pay: "scrap" as const, amt: [15, 25] as [number, number] },
-          { k: "lanius" as const, band: "better" as const, res: "missiles" as const, cost: [3, 7] as [number, number], scrap: [25, 50] as [number, number] },
-          { k: "supply" as const, missiles: [3, 5] as [number, number], parts: [0, 2] as [number, number], fuel: [0, 0] as [number, number] },
+          {
+            k: "trade" as const,
+            pay: "parts" as const,
+            cost: [1, 2] as [number, number],
+            get: "fuel" as const,
+            gain: [5, 10] as [number, number],
+          },
+          {
+            k: "fuel" as const,
+            band: "high" as const,
+            fuel: [0, 0] as [number, number],
+            pay: "scrap" as const,
+            amt: [15, 25] as [number, number],
+          },
+          {
+            k: "lanius" as const,
+            band: "better" as const,
+            res: "missiles" as const,
+            cost: [3, 7] as [number, number],
+            scrap: [25, 50] as [number, number],
+          },
+          {
+            k: "supply" as const,
+            missiles: [3, 5] as [number, number],
+            parts: [0, 2] as [number, number],
+            fuel: [0, 0] as [number, number],
+          },
         ],
         choices: [{ id: "c:trade:0", label: "Take", fx: [{ k: "nothing" as const }] }],
       },
@@ -276,6 +343,63 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.body, "");
   });
 
+  it("round-trips choice locks and drops a lock with no refusal", () => {
+    const events = [
+      {
+        id: "locked",
+        dest: "Locked",
+        flag: "cited:locked",
+        aliases: [],
+        sectors: [],
+        body: "A button.",
+        cards: [
+          {
+            body: "Opening.",
+            choices: [
+              {
+                id: "c:locked:engi",
+                label: "Negotiate",
+                reqs: [{ k: "crew" as const, id: "shell", text: "Needs an Engi crewmember." }],
+              },
+            ],
+          },
+        ],
+        choices: [
+          {
+            id: "c:locked:go",
+            label: "Go",
+            reqs: [
+              { k: "band" as const, id: "engines", lo: 3, hi: 5, text: "Needs Engines level 3-5." },
+              { k: "stock" as const, id: "scrap", n: 10, text: "Need 10 scrap." },
+            ],
+            fx: [{ k: "nothing" as const }],
+          },
+        ],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<req k="crew" id="shell">Needs an Engi crewmember\.<\/req>/);
+    assert.match(xml, /<req k="band" id="engines" lo="3" hi="5">/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <req k="crew" id="shell"></req>
+          <req k="nope" id="shell">Nope.</req>
+          <req k="band" id="engines" lo="5" hi="3">Backwards.</req>
+          <req k="stock" id="scrap" n="1.5">Half.</req>
+          <req k="system" id="engines">No level.</req>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.choices[0]?.reqs, undefined);
+    assert.equal(broken.events?.[0]?.choices[0]?.fx.length, 1);
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>
@@ -285,7 +409,9 @@ describe("pack document", () => {
       <emptyBeacon name="kept" nebula="true"><title>Kept</title><sector>Ember</sector><text>Still.</text></emptyBeacon>
     </FTL>`);
     assert.deepEqual(back.lists, [{ id: "ember", entries: [{ id: "kept", unique: false }] }]);
-    assert.deepEqual(back.empties, [{ id: "kept", dest: "Kept", sectors: ["Ember"], texts: ["Still."], nebula: true }]);
+    assert.deepEqual(back.empties, [
+      { id: "kept", dest: "Kept", sectors: ["Ember"], texts: ["Still."], nebula: true },
+    ]);
   });
 
   it("round-trips names that contain markup characters", () => {

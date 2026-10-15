@@ -228,8 +228,20 @@ export type OfferPay = "parts" | "missiles" | "scrap";
  */
 export type OfferRow =
   | { k: "trade"; pay: OfferRes; cost: [number, number]; get: OfferRes; gain: [number, number] }
-  | { k: "fuel"; band: "high" | "pt2"; fuel: [number, number]; pay: OfferPay; amt: [number, number] }
-  | { k: "lanius"; band: "base" | "better"; res: OfferRes; cost: [number, number]; scrap: [number, number] }
+  | {
+      k: "fuel";
+      band: "high" | "pt2";
+      fuel: [number, number];
+      pay: OfferPay;
+      amt: [number, number];
+    }
+  | {
+      k: "lanius";
+      band: "base" | "better";
+      res: OfferRes;
+      cost: [number, number];
+      scrap: [number, number];
+    }
   | { k: "supply"; missiles: [number, number]; parts: [number, number]; fuel: [number, number] };
 
 /**
@@ -248,14 +260,34 @@ export type RollEntry =
  */
 export type EventCard = {
   body: string;
-  choices: { id: string; label: string }[];
+  choices: { id: string; label: string; reqs?: ChoiceReq[] }[];
 };
+
+/**
+ * One lock on a button, checked in order.
+ * The first failure's text is the refusal. The handler stays in code.
+ * A crew lock is a living crewmember of that race.
+ * A system lock is a minimum installed level. A band is an inclusive range.
+ * A family is missile, ion, or beam. A drone id selects that schematic's own check.
+ * A stock lock is scrap, missiles, fuel, or drone parts when the price is not already an effect.
+ */
+export type ChoiceReq =
+  | { k: "crew"; id: string; text: string }
+  | { k: "system"; id: string; level: number; text: string }
+  | { k: "band"; id: string; lo: number; hi: number; text: string }
+  | { k: "augment"; id: string; text: string }
+  | { k: "weapon"; id: string; text: string }
+  | { k: "family"; id: string; text: string }
+  | { k: "drone"; id: string; text: string }
+  | { k: "stock"; id: string; n: number; text: string };
 
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
   label: string;
   fx: EventEffect[];
+  /** Locks checked in order. The first failure's text is the refusal. */
+  reqs?: ChoiceReq[];
 };
 
 /** What a scripted surrender hands over. The sim still rolls the amounts. */

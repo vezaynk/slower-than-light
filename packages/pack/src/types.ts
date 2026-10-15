@@ -260,8 +260,15 @@ export type RollEntry =
  */
 export type EventCard = {
   body: string;
-  choices: { id: string; label: string; reqs?: ChoiceReq[] }[];
+  choices: { id: string; label: string; reqs?: ChoiceReq[]; gift?: ChoiceGift }[];
 };
+
+/**
+ * Fuel this button pays when its handler grants the gift.
+ * A fixed amount has the same ends, and that grant does not roll.
+ * A positive resource effect is a separate payment and stays on the choice.
+ */
+export type ChoiceGift = { k: "fuel"; lo: number; hi: number };
 
 /**
  * One lock on a button, checked in order.
@@ -288,6 +295,8 @@ export type EventChoice = {
   fx: EventEffect[];
   /** Locks checked in order. The first failure's text is the refusal. */
   reqs?: ChoiceReq[];
+  /** Fuel the handler pays. A positive resource effect is a different payment. */
+  gift?: ChoiceGift;
 };
 
 /** What a scripted surrender hands over. The sim still rolls the amounts. */

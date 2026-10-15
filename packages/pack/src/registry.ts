@@ -1,5 +1,6 @@
 import type {
   AugmentDef,
+  ChoiceGift,
   ChoiceReq,
   ContentPack,
   CrewDef,
@@ -132,9 +133,14 @@ function copyReq(req: ChoiceReq): ChoiceReq {
   return { k: req.k, id: req.id, text: req.text };
 }
 
+function copyGift(gift: ChoiceGift): ChoiceGift {
+  return { k: "fuel", lo: gift.lo, hi: gift.hi };
+}
+
 function copyChoice(choice: EventChoice): EventChoice {
   const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
   if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+  if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
   return copy;
 }
 
@@ -209,6 +215,7 @@ function copyCard(row: EventCard): EventCard {
     choices: row.choices.map((choice) => {
       const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
       if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+      if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
       return copy;
     }),
   };

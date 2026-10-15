@@ -40,6 +40,7 @@ import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { QUEST_LOCKS } from "./choice-reqs.ts";
+import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
@@ -1193,7 +1194,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:pirate-smuggler:bribe": (g) => {
     const offer = scrapOnly(g, "medium");
-    offer.fuel = between(g, [2, 4]);
+    offer.fuel = rollFuel("q:pirate-smuggler:bribe", (lo, hi) => between(g, [lo, hi]));
     result(g, tx("wiki.quests.you-receive-medium-fuel-and-scrap"), offer);
   },
   "q:pirate-smuggler:attack": (g) => {
@@ -1502,7 +1503,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "s:garbled-dock:signal": (g) => {
     const kind = pick(g, ["abandoned", "trap", "breach"] as const);
     if (kind === "abandoned") {
-      const n = between(g, [3, 5]);
+      const n = rollFuel("s:garbled-dock:signal", (lo, hi) => between(g, [lo, hi]));
       g.fuel += n;
       log(g, tx("wiki.quests.fuel-3", { n: n }));
       card(g, tx("wiki.quests.no-one-answers-your-hails-you"), [
@@ -1545,7 +1546,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Blast Doors, level 2+. questChoose already skips this when the requirement fails.
   "s:garbled-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
-    g.fuel += 5;
+    g.fuel += rollFuel("s:garbled-dock:doors", (lo, hi) => between(g, [lo, hi]));
     log(g, tx("wiki.quests.fuel-5"));
     result(g, tx("wiki.quests.your-reinforced-doors-save-you-from"));
   },
@@ -1556,7 +1557,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Improved Sensors, level 2. The button stays on the abandoned card. questChoose skips a ship that is short.
   "s:garbled-dock:sensors2": (g) => {
     if (sensors(g) < 2) return;
-    const n = between(g, [1, 3]);
+    const n = rollFuel("s:garbled-dock:sensors2", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
     log(g, tx("wiki.quests.fuel-3", { n: n }));
     result(g, tx("wiki.quests.you-run-an-additional-more-focused"));
@@ -1564,7 +1565,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Advanced Sensors, level 3. Same label as the level-2 scan. A level-3 ship may take either; neither is picked for it.
   "s:garbled-dock:sensors3": (g) => {
     if (sensors(g) < 3) return;
-    const fuel = between(g, [2, 3]);
+    const fuel = rollFuel("s:garbled-dock:sensors3", (lo, hi) => between(g, [lo, hi]));
     const parts = between(g, [1, 3]);
     g.fuel += fuel;
     g.player.parts += parts;
@@ -1622,7 +1623,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const n = between(g, [5, 10]);
     if (g.scrap < n) return;
     g.scrap -= n;
-    g.fuel += 5;
+    g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
     log(g, tx("wiki.quests.scrap-3", { n: n }));
     log(g, tx("wiki.quests.fuel-5"));
     result(g, tx("wiki.quests.you-receive-5-fuel"), undefined, [tx("wiki.quests.scrap-3", { n: n }), tx("wiki.quests.fuel-5")]);
@@ -1631,7 +1632,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     result(g, tx("wiki.quests.nothing-happens"));
   },
   "s:refuel-dock:steal": (g) => {
-    const n = between(g, [3, 5]);
+    const n = rollFuel("s:refuel-dock:steal", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
     log(g, tx("wiki.quests.fuel-3", { n: n }));
     result(g, tx("wiki.quests.if-you-take-the-fuel-at"), undefined, [tx("wiki.quests.fuel-3", { n: n })]);
@@ -1642,7 +1643,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Quickly dock. Two printed results and no odds. INFERRED: equal.
   "s:refuel-dock:quick": (g) => {
     if (pick(g, ["safe", "boom"] as const) === "safe") {
-      g.fuel += 5;
+      g.fuel += rollFuel("s:refuel-dock:quick", (lo, hi) => between(g, [lo, hi]));
       log(g, tx("wiki.quests.fuel-5"));
       result(g, tx("wiki.quests.you-re-able-to-safely-refuel"), undefined, [tx("wiki.quests.fuel-5")]);
       return;
@@ -1670,7 +1671,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:refuel-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
-    g.fuel += 5;
+    g.fuel += rollFuel("s:refuel-dock:doors", (lo, hi) => between(g, [lo, hi]));
     log(g, tx("wiki.quests.fuel-5"));
     result(g, tx("wiki.quests.pirates-hidden-on-the-station-are"), undefined, [tx("wiki.quests.fuel-5")]);
   },
@@ -1986,7 +1987,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Rebel ship attacking refueling outpost. "Contact the outpost." Medium fuel (tooltip 2-4) and medium scrap.
   "q:refuel-outpost:contact": (g) => {
     const offer = scrapOnly(g, "medium");
-    offer.fuel = between(g, [2, 4]);
+    offer.fuel = rollFuel("q:refuel-outpost:contact", (lo, hi) => between(g, [lo, hi]));
     result(
       g,
       tx("wiki.quests.the-outpost-hails-you-the-pompous"),
@@ -2150,7 +2151,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions." — [[Zoltan security checkpoint]]
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if (!hasSlug(g)) return;
-    zoltanCheckpointFuel(g, tx("wiki.quests.you-give-the-guards-permission-to"));
+    zoltanCheckpointFuel(g, "c:zoltan-security-checkpoint:2", tx("wiki.quests.you-give-the-guards-permission-to"));
   },
   // {{Blue Option|Mind Control}}. Medium fuel, 2-4.
   "c:zoltan-security-checkpoint:3": (g) => {
@@ -2159,7 +2160,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass." — [[Zoltan security checkpoint]]
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if ((g.player.kits.leash?.level ?? 0) <= 0) return;
-    zoltanCheckpointFuel(g, tx("wiki.quests.the-captain-of-the-guard-appears"));
+    zoltanCheckpointFuel(g, "c:zoltan-security-checkpoint:3", tx("wiki.quests.the-captain-of-the-guard-appears"));
   },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
@@ -2642,7 +2643,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:loyalists:medbot": (g) => {
     // "a crewmember with 1 skill in shields, and high (3-6 fuel) fuel and scrap" (Rewards, "Fuel": T fuel & T scrap).
     const offer = scrapOnly(g, "high");
-    offer.fuel = between(g, [3, 6]);
+    offer.fuel = rollFuel("q:loyalists:medbot", (lo, hi) => between(g, [lo, hi]));
     result(g, tx("wiki.quests.you-drag-the-injured-and-dying"), offer, [crew(g, randomRace(g), "shields")]);
   },
   "q:loyalists:teleport": (g) => {
@@ -3514,8 +3515,8 @@ function mantisSlugFinish(g: Game) {
 }
 
 /** Zoltan security checkpoint. Medium fuel is 2-4. */
-function zoltanCheckpointFuel(g: Game, text: string) {
-  const n = between(g, [2, 4]);
+function zoltanCheckpointFuel(g: Game, id: string, text: string) {
+  const n = rollFuel(id, (lo, hi) => between(g, [lo, hi]));
   g.fuel += n;
   log(g, tx("wiki.quests.fuel-3", { n: n }));
   result(g, text, undefined, [tx("wiki.quests.fuel-3", { n: n })]);

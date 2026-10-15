@@ -6,6 +6,7 @@ import {
 } from "@xmldom/xmldom";
 import type {
   AugmentDef,
+  ChoiceGift,
   ChoiceReq,
   ContentPack,
   CrewDef,
@@ -61,7 +62,9 @@ const HEADER = `
   A card tag is one whole opening the page draws. The sim still draws one with between.
   The buttons on that opening stay handlers in code.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
-  A choice is its id, label, effects, and req locks. A req is checked in order and its text is the refusal.
+  A choice is its id, label, effects, req locks, and an optional fuel gift.
+  A req is checked in order and its text is the refusal.
+  A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -158,6 +161,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
     const choiceNode = element(doc, "choice", { name: choice.id });
     add(choiceNode, leaf(doc, "text", choice.label), 3);
     for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req), 3);
+    if (choice.gift) add(choiceNode, giftElement(doc, choice.gift), 3);
     for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx), 3);
     end(choiceNode, 2);
     add(node, choiceNode, 2);
@@ -211,7 +215,7 @@ function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
   const node = element(doc, "card", {});
   add(node, leaf(doc, "text", card.body), 3);
   for (const choice of card.choices)
-    add(node, choiceElement(doc, choice.id, choice.label, 3, choice.reqs), 3);
+    add(node, choiceElement(doc, choice.id, choice.label, 3, choice.reqs, choice.gift), 3);
   end(node, 2);
   return node;
 }
@@ -260,12 +264,18 @@ function choiceElement(
   label: string,
   depth: number,
   reqs?: ChoiceReq[],
+  gift?: ChoiceGift,
 ): XmlElement {
   const node = element(doc, "choice", { name: id });
   add(node, leaf(doc, "text", label), depth + 1);
   for (const req of reqs ?? []) add(node, reqElement(doc, req), depth + 1);
+  if (gift) add(node, giftElement(doc, gift), depth + 1);
   end(node, depth);
   return node;
+}
+
+function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
+  return element(doc, "gift", { k: gift.k, lo: num(gift.lo), hi: num(gift.hi) });
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {

@@ -30,8 +30,8 @@ import { QUEST_PAGES } from "./quest-arrivals.ts";
 
 /**
  * A cited page before it is a pack record. `slug` is the pack id.
- * A quest marker, its arrival page, and a fight page's surrender offer are records.
- * Filler lists and fight endings stay procedures.
+ * A quest marker, its arrival page, a fight page's surrender offer, and a filler opening card are records.
+ * Choice handlers and rolled intros stay procedures.
  */
 export type CitedEventRow = {
   dest: string;

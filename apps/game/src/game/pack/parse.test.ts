@@ -211,9 +211,25 @@ const XML = `
   <choice>
     <text>No name</text>
   </choice>
+  <surrender chance="100" low="0" high="40" continues="true" forced="true" quest="ember-quest">
+    <text>Yield.</text>
+    <text>Please.</text>
+    <reward k="weapon" name="Anti-Bio Beam"/>
+    <result>They leave.</result>
+    <choice name="surrender-accept"><text>Spare them</text></choice>
+    <choice name="surrender-refuse">Finish them</choice>
+    <choice name="s:ember:info">Ask</choice>
+    <card>
+      <text>Next.</text>
+      <choice name="s:ember:go">Go</choice>
+    </card>
+  </surrender>
 </eventBlueprint>
 <eventBlueprint name="bareevent">
   <title></title>
+  <surrender chance="1" low="1" high="1">
+    <reward k="nope"/>
+  </surrender>
 </eventBlueprint>
 <eventBlueprint>
   <title>No name</title>
@@ -246,7 +262,21 @@ describe("parsePack", () => {
     assert.deepEqual(emberEvent?.choices[0]?.fx[3], { k: "quest", id: "ember-quest" });
     assert.deepEqual(emberEvent?.choices[0]?.fx[4], { k: "goto", id: "ember-next" });
     assert.deepEqual(emberEvent?.choices[0]?.fx[5], { k: "close" });
+    assert.equal(emberEvent?.surrender?.continues, true);
+    assert.equal(emberEvent?.surrender?.forced, true);
+    assert.equal(emberEvent?.surrender?.chance, 100);
+    assert.equal(emberEvent?.surrender?.low, 0);
+    assert.equal(emberEvent?.surrender?.high, 40);
+    assert.deepEqual(emberEvent?.surrender?.hails, ["Yield.", "Please."]);
+    assert.deepEqual(emberEvent?.surrender?.reward, { k: "weapon", name: "Anti-Bio Beam" });
+    assert.equal(emberEvent?.surrender?.accept, "Spare them");
+    assert.equal(emberEvent?.surrender?.refuse, "Finish them");
+    assert.equal(emberEvent?.surrender?.extra?.id, "s:ember:info");
+    assert.equal(emberEvent?.surrender?.quest, "ember-quest");
+    assert.equal(emberEvent?.surrender?.card?.body, "Next.");
+    assert.equal(emberEvent?.surrender?.card?.choices[0]?.label, "Go");
     assert.equal(pack.events?.[1]?.id, "bareevent");
+    assert.equal(pack.events?.[1]?.surrender, undefined);
     assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
     assert.equal(pack.events?.[1]?.dest, "bareevent");
     loadPack(pack, "append");

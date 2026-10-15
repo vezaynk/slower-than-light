@@ -1,4 +1,5 @@
 import type { EventChoice, EventDef, EventEffect } from "@stl/pack";
+import { offerFromScripted, SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
 import { CORE_EVENTS } from "./cited-events-core.ts";
 import { EXTRA_EVENTS as AUTO_EVENTS } from "./cited-events-auto.ts";
 import { EXTRA_EVENTS as CIVILIAN_AL } from "./cited-events-civilian-al.ts";
@@ -29,7 +30,8 @@ import { QUEST_PAGES } from "./quest-arrivals.ts";
 
 /**
  * A cited page before it is a pack record. `slug` is the pack id.
- * A quest marker and its arrival page are records. Surrender offers, filler lists, and fight endings stay procedures.
+ * A quest marker, its arrival page, and a fight page's surrender offer are records.
+ * Filler lists and fight endings stay procedures.
  */
 export type CitedEventRow = {
   dest: string;
@@ -116,9 +118,9 @@ export const CITED_EVENT_ROWS: CitedEventRow[] = [
   ...QUEST_PAGES,
 ].map(copyRow);
 
-/** Pack records for the cited pages. The id is the page slug. */
+/** Pack records for the cited pages. The id is the page slug. Each scripted offer is copied onto that slug. */
 export function citedEventRecords(): EventDef[] {
-  return CITED_EVENT_ROWS.map((ev) => ({
+  const records: EventDef[] = CITED_EVENT_ROWS.map((ev) => ({
     id: ev.slug,
     dest: ev.dest,
     flag: ev.flag,
@@ -131,4 +133,25 @@ export function citedEventRecords(): EventDef[] {
       fx: choice.fx.map(copyEffect),
     })),
   }));
+  const byId = new Map(records.map((row) => [row.id, row]));
+  const holders: EventDef[] = [];
+  for (const [id, row] of Object.entries(SCRIPTED_SURRENDERS)) {
+    const surrender = offerFromScripted(row);
+    const existing = byId.get(id);
+    if (existing) {
+      existing.surrender = surrender;
+      continue;
+    }
+    holders.push({
+      id,
+      dest: row.page,
+      flag: `surrender:${id}`,
+      aliases: [],
+      sectors: [],
+      body: "",
+      choices: [],
+      surrender,
+    });
+  }
+  return holders.length ? [...records, ...holders] : records;
 }

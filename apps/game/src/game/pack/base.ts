@@ -12,7 +12,7 @@ import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, EventDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, EventDef, HullDef, HullKitDef, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -72,8 +72,33 @@ function tuneRow(row: TuneDef): TuneDef {
   return { id: row.id, start: row.start, costs: row.costs.map((step) => ({ ...step })) };
 }
 
+function surrenderRow(row: SurrenderOfferDef): SurrenderOfferDef {
+  const copy: SurrenderOfferDef = {
+    chance: row.chance,
+    low: row.low,
+    high: row.high,
+    reward: { ...row.reward },
+    hail: row.hail,
+    accept: row.accept,
+    refuse: row.refuse,
+  };
+  if (row.hails) copy.hails = [...row.hails];
+  if (row.continues) copy.continues = true;
+  if (row.forced) copy.forced = true;
+  if (row.quest) copy.quest = row.quest;
+  if (row.result) copy.result = row.result;
+  if (row.extra) copy.extra = { id: row.extra.id, label: row.extra.label };
+  if (row.card) {
+    copy.card = {
+      body: row.card.body,
+      choices: row.card.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+  }
+  return copy;
+}
+
 function eventRow(row: EventDef): EventDef {
-  return {
+  const copy: EventDef = {
     id: row.id,
     dest: row.dest,
     flag: row.flag,
@@ -86,6 +111,8 @@ function eventRow(row: EventDef): EventDef {
       fx: choice.fx.map((fx) => ({ ...fx })),
     })),
   };
+  if (row.surrender) copy.surrender = surrenderRow(row.surrender);
+  return copy;
 }
 
 function hullRow(spec: HullSpec): HullDef {

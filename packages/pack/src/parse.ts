@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, EventResource, EventTier, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -432,7 +432,12 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const aliases: string[] = [];
   const sectors: string[] = [];
   const choices: EventChoice[] = [];
+  let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
+    if (item.tagName === "surrender") {
+      surrender = readSurrender(item);
+      continue;
+    }
     if (item.tagName === "alias") {
       const text = ownText(item).trim();
       if (text) aliases.push(text);
@@ -454,7 +459,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
     }
     choices.push({ id: choiceId, label: textOf(item, "text") ?? choiceId, fx });
   }
-  return {
+  const event: EventDef = {
     id,
     dest: textOf(node, "title") ?? id,
     flag: attr(node, "flag")?.trim() || `cited:${id}`,
@@ -463,6 +468,111 @@ function readEvent(node: XmlElement): EventDef | undefined {
     body: textOf(node, "text") ?? "",
     choices,
   };
+  if (surrender) event.surrender = surrender;
+  return event;
+}
+
+function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
+  const chance = attrNum(node.getAttribute("chance"));
+  const low = attrNum(node.getAttribute("low"));
+  const high = attrNum(node.getAttribute("high"));
+  const rewardNode = child(node, "reward");
+  const reward = rewardNode ? readReward(rewardNode) : undefined;
+  const hails = elements(node)
+    .filter((item) => item.tagName === "text")
+    .map((item) => ownText(item).trim())
+    .filter((text) => text.length > 0);
+  const accept = readNamedChoice(node, "surrender-accept");
+  if (chance == null || low == null || high == null || !reward || hails.length === 0 || !accept) return undefined;
+  const offer: SurrenderOfferDef = {
+    chance,
+    low,
+    high,
+    reward,
+    hail: hails[0]!,
+    accept: accept.label,
+    refuse: readNamedChoice(node, "surrender-refuse")?.label ?? "",
+  };
+  if (hails.length > 1) offer.hails = hails;
+  if (node.getAttribute("continues") === "true") offer.continues = true;
+  if (node.getAttribute("forced") === "true") offer.forced = true;
+  const quest = attr(node, "quest")?.trim();
+  if (quest) offer.quest = quest;
+  const result = textOf(node, "result");
+  if (result) offer.result = result;
+  const extra = elements(node).find(
+    (item) => item.tagName === "choice" && attr(item, "name")?.trim() && attr(item, "name") !== "surrender-accept" && attr(item, "name") !== "surrender-refuse",
+  );
+  if (extra) {
+    const id = attr(extra, "name")?.trim();
+    if (id) offer.extra = { id, label: choiceLabel(extra, id) };
+  }
+  const cardNode = child(node, "card");
+  if (cardNode) {
+    const body = textOf(cardNode, "text") ?? ownText(cardNode).trim();
+    const choices = elements(cardNode)
+      .filter((item) => item.tagName === "choice")
+      .flatMap((item) => {
+        const id = attr(item, "name")?.trim();
+        return id ? [{ id, label: choiceLabel(item, id) }] : [];
+      });
+    if (body) offer.card = { body, choices };
+  }
+  return offer;
+}
+
+function readNamedChoice(node: XmlElement, name: string): SurrenderChoice | undefined {
+  const found = elements(node).find((item) => item.tagName === "choice" && attr(item, "name") === name);
+  if (!found) return undefined;
+  return { id: name, label: choiceLabel(found, name) };
+}
+
+function choiceLabel(node: XmlElement, fallback: string): string {
+  return textOf(node, "text") ?? (ownText(node).trim() || fallback);
+}
+
+function readReward(node: XmlElement): SurrenderReward | undefined {
+  const kind = attr(node, "k");
+  if (kind === "none") return { k: "none" };
+  if (kind === "crew") {
+    const race = attr(node, "race")?.trim();
+    return race ? { k: "crew", race } : { k: "crew" };
+  }
+  if (kind === "stuff") {
+    const tier = attr(node, "tier");
+    if (!tier) return { k: "stuff" };
+    if (!isTier(tier)) return undefined;
+    return { k: "stuff", tier };
+  }
+  if (kind === "fuel-repairs") {
+    const repairs = attrNum(node.getAttribute("repairs"));
+    if (repairs == null) return undefined;
+    return { k: "fuel-repairs", repairs };
+  }
+  if (kind === "weapon") {
+    const name = attr(node, "name")?.trim();
+    if (!name) return undefined;
+    return { k: "weapon", name };
+  }
+  if (kind === "standard") {
+    const tier = attr(node, "tier");
+    if (!isTier(tier)) return undefined;
+    const race = attr(node, "race")?.trim();
+    return race ? { k: "standard", tier, race } : { k: "standard", tier };
+  }
+  if (kind === "scrap") {
+    const tier = attr(node, "tier");
+    if (!isTier(tier)) return undefined;
+    const unnamed = attr(node, "unnamed");
+    if (!unnamed) return { k: "scrap", tier };
+    if (!isItem(unnamed)) return undefined;
+    return { k: "scrap", tier, unnamed };
+  }
+  return undefined;
+}
+
+function isItem(value: string): value is EventItem {
+  return value === "weapon" || value === "augment" || value === "drone";
 }
 
 function readEffect(node: XmlElement): EventEffect | undefined {

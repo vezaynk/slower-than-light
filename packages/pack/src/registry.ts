@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -101,8 +101,33 @@ function copyChoice(choice: EventChoice): EventChoice {
   return { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
 }
 
+function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
+  const copy: SurrenderOfferDef = {
+    chance: row.chance,
+    low: row.low,
+    high: row.high,
+    reward: { ...row.reward },
+    hail: row.hail,
+    accept: row.accept,
+    refuse: row.refuse,
+  };
+  if (row.hails) copy.hails = [...row.hails];
+  if (row.continues) copy.continues = true;
+  if (row.forced) copy.forced = true;
+  if (row.quest) copy.quest = row.quest;
+  if (row.result) copy.result = row.result;
+  if (row.extra) copy.extra = { id: row.extra.id, label: row.extra.label };
+  if (row.card) {
+    copy.card = {
+      body: row.card.body,
+      choices: row.card.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+  }
+  return copy;
+}
+
 function copyEvent(row: EventDef): EventDef {
-  return {
+  const copy: EventDef = {
     id: row.id,
     dest: row.dest,
     flag: row.flag,
@@ -111,6 +136,8 @@ function copyEvent(row: EventDef): EventDef {
     body: row.body,
     choices: row.choices.map(copyChoice),
   };
+  if (row.surrender) copy.surrender = copySurrender(row.surrender);
+  return copy;
 }
 
 function copyHull(row: HullDef): HullDef {

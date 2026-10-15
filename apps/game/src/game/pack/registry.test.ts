@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
+import { HULLS } from "../hulls.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
-import { allAugments, allDrones, allSystems, allWeapons, augmentDef, crewDef, droneDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allHulls, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
+import type { HullDef } from "./types.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
 afterEach(() => resetPackForTests());
@@ -132,6 +134,56 @@ describe("content pack", () => {
     resetPackForTests();
     assert.equal(systemDef("spark"), undefined);
     assert.equal(systemDef("shields")?.cost, CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost);
+  });
+
+  it("loads the hull catalog in its authored order", () => {
+    assert.deepEqual(
+      allHulls().map((row) => row.id),
+      HULLS.map((row) => row.id),
+    );
+    const kestrel = HULLS.find((row) => row.id === "kestrel-a");
+    const packed = hullDef("kestrel-a");
+    assert.equal(packed?.name, kestrel?.name);
+    assert.equal(packed?.reactor, kestrel?.reactor);
+    assert.deepEqual(packed?.weapons, kestrel?.weapons);
+    assert.deepEqual(packed?.crew, kestrel?.crew);
+    assert.deepEqual(packed?.systems, kestrel?.systems);
+    assert.deepEqual(packed?.kits, kestrel?.kits);
+  });
+
+  it("keeps a hull id apart from a race, a weapon, an augment, a drone, and a system", () => {
+    const ember: HullDef = {
+      id: "spark",
+      cruiser: "Spark",
+      layout: "C",
+      name: "Not the laser",
+      quote: "",
+      unlock: "",
+      source: "",
+      reactor: 4,
+      fuel: 1,
+      missiles: 0,
+      parts: 0,
+      systems: {},
+      weapons: [],
+      crew: [],
+      kits: {},
+      augments: [],
+      unfitted: [],
+    };
+    loadPack({ hulls: [ember] }, "append");
+    assert.equal(hullDef("spark")?.name, "Not the laser");
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(droneDef("spark"), undefined);
+    assert.equal(systemDef("spark"), undefined);
+    assert.equal(allHulls().at(-1)?.id, "spark");
+    const campaign = HULLS.find((row) => row.id === "kestrel-a");
+    resetPackForTests();
+    assert.equal(hullDef("spark"), undefined);
+    assert.equal(hullDef("kestrel-a")?.name, campaign?.name);
+    assert.equal(hullDef("kestrel-a")?.reactor, campaign?.reactor);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

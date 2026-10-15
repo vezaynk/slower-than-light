@@ -1,8 +1,12 @@
 import { tx } from "@/i18n";
 import { type ReactNode } from "react";
-import { hullById } from "@/game/hulls";
+import "@/game/pack/base";
+import { hullDef } from "@/game/pack/registry";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
+
+/** Kits a hull can seat. Any other id stays on the blueprint and does not take a room. */
+const INSTALLABLE_KITS = new Set<string>(["veil", "sling", "spike", "swarm", "leash", "cradle", "cell", "lance", "flak"]);
 import { DoorTicks } from "./DoorTicks";
 import { HullPlate } from "./HullPlate";
 
@@ -251,7 +255,7 @@ export function PixelLayout({ id }: { id: string }) {
   const kind = id.replace(/-[a-c]$/, "");
   // Kit rooms: the hull's starting kits sit in their rooms (layouts.ts seatLayout), as they do in a fight.
   const raw = layoutFor(id);
-  const kits = Object.keys(hullById(id)?.kits ?? {}) as KitId[];
+  const kits = Object.keys(hullDef(id)?.kits ?? {}).filter((kit): kit is KitId => INSTALLABLE_KITS.has(kit));
   const layout = raw ? seatLayout(raw, kits) : undefined;
   return (
     <div className="pixel-figure">

@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, systemDef, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -99,18 +99,66 @@ const XML = `
   <cost>4</cost>
   <slot>kit</slot>
 </systemBlueprint>
+<shipBlueprint name="emberhull" layout="B">
+  <class>Ember Cruiser</class>
+  <title>The Ember</title>
+  <desc>A warm hull.</desc>
+  <unlock>Find it.</unlock>
+  <source>Ember page</source>
+  <reactor>9</reactor>
+  <fuel>4</fuel>
+  <missiles>1</missiles>
+  <parts>3</parts>
+  <health amount="30"/>
+  <systemList>
+    <system name="shields">
+      <level>2</level>
+      <power>1</power>
+      <maxPower>4</maxPower>
+    </system>
+  </systemList>
+  <weaponList>
+    <weapon>lineburst</weapon>
+  </weaponList>
+  <crewList>
+    <crewMember kin="plain" room="p-pilot"/>
+  </crewList>
+  <kitList>
+    <kit name="veil">
+      <level>1</level>
+      <power>0</power>
+      <on>false</on>
+      <loadout>
+        <schematic>patch</schematic>
+      </loadout>
+    </kit>
+  </kitList>
+  <augmentList>
+    <augment>zshield</augment>
+  </augmentList>
+  <unfitted>
+    <item>Spare</item>
+  </unfitted>
+</shipBlueprint>
+<shipBlueprint name="barehull">
+  <reactor>0</reactor>
+</shipBlueprint>
+<shipBlueprint>
+  <title>No name</title>
+</shipBlueprint>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, and system tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, and hull tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
     assert.equal(pack.augments?.length, 2);
     assert.equal(pack.drones?.length, 2);
     assert.equal(pack.systems?.length, 2);
+    assert.equal(pack.hulls?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -181,6 +229,34 @@ describe("parsePack", () => {
     assert.equal(bareSys?.cost, 0);
     assert.equal(bareSys?.slot, "sys");
     assert.equal(systemDef("No name"), undefined);
+
+    const emberHull = hullDef("emberhull");
+    assert.equal(emberHull?.name, "The Ember");
+    assert.equal(emberHull?.cruiser, "Ember Cruiser");
+    assert.equal(emberHull?.layout, "B");
+    assert.equal(emberHull?.quote, "A warm hull.");
+    assert.equal(emberHull?.unlock, "Find it.");
+    assert.equal(emberHull?.source, "Ember page");
+    assert.equal(emberHull?.reactor, 9);
+    assert.equal(emberHull?.fuel, 4);
+    assert.equal(emberHull?.missiles, 1);
+    assert.equal(emberHull?.parts, 3);
+    assert.deepEqual(emberHull?.systems.shields, [2, 1]);
+    assert.deepEqual(emberHull?.weapons, ["lineburst"]);
+    assert.deepEqual(emberHull?.crew, [{ kin: "plain", room: "p-pilot" }]);
+    assert.equal(emberHull?.kits.veil?.level, 1);
+    assert.equal(emberHull?.kits.veil?.on, false);
+    assert.deepEqual(emberHull?.kits.veil?.loadout, ["patch"]);
+    assert.deepEqual(emberHull?.augments, ["zshield"]);
+    assert.deepEqual(emberHull?.unfitted, ["Spare"]);
+    const bareHull = hullDef("barehull");
+    assert.equal(bareHull?.name, "barehull");
+    assert.equal(bareHull?.layout, "A");
+    assert.equal(bareHull?.cruiser, "");
+    assert.equal(bareHull?.reactor, 0);
+    assert.deepEqual(bareHull?.weapons, []);
+    assert.deepEqual(bareHull?.crew, []);
+    assert.equal(hullDef("No name"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

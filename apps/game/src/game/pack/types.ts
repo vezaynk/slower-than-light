@@ -79,10 +79,56 @@ export type SystemDef = {
   slot: SystemSlot;
 };
 
+/** A hangar layout letter. Room tiles stay in the layout tables. */
+export type HullLayout = "A" | "B" | "C";
+
+/** One starting crew seat. The kin id is a crew-pack id. */
+export type HullCrewDef = {
+  kin: string;
+  room: string;
+};
+
+/**
+ * A kit fitted at the start of a run.
+ * Power and the effect stay in the kit code. An id the ship cannot install is stored and then skipped.
+ */
+export type HullKitDef = {
+  level: number;
+  power: number;
+  target?: string | null;
+  loadout?: string[];
+  on?: boolean;
+};
+
+/**
+ * A player hull. Levels and starting cargo are the record.
+ * Unlock gates, room geometry, and system effects stay in code.
+ */
+export type HullDef = {
+  id: string;
+  cruiser: string;
+  layout: HullLayout;
+  name: string;
+  quote: string;
+  unlock: string;
+  source: string;
+  reactor: number;
+  fuel: number;
+  missiles: number;
+  parts: number;
+  systems: Record<string, [number, number]>;
+  weapons: string[];
+  crew: HullCrewDef[];
+  kits: Record<string, HullKitDef>;
+  augments: string[];
+  unfitted: string[];
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
   augments?: AugmentDef[];
   drones?: DroneDef[];
   systems?: SystemDef[];
+  hulls?: HullDef[];
 };

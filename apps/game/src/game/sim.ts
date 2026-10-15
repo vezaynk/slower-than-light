@@ -71,7 +71,7 @@ import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look
 import "./pack/base.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
 import type { WeaponBlueprint } from "./pack/types.ts";
-import { allWeapons, crewDef, weaponDef } from "./pack/registry.ts";
+import { allWeapons, crewDef, hullDef, weaponDef } from "./pack/registry.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
 import {
@@ -88,7 +88,7 @@ import { chainChargeSeconds, chainIonAmount, isChainWeapon, nextChainStep } from
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
-import { hullById } from "./hulls.ts";
+
 import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
 import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
@@ -295,7 +295,7 @@ function blankSystem(level: number, power: number): SystemState {
   return { level, power, damage: 0, ion: [], fix: 0 };
 }
 
-function systems(levels: Partial<Record<SysId, [number, number]>>): Record<SysId, SystemState> {
+function systems(levels: Partial<Record<string, [number, number]>>): Record<SysId, SystemState> {
   const out = {} as Record<SysId, SystemState>;
   for (const id of ALL_SYS) {
     const pair = levels[id] ?? [0, 0];
@@ -5958,8 +5958,21 @@ function tierFor(_g: Game, _exit: boolean): string {
   return "pool";
 }
 
+/** Kits a hull can install. Any other id stays on the blueprint and does not grow a room. */
+const INSTALLABLE_KITS: ReadonlySet<string> = new Set<KitId>([
+  "veil",
+  "sling",
+  "spike",
+  "swarm",
+  "leash",
+  "cradle",
+  "cell",
+  "lance",
+  "flak",
+]);
+
 function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
-  const spec = hullById(id);
+  const spec = hullDef(id);
   if (!spec) return;
   // Shared grid from makePlayer. Cruiser pages do not publish tile coordinates.
   const ship = makePlayer();
@@ -5985,9 +5998,10 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   }
   ship.kits = {};
   for (const [kitId, kit] of Object.entries(spec.kits)) {
-    if (!kit) continue;
+    if (!kit || !INSTALLABLE_KITS.has(kitId)) continue;
+    const fittedId = kitId as KitId;
     const fitted: Kit = {
-      id: kitId as KitId,
+      id: fittedId,
       level: kit.level,
       power: kit.power,
       left: 0,
@@ -5996,12 +6010,12 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       // Cloaking, the Teleporter, Mind Control, Hacking and the Backup Battery read `on` as "the effect is running",
       // so a powered one starts idle. Per the user (bug): Stealth A began every fight on a 20 s cloak cooldown, since a
       // zero-second cloak ended on the first tick (veil.ts endVeil). Other kits read `on` as switched on.
-      on: kit.on ?? (kit.power > 0 && !ACTIVATED_KITS.has(kitId as KitId)),
+      on: kit.on ?? (kit.power > 0 && !ACTIVATED_KITS.has(fittedId)),
       aux: 0,
     };
     // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.
     if (kit.loadout?.length) fitted.loadout = [...kit.loadout];
-    ship.kits[kitId as KitId] = fitted;
+    ship.kits[fittedId] = fitted;
   }
   // Kit rooms: Systems, "Each system occupies one predetermined room specific to the ship" (layouts.ts seatKits).
   seatKits(ship);

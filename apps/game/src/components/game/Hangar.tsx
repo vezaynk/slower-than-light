@@ -12,7 +12,7 @@
 import { tx } from "@/i18n";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { weaponDef } from "@/game/pack/registry";
+import { hullDef, weaponDef } from "@/game/pack/registry";
 import {
   NAME_MAX,
   PLAYER_UNIFORMS,
@@ -24,7 +24,7 @@ import {
 } from "@/game/crew-look";
 import type { KinId } from "@/game/extras/kin";
 import { droneKeyForName, weaponIdForName } from "@/game/gear-look";
-import { hullById } from "@/game/hulls";
+
 import { factionPaint } from "@/game/hull-plate";
 import { hangarLoadout } from "@/game/sim";
 import { iconForName } from "@/game/icons";
@@ -73,8 +73,8 @@ const RACE_KIN: Record<string, KinId> = {
 
 /** Seats in the order the run will place them: the hull spec when there is one, else the sheet's race line. */
 function seatsOf(layoutId: string, races: string[]): KinId[] {
-  const hull = hullById(layoutId);
-  if (hull) return hull.crew.map((seat) => seat.kin);
+  const hull = hullDef(layoutId);
+  if (hull) return hull.crew.map((seat) => seat.kin as KinId);
   return races.map((race) => RACE_KIN[race.toLowerCase()] ?? "plain");
 }
 
@@ -110,7 +110,8 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const unlocks = useSyncExternalStore(subscribeUnlocks, getUnlocks, () => SERVER_UNLOCKS);
   const locked = !isUnlockedIn(unlocks, layout.id);
   const lockRule = ruleFor(layout.id);
-  const cruiser = hullById(layout.id)?.cruiser ?? "";
+  const hull = hullDef(layout.id);
+  const cruiser = hull?.cruiser ?? "";
   const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
   const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
   const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
@@ -148,7 +149,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const droneNames = sheet.drones;
   // The layout's Systems list decides "system not installed", not the Drones placeholder line.
   const dronesOut = !sheet.droneSystem;
-  const unfitted = new Set(hullById(layout.id)?.unfitted ?? []);
+  const unfitted = new Set(hull?.unfitted ?? []);
   const emptyWeapons =
     sheet.weaponSlots != null ? Math.max(0, sheet.weaponSlots - weaponNames.length) : 0;
   const emptyDrones = sheet.droneSlots != null ? Math.max(0, sheet.droneSlots - droneNames.length) : 0;
@@ -164,7 +165,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
         <button type="button" className="hangar-menu" onClick={onMenu}>
           {tx("ui.Hangar.menu")}
         </button>
-        <p className="hangar-name">{sheet.defaultName}</p>
+        <p className="hangar-name">{hull?.name || sheet.defaultName}</p>
         <div className="hangar-diff">
           <div className="hangar-diff-col">
             {DIFFICULTIES.map((item) => (

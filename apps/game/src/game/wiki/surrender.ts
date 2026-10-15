@@ -15,7 +15,7 @@ import { tx } from "../../i18n/index.ts";
 import { CREW_POOL, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { type KinId } from "../extras/kin.ts";
-import { allWeapons, crewDef, weaponDef } from "../pack/registry.ts";
+import { allWeapons, crewDef, weaponDef } from "@stl/pack";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
 import type { Crew, Difficulty, Game } from "../types.ts";

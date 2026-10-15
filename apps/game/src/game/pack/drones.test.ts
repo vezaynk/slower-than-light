@@ -6,7 +6,7 @@ import { droneLine } from "../wiki/bonus-item.ts";
 import { citedBuy, droneItems } from "../wiki/cited-stores.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import "./base.ts";
-import { droneDef, loadPack, resetPackForTests } from "./registry.ts";
+import { droneDef, loadPack, resetPackForTests } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

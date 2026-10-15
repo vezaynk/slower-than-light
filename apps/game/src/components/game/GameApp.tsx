@@ -18,7 +18,7 @@ import {
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
-import { augmentDef, crewDef, weaponDef } from "@/game/pack/registry";
+import { augmentDef, crewDef, weaponDef } from "@stl/pack";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, overtaken } from "@/game/wiki/sector-map";

@@ -1,6 +1,8 @@
+import type { WeaponKind } from "@stl/pack";
 import type { EscapePlan } from "./wiki/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";
+export type { WeaponKind };
 
 export type SysId =
   | "shields"
@@ -11,8 +13,6 @@ export type SysId =
   | "pilot"
   | "sensors"
   | "doors";
-
-export type WeaponKind = "laser" | "missile" | "ion" | "beam" | "flak" | "bomb";
 
 /** A point on a hull grid, in tile units. The integer part is the cell. */
 export type BeamPoint = { x: number; y: number };

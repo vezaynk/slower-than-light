@@ -3,11 +3,11 @@ import { afterEach, describe, it } from "node:test";
 import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
-import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, loadPack, parsePack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
 import type { Shot } from "../types.ts";
 
 const XML = `
+<FTL>
 <!-- a mod fragment -->
 <crew>
   <race name="ember">
@@ -192,6 +192,7 @@ const XML = `
 <systemTune>
   <start>4</start>
 </systemTune>
+</FTL>
 `;
 
 afterEach(() => resetPackForTests());

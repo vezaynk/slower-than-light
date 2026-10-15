@@ -15,7 +15,7 @@
  * (wiki/flagship-systems.ts).
  */
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
-import { weaponDef } from "../pack/registry.ts";
+import { weaponDef } from "@stl/pack";
 import { kitIonLocked, zoltanBars } from "../sim.ts";
 import type { Game, Kit, KitId, Ship, SysId, SystemState } from "../types.ts";
 import { stormReactor } from "../wiki/cited-sectors.ts";

@@ -1,4 +1,4 @@
-import type { TuneDef } from "../pack/types.ts";
+import type { TuneDef } from "@stl/pack";
 
 /**
  * Scrap to raise a system, keyed by the level already owned, and the level a purchase installs.

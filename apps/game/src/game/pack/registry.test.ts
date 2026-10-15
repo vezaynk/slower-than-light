@@ -8,9 +8,8 @@ import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import "./base.ts";
-import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "./registry.ts";
-import type { HullDef } from "./types.ts";
-import type { CrewDef, WeaponBlueprint } from "./types.ts";
+import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
+import type { CrewDef, HullDef, WeaponBlueprint } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

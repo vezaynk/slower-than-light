@@ -12,7 +12,7 @@
 import { tx } from "@/i18n";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { hullDef, weaponDef } from "@/game/pack/registry";
+import { hullDef, weaponDef } from "@stl/pack";
 import {
   NAME_MAX,
   PLAYER_UNIFORMS,

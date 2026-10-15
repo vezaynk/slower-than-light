@@ -5,7 +5,7 @@ import { createGame } from "../sim.ts";
 import { grantBonusAugment } from "../wiki/bonus-item.ts";
 import { augmentItems, citedBuy, citedSellQuote } from "../wiki/cited-stores.ts";
 import "./base.ts";
-import { augmentDef, loadPack, resetPackForTests } from "./registry.ts";
+import { augmentDef, loadPack, resetPackForTests } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

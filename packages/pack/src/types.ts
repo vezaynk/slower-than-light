@@ -1,4 +1,5 @@
-import type { WeaponKind } from "../types.ts";
+/** The shot family a blueprint names. The sim fires these six. */
+export type WeaponKind = "laser" | "missile" | "ion" | "beam" | "flak" | "bomb";
 
 /**
  * A weapon the sim can fire. The campaign rows are today's WeaponDef, plus the beam

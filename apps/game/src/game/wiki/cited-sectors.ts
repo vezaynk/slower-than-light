@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import "../pack/base.ts";
-import { allSectors, sectorDef } from "../pack/registry.ts";
+import { allSectors, sectorDef } from "@stl/pack";
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { overtaken, type Danger } from "./sector-map.ts";
 

@@ -1,7 +1,5 @@
 import packUrl from "./base.xml?url";
-import { fetchPackXml } from "./fetch-pack.ts";
-import { parsePack } from "./parse.ts";
-import { loadPack } from "./registry.ts";
+import { fetchPackXml, loadPack, parsePack } from "@stl/pack";
 
 type Listen = (ratio: number) => void;
 

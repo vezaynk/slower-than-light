@@ -1,5 +1,5 @@
 import { tx } from "../i18n/index.ts";
-import { tuneDef } from "./pack/registry.ts";
+import { tuneDef } from "@stl/pack";
 import type { Difficulty, SysId, WeaponKind } from "./types";
 import { ORDNANCE } from "./extras/ordnance.ts";
 import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";

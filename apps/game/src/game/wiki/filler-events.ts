@@ -1,7 +1,7 @@
 import { tx } from "../../i18n/index.ts";
 import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allWeapons, crewDef, weaponDef } from "../pack/registry.ts";
+import { allWeapons, crewDef, weaponDef } from "@stl/pack";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";

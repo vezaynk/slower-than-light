@@ -6,7 +6,7 @@ import type { Game, Kit, KitId, SysId } from "../types.ts";
 import { citedStock, storeSections } from "../wiki/cited-stores.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import "./base.ts";
-import { allSystems, allTunes, loadPack, resetPackForTests, tuneDef } from "./registry.ts";
+import { allSystems, allTunes, loadPack, resetPackForTests, tuneDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

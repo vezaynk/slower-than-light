@@ -1,5 +1,5 @@
 import "../pack/base.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import type { Crew } from "../types.ts";
 
 /**

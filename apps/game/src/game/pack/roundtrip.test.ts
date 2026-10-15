@@ -2,9 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import "./base.ts";
-import { emitPack } from "./emit.ts";
-import { parsePack } from "./parse.ts";
-import { allAugments, allCrew, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, resetPackForTests } from "./registry.ts";
+import { allAugments, allCrew, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, emitPack, parsePack, resetPackForTests } from "@stl/pack";
 
 describe("base pack xml", () => {
   it("round-trips the loaded records and matches the snapshot", () => {

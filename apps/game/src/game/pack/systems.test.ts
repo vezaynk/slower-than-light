@@ -5,7 +5,7 @@ import type { Game, Kit, KitId } from "../types.ts";
 import { citedStock, storeSections, type StoreSection } from "../wiki/cited-stores.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, systemDef } from "./registry.ts";
+import { loadPack, resetPackForTests, systemDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

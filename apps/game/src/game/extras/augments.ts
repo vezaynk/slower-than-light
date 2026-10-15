@@ -1,5 +1,5 @@
 import { tx } from "../../i18n/index.ts";
-import { augmentDef } from "../pack/registry.ts";
+import { augmentDef } from "@stl/pack";
 import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game, Ship } from "../types.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";

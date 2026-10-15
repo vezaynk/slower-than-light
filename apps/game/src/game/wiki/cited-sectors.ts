@@ -1,6 +1,7 @@
 import { tx } from "../../i18n/index.ts";
+import "../pack/base.ts";
+import { allSectors, sectorDef } from "../pack/registry.ts";
 import type { Beacon, Game, GameEvent } from "../types.ts";
-import { SECTOR_TYPES } from "./sectors.ts";
 import { overtaken, type Danger } from "./sector-map.ts";
 
 /**
@@ -15,17 +16,17 @@ const REPAIR_FLAG = "last-stand-repair";
 const REPAIR_NAME = tx("wiki.cited-sectors.federation-repair-station");
 const REPAIR_COUNT = 3;
 
-const NEBULA_SECTORS = new Set(
-  SECTOR_TYPES.filter((sector) => sector.group === "nebula").map((sector) => sector.name),
-);
+function nebulaNames(): Set<string> {
+  return new Set(allSectors().filter((sector) => sector.group === "nebula").map((sector) => sector.name));
+}
 
 /** True in a nebula sector (Sectors: the nebula group). */
 export function nebulaSector(name: string): boolean {
-  return NEBULA_SECTORS.has(name);
+  return nebulaNames().has(name);
 }
 
 export function citedSector(g: Game): void {
-  if (g.sectorName !== "The Last Stand") return;
+  if (g.sectorName !== (sectorDef("last-stand")?.name ?? "The Last Stand")) return;
   let need = REPAIR_COUNT - g.beacons.filter((b) => b.flag === REPAIR_FLAG).length;
   if (need <= 0) return;
   for (const b of g.beacons) {
@@ -69,7 +70,7 @@ export function lastStandRepairEvent(): GameEvent {
  */
 export function citedFleetAdvance(g: Game, beacon: Pick<Beacon, "kind">): number {
   if (beacon.kind !== "nebula") return 1;
-  return NEBULA_SECTORS.has(g.sectorName) ? 0.8 : 0.5;
+  return nebulaNames().has(g.sectorName) ? 0.8 : 0.5;
 }
 
 /**

@@ -5,10 +5,11 @@ import { HULLS, type HullSpec } from "../hulls.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
+import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -47,6 +48,10 @@ function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
 
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
   return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+}
+
+function sectorRow(row: SectorType): SectorDef {
+  return { id: row.id, name: row.name, group: row.group, notes: [...row.notes] };
 }
 
 function hullRow(spec: HullSpec): HullDef {
@@ -102,6 +107,7 @@ loadPack(
     drones: CITED_DRONES.map(droneRow),
     systems: CITED_SYSTEMS.map(systemRow),
     hulls: HULLS.map(hullRow),
+    sectors: SECTOR_TYPES.map(sectorRow),
   },
   "base",
 );

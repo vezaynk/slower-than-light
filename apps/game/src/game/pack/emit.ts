@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -22,17 +22,19 @@ const OXYGEN_DRAIN = -0.5;
  * A drone listing is its id, title, and store cost.
  * A system listing is its id, title, store cost, and whether it installs as a system or a kit.
  * A hull is its id, class, layout letter, name, and starting loadout. Room tiles are not in the document.
+ * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew, weapon, augment, drone, system, and hull records.`,
+    `  Base pack written from the loaded crew, weapon, augment, drone, system, hull, and sector records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
     `  Augment tags are the listing id, title, description, and store cost.`,
     `  Drone tags are the listing id, title, and store cost.`,
     `  System tags are the listing id, title, store cost, and install slot.`,
     `  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.`,
+    `  Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -67,8 +69,18 @@ export function emitPack(pack: ContentPack): string {
   for (const drone of pack.drones ?? []) lines.push(...droneXml(drone));
   for (const system of pack.systems ?? []) lines.push(...systemXml(system));
   for (const hull of pack.hulls ?? []) lines.push(...hullXml(hull));
+  for (const sector of pack.sectors ?? []) lines.push(...sectorXml(sector));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function sectorXml(sector: SectorDef): string[] {
+  const lines = [`  <sectorDescription name="${escAttr(sector.id)}">`];
+  lines.push(el(2, "title", sector.name));
+  lines.push(el(2, "type", sector.group));
+  for (const note of sector.notes) lines.push(el(2, "note", note));
+  lines.push(`  </sectorDescription>`);
+  return lines;
 }
 
 function hullXml(hull: HullDef): string[] {

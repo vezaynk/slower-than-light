@@ -124,6 +124,17 @@ export type HullDef = {
   unfitted: string[];
 };
 
+/**
+ * A sector on the chart. Depth gates and the once-only ids stay in the chart code.
+ * `notes` are the page lines. Beacon odds stay in the mix code.
+ */
+export type SectorDef = {
+  id: string;
+  name: string;
+  group: string;
+  notes: string[];
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
@@ -131,4 +142,5 @@ export type ContentPack = {
   drones?: DroneDef[];
   systems?: SystemDef[];
   hulls?: HullDef[];
+  sectors?: SectorDef[];
 };

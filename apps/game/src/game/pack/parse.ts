@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
 
@@ -292,7 +292,24 @@ function readHull(node: Node): HullDef | undefined {
   };
 }
 
-/** Reads the crew, weapon, augment, drone, system, and hull tags this milestone stores. Other tags are ignored. */
+function readSector(node: Node): SectorDef | undefined {
+  const id = node.attrs.name?.trim();
+  if (!id) return undefined;
+  const notes: string[] = [];
+  for (const item of node.children) {
+    if (item.tag !== "note") continue;
+    const text = item.text.trim();
+    if (text) notes.push(text);
+  }
+  return {
+    id,
+    name: textOf(node, "title") ?? id,
+    group: textOf(node, "type") ?? "",
+    notes,
+  };
+}
+
+/** Reads the crew, weapon, augment, drone, system, hull, and sector tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
@@ -300,6 +317,7 @@ export function parsePack(xml: string): ContentPack {
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
   const hulls: HullDef[] = [];
+  const sectors: SectorDef[] = [];
   walk(parseXml(xml), (node) => {
     if (node.tag === "race") {
       const row = readCrew(node);
@@ -319,7 +337,10 @@ export function parsePack(xml: string): ContentPack {
     } else if (node.tag === "shipBlueprint") {
       const row = readHull(node);
       if (row) hulls.push(row);
+    } else if (node.tag === "sectorDescription") {
+      const row = readSector(node);
+      if (row) sectors.push(row);
     }
   });
-  return { crew, weapons, augments, drones, systems, hulls };
+  return { crew, weapons, augments, drones, systems, hulls, sectors };
 }

@@ -1,5 +1,5 @@
 import { DOMImplementation, XMLSerializer, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventDef, EventEffect, HullDef, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventDef, EventEffect, FillerListDef, HullDef, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -14,7 +14,7 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 const HEADER = `
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, and event records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
@@ -28,6 +28,9 @@ const HEADER = `
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
   The sim still checks the hull and still hands that reward over.
+  An event list is page ids in draw order. unique means the page can appear once per sector.
+  The sim still remembers which unique page already appeared.
+  An empty beacon stores the sentences for a quiet jump and the sectors that use them.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -72,9 +75,31 @@ export function emitPack(pack: ContentPack): string {
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store), 1);
   for (const tune of pack.tunes ?? []) add(root, tuneElement(doc, tune), 1);
   for (const event of pack.events ?? []) add(root, eventElement(doc, event), 1);
+  for (const list of pack.lists ?? []) add(root, listElement(doc, list), 1);
+  for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty), 1);
   end(root, 0);
   const xml = serializer.serializeToString(doc);
   return xml.endsWith("\n") ? xml : `${xml}\n`;
+}
+
+function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
+  const node = element(doc, "eventList", { name: list.id });
+  for (const entry of list.entries) {
+    add(node, element(doc, "event", { id: entry.id, unique: entry.unique ? "true" : "false" }), 2);
+  }
+  end(node, 1);
+  return node;
+}
+
+function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
+  const attrs: Record<string, string> = { name: page.id };
+  if (page.nebula) attrs.nebula = "true";
+  const node = element(doc, "emptyBeacon", attrs);
+  add(node, leaf(doc, "title", page.dest), 2);
+  for (const sector of page.sectors) add(node, leaf(doc, "sector", sector), 2);
+  for (const text of page.texts) add(node, leaf(doc, "text", text), 2);
+  end(node, 1);
+  return node;
 }
 
 function eventElement(doc: XmlDocument, event: EventDef): XmlElement {

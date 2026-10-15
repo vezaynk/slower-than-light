@@ -65,7 +65,7 @@ const parser = new DOMParser({
   },
 });
 
-function readDocument(xml: string): XmlDocument {
+export function readDocument(xml: string): XmlDocument {
   try {
     const doc = parser.parseFromString(xml, "text/xml");
     if (!doc.documentElement) throw new Error("the document has no root element");
@@ -76,7 +76,7 @@ function readDocument(xml: string): XmlDocument {
   }
 }
 
-function elements(node: XmlElement | undefined): XmlElement[] {
+export function elements(node: XmlElement | undefined): XmlElement[] {
   if (!node) return [];
   const found: XmlElement[] = [];
   for (let i = 0; i < node.children.length; i++) {
@@ -86,7 +86,7 @@ function elements(node: XmlElement | undefined): XmlElement[] {
   return found;
 }
 
-function child(node: XmlElement, tag: string): XmlElement | undefined {
+export function child(node: XmlElement, tag: string): XmlElement | undefined {
   return elements(node).find((item) => item.tagName === tag);
 }
 
@@ -101,20 +101,20 @@ function ownText(node: XmlElement): string {
   return text;
 }
 
-function textOf(node: XmlElement, tag: string): string | undefined {
+export function textOf(node: XmlElement, tag: string): string | undefined {
   const found = child(node, tag);
   const text = found ? ownText(found).trim() : "";
   return text ? text : undefined;
 }
 
-function numOf(node: XmlElement, tag: string): number | undefined {
+export function numOf(node: XmlElement, tag: string): number | undefined {
   const text = textOf(node, tag);
   if (text == null) return undefined;
   const value = Number(text);
   return Number.isFinite(value) ? value : undefined;
 }
 
-function attr(node: XmlElement, name: string): string | undefined {
+export function attr(node: XmlElement, name: string): string | undefined {
   const value = node.getAttribute(name);
   return value == null ? undefined : value;
 }
@@ -191,7 +191,7 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   return row;
 }
 
-function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
+export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   const id = attr(node, "name")?.trim();
   const kind = KINDS[(textOf(node, "type") ?? "").toUpperCase()];
   if (!id || !kind) return undefined;
@@ -223,7 +223,7 @@ function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   return row;
 }
 
-function readAugment(node: XmlElement): AugmentDef | undefined {
+export function readAugment(node: XmlElement): AugmentDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return {
@@ -234,7 +234,7 @@ function readAugment(node: XmlElement): AugmentDef | undefined {
   };
 }
 
-function readDrone(node: XmlElement): DroneDef | undefined {
+export function readDrone(node: XmlElement): DroneDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return {
@@ -405,7 +405,7 @@ function readSector(node: XmlElement): SectorDef | undefined {
   };
 }
 
-function tagged(doc: XmlDocument, tag: string): XmlElement[] {
+export function tagged(doc: XmlDocument, tag: string): XmlElement[] {
   const list = doc.getElementsByTagName(tag);
   const found: XmlElement[] = [];
   for (let i = 0; i < list.length; i++) {

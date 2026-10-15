@@ -6602,8 +6602,8 @@ export function buy(g: Game, id: string) {
     log(g, tx("game.sim.bought", { name: item.name }));
     return;
   }
-  // A drone schematic that did not fit spends nothing. citedBuy owns that grant.
-  if (item.kind === "drone") return;
+  // A drone schematic that did not fit, and a system the ship cannot install, spend nothing.
+  if (item.kind === "drone" || item.kind === "system") return;
   // Per the user: a weapon with no free slot goes to cargo; the store will not sell it when cargo is full too.
   if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && (g.cargo?.length ?? 0) >= CARGO_SLOTS) {
     log(g, tx("game.sim.no-free-weapon-slot-or-cargo"));

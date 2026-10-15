@@ -68,9 +68,21 @@ export type DroneDef = {
   cost: number;
 };
 
+/** Where a purchased system is installed. Power and the starting level stay in the effect code. */
+export type SystemSlot = "sys" | "kit";
+
+/** A store listing for one single-price system. */
+export type SystemDef = {
+  id: string;
+  name: string;
+  cost: number;
+  slot: SystemSlot;
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
   augments?: AugmentDef[];
   drones?: DroneDef[];
+  systems?: SystemDef[];
 };

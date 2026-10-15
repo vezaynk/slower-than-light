@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
-import { allAugments, allDrones, augmentDef, droneDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allDrones, allSystems, augmentDef, droneDef, systemDef, weaponDef } from "../pack/registry.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -12,30 +12,31 @@ import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
  * rollStock fills the weapons section when storeSections rolls one. This module does not add a second one.
  * xftl doc/stores, "Resources": fuel 3–7, missiles 2–6, drone parts 2–4. rollStock rolls those ranges.
  *
- * Template:Purchasable systems (WIKI-SPEC section 7):
- * Shields 125, Medbay 50, Clone Bay 50, Crew Teleporter 90, Cloaking 150,
- * Mind Control 75, Hacking 80, Sensors 40, Door System 60, Backup Battery 35.
- * Drone Control is a bundle, not a row of this list: 75 with a System Repair Drone,
+ * The ten single-price systems live in system-catalog.ts and load through the pack.
+ * Drone Control is a bundle, not a row of that list: 75 with a System Repair Drone,
  * 85 with a Defense Drone Mark I or a Combat Drone Mark I. The naked 60 is not a shelf price.
  * Artillery Beam and Flak Artillery have kit ids and no purchase price on that list.
  */
 
-type SysOffer = { slot: "sys"; ref: SysId; name: string; cost: number };
-type KitOffer = { slot: "kit"; ref: KitId; name: string; cost: number };
-type Offer = SysOffer | KitOffer;
+type Offer = { slot: "sys" | "kit"; ref: string; name: string; cost: number };
 
-const SYSTEMS: readonly Offer[] = [
-  { slot: "sys", ref: "shields", name: tx("wiki.cited-stores.shields"), cost: 125 },
-  { slot: "sys", ref: "medbay", name: tx("wiki.cited-stores.medbay"), cost: 50 },
-  { slot: "kit", ref: "cradle", name: tx("wiki.cited-stores.clone-bay"), cost: 50 },
-  { slot: "kit", ref: "sling", name: tx("wiki.cited-stores.crew-teleporter"), cost: 90 },
-  { slot: "kit", ref: "veil", name: tx("wiki.cited-stores.cloaking"), cost: 150 },
-  { slot: "kit", ref: "leash", name: tx("wiki.cited-stores.mind-control"), cost: 75 },
-  { slot: "kit", ref: "spike", name: tx("wiki.cited-stores.hacking"), cost: 80 },
-  { slot: "sys", ref: "sensors", name: tx("wiki.cited-stores.sensors"), cost: 40 },
-  { slot: "sys", ref: "doors", name: tx("wiki.cited-stores.door-system"), cost: 60 },
-  { slot: "kit", ref: "cell", name: tx("wiki.cited-stores.backup-battery"), cost: 35 },
-];
+/** Authored single-price system list. The store reads the loaded copy. */
+export { CITED_SYSTEMS } from "./system-catalog.ts";
+
+const SYS_IDS: readonly SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"];
+const KIT_IDS: readonly KitId[] = ["veil", "sling", "spike", "swarm", "leash", "cradle", "cell", "lance", "flak"];
+
+function isSysId(id: string): id is SysId {
+  return (SYS_IDS as readonly string[]).includes(id);
+}
+
+function isKitId(id: string): id is KitId {
+  return (KIT_IDS as readonly string[]).includes(id);
+}
+
+function catalogOffers(): Offer[] {
+  return allSystems().map((row) => ({ slot: row.slot, ref: row.id, name: row.name, cost: row.cost }));
+}
 
 /**
  * Drone Control, the paragraph above "Overview": a store purchase always includes one of
@@ -130,8 +131,8 @@ export type SellQuote = {
 };
 
 function ownedSystem(g: Game, row: Offer): boolean {
-  if (row.slot === "sys") return g.player.systems[row.ref].level > 0;
-  return (g.player.kits[row.ref]?.level ?? 0) > 0;
+  if (row.slot === "sys") return isSysId(row.ref) && g.player.systems[row.ref].level > 0;
+  return isKitId(row.ref) && (g.player.kits[row.ref]?.level ?? 0) > 0;
 }
 
 function missingShields(g: Game): boolean {
@@ -223,7 +224,8 @@ export function storeSections(g: Game): StoreSection[] {
 function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   const bundle = swarmBundle(g);
   const swarmRow: Offer = { slot: "kit", ref: "swarm", name: tx("wiki.cited-stores.drone-control"), cost: bundle.cost };
-  const missing = SYSTEMS.filter((row) => !ownedSystem(g, row));
+  const catalog = catalogOffers();
+  const missing = catalog.filter((row) => !ownedSystem(g, row));
   const drones = sections.includes("drones");
   const medical = (row: Offer) => row.ref === "medbay" || row.ref === "cradle";
   const pool = missing.filter((row) => !medical(row) || !missingMedical(g));
@@ -231,11 +233,15 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   const count = Math.min(SLOT, pool.length);
   const picked: Offer[] = [];
   if (drones && !hasSwarm(g)) picked.push(swarmRow);
-  if (missingShields(g)) picked.push(SYSTEMS.find((row) => row.ref === "shields")!);
+  if (missingShields(g)) {
+    const shields = catalog.find((row) => row.ref === "shields");
+    if (shields) picked.push(shields);
+  }
   const roll = storeRoll(g, 1);
   if (missingMedical(g)) {
     const ref = roll() < 0.5 ? "medbay" : "cradle";
-    picked.push(SYSTEMS.find((row) => row.ref === ref)!);
+    const row = catalog.find((offer) => offer.ref === ref);
+    if (row) picked.push(row);
   }
   // The guarantees count toward that total: doc/stores' closing example ("every system except a medbay and two
   // others ... the store will only sell two systems"). INFERRED: when the guarantees alone pass it, the first ones
@@ -352,37 +358,39 @@ function grantSystem(g: Game, item: StockItem): boolean {
     };
     return true;
   }
-  const row = SYSTEMS.find((offer) => offer.ref === item.ref);
+  const row = systemDef(item.ref);
   if (!row) return false;
   const medbayLevel = g.player.systems.medbay.level;
   const cradleLevel = g.player.kits.cradle?.level ?? 0;
   // Systems, and Template:Purchasable systems: buying one medical system replaces the other.
   // Upgrade levels are kept. Power bars are not copied and not added.
-  if (row.ref === "medbay" && medbayLevel <= 0 && cradleLevel > 0) {
+  if (row.id === "medbay" && medbayLevel <= 0 && cradleLevel > 0) {
     delete g.player.kits.cradle;
     g.player.systems.medbay.level = cradleLevel;
     g.player.systems.medbay.power = 0;
     return true;
   }
-  if (row.ref === "cradle" && cradleLevel <= 0 && medbayLevel > 0) {
+  if (row.id === "cradle" && cradleLevel <= 0 && medbayLevel > 0) {
     clearMedbay(g);
     const kit = blankKit("cradle");
     kit.level = medbayLevel;
     g.player.kits.cradle = kit;
     return true;
   }
-  if (ownedSystem(g, row)) return false;
+  if (ownedSystem(g, { slot: row.slot, ref: row.id, name: row.name, cost: row.cost })) return false;
   if (row.slot === "sys") {
-    const sys = g.player.systems[row.ref];
+    if (!isSysId(row.id)) return false;
+    const sys = g.player.systems[row.id];
     // The Stealth Cruiser: "Installing shields requires 125 scrap, and will start with two power bars making one shield layer."
     // Level 2 is those two bars. One layer is what both bars produce once they are powered.
     // Power stays unassigned, the same as every other system purchase.
-    sys.level = row.ref === "shields" ? 2 : 1;
+    sys.level = row.id === "shields" ? 2 : 1;
     sys.power = 0;
-    if (row.ref === "shields") g.player.shieldNow = 0;
+    if (row.id === "shields") g.player.shieldNow = 0;
     return true;
   }
-  g.player.kits[row.ref] = blankKit(row.ref);
+  if (!isKitId(row.id)) return false;
+  g.player.kits[row.id] = blankKit(row.id);
   return true;
 }
 

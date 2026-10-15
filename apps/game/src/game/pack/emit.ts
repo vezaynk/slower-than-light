@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -14,21 +14,23 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 /**
- * Writes the pack as FTL weapon blueprints, Hyperspace race tags, augment listings, and drone listings.
+ * Writes the pack as FTL weapon blueprints, Hyperspace race tags, and the store listings.
  * shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
  * A negative oxygenChangeSpeed means the race drains air. The magnitude is not the vent rate.
  * sp is shield layers pierced. power is reactor bars.
  * An augment listing is its id, title, description, and store cost.
  * A drone listing is its id, title, and store cost.
+ * A system listing is its id, title, store cost, and whether it installs as a system or a kit.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew, weapon, augment, and drone records.`,
+    `  Base pack written from the loaded crew, weapon, augment, drone, and system records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
     `  Augment tags are the listing id, title, description, and store cost.`,
     `  Drone tags are the listing id, title, and store cost.`,
+    `  System tags are the listing id, title, store cost, and install slot.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -61,8 +63,19 @@ export function emitPack(pack: ContentPack): string {
   for (const weapon of pack.weapons ?? []) lines.push(...weaponXml(weapon));
   for (const augment of pack.augments ?? []) lines.push(...augmentXml(augment));
   for (const drone of pack.drones ?? []) lines.push(...droneXml(drone));
+  for (const system of pack.systems ?? []) lines.push(...systemXml(system));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function systemXml(system: SystemDef): string[] {
+  return [
+    `  <systemBlueprint name="${escAttr(system.id)}">`,
+    el(2, "title", system.name),
+    el(2, "cost", system.cost),
+    el(2, "slot", system.slot),
+    `  </systemBlueprint>`,
+  ];
 }
 
 function droneXml(drone: DroneDef): string[] {

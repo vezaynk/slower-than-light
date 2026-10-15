@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -14,19 +14,21 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 /**
- * Writes the pack as FTL weapon blueprints, Hyperspace race tags, and augment listings.
+ * Writes the pack as FTL weapon blueprints, Hyperspace race tags, augment listings, and drone listings.
  * shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
  * A negative oxygenChangeSpeed means the race drains air. The magnitude is not the vent rate.
  * sp is shield layers pierced. power is reactor bars.
  * An augment listing is its id, title, description, and store cost.
+ * A drone listing is its id, title, and store cost.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew, weapon, and augment records.`,
+    `  Base pack written from the loaded crew, weapon, augment, and drone records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
     `  Augment tags are the listing id, title, description, and store cost.`,
+    `  Drone tags are the listing id, title, and store cost.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -58,8 +60,18 @@ export function emitPack(pack: ContentPack): string {
   lines.push(`  </crew>`);
   for (const weapon of pack.weapons ?? []) lines.push(...weaponXml(weapon));
   for (const augment of pack.augments ?? []) lines.push(...augmentXml(augment));
+  for (const drone of pack.drones ?? []) lines.push(...droneXml(drone));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function droneXml(drone: DroneDef): string[] {
+  return [
+    `  <droneBlueprint name="${escAttr(drone.id)}">`,
+    el(2, "title", drone.name),
+    el(2, "cost", drone.cost),
+    `  </droneBlueprint>`,
+  ];
 }
 
 function augmentXml(augment: AugmentDef): string[] {

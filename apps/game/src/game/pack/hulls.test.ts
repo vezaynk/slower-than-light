@@ -4,8 +4,8 @@ import { HULLS, hullById } from "../hulls.ts";
 import { layoutFor } from "../layouts.ts";
 import { createGame, hangarLoadout } from "../sim.ts";
 import "./base.ts";
-import { allHulls, crewDef, hullDef, loadPack, resetPackForTests } from "./registry.ts";
-import type { HullDef } from "./types.ts";
+import { allHulls, crewDef, hullDef, loadPack, resetPackForTests } from "@stl/pack";
+import type { HullDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

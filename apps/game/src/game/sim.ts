@@ -70,8 +70,8 @@ import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
-import type { WeaponBlueprint } from "./pack/types.ts";
-import { allSectors, allWeapons, crewDef, hullDef, sectorDef, storeDef, weaponDef } from "./pack/registry.ts";
+import type { WeaponBlueprint } from "@stl/pack";
+import { allSectors, allWeapons, crewDef, hullDef, sectorDef, storeDef, weaponDef } from "@stl/pack";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
 import {

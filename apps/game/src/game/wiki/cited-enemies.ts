@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import type { Crew, Game, Ship, SysId } from "../types.ts";
-import { allWeapons, weaponDef } from "../pack/registry.ts";
+import { allWeapons, weaponDef } from "@stl/pack";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 

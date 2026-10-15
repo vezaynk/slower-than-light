@@ -21,7 +21,7 @@
  */
 import { tx } from "../../i18n/index.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";

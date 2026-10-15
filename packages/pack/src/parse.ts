@@ -1,7 +1,5 @@
-import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
-
-type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
+import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -13,82 +11,76 @@ const KINDS: Record<string, WeaponKind> = {
   FLAK: "flak",
 };
 
-function decode(text: string): string {
-  return text
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&");
-}
+/**
+ * xmldom keeps parsing after a warning or a non-fatal error unless this throws.
+ * A mod file that is not well-formed fails the load.
+ */
+const parser = new DOMParser({
+  onError(level, message) {
+    throw new Error(`${level}: ${message}`);
+  },
+});
 
-function parseAttrs(raw: string): Record<string, string> {
-  const attrs: Record<string, string> = {};
-  const re = /([A-Za-z_:][\w:.-]*)\s*=\s*"([^"]*)"|([A-Za-z_:][\w:.-]*)\s*=\s*'([^']*)'/g;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(raw))) {
-    if (match[1]) attrs[match[1]] = decode(match[2] ?? "");
-    else if (match[3]) attrs[match[3]] = decode(match[4] ?? "");
-  }
-  return attrs;
-}
-
-function parseXml(xml: string): Node[] {
-  const root: Node = { tag: "#root", attrs: {}, text: "", children: [] };
-  const stack: Node[] = [root];
-  const re = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<(\/?)([A-Za-z_][\w:.-]*)([^>]*?)(\/?)>|([^<]+)/g;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(xml))) {
-    if (match[0].startsWith("<!--") || match[0].startsWith("<![CDATA[")) continue;
-    if (match[2]) {
-      const closing = match[1] === "/";
-      const self = match[4] === "/";
-      const node: Node = { tag: match[2], attrs: parseAttrs(match[3] ?? ""), text: "", children: [] };
-      if (closing) {
-        while (stack.length > 1 && stack[stack.length - 1]!.tag !== node.tag) stack.pop();
-        if (stack.length > 1) stack.pop();
-      } else {
-        stack[stack.length - 1]!.children.push(node);
-        if (!self) stack.push(node);
-      }
-    } else if (match[5] && stack.length > 1) {
-      stack[stack.length - 1]!.text += decode(match[5]);
-    }
-  }
-  return root.children;
-}
-
-function walk(nodes: Node[], visit: (node: Node) => void): void {
-  for (const node of nodes) {
-    visit(node);
-    walk(node.children, visit);
+function readDocument(xml: string): XmlDocument {
+  try {
+    const doc = parser.parseFromString(xml, "text/xml");
+    if (!doc.documentElement) throw new Error("the document has no root element");
+    return doc;
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`pack XML is not well-formed: ${detail}`);
   }
 }
 
-function child(node: Node, tag: string): Node | undefined {
-  return node.children.find((item) => item.tag === tag);
+function elements(node: XmlElement | undefined): XmlElement[] {
+  if (!node) return [];
+  const found: XmlElement[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children.item(i);
+    if (child) found.push(child);
+  }
+  return found;
 }
 
-function textOf(node: Node, tag: string): string | undefined {
+function child(node: XmlElement, tag: string): XmlElement | undefined {
+  return elements(node).find((item) => item.tagName === tag);
+}
+
+function ownText(node: XmlElement): string {
+  let text = "";
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const item = node.childNodes.item(i);
+    if (!item) continue;
+    if (item.nodeType === Node.TEXT_NODE || item.nodeType === Node.CDATA_SECTION_NODE) text += item.nodeValue ?? "";
+  }
+  return text;
+}
+
+function textOf(node: XmlElement, tag: string): string | undefined {
   const found = child(node, tag);
-  const text = found?.text.trim();
+  const text = found ? ownText(found).trim() : "";
   return text ? text : undefined;
 }
 
-function numOf(node: Node, tag: string): number | undefined {
+function numOf(node: XmlElement, tag: string): number | undefined {
   const text = textOf(node, tag);
   if (text == null) return undefined;
   const value = Number(text);
   return Number.isFinite(value) ? value : undefined;
 }
 
-function attrNum(raw: string | undefined): number | undefined {
+function attr(node: XmlElement, name: string): string | undefined {
+  const value = node.getAttribute(name);
+  return value == null ? undefined : value;
+}
+
+function attrNum(raw: string | null): number | undefined {
   if (raw == null || raw.trim() === "") return undefined;
   const value = Number(raw);
   return Number.isFinite(value) ? value : undefined;
 }
 
-function boolOf(node: Node, tag: string): boolean | undefined {
+function boolOf(node: XmlElement, tag: string): boolean | undefined {
   const text = textOf(node, tag)?.toLowerCase();
   if (text === "true") return true;
   if (text === "false") return false;
@@ -116,8 +108,8 @@ function blankCrew(id: string): CrewDef {
   };
 }
 
-function readCrew(node: Node): CrewDef | undefined {
-  const id = node.attrs.name?.trim();
+function readCrew(node: XmlElement): CrewDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const row = blankCrew(id);
   const title = textOf(node, "title");
@@ -154,8 +146,8 @@ function readCrew(node: Node): CrewDef | undefined {
   return row;
 }
 
-function readWeapon(node: Node): WeaponBlueprint | undefined {
-  const id = node.attrs.name?.trim();
+function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
+  const id = attr(node, "name")?.trim();
   const kind = KINDS[(textOf(node, "type") ?? "").toUpperCase()];
   if (!id || !kind) return undefined;
   const row: WeaponBlueprint = {
@@ -186,8 +178,8 @@ function readWeapon(node: Node): WeaponBlueprint | undefined {
   return row;
 }
 
-function readAugment(node: Node): AugmentDef | undefined {
-  const id = node.attrs.name?.trim();
+function readAugment(node: XmlElement): AugmentDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return {
     id,
@@ -197,8 +189,8 @@ function readAugment(node: Node): AugmentDef | undefined {
   };
 }
 
-function readDrone(node: Node): DroneDef | undefined {
-  const id = node.attrs.name?.trim();
+function readDrone(node: XmlElement): DroneDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return {
     id,
@@ -207,8 +199,8 @@ function readDrone(node: Node): DroneDef | undefined {
   };
 }
 
-function readSystem(node: Node): SystemDef | undefined {
-  const id = node.attrs.name?.trim();
+function readSystem(node: XmlElement): SystemDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return {
     id,
@@ -222,43 +214,43 @@ function hullLayout(value: string | undefined): HullLayout {
   return value === "B" || value === "C" ? value : "A";
 }
 
-function readHull(node: Node): HullDef | undefined {
-  const id = node.attrs.name?.trim();
+function readHull(node: XmlElement): HullDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const systems: Record<string, [number, number]> = {};
-  for (const item of child(node, "systemList")?.children ?? []) {
-    if (item.tag !== "system") continue;
-    const sysId = item.attrs.name?.trim();
+  for (const item of elements(child(node, "systemList"))) {
+    if (item.tagName !== "system") continue;
+    const sysId = attr(item, "name")?.trim();
     if (!sysId) continue;
     systems[sysId] = [numOf(item, "level") ?? 0, numOf(item, "power") ?? 0];
   }
   const weapons: string[] = [];
-  for (const item of child(node, "weaponList")?.children ?? []) {
-    if (item.tag !== "weapon") continue;
-    const weaponId = (item.text.trim() || item.attrs.name?.trim()) ?? "";
+  for (const item of elements(child(node, "weaponList"))) {
+    if (item.tagName !== "weapon") continue;
+    const weaponId = (ownText(item).trim() || attr(item, "name")?.trim()) ?? "";
     if (weaponId) weapons.push(weaponId);
   }
   const crew: HullDef["crew"] = [];
-  for (const item of child(node, "crewList")?.children ?? []) {
-    if (item.tag !== "crewMember") continue;
-    const kin = item.attrs.kin?.trim();
-    const room = item.attrs.room?.trim();
+  for (const item of elements(child(node, "crewList"))) {
+    if (item.tagName !== "crewMember") continue;
+    const kin = attr(item, "kin")?.trim();
+    const room = attr(item, "room")?.trim();
     if (!kin || !room) continue;
     crew.push({ kin, room });
   }
   const kits: Record<string, HullKitDef> = {};
-  for (const item of child(node, "kitList")?.children ?? []) {
-    if (item.tag !== "kit") continue;
-    const kitId = item.attrs.name?.trim();
+  for (const item of elements(child(node, "kitList"))) {
+    if (item.tagName !== "kit") continue;
+    const kitId = attr(item, "name")?.trim();
     if (!kitId) continue;
     const kit: HullKitDef = { level: numOf(item, "level") ?? 0, power: numOf(item, "power") ?? 0 };
     const target = textOf(item, "target");
     if (target != null) kit.target = target;
     const loadout = child(item, "loadout");
     if (loadout) {
-      kit.loadout = loadout.children
-        .filter((entry) => entry.tag === "schematic")
-        .map((entry) => entry.text.trim())
+      kit.loadout = elements(loadout)
+        .filter((entry) => entry.tagName === "schematic")
+        .map((entry) => ownText(entry).trim())
         .filter((entry) => entry.length > 0);
     }
     const on = boolOf(item, "on");
@@ -266,21 +258,21 @@ function readHull(node: Node): HullDef | undefined {
     kits[kitId] = kit;
   }
   const augments: string[] = [];
-  for (const item of child(node, "augmentList")?.children ?? []) {
-    if (item.tag !== "augment") continue;
-    const augmentId = item.text.trim();
+  for (const item of elements(child(node, "augmentList"))) {
+    if (item.tagName !== "augment") continue;
+    const augmentId = ownText(item).trim();
     if (augmentId) augments.push(augmentId);
   }
   const unfitted: string[] = [];
-  for (const item of child(node, "unfitted")?.children ?? []) {
-    if (item.tag !== "item") continue;
-    const label = item.text.trim();
+  for (const item of elements(child(node, "unfitted"))) {
+    if (item.tagName !== "item") continue;
+    const label = ownText(item).trim();
     if (label) unfitted.push(label);
   }
   return {
     id,
     cruiser: textOf(node, "class") ?? "",
-    layout: hullLayout(node.attrs.layout?.trim()),
+    layout: hullLayout(attr(node, "layout")?.trim()),
     name: textOf(node, "title") ?? id,
     quote: textOf(node, "desc") ?? "",
     unlock: textOf(node, "unlock") ?? "",
@@ -298,28 +290,28 @@ function readHull(node: Node): HullDef | undefined {
   };
 }
 
-function readStore(node: Node): StoreDef | undefined {
-  const id = node.attrs.name?.trim();
+function readStore(node: XmlElement): StoreDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const sections: string[] = [];
   const lines: StoreLine[] = [];
-  for (const item of node.children) {
-    if (item.tag === "section") {
-      const text = item.text.trim();
+  for (const item of elements(node)) {
+    if (item.tagName === "section") {
+      const text = ownText(item).trim();
       if (text) sections.push(text);
       continue;
     }
-    if (item.tag !== "stock") continue;
-    const lineId = item.attrs.id?.trim();
+    if (item.tagName !== "stock") continue;
+    const lineId = attr(item, "id")?.trim();
     if (!lineId) continue;
-    const min = attrNum(item.attrs.min) ?? 0;
+    const min = attrNum(item.getAttribute("min")) ?? 0;
     lines.push({
       id: lineId,
-      kind: item.attrs.kind?.trim() ?? "",
+      kind: attr(item, "kind")?.trim() ?? "",
       name: textOf(item, "title") ?? lineId,
       cost: numOf(item, "cost") ?? 0,
       min,
-      max: attrNum(item.attrs.max) ?? min,
+      max: attrNum(item.getAttribute("max")) ?? min,
     });
   }
   return {
@@ -332,15 +324,15 @@ function readStore(node: Node): StoreDef | undefined {
   };
 }
 
-function readTune(node: Node): TuneDef | undefined {
-  const id = node.attrs.name?.trim();
+function readTune(node: XmlElement): TuneDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const costs: TuneStep[] = [];
-  for (const item of node.children) {
-    if (item.tag !== "upgrade") continue;
-    const level = attrNum(item.attrs.level);
+  for (const item of elements(node)) {
+    if (item.tagName !== "upgrade") continue;
+    const level = attrNum(item.getAttribute("level"));
     if (level == null) continue;
-    const cost = Number(item.text.trim());
+    const cost = Number(ownText(item).trim());
     if (!Number.isFinite(cost)) continue;
     costs.push({ level, cost });
   }
@@ -351,13 +343,13 @@ function readTune(node: Node): TuneDef | undefined {
   };
 }
 
-function readSector(node: Node): SectorDef | undefined {
-  const id = node.attrs.name?.trim();
+function readSector(node: XmlElement): SectorDef | undefined {
+  const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const notes: string[] = [];
-  for (const item of node.children) {
-    if (item.tag !== "note") continue;
-    const text = item.text.trim();
+  for (const item of elements(node)) {
+    if (item.tagName !== "note") continue;
+    const text = ownText(item).trim();
     if (text) notes.push(text);
   }
   return {
@@ -368,8 +360,19 @@ function readSector(node: Node): SectorDef | undefined {
   };
 }
 
+function tagged(doc: XmlDocument, tag: string): XmlElement[] {
+  const list = doc.getElementsByTagName(tag);
+  const found: XmlElement[] = [];
+  for (let i = 0; i < list.length; i++) {
+    const item = list.item(i);
+    if (item) found.push(item);
+  }
+  return found;
+}
+
 /** Reads the crew, weapon, augment, drone, system, hull, sector, store, and tune tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
+  const doc = readDocument(xml);
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
   const augments: AugmentDef[] = [];
@@ -379,35 +382,41 @@ export function parsePack(xml: string): ContentPack {
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
-  walk(parseXml(xml), (node) => {
-    if (node.tag === "race") {
-      const row = readCrew(node);
-      if (row) crew.push(row);
-    } else if (node.tag === "weaponBlueprint") {
-      const row = readWeapon(node);
-      if (row) weapons.push(row);
-    } else if (node.tag === "augBlueprint") {
-      const row = readAugment(node);
-      if (row) augments.push(row);
-    } else if (node.tag === "droneBlueprint") {
-      const row = readDrone(node);
-      if (row) drones.push(row);
-    } else if (node.tag === "systemBlueprint") {
-      const row = readSystem(node);
-      if (row) systems.push(row);
-    } else if (node.tag === "shipBlueprint") {
-      const row = readHull(node);
-      if (row) hulls.push(row);
-    } else if (node.tag === "sectorDescription") {
-      const row = readSector(node);
-      if (row) sectors.push(row);
-    } else if (node.tag === "storeBlueprint") {
-      const row = readStore(node);
-      if (row) stores.push(row);
-    } else if (node.tag === "systemTune") {
-      const row = readTune(node);
-      if (row) tunes.push(row);
-    }
-  });
+  for (const node of tagged(doc, "race")) {
+    const row = readCrew(node);
+    if (row) crew.push(row);
+  }
+  for (const node of tagged(doc, "weaponBlueprint")) {
+    const row = readWeapon(node);
+    if (row) weapons.push(row);
+  }
+  for (const node of tagged(doc, "augBlueprint")) {
+    const row = readAugment(node);
+    if (row) augments.push(row);
+  }
+  for (const node of tagged(doc, "droneBlueprint")) {
+    const row = readDrone(node);
+    if (row) drones.push(row);
+  }
+  for (const node of tagged(doc, "systemBlueprint")) {
+    const row = readSystem(node);
+    if (row) systems.push(row);
+  }
+  for (const node of tagged(doc, "shipBlueprint")) {
+    const row = readHull(node);
+    if (row) hulls.push(row);
+  }
+  for (const node of tagged(doc, "sectorDescription")) {
+    const row = readSector(node);
+    if (row) sectors.push(row);
+  }
+  for (const node of tagged(doc, "storeBlueprint")) {
+    const row = readStore(node);
+    if (row) stores.push(row);
+  }
+  for (const node of tagged(doc, "systemTune")) {
+    const row = readTune(node);
+    if (row) tunes.push(row);
+  }
   return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes };
 }

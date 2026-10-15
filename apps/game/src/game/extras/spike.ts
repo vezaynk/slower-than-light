@@ -3,7 +3,7 @@ import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, desele
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import "../pack/base.ts";
-import { crewDef, weaponDef } from "../pack/registry.ts";
+import { crewDef, weaponDef } from "@stl/pack";
 import { sensorLevel } from "./sensors.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";

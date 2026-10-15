@@ -11,7 +11,7 @@
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
 import { tx } from "../../i18n/index.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";

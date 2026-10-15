@@ -5,7 +5,7 @@ import type { WeaponInst } from "../types.ts";
 import { citedEnemy } from "../wiki/cited-enemies.ts";
 import { citedSellQuote } from "../wiki/cited-stores.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

@@ -46,7 +46,7 @@ import type { Crew, CrewAiState, CrewAiTask, Game, KitId, Room, Ship, SysId } fr
 import { bars, lockdown, truce } from "../sim.ts";
 import { hackPulseOn } from "./spike.ts";
 import "../pack/base.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import { sideOf } from "./leash.ts";
 import { artilleryGun } from "../wiki/flagship-systems.ts";
 import { airShown } from "../air.ts";

@@ -1,4 +1,4 @@
-import { weaponDef } from "./registry.ts";
+import { weaponDef } from "@stl/pack";
 import { beamBodyTiles, beamSwipeSeconds, beamTileLength } from "../wiki/weapons-beam.ts";
 
 /** Aiming length. A blueprint length wins. Artillery stays off this path. */

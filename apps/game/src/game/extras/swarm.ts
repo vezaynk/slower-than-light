@@ -7,7 +7,7 @@ import { seatKits } from "../layouts.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
 import "../pack/base.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";

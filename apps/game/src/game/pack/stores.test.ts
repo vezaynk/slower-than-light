@@ -4,8 +4,8 @@ import { buy, createGame, openStoreHere } from "../sim.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { citedStock, storeSections } from "../wiki/cited-stores.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, storeDef } from "./registry.ts";
-import type { StoreDef } from "./types.ts";
+import { loadPack, resetPackForTests, storeDef } from "@stl/pack";
+import type { StoreDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

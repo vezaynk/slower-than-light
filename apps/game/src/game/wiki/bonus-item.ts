@@ -5,7 +5,7 @@
  * grantBonusAugment for a duplicate augmentation.
  */
 import { tx } from "../../i18n/index.ts";
-import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "@stl/pack";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { NOT_SOLD } from "./cited-stores.ts";

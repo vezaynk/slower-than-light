@@ -1,5 +1,5 @@
 import { tx } from "../../i18n/index.ts";
-import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, tuneDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";

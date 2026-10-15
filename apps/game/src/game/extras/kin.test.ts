@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "../pack/base.ts";
-import { crewDef } from "../pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import { KIN, kinOf, type KinId } from "./kin.ts";
 
 const IDS: KinId[] = [

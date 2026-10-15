@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
-import type { StoreDef } from "../pack/types.ts";
+import type { StoreDef } from "@stl/pack";
 
 /**
  * The campaign store. Section count, the systems coin-flip, drone stand-ins, crystal

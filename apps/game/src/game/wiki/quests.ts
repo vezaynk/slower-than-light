@@ -31,7 +31,7 @@
 import { tx } from "../../i18n/index.ts";
 import { upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { crewDef, weaponDef } from "../pack/registry.ts";
+import { crewDef, weaponDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";

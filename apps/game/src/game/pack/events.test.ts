@@ -3,7 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import { allMantisCrew, joinCrew, rollScriptedOffer } from "../wiki/surrender.ts";
 import "./base.ts";
-import { crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { crewDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

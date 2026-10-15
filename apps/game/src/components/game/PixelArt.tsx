@@ -1,7 +1,7 @@
 import { tx } from "@/i18n";
 import { type ReactNode } from "react";
 import "@/game/pack/base";
-import { hullDef } from "@/game/pack/registry";
+import { hullDef } from "@stl/pack";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
 

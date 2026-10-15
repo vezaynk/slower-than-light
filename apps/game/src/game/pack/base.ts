@@ -10,8 +10,8 @@ import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
-import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "./types.ts";
+import { loadPack } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:

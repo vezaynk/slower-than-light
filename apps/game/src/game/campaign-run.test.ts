@@ -17,7 +17,7 @@ import { citedSell, citedSellQuote } from "./wiki/cited-stores.ts";
 import { citedEvent } from "./wiki/cited-events.ts";
 import { FLAGSHIP_PHASES } from "./wiki/flagship.ts";
 import { ACCEPT_ID, joinCrew } from "./wiki/surrender.ts";
-import { augmentDef, crewDef, droneDef, hullDef, sectorDef, storeDef, systemDef, weaponDef } from "./pack/registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, sectorDef, storeDef, systemDef, weaponDef } from "@stl/pack";
 
 /**
  * The manual checks left open on the pack milestones, played as seeded Kestrel runs.

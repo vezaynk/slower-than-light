@@ -4,8 +4,8 @@ import { buildRoute, createGame, enterHiddenCrystal } from "../sim.ts";
 import { SECTOR_TYPES } from "../wiki/sectors.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, sectorDef } from "./registry.ts";
-import type { SectorDef } from "./types.ts";
+import { loadPack, resetPackForTests, sectorDef } from "@stl/pack";
+import type { SectorDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
 

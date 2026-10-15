@@ -1,5 +1,5 @@
 import "../pack/base.ts";
-import { weaponDef } from "../pack/registry.ts";
+import { weaponDef } from "@stl/pack";
 import type { Shot } from "../types.ts";
 import { BEAM_CREW } from "./weapons-beam.ts";
 import { BOMB_CREW } from "./weapons-bomb.ts";

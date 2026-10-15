@@ -6,7 +6,7 @@
  */
 import { tx } from "../i18n/index.ts";
 import "./pack/base.ts";
-import { allWeapons, weaponDef } from "./pack/registry.ts";
+import { allWeapons, weaponDef } from "@stl/pack";
 import type { SwarmKind } from "./extras/swarm.ts";
 
 /** b = body, t = trim, g = glow, o = outline (added last), . = empty. */

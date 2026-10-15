@@ -6,7 +6,7 @@
  */
 import { tx } from "../i18n/index.ts";
 import "./pack/base.ts";
-import { weaponDef } from "./pack/registry.ts";
+import { weaponDef } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";

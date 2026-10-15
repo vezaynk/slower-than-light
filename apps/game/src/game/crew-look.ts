@@ -7,7 +7,7 @@ import { tx } from "../i18n/index.ts";
 import { CREW_POOL } from "./content.ts";
 import { type KinId } from "./extras/kin.ts";
 import "./pack/base.ts";
-import { crewDef } from "./pack/registry.ts";
+import { crewDef } from "@stl/pack";
 import type { Crew } from "./types.ts";
 
 /** Uniform swatches. Index 5 is the enemy red and is not offered in the hangar. */

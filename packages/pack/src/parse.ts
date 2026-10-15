@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -370,7 +370,7 @@ function tagged(doc: XmlDocument, tag: string): XmlElement[] {
   return found;
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, tune, and event tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -383,6 +383,8 @@ export function parsePack(xml: string): ContentPack {
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
   const events: EventDef[] = [];
+  const lists: FillerListDef[] = [];
+  const empties: EmptyBeaconDef[] = [];
   for (const node of tagged(doc, "race")) {
     const row = readCrew(node);
     if (row) crew.push(row);
@@ -423,7 +425,54 @@ export function parsePack(xml: string): ContentPack {
     const row = readEvent(node);
     if (row) events.push(row);
   }
-  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes, events };
+  for (const node of tagged(doc, "eventList")) {
+    const row = readList(node);
+    if (row) lists.push(row);
+  }
+  for (const node of tagged(doc, "emptyBeacon")) {
+    const row = readEmpty(node);
+    if (row) empties.push(row);
+  }
+  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes, events, lists, empties };
+}
+
+function readList(node: XmlElement): FillerListDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const entries: FillerEntry[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "event") continue;
+    const eventId = attr(item, "id")?.trim();
+    if (!eventId) continue;
+    entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
+  }
+  return { id, entries };
+}
+
+function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const sectors: string[] = [];
+  const texts: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName === "sector") {
+      const text = ownText(item).trim();
+      if (text) sectors.push(text);
+      continue;
+    }
+    if (item.tagName !== "text") continue;
+    const text = ownText(item).trim();
+    if (text) texts.push(text);
+  }
+  if (texts.length === 0) return undefined;
+  const page: EmptyBeaconDef = {
+    id,
+    dest: textOf(node, "title") ?? id,
+    sectors,
+    texts,
+  };
+  if (node.getAttribute("nebula") === "true") page.nebula = true;
+  return page;
 }
 
 function readEvent(node: XmlElement): EventDef | undefined {

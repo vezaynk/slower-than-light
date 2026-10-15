@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -10,6 +10,8 @@ const sectors = new Map<string, SectorDef>();
 const stores = new Map<string, StoreDef>();
 const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
+const lists = new Map<string, FillerListDef>();
+const empties = new Map<string, EmptyBeaconDef>();
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -20,6 +22,8 @@ let baseSectors: SectorDef[] = [];
 let baseStores: StoreDef[] = [];
 let baseTunes: TuneDef[] = [];
 let baseEvents: EventDef[] = [];
+let baseLists: FillerListDef[] = [];
+let baseEmpties: EmptyBeaconDef[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   return { ...row };
@@ -126,6 +130,16 @@ function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
   return copy;
 }
 
+function copyList(row: FillerListDef): FillerListDef {
+  return { id: row.id, entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })) };
+}
+
+function copyEmpty(row: EmptyBeaconDef): EmptyBeaconDef {
+  const copy: EmptyBeaconDef = { id: row.id, dest: row.dest, sectors: [...row.sectors], texts: [...row.texts] };
+  if (row.nebula) copy.nebula = true;
+  return copy;
+}
+
 function copyEvent(row: EventDef): EventDef {
   const copy: EventDef = {
     id: row.id,
@@ -169,6 +183,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     stores.clear();
     tunes.clear();
     events.clear();
+    lists.clear();
+    empties.clear();
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -179,6 +195,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseStores = (pack.stores ?? []).map(copyStore);
     baseTunes = (pack.tunes ?? []).map(copyTune);
     baseEvents = (pack.events ?? []).map(copyEvent);
+    baseLists = (pack.lists ?? []).map(copyList);
+    baseEmpties = (pack.empties ?? []).map(copyEmpty);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? [])) weapons.set(row.id, copyWeapon(row));
@@ -190,6 +208,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   for (const row of mode === "base" ? baseStores : (pack.stores ?? [])) stores.set(row.id, copyStore(row));
   for (const row of mode === "base" ? baseTunes : (pack.tunes ?? [])) tunes.set(row.id, copyTune(row));
   for (const row of mode === "base" ? baseEvents : (pack.events ?? [])) events.set(row.id, copyEvent(row));
+  for (const row of mode === "base" ? baseLists : (pack.lists ?? [])) lists.set(row.id, copyList(row));
+  for (const row of mode === "base" ? baseEmpties : (pack.empties ?? [])) empties.set(row.id, copyEmpty(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */
@@ -294,6 +314,27 @@ export function allEvents(): EventDef[] {
   return [...events.values()];
 }
 
+/** A filler list by id. An append replaces that whole list. A new id sits at the end. */
+export function fillerList(id: string | undefined): FillerListDef | undefined {
+  if (!id) return undefined;
+  return lists.get(id);
+}
+
+/** List order. An appended id sits at the end, so the campaign lists stay put. */
+export function allFillerLists(): FillerListDef[] {
+  return [...lists.values()];
+}
+
+export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
+  if (!id) return undefined;
+  return empties.get(id);
+}
+
+/** Page order. Civilian stays first. An appended id sits at the end. */
+export function allEmptyBeacons(): EmptyBeaconDef[] {
+  return [...empties.values()];
+}
+
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
   crew.clear();
@@ -306,6 +347,8 @@ export function resetPackForTests(): void {
   stores.clear();
   tunes.clear();
   events.clear();
+  lists.clear();
+  empties.clear();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
@@ -316,4 +359,6 @@ export function resetPackForTests(): void {
   for (const row of baseStores) stores.set(row.id, copyStore(row));
   for (const row of baseTunes) tunes.set(row.id, copyTune(row));
   for (const row of baseEvents) events.set(row.id, copyEvent(row));
+  for (const row of baseLists) lists.set(row.id, copyList(row));
+  for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
 }

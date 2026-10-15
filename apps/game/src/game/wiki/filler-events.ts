@@ -1,7 +1,9 @@
 import { tx } from "../../i18n/index.ts";
 import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allWeapons, crewDef, weaponDef } from "@stl/pack";
+import { allEmptyBeacons, allWeapons, crewDef, eventDef, fillerList, weaponDef } from "@stl/pack";
+import type { EmptyBeaconDef, EventDef } from "@stl/pack";
+import type { FillerList } from "./filler-lists.ts";
 import { beginBoarding, hurtSystem, log, rand, restorePlayerSensors, shutPlayerSensors, startCombat } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
 import type { CitedEventDef } from "./cited-events-surrender.ts";
@@ -60,313 +62,28 @@ import { grantRandomItem } from "./bonus-item.ts";
  * (grantRandomItem, per the Rewards page). A result that prints fires or a breach applies that hazard.
  */
 
-export type FillerRow = { dest: string; unique: boolean };
-
-/** Category:Filler Events ("OVERRIDE_NEUTRAL"): every page with alsooccur=filler or exitandfiller, and its unique=. */
-export const FILLER: FillerRow[] = [
-  { dest: "Abandoned station", unique: true },
-  { dest: "Auto-ship attacking outpost", unique: true },
-  { dest: "Auto-ship near storage station", unique: true },
-  { dest: "Battlefield wreckage", unique: false },
-  { dest: "Deactivated Auto-ship", unique: true },
-  { dest: "Intelligent ponies", unique: true },
-  { dest: "Large asteroid field", unique: true },
-  { dest: "Pirate briber", unique: true },
-  { dest: "Pirate ship attacking civilian", unique: false },
-  { dest: "Pirate ship selling drones", unique: true },
-  { dest: "Plagued station", unique: true },
-  { dest: "Rebel checkpoint", unique: false },
-  { dest: "Rebel fight chance", unique: false },
-  { dest: "Rebel ship supplying civilians", unique: false },
-  { dest: "Rebel transport ship", unique: true },
-  { dest: "Refueling platform", unique: true },
-  { dest: "Refugee", unique: false },
-  { dest: "Slaver (friendly)", unique: true },
-  { dest: "Terraforming scan", unique: true },
-  { dest: "The mercenary", unique: false },
-];
-
-/** Template:EventList NEBULA (the "nebula filler" rows), Event name (wiki) and Unique? columns. */
-export const NEBULA: FillerRow[] = [
-  { dest: "Auto-ship fight in nebula", unique: false },
-  { dest: "Auto-ship near storage station in nebula", unique: true },
-  { dest: "Auto-ship warning in nebula", unique: true },
-  { dest: "Boarders: Humans in nebula", unique: true },
-  { dest: "Empty nebula beacon", unique: false },
-  { dest: "Nebula lost ship", unique: true },
-  { dest: "Mantis fight in nebula", unique: false },
-  { dest: "Pirate smuggler", unique: false },
-  { dest: "Rebel fight in nebula", unique: false },
-  { dest: "Trade resources in nebula", unique: true },
-  { dest: "Pirate ship selling weapon", unique: true },
-  { dest: "Auto-ship fight in plasma storm", unique: true },
-  { dest: "Boarders: Humans in plasma storm", unique: true },
-  { dest: "Plasma storm incapacitated ships", unique: true },
-  { dest: "Rebel fight in plasma storm", unique: true },
-];
-
-/** Template:EventList DISTRESS BEACON, Event name (wiki) and Unique? columns. */
-export const DISTRESS: FillerRow[] = [
-  { dest: "Asteroid belt distress", unique: true },
-  { dest: "Giant alien spiders", unique: true },
-  { dest: "Malfunctioning defense system", unique: true },
-  { dest: "Unknown disease on mining colony", unique: true },
-  { dest: "Fire on research station", unique: true },
-  { dest: "Crushed pirate", unique: true },
-  { dest: "Escort civilians FTL haywire", unique: true },
-  { dest: "Friendly ship out of fuel", unique: false },
-  { dest: "Pirate ship attacking civilian distress", unique: false },
-  { dest: "Refugee distress", unique: false },
-  { dest: "Refugee comms down", unique: false },
-  { dest: "Single life form on moon", unique: true },
-  { dest: "Pirate ship distress trap", unique: true },
-];
-
-/** Template:EventList ITEMS (OVERRIDE_ITEMS adds Large trade station), Event name (wiki) and Unique? columns. */
-export const ITEMS: FillerRow[] = [
-  { dest: "Free drone schematic", unique: false },
-  { dest: "Free weapon", unique: false },
-  { dest: "Free scrap with resources", unique: false },
-  { dest: "Trade fuel for drone parts", unique: false },
-  { dest: "Asteroid mining colony", unique: true },
-  { dest: "Refueling station", unique: true },
-  { dest: "Repair station", unique: true },
-  { dest: "Sell drone parts for scrap", unique: true },
-  { dest: "Sell missiles for scrap", unique: true },
-  { dest: "Crew hiring station", unique: true },
-  { dest: "Trade resources", unique: false },
-  { dest: "Trade scrap for upgrades", unique: true },
-  { dest: "Improve reactor for supplies", unique: true },
-];
+export type { EmptyPage, FillerList, FillerRow } from "./filler-lists.ts";
+export { DISTRESS, EMPTY_PAGES, EXIT_ITEMS, EXIT_NEUTRAL, FILLER, ITEMS, NEBULA } from "./filler-lists.ts";
 
 /**
- * Exit beacons (Template:EventList EXIT LIST): "This event list is actually comprised of 2 event lists - NEUTRAL_EXIT and
- * ITEMS (OVERRIDE_NEUTRAL_EXIT and OVERRIDE_ITEMS - when Advanced Edition Content is enabled)". This game is AE.
- * Rows are Template:EventList OVERRIDE NEUTRAL EXIT and Template:EventList OVERRIDE ITEMS, Event name (wiki) and Unique?.
+ * The empty-beacon page for a sector. Civilian is the first plain page, so an unlisted sector uses it.
+ * A nebula slot uses the Slug page when the sector name starts with Slug, and the other nebula page otherwise.
  */
-export const EXIT_NEUTRAL: FillerRow[] = [
-  { dest: "Large asteroid field", unique: true },
-  { dest: "Auto-ship near storage station", unique: true },
-  { dest: "Auto-ship attacking outpost", unique: true },
-  { dest: "Plagued station", unique: true },
-  { dest: "Intelligent ponies", unique: true },
-  { dest: "Abandoned station", unique: true },
-  { dest: "Slaver (friendly)", unique: true },
-  { dest: "Refueling platform", unique: true },
-  { dest: "Pirate briber", unique: true },
-  { dest: "Pirate ship attacking civilian", unique: false },
-  { dest: "Pirate ship selling drones", unique: true },
-  { dest: "Rebel checkpoint", unique: false },
-  { dest: "Rebel ship supplying civilians", unique: false },
-  { dest: "Rebel transport ship", unique: true },
-  { dest: "Refugee", unique: false },
-  { dest: "Rebel fight chance", unique: false },
-  { dest: "Trade scrap for upgrades", unique: true },
-  { dest: "Battlefield wreckage", unique: false },
-];
-
-export const EXIT_ITEMS: FillerRow[] = [
-  { dest: "Free drone schematic", unique: false },
-  { dest: "Free weapon", unique: false },
-  { dest: "Free scrap with resources", unique: false },
-  { dest: "Trade fuel for drone parts", unique: false },
-  { dest: "Asteroid mining colony", unique: true },
-  { dest: "Refueling station", unique: true },
-  { dest: "Repair station", unique: true },
-  { dest: "Sell drone parts for scrap", unique: true },
-  { dest: "Sell missiles for scrap", unique: true },
-  { dest: "Large trade station", unique: true },
-  { dest: "Crew hiring station", unique: true },
-  { dest: "Trade resources", unique: false },
-  { dest: "Trade scrap for upgrades", unique: true },
-  { dest: "Improve reactor for supplies", unique: true },
-];
-
-export type FillerList = "filler" | "nebula" | "distress" | "items" | "exitNeutral" | "exitItems";
-const LISTS: Record<FillerList, FillerRow[]> = {
-  filler: FILLER,
-  nebula: NEBULA,
-  distress: DISTRESS,
-  items: ITEMS,
-  exitNeutral: EXIT_NEUTRAL,
-  exitItems: EXIT_ITEMS,
-};
-
-/** "Empty beacon (...)" pages: {{Locations}} sectors and the intro texts. Every one ends "Nothing happens." */
-type EmptyPage = { dest: string; sectors: string[]; texts: string[] };
-
-export const EMPTY_PAGES: EmptyPage[] = [
-  {
-    dest: "Empty beacon (Civilian)",
-    sectors: ["Civilian Sector"],
-    texts: [
-      tx("wiki.filler-events.your-jump-leads-you-to-nothing"),
-      tx("wiki.filler-events.you-jump-into-an-unremarkable-system"),
-      tx("wiki.filler-events.your-scans-reveal-a-mining-base"),
-      tx("wiki.filler-events.your-scans-reveal-an-ore-refinery"),
-      tx("wiki.filler-events.you-discover-a-nearby-planet-speckled"),
-      tx("wiki.filler-events.this-beacon-has-been-built-for"),
-      tx("wiki.filler-events.the-nearby-planet-shows-sign-of"),
-      tx("wiki.filler-events.your-jump-leads-to-a-completely"),
-      tx("wiki.filler-events.your-jump-leads-to-a-remarkable"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Crystal)",
-    sectors: ["Hidden Crystal Worlds"],
-    texts: [
-      tx("wiki.filler-events.as-soon-as-you-arrive-all"),
-      tx("wiki.filler-events.no-ships-are-in-range-so"),
-      tx("wiki.filler-events.there-appears-to-be-no-one"),
-      tx("wiki.filler-events.you-arrive-near-a-civilian-settlement"),
-      tx("wiki.filler-events.a-few-merchant-ships-pass-nearby"),
-      tx("wiki.filler-events.a-number-of-civilian-ships-seem"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Engi)",
-    sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    texts: [
-      tx("wiki.filler-events.the-complex-arrangements-of-ship-hulls"),
-      tx("wiki.filler-events.you-arrive-at-a-green-planet"),
-      tx("wiki.filler-events.you-have-arrived-near-an-engi"),
-      tx("wiki.filler-events.even-though-each-individual-engi-is"),
-      tx("wiki.filler-events.you-see-a-number-of-engi"),
-      tx("wiki.filler-events.this-system-appears-quite-peaceful-you"),
-      tx("wiki.filler-events.there-are-a-number-of-merchant"),
-      tx("wiki.filler-events.you-see-a-small-rebel-carrier"),
-      tx("wiki.filler-events.the-engi-seem-to-have-avoided"),
-      tx("wiki.filler-events.a-cluster-of-engi-satellites-in"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Lanius)",
-    sectors: ["Abandoned Sector"],
-    texts: [
-      tx("wiki.filler-events.the-charts-indicate-this-was-the"),
-      tx("wiki.filler-events.scans-show-no-signs-of-any"),
-      tx("wiki.filler-events.a-few-refugee-ships-are-preparing"),
-      tx("wiki.filler-events.you-pass-a-civilian-ship-that"),
-      tx("wiki.filler-events.you-question-a-local-settlement-and"),
-      tx("wiki.filler-events.you-come-across-a-human-civilian"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Last Stand)",
-    sectors: ["The Last Stand"],
-    texts: [
-      tx("wiki.filler-events.you-arrive-to-see-a-number"),
-      tx("wiki.filler-events.there-are-a-few-federation-fleets"),
-      tx("wiki.filler-events.a-few-scattered-heavy-vessels-are"),
-      tx("wiki.filler-events.a-large-host-of-federation-heavy"),
-      tx("wiki.filler-events.a-battalion-of-federation-fighters-are"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Mantis)",
-    sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    texts: [
-      tx("wiki.filler-events.at-this-point-you-almost-expect"),
-      tx("wiki.filler-events.the-only-thing-this-beacon-offers"),
-      tx("wiki.filler-events.a-nearby-mantis-mining-operation-is"),
-      tx("wiki.filler-events.there-aren-t-so-many-parts"),
-      tx("wiki.filler-events.there-s-nothing-here-but-space"),
-      tx("wiki.filler-events.you-fancy-you-see-something-moving"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Pirate)",
-    sectors: ["Pirate Controlled Sector"],
-    texts: [
-      tx("wiki.filler-events.as-soon-as-you-arrive-a"),
-      tx("wiki.filler-events.a-small-pirate-ship-messages-you"),
-      tx("wiki.filler-events.the-only-thing-within-scanning-range"),
-      tx("wiki.filler-events.you-arrive-to-have-a-small"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Rebel)",
-    sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
-    texts: [
-      tx("wiki.filler-events.you-enter-a-system-bustling-with"),
-      tx("wiki.filler-events.you-arrive-near-a-small-rebel"),
-      tx("wiki.filler-events.there-is-not-much-of-interest"),
-      tx("wiki.filler-events.there-are-no-other-ships-near"),
-      tx("wiki.filler-events.there-is-a-small-planet-nearby"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Rock)",
-    sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    texts: [
-      tx("wiki.filler-events.you-receive-a-message-meant-to"),
-      tx("wiki.filler-events.no-one-bothers-your-ship-as"),
-      tx("wiki.filler-events.you-arrive-and-detect-signs-of"),
-      tx("wiki.filler-events.there-s-not-much-at-this"),
-      tx("wiki.filler-events.a-few-freighters-pass-by-but"),
-      tx("wiki.filler-events.you-see-a-small-trading-post"),
-      tx("wiki.filler-events.you-see-a-zoltan-merchant-and"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Slug)",
-    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    texts: [
-      tx("wiki.filler-events.you-arrive-at-the-beacon-and"),
-      tx("wiki.filler-events.this-beacon-marks-a-small-gap"),
-      tx("wiki.filler-events.you-are-relieved-to-see-your"),
-      tx("wiki.filler-events.the-slugs-rely-heavily-on-their"),
-      tx("wiki.filler-events.you-arrive-in-an-area-clear"),
-    ],
-  },
-  {
-    dest: "Empty beacon (Zoltan)",
-    sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    texts: [
-      tx("wiki.filler-events.there-are-some-mineral-rich-asteroids"),
-      tx("wiki.filler-events.you-have-to-admit-zoltan-space"),
-      tx("wiki.filler-events.a-light-asteroid-field-is-entering"),
-      tx("wiki.filler-events.you-stumble-upon-some-zoltan-military"),
-      tx("wiki.filler-events.you-don-t-have-time-to"),
-      tx("wiki.filler-events.a-zoltan-shipyard-is-stationed-at"),
-      tx("wiki.filler-events.a-message-broadcast-from-a-nearby"),
-    ],
-  },
-  {
-    // Template:EventList NEBULA row NEBULA_EMPTY; also an "empty nebula beacons" slot outside the Slug sectors.
-    dest: "Empty nebula beacon",
-    sectors: ["Civilian Sector", "Pirate Controlled Sector", "Rebel Controlled Sector", "Rebel Stronghold", "Uncharted Nebula", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    texts: [
-      tx("wiki.filler-events.you-can-t-see-anything-through"),
-      tx("wiki.filler-events.without-active-sensors-you-have-no"),
-      tx("wiki.filler-events.as-you-wait-for-the-ftl"),
-      tx("wiki.filler-events.you-feel-naked-without-functioning-sensors"),
-      tx("wiki.filler-events.your-crew-are-constantly-looking-out"),
-      tx("wiki.filler-events.you-nervously-glance-out-the-windows"),
-      tx("wiki.filler-events.you-cycle-through-wide-band-comm"),
-      tx("wiki.filler-events.with-the-sensors-down-you-spend"),
-      tx("wiki.filler-events.there-s-nothing-here-save-for"),
-    ],
-  },
-  {
-    dest: "Empty nebula beacon (Slug)",
-    sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    texts: [
-      tx("wiki.filler-events.when-it-comes-to-slugs-no"),
-      tx("wiki.filler-events.it-s-not-unusual-to-feel"),
-      tx("wiki.filler-events.either-this-part-of-slug-space"),
-      tx("wiki.filler-events.this-area-of-the-nebula-seems"),
-      tx("wiki.filler-events.you-explore-around-the-beacon-and"),
-      tx("wiki.filler-events.there-are-a-number-of-small"),
-    ],
-  },
-];
-
-/** The empty-beacon page for a sector. INFERRED: Civilian (Starting) Sector and any unlisted sector use the Civilian page. */
-export function emptyPageFor(sectorName: string, nebula = false): EmptyPage {
-  const slug = sectorName.startsWith("Slug");
-  if (nebula) return EMPTY_PAGES.find((p) => p.dest === (slug ? "Empty nebula beacon (Slug)" : "Empty nebula beacon"))!;
-  return EMPTY_PAGES.find((p) => !p.dest.startsWith("Empty nebula") && p.sectors.includes(sectorName)) ?? EMPTY_PAGES[0];
+export function emptyPageFor(sectorName: string, nebula = false): EmptyBeaconDef {
+  const pages = allEmptyBeacons();
+  if (nebula) {
+    const slug = sectorName.startsWith("Slug");
+    const hit = slug
+      ? pages.find((page) => page.nebula && page.id === "empty-nebula-beacon-slug")
+      : pages.find((page) => page.nebula && page.id !== "empty-nebula-beacon-slug");
+    const any = hit ?? pages.find((page) => page.nebula);
+    if (any) return any;
+  } else {
+    const plain = pages.filter((page) => !page.nebula);
+    const hit = plain.find((page) => page.sectors.includes(sectorName)) ?? plain[0];
+    if (hit) return hit;
+  }
+  throw new Error(`empty beacon pack has no page for ${sectorName}`);
 }
 
 // ---- Cards for list pages no cited table has ------------------------------------------------------------------
@@ -956,12 +673,35 @@ export function pageForRow(dest: string): Page | undefined {
   return citedByName(dest) ?? FILLER_PAGES.find((p) => p.dest === dest || p.aliases.includes(dest));
 }
 
+function pageFromEvent(event: EventDef): Page {
+  return {
+    dest: event.dest,
+    slug: event.id,
+    flag: event.flag,
+    aliases: event.aliases,
+    sectors: event.sectors,
+    body: event.body,
+    choices: event.choices as Page["choices"],
+  };
+}
+
+/** The card a list row names. Cited pages win, then FILLER_PAGES, then a packed event. */
+function pageForEntry(id: string): Page | undefined {
+  if (!citedIndex) citedByName("");
+  for (const page of citedIndex!.values()) if (page.slug === id) return page;
+  const own = FILLER_PAGES.find((page) => page.slug === id);
+  if (own) return own;
+  const packed = eventDef(id);
+  return packed ? pageFromEvent(packed) : undefined;
+}
+
 function pageBySlug(slug: string): Page | undefined {
   const own = FILLER_PAGES.find((p) => p.slug === slug);
   if (own) return own;
   if (!citedIndex) citedByName("");
   for (const p of citedIndex!.values()) if (p.slug === slug) return p;
-  return undefined;
+  const packed = eventDef(slug);
+  return packed ? pageFromEvent(packed) : undefined;
 }
 
 export const FILLER_FLAG = "filler:";
@@ -972,19 +712,20 @@ function onMap(beacons: Beacon[], page: Page): boolean {
 }
 
 /**
- * Draws one row from `list` that has a card. A unique row already on the map, or named in `reserved` (the sector's
- * own cited pages, which the mix may still place), is skipped. `r` is beacon-mix's shadow state or the live game.
+ * Draws one page from the packed list. The row id is the page slug.
+ * A unique row already on the map, or named in `reserved` (the sector's own cited pages, which the mix may still
+ * place), is skipped. Remembering that page stays here. `r` is beacon-mix's shadow state or the live game.
  */
 export function drawFiller(
   r: Game,
-  list: FillerList,
+  list: string,
   beacons: Beacon[],
   reserved: ReadonlySet<string> = new Set(),
   extras: Page[] = [],
 ): Page | null {
   const pool: Page[] = [];
-  for (const row of LISTS[list]) {
-    const page = pageForRow(row.dest);
+  for (const row of fillerList(list)?.entries ?? []) {
+    const page = pageForEntry(row.id);
     if (!page) continue;
     if (row.unique && (reserved.has(page.flag) || onMap(beacons, page))) continue;
     pool.push(page);
@@ -997,9 +738,9 @@ export function drawFiller(
 
 /** An "N empty nebula beacons" slot: Empty nebula beacon, or Empty nebula beacon (Slug) in the Slug sectors. */
 export function stampEmptyNebula(b: Beacon, sectorName: string) {
-  const slug = sectorName.startsWith("Slug");
-  b.flag = FILLER_FLAG + (slug ? "empty-nebula-beacon-slug" : "empty-nebula-beacon");
-  b.name = slug ? tx("wiki.filler-events.empty-nebula-beacon-slug") : tx("wiki.filler-events.empty-nebula-beacon");
+  const page = emptyPageFor(sectorName, true);
+  b.flag = FILLER_FLAG + page.id;
+  b.name = page.dest;
   b.asteroid = false;
 }
 
@@ -1019,7 +760,7 @@ const LIST_FOR_KIND: Partial<Record<Beacon["kind"], FillerList>> = {
   nebula: "nebula",
 };
 
-function emptyCard(g: Game, page: EmptyPage): GameEvent {
+function emptyCard(g: Game, page: EmptyBeaconDef): GameEvent {
   const text = page.texts[Math.min(page.texts.length - 1, Math.floor(rand(g) * page.texts.length))];
   // "Nothing happens." The "ack" choice resolves the beacon (sim.ts choose).
   return { title: page.dest.replace(/ \(.*\)$/, ""), body: text, choices: [{ id: "ack", label: tx("wiki.filler-events.continue") }] };

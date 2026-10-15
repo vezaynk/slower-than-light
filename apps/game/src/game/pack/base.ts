@@ -9,10 +9,11 @@ import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
+import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, EventDef, HullDef, HullKitDef, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventDef, FillerListDef, HullDef, HullKitDef, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -97,6 +98,16 @@ function surrenderRow(row: SurrenderOfferDef): SurrenderOfferDef {
   return copy;
 }
 
+function listRow(row: FillerListDef): FillerListDef {
+  return { id: row.id, entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })) };
+}
+
+function emptyRow(row: EmptyBeaconDef): EmptyBeaconDef {
+  const copy: EmptyBeaconDef = { id: row.id, dest: row.dest, sectors: [...row.sectors], texts: [...row.texts] };
+  if (row.nebula) copy.nebula = true;
+  return copy;
+}
+
 function eventRow(row: EventDef): EventDef {
   const copy: EventDef = {
     id: row.id,
@@ -172,6 +183,8 @@ loadPack(
     stores: STORES.map(storeRow),
     tunes: SYSTEM_TUNES.map(tuneRow),
     events: citedEventRecords().map(eventRow),
+    lists: fillerListRecords().map(listRow),
+    empties: emptyBeaconRecords().map(emptyRow),
   },
   "base",
 );

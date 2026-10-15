@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
 import { parsePack } from "./parse.ts";
-import { crewDef, eventDef, loadPack, resetPackForTests, tuneDef, weaponDef } from "./registry.ts";
+import { crewDef, emptyBeacon, eventDef, fillerList, loadPack, resetPackForTests, tuneDef, weaponDef } from "./registry.ts";
 import type { ContentPack, WeaponBlueprint } from "./types.ts";
 
 const laser: WeaponBlueprint = {
@@ -104,6 +104,24 @@ const pack: ContentPack = {
       },
     },
   ],
+  lists: [
+    {
+      id: "ember-list",
+      entries: [
+        { id: "large-asteroid-field", unique: true },
+        { id: "refugee", unique: false },
+      ],
+    },
+  ],
+  empties: [
+    {
+      id: "ember-quiet",
+      dest: "Ember quiet",
+      sectors: ["Ember Reach"],
+      texts: ["Still.", "Rock & <Stone>"],
+      nebula: true,
+    },
+  ],
 };
 
 afterEach(() => resetPackForTests());
@@ -115,6 +133,20 @@ describe("pack document", () => {
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.tunes, pack.tunes);
     assert.deepEqual(back.events, pack.events);
+    assert.deepEqual(back.lists, pack.lists);
+    assert.deepEqual(back.empties, pack.empties);
+  });
+
+  it("skips a nameless list and an empty beacon with no sentences", () => {
+    const back = parsePack(`<FTL>
+      <eventList><event id="orphan" unique="true"/></eventList>
+      <eventList name="ember"><event unique="true"/><event id="kept"/></eventList>
+      <emptyBeacon name="quiet"><title>Quiet</title></emptyBeacon>
+      <emptyBeacon><title>No name</title><text>Hi</text></emptyBeacon>
+      <emptyBeacon name="kept" nebula="true"><title>Kept</title><sector>Ember</sector><text>Still.</text></emptyBeacon>
+    </FTL>`);
+    assert.deepEqual(back.lists, [{ id: "ember", entries: [{ id: "kept", unique: false }] }]);
+    assert.deepEqual(back.empties, [{ id: "kept", dest: "Kept", sectors: ["Ember"], texts: ["Still."], nebula: true }]);
   });
 
   it("round-trips names that contain markup characters", () => {
@@ -148,6 +180,8 @@ describe("pack document", () => {
       {
         weapons: [{ ...laser, charge: 9 }],
         tunes: [{ id: "ember", start: 4, costs: [] }],
+        lists: [{ id: "ember-extra", entries: [{ id: "one", unique: true }] }],
+        empties: [{ id: "ember-other", dest: "Other", sectors: [], texts: ["Gone."] }],
       },
       "append",
     );
@@ -155,9 +189,17 @@ describe("pack document", () => {
     assert.equal(crewDef("ember").hp, 40);
     assert.equal(tuneDef("ember")?.start, 4);
     assert.equal(tuneDef("shields")?.start, 2);
+    assert.equal(fillerList("ember-list")?.entries.length, 2);
+    assert.equal(fillerList("ember-extra")?.entries[0]?.id, "one");
+    assert.equal(emptyBeacon("ember-quiet")?.nebula, true);
+    assert.equal(emptyBeacon("ember-other")?.dest, "Other");
     resetPackForTests();
     assert.equal(weaponDef("ember")?.charge, 7);
     assert.equal(tuneDef("ember"), undefined);
     assert.equal(eventDef("ember")?.body, "A packed beacon.");
+    assert.equal(fillerList("ember-extra"), undefined);
+    assert.equal(fillerList("ember-list")?.entries.length, 2);
+    assert.equal(emptyBeacon("ember-other"), undefined);
+    assert.equal(emptyBeacon("ember-quiet")?.dest, "Ember quiet");
   });
 });

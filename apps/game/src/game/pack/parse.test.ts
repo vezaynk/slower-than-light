@@ -234,6 +234,17 @@ const XML = `
 <eventBlueprint>
   <title>No name</title>
 </eventBlueprint>
+<eventList name="ember-list">
+  <event id="large-asteroid-field" unique="true"/>
+  <event unique="true"/>
+</eventList>
+<eventList></eventList>
+<emptyBeacon name="ember-quiet" nebula="true">
+  <title>Ember quiet</title>
+  <sector>Ember Reach</sector>
+  <text>Still.</text>
+</emptyBeacon>
+<emptyBeacon name="silent"><title>Silent</title></emptyBeacon>
 </FTL>
 `;
 
@@ -279,6 +290,12 @@ describe("parsePack", () => {
     assert.equal(pack.events?.[1]?.surrender, undefined);
     assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
     assert.equal(pack.events?.[1]?.dest, "bareevent");
+    assert.deepEqual(pack.lists, [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: true }] }]);
+    assert.equal(pack.empties?.length, 1);
+    assert.equal(pack.empties?.[0]?.nebula, true);
+    assert.equal(pack.empties?.[0]?.dest, "Ember quiet");
+    assert.deepEqual(pack.empties?.[0]?.texts, ["Still."]);
+    assert.deepEqual(pack.empties?.[0]?.sectors, ["Ember Reach"]);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");

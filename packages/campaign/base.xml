@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, and event records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
@@ -14,6 +14,9 @@
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
   The sim still checks the hull and still hands that reward over.
+  An event list is page ids in draw order. unique means the page can appear once per sector.
+  The sim still remembers which unique page already appeared.
+  An empty beacon stores the sentences for a quiet jump and the sectors that use them.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -7705,4 +7708,259 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       </choice>
     </surrender>
   </eventBlueprint>
+  <eventList name="filler">
+    <event id="abandoned-station" unique="true"/>
+    <event id="auto-ship-attacking-outpost" unique="true"/>
+    <event id="auto-ship-near-storage-station" unique="true"/>
+    <event id="battlefield-wreckage" unique="false"/>
+    <event id="deactivated-auto-ship" unique="true"/>
+    <event id="intelligent-ponies" unique="true"/>
+    <event id="large-asteroid-field" unique="true"/>
+    <event id="pirate-briber" unique="true"/>
+    <event id="pirate-ship-attacking-civilian" unique="false"/>
+    <event id="pirate-ship-selling-drones" unique="true"/>
+    <event id="plagued-station" unique="true"/>
+    <event id="rebel-checkpoint" unique="false"/>
+    <event id="rebel-fight-chance" unique="false"/>
+    <event id="rebel-ship-supplying-civilians" unique="false"/>
+    <event id="rebel-transport-ship" unique="true"/>
+    <event id="refueling-platform" unique="true"/>
+    <event id="refugee" unique="false"/>
+    <event id="slaver-friendly" unique="true"/>
+    <event id="terraforming-scan" unique="true"/>
+    <event id="the-mercenary" unique="false"/>
+  </eventList>
+  <eventList name="nebula">
+    <event id="auto-ship-fight-in-nebula" unique="false"/>
+    <event id="auto-ship-near-storage-station-in-nebula" unique="true"/>
+    <event id="auto-ship-warning-in-nebula" unique="true"/>
+    <event id="boarders-humans-in-nebula" unique="true"/>
+    <event id="empty-nebula-beacon" unique="false"/>
+    <event id="nebula-lost-ship" unique="true"/>
+    <event id="mantis-fight-in-nebula" unique="false"/>
+    <event id="pirate-smuggler" unique="false"/>
+    <event id="rebel-fight-in-nebula" unique="false"/>
+    <event id="trade-resources-in-nebula" unique="true"/>
+    <event id="pirate-ship-selling-weapon" unique="true"/>
+    <event id="auto-ship-fight-in-plasma-storm" unique="true"/>
+    <event id="boarders-humans-in-plasma-storm" unique="true"/>
+    <event id="plasma-storm-incapacitated-ships" unique="true"/>
+    <event id="rebel-fight-in-plasma-storm" unique="true"/>
+  </eventList>
+  <eventList name="distress">
+    <event id="asteroid-belt-distress" unique="true"/>
+    <event id="giant-alien-spiders" unique="true"/>
+    <event id="malfunctioning-defense-system" unique="true"/>
+    <event id="unknown-disease-on-mining-colony" unique="true"/>
+    <event id="fire-on-research-station" unique="true"/>
+    <event id="crushed-pirate" unique="true"/>
+    <event id="escort-civilians-ftl-haywire" unique="true"/>
+    <event id="friendly-ship-out-of-fuel" unique="false"/>
+    <event id="pirate-ship-attacking-civilian-distress" unique="false"/>
+    <event id="refugee-distress" unique="false"/>
+    <event id="refugee-comms-down" unique="false"/>
+    <event id="single-life-form-on-moon" unique="true"/>
+    <event id="pirate-ship-distress-trap" unique="true"/>
+  </eventList>
+  <eventList name="items">
+    <event id="free-drone-schematic" unique="false"/>
+    <event id="free-weapon" unique="false"/>
+    <event id="free-scrap-with-resources" unique="false"/>
+    <event id="trade-fuel-for-drone-parts" unique="false"/>
+    <event id="asteroid-mining-colony" unique="true"/>
+    <event id="refueling-station" unique="true"/>
+    <event id="repair-station" unique="true"/>
+    <event id="sell-drone-parts-for-scrap" unique="true"/>
+    <event id="sell-missiles-for-scrap" unique="true"/>
+    <event id="crew-hiring-station" unique="true"/>
+    <event id="trade-resources" unique="false"/>
+    <event id="trade-scrap-for-upgrades" unique="true"/>
+    <event id="improve-reactor-for-supplies" unique="true"/>
+  </eventList>
+  <eventList name="exitNeutral">
+    <event id="large-asteroid-field" unique="true"/>
+    <event id="auto-ship-near-storage-station" unique="true"/>
+    <event id="auto-ship-attacking-outpost" unique="true"/>
+    <event id="plagued-station" unique="true"/>
+    <event id="intelligent-ponies" unique="true"/>
+    <event id="abandoned-station" unique="true"/>
+    <event id="slaver-friendly" unique="true"/>
+    <event id="refueling-platform" unique="true"/>
+    <event id="pirate-briber" unique="true"/>
+    <event id="pirate-ship-attacking-civilian" unique="false"/>
+    <event id="pirate-ship-selling-drones" unique="true"/>
+    <event id="rebel-checkpoint" unique="false"/>
+    <event id="rebel-ship-supplying-civilians" unique="false"/>
+    <event id="rebel-transport-ship" unique="true"/>
+    <event id="refugee" unique="false"/>
+    <event id="rebel-fight-chance" unique="false"/>
+    <event id="trade-scrap-for-upgrades" unique="true"/>
+    <event id="battlefield-wreckage" unique="false"/>
+  </eventList>
+  <eventList name="exitItems">
+    <event id="free-drone-schematic" unique="false"/>
+    <event id="free-weapon" unique="false"/>
+    <event id="free-scrap-with-resources" unique="false"/>
+    <event id="trade-fuel-for-drone-parts" unique="false"/>
+    <event id="asteroid-mining-colony" unique="true"/>
+    <event id="refueling-station" unique="true"/>
+    <event id="repair-station" unique="true"/>
+    <event id="sell-drone-parts-for-scrap" unique="true"/>
+    <event id="sell-missiles-for-scrap" unique="true"/>
+    <event id="large-trade-station" unique="true"/>
+    <event id="crew-hiring-station" unique="true"/>
+    <event id="trade-resources" unique="false"/>
+    <event id="trade-scrap-for-upgrades" unique="true"/>
+    <event id="improve-reactor-for-supplies" unique="true"/>
+  </eventList>
+  <emptyBeacon name="empty-beacon-civilian">
+    <title>Empty beacon (Civilian)</title>
+    <sector>Civilian Sector</sector>
+    <text>Your jump leads you to nothing but empty space. This Jump Beacon serves no purpose other than as a connection.</text>
+    <text>You jump into an unremarkable system. No life signs detected within scanning range.</text>
+    <text>Your scans reveal a mining base on a nearby planet long since abandoned. No life signs detected.</text>
+    <text>Your scans reveal an ore refinery and several factories, all standing still and empty. No life signs detected.</text>
+    <text>You discover a nearby planet speckled with settlements, although none respond to your hails.</text>
+    <text>This beacon has been built for a nearby civilian space-station. No one hails your ship.</text>
+    <text>The nearby planet shows sign of habitation and great beauty. A rudimentary automated planetary defense system is looping its message into space: "Warning! Quarantine Level 5 in effect under FHA Act 22, article 11.2. Warning! Quarantine Level 5..."</text>
+    <text>Your jump leads to a completely unremarkable binary star system. There is nothing else around.</text>
+    <text>Your jump leads to a remarkable binary star system. The view is beautiful, but there is nothing else around.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-crystal">
+    <title>Empty beacon (Crystal)</title>
+    <sector>Hidden Crystal Worlds</sector>
+    <text>As soon as you arrive, all of the ships docked at a nearby station scatter and jump away, while the station itself uses some form of cloak technology to disappear. They mustn't like outsiders here...</text>
+    <text>No ships are in range, so you take the time to scan the area. It seems like every planet you've seen so far shows signs of highly developed habitation without overpopulation. They must have a very structured and well regulated society.</text>
+    <text>There appears to be no one living near this node, a rare sight in this highly developed sector.</text>
+    <text>You arrive near a civilian settlement. It looks like their homes, ships and stations all rely heavily on an intriguing crystalline material. You wonder how they are able to create so much of this substance, as yet undiscovered in the rest of the galaxy.</text>
+    <text>A few merchant ships pass nearby but they are either ignoring your hails or their computer isn't designed to work through the same frequencies...</text>
+    <text>A number of civilian ships seem to be evacuating a small colony. One ship messages you before jumping away, "Damn you aliens! This is why we closed that Long-range Beacon in the first place!"</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-engi">
+    <title>Empty beacon (Engi)</title>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <text>The complex arrangements of ship hulls and FTL drive capacitors floating abandoned in space suggest the Engi were here not too long ago; but no longer.</text>
+    <text>You arrive at a green planet with great plains and rolling waterfalls. It would be of little interest to the Engi nearby.</text>
+    <text>You have arrived near an Engi construction yard. Most Engi maintain their bi-pedal appearance out of habit but here you see a number of Engi hives working together to create massive organic machines adept at building ships. Truly a sight to behold.</text>
+    <text>Even though each "individual" Engi is made up of trillions of nano-machines, their culture still revolves around traditional social interactions. A nearby station seems to be constructed for entertainment of passing Engi travellers.</text>
+    <text>You see a number of Engi space stations and fleets nearby. Despite looking like piles of junk loosely tied together they are actually a model of efficiency. They just lack a certain aesthetic emphasis in their constructions.</text>
+    <text>This system appears quite peaceful. You're not sure how long it'll last between the combined threats of the Rebels and Mantis.</text>
+    <text>There are a number of merchant ships passing through the area despite the threat of Mantis invasion. No doubt interested in buying the efficient technology of the Engi.</text>
+    <text>You see a small Rebel carrier in the distance. You lay low and try to blend in with the other traffic. However it's surprising to see a Rebel military ship alone deep in Engi space.</text>
+    <text>The Engi seem to have avoided this particular node, along with every other life-form. You keep your eyes peeled for reasons why, but spin up the FTL without event.</text>
+    <text>A cluster of Engi satellites in orbit of a nearby planet are the only clue the mechanical species was ever here. You have other places to be.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-lanius">
+    <title>Empty beacon (Lanius)</title>
+    <sector>Abandoned Sector</sector>
+    <text>The charts indicate this was the location of a small skirmish over a military facility on a nearby moon. Oddly, scans pick up no signs of debris from either the battle or the station. Yet another area sucked dry by the Lanius.</text>
+    <text>Scans show no signs of any ships or settlements nearby. You have no way of knowing if the area was always uninhabited or if it was simply erased by the Lanius.</text>
+    <text>A few refugee ships are preparing for the long journey to another sector. They explain how a number of Lanius military ships surrounded them and began to hack their FTL drives. Fortunately the Lanius moved on after briefly scanning the civilian ships, leaving them more than a little shaken up.</text>
+    <text>You pass a civilian ship that warns of the nearby Lanius. "One of them attacked a civilian transport and started to melt their fracking hull. But then the weirdest thing happened... another metal ship actually fired on its companion until it backed off." Apparently there are disagreements among the Lanius about what should be salvaged.</text>
+    <text>You question a local settlement and they describe a fleet of metal ships wordlessly collecting all of the abandoned metal and debris in the area. When they approached important satellites, the settlements fired a few ASB warning shots. The Lanius moved on despite clearly having the firepower to overwhelm the settlements.</text>
+    <text>You come across a human civilian ship preparing to leave the sector. They message you, "We're getting out of here! There was some cult rambling about the spreading of the disease, Humanitis. They forcefully boarded our ship and tried to open all of our airlocks, shouting, "Be purged!" Is nowhere safe anymore?"</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-last-stand">
+    <title>Empty beacon (Last Stand)</title>
+    <sector>The Last Stand</sector>
+    <text>You arrive to see a number of Federation forward-carriers and dreadnoughts. This must be a system of high importance to warrant such a fleet.</text>
+    <text>There are a few Federation fleets in the nearby area as well as a lot of wreckage. There must have been minor skirmishes in the area.</text>
+    <text>A few scattered heavy vessels are left to defend the nearby Federation settlement. They seem to be in the process of evacuation.</text>
+    <text>A large host of Federation heavy vessels are in formation around the beacon. Sensors run hot with missile locks, but once you transmit your ship signature they leave you alone.</text>
+    <text>A battalion of Federation fighters are fighting around a nearby moon with their carriers waiting in the distance. They must have encountered a Rebel scout squadron.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-mantis">
+    <title>Empty beacon (Mantis)</title>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <text>At this point you almost expect a fight with the Mantis, but this beacon appears to be entirely devoid of other ships. You take the time to catch your breath and double check the ship's systems.</text>
+    <text>The only thing this beacon offers is a view of deep space and a brief respite from battles. For some this must be a welcome refuge.</text>
+    <text>A nearby Mantis mining operation is clearly using heavy Engi slave labor. You briefly consider the possibility of emancipating the slaves, but the Mantis presence is too formidable. You decide to lay low.</text>
+    <text>There aren't so many parts of Mantis space that aren't dotted by the wrecks of battles past, but this is one of them. You take a deep breath and prepare to move on.</text>
+    <text>There's nothing here but space debris and some uninhabitable planetoids.</text>
+    <text>You fancy you see something moving in the shadow of the beacon, but all remains still.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-pirate">
+    <title>Empty beacon (Pirate)</title>
+    <sector>Pirate Controlled Sector</sector>
+    <text>As soon as you arrive, a small ship de-cloaks behind yours. You immediately power up the shields and weapons, but they continue on their trajectory unimpressed. You try to calm your nerves.</text>
+    <text>A small pirate ship messages you, "That sure is a shiny ship you got there." You fire a warning shot across their bow and they respond, "Hey! No need for violence! It was just a comment..."</text>
+    <text>The only thing within scanning range is an old abandoned mining structure and a resupply station. They appear to have been picked clean by marauders.</text>
+    <text>You arrive to have a small fleet of Engi ships target you with a message, "Piracy results in negative societal impact. Not permitted." You assure them of your honest intentions and they allow you to pass.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-rebel">
+    <title>Empty beacon (Rebel)</title>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <text>You enter a system bustling with Rebel activity. Supply freighters and re-supply stations are dwarfed by a few heavy warships. Luckily, no one seems to be paying attention to small cruisers. No ships are scanning or messaging you.</text>
+    <text>You arrive near a small Rebel refueling depot. Your ship is being scanned multiple times so they must recognize you, but there appears to be no combat-ready ships in the vicinity. The only message you receive is a denial to your request to dock at the depot.</text>
+    <text>There is not much of interest nearby. A small sun in the distance with a few orbiting planets in nearby space provide little of interest.</text>
+    <text>There are no other ships near this beacon, however you detect a small communication relay. You tap into it without a problem; there is no encryption. Most of the chatter revolves around troop and fleet movements, not particularly interesting.</text>
+    <text>There is a small planet nearby with scattered settlements. A small Rebel fleet is in orbit with many ships ferrying back and forth. It must be a more recently 'liberated' planet.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-rock">
+    <title>Empty beacon (Rock)</title>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <text>You receive a message meant to degrade you as aliens. You half expect an attack but it seems to have come from a small civilian shuttle.</text>
+    <text>No one bothers your ship as you float among numerous space stations and mining platforms. The Rock certainly run efficient operations.</text>
+    <text>You arrive and detect signs of battle. A few ships are taking passes at each other near a small station. You don't know if it's a territory issue, a contest or a rite of passage but you decide it's best to stay out of it.</text>
+    <text>There's not much at this beacon. Just a few abandoned depots, stripped clean.</text>
+    <text>A few freighters pass by but they refuse all communications. Must not want to sully their reputation by talking with foreigners.</text>
+    <text>You see a small trading post and ask about refuelling but they respond, "Go away! We don't serve your kind here."</text>
+    <text>You see a Zoltan merchant and ask about his wares. He responds, "Sorry, but it took years to gain their trust. I can't be seen communicating with you. I hope you understand." He cuts communications.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-slug">
+    <title>Empty beacon (Slug)</title>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You arrive at the beacon and are relieved at the sight of open space. Nebulas are terribly claustrophobic.</text>
+    <text>This beacon marks a 'small' gap in the nebula. No colonies or ships in scanning distance.</text>
+    <text>You are relieved to see your sensors blink back on after the jump. No ships detected.</text>
+    <text>The Slugs rely heavily on their telepathic powers and are reluctant to give up that advantage by extending beyond nebulas. It's unlikely you'll encounter any this far from the clouds.</text>
+    <text>You arrive in an area clear of nebula and quickly check to see if the sensors are working. Everything is fine and no ships are detected in the vicinity.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-beacon-zoltan">
+    <title>Empty beacon (Zoltan)</title>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>There are some mineral-rich asteroids here that the Zoltan have left idle, but you've none of the necessary equipment to mine them.</text>
+    <text>You have to admit - Zoltan space is a beautiful and peaceful place indeed. However, re-engaging the FTL and finishing your mission is your priority, not sight-seeing.</text>
+    <text>A light asteroid field is entering the atmosphere of a nearby planet - a fireworks show on a galactic scale. There's little for it but to take in the ambience and program the next jump.</text>
+    <text>You stumble upon some Zoltan military vessels engaging in combat training. Their Energy Shields are impressive, but you note how quickly beam and ion weaponry take them down.</text>
+    <text>You don't have time to hail the Zoltan ship that was waiting at this beacon before it jumps away. They are a careful race.</text>
+    <text>A Zoltan shipyard is stationed at this beacon. You admire the display of hundreds of glowing Zoltan performing delicate exterior work on a massive transport ship.</text>
+    <text>A message broadcast from a nearby planet announces the presence of an ancient Zoltan monastery available for visiting. Likely just a tourist trap, but still too bad you don't have the time to visit.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-nebula-beacon" nebula="true">
+    <title>Empty nebula beacon</title>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>You can't see anything through the thick gases surrounding your ship. Without knowing what is out there, all you can do is wait for your FTL to charge.</text>
+    <text>Without active sensors you have no other option but to look out of the view-ports in apprehension. It's eerily quiet.</text>
+    <text>As you wait for the FTL drive to charge, you half expect to be ambushed at any moment. However, no attack comes...</text>
+    <text>You feel naked without functioning sensors. You half expect a Rebel ship to appear from behind a cloud at any moment, but none come.</text>
+    <text>Your crew are constantly looking out of the windows, checking for hostiles. They jump at every creak and moan of the ship. The tension is almost palpable...</text>
+    <text>You nervously glance out the windows but the only thing to greet you is more clouds and silence.</text>
+    <text>You cycle through wide-band comm channels as soon as you arrive. Nothing but static.</text>
+    <text>With the sensors down, you spend a good deal of time staring out the window. It is, you must admit, rather beautiful here.</text>
+    <text>There's nothing here, save for vast swirls of gas reflecting rays from a distant sun.</text>
+  </emptyBeacon>
+  <emptyBeacon name="empty-nebula-beacon-slug" nebula="true">
+    <title>Empty nebula beacon (Slug)</title>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>When it comes to Slugs, no news is not necessarily good news. However, if they are watching, they don't seem to want to confront you.</text>
+    <text>It's not unusual to feel paranoia in a Slug controlled nebula, but for once, it is unfounded.</text>
+    <text>Either this part of Slug space is deserted, or it's too dense for even Slugs to detect your presence. Time to move.</text>
+    <text>This area of the nebula seems entirely empty until a small Slug transport and its escorts emerges suddenly from through the clouds, only to disappear again in a matter of seconds.</text>
+    <text>You explore around the beacon and are shocked when a rock the size of a small moon suddenly looms ahead of you. Scans reveal the solid-looking rock is just a husk, almost entirely mined out of useful minerals.</text>
+    <text>There are a number of small stations for travellers in the area, lit up by guiding lights and advertisements. Only Slug ships are docked so you decide it's better to avoid a confrontation and steer clear.</text>
+  </emptyBeacon>
 </FTL>

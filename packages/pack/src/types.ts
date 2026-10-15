@@ -283,6 +283,34 @@ export type EventDef = {
   surrender?: SurrenderOfferDef;
 };
 
+/** One page on a filler list. `id` is the event slug. `unique` pages appear once per sector. */
+export type FillerEntry = {
+  id: string;
+  unique: boolean;
+};
+
+/**
+ * An ordered list of filler pages. The id is the list name (`filler`, `distress`, and the rest).
+ * Appending a list replaces that id. A new id is added at the end. The sim still skips a unique page already on the map.
+ */
+export type FillerListDef = {
+  id: string;
+  entries: FillerEntry[];
+};
+
+/**
+ * Sentences for a beacon where nothing happens.
+ * `nebula` marks the two quiet-nebula pages. Other pages are chosen by sector name.
+ * Civilian is the first plain page, so an unlisted sector uses it.
+ */
+export type EmptyBeaconDef = {
+  id: string;
+  dest: string;
+  sectors: string[];
+  texts: string[];
+  nebula?: boolean;
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
@@ -294,4 +322,6 @@ export type ContentPack = {
   stores?: StoreDef[];
   tunes?: TuneDef[];
   events?: EventDef[];
+  lists?: FillerListDef[];
+  empties?: EmptyBeaconDef[];
 };

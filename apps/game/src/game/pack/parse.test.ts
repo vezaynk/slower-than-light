@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -180,12 +180,24 @@ const XML = `
 <storeBlueprint>
   <title>No name</title>
 </storeBlueprint>
+<systemTune name="embertune">
+  <start>3</start>
+  <upgrade level="1">7</upgrade>
+  <upgrade level="0">60</upgrade>
+  <minSector>4</minSector>
+</systemTune>
+<systemTune name="baretune">
+  <title></title>
+</systemTune>
+<systemTune>
+  <start>4</start>
+</systemTune>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, system, hull, sector, and store tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, hull, sector, store, and tune tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
@@ -195,6 +207,7 @@ describe("parsePack", () => {
     assert.equal(pack.hulls?.length, 2);
     assert.equal(pack.sectors?.length, 2);
     assert.equal(pack.stores?.length, 2);
+    assert.equal(pack.tunes?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -326,6 +339,18 @@ describe("parsePack", () => {
     assert.deepEqual(bareStore?.sections, []);
     assert.deepEqual(bareStore?.lines, []);
     assert.equal(storeDef("No name"), undefined);
+
+    const emberTune = tuneDef("embertune");
+    assert.equal(emberTune?.start, 3);
+    assert.deepEqual(emberTune?.costs, [
+      { level: 1, cost: 7 },
+      { level: 0, cost: 60 },
+    ]);
+    const bareTune = tuneDef("baretune");
+    assert.equal(bareTune?.start, 1);
+    assert.deepEqual(bareTune?.costs, []);
+    assert.equal(tuneDef("No name"), undefined);
+    assert.equal(systemDef("embertune"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

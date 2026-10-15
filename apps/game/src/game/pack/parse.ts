@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
 
@@ -332,6 +332,25 @@ function readStore(node: Node): StoreDef | undefined {
   };
 }
 
+function readTune(node: Node): TuneDef | undefined {
+  const id = node.attrs.name?.trim();
+  if (!id) return undefined;
+  const costs: TuneStep[] = [];
+  for (const item of node.children) {
+    if (item.tag !== "upgrade") continue;
+    const level = attrNum(item.attrs.level);
+    if (level == null) continue;
+    const cost = Number(item.text.trim());
+    if (!Number.isFinite(cost)) continue;
+    costs.push({ level, cost });
+  }
+  return {
+    id,
+    start: numOf(node, "start") ?? 1,
+    costs,
+  };
+}
+
 function readSector(node: Node): SectorDef | undefined {
   const id = node.attrs.name?.trim();
   if (!id) return undefined;
@@ -349,7 +368,7 @@ function readSector(node: Node): SectorDef | undefined {
   };
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, and store tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, and tune tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
@@ -359,6 +378,7 @@ export function parsePack(xml: string): ContentPack {
   const hulls: HullDef[] = [];
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
+  const tunes: TuneDef[] = [];
   walk(parseXml(xml), (node) => {
     if (node.tag === "race") {
       const row = readCrew(node);
@@ -384,7 +404,10 @@ export function parsePack(xml: string): ContentPack {
     } else if (node.tag === "storeBlueprint") {
       const row = readStore(node);
       if (row) stores.push(row);
+    } else if (node.tag === "systemTune") {
+      const row = readTune(node);
+      if (row) tunes.push(row);
     }
   });
-  return { crew, weapons, augments, drones, systems, hulls, sectors, stores };
+  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes };
 }

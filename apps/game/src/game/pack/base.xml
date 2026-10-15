@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, and store records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, and tune records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
@@ -8,6 +8,7 @@
   Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
+  Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -3297,4 +3298,60 @@
       <cost>50</cost>
     </stock>
   </storeBlueprint>
+  <systemTune name="shields">
+    <start>2</start>
+    <upgrade level="1">100</upgrade>
+    <upgrade level="2">20</upgrade>
+    <upgrade level="3">30</upgrade>
+    <upgrade level="4">40</upgrade>
+    <upgrade level="5">60</upgrade>
+    <upgrade level="6">80</upgrade>
+    <upgrade level="7">100</upgrade>
+  </systemTune>
+  <systemTune name="engines">
+    <start>1</start>
+    <upgrade level="1">10</upgrade>
+    <upgrade level="2">15</upgrade>
+    <upgrade level="3">30</upgrade>
+    <upgrade level="4">40</upgrade>
+    <upgrade level="5">60</upgrade>
+    <upgrade level="6">80</upgrade>
+    <upgrade level="7">120</upgrade>
+  </systemTune>
+  <systemTune name="oxygen">
+    <start>1</start>
+    <upgrade level="1">25</upgrade>
+    <upgrade level="2">50</upgrade>
+  </systemTune>
+  <systemTune name="medbay">
+    <start>1</start>
+    <upgrade level="1">35</upgrade>
+    <upgrade level="2">45</upgrade>
+  </systemTune>
+  <systemTune name="weapons">
+    <start>1</start>
+    <upgrade level="1">40</upgrade>
+    <upgrade level="2">25</upgrade>
+    <upgrade level="3">35</upgrade>
+    <upgrade level="4">50</upgrade>
+    <upgrade level="5">75</upgrade>
+    <upgrade level="6">90</upgrade>
+    <upgrade level="7">100</upgrade>
+  </systemTune>
+  <systemTune name="pilot">
+    <start>1</start>
+    <upgrade level="1">20</upgrade>
+    <upgrade level="2">50</upgrade>
+  </systemTune>
+  <systemTune name="sensors">
+    <start>1</start>
+    <upgrade level="1">25</upgrade>
+    <upgrade level="2">40</upgrade>
+  </systemTune>
+  <systemTune name="doors">
+    <start>1</start>
+    <upgrade level="0">60</upgrade>
+    <upgrade level="1">35</upgrade>
+    <upgrade level="2">50</upgrade>
+  </systemTune>
 </FTL>

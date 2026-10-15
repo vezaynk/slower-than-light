@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SectorDef, StoreDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -24,13 +24,14 @@ const OXYGEN_DRAIN = -0.5;
  * A hull is its id, class, layout letter, name, and starting loadout. Room tiles are not in the document.
  * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
  * A store is its id, title, section size, weapon shelf, section kinds, and stock lines.
- * Section count and the hull-repair rate stay in code.
+ * A tune is its system id, the level a purchase installs, and the scrap cost of each owned level.
+ * Section count, the hull-repair rate, and the reactor formula stay in code.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, and store records.`,
+    `  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, and tune records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
     `  Augment tags are the listing id, title, description, and store cost.`,
     `  Drone tags are the listing id, title, and store cost.`,
@@ -38,6 +39,7 @@ export function emitPack(pack: ContentPack): string {
     `  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.`,
     `  Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.`,
     `  Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.`,
+    `  Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -74,8 +76,19 @@ export function emitPack(pack: ContentPack): string {
   for (const hull of pack.hulls ?? []) lines.push(...hullXml(hull));
   for (const sector of pack.sectors ?? []) lines.push(...sectorXml(sector));
   for (const store of pack.stores ?? []) lines.push(...storeXml(store));
+  for (const tune of pack.tunes ?? []) lines.push(...tuneXml(tune));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function tuneXml(tune: TuneDef): string[] {
+  const lines = [`  <systemTune name="${escAttr(tune.id)}">`];
+  lines.push(el(2, "start", tune.start));
+  for (const step of tune.costs) {
+    lines.push(`    <upgrade level="${num(step.level)}">${num(step.cost)}</upgrade>`);
+  }
+  lines.push(`  </systemTune>`);
+  return lines;
 }
 
 function storeXml(store: StoreDef): string[] {

@@ -1,5 +1,5 @@
 import { DOMImplementation, XMLSerializer, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventDef, EventEffect, HullDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -14,7 +14,7 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 const HEADER = `
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, and tune records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, and event records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
@@ -23,6 +23,8 @@ const HEADER = `
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
+  Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
+  A choice is its id, label, and effects. Quest branches stay in code.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -66,9 +68,56 @@ export function emitPack(pack: ContentPack): string {
   for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector), 1);
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store), 1);
   for (const tune of pack.tunes ?? []) add(root, tuneElement(doc, tune), 1);
+  for (const event of pack.events ?? []) add(root, eventElement(doc, event), 1);
   end(root, 0);
   const xml = serializer.serializeToString(doc);
   return xml.endsWith("\n") ? xml : `${xml}\n`;
+}
+
+function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
+  const node = element(doc, "eventBlueprint", { name: event.id, flag: event.flag });
+  add(node, leaf(doc, "title", event.dest), 2);
+  for (const alias of event.aliases) add(node, leaf(doc, "alias", alias), 2);
+  for (const sector of event.sectors) add(node, leaf(doc, "sector", sector), 2);
+  add(node, leaf(doc, "text", event.body), 2);
+  for (const choice of event.choices) {
+    const choiceNode = element(doc, "choice", { name: choice.id });
+    add(choiceNode, leaf(doc, "text", choice.label), 3);
+    for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx), 3);
+    end(choiceNode, 2);
+    add(node, choiceNode, 2);
+  }
+  end(node, 1);
+  return node;
+}
+
+function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
+  if (fx.k === "nothing") return element(doc, "effect", { k: "nothing" });
+  if (fx.k === "note") {
+    const node = element(doc, "effect", { k: "note" });
+    node.appendChild(doc.createTextNode(fx.text));
+    return node;
+  }
+  if (fx.k === "item") return element(doc, "effect", { k: "item", item: fx.item });
+  if (fx.k === "hull") return element(doc, "effect", { k: "hull", n: num(fx.n) });
+  if (fx.k === "res") {
+    return element(doc, "effect", { k: "res", id: fx.id, sign: num(fx.sign), lo: num(fx.lo), hi: num(fx.hi) });
+  }
+  if (fx.k === "tier") {
+    const attrs: Record<string, string> = { k: "tier", tier: fx.tier };
+    if (fx.resources !== undefined) attrs.resources = String(fx.resources);
+    return element(doc, "effect", attrs);
+  }
+  if (fx.k === "fleet") {
+    const attrs: Record<string, string> = { k: "fleet", n: num(fx.n) };
+    if (fx.double !== undefined) attrs.double = String(fx.double);
+    if (fx.faster !== undefined) attrs.faster = String(fx.faster);
+    if (fx.lastStand !== undefined) attrs.lastStand = String(fx.lastStand);
+    return element(doc, "effect", attrs);
+  }
+  const attrs: Record<string, string> = { k: "fight", tier: fx.tier };
+  if (fx.asteroid !== undefined) attrs.asteroid = String(fx.asteroid);
+  return element(doc, "effect", attrs);
 }
 
 function tuneElement(doc: XmlDocument, tune: TuneDef): XmlElement {

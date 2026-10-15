@@ -188,6 +188,47 @@ export type TuneDef = {
   costs: TuneStep[];
 };
 
+export type EventResource = "scrap" | "fuel" | "missiles" | "parts";
+
+export type EventTier = "low" | "medium" | "high";
+
+export type EventItem = "weapon" | "augment" | "drone";
+
+/**
+ * One result on a choice. The sim applies these kinds.
+ * A quest branch that is still a procedure is not an effect.
+ */
+export type EventEffect =
+  | { k: "res"; id: EventResource; sign: 1 | -1; lo: number; hi: number }
+  | { k: "tier"; tier: EventTier; resources?: boolean }
+  | { k: "hull"; n: number }
+  | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
+  | { k: "fight"; tier: string; asteroid?: boolean }
+  | { k: "note"; text: string }
+  | { k: "item"; item: EventItem }
+  | { k: "nothing" };
+
+/** A button on an event page. The id is what `choose` receives. */
+export type EventChoice = {
+  id: string;
+  label: string;
+  fx: EventEffect[];
+};
+
+/**
+ * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
+ * `dest` is the title. Sector depth gates and quest procedures stay in code.
+ */
+export type EventDef = {
+  id: string;
+  dest: string;
+  flag: string;
+  aliases: string[];
+  sectors: string[];
+  body: string;
+  choices: EventChoice[];
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
@@ -198,4 +239,5 @@ export type ContentPack = {
   sectors?: SectorDef[];
   stores?: StoreDef[];
   tunes?: TuneDef[];
+  events?: EventDef[];
 };

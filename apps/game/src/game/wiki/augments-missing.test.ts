@@ -7,7 +7,7 @@ import { wikiPage } from "@stl/wiki-dump";
 const source = readFileSync(new URL("./augments-missing.ts", import.meta.url), "utf8");
 const augmentsWiki = wikiPage("Augmentations");
 const zoltanWiki = wikiPage("Zoltan Shield");
-const catalogSrc = readFileSync(new URL("../extras/augments.ts", import.meta.url), "utf8");
+const catalogSrc = readFileSync(new URL("../extras/augment-catalog.ts", import.meta.url), "utf8");
 
 const EXPECTED: Record<string, string> = {
   vengeance: "Crystal Vengeance",
@@ -57,10 +57,7 @@ describe("missing augments", () => {
     const ids = MISSING_AUGMENTS.map((row) => row.id);
     assert.equal(new Set(ids).size, ids.length);
     assert.deepEqual(ids.slice().sort(), Object.keys(EXPECTED).sort());
-    const catalogBlock = catalogSrc.slice(
-      catalogSrc.indexOf("export const CATALOG"),
-      catalogSrc.indexOf("function copies"),
-    );
+    const catalogBlock = catalogSrc.slice(catalogSrc.indexOf("export const CATALOG"));
     const catalogNames = [...catalogBlock.matchAll(/name: "([^"]+)"/g)].map((match) => match[1]);
     for (const row of MISSING_AUGMENTS) {
       assert.equal(row.name, EXPECTED[row.id]);

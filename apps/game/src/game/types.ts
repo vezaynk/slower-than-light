@@ -719,7 +719,7 @@ export type CargoItem = { kind: "weapon"; id: string; charge?: number } | { kind
 
 /** wiki/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
 export type Overflow =
-  | { kind: "augment"; id: AugmentId }
+  | { kind: "augment"; id: string }
   | { kind: "weapon"; id: string }
   | { kind: "drone"; id: string }
   /** `keep`: a paid hire, who stays (Crew: relieve "one of the existing crewmembers before purchase/hire"). */
@@ -1017,8 +1017,8 @@ export type Game = {
    * INFERRED: the jump that lands there is not one of those three.
    */
   ramAtBase?: number;
-  /** Installed augments. Three is the cap. */
-  augments: AugmentId[];
+  /** Installed augments. Three is the cap. A packed id is a string so a later listing can be fitted. */
+  augments: string[];
   /**
    * @agent:drones. Recent shots, rocks, and stray defense fire that struck an external drone (swarm.ts). Each entry
    * ages in tickSwarm and drops after DRONE_BLAST_S, for a CombatFx burst at the orbit. Absent until the first hit.

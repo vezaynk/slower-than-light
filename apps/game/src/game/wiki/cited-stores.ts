@@ -1,8 +1,8 @@
 import { tx } from "../../i18n/index.ts";
-import { CATALOG } from "../extras/augments.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
 import { WEAPONS } from "../content.ts";
-import type { AugmentId, Game, Kit, KitId, StockItem, SysId } from "../types.ts";
+import { allAugments, augmentDef } from "../pack/registry.ts";
+import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
 import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
@@ -60,7 +60,7 @@ const SLOT = 3;
 const CREW_CAP = 8;
 
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
-export const NOT_SOLD: ReadonlySet<AugmentId> = new Set(["keel", "casing"]);
+export const NOT_SOLD: ReadonlySet<string> = new Set(["keel", "casing"]);
 
 /**
  * Sectors, "Hidden Crystal Worlds", "Sector specifics": "only crystal weapons (including Lockdown Bomb)
@@ -125,7 +125,7 @@ const WEAPON_SELL: Readonly<Record<string, number>> = {
 const INVENTED_WEAPON_PRICE: ReadonlySet<string> = new Set(["dart"]);
 
 // Augmentations prints "Sell price:" on the non-purchasable rows. That is the sell line.
-const AUGMENT_SELL: Partial<Record<AugmentId, number>> = {
+const AUGMENT_SELL: Partial<Record<string, number>> = {
   medbot: 30,
   pheromone: 25,
   gel: 30,
@@ -135,7 +135,7 @@ const AUGMENT_SELL: Partial<Record<AugmentId, number>> = {
   zshield: 40,
 };
 
-const AUGMENT_SELL_NAME: Partial<Record<AugmentId, string>> = {
+const AUGMENT_SELL_NAME: Partial<Record<string, string>> = {
   medbot: tx("wiki.cited-stores.engi-med-bot-dispersal"),
   pheromone: tx("wiki.cited-stores.mantis-pheromones"),
   gel: tx("wiki.cited-stores.slug-repair-gel"),
@@ -298,11 +298,11 @@ function droneItems(g: Game): StockItem[] {
   }));
 }
 
-function augmentItems(g: Game): StockItem[] {
+export function augmentItems(g: Game): StockItem[] {
   const have = g.augments ?? [];
   const free = AUGMENT_CAP - have.length;
   if (free <= 0) return [];
-  const pool = CATALOG.filter((row) => !NOT_SOLD.has(row.id) && !have.includes(row.id));
+  const pool = allAugments().filter((row) => !NOT_SOLD.has(row.id) && !have.includes(row.id));
   return pool.slice(0, Math.min(SLOT, free)).map((row) => ({
     id: `aug-${row.id}`,
     kind: "augment" as const,
@@ -408,7 +408,7 @@ function grantSystem(g: Game, item: StockItem): boolean {
 }
 
 function grantAugment(g: Game, item: StockItem): boolean {
-  const row = CATALOG.find((entry) => entry.id === item.ref);
+  const row = augmentDef(item.ref);
   if (!row || NOT_SOLD.has(row.id)) return false;
   if (!g.augments) g.augments = [];
   if (g.augments.includes(row.id) || g.augments.length >= AUGMENT_CAP) return false;
@@ -533,11 +533,11 @@ function weaponSell(defId: string): number | null {
   return Math.floor(def.price / 2);
 }
 
-function augmentSell(id: AugmentId): number | null {
+function augmentSell(id: string): number | null {
   if (NOT_SOLD.has(id)) return null;
   const printed = AUGMENT_SELL[id];
   if (printed != null) return printed;
-  const row = CATALOG.find((entry) => entry.id === id);
+  const row = augmentDef(id);
   if (!row || row.cost <= 0) return null;
   return Math.floor(row.cost / 2);
 }
@@ -574,7 +574,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
   (g.augments ?? []).forEach((id, index) => {
     const scrap = augmentSell(id);
     if (scrap == null || scrap <= 0) return;
-    const row = CATALOG.find((entry) => entry.id === id);
+    const row = augmentDef(id);
     quotes.push({
       id: `a:${index}:${id}`,
       kind: "augment",

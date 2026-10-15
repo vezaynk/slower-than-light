@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
+import { CATALOG } from "../extras/augment-catalog.ts";
 import "./base.ts";
-import { allWeapons, crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { allAugments, allWeapons, augmentDef, crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
 afterEach(() => resetPackForTests());
@@ -60,6 +61,36 @@ describe("content pack", () => {
     assert.equal(weaponDef("shear")?.speed, 9);
     assert.equal(weaponDef("shear")?.crewDamage, 15);
     assert.equal(weaponDef("spark")?.lengthTiles, undefined);
+  });
+
+  it("loads the catalog in its authored order", () => {
+    assert.deepEqual(
+      allAugments().map((row) => ({ id: row.id, name: row.name, detail: row.detail, cost: row.cost })),
+      CATALOG.map((row) => ({ id: row.id, name: row.name, detail: row.detail, cost: row.cost })),
+    );
+  });
+
+  it("keeps an augment id apart from a race and a weapon", () => {
+    const feed = augmentDef("feed");
+    assert.ok(feed);
+    loadPack(
+      {
+        augments: [
+          { id: "spark", name: "Not the laser", detail: "", cost: 9 },
+          { ...feed, name: "Reloaded", cost: 77 },
+        ],
+      },
+      "append",
+    );
+    assert.equal(augmentDef("spark")?.name, "Not the laser");
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("feed")?.cost, 77);
+    assert.equal(allAugments().at(-1)?.id, "spark");
+    resetPackForTests();
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(augmentDef("feed")?.cost, CATALOG.find((row) => row.id === "feed")?.cost);
+    assert.equal(augmentDef("feed")?.name, CATALOG.find((row) => row.id === "feed")?.name);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

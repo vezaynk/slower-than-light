@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew and weapon records.
+  Base pack written from the loaded crew, weapon, and augment records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
+  Augment tags are the listing id, title, description, and store cost.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -1000,4 +1001,129 @@
     <length>99.00000000000001</length>
     <speed>5</speed>
   </weaponBlueprint>
+  <augBlueprint name="feed">
+    <title>Automated Re-loader</title>
+    <desc>Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.</desc>
+    <cost>40</cost>
+  </augBlueprint>
+  <augBlueprint name="echo">
+    <title>Explosive Replicator</title>
+    <desc>A missile has a 50% chance not to be spent.</desc>
+    <cost>60</cost>
+  </augBlueprint>
+  <augBlueprint name="quiet">
+    <title>Stealth Weapons</title>
+    <desc>Firing does not drop cloaking.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="hot">
+    <title>Weapon Pre-Igniter</title>
+    <desc>After a jump, enabled weapons that have power start fully charged.</desc>
+    <cost>120</cost>
+  </augBlueprint>
+  <augBlueprint name="weld">
+    <title>Repair Arm</title>
+    <desc>Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="baffle">
+    <title>Reverse Ion Field</title>
+    <desc>50% chance to ignore an ion hit. Two or more ignore every ion hit.</desc>
+    <cost>45</cost>
+  </augBlueprint>
+  <augBlueprint name="coil">
+    <title>Shield Charge Booster</title>
+    <desc>Shields recharge 15% faster per copy.</desc>
+    <cost>45</cost>
+  </augBlueprint>
+  <augBlueprint name="spool">
+    <title>FTL Recharge Booster</title>
+    <desc>One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="hook">
+    <title>Scrap Recovery Arm</title>
+    <desc>Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="keel">
+    <title>Rock Plating</title>
+    <desc>15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="casing">
+    <title>Titanium System Casing</title>
+    <desc>15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="tap">
+    <title>Battery Charger</title>
+    <desc>The Backup Battery cooldown is cut in half.</desc>
+    <cost>40</cost>
+  </augBlueprint>
+  <augBlueprint name="lung">
+    <title>Emergency Respirators</title>
+    <desc>Suffocation damage is halved, including while boarding. A Crystal takes a quarter.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="squall">
+    <title>Fire Suppression</title>
+    <desc>Fires on your ship die down faster than a person can put them out.</desc>
+    <cost>65</cost>
+  </augBlueprint>
+  <augBlueprint name="falsebuoy">
+    <title>Distraction Buoys</title>
+    <desc>At sector start, before sector 8, the fleet falls back one jump.</desc>
+    <cost>55</cost>
+  </augBlueprint>
+  <augBlueprint name="glass">
+    <title>Long-Ranged Scanners</title>
+    <desc>Adjacent beacons show an environmental hazard and possible ship presence. Selling or swapping the scanners hides that again.</desc>
+    <cost>30</cost>
+  </augBlueprint>
+  <augBlueprint name="jammer">
+    <title>FTL Jammer</title>
+    <desc>Enemy ships take twice as long to charge FTL.</desc>
+    <cost>30</cost>
+  </augBlueprint>
+  <augBlueprint name="recover">
+    <title>Drone Recovery Arm</title>
+    <desc>A powered defense drone gives its part back when the jump starts. A powered combat drone gives it back only after the fight. Boarding, ion, crew, and hacking drones do not.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="stun">
+    <title>Hacking Stun</title>
+    <desc>Everyone in a room during a hacking pulse is stunned for that pulse.</desc>
+    <cost>60</cost>
+  </augBlueprint>
+  <augBlueprint name="dna">
+    <title>Backup DNA Bank</title>
+    <desc>A waiting body stays in the clone bay queue even when the clone bay is off or broken.</desc>
+    <cost>40</cost>
+  </augBlueprint>
+  <augBlueprint name="mend">
+    <title>Reconstructive Teleport</title>
+    <desc>A person sent through the teleporter is fully healed.</desc>
+    <cost>70</cost>
+  </augBlueprint>
+  <augBlueprint name="pulseeye">
+    <title>Lifeform Scanner</title>
+    <desc>Living crew show up even when sensors do not.</desc>
+    <cost>40</cost>
+  </augBlueprint>
+  <augBlueprint name="nav">
+    <title>Adv. FTL Navigation</title>
+    <desc>The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.</desc>
+    <cost>50</cost>
+  </augBlueprint>
+  <augBlueprint name="scrambler">
+    <title>Defense Scrambler</title>
+    <desc>Enemy Defense Drone I, Defense Drone II, and Anti-Combat drones cannot acquire or shoot down targets. Your own defense drones still fire.</desc>
+    <cost>80</cost>
+  </augBlueprint>
+  <augBlueprint name="bypass">
+    <title>Zoltan Shield Bypass</title>
+    <desc>Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.</desc>
+    <cost>55</cost>
+  </augBlueprint>
 </FTL>

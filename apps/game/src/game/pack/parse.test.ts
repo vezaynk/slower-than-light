@@ -4,7 +4,7 @@ import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
 import { parsePack } from "./parse.ts";
-import { crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { augmentDef, crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -60,15 +60,29 @@ const XML = `
 <weaponBlueprint name="SKIP">
   <title>No type</title>
 </weaponBlueprint>
+<augBlueprint name="ember">
+  <title>Ember</title>
+  <desc>A warm listing.</desc>
+  <cost>15</cost>
+  <rarity>1</rarity>
+</augBlueprint>
+<augBlueprint name="bare">
+  <desc>Only a description.</desc>
+</augBlueprint>
+<augBlueprint>
+  <title>No name</title>
+  <cost>4</cost>
+</augBlueprint>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew and weapon tags this milestone stores", () => {
+  it("reads the crew, weapon, and augment tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
+    assert.equal(pack.augments?.length, 2);
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -112,6 +126,15 @@ describe("parsePack", () => {
     assert.equal(citedCrewDamage(shot, 1), 12);
     assert.equal(citedPierce("LONG"), 1);
     assert.equal(weaponDef("SKIP"), undefined);
+
+    const emberAug = augmentDef("ember");
+    assert.equal(emberAug?.name, "Ember");
+    assert.equal(emberAug?.detail, "A warm listing.");
+    assert.equal(emberAug?.cost, 15);
+    const bare = augmentDef("bare");
+    assert.equal(bare?.name, "bare");
+    assert.equal(bare?.detail, "Only a description.");
+    assert.equal(bare?.cost, 0);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

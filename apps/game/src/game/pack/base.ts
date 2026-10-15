@@ -10,6 +10,7 @@ import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
+import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
@@ -171,6 +172,11 @@ function weaponRow(id: string): WeaponBlueprint {
   return row;
 }
 
+const citedEvents = citedEventRecords().map(eventRow);
+const takenEventIds = new Set(citedEvents.map((row) => row.id));
+// A filler card whose slug is already a sector page stays that page.
+const fillerEvents = fillerPageRecords().filter((row) => !takenEventIds.has(row.id)).map(eventRow);
+
 loadPack(
   {
     crew: (Object.keys(KIN) as KinId[]).map(crewRow),
@@ -182,7 +188,7 @@ loadPack(
     sectors: SECTOR_TYPES.map(sectorRow),
     stores: STORES.map(storeRow),
     tunes: SYSTEM_TUNES.map(tuneRow),
-    events: citedEventRecords().map(eventRow),
+    events: [...citedEvents, ...fillerEvents],
     lists: fillerListRecords().map(listRow),
     empties: emptyBeaconRecords().map(emptyRow),
   },

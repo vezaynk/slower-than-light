@@ -24,6 +24,7 @@ const HEADER = `
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
+  Filler opening cards use that same tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.

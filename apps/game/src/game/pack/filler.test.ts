@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { fillerList, loadPack, resetPackForTests } from "@stl/pack";
+import { allEvents, eventDef, fillerList, loadPack, resetPackForTests } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import "./base.ts";
 import {
@@ -8,10 +8,12 @@ import {
   EXIT_ITEMS,
   EXIT_NEUTRAL,
   FILLER,
+  FILLER_PAGES,
   ITEMS,
   NEBULA,
   drawFiller,
   emptyPageFor,
+  fillerEvent,
   pageForRow,
   stampEmptyNebula,
 } from "../wiki/filler-events.ts";
@@ -99,6 +101,62 @@ describe("filler lists", () => {
     assert.equal(emptyPageFor("Nowhere").dest, "Empty beacon (Civilian)");
     resetPackForTests();
     assert.equal(emptyPageFor("Ember Reach").dest, "Empty beacon (Civilian)");
+  });
+
+  it("loads opening cards and keeps the two shared slugs as sector pages", () => {
+    const shared = new Set(["refueling-station", "pirate-ship-distress-trap"]);
+    assert.equal(FILLER_PAGES.length, 26);
+    let packed = 0;
+    for (const page of FILLER_PAGES) {
+      const record = eventDef(page.slug);
+      assert.ok(record, page.slug);
+      const same =
+        record.body === page.body &&
+        record.choices.length === page.choices.length &&
+        record.choices.every((choice, i) => choice.label === page.choices[i]?.label);
+      if (shared.has(page.slug)) assert.equal(same, false, page.slug);
+      else {
+        assert.equal(same, true, page.slug);
+        packed += 1;
+      }
+    }
+    assert.equal(packed, 24);
+    assert.equal(eventDef("refueling-station")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("pirate-ship-distress-trap")?.body, "");
+    const before = allEvents().length;
+    loadPack(
+      {
+        events: [
+          {
+            id: "large-asteroid-field",
+            dest: "Ember field",
+            flag: "cited:large-asteroid-field",
+            aliases: [],
+            sectors: [],
+            body: "Replaced.",
+            choices: [{ id: "c:large-asteroid-field:0", label: "Go", fx: [{ k: "nothing" }] }],
+          },
+        ],
+        lists: [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: false }] }],
+      },
+      "append",
+    );
+    assert.equal(allEvents().length, before);
+    assert.equal(drawFiller(createGame(1), "ember-list", [])?.body, "Replaced.");
+    resetPackForTests();
+    assert.equal(eventDef("large-asteroid-field")?.dest, "Large asteroid field");
+  });
+
+  it("opens the filler card for a shared slug and rolls the fuel gift", () => {
+    const g = createGame(1);
+    const beacon = g.beacons[0];
+    assert.ok(beacon);
+    beacon.flag = "filler:refueling-station";
+    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap.");
+    beacon.flag = "filler:pirate-ship-distress-trap";
+    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Fight the pirate ship.");
+    beacon.flag = "filler:friendly-ship-out-of-fuel";
+    assert.match(fillerEvent(g, beacon)?.choices[0]?.id ?? "", /^s:friendly-ship-out-of-fuel:give:\d+$/);
   });
 
   it("stamps the packed nebula sentences onto a quiet nebula beacon", () => {

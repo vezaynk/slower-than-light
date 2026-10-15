@@ -10,6 +10,7 @@
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
+  Filler opening cards use that same tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -7707,6 +7708,582 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         <text>Finish them off.</text>
       </choice>
     </surrender>
+  </eventBlueprint>
+  <eventBlueprint name="large-asteroid-field" flag="cited:large-asteroid-field">
+    <title>Large asteroid field</title>
+    <alias>Large asteroid field</alias>
+    <alias>Large Asteroid Field</alias>
+    <sector>Abandoned Sector</sector>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>Scans reveal a large asteroid field nearby. Short-range scanners may discover useful materials while we wait for the FTL to recharge.</text>
+    <choice name="c:large-asteroid-field:0">
+      <text>Explore the asteroid field.</text>
+      <effect k="fight" tier="Pirate ship" asteroid="true"/>
+    </choice>
+    <choice name="c:large-asteroid-field:1">
+      <text>Too dangerous. We'll just wait for the FTL to charge.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:large-asteroid-field:2">
+      <text>Attempt to mine the asteroids.</text>
+      <effect k="note">High scrap.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="battlefield-wreckage" flag="cited:battlefield-wreckage">
+    <title>Battlefield wreckage</title>
+    <alias>Battlefield wreckage</alias>
+    <alias>Battlefield Wreckage</alias>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You have jumped into the aftermath of what seems to have been a brutal exchange between several ships. Wreckage drifts by your screens, and you can still see the remains of the dying ships sparking and breaking apart. It's hard to determine who the combatants were without closer investigation.</text>
+    <choice name="c:battlefield-wreckage:0">
+      <text>Investigate the battlefield.</text>
+      <effect k="fight" tier="Rebel ship"/>
+    </choice>
+    <choice name="c:battlefield-wreckage:1">
+      <text>Ignore the wreckage and continue on.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:battlefield-wreckage:2">
+      <text>Use your Sensors to scan the wreckage.</text>
+      <effect k="note">Medium resources with some scrap.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="plagued-station" flag="cited:plagued-station">
+    <title>Plagued station</title>
+    <alias>Plagued station</alias>
+    <alias>Plagued Station</alias>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You arrive near a damaged and dilapidated space station. It appears to be abandoned but you detect faint life signatures on board.</text>
+    <choice name="c:plagued-station:0">
+      <text>Board the station and look for survivors.</text>
+      <effect k="tier" tier="low"/>
+    </choice>
+    <choice name="c:plagued-station:1">
+      <text>Scrap some of the debris.</text>
+      <effect k="note">A random amount of scrap.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="rebel-fight-chance" flag="cited:rebel-fight-chance">
+    <title>Rebel fight chance</title>
+    <alias>Rebel fight chance</alias>
+    <alias>Rebel Fight Chance</alias>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You arrive at a beacon located in a civilian star system. A nearby colony contacts you: "We've got a rogue Rebel ship harassing this system. Do you have time to find it?"</text>
+    <choice name="c:rebel-fight-chance:0">
+      <text>Go looking for the Rebel ship.</text>
+      <effect k="fight" tier="Rebel ship"/>
+    </choice>
+    <choice name="c:rebel-fight-chance:1">
+      <text>No time to search, you prepare to jump away.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:rebel-fight-chance:2">
+      <text>Perform a scan of the area.</text>
+      <effect k="fight" tier="Rebel ship"/>
+    </choice>
+    <choice name="c:rebel-fight-chance:3">
+      <text>Pinpoint the Rebel's location.</text>
+      <effect k="fight" tier="Rebel ship"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="refugee" flag="cited:refugee">
+    <title>Refugee</title>
+    <alias>Refugee</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
+    <choice name="c:refugee:0">
+      <text>Hail them.</text>
+      <effect k="fight" tier="Pirate ship"/>
+    </choice>
+    <choice name="c:refugee:1">
+      <text>Ignore the refugees.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="intelligent-ponies" flag="cited:intelligent-ponies">
+    <title>Intelligent ponies</title>
+    <alias>Intelligent ponies</alias>
+    <alias>Intelligent Ponies</alias>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>Scanners are showing intelligent life forms on a nearby planet. No match for them can be found in the database.</text>
+    <choice name="c:intelligent-ponies:0">
+      <text>Investigate.</text>
+      <effect k="note">Three follow-up choices.</effect>
+    </choice>
+    <choice name="c:intelligent-ponies:1">
+      <text>Ignore it.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="abandoned-station" flag="cited:abandoned-station">
+    <title>Abandoned station</title>
+    <alias>Abandoned station</alias>
+    <alias>Abandoned Station</alias>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You find a small space station that appears to be abandoned.</text>
+    <choice name="c:abandoned-station:0">
+      <text>Move in to examine the station.</text>
+      <effect k="tier" tier="low"/>
+    </choice>
+    <choice name="c:abandoned-station:1">
+      <text>Stay near the Beacon.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="terraforming-scan" flag="cited:terraforming-scan">
+    <title>Terraforming scan</title>
+    <alias>Terraforming scan</alias>
+    <alias>Terraforming Scan</alias>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <text>You receive a hail from a station orbiting a nearby planet. "Captain, we are Federation Terraforming Team C12 and are in need of assistance. Do you have some time?"</text>
+    <choice name="c:terraforming-scan:0">
+      <text>You offer your assistance.</text>
+      <effect k="note">They ask for a scan.</effect>
+    </choice>
+    <choice name="c:terraforming-scan:1">
+      <text>You do not have time.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="empty-nebula-beacon" flag="cited:empty-nebula-beacon">
+    <title>Empty nebula beacon</title>
+    <alias>Empty nebula beacon</alias>
+    <alias>Empty Nebula Beacon</alias>
+    <alias>Nebula empty beacon</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>There's nothing here, save for vast swirls of gas reflecting rays from a distant sun.</text>
+    <choice name="c:empty-nebula-beacon:0">
+      <text>Continue</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="nebula-lost-ship" flag="cited:nebula-lost-ship">
+    <title>Nebula lost ship</title>
+    <alias>Nebula lost ship</alias>
+    <alias>Nebula Lost Ship</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>A heavily damaged Federation ship is hiding in the nebula at this beacon. Before you have time to make contact with them, they fade into the nebula.</text>
+    <choice name="c:nebula-lost-ship:0">
+      <text>Attempt to follow and help them.</text>
+      <effect k="fight" tier="Rebel ship"/>
+    </choice>
+    <choice name="c:nebula-lost-ship:1">
+      <text>Keep your position, they can handle themselves.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:nebula-lost-ship:2">
+      <text>Lock onto their life-signs with your teleporter.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:nebula-lost-ship:3">
+      <text>Pump extra power into your sensors and try to track them.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="plasma-storm-incapacitated-ships" flag="cited:plasma-storm-incapacitated-ships">
+    <title>Plasma storm incapacitated ships</title>
+    <alias>Plasma storm incapacitated ships</alias>
+    <alias>Plasma Storm Incapacitated Ships</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>You jump into the middle of a plasma storm. Multiple recently incapacitated ships loom in the shadows, briefly illuminated by the lightning.</text>
+    <choice name="c:plasma-storm-incapacitated-ships:0">
+      <text>Manually search the wreckage for survivors and equipment.</text>
+      <effect k="hull" n="-4"/>
+    </choice>
+    <choice name="c:plasma-storm-incapacitated-ships:1">
+      <text>Avoid the risk and wait to jump away unscathed.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:plasma-storm-incapacitated-ships:2">
+      <text>Have your pilot carefully explore the debris.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="friendly-ship-out-of-fuel" flag="cited:friendly-ship-out-of-fuel">
+    <title>Friendly ship out of fuel</title>
+    <alias>Friendly ship out of fuel</alias>
+    <alias>Friendly Ship Out of Fuel</alias>
+    <sector>Abandoned Sector</sector>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>"Greetings! It is so good to see you! We've been out of fuel and floating out here for weeks. We were terrified a pirate or those damn Rebels would find us first. Could you spare some fuel?"</text>
+    <choice name="c:friendly-ship-out-of-fuel:0">
+      <text>Give them the fuel.</text>
+      <effect k="res" id="fuel" sign="-1" lo="2" hi="4"/>
+      <effect k="tier" tier="high"/>
+    </choice>
+    <choice name="c:friendly-ship-out-of-fuel:1">
+      <text>Apologize, wish them luck, and continue on.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="refugee-distress" flag="cited:refugee-distress">
+    <title>Refugee distress</title>
+    <alias>Refugee distress</alias>
+    <alias>Refugee Distress</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
+    <choice name="c:refugee-distress:0">
+      <text>Hail them.</text>
+      <effect k="fight" tier="Pirate ship"/>
+    </choice>
+    <choice name="c:refugee-distress:1">
+      <text>Ignore the refugees.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="refugee-comms-down" flag="cited:refugee-comms-down">
+    <title>Refugee comms down</title>
+    <alias>Refugee comms down</alias>
+    <alias>Refugee Comms Down</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board, and its communications seem to be down.</text>
+    <choice name="c:refugee-comms-down:0">
+      <text>Prepare to board and investigate.</text>
+      <effect k="res" id="missiles" sign="1" lo="2" hi="4"/>
+      <effect k="tier" tier="medium"/>
+    </choice>
+    <choice name="c:refugee-comms-down:1">
+      <text>Ignore the ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="trade-scrap-for-upgrades" flag="cited:trade-scrap-for-upgrades">
+    <title>Trade scrap for upgrades</title>
+    <alias>Trade scrap for upgrades</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You pick up an automated message from a nearby space station. There appears to be a local shipwright that can perform emergency work on military ships.</text>
+    <choice name="c:trade-scrap-for-upgrades:0">
+      <text>Inquire about their specialty.</text>
+      <effect k="note">One printed upgrade offer.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="asteroid-mining-colony" flag="cited:asteroid-mining-colony">
+    <title>Asteroid mining colony</title>
+    <alias>Asteroid mining colony</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You come across an asteroid mining colony. They message you immediately, saying, "Greetings. Our supplies of mining explosives have run out ever since the Rebels blockaded this system. Do you have any extra explosives?"</text>
+    <choice name="c:asteroid-mining-colony:0">
+      <text>Offer to solve their problem by launching a missile.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:asteroid-mining-colony:1">
+      <text>Give them the requested 5 missiles.</text>
+      <effect k="res" id="missiles" sign="-1" lo="5" hi="5"/>
+    </choice>
+    <choice name="c:asteroid-mining-colony:2">
+      <text>Give them 15 missiles.</text>
+      <effect k="res" id="missiles" sign="-1" lo="15" hi="15"/>
+    </choice>
+    <choice name="c:asteroid-mining-colony:3">
+      <text>Decline.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="improve-reactor-for-supplies" flag="cited:improve-reactor-for-supplies">
+    <title>Improve reactor for supplies</title>
+    <alias>Improve reactor for supplies</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
+    <choice name="c:improve-reactor-for-supplies:0">
+      <text>Agree to the trade.</text>
+      <effect k="note">One printed supply bundle.</effect>
+    </choice>
+    <choice name="c:improve-reactor-for-supplies:1">
+      <text>Respectfully decline.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="giant-alien-spiders" flag="cited:giant-alien-spiders">
+    <title>Giant alien spiders</title>
+    <alias>Giant alien spiders</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You find a number of ships fleeing from a small space station. You hail them, asking what's wrong: "Help! We're being overrun by some sort of giant alien spiders!"</text>
+    <choice name="c:giant-alien-spiders:0">
+      <text>Send the crew to help! Giant alien spiders are no joke.</text>
+      <effect k="note">A crewmember, or high resources with some scrap.</effect>
+    </choice>
+    <choice name="c:giant-alien-spiders:1">
+      <text>Leave them alone.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:giant-alien-spiders:2">
+      <text>Send your battle drone in to help.</text>
+      <effect k="note">Medium resources with some scrap.</effect>
+    </choice>
+    <choice name="c:giant-alien-spiders:3">
+      <text>Launch a Boarding drone into the station.</text>
+      <effect k="note">Low scrap with resources.</effect>
+    </choice>
+    <choice name="c:giant-alien-spiders:4">
+      <text>Use the beam to pick off the spiders.</text>
+      <effect k="note">High resources with some scrap.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="crushed-pirate" flag="cited:crushed-pirate">
+    <title>Crushed pirate</title>
+    <alias>Crushed pirate</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You arrive at the distress beacon near a small asteroid belt and find a ship with pirate markings partially crushed between two large rocks. It must have been illegally mining the belt without proper equipment.</text>
+    <choice name="c:crushed-pirate:0">
+      <text>Try to dislodge the ship by shooting at the rocks.</text>
+      <effect k="note">2 hull, 2 system damage, and low scrap, or medium scrap with resources.</effect>
+    </choice>
+    <choice name="c:crushed-pirate:1">
+      <text>Destroy and loot the ship. They're just pirates.</text>
+      <effect k="note">Medium scrap with resources, or a Pirate ship.</effect>
+    </choice>
+    <choice name="c:crushed-pirate:2">
+      <text>Carefully cut the ship out.</text>
+      <effect k="note">Medium scrap with resources.</effect>
+    </choice>
+    <choice name="c:crushed-pirate:3">
+      <text>Have your drone cut the ship out.</text>
+      <effect k="note">Medium scrap with resources.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="unknown-disease-on-mining-colony" flag="cited:unknown-disease-on-mining-colony">
+    <title>Unknown disease on mining colony</title>
+    <alias>Unknown disease on mining colony</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>You locate a nearby human mining colony where an unknown disease has spread virulently. They are setting up a quarantine to contain it but a riot has broken out.</text>
+    <choice name="c:unknown-disease-on-mining-colony:0">
+      <text>Send in your crew to help control the crowds.</text>
+      <effect k="note">A crewmember and medium resources, or nothing.</effect>
+    </choice>
+    <choice name="c:unknown-disease-on-mining-colony:1">
+      <text>Ignore their request and move on.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:unknown-disease-on-mining-colony:2">
+      <text>Send your Rock crew-member to prevent a riot.</text>
+      <effect k="note">Medium resources with some scrap.</effect>
+    </choice>
+    <choice name="c:unknown-disease-on-mining-colony:3">
+      <text>Send your Engi to calm down the infected.</text>
+      <effect k="note">Medium resources with some scrap.</effect>
+    </choice>
+    <choice name="c:unknown-disease-on-mining-colony:4">
+      <text>Use your medbay to help synthesize a cure.</text>
+      <effect k="note">Medium resources, or high scrap.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="fire-on-research-station" flag="cited:fire-on-research-station">
+    <title>Fire on research station</title>
+    <alias>Fire on research station</alias>
+    <sector>Abandoned Sector</sector>
+    <sector>Civilian Sector</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>You find the source of the distress call, a small research station. It appears a small laboratory fire got out of control and is threatening to destroy the station. Their fire suppression system is not responding.</text>
+    <choice name="c:fire-on-research-station:0">
+      <text>Send your crew in a shuttle to help put out the fire.</text>
+      <effect k="note">A crewmember and low scrap, or high scrap.</effect>
+    </choice>
+    <choice name="c:fire-on-research-station:1">
+      <text>Dock and try to rescue the survivors.</text>
+      <effect k="note">4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap.</effect>
+    </choice>
+    <choice name="c:fire-on-research-station:2">
+      <text>Leave.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="c:fire-on-research-station:3">
+      <text>Send your Rock crew-member in.</text>
+      <effect k="note">High scrap and a random augmentation.</effect>
+    </choice>
+    <choice name="c:fire-on-research-station:4">
+      <text>Send your repair drone into the fire.</text>
+      <effect k="note">High scrap and a random drone schematic.</effect>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="single-life-form-on-moon" flag="cited:single-life-form-on-moon">
+    <title>Single life form on moon</title>
+    <alias>Single life form on moon</alias>
+    <sector>Abandoned Sector</sector>
+    <sector>Civilian Sector</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>It appears the distress beacon is coming from the surface of a nearby moon. Your sensors are picking up a single life form.</text>
+    <choice name="c:single-life-form-on-moon:0">
+      <text>Go down to the surface to investigate.</text>
+      <effect k="note">Charlie, a crewmember, 5 hull, or scrap and repairs.</effect>
+    </choice>
+    <choice name="c:single-life-form-on-moon:1">
+      <text>Ignore the signal.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="malfunctioning-defense-system" flag="cited:malfunctioning-defense-system">
+    <title>Malfunctioning defense system</title>
+    <alias>Malfunctioning defense system</alias>
+    <sector>Abandoned Sector</sector>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Uncharted Nebula</sector>
+    <sector>Zoltan Controlled Sector</sector>
+    <sector>Zoltan Homeworlds</sector>
+    <text>The distress signal is coming from a small space station orbiting an uninhabited planet. Their satellite defense system has gone haywire and their repair crew can't approach without being fired on. They're looking for help to fix or disable it.</text>
+    <choice name="c:malfunctioning-defense-system:0">
+      <text>Promise to help.</text>
+      <effect k="note">Ion, cloaking, an Engi, or low scrap. The 5 hull result stays unwired.</effect>
+    </choice>
+    <choice name="c:malfunctioning-defense-system:1">
+      <text>Leave them alone.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="crew-hiring-station" flag="cited:crew-hiring-station">
+    <title>Crew hiring station</title>
+    <alias>Crew hiring station</alias>
+    <sector>Civilian Sector</sector>
+    <sector>Engi Controlled Sector</sector>
+    <sector>Engi Homeworlds</sector>
+    <sector>Mantis Controlled Sector</sector>
+    <sector>Mantis Homeworlds</sector>
+    <sector>Pirate Controlled Sector</sector>
+    <sector>Rebel Controlled Sector</sector>
+    <sector>Rebel Stronghold</sector>
+    <sector>Rock Controlled Sector</sector>
+    <sector>Rock Homeworlds</sector>
+    <sector>Slug Controlled Nebula</sector>
+    <sector>Slug Home Nebula</sector>
+    <sector>Uncharted Nebula</sector>
+    <text>This Beacon seems to serve as meeting place for local traffic. It seems you can find crew willing to fight on your ship here... for a price.</text>
+    <choice name="c:crew-hiring-station:0">
+      <text>Don't hire anyone.</text>
+      <effect k="nothing"/>
+    </choice>
   </eventBlueprint>
   <eventList name="filler">
     <event id="abandoned-station" unique="true"/>

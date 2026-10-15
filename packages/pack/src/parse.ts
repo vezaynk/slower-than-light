@@ -1,5 +1,44 @@
-import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import {
+  DOMParser,
+  Node,
+  type Document as XmlDocument,
+  type Element as XmlElement,
+} from "@xmldom/xmldom";
+import type {
+  AugmentDef,
+  ChoiceReq,
+  ContentPack,
+  CrewDef,
+  DroneDef,
+  EmptyBeaconDef,
+  EventCard,
+  EventChoice,
+  EventDef,
+  EventEffect,
+  EventItem,
+  EventResource,
+  EventTier,
+  FillerEntry,
+  FillerListDef,
+  HullDef,
+  HullKitDef,
+  HullLayout,
+  OfferPay,
+  OfferRes,
+  OfferRow,
+  RollEntry,
+  SectorDef,
+  StoreDef,
+  StoreLine,
+  SurrenderChoice,
+  SurrenderOfferDef,
+  SurrenderReward,
+  SystemDef,
+  TuneDef,
+  TuneStep,
+  WeaponBlueprint,
+  WeaponKind,
+} from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -51,7 +90,8 @@ function ownText(node: XmlElement): string {
   for (let i = 0; i < node.childNodes.length; i++) {
     const item = node.childNodes.item(i);
     if (!item) continue;
-    if (item.nodeType === Node.TEXT_NODE || item.nodeType === Node.CDATA_SECTION_NODE) text += item.nodeValue ?? "";
+    if (item.nodeType === Node.TEXT_NODE || item.nodeType === Node.CDATA_SECTION_NODE)
+      text += item.nodeValue ?? "";
   }
   return text;
 }
@@ -433,7 +473,20 @@ export function parsePack(xml: string): ContentPack {
     const row = readEmpty(node);
     if (row) empties.push(row);
   }
-  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes, events, lists, empties };
+  return {
+    crew,
+    weapons,
+    augments,
+    drones,
+    systems,
+    hulls,
+    sectors,
+    stores,
+    tunes,
+    events,
+    lists,
+    empties,
+  };
 }
 
 function readList(node: XmlElement): FillerListDef | undefined {
@@ -529,7 +582,10 @@ function readEvent(node: XmlElement): EventDef | undefined {
       const parsed = readEffect(effect);
       if (parsed) fx.push(parsed);
     }
-    choices.push({ id: choiceId, label: textOf(item, "text") ?? choiceId, fx });
+    const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
+    const reqs = readReqs(item);
+    if (reqs) choice.reqs = reqs;
+    choices.push(choice);
   }
   const event: EventDef = {
     id,
@@ -609,7 +665,11 @@ function readCard(node: XmlElement): EventCard | undefined {
   const choices = elements(node).flatMap((item) => {
     if (item.tagName !== "choice") return [];
     const id = attr(item, "name")?.trim();
-    return id ? [{ id, label: choiceLabel(item, id) }] : [];
+    if (!id) return [];
+    const reqs = readReqs(item);
+    return [
+      reqs ? { id, label: choiceLabel(item, id), reqs } : { id, label: choiceLabel(item, id) },
+    ];
   });
   if (!body || choices.length === 0) return undefined;
   return { body, choices };
@@ -648,7 +708,8 @@ function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
     .map((item) => ownText(item).trim())
     .filter((text) => text.length > 0);
   const accept = readNamedChoice(node, "surrender-accept");
-  if (chance == null || low == null || high == null || !reward || hails.length === 0 || !accept) return undefined;
+  if (chance == null || low == null || high == null || !reward || hails.length === 0 || !accept)
+    return undefined;
   const offer: SurrenderOfferDef = {
     chance,
     low,
@@ -666,7 +727,11 @@ function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
   const result = textOf(node, "result");
   if (result) offer.result = result;
   const extra = elements(node).find(
-    (item) => item.tagName === "choice" && attr(item, "name")?.trim() && attr(item, "name") !== "surrender-accept" && attr(item, "name") !== "surrender-refuse",
+    (item) =>
+      item.tagName === "choice" &&
+      attr(item, "name")?.trim() &&
+      attr(item, "name") !== "surrender-accept" &&
+      attr(item, "name") !== "surrender-refuse",
   );
   if (extra) {
     const id = attr(extra, "name")?.trim();
@@ -687,13 +752,65 @@ function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
 }
 
 function readNamedChoice(node: XmlElement, name: string): SurrenderChoice | undefined {
-  const found = elements(node).find((item) => item.tagName === "choice" && attr(item, "name") === name);
+  const found = elements(node).find(
+    (item) => item.tagName === "choice" && attr(item, "name") === name,
+  );
   if (!found) return undefined;
   return { id: name, label: choiceLabel(found, name) };
 }
 
 function choiceLabel(node: XmlElement, fallback: string): string {
   return textOf(node, "text") ?? (ownText(node).trim() || fallback);
+}
+
+/** Direct req children. An unknown kind, a blank refusal, or a bad number is skipped. */
+function readReqs(node: XmlElement): ChoiceReq[] | undefined {
+  const reqs: ChoiceReq[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "req") continue;
+    const req = readReq(item);
+    if (req) reqs.push(req);
+  }
+  return reqs.length > 0 ? reqs : undefined;
+}
+
+function intAttr(node: XmlElement, name: string): number | undefined {
+  const value = attrNum(node.getAttribute(name));
+  if (value == null || !Number.isInteger(value)) return undefined;
+  return value;
+}
+
+function readReq(node: XmlElement): ChoiceReq | undefined {
+  const kind = attr(node, "k")?.trim();
+  const id = attr(node, "id")?.trim();
+  const text = ownText(node).trim();
+  if (!kind || !id || !text) return undefined;
+  if (
+    kind === "crew" ||
+    kind === "augment" ||
+    kind === "weapon" ||
+    kind === "family" ||
+    kind === "drone"
+  ) {
+    return { k: kind, id, text };
+  }
+  if (kind === "system") {
+    const level = intAttr(node, "level");
+    if (level == null) return undefined;
+    return { k: "system", id, level, text };
+  }
+  if (kind === "band") {
+    const lo = intAttr(node, "lo");
+    const hi = intAttr(node, "hi");
+    if (lo == null || hi == null || lo > hi) return undefined;
+    return { k: "band", id, lo, hi, text };
+  }
+  if (kind === "stock") {
+    const n = intAttr(node, "n");
+    if (n == null) return undefined;
+    return { k: "stock", id, n, text };
+  }
+  return undefined;
 }
 
 function readReward(node: XmlElement): SurrenderReward | undefined {
@@ -767,7 +884,8 @@ function readEffect(node: XmlElement): EventEffect | undefined {
     const tier = attr(node, "tier");
     if (!isTier(tier)) return undefined;
     const effect: EventEffect = { k: "tier", tier };
-    if (node.hasAttribute("resources")) effect.resources = node.getAttribute("resources") === "true";
+    if (node.hasAttribute("resources"))
+      effect.resources = node.getAttribute("resources") === "true";
     return effect;
   }
   if (kind === "fleet") {
@@ -776,7 +894,8 @@ function readEffect(node: XmlElement): EventEffect | undefined {
     const effect: EventEffect = { k: "fleet", n };
     if (node.hasAttribute("double")) effect.double = node.getAttribute("double") === "true";
     if (node.hasAttribute("faster")) effect.faster = node.getAttribute("faster") === "true";
-    if (node.hasAttribute("lastStand")) effect.lastStand = node.getAttribute("lastStand") === "true";
+    if (node.hasAttribute("lastStand"))
+      effect.lastStand = node.getAttribute("lastStand") === "true";
     return effect;
   }
   if (kind === "fight") {

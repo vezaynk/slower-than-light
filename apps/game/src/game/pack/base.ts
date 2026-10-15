@@ -13,12 +13,33 @@ import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
+import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventDef, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type {
+  AugmentDef,
+  ChoiceReq,
+  CrewDef,
+  DroneDef,
+  EmptyBeaconDef,
+  EventCard,
+  EventChoice,
+  EventDef,
+  FillerListDef,
+  HullDef,
+  HullKitDef,
+  OfferRow,
+  RollEntry,
+  SectorDef,
+  StoreDef,
+  SurrenderOfferDef,
+  SystemDef,
+  TuneDef,
+  WeaponBlueprint,
+} from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -104,11 +125,19 @@ function surrenderRow(row: SurrenderOfferDef): SurrenderOfferDef {
 }
 
 function listRow(row: FillerListDef): FillerListDef {
-  return { id: row.id, entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })) };
+  return {
+    id: row.id,
+    entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })),
+  };
 }
 
 function emptyRow(row: EmptyBeaconDef): EmptyBeaconDef {
-  const copy: EmptyBeaconDef = { id: row.id, dest: row.dest, sectors: [...row.sectors], texts: [...row.texts] };
+  const copy: EmptyBeaconDef = {
+    id: row.id,
+    dest: row.dest,
+    sectors: [...row.sectors],
+    texts: [...row.texts],
+  };
   if (row.nebula) copy.nebula = true;
   return copy;
 }
@@ -121,11 +150,13 @@ function eventRow(row: EventDef): EventDef {
     aliases: [...row.aliases],
     sectors: [...row.sectors],
     body: row.body,
-    choices: row.choices.map((choice) => ({
-      id: choice.id,
-      label: choice.label,
-      fx: choice.fx.map((fx) => ({ ...fx })),
-    })),
+    choices: row.choices.map((choice) =>
+      lockedChoice({
+        id: choice.id,
+        label: choice.label,
+        fx: choice.fx.map((fx) => ({ ...fx })),
+      }),
+    ),
   };
   const texts = OPENING_TEXTS[row.id];
   if (texts && texts.length > 1) copy.texts = [...texts];
@@ -143,8 +174,62 @@ function copyBand(band: [number, number]): [number, number] {
   return [band[0], band[1]];
 }
 
+function copyReq(req: ChoiceReq): ChoiceReq {
+  if (req.k === "system") return { k: "system", id: req.id, level: req.level, text: req.text };
+  if (req.k === "band") return { k: "band", id: req.id, lo: req.lo, hi: req.hi, text: req.text };
+  if (req.k === "stock") return { k: "stock", id: req.id, n: req.n, text: req.text };
+  return { k: req.k, id: req.id, text: req.text };
+}
+
+/** A button stores the locks authored for its id. The authoring table is not mutated. */
+function lockedChoice(choice: EventChoice): EventChoice {
+  const reqs = CHOICE_REQS[choice.id];
+  if (!reqs?.length) return choice;
+  return { ...choice, reqs: reqs.map(copyReq) };
+}
+
 function copyCard(row: EventCard): EventCard {
-  return { body: row.body, choices: row.choices.map((choice) => ({ id: choice.id, label: choice.label })) };
+  return {
+    body: row.body,
+    choices: row.choices.map((choice) => {
+      const reqs = CHOICE_REQS[choice.id];
+      const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
+      if (reqs?.length) copy.reqs = reqs.map(copyReq);
+      return copy;
+    }),
+  };
+}
+
+function takenReqIds(events: readonly EventDef[]): Set<string> {
+  const seen = new Set<string>();
+  for (const ev of events) {
+    for (const choice of ev.choices) if (choice.reqs?.length) seen.add(choice.id);
+    for (const card of ev.cards ?? [])
+      for (const choice of card.choices) if (choice.reqs?.length) seen.add(choice.id);
+  }
+  return seen;
+}
+
+/**
+ * Locks whose button is not on a loaded page or card.
+ * Empty sectors keep the chart from placing this page. The sim looks the lock up by id.
+ * The title is the id: a blank title would come back as the id on the next read.
+ */
+function reqHolder(taken: ReadonlySet<string>): EventDef {
+  const choices: EventChoice[] = [];
+  for (const [id, reqs] of Object.entries(CHOICE_REQS)) {
+    if (taken.has(id) || reqs.length === 0) continue;
+    choices.push({ id, label: id, fx: [{ k: "nothing" }], reqs: reqs.map(copyReq) });
+  }
+  return {
+    id: "blue-button-reqs",
+    dest: "blue-button-reqs",
+    flag: "reqs:blue-button-reqs",
+    aliases: [],
+    sectors: [],
+    body: "",
+    choices,
+  };
 }
 
 function copyRoll(row: RollEntry): RollEntry {
@@ -154,10 +239,36 @@ function copyRoll(row: RollEntry): RollEntry {
 }
 
 function copyOffer(row: OfferRow): OfferRow {
-  if (row.k === "trade") return { k: "trade", pay: row.pay, cost: copyBand(row.cost), get: row.get, gain: copyBand(row.gain) };
-  if (row.k === "fuel") return { k: "fuel", band: row.band, fuel: copyBand(row.fuel), pay: row.pay, amt: copyBand(row.amt) };
-  if (row.k === "lanius") return { k: "lanius", band: row.band, res: row.res, cost: copyBand(row.cost), scrap: copyBand(row.scrap) };
-  return { k: "supply", missiles: copyBand(row.missiles), parts: copyBand(row.parts), fuel: copyBand(row.fuel) };
+  if (row.k === "trade")
+    return {
+      k: "trade",
+      pay: row.pay,
+      cost: copyBand(row.cost),
+      get: row.get,
+      gain: copyBand(row.gain),
+    };
+  if (row.k === "fuel")
+    return {
+      k: "fuel",
+      band: row.band,
+      fuel: copyBand(row.fuel),
+      pay: row.pay,
+      amt: copyBand(row.amt),
+    };
+  if (row.k === "lanius")
+    return {
+      k: "lanius",
+      band: row.band,
+      res: row.res,
+      cost: copyBand(row.cost),
+      scrap: copyBand(row.scrap),
+    };
+  return {
+    k: "supply",
+    missiles: copyBand(row.missiles),
+    parts: copyBand(row.parts),
+    fuel: copyBand(row.fuel),
+  };
 }
 
 function hullRow(spec: HullSpec): HullDef {
@@ -208,7 +319,14 @@ function weaponRow(id: string): WeaponBlueprint {
 const citedEvents = citedEventRecords().map(eventRow);
 const takenEventIds = new Set(citedEvents.map((row) => row.id));
 // A filler card whose slug is already a sector page stays that page.
-const fillerEvents = fillerPageRecords().filter((row) => !takenEventIds.has(row.id)).map(eventRow);
+const fillerEvents = fillerPageRecords()
+  .filter((row) => !takenEventIds.has(row.id))
+  .map(eventRow);
+const campaignEvents = [
+  ...citedEvents,
+  ...fillerEvents,
+  reqHolder(takenReqIds([...citedEvents, ...fillerEvents])),
+];
 
 loadPack(
   {
@@ -221,7 +339,7 @@ loadPack(
     sectors: SECTOR_TYPES.map(sectorRow),
     stores: STORES.map(storeRow),
     tunes: SYSTEM_TUNES.map(tuneRow),
-    events: [...citedEvents, ...fillerEvents],
+    events: campaignEvents,
     lists: fillerListRecords().map(listRow),
     empties: emptyBeaconRecords().map(emptyRow),
   },

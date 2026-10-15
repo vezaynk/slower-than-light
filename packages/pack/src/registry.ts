@@ -1,4 +1,28 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type {
+  AugmentDef,
+  ChoiceReq,
+  ContentPack,
+  CrewDef,
+  DroneDef,
+  EmptyBeaconDef,
+  EventCard,
+  EventChoice,
+  EventDef,
+  EventEffect,
+  FillerListDef,
+  HullDef,
+  HullKitDef,
+  OfferRow,
+  RollEntry,
+  SectorDef,
+  StoreDef,
+  StoreLine,
+  SurrenderOfferDef,
+  SystemDef,
+  TuneDef,
+  TuneStep,
+  WeaponBlueprint,
+} from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -101,8 +125,17 @@ function copyEffect(fx: EventEffect): EventEffect {
   return { k: "nothing" };
 }
 
+function copyReq(req: ChoiceReq): ChoiceReq {
+  if (req.k === "system") return { k: "system", id: req.id, level: req.level, text: req.text };
+  if (req.k === "band") return { k: "band", id: req.id, lo: req.lo, hi: req.hi, text: req.text };
+  if (req.k === "stock") return { k: "stock", id: req.id, n: req.n, text: req.text };
+  return { k: req.k, id: req.id, text: req.text };
+}
+
 function copyChoice(choice: EventChoice): EventChoice {
-  return { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
+  const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
+  if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+  return copy;
 }
 
 function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
@@ -131,11 +164,19 @@ function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
 }
 
 function copyList(row: FillerListDef): FillerListDef {
-  return { id: row.id, entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })) };
+  return {
+    id: row.id,
+    entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })),
+  };
 }
 
 function copyEmpty(row: EmptyBeaconDef): EmptyBeaconDef {
-  const copy: EmptyBeaconDef = { id: row.id, dest: row.dest, sectors: [...row.sectors], texts: [...row.texts] };
+  const copy: EmptyBeaconDef = {
+    id: row.id,
+    dest: row.dest,
+    sectors: [...row.sectors],
+    texts: [...row.texts],
+  };
   if (row.nebula) copy.nebula = true;
   return copy;
 }
@@ -163,7 +204,14 @@ function copyBand(band: [number, number]): [number, number] {
 }
 
 function copyCard(row: EventCard): EventCard {
-  return { body: row.body, choices: row.choices.map((choice) => ({ id: choice.id, label: choice.label })) };
+  return {
+    body: row.body,
+    choices: row.choices.map((choice) => {
+      const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
+      if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+      return copy;
+    }),
+  };
 }
 
 function copyRoll(row: RollEntry): RollEntry {
@@ -173,10 +221,36 @@ function copyRoll(row: RollEntry): RollEntry {
 }
 
 function copyOffer(row: OfferRow): OfferRow {
-  if (row.k === "trade") return { k: "trade", pay: row.pay, cost: copyBand(row.cost), get: row.get, gain: copyBand(row.gain) };
-  if (row.k === "fuel") return { k: "fuel", band: row.band, fuel: copyBand(row.fuel), pay: row.pay, amt: copyBand(row.amt) };
-  if (row.k === "lanius") return { k: "lanius", band: row.band, res: row.res, cost: copyBand(row.cost), scrap: copyBand(row.scrap) };
-  return { k: "supply", missiles: copyBand(row.missiles), parts: copyBand(row.parts), fuel: copyBand(row.fuel) };
+  if (row.k === "trade")
+    return {
+      k: "trade",
+      pay: row.pay,
+      cost: copyBand(row.cost),
+      get: row.get,
+      gain: copyBand(row.gain),
+    };
+  if (row.k === "fuel")
+    return {
+      k: "fuel",
+      band: row.band,
+      fuel: copyBand(row.fuel),
+      pay: row.pay,
+      amt: copyBand(row.amt),
+    };
+  if (row.k === "lanius")
+    return {
+      k: "lanius",
+      band: row.band,
+      res: row.res,
+      cost: copyBand(row.cost),
+      scrap: copyBand(row.scrap),
+    };
+  return {
+    k: "supply",
+    missiles: copyBand(row.missiles),
+    parts: copyBand(row.parts),
+    fuel: copyBand(row.fuel),
+  };
 }
 
 function copyHull(row: HullDef): HullDef {
@@ -224,17 +298,28 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseEmpties = (pack.empties ?? []).map(copyEmpty);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
-  for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? [])) weapons.set(row.id, copyWeapon(row));
-  for (const row of mode === "base" ? baseAugments : (pack.augments ?? [])) augments.set(row.id, copyAugment(row));
-  for (const row of mode === "base" ? baseDrones : (pack.drones ?? [])) drones.set(row.id, copyDrone(row));
-  for (const row of mode === "base" ? baseSystems : (pack.systems ?? [])) systems.set(row.id, copySystem(row));
-  for (const row of mode === "base" ? baseHulls : (pack.hulls ?? [])) hulls.set(row.id, copyHull(row));
-  for (const row of mode === "base" ? baseSectors : (pack.sectors ?? [])) sectors.set(row.id, copySector(row));
-  for (const row of mode === "base" ? baseStores : (pack.stores ?? [])) stores.set(row.id, copyStore(row));
-  for (const row of mode === "base" ? baseTunes : (pack.tunes ?? [])) tunes.set(row.id, copyTune(row));
-  for (const row of mode === "base" ? baseEvents : (pack.events ?? [])) events.set(row.id, copyEvent(row));
-  for (const row of mode === "base" ? baseLists : (pack.lists ?? [])) lists.set(row.id, copyList(row));
-  for (const row of mode === "base" ? baseEmpties : (pack.empties ?? [])) empties.set(row.id, copyEmpty(row));
+  for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
+    weapons.set(row.id, copyWeapon(row));
+  for (const row of mode === "base" ? baseAugments : (pack.augments ?? []))
+    augments.set(row.id, copyAugment(row));
+  for (const row of mode === "base" ? baseDrones : (pack.drones ?? []))
+    drones.set(row.id, copyDrone(row));
+  for (const row of mode === "base" ? baseSystems : (pack.systems ?? []))
+    systems.set(row.id, copySystem(row));
+  for (const row of mode === "base" ? baseHulls : (pack.hulls ?? []))
+    hulls.set(row.id, copyHull(row));
+  for (const row of mode === "base" ? baseSectors : (pack.sectors ?? []))
+    sectors.set(row.id, copySector(row));
+  for (const row of mode === "base" ? baseStores : (pack.stores ?? []))
+    stores.set(row.id, copyStore(row));
+  for (const row of mode === "base" ? baseTunes : (pack.tunes ?? []))
+    tunes.set(row.id, copyTune(row));
+  for (const row of mode === "base" ? baseEvents : (pack.events ?? []))
+    events.set(row.id, copyEvent(row));
+  for (const row of mode === "base" ? baseLists : (pack.lists ?? []))
+    lists.set(row.id, copyList(row));
+  for (const row of mode === "base" ? baseEmpties : (pack.empties ?? []))
+    empties.set(row.id, copyEmpty(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */

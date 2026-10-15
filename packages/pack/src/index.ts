@@ -35,6 +35,7 @@ export type {
   CrewDef,
   DroneDef,
   EmptyBeaconDef,
+  ChoiceReq,
   EventChoice,
   EventDef,
   OfferPay,

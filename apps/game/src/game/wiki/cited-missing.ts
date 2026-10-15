@@ -7,8 +7,9 @@
 import { tx } from "../../i18n/index.ts";
 import { eventDef } from "@stl/pack";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
+import { ownedLock } from "./choice-locks.ts";
+import { MISSING_LOCKS } from "./choice-reqs.ts";
 import { adjustScrap } from "../extras/index.ts";
-import type { KinId } from "../extras/kin.ts";
 import { beginBoarding, hurtSystem, openStoreHere } from "../sim.ts";
 import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
 import { grantRandomItem, weaponLine } from "./bonus-item.ts";
@@ -84,10 +85,6 @@ function pickW(ctx: Ctx, weights: number[]): number {
     roll -= weights[i]!;
   }
   return weights.length - 1;
-}
-
-function hasCrew(g: Game, kin: KinId): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === kin);
 }
 
 function done(g: Game, text: string, offer?: SurrenderOffer) {
@@ -463,49 +460,8 @@ export function missingDisabled(g: Game, id: string): string | null {
   const slug = slugOf(id);
   if (!slug || !OWNED.has(slug)) return null;
   const name = tail(id);
-  if (name === "crystal" && slug === "crystal-chat" && !hasCrew(g, "shard")) return tx("wiki.quests-a.needs-a-crystal-crewmember");
-  if (name === "crystal" && slug === "crystalline-cache" && !hasCrew(g, "shard")) return tx("wiki.quests-a.needs-a-crystal-crewmember");
-  if (name === "breach") {
-    if (!g.player.weapons.some((w) => w.defId === "breachmissiles")) return tx("wiki.cited-missing.needs-breach-missiles");
-    if (g.missiles < 1) return tx("wiki.quests.need-1-missiles");
-  }
-  if (name === "teleport" && (g.player.kits.sling?.level ?? 0) < 2) return tx("wiki.cited-missing.needs-teleporter-level-2");
-  if (name === "engines" && slug === "crystalline-cache" && (g.player.systems.engines?.level ?? 0) < 7) {
-    return tx("wiki.cited-missing.needs-engines-level-7");
-  }
-  if (name === "rock" && !hasCrew(g, "stone")) return tx("wiki.quests.needs-a-rock-crewmember");
-  if (name === "dna" && !g.augments.includes("dna")) return tx("wiki.cited-missing.needs-backup-dna-bank");
-  if (name === "sensors" && slug === "engi-research-station" && (g.player.systems.sensors?.level ?? 0) < 2) {
-    return tx("wiki.cited-events.needs-sensors-level-2");
-  }
-  if (name === "scanners" && slug === "engi-research-station" && !g.augments.includes("glass")) {
-    return tx("wiki.cited-events.needs-long-ranged-scanners");
-  }
-  if (name === "lanius" && !hasCrew(g, "voidlung")) return tx("wiki.quests.needs-a-lanius-crewmember");
-  if (name === "mantis" && !hasCrew(g, "blade")) return tx("wiki.quests.needs-a-mantis-crewmember");
-  if (name === "slug" && (slug === "no-fuel-slug-fuel-trader" || slug === "slug-store-ship") && !hasCrew(g, "gel")) {
-    return tx("wiki.quests.needs-a-slug-crewmember");
-  }
-  if (name === "scan" && slug === "no-fuel-drifting-debris" && !g.augments.includes("pulseeye")) {
-    return tx("wiki.filler-events.needs-a-lifeform-scanner");
-  }
-  if (name === "sensors" && slug === "no-fuel-prepare-to-dock" && (g.player.systems.sensors?.level ?? 0) < 3) {
-    return tx("wiki.quests.needs-sensors-level-3");
-  }
-  if (name === "scanners" && slug === "no-fuel-prepare-to-dock" && !g.augments.includes("glass")) {
-    return tx("wiki.cited-events.needs-long-ranged-scanners");
-  }
-  if (name === "cloak" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  if (name === "engi" && slug === "no-fuel-refugee-trading" && !hasCrew(g, "shell")) return tx("wiki.quests.needs-an-engi-crewmember");
-  if ((name === "pay" && slug === "no-fuel-slug-fuel-trader") || (name === "slug" && slug === "no-fuel-slug-fuel-trader")) {
-    if (g.scrap < 15) return tx("wiki.cited-events.need", { cost: 15, v: "scrap" });
-  }
-  if (name === "trade" || name === "better" || name === "again") {
-    if (g.scrap < 10) return tx("wiki.cited-events.need", { cost: 10, v: "scrap" });
-  }
-  if (name === "missiles" && slug === "no-fuel-refugee-trading" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
-  if (name === "fuel" && slug === "slug-repair-station" && g.fuel < 15) return tx("wiki.cited-events.need", { cost: 15, v: "fuel" });
-  if ((name === "scrap50" || name === "accept50") && g.scrap < 50) return tx("wiki.cited-events.need", { cost: 50, v: "scrap" });
+  const locked = ownedLock(g, id, MISSING_LOCKS);
+  if (locked) return locked;
   const trade = TRADE_ID.exec(name);
   if (trade && stockOf(g, trade[3] as PayKind) < Number(trade[4])) {
     return tx("wiki.cited-events.need", { cost: Number(trade[4]), v: payWord(trade[3] as PayKind) });

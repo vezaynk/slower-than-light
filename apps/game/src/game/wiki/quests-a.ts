@@ -481,23 +481,17 @@ const CHOICES_A: QuestPart["choices"] = {
   },
 };
 
-/** Blue options and prices (wiki/quests.ts questChoiceDisabled). */
-function disabledA(g: Game, id: string): string | null {
+/** Blue options and prices now live on the choice. The hook stays so the parts loop still runs. */
+function disabledA(_g: Game, _id: string): string | null {
   // Wiki citations:
   // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
-  if (id === "c:ancient-device:2" && !hasCrystal(g)) return tx("wiki.quests-a.needs-a-crystal-crewmember");
   // Wiki citations:
   // > "Requires level 3 Medbay" — [[Zoltan research facility]]
   // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
-  if (id === "c:zoltan-research-facility:2" && medbayLevel(g) < 3) return tx("wiki.quests-a.needs-medbay-level-3");
-  if (id === "c:zoltan-research-facility:3" && !g.augments.includes("stasis")) return tx("wiki.quests-a.needs-a-damaged-stasis-pod");
   // Wiki citations:
   // > "(Teleporter) Beam directly to the civilian deck." — [[Zoltan trade hub]]
   // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
   // > "You lose Scrap lost: 10." — [[Zoltan trade hub]]
-  if (id === "c:zoltan-trade-hub:1" && !hasTeleporter(g)) return tx("wiki.quests-a.needs-a-teleporter");
-  if (id === "c:zoltan-trade-hub:2" && !hasZoltan(g)) return tx("wiki.quests-a.needs-a-zoltan-crewmember");
-  if (id === "c:zoltan-trade-hub:2" && g.scrap < 10) return tx("wiki.quests-a.need-10-scrap");
   return null;
 }
 

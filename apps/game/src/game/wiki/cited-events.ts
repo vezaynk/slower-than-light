@@ -5,6 +5,8 @@ import { adjustScrap } from "../extras/index.ts";
 import { allEvents, eventDef } from "@stl/pack";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
+import { ownedLock } from "./choice-locks.ts";
+import { CITED_LOCKS } from "./choice-reqs.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
@@ -1417,31 +1419,27 @@ function ownsHullRepair(g: Game): boolean {
 export function citedChoiceDisabled(g: Game, id: string): string | null {
   const missing = missingDisabled(g, id);
   if (missing) return missing;
+  const locked = ownedLock(g, id, CITED_LOCKS);
+  if (locked) return locked;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
   // Wiki citations:
   // > "(Boarding Drone)" — [[Zoltan odd moon]]
   // > "Drone parts lost: 1" — [[Zoltan odd moon]]
-  if (id === "c:zoltan-odd-moon:drone" && !ownsBoardDrone(g)) return tx("wiki.cited-events.needs-a-boarding-drone");
-  if (id === "c:zoltan-odd-moon:drone" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // No fuel: Engi ship repair. Hull Repair Drone, 1 drone part.
   // INFERRED: the refusal lines. The page names the drone and the part.
   // Wiki citations:
   // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
-  if (id === "c:no-fuel-engi-ship-repair:2" && !ownsHullRepair(g)) return tx("wiki.cited-events.needs-a-hull-repair-drone");
-  if (id === "c:no-fuel-engi-ship-repair:2" && g.player.parts < 1) return tx("wiki.cited-events.need-1-drone-part");
   // Destroyed cargo ship. Advanced Sensors prints level=2+. Long-Ranged Scanners is the augment.
   // INFERRED: the refusal lines. The page names the requirement and does not print these sentences.
   // Wiki citations:
   // > "(Advanced Sensors) Run an advanced scan on the boxes. (Requires level 2+ Sensors)" — [[Destroyed cargo ship]]
   // > "(Long-Ranged Scanners) Run an advanced scan on the boxes." — [[Destroyed cargo ship]]
-  if (id === "c:destroyed-cargo-ship:2" && (g.player.systems.sensors?.level ?? 0) < 2) return tx("wiki.cited-events.needs-sensors-level-2");
-  if (id === "c:destroyed-cargo-ship:3" && !g.augments.includes("glass")) return tx("wiki.cited-events.needs-long-ranged-scanners");
   // Auto-ship carrying shield virus. Hacking, "Counter the remote hacking."
   // INFERRED: the refusal line. The page names Hacking and does not print the sentence.
-  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.cited-events.needs-a-hacking-system");
   // Crystalline ship messaging about Rebels. Distraction Buoys.
   // INFERRED: the refusal line. The page names the augment and does not print the refusal sentence.
-  if (id === "c:crystalline-ship-messaging-about-rebels:2" && !g.augments.includes("falsebuoy")) return tx("wiki.cited-events.needs-distraction-buoys");
+  // Remote settlement. {{Blue Option|Fire Beam}} and {{Blue Option|Fire Bomb}}.
+  // INFERRED: the refusal sentences. The page names the requirement and does not print the refusal.
   const take = tradeTake(id);
   if (take) {
     const pay = take[1] as TradeRes;
@@ -1451,10 +1449,6 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   }
   const choice = findChoice(id);
   if (!choice) return null;
-  // Remote settlement. {{Blue Option|Fire Beam}} and {{Blue Option|Fire Bomb}}.
-  // INFERRED: the refusal sentences. The page names the requirement and does not print the refusal.
-  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return tx("wiki.cited-events.needs-a-fire-beam");
-  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return tx("wiki.cited-events.needs-a-fire-bomb");
   for (const fx of choice.fx) {
     if (fx.k === "res" && fx.sign < 0 && stock(g, fx.id) < fx.lo) {
       return tx("wiki.cited-events.need-2", { lo: fx.lo, v: RES_WORD[fx.id] });

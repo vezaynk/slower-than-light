@@ -67,9 +67,6 @@ function medbay(g: Game): number {
 function hasClonebay(g: Game): boolean {
   return (g.player.kits.cradle?.level ?? 0) > 0;
 }
-function hasWeapon(g: Game, defId: string): boolean {
-  return g.player.weapons.some((w) => w.defId === defId);
-}
 /** The player's Drone Control schematic (extras/swarm.ts kit.target). */
 function hasDrone(g: Game, kinds: string[]): boolean {
   const kit = g.player.kits.swarm;
@@ -903,31 +900,20 @@ export const PART_B: QuestPart = {
     "q:abadoth:engi": (g) => zoltanThanks(g, tx("wiki.quests-b.your-engi-crewman-easily-recalls-the")),
   },
 
-  disabled: (g, id) => {
-    // Wiki citations:
-    // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
-    // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
-    // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
-    // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
-    if (id === "c:capture-the-ship:2" && !hasTeleporter(g)) return tx("wiki.quests-b.needs-a-teleporter");
-    if (id === "c:capture-the-ship:3" && !hasWeapon(g, "cask")) return tx("wiki.quests-b.needs-a-fire-bomb");
-    if (id === "c:capture-the-ship:4" && !hasWeapon(g, "antibio")) return tx("wiki.quests-b.needs-an-anti-bio-beam");
-    if (id === "c:nebula-wreckage:0" && !hasSlug(g)) return tx("wiki.quests-b.needs-a-slug-crewmember");
-    // [ {{Transaction|1|subtract_drones}} ] and "lose 5 drone parts".
-    if ((id === "q:asteroid:defense" || id === "q:asteroid:repair") && g.player.parts < 1) return tx("wiki.quests-b.need-1-drone-parts");
-    if ((id === "q:merchant:paltry" || id === "q:merchant:full" || id === "q:merchant:weapons") && g.player.parts < PARTS_OWED) {
-      return tx("wiki.quests-b.need-drone-parts", { PARTS_OWED: PARTS_OWED });
-    }
-    // Research station with no response. The fitted schematic is kit.target. A missing part does not close the drone:
-    // the footnote waives it when the reward includes drone parts.
-    // INFERRED: the refusal lines. The page names the drone and the scanner and does not print these sentences.
-    if (id === "q:research:drone" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
-    // Wiki citations:
-    // > "(Anti-Personnel Drone) Send your battle drone in to help. [ Drone parts lost: 1 ]" — [[Research station with no response]]
-    if (id === "c:research-station-with-no-response:2" && !hasDrone(g, ["antipersonnel"])) return tx("wiki.quests-b.needs-an-anti-personnel-drone");
-    // Wiki citations:
-    // > "(Life Scanner) Run advanced life scans." — [[Research station with no response]]
-    if (id === "c:research-station-with-no-response:3" && !g.augments.includes("pulseeye")) return tx("wiki.quests-b.needs-a-lifeform-scanner");
+  disabled: (_g, _id) => {
+  // Wiki citations:
+  // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
+  // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
+  // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
+  // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
+  // [ {{Transaction|1|subtract_drones}} ] and "lose 5 drone parts".
+  // Research station with no response. The fitted schematic is kit.target. A missing part does not close the drone:
+  // the footnote waives it when the reward includes drone parts.
+  // INFERRED: the refusal lines. The page names the drone and the scanner and does not print these sentences.
+  // Wiki citations:
+  // > "(Anti-Personnel Drone) Send your battle drone in to help. [ Drone parts lost: 1 ]" — [[Research station with no response]]
+  // Wiki citations:
+  // > "(Life Scanner) Run advanced life scans." — [[Research station with no response]]
     return null;
   },
 

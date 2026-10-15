@@ -38,6 +38,8 @@ import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts"
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { ownedLock } from "./choice-locks.ts";
+import { QUEST_LOCKS } from "./choice-reqs.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
@@ -400,9 +402,6 @@ function hasLanius(g: Game): boolean {
 }
 function hasRock(g: Game): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "stone");
-}
-function hasMantis(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "blade");
 }
 
 /** Slug drink. Two results and no odds. INFERRED: equal. A Rock's trap is the fight; the drink's trap loses 25–35 scrap. */
@@ -2916,131 +2915,13 @@ export function questChoose(g: Game, id: string): boolean {
   return true;
 }
 
-/** sim.ts choiceDisabled: a price or a blue-option requirement the ship does not meet. */
+/** sim.ts choiceDisabled: a lock stored on the choice, then a price parsed from the choice id. */
 export function questChoiceDisabled(g: Game, id: string): string | null {
-  // Wiki citations:
-  // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
-  if (id === "c:engi-fleet-discussion:2" && !hasEngi(g)) return tx("wiki.quests.needs-an-engi-crewmember");
-  // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
-  if (id === "c:lanius-ship-in-rich-debris-field:3" && (g.player.systems.pilot?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-piloting");
-  if (id === "c:lanius-ship-in-rich-debris-field:4" && (g.player.systems.pilot?.level ?? 0) < 3) return tx("wiki.quests.needs-level-3-piloting");
-  // Lanius ship salvager, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
-  if (id === "c:lanius-ship-salvager:2" && !hasLanius(g)) return tx("wiki.quests.needs-a-lanius-crewmember");
-  // Lanius trader, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
-  if (id === "c:lanius-trader:4" && !hasLanius(g)) return tx("wiki.quests.needs-a-lanius-crewmember");
-  // Space station under construction, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
-  if (id === "c:space-station-under-construction:2" && !hasLanius(g)) return tx("wiki.quests.needs-a-lanius-crewmember");
-  // Lanius lone ship, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
-  if (id === "c:lanius-lone-ship:3" && !hasLanius(g)) return tx("wiki.quests.needs-a-lanius-crewmember");
-  // Lanius powered-down ship. Advanced Piloting prints level=2+. A dead Lanius does not count.
-  if (id === "q:lanius-dormant:plunder" && !hasLanius(g)) return tx("wiki.quests.needs-a-lanius-crewmember");
-  if (id === "q:lanius-dormant:autopilot" && (g.player.systems.pilot?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-piloting");
-  // Lanius trader with translator. Purchase the translator for 40 scrap.
-  if (id === "q:lanius-translator:buy" && g.scrap < 40) return tx("wiki.quests.need-40-scrap");
-  // Auto-ship near sensor station. Sensors level 3. A Crew Teleporter.
-  if (id === "c:auto-ship-near-sensor-station:2" && sensors(g) < 3) return tx("wiki.quests.needs-level-3-sensors");
-  if (id === "c:auto-ship-near-sensor-station:3" && !hasTeleporter(g)) return tx("wiki.quests.needs-a-teleporter");
-  // Auto-ship fight in plasma storm. Engines 3-5, Engines 6+, and Cloaking.
-  if (id === "c:auto-ship-fight-in-plasma-storm:1") {
-    const level = g.player.systems.engines?.level ?? 0;
-    if (level < 3 || level > 5) return tx("wiki.quests.needs-engines-level-3-5");
-  }
-  if (id === "c:auto-ship-fight-in-plasma-storm:2" && (g.player.systems.engines?.level ?? 0) < 6) return tx("wiki.quests.needs-level-6-engines");
-  if (id === "c:auto-ship-fight-in-plasma-storm:3" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  // Deactivated Auto-ship. Sensors level 3. The button stays visible.
-  if (id === "c:deactivated-auto-ship:2" && sensors(g) < 3) return tx("wiki.quests.needs-level-3-sensors");
-  // Rock ship in plasma storm. A dead Rock does not count. The button stays visible.
-  if (id === "c:rock-ship-in-plasma-storm:2" && !hasRock(g)) return tx("wiki.quests.needs-a-rock-crewmember");
-  // Slug drink. A dead Rock does not count. The button stays visible.
-  if (id === "c:slug-drink:2" && !hasRock(g)) return tx("wiki.quests.needs-a-rock-crewmember");
-  // Slug hacker (choice). {{Blue Option|Hacking System|Counter any hack attempt.|shortreq=Hacking}}.
-  // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:slug-hacker-choice:4" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  // Slug hacker (oxygen). {{Blue Option|Improved Oxygen|...|level=2+|shortreq=Oxygen}}.
-  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
-  if (id === "c:slug-hacker-oxygen:1" && (g.player.systems.oxygen?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-oxygen");
-  // Slug hacker (oxygen). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
-  // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:slug-hacker-oxygen:2" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  // Slug hacker (doors). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
-  // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:slug-hacker-doors:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  // Slug hacker (medical). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
-  // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:slug-hacker-medical:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  // Slug hacker (medical). {{Blue Option|Improved Medbay|Try to squeeze some extra power to the system.|level=2+|shortreq=Medbay}}.
-  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
-  if (id === "c:slug-hacker-medical:2" && (g.player.systems.medbay?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-medbay");
-  // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
-  // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
-  if (id === "c:legendary-thief-kazaaakplethkilik:1" && !hasMantis(g)) return tx("wiki.quests.needs-a-mantis-crewmember");
-  // Mantis ship with Rock body parts. {{Blue Option|Rock Crew|Put your Rock crewmember on the comm.}}.
-  // INFERRED: the refusal line. A dead Rock does not count. The page names the crew and does not print this sentence.
-  if (id === "c:mantis-ship-with-rock-body-parts:2" && !hasRock(g)) {
-    // Wiki citations:
-    // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
-    return tx("wiki.quests.needs-a-rock-crewmember");
-  }
-  // Mantis ship with Rock body parts. {{Blue Option|Rock Ship|Ram the bastards.|shortreq=Rock Plating}}.
-  // INFERRED: the refusal line. The page names Rock Plating and does not print this sentence.
-  if (id === "c:mantis-ship-with-rock-body-parts:3" && !g.augments.includes("keel")) {
-    // Wiki citations:
-    // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
-    return tx("wiki.quests.needs-rock-plating");
-  }
-  // Pirate engine hacker. {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
-  // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "c:pirate-engine-hacker:1" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
-  if (id === "c:escort-civilians-ftl-haywire:2" && !g.augments.includes("nav")) return tx("wiki.quests.needs-adv-ftl-navigation");
-  // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.
-  if (id === "c:zoltan-security-checkpoint:2" && !hasSlug(g)) {
-    // Wiki citations:
-    // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
-    return tx("wiki.quests.needs-a-slug-crewmember");
-  }
-  if (id === "c:zoltan-security-checkpoint:3" && (g.player.kits.leash?.level ?? 0) <= 0) {
-    // Wiki citations:
-    // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
-    return tx("wiki.quests.needs-mind-control");
-  }
-  // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
-  if (id === "c:pirate-ship-attacking-civilian-distress:2" && (g.player.systems.weapons?.level ?? 0) < 6) return tx("wiki.quests.needs-level-6-weapons");
-  // Pirate smuggler. Improved Weapons is level 6+. The button stays visible.
-  if (id === "c:pirate-smuggler:2" && (g.player.systems.weapons?.level ?? 0) < 6) return tx("wiki.quests.needs-level-6-weapons");
-  // Rock atheists. Improved Sensors is level 2+. The button stays visible.
-  if (id === "c:rock-atheists:2" && (g.player.systems.sensors?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-sensors");
-  // Pirate ship selling drones. A dead Slug does not count. Hacking and Drone Control must already be installed.
-  if (id === "q:pirate-drones:slug" && !hasSlug(g)) return tx("wiki.quests.needs-a-slug-crewmember");
-  if (id === "q:pirate-drones:hack" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  if (id === "q:pirate-drones:upgrade" && (g.player.kits.swarm?.level ?? 0) <= 0) return tx("wiki.quests.needs-drone-control");
+  const locked = ownedLock(g, id, QUEST_LOCKS);
+  if (locked) return locked;
   // Rebel checkpoint. The bribe amount is the one shown on the button.
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
   if (checkpoint && g.scrap < Number(checkpoint[1])) return tx("wiki.quests.need-scrap", { v: checkpoint[1] });
-  // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
-  if (id === "q:engi-distress:scrap" && g.scrap < 25) return tx("wiki.quests.need-25-scrap");
-  if (id === "q:engi-distress:supplies" && g.scrap < 40) return tx("wiki.quests.need-40-scrap");
-  if (id === "q:engi-distress:supplies" && g.missiles < 2) return tx("wiki.quests.need-2-missiles");
-  if (id === "q:engi-distress:supplies" && g.fuel < 2) return tx("wiki.quests.need-2-fuel");
-  // Rebel fight choice in nebula. Cloaking, and Engines level 4+ on the caught follow-up.
-  if (id === "c:rebel-fight-choice-in-nebula:2" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  if (id === "q:rebel-nebula:engines" && (g.player.systems.engines?.level ?? 0) < 4) return tx("wiki.quests.needs-level-4-engines");
-  // Mantis fight choice. Cloaking, any installed level.
-  if (id === "c:mantis-fight-choice:2" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  // Auto-ship near storage station. Cloaking, any installed level.
-  if (id === "c:auto-ship-near-storage-station:2" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.
-  if (id === "c:auto-ship-near-storage-station-in-nebula:2" && (g.player.kits.veil?.level ?? 0) <= 0) return tx("wiki.quests.needs-cloaking");
-  if (id === "c:auto-ship-near-storage-station-in-nebula:3" && (g.player.kits.veil?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-cloaking");
-  if (id === "c:auto-ship-near-storage-station-in-nebula:4" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  if (id === "c:auto-ship-near-storage-station-in-nebula:4" && g.player.parts < 1) return tx("wiki.quests.need-1-drone-part");
-  if (id === "c:auto-ship-near-storage-station-in-nebula:5" && (g.player.kits.spike?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-hacking");
-  if (id === "c:auto-ship-near-storage-station-in-nebula:5" && g.player.parts < 1) return tx("wiki.quests.need-1-drone-part");
-  // Auto-ship near radar station. Combat Drone is one of the four named schematics. Hacking spends 1 drone part.
-  if (id === "c:auto-ship-near-radar-station:2" && !hasRadarCombat(g)) return tx("wiki.quests.needs-a-combat-drone");
-  if (id === "c:auto-ship-near-radar-station:2" && g.player.parts < 1) return tx("wiki.quests.need-1-drone-part");
-  if (id === "q:auto-radar:drone" && (g.player.kits.spike?.level ?? 0) <= 0) return tx("wiki.quests.needs-a-hacking-system");
-  if (id === "q:auto-radar:drone" && g.player.parts < 1) return tx("wiki.quests.need-1-drone-part");
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
@@ -3048,31 +2929,74 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
     const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
     if (have < cost) return tx("wiki.quests.need", { cost: cost, v: res === "parts" ? "drone parts" : res });
   }
+  // Wiki citations:
+  // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
+  // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
+  // Lanius ship salvager, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  // Lanius trader, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  // Space station under construction, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  // Lanius lone ship, {{Blue Option|Lanius Crew}}. A dead Lanius does not count.
+  // Lanius powered-down ship. Advanced Piloting prints level=2+. A dead Lanius does not count.
+  // Lanius trader with translator. Purchase the translator for 40 scrap.
+  // Auto-ship near sensor station. Sensors level 3. A Crew Teleporter.
+  // Auto-ship fight in plasma storm. Engines 3-5, Engines 6+, and Cloaking.
+  // Deactivated Auto-ship. Sensors level 3. The button stays visible.
+  // Rock ship in plasma storm. A dead Rock does not count. The button stays visible.
+  // Slug drink. A dead Rock does not count. The button stays visible.
+  // Slug hacker (choice). {{Blue Option|Hacking System|Counter any hack attempt.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  // Slug hacker (oxygen). {{Blue Option|Improved Oxygen|...|level=2+|shortreq=Oxygen}}.
+  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
+  // Slug hacker (oxygen). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  // Slug hacker (doors). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  // Slug hacker (medical). {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  // Slug hacker (medical). {{Blue Option|Improved Medbay|Try to squeeze some extra power to the system.|level=2+|shortreq=Medbay}}.
+  // INFERRED: the refusal line. The page names level 2+ and does not print this sentence.
+  // Legendary thief KazaaakplethKilik. {{Blue Option|Mantis crewmember|Attempt to hail him.|shortreq=Mantis Crew}}.
+  // INFERRED: the refusal line. A dead Mantis does not count. The page names the crew and does not print this sentence.
+  // Mantis ship with Rock body parts. {{Blue Option|Rock Crew|Put your Rock crewmember on the comm.}}.
+  // INFERRED: the refusal line. A dead Rock does not count. The page names the crew and does not print this sentence.
+  // Wiki citations:
+  // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
+  // Mantis ship with Rock body parts. {{Blue Option|Rock Ship|Ram the bastards.|shortreq=Rock Plating}}.
+  // INFERRED: the refusal line. The page names Rock Plating and does not print this sentence.
+  // Wiki citations:
+  // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
+  // Pirate engine hacker. {{Blue Option|Hacking System|Counter the remote hacking.|shortreq=Hacking}}.
+  // INFERRED: the refusal line. The page names the system and does not print this sentence.
+  // Escort civilians FTL haywire. Advanced FTL Navigation. The button stays visible.
+  // Zoltan security checkpoint. A dead Slug does not count. Mind Control is the installed system.
+  // Wiki citations:
+  // > "(Slug Crew) Have your Slug talk them into letting you go." — [[Zoltan security checkpoint]]
+  // Wiki citations:
+  // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
+  // Pirate ship attacking civilian distress. Improved Weapons is level 6+. The button stays visible.
+  // Pirate smuggler. Improved Weapons is level 6+. The button stays visible.
+  // Rock atheists. Improved Sensors is level 2+. The button stays visible.
+  // Pirate ship selling drones. A dead Slug does not count. Hacking and Drone Control must already be installed.
+  // Rebel checkpoint. The bribe amount is the one shown on the button.
+  // Engi distress Rebel fight. 25 scrap, or 40 scrap plus 2 missiles and 2 fuel.
+  // Rebel fight choice in nebula. Cloaking, and Engines level 4+ on the caught follow-up.
+  // Mantis fight choice. Cloaking, any installed level.
+  // Auto-ship near storage station. Cloaking, any installed level.
+  // Auto-ship near storage station in nebula. Improved Cloaking is level 2+. Hacking spends 1 drone part.
+  // Auto-ship near radar station. Combat Drone is one of the four named schematics. Hacking spends 1 drone part.
   // The Black Raven, {{Blue Option|Slugman Crew}}. A dead Slug does not count.
   // Wiki citations:
   // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
-  if (id === "s:the-black-raven:duel" && !hasSlug(g)) return tx("wiki.quests.needs-a-slug-crewmember");
   // Refueling platform garbled broadcast. Blast Doors, level 2+.
   // INFERRED: the refusal line. The page names the system and does not print this sentence.
-  if (id === "s:garbled-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-door-system");
   // Improved Sensors, level 2. The scan stays on the abandoned card.
   // INFERRED: the refusal line. The page names level 2 and does not print this sentence.
-  if (id === "s:garbled-dock:sensors2" && sensors(g) < 2) return tx("wiki.quests.needs-sensors-level-2");
   // Advanced Sensors, level 3.
   // INFERRED: the refusal line. The page names level 3 and does not print this sentence.
-  if (id === "s:garbled-dock:sensors3" && sensors(g) < 3) return tx("wiki.quests.needs-sensors-level-3");
   // Refueling platform dock. Accept costs 5-10 scrap. Blast Doors are level 2+.
   // INFERRED: the refusal lines. The page prints the price and the system, not these sentences.
-  if (id === "s:refuel-dock:accept" && g.scrap < 5) return tx("wiki.quests.need-5-scrap");
   // Zoltan retake the ship. The hire costs 40 scrap.
   // INFERRED: the refusal line. The page prints the price and does not print this sentence.
-  if (id === "s:zoltan-raft:hire" && g.scrap < 40) return tx("wiki.quests.need-40-scrap");
-  if (id === "s:refuel-dock:doors" && (g.player.systems.doors?.level ?? 0) < 2) return tx("wiki.quests.needs-level-2-door-system");
-  if (id === "q:war-camp:missile" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
-  if (id === "q:loyalists:heal" && g.missiles < 1) return tx("wiki.quests.need-1-missiles");
-  if (id === "q:war-camp:firebomb" && g.missiles < 2) return tx("wiki.quests.need-2-missiles");
-  if (id === "q:station:fuel4" && g.fuel < 4) return tx("wiki.quests.need-4-fuel");
-  if (id === "q:station:fuel1" && g.fuel < 1) return tx("wiki.quests.need-1-fuel");
   for (const part of PARTS()) {
     const why = part?.disabled?.(g, id);
     if (why) return why;

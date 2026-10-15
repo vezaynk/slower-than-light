@@ -1,4 +1,4 @@
-import packUrl from "./base.xml?url";
+import packUrl from "../../../../../packages/campaign/base.xml?url";
 import { fetchPackXml, loadPack, parsePack } from "@stl/pack";
 
 type Listen = (ratio: number) => void;

@@ -29,7 +29,7 @@ describe("base pack xml", () => {
     assert.deepEqual(back.sectors, pack.sectors);
     assert.deepEqual(back.stores, pack.stores);
     assert.deepEqual(back.tunes, pack.tunes);
-    const golden = readFileSync(new URL("./base.xml", import.meta.url), "utf8");
+    const golden = readFileSync(new URL("../../../../../packages/campaign/base.xml", import.meta.url), "utf8");
     assert.equal(xml, golden);
   });
 });

@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SystemDef, WeaponBlueprint } from "./types.ts";
 
 type Node = { tag: string; attrs: Record<string, string>; text: string; children: Node[] };
 
@@ -212,13 +212,94 @@ function readSystem(node: Node): SystemDef | undefined {
   };
 }
 
-/** Reads the crew, weapon, augment, drone, and system tags this milestone stores. Other tags are ignored. */
+function hullLayout(value: string | undefined): HullLayout {
+  return value === "B" || value === "C" ? value : "A";
+}
+
+function readHull(node: Node): HullDef | undefined {
+  const id = node.attrs.name?.trim();
+  if (!id) return undefined;
+  const systems: Record<string, [number, number]> = {};
+  for (const item of child(node, "systemList")?.children ?? []) {
+    if (item.tag !== "system") continue;
+    const sysId = item.attrs.name?.trim();
+    if (!sysId) continue;
+    systems[sysId] = [numOf(item, "level") ?? 0, numOf(item, "power") ?? 0];
+  }
+  const weapons: string[] = [];
+  for (const item of child(node, "weaponList")?.children ?? []) {
+    if (item.tag !== "weapon") continue;
+    const weaponId = (item.text.trim() || item.attrs.name?.trim()) ?? "";
+    if (weaponId) weapons.push(weaponId);
+  }
+  const crew: HullDef["crew"] = [];
+  for (const item of child(node, "crewList")?.children ?? []) {
+    if (item.tag !== "crewMember") continue;
+    const kin = item.attrs.kin?.trim();
+    const room = item.attrs.room?.trim();
+    if (!kin || !room) continue;
+    crew.push({ kin, room });
+  }
+  const kits: Record<string, HullKitDef> = {};
+  for (const item of child(node, "kitList")?.children ?? []) {
+    if (item.tag !== "kit") continue;
+    const kitId = item.attrs.name?.trim();
+    if (!kitId) continue;
+    const kit: HullKitDef = { level: numOf(item, "level") ?? 0, power: numOf(item, "power") ?? 0 };
+    const target = textOf(item, "target");
+    if (target != null) kit.target = target;
+    const loadout = child(item, "loadout");
+    if (loadout) {
+      kit.loadout = loadout.children
+        .filter((entry) => entry.tag === "schematic")
+        .map((entry) => entry.text.trim())
+        .filter((entry) => entry.length > 0);
+    }
+    const on = boolOf(item, "on");
+    if (on !== undefined) kit.on = on;
+    kits[kitId] = kit;
+  }
+  const augments: string[] = [];
+  for (const item of child(node, "augmentList")?.children ?? []) {
+    if (item.tag !== "augment") continue;
+    const augmentId = item.text.trim();
+    if (augmentId) augments.push(augmentId);
+  }
+  const unfitted: string[] = [];
+  for (const item of child(node, "unfitted")?.children ?? []) {
+    if (item.tag !== "item") continue;
+    const label = item.text.trim();
+    if (label) unfitted.push(label);
+  }
+  return {
+    id,
+    cruiser: textOf(node, "class") ?? "",
+    layout: hullLayout(node.attrs.layout?.trim()),
+    name: textOf(node, "title") ?? id,
+    quote: textOf(node, "desc") ?? "",
+    unlock: textOf(node, "unlock") ?? "",
+    source: textOf(node, "source") ?? "",
+    reactor: numOf(node, "reactor") ?? 0,
+    fuel: numOf(node, "fuel") ?? 0,
+    missiles: numOf(node, "missiles") ?? 0,
+    parts: numOf(node, "parts") ?? 0,
+    systems,
+    weapons,
+    crew,
+    kits,
+    augments,
+    unfitted,
+  };
+}
+
+/** Reads the crew, weapon, augment, drone, system, and hull tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const crew: CrewDef[] = [];
   const weapons: WeaponBlueprint[] = [];
   const augments: AugmentDef[] = [];
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
+  const hulls: HullDef[] = [];
   walk(parseXml(xml), (node) => {
     if (node.tag === "race") {
       const row = readCrew(node);
@@ -235,7 +316,10 @@ export function parsePack(xml: string): ContentPack {
     } else if (node.tag === "systemBlueprint") {
       const row = readSystem(node);
       if (row) systems.push(row);
+    } else if (node.tag === "shipBlueprint") {
+      const row = readHull(node);
+      if (row) hulls.push(row);
     }
   });
-  return { crew, weapons, augments, drones, systems };
+  return { crew, weapons, augments, drones, systems, hulls };
 }

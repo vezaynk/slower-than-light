@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, drone, and system records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, and hull records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
   System tags are the listing id, title, store cost, and install slot.
+  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -1230,4 +1231,1861 @@
     <cost>35</cost>
     <slot>kit</slot>
   </systemBlueprint>
+  <shipBlueprint name="kestrel-a" layout="A">
+    <class>Kestrel Cruiser</class>
+    <title>The Kestrel</title>
+    <desc>This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.</desc>
+    <unlock>Available from the start. It is the only layout that does not need an unlock.</unlock>
+    <source>The Kestrel Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>8</missiles>
+    <parts>2</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>lineburst</weapon>
+      <weapon>artemis</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="plain" room="p-weapons"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="kestrel-b" layout="B">
+    <class>Kestrel Cruiser</class>
+    <title>Red-Tail</title>
+    <desc>This modified Kestrel class ship was created by a laser weapon aficionado.</desc>
+    <unlock>Earn at least two of the three Kestrel Cruiser achievements.</unlock>
+    <source>The Kestrel Cruiser, Layout B</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>5</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>4</level>
+        <power>4</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>spark</weapon>
+      <weapon>spark</weapon>
+      <weapon>spark</weapon>
+      <weapon>spark</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="blade" room="p-weapons"/>
+      <crewMember kin="spark" room="p-shields"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="kestrel-c" layout="C">
+    <class>Kestrel Cruiser</class>
+    <title>The Swallow</title>
+    <desc>This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.</desc>
+    <unlock>Reach the final sector with Kestrel layout B, Advanced Edition on.</unlock>
+    <source>The Kestrel Cruiser, Layout C</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>4</missiles>
+    <parts>3</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>twin</weapon>
+      <weapon>stunner</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="voidlung" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="engi-a" layout="A">
+    <class>Engi Cruiser</class>
+    <title>The Torus</title>
+    <desc>Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.</desc>
+    <unlock>Reach sector 5 with any Kestrel layout.</unlock>
+    <source>The Engi Cruiser, Layout A</source>
+    <reactor>10</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>15</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>ion2</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="shell" room="p-pilot"/>
+      <crewMember kin="shell" room="p-engines"/>
+      <crewMember kin="plain" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="swarm">
+        <level>3</level>
+        <power>2</power>
+        <target>striker</target>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>medbot</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="engi-b" layout="B">
+    <class>Engi Cruiser</class>
+    <title>The Vortex</title>
+    <desc>Heavily understaffed, this ship relies on drones to keep the ship running.</desc>
+    <unlock>Earn at least two of the three Engi Cruiser achievements.</unlock>
+    <source>The Engi Cruiser, Layout B</source>
+    <reactor>9</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>6</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>heavyion</weapon>
+      <weapon>heavy</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="shell" room="p-pilot"/>
+    </crewList>
+    <kitList>
+      <kit name="swarm">
+        <level>3</level>
+        <power>1</power>
+        <loadout>
+          <schematic>patch</schematic>
+          <schematic>patch</schematic>
+        </loadout>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>booster</augment>
+    </augmentList>
+    <unfitted>
+      <item>Anti-Personnel Drone</item>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="engi-c" layout="C">
+    <class>Engi Cruiser</class>
+    <title>Tetragon</title>
+    <desc>The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.</desc>
+    <unlock>Reach the final sector with Engi layout B, Advanced Edition on.</unlock>
+    <source>The Engi Cruiser, Layout C</source>
+    <reactor>9</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>25</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>twin</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="voidlung" room="p-pilot"/>
+      <crewMember kin="shell" room="p-engines"/>
+      <crewMember kin="shell" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="swarm">
+        <level>2</level>
+        <power>2</power>
+        <target>beam</target>
+      </kit>
+      <kit name="spike">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>scrambler</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="fed-a" layout="A">
+    <class>Federation Cruiser</class>
+    <title>The Osprey</title>
+    <desc>This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!</desc>
+    <unlock>Defeat the Flagship prototype in the Rebel Stronghold sector, or defeat the Rebel Flagship with the Engi Cruiser.</unlock>
+    <source>The Federation Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>5</missiles>
+    <parts>2</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>lineburst</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="blade" room="p-engines"/>
+      <crewMember kin="stone" room="p-weapons"/>
+      <crewMember kin="shell" room="p-shields"/>
+    </crewList>
+    <kitList>
+      <kit name="lance">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="fed-b" layout="B">
+    <class>Federation Cruiser</class>
+    <title>Nisos</title>
+    <desc>This ship features additional Artillery power, encouraging heavy reliance on the beam.</desc>
+    <unlock>Earn two of the three Federation Cruiser achievements.</unlock>
+    <source>The Federation Cruiser, Layout B</source>
+    <reactor>9</reactor>
+    <fuel>16</fuel>
+    <missiles>9</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>twin</weapon>
+      <weapon>leto</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="gel" room="p-engines"/>
+      <crewMember kin="spark" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="lance">
+        <level>2</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="fed-c" layout="C">
+    <class>Federation Cruiser</class>
+    <title>The Fregatidae</title>
+    <desc>With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.</desc>
+    <unlock>Reach sector 8 with Federation layout B, Advanced Edition on.</unlock>
+    <source>The Federation Cruiser, Layout C</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>5</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="spark" room="p-engines"/>
+      <crewMember kin="spark" room="p-shields"/>
+      <crewMember kin="blade" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>2</level>
+        <power>1</power>
+      </kit>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="flak">
+        <level>1</level>
+        <power>0</power>
+        <on>true</on>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>lung</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="zoltan-a" layout="A">
+    <class>Zoltan Cruiser</class>
+    <title>The Adjudicator</title>
+    <desc>The Zoltan's advanced shields technology give this ship an edge during each battle.</desc>
+    <unlock>See the Unarmed Zoltan Transport, or defeat the Flagship with the Federation Cruiser.</unlock>
+    <source>The Zoltan Cruiser, Layout A</source>
+    <reactor>5</reactor>
+    <fuel>16</fuel>
+    <missiles>12</missiles>
+    <parts>2</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>leto</weapon>
+      <weapon>halberd</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="spark" room="p-pilot"/>
+      <crewMember kin="spark" room="p-engines"/>
+      <crewMember kin="spark" room="p-weapons"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>zshield</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="zoltan-b" layout="B">
+    <class>Zoltan Cruiser</class>
+    <title>Noether</title>
+    <desc>This ship starts with a weakened Shield system and must rely on its Zoltan shield.</desc>
+    <unlock>Earn two of the three Zoltan Cruiser achievements.</unlock>
+    <source>The Zoltan Cruiser, Layout B</source>
+    <reactor>5</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>2</parts>
+    <systemList>
+      <system name="shields">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>0</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>4</level>
+        <power>4</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>needle</weapon>
+      <weapon>needle</weapon>
+      <weapon>shear</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="spark" room="p-pilot"/>
+      <crewMember kin="spark" room="p-engines"/>
+      <crewMember kin="spark" room="p-shields"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>zshield</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="zoltan-c" layout="C">
+    <class>Zoltan Cruiser</class>
+    <title>Cerenkov</title>
+    <desc>The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.</desc>
+    <unlock>Reach sector 8 with Zoltan layout B, Advanced Edition on.</unlock>
+    <source>The Zoltan Cruiser, Layout C</source>
+    <reactor>2</reactor>
+    <fuel>16</fuel>
+    <missiles>2</missiles>
+    <parts>15</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>0</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>0</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>ioncharger</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="spark" room="p-pilot"/>
+      <crewMember kin="spark" room="p-engines"/>
+      <crewMember kin="spark" room="p-shields"/>
+      <crewMember kin="spark" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+      <kit name="swarm">
+        <level>3</level>
+        <power>0</power>
+        <target>beam</target>
+      </kit>
+      <kit name="cell">
+        <level>2</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>zshield</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="slug-a" layout="A">
+    <class>Slug Cruiser</class>
+    <title>Man of War</title>
+    <desc>Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.</desc>
+    <unlock>See the Slug Home Nebula Surrender event, or defeat the Flagship with the Mantis Cruiser.</unlock>
+    <source>The Slug Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>15</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>twin</weapon>
+      <weapon>antibio</weapon>
+      <weapon>breach1</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="gel" room="p-pilot"/>
+      <crewMember kin="gel" room="p-engines"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>gel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="slug-b" layout="B">
+    <class>Slug Cruiser</class>
+    <title>The Stormwalker</title>
+    <desc>This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.</desc>
+    <unlock>Earn two of the three Slug Cruiser achievements.</unlock>
+    <source>The Slug Cruiser, Layout B</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>25</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>artemis</weapon>
+      <weapon>healburst</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="gel" room="p-pilot"/>
+      <crewMember kin="gel" room="p-engines"/>
+      <crewMember kin="gel" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>gel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="slug-c" layout="C">
+    <class>Slug Cruiser</class>
+    <title>Ariolimax</title>
+    <desc>Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.</desc>
+    <unlock>Reach sector 8 with Slug layout B, Advanced Edition on.</unlock>
+    <source>The Slug Cruiser, Layout C</source>
+    <reactor>9</reactor>
+    <fuel>16</fuel>
+    <missiles>1</missiles>
+    <parts>15</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>chainlaser</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="gel" room="p-pilot"/>
+      <crewMember kin="gel" room="p-engines"/>
+      <crewMember kin="gel" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="spike">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="leash">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>gel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="rock-a" layout="A">
+    <class>Rock Cruiser</class>
+    <title>Bulwark</title>
+    <desc>Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.</desc>
+    <unlock>See the Rock war vessel encounter, or defeat the Flagship with the Slug Cruiser.</unlock>
+    <source>The Rock Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>28</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>artemis</weapon>
+      <weapon>hullmissile</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="stone" room="p-pilot"/>
+      <crewMember kin="stone" room="p-engines"/>
+      <crewMember kin="stone" room="p-weapons"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>keel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="rock-b" layout="B">
+    <class>Rock Cruiser</class>
+    <title>Shivan</title>
+    <desc>With no airlocks, this ship must rely entirely on its rock crew to put out fires.</desc>
+    <unlock>Earn two of the three Rock Cruiser achievements.</unlock>
+    <source>The Rock Cruiser, Layout B</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>18</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>2</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>cask</weapon>
+      <weapon>heavypierce</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="stone" room="p-pilot"/>
+      <crewMember kin="stone" room="p-engines"/>
+      <crewMember kin="stone" room="p-weapons"/>
+      <crewMember kin="stone" room="p-shields"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>keel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="rock-c" layout="C">
+    <class>Rock Cruiser</class>
+    <title>Tektite</title>
+    <desc>Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.</desc>
+    <unlock>Reach sector 8 with Rock layout B, Advanced Edition on.</unlock>
+    <source>The Rock Cruiser, Layout C</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>15</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>swarmmissiles</weapon>
+      <weapon>heavycrystal</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="stone" room="p-pilot"/>
+      <crewMember kin="stone" room="p-engines"/>
+      <crewMember kin="shard" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>keel</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="stealth-a" layout="A">
+    <class>Stealth Cruiser</class>
+    <title>The Nesasio</title>
+    <desc>Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.</desc>
+    <unlock>See the Engi fleet discussion event, or defeat the Flagship with the Rock Cruiser.</unlock>
+    <source>The Stealth Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="engines">
+        <level>4</level>
+        <power>4</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>twin</weapon>
+      <weapon>mini</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="plain" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="veil">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>casing</augment>
+      <augment>glass</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="stealth-b" layout="B">
+    <class>Stealth Cruiser</class>
+    <title>DA-SR 12</title>
+    <desc>Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.</desc>
+    <unlock>Earn two of the three Stealth Cruiser achievements.</unlock>
+    <source>The Stealth Cruiser, Layout B</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>4</level>
+        <power>4</power>
+      </system>
+      <system name="sensors">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>glaive</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="spark" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="veil">
+        <level>2</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>glass</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="stealth-c" layout="C">
+    <class>Stealth Cruiser</class>
+    <title>Simo-H</title>
+    <desc>This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.</desc>
+    <unlock>Reach sector 8 with Stealth layout B, Advanced Edition on.</unlock>
+    <source>The Stealth Cruiser, Layout C</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>16</parts>
+    <systemList>
+      <system name="shields">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="engines">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>chargers</weapon>
+      <weapon>mini</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="stone" room="p-engines"/>
+      <crewMember kin="gel" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+      <kit name="swarm">
+        <level>2</level>
+        <power>0</power>
+        <target>overchargerplus</target>
+        <loadout>
+          <schematic>overchargerplus</schematic>
+          <schematic>wardcut</schematic>
+        </loadout>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>glass</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="lanius-a" layout="A">
+    <class>Lanius Cruiser</class>
+    <title>Kruos</title>
+    <desc>The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.</desc>
+    <unlock>Unlock 4 ships besides The Kestrel.</unlock>
+    <source>The Lanius Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>3</missiles>
+    <parts>9</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>chainlaser</weapon>
+      <weapon>stunner</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="voidlung" room="p-engines"/>
+      <crewMember kin="voidlung" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="spike">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>lung</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="lanius-b" layout="B">
+    <class>Lanius Cruiser</class>
+    <title>The Shrike</title>
+    <desc>The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.</desc>
+    <unlock>Earn two of the three Lanius Cruiser achievements.</unlock>
+    <source>The Lanius Cruiser, Layout B</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>advflak</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="shell" room="p-pilot"/>
+      <crewMember kin="voidlung" room="p-engines"/>
+      <crewMember kin="voidlung" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="leash">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="cradle">
+        <level>1</level>
+        <power>0</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>lung</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="mantis-a" layout="A">
+    <class>Mantis Cruiser</class>
+    <title>The Gila Monster</title>
+    <desc>This warship is designed to enhance its crew for close combat missions.</desc>
+    <unlock>See the Legendary Thief KazaaakplethKilik random event. Alternatively, defeat the Rebel Flagship with the Zoltan Cruiser.</unlock>
+    <source>The Mantis Cruiser, Layout A</source>
+    <reactor>7</reactor>
+    <fuel>16</fuel>
+    <missiles>16</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>smallbomb</weapon>
+      <weapon>spark</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="blade" room="p-pilot"/>
+      <crewMember kin="blade" room="p-engines"/>
+      <crewMember kin="blade" room="p-weapons"/>
+      <crewMember kin="shell" room="p-shields"/>
+    </crewList>
+    <kitList>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>pheromone</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="mantis-b" layout="B">
+    <class>Mantis Cruiser</class>
+    <title>The Basilisk</title>
+    <desc>This warship encourages sending massive boarding parties and keeping strong defense.</desc>
+    <unlock>Earning two of the three Mantis Cruiser achievements will unlock Layout B.</unlock>
+    <source>The Mantis Cruiser, Layout B</source>
+    <reactor>11</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>15</parts>
+    <systemList>
+      <system name="shields">
+        <level>4</level>
+        <power>4</power>
+      </system>
+      <system name="engines">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+    </weaponList>
+    <crewList>
+      <crewMember kin="blade" room="p-pilot"/>
+      <crewMember kin="blade" room="p-engines"/>
+    </crewList>
+    <kitList>
+      <kit name="swarm">
+        <level>3</level>
+        <power>3</power>
+        <target>board</target>
+        <loadout>
+          <schematic>board</schematic>
+          <schematic>ward</schematic>
+        </loadout>
+      </kit>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>pheromone</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="mantis-c" layout="C">
+    <class>Mantis Cruiser</class>
+    <title>The Theseus</title>
+    <desc>With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.</desc>
+    <unlock>Reaching Sector 8 with the Mantis Cruiser B and Advanced Edition Content enabled will unlock layout C.</unlock>
+    <source>The Mantis Cruiser, Layout C</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>20</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>0</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>lockdown</weapon>
+      <weapon>stunbomb</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="shell" room="p-pilot"/>
+      <crewMember kin="blade" room="p-engines"/>
+      <crewMember kin="voidlung" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="cradle">
+        <level>2</level>
+        <power>0</power>
+      </kit>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>pheromone</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="crystal-a" layout="A">
+    <class>Crystal Cruiser</class>
+    <title>Bravais</title>
+    <desc>This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.</desc>
+    <unlock>See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser. Alternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser).</unlock>
+    <source>The Crystal Cruiser, Layout A</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="weapons">
+        <level>3</level>
+        <power>3</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+      <weapon>crystalburst</weapon>
+      <weapon>heavycrystal</weapon>
+    </weaponList>
+    <crewList>
+      <crewMember kin="plain" room="p-pilot"/>
+      <crewMember kin="plain" room="p-engines"/>
+      <crewMember kin="shard" room="p-weapons"/>
+      <crewMember kin="shard" room="p-shields"/>
+    </crewList>
+    <kitList>
+    </kitList>
+    <augmentList>
+      <augment>vengeance</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
+  <shipBlueprint name="crystal-b" layout="B">
+    <class>Crystal Cruiser</class>
+    <title>Carnelian</title>
+    <desc>Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.</desc>
+    <unlock>Earn at least two out of three achievements for the Crystal Cruiser.</unlock>
+    <source>The Crystal Cruiser, Layout B</source>
+    <reactor>8</reactor>
+    <fuel>16</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="engines">
+        <level>2</level>
+        <power>2</power>
+      </system>
+      <system name="oxygen">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="medbay">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="weapons">
+        <level>1</level>
+        <power>0</power>
+      </system>
+      <system name="pilot">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="sensors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+      <system name="doors">
+        <level>1</level>
+        <power>1</power>
+      </system>
+    </systemList>
+    <weaponList>
+    </weaponList>
+    <crewList>
+      <crewMember kin="shard" room="p-pilot"/>
+      <crewMember kin="shard" room="p-engines"/>
+      <crewMember kin="shard" room="p-weapons"/>
+    </crewList>
+    <kitList>
+      <kit name="sling">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+      <kit name="veil">
+        <level>1</level>
+        <power>1</power>
+      </kit>
+    </kitList>
+    <augmentList>
+      <augment>vengeance</augment>
+    </augmentList>
+    <unfitted>
+    </unfitted>
+  </shipBlueprint>
 </FTL>

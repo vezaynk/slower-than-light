@@ -1,13 +1,14 @@
 import { WEAPONS } from "../content.ts";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
+import { HULLS, type HullSpec } from "../hulls.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -48,6 +49,42 @@ function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
   return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
 }
 
+function hullRow(spec: HullSpec): HullDef {
+  const systems: Record<string, [number, number]> = {};
+  for (const [id, pair] of Object.entries(spec.systems)) {
+    if (!pair) continue;
+    systems[id] = [pair[0], pair[1]];
+  }
+  const kits: Record<string, HullKitDef> = {};
+  for (const [id, kit] of Object.entries(spec.kits)) {
+    if (!kit) continue;
+    const copy: HullKitDef = { level: kit.level, power: kit.power };
+    if (kit.target !== undefined) copy.target = kit.target;
+    if (kit.loadout) copy.loadout = [...kit.loadout];
+    if (kit.on !== undefined) copy.on = kit.on;
+    kits[id] = copy;
+  }
+  return {
+    id: spec.id,
+    cruiser: spec.cruiser,
+    layout: spec.layout,
+    name: spec.name,
+    quote: spec.quote,
+    unlock: spec.unlock,
+    source: spec.source,
+    reactor: spec.reactor,
+    fuel: spec.fuel,
+    missiles: spec.missiles,
+    parts: spec.parts,
+    systems,
+    weapons: [...spec.weapons],
+    crew: spec.crew.map((seat) => ({ kin: seat.kin, room: seat.room })),
+    kits,
+    augments: [...spec.augments],
+    unfitted: [...spec.unfitted],
+  };
+}
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
@@ -64,6 +101,7 @@ loadPack(
     augments: CATALOG.map(augmentRow),
     drones: CITED_DRONES.map(droneRow),
     systems: CITED_SYSTEMS.map(systemRow),
+    hulls: HULLS.map(hullRow),
   },
   "base",
 );

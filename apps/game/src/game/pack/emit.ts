@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, SystemDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -21,16 +21,18 @@ const OXYGEN_DRAIN = -0.5;
  * An augment listing is its id, title, description, and store cost.
  * A drone listing is its id, title, and store cost.
  * A system listing is its id, title, store cost, and whether it installs as a system or a kit.
+ * A hull is its id, class, layout letter, name, and starting loadout. Room tiles are not in the document.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew, weapon, augment, drone, and system records.`,
+    `  Base pack written from the loaded crew, weapon, augment, drone, system, and hull records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
     `  Augment tags are the listing id, title, description, and store cost.`,
     `  Drone tags are the listing id, title, and store cost.`,
     `  System tags are the listing id, title, store cost, and install slot.`,
+    `  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -64,8 +66,61 @@ export function emitPack(pack: ContentPack): string {
   for (const augment of pack.augments ?? []) lines.push(...augmentXml(augment));
   for (const drone of pack.drones ?? []) lines.push(...droneXml(drone));
   for (const system of pack.systems ?? []) lines.push(...systemXml(system));
+  for (const hull of pack.hulls ?? []) lines.push(...hullXml(hull));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function hullXml(hull: HullDef): string[] {
+  const lines = [`  <shipBlueprint name="${escAttr(hull.id)}" layout="${escAttr(hull.layout)}">`];
+  lines.push(el(2, "class", hull.cruiser));
+  lines.push(el(2, "title", hull.name));
+  lines.push(el(2, "desc", hull.quote));
+  lines.push(el(2, "unlock", hull.unlock));
+  lines.push(el(2, "source", hull.source));
+  lines.push(el(2, "reactor", hull.reactor));
+  lines.push(el(2, "fuel", hull.fuel));
+  lines.push(el(2, "missiles", hull.missiles));
+  lines.push(el(2, "parts", hull.parts));
+  lines.push(`    <systemList>`);
+  for (const [id, pair] of Object.entries(hull.systems)) {
+    lines.push(`      <system name="${escAttr(id)}">`);
+    lines.push(el(4, "level", pair[0]));
+    lines.push(el(4, "power", pair[1]));
+    lines.push(`      </system>`);
+  }
+  lines.push(`    </systemList>`);
+  lines.push(`    <weaponList>`);
+  for (const id of hull.weapons) lines.push(el(3, "weapon", id));
+  lines.push(`    </weaponList>`);
+  lines.push(`    <crewList>`);
+  for (const seat of hull.crew) {
+    lines.push(`      <crewMember kin="${escAttr(seat.kin)}" room="${escAttr(seat.room)}"/>`);
+  }
+  lines.push(`    </crewList>`);
+  lines.push(`    <kitList>`);
+  for (const [id, kit] of Object.entries(hull.kits)) {
+    lines.push(`      <kit name="${escAttr(id)}">`);
+    lines.push(el(4, "level", kit.level));
+    lines.push(el(4, "power", kit.power));
+    if (kit.target != null) lines.push(el(4, "target", kit.target));
+    if (kit.loadout) {
+      lines.push(`        <loadout>`);
+      for (const schematic of kit.loadout) lines.push(el(5, "schematic", schematic));
+      lines.push(`        </loadout>`);
+    }
+    if (kit.on !== undefined) lines.push(el(4, "on", kit.on));
+    lines.push(`      </kit>`);
+  }
+  lines.push(`    </kitList>`);
+  lines.push(`    <augmentList>`);
+  for (const id of hull.augments) lines.push(el(3, "augment", id));
+  lines.push(`    </augmentList>`);
+  lines.push(`    <unfitted>`);
+  for (const label of hull.unfitted) lines.push(el(3, "item", label));
+  lines.push(`    </unfitted>`);
+  lines.push(`  </shipBlueprint>`);
+  return lines;
 }
 
 function systemXml(system: SystemDef): string[] {

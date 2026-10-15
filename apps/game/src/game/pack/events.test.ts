@@ -43,7 +43,6 @@ describe("event grants", () => {
     assert.ok(spark);
     loadPack({ weapons: [{ ...spark, id: "ember", name: "Ember", price: 20 }] }, "append");
     const offer = rollScriptedOffer(createGame(1), {
-      page: "test",
       chance: 100,
       low: 0,
       high: 100,

@@ -12,6 +12,8 @@
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
+  A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
+  The sim still checks the hull and still hands that reward over.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -3553,6 +3555,16 @@
       <text>Fight a Crystal ship</text>
       <effect k="fight" tier="Crystal ship"/>
     </choice>
+    <surrender chance="50" low="30" high="40" continues="true">
+      <text>The hunters message you, "We surrender. Take one of these squishy meat sacks that we've captured." He must be referring to the human captives.</text>
+      <reward k="crew" race="Human"/>
+      <choice name="surrender-accept">
+        <text>Accept their surrender.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Finish them off.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="crystal-fight-with-surrender-offer-hull-repairs" flag="cited:crystal-fight-with-surrender-offer-hull-repairs">
     <title>Crystal fight with surrender offer (hull repairs)</title>
@@ -3565,6 +3577,19 @@
       <text>Fight a Crystal ship</text>
       <effect k="fight" tier="Crystal ship"/>
     </choice>
+    <surrender chance="100" low="30" high="40">
+      <text>Their ship seems severely damaged and they look to be reconsidering the fight. Should you power down your weapons and explain that you mean no threat?</text>
+      <reward k="fuel-repairs" repairs="8"/>
+      <result>They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.
+
+They apologize for their hasty response to your presence and spend some time refueling and repairing both ships.</result>
+      <choice name="surrender-accept">
+        <text>Stop the fight.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Finish them off.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="crystal-ship-attacking-federation-loyalists" flag="cited:crystal-ship-attacking-federation-loyalists">
     <title>Crystal ship attacking Federation loyalists</title>
@@ -4151,6 +4176,16 @@
       <text>Try to be a hero. Attack the pirate</text>
       <effect k="fight" tier="Pirate ship"/>
     </choice>
+    <surrender chance="70" low="30" high="40">
+      <text>"Fine! Our previous offer was not generous enough, let's improve it."</text>
+      <reward k="stuff" tier="high"/>
+      <choice name="surrender-accept">
+        <text>Accept the more generous bribe and leave.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Reject the offer and continue your assault.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="pirate-ship-attacking-civilian-lanius" flag="cited:pirate-ship-attacking-civilian-lanius">
     <title>Pirate ship attacking civilian (Lanius)</title>
@@ -4587,6 +4622,16 @@
       <text>Ignore the slaver and continue on your way</text>
       <effect k="nothing"/>
     </choice>
+    <surrender chance="80" low="20" high="40">
+      <text>We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!</text>
+      <reward k="crew"/>
+      <choice name="surrender-accept">
+        <text>Accept their offer.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Surrender is not an option.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="slaver-hostile" flag="cited:slaver-hostile">
     <title>Slaver (hostile)</title>
@@ -4607,6 +4652,16 @@
       <text>Attempt to out-run the slaver ship.</text>
       <effect k="fight" tier="Pirate ship"/>
     </choice>
+    <surrender chance="80" low="20" high="40">
+      <text>We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!</text>
+      <reward k="crew"/>
+      <choice name="surrender-accept">
+        <text>Accept their offer.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Surrender is not an option.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="slug-drink" flag="cited:slug-drink">
     <title>Slug drink</title>
@@ -5207,6 +5262,16 @@
       <text>Ignore the ship</text>
       <effect k="nothing"/>
     </choice>
+    <surrender chance="50" low="20" high="40">
+      <text>They hail you, "We realize our ship is no match for yours. If you let us go we can make it worth your while."</text>
+      <reward k="stuff"/>
+      <choice name="surrender-accept">
+        <text>Accept their offer.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Ignore their pleas and attack.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="pirate-toll" flag="cited:pirate-toll">
     <title>Pirate toll</title>
@@ -5367,6 +5432,16 @@
       <effect k="res" id="missiles" sign="-1" lo="1" hi="1"/>
       <effect k="tier" tier="high"/>
     </choice>
+    <surrender chance="50" low="20" high="40">
+      <text>"Alright! We give up! We're terrible at this pirating thing anyway..."</text>
+      <reward k="stuff" tier="medium"/>
+      <choice name="surrender-accept">
+        <text>Let them go.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Piracy cannot be forgiven. Attack!</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="repair-station" flag="cited:repair-station">
     <title>Repair station</title>
@@ -5529,6 +5604,20 @@
       <text>Fight a Crystal ship (default rewards)</text>
       <effect k="fight" tier="Crystal ship"/>
     </choice>
+    <surrender chance="40" low="30" high="40">
+      <text>"We yield, aliens. We have no wish to die fighting you."</text>
+      <text>"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace."</text>
+      <text>They appear to be transmitting the universal signals for surrender. Will you let them go?</text>
+      <text>They message you, "I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?"</text>
+      <text>"We cannot beat you, we surrender. Surely there is mercy wherever you come from."</text>
+      <reward k="none"/>
+      <choice name="surrender-accept">
+        <text>Accept their surrender.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Ignore them.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="crystal-fight-choice" flag="cited:crystal-fight-choice">
     <title>Crystal fight choice</title>
@@ -6129,6 +6218,20 @@
       <text>Fight a Slug ship</text>
       <effect k="fight" tier="Slug ship"/>
     </choice>
+    <surrender chance="100" low="30" high="40">
+      <text>"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?" "Take thisss newly developed weapon we're transporting..."</text>
+      <reward k="weapon" name="Anti-Bio Beam"/>
+      <result>This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!</result>
+      <choice name="surrender-accept">
+        <text>Let them live. Accept the prototype weapon.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>We will not accept surrender!</text>
+      </choice>
+      <choice name="s:slug-home-nebula-surrender:info">
+        <text>Let them live. We don't want the weapon, we want information.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="slug-fight" flag="cited:slug-fight">
     <title>Slug fight</title>
@@ -6743,6 +6846,16 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Run an advanced scan on the boxes.</text>
       <effect k="note">Scan the boxes.</effect>
     </choice>
+    <surrender chance="100" low="0" high="50">
+      <text>The pirates hail you: "Enough! Take what's left of the cargo and let us go."</text>
+      <reward k="stuff"/>
+      <choice name="surrender-accept">
+        <text>Accept their surrender.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Refuse. Keep firing.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="settlement-mercenary-work" flag="cited:settlement-mercenary-work">
     <title>Settlement mercenary work</title>
@@ -6763,6 +6876,17 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Decline.</text>
       <effect k="nothing"/>
     </choice>
+    <surrender chance="100" low="30" high="40">
+      <text>They hail your ship saying, "You win! We're not cut out for this!"</text>
+      <reward k="scrap" tier="medium" unnamed="weapon"/>
+      <result>With the pirates dissuaded from their career path, you return to the settlement. "Thank you, they returned to us before you did. I don't think we'll need this anymore."</result>
+      <choice name="surrender-accept">
+        <text>Let them live and then return to the settlement.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Forget your promise, they die!</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="the-black-raven" flag="cited:the-black-raven">
     <title>The Black Raven</title>
@@ -6774,6 +6898,17 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>No.</text>
       <effect k="fight" tier="Slug pirate ship"/>
     </choice>
+    <surrender chance="100" low="30" high="40">
+      <text>"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame."</text>
+      <reward k="scrap" tier="high" unnamed="weapon"/>
+      <result>He transfers over the goods and starts to repair his ship.</result>
+      <choice name="surrender-accept">
+        <text>Accept his surrender.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Ignore him and attack.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="zoltan-ship-asks-to-dock" flag="cited:zoltan-ship-asks-to-dock">
     <title>Zoltan ship asks to dock</title>
@@ -6790,6 +6925,13 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Have them keep their distance.</text>
       <effect k="nothing"/>
     </choice>
+    <surrender chance="50" low="30" high="40" forced="true">
+      <text>The Zoltan captain sends an urgent hail: "Wait, this was all a test! A test that you passed! A diverse crew, working together, surely a sight to warm the heart of any dispassionate observer. Come, I shall join your crew!"</text>
+      <reward k="standard" tier="low" race="Zoltan"/>
+      <choice name="surrender-accept">
+        <text>Welcome the captain aboard.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
   <eventBlueprint name="slug-comm-tapping" flag="cited:slug-comm-tapping">
     <title>Slug comm tapping</title>
@@ -7500,5 +7642,67 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <effect k="note">You input their coordinates into your map and prepare to follow.</effect>
       <effect k="quest" id="mantis-chase"/>
     </choice>
+  </eventBlueprint>
+  <eventBlueprint name="quest-slug-pirate-trap-engage" flag="surrender:quest-slug-pirate-trap-engage">
+    <title>Slug comm tapping</title>
+    <text></text>
+    <surrender chance="100" low="30" high="40">
+      <text>When the pirate ship looks ready to break apart you notice the Slug ship has secured the loot and is preparing to jump away!</text>
+      <reward k="scrap" tier="high"/>
+      <result>The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. "Ah, of courssse, we would never leave without providing the agreed upon ssspoils." They transfer over a decent chunk of the profits and set off.</result>
+      <choice name="surrender-accept">
+        <text>Let the pirate escape and go after the Slugman ship.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Continue fighting the pirate.</text>
+      </choice>
+    </surrender>
+  </eventBlueprint>
+  <eventBlueprint name="quest-engi-real" flag="surrender:quest-engi-real">
+    <title>Engi fleet discussion</title>
+    <text></text>
+    <surrender chance="100" low="50" high="50" forced="true" quest="engi-final">
+      <text>"Stop!  This isn't worth dying for..."</text>
+      <reward k="none"/>
+      <result>"Of course, that's why you're here. Yes, they passed by here but I had nothing to do with it, I don't know what they were carrying. I'll transmit coordinates. Now just let us go..." You prepare an FTL message containing the coordinates to send to the Engies and get ready to jump.</result>
+      <choice name="surrender-accept">
+        <text>Demand information on the stolen technology.</text>
+      </choice>
+    </surrender>
+  </eventBlueprint>
+  <eventBlueprint name="quest-engi-fake" flag="surrender:quest-engi-fake">
+    <title>Engi fleet discussion</title>
+    <text></text>
+    <surrender chance="100" low="40" high="40" forced="true">
+      <text>"Stop! I don't want to die here."</text>
+      <reward k="none"/>
+      <choice name="surrender-accept">
+        <text>Demand information on the stolen technology.</text>
+      </choice>
+      <card>
+        <text>"Ah, so that's what you're after. Too bad, you followed the wrong ship. The envoy that passed through here was a fake, to trick fools like you. Now let us go!"</text>
+        <choice name="q:engi-fake:go">
+          <text>Let them go.</text>
+        </choice>
+        <choice name="q:engi-fake:attack">
+          <text>Ignore him and attack.</text>
+        </choice>
+      </card>
+    </surrender>
+  </eventBlueprint>
+  <eventBlueprint name="quest-mantis-chase" flag="surrender:quest-mantis-chase">
+    <title>Mantis ship-collectors</title>
+    <text></text>
+    <surrender chance="100" low="20" high="20">
+      <text>"Look, you proved your point. We don't want to die... Take this and let us go. Please?"</text>
+      <reward k="scrap" tier="high" unnamed="weapon"/>
+      <result>"Thank you. But do you have any idea how much repairing TWO ships will set us back?..." What an odd Mantis. You prepare to leave.</result>
+      <choice name="surrender-accept">
+        <text>Let them live.</text>
+      </choice>
+      <choice name="surrender-refuse">
+        <text>Finish them off.</text>
+      </choice>
+    </surrender>
   </eventBlueprint>
 </FTL>

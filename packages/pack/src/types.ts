@@ -221,10 +221,56 @@ export type EventChoice = {
   fx: EventEffect[];
 };
 
+/** What a scripted surrender hands over. The sim still rolls the amounts. */
+export type SurrenderReward =
+  | { k: "crew"; race?: string }
+  | { k: "stuff"; tier?: EventTier }
+  | { k: "fuel-repairs"; repairs: number }
+  | { k: "weapon"; name: string }
+  | { k: "standard"; tier: EventTier; race?: string }
+  | { k: "scrap"; tier: EventTier; unnamed?: EventItem }
+  | { k: "none" };
+
+/** A button stored on a surrender offer. The id is what `choose` receives. */
+export type SurrenderChoice = {
+  id: string;
+  label: string;
+};
+
+/**
+ * A fight page's own surrender offer.
+ * `chance` is the percent. `low` and `high` are the hull band, as a percent of max hull.
+ * The sim still checks the hull and still hands the reward over.
+ */
+export type SurrenderOfferDef = {
+  chance: number;
+  low: number;
+  high: number;
+  reward: SurrenderReward;
+  hail: string;
+  accept: string;
+  refuse: string;
+  /** Several hails with equal odds. One is shown in place of `hail`. */
+  hails?: string[];
+  /** Accepting pays the reward and the fight goes on. */
+  continues?: boolean;
+  /** The card shows only the accept choice. */
+  forced?: boolean;
+  /** Accepting places this quest marker. The sim still picks the beacon. */
+  quest?: string;
+  /** The sentence on the reward card after accepting. */
+  result?: string;
+  /** Accepting opens this card while the enemy is still there. */
+  card?: { body: string; choices: SurrenderChoice[] };
+  /** A third button on the surrender card. */
+  extra?: SurrenderChoice;
+};
+
 /**
  * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
  * `dest` is the title. An arrival page uses flag `quest:` plus the quest id and an empty sector list.
- * Sector depth gates stay in code. The sim still picks the beacon a marker lands on.
+ * A fight page can carry a `surrender` offer. Sector depth gates stay in code.
+ * The sim still picks the beacon a marker lands on, and still checks the hull.
  */
 export type EventDef = {
   id: string;
@@ -234,6 +280,7 @@ export type EventDef = {
   sectors: string[];
   body: string;
   choices: EventChoice[];
+  surrender?: SurrenderOfferDef;
 };
 
 export type ContentPack = {

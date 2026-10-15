@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import {
@@ -230,6 +231,47 @@ describe("scripted surrenders (event pages)", () => {
     assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
     assert.deepEqual(at("slug-home-nebula-surrender", 0), [100, 30, "slug-home-nebula-surrender"]);
     assert.equal(SCRIPTED_SURRENDERS["slaver-friendly"].chance, 80);
+    assert.equal(eventDef("slaver-friendly")?.surrender?.chance, 80);
+    assert.equal(eventDef("slug-home-nebula-surrender")?.surrender?.reward.k, "weapon");
+    assert.equal(eventDef("quest-engi-real")?.surrender?.quest, "engi-final");
+    assert.deepEqual(eventDef("quest-engi-real")?.sectors, []);
+    assert.equal(eventDef("quest-engi-fake")?.surrender?.card?.choices.length, 2);
+  });
+
+  it("an appended fight page replaces the campaign surrender", () => {
+    loadPack(
+      {
+        events: [
+          {
+            id: "slug-home-nebula-surrender",
+            dest: "Slug",
+            flag: "cited:slug-home-nebula-surrender",
+            aliases: [],
+            sectors: [],
+            body: "",
+            choices: [],
+            surrender: {
+              chance: 15,
+              low: 10,
+              high: 10,
+              reward: { k: "none" },
+              hail: "A mod hail.",
+              accept: "Spare",
+              refuse: "No",
+            },
+          },
+        ],
+      },
+      "append",
+    );
+    try {
+      const plan = surrenderPlan({ tier: "pool", faction: "rebel", event: "slug-home-nebula-surrender" }, () => 0);
+      assert.equal(plan.chance, 15);
+      assert.equal(plan.threshold, 10);
+      assert.equal(eventDef("slug-home-nebula-surrender")?.surrender?.hail, "A mod hail.");
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("never: the plural Rock pirates slugs, surrenderno pages, and Mantis ship-collectors' first fight", () => {

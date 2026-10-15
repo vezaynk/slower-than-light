@@ -1,5 +1,5 @@
 import { DOMImplementation, XMLSerializer, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventDef, EventEffect, HullDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventDef, EventEffect, HullDef, SectorDef, StoreDef, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -26,6 +26,8 @@ const HEADER = `
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
+  A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
+  The sim still checks the hull and still hands that reward over.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -88,8 +90,54 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
     end(choiceNode, 2);
     add(node, choiceNode, 2);
   }
+  if (event.surrender) add(node, surrenderElement(doc, event.surrender), 2);
   end(node, 1);
   return node;
+}
+
+function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElement {
+  const attrs: Record<string, string> = {
+    chance: num(offer.chance),
+    low: num(offer.low),
+    high: num(offer.high),
+  };
+  if (offer.continues) attrs.continues = "true";
+  if (offer.forced) attrs.forced = "true";
+  if (offer.quest) attrs.quest = offer.quest;
+  const node = element(doc, "surrender", attrs);
+  for (const hail of offer.hails?.length ? offer.hails : [offer.hail]) add(node, leaf(doc, "text", hail), 3);
+  add(node, rewardElement(doc, offer.reward), 3);
+  if (offer.result) add(node, leaf(doc, "result", offer.result), 3);
+  add(node, choiceElement(doc, "surrender-accept", offer.accept, 3), 3);
+  if (offer.refuse) add(node, choiceElement(doc, "surrender-refuse", offer.refuse, 3), 3);
+  if (offer.extra) add(node, choiceElement(doc, offer.extra.id, offer.extra.label, 3), 3);
+  if (offer.card) {
+    const card = element(doc, "card", {});
+    add(card, leaf(doc, "text", offer.card.body), 4);
+    for (const choice of offer.card.choices) add(card, choiceElement(doc, choice.id, choice.label, 4), 4);
+    end(card, 3);
+    add(node, card, 3);
+  }
+  end(node, 2);
+  return node;
+}
+
+function choiceElement(doc: XmlDocument, id: string, label: string, depth: number): XmlElement {
+  const node = element(doc, "choice", { name: id });
+  add(node, leaf(doc, "text", label), depth + 1);
+  end(node, depth);
+  return node;
+}
+
+function rewardElement(doc: XmlDocument, reward: SurrenderReward): XmlElement {
+  const attrs: Record<string, string> = { k: reward.k };
+  if (reward.k === "weapon") attrs.name = reward.name;
+  if (reward.k === "fuel-repairs") attrs.repairs = num(reward.repairs);
+  if (reward.k === "stuff" && reward.tier) attrs.tier = reward.tier;
+  if (reward.k === "standard" || reward.k === "scrap") attrs.tier = reward.tier;
+  if ((reward.k === "crew" || reward.k === "standard") && reward.race) attrs.race = reward.race;
+  if (reward.k === "scrap" && reward.unnamed) attrs.unnamed = reward.unnamed;
+  return element(doc, "reward", attrs);
 }
 
 function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {

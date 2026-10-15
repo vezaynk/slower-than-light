@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -153,12 +153,17 @@ function copyEvent(row: EventDef): EventDef {
   if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
   if (row.offers && row.offers.length > 0) copy.offers = row.offers.map(copyOffer);
   if (row.rolls && row.rolls.length > 0) copy.rolls = row.rolls.map(copyRoll);
+  if (row.cards && row.cards.length > 0) copy.cards = row.cards.map(copyCard);
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
   return copy;
 }
 
 function copyBand(band: [number, number]): [number, number] {
   return [band[0], band[1]];
+}
+
+function copyCard(row: EventCard): EventCard {
+  return { body: row.body, choices: row.choices.map((choice) => ({ id: choice.id, label: choice.label })) };
 }
 
 function copyRoll(row: RollEntry): RollEntry {

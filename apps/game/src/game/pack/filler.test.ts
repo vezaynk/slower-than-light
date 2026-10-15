@@ -264,6 +264,42 @@ describe("filler lists", () => {
     assert.equal(eventDef("slug-moons-question")?.rolls?.length, 4);
   });
 
+  it("stores the refugee trading cards and draws an appended card", () => {
+    const cards = eventDef("no-fuel-refugee-trading")?.cards ?? [];
+    assert.equal(cards.length, 3);
+    assert.deepEqual(cards.map((card) => card.choices.map((choice) => choice.id)), [
+      ["c:no-fuel-refugee-trading:low"],
+      [
+        "c:no-fuel-refugee-trading:trade",
+        "c:no-fuel-refugee-trading:engi",
+        "c:no-fuel-refugee-trading:refuse",
+        "c:no-fuel-refugee-trading:attack",
+      ],
+      ["c:no-fuel-refugee-trading:missiles", "c:no-fuel-refugee-trading:arm-no"],
+    ]);
+    assert.match(cards[0]?.body ?? "", /offers to split its remaining fuel/);
+    assert.match(cards[1]?.body ?? "", /its hull looks damaged/);
+    assert.match(cards[2]?.body ?? "", /bad need of armaments/);
+
+    const page = eventDef("no-fuel-refugee-trading");
+    assert.ok(page);
+    loadPack({
+      events: [{
+        ...page,
+        cards: [{ body: "Ember offers fuel.", choices: [{ id: "c:no-fuel-refugee-trading:ember", label: "Take it." }] }],
+      }],
+    }, "append");
+    const g = createGame(1);
+    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    assert.ok(beacon);
+    beacon.flag = page.flag;
+    const card = citedEvent(g, beacon);
+    assert.equal(card?.body, "Ember offers fuel.");
+    assert.equal(card?.choices[0]?.id, "c:no-fuel-refugee-trading:ember");
+    resetPackForTests();
+    assert.equal(eventDef("no-fuel-refugee-trading")?.cards?.length, 3);
+  });
+
   it("opens the filler card for a shared slug and rolls the fuel gift", () => {
     const g = createGame(1);
     const beacon = g.beacons[0];

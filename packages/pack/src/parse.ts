@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -484,6 +484,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const lines: string[] = [];
   const offers: OfferRow[] = [];
   const rolls: RollEntry[] = [];
+  const cards: EventCard[] = [];
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
     if (item.tagName === "text") {
@@ -498,6 +499,11 @@ function readEvent(node: XmlElement): EventDef | undefined {
     if (item.tagName === "roll") {
       const roll = readRoll(item);
       if (roll) rolls.push(roll);
+      continue;
+    }
+    if (item.tagName === "card") {
+      const card = readCard(item);
+      if (card) cards.push(card);
       continue;
     }
     if (item.tagName === "surrender") {
@@ -538,6 +544,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
+  if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
   return event;
 }
@@ -594,6 +601,18 @@ function readOffer(node: XmlElement): OfferRow | undefined {
     return { k: "supply", missiles, parts, fuel };
   }
   return undefined;
+}
+
+/** One direct card child. A card with no body or no button is skipped. */
+function readCard(node: XmlElement): EventCard | undefined {
+  const body = (textOf(node, "text") ?? "").trim();
+  const choices = elements(node).flatMap((item) => {
+    if (item.tagName !== "choice") return [];
+    const id = attr(item, "name")?.trim();
+    return id ? [{ id, label: choiceLabel(item, id) }] : [];
+  });
+  if (!body || choices.length === 0) return undefined;
+  return { body, choices };
 }
 
 /** One direct roll child. An entry with no text is skipped. A repeated hull stays repeated. */

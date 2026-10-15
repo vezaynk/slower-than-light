@@ -232,6 +232,50 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
   });
 
+  it("round-trips opening cards and drops a card that has no body", () => {
+    const events = [
+      {
+        id: "refugee",
+        dest: "Refugee",
+        flag: "cited:refugee",
+        aliases: [],
+        sectors: [],
+        body: "",
+        cards: [
+          { body: "Low fuel.", choices: [{ id: "c:refugee:low", label: "Continue" }] },
+          {
+            body: "Damaged hull.",
+            choices: [
+              { id: "c:refugee:trade", label: "Trade" },
+              { id: "c:refugee:engi", label: "Negotiate" },
+            ],
+          },
+        ],
+        choices: [{ id: "c:refugee:0", label: "Continue", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.equal((xml.match(/<card>/g) ?? []).length, 2);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text></text>
+        <card><text></text><choice name="c:broken:empty"><text>Nope</text></choice></card>
+        <card><text>No buttons.</text></card>
+        <card><text>Low fuel.</text><choice><text>Nameless</text></choice></card>
+        <choice name="c:broken:0">
+          <text>Nested</text>
+          <card><text>Hidden</text><choice name="c:broken:hidden"><text>Hidden</text></choice></card>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.cards, undefined);
+    assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
+    assert.equal(broken.events?.[0]?.body, "");
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

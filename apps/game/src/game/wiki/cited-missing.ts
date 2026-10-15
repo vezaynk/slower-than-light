@@ -447,33 +447,13 @@ export function missingCard(g: Game, b: Beacon, ev: { slug: string; dest: string
     // > "The helpless refugees make easy targets. Attack them." — [[No fuel: refugee trading]]
     // > "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is bad need of armaments and is willing to trade for them." — [[No fuel: refugee trading]]
     // > "Offer some missiles for fuel." — [[No fuel: refugee trading]]
-    const variant = between(g, [0, 2]);
-    if (variant === 0) {
-      return {
-        title: ev.dest,
-        body: tx("wiki.cited-missing.refugee-low"),
-        choices: [{ id: "c:no-fuel-refugee-trading:low", label: tx("wiki.cited-missing.continue") }],
-      };
-    }
-    if (variant === 1) {
-      return {
-        title: ev.dest,
-        body: tx("wiki.cited-missing.refugee-hull"),
-        choices: [
-          { id: "c:no-fuel-refugee-trading:trade", label: tx("wiki.cited-missing.trade-10-for-3") },
-          { id: "c:no-fuel-refugee-trading:engi", label: tx("wiki.cited-missing.engi-negotiate") },
-          { id: "c:no-fuel-refugee-trading:refuse", label: tx("wiki.cited-missing.refuse-their-offer") },
-          { id: "c:no-fuel-refugee-trading:attack", label: tx("wiki.cited-missing.attack-them") },
-        ],
-      };
-    }
+    const cards = eventDef(ev.slug)?.cards ?? [];
+    if (cards.length === 0) return null;
+    const card = cards[between(g, [0, cards.length - 1])]!;
     return {
       title: ev.dest,
-      body: tx("wiki.cited-missing.refugee-arms"),
-      choices: [
-        { id: "c:no-fuel-refugee-trading:missiles", label: tx("wiki.cited-missing.offer-a-missile") },
-        { id: "c:no-fuel-refugee-trading:arm-no", label: tx("wiki.cited-missing.refuse-their-offer") },
-      ],
+      body: card.body,
+      choices: card.choices.map((choice) => ({ id: choice.id, label: choice.label })),
     };
   }
   return null;

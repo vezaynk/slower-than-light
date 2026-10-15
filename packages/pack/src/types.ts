@@ -242,6 +242,15 @@ export type RollEntry =
   | { k: "label"; text: string }
   | { k: "count"; n: number; word: string };
 
+/**
+ * One whole opening a page draws when the card opens.
+ * The sim still draws one with between. The button handlers stay in code.
+ */
+export type EventCard = {
+  body: string;
+  choices: { id: string; label: string }[];
+};
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -316,6 +325,11 @@ export type EventDef = {
    * Stored when a page has at least one entry.
    */
   rolls?: RollEntry[];
+  /**
+   * Whole opening cards. The sim still draws one with between.
+   * Stored when a page has at least one. Button handlers stay in code.
+   */
+  cards?: EventCard[];
   choices: EventChoice[];
   surrender?: SurrenderOfferDef;
 };

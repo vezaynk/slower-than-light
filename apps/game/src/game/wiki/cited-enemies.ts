@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import type { Crew, Game, Ship, SysId } from "../types.ts";
-import { WEAPONS } from "../content.ts";
+import { allWeapons, weaponDef } from "../pack/registry.ts";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 
@@ -131,7 +131,7 @@ function printedHumans(phase: FlagshipPhase): number | null {
 function mount(g: Game, names: string[]) {
   const weapons = [];
   for (const name of names) {
-    const def = Object.values(WEAPONS).find((weapon) => weapon.name === name);
+    const def = allWeapons().find((weapon) => weapon.name === name);
     // @agent:flagship. All four boss guns resolve (Boss Laser / Boss Beam from wiki/flagship-weapons.ts).
     if (!def) continue;
     g.uid = (g.uid + 1) >>> 0;
@@ -174,7 +174,7 @@ function armMounted(ship: Ship) {
   const sys = ship.systems.weapons;
   let pool = Math.max(0, Math.min(sys.power, sys.level - sys.damage - sys.ion.length));
   for (const weapon of ship.weapons) {
-    const cost = WEAPONS[weapon.defId]?.power;
+    const cost = weaponDef(weapon.defId)?.power;
     if (cost == null || cost > pool) {
       weapon.enabled = false;
       continue;

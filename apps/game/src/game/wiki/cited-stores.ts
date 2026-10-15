@@ -1,7 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
-import { WEAPONS } from "../content.ts";
-import { allAugments, augmentDef } from "../pack/registry.ts";
+import { allAugments, augmentDef, weaponDef } from "../pack/registry.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -528,7 +527,7 @@ function weaponSell(defId: string): number | null {
   if (INVENTED_WEAPON_PRICE.has(defId)) return null;
   const printed = WEAPON_SELL[defId];
   if (printed != null) return printed;
-  const def = WEAPONS[defId];
+  const def = weaponDef(defId);
   if (!def || def.price <= 0) return null;
   return Math.floor(def.price / 2);
 }
@@ -560,7 +559,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
       id: `w:${weapon.uid}`,
       kind: "weapon",
       ref: weapon.defId,
-      name: WEAPONS[weapon.defId]?.name ?? weapon.defId,
+      name: weaponDef(weapon.defId)?.name ?? weapon.defId,
       scrap,
     });
   }
@@ -569,7 +568,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
     if (item.kind !== "weapon") return;
     const scrap = weaponSell(item.id);
     if (scrap == null || scrap <= 0) return;
-    quotes.push({ id: `c:${index}:${item.id}`, kind: "weapon", ref: item.id, name: `${WEAPONS[item.id]?.name ?? item.id} (cargo)`, scrap });
+    quotes.push({ id: `c:${index}:${item.id}`, kind: "weapon", ref: item.id, name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`, scrap });
   });
   (g.augments ?? []).forEach((id, index) => {
     const scrap = augmentSell(id);

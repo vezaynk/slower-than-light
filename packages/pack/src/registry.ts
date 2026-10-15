@@ -150,6 +150,7 @@ function copyEvent(row: EventDef): EventDef {
     body: row.body,
     choices: row.choices.map(copyChoice),
   };
+  if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
   return copy;
 }

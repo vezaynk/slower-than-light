@@ -137,6 +137,23 @@ describe("pack document", () => {
     assert.deepEqual(back.empties, pack.empties);
   });
 
+  it("keeps a page body apart from its opening sentences", () => {
+    const events = [
+      { id: "one", dest: "One", flag: "cited:one", aliases: [], sectors: [], body: "Only", choices: [] },
+      { id: "blank", dest: "Blank", flag: "cited:blank", aliases: [], sectors: [], body: "", texts: ["Alpha", "Beta"], choices: [] },
+      { id: "same", dest: "Same", flag: "cited:same", aliases: [], sectors: [], body: "Alpha", texts: ["Alpha", "Beta"], choices: [] },
+      { id: "aside", dest: "Aside", flag: "cited:aside", aliases: [], sectors: [], body: "Static", texts: ["Alpha", "Beta"], choices: [] },
+    ];
+    const xml = emitPack({ events });
+    assert.deepEqual(parsePack(xml).events, events);
+    const same = xml.slice(xml.indexOf('name="same"'), xml.indexOf('name="aside"'));
+    assert.equal(same.includes('intro="after"'), false);
+    assert.equal((same.match(/<text>Alpha<\/text>/g) ?? []).length, 1);
+    const blank = xml.slice(xml.indexOf('name="blank"'), xml.indexOf('name="same"'));
+    assert.match(blank, /<text><\/text>\s*<text>Alpha<\/text>/);
+    assert.match(xml.slice(xml.indexOf('name="aside"')), /intro="after"/);
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

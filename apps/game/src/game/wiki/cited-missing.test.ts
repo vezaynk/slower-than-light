@@ -251,6 +251,8 @@ describe("missing location pages", () => {
     assert.ok(spot.links[0]);
     g.fuel = 3;
     g.player.systems.engines.power = Math.max(1, g.player.systems.engines.power);
+    // The weapons choice beams one Slug. They stay after the win, so the drive has to finish before the jump.
+    g.flee = 1;
     commitJump(g, spot.links[0]);
     assert.equal(weaponsSealed(g.player), false);
   });

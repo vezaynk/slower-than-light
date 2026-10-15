@@ -196,7 +196,10 @@ export type EventItem = "weapon" | "augment" | "drone";
 
 /**
  * One result on a choice. The sim applies these kinds.
- * A quest branch that is still a procedure is not an effect.
+ * `quest` names a marker. The sim still picks the beacon.
+ * `goto` opens another event as the next card.
+ * `close` ends a fight without salvage, the way a surrender does.
+ * A win, an escape, and a branch that still rolls stay procedures.
  */
 export type EventEffect =
   | { k: "res"; id: EventResource; sign: 1 | -1; lo: number; hi: number }
@@ -206,6 +209,9 @@ export type EventEffect =
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
   | { k: "item"; item: EventItem }
+  | { k: "quest"; id: string }
+  | { k: "goto"; id: string }
+  | { k: "close" }
   | { k: "nothing" };
 
 /** A button on an event page. The id is what `choose` receives. */
@@ -217,7 +223,8 @@ export type EventChoice = {
 
 /**
  * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
- * `dest` is the title. Sector depth gates and quest procedures stay in code.
+ * `dest` is the title. An arrival page uses flag `quest:` plus the quest id and an empty sector list.
+ * Sector depth gates stay in code. The sim still picks the beacon a marker lands on.
  */
 export type EventDef = {
   id: string;

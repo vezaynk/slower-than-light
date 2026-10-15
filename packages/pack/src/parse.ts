@@ -511,6 +511,12 @@ function readEffect(node: XmlElement): EventEffect | undefined {
     if (node.hasAttribute("asteroid")) effect.asteroid = node.getAttribute("asteroid") === "true";
     return effect;
   }
+  if (kind === "quest" || kind === "goto") {
+    const id = attr(node, "id")?.trim();
+    if (!id) return undefined;
+    return { k: kind, id };
+  }
+  if (kind === "close") return { k: "close" };
   return undefined;
 }
 

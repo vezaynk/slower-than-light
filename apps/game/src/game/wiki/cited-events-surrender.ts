@@ -19,6 +19,9 @@ export type CitedFx =
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
+  | { k: "quest"; id: string }
+  | { k: "goto"; id: string }
+  | { k: "close" }
   | { k: "nothing" };
 
 export type CitedEventDef = {
@@ -217,8 +220,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Tap their comm frequency." — [[Slug comm tapping]]
         label: tx("wiki.cited-events-surrender.tap-their-comm-frequency"),
-        // "A quest marker is added to your map." wiki/quests.ts QUEST_CHOICES adds it.
-        fx: [{ k: "note", text: tx("wiki.cited-events-surrender.a-quest-marker-is-added-to") }],
+        fx: [
+          { k: "note", text: tx("wiki.quests.you-overhear-their-conversation-and-learn") },
+          { k: "quest", id: "slug-pirate-trap" },
+        ],
       },
       {
         id: "c:slug-comm-tapping:1",

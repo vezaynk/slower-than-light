@@ -91,6 +91,9 @@ function copyEffect(fx: EventEffect): EventEffect {
   }
   if (fx.k === "note") return { k: "note", text: fx.text };
   if (fx.k === "item") return { k: "item", item: fx.item };
+  if (fx.k === "quest") return { k: "quest", id: fx.id };
+  if (fx.k === "goto") return { k: "goto", id: fx.id };
+  if (fx.k === "close") return { k: "close" };
   return { k: "nothing" };
 }
 

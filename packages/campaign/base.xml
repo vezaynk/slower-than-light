@@ -10,7 +10,8 @@
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
-  A choice is its id, label, and effects. Quest branches stay in code.
+  A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
+  An arrival page has an empty sector list and the flag quest: plus the quest id.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -6799,7 +6800,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You arrive to the sight of two Slug ships in communication range. They don't see you.</text>
     <choice name="c:slug-comm-tapping:0">
       <text>Tap their comm frequency.</text>
-      <effect k="note">A quest marker is added to your map.</effect>
+      <effect k="note">You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.</effect>
+      <effect k="quest" id="slug-pirate-trap"/>
     </choice>
     <choice name="c:slug-comm-tapping:1">
       <text>Ignore them.</text>
@@ -6852,11 +6854,13 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You are immediately messaged by an imposing looking Rock war vessel, "You're the ship off to 'save the Federation,' aren't you? And you expect to survive with that hunk of junk?"</text>
     <choice name="c:rock-war-vessel-encounter:0">
       <text>"We're going to save them or die trying."</text>
-      <effect k="note">A quest marker is added to your map.</effect>
+      <effect k="note">"The latter being more likely. Still... we can potentially help you and your precious fleet, but you'll need to prove yourself first. Meet us at these coordinates." They jump away.</effect>
+      <effect k="quest" id="rock-sun"/>
     </choice>
     <choice name="c:rock-war-vessel-encounter:1">
       <text>"We're strong enough to destroy you!"</text>
-      <effect k="note">A quest marker is added to your map.</effect>
+      <effect k="note">"One ship is not the same as a fleet, but at least you've got some fire. Meet us at these coordinates if you want to prove to us that the Federation is worth saving." They jump away.</effect>
+      <effect k="quest" id="rock-sun"/>
     </choice>
     <choice name="c:rock-war-vessel-encounter:2">
       <text>Ignore them.</text>
@@ -6875,7 +6879,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:unarmed-zoltan-transport:1">
       <text>Hear them out.</text>
-      <effect k="note">A quest marker is added to your map.</effect>
+      <effect k="note">They continue. "We take your silence for interested contemplation." They talk at length about peace and harmony, but either it's beyond your simple mind or it's all nonsense.
+
+They finish: "Please, spread the word of enlightenment to those that have not heard. Once you have, contact our brethren." They transmit coordinates of their so-called "brethren".</effect>
+      <effect k="quest" id="zoltan-peace"/>
     </choice>
     <choice name="c:unarmed-zoltan-transport:2">
       <text>Leave.</text>
@@ -6946,7 +6953,8 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     <text>A rock captain hails you: "It is improper of me to contact off-worlders, but this is an emergency. We were on our way to deliver our passenger to her new husband - the Grand Basilisk of Numa V - when our engines broke down. Will you take possession of her, and make haste to Numa V?"</text>
     <choice name="c:rock-bride:0">
       <text>Accept the passenger.</text>
-      <effect k="note">A quest marker is added to your map.</effect>
+      <effect k="note">"You surprise me, off-worlder. Thank you. The passenger will be with you momentarily." She refuses to enter the main hold and prefers to wait in the cargo bay.</effect>
+      <effect k="quest" id="rock-bride"/>
     </choice>
     <choice name="c:rock-bride:1">
       <text>Refuse.</text>
@@ -7329,6 +7337,168 @@ The current sector map is revealed.</text>
     <choice name="c:slug-and-rock-standoff-in-nebula:1">
       <text>Ignore them.</text>
       <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-mantis-chase" flag="quest:mantis-chase">
+    <title>Mantis trail</title>
+    <text>You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!
+
+"Not YOU again! Do you know how much these repairs are going to cost me? Time to take out the big guns."</text>
+    <choice name="q:mantis-chase:fight">
+      <text>Fight the Mantis Bomber.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-slug-pirate-trap" flag="quest:slug-pirate-trap">
+    <title>Slug raid</title>
+    <text>You catch up with the two Slug ships and they're already carrying out their raid! One is in close combat with the pirate, the other seems to be heading for a small space cache the pirate was protecting.
+
+Suddenly the first ship bursts into flames, and an urgent call arrives from the remaining Slugs. "We sssugest you distract the pirate vesssel while we retrieve the valuables. Fifty fifty sssplit."</text>
+    <choice name="q:slug-trap:engage">
+      <text>Engage the pirate.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="q:slug-trap:cache">
+      <text>Head for the cache.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-engi-real" flag="quest:engi-real">
+    <title>Rebel base</title>
+    <text>You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them.</text>
+    <choice name="q:engi-real:fight">
+      <text>Fight the Rebel ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-engi-fake" flag="quest:engi-fake">
+    <title>Rebel base</title>
+    <text>You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them.</text>
+    <choice name="q:engi-fake:fight">
+      <text>Fight the Rebel ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-engi-final" flag="quest:engi-final">
+    <title>Mantis convoy</title>
+    <text>You have finally caught up with the ships you've been hunting. A hangar-sized cargo ship is being escorted by a number of Mantis ships. As you reconsider the assault, a squadron of Engi ships with pirate emblems jump in and assist you. You prepare to fight the Mantis but scans indicate they are manned by Rebels!</text>
+    <choice name="q:engi-final:fight">
+      <text>Fight the Mantis ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-slug-platform" flag="quest:slug-platform">
+    <title>Construction platform</title>
+    <text>You arrive to discover an impressive cruiser being worked on by a few smaller ships and guarded by an assault ship. The mobile construction platform is slowly slipping into the clouds. You have not yet been noticed.</text>
+    <choice name="q:slug-platform:charge">
+      <text>Charge them before they escape.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="q:slug-platform:tail">
+      <text>Try to tail them without being noticed.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-store-rescue" flag="quest:store-rescue">
+    <title>Space dock</title>
+    <text>Once you arrive at the beacon you detect a Rebel scout assaulting a compound on a nearby desolate moon.</text>
+    <choice name="q:store-rescue:engage">
+      <text>Engage the Rebel and rescue the space dock.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="q:store-rescue:avoid">
+      <text>Avoid a fight.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-rock-sun" flag="quest:rock-sun">
+    <title>Red giant</title>
+    <text>You arrive at the coordinates given and find yourself dangerously close to an M-class star! The other ship messages you, "Let's see how long your puny ship can handle this heat! Prepare for a challenge!"</text>
+    <choice name="qa:rock-sun:fight">
+      <text>Fight the Rock ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-zoltan-peace" flag="quest:zoltan-peace">
+    <title>Zoltan brethren</title>
+    <text>You arrive at the location specified by the peace-loving Zoltan, but the only thing nearby is a Rebel ship, closing in fast! "We've found you! You're not getting away this time!"</text>
+    <choice name="qa:peace:attack">
+      <text>Attack.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="qa:peace:hail">
+      <text>Attempt to hail them.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-rock-bride" flag="quest:rock-bride">
+    <title>Numa V</title>
+    <text>A vast tunnel network near the surface of Numa V indicates an advanced Rock civilization. This must be where you were asked to deliver the passenger.
+
+Realizing arrival is imminent, your passenger - silent so far - pleads with you not to hand her over. She's interrupted by the Grand Basilisk's Chief Aide: "To the alien vessel holding the Basilisk's wife. Deliver her to us. You will be rewarded... well."</text>
+    <choice name="qa:bride:hand">
+      <text>Hand her over.</text>
+      <effect k="nothing"/>
+    </choice>
+    <choice name="qa:bride:refuse">
+      <text>Refuse to comply.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-zoltan-primitives" flag="quest:zoltan-primitives">
+    <title>Primitive planet</title>
+    <text>You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.
+
+You tap into their frequency and hear the Rebel captain yelling, "We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!"</text>
+    <choice name="c:zoltan-quest-primitives:0">
+      <text>Interfere - make first contact with the primitive aliens</text>
+      <effect k="fight" tier="Zoltan ship"/>
+    </choice>
+    <choice name="c:zoltan-quest-primitives:1">
+      <text>Protect the aliens' way of life - Attack the Rebel ship</text>
+      <effect k="fight" tier="Rebel Ship"/>
+    </choice>
+    <choice name="c:zoltan-quest-primitives:2">
+      <text>Leave</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="arrive-capture-ship" flag="quest:capture-ship">
+    <title>Bandit ship</title>
+    <text>You find the ship that you were asked to capture intact. You're not sure why, but they stressed that it's of great importance that you kill the crew WITHOUT destroying the ship.</text>
+    <choice name="q:capture:fight">
+      <text>Fight a Pirate ship.</text>
+      <effect k="nothing"/>
+    </choice>
+  </eventBlueprint>
+  <eventBlueprint name="quest-marker-choices" flag="choice:quest-marker-choices">
+    <title>Quest marker choices</title>
+    <text></text>
+    <choice name="s:slug-home-nebula-surrender:info">
+      <text>Let them live. We don't want the weapon, we want information.</text>
+      <effect k="note">You ask where they were delivering the weapon. "By telling you we will probably die jussst as like as not... Oh well." They give you the coordinates of the a prototype cruiser's mobile construction platform.</effect>
+      <effect k="close"/>
+      <effect k="quest" id="slug-platform"/>
+    </choice>
+    <choice name="q:capture:agree">
+      <text>Agree to capture the ship.</text>
+      <effect k="note">"Great, we'll relay their coordinates. Remember, do NOT destroy that ship! Remember, we'll be right behind you."</effect>
+      <effect k="quest" id="capture-ship"/>
+    </choice>
+    <choice name="q:merchant:investigate">
+      <text>Accept.</text>
+      <effect k="note">"At least you're confident, for what little that's worth. Here is their last known location."</effect>
+      <effect k="quest" id="merchant-investigation"/>
+    </choice>
+    <choice name="q:nebula:comfort">
+      <text>Make them comfortable for their final moments.</text>
+      <effect k="note">On their death bed, they croak out a series of coordinates and beg you to go there - when you attempt to ask them why, the survivor simply says, "ABADOTH" and perishes.</effect>
+      <effect k="quest" id="abadoth"/>
+    </choice>
+    <choice name="q:mantis-collectors:follow">
+      <text>After them!</text>
+      <effect k="note">You input their coordinates into your map and prepare to follow.</effect>
+      <effect k="quest" id="mantis-chase"/>
     </choice>
   </eventBlueprint>
 </FTL>

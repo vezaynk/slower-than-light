@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import { citedChoose, citedEvent, citedPagesFor } from "../wiki/cited-events.ts";
+import { questEvent } from "../wiki/quests.ts";
 import "./base.ts";
 import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { Game } from "../types.ts";
@@ -99,5 +100,91 @@ describe("event pages", () => {
     resetPackForTests();
     const restored = citedEvent(g, beacon);
     assert.equal(restored?.body, page.body);
+  });
+
+  it("places a quest marker from an appended choice and shows that arrival page", () => {
+    loadPack(
+      {
+        events: [
+          {
+            id: "ember-mark",
+            dest: "Ember Mark",
+            flag: "cited:ember-mark",
+            aliases: [],
+            sectors: [],
+            body: "A marker.",
+            choices: [
+              {
+                id: "c:ember-mark:0",
+                label: "Mark",
+                fx: [
+                  { k: "note", text: "Coordinates received." },
+                  { k: "quest", id: "ember-quest" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "arrive-ember-quest",
+            dest: "Ember Quest",
+            flag: "quest:ember-quest",
+            aliases: [],
+            sectors: [],
+            body: "The platform.",
+            choices: [{ id: "q:ember-quest:go", label: "Look", fx: [{ k: "nothing" }] }],
+          },
+        ],
+      },
+      "append",
+    );
+    const g = createGame(1);
+    g.sector = 3;
+    assert.equal(pay(g, "c:ember-mark:0"), true);
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /Coordinates received/);
+    const spot = g.beacons.find((b) => b.quest === "ember-quest");
+    assert.ok(spot);
+    assert.equal(spot.flag, "quest:ember-quest");
+    g.here = spot.id;
+    const card = questEvent(g, spot);
+    assert.equal(card?.body, "The platform.");
+    assert.equal(card?.choices[0]?.id, "q:ember-quest:go");
+    assert.equal(
+      citedPagesFor("Civilian Sector").some((ev) => ev.slug === "arrive-ember-quest"),
+      false,
+    );
+  });
+
+  it("opens the page a goto effect names", () => {
+    loadPack(
+      {
+        events: [
+          {
+            id: "ember-goto",
+            dest: "Ember Goto",
+            flag: "cited:ember-goto",
+            aliases: [],
+            sectors: [],
+            body: "Leave.",
+            choices: [{ id: "c:ember-goto:0", label: "Go", fx: [{ k: "goto", id: "ember-next" }] }],
+          },
+          {
+            id: "ember-next",
+            dest: "Ember Next",
+            flag: "cited:ember-next",
+            aliases: [],
+            sectors: [],
+            body: "Next page.",
+            choices: [{ id: "c:ember-next:0", label: "Stay", fx: [{ k: "nothing" }] }],
+          },
+        ],
+      },
+      "append",
+    );
+    const g = createGame(1);
+    assert.equal(pay(g, "c:ember-goto:0"), true);
+    assert.equal(g.event?.body, "Next page.");
+    assert.equal(g.event?.choices[0]?.id, "c:ember-next:0");
+    assert.equal(g.paused, true);
   });
 });

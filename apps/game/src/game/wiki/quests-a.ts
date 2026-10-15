@@ -17,13 +17,11 @@ import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { grantRandomItem } from "./bonus-item.ts";
-import { EXTRA_EVENTS as ZOLTAN_PAGES } from "./cited-events-zoltan.ts";
 import {
   addQuest,
   card,
   crew,
   grantAug,
-  pick,
   repair,
   result,
   scrapOnly,
@@ -35,7 +33,7 @@ import {
   type QuestPart,
   type Win,
 } from "./quests.ts";
-import { between, closeFight, here, humanBoarders, joinCrew, NEVER_RUN, pageFight, rollStandard, rollSurrenderOffer, type SurrenderPlan } from "./surrender.ts";
+import { between, closeFight, humanBoarders, joinCrew, NEVER_RUN, pageFight, rollStandard, rollSurrenderOffer, type SurrenderPlan } from "./surrender.ts";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Helpers
@@ -132,13 +130,6 @@ const ARRIVE: QuestPart["arrive"] = {
       [unlocked, grantAug(g, "vengeance"), repair(g, 10)],
     );
   },
-  "rock-sun": (g) => {
-    // Wiki citations:
-    // > "You arrive at the coordinates given and find yourself dangerously close to an M-class star!" — [[Rock war vessel encounter#Sun Quest Marker]]
-    card(g, tx("wiki.quests-a.you-arrive-at-the-coordinates-given"), [
-      { id: "qa:rock-sun:fight", label: tx("wiki.quests-a.fight-the-rock-ship") },
-    ]);
-  },
   "rock-shipyard": (g) => {
     // Wiki citations:
     // > "You arrive at a massive Rockman shipyard" — [[Rock war vessel encounter#Shipyard Quest Marker]]
@@ -151,30 +142,6 @@ const ARRIVE: QuestPart["arrive"] = {
       undefined,
       [unlocked, grantAug(g, "keel"), repair(g, 29)],
     );
-  },
-  "zoltan-peace": (g) => {
-    // Wiki citations:
-    // > "You arrive at the location specified by the peace-loving Zoltan, but the only thing nearby is a Rebel ship, closing in fast!" — [[Unarmed Zoltan transport#Quest Marker]]
-    card(g, tx("wiki.quests-a.you-arrive-at-the-location-specified"), [
-      { id: "qa:peace:attack", label: tx("wiki.quests-a.attack") },
-      { id: "qa:peace:hail", label: tx("wiki.quests-a.attempt-to-hail-them") },
-    ]);
-  },
-  "zoltan-primitives": (g) => {
-    // {{:Zoltan quest primitives}}: the standalone page's card (cited-events-zoltan.ts); its choices run in citedChoose.
-    const page = ZOLTAN_PAGES.find((ev) => ev.slug === "zoltan-quest-primitives");
-    if (!page) return;
-    g.event = { title: here(g)?.name ?? page.dest, body: page.body, choices: page.choices.map((c) => ({ id: c.id, label: c.label })) };
-    g.phase = "event";
-    g.paused = true;
-  },
-  "rock-bride": (g) => {
-    // Wiki citations:
-    // > "A vast tunnel network near the surface of Numa V" — [[Rock bride#Quest Marker]]
-    card(g, tx("wiki.quests-a.a-vast-tunnel-network-near-the"), [
-      { id: "qa:bride:hand", label: tx("wiki.quests-a.hand-her-over") },
-      { id: "qa:bride:refuse", label: tx("wiki.quests-a.refuse-to-comply") },
-    ]);
   },
 };
 
@@ -242,18 +209,6 @@ const CHOICES_A: QuestPart["choices"] = {
   },
 
   // ---- Rock war vessel encounter ----
-  "c:rock-war-vessel-encounter:0": (g) => {
-    // Wiki citations:
-    // > "The latter being more likely." — [[Rock war vessel encounter]]
-    // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
-    result(g, tx("wiki.quests-a.the-latter-being-more-likely-still"), undefined, [addQuest(g, "rock-sun")]);
-  },
-  "c:rock-war-vessel-encounter:1": (g) => {
-    // Wiki citations:
-    // > "One ship is not the same as a fleet" — [[Rock war vessel encounter]]
-    // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
-    result(g, tx("wiki.quests-a.one-ship-is-not-the-same"), undefined, [addQuest(g, "rock-sun")]);
-  },
   "c:rock-war-vessel-encounter:2": (g) => {
     // Wiki citations:
     // > "Nothing happens." — [[Rock war vessel encounter]]
@@ -319,18 +274,6 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
     closeFight(g);
     result(g, tx("wiki.quests-a.you-power-down-your-weapons-and"));
-  },
-  "c:unarmed-zoltan-transport:1": (g) => {
-    // Wiki citations:
-    // > "Hear them out." — [[Unarmed Zoltan transport]]
-    // > "We take your silence for interested contemplation." — [[Unarmed Zoltan transport]]
-    // > "A quest marker is added to your map." — [[Unarmed Zoltan transport]]
-    result(
-      g,
-      tx("wiki.quests-a.they-continue-we-take-your-silence"),
-      undefined,
-      [addQuest(g, "zoltan-peace")],
-    );
   },
   "c:unarmed-zoltan-transport:2": (g) => {
     // Wiki citations:
@@ -516,12 +459,6 @@ const CHOICES_A: QuestPart["choices"] = {
     result(g, tx("wiki.quests-a.you-don-t-have-the-papers")),
 
   // ---- Rock bride ----
-  "c:rock-bride:0": (g) => {
-    // Wiki citations:
-    // > "Accept the passenger." — [[Rock bride]]
-    // > "A quest marker is added to your map." — [[Rock bride]]
-    result(g, tx("wiki.quests-a.you-surprise-me-off-worlder-thank"), undefined, [addQuest(g, "rock-bride")]);
-  },
   "c:rock-bride:1": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Rock bride]]

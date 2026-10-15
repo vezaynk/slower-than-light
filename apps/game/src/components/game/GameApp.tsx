@@ -1672,7 +1672,6 @@ function TargetPanel({
   // system." "If the targeted system is Piloting or Engines, the ship name on the top right corner is replaced with
   // text that states the current Evasion of the enemy ship" (only "if the Hacking system is powered": hackVision).
   const vision = hackVision(game);
-  const hack = playerHackView(game);
   const hackMark = hackMarkOf(game);
   // Cloaking: "When an enemy ship is cloaked, you lose vision of its interior unless your crew… is aboard".
   const veil = enemy.kits.veil;
@@ -1697,15 +1696,11 @@ function TargetPanel({
     12,
     Math.min(FOE_TILE_FULL, Math.floor(256 / (enemy.cols + 2)) - 2, Math.floor(216 / (enemy.rows + 2)) - 2),
   );
-  const beamHint = game.targeting && game.beamAnchor && !hackAiming;
-  const hackNote = !!(hack && (hack.latched || hack.state === "pulse") && hack.label);
-  const headNote = !!escape || hackNote || !!clones || beamHint;
+  const headNote = !!escape || !!clones;
   return (
     <aside className="target-panel">
       {headNote ? (
-      <div className="target-head">
-        <span className="target-flag">{tx("ui.GameApp.target")}</span>
-        <div>
+        <div className="target-head">
           {escape ? (
             <p className={`escape-line${escape.stalled ? " is-stalled" : ""}`} role="status">
               <span className="line-stack">
@@ -1714,18 +1709,6 @@ function TargetPanel({
                 </span>
                 <span className={escape.stalled ? undefined : "is-reserve"} aria-hidden={escape.stalled ? undefined : true}>
                   {tx("ui.GameApp.ftl-stalled")}
-                </span>
-              </span>
-            </p>
-          ) : null}
-          {hack && hack.label && hackNote ? (
-            <p className={`hack-line${hack.state === "pulse" ? " is-pulse" : ""}`} role="status">
-              <span className="line-stack">
-                <span className={hack.state === "pulse" ? "is-reserve" : undefined} aria-hidden={hack.state === "pulse" || undefined}>
-                  {tx("ui.GameApp.hacked")}{hack.label.toUpperCase()}
-                </span>
-                <span className={hack.state === "pulse" ? undefined : "is-reserve"} aria-hidden={hack.state === "pulse" ? undefined : true}>
-                  {tx("ui.GameApp.hacked")}{hack.label.toUpperCase()} · <DigitSlot value={Math.ceil(hack.left)} sample={10} />s
                 </span>
               </span>
             </p>
@@ -1746,11 +1729,7 @@ function TargetPanel({
               </span>
             </p>
           ) : null}
-          {beamHint ? (
-            <p className="beam-hint">{tx("ui.GameApp.click-the-end-of-the-beam")}</p>
-          ) : null}
         </div>
-      </div>
       ) : null}
       <div className="foe-vitals">
         <div className="hull-row">

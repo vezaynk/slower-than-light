@@ -928,7 +928,6 @@ button:disabled {
 
 .hud-word,
 .dock-label,
-.target-flag,
 .pause-mark strong,
 .scrap-box b,
 .ftl-drive span,
@@ -1562,18 +1561,8 @@ button:disabled {
 }
 
 .target-head {
-  display: flex;
-  gap: 8px;
   padding: 8px 10px 0;
-  align-items: stretch;
   background: rgba(11, 17, 22, 0.82);
-}
-
-.target-flag {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 26px;
-  color: var(--color-line);
 }
 
 .target-head p {
@@ -4234,8 +4223,6 @@ button.door-tick::before {
   background: color-mix(in srgb, #f2e34a 46%, #2b2f36);
   opacity: 1;
 }
-.target-head .beam-hint { margin: 4px 0 0; font-family: var(--font-hud); font-size: 20px; letter-spacing: 0.04em; color: var(--color-accent); }
-
 @keyframes aim-blink { 50% { opacity: 0.35; } }
 
 .gun-aim { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-hud); font-size: 16px; line-height: 1; color: var(--color-accent); white-space: nowrap; overflow: hidden; }
@@ -4711,26 +4698,6 @@ button.door-tick::before {
 
 @media (prefers-reduced-motion: reduce) {
   .hack-reticle.is-pulse .hack-reticle-box { animation: none; }
-}
-
-/* Target panel: drone readouts. */
-.target-head .hack-evasion {
-  font-family: var(--font-hud);
-  font-size: 22px;
-  letter-spacing: 0.04em;
-  color: var(--color-ion);
-}
-
-.target-head .hack-line {
-  margin-top: 4px;
-  font-family: var(--font-hud);
-  font-size: 22px;
-  letter-spacing: 0.06em;
-  color: var(--color-ion);
-}
-
-.target-head .hack-line.is-pulse {
-  color: var(--color-fg);
 }
 
 .target-systems span.is-hack-seen {

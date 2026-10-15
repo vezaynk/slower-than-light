@@ -8,10 +8,11 @@ import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
+import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, EventDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -71,6 +72,22 @@ function tuneRow(row: TuneDef): TuneDef {
   return { id: row.id, start: row.start, costs: row.costs.map((step) => ({ ...step })) };
 }
 
+function eventRow(row: EventDef): EventDef {
+  return {
+    id: row.id,
+    dest: row.dest,
+    flag: row.flag,
+    aliases: [...row.aliases],
+    sectors: [...row.sectors],
+    body: row.body,
+    choices: row.choices.map((choice) => ({
+      id: choice.id,
+      label: choice.label,
+      fx: choice.fx.map((fx) => ({ ...fx })),
+    })),
+  };
+}
+
 function hullRow(spec: HullSpec): HullDef {
   const systems: Record<string, [number, number]> = {};
   for (const [id, pair] of Object.entries(spec.systems)) {
@@ -127,6 +144,7 @@ loadPack(
     sectors: SECTOR_TYPES.map(sectorRow),
     stores: STORES.map(storeRow),
     tunes: SYSTEM_TUNES.map(tuneRow),
+    events: citedEventRecords().map(eventRow),
   },
   "base",
 );

@@ -1,6 +1,7 @@
 import {
   allAugments,
   allCrew,
+  allEvents,
   allDrones,
   allHulls,
   allSectors,
@@ -33,5 +34,6 @@ export async function campaignXml(): Promise<string> {
     sectors: allSectors(),
     stores: allStores(),
     tunes: allTunes(),
+    events: allEvents(),
   });
 }

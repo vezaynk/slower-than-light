@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -9,6 +9,7 @@ const hulls = new Map<string, HullDef>();
 const sectors = new Map<string, SectorDef>();
 const stores = new Map<string, StoreDef>();
 const tunes = new Map<string, TuneDef>();
+const events = new Map<string, EventDef>();
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -18,6 +19,7 @@ let baseHulls: HullDef[] = [];
 let baseSectors: SectorDef[] = [];
 let baseStores: StoreDef[] = [];
 let baseTunes: TuneDef[] = [];
+let baseEvents: EventDef[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   return { ...row };
@@ -67,6 +69,47 @@ function copyTune(row: TuneDef): TuneDef {
   return { ...row, costs: row.costs.map(copyStep) };
 }
 
+function copyEffect(fx: EventEffect): EventEffect {
+  if (fx.k === "res") return { k: "res", id: fx.id, sign: fx.sign, lo: fx.lo, hi: fx.hi };
+  if (fx.k === "tier") {
+    const copy: EventEffect = { k: "tier", tier: fx.tier };
+    if (fx.resources !== undefined) copy.resources = fx.resources;
+    return copy;
+  }
+  if (fx.k === "hull") return { k: "hull", n: fx.n };
+  if (fx.k === "fleet") {
+    const copy: EventEffect = { k: "fleet", n: fx.n };
+    if (fx.double !== undefined) copy.double = fx.double;
+    if (fx.faster !== undefined) copy.faster = fx.faster;
+    if (fx.lastStand !== undefined) copy.lastStand = fx.lastStand;
+    return copy;
+  }
+  if (fx.k === "fight") {
+    const copy: EventEffect = { k: "fight", tier: fx.tier };
+    if (fx.asteroid !== undefined) copy.asteroid = fx.asteroid;
+    return copy;
+  }
+  if (fx.k === "note") return { k: "note", text: fx.text };
+  if (fx.k === "item") return { k: "item", item: fx.item };
+  return { k: "nothing" };
+}
+
+function copyChoice(choice: EventChoice): EventChoice {
+  return { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
+}
+
+function copyEvent(row: EventDef): EventDef {
+  return {
+    id: row.id,
+    dest: row.dest,
+    flag: row.flag,
+    aliases: [...row.aliases],
+    sectors: [...row.sectors],
+    body: row.body,
+    choices: row.choices.map(copyChoice),
+  };
+}
+
 function copyHull(row: HullDef): HullDef {
   const systems: Record<string, [number, number]> = {};
   for (const [id, pair] of Object.entries(row.systems)) systems[id] = [pair[0], pair[1]];
@@ -95,6 +138,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     sectors.clear();
     stores.clear();
     tunes.clear();
+    events.clear();
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -104,6 +148,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseSectors = (pack.sectors ?? []).map(copySector);
     baseStores = (pack.stores ?? []).map(copyStore);
     baseTunes = (pack.tunes ?? []).map(copyTune);
+    baseEvents = (pack.events ?? []).map(copyEvent);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? [])) weapons.set(row.id, copyWeapon(row));
@@ -114,6 +159,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   for (const row of mode === "base" ? baseSectors : (pack.sectors ?? [])) sectors.set(row.id, copySector(row));
   for (const row of mode === "base" ? baseStores : (pack.stores ?? [])) stores.set(row.id, copyStore(row));
   for (const row of mode === "base" ? baseTunes : (pack.tunes ?? [])) tunes.set(row.id, copyTune(row));
+  for (const row of mode === "base" ? baseEvents : (pack.events ?? [])) events.set(row.id, copyEvent(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */
@@ -208,6 +254,16 @@ export function allTunes(): TuneDef[] {
   return [...tunes.values()];
 }
 
+export function eventDef(id: string | undefined): EventDef | undefined {
+  if (!id) return undefined;
+  return events.get(id);
+}
+
+/** Page order. An appended id sits at the end, so the campaign pages stay put. */
+export function allEvents(): EventDef[] {
+  return [...events.values()];
+}
+
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
   crew.clear();
@@ -219,6 +275,7 @@ export function resetPackForTests(): void {
   sectors.clear();
   stores.clear();
   tunes.clear();
+  events.clear();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
@@ -228,4 +285,5 @@ export function resetPackForTests(): void {
   for (const row of baseSectors) sectors.set(row.id, copySector(row));
   for (const row of baseStores) stores.set(row.id, copyStore(row));
   for (const row of baseTunes) tunes.set(row.id, copyTune(row));
+  for (const row of baseEvents) events.set(row.id, copyEvent(row));
 }

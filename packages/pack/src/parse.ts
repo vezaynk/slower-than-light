@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EventChoice, EventDef, EventEffect, EventResource, EventTier, HullDef, HullKitDef, HullLayout, SectorDef, StoreDef, StoreLine, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -370,7 +370,7 @@ function tagged(doc: XmlDocument, tag: string): XmlElement[] {
   return found;
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, and tune tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, tune, and event tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -382,6 +382,7 @@ export function parsePack(xml: string): ContentPack {
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
+  const events: EventDef[] = [];
   for (const node of tagged(doc, "race")) {
     const row = readCrew(node);
     if (row) crew.push(row);
@@ -418,5 +419,105 @@ export function parsePack(xml: string): ContentPack {
     const row = readTune(node);
     if (row) tunes.push(row);
   }
-  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes };
+  for (const node of tagged(doc, "eventBlueprint")) {
+    const row = readEvent(node);
+    if (row) events.push(row);
+  }
+  return { crew, weapons, augments, drones, systems, hulls, sectors, stores, tunes, events };
+}
+
+function readEvent(node: XmlElement): EventDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const aliases: string[] = [];
+  const sectors: string[] = [];
+  const choices: EventChoice[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName === "alias") {
+      const text = ownText(item).trim();
+      if (text) aliases.push(text);
+      continue;
+    }
+    if (item.tagName === "sector") {
+      const text = ownText(item).trim();
+      if (text) sectors.push(text);
+      continue;
+    }
+    if (item.tagName !== "choice") continue;
+    const choiceId = attr(item, "name")?.trim();
+    if (!choiceId) continue;
+    const fx: EventEffect[] = [];
+    for (const effect of elements(item)) {
+      if (effect.tagName !== "effect") continue;
+      const parsed = readEffect(effect);
+      if (parsed) fx.push(parsed);
+    }
+    choices.push({ id: choiceId, label: textOf(item, "text") ?? choiceId, fx });
+  }
+  return {
+    id,
+    dest: textOf(node, "title") ?? id,
+    flag: attr(node, "flag")?.trim() || `cited:${id}`,
+    aliases,
+    sectors,
+    body: textOf(node, "text") ?? "",
+    choices,
+  };
+}
+
+function readEffect(node: XmlElement): EventEffect | undefined {
+  const kind = attr(node, "k");
+  if (kind === "nothing") return { k: "nothing" };
+  if (kind === "note") return { k: "note", text: ownText(node).trim() };
+  if (kind === "item") {
+    const item = attr(node, "item");
+    if (item !== "weapon" && item !== "augment" && item !== "drone") return undefined;
+    return { k: "item", item };
+  }
+  if (kind === "hull") {
+    const n = attrNum(node.getAttribute("n"));
+    if (n == null) return undefined;
+    return { k: "hull", n };
+  }
+  if (kind === "res") {
+    const id = attr(node, "id");
+    if (!isResource(id)) return undefined;
+    const lo = attrNum(node.getAttribute("lo"));
+    const hi = attrNum(node.getAttribute("hi"));
+    if (lo == null || hi == null) return undefined;
+    const sign = attrNum(node.getAttribute("sign"));
+    return { k: "res", id, sign: sign === -1 ? -1 : 1, lo, hi };
+  }
+  if (kind === "tier") {
+    const tier = attr(node, "tier");
+    if (!isTier(tier)) return undefined;
+    const effect: EventEffect = { k: "tier", tier };
+    if (node.hasAttribute("resources")) effect.resources = node.getAttribute("resources") === "true";
+    return effect;
+  }
+  if (kind === "fleet") {
+    const n = attrNum(node.getAttribute("n"));
+    if (n == null) return undefined;
+    const effect: EventEffect = { k: "fleet", n };
+    if (node.hasAttribute("double")) effect.double = node.getAttribute("double") === "true";
+    if (node.hasAttribute("faster")) effect.faster = node.getAttribute("faster") === "true";
+    if (node.hasAttribute("lastStand")) effect.lastStand = node.getAttribute("lastStand") === "true";
+    return effect;
+  }
+  if (kind === "fight") {
+    const tier = attr(node, "tier")?.trim();
+    if (!tier) return undefined;
+    const effect: EventEffect = { k: "fight", tier };
+    if (node.hasAttribute("asteroid")) effect.asteroid = node.getAttribute("asteroid") === "true";
+    return effect;
+  }
+  return undefined;
+}
+
+function isResource(value: string | undefined): value is EventResource {
+  return value === "scrap" || value === "fuel" || value === "missiles" || value === "parts";
+}
+
+function isTier(value: string | undefined): value is EventTier {
+  return value === "low" || value === "medium" || value === "high";
 }

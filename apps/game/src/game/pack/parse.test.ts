@@ -3,7 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
-import { augmentDef, crewDef, droneDef, hullDef, loadPack, parsePack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
+import { augmentDef, crewDef, droneDef, eventDef, hullDef, loadPack, parsePack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -192,13 +192,35 @@ const XML = `
 <systemTune>
   <start>4</start>
 </systemTune>
+<eventBlueprint name="ember" flag="cited:ember">
+  <title>Ember</title>
+  <alias>Ember Page</alias>
+  <sector>Civilian Sector</sector>
+  <text>A packed beacon.</text>
+  <choice name="c:ember:0">
+    <text>Take</text>
+    <effect k="res" id="scrap" sign="1" lo="7" hi="7"/>
+    <effect k="fight" tier="pirate" asteroid="true"/>
+    <effect k="note">Hello &amp; co</effect>
+    <minSector>4</minSector>
+  </choice>
+  <choice>
+    <text>No name</text>
+  </choice>
+</eventBlueprint>
+<eventBlueprint name="bareevent">
+  <title></title>
+</eventBlueprint>
+<eventBlueprint>
+  <title>No name</title>
+</eventBlueprint>
 </FTL>
 `;
 
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, system, hull, sector, store, and tune tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, hull, sector, store, tune, and event tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
@@ -209,6 +231,17 @@ describe("parsePack", () => {
     assert.equal(pack.sectors?.length, 2);
     assert.equal(pack.stores?.length, 2);
     assert.equal(pack.tunes?.length, 2);
+    assert.equal(pack.events?.length, 2);
+    const emberEvent = pack.events?.[0];
+    assert.equal(emberEvent?.dest, "Ember");
+    assert.equal(emberEvent?.flag, "cited:ember");
+    assert.deepEqual(emberEvent?.aliases, ["Ember Page"]);
+    assert.deepEqual(emberEvent?.sectors, ["Civilian Sector"]);
+    assert.equal(emberEvent?.body, "A packed beacon.");
+    assert.equal(emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "", "Hello & co");
+    assert.equal(pack.events?.[1]?.id, "bareevent");
+    assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
+    assert.equal(pack.events?.[1]?.dest, "bareevent");
     loadPack(pack, "append");
 
     const ember = crewDef("ember");
@@ -352,6 +385,12 @@ describe("parsePack", () => {
     assert.deepEqual(bareTune?.costs, []);
     assert.equal(tuneDef("No name"), undefined);
     assert.equal(systemDef("embertune"), undefined);
+
+    const loaded = eventDef("ember");
+    assert.equal(loaded?.choices[0]?.id, "c:ember:0");
+    assert.equal(loaded?.choices.length, 1);
+    assert.equal(eventDef("bareevent")?.body, "");
+    assert.equal(eventDef("No name"), undefined);
   });
 
   it("a spawned ember takes no fire damage from the packed multiplier", () => {

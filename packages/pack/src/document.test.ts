@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
 import { parsePack } from "./parse.ts";
-import { crewDef, loadPack, resetPackForTests, tuneDef, weaponDef } from "./registry.ts";
+import { crewDef, eventDef, loadPack, resetPackForTests, tuneDef, weaponDef } from "./registry.ts";
 import type { ContentPack, WeaponBlueprint } from "./types.ts";
 
 const laser: WeaponBlueprint = {
@@ -63,6 +63,28 @@ const pack: ContentPack = {
   ],
   weapons: [laser],
   tunes: [{ id: "shields", start: 2, costs: [{ level: 1, cost: 100 }] }],
+  events: [
+    {
+      id: "ember",
+      dest: "Ember",
+      flag: "cited:ember",
+      aliases: ["Ember Page"],
+      sectors: ["Civilian Sector"],
+      body: "A packed beacon.",
+      choices: [
+        {
+          id: "c:ember:0",
+          label: "Take",
+          fx: [
+            { k: "res", id: "scrap", sign: 1, lo: 7, hi: 7 },
+            { k: "fight", tier: "pirate", asteroid: true },
+            { k: "note", text: "Rock & <Stone>" },
+            { k: "nothing" },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 afterEach(() => resetPackForTests());
@@ -73,6 +95,7 @@ describe("pack document", () => {
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.tunes, pack.tunes);
+    assert.deepEqual(back.events, pack.events);
   });
 
   it("round-trips names that contain markup characters", () => {
@@ -116,5 +139,6 @@ describe("pack document", () => {
     resetPackForTests();
     assert.equal(weaponDef("ember")?.charge, 7);
     assert.equal(tuneDef("ember"), undefined);
+    assert.equal(eventDef("ember")?.body, "A packed beacon.");
   });
 });

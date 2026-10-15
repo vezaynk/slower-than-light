@@ -315,23 +315,6 @@ export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
   return tx("wiki.cited-events.q-lanius-trader-take", { res: offer.res, cost: offer.cost, scrap: offer.scrap });
 }
 
-const REBEL_CHECKPOINT_HIDE = [
-  tx("wiki.cited-events.fly-behind-a-moon-and-stay-2"),
-  tx("wiki.cited-events.shut-down-all-non-vital-systems"),
-  tx("wiki.cited-events.stay-quiet-and-hope-they-don"),
-  tx("wiki.cited-events.stay-out-of-their-way-and"),
-];
-
-// Four printed tracks. The page gives no odds. INFERRED: each count is equally likely.
-const SLUG_MOON_COUNTS = [5, 6, 7, 11] as const;
-
-const SLUG_MOON_WORD: Record<(typeof SLUG_MOON_COUNTS)[number], string> = {
-  5: "five",
-  6: "six",
-  7: "seven",
-  11: "eleven",
-};
-
 const SLUG_MOON_QUESTION =
   tx("wiki.cited-events.as-you-drift-closer-you-are");
 
@@ -341,11 +324,21 @@ const SLUG_MOON_CORRECT =
 const SLUG_MOON_WRONG =
   tx("wiki.cited-events.that-issss-incorrect-further-i-have");
 
-const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(5|6|7|11)$/;
-const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(5|6|7|11):(5|6|7|11)$/;
+const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(\d+)$/;
+const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(\d+):(\d+)$/;
 
-function slugMoonWord(n: number): string {
-  return SLUG_MOON_WORD[n as (typeof SLUG_MOON_COUNTS)[number]] ?? "five";
+/** Moon counts from the packed page. The draw stays between. The buttons stay the whole list, in order. */
+function moonRows(id: string) {
+  const rows = [];
+  for (const row of eventDef(id)?.rolls ?? []) if (row.k === "count") rows.push(row);
+  return rows;
+}
+
+/** Hide labels from the packed page. The draw stays between, after the bribe and the opening sentence. */
+function hideLabels(id: string): string[] {
+  const rows = [];
+  for (const row of eventDef(id)?.rolls ?? []) if (row.k === "label") rows.push(row.text);
+  return rows;
 }
 
 /**
@@ -362,11 +355,12 @@ function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
   // > "You track the distress beacon with difficulty to one of the eleven moons of a planet hidden in the nebula." — [[Slug moons question]]
   // > "Investigate." — [[Slug moons question]]
   b.kind = "nebula";
-  const n = SLUG_MOON_COUNTS[between(g, [0, SLUG_MOON_COUNTS.length - 1])]!;
+  const rows = moonRows("slug-moons-question");
+  const row = rows[between(g, [0, rows.length - 1])]!;
   return {
     title,
-    body: tx("wiki.cited-events.you-arrive-near-the-distress-beacon", { slugMoonWord: slugMoonWord(n) }),
-    choices: [{ id: `c:slug-moons-question:ask:${n}`, label: tx("wiki.cited-events.investigate") }],
+    body: tx("wiki.cited-events.you-arrive-near-the-distress-beacon", { slugMoonWord: row.word }),
+    choices: [{ id: `c:slug-moons-question:ask:${row.n}`, label: tx("wiki.cited-events.investigate") }],
   };
 }
 
@@ -382,9 +376,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     ctx.g.event = {
       title,
       body: SLUG_MOON_QUESTION,
-      choices: [5, 6, 7, 11].map((pick) => ({
-        id: `c:slug-moons-question:answer:${n}:${pick}`,
-        label: `${slugMoonWord(pick)[0]!.toUpperCase()}${slugMoonWord(pick).slice(1)}.`,
+      choices: moonRows("slug-moons-question").map((pick) => ({
+        id: `c:slug-moons-question:answer:${n}:${pick.n}`,
+        label: `${pick.word[0]!.toUpperCase()}${pick.word.slice(1)}.`,
       })),
     };
     ctx.g.phase = "event";
@@ -1256,13 +1250,15 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   // Rebel checkpoint. The bribe amount is a whole number from 10 to 15, shown on the button.
   if (ev.slug === "rebel-checkpoint") {
     const cost = between(g, [10, 15]);
+    const body = opening(g, "rebel-checkpoint");
+    const labels = hideLabels("rebel-checkpoint");
     return {
       title: ev.dest,
-      body: opening(g, "rebel-checkpoint"),
+      body,
       choices: [
         { id: "c:rebel-checkpoint:0", label: tx("wiki.cited-events.fend-for-yourself-attack-and-escape-2") },
         { id: `q:rebel-checkpoint:bribe:${cost}`, label: tx("wiki.cited-events.bribe-the-rebels-to-release-the", { cost: cost }) },
-        { id: "c:rebel-checkpoint:1", label: REBEL_CHECKPOINT_HIDE[between(g, [0, 3])]! },
+        { id: "c:rebel-checkpoint:1", label: labels[between(g, [0, labels.length - 1])]! },
       ],
     };
   }

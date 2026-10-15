@@ -1,5 +1,5 @@
 import { DOMParser, Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, EventItem, EventResource, EventTier, FillerEntry, FillerListDef, HullDef, HullKitDef, HullLayout, OfferPay, OfferRes, OfferRow, RollEntry, SectorDef, StoreDef, StoreLine, SurrenderChoice, SurrenderOfferDef, SurrenderReward, SystemDef, TuneDef, TuneStep, WeaponBlueprint, WeaponKind } from "./types.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -483,6 +483,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const choices: EventChoice[] = [];
   const lines: string[] = [];
   const offers: OfferRow[] = [];
+  const rolls: RollEntry[] = [];
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
     if (item.tagName === "text") {
@@ -492,6 +493,11 @@ function readEvent(node: XmlElement): EventDef | undefined {
     if (item.tagName === "offer") {
       const offer = readOffer(item);
       if (offer) offers.push(offer);
+      continue;
+    }
+    if (item.tagName === "roll") {
+      const roll = readRoll(item);
+      if (roll) rolls.push(roll);
       continue;
     }
     if (item.tagName === "surrender") {
@@ -531,6 +537,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const texts = openingTexts(node, lines);
   if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;
+  if (rolls.length > 0) event.rolls = rolls;
   if (surrender) event.surrender = surrender;
   return event;
 }
@@ -585,6 +592,20 @@ function readOffer(node: XmlElement): OfferRow | undefined {
     const fuel = bandOf(attr(node, "fuel"));
     if (!missiles || !parts || !fuel) return undefined;
     return { k: "supply", missiles, parts, fuel };
+  }
+  return undefined;
+}
+
+/** One direct roll child. An entry with no text is skipped. A repeated hull stays repeated. */
+function readRoll(node: XmlElement): RollEntry | undefined {
+  const kind = attr(node, "k");
+  const text = ownText(node).trim();
+  if (kind === "hull") return text ? { k: "hull", id: text } : undefined;
+  if (kind === "label") return text ? { k: "label", text } : undefined;
+  if (kind === "count") {
+    const n = attrNum(node.getAttribute("n"));
+    if (n == null || !Number.isInteger(n) || !text) return undefined;
+    return { k: "count", n, word: text };
   }
   return undefined;
 }

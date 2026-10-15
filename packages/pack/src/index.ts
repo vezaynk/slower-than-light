@@ -40,6 +40,7 @@ export type {
   OfferPay,
   OfferRes,
   OfferRow,
+  RollEntry,
   EventEffect,
   FillerEntry,
   FillerListDef,

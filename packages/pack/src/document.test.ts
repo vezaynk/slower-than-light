@@ -193,6 +193,45 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
   });
 
+  it("round-trips roll entries and drops an entry that has no text", () => {
+    const events = [
+      {
+        id: "stand",
+        dest: "Stand",
+        flag: "cited:stand",
+        aliases: [],
+        sectors: [],
+        body: "Fight.",
+        rolls: [
+          { k: "hull" as const, id: "Auto-Scout" },
+          { k: "hull" as const, id: "Auto-Scout" },
+          { k: "label" as const, text: "Stay quiet." },
+          { k: "count" as const, n: 11, word: "eleven" },
+        ],
+        choices: [{ id: "c:stand:0", label: "Go", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.equal((xml.match(/k="hull">Auto-Scout<\/roll>/g) ?? []).length, 2);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <roll k="hull"></roll>
+        <roll k="nope">Hi</roll>
+        <roll k="count">five</roll>
+        <roll k="count" n="5.5">half</roll>
+        <choice name="c:broken:0">
+          <text>Nested</text>
+          <roll k="hull">Nested</roll>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.rolls, undefined);
+    assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

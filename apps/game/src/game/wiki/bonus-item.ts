@@ -5,10 +5,10 @@
  * grantBonusAugment for a duplicate augmentation.
  */
 import { tx } from "../../i18n/index.ts";
-import { allAugments, allWeapons, augmentDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "../pack/registry.ts";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { CITED_DRONES, NOT_SOLD } from "./cited-stores.ts";
+import { NOT_SOLD } from "./cited-stores.ts";
 import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
 export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: string } | { kind: "drone"; id: string };
@@ -31,7 +31,7 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
   const augs = allAugments().filter((row) => !NOT_SOLD.has(row.id));
   const held = heldSchematics(g);
-  const drones = CITED_DRONES.filter((row) => !held.includes(row.ref));
+  const drones = allDrones().filter((row) => !held.includes(row.id));
   const kinds = (
     [
       ["weapon", guns.length],
@@ -42,7 +42,7 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   const kind = pickOne(g, kinds)?.[0];
   if (kind === "weapon") return { kind, id: pickOne(g, guns)!.id };
   if (kind === "augment") return { kind, id: pickOne(g, augs)!.id };
-  if (kind === "drone") return { kind, id: pickOne(g, drones)!.ref };
+  if (kind === "drone") return { kind, id: pickOne(g, drones)!.id };
   return undefined;
 }
 
@@ -63,7 +63,7 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
     return id ? grantBonusAugment(g, id) : tx("wiki.bonus-item.no-augmentation-is-left-to-give");
   }
   const held = heldSchematics(g);
-  const ref = pickOne(g, CITED_DRONES.filter((row) => !held.includes(row.ref)))?.ref;
+  const ref = pickOne(g, allDrones().filter((row) => !held.includes(row.id)))?.id;
   return ref ? droneLine(g, ref) : tx("wiki.bonus-item.no-drone-schematic-is-left-to");
 }
 
@@ -117,5 +117,5 @@ export function droneLine(g: Game, ref: string): string {
 }
 
 export function droneName(ref: string): string {
-  return CITED_DRONES.find((row) => row.ref === ref)?.name ?? ref;
+  return droneDef(ref)?.name ?? ref;
 }

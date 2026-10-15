@@ -61,8 +61,16 @@ export type AugmentDef = {
   cost: number;
 };
 
+/** A drone schematic listing. Power, cooldown, and speed stay in the effect code. */
+export type DroneDef = {
+  id: string;
+  name: string;
+  cost: number;
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
   augments?: AugmentDef[];
+  drones?: DroneDef[];
 };

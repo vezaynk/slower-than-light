@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { CATALOG } from "../extras/augment-catalog.ts";
+import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import "./base.ts";
-import { allAugments, allWeapons, augmentDef, crewDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allWeapons, augmentDef, crewDef, droneDef, loadPack, resetPackForTests, weaponDef } from "./registry.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
 afterEach(() => resetPackForTests());
@@ -91,6 +92,25 @@ describe("content pack", () => {
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(augmentDef("feed")?.cost, CATALOG.find((row) => row.id === "feed")?.cost);
     assert.equal(augmentDef("feed")?.name, CATALOG.find((row) => row.id === "feed")?.name);
+  });
+
+  it("loads the drone catalog in its authored order", () => {
+    assert.deepEqual(
+      allDrones().map((row) => ({ id: row.id, name: row.name, cost: row.cost })),
+      CITED_DRONES.map((row) => ({ id: row.ref, name: row.name, cost: row.cost })),
+    );
+  });
+
+  it("keeps a drone id apart from a race, a weapon, and an augment", () => {
+    loadPack({ drones: [{ id: "spark", name: "Not the laser", cost: 9 }] }, "append");
+    assert.equal(droneDef("spark")?.name, "Not the laser");
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(allDrones().at(-1)?.id, "spark");
+    resetPackForTests();
+    assert.equal(droneDef("spark"), undefined);
+    assert.equal(allDrones().some((row) => row.id === "spark"), false);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

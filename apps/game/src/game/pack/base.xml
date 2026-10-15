@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, and augment records.
+  Base pack written from the loaded crew, weapon, augment, and drone records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
+  Drone tags are the listing id, title, and store cost.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -1126,4 +1127,56 @@
     <desc>Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.</desc>
     <cost>55</cost>
   </augBlueprint>
+  <droneBlueprint name="striker">
+    <title>Combat Drone Mark I</title>
+    <cost>50</cost>
+  </droneBlueprint>
+  <droneBlueprint name="combat2">
+    <title>Combat Drone Mark II</title>
+    <cost>75</cost>
+  </droneBlueprint>
+  <droneBlueprint name="beam">
+    <title>Anti-Ship Beam Drone I</title>
+    <cost>50</cost>
+  </droneBlueprint>
+  <droneBlueprint name="beam2">
+    <title>Anti-Ship Beam Drone II</title>
+    <cost>60</cost>
+  </droneBlueprint>
+  <droneBlueprint name="ward">
+    <title>Defense Drone Mark I</title>
+    <cost>50</cost>
+  </droneBlueprint>
+  <droneBlueprint name="ward2">
+    <title>Defense Drone Mark II</title>
+    <cost>70</cost>
+  </droneBlueprint>
+  <droneBlueprint name="wardcut">
+    <title>Anti-Combat Drone</title>
+    <cost>35</cost>
+  </droneBlueprint>
+  <droneBlueprint name="overcharger">
+    <title>Shield Overcharger</title>
+    <cost>60</cost>
+  </droneBlueprint>
+  <droneBlueprint name="antipersonnel">
+    <title>Anti-Personnel Drone</title>
+    <cost>35</cost>
+  </droneBlueprint>
+  <droneBlueprint name="patch">
+    <title>System Repair Drone</title>
+    <cost>30</cost>
+  </droneBlueprint>
+  <droneBlueprint name="hull">
+    <title>Hull Repair Drone</title>
+    <cost>85</cost>
+  </droneBlueprint>
+  <droneBlueprint name="board">
+    <title>Boarding Drone</title>
+    <cost>70</cost>
+  </droneBlueprint>
+  <droneBlueprint name="ionintruder">
+    <title>Ion Intruder Drone</title>
+    <cost>65</cost>
+  </droneBlueprint>
 </FTL>

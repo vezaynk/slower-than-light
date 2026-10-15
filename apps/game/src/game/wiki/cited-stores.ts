@@ -1,6 +1,6 @@
 import { tx } from "../../i18n/index.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
-import { allAugments, augmentDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allDrones, augmentDef, droneDef, weaponDef } from "../pack/registry.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -81,29 +81,8 @@ const CREW: readonly { ref: KinId; cost: number }[] = [
   { ref: "voidlung", cost: 50 },
 ];
 
-/**
- * Drone Control purchase-price bullets, one number each.
- * Template:Purchasable drones prints the same number, except the Fire Drone.
- * Drone Control prices that drone at 50. The template prices it at 60.
- * Two printed prices, so that schematic is not in this list.
- * Shield Overcharger + prints "Sells for: 30" and no purchase price, so it is not here.
- * Drone Control itself is the system bundle below, not a schematic row.
- */
-export const CITED_DRONES: readonly { ref: string; name: string; cost: number }[] = [
-  { ref: "striker", name: tx("wiki.cited-stores.combat-drone-mark-i"), cost: 50 },
-  { ref: "combat2", name: tx("wiki.cited-stores.combat-drone-mark-ii"), cost: 75 },
-  { ref: "beam", name: tx("wiki.cited-stores.anti-ship-beam-drone-i"), cost: 50 },
-  { ref: "beam2", name: tx("wiki.cited-stores.anti-ship-beam-drone-ii"), cost: 60 },
-  { ref: "ward", name: tx("wiki.cited-stores.defense-drone-mark-i"), cost: 50 },
-  { ref: "ward2", name: tx("wiki.cited-stores.defense-drone-mark-ii"), cost: 70 },
-  { ref: "wardcut", name: tx("wiki.cited-stores.anti-combat-drone"), cost: 35 },
-  { ref: "overcharger", name: tx("wiki.cited-stores.shield-overcharger"), cost: 60 },
-  { ref: "antipersonnel", name: tx("wiki.cited-stores.anti-personnel-drone"), cost: 35 },
-  { ref: "patch", name: tx("wiki.cited-stores.system-repair-drone"), cost: 30 },
-  { ref: "hull", name: tx("wiki.cited-stores.hull-repair-drone"), cost: 85 },
-  { ref: "board", name: tx("wiki.cited-stores.boarding-drone"), cost: 70 },
-  { ref: "ionintruder", name: tx("wiki.cited-stores.ion-intruder-drone"), cost: 65 },
-];
+/** Authored schematic list. The store reads the loaded copy. Fire Drone, Shield Overcharger +, and Drone Control stay off it. */
+export { CITED_DRONES } from "./drone-catalog.ts";
 
 type SlotKind = "systems" | "drones" | "augments" | "crew";
 
@@ -277,19 +256,20 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   }));
 }
 
-function droneItems(g: Game): StockItem[] {
+export function droneItems(g: Game): StockItem[] {
   // Stores and resources, "Stores assortment": a drone slot holds three schematics.
   // The slot does not require Drone Control. Buying one still needs that system and a free slot.
-  // Fire Drone and Shield Overcharger + are not in CITED_DRONES.
-  const n = CITED_DRONES.length;
+  // Fire Drone and Shield Overcharger + are not in the catalog.
+  const rows = allDrones();
+  const n = rows.length;
   if (n === 0) return [];
   // INFERRED: rarity is named and the likelihood formula is not in the dump.
   // g.seed picks the start of a window of three. The seed is not advanced.
   const start = ((g.seed % n) + n) % n;
-  return Array.from({ length: Math.min(SLOT, n) }, (_, i) => CITED_DRONES[(start + i) % n]).map((row) => ({
-    id: `drone-${row.ref}`,
+  return Array.from({ length: Math.min(SLOT, n) }, (_, i) => rows[(start + i) % n]).map((row) => ({
+    id: `drone-${row.id}`,
     kind: "drone" as const,
-    ref: row.ref,
+    ref: row.id,
     name: row.name,
     detail: tx("wiki.cited-stores.drone-control-purchase-price", { name: row.name, cost: row.cost }),
     cost: row.cost,
@@ -451,32 +431,32 @@ function grantDrone(g: Game, item: StockItem): boolean {
 /** A schematic the ship can take now: Drone Control fitted, a free schematic slot, and not one it already fields. */
 export function canFieldDrone(g: Game, ref: string): boolean {
   const kit = g.player.kits.swarm;
-  if (!kit || !CITED_DRONES.some((entry) => entry.ref === ref)) return false;
+  if (!kit || !droneDef(ref)) return false;
   const have = fieldedSchematics(kit);
   return !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "patch");
 }
 
 /** Fits a drone schematic (a store purchase, or a loot bonus item). */
 export function fieldDroneSchematic(g: Game, ref: string): boolean {
-  const row = CITED_DRONES.find((entry) => entry.ref === ref);
+  const row = droneDef(ref);
   const kit = g.player.kits.swarm;
   if (!row || !kit) return false;
   const have = fieldedSchematics(kit);
   // Stores and resources: a store will never sell duplicate drone schematics.
   // INFERRED: a schematic the ship already fields is not fitted a second time.
-  if (have.includes(row.ref)) return false;
+  if (have.includes(row.id)) return false;
   if (have.length >= schematicCap(g)) return false;
   // INFERRED: a non-repair id on the paired System Repair list would fly as one swapped drone.
-  if (pairedRepair(kit) && row.ref !== "patch") return false;
+  if (pairedRepair(kit) && row.id !== "patch") return false;
   if (!kit.loadout?.length && !kit.target) {
-    kit.target = row.ref;
+    kit.target = row.id;
     return true;
   }
   if (!kit.loadout?.length && kit.target) {
-    kit.loadout = [kit.target, row.ref];
+    kit.loadout = [kit.target, row.id];
     return true;
   }
-  kit.loadout = [...(kit.loadout ?? []), row.ref];
+  kit.loadout = [...(kit.loadout ?? []), row.id];
   return true;
 }
 

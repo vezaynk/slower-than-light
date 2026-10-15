@@ -17,6 +17,8 @@
   Fuel rows name band high or pt2. Lanius rows name band base or better. A supply row can hold a 0-0 band.
   A roll tag is one entry of a list the card draws. A repeated hull is a heavier weight.
   A hull entry is a ship id. A label entry is a button sentence. A count entry is a number and its word.
+  A card tag is one whole opening the page draws. The sim still draws one with between.
+  The buttons on that opening stay handlers in code.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
@@ -6961,6 +6963,36 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: refugee trading</title>
     <alias>No fuel: refugee trading</alias>
     <text></text>
+    <card>
+      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.</text>
+      <choice name="c:no-fuel-refugee-trading:low">
+        <text>Continue</text>
+      </choice>
+    </card>
+    <card>
+      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, its hull looks damaged — it is in bad need of scrap and is willing to trade fuel for it.</text>
+      <choice name="c:no-fuel-refugee-trading:trade">
+        <text>Trade 10 scrap for 3 fuel.</text>
+      </choice>
+      <choice name="c:no-fuel-refugee-trading:engi">
+        <text>Negotiate a better trade.</text>
+      </choice>
+      <choice name="c:no-fuel-refugee-trading:refuse">
+        <text>Refuse their offer.</text>
+      </choice>
+      <choice name="c:no-fuel-refugee-trading:attack">
+        <text>The helpless refugees make easy targets. Attack them.</text>
+      </choice>
+    </card>
+    <card>
+      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is in bad need of armaments and is willing to trade for them.</text>
+      <choice name="c:no-fuel-refugee-trading:missiles">
+        <text>Offer some missiles for fuel.</text>
+      </choice>
+      <choice name="c:no-fuel-refugee-trading:arm-no">
+        <text>Refuse their offer.</text>
+      </choice>
+    </card>
     <choice name="c:no-fuel-refugee-trading:0">
       <text>Continue</text>
       <effect k="nothing"/>

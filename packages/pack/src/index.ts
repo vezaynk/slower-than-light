@@ -41,6 +41,7 @@ export type {
   OfferRes,
   OfferRow,
   RollEntry,
+  EventCard,
   EventEffect,
   FillerEntry,
   FillerListDef,

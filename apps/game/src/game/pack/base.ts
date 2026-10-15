@@ -12,12 +12,13 @@ import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
+import { CARD_LISTS } from "../wiki/event-cards.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
-import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventDef, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
+import type { AugmentDef, CrewDef, DroneDef, EmptyBeaconDef, EventCard, EventDef, FillerListDef, HullDef, HullKitDef, OfferRow, RollEntry, SectorDef, StoreDef, SurrenderOfferDef, SystemDef, TuneDef, WeaponBlueprint } from "@stl/pack";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -132,12 +133,18 @@ function eventRow(row: EventDef): EventDef {
   if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   const rolls = ROLL_LISTS[row.id];
   if (rolls && rolls.length > 0) copy.rolls = rolls.map(copyRoll);
+  const cards = CARD_LISTS[row.id];
+  if (cards && cards.length > 0) copy.cards = cards.map(copyCard);
   if (row.surrender) copy.surrender = surrenderRow(row.surrender);
   return copy;
 }
 
 function copyBand(band: [number, number]): [number, number] {
   return [band[0], band[1]];
+}
+
+function copyCard(row: EventCard): EventCard {
+  return { body: row.body, choices: row.choices.map((choice) => ({ id: choice.id, label: choice.label })) };
 }
 
 function copyRoll(row: RollEntry): RollEntry {

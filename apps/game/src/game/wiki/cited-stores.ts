@@ -1,5 +1,5 @@
 import { tx } from "../../i18n/index.ts";
-import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, tuneDef, weaponDef } from "../pack/registry.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -378,9 +378,9 @@ function grantSystem(g: Game, item: StockItem): boolean {
     if (!isSysId(row.id)) return false;
     const sys = g.player.systems[row.id];
     // The Stealth Cruiser: "Installing shields requires 125 scrap, and will start with two power bars making one shield layer."
-    // Level 2 is those two bars. One layer is what both bars produce once they are powered.
+    // The tune's start is those bars. Shields is 2. One layer is what both bars produce once they are powered.
     // Power stays unassigned, the same as every other system purchase.
-    sys.level = row.id === "shields" ? 2 : 1;
+    sys.level = tuneDef(row.id)?.start ?? 1;
     sys.power = 0;
     if (row.id === "shields") g.player.shieldNow = 0;
     return true;

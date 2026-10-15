@@ -6,8 +6,9 @@ import { HULLS } from "../hulls.ts";
 import { SECTOR_TYPES } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
+import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import "./base.ts";
-import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "./registry.ts";
 import type { HullDef } from "./types.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
@@ -258,6 +259,34 @@ describe("content pack", () => {
     assert.equal(storeDef("spark"), undefined);
     assert.equal(storeDef("standard")?.name, campaign?.name);
     assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.cost, 3);
+  });
+
+  it("loads the tune catalog in its authored order", () => {
+    assert.deepEqual(
+      allTunes().map((row) => row.id),
+      SYSTEM_TUNES.map((row) => row.id),
+    );
+    const shields = SYSTEM_TUNES.find((row) => row.id === "shields");
+    assert.equal(tuneDef("shields")?.start, shields?.start);
+    assert.deepEqual(tuneDef("shields")?.costs, shields?.costs);
+    assert.equal(allSystems().some((row) => row.id === "engines"), false);
+    assert.equal(tuneDef("engines")?.costs.find((step) => step.level === 1)?.cost, 10);
+  });
+
+  it("keeps a tune id apart from a race, a weapon, a system, and a store", () => {
+    loadPack({ tunes: [{ id: "spark", start: 4, costs: [{ level: 1, cost: 9 }] }] }, "append");
+    assert.equal(tuneDef("spark")?.start, 4);
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(systemDef("spark"), undefined);
+    assert.equal(storeDef("spark"), undefined);
+    assert.equal(allTunes().at(-1)?.id, "spark");
+    assert.equal(allSystems().some((row) => row.id === "spark"), false);
+    const shields = SYSTEM_TUNES.find((row) => row.id === "shields");
+    resetPackForTests();
+    assert.equal(tuneDef("spark"), undefined);
+    assert.equal(tuneDef("shields")?.start, shields?.start);
+    assert.equal(tuneDef("shields")?.costs.find((step) => step.level === 1)?.cost, 100);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

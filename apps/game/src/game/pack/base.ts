@@ -8,9 +8,10 @@ import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
+import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "./registry.ts";
-import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, CrewDef, DroneDef, HullDef, HullKitDef, SectorDef, StoreDef, SystemDef, TuneDef, WeaponBlueprint } from "./types.ts";
 
 /**
  * Ability flags the sim used to select by race id. The numbers stay the authored ones:
@@ -64,6 +65,10 @@ function storeRow(row: StoreDef): StoreDef {
     sections: [...row.sections],
     lines: row.lines.map((line) => ({ ...line })),
   };
+}
+
+function tuneRow(row: TuneDef): TuneDef {
+  return { id: row.id, start: row.start, costs: row.costs.map((step) => ({ ...step })) };
 }
 
 function hullRow(spec: HullSpec): HullDef {
@@ -121,6 +126,7 @@ loadPack(
     hulls: HULLS.map(hullRow),
     sectors: SECTOR_TYPES.map(sectorRow),
     stores: STORES.map(storeRow),
+    tunes: SYSTEM_TUNES.map(tuneRow),
   },
   "base",
 );

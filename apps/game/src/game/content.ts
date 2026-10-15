@@ -1,4 +1,5 @@
 import { tx } from "../i18n/index.ts";
+import { tuneDef } from "./pack/registry.ts";
 import type { Difficulty, SysId, WeaponKind } from "./types";
 import { ORDNANCE } from "./extras/ordnance.ts";
 import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";
@@ -422,7 +423,7 @@ export function shieldLayerSeconds(layer: number): number {
 
 /**
  * Cost of the next level, keyed by the level already owned.
- * Weapon Control, Engines, Shields, Medbay, and Piloting "System Upgrades" tables.
+ * System rows are the tune records. Reactor bars stay here.
  * Reactor bars: Template:Reactor power cost. The bar being bought is level + 1, and the cap is 25.
  * Ship: finishing a reactor that already has 8 bars costs 490 scrap.
  */
@@ -436,27 +437,7 @@ export function upgradeCost(id: SysId | "reactor", level: number): number | null
     if (next <= 20) return 30;
     return 35;
   }
-  const table: Partial<Record<SysId, Record<number, number>>> = {
-    // Shields: 100 is Shields-1 to Shields-2 (Zoltan B). 125 is the store price of a missing Shields system, not this row.
-    shields: { 1: 100, 2: 20, 3: 30, 4: 40, 5: 60, 6: 80, 7: 100 },
-    // Engines: costs to reach levels 2–8 are 10, 15, 30, 40, 60, 80, 120.
-    engines: { 1: 10, 2: 15, 3: 30, 4: 40, 5: 60, 6: 80, 7: 120 },
-    // Oxygen, "System Upgrades": level 2 costs 25, level 3 costs 50.
-    oxygen: { 1: 25, 2: 50 },
-    // Medbay, "System Upgrades": level 2 costs 35, level 3 costs 45. The 50 on level 1 is the store purchase.
-    medbay: { 1: 35, 2: 45 },
-    // Weapon Control, "System Upgrades": level 2 is 40, then 25, 35, 50, 75, 90, 100 through level 8.
-    weapons: { 1: 40, 2: 25, 3: 35, 4: 50, 5: 75, 6: 90, 7: 100 },
-    // Piloting, "System Upgrades": level 2 costs 20, level 3 costs 50.
-    pilot: { 1: 20, 2: 50 },
-    // Sensors, "System Upgrades": level 2 costs 25, level 3 costs 40.
-    // The 40 on level 1 is the store purchase. Level 4 is manned only, so it has no scrap row.
-    sensors: { 1: 25, 2: 40 },
-    // Door System, "System Upgrades": level 2 costs 35, level 3 costs 50.
-    // The 60 is the store purchase. A missing system stays at level 0, and upgrade() will not spend that 60.
-    doors: { 0: 60, 1: 35, 2: 50 },
-  };
-  return table[id]?.[level] ?? null;
+  return tuneDef(id)?.costs.find((step) => step.level === level)?.cost ?? null;
 }
 
 /** Template:Stores: hull repairs in stores. Per hull point: 2 in sectors 1–3, 3 in 4–6, 4 in 7–8. */

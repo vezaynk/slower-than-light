@@ -165,6 +165,28 @@ export type StoreDef = {
   lines: StoreLine[];
 };
 
+/**
+ * One scrap price on a system tune. `level` is the level already owned.
+ * The next purchase spends `cost` and raises the system by one.
+ */
+export type TuneStep = {
+  level: number;
+  cost: number;
+};
+
+/**
+ * Upgrade scrap and the level a store purchase installs.
+ * These records are not store rows. Engines, oxygen, weapons, and piloting
+ * have tunes and do not appear on the system shelf.
+ * Reactor bands and kit upgrade tables stay in code.
+ */
+export type TuneDef = {
+  id: string;
+  /** Level written when the system is bought. Shields is 2. */
+  start: number;
+  costs: TuneStep[];
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
@@ -174,4 +196,5 @@ export type ContentPack = {
   hulls?: HullDef[];
   sectors?: SectorDef[];
   stores?: StoreDef[];
+  tunes?: TuneDef[];
 };

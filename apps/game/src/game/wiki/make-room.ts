@@ -14,7 +14,7 @@
  */
 import { tx } from "../../i18n/index.ts";
 import { CREW_CAP, dismissCrew, log, weaponSlotCap } from "../sim.ts";
-import type { AugmentId, CargoItem, Game, Overflow } from "../types.ts";
+import type { CargoItem, Game, Overflow } from "../types.ts";
 import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "./cited-stores.ts";
 
 /** Per the user: the cargo hold's slot count. */
@@ -65,7 +65,7 @@ export function receiveWeapon(g: Game, defId: string): "mounted" | "cargo" | "qu
 }
 
 /** Fits an augmentation, or asks which one to leave behind on a full rack. Duplicates are the caller's (25 scrap). */
-export function receiveAugment(g: Game, id: AugmentId): "fitted" | "queued" {
+export function receiveAugment(g: Game, id: string): "fitted" | "queued" {
   if (g.augments.length >= 3) {
     queue(g, { kind: "augment", id });
     return "queued";

@@ -1,5 +1,5 @@
 import type { WeaponKind } from "../types.ts";
-import type { ContentPack, CrewDef, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, WeaponBlueprint } from "./types.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -14,17 +14,19 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 /**
- * Writes the pack as FTL weapon blueprints and Hyperspace race tags.
+ * Writes the pack as FTL weapon blueprints, Hyperspace race tags, and augment listings.
  * shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
  * A negative oxygenChangeSpeed means the race drains air. The magnitude is not the vent rate.
  * sp is shield layers pierced. power is reactor bars.
+ * An augment listing is its id, title, description, and store cost.
  */
 export function emitPack(pack: ContentPack): string {
   const lines = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<!--`,
-    `  Base pack written from the loaded crew and weapon records.`,
+    `  Base pack written from the loaded crew, weapon, and augment records.`,
     `  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.`,
+    `  Augment tags are the listing id, title, description, and store cost.`,
     `  sp is shield layers pierced. power is reactor bars.`,
     `  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.`,
     `  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.`,
@@ -55,8 +57,19 @@ export function emitPack(pack: ContentPack): string {
   }
   lines.push(`  </crew>`);
   for (const weapon of pack.weapons ?? []) lines.push(...weaponXml(weapon));
+  for (const augment of pack.augments ?? []) lines.push(...augmentXml(augment));
   lines.push(`</FTL>`);
   return lines.join("\n") + "\n";
+}
+
+function augmentXml(augment: AugmentDef): string[] {
+  return [
+    `  <augBlueprint name="${escAttr(augment.id)}">`,
+    el(2, "title", augment.name),
+    el(2, "desc", augment.detail),
+    el(2, "cost", augment.cost),
+    `  </augBlueprint>`,
+  ];
 }
 
 function weaponXml(weapon: WeaponBlueprint): string[] {

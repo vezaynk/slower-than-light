@@ -18,7 +18,7 @@ import { type KinId } from "../extras/kin.ts";
 import { allWeapons, crewDef, weaponDef } from "../pack/registry.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
-import type { AugmentId, Crew, Difficulty, Game } from "../types.ts";
+import type { Crew, Difficulty, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
@@ -41,7 +41,7 @@ export type SurrenderOffer = {
   /** Rewards, "Stuff": the bonus item, when the 6% roll lands and a slot is free. A scripted surrender's named weapon. */
   weapon?: string;
   /** Rewards, "Stuff": the bonus item when the roll lands on an augmentation (bonus-item.ts). */
-  augment?: AugmentId;
+  augment?: string;
   /** Rewards, "Stuff": the bonus item when the roll lands on a drone schematic (bonus-item.ts). */
   drone?: string;
   /**

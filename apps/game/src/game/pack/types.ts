@@ -53,7 +53,16 @@ export type CrewDef = {
   fireRepairMultiplier: number;
 };
 
+/** A store listing. Effect code still switches on the campaign ids. */
+export type AugmentDef = {
+  id: string;
+  name: string;
+  detail: string;
+  cost: number;
+};
+
 export type ContentPack = {
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
+  augments?: AugmentDef[];
 };

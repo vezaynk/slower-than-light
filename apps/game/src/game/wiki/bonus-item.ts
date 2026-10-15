@@ -5,21 +5,20 @@
  * grantBonusAugment for a duplicate augmentation.
  */
 import { tx } from "../../i18n/index.ts";
-import { allWeapons, weaponDef } from "../pack/registry.ts";
-import { CATALOG } from "../extras/augments.ts";
+import { allAugments, allWeapons, augmentDef, weaponDef } from "../pack/registry.ts";
 import { rand } from "../sim.ts";
-import type { AugmentId, Game } from "../types.ts";
+import type { Game } from "../types.ts";
 import { CITED_DRONES, NOT_SOLD } from "./cited-stores.ts";
 import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
-export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: AugmentId } | { kind: "drone"; id: string };
+export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: string } | { kind: "drone"; id: string };
 
 /**
  * Augmentations, intro: "Most stat-boosting Augmentations stack with each other." The stackable ones are the five the
  * augments.ts header lists: Automated Re-loader, Reverse Ion Field, Shield Charge Booster, FTL Recharge Booster and
  * Scrap Recovery Arm.
  */
-const STACKS: ReadonlySet<AugmentId> = new Set(["feed", "baffle", "coil", "spool", "hook"]);
+const STACKS: ReadonlySet<string> = new Set(["feed", "baffle", "coil", "spool", "hook"]);
 
 function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
   return items.length ? items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))] : undefined;
@@ -30,7 +29,7 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   const owned = new Set(g.player.weapons.map((w) => w.defId));
   const guns = allWeapons().filter((w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)));
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
-  const augs = CATALOG.filter((row) => !NOT_SOLD.has(row.id));
+  const augs = allAugments().filter((row) => !NOT_SOLD.has(row.id));
   const held = heldSchematics(g);
   const drones = CITED_DRONES.filter((row) => !held.includes(row.ref));
   const kinds = (
@@ -60,7 +59,7 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
     return def ? weaponLine(g, def.id) : tx("wiki.bonus-item.no-weapon-is-left-to-give");
   }
   if (kind === "augment") {
-    const id = pickOne(g, CATALOG.filter((row) => !NOT_SOLD.has(row.id)))?.id;
+    const id = pickOne(g, allAugments().filter((row) => !NOT_SOLD.has(row.id)))?.id;
     return id ? grantBonusAugment(g, id) : tx("wiki.bonus-item.no-augmentation-is-left-to-give");
   }
   const held = heldSchematics(g);
@@ -78,7 +77,7 @@ export function weaponLine(g: Game, defId: string): string {
 }
 
 /** What a looted augmentation does to this ship: fitted, 25 scrap for a duplicate, or a make-room choice. */
-export function bonusAugmentFate(g: Game, id: AugmentId): "fit" | "scrap" | "full" {
+export function bonusAugmentFate(g: Game, id: string): "fit" | "scrap" | "full" {
   if (g.augments.includes(id) && !STACKS.has(id)) return "scrap";
   return g.augments.length >= 3 ? "full" : "fit";
 }
@@ -88,7 +87,7 @@ export function bonusAugmentFate(g: Game, id: AugmentId): "fit" | "scrap" | "ful
  * instead (regardless of the augment's value). In other cases, if you loot an augment and don't have room for it, you
  * must choose one augment to leave behind": make-room.ts asks. Returns the line for the reward card.
  */
-export function grantBonusAugment(g: Game, id: AugmentId): string {
+export function grantBonusAugment(g: Game, id: string): string {
   const name = augmentName(id);
   const fate = bonusAugmentFate(g, id);
   if (fate === "scrap") {
@@ -99,12 +98,12 @@ export function grantBonusAugment(g: Game, id: AugmentId): string {
   return `${name} fitted.`;
 }
 
-export function augmentName(id: AugmentId): string {
-  return CATALOG.find((row) => row.id === id)?.name ?? id;
+export function augmentName(id: string): string {
+  return augmentDef(id)?.name ?? id;
 }
 
-export function augmentDetail(id: AugmentId): string {
-  return CATALOG.find((row) => row.id === id)?.detail ?? "";
+export function augmentDetail(id: string): string {
+  return augmentDef(id)?.detail ?? "";
 }
 
 /** Receives a drone schematic and returns the line for the reward card. */

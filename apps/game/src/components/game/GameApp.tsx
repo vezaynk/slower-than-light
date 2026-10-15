@@ -18,8 +18,8 @@ import {
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
-import { crewDef, weaponDef } from "@/game/pack/registry";
-import { CATALOG, scanMark } from "@/game/extras/augments";
+import { augmentDef, crewDef, weaponDef } from "@/game/pack/registry";
+import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { beaconXY, CELL_PX, dangerCentre, DANGER_RADIUS, GRID_COLS, GRID_ROWS, overtaken } from "@/game/wiki/sector-map";
 import { batteryBarsOn, batterySpareBars, cellUpgradeCost, startCell, upgradeCell } from "@/game/extras/cell";
@@ -145,7 +145,7 @@ import {
 import { xpNeedFor } from "@/game/extras/lineage";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
-import type { AugmentId, BeamLine, BeamPoint, Crew, Game, Overflow, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
+import type { BeamLine, BeamPoint, Crew, Game, Overflow, Kit, KitId, Ship, SkillName, SysId } from "@/game/types";
 import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
@@ -3254,7 +3254,7 @@ function OfferCards({
   game: Game;
   weapon?: string;
   crew?: string;
-  augment?: AugmentId;
+  augment?: string;
   drone?: string;
   repairs?: number;
 }) {
@@ -4958,7 +4958,7 @@ function CargoList({
                 </div>
               );
             }
-            const row = CATALOG.find((r) => r.id === id);
+            const row = augmentDef(id);
             return (
               <div key={`${id}-${index}`} className="cargo-slot is-aug">
                 <span className="cargo-name">{row?.name ?? id}</span>

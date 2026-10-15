@@ -25,6 +25,7 @@ import { crewDef } from "@stl/pack";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { rollFuel } from "./fuel-gifts.ts";
 import {
   addQuest,
   arriveFedAssist,
@@ -274,7 +275,7 @@ function engiContact(g: Game) {
     result(g, tx("wiki.quests-b.they-thank-you-for-the-assistance"), rollStandard(g, "low"), [crew(g, tx("wiki.quests-b.engi"))]);
   } else if (r === "fuel") {
     // Rewards, "Fuel only": medium (2-4) fuel.
-    result(g, tx("wiki.quests-b.the-station-was-in-the-process"), { tier: "medium", scrap: 0, eligible: 0, fuel: between(g, [2, 4]), missiles: 0, parts: 0 });
+    result(g, tx("wiki.quests-b.the-station-was-in-the-process"), { tier: "medium", scrap: 0, eligible: 0, fuel: rollFuel("q:engi-station:contact", (lo, hi) => between(g, [lo, hi])), missiles: 0, parts: 0 });
   } else if (r === "empty") {
     result(g, tx("wiki.quests-b.the-engi-station-is-stripped-bare"));
   } else {
@@ -752,7 +753,7 @@ export const PART_B: QuestPart = {
     "q:merchant:weapons": (g) => {
       const parts = payParts(g);
       const offer = fixedScrap(g, 55, 70);
-      offer.fuel = between(g, [2, 5]);
+      offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
       result(g, tx("wiki.quests-b.you-make-a-good-point-you"), offer, [parts]);
     },
     // JELLY_PIRATE_MERCHANT, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line.

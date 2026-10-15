@@ -6,6 +6,7 @@ import {
 } from "@xmldom/xmldom";
 import type {
   AugmentDef,
+  ChoiceGift,
   ChoiceReq,
   ContentPack,
   CrewDef,
@@ -585,6 +586,8 @@ function readEvent(node: XmlElement): EventDef | undefined {
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
+    const gift = readGift(item);
+    if (gift) choice.gift = gift;
     choices.push(choice);
   }
   const event: EventDef = {
@@ -667,9 +670,11 @@ function readCard(node: XmlElement): EventCard | undefined {
     const id = attr(item, "name")?.trim();
     if (!id) return [];
     const reqs = readReqs(item);
-    return [
-      reqs ? { id, label: choiceLabel(item, id), reqs } : { id, label: choiceLabel(item, id) },
-    ];
+    const gift = readGift(item);
+    const choice: EventCard["choices"][number] = { id, label: choiceLabel(item, id) };
+    if (reqs) choice.reqs = reqs;
+    if (gift) choice.gift = gift;
+    return [choice];
   });
   if (!body || choices.length === 0) return undefined;
   return { body, choices };
@@ -761,6 +766,19 @@ function readNamedChoice(node: XmlElement, name: string): SurrenderChoice | unde
 
 function choiceLabel(node: XmlElement, fallback: string): string {
   return textOf(node, "text") ?? (ownText(node).trim() || fallback);
+}
+
+/** The first fuel gift. An unknown kind, a bad number, or a backwards band is skipped. */
+function readGift(node: XmlElement): ChoiceGift | undefined {
+  for (const item of elements(node)) {
+    if (item.tagName !== "gift") continue;
+    if (attr(item, "k")?.trim() !== "fuel") continue;
+    const lo = intAttr(item, "lo");
+    const hi = intAttr(item, "hi");
+    if (lo == null || hi == null || lo > hi) continue;
+    return { k: "fuel", lo, hi };
+  }
+  return undefined;
 }
 
 /** Direct req children. An unknown kind, a blank refusal, or a bad number is skipped. */

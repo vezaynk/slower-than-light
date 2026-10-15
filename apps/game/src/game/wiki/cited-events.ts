@@ -13,6 +13,7 @@ import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 import { addQuest, result } from "./quests.ts";
+import { rollFuel } from "./fuel-gifts.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
@@ -1858,7 +1859,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
     if (!ownsHullRepair(g) || g.player.parts < 1) return false;
     g.player.parts -= 1;
-    const fuel = roll(ctx, 4, 6);
+    const fuel = rollFuel(id, (lo, hi) => roll(ctx, lo, hi));
     g.fuel += fuel;
     const spent = tx("wiki.cited-events.drone-parts-1");
     const got = `${tx("wiki.cited-events.fuel")}: ${fuel}.`;

@@ -400,6 +400,57 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.choices[0]?.fx.length, 1);
   });
 
+  it("round-trips a fuel gift and drops a gift with no band", () => {
+    const events = [
+      {
+        id: "gifted",
+        dest: "Gifted",
+        flag: "cited:gifted",
+        aliases: [],
+        sectors: [],
+        body: "A button.",
+        cards: [
+          {
+            body: "Opening.",
+            choices: [
+              {
+                id: "c:gifted:take",
+                label: "Take it.",
+                gift: { k: "fuel" as const, lo: 3, hi: 3 },
+              },
+            ],
+          },
+        ],
+        choices: [
+          {
+            id: "c:gifted:go",
+            label: "Go",
+            gift: { k: "fuel" as const, lo: 4, hi: 6 },
+            fx: [{ k: "nothing" as const }],
+          },
+        ],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<gift k="fuel" lo="4" hi="6"\/>/);
+    assert.match(xml, /<gift k="fuel" lo="3" hi="3"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <gift k="scrap" lo="1" hi="2"/>
+          <gift k="fuel" lo="6" hi="4"/>
+          <gift k="fuel" lo="1.5" hi="2"/>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.choices[0]?.gift, undefined);
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

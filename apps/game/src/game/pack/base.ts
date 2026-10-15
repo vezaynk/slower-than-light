@@ -14,6 +14,7 @@ import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
 import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
+import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
@@ -21,6 +22,7 @@ import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
 import type {
   AugmentDef,
+  ChoiceGift,
   ChoiceReq,
   CrewDef,
   DroneDef,
@@ -151,7 +153,7 @@ function eventRow(row: EventDef): EventDef {
     sectors: [...row.sectors],
     body: row.body,
     choices: row.choices.map((choice) =>
-      lockedChoice({
+      stampedChoice({
         id: choice.id,
         label: choice.label,
         fx: choice.fx.map((fx) => ({ ...fx })),
@@ -181,11 +183,19 @@ function copyReq(req: ChoiceReq): ChoiceReq {
   return { k: req.k, id: req.id, text: req.text };
 }
 
-/** A button stores the locks authored for its id. The authoring table is not mutated. */
-function lockedChoice(choice: EventChoice): EventChoice {
+function copyGift(gift: ChoiceGift): ChoiceGift {
+  return { k: "fuel", lo: gift.lo, hi: gift.hi };
+}
+
+/** A button stores the locks and the fuel gift authored for its id. The tables are not mutated. */
+function stampedChoice(choice: EventChoice): EventChoice {
   const reqs = CHOICE_REQS[choice.id];
-  if (!reqs?.length) return choice;
-  return { ...choice, reqs: reqs.map(copyReq) };
+  const gift = FUEL_GIFTS[choice.id];
+  if (!reqs?.length && !gift) return choice;
+  const next: EventChoice = { ...choice };
+  if (reqs?.length) next.reqs = reqs.map(copyReq);
+  if (gift) next.gift = copyGift(gift);
+  return next;
 }
 
 function copyCard(row: EventCard): EventCard {
@@ -193,8 +203,10 @@ function copyCard(row: EventCard): EventCard {
     body: row.body,
     choices: row.choices.map((choice) => {
       const reqs = CHOICE_REQS[choice.id];
+      const gift = FUEL_GIFTS[choice.id];
       const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
       if (reqs?.length) copy.reqs = reqs.map(copyReq);
+      if (gift) copy.gift = copyGift(gift);
       return copy;
     }),
   };
@@ -219,12 +231,48 @@ function reqHolder(taken: ReadonlySet<string>): EventDef {
   const choices: EventChoice[] = [];
   for (const [id, reqs] of Object.entries(CHOICE_REQS)) {
     if (taken.has(id) || reqs.length === 0) continue;
-    choices.push({ id, label: id, fx: [{ k: "nothing" }], reqs: reqs.map(copyReq) });
+    choices.push(stampedChoice({ id, label: id, fx: [{ k: "nothing" }] }));
   }
   return {
     id: "blue-button-reqs",
     dest: "blue-button-reqs",
     flag: "reqs:blue-button-reqs",
+    aliases: [],
+    sectors: [],
+    body: "",
+    choices,
+  };
+}
+
+function choiceIds(events: readonly EventDef[]): Set<string> {
+  const seen = new Set<string>();
+  for (const ev of events) {
+    for (const choice of ev.choices) seen.add(choice.id);
+    for (const card of ev.cards ?? [])
+      for (const choice of card.choices) seen.add(choice.id);
+  }
+  return seen;
+}
+
+/**
+ * Fuel gifts whose button is not already on a loaded page, card, or lock holder.
+ * Empty sectors keep the chart from placing this page. The sim looks the gift up by id.
+ */
+function fuelHolder(taken: ReadonlySet<string>): EventDef {
+  const choices: EventChoice[] = [];
+  for (const [id, gift] of Object.entries(FUEL_GIFTS)) {
+    if (taken.has(id)) continue;
+    choices.push({
+      id,
+      label: id,
+      fx: [{ k: "nothing" }],
+      gift: copyGift(gift),
+    });
+  }
+  return {
+    id: "fuel-gifts",
+    dest: "fuel-gifts",
+    flag: "gift:fuel-gifts",
     aliases: [],
     sectors: [],
     body: "",
@@ -322,10 +370,13 @@ const takenEventIds = new Set(citedEvents.map((row) => row.id));
 const fillerEvents = fillerPageRecords()
   .filter((row) => !takenEventIds.has(row.id))
   .map(eventRow);
+const reqEvents = reqHolder(takenReqIds([...citedEvents, ...fillerEvents]));
+const giftEvents = fuelHolder(choiceIds([...citedEvents, ...fillerEvents, reqEvents]));
 const campaignEvents = [
   ...citedEvents,
   ...fillerEvents,
-  reqHolder(takenReqIds([...citedEvents, ...fillerEvents])),
+  reqEvents,
+  ...(giftEvents.choices.length > 0 ? [giftEvents] : []),
 ];
 
 loadPack(

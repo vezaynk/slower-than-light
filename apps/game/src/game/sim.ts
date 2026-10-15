@@ -98,6 +98,7 @@ import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import { citedChoiceDisabled, citedChoose, citedEngineCap, citedEvent, citedFriendlyAsb, citedOwns, citedShieldHalf, citedSystemHalf, citedSystemOff, stampCitedEvents } from "./wiki/cited-events.ts";
 import { missingAutoFight, missingPageWin } from "./wiki/cited-missing.ts";
 import { rollFuelWait } from "./wiki/cited-fuel.ts";
+import { rollFuel } from "./wiki/fuel-gifts.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
   applyFlagshipSystems,
@@ -6770,7 +6771,7 @@ export function choose(g: Game, id: string) {
       g.player.hull = Math.min(g.player.hullMax, g.player.hull + 15);
       const n = 22 + irand(g, 23);
       addScrap(g, n);
-      g.fuel += 5;
+      g.fuel += rollFuel("last-stand-repair", (lo, hi) => lo + irand(g, hi - lo + 1));
       g.missiles += 4;
       g.player.parts += 5;
       log(g, tx("game.sim.federation-repair-station-scrap", { n: n }));

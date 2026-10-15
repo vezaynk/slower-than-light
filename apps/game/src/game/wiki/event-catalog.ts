@@ -25,10 +25,11 @@ import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
 import { EXTRA_EVENTS as QUEST_A_PAGES } from "./quests-a-pages.ts";
 import { EXTRA_EVENTS as QUEST_B_PAGES } from "./cited-events-quests-b.ts";
 import { EXTRA_EVENTS as MISSING_EVENTS } from "./cited-missing-pages.ts";
+import { QUEST_PAGES } from "./quest-arrivals.ts";
 
 /**
  * A cited page before it is a pack record. `slug` is the pack id.
- * Quest, surrender, and filler branches stay in their procedure files.
+ * A quest marker and its arrival page are records. Surrender offers, filler lists, and fight endings stay procedures.
  */
 export type CitedEventRow = {
   dest: string;
@@ -62,6 +63,9 @@ function copyEffect(fx: EventEffect): EventEffect {
   }
   if (fx.k === "note") return { k: "note", text: fx.text };
   if (fx.k === "item") return { k: "item", item: fx.item };
+  if (fx.k === "quest") return { k: "quest", id: fx.id };
+  if (fx.k === "goto") return { k: "goto", id: fx.id };
+  if (fx.k === "close") return { k: "close" };
   return { k: "nothing" };
 }
 
@@ -109,6 +113,7 @@ export const CITED_EVENT_ROWS: CitedEventRow[] = [
   ...QUEST_A_PAGES,
   ...QUEST_B_PAGES,
   ...MISSING_EVENTS,
+  ...QUEST_PAGES,
 ].map(copyRow);
 
 /** Pack records for the cited pages. The id is the page slug. */

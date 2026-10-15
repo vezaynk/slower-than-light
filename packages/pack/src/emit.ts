@@ -24,7 +24,8 @@ const HEADER = `
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
   Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
-  A choice is its id, label, and effects. Quest branches stay in code.
+  A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
+  An arrival page has an empty sector list and the flag quest: plus the quest id.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -98,6 +99,9 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
     node.appendChild(doc.createTextNode(fx.text));
     return node;
   }
+  if (fx.k === "quest") return element(doc, "effect", { k: "quest", id: fx.id });
+  if (fx.k === "goto") return element(doc, "effect", { k: "goto", id: fx.id });
+  if (fx.k === "close") return element(doc, "effect", { k: "close" });
   if (fx.k === "item") return element(doc, "effect", { k: "item", item: fx.item });
   if (fx.k === "hull") return element(doc, "effect", { k: "hull", n: num(fx.n) });
   if (fx.k === "res") {

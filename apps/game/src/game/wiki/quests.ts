@@ -31,7 +31,7 @@
 import { tx } from "../../i18n/index.ts";
 import { upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { crewDef, weaponDef } from "@stl/pack";
+import { allEvents, crewDef, weaponDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
@@ -593,6 +593,20 @@ function arriveFedBase(g: Game) {
 /** Builds the card for a quest beacon on arrival, or null when `b` holds no live quest. sim.ts eventFor calls this. */
 export function questEvent(g: Game, b: Beacon): GameEvent | null {
   if (!b.quest || b.resolved) return null;
+  // An arrival page is the event whose flag is quest:<id>. The sim still chose this beacon.
+  if (b.quest !== RUWEN_ENTRY) {
+    const packed = allEvents().find((ev) => ev.flag === `quest:${b.quest}`);
+    if (packed) {
+      g.event = {
+        title: here(g)?.name ?? packed.dest,
+        body: packed.body,
+        choices: packed.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+      };
+      g.phase = "event";
+      g.paused = true;
+      return g.event;
+    }
+  }
   switch (b.quest) {
     case "escort":
       arriveEscort(g);
@@ -623,72 +637,12 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
         result(g, tx("wiki.quests.you-arrive-at-location-of-the"), scrapOnly(g, "low"));
       }
       break;
-    case "mantis-chase":
-      // Wiki citations:
-      // > "You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!" — [[Mantis ship-collectors#Quest Marker]]
-      // > "\"Not YOU again! Do you know how much these repairs are going to cost me? Time to take out the big guns.\"" — [[Mantis ship-collectors#Quest Marker]]
-      // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
-      card(g, tx("wiki.quests.you-catch-up-with-the-mantis"), [
-        { id: "q:mantis-chase:fight", label: tx("wiki.quests.fight-the-mantis-bomber") },
-      ]);
-      break;
     case "fed-base":
       arriveFedBase(g);
       break;
     case "thief-stash":
       // "You receive a weapon with high scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
       result(g, tx("wiki.quests.you-arrive-at-small-asteroid-field"), scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
-      break;
-    case "slug-pirate-trap":
-      // Wiki citations:
-      // > "You catch up with the two Slug ships and they're already carrying out their raid! One is in close combat with the pirate, the other seems to be heading for a small space cache the pirate was protecting." — [[Slug comm tapping#Quest Marker]]
-      // > "Suddenly the first ship bursts into flames, and an urgent call arrives from the remaining Slugs. \"We sssugest you distract the pirate vesssel while we retrieve the valuables. Fifty fifty sssplit.\"" — [[Slug comm tapping#Quest Marker]]
-      // > "Engage the pirate." — [[Slug comm tapping#Quest Marker]]
-      // > "Head for the cache." — [[Slug comm tapping#Quest Marker]]
-      // Not wired: "when you arrive there will be a nebula environment" (no per-fight nebula environment here).
-      card(g, tx("wiki.quests.you-catch-up-with-the-two"), [
-        { id: "q:slug-trap:engage", label: tx("wiki.quests.engage-the-pirate") },
-        { id: "q:slug-trap:cache", label: tx("wiki.quests.head-for-the-cache") },
-      ]);
-      break;
-    case "engi-real":
-    case "engi-fake":
-      // Wiki citations:
-      // > "You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them." — [[Engi fleet discussion#First Quest Marker (Real)]]
-      // > "Fight the Rebel Ship." — [[Engi fleet discussion#First Quest Marker (Real)]]
-      // > "You arrive at one of the Rebel bases that the Engi told you about. It appears abandoned except for one scout ship. Perhaps you could extract information from them." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-      // > "Fight the Rebel Ship." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-      card(g, tx("wiki.quests.you-arrive-at-one-of-the"), [
-        { id: `q:${b.quest}:fight`, label: tx("wiki.quests.fight-the-rebel-ship") },
-      ]);
-      break;
-    case "engi-final":
-      // Wiki citations:
-      // > "You have finally caught up with the ships you've been hunting. A hangar-sized cargo ship is being escorted by a number of Mantis ships. As you reconsider the assault, a squadron of Engi ships with pirate emblems jump in and assist you. You prepare to fight the Mantis but scans indicate they are manned by Rebels!" — [[Engi fleet discussion#Final Quest Marker]]
-      // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
-      card(g, tx("wiki.quests.you-have-finally-caught-up-with"), [
-        { id: "q:engi-final:fight", label: tx("wiki.quests.fight-the-mantis-ship") },
-      ]);
-      break;
-    case "slug-platform":
-      // Wiki citations:
-      // > "You arrive to discover an impressive cruiser being worked on by a few smaller ships and guarded by an assault ship. The mobile construction platform is slowly slipping into the clouds. You have not yet been noticed." — [[Slug Home Nebula surrender#Quest Marker]]
-      // > "Charge them before they escape." — [[Slug Home Nebula surrender#Quest Marker]]
-      // > "Try to tail them without being noticed." — [[Slug Home Nebula surrender#Quest Marker]]
-      card(g, tx("wiki.quests.you-arrive-to-discover-an-impressive"), [
-        { id: "q:slug-platform:charge", label: tx("wiki.quests.charge-them-before-they-escape") },
-        { id: "q:slug-platform:tail", label: tx("wiki.quests.try-to-tail-them-without-being") },
-      ]);
-      break;
-    case "store-rescue":
-      // Wiki citations:
-      // > "Once you arrive at the beacon you detect a Rebel scout assaulting a compound on a nearby desolate moon." — [[Settlement mercenary work#Quest marker]]
-      // > "Engage the Rebel and rescue the space dock." — [[Settlement mercenary work#Quest marker]]
-      // > "Avoid a fight." — [[Settlement mercenary work#Quest marker]]
-      card(g, tx("wiki.quests.once-you-arrive-at-the-beacon"), [
-        { id: "q:store-rescue:engage", label: tx("wiki.quests.engage-the-rebel-and-rescue-the") },
-        { id: "q:store-rescue:avoid", label: tx("wiki.quests.avoid-a-fight") },
-      ]);
       break;
     case RUWEN_ENTRY:
       // Ancient device: the QUEST tag does not replace the card. eventFor falls through to that page.
@@ -923,14 +877,6 @@ const rebelCrystalBones = new WeakMap<Game, true>();
 
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
-  // Slug comm tapping, "Tap their comm frequency." -> "A quest marker is added to your map."
-  "c:slug-comm-tapping:0": (g) => {
-    // Wiki citations:
-    // > "You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates." — [[Slug comm tapping]]
-    // > "A quest marker is added to your map." — [[Slug comm tapping]]
-    const line = addQuest(g, "slug-pirate-trap");
-    result(g, tx("wiki.quests.you-overhear-their-conversation-and-learn"), undefined, [line]);
-  },
   // Slug comm tapping. "Ignore them." One printed result.
   "c:slug-comm-tapping:1": (g) => {
     // Wiki citations:
@@ -2667,13 +2613,6 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   "q:station:none": (g) => result(g, tx("wiki.quests.i-see")),
 
-  "q:mantis-collectors:follow": (g) => {
-    // Wiki citations:
-    // > "After them!" — [[Mantis ship-collectors]]
-    // > "You input their coordinates into your map and prepare to follow." — [[Mantis ship-collectors]]
-    // > "A quest marker is added to your map." — [[Mantis ship-collectors]]
-    result(g, tx("wiki.quests.you-input-their-coordinates-into-your"), undefined, [addQuest(g, "mantis-chase")]);
-  },
   "q:mantis-collectors:forget": (g) => {
     // Wiki citations:
     // > "Forget it." — [[Mantis ship-collectors]]
@@ -2928,19 +2867,6 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon." — [[Settlement mercenary work#Quest marker]]
     // > "Nothing happens." — [[Settlement mercenary work#Quest marker]]
     result(g, tx("wiki.quests.after-a-time-the-ship-powers"));
-  },
-
-  // Slug Home Nebula surrender, "Let them live." -> "We don't want the weapon, we want information." (the `extra` answer).
-  "s:slug-home-nebula-surrender:info": (g) => {
-    // Wiki citations:
-    // > "We don't want the weapon, we want information." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
-    // > "You ask where they were delivering the weapon. \"By telling you we will probably die jussst as like as not... Oh well.\" They give you the coordinates of the a prototype cruiser's mobile construction platform." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
-    // > "A quest marker is added to your map." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
-    if (!g.enemy) return;
-    // Score, k: "k = ships defeated by reducing hull or crew to zero. Defeating the flagship does NOT increase the count
-    // (none of the 3 phases)." Letting them live and taking information does not reduce hull or crew to zero.
-    closeFight(g);
-    result(g, tx("wiki.quests.you-ask-where-they-were-delivering"), undefined, [addQuest(g, "slug-platform")]);
   },
 };
 

@@ -485,12 +485,6 @@ export const PART_B: QuestPart = {
   },
 
   arrive: {
-    // Capture the ship, "Quest Marker": "Fight a Pirate ship."
-    "capture-ship": (g) => {
-      card(g, tx("wiki.quests-b.you-find-the-ship-that-you"), [
-        { id: "q:capture:fight", label: tx("wiki.quests-b.fight-a-pirate-ship") },
-      ]);
-    },
     // Template:Hidden federation base, "Federation Base Assist": the same four arrivals as arriveFedAssist.
     "fed-assist": (g) => {
       arriveFedAssist(g);
@@ -625,11 +619,6 @@ export const PART_B: QuestPart = {
     "c:capture-the-ship:2": (g) => captureOffer(g),
     "c:capture-the-ship:3": (g) => captureOffer(g),
     "c:capture-the-ship:4": (g) => captureOffer(g),
-    "q:capture:agree": (g) => {
-      // Wiki citations:
-      // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
-      result(g, tx("wiki.quests-b.great-we-ll-relay-their-coordinates"), undefined, [addQuest(g, "capture-ship")]);
-    },
     "q:capture:decline": (g) => {
       result(g, tx("wiki.quests-b.we-understand-hopefully-we-can-find"));
     },
@@ -739,9 +728,6 @@ export const PART_B: QuestPart = {
       result(g, tx("wiki.quests-b.great-i-uploaded-their-location-to"), undefined, [tx("wiki.quests-b.drone-parts-2", { PARTS_OWED: PARTS_OWED }), addQuest(g, "merchant-delivery")]);
     },
     "q:merchant:deliver-no": (g) => result(g, tx("wiki.quests-b.fine-i-ll-keep-looking-for")),
-    "q:merchant:investigate": (g) => {
-      result(g, tx("wiki.quests-b.at-least-you-re-confident-for"), undefined, [addQuest(g, "merchant-investigation")]);
-    },
     "q:merchant:investigate-no": (g) => {
       result(g, tx("wiki.quests-b.at-least-you-are-willing-to"));
     },
@@ -887,12 +873,6 @@ export const PART_B: QuestPart = {
       if (medbay(g) >= 2) choices.push({ id: "q:nebula:medbay", label: tx("wiki.quests-b.get-them-into-the-medbay") });
       if (hasClonebay(g)) choices.push({ id: "q:nebula:clone", label: tx("wiki.quests-b.try-to-clone-them-before-it") });
       card(g, tx("wiki.quests-b.you-bring-the-survivor-aboard-but"), choices);
-    },
-    "q:nebula:comfort": (g) => {
-      // Wiki citations:
-      // > "the survivor simply says, \"ABADOTH\" and perishes." — [[Nebula wreckage#Assist the survivor]]
-      // > "A quest marker is added to your map." — [[Nebula wreckage#Assist the survivor]]
-      result(g, tx("wiki.quests-b.on-their-death-bed-they-croak"), undefined, [addQuest(g, "abadoth")]);
     },
     // "You receive a crewmember." Race not named: INFERRED random.
     "q:nebula:medbay": (g) => {

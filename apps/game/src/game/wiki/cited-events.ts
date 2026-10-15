@@ -2,14 +2,15 @@ import { tx } from "../../i18n/index.ts";
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents } from "@stl/pack";
+import { allEvents, eventDef } from "@stl/pack";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { allMantisCrew, between, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { addQuest, result } from "./quests.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
@@ -78,6 +79,9 @@ type Fx =
   | { k: "note"; text: string }
   /** Rewards, "Weapon" / "Augment" / "Drone": a random one the page does not name (bonus-item.ts grantRandomItem). */
   | { k: "item"; item: "weapon" | "augment" | "drone" }
+  | { k: "quest"; id: string }
+  | { k: "goto"; id: string }
+  | { k: "close" }
   | { k: "nothing" };
 
 type ChoiceDef = { id: string; label: string; fx: Fx[] };
@@ -2297,6 +2301,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;
+  // Letting a ship live ends the fight only while that ship is still there.
+  if (choice.fx.some((fx) => fx.k === "close") && !g.enemy) return true;
   // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
   // A missing weapon returns before the res loop, so the missile is not spent.
   if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return false;
@@ -2367,8 +2373,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   for (const fx of choice.fx) {
     if (fx.k === "item") ctx.note(grantRandomItem(g, fx.item));
   }
+  const placesQuest = choice.fx.some((fx) => fx.k === "quest");
   for (const fx of choice.fx) {
-    if (fx.k === "note") ctx.note(fx.text);
+    if (fx.k === "note" && !placesQuest) ctx.note(fx.text);
   }
   if (g.player.hull <= 0) {
     g.phase = "defeat";
@@ -2540,6 +2547,27 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     ctx.note(spent);
     ctx.note(got);
     citedResult(g, tx("wiki.cited-events.they-happily-accept-your-offer"), [got, spent]);
+    return true;
+  }
+  const questFx = choice.fx.find((fx) => fx.k === "quest");
+  if (questFx && questFx.k === "quest") {
+    if (choice.fx.some((fx) => fx.k === "close")) closeFight(g);
+    const notes = choice.fx.flatMap((fx) => (fx.k === "note" ? [fx.text] : []));
+    const line = addQuest(g, questFx.id);
+    const sentence = notes.join("\n\n");
+    result(g, sentence || line, undefined, sentence ? [line] : []);
+    return true;
+  }
+  const gotoFx = choice.fx.find((fx) => fx.k === "goto");
+  if (gotoFx && gotoFx.k === "goto") {
+    const page = eventDef(gotoFx.id);
+    if (!page) return false;
+    pageCard(
+      g,
+      page.body,
+      page.choices.map((next) => ({ id: next.id, label: next.label })),
+    );
+    g.paused = true;
     return true;
   }
   ctx.resolve();

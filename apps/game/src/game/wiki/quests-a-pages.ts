@@ -70,7 +70,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "We're going to save them or die trying." — [[Rock war vessel encounter]]
         // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
         label: tx("wiki.quests-a-pages.we-re-going-to-save-them"),
-        fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
+        fx: [
+          { k: "note", text: tx("wiki.quests-a.the-latter-being-more-likely-still") },
+          { k: "quest", id: "rock-sun" },
+        ],
       },
       {
         id: "c:rock-war-vessel-encounter:1",
@@ -78,7 +81,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "We're strong enough to destroy you!" — [[Rock war vessel encounter]]
         // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
         label: tx("wiki.quests-a-pages.we-re-strong-enough-to-destroy"),
-        fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
+        fx: [
+          { k: "note", text: tx("wiki.quests-a.one-ship-is-not-the-same") },
+          { k: "quest", id: "rock-sun" },
+        ],
       },
       {
         id: "c:rock-war-vessel-encounter:2",
@@ -118,7 +124,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Hear them out." — [[Unarmed Zoltan transport]]
         // > "A quest marker is added to your map." — [[Unarmed Zoltan transport]]
         label: tx("wiki.quests-a-pages.hear-them-out"),
-        fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
+        fx: [
+          { k: "note", text: tx("wiki.quests-a.they-continue-we-take-your-silence") },
+          { k: "quest", id: "zoltan-peace" },
+        ],
       },
       {
         id: "c:unarmed-zoltan-transport:2",
@@ -235,7 +244,10 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Accept the passenger." — [[Rock bride]]
         // > "A quest marker is added to your map." — [[Rock bride]]
         label: tx("wiki.quests-a-pages.accept-the-passenger"),
-        fx: [{ k: "note", text: tx("wiki.quests-a-pages.a-quest-marker-is-added-to") }],
+        fx: [
+          { k: "note", text: tx("wiki.quests-a.you-surprise-me-off-worlder-thank") },
+          { k: "quest", id: "rock-bride" },
+        ],
       },
       {
         id: "c:rock-bride:1",

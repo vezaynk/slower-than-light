@@ -202,6 +202,10 @@ const XML = `
     <effect k="res" id="scrap" sign="1" lo="7" hi="7"/>
     <effect k="fight" tier="pirate" asteroid="true"/>
     <effect k="note">Hello &amp; co</effect>
+    <effect k="quest" id="ember-quest"/>
+    <effect k="goto" id="ember-next"/>
+    <effect k="close"/>
+    <effect k="nope"/>
     <minSector>4</minSector>
   </choice>
   <choice>
@@ -239,6 +243,9 @@ describe("parsePack", () => {
     assert.deepEqual(emberEvent?.sectors, ["Civilian Sector"]);
     assert.equal(emberEvent?.body, "A packed beacon.");
     assert.equal(emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "", "Hello & co");
+    assert.deepEqual(emberEvent?.choices[0]?.fx[3], { k: "quest", id: "ember-quest" });
+    assert.deepEqual(emberEvent?.choices[0]?.fx[4], { k: "goto", id: "ember-next" });
+    assert.deepEqual(emberEvent?.choices[0]?.fx[5], { k: "close" });
     assert.equal(pack.events?.[1]?.id, "bareevent");
     assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
     assert.equal(pack.events?.[1]?.dest, "bareevent");

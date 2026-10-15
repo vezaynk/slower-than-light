@@ -104,7 +104,7 @@ describe("Zoltan weapon slots", () => {
     toggleWeapon(g, "glaive");
     assert.equal(g.player.weapons[0].enabled, true);
     assert.equal(g.player.systems.weapons.power, 3);
-    assert.equal(g.log[0].includes("Not enough power"), false);
+    assert.equal(g.log.some((line) => line.includes("Not enough power")), false);
     assert.deepEqual(mask(g), [true]);
   });
 

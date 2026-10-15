@@ -5627,7 +5627,7 @@ function enemyAboard(g: Game): boolean {
 
 /**
  * Destroyed cargo ship, Research station with no response, Abandoned station, Refugee comms down: boarders beam
- * aboard and no enemy ship is on the page. startCombat would delete them and put a hull on the scope.
+ * aboard and no enemy ship is on the page. startCombat would put a hull on the scope. A new fight keeps intruders already aboard.
  * Opens the crew fight only: phase combat, enemy stays null. The play view already ticks that phase.
  * `asb` is Abandoned station's planet-side battery. Environmental Hazards: warning 15–20s after the
  * fight starts, then the real shot 5–10s later. The roll happens only when that battery is on.

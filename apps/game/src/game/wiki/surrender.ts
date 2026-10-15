@@ -863,8 +863,8 @@ export function plasmaHumanBoarders(g: Game) {
 /**
  * The Black Raven, Slugman Crew: "1-2 slug boarders beam aboard your ship."
  * Slug hacker (medical): "2 slug boarders beam aboard your ship".
- * INFERRED: each lands in a random player room, the same as human boarders. Call this after startCombat,
- * which drops enemy crew that were already aboard. `line` replaces the short log (`${n} ${line}`).
+ * INFERRED: each lands in a random player room, the same as human boarders. Call this after startCombat.
+ * A new fight keeps intruders already aboard. `line` replaces the short log (`${n} ${line}`).
  */
 export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
   const n = between(g, [lo, hi]);
@@ -893,7 +893,7 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
 
 /**
  * Rock fight with boarders: "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
- * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
+ * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
  * INFERRED: the count is an inclusive whole number from 1 to 3, and each boarder lands in a random player room,
  * the same pattern as humanBoarders. INFERRED: the display name is "Rock" because the page does not print names.
  * HP is crewDef("stone").hp. No weapon, schematic, augment, crew reward, or scrap.
@@ -925,7 +925,7 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
 
 /**
  * Mantis outcasts: "2-3 mantis boarders beam aboard your ship and you fight a Mantis Ship (default rewards)."
- * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
+ * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
  * INFERRED: the count is an inclusive whole number from 2 to 3, and each boarder lands in a random player room,
  * the same pattern as rockBoarders. INFERRED: the display name is "Mantis" because the page does not print names.
  * HP is crewDef("blade").hp. No weapon, schematic, augment, crew reward, or scrap.
@@ -956,13 +956,6 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
 }
 
 /**
- * Zoltan border police: "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)."
- * Call this after startCombat (ctx.fight): that drops enemy crew that were already aboard.
- * INFERRED: the count is an inclusive whole number from 3 to 4, and each boarder lands in a random player room,
- * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
- * HP is crewDef("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
- */
-/**
  * "crew entirely composed of Mantis."
  * Call this after startCombat. The class mix can still roll an Engi; this replaces that crew.
  * INFERRED: only enemy crew aboard the enemy ship change. A Mantis already there keeps the health
@@ -980,6 +973,13 @@ export function allMantisCrew(g: Game) {
   }
 }
 
+/**
+ * Zoltan border police: "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)."
+ * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
+ * INFERRED: the count is an inclusive whole number from 3 to 4, and each boarder lands in a random player room,
+ * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
+ * HP is crewDef("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
+ */
 export function zoltanBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
   const hp = crewDef("spark").hp;

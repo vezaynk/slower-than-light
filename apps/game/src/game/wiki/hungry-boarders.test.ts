@@ -91,11 +91,16 @@ describe("Boarders: Humans (Abandoned)", () => {
 
     startCombat(g, "Rebel ship");
     assert.notEqual(g.lastFaction, "lanius");
+    const stayed = boarded(g);
+    assert.ok(stayed.length >= 6 && stayed.length <= 8, String(stayed.length));
+    const stayedIds = new Set(stayed.map((c) => c.id));
     choose(g, ID);
     const later = boarded(g);
-    assert.ok(later.length >= 3 && later.length <= 4, String(later.length));
-    assert.ok(later.every((c) => c.lungs !== true));
-    assert.ok(later.every((c) => lungScale(g, c) === 1));
+    const fresh = later.filter((c) => !stayedIds.has(c.id));
+    assert.ok(fresh.length >= 3 && fresh.length <= 4, String(fresh.length));
+    assert.ok(fresh.every((c) => c.lungs !== true));
+    assert.ok(fresh.every((c) => lungScale(g, c) === 1));
+    assert.ok(later.filter((c) => stayedIds.has(c.id)).every((c) => c.lungs === true && lungScale(g, c) === 0.5));
     assert.equal(g.enemy, null);
   });
 });

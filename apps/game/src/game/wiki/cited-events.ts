@@ -1582,7 +1582,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
     }
     ctx.note(CRYSTAL_LIE);
     ctx.fight(tx("wiki.cited-events.crystal-ship"));
-    // INFERRED: the count is inclusive, and the call is after ctx.fight because startCombat drops enemy crew already aboard.
+    // INFERRED: the count is inclusive. The boarders are added after the fight starts. A new fight keeps intruders already aboard.
     crystalBoarders(g, 1, 2);
     return true;
   }
@@ -1788,7 +1788,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
     // Rock fight with boarders in asteroid field has no choice. Arrival calls this id.
     // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
-    // INFERRED: the count is an inclusive whole number. After ctx.fight: startCombat drops enemy crew already aboard.
+    // INFERRED: the count is an inclusive whole number. After ctx.fight: a new fight keeps intruders already aboard.
     if (id === "c:rock-fight-with-boarders:0") {
       // Wiki citations:
       // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
@@ -1801,18 +1801,18 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     }
     // Mantis outcasts has no choice. Arrival calls this id.
     // "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
-    // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    // INFERRED: inclusive 2..3. After ctx.fight: a new fight keeps intruders already aboard.
     if (id === "c:mantis-outcasts:0") mantisBoarders(g, 2, 3);
     // Zoltan border police has no choice. Arrival calls this id.
     // "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
-    // INFERRED: inclusive 3..4. After ctx.fight: startCombat drops enemy crew already aboard.
+    // INFERRED: inclusive 3..4. After ctx.fight: a new fight keeps intruders already aboard.
     if (id === "c:zoltan-border-police:0") {
       // Wiki citations:
       // > "3-4 zoltan boarders beam aboard your ship, and you fight a Zoltan ship (default rewards)." — [[Zoltan border police]]
       zoltanBoarders(g, 3, 4);
     }
     // Rebel fight with boarders has no choice. Arrival calls this id.
-    // INFERRED: inclusive 2..3. After ctx.fight: startCombat drops enemy crew already aboard.
+    // INFERRED: inclusive 2..3. After ctx.fight: a new fight keeps intruders already aboard.
     // Wiki citations:
     // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, tx("wiki.cited-events.human-boarders-beam-aboard-your-ship"));

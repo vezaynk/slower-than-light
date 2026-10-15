@@ -156,20 +156,6 @@ describe("Rock fight with boarders", () => {
       const kits = JSON.stringify(g.player.kits);
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      g.crew.push({
-        id: "planted",
-        name: "Planted",
-        side: "enemy",
-        aboard: "player",
-        hp: 1,
-        maxHp: 1,
-        room: g.player.rooms[0]?.id ?? "p-medbay",
-        path: [],
-        move: 0,
-        think: 0,
-        tone: 3,
-        kin: "plain",
-      });
       choose(g, "c:rock-fight-with-boarders:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rock");
@@ -180,7 +166,6 @@ describe("Rock fight with boarders", () => {
       assert.ok(boarders.length >= 1 && boarders.length <= 3, String(boarders.length));
       seen.add(boarders.length);
       assert.ok(boarders.every((c) => c.name === "Rock" && c.kin === "stone" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
-      assert.equal(boarders.some((c) => c.id === "planted"), false);
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);

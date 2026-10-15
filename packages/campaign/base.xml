@@ -13,7 +13,9 @@
   Several text tags are the opening sentences. The first is the page body.
   An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
   The sim still picks one sentence when the card opens.
-  Filler opening cards use that same tag. A slug a sector page already uses stays that sector page.
+  An offer tag is one row of the table that card rolls. The sim still picks the row and still rolls its bands.
+  Fuel rows name band high or pt2. Lanius rows name band base or better. A supply row can hold a 0-0 band.
+  Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, and effects. A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -3968,6 +3970,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.</text>
     <text>A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.</text>
     <text>You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.</text>
+    <offer k="lanius" band="base" res="fuel" cost="3-7" scrap="15-30"/>
+    <offer k="lanius" band="base" res="missiles" cost="3-7" scrap="20-40"/>
+    <offer k="lanius" band="base" res="parts" cost="3-7" scrap="20-40"/>
+    <offer k="lanius" band="better" res="fuel" cost="3-7" scrap="20-35"/>
+    <offer k="lanius" band="better" res="missiles" cost="3-7" scrap="25-50"/>
+    <offer k="lanius" band="better" res="parts" cost="3-7" scrap="25-50"/>
     <choice name="c:lanius-trader:0">
       <text>You lose 3-7 fuel and receive 15-30 scrap</text>
       <effect k="res" id="fuel" sign="-1" lo="3" hi="7"/>
@@ -3995,6 +4003,9 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Lanius trader with translator</alias>
     <sector>Abandoned Sector</sector>
     <text></text>
+    <offer k="lanius" band="base" res="fuel" cost="3-7" scrap="15-30"/>
+    <offer k="lanius" band="base" res="missiles" cost="3-7" scrap="20-40"/>
+    <offer k="lanius" band="base" res="parts" cost="3-7" scrap="20-40"/>
     <choice name="c:lanius-trader-with-translator:0">
       <text>You lose 3-7 fuel and receive 15-30 scrap</text>
       <effect k="res" id="fuel" sign="-1" lo="3" hi="7"/>
@@ -5721,6 +5732,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Despite the barren area, a trader has set up shop at this beacon. He presents his offer.</text>
     <text>The beacon at first glance seems home to a junk yard. Upon closer inspection, it reveals itself to be a ramshackle market. One trader has a deal that catches your eye.</text>
     <text>A pawn broker has set up shop at this obscure beacon. He might be offering something worth looking at.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:trade-resources:0">
       <text>Trade 1-2 drone parts for 5-10 fuel</text>
       <effect k="res" id="parts" sign="-1" lo="1" hi="2"/>
@@ -5757,6 +5772,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text></text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:trade-resources-in-nebula:0">
       <text>Trade 1-2 drone parts for 5-10 fuel</text>
       <effect k="res" id="parts" sign="-1" lo="1" hi="2"/>
@@ -6887,6 +6906,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A nearby settlement sends a small ship in your direction. It keeps its distance and hails you, "We can give you fuel for a price. Just don't even think of doing anything rash. We've got a teleporter at our base and a squad ready to defend us."</text>
     <text>A large caravan of merchant ships jumps to a location near your position. Sensing an opportunity, one ship breaks off from the fleet to offer you an exchange.</text>
     <text>A modified YT-1300 freighter jumps to an area near your sector. Your gut tells you these people are smugglers, but they seem to be feeling altruistic and present an offer of assistance.</text>
+    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
     <choice name="c:no-fuel-fuel-trader-distress-off:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -6900,6 +6925,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A ship arrives at the beacon. "We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade."</text>
     <text>A ship traveling near the beacon approaches your ship and hails you. "Out of fuel? This is a good opportunity for both of us... Care to trade?"</text>
     <text>A mercenary ship arrives at the beacon. "We have a bit of extra fuel we can give you... for a price."</text>
+    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
     <choice name="c:no-fuel-fuel-trader-distress-on:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -6909,6 +6940,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: prepare to dock</title>
     <alias>No fuel: prepare to dock</alias>
     <text></text>
+    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
+    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
+    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
     <choice name="c:no-fuel-prepare-to-dock:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -8386,6 +8423,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
     <text>"You look like a military vessel. We're trying to get back to our homes alive. I'm an engineer by trade and could try to improve your reactor if you have any extra supplies."</text>
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
+    <offer k="supply" missiles="3-5" parts="0-2" fuel="0-0"/>
+    <offer k="supply" missiles="0-2" parts="2-3" fuel="0-0"/>
+    <offer k="supply" missiles="0-2" parts="0-2" fuel="2-3"/>
     <choice name="c:improve-reactor-for-supplies:0">
       <text>Agree to the trade.</text>
       <effect k="note">One printed supply bundle.</effect>

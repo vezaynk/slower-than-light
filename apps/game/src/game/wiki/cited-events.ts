@@ -163,15 +163,6 @@ function findChoice(id: string): ChoiceDef | null {
 
 type TradeRes = "fuel" | "missiles" | "parts";
 
-// Trade resources. The page prints six intros and four offers, and no odds.
-// INFERRED: each intro is equally likely, and each of the four offers is equally likely.
-const TRADE_RESOURCE_OFFERS: { pay: TradeRes; cost: [number, number]; get: TradeRes; gain: [number, number] }[] = [
-  { pay: "parts", cost: [1, 2], get: "fuel", gain: [5, 10] },
-  { pay: "fuel", cost: [1, 2], get: "missiles", gain: [4, 5] },
-  { pay: "missiles", cost: [2, 3], get: "parts", gain: [2, 3] },
-  { pay: "missiles", cost: [2, 4], get: "fuel", gain: [4, 10] },
-];
-
 const TRADE_RESOURCES_TAKE = /^c:trade-resources:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
 
 // Trade resources in nebula. One intro and the same four offers, and no odds.
@@ -198,9 +189,17 @@ function opening(g: Game, id: string): string {
   return texts[between(g, [0, hi])] ?? "";
 }
 
+/** Trade-resource rows. The draw stays between, after the opening sentence. */
+function tradeRows(id: string) {
+  const rows = [];
+  for (const row of eventDef(id)?.offers ?? []) if (row.k === "trade") rows.push(row);
+  return rows;
+}
+
 function tradeResourcesEvent(g: Game, title: string): GameEvent {
   const intro = opening(g, "trade-resources");
-  const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
+  const rows = tradeRows("trade-resources");
+  const offer = rows[between(g, [0, rows.length - 1])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
   const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
@@ -215,7 +214,8 @@ function tradeResourcesEvent(g: Game, title: string): GameEvent {
 }
 
 function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
-  const offer = TRADE_RESOURCE_OFFERS[between(g, [0, 3])]!;
+  const rows = tradeRows("trade-resources-in-nebula");
+  const offer = rows[between(g, [0, rows.length - 1])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
   const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
@@ -297,24 +297,13 @@ export function stampCitedEvents(g: Game) {
 export type LaniusTraderRes = "fuel" | "missiles" | "parts";
 export type LaniusTraderOffer = { res: LaniusTraderRes; cost: number; scrap: number };
 
-// Lanius trader. One offer is shown before the choice. Three resources, no odds. INFERRED: equal.
-// Base scrap is 15-30 fuel, 20-40 missiles, 20-40 drone parts. A Lanius asks again for 20-35, 25-50, and 25-50.
-const LANIUS_TRADER_BASE: Record<LaniusTraderRes, [number, number]> = {
-  fuel: [15, 30],
-  missiles: [20, 40],
-  parts: [20, 40],
-};
-const LANIUS_TRADER_BETTER: Record<LaniusTraderRes, [number, number]> = {
-  fuel: [20, 35],
-  missiles: [25, 50],
-  parts: [25, 50],
-};
-
-export function rollLaniusTrader(g: Game, better: boolean): LaniusTraderOffer {
-  const kinds: LaniusTraderRes[] = ["fuel", "missiles", "parts"];
-  const res = kinds[between(g, [0, 2])]!;
-  const [lo, hi] = (better ? LANIUS_TRADER_BETTER : LANIUS_TRADER_BASE)[res];
-  return { res, cost: between(g, [3, 7]), scrap: between(g, [lo, hi]) };
+/** One Lanius row from the packed page. The resource draw stays between, then the cost, then the scrap. */
+export function rollLaniusTrader(g: Game, better: boolean, id = "lanius-trader"): LaniusTraderOffer {
+  const band = better ? "better" : "base";
+  const rows = [];
+  for (const row of eventDef(id)?.offers ?? []) if (row.k === "lanius" && row.band === band) rows.push(row);
+  const row = rows[between(g, [0, rows.length - 1])]!;
+  return { res: row.res, cost: between(g, row.cost), scrap: between(g, row.scrap) };
 }
 
 export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
@@ -1279,7 +1268,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {
-    const offer = rollLaniusTrader(g, false);
+    const offer = rollLaniusTrader(g, false, "lanius-trader-with-translator");
     return {
       title: ev.dest,
       body: tx("wiki.cited-events.a-lanius-merchant-appears-to-have", { laniusTraderOfferText: laniusTraderOfferText(offer) }),

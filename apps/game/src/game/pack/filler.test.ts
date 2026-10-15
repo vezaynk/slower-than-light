@@ -174,6 +174,46 @@ describe("filler lists", () => {
     assert.equal(eventDef("pirate-fight")?.texts?.includes("Ember one."), false);
   });
 
+  it("stores the campaign offer rows and rolls an appended trade", () => {
+    const trade = eventDef("trade-resources")?.offers ?? [];
+    const nebula = eventDef("trade-resources-in-nebula")?.offers ?? [];
+    assert.equal(trade.length, 4);
+    assert.deepEqual(nebula, trade);
+    for (const id of ["no-fuel-fuel-trader-distress-off", "no-fuel-fuel-trader-distress-on", "no-fuel-prepare-to-dock"]) {
+      const rows = eventDef(id)?.offers ?? [];
+      assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "high").length, 3, id);
+      assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "pt2").length, 3, id);
+    }
+    const lanius = eventDef("lanius-trader")?.offers ?? [];
+    assert.equal(lanius.filter((row) => row.k === "lanius" && row.band === "base").length, 3);
+    assert.equal(lanius.filter((row) => row.k === "lanius" && row.band === "better").length, 3);
+    const translator = eventDef("lanius-trader-with-translator")?.offers ?? [];
+    assert.equal(translator.length, 3);
+    assert.equal(translator.every((row) => row.k === "lanius" && row.band === "base"), true);
+    const supply = eventDef("improve-reactor-for-supplies")?.offers ?? [];
+    assert.equal(supply.length, 3);
+    assert.equal(supply.some((row) => row.k === "supply" && row.fuel[0] === 0 && row.fuel[1] === 0), true);
+
+    const row = eventDef("trade-resources");
+    assert.ok(row);
+    loadPack(
+      {
+        events: [{
+          ...row,
+          offers: [{ k: "trade", pay: "parts", cost: [2, 2], get: "fuel", gain: [9, 9] }],
+        }],
+      },
+      "append",
+    );
+    const g = createGame(1);
+    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    assert.ok(beacon);
+    beacon.flag = row.flag;
+    assert.match(citedEvent(g, beacon)?.body ?? "", /You lose 2 drone parts and receive 9 fuel\./);
+    resetPackForTests();
+    assert.equal(eventDef("trade-resources")?.offers?.length, 4);
+  });
+
   it("opens the filler card for a shared slug and rolls the fuel gift", () => {
     const g = createGame(1);
     const beacon = g.beacons[0];

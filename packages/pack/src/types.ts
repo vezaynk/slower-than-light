@@ -214,6 +214,24 @@ export type EventEffect =
   | { k: "close" }
   | { k: "nothing" };
 
+/** A resource named on a trade or Lanius row. */
+export type OfferRes = "fuel" | "missiles" | "parts";
+
+/** What a fuel-trader row asks the ship to pay. */
+export type OfferPay = "parts" | "missiles" | "scrap";
+
+/**
+ * One row of a table the card rolls when it opens.
+ * The sim still picks the row, then rolls the bands inside it.
+ * A fuel page stores the high list and the second-visit list.
+ * A Lanius page stores the base band and, on the trader, the better band.
+ */
+export type OfferRow =
+  | { k: "trade"; pay: OfferRes; cost: [number, number]; get: OfferRes; gain: [number, number] }
+  | { k: "fuel"; band: "high" | "pt2"; fuel: [number, number]; pay: OfferPay; amt: [number, number] }
+  | { k: "lanius"; band: "base" | "better"; res: OfferRes; cost: [number, number]; scrap: [number, number] }
+  | { k: "supply"; missiles: [number, number]; parts: [number, number]; fuel: [number, number] };
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -281,6 +299,8 @@ export type EventDef = {
   body: string;
   /** Opening sentences. The sim still picks one. Stored when a page has more than one. */
   texts?: string[];
+  /** Offer rows. The sim still picks one and still rolls the numbers inside it. */
+  offers?: OfferRow[];
   choices: EventChoice[];
   surrender?: SurrenderOfferDef;
 };

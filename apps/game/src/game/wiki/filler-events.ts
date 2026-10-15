@@ -732,15 +732,15 @@ function giveMiners(g: Game, n: 5 | 15) {
   }
 }
 
-/** Missiles, drone parts, fuel. A 0-wide band stays 0. */
-const SUPPLY_BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
-  { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
-  { missiles: [0, 2], parts: [2, 3], fuel: [0, 0] },
-  { missiles: [0, 2], parts: [0, 2], fuel: [2, 3] },
-];
+/** Supply bundles from the packed page. A 0-wide band stays 0. The bundle draw stays rand. */
+function supplyRows(id: string) {
+  const rows = [];
+  for (const row of eventDef(id)?.offers ?? []) if (row.k === "supply") rows.push(row);
+  return rows;
+}
 
-function supplyLegal(missiles: number, parts: number, fuel: number): boolean {
-  return SUPPLY_BUNDLES.some((b) =>
+function supplyLegal(id: string, missiles: number, parts: number, fuel: number): boolean {
+  return supplyRows(id).some((b) =>
     missiles >= b.missiles[0] && missiles <= b.missiles[1]
     && parts >= b.parts[0] && parts <= b.parts[1]
     && fuel >= b.fuel[0] && fuel <= b.fuel[1],
@@ -758,7 +758,8 @@ function supplyPrice(missiles: number, parts: number, fuel: number): string {
 /** The bundle is rolled when the card opens, so the price is on the button. */
 function supplyCard(g: Game, page: Page): GameEvent {
   const intro = randOpening(g, page.slug);
-  const bundle = SUPPLY_BUNDLES[Math.min(SUPPLY_BUNDLES.length - 1, Math.floor(rand(g) * SUPPLY_BUNDLES.length))];
+  const bundles = supplyRows(page.slug);
+  const bundle = bundles[Math.min(bundles.length - 1, Math.floor(rand(g) * bundles.length))]!;
   const missiles = between(g, bundle.missiles);
   const parts = between(g, bundle.parts);
   const fuel = between(g, bundle.fuel);
@@ -2681,7 +2682,7 @@ function chooseRolled(g: Game, id: string): boolean {
     const parts = Number(m[2]);
     const fuel = Number(m[3]);
     // Notes: a maxed reactor does not prevent the trade. The supplies are still lost.
-    if (!supplyLegal(missiles, parts, fuel)) return true;
+    if (!supplyLegal("improve-reactor-for-supplies", missiles, parts, fuel)) return true;
     if (g.missiles < missiles || g.player.parts < parts || g.fuel < fuel) return true;
     g.missiles -= missiles;
     g.player.parts -= parts;

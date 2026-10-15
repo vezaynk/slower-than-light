@@ -1,4 +1,4 @@
-import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
+import type { AugmentDef, ContentPack, CrewDef, DroneDef, EmptyBeaconDef, EventChoice, EventDef, EventEffect, FillerListDef, HullDef, HullKitDef, OfferRow, SectorDef, StoreDef, StoreLine, SurrenderOfferDef, SystemDef, TuneDef, TuneStep, WeaponBlueprint } from "./types.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -151,8 +151,20 @@ function copyEvent(row: EventDef): EventDef {
     choices: row.choices.map(copyChoice),
   };
   if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
+  if (row.offers && row.offers.length > 0) copy.offers = row.offers.map(copyOffer);
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
   return copy;
+}
+
+function copyBand(band: [number, number]): [number, number] {
+  return [band[0], band[1]];
+}
+
+function copyOffer(row: OfferRow): OfferRow {
+  if (row.k === "trade") return { k: "trade", pay: row.pay, cost: copyBand(row.cost), get: row.get, gain: copyBand(row.gain) };
+  if (row.k === "fuel") return { k: "fuel", band: row.band, fuel: copyBand(row.fuel), pay: row.pay, amt: copyBand(row.amt) };
+  if (row.k === "lanius") return { k: "lanius", band: row.band, res: row.res, cost: copyBand(row.cost), scrap: copyBand(row.scrap) };
+  return { k: "supply", missiles: copyBand(row.missiles), parts: copyBand(row.parts), fuel: copyBand(row.fuel) };
 }
 
 function copyHull(row: HullDef): HullDef {

@@ -154,6 +154,45 @@ describe("pack document", () => {
     assert.match(xml.slice(xml.indexOf('name="aside"')), /intro="after"/);
   });
 
+  it("round-trips offer rows and drops a row that is missing a band", () => {
+    const events = [
+      {
+        id: "trade",
+        dest: "Trade",
+        flag: "cited:trade",
+        aliases: [],
+        sectors: [],
+        body: "Deal.",
+        offers: [
+          { k: "trade" as const, pay: "parts" as const, cost: [1, 2] as [number, number], get: "fuel" as const, gain: [5, 10] as [number, number] },
+          { k: "fuel" as const, band: "high" as const, fuel: [0, 0] as [number, number], pay: "scrap" as const, amt: [15, 25] as [number, number] },
+          { k: "lanius" as const, band: "better" as const, res: "missiles" as const, cost: [3, 7] as [number, number], scrap: [25, 50] as [number, number] },
+          { k: "supply" as const, missiles: [3, 5] as [number, number], parts: [0, 2] as [number, number], fuel: [0, 0] as [number, number] },
+        ],
+        choices: [{ id: "c:trade:0", label: "Take", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /k="fuel"[^>]*fuel="0-0"/);
+    assert.match(xml, /k="supply"[^>]*fuel="0-0"/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <offer k="trade" pay="parts" cost="1-2" get="fuel"/>
+        <offer k="nope" pay="parts" cost="1-2" get="fuel" gain="1-1"/>
+        <offer k="fuel" fuel="2-4" pay="parts" amt="1-2"/>
+        <choice name="c:broken:0">
+          <text>Nested</text>
+          <offer k="trade" pay="fuel" cost="1-1" get="missiles" gain="4-4"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.offers, undefined);
+    assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

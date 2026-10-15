@@ -13,6 +13,29 @@
       "outputs": ["public/parity.json"],
       "inputs": ["src/**", "../../apps/game/src/**", "../../packages/wiki-dump/**"]
     },
+    "@stl/campaign#generate": {
+      "outputs": ["base.xml"],
+      "inputs": [
+        "package.json",
+        "src/xml.ts",
+        "src/generate.ts",
+        "../../apps/game/src/game/**/*.ts",
+        "!../../apps/game/src/game/**/*.test.ts",
+        "../../packages/pack/src/**",
+        "../../packages/pack/package.json"
+      ]
+    },
+    "@stl/campaign#test": {
+      "inputs": [
+        "package.json",
+        "src/**",
+        "base.xml",
+        "../../apps/game/src/game/**/*.ts",
+        "!../../apps/game/src/game/**/*.test.ts",
+        "../../packages/pack/src/**",
+        "../../packages/pack/package.json"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true

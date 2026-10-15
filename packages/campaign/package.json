@@ -1,0 +1,22 @@
+{
+  "name": "@stl/campaign",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/xml.ts",
+    "./base.xml": "./base.xml"
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types src/generate.ts",
+    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && ./node_modules/.bin/eslint packages/campaign"
+  },
+  "dependencies": {
+    "@stl/pack": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.7.0"
+  }
+}

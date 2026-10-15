@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, and sector records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, and store records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
   System tags are the listing id, title, store cost, and install slot.
   Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
+  Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
@@ -3238,4 +3239,62 @@
     <note>The beacon list gives 1 store and 3 repair stations.</note>
     <note>Crew bought or received as a reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
+  <storeBlueprint name="standard">
+    <title>Store</title>
+    <slot>3</slot>
+    <weapons>2</weapons>
+    <section>weapons</section>
+    <section>drones</section>
+    <section>augments</section>
+    <section>crew</section>
+    <section>systems</section>
+    <stock id="fuel" kind="fuel" min="3" max="7">
+      <title>Fuel</title>
+      <cost>3</cost>
+    </stock>
+    <stock id="missiles" kind="missiles" min="2" max="6">
+      <title>Missiles</title>
+      <cost>6</cost>
+    </stock>
+    <stock id="parts" kind="parts" min="2" max="4">
+      <title>Drone parts</title>
+      <cost>8</cost>
+    </stock>
+    <stock id="repair" kind="repair" min="5" max="5">
+      <title>Hull patch +5</title>
+      <cost>0</cost>
+    </stock>
+    <stock id="plain" kind="crew" min="1" max="1">
+      <title>Human</title>
+      <cost>45</cost>
+    </stock>
+    <stock id="shell" kind="crew" min="1" max="1">
+      <title>Engi</title>
+      <cost>50</cost>
+    </stock>
+    <stock id="blade" kind="crew" min="1" max="1">
+      <title>Mantis</title>
+      <cost>55</cost>
+    </stock>
+    <stock id="stone" kind="crew" min="1" max="1">
+      <title>Rock</title>
+      <cost>55</cost>
+    </stock>
+    <stock id="spark" kind="crew" min="1" max="1">
+      <title>Zoltan</title>
+      <cost>60</cost>
+    </stock>
+    <stock id="gel" kind="crew" min="1" max="1">
+      <title>Slug</title>
+      <cost>45</cost>
+    </stock>
+    <stock id="shard" kind="crew" min="1" max="1">
+      <title>Crystal</title>
+      <cost>60</cost>
+    </stock>
+    <stock id="voidlung" kind="crew" min="1" max="1">
+      <title>Lanius</title>
+      <cost>50</cost>
+    </stock>
+  </storeBlueprint>
 </FTL>

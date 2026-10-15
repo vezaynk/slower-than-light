@@ -1,6 +1,5 @@
 import { tx } from "../../i18n/index.ts";
-import { KIN, type KinId } from "../extras/kin.ts";
-import { allAugments, allDrones, allSystems, augmentDef, droneDef, systemDef, weaponDef } from "../pack/registry.ts";
+import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, weaponDef } from "../pack/registry.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -8,9 +7,9 @@ import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
- * Fuel, missiles, drone parts, and hull repair stay in rollStock.
+ * Fuel, missiles, drone parts, hull repair, and crew hires are lines on the store record.
  * rollStock fills the weapons section when storeSections rolls one. This module does not add a second one.
- * xftl doc/stores, "Resources": fuel 3–7, missiles 2–6, drone parts 2–4. rollStock rolls those ranges.
+ * xftl doc/stores, "Resources": fuel 3–7, missiles 2–6, drone parts 2–4. The store record holds those ranges.
  *
  * The ten single-price systems live in system-catalog.ts and load through the pack.
  * Drone Control is a bundle, not a row of that list: 75 with a System Repair Drone,
@@ -54,8 +53,6 @@ const SWARM_SORT = 6.5;
 
 // Augmentations, the paragraph above "Offensive Augmentations": up to three augmentations.
 const AUGMENT_CAP = 3;
-// Stores and resources, "Stores assortment": each slot contains 3 items.
-const SLOT = 3;
 // Crew, and Ship: a ship holds 8. A ninth forces a dismissal, which this store does not do.
 const CREW_CAP = 8;
 
@@ -69,18 +66,6 @@ export const NOT_SOLD: ReadonlySet<string> = new Set(["keel", "casing"]);
  * Store rarity on those rows is not used. This list is the allowed set.
  */
 export const CRYSTAL_SECTOR_WEAPONS = ["crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2", "lockdown"] as const;
-
-// Template:Crew races (comparison). Store cost column, table order.
-const CREW: readonly { ref: KinId; cost: number }[] = [
-  { ref: "plain", cost: 45 },
-  { ref: "shell", cost: 50 },
-  { ref: "blade", cost: 55 },
-  { ref: "stone", cost: 55 },
-  { ref: "spark", cost: 60 },
-  { ref: "gel", cost: 45 },
-  { ref: "shard", cost: 60 },
-  { ref: "voidlung", cost: 50 },
-];
 
 /** Authored schematic list. The store reads the loaded copy. Fire Drone, Shield Overcharger +, and Drone Control stay off it. */
 export { CITED_DRONES } from "./drone-catalog.ts";
@@ -192,19 +177,24 @@ function installedSystems(g: Game): number {
  * - "If you don't have a drones system and the store does not contain a systems section, any drones section found
  *   will be replaced with" the first of weapons, augments, crew, system not already in the store.
  */
-export function storeSections(g: Game): StoreSection[] {
+function isSection(kind: string): kind is StoreSection {
+  return (SECTION_KINDS as readonly string[]).includes(kind);
+}
+
+export function storeSections(g: Game, storeId = "standard"): StoreSection[] {
+  const kinds = (storeDef(storeId)?.sections ?? []).filter(isSection);
   const roll = storeRoll(g, 0);
   const count = 2 + Math.floor(roll() * 3);
   const out: StoreSection[] = [];
   const coin = roll() < 0.5;
-  if (coin && installedSystems(g) < 11) out.push("systems");
-  while (out.length < count) {
-    const pick = SECTION_KINDS[Math.floor(roll() * SECTION_KINDS.length)];
-    if (!out.includes(pick)) out.push(pick);
+  if (coin && installedSystems(g) < 11 && kinds.includes("systems")) out.push("systems");
+  while (out.length < count && out.length < kinds.length) {
+    const pick = kinds[Math.floor(roll() * kinds.length)];
+    if (pick && !out.includes(pick)) out.push(pick);
   }
   if (!hasSwarm(g) && !out.includes("systems")) {
     const at = out.indexOf("drones");
-    const swap = DRONE_STAND_INS.find((kind) => !out.includes(kind));
+    const swap = DRONE_STAND_INS.find((kind) => kinds.includes(kind) && !out.includes(kind));
     if (at >= 0 && swap) out[at] = swap;
   }
   return out;
@@ -221,7 +211,7 @@ export function storeSections(g: Game): StoreSection[] {
  *   outranks xftl's "Clonebay in AE". INFERRED: that medical system is the Medbay or the Clone Bay, an even roll.
  * - "The rest are randomly selected systems that you don't have, without any duplicates."
  */
-function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
+function systemItems(g: Game, sections: readonly StoreSection[], slot: number): StockItem[] {
   const bundle = swarmBundle(g);
   const swarmRow: Offer = { slot: "kit", ref: "swarm", name: tx("wiki.cited-stores.drone-control"), cost: bundle.cost };
   const catalog = catalogOffers();
@@ -230,7 +220,7 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   const medical = (row: Offer) => row.ref === "medbay" || row.ref === "cradle";
   const pool = missing.filter((row) => !medical(row) || !missingMedical(g));
   if (!drones && !hasSwarm(g)) pool.push(swarmRow);
-  const count = Math.min(SLOT, pool.length);
+  const count = Math.min(slot, pool.length);
   const picked: Offer[] = [];
   if (drones && !hasSwarm(g)) picked.push(swarmRow);
   if (missingShields(g)) {
@@ -262,7 +252,7 @@ function systemItems(g: Game, sections: readonly StoreSection[]): StockItem[] {
   }));
 }
 
-export function droneItems(g: Game): StockItem[] {
+export function droneItems(g: Game, slot = storeDef("standard")?.slot ?? 3): StockItem[] {
   // Stores and resources, "Stores assortment": a drone slot holds three schematics.
   // The slot does not require Drone Control. Buying one still needs that system and a free slot.
   // Fire Drone and Shield Overcharger + are not in the catalog.
@@ -272,7 +262,7 @@ export function droneItems(g: Game): StockItem[] {
   // INFERRED: rarity is named and the likelihood formula is not in the dump.
   // g.seed picks the start of a window of three. The seed is not advanced.
   const start = ((g.seed % n) + n) % n;
-  return Array.from({ length: Math.min(SLOT, n) }, (_, i) => rows[(start + i) % n]).map((row) => ({
+  return Array.from({ length: Math.min(slot, n) }, (_, i) => rows[(start + i) % n]).map((row) => ({
     id: `drone-${row.id}`,
     kind: "drone" as const,
     ref: row.id,
@@ -283,12 +273,12 @@ export function droneItems(g: Game): StockItem[] {
   }));
 }
 
-export function augmentItems(g: Game): StockItem[] {
+export function augmentItems(g: Game, slot = storeDef("standard")?.slot ?? 3): StockItem[] {
   const have = g.augments ?? [];
   const free = AUGMENT_CAP - have.length;
   if (free <= 0) return [];
   const pool = allAugments().filter((row) => !NOT_SOLD.has(row.id) && !have.includes(row.id));
-  return pool.slice(0, Math.min(SLOT, free)).map((row) => ({
+  return pool.slice(0, Math.min(slot, free)).map((row) => ({
     id: `aug-${row.id}`,
     kind: "augment" as const,
     ref: row.id,
@@ -299,25 +289,30 @@ export function augmentItems(g: Game): StockItem[] {
   }));
 }
 
-function crewItems(g: Game): StockItem[] {
+function crewItems(g: Game, storeId: string, slot: number): StockItem[] {
   // Crew: "If the player wishes to replace a crewmember at a store or a hiring station while being at full crew count,
   // the game will require to relieve one of the existing crewmembers before purchase/hire." So a full crew still sees
   // the section; the store asks who leaves first (StoreBoard), and grantCrew keeps the cap of 8.
   // Sectors, "Hidden Crystal Worlds", "Crewmembers": only Crystal crew can be purchased.
-  // Not a random draw. The run RNG is left alone. First rows of the comparison table that still fit.
-  const rows = g.sectorName === "Hidden Crystal Worlds" ? CREW.filter((row) => row.ref === "shard") : CREW;
-  return rows.slice(0, SLOT).map((row) => {
-    const kin = KIN[row.ref];
+  // Not a random draw. The run RNG is left alone. First hire lines that still fit.
+  const rows = (storeDef(storeId)?.lines ?? []).filter((row) => row.kind === "crew");
+  const list = g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "shard") : rows;
+  return list.slice(0, slot).map((row) => {
+    const hp = crewHp(row.id);
     return {
-      id: `crew-${row.ref}`,
+      id: `crew-${row.id}`,
       kind: "crew" as const,
-      ref: row.ref,
-      name: kin.name,
-      detail: tx("wiki.cited-stores.template-crew-races-comparison-costs-health", { name: kin.name, cost: row.cost, hp: kin.hp }),
+      ref: row.id,
+      name: row.name,
+      detail: tx("wiki.cited-stores.template-crew-races-comparison-costs-health", { name: row.name, cost: row.cost, hp }),
       cost: row.cost,
       amount: 1,
     };
   });
+}
+
+function crewHp(id: string): number {
+  return allCrew().find((row) => row.id === id)?.hp ?? 100;
 }
 
 /**
@@ -325,13 +320,14 @@ function crewItems(g: Game): StockItem[] {
  * INFERRED: a section with nothing left to sell (a full crew, three augments) shows nothing. The notes do not say
  * whether the game rerolls it.
  */
-export function citedStock(g: Game): StockItem[] {
-  const sections = storeSections(g);
+export function citedStock(g: Game, storeId = "standard"): StockItem[] {
+  const slot = storeDef(storeId)?.slot ?? 3;
+  const sections = storeSections(g, storeId);
   const built: Record<Exclude<StoreSection, "weapons">, () => StockItem[]> = {
-    systems: () => systemItems(g, sections),
-    drones: () => droneItems(g),
-    augments: () => augmentItems(g),
-    crew: () => crewItems(g),
+    systems: () => systemItems(g, sections, slot),
+    drones: () => droneItems(g, slot),
+    augments: () => augmentItems(g, slot),
+    crew: () => crewItems(g, storeId, slot),
   };
   return sections.flatMap((kind) => (kind === "weapons" ? [] : built[kind]()));
 }
@@ -469,27 +465,26 @@ export function fieldDroneSchematic(g: Game, ref: string): boolean {
 }
 
 function grantCrew(g: Game, item: StockItem): boolean {
-  const row = CREW.find((entry) => entry.ref === item.ref);
-  if (!row) return false;
+  const race = allCrew().find((row) => row.id === item.ref);
+  if (!race) return false;
   const aboard = g.crew.filter((c) => c.side === "player");
   if (aboard.length >= CREW_CAP) return false;
-  const kin = KIN[row.ref];
   const room = g.player.rooms.find((r) => r.system === "medbay") ?? g.player.rooms[0];
   if (!room) return false;
   g.uid = (g.uid + 1) >>> 0;
   g.crew.push({
     id: "u" + g.uid.toString(36),
-    name: kin.name,
+    name: race.name,
     side: "player",
     aboard: "player",
-    hp: kin.hp,
-    maxHp: kin.hp,
+    hp: race.hp,
+    maxHp: race.hp,
     room: room.id,
     path: [],
     move: 0,
     think: 0,
     tone: g.crew.length % 3,
-    kin: row.ref,
+    kin: race.id,
   });
   return true;
 }

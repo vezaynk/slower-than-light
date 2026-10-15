@@ -4,9 +4,10 @@ import { CATALOG } from "../extras/augment-catalog.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { HULLS } from "../hulls.ts";
 import { SECTOR_TYPES } from "../wiki/sectors.ts";
+import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
-import { allAugments, allDrones, allHulls, allSectors, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, systemDef, weaponDef } from "./registry.ts";
+import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, weaponDef } from "./registry.ts";
 import type { HullDef } from "./types.ts";
 import type { CrewDef, WeaponBlueprint } from "./types.ts";
 
@@ -212,6 +213,51 @@ describe("content pack", () => {
     resetPackForTests();
     assert.equal(sectorDef("spark"), undefined);
     assert.equal(sectorDef("civilian-start")?.name, campaign?.name);
+  });
+
+  it("loads the store catalog in its authored order", () => {
+    assert.deepEqual(
+      allStores().map((row) => row.id),
+      STORES.map((row) => row.id),
+    );
+    const standard = STORES.find((row) => row.id === "standard");
+    assert.equal(storeDef("standard")?.name, standard?.name);
+    assert.equal(storeDef("standard")?.slot, standard?.slot);
+    assert.deepEqual(storeDef("standard")?.sections, standard?.sections);
+    assert.deepEqual(storeDef("standard")?.lines, standard?.lines);
+  });
+
+  it("keeps a store id apart from a race, a weapon, an augment, a drone, a system, a hull, and a sector", () => {
+    loadPack(
+      {
+        stores: [
+          {
+            id: "spark",
+            name: "Not the laser",
+            slot: 1,
+            weapons: 0,
+            sections: ["relics"],
+            lines: [{ id: "fuel", kind: "fuel", name: "Ember Fuel", cost: 4, min: 1, max: 1 }],
+          },
+        ],
+      },
+      "append",
+    );
+    assert.equal(storeDef("spark")?.name, "Not the laser");
+    assert.deepEqual(storeDef("spark")?.sections, ["relics"]);
+    assert.equal(crewDef("spark").name, "Zoltan");
+    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(augmentDef("spark"), undefined);
+    assert.equal(droneDef("spark"), undefined);
+    assert.equal(systemDef("spark"), undefined);
+    assert.equal(hullDef("spark"), undefined);
+    assert.equal(sectorDef("spark"), undefined);
+    assert.equal(allStores().at(-1)?.id, "spark");
+    const campaign = STORES.find((row) => row.id === "standard");
+    resetPackForTests();
+    assert.equal(storeDef("spark"), undefined);
+    assert.equal(storeDef("standard")?.name, campaign?.name);
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.cost, 3);
   });
 
   it("appends over an id and reset restores the campaign row", () => {

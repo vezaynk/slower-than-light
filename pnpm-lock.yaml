@@ -288,6 +288,18 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/ftldat:
+    devDependencies:
+      '@stl/pack':
+        specifier: workspace:*
+        version: link:../pack
+      '@types/node':
+        specifier: ^22.16.5
+        version: 22.20.5
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
   packages/pack:
     dependencies:
       '@xmldom/xmldom':

@@ -12,7 +12,7 @@ import type {
   CrewDef,
   DroneDef,
   EmptyBeaconDef,
-  EventBribe,
+  EventPrice,
   EventGrade,
   GradePay,
   EventCard,
@@ -542,7 +542,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const offers: OfferRow[] = [];
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
-  let bribe: EventBribe | undefined;
+  const prices: EventPrice[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
@@ -560,8 +560,12 @@ function readEvent(node: XmlElement): EventDef | undefined {
       if (roll) rolls.push(roll);
       continue;
     }
+    if (item.tagName === "price") {
+      keepPrice(prices, readPrice(item));
+      continue;
+    }
     if (item.tagName === "bribe") {
-      bribe ??= readBribe(item);
+      keepPrice(prices, readBribe(item));
       continue;
     }
     if (item.tagName === "grade") {
@@ -616,7 +620,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
-  if (bribe) event.bribe = bribe;
+  if (prices.length > 0) event.prices = prices;
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
@@ -806,13 +810,30 @@ function readPay(node: XmlElement): GradePay | undefined {
   return { k, lo, hi };
 }
 
-/** The first scrap bribe. An unknown kind, a bad number, or a backwards band is skipped. */
-function readBribe(node: XmlElement): EventBribe | undefined {
+/** The first valid price for an id. A blank id, an unknown kind, or a backwards band is skipped. */
+function keepPrice(prices: EventPrice[], price: EventPrice | undefined) {
+  if (!price || prices.some((row) => row.id === price.id)) return;
+  prices.push(price);
+}
+
+function readPrice(node: XmlElement): EventPrice | undefined {
+  const id = attr(node, "id")?.trim();
+  return id ? readBand(node, id) : undefined;
+}
+
+/** A bribe tag is the scrap price named bribe. */
+function readBribe(node: XmlElement): EventPrice | undefined {
   if (attr(node, "k")?.trim() !== "scrap") return undefined;
+  return readBand(node, "bribe");
+}
+
+function readBand(node: XmlElement, id: string): EventPrice | undefined {
+  const k = attr(node, "k")?.trim();
+  if (k !== "scrap" && k !== "fuel") return undefined;
   const lo = intAttr(node, "lo");
   const hi = intAttr(node, "hi");
   if (lo == null || hi == null || lo > hi) return undefined;
-  return { k: "scrap", lo, hi };
+  return { id, k, lo, hi };
 }
 
 /** The first fuel gift. An unknown kind, a bad number, or a backwards band is skipped. */

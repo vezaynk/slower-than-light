@@ -40,7 +40,7 @@ import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { QUEST_LOCKS } from "./choice-reqs.ts";
-import { bribeBand } from "./event-bribes.ts";
+import { priced, rollPrice } from "./event-prices.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
@@ -3105,12 +3105,14 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     // > "The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price." — [[Rock and Slug standoff#Slug reward]]
     // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
     // > "Decline the offer." — [[Rock and Slug standoff#Slug reward]]
-    const n = between(g, [10, 15]);
+    const n = rollPrice("rock-and-slug-standoff", "upgrade", (lo, hi) => between(g, [lo, hi]));
     const tail = extras.length ? ` ${extras.join(" ")}` : "";
-    card(g, tx("wiki.quests.the-slug-captain-thankful-for-your", { lead: lead, tail: tail }), [
-      { id: `s:rock-slug:upgrade:${n}`, label: tx("wiki.quests.agree-to-the-price-scrap", { n: n }) },
-      { id: "s:rock-slug:decline", label: tx("wiki.quests.decline-the-offer") },
-    ]);
+    const choices = [];
+    if (n != null) {
+      choices.push({ id: `s:rock-slug:upgrade:${n}`, label: tx("wiki.quests.agree-to-the-price-scrap", { n: n }) });
+    }
+    choices.push({ id: "s:rock-slug:decline", label: tx("wiki.quests.decline-the-offer") });
+    card(g, tx("wiki.quests.the-slug-captain-thankful-for-your", { lead: lead, tail: tail }), choices);
     return;
   }
   // Wiki citations:
@@ -3121,7 +3123,7 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
 
 /** Transaction 10-15 subtract_scrap. The amount is the one shown on the choice. */
 export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boolean {
-  if (!Number.isInteger(n) || n < 10 || n > 15 || g.scrap < n) return true;
+  if (!priced("rock-and-slug-standoff", kind, n, "scrap") || g.scrap < n) return true;
   g.scrap -= n;
   log(g, tx("wiki.quests.scrap-3", { n: n }));
   if (kind === "debt") {
@@ -3421,8 +3423,7 @@ const REBEL_CHECKPOINT_BRIBE = [
 
 /** Rebel checkpoint. The packed scrap band. The four texts have no odds. INFERRED: equal. Then the civilians. */
 function rebelCheckpointBribe(g: Game, n: number) {
-  const band = bribeBand("rebel-checkpoint");
-  if (!band || !Number.isInteger(n) || n < band[0] || n > band[1] || g.scrap < n) return;
+  if (!priced("rebel-checkpoint", "bribe", n, "scrap") || g.scrap < n) return;
   g.scrap -= n;
   log(g, tx("wiki.quests.scrap-3", { n: n }));
   const text = pick(g, REBEL_CHECKPOINT_BRIBE);

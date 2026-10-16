@@ -23,7 +23,9 @@
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A bribe tag is the scrap band rolled onto that button when the card opens. A fixed bribe does not roll.
+  A price tag is a band rolled onto a button when that card opens. The id names the button.
+  A fixed price does not roll. The handler still reads the amount from the choice id.
+  A bribe tag is the scrap price named bribe.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
@@ -4358,7 +4360,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <roll k="label">Shut down all non-vital systems and stay hidden.</roll>
     <roll k="label">Stay quiet and hope they don't notice you.</roll>
     <roll k="label">Stay out of their way and charge your FTL drive.</roll>
-    <bribe k="scrap" lo="10" hi="15"/>
+    <price id="bribe" k="scrap" lo="10" hi="15"/>
     <choice name="c:rebel-checkpoint:0">
       <text>Fend for yourself, attack, and escape</text>
       <effect k="fight" tier="Rebel ship"/>
@@ -6387,6 +6389,8 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
     <text>You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand.</text>
+    <price id="debt" k="scrap" lo="10" hi="15"/>
+    <price id="upgrade" k="scrap" lo="10" hi="15"/>
     <choice name="c:rock-and-slug-standoff:0">
       <text>Hail them to see what's wrong.</text>
       <effect k="note">Pay the debt, demand payment, or leave.</effect>
@@ -6949,6 +6953,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: drifting debris</title>
     <alias>No fuel: drifting debris</alias>
     <text></text>
+    <price id="ransom" k="scrap" lo="25" hi="40"/>
     <choice name="c:no-fuel-drifting-debris:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -8342,6 +8347,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>You receive a hail from a station orbiting a nearby planet. "Captain, we are Federation Terraforming Team C12 and are in need of assistance. Do you have some time?"</text>
+    <price id="scan" k="scrap" lo="15" hi="25"/>
     <choice name="c:terraforming-scan:0">
       <text>You offer your assistance.</text>
       <effect k="note">They ask for a scan.</effect>
@@ -8447,6 +8453,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>"Greetings! It is so good to see you! We've been out of fuel and floating out here for weeks. We were terrified a pirate or those damn Rebels would find us first. Could you spare some fuel?"</text>
+    <price id="give" k="fuel" lo="2" hi="4"/>
     <choice name="c:friendly-ship-out-of-fuel:0">
       <text>Give them the fuel.</text>
       <effect k="res" id="fuel" sign="-1" lo="2" hi="4"/>

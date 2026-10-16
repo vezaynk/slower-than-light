@@ -345,11 +345,11 @@ export type SurrenderOfferDef = {
 };
 
 /**
- * Scrap rolled onto the bribe button when the card opens.
- * A fixed band has the same ends and does not roll.
+ * A band rolled onto a button when the card opens.
+ * `id` names the button. A fixed band has the same ends and does not roll.
  * The handler still reads the amount from the choice id.
  */
-export type EventBribe = { k: "scrap"; lo: number; hi: number };
+export type EventPrice = { id: string; k: "scrap" | "fuel"; lo: number; hi: number };
 
 /** One payment taken when the picked count does not match. A fixed band does not roll. */
 export type GradePay = { k: "scrap" | "fuel" | "parts"; lo: number; hi: number };
@@ -387,11 +387,11 @@ export type EventDef = {
    */
   rolls?: RollEntry[];
   /**
-   * Scrap rolled onto the bribe button when the card opens.
+   * Bands rolled onto buttons when the card opens.
    * A fixed band has the same ends and does not roll.
    * The handler still reads the amount from the choice id.
    */
-  bribe?: EventBribe;
+  prices?: EventPrice[];
   /**
    * A match hires this crew. A miss pays these bands, in order.
    * A fixed band does not roll.

@@ -29,6 +29,7 @@ import {
 import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
+import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
@@ -252,15 +253,13 @@ function emptyCard(g: Game, page: EmptyBeaconDef): GameEvent {
 
 /** Friendly ship out of fuel: "the requested amount of fuel is shown before you make the choice". */
 function friendlyCard(g: Game, page: Page): GameEvent {
-  const n = between(g, [2, 4]);
-  return {
-    title: page.dest,
-    body: page.body,
-    choices: [
-      { id: `s:friendly-ship-out-of-fuel:give:${n}`, label: tx("wiki.filler-events.give-them-the-fuel-fuel", { n: n }) },
-      { id: page.choices[1].id, label: page.choices[1].label },
-    ],
-  };
+  const n = rollPrice("friendly-ship-out-of-fuel", "give", (lo, hi) => between(g, [lo, hi]));
+  const choices = [];
+  if (n != null) {
+    choices.push({ id: `s:friendly-ship-out-of-fuel:give:${n}`, label: tx("wiki.filler-events.give-them-the-fuel-fuel", { n: n }) });
+  }
+  choices.push({ id: page.choices[1].id, label: page.choices[1].label });
+  return { title: page.dest, body: page.body, choices };
 }
 
 type TradeId = "oxygen" | "pilot" | "doors" | "sensors" | "reactor";
@@ -1625,12 +1624,16 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     // > "Demand the Rock ship pay the agreed upon price." — [[Rock and Slug standoff]]
     // > "You have better things to attend to, leave them." — [[Rock and Slug standoff]]
-    const debt = between(g, [10, 15]);
-    card(g, tx("wiki.filler-events.the-slug-captain-explains-that-they"), [
-      { id: `s:rock-slug:debt:${debt}`, label: tx("wiki.filler-events.offer-to-pay-off-the-rock", { debt: debt }) },
+    const debt = rollPrice("rock-and-slug-standoff", "debt", (lo, hi) => between(g, [lo, hi]));
+    const choices = [];
+    if (debt != null) {
+      choices.push({ id: `s:rock-slug:debt:${debt}`, label: tx("wiki.filler-events.offer-to-pay-off-the-rock", { debt: debt }) });
+    }
+    choices.push(
       { id: "s:rock-slug:demand", label: tx("wiki.filler-events.demand-the-rock-ship-pay-the") },
       { id: "s:rock-slug:leave", label: tx("wiki.filler-events.you-have-better-things-to-attend") },
-    ]);
+    );
+    card(g, tx("wiki.filler-events.the-slug-captain-explains-that-they"), choices);
   },
   "c:rock-and-slug-standoff:1": (g) => {
     // Wiki citations:
@@ -2115,12 +2118,16 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
   "s:terraforming-scan:stop": (g) => {
     // "[ the actual trade offer is shown prior to making the choice ]": 15-25 scrap either way.
-    const n = between(g, [15, 25]);
-    card(g, tx("wiki.filler-events.but-our-livelihood-depends-on-this"), [
-      { id: `s:terraforming-scan:bribe:${n}`, label: tx("wiki.filler-events.accept-the-bribe-and-leave-scrap", { n: n }) },
-      { id: `s:terraforming-scan:pay:${n}`, label: tx("wiki.filler-events.offer-to-pay-them-to-at", { n: n }) },
-      { id: "s:terraforming-scan:demand", label: tx("wiki.filler-events.power-your-weapons-and-demand-they") },
-    ]);
+    const n = rollPrice("terraforming-scan", "scan", (lo, hi) => between(g, [lo, hi]));
+    const choices = [];
+    if (n != null) {
+      choices.push(
+        { id: `s:terraforming-scan:bribe:${n}`, label: tx("wiki.filler-events.accept-the-bribe-and-leave-scrap", { n: n }) },
+        { id: `s:terraforming-scan:pay:${n}`, label: tx("wiki.filler-events.offer-to-pay-them-to-at", { n: n }) },
+      );
+    }
+    choices.push({ id: "s:terraforming-scan:demand", label: tx("wiki.filler-events.power-your-weapons-and-demand-they") });
+    card(g, tx("wiki.filler-events.but-our-livelihood-depends-on-this"), choices);
   },
   "s:terraforming-scan:demand": (g) => show(g, tx("wiki.filler-events.they-shut-off-communications-but-you")),
   "s:terraforming-scan:leave": done,
@@ -2623,7 +2630,7 @@ function chooseRolled(g: Game, id: string): boolean {
   let m = id.match(/^s:friendly-ship-out-of-fuel:give:(\d+)$/);
   if (m) {
     const n = Number(m[1]);
-    if (g.fuel < n) return true;
+    if (!priced("friendly-ship-out-of-fuel", "give", n, "fuel") || g.fuel < n) return true;
     g.fuel -= n;
     log(g, tx("wiki.filler-events.fuel-2", { n: n }));
     const r = weighted(g, [["scrap", 2], ["weapon", 1], ["map", 1], ["reactor", 1]] as const);
@@ -2702,6 +2709,7 @@ function chooseRolled(g: Game, id: string): boolean {
   m = id.match(/^s:terraforming-scan:(bribe|pay):(\d+)$/);
   if (m) {
     const n = Number(m[2]);
+    if (!priced("terraforming-scan", "scan", n, "scrap")) return true;
     if (m[1] === "bribe") {
       // "You receive 15-25 add_scrap": the amount shown on the choice.
       show(g, tx("wiki.filler-events.you-accept-the-bribe-and-leave"), { tier: "low", scrap: adjustScrap(g, n), eligible: n, fuel: 0, missiles: 0, parts: 0 });

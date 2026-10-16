@@ -1419,19 +1419,20 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, tx("wiki.filler-events.your-mission-is-to-save-the"), undefined, [tx("wiki.filler-events.nothing-happens")]);
   },
 
-  // Slocknog. Hire costs 55 scrap. The page says the skills are shown and prints no numbers, so none are stored.
+  // Slocknog. The hire spends the packed scrap count. The page says the skills are shown and prints no numbers, so none are stored.
   // "when you arrive there will be a nebula environment" stays unwired: there is no separate per-fight nebula here.
   "c:slocknog:0": (g) => {
     // Wiki citations:
     // > "Hire Slocknog." — [[Slocknog]]
     // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
     // > "Scrap lost: 55" — [[Slocknog]]
-    if (g.scrap < 55) return;
+    const cost = scrapStock("c:slocknog:0");
+    if (cost == null || g.scrap < cost) return;
     // Crew: at full crew a hire relieves someone already aboard (make-room.ts keepNewHire).
     joinCrew(g, tx("wiki.filler-events.slug"), tx("wiki.filler-events.slocknog"));
     keepNewHire(g);
-    g.scrap -= 55;
-    show(g, tx("wiki.filler-events.you-receive-a-slug-crewmember-named"), undefined, [tx("wiki.filler-events.scrap-55")]);
+    g.scrap -= cost;
+    show(g, tx("wiki.filler-events.you-receive-a-slug-crewmember-named"), undefined, [tx("wiki.filler-events.scrap-2", { n: cost })]);
   },
   "c:slocknog:1": (g) => {
     // Wiki citations:

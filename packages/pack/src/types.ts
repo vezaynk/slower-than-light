@@ -359,6 +359,19 @@ export type SurrenderOfferDef = {
 export type EventPrice = { id: string; k: "scrap" | "fuel"; lo: number; hi: number };
 
 /**
+ * A printed range the handler rolls at its existing call site.
+ * A fixed band has the same ends and does not roll.
+ * A missing band pays or grants nothing and does not roll.
+ * An upgrade row is the same id with a scrap band and a level band.
+ */
+export type EventBand = {
+  id: string;
+  k: "scrap" | "fuel" | "missiles" | "parts" | "level";
+  lo: number;
+  hi: number;
+};
+
+/**
  * One scrap band for a specialty at the level already owned.
  * A row with no level applies whenever the code still offers that specialty.
  * A fixed band does not roll. The handler still reads the amount from the choice id.
@@ -406,6 +419,12 @@ export type EventDef = {
    * The handler still reads the amount from the choice id.
    */
   prices?: EventPrice[];
+  /**
+   * Printed ranges the handler rolls at its existing call site.
+   * A fixed band does not roll. A missing band pays or grants nothing and does not roll.
+   * An upgrade row is the same id with a scrap band and a level band.
+   */
+  bands?: EventBand[];
   /**
    * Scrap bands for a specialty at the level already owned.
    * The sim still picks one specialty the ship can buy, then rolls that band.

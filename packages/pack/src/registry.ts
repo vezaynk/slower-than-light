@@ -210,6 +210,26 @@ function copyEvent(row: EventDef): EventDef {
     prices.push({ id, k: price.k, lo: price.lo, hi: price.hi });
   }
   if (prices.length > 0) copy.prices = prices;
+  const bands: EventDef["bands"] = [];
+  const bandSeen = new Set<string>();
+  for (const band of row.bands ?? []) {
+    const id = band.id.trim();
+    const kind = band.k;
+    if (
+      !id ||
+      (kind !== "scrap" && kind !== "fuel" && kind !== "missiles" && kind !== "parts" && kind !== "level") ||
+      !Number.isInteger(band.lo) ||
+      !Number.isInteger(band.hi) ||
+      band.lo > band.hi
+    ) {
+      continue;
+    }
+    const key = `${id}:${kind}`;
+    if (bandSeen.has(key)) continue;
+    bandSeen.add(key);
+    bands.push({ id, k: kind, lo: band.lo, hi: band.hi });
+  }
+  if (bands.length > 0) copy.bands = bands;
   const trades: EventDef["trades"] = [];
   const tradeSeen = new Set<string>();
   for (const step of row.trades ?? []) {

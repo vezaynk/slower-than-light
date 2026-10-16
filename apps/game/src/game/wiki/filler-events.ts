@@ -36,6 +36,7 @@ import {
 import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
+import { rollBand } from "./event-bands.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
@@ -837,12 +838,12 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
         note ? [note] : [],
       );
     } else {
-      const base = between(g, [15, 25]);
+      const base = rollBand("asteroid-mining-colony", "thanks", "scrap", (lo, hi) => between(g, [lo, hi]));
       show(
         g,
         "They thank you for your generosity and offer some scrap in exchange.",
         undefined,
-        payMiners(g, base, 0),
+        base == null ? [] : payMiners(g, base, 0),
       );
     }
     return;
@@ -871,12 +872,12 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
       [grantRandomItem(g, "augment")],
     );
   } else {
-    const base = between(g, [30, 40]);
+    const base = rollBand("asteroid-mining-colony", "wow", "scrap", (lo, hi) => between(g, [lo, hi]));
     show(
       g,
       '"Wow. This will help our efforts considerably. Let me see what I can scrounge up to offer you." They deliver some scrap and have their team try to repair part of your hull.',
       undefined,
-      payMiners(g, base, 5),
+      base == null ? [] : payMiners(g, base, 5),
     );
   }
 }

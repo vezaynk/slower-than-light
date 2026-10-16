@@ -24,6 +24,7 @@ import { crewDef } from "@stl/pack";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { rollBand } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import {
@@ -133,9 +134,10 @@ function fuelAndScrap(g: Game, tier: "medium" | "high"): SurrenderOffer {
   return offer;
 }
 
-/** {{Transaction|lo-hi|add_scrap}}: a fixed range, not a tier. */
-function fixedScrap(g: Game, lo: number, hi: number): SurrenderOffer {
-  const eligible = between(g, [lo, hi]);
+/** {{Transaction|lo-hi|add_scrap}}: the packed range, not a tier. A missing band grants nothing. */
+function printedScrap(g: Game, id: string): SurrenderOffer | undefined {
+  const eligible = rollBand("merchant-s-request", id, "scrap", (lo, hi) => between(g, [lo, hi]));
+  if (eligible == null) return undefined;
   return { tier: "low", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0 };
 }
 
@@ -1047,7 +1049,7 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
       const parts = payParts(g, "q:merchant:paltry");
       if (!parts) return;
-      result(g, "You drop the parts off and take your pay.", fixedScrap(g, 20, 30), [parts]);
+      result(g, "You drop the parts off and take your pay.", printedScrap(g, "paltry"), [parts]);
     },
     "q:merchant:refuse": (g) => {
       if (rand(g) < 0.5) fullPriceCard(g, '"Fine, I was bluffing. I\'ll pay the full price."');
@@ -1063,14 +1065,14 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     "q:merchant:full": (g) => {
       const parts = payParts(g, "q:merchant:full");
       if (!parts) return;
-      paid(g, fixedScrap(g, 40, 55), [parts]);
+      paid(g, printedScrap(g, "full"), [parts]);
     },
     "q:merchant:leave": (g) => done(g),
     // "You receive 55-70 scrap, 2-5 fuel and lose 5 drone parts."
     "q:merchant:weapons": (g) => {
       const parts = payParts(g, "q:merchant:weapons");
       if (!parts) return;
-      const offer = fixedScrap(g, 55, 70);
+      const offer = printedScrap(g, "weapons") ?? { tier: "low" as const, scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
       offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
       result(
         g,

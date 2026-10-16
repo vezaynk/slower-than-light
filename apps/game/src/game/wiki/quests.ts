@@ -49,6 +49,7 @@ import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { QUEST_LOCKS } from "./choice-reqs.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
+import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
@@ -467,8 +468,15 @@ function slugDrink(g: Game, rock: boolean) {
     );
     return;
   }
-  // INFERRED: scrap does not go below zero.
-  const n = between(g, [25, 35]);
+  // INFERRED: scrap does not go below zero. A missing band loses nothing.
+  const n = rollBand("slug-drink", "trap", "scrap", (lo, hi) => between(g, [lo, hi]));
+  if (n == null) {
+    result(
+      g,
+      "You take one gulp and wake up with the rest of the crew in the cargo hold... which contains noticeably less scrap than before.",
+    );
+    return;
+  }
   const lost = Math.min(g.scrap, n);
   g.scrap -= lost;
   log(g, `Scrap: -${lost}.`);
@@ -2164,11 +2172,11 @@ ${laniusTraderOfferText(offer)}`,
   "s:garbled-dock:sensors3": (g) => {
     if (sensors(g) < 3) return;
     const fuel = rollFuel("s:garbled-dock:sensors3", (lo, hi) => between(g, [lo, hi]));
-    const parts = between(g, [1, 3]);
+    const parts = rollBand("refueling-platform-garbled-broadcast", "sensors3", "parts", (lo, hi) => between(g, [lo, hi]));
     g.fuel += fuel;
-    g.player.parts += parts;
+    if (parts != null) g.player.parts += parts;
     log(g, `Fuel: ${fuel}.`);
-    log(g, `Drone parts: ${parts}.`);
+    if (parts != null) log(g, `Drone parts: ${parts}.`);
     result(
       g,
       "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel and drone parts.",
@@ -4977,20 +4985,20 @@ function pirateDroneNothing(g: Game) {
 }
 
 /**
- * Buy Drone Control system upgrade. Three results, no odds. INFERRED: equal.
+ * Buy Drone Control system upgrade. The packed rows have no odds. INFERRED: equal.
  * The level is set to a whole number in the printed band. The scrap is a whole number in that result's band.
+ * An empty table leaves the system alone. One row is not a pick. The level rolls only after the ship can pay.
  */
 function pirateDroneUpgrade(g: Game) {
   const kit = g.player.kits.swarm;
   if (!kit || kit.level <= 0) return;
-  const band = pick(g, [
-    { scrap: [15, 20] as [number, number], level: [2, 3] as [number, number] },
-    { scrap: [25, 33] as [number, number], level: [4, 5] as [number, number] },
-    { scrap: [50, 65] as [number, number], level: [6, 7] as [number, number] },
-  ]);
-  const cost = between(g, band.scrap);
-  if (g.scrap < cost) return;
-  const level = between(g, band.level);
+  const rows = upgradeRows("pirate-ship-selling-drones");
+  if (rows.length === 0) return;
+  const id = rows.length === 1 ? rows[0] : pick(g, rows);
+  const cost = rollBand("pirate-ship-selling-drones", id, "scrap", (lo, hi) => between(g, [lo, hi]));
+  if (cost == null || g.scrap < cost) return;
+  const level = rollBand("pirate-ship-selling-drones", id, "level", (lo, hi) => between(g, [lo, hi]));
+  if (level == null) return;
   g.scrap -= cost;
   kit.level = level;
   if (kit.power > kit.level) kit.power = kit.level;

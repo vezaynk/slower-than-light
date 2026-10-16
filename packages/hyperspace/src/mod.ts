@@ -101,6 +101,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   const events = keep(parsed.events);
   const lists = keep(parsed.lists);
   const empties = keep(parsed.empties);
+  const factions = keep(parsed.factions);
   if (crew) pack.crew = crew;
   if (weapons) pack.weapons = weapons;
   if (augments) pack.augments = augments;
@@ -113,6 +114,8 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (events) pack.events = events;
   if (lists) pack.lists = lists;
   if (empties) pack.empties = empties;
+  if (parsed.rewards) pack.rewards = parsed.rewards;
+  if (factions) pack.factions = factions;
   return pack;
 }
 

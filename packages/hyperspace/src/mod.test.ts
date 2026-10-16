@@ -56,6 +56,7 @@ const pack: ContentPack = {
       slot: "sys",
       detail: "Installs as a system.",
     },
+    { id: "cradle", name: "Clone Bay", cost: 50, slot: "kit" },
   ],
   hulls: [
     {
@@ -104,6 +105,12 @@ const pack: ContentPack = {
     },
   ],
   lists: [{ id: "ember-list", entries: [{ id: "refugee", unique: true }] }],
+  rewards: {
+    scaling: [{ baseAmount: 15, sectorAmount: 6, difficultyAmount: 0 }],
+    resources: [{ kind: "fuel", level: "LOW", min: 1, max: 3 }],
+    rewards: [{ name: "fuel", resources: [{ name: "fuel", level: "LOW" }] }],
+  },
+  factions: [{ id: "rebel", chance: 50, min: 20, max: 30 }],
   empties: [
     {
       id: "ember-quiet",
@@ -127,7 +134,19 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<desc>Health 100\. Shields &amp; doors\.<\/desc>/);
     assert.match(xml, /<cost>45<\/cost>/);
     assert.match(xml, /<desc>Installs as a system\.<\/desc>/);
-    assert.match(xml, /<eventBlueprint name="checkpoint"/);
+    assert.match(xml, /<systemBlueprint name="shields">/);
+    assert.match(xml, /<startPower>2<\/startPower>/);
+    assert.match(xml, /<upgradeCost>/);
+    assert.match(xml, /<systemBlueprint name="cradle" subSystem="true">/);
+    assert.doesNotMatch(xml, /<systemTune/);
+    assert.match(xml, /<customStore id="store">/);
+    assert.doesNotMatch(xml, /<storeBlueprint/);
+    assert.match(xml, /<event name="checkpoint"/);
+    assert.doesNotMatch(xml, /<eventBlueprint/);
+    assert.match(xml, /<event name="refugee" unique="true"\/>/);
+    assert.match(xml, /<rewards>/);
+    assert.match(xml, /<rewardScaling>/);
+    assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
     assert.deepEqual(packFromMod(xml), pack);
   });
 
@@ -143,7 +162,7 @@ describe("hyperspace mod", () => {
     assert.doesNotMatch(xml, /<facts/);
     assert.doesNotMatch(xml, /<names>/);
     assert.doesNotMatch(xml, /<crew>/);
-    assert.doesNotMatch(xml, /<eventBlueprint/);
+    assert.doesNotMatch(xml, /<event /);
     assert.deepEqual(packFromMod(xml), { weapons: pack.weapons });
   });
 

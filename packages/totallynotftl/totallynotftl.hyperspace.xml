@@ -1204,159 +1204,213 @@
   <systemBlueprint name="shields">
     <title>Shields</title>
     <cost>125</cost>
-    <slot>sys</slot>
+    <startPower>2</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>100</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>20</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>30</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>80</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>100</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 2. Store cost 125 scrap. Leaving level 1 costs 100 scrap. Leaving level 2 costs 20 scrap. Leaving level 3 costs 30 scrap. Leaving level 4 costs 40 scrap. Leaving level 5 costs 60 scrap. Leaving level 6 costs 80 scrap. Leaving level 7 costs 100 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="medbay">
     <title>Medbay</title>
     <cost>50</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>45</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Store cost 50 scrap. Leaving level 1 costs 35 scrap. Leaving level 2 costs 45 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="cradle">
+  <systemBlueprint name="cradle" subSystem="true">
     <title>Clone Bay</title>
     <cost>50</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 50 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="sling">
+  <systemBlueprint name="sling" subSystem="true">
     <title>Crew Teleporter</title>
     <cost>90</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 90 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="veil">
+  <systemBlueprint name="veil" subSystem="true">
     <title>Cloaking</title>
     <cost>150</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 150 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="leash">
+  <systemBlueprint name="leash" subSystem="true">
     <title>Mind Control</title>
     <cost>75</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 75 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="spike">
+  <systemBlueprint name="spike" subSystem="true">
     <title>Hacking</title>
     <cost>80</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 80 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="sensors">
     <title>Sensors</title>
     <cost>40</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>40</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Store cost 40 scrap. Leaving level 1 costs 25 scrap. Leaving level 2 costs 40 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="doors">
     <title>Door System</title>
     <cost>60</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>50</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Store cost 60 scrap. Leaving level 0 costs 60 scrap. Leaving level 1 costs 35 scrap. Leaving level 2 costs 50 scrap.</desc>
   </systemBlueprint>
-  <systemBlueprint name="cell">
+  <systemBlueprint name="cell" subSystem="true">
     <title>Backup Battery</title>
     <cost>35</cost>
-    <slot>kit</slot>
+    <startPower>1</startPower>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 35 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="engines">
     <title>Engines</title>
     <cost>0</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>10</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>15</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>30</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>80</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>120</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Not on the store shelf. Leaving level 1 costs 10 scrap. Leaving level 2 costs 15 scrap. Leaving level 3 costs 30 scrap. Leaving level 4 costs 40 scrap. Leaving level 5 costs 60 scrap. Leaving level 6 costs 80 scrap. Leaving level 7 costs 120 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="oxygen">
     <title>Oxygen</title>
     <cost>0</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>50</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Not on the store shelf. Leaving level 1 costs 25 scrap. Leaving level 2 costs 50 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="weapons">
     <title>Weapons</title>
     <cost>0</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>50</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>75</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>90</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>100</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Not on the store shelf. Leaving level 1 costs 40 scrap. Leaving level 2 costs 25 scrap. Leaving level 3 costs 35 scrap. Leaving level 4 costs 50 scrap. Leaving level 5 costs 75 scrap. Leaving level 6 costs 90 scrap. Leaving level 7 costs 100 scrap.</desc>
   </systemBlueprint>
   <systemBlueprint name="pilot">
     <title>Piloting</title>
     <cost>0</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>20</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>50</cost>
+    </upgradeCost>
     <desc>Installs as a system. A purchase starts at level 1. Not on the store shelf. Leaving level 1 costs 20 scrap. Leaving level 2 costs 50 scrap.</desc>
   </systemBlueprint>
-  <systemTune name="shields">
-    <start>2</start>
-    <upgrade level="1">100</upgrade>
-    <upgrade level="2">20</upgrade>
-    <upgrade level="3">30</upgrade>
-    <upgrade level="4">40</upgrade>
-    <upgrade level="5">60</upgrade>
-    <upgrade level="6">80</upgrade>
-    <upgrade level="7">100</upgrade>
-  </systemTune>
-  <systemTune name="medbay">
-    <start>1</start>
-    <upgrade level="1">35</upgrade>
-    <upgrade level="2">45</upgrade>
-  </systemTune>
-  <systemTune name="cradle">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="sling">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="veil">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="leash">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="spike">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="sensors">
-    <start>1</start>
-    <upgrade level="1">25</upgrade>
-    <upgrade level="2">40</upgrade>
-  </systemTune>
-  <systemTune name="doors">
-    <start>1</start>
-    <upgrade level="1">60</upgrade>
-    <upgrade level="2">35</upgrade>
-    <upgrade level="3">50</upgrade>
-  </systemTune>
-  <systemTune name="cell">
-    <start>1</start>
-  </systemTune>
-  <systemTune name="engines">
-    <start>1</start>
-    <upgrade level="1">10</upgrade>
-    <upgrade level="2">15</upgrade>
-    <upgrade level="3">30</upgrade>
-    <upgrade level="4">40</upgrade>
-    <upgrade level="5">60</upgrade>
-    <upgrade level="6">80</upgrade>
-    <upgrade level="7">120</upgrade>
-  </systemTune>
-  <systemTune name="oxygen">
-    <start>1</start>
-    <upgrade level="1">25</upgrade>
-    <upgrade level="2">50</upgrade>
-  </systemTune>
-  <systemTune name="weapons">
-    <start>1</start>
-    <upgrade level="1">40</upgrade>
-    <upgrade level="2">25</upgrade>
-    <upgrade level="3">35</upgrade>
-    <upgrade level="4">50</upgrade>
-    <upgrade level="5">75</upgrade>
-    <upgrade level="6">90</upgrade>
-    <upgrade level="7">100</upgrade>
-  </systemTune>
-  <systemTune name="pilot">
-    <start>1</start>
-    <upgrade level="1">20</upgrade>
-    <upgrade level="2">50</upgrade>
-  </systemTune>
 </pack>

@@ -123,7 +123,7 @@ import {
   spikeUpgradeCost,
   upgradeSpike,
 } from "@/game/extras/spike";
-import { create } from "zustand";
+import { clearAims, setHackAim, setLeashAim, setSlingAim, useHackAim, useLeashAim, useSlingAim } from "./aims";
 import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
@@ -283,34 +283,6 @@ function kitIcon(id: KitId, weapon?: string): IconName {
 function act(fn: (g: Game) => void) {
   unlockAudio();
   useGame.getState().act(fn);
-}
-
-/**
- * @agent:hack-ui. Hack targeting mode. INVENTED UI-only flag (not saved with the run), the hacking twin of
- * Game.targeting. Hacking wiki, "Choosing your hacking target": "Choosing a hacking target works much the same as
- * targeting your weapons. With power in the hacking system, click on the hacking drone icon, then click an enemy
- * system room."
- */
-const useHackAim = create<{ on: boolean }>(() => ({ on: false }));
-const useSlingAim = create<{ on: boolean }>(() => ({ on: false }));
-const useLeashAim = create<{ on: boolean }>(() => ({ on: false }));
-
-function setHackAim(on: boolean) {
-  if (useHackAim.getState().on !== on) useHackAim.setState({ on });
-}
-
-function setSlingAim(on: boolean) {
-  if (useSlingAim.getState().on !== on) useSlingAim.setState({ on });
-}
-
-function setLeashAim(on: boolean) {
-  if (useLeashAim.getState().on !== on) useLeashAim.setState({ on });
-}
-
-function clearAims() {
-  setHackAim(false);
-  setSlingAim(false);
-  setLeashAim(false);
 }
 
 /**
@@ -920,6 +892,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
   const looks = `${ghosts ? "" : " no-ghosts"}${roomAir ? "" : " no-room-air"}`;
   const optionsOpen = useOptionsOpen((s) => s.open) && game.phase !== "title";
   const eventFont = useSettings((s) => s.eventFont);
+  const frame = useGame((s) => s.frame);
   return (
     <div
       className={
@@ -929,7 +902,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
       }
       style={{ ["--event-font" as string]: eventFont }}
     >
-      {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
+      {game.phase === "title" ? <TitleScreen /> : <PlayFrame key={frame} game={game} shake={shake} />}
       {manual}
       {sheet}
       {optionsOpen ? <InGameOptions /> : null}

@@ -351,6 +351,19 @@ export type SurrenderOfferDef = {
  */
 export type EventBribe = { k: "scrap"; lo: number; hi: number };
 
+/** One payment taken when the picked count does not match. A fixed band does not roll. */
+export type GradePay = { k: "scrap" | "fuel" | "parts"; lo: number; hi: number };
+
+/**
+ * The page compares the picked count with the count the card rolled.
+ * A match hires this crew. A miss pays these bands, in order.
+ * A fixed band does not roll. The handler still reads both numbers from the choice id.
+ */
+export type EventGrade = {
+  hire: string;
+  pays: GradePay[];
+};
+
 /**
  * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
  * `dest` is the title. An arrival page uses flag `quest:` plus the quest id and an empty sector list.
@@ -379,6 +392,12 @@ export type EventDef = {
    * The handler still reads the amount from the choice id.
    */
   bribe?: EventBribe;
+  /**
+   * A match hires this crew. A miss pays these bands, in order.
+   * A fixed band does not roll.
+   * The handler still compares the two numbers on the choice id.
+   */
+  grade?: EventGrade;
   /**
    * Whole opening cards. The sim still draws one with between.
    * Stored when a page has at least one. Button handlers stay in code.

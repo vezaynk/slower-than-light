@@ -203,6 +203,13 @@ function copyEvent(row: EventDef): EventDef {
   if (row.bribe?.k === "scrap" && row.bribe.lo <= row.bribe.hi) {
     copy.bribe = { k: "scrap", lo: row.bribe.lo, hi: row.bribe.hi };
   }
+  const hire = row.grade?.hire.trim();
+  const pays = (row.grade?.pays ?? []).filter(
+    (pay) => (pay.k === "scrap" || pay.k === "fuel" || pay.k === "parts") && pay.lo <= pay.hi,
+  );
+  if (hire && pays.length > 0) {
+    copy.grade = { hire, pays: pays.map((pay) => ({ k: pay.k, lo: pay.lo, hi: pay.hi })) };
+  }
   if (row.cards && row.cards.length > 0) copy.cards = row.cards.map(copyCard);
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
   return copy;

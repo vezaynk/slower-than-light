@@ -351,6 +351,13 @@ export type SurrenderOfferDef = {
  */
 export type EventPrice = { id: string; k: "scrap" | "fuel"; lo: number; hi: number };
 
+/**
+ * One scrap band for a specialty at the level already owned.
+ * A row with no level applies whenever the code still offers that specialty.
+ * A fixed band does not roll. The handler still reads the amount from the choice id.
+ */
+export type TradeStep = { id: string; level?: number; lo: number; hi: number };
+
 /** One payment taken when the picked count does not match. A fixed band does not roll. */
 export type GradePay = { k: "scrap" | "fuel" | "parts"; lo: number; hi: number };
 
@@ -392,6 +399,12 @@ export type EventDef = {
    * The handler still reads the amount from the choice id.
    */
   prices?: EventPrice[];
+  /**
+   * Scrap bands for a specialty at the level already owned.
+   * The sim still picks one specialty the ship can buy, then rolls that band.
+   * A fixed band does not roll. The handler still reads the amount from the choice id.
+   */
+  trades?: TradeStep[];
   /**
    * A match hires this crew. A miss pays these bands, in order.
    * A fixed band does not roll.

@@ -13,6 +13,7 @@ import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
 import { PRICE_BANDS } from "../wiki/event-prices.ts";
+import { TRADE_STEPS } from "../wiki/event-trades.ts";
 import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
 import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
@@ -41,6 +42,7 @@ import type {
   StoreDef,
   SurrenderOfferDef,
   SystemDef,
+  TradeStep,
   TuneDef,
   WeaponBlueprint,
 } from "@stl/pack";
@@ -170,6 +172,8 @@ function eventRow(row: EventDef): EventDef {
   if (rolls && rolls.length > 0) copy.rolls = rolls.map(copyRoll);
   const prices = PRICE_BANDS[row.id];
   if (prices?.length) copy.prices = prices.map((price) => ({ id: price.id, k: price.k, lo: price.lo, hi: price.hi }));
+  const trades = TRADE_STEPS[row.id];
+  if (trades?.length) copy.trades = trades.map(copyTrade);
   const grade = GRADES[row.id];
   if (grade) {
     copy.grade = {
@@ -181,6 +185,12 @@ function eventRow(row: EventDef): EventDef {
   if (cards && cards.length > 0) copy.cards = cards.map(copyCard);
   if (row.surrender) copy.surrender = surrenderRow(row.surrender);
   return copy;
+}
+
+function copyTrade(step: TradeStep): TradeStep {
+  const next: TradeStep = { id: step.id, lo: step.lo, hi: step.hi };
+  if (step.level != null) next.level = step.level;
+  return next;
 }
 
 function copyBand(band: [number, number]): [number, number] {

@@ -497,6 +497,56 @@ describe("pack document", () => {
     ]);
   });
 
+  it("round-trips trade bands and keeps the first row for a specialty and level", () => {
+    const events = [
+      {
+        id: "traders",
+        dest: "Traders",
+        flag: "cited:traders",
+        aliases: [],
+        sectors: [],
+        body: "A stall.",
+        trades: [
+          { id: "oxygen", level: 1, lo: 15, hi: 20 },
+          { id: "reactor", lo: 15, hi: 25 },
+        ],
+        choices: [{ id: "c:traders:0", label: "Inquire", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<trade id="oxygen" level="1" lo="15" hi="20"\/>/);
+    assert.match(xml, /<trade id="reactor" lo="15" hi="25"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <trade lo="15" hi="20"/>
+        <trade id="" level="1" lo="15" hi="20"/>
+        <trade id="oxygen" level="1" lo="30" hi="10"/>
+        <trade id="oxygen" level="1.5" lo="15" hi="20"/>
+        <trade id="oxygen" level="-1" lo="15" hi="20"/>
+        <trade id="oxygen" level="1" lo="15" hi="20"/>
+        <trade id="oxygen" level="1" lo="99" hi="99"/>
+        <trade id="pilot" lo="8" hi="15"/>
+        <trade id="reactor" lo="15" hi="25"/>
+        <trade id="reactor" lo="99" hi="99"/>
+        <trade id="ember" level="2" lo="4" hi="4"/>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <trade id="nested" level="1" lo="1" hi="2"/>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.deepEqual(broken.events?.[0]?.trades, [
+      { id: "oxygen", level: 1, lo: 15, hi: 20 },
+      { id: "pilot", lo: 8, hi: 15 },
+      { id: "reactor", lo: 15, hi: 25 },
+      { id: "ember", level: 2, lo: 4, hi: 4 },
+    ]);
+  });
+
   it("round-trips a moon grade and drops a grade with no hire", () => {
     const events = [
       {

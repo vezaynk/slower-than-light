@@ -38,6 +38,7 @@ export type {
   ChoiceGift,
   ChoiceReq,
   EventPrice,
+  TradeStep,
   EventGrade,
   GradePay,
   EventChoice,

@@ -31,6 +31,7 @@ import type {
   WeaponBlueprint,
   WeaponKind,
 } from "./types.ts";
+import { prettyXml } from "./format.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -110,36 +111,30 @@ export function emitPack(pack: ContentPack): string {
   const root = doc.documentElement;
   if (!root) throw new Error("pack document has no root");
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
-  doc.insertBefore(doc.createTextNode("\n"), root);
   doc.insertBefore(doc.createComment(HEADER), root);
-  doc.insertBefore(doc.createTextNode("\n"), root);
 
   const crew = doc.createElement("crew");
-  for (const race of pack.crew ?? []) add(crew, raceElement(doc, race), 2);
-  end(crew, 1);
-  add(root, crew, 1);
-  for (const weapon of pack.weapons ?? []) add(root, weaponElement(doc, weapon), 1);
-  for (const augment of pack.augments ?? []) add(root, augmentElement(doc, augment), 1);
-  for (const drone of pack.drones ?? []) add(root, droneElement(doc, drone), 1);
-  for (const system of pack.systems ?? []) add(root, systemElement(doc, system), 1);
-  for (const hull of pack.hulls ?? []) add(root, hullElement(doc, hull), 1);
-  for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector), 1);
-  for (const store of pack.stores ?? []) add(root, storeElement(doc, store), 1);
-  for (const tune of pack.tunes ?? []) add(root, tuneElement(doc, tune), 1);
-  for (const event of pack.events ?? []) add(root, eventElement(doc, event), 1);
-  for (const list of pack.lists ?? []) add(root, listElement(doc, list), 1);
-  for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty), 1);
-  end(root, 0);
-  const xml = serializer.serializeToString(doc);
-  return xml.endsWith("\n") ? xml : `${xml}\n`;
+  for (const race of pack.crew ?? []) add(crew, raceElement(doc, race));
+  add(root, crew);
+  for (const weapon of pack.weapons ?? []) add(root, weaponElement(doc, weapon));
+  for (const augment of pack.augments ?? []) add(root, augmentElement(doc, augment));
+  for (const drone of pack.drones ?? []) add(root, droneElement(doc, drone));
+  for (const system of pack.systems ?? []) add(root, systemElement(doc, system));
+  for (const hull of pack.hulls ?? []) add(root, hullElement(doc, hull));
+  for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector));
+  for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
+  for (const tune of pack.tunes ?? []) add(root, tuneElement(doc, tune));
+  for (const event of pack.events ?? []) add(root, eventElement(doc, event));
+  for (const list of pack.lists ?? []) add(root, listElement(doc, list));
+  for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
+  return prettyXml(serializer.serializeToString(doc));
 }
 
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
-    add(node, element(doc, "event", { id: entry.id, unique: entry.unique ? "true" : "false" }), 2);
+    add(node, element(doc, "event", { id: entry.id, unique: entry.unique ? "true" : "false" }));
   }
-  end(node, 1);
   return node;
 }
 
@@ -147,10 +142,9 @@ function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
   const attrs: Record<string, string> = { name: page.id };
   if (page.nebula) attrs.nebula = "true";
   const node = element(doc, "emptyBeacon", attrs);
-  add(node, leaf(doc, "title", page.dest), 2);
-  for (const sector of page.sectors) add(node, leaf(doc, "sector", sector), 2);
-  for (const text of page.texts) add(node, leaf(doc, "text", text), 2);
-  end(node, 1);
+  add(node, leaf(doc, "title", page.dest));
+  for (const sector of page.sectors) add(node, leaf(doc, "sector", sector));
+  for (const text of page.texts) add(node, leaf(doc, "text", text));
   return node;
 }
 
@@ -159,29 +153,27 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const attrs: Record<string, string> = { name: event.id, flag: event.flag };
   if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
   const node = element(doc, "eventBlueprint", attrs);
-  add(node, leaf(doc, "title", event.dest), 2);
-  for (const alias of event.aliases) add(node, leaf(doc, "alias", alias), 2);
-  for (const sector of event.sectors) add(node, leaf(doc, "sector", sector), 2);
+  add(node, leaf(doc, "title", event.dest));
+  for (const alias of event.aliases) add(node, leaf(doc, "alias", alias));
+  for (const sector of event.sectors) add(node, leaf(doc, "sector", sector));
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
-  for (const line of lines) add(node, leaf(doc, "text", line), 2);
-  for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
-  for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
-  for (const price of event.prices ?? []) add(node, priceElement(doc, price), 2);
-  for (const step of event.trades ?? []) add(node, tradeElement(doc, step), 2);
-  if (event.grade) add(node, gradeElement(doc, event.grade), 2);
-  for (const card of event.cards ?? []) add(node, cardElement(doc, card), 2);
+  for (const line of lines) add(node, leaf(doc, "text", line));
+  for (const offer of event.offers ?? []) add(node, offerElement(doc, offer));
+  for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
+  for (const price of event.prices ?? []) add(node, priceElement(doc, price));
+  for (const step of event.trades ?? []) add(node, tradeElement(doc, step));
+  if (event.grade) add(node, gradeElement(doc, event.grade));
+  for (const card of event.cards ?? []) add(node, cardElement(doc, card));
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
-    add(choiceNode, leaf(doc, "text", choice.label), 3);
-    for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req), 3);
-    if (choice.gift) add(choiceNode, giftElement(doc, choice.gift), 3);
-    for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx), 3);
-    end(choiceNode, 2);
-    add(node, choiceNode, 2);
+    add(choiceNode, leaf(doc, "text", choice.label));
+    for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req));
+    if (choice.gift) add(choiceNode, giftElement(doc, choice.gift));
+    for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx));
+    add(node, choiceNode);
   }
-  if (event.surrender) add(node, surrenderElement(doc, event.surrender), 2);
-  end(node, 1);
+  if (event.surrender) add(node, surrenderElement(doc, event.surrender));
   return node;
 }
 
@@ -227,10 +219,9 @@ function offerElement(doc: XmlDocument, offer: OfferRow): XmlElement {
 
 function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
   const node = element(doc, "card", {});
-  add(node, leaf(doc, "text", card.body), 3);
+  add(node, leaf(doc, "text", card.body));
   for (const choice of card.choices)
-    add(node, choiceElement(doc, choice.id, choice.label, 3, choice.reqs, choice.gift), 3);
-  end(node, 2);
+    add(node, choiceElement(doc, choice.id, choice.label, choice.reqs, choice.gift));
   return node;
 }
 
@@ -254,21 +245,18 @@ function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElemen
   if (offer.quest) attrs.quest = offer.quest;
   const node = element(doc, "surrender", attrs);
   for (const hail of offer.hails?.length ? offer.hails : [offer.hail])
-    add(node, leaf(doc, "text", hail), 3);
-  add(node, rewardElement(doc, offer.reward), 3);
-  if (offer.result) add(node, leaf(doc, "result", offer.result), 3);
-  add(node, choiceElement(doc, "surrender-accept", offer.accept, 3), 3);
-  if (offer.refuse) add(node, choiceElement(doc, "surrender-refuse", offer.refuse, 3), 3);
-  if (offer.extra) add(node, choiceElement(doc, offer.extra.id, offer.extra.label, 3), 3);
+    add(node, leaf(doc, "text", hail));
+  add(node, rewardElement(doc, offer.reward));
+  if (offer.result) add(node, leaf(doc, "result", offer.result));
+  add(node, choiceElement(doc, "surrender-accept", offer.accept));
+  if (offer.refuse) add(node, choiceElement(doc, "surrender-refuse", offer.refuse));
+  if (offer.extra) add(node, choiceElement(doc, offer.extra.id, offer.extra.label));
   if (offer.card) {
     const card = element(doc, "card", {});
-    add(card, leaf(doc, "text", offer.card.body), 4);
-    for (const choice of offer.card.choices)
-      add(card, choiceElement(doc, choice.id, choice.label, 4), 4);
-    end(card, 3);
-    add(node, card, 3);
+    add(card, leaf(doc, "text", offer.card.body));
+    for (const choice of offer.card.choices) add(card, choiceElement(doc, choice.id, choice.label));
+    add(node, card);
   }
-  end(node, 2);
   return node;
 }
 
@@ -276,15 +264,13 @@ function choiceElement(
   doc: XmlDocument,
   id: string,
   label: string,
-  depth: number,
   reqs?: ChoiceReq[],
   gift?: ChoiceGift,
 ): XmlElement {
   const node = element(doc, "choice", { name: id });
-  add(node, leaf(doc, "text", label), depth + 1);
-  for (const req of reqs ?? []) add(node, reqElement(doc, req), depth + 1);
-  if (gift) add(node, giftElement(doc, gift), depth + 1);
-  end(node, depth);
+  add(node, leaf(doc, "text", label));
+  for (const req of reqs ?? []) add(node, reqElement(doc, req));
+  if (gift) add(node, giftElement(doc, gift));
   return node;
 }
 
@@ -307,9 +293,8 @@ function tradeElement(doc: XmlDocument, step: TradeStep): XmlElement {
 function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {
   const node = element(doc, "grade", { hire: grade.hire });
   for (const pay of grade.pays) {
-    add(node, element(doc, "pay", { k: pay.k, lo: num(pay.lo), hi: num(pay.hi) }), 3);
+    add(node, element(doc, "pay", { k: pay.k, lo: num(pay.lo), hi: num(pay.hi) }));
   }
-  end(node, 2);
   return node;
 }
 
@@ -377,22 +362,21 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
 
 function tuneElement(doc: XmlDocument, tune: TuneDef): XmlElement {
   const node = element(doc, "systemTune", { name: tune.id });
-  add(node, leaf(doc, "start", tune.start), 2);
+  add(node, leaf(doc, "start", tune.start));
   for (const step of tune.costs) {
     const upgrade = element(doc, "upgrade", { level: num(step.level) });
     upgrade.appendChild(doc.createTextNode(num(step.cost)));
-    add(node, upgrade, 2);
+    add(node, upgrade);
   }
-  end(node, 1);
   return node;
 }
 
 function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
   const node = element(doc, "storeBlueprint", { name: store.id });
-  add(node, leaf(doc, "title", store.name), 2);
-  add(node, leaf(doc, "slot", store.slot), 2);
-  add(node, leaf(doc, "weapons", store.weapons), 2);
-  for (const section of store.sections) add(node, leaf(doc, "section", section), 2);
+  add(node, leaf(doc, "title", store.name));
+  add(node, leaf(doc, "slot", store.slot));
+  add(node, leaf(doc, "weapons", store.weapons));
+  for (const section of store.sections) add(node, leaf(doc, "section", section));
   for (const line of store.lines) {
     const stock = element(doc, "stock", {
       id: line.id,
@@ -400,161 +384,142 @@ function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
       min: num(line.min),
       max: num(line.max),
     });
-    add(stock, leaf(doc, "title", line.name), 3);
-    add(stock, leaf(doc, "cost", line.cost), 3);
-    end(stock, 2);
-    add(node, stock, 2);
+    add(stock, leaf(doc, "title", line.name));
+    add(stock, leaf(doc, "cost", line.cost));
+    add(node, stock);
   }
-  end(node, 1);
   return node;
 }
 
 function sectorElement(doc: XmlDocument, sector: SectorDef): XmlElement {
   const node = element(doc, "sectorDescription", { name: sector.id });
-  add(node, leaf(doc, "title", sector.name), 2);
-  add(node, leaf(doc, "type", sector.group), 2);
-  for (const note of sector.notes) add(node, leaf(doc, "note", note), 2);
-  end(node, 1);
+  add(node, leaf(doc, "title", sector.name));
+  add(node, leaf(doc, "type", sector.group));
+  for (const note of sector.notes) add(node, leaf(doc, "note", note));
   return node;
 }
 
 function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   const node = element(doc, "shipBlueprint", { name: hull.id, layout: hull.layout });
-  add(node, leaf(doc, "class", hull.cruiser), 2);
-  add(node, leaf(doc, "title", hull.name), 2);
-  add(node, leaf(doc, "desc", hull.quote), 2);
-  add(node, leaf(doc, "unlock", hull.unlock), 2);
-  add(node, leaf(doc, "source", hull.source), 2);
-  add(node, leaf(doc, "reactor", hull.reactor), 2);
-  add(node, leaf(doc, "fuel", hull.fuel), 2);
-  add(node, leaf(doc, "missiles", hull.missiles), 2);
-  add(node, leaf(doc, "parts", hull.parts), 2);
+  add(node, leaf(doc, "class", hull.cruiser));
+  add(node, leaf(doc, "title", hull.name));
+  add(node, leaf(doc, "desc", hull.quote));
+  add(node, leaf(doc, "unlock", hull.unlock));
+  add(node, leaf(doc, "source", hull.source));
+  add(node, leaf(doc, "reactor", hull.reactor));
+  add(node, leaf(doc, "fuel", hull.fuel));
+  add(node, leaf(doc, "missiles", hull.missiles));
+  add(node, leaf(doc, "parts", hull.parts));
 
   const systems = doc.createElement("systemList");
   for (const [id, pair] of Object.entries(hull.systems)) {
     const system = element(doc, "system", { name: id });
-    add(system, leaf(doc, "level", pair[0]), 4);
-    add(system, leaf(doc, "power", pair[1]), 4);
-    end(system, 3);
-    add(systems, system, 3);
+    add(system, leaf(doc, "level", pair[0]));
+    add(system, leaf(doc, "power", pair[1]));
+    add(systems, system);
   }
-  end(systems, 2);
-  add(node, systems, 2);
+  add(node, systems);
 
   const weapons = doc.createElement("weaponList");
-  for (const id of hull.weapons) add(weapons, leaf(doc, "weapon", id), 3);
-  end(weapons, 2);
-  add(node, weapons, 2);
+  for (const id of hull.weapons) add(weapons, leaf(doc, "weapon", id));
+  add(node, weapons);
 
   const crew = doc.createElement("crewList");
   for (const seat of hull.crew)
-    add(crew, element(doc, "crewMember", { kin: seat.kin, room: seat.room }), 3);
-  end(crew, 2);
-  add(node, crew, 2);
+    add(crew, element(doc, "crewMember", { kin: seat.kin, room: seat.room }));
+  add(node, crew);
 
   const kits = doc.createElement("kitList");
   for (const [id, kit] of Object.entries(hull.kits)) {
     const kitNode = element(doc, "kit", { name: id });
-    add(kitNode, leaf(doc, "level", kit.level), 4);
-    add(kitNode, leaf(doc, "power", kit.power), 4);
-    if (kit.target != null) add(kitNode, leaf(doc, "target", kit.target), 4);
+    add(kitNode, leaf(doc, "level", kit.level));
+    add(kitNode, leaf(doc, "power", kit.power));
+    if (kit.target != null) add(kitNode, leaf(doc, "target", kit.target));
     if (kit.loadout) {
       const loadout = doc.createElement("loadout");
-      for (const schematic of kit.loadout) add(loadout, leaf(doc, "schematic", schematic), 5);
-      end(loadout, 4);
-      add(kitNode, loadout, 4);
+      for (const schematic of kit.loadout) add(loadout, leaf(doc, "schematic", schematic));
+      add(kitNode, loadout);
     }
-    if (kit.on !== undefined) add(kitNode, leaf(doc, "on", kit.on), 4);
-    end(kitNode, 3);
-    add(kits, kitNode, 3);
+    if (kit.on !== undefined) add(kitNode, leaf(doc, "on", kit.on));
+    add(kits, kitNode);
   }
-  end(kits, 2);
-  add(node, kits, 2);
+  add(node, kits);
 
   const augments = doc.createElement("augmentList");
-  for (const id of hull.augments) add(augments, leaf(doc, "augment", id), 3);
-  end(augments, 2);
-  add(node, augments, 2);
+  for (const id of hull.augments) add(augments, leaf(doc, "augment", id));
+  add(node, augments);
 
   const unfitted = doc.createElement("unfitted");
-  for (const label of hull.unfitted) add(unfitted, leaf(doc, "item", label), 3);
-  end(unfitted, 2);
-  add(node, unfitted, 2);
+  for (const label of hull.unfitted) add(unfitted, leaf(doc, "item", label));
+  add(node, unfitted);
 
-  end(node, 1);
   return node;
 }
 
 function systemElement(doc: XmlDocument, system: SystemDef): XmlElement {
   const node = element(doc, "systemBlueprint", { name: system.id });
-  add(node, leaf(doc, "title", system.name), 2);
-  add(node, leaf(doc, "cost", system.cost), 2);
-  add(node, leaf(doc, "slot", system.slot), 2);
-  end(node, 1);
+  add(node, leaf(doc, "title", system.name));
+  add(node, leaf(doc, "cost", system.cost));
+  add(node, leaf(doc, "slot", system.slot));
   return node;
 }
 
 function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   const node = element(doc, "droneBlueprint", { name: drone.id });
-  add(node, leaf(doc, "title", drone.name), 2);
-  add(node, leaf(doc, "cost", drone.cost), 2);
-  end(node, 1);
+  add(node, leaf(doc, "title", drone.name));
+  add(node, leaf(doc, "cost", drone.cost));
   return node;
 }
 
 function augmentElement(doc: XmlDocument, augment: AugmentDef): XmlElement {
   const node = element(doc, "augBlueprint", { name: augment.id });
-  add(node, leaf(doc, "title", augment.name), 2);
-  add(node, leaf(doc, "desc", augment.detail), 2);
-  add(node, leaf(doc, "cost", augment.cost), 2);
-  end(node, 1);
+  add(node, leaf(doc, "title", augment.name));
+  add(node, leaf(doc, "desc", augment.detail));
+  add(node, leaf(doc, "cost", augment.cost));
   return node;
 }
 
 function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint): XmlElement {
   const node = element(doc, "weaponBlueprint", { name: weapon.id });
-  add(node, leaf(doc, "type", TYPE[weapon.kind]), 2);
-  add(node, leaf(doc, "title", weapon.name), 2);
-  add(node, leaf(doc, "tooltip", weapon.blurb), 2);
-  add(node, leaf(doc, "damage", weapon.damage), 2);
-  add(node, leaf(doc, "shots", weapon.shots), 2);
-  add(node, leaf(doc, "power", weapon.power), 2);
-  add(node, leaf(doc, "cooldown", weapon.charge), 2);
-  add(node, leaf(doc, "cost", weapon.price), 2);
-  add(node, leaf(doc, "fireChance", tenths(weapon.fire)), 2);
-  add(node, leaf(doc, "breachChance", tenths(weapon.breach)), 2);
-  add(node, leaf(doc, "ion", weapon.ion), 2);
-  add(node, leaf(doc, "shotGap", weapon.gap), 2);
-  if (weapon.ammo) add(node, leaf(doc, "missiles", 1), 2);
-  if (weapon.lengthTiles != null) add(node, leaf(doc, "length", scaled(weapon.lengthTiles, 45)), 2);
-  if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed), 2);
-  if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage), 2);
-  if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce), 2);
-  end(node, 1);
+  add(node, leaf(doc, "type", TYPE[weapon.kind]));
+  add(node, leaf(doc, "title", weapon.name));
+  add(node, leaf(doc, "tooltip", weapon.blurb));
+  add(node, leaf(doc, "damage", weapon.damage));
+  add(node, leaf(doc, "shots", weapon.shots));
+  add(node, leaf(doc, "power", weapon.power));
+  add(node, leaf(doc, "cooldown", weapon.charge));
+  add(node, leaf(doc, "cost", weapon.price));
+  add(node, leaf(doc, "fireChance", tenths(weapon.fire)));
+  add(node, leaf(doc, "breachChance", tenths(weapon.breach)));
+  add(node, leaf(doc, "ion", weapon.ion));
+  add(node, leaf(doc, "shotGap", weapon.gap));
+  if (weapon.ammo) add(node, leaf(doc, "missiles", 1));
+  if (weapon.lengthTiles != null) add(node, leaf(doc, "length", scaled(weapon.lengthTiles, 45)));
+  if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));
+  if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
+  if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
   return node;
 }
 
 function raceElement(doc: XmlDocument, race: CrewDef): XmlElement {
   const node = element(doc, "race", { name: race.id });
-  add(node, leaf(doc, "title", race.name), 3);
-  add(node, leaf(doc, "maxHealth", race.hp), 3);
-  add(node, leaf(doc, "moveSpeedMultiplier", race.move), 3);
-  add(node, leaf(doc, "repairSpeed", race.repair), 3);
-  add(node, leaf(doc, "damageMultiplier", race.fight), 3);
-  add(node, leaf(doc, "suffocationModifier", race.suffocate), 3);
-  add(node, leaf(doc, "fireDamageMultiplier", race.fireTaken), 3);
-  add(node, leaf(doc, "fireRepairMultiplier", race.fireRepairMultiplier), 3);
-  add(node, leaf(doc, "bonusPower", race.bonusPower), 3);
-  add(node, leaf(doc, "hasDeathExplosion", race.hasDeathExplosion), 3);
-  add(node, leaf(doc, "oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0), 3);
-  add(node, leaf(doc, "detectsLifeforms", race.detectsLifeforms), 3);
-  add(node, leaf(doc, "resistsMindControl", race.resistsMindControl), 3);
+  add(node, leaf(doc, "title", race.name));
+  add(node, leaf(doc, "maxHealth", race.hp));
+  add(node, leaf(doc, "moveSpeedMultiplier", race.move));
+  add(node, leaf(doc, "repairSpeed", race.repair));
+  add(node, leaf(doc, "damageMultiplier", race.fight));
+  add(node, leaf(doc, "suffocationModifier", race.suffocate));
+  add(node, leaf(doc, "fireDamageMultiplier", race.fireTaken));
+  add(node, leaf(doc, "fireRepairMultiplier", race.fireRepairMultiplier));
+  add(node, leaf(doc, "bonusPower", race.bonusPower));
+  add(node, leaf(doc, "hasDeathExplosion", race.hasDeathExplosion));
+  add(node, leaf(doc, "oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0));
+  add(node, leaf(doc, "detectsLifeforms", race.detectsLifeforms));
+  add(node, leaf(doc, "resistsMindControl", race.resistsMindControl));
   const power = doc.createElement("powerEffect");
-  add(power, leaf(doc, "lockdown", race.lockdown), 4);
-  add(power, leaf(doc, "cooldown", race.lockCooldown), 4);
-  end(power, 3);
-  add(node, power, 3);
-  end(node, 2);
+  add(power, leaf(doc, "lockdown", race.lockdown));
+  add(power, leaf(doc, "cooldown", race.lockCooldown));
+  add(node, power);
   return node;
 }
 
@@ -571,19 +536,8 @@ function leaf(doc: XmlDocument, tag: string, value: string | number | boolean): 
   return node;
 }
 
-function add(parent: XmlElement, child: XmlElement, depth: number): void {
-  parent.appendChild(owner(parent).createTextNode(`\n${"  ".repeat(depth)}`));
+function add(parent: XmlElement, child: XmlElement): void {
   parent.appendChild(child);
-}
-
-function end(parent: XmlElement, depth: number): void {
-  parent.appendChild(owner(parent).createTextNode(`\n${"  ".repeat(depth)}`));
-}
-
-function owner(node: XmlElement): XmlDocument {
-  const doc = node.ownerDocument;
-  if (!doc) throw new Error("pack element has no document");
-  return doc;
 }
 
 function num(value: number): string {

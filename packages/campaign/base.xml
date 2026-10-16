@@ -700,7 +700,7 @@
   <weaponBlueprint name="artemisEnemy">
     <type>MISSILE</type>
     <title>Artemis Missiles (enemy)</title>
-    <tooltip></tooltip>
+    <tooltip/>
     <damage>2</damage>
     <shots>1</shots>
     <power>2</power>
@@ -790,7 +790,7 @@
   <weaponBlueprint name="bossmissile">
     <type>MISSILE</type>
     <title>Boss Missile</title>
-    <tooltip></tooltip>
+    <tooltip/>
     <damage>1</damage>
     <shots>3</shots>
     <power>4</power>
@@ -1009,7 +1009,7 @@
   <weaponBlueprint name="bosslaser">
     <type>LASER</type>
     <title>Boss Laser</title>
-    <tooltip></tooltip>
+    <tooltip/>
     <damage>1</damage>
     <shots>3</shots>
     <power>4</power>
@@ -1023,7 +1023,7 @@
   <weaponBlueprint name="bossbeam">
     <type>BEAM</type>
     <title>Boss Beam</title>
-    <tooltip></tooltip>
+    <tooltip/>
     <damage>2</damage>
     <shots>1</shots>
     <power>3</power>
@@ -1316,12 +1316,9 @@
       <crewMember kin="plain" room="p-engines"/>
       <crewMember kin="plain" room="p-weapons"/>
     </crewList>
-    <kitList>
-    </kitList>
-    <augmentList>
-    </augmentList>
-    <unfitted>
-    </unfitted>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="kestrel-b" layout="B">
     <class>Kestrel Cruiser</class>
@@ -1379,12 +1376,9 @@
       <crewMember kin="blade" room="p-weapons"/>
       <crewMember kin="spark" room="p-shields"/>
     </crewList>
-    <kitList>
-    </kitList>
-    <augmentList>
-    </augmentList>
-    <unfitted>
-    </unfitted>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="kestrel-c" layout="C">
     <class>Kestrel Cruiser</class>
@@ -1445,10 +1439,8 @@
         <power>0</power>
       </kit>
     </kitList>
-    <augmentList>
-    </augmentList>
-    <unfitted>
-    </unfitted>
+    <augmentList/>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="engi-a" layout="A">
     <class>Engi Cruiser</class>
@@ -1512,8 +1504,7 @@
     <augmentList>
       <augment>medbot</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="engi-b" layout="B">
     <class>Engi Cruiser</class>
@@ -1653,8 +1644,7 @@
     <augmentList>
       <augment>scrambler</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="fed-a" layout="A">
     <class>Federation Cruiser</class>
@@ -1715,10 +1705,8 @@
         <power>1</power>
       </kit>
     </kitList>
-    <augmentList>
-    </augmentList>
-    <unfitted>
-    </unfitted>
+    <augmentList/>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="fed-b" layout="B">
     <class>Federation Cruiser</class>
@@ -1779,10 +1767,8 @@
         <power>1</power>
       </kit>
     </kitList>
-    <augmentList>
-    </augmentList>
-    <unfitted>
-    </unfitted>
+    <augmentList/>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="fed-c" layout="C">
     <class>Federation Cruiser</class>
@@ -1828,8 +1814,7 @@
         <power>1</power>
       </system>
     </systemList>
-    <weaponList>
-    </weaponList>
+    <weaponList/>
     <crewList>
       <crewMember kin="plain" room="p-pilot"/>
       <crewMember kin="spark" room="p-engines"/>
@@ -1854,8 +1839,7 @@
     <augmentList>
       <augment>lung</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="zoltan-a" layout="A">
     <class>Zoltan Cruiser</class>
@@ -1910,13 +1894,11 @@
       <crewMember kin="spark" room="p-engines"/>
       <crewMember kin="spark" room="p-weapons"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>zshield</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="zoltan-b" layout="B">
     <class>Zoltan Cruiser</class>
@@ -1972,13 +1954,11 @@
       <crewMember kin="spark" room="p-engines"/>
       <crewMember kin="spark" room="p-shields"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>zshield</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="zoltan-c" layout="C">
     <class>Zoltan Cruiser</class>
@@ -2051,8 +2031,7 @@
     <augmentList>
       <augment>zshield</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="slug-a" layout="A">
     <class>Slug Cruiser</class>
@@ -2107,13 +2086,11 @@
       <crewMember kin="gel" room="p-pilot"/>
       <crewMember kin="gel" room="p-engines"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>gel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="slug-b" layout="B">
     <class>Slug Cruiser</class>
@@ -2177,8 +2154,7 @@
     <augmentList>
       <augment>gel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="slug-c" layout="C">
     <class>Slug Cruiser</class>
@@ -2249,8 +2225,7 @@
     <augmentList>
       <augment>gel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="rock-a" layout="A">
     <class>Rock Cruiser</class>
@@ -2305,13 +2280,11 @@
       <crewMember kin="stone" room="p-engines"/>
       <crewMember kin="stone" room="p-weapons"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>keel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="rock-b" layout="B">
     <class>Rock Cruiser</class>
@@ -2367,13 +2340,11 @@
       <crewMember kin="stone" room="p-weapons"/>
       <crewMember kin="stone" room="p-shields"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>keel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="rock-c" layout="C">
     <class>Rock Cruiser</class>
@@ -2437,8 +2408,7 @@
     <augmentList>
       <augment>keel</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="stealth-a" layout="A">
     <class>Stealth Cruiser</class>
@@ -2503,8 +2473,7 @@
       <augment>casing</augment>
       <augment>glass</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="stealth-b" layout="B">
     <class>Stealth Cruiser</class>
@@ -2567,8 +2536,7 @@
     <augmentList>
       <augment>glass</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="stealth-c" layout="C">
     <class>Stealth Cruiser</class>
@@ -2641,8 +2609,7 @@
     <augmentList>
       <augment>glass</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="lanius-a" layout="A">
     <class>Lanius Cruiser</class>
@@ -2710,8 +2677,7 @@
     <augmentList>
       <augment>lung</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="lanius-b" layout="B">
     <class>Lanius Cruiser</class>
@@ -2782,8 +2748,7 @@
     <augmentList>
       <augment>lung</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="mantis-a" layout="A">
     <class>Mantis Cruiser</class>
@@ -2848,8 +2813,7 @@
     <augmentList>
       <augment>pheromone</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="mantis-b" layout="B">
     <class>Mantis Cruiser</class>
@@ -2895,8 +2859,7 @@
         <power>1</power>
       </system>
     </systemList>
-    <weaponList>
-    </weaponList>
+    <weaponList/>
     <crewList>
       <crewMember kin="blade" room="p-pilot"/>
       <crewMember kin="blade" room="p-engines"/>
@@ -2919,8 +2882,7 @@
     <augmentList>
       <augment>pheromone</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="mantis-c" layout="C">
     <class>Mantis Cruiser</class>
@@ -2988,8 +2950,7 @@
     <augmentList>
       <augment>pheromone</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="crystal-a" layout="A">
     <class>Crystal Cruiser</class>
@@ -3045,13 +3006,11 @@
       <crewMember kin="shard" room="p-weapons"/>
       <crewMember kin="shard" room="p-shields"/>
     </crewList>
-    <kitList>
-    </kitList>
+    <kitList/>
     <augmentList>
       <augment>vengeance</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <shipBlueprint name="crystal-b" layout="B">
     <class>Crystal Cruiser</class>
@@ -3097,8 +3056,7 @@
         <power>1</power>
       </system>
     </systemList>
-    <weaponList>
-    </weaponList>
+    <weaponList/>
     <crewList>
       <crewMember kin="shard" room="p-pilot"/>
       <crewMember kin="shard" room="p-engines"/>
@@ -3117,8 +3075,7 @@
     <augmentList>
       <augment>vengeance</augment>
     </augmentList>
-    <unfitted>
-    </unfitted>
+    <unfitted/>
   </shipBlueprint>
   <sectorDescription name="civilian-start">
     <title>Civilian (Starting) Sector</title>
@@ -3468,7 +3425,7 @@
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.</text>
     <text>You jump into a calmer part of the nebula. However, your relief fades as a Rebel scout jumps to the beacon and moves in to attack.</text>
     <text>The tangled wrecks of many ships wait in dormancy here. You see lights flicker on what looks like debris. A Rebel scout bursts out of the wreckage!</text>
@@ -3556,7 +3513,7 @@
     <sector>Mantis Homeworlds</sector>
     <sector>Rebel Controlled Sector</sector>
     <sector>Rebel Stronghold</sector>
-    <text></text>
+    <text/>
     <text>You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.</text>
     <text>Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.</text>
     <text>A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.</text>
@@ -3738,7 +3695,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <choice name="c:escort-civilians-ftl-haywire:0">
       <text>Lead them to their destination</text>
       <effect k="tier" tier="low"/>
@@ -3789,7 +3746,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <choice name="c:free-drone-schematic:0">
       <text>You receive a drone schematic with low scrap</text>
       <effect k="tier" tier="low"/>
@@ -3814,7 +3771,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You arrive in a system and immediately discover a pirate ship nearby. Strangely, scans indicate there are no lifeforms aboard. You salvage anything useful, but find no clue as to the whereabouts of the former crew.</text>
     <text>Not much remains in this abandoned system; however, scans reveal a nearby mining platform with some salvageable materials.</text>
     <text>As you arrive in the system you are hailed by a loyalist settlement. Upon learning of your quest, they offer you supplies.</text>
@@ -3898,7 +3855,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Lanius Attacking Civilian</alias>
     <alias>Lanius ship attacking civilian</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>You immediately receive a message upon arrival, "Help! These metal bastards have gone crazy!" The communication originates from the hull of a partially dismantled ship which lies among a number of other destroyed ships. The violent Lanius ship responsible for this carnage is advancing on the survivors.</text>
     <text>You scan the area after arriving at this system. A Lanius ship is in fast pursuit of an unarmed civilian ship. It's hard to say if it's truly a threat since its weapons are not charging.</text>
     <text>You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.</text>
@@ -3964,7 +3921,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Lanius Salvaging Small Asteroid Belt</alias>
     <alias>Lanius ship salvager</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>You come across a single Lanius ship salvaging a small civilian craft. You cannot tell if they attacked the craft or just happened upon it.</text>
     <text>There are remnants of a fierce battle here. Scattered among the hulks are small Lanius craft, slowly breaking apart the wrecks. One of the ships is close enough that you could probably attack it without immediately alerting the others.</text>
     <text>When you arrive at the beacon you discover what must have been remnants of a large battle. However the vast majority of metal has been striped from the ships, only various plastic and other materials float in a ring around a planet. A lone Lanius ship moves between the wreckage looking for more salvage.</text>
@@ -3988,7 +3945,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Lanius trader</title>
     <alias>Lanius trader</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.</text>
     <text>A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.</text>
     <text>You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.</text>
@@ -4024,7 +3981,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Lanius Merchant with Improved Translator</alias>
     <alias>Lanius trader with translator</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <offer k="lanius" band="base" res="fuel" cost="3-7" scrap="15-30"/>
     <offer k="lanius" band="base" res="missiles" cost="3-7" scrap="20-40"/>
     <offer k="lanius" band="base" res="parts" cost="3-7" scrap="20-40"/>
@@ -4122,7 +4079,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>No fuel: Engi ship repair</title>
     <alias>Fuel Engi Ship Repair</alias>
     <alias>No fuel: Engi ship repair</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-engi-ship-repair:0">
       <text>Make the trade</text>
       <effect k="res" id="scrap" sign="-1" lo="10" hi="20"/>
@@ -4144,7 +4101,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>No fuel: Mantis fight</title>
     <alias>Mantis Fuel Attack</alias>
     <alias>No fuel: Mantis fight</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-mantis-fight:0">
       <text>Fight a Mantis ship that is running away</text>
       <effect k="fight" tier="Mantis ship"/>
@@ -4154,7 +4111,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>No fuel: Rebel fight</title>
     <alias>No fuel: Rebel assistant hails</alias>
     <alias>No fuel: Rebel fight</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-rebel-fight:0">
       <text>Fight a Rebel ship that is running away</text>
       <effect k="fight" tier="Rebel ship"/>
@@ -4184,7 +4141,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>No fuel: automated refueling ship</title>
     <alias>Automated Re-Fueling Ship</alias>
     <alias>No fuel: automated refueling ship</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-automated-refueling-ship:0">
       <text>Request emergency fuel reserves</text>
       <effect k="res" id="fuel" sign="1" lo="1" hi="3"/>
@@ -4242,7 +4199,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You come across a pirate in hot pursuit of an unidentified ship. You quickly receive a transmission from the pirate: "Stay out of this fight and we'll make it worth your while."</text>
     <text>An unidentified ship is badly damaged and still being assaulted by a space pirate. The victim begins a distress message until the pirate cuts in and offers to split the bounty if you sit tight.</text>
     <text>A missile shoots across your bow when the jump completes. Your scans quickly reveal a ship with pirate markings pursuing an unknown vessel. The pirate hails you: "Damn it, we weren't expecting company. Stay out of this and you could profit."</text>
@@ -4269,7 +4226,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Pirate ship attacking civilian (Lanius)</title>
     <alias>Pirate ship attacking civilian (Lanius)</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>You discover an abandoned mining facility in the process of being 'acquired' by the Lanius. However, you immediately receive a call from a civilian transport vessel, "Help! We were trying to escape before the Lanius came only to be caught by pirates!" You see a lone pirate ship boarding the civilian craft.</text>
     <text>A pirate ship emerges from hiding after you and another ship jump into the area. Sensors show the pirates ran a quick scan of your ship's weapon system before flying off to pursue the unarmed civilian ship.</text>
     <text>A pirate ship is firing on the small ships docked at a refueling station. They are broadcasting on a wide band channel. You catch the captain's rant mid-speed, "...saw you trading with those damned scavengers. I'll show you what happens when you try and undercut the Red Giant gang!"</text>
@@ -4354,7 +4311,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rebel checkpoint</alias>
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
-    <text></text>
+    <text/>
     <text>A rather large fleet of civilian ships are held up at this Beacon. It appears to be a Rebel checkpoint; everyone is being inspected for possible ties to the Federation. No one has noticed you yet.</text>
     <text>Another Rebel checkpoint is monitoring this location. A number of civilian ships are awaiting inspection, any of them could be Federation loyalists. The Rebels haven't noticed you yet.</text>
     <text>A Rebel space station and single fighter is monitoring this Beacon for Federation activity. A number of civilian ships are docked, awaiting inspection by the Rebels and possible detainment if they are Federation loyalists. The Rebels haven't noticed you yet.</text>
@@ -4377,7 +4334,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Rebel fight among Federation and Rebel fleets</title>
     <alias>Rebel fight among Federation and Rebel fleets</alias>
     <sector>The Last Stand</sector>
-    <text></text>
+    <text/>
     <text>You arrive in the middle of a raging battle. Both sides are taking heavy losses. A small squadron flies past and a fighter breaks off, moving toward your position.</text>
     <text>Two fleets fight nearby. You try to skirt around the edges of the battle and keep out of weapons range, but a Rebel scout spots you and moves in.</text>
     <text>It's hard to tell who is winning the nearby battle. Before you have a chance to figure it out, a fighter moves in to attack.</text>
@@ -4438,7 +4395,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <text>Upon arriving at this beacon, you detect a distress call. Local scans reveal that a Federation transport is under attack from a Rebel scout!</text>
     <text>You immediately notice a Rebel ship chasing what appears to be a civilian transport. However you are detecting chatter on an encrypted Federation channel... That transport is carrying Federation loyalists!</text>
     <text>Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!</text>
@@ -4456,7 +4413,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rebel Attacking Civilians in Last Stand</alias>
     <alias>Rebel ship attacking civilians in Last Stand</alias>
     <sector>The Last Stand</sector>
-    <text></text>
+    <text/>
     <text>A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!</text>
     <text>Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?</text>
     <text>There seems to be a small Federation colony under attack by a Rebel forward scout. Will you protect them?</text>
@@ -4494,7 +4451,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rebels Supplying Civilians</alias>
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
-    <text></text>
+    <text/>
     <text>You stumble across a Rebel ship distributing supplies to local civilian colonies. It's probably not anything military grade, but every little bit helps...</text>
     <text>You find a Rebel combat ship that has been reassigned as an emergency supply vessel. The local civilians are apparently in need of help, and the Rebels are rising to the occasion.</text>
     <text>The Rebels in this system are doing supply runs for the local space stations. These civilians have likely been out of supply for months due to the war and are in desperate need.</text>
@@ -4617,7 +4574,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock atheists</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <choice name="c:rock-atheists:0">
       <text>Tell them their god sent them here to join your crew</text>
       <effect k="fight" tier="Rock ship"/>
@@ -4924,7 +4881,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Homeworlds</sector>
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
-    <text></text>
+    <text/>
     <text>You find a mercenary for hire at this Beacon. Their unique skills can sometimes prove to be useful.</text>
     <text>A mercenary hails you: "Greetings, friend! We've heard tell of your quest and are here to offer our valuable services."</text>
     <text>There's a ship with pirate markings orbiting the nearby planet. You receive his hail: "Anything is possible, for the right price"</text>
@@ -5001,7 +4958,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rebel Stronghold</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.</text>
     <text>Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.</text>
     <text>A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.</text>
@@ -5079,7 +5036,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Pirate Controlled Sector</sector>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>After a short time you receive a message, "Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed."</text>
     <text>There is a single ship at this beacon. They hail you, "We could really use some help. Our FTL navigation system is shot. Can you help us get to a nearby station where they can patch us up?"</text>
     <text>"Hello," your communicator opens a hail from a nearby ship. "Our weapon systems are malfunctioning and we're too afraid of pirates to travel home unassisted. Can you escort us?"</text>
@@ -5110,7 +5067,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <text>Holy crap! A weapon is just floating in space!</text>
     <text>You inform a nearby station of your flight from the Rebels. They offer to outfit your ship with a weapon and wish you well.</text>
     <text>A settlement still loyal to the Federation hails your ship. They have prepared a weapon to aid your escape from the Rebels.</text>
@@ -5127,7 +5084,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Lanius fight</title>
     <alias>Lanius fight</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>You receive a message on a wide band frequency, originating from an approaching Lanius ship. It appears not to be directed at you, but your translator does its best all the same: "... metallic opportunity... acquisition... by force..." Looks like you're in for a fight.</text>
     <text>Sensors indicate a small Lanius cruiser in the process of salvaging another small Lanius ship. Before you have a chance to wonder what caused them to turn on each other, the survivor notices you and moves in to attack.</text>
     <text>Shortly after your arrival, a Lanius ship jumps near the beacon. It begins to move slowly toward you. You open wide band communication channels, attempting to make contact. However, it either ignores you or is unable to receive the messages. As they get closer you issue the order to charge weapons and find they do the same.</text>
@@ -5265,7 +5222,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Civilian Sector</sector>
     <sector>Mantis Controlled Sector</sector>
     <sector>Mantis Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A Mantis military ship appears on local radar alongside the remains of a human freighter. Prepare for a hostile encounter!</text>
     <text>A Mantis military scout hails your ship. "Foolish alien! Your kind has stifled our greatness for too long! You will rue the day you backed the Federation!"</text>
     <text>A small Mantis cruiser is broadcasting a repeating message on a wide-band frequency, "All non-Mantis ships that enter our territory are forfeit. Lower your shields and surrender if you value your lives."</text>
@@ -5296,7 +5253,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Mantis fight in nebula</alias>
     <sector>Civilian Sector</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <text>Nebulas are known to be popular Mantis hunting grounds. Information you would have done well to heed here.</text>
     <text>You detect a Mantis expedition vessel returning home with its haul. So determined are they, in fact, that they don't wait to see if you're hostile before firing.</text>
     <text>A Mantis ship, lost in the storm, hails you. "Sensors are out. We have no local telemetry. We will take yours." You detect a power increase in their weapons systems.</text>
@@ -5332,7 +5289,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Engi Controlled Sector</sector>
     <sector>Engi Homeworlds</sector>
     <sector>Pirate Controlled Sector</sector>
-    <text></text>
+    <text/>
     <text>As you jump into the system a pirate advances on your position. They are refusing all hails. Prepare for a fight.</text>
     <text>Soon after arriving in the system you are hailed by a small cruiser. "What good fortune that we happen to run into each other. Nothing personal, but you have some information we need!"</text>
     <text>At first it appears you've arrived in an empty system, but a ship appears from behind a planet and hails you: "Haha! I am the dread pirate Tuco, prepare to die!"</text>
@@ -5347,7 +5304,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Pirate fight (Lanius)</title>
     <alias>Pirate fight (Lanius)</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."</text>
     <text>The pirate ship patrolling this sector has been busy. The debris of several Rebel scouts and at least one civilian ship litter the area. "Welcome, welcome, there's room for one more!" The over-confident pirate hails you as he charges his weapons and moves in to attack.</text>
     <text>A pirate ship appears to be threatening a small refugee ship near the beacon. Upon seeing you jump in, it turns to approach. The civilian wastes no time and jumps away, but that appears only to harden the pirate's resolve.</text>
@@ -5378,7 +5335,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Engi Controlled Sector</sector>
     <sector>Engi Homeworlds</sector>
     <sector>Pirate Controlled Sector</sector>
-    <text></text>
+    <text/>
     <text>Sensors go wild as a nearby pulsar is detected. While you are attempting to recalibrate the FTL drive, a pirate sneaks up on your ship, weapons charging. Prepare for a fight!</text>
     <text>You arrive to find a pulsar dominating the view screen. You see a small silhouette pass in front of the star. Before you can ponder what it is, warning signals go off. It appears to be a ship in a firing trajectory!</text>
     <text>A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!</text>
@@ -5409,7 +5366,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Homeworlds</sector>
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
-    <text></text>
+    <text/>
     <text>You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency.</text>
     <text>Scanners indicate that a battle is taking place nearby. It seems that someone is under attack by space pirates.</text>
     <text>You detect two ships, one chasing the other... Scanners show the pursuer is a pirate!</text>
@@ -5444,7 +5401,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!</text>
     <text>"Haha! I knew someone would fall into our dastardly trap!" It appears this distress beacon was nothing but a decoy for a pirate ambush.</text>
     <text>Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.</text>
@@ -5460,7 +5417,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Civilian Sector</sector>
     <sector>Pirate Controlled Sector</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <choice name="c:pirate-smuggler:0">
       <text>Attack the pirate</text>
       <effect k="fight" tier="Pirate ship"/>
@@ -5511,7 +5468,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>The Last Stand</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>Your ship is hailed. "We've found you at last. Prepare to die!"</text>
     <text>A small Rebel ship is docked at a small station. You try to lay low but it spots you. Power up the weapons!</text>
     <text>A Rebel ship has been patrolling this region. As soon as you arrive it begins its assault.</text>
@@ -5531,7 +5488,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Rebel fight (Lanius)</title>
     <alias>Rebel fight (Lanius)</alias>
     <sector>Abandoned Sector</sector>
-    <text></text>
+    <text/>
     <text>You intercept discussions between a Rebel patrol and a human mining colony, "...we realize you're scared but all reports indicate the metal bastards target abandoned settlements only. If we relocated our fleets based on every request from backwater... wait, what's that..." Before you can react, the channel is cut and the Rebel ship moves in to attack.</text>
     <text>You arrive to see a number of Rebel ships attempting to dissuade Lanius scavenger ships from "acquiring" their forward station. A passing Rebel patrol ship spots you and moves in to intercept.</text>
     <text>A Rebel scout patrols near the beacon. "Hah! I knew you would try to sneak through this sector as soon as I heard it had become treacherous. Surrender!"</text>
@@ -5580,7 +5537,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.</text>
     <text>A ship bearing Rebel colors can be seen waiting near the beacon. They must have been waiting for you, since they engage immediately.</text>
     <text>The Rebels must have anticipated you would try to lose them within the nebula. A scout is waiting for you at the beacon.</text>
@@ -5603,7 +5560,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rebel Stronghold</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A Rebel captain appears on the screen. "I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!"</text>
     <text>A small rebel research station overlooks a pulsating star. Before you can react a Rebel ship spots you and moves in to attack.</text>
     <text>You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight.</text>
@@ -5740,7 +5697,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A nearby space station hails you. "Greetings! Your arrival is most fortuitous. We recently came across some extra drones. If you have some fuel, perhaps we can make a deal?"</text>
     <text>A strange vessel approaches. A digital message appears on your view-screen: "This is an automated merchant. Refill this vessel with fuel and it will supply you with drones."</text>
     <text>You arrive in the sector and are greeted by a science vessel waiting by the beacon. They hail you, "We find ourselves low on fuel and have a proposition."</text>
@@ -5772,7 +5729,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You arrive at a quiet spaceport and are immediately hailed by another ship at port with a "once in a lifetime deal!"</text>
     <text>You jump into a sector filled with civilian activity. Your scan the various advertisement channels while waiting for your FTL to charge, and are intrigued by a grey-market shipwright.</text>
     <text>Your ship is flooded with advertisement transmissions from nearby merchants as soon as you arrive at this beacon. You arbitrarily pick one to examine in detail.</text>
@@ -5818,7 +5775,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Uncharted Nebula</sector>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
     <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
     <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
@@ -5852,7 +5809,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Crystal fight</title>
     <alias>Crystal fight</alias>
     <sector>Hidden Crystal Worlds</sector>
-    <text></text>
+    <text/>
     <text>You arrive near a fleet of crystal ships, civilian or mercantile from the looks of them. You pause to scan one but they react immediately and send an escort to fight you off. Prepare to engage!</text>
     <text>You arrive at the Beacon and are immediately greeted by an automatic message or warning of some kind. The translator can't seem to discern its purpose but after a few short moments an alarm goes off and a hostile ship jumps in!</text>
     <text>You receive a message, "Hah. It looks like another worthless alien-filled craft. Prepare to meet your maker!" Weapon locks detected.</text>
@@ -5935,7 +5892,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Mantis fight (Engi)</alias>
     <sector>Engi Controlled Sector</sector>
     <sector>Engi Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A mixed radar signal turns out to be a Mantis attack ship scavenging the remains of an Engi carrier. They turn and fight.</text>
     <text>You come across a Mantis raider taking pot shots at a defenceless Engi supply station. Discovering its weapons aren't much of a match for the station's armour, it turns on your ship. Battle stations!</text>
     <text>The area looks clear, and you prepare to jump off, but a Mantis scout jumps in behind you! They're as surprised as you are, but their weapons are already online.</text>
@@ -5952,7 +5909,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Engi Homeworlds</sector>
     <sector>Mantis Controlled Sector</sector>
     <sector>Mantis Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You're greeted by a rare sight: a Mantis ship that appears not to have noticed you.</text>
     <text>For once, you see the Mantis before they see you.</text>
     <text>When they see the Mantis warship waiting in ambush at your intended coordinates, your crew is relieved to note you've jumped someway off the mark.</text>
@@ -5980,7 +5937,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Engi Homeworlds</sector>
     <sector>Mantis Controlled Sector</sector>
     <sector>Mantis Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You spot a Mantis ship hunting in the distance.</text>
     <text>A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, "Stay out of this human! Else you are next!"</text>
     <text>Local sensors pick up two ships engaged in a heated battle. It seems the Mantis military ship will surely defeat its prey.</text>
@@ -6118,7 +6075,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Pirate fight in nebula</alias>
     <sector>Pirate Controlled Sector</sector>
     <sector>Uncharted Nebula</sector>
-    <text></text>
+    <text/>
     <text>As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online.</text>
     <text>A pirate ship pulls out of the ether and hails: "You know what I love about this part of the galaxy? The explorers! You always carry such fine loot." They lock weapons.</text>
     <text>As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers.</text>
@@ -6185,7 +6142,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <title>Rebel fight among Rebel fleet</title>
     <alias>Rebel fight among Rebel fleet</alias>
     <sector>The Last Stand</sector>
-    <text></text>
+    <text/>
     <text>Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.</text>
     <text>This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!</text>
     <text>You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!</text>
@@ -6203,7 +6160,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rebel fight with boarders</alias>
     <sector>Rebel Controlled Sector</sector>
     <sector>Rebel Stronghold</sector>
-    <text></text>
+    <text/>
     <text>You receive a message from a nearby Rebel station, "You have a lot of guts passing through our space, I'll give you that." He turns giving an order, "Kill their crew, I want that ship intact."</text>
     <text>Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, "Ready to die? I sure am ready to get a promotion!"</text>
     <text>Incoming message, "Hello Captain," says a Rebel in an officer's garb. "How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient."</text>
@@ -6247,7 +6204,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock Fight</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You encounter a Rock vessel and attempt to open trading frequencies, but they take it as an act of cultural transgression and open fire.</text>
     <text>You jump into the middle of a Rock excavation project on a nearby moon. Unimpressed with your intrusion they move to defend themselves!</text>
     <text>You intercept chatter from an approaching Rock ship: "Weapons, moving in to engage, arm the tubes." There is no talking to these guys.</text>
@@ -6267,7 +6224,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock Fight in Asteroid Field</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!</text>
     <text>A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.</text>
     <text>The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.</text>
@@ -6283,7 +6240,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock Fight with Boarders</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!</text>
     <text>You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!</text>
     <choice name="c:rock-fight-with-boarders:0">
@@ -6298,7 +6255,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock Fight with Boarders in Asteroid Field</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>You arrive in an asteroid field and immediately begin evasive maneuvers when a loud clunk reverberates through the ship. At first you think the hull has been hit, but the noise came from some Rock intruders teleporting aboard the ship!</text>
     <text>Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.</text>
     <choice name="c:rock-fight-with-boarders-in-asteroid-field:0">
@@ -6313,7 +6270,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock pirate fight</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.</text>
     <text>A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!</text>
     <text>A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!</text>
@@ -6330,7 +6287,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock pirate in asteroid field</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.</text>
     <text>You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!</text>
     <choice name="c:rock-pirates-fight-in-asteroid-field:0">
@@ -6346,7 +6303,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Rock pirate near sun</alias>
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.</text>
     <text>A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.</text>
     <choice name="c:rock-pirates-fight-near-sun:0">
@@ -6734,7 +6691,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Zoltan Pirate fight</alias>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>"Emergency, all ships in range, we are under attack!" The frequency matches a nearby Zoltan ship; you move in on their pursuer. They take your intervention as a cue to jump away. Cowards.</text>
     <text>You jump just in time to witness a Zoltan ship's FTL drive overload. In their final moments they implore you not to get involved, but it's too late - their attacker is already upon you!</text>
     <text>Despite their precautions, pirates have begun to harass the local Zoltan settlements across this sector. One such pirate spots your ship and moves in to attack.</text>
@@ -6796,7 +6753,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Zoltan Fight</alias>
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>A Zoltan ship makes contact. "The nature of the day is rotational. The fever is emaciated. The reason is-" They've caught some nasty deep space dementia. Before you can consider finding help for them, they open fire.</text>
     <text>You're surprised when a stationary Zoltan ship opens fire. It appears there are aggressive pugilists even among the 'enlightened'.</text>
     <text>You receive a message, "This area is off limits. Submit your ship to processing." It's only one guard ship in a lonely beacon. You decide to fight your way out.</text>
@@ -6925,7 +6882,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <alias>No fuel: Rebel fleet delay</alias>
     <alias>Fuel Fleet Delay</alias>
     <alias>Fuel Fleet delay</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-rebel-fleet-delay:0">
       <text>Rebel Fleet pursuit is delayed for 1 jump</text>
       <effect k="fleet" n="1"/>
@@ -6946,7 +6903,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-slug-fuel-trader" flag="cited:no-fuel-slug-fuel-trader">
     <title>No fuel: Slug fuel trader</title>
     <alias>No fuel: Slug fuel trader</alias>
-    <text></text>
+    <text/>
     <choice name="c:no-fuel-slug-fuel-trader:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -6955,7 +6912,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-drifting-debris" flag="cited:no-fuel-drifting-debris">
     <title>No fuel: drifting debris</title>
     <alias>No fuel: drifting debris</alias>
-    <text></text>
+    <text/>
     <price id="ransom" k="scrap" lo="25" hi="40"/>
     <choice name="c:no-fuel-drifting-debris:0">
       <text>Continue</text>
@@ -6965,7 +6922,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-fuel-trader-distress-off" flag="cited:no-fuel-fuel-trader-distress-off">
     <title>No fuel: fuel trader (distress off)</title>
     <alias>No fuel: fuel trader (distress off)</alias>
-    <text></text>
+    <text/>
     <text>A merchant ship jumps into the sector and you quickly hail them asking for help. They respond, "Perhaps we could work out an exchange..."</text>
     <text>A number of ships pass through the sector. You relay your message to each, and one finally responds. "I can't help much right now but perhaps we can trade."</text>
     <text>A nearby settlement sends a small ship in your direction. It keeps its distance and hails you, "We can give you fuel for a price. Just don't even think of doing anything rash. We've got a teleporter at our base and a squad ready to defend us."</text>
@@ -6985,7 +6942,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-fuel-trader-distress-on" flag="cited:no-fuel-fuel-trader-distress-on">
     <title>No fuel: fuel trader (distress on)</title>
     <alias>No fuel: fuel trader (distress on)</alias>
-    <text></text>
+    <text/>
     <text>A merchant ship jumps into the sector, obviously responding to your ship's distress beacon. They hail you offering a trade for fuel.</text>
     <text>A ship arrives at the beacon. "We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade."</text>
     <text>A ship traveling near the beacon approaches your ship and hails you. "Out of fuel? This is a good opportunity for both of us... Care to trade?"</text>
@@ -7004,7 +6961,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-prepare-to-dock" flag="cited:no-fuel-prepare-to-dock">
     <title>No fuel: prepare to dock</title>
     <alias>No fuel: prepare to dock</alias>
-    <text></text>
+    <text/>
     <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
     <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
     <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
@@ -7019,7 +6976,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventBlueprint name="no-fuel-refugee-trading" flag="cited:no-fuel-refugee-trading">
     <title>No fuel: refugee trading</title>
     <alias>No fuel: refugee trading</alias>
-    <text></text>
+    <text/>
     <card>
       <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.</text>
       <choice name="c:no-fuel-refugee-trading:low">
@@ -7088,7 +7045,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <alias>Rebel defector</alias>
     <sector>Rebel Controlled Sector</sector>
     <sector>Rebel Stronghold</sector>
-    <text></text>
+    <text/>
     <choice name="c:rebel-defector:0">
       <text>Accept his proposal</text>
       <effect k="nothing"/>
@@ -7179,7 +7136,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>Crystal scrap collector</title>
     <alias>Crystal scrap collector</alias>
     <sector>Hidden Crystal Worlds</sector>
-    <text></text>
+    <text/>
     <choice name="c:crystal-scrap-collector:0">
       <text>Offer 35 scrap</text>
       <effect k="res" id="scrap" sign="-1" lo="35" hi="35"/>
@@ -7798,7 +7755,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <alias>Free scrap with resources (Engi)</alias>
     <sector>Engi Controlled Sector</sector>
     <sector>Engi Homeworlds</sector>
-    <text></text>
+    <text/>
     <text>An Engi vessel hails you. "Identity: Federation? Outlier probability. Implies... revival. Implies... hope. Assistance suggested." They offer some supplies.</text>
     <text>You cross paths with an Engi cargo vessel hurrying home before the Mantis fleets attempt to take over this sector. They're happy to offload some of their cargo to get home faster.</text>
     <text>You make contact with an isolated Engi science station who are staying put despite the likelihood of Mantis invasion. They suggest you trial some experimental technology.</text>
@@ -7875,7 +7832,7 @@ The current sector map is revealed.</text>
     <title>Fight in Last Stand</title>
     <alias>Fight in Last Stand</alias>
     <sector>The Last Stand</sector>
-    <text></text>
+    <text/>
     <text>Although this sector is still under Federation control, a small scout has slipped by the fleet. You move in to engage.</text>
     <text>Long range scanners show this system is empty of any capital ships. Clearly it is not of strategic value. Wait... FTL signatures show a Rebel scout just jumped nearby!</text>
     <text>Sensors indicate that the Rebels are setting up a forward Jump Beacon behind the nearby planet's moon. More importantly, a number of ships are passing by; prepare for a fight!</text>
@@ -8102,7 +8059,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="quest-marker-choices" flag="choice:quest-marker-choices">
     <title>Quest marker choices</title>
-    <text></text>
+    <text/>
     <choice name="s:slug-home-nebula-surrender:info">
       <text>Let them live. We don't want the weapon, we want information.</text>
       <effect k="note">You ask where they were delivering the weapon. "By telling you we will probably die jussst as like as not... Oh well." They give you the coordinates of the a prototype cruiser's mobile construction platform.</effect>
@@ -8132,7 +8089,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="quest-slug-pirate-trap-engage" flag="surrender:quest-slug-pirate-trap-engage">
     <title>Slug comm tapping</title>
-    <text></text>
+    <text/>
     <surrender chance="100" low="30" high="40">
       <text>When the pirate ship looks ready to break apart you notice the Slug ship has secured the loot and is preparing to jump away!</text>
       <reward k="scrap" tier="high"/>
@@ -8147,7 +8104,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="quest-engi-real" flag="surrender:quest-engi-real">
     <title>Engi fleet discussion</title>
-    <text></text>
+    <text/>
     <surrender chance="100" low="50" high="50" forced="true" quest="engi-final">
       <text>"Stop!  This isn't worth dying for..."</text>
       <reward k="none"/>
@@ -8159,7 +8116,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="quest-engi-fake" flag="surrender:quest-engi-fake">
     <title>Engi fleet discussion</title>
-    <text></text>
+    <text/>
     <surrender chance="100" low="40" high="40" forced="true">
       <text>"Stop! I don't want to die here."</text>
       <reward k="none"/>
@@ -8179,7 +8136,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="quest-mantis-chase" flag="surrender:quest-mantis-chase">
     <title>Mantis ship-collectors</title>
-    <text></text>
+    <text/>
     <surrender chance="100" low="20" high="20">
       <text>"Look, you proved your point. We don't want to die... Take this and let us go. Please?"</text>
       <reward k="scrap" tier="high" unnamed="weapon"/>
@@ -8819,7 +8776,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="blue-button-reqs" flag="reqs:blue-button-reqs">
     <title>blue-button-reqs</title>
-    <text></text>
+    <text/>
     <choice name="c:malfunctioning-defense-system:3">
       <text>c:malfunctioning-defense-system:3</text>
       <req k="family" id="ion">Needs an ion weapon</req>
@@ -9304,7 +9261,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventBlueprint>
   <eventBlueprint name="fuel-gifts" flag="gift:fuel-gifts">
     <title>fuel-gifts</title>
-    <text></text>
+    <text/>
     <choice name="c:slug-store-ship:ok">
       <text>c:slug-store-ship:ok</text>
       <gift k="fuel" lo="5" hi="5"/>

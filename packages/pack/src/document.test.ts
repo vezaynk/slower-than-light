@@ -194,7 +194,7 @@ describe("pack document", () => {
     assert.equal(same.includes('intro="after"'), false);
     assert.equal((same.match(/<text>Alpha<\/text>/g) ?? []).length, 1);
     const blank = xml.slice(xml.indexOf('name="blank"'), xml.indexOf('name="same"'));
-    assert.match(blank, /<text><\/text>\s*<text>Alpha<\/text>/);
+    assert.match(blank, /<text\/>\s*<text>Alpha<\/text>/);
     assert.match(xml.slice(xml.indexOf('name="aside"')), /intro="after"/);
   });
 

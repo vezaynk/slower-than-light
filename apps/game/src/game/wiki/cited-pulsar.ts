@@ -1,7 +1,7 @@
 import type { SysId } from "../types.ts";
 
-/** A pulsar pick. "cell" is the Backup Battery subsystem, which is not a SysId. */
-export type PulsarId = SysId | "cell";
+/** A pulsar pick. "battery" is the Backup Battery subsystem, which is not a SysId. */
+export type PulsarId = SysId | "battery";
 
 /**
  * Environmental Hazards, ==Pulsar==, and Zoltan Shield, lead.

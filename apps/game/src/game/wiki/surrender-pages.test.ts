@@ -186,7 +186,7 @@ describe("Zoltan ship asks to dock", () => {
         assert.equal(g.phase, "reward");
         assert.equal(g.enemy, null);
         assert.ok(g.scrap > before.scrap);
-        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "spark") || before.crew >= 5);
+        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "energy") || before.crew >= 5);
       } else {
         seen.add("gift");
         const d = kinds(s0, g);
@@ -311,7 +311,7 @@ describe("Destroyed cargo ship", () => {
         seen.add("ambush");
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.ok(boarders.length >= 2 && boarders.length <= 4);
-        assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain"));
+        assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human"));
         assert.equal(g.enemyEscape!.chance, 70);
         assert.equal(g.enemySurrender!.chance, 100);
         assert.ok(g.enemySurrender!.threshold >= 0 && g.enemySurrender!.threshold <= 50);
@@ -320,7 +320,7 @@ describe("Destroyed cargo ship", () => {
         seen.add("boarders");
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.ok(boarders.length >= 2 && boarders.length <= 4);
-        assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain"));
+        assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human"));
         assert.equal(g.kills, kills);
         assert.equal(g.scrap, s0.scrap);
         assert.equal(g.asb, false);

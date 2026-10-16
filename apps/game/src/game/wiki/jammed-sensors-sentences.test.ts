@@ -19,7 +19,7 @@ describe("Boarders: Humans jammed sensors sentences", () => {
     // Wiki citations:
     // > "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders." — [[Boarders: Humans jammed sensors]]
     const g = createGame(2);
-    g.player.kits.spike = { id: "spike", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.hacking = { id: "hacking", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
     choose(g, "c:boarders-humans-jammed-sensors:1");
     assert.ok(g.log.includes(HACK));
     assert.equal(g.phase, "combat");

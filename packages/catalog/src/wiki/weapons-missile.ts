@@ -11,7 +11,7 @@ import type { WeaponDef } from "../content.ts";
  */
 export const MISSILE_WEAPONS: WeaponDef[] = [
   {
-    id: "artemisEnemy",
+    id: "MISSILES_2",
     name: "Artemis Missiles (enemy)",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Artemis Missiles (enemy)===.
@@ -40,7 +40,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "",
   },
   {
-    id: "hermes",
+    id: "MISSILES_3",
     name: "Hermes Missile",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Hermes Missile===: "Power requirement: 3 power".
@@ -66,7 +66,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "Standard but powerful missile.",
   },
   {
-    id: "breachmissiles",
+    id: "MISSILES_BREACH",
     name: "Breach Missiles",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Breach Missiles===: "Power requirement: 3 power".
@@ -92,7 +92,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
   },
   {
-    id: "hullmissile",
+    id: "MISSILES_HULL",
     name: "Hull Missile",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Hull Missile===: "Power requirement: 2 power".
@@ -118,7 +118,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "High hull damage plus a decent breach chance.",
   },
   {
-    id: "swarmmissiles",
+    id: "MISSILE_CHARGEGUN",
     name: "Swarm Missiles",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Power requirement: 2 power".
@@ -146,7 +146,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
   },
   {
-    id: "pegasus",
+    id: "MISSILES_BURST",
     name: "Pegasus Missile",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===: "Power requirement: 3 power".
@@ -173,7 +173,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     blurb: "Creative missile design allows for two projectiles for the cost of one!",
   },
   {
-    id: "bossmissile",
+    id: "ARTILLERY_BOSS_2",
     name: "Boss Missile",
     kind: "missile",
     // Wiki page "Missile (Weapons)", ===Boss Missile===.
@@ -208,7 +208,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
  * Wiki page "Missile (Weapons)" and the === heading named on each note.
  */
 export const MISSILE_GAPS = {
-  artemisEnemy: {
+  MISSILES_2: {
     // Wiki page "Missile (Weapons)", ===Artemis Missiles (enemy)===.
     // Compared with ===Artemis Missiles===, which is not emitted.
     note: "Power 2 instead of 1. Charge 10 seconds instead of 11. Shots 1 and damage 2 match. No fire percent and no breach percent are printed on the enemy section. Player Artemis sells for 19; the enemy section lists no price.",
@@ -217,7 +217,7 @@ export const MISSILE_GAPS = {
     playerShots: 1,
     playerDamage: 2,
   },
-  hullmissile: {
+  MISSILES_HULL: {
     // Wiki page "Missile (Weapons)", ===Hull Missile===.
     // "Damage per shot: 2 (to system rooms) or 4 (to systemless rooms)". damage stores 2.
     // sim.ts applies 4 as hull damage. Crew stay on the system-room 2.
@@ -228,7 +228,7 @@ export const MISSILE_GAPS = {
     // "Enemies never use this weapon".
     enemiesNeverUse: true,
   },
-  swarmmissiles: {
+  MISSILE_CHARGEGUN: {
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===.
     // "Shots: 1-3". shots stores the bank, 3. "7 seconds per shot". The bank runs in sim.ts.
     minShots: 1,
@@ -249,21 +249,21 @@ export const MISSILE_GAPS = {
     noStun: true,
     enemiesNeverUse: true,
   },
-  pegasus: {
+  MISSILES_BURST: {
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===.
     // "Only consumes one missile per volley" while shots is 2. ammo stays true.
     oneMissilePerVolley: true,
     // "Enemies never use this weapon".
     enemiesNeverUse: true,
   },
-  bossmissile: {
+  ARTILLERY_BOSS_2: {
     // Wiki page "Missile (Weapons)", ===Boss Missile===.
     // charge stores level 1. The other printed times:
     chargeByLevel: { 1: 28.75, 2: 23, 3: 17.25, 4: 11.5 },
     // Lead: Boss Missiles do not have the stun effect.
     noStun: true,
   },
-  breachmissiles: {
+  MISSILES_BREACH: {
     // Wiki page "Missile (Weapons)", ===Breach Missiles===.
     // "Capable of killing a Zoltan, if the missile causes 2 fires and stuns the crew."
     note: "Capable of killing a Zoltan, if the missile causes 2 fires and stuns the crew.",

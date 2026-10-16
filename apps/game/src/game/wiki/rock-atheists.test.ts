@@ -17,7 +17,7 @@ function open(g: Game) {
 }
 
 function rocks(g: Game): number {
-  return g.crew.filter((c) => c.side === "player" && c.kin === "stone").length;
+  return g.crew.filter((c) => c.side === "player" && c.kin === "rock").length;
 }
 
 describe("Rock atheists", () => {

@@ -152,7 +152,7 @@ export function interiorLinks(doors: { a: string; b: string | "void" }[], roomId
  * Medbay, "Overview": players have "either 2 or 3 standing spots", enemies "either 2 or 4" ("depends on the ship
  * design"). INTENTIONAL (confirmed by the user): which one is read from the room, 2 when it has two tiles or fewer,
  * otherwise 3 for the player and 4 for an enemy.
- * Clone bay (kit "cradle", and not still the medbay): player 1 or 3, enemy 2 or 4.
+ * Clone bay (kit "clonebay", and not still the medbay): player 1 or 3, enemy 2 or 4.
  * Stealth B and Rock C: the medbay "is positioned in a dead-end corner and has 2 standing spots."
  * INTENTIONAL (confirmed by the user): one interior door is that dead-end, so a player medbay with a single neighbor stays at 2
  * even when the tile count would allow 3.
@@ -189,7 +189,7 @@ export function blockedCells(
   interiorDoors: number,
   marks?: DoorMarks,
 ): { x: number; y: number }[] {
-  if (room.system !== "medbay" && room.kit !== "cradle") return [];
+  if (room.system !== "medbay" && room.kit !== "clonebay") return [];
   const cells = floorCells(room);
   const extra = cells.length - medicalLimit(room, side, interiorDoors);
   if (extra <= 0) return [];
@@ -207,7 +207,7 @@ function blockedOn(room: Box, aboard: string | undefined, hull: StandHull | unde
 }
 
 export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors: number): number {
-  if (room.system === "medbay" || room.kit === "cradle") return medicalLimit(room, side, interiorDoors);
+  if (room.system === "medbay" || room.kit === "clonebay") return medicalLimit(room, side, interiorDoors);
   const tiles = floorCells(room).length;
   return tiles > 0 ? tiles : 0;
 }

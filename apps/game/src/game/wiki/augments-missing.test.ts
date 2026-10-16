@@ -13,13 +13,13 @@ const catalogSrc = readFileSync(
 );
 
 const EXPECTED: Record<string, string> = {
-  vengeance: "Crystal Vengeance",
-  stasis: "Damaged Stasis Pod",
-  booster: "Drone Reactor Booster",
-  medbot: "Engi Med-bot Dispersal",
-  pheromone: "Mantis Pheromones",
-  gel: "Slug Repair Gel",
-  zshield: "Zoltan Shield",
+  CRYSTAL_SHARDS: "Crystal Vengeance",
+  STASIS_POD: "Damaged Stasis Pod",
+  DRONE_SPEED: "Drone Reactor Booster",
+  NANO_MEDBAY: "Engi Med-bot Dispersal",
+  CREW_STIMS: "Mantis Pheromones",
+  SLUG_GEL: "Slug Repair Gel",
+  ENERGY_SHIELD: "Zoltan Shield",
 };
 
 function figures(text: string): string[] {
@@ -99,9 +99,9 @@ describe("missing augments", () => {
   });
 
   it("zshield detail figures are the Zoltan Shield bubble numbers", () => {
-    const row = MISSING_AUGMENTS.find((item) => item.id === "zshield");
+    const row = MISSING_AUGMENTS.find((item) => item.id === "ENERGY_SHIELD");
     assert.ok(row);
-    const comment = commentFor("zshield");
+    const comment = commentFor("ENERGY_SHIELD");
     const found = figures(row.detail);
     assert.deepEqual(found, ["5"]);
     for (const figure of found) {

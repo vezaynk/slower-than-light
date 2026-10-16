@@ -95,7 +95,7 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 const FLIGHT_SECONDS = projectileFlightSeconds("flak-artillery") ?? 0.7;
 
 function blank(level: FlakLevel): Kit {
-  return { id: "flak", level, power: 0, left: 0, cool: 0, target: null, on: true, aux: 0 };
+  return { id: "artillery", weapon: "ARTILLERY_FED_C", level, power: 0, left: 0, cool: 0, target: null, on: true, aux: 0 };
 }
 
 export function chargeFlakSeconds(level: FlakLevel): number {
@@ -104,7 +104,7 @@ export function chargeFlakSeconds(level: FlakLevel): number {
 
 /** Install at a level without a store. Flak Artillery, Overview: not sold. The kit is the slot. */
 export function armFlak(g: Game, level: FlakLevel): void {
-  g.player.kits.flak = blank(level);
+  g.player.kits.artillery = blank(level);
   seatKits(g.player); // Kit room (layouts.ts): a fitted system takes its hull's room.
 }
 
@@ -118,8 +118,8 @@ export function flakUpgradeCost(level: number): number | null {
 
 /** Flak Artillery, "System Upgrades": 30, then 50, then 80, through level 4. */
 export function upgradeFlak(g: Game): boolean {
-  const kit = g.player.kits.flak;
-  if (!kit) return false;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon !== "ARTILLERY_FED_C") return false;
   const cost = flakUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
@@ -152,22 +152,22 @@ function fedBars(kit: Kit): number {
  * Template:Flak weapons, Flak Artillery: power 1-4*, maximum of 4 system levels.
  */
 export function raiseFlakPower(g: Game): void {
-  const kit = g.player.kits.flak;
-  if (!kit || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon !== "ARTILLERY_FED_C" || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
   kit.power += 1;
   kit.on = true;
 }
 
 export function lowerFlakPower(g: Game): void {
-  const kit = g.player.kits.flak;
-  if (!kit || kit.power <= 0) return;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon !== "ARTILLERY_FED_C" || kit.power <= 0) return;
   kit.power -= 1;
   kit.on = kit.power > 0;
 }
 
 function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): void {
-  const kit = ship.kits.flak;
-  if (!kit) return;
+  const kit = ship.kits.artillery;
+  if (!kit || kit.weapon !== "ARTILLERY_FED_C") return;
   const other = from === "player" ? g.enemy : g.player;
   // Installed level's charge time. The power-off drain uses this, not the filled bars.
   const seconds = chargeFlakSeconds(asFlakLevel(kit.level));
@@ -186,7 +186,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship
   // weapons: drains charge (same effect as on weapons)"; on weapons "Draining speed is the same as speed as the
   // base-level charging speed". aux is seconds of charge, so it loses one second per second of pulse.
-  if (hackPulseOn(g, ship, "flak")) {
+  if (hackPulseOn(g, ship, "artillery")) {
     kit.aux = Math.max(0, kit.aux - dt);
     return;
   }

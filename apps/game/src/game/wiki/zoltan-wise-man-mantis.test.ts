@@ -18,7 +18,7 @@ function open(g: Game) {
 
 describe("Zoltan wise man Mantis", () => {
   it("prints the challenge sentence and fights a Mantis ship whose crew are all Mantis", () => {
-    const hp = kinOf("blade").hp;
+    const hp = kinOf("mantis").hp;
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-wise-man:0");
@@ -28,7 +28,7 @@ describe("Zoltan wise man Mantis", () => {
     assert.equal(g.scrap, 10);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
-    assert.ok(theirs.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+    assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
     assert.ok(
       g.log.includes(
         `"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!`,

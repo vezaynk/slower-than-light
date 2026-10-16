@@ -24,7 +24,8 @@ export type IconName =
   | "target"
   | "pause"
   | "play"
-  | "fast";
+  | "fast"
+  | "ARTILLERY_FED_C";
 
 export const ICON_SIZE = 16;
 
@@ -173,7 +174,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "################",
     "................",
   ],
-  veil: [
+  cloaking: [
     "................",
     "................",
     "..#.#.#.#.#.....",
@@ -191,7 +192,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  sling: [
+  teleporter: [
     "................",
     "..##########....",
     "...########.....",
@@ -209,7 +210,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  spike: [
+  hacking: [
     "................",
     "...#..#..#..#...",
     "...#..#..#..#...",
@@ -227,7 +228,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  swarm: [
+  drones: [
     "................",
     ".......#........",
     ".......#........",
@@ -245,7 +246,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  leash: [
+  mind: [
     "................",
     "......####......",
     ".....######.....",
@@ -263,7 +264,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  cradle: [
+  clonebay: [
     "................",
     "...####...++++..",
     "..######.++++++.",
@@ -281,7 +282,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  cell: [
+  battery: [
     "................",
     "......####......",
     "....########....",
@@ -299,7 +300,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  lance: [
+  artillery: [
     "................",
     "................",
     "................",
@@ -317,7 +318,7 @@ export const ICON_ROWS: Record<IconName, string[]> = {
     "................",
     "................",
   ],
-  flak: [
+  ARTILLERY_FED_C: [
     "................",
     ".+....#.....+...",
     "......#.........",
@@ -651,19 +652,19 @@ const NAME_ICONS: [RegExp, IconName][] = [
   [/engine/, "engines"],
   [/oxygen|^o2$/, "oxygen"],
   [/med/, "medbay"],
-  [/drone/, "swarm"],
+  [/drone/, "drones"],
   [/weapon/, "weapons"],
   [/pilot/, "pilot"],
   [/sensor/, "sensors"],
   [/door/, "doors"],
-  [/clon/, "cradle"],
-  [/hack/, "spike"],
-  [/mind/, "leash"],
-  [/cloak/, "veil"],
-  [/teleport/, "sling"],
-  [/battery/, "cell"],
-  [/flak/, "flak"],
-  [/artillery|beam/, "lance"],
+  [/clon/, "clonebay"],
+  [/hack/, "hacking"],
+  [/mind/, "mind"],
+  [/cloak/, "cloaking"],
+  [/teleport/, "teleporter"],
+  [/battery/, "battery"],
+  [/flak/, "ARTILLERY_FED_C"],
+  [/artillery|beam/, "artillery"],
 ];
 
 export function iconForName(name: string): IconName | null {

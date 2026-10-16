@@ -7,7 +7,7 @@
  * Visited is the whole gate. A column the fleet has already passed
  * (beacon.col < fleet) stays open when visited and stays closed when not.
  * Fuel is not spent here. Whether the augment is installed is not checked here.
- * canJumpTo calls this only when "nav" is fitted, and commitJump still spends one fuel.
+ * canJumpTo calls this only when "FTL_JUMPER" is fitted, and commitJump still spends one fuel.
  */
 export function navAllows(beacon: { visited: boolean; col: number }, fleet: number): boolean {
   const overtaken = beacon.col < fleet;

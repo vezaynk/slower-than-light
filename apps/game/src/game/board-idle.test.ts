@@ -20,7 +20,7 @@ function plant(g: Game, room: string, hp = 100): Crew {
     move: 0,
     think: 30,
     tone: 3,
-    kin: "plain",
+    kin: "human",
   };
   g.crew.push(c);
   return c;
@@ -114,7 +114,7 @@ describe("Boarders with no enemy ship", () => {
     assert.equal(g.enemy, null);
     const n = humans(g).length;
     assert.ok(n >= 3 && n <= 4);
-    assert.ok(humans(g).every((c) => c.kin === "plain"));
+    assert.ok(humans(g).every((c) => c.kin === "human"));
     assert.equal(g.crew.filter((c) => c.side === "player").length, 3);
   });
 

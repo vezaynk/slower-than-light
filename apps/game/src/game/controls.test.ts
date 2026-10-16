@@ -6,11 +6,11 @@ import { createGame, holdAutofire, jumpBlocked, powerDown, powerUp, pressJump, s
 import type { Kit } from "./types.ts";
 
 function cradle(power = 0, level = 1): Kit {
-  return { id: "cradle", level, power, left: 0, cool: 0, target: null, on: power > 0, aux: 0 };
+  return { id: "clonebay", level, power, left: 0, cool: 0, target: null, on: power > 0, aux: 0 };
 }
 
 function swarm(power = 0, level = 2): Kit {
-  return { id: "swarm", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "drones", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 describe("Configure controls", () => {
@@ -81,29 +81,29 @@ describe("Configure controls", () => {
   it("gives Clone Bay one bar and Drone Control one bar at a time", () => {
     const g = createGame(5);
     g.player.reactor = 30;
-    g.player.kits.cradle = cradle();
+    g.player.kits.clonebay = cradle();
     raiseCradlePower(g);
-    assert.equal(g.player.kits.cradle?.power, 1);
-    assert.equal(g.player.kits.cradle?.on, true);
+    assert.equal(g.player.kits.clonebay?.power, 1);
+    assert.equal(g.player.kits.clonebay?.on, true);
     raiseCradlePower(g);
-    assert.equal(g.player.kits.cradle?.power, 1);
+    assert.equal(g.player.kits.clonebay?.power, 1);
     lowerCradlePower(g);
-    assert.equal(g.player.kits.cradle?.power, 0);
-    assert.equal(g.player.kits.cradle?.on, false);
+    assert.equal(g.player.kits.clonebay?.power, 0);
+    assert.equal(g.player.kits.clonebay?.on, false);
 
-    g.player.kits.cradle = cradle(0);
-    g.player.kits.cradle.damage = 1;
+    g.player.kits.clonebay = cradle(0);
+    g.player.kits.clonebay.damage = 1;
     raiseCradlePower(g);
-    assert.equal(g.player.kits.cradle.power, 0);
+    assert.equal(g.player.kits.clonebay.power, 0);
 
-    g.player.kits.swarm = swarm();
+    g.player.kits.drones = swarm();
     raiseSwarmPower(g);
-    assert.equal(g.player.kits.swarm?.power, 1);
+    assert.equal(g.player.kits.drones?.power, 1);
     raiseSwarmPower(g);
-    assert.equal(g.player.kits.swarm?.power, 2);
+    assert.equal(g.player.kits.drones?.power, 2);
     raiseSwarmPower(g);
-    assert.equal(g.player.kits.swarm?.power, 2);
+    assert.equal(g.player.kits.drones?.power, 2);
     lowerSwarmPower(g);
-    assert.equal(g.player.kits.swarm?.power, 1);
+    assert.equal(g.player.kits.drones?.power, 1);
   });
 });

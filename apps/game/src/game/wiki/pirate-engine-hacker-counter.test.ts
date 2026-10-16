@@ -32,7 +32,7 @@ describe("Pirate engine hacker hacking counter", () => {
 
   it("shows the printed counter sentence, takes Hacking offline, and does not cap Engines", () => {
     const g = createGame(2);
-    g.player.kits.spike = { id: "spike", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     g.player.parts = 2;
     g.player.systems.engines.level = 5;
     g.player.systems.engines.power = 5;
@@ -45,7 +45,7 @@ describe("Pirate engine hacker hacking counter", () => {
     assert.equal(g.fightEvent, "pirate-engine-hacker");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.scrap, 10);
-    assert.equal(g.player.kits.spike?.level, 1);
+    assert.equal(g.player.kits.hacking?.level, 1);
     assert.equal(playerHackingOff(g), true);
     const aimed = ["shields", "weapons", "oxygen", "engines"].some((id) => armSpike(g, id));
     assert.equal(aimed, true);

@@ -43,7 +43,7 @@ describe("Slug ship breach gel", () => {
     assert.equal(pirateRoom.breach, 0);
 
     const rebel = createGame(3);
-    rebel.augments = ["gel"];
+    rebel.augments = ["SLUG_GEL"];
     startCombat(rebel, "Rebel ship");
     assert.notEqual(rebel.enemy?.faction, "slug");
     const rebelRoom = primed(rebel, rebel.enemy!);

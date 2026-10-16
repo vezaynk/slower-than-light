@@ -337,6 +337,8 @@ function readHull(node: XmlElement): HullDef | undefined {
     }
     const on = boolOf(item, "on");
     if (on !== undefined) kit.on = on;
+    const weapon = textOf(item, "weapon");
+    if (weapon) kit.weapon = weapon;
     kits[kitId] = kit;
   }
   const augments: string[] = [];

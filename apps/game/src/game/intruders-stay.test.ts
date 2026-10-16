@@ -18,7 +18,7 @@ function plant(g: Game, room: string, hp = 80): Crew {
     move: 0,
     think: 30,
     tone: 3,
-    kin: "plain",
+    kin: "human",
   };
   g.crew.push(c);
   return c;

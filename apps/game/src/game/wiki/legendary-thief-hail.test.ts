@@ -32,11 +32,11 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
   });
 
   it("hailing shows the printed haka sentence and fights a Mantis ship whose crew are all Mantis", () => {
-    const hp = kinOf("blade").hp;
+    const hp = kinOf("mantis").hp;
     const g = createGame(2);
     const pilot = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(pilot);
-    pilot.kin = "blade";
+    pilot.kin = "mantis";
     open(g);
     assert.equal(choiceDisabled(g, "c:legendary-thief-kazaaakplethkilik:1"), null);
     choose(g, "c:legendary-thief-kazaaakplethkilik:1");
@@ -47,6 +47,6 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
     assert.equal(g.scrap, 10);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
-    assert.ok(theirs.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+    assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
   });
 });

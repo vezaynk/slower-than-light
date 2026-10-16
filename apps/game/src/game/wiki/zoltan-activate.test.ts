@@ -21,7 +21,7 @@ function spark(room: string, id: string): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
@@ -58,15 +58,15 @@ describe("Zoltans ionized activation", () => {
     g.enemy.zoltan = 0;
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy.weapons) w.enabled = false;
-    if (g.enemy.kits.veil) {
-      g.enemy.kits.veil.on = false;
-      g.enemy.kits.veil.power = 0;
+    if (g.enemy.kits.cloaking) {
+      g.enemy.kits.cloaking.on = false;
+      g.enemy.kits.cloaking.power = 0;
     }
 
     const room = g.player.rooms.find((item) => item.system === "sensors");
     assert.ok(room);
     for (const item of g.player.rooms) delete item.kit;
-    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.kin !== "gel");
+    const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.kin !== "slug");
     assert.ok(foe);
     const pad = g.enemy.rooms.find((item) => item.system)?.id;
     assert.ok(pad);
@@ -76,54 +76,54 @@ describe("Zoltans ionized activation", () => {
       applyImpact(g, ionShot(room.id, points));
     };
 
-    g.player.kits.veil = kit("veil", 0);
-    strike("veil", 6);
-    assert.equal(g.player.kits.veil.ion?.length, 5);
-    assert.ok(g.player.kits.veil.ion?.every((t) => t === 5));
+    g.player.kits.cloaking = kit("cloaking", 0);
+    strike("cloaking", 6);
+    assert.equal(g.player.kits.cloaking.ion?.length, 5);
+    assert.ok(g.player.kits.cloaking.ion?.every((t) => t === 5));
     g.crew.push(spark(room.id, "z-cloak"));
     startVeil(g);
-    assert.equal(g.player.kits.veil.on, false);
+    assert.equal(g.player.kits.cloaking.on, false);
 
-    g.player.kits.spike = kit("spike", 1);
-    g.player.kits.spike.target = "shields";
+    g.player.kits.hacking = kit("hacking", 1);
+    g.player.kits.hacking.target = "shields";
     const parts = g.player.parts;
-    strike("spike", 1);
+    strike("hacking", 1);
     assert.equal(launchSpike(g), false);
     assert.equal(g.player.parts, parts);
 
-    g.player.kits.leash = kit("leash", 1);
+    g.player.kits.mind = kit("mind", 1);
     // Mind Control, Overview: the hold needs a view. This test ions the Sensors room, so a living Slug is the view.
     const watcher = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(watcher);
-    watcher.kin = "gel";
-    strike("leash", 1);
+    watcher.kin = "slug";
+    strike("mind", 1);
     // Mind Control, Overview: ion that covers every level starts the 25 second cooldown.
-    assert.equal(g.player.kits.leash.cool, 25);
+    assert.equal(g.player.kits.mind.cool, 25);
     startLeash(g, foe.id);
     assert.equal(foe.leashed ?? 0, 0);
 
-    g.player.kits.sling = kit("sling", 1);
-    strike("sling", 1);
+    g.player.kits.teleporter = kit("teleporter", 1);
+    strike("teleporter", 1);
     sendSling(g, pad);
     assert.ok(g.crew.filter((c) => c.side === "player").every((c) => c.aboard === "player"));
 
-    delete g.player.kits.spike.ion;
+    delete g.player.kits.hacking.ion;
     assert.equal(launchSpike(g), true);
     assert.equal(g.player.parts, parts - 1);
 
-    delete g.player.kits.leash.ion;
+    delete g.player.kits.mind.ion;
     // The 25 second cooldown is still running after the ion timers are cleared.
     startLeash(g, foe.id);
     assert.equal(foe.leashed ?? 0, 0);
-    g.player.kits.leash.cool = 0;
+    g.player.kits.mind.cool = 0;
     startLeash(g, foe.id);
     assert.ok((foe.leashed ?? 0) > 0);
 
-    delete g.player.kits.sling.ion;
+    delete g.player.kits.teleporter.ion;
     // Crew Teleporter: a send needs someone standing in the teleporter room.
     const standing = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(standing);
-    const slingRoom = g.player.rooms.find((r) => r.kit === "sling") ?? g.player.rooms[0];
+    const slingRoom = g.player.rooms.find((r) => r.kit === "teleporter") ?? g.player.rooms[0];
     assert.ok(slingRoom);
     standing.room = slingRoom.id;
     standing.path = [];
@@ -132,13 +132,13 @@ describe("Zoltans ionized activation", () => {
     assert.ok(g.crew.some((c) => c.side === "player" && c.aboard === "enemy"));
 
     for (let i = 0; i < 101; i++) step(g, 0.05);
-    assert.equal(g.player.kits.veil.ion, undefined);
+    assert.equal(g.player.kits.cloaking.ion, undefined);
     const body = g.crew.find((c) => c.id === "z-cloak");
     assert.ok(body);
     body.room = room.id;
     body.path = [];
-    room.kit = "veil";
+    room.kit = "cloaking";
     startVeil(g);
-    assert.equal(g.player.kits.veil.on, true);
+    assert.equal(g.player.kits.cloaking.on, true);
   });
 });

@@ -42,7 +42,7 @@ describe("Slaver (hostile) draw straws", () => {
     assert.equal(plain.player.weapons.length, weapons);
 
     const cloned = createGame(4);
-    cloned.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    cloned.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     open(cloned);
     const clonedBefore = players(cloned).length;
     choose(cloned, ID);

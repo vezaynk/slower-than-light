@@ -89,7 +89,7 @@ describe("Flak I fake flak", () => {
     ];
     g.player.systems.weapons.level = 2;
     g.player.systems.weapons.power = 2;
-    g.player.weapons = [{ uid: "flak", defId: "scatter", charge: 1, enabled: true, autofire: false, target: "n" }];
+    g.player.weapons = [{ uid: "flak", defId: "SHOTGUN", charge: 1, enabled: true, autofire: false, target: "n" }];
     g.seed = 4;
     const preview = createGame(1);
     preview.seed = 4;
@@ -129,8 +129,8 @@ describe("Flak I fake flak", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
-    g.enemy.kits.swarm = {
-      id: "swarm",
+    g.enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -138,14 +138,14 @@ describe("Flak I fake flak", () => {
       target: null,
       on: false,
       aux: 0,
-      loadout: ["ward"],
+      loadout: ["DEFENSE_1"],
     };
     g.enemy.parts = 3;
     tickSwarm(g, 0.05);
     tickSwarm(g, ACQUIRE_S);
     g.player.systems.weapons.level = 2;
     g.player.systems.weapons.power = 2;
-    g.player.weapons = [{ uid: "flak", defId: "scatter", charge: 1, enabled: true, autofire: false, target: g.enemy.rooms[0]!.id }];
+    g.player.weapons = [{ uid: "flak", defId: "SHOTGUN", charge: 1, enabled: true, autofire: false, target: g.enemy.rooms[0]!.id }];
     fireReady(g);
     const fake = g.shots.find((shot) => shot.label === FLAK1_FAKE_LABEL);
     assert.ok(fake);

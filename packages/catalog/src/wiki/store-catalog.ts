@@ -8,14 +8,14 @@ import type { StoreDef } from "@stl/pack";
  * A repair line's cost is stored; the sector rate still prices the row.
  */
 const CREW: readonly { id: KinId; cost: number }[] = [
-  { id: "plain", cost: 45 },
-  { id: "shell", cost: 50 },
-  { id: "blade", cost: 55 },
-  { id: "stone", cost: 55 },
-  { id: "spark", cost: 60 },
-  { id: "gel", cost: 45 },
-  { id: "shard", cost: 60 },
-  { id: "voidlung", cost: 50 },
+  { id: "human", cost: 45 },
+  { id: "engi", cost: 50 },
+  { id: "mantis", cost: 55 },
+  { id: "rock", cost: 55 },
+  { id: "energy", cost: 60 },
+  { id: "slug", cost: 45 },
+  { id: "crystal", cost: 60 },
+  { id: "anaerobic", cost: 50 },
 ];
 
 export const STORES: StoreDef[] = [

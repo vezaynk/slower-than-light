@@ -30,7 +30,7 @@ function resources(body: string): number {
 }
 
 function boarders(g: Game): number {
-  return g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "spark").length;
+  return g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy").length;
 }
 
 describe("Zoltan security checkpoint", () => {
@@ -114,7 +114,7 @@ describe("Zoltan security checkpoint", () => {
       open(g);
       const crew = g.crew.filter((c) => c.side === "player").length;
       g.crew.push({ ...g.crew[0]!, id: "spare", name: "Spare" });
-      g.player.kits.cradle = kit("cradle");
+      g.player.kits.clonebay = kit("clonebay");
       choose(g, "c:zoltan-security-checkpoint:1");
       if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
       cloned = true;
@@ -183,7 +183,7 @@ describe("Zoltan security checkpoint", () => {
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     const slug = createGame(7);
     open(slug);
-    slug.crew[0]!.kin = "gel";
+    slug.crew[0]!.kin = "slug";
     const missiles = slug.missiles;
     const parts = slug.player.parts;
     assert.equal(choiceDisabled(slug, "c:zoltan-security-checkpoint:2"), null);
@@ -199,13 +199,13 @@ describe("Zoltan security checkpoint", () => {
 
     const dead = createGame(8);
     open(dead);
-    dead.crew[0]!.kin = "gel";
+    dead.crew[0]!.kin = "slug";
     dead.crew[0]!.hp = 0;
     assert.equal(choiceDisabled(dead, "c:zoltan-security-checkpoint:2"), "Needs a Slug crewmember");
 
     const mind = createGame(9);
     open(mind);
-    mind.player.kits.leash = kit("leash");
+    mind.player.kits.mind = kit("mind");
     const base = mind.fuel;
     assert.equal(choiceDisabled(mind, "c:zoltan-security-checkpoint:3"), null);
     choose(mind, "c:zoltan-security-checkpoint:3");

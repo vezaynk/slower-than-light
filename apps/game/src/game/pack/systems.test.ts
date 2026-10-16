@@ -27,19 +27,19 @@ function ownEveryPricedSystem(g: Game) {
   g.player.systems.medbay.level = 1;
   g.player.systems.sensors.level = 1;
   g.player.systems.doors.level = 1;
-  g.player.kits.cradle = kit("cradle");
-  g.player.kits.sling = kit("sling");
-  g.player.kits.veil = kit("veil");
-  g.player.kits.leash = kit("leash");
-  g.player.kits.spike = kit("spike");
-  g.player.kits.cell = kit("cell");
-  g.player.kits.swarm = kit("swarm", 2);
+  g.player.kits.clonebay = kit("clonebay");
+  g.player.kits.teleporter = kit("teleporter");
+  g.player.kits.cloaking = kit("cloaking");
+  g.player.kits.mind = kit("mind");
+  g.player.kits.hacking = kit("hacking");
+  g.player.kits.battery = kit("battery");
+  g.player.kits.drones = kit("drones", 2);
 }
 
 describe("system listings", () => {
   it("charges the packed price for a system and a kit", () => {
     const shields = systemDef("shields");
-    const veil = systemDef("veil");
+    const veil = systemDef("cloaking");
     assert.ok(shields && veil);
     loadPack(
       {
@@ -69,9 +69,9 @@ describe("system listings", () => {
 
     const cloak = createGame(1);
     ownEveryPricedSystem(cloak);
-    delete cloak.player.kits.veil;
+    delete cloak.player.kits.cloaking;
     reseed(cloak, rolls("systems"));
-    const row = citedStock(cloak).find((item) => item.ref === "veil");
+    const row = citedStock(cloak).find((item) => item.ref === "cloaking");
     assert.ok(row);
     assert.equal(row.name, "Shroud");
     assert.equal(row.cost, 70);
@@ -80,7 +80,7 @@ describe("system listings", () => {
     buy(cloak, row.id);
     assert.equal(cloak.scrap, 0);
     const installed = cloak.player.kits as Partial<Record<string, Kit>>;
-    assert.equal(installed.veil?.level, 1);
+    assert.equal(installed.cloaking?.level, 1);
   });
 
   it("stocks an appended listing and does not install an unknown id", () => {
@@ -93,7 +93,7 @@ describe("system listings", () => {
     assert.equal(hit.name, "Ember");
     assert.equal(hit.cost, 15);
     assert.equal(
-      citedStock(g).some((item) => item.ref === "swarm" || item.ref === "lance" || item.ref === "flak"),
+      citedStock(g).some((item) => item.ref === "drones" || item.ref === "artillery"),
       false,
     );
     g.scrap = 15;

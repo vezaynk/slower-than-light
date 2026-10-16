@@ -33,8 +33,8 @@ describe("Slug hacker (choice) hacking", () => {
 
   it("shows the printed counter sentence, takes Hacking offline, and starts a Slug fight", () => {
     const g = createGame(2);
-    g.player.kits.spike = {
-      id: "spike",
+    g.player.kits.hacking = {
+      id: "hacking",
       level: 1,
       power: 1,
       left: 0,
@@ -52,7 +52,7 @@ describe("Slug hacker (choice) hacking", () => {
     assert.equal(g.fightEvent, "slug-hacker-choice");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.scrap, 10);
-    assert.equal(g.player.kits.spike?.level, 1);
+    assert.equal(g.player.kits.hacking?.level, 1);
     assert.equal(playerHackingOff(g), true);
     const aimed = ["shields", "weapons", "oxygen", "engines"].some((id) => armSpike(g, id));
     assert.equal(aimed, true);

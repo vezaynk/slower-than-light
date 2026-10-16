@@ -290,7 +290,7 @@ describe("scripted surrenders (event pages)", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
     const before = g.crew.filter((c) => c.side === "player");
     const crew = before.length;
-    const plain = before.filter((c) => c.kin === "plain").length;
+    const plain = before.filter((c) => c.kin === "human").length;
     offer(g);
     assert.equal(g.event?.choices[0].label, "Accept their surrender.");
     assert.equal(surrenderOfferView(g)?.crew, "Human");
@@ -301,8 +301,8 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.kills, kills);
     const mine = g.crew.filter((c) => c.side === "player");
     assert.equal(mine.length, crew + 1);
-    assert.equal(mine.filter((c) => c.kin === "plain").length, plain + 1);
-    assert.equal(mine[mine.length - 1].kin, "plain");
+    assert.equal(mine.filter((c) => c.kin === "human").length, plain + 1);
+    assert.equal(mine[mine.length - 1].kin, "human");
     assert.ok(g.log.includes("They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free."));
     assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
     g.enemy!.hull -= 1;
@@ -400,12 +400,12 @@ describe("scripted surrenders (event pages)", () => {
     // > "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     const g = eventFight("Slug ship", "slug-home-nebula-surrender");
     offer(g);
-    assert.equal(surrenderOfferView(g)!.weapon, "antibio");
+    assert.equal(surrenderOfferView(g)!.weapon, "BEAM_BIO");
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     const note = g.reward?.note ?? "";
     assert.ok(note.includes("This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!"));
-    assert.ok(g.player.weapons.some((w) => w.defId === "antibio"));
+    assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));
   });
 
   it("a fight no event started keeps the generic Stuff cargo", () => {

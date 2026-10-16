@@ -52,7 +52,7 @@ describe("store listings", () => {
           {
             ...standard,
             lines: standard.lines.map((line) =>
-              line.kind === "crew" && line.id === "plain" ? { ...line, cost: 99 } : line,
+              line.kind === "crew" && line.id === "human" ? { ...line, cost: 99 } : line,
             ),
           },
         ],
@@ -60,11 +60,11 @@ describe("store listings", () => {
       "append",
     );
     const g = withCrew();
-    const human = citedStock(g).find((item) => item.ref === "plain");
+    const human = citedStock(g).find((item) => item.ref === "human");
     assert.equal(human?.name, "Human");
     assert.equal(human?.cost, 99);
     assert.equal(
-      STORES.find((row) => row.id === "standard")?.lines.find((line) => line.id === "plain")?.cost,
+      STORES.find((row) => row.id === "standard")?.lines.find((line) => line.id === "human")?.cost,
       45,
     );
   });
@@ -79,7 +79,7 @@ describe("store listings", () => {
       lines: [
         { id: "fuel", kind: "fuel", name: "Ember Fuel", cost: 4, min: 3, max: 3 },
         { id: "relic", kind: "relic", name: "Relic", cost: 9, min: 1, max: 1 },
-        { id: "spark", kind: "crew", name: "Ember Hand", cost: 12, min: 1, max: 1 },
+        { id: "energy", kind: "crew", name: "Ember Hand", cost: 12, min: 1, max: 1 },
       ],
     };
     loadPack({ stores: [ember] }, "append");
@@ -89,7 +89,7 @@ describe("store listings", () => {
     assert.equal(g.stock?.find((item) => item.id === "fuel")?.name, "Ember Fuel");
     assert.equal(g.stock?.find((item) => item.id === "fuel")?.cost, 4);
     assert.equal(g.stock?.some((item) => item.name === "Relic"), false);
-    assert.equal(g.stock?.find((item) => item.ref === "spark")?.cost, 12);
+    assert.equal(g.stock?.find((item) => item.ref === "energy")?.cost, 12);
     const campaign = createGame(2);
     openStoreHere(campaign);
     assert.equal(campaign.stock?.find((item) => item.id === "fuel")?.cost, 3);

@@ -65,7 +65,7 @@ describe("default fight salvage", () => {
       while (g.player.weapons.length < 8) {
         g.player.weapons.push({
           uid: `pad-${g.player.weapons.length}`,
-          defId: "leto",
+          defId: "MISSILES_1",
           charge: 0,
           enabled: false,
           autofire: false,
@@ -91,7 +91,7 @@ describe("default fight salvage", () => {
       g.pending = null;
       g.enemy.automated = false;
       g.enemy.classId = g.enemy.classId || "cited";
-      if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
+      if (g.enemy.kits.clonebay) g.enemy.kits.clonebay.level = 0;
       for (const w of g.enemy.weapons) w.enabled = false;
       if (g.enemySurrender) g.enemySurrender.chance = 0;
       if (g.enemyEscape) g.enemyEscape.mode = "never";

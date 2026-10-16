@@ -6,7 +6,7 @@ function fitted(g: Game, id: AugmentId): boolean {
 
 /** Augmentations, "FTL Augmentations", FTL Jammer: enemy jump time is doubled. */
 export function enemyFtlScale(g: Game): number {
-  return fitted(g, "jammer") ? 2 : 1;
+  return fitted(g, "FTL_JAMMER") ? 2 : 1;
 }
 
 /**
@@ -23,14 +23,14 @@ export function enemyFtlScale(g: Game): number {
  * INFERRED: a jump while phase is combat and the enemy ship is still there is a flee, so a combat drone is not returned.
  * Any other jump is after that fight. The same jump clears the drone, so the part is not paid twice.
  */
-const RECOVER_COMBAT = new Set(["striker", "combat2", "beam", "beam2", "fire"]);
-const RECOVER_DEFENSE = new Set(["ward", "ward2", "wardcut", "overcharger", "overchargerplus", "hull"]);
+const RECOVER_COMBAT = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
+const RECOVER_DEFENSE = new Set(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "DRONE_SHIELD", "DRONE_SHIELD_PLAYER", "SHIP_REPAIR"]);
 
 export function partsBack(g: Game): number {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   const target = kit?.target;
   const deployed = typeof target === "string" && target.length > 0 && !!kit?.on;
-  if (!fitted(g, "recover") || !deployed || kit === undefined || kit.power <= 0 || !target) return 0;
+  if (!fitted(g, "DRONE_RECOVERY") || !deployed || kit === undefined || kit.power <= 0 || !target) return 0;
   if (RECOVER_DEFENSE.has(target)) return 1;
   if (RECOVER_COMBAT.has(target) && !(g.phase === "combat" && g.enemy)) return 1;
   return 0;
@@ -41,7 +41,7 @@ export function partsBack(g: Game): number {
  * crew in a room during a hacking pulse are stunned for that pulse.
  */
 export function hackStuns(g: Game): boolean {
-  return fitted(g, "stun");
+  return fitted(g, "HACKING_STUN");
 }
 
 /**
@@ -50,12 +50,12 @@ export function hackStuns(g: Game): boolean {
  * True if fitted. The caller will keep a clone when the cradle is dark.
  */
 export function helixHolds(g: Game): boolean {
-  return fitted(g, "dna");
+  return fitted(g, "BACKUP_DNA");
 }
 
 /** Augmentations, "Crew Augmentations", Reconstructive Teleport: crew are fully healed by teleportation. */
 export function mendOnSend(g: Game): boolean {
-  return fitted(g, "mend");
+  return fitted(g, "TELEPORT_HEAL");
 }
 
 /**
@@ -63,5 +63,5 @@ export function mendOnSend(g: Game): boolean {
  * life forms are detected even when sensors do not function.
  */
 export function lampSees(g: Game): boolean {
-  return fitted(g, "pulseeye");
+  return fitted(g, "LIFE_SCANNER");
 }

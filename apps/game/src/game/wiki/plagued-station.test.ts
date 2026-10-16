@@ -97,7 +97,7 @@ describe("Plagued station", () => {
     assert.equal(plain.scrap, scrap);
 
     const cloned = sick((game) => {
-      game.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      game.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     });
     assert.equal(joinCrew(cloned, "Human"), true);
     const crew = players(cloned).length;

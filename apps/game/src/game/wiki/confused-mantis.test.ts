@@ -72,7 +72,7 @@ describe("Confused Mantis", () => {
 
   it("listening shows the human blue and hides Mantis and Mind Control", () => {
     const g = createGame(1);
-    kin(g, "plain");
+    kin(g, "human");
     listen(g);
     assert.match(g.event?.body ?? "", /malfunctioning Mantis/);
     assert.ok(ids(g).includes("s:confused-mantis:shuttle"));
@@ -90,7 +90,7 @@ describe("Confused Mantis", () => {
     let nothing = false;
     for (let seed = 1; seed <= 80 && (!home || !lose || !nothing); seed++) {
       const g = createGame(seed);
-      kin(g, "plain");
+      kin(g, "human");
       const crew = players(g).length;
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
@@ -121,7 +121,7 @@ describe("Confused Mantis", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       const crew = players(g).length;
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
@@ -136,7 +136,7 @@ describe("Confused Mantis", () => {
 
   it("a human returns Robert Smith, and a full ship picks who is relieved", () => {
     const g = createGame(1);
-    kin(g, "plain");
+    kin(g, "human");
     listen(g);
     fillerChoose(g, "s:confused-mantis:human");
     assert.match(g.event?.body ?? "", /another human/);
@@ -145,11 +145,11 @@ describe("Confused Mantis", () => {
     fillerChoose(g, "s:confused-mantis:hire");
     const robert = players(g).find((c) => c.name === "Robert Smith");
     assert.ok(robert);
-    assert.equal(robert.kin, "blade");
+    assert.equal(robert.kin, "mantis");
     assert.equal(robert.skills, undefined);
 
     const full = createGame(2);
-    kin(full, "plain");
+    kin(full, "human");
     while (players(full).length < CREW_CAP) assert.equal(joinCrew(full, "Human"), true);
     listen(full);
     fillerChoose(full, "s:confused-mantis:human");
@@ -163,7 +163,7 @@ describe("Confused Mantis", () => {
 
   it("the colony upgrades engines one level, and a maxed system stays put", () => {
     const g = createGame(1);
-    kin(g, "plain");
+    kin(g, "human");
     const before = g.player.systems.engines.level;
     const power = g.player.systems.engines.power;
     listen(g);
@@ -175,7 +175,7 @@ describe("Confused Mantis", () => {
     assert.match(g.event?.body ?? "", /Engines upgraded/);
 
     const maxed = createGame(3);
-    kin(maxed, "plain");
+    kin(maxed, "human");
     maxed.player.systems.engines.level = 8;
     listen(maxed);
     fillerChoose(maxed, "s:confused-mantis:human");
@@ -189,7 +189,7 @@ describe("Confused Mantis", () => {
     // Wiki citations:
     // > "You receive low scrap with resources." — [[Confused Mantis]]
     const g = createGame(4);
-    kin(g, "blade");
+    kin(g, "mantis");
     const crew = players(g).length;
     listen(g);
     assert.ok(ids(g).includes("s:confused-mantis:mantis"));
@@ -204,8 +204,8 @@ describe("Confused Mantis", () => {
     // Wiki citations:
     // > "You receive medium scrap with resources." — [[Confused Mantis]]
     const g = createGame(5);
-    kin(g, "plain");
-    g.player.kits.leash = { id: "leash", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    kin(g, "human");
+    g.player.kits.mind = { id: "mind", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     const crew = players(g).length;
     listen(g);
     assert.ok(ids(g).includes("s:confused-mantis:mind"));

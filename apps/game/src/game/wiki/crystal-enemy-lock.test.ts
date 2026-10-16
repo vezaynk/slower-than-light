@@ -10,7 +10,7 @@ function crystalFight(): Game {
     g.sector = 6;
     startCombat(g, "Crystal ship");
     if (!g.enemy) continue;
-    if (g.crew.some((c) => c.side === "enemy" && c.kin === "shard" && c.hp > 0 && c.aboard === "enemy")) return g;
+    if (g.crew.some((c) => c.side === "enemy" && c.kin === "crystal" && c.hp > 0 && c.aboard === "enemy")) return g;
   }
   throw new Error("no Crystal ship with a Crystal aboard");
 }
@@ -27,7 +27,7 @@ function calm(g: Game) {
 }
 
 function shard(g: Game): Crew {
-  const c = g.crew.find((x) => x.side === "enemy" && x.kin === "shard" && x.hp > 0 && x.aboard === "enemy");
+  const c = g.crew.find((x) => x.side === "enemy" && x.kin === "crystal" && x.hp > 0 && x.aboard === "enemy");
   assert.ok(c);
   return c;
 }

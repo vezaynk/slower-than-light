@@ -17,7 +17,7 @@ function open(g: Game) {
 }
 
 function drone(kind: string): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
 }
 
 function scraps(body: string): number[] {
@@ -94,7 +94,7 @@ describe("Mantis ships battle for Rock freighter", () => {
     for (let seed = 1; seed <= 40 && (!charged || !waived); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.swarm = drone("patch");
+      g.player.kits.drones = drone("REPAIR");
       g.player.parts = 4;
       const guns = g.player.weapons.length;
       assert.equal(choiceDisabled(g, "c:mantis-ships-battle-for-rock-freighter:2"), null);
@@ -134,7 +134,7 @@ describe("Mantis ships battle for Rock freighter", () => {
 
     const broke = createGame(2);
     open(broke);
-    broke.player.kits.swarm = drone("hull");
+    broke.player.kits.drones = drone("SHIP_REPAIR");
     broke.player.parts = 0;
     assert.equal(choiceDisabled(broke, "c:mantis-ships-battle-for-rock-freighter:3"), "Need 1 drone part");
     choose(broke, "c:mantis-ships-battle-for-rock-freighter:3");
@@ -143,7 +143,7 @@ describe("Mantis ships battle for Rock freighter", () => {
 
     const g = createGame(3);
     open(g);
-    g.player.kits.swarm = drone("hull");
+    g.player.kits.drones = drone("SHIP_REPAIR");
     g.player.parts = 2;
     assert.equal(choiceDisabled(g, "c:mantis-ships-battle-for-rock-freighter:3"), null);
     choose(g, "c:mantis-ships-battle-for-rock-freighter:3");

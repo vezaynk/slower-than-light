@@ -20,7 +20,7 @@ function quietEnemy(g: Game) {
   const enemy = g.enemy;
   if (!enemy) return;
   for (const w of enemy.weapons) w.enabled = false;
-  if (enemy.kits.swarm) enemy.kits.swarm.loadout = [];
+  if (enemy.kits.drones) enemy.kits.drones.loadout = [];
 }
 
 describe("pulsar", () => {
@@ -171,8 +171,8 @@ describe("pulsar", () => {
       g.enemy.zoltan = 0;
       for (const id of Object.keys(g.enemy.systems) as SysId[]) g.enemy.systems[id].level = 0;
     }
-    g.player.kits.cell = {
-      id: "cell",
+    g.player.kits.battery = {
+      id: "battery",
       level: 2,
       power: 0,
       left: 0,
@@ -183,6 +183,6 @@ describe("pulsar", () => {
       damage: 1,
     };
     applyPulsarPulse(g);
-    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(g.player.kits.battery?.cool, 25);
   });
 });

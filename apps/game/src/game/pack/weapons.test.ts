@@ -15,8 +15,8 @@ function mount(defId: string, uid = defId): WeaponInst {
 
 describe("weapon lookups", () => {
   it("sells at the packed price and name, and keeps a printed sell line", () => {
-    const burst = weaponDef("lineburst");
-    const spark = weaponDef("spark");
+    const burst = weaponDef("LASER_BURST_3");
+    const spark = weaponDef("LASER_BURST_1");
     assert.ok(burst && spark);
     loadPack(
       {
@@ -44,15 +44,15 @@ describe("weapon lookups", () => {
       "append",
     );
     const g = createGame(1);
-    g.player.weapons = [mount("lineburst", "w-line"), mount("ember"), mount("spark"), mount("dart")];
+    g.player.weapons = [mount("LASER_BURST_3", "w-line"), mount("ember"), mount("LASER_BURST_1"), mount("dart")];
     g.cargo = [{ kind: "weapon", id: "ember" }];
     const quotes = citedSellQuote(g);
     const byRef = Object.fromEntries(quotes.filter((quote) => quote.kind === "weapon" && !quote.id.startsWith("c:")).map((quote) => [quote.ref, quote]));
-    assert.equal(byRef.lineburst?.scrap, 45);
-    assert.equal(byRef.lineburst?.name, "Line");
+    assert.equal(byRef.LASER_BURST_3?.scrap, 45);
+    assert.equal(byRef.LASER_BURST_3?.name, "Line");
     assert.equal(byRef.ember?.scrap, 7);
     assert.equal(byRef.ember?.name, "Ember");
-    assert.equal(byRef.spark?.scrap, 10);
+    assert.equal(byRef.LASER_BURST_1?.scrap, 10);
     assert.equal(byRef.dart, undefined);
     const cargo = quotes.find((quote) => quote.id.startsWith("c:"));
     assert.equal(cargo?.name, "Ember (cargo)");
@@ -60,7 +60,7 @@ describe("weapon lookups", () => {
   });
 
   it("mounts an appended gun whose name the flagship prints, and arms from its packed power", () => {
-    const ion = weaponDef("bossion");
+    const ion = weaponDef("ARTILLERY_BOSS_4");
     assert.ok(ion);
     loadPack(
       {
@@ -77,13 +77,13 @@ describe("weapon lookups", () => {
     assert.ok(ship);
     assert.deepEqual(
       ship.weapons.map((weapon) => weapon.defId),
-      ["emberion", "bosslaser", "bossmissile", "bossbeam"],
+      ["emberion", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
   });
 
   it("arms a non-artillery hull from the packed power cost", () => {
-    const ion = weaponDef("bossion");
+    const ion = weaponDef("ARTILLERY_BOSS_4");
     assert.ok(ion);
     loadPack({ weapons: [{ ...ion, power: 99 }] }, "append");
     const g = createGame(1);
@@ -93,7 +93,7 @@ describe("weapon lookups", () => {
     ship.flagship = undefined;
     citedEnemy(g, "boss", ship, g.crew);
     const armed = Object.fromEntries(ship.weapons.map((weapon) => [weapon.defId, weapon.enabled]));
-    assert.equal(armed.bossion, false);
-    assert.equal(armed.bossbeam, true);
+    assert.equal(armed.ARTILLERY_BOSS_4, false);
+    assert.equal(armed.ARTILLERY_BOSS_3, true);
   });
 });

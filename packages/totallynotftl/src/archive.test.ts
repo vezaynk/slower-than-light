@@ -21,7 +21,7 @@ describe("totallynotftl.dat", () => {
     assert.equal(pack.facts, true);
     assert.equal(pack.names?.pool.includes("Ada Voss"), true);
     assert.equal(pack.names?.syllables.includes("ka"), true);
-    const laser = pack.weapons?.find((row) => row.id === "lineburst");
+    const laser = pack.weapons?.find((row) => row.id === "LASER_BURST_3");
     assert.equal(laser?.kind, "laser");
     assert.equal(laser?.name, "Burst Laser II");
     assert.match(laser?.blurb ?? "", /2 power/);
@@ -29,7 +29,7 @@ describe("totallynotftl.dat", () => {
     assert.match(laser?.blurb ?? "", /3 shots of 1 damage/);
     assert.match(laser?.blurb ?? "", /Costs 80 scrap/);
     assert.doesNotMatch(laser?.blurb ?? "", /FTL art/);
-    const beam = pack.weapons?.find((row) => row.id === "mini");
+    const beam = pack.weapons?.find((row) => row.id === "BEAM_1");
     assert.equal(beam?.lengthTiles, 1);
     assert.match(beam?.blurb ?? "", /Length 1 tile/);
     assert.match(
@@ -38,17 +38,17 @@ describe("totallynotftl.dat", () => {
     );
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.name, "Shields");
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.slot, "sys");
-    assert.equal(pack.systems?.find((row) => row.id === "veil")?.name, "Cloaking");
-    assert.equal(pack.systems?.find((row) => row.id === "veil")?.slot, "kit");
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.name, "Cloaking");
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.slot, "kit");
     assert.equal(pack.systems?.find((row) => row.id === "engines")?.name, "Engines");
     assert.equal(pack.tunes?.find((row) => row.id === "shields")?.start, 2);
-    assert.equal(pack.augments?.find((row) => row.id === "feed")?.name, "Automated Re-loader");
-    assert.match(pack.augments?.find((row) => row.id === "feed")?.detail ?? "", /10%/);
-    assert.equal(pack.drones?.find((row) => row.id === "striker")?.name, "Combat Drone Mark I");
-    assert.equal(pack.crew?.find((row) => row.id === "plain")?.name, "Human");
-    assert.match(pack.crew?.find((row) => row.id === "plain")?.detail ?? "", /Health 100/);
-    assert.match(pack.crew?.find((row) => row.id === "spark")?.detail ?? "", /Supplies 1 power/);
-    assert.match(pack.crew?.find((row) => row.id === "voidlung")?.detail ?? "", /Drains oxygen/);
+    assert.equal(pack.augments?.find((row) => row.id === "AUTO_COOLDOWN")?.name, "Automated Re-loader");
+    assert.match(pack.augments?.find((row) => row.id === "AUTO_COOLDOWN")?.detail ?? "", /10%/);
+    assert.equal(pack.drones?.find((row) => row.id === "COMBAT_1")?.name, "Combat Drone Mark I");
+    assert.equal(pack.crew?.find((row) => row.id === "human")?.name, "Human");
+    assert.match(pack.crew?.find((row) => row.id === "human")?.detail ?? "", /Health 100/);
+    assert.match(pack.crew?.find((row) => row.id === "energy")?.detail ?? "", /Supplies 1 power/);
+    assert.match(pack.crew?.find((row) => row.id === "anaerobic")?.detail ?? "", /Drains oxygen/);
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);

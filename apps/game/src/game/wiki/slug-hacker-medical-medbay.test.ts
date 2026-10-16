@@ -71,10 +71,10 @@ describe("Slug hacker (medical) improved medbay", () => {
     assert.equal(g.player.systems.medbay.level, 2);
     assert.equal(playerMedicalOff(g), false);
     assert.equal(playerHackingOff(g), false);
-    const hp = kinOf("gel").hp;
+    const hp = kinOf("slug").hp;
     const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 2);
-    assert.ok(boarders.every((c) => c.kin === "gel" && c.hp === hp));
+    assert.ok(boarders.every((c) => c.kin === "slug" && c.hp === hp));
     assert.ok(g.log.includes("2 slug boarders beam aboard your ship."));
     const away = g.player.rooms.find((r) => r.id !== bay.id);
     assert.ok(away);

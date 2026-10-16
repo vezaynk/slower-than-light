@@ -28,11 +28,11 @@ function beacon(): Beacon {
 }
 
 function boarded(g: Game) {
-  return g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+  return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.spike = { id: "spike", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  g.player.kits.hacking = { id: "hacking", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 describe("Boarders: Humans jammed sensors", () => {
@@ -95,7 +95,7 @@ describe("Boarders: Humans jammed sensors", () => {
 });
 
 function shutThenCounter(g: Game) {
-  const level = g.player.kits.spike?.level;
+  const level = g.player.kits.hacking?.level;
   choose(g, CONTINUE);
   assert.equal(playerSensorsOff(g), true);
   g.crew = g.crew.filter((c) => c.side === "player");
@@ -104,6 +104,6 @@ function shutThenCounter(g: Game) {
   const humans = boarded(g);
   assert.ok(humans.length >= 3 && humans.length <= 5);
   assert.equal(playerSensorsOff(g), false);
-  assert.equal(g.player.kits.spike?.level, level);
+  assert.equal(g.player.kits.hacking?.level, level);
   assert.equal(sensorLevel(g, g.player, "player") > 0, true);
 }

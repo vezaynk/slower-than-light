@@ -1522,16 +1522,16 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
 
 /** The fitted schematic is kit.target. A loadout entry counts the same way. */
 function ownsBoardDrone(g: Game): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit) return false;
-  return kit.target === "board" || (kit.loadout ?? []).includes("board");
+  return kit.target === "BOARDER" || (kit.loadout ?? []).includes("BOARDER");
 }
 
 /** The fitted schematic is kit.target. A loadout entry counts the same way. */
 function ownsHullRepair(g: Game): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit) return false;
-  return kit.target === "hull" || (kit.loadout ?? []).includes("hull");
+  return kit.target === "SHIP_REPAIR" || (kit.loadout ?? []).includes("SHIP_REPAIR");
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
@@ -1684,7 +1684,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
     return true;
   }
   if (id === `${CRYSTAL_PLANS}:2`) {
-    if (!g.augments.includes("falsebuoy")) return false;
+    if (!g.augments.includes("FLEET_DISTRACTION")) return false;
     citedResult(g, CRYSTAL_BUOY, [highScrapNote(ctx), delayedPursuit(ctx)]);
     return true;
   }
@@ -1741,9 +1741,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (choice.fx.some((fx) => fx.k === "close") && !g.enemy) return true;
   // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
   // A missing weapon returns before the res loop, so the missile is not spent.
-  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam"))
+  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "BEAM_FIRE"))
     return false;
-  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask"))
+  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "BOMB_FIRE"))
     return false;
   // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
   const crystalPlans = crystallineRebelPlans(ctx, id);
@@ -1917,7 +1917,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     );
   // Auto-ship carrying shield virus. "Counter the remote hacking." Without Hacking the arrival card stays open.
   // citedChoose does not read citedChoiceDisabled, so this returns before the fight note and the fight.
-  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0)
+  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.hacking?.level ?? 0) <= 0)
     return true;
   // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-carrying-shield-virus:1")

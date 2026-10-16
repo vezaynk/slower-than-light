@@ -22,14 +22,14 @@ function engage(g: Game) {
 }
 
 function kitOf(g: Game) {
-  const kit = g.player.kits.sling;
+  const kit = g.player.kits.teleporter;
   assert.ok(kit);
   return kit;
 }
 
 /** Crew Teleporter: a send only takes crew standing on a pad. Extra bodies in the room get no pad. */
 function stand(g: Game, ids?: string[]) {
-  const pad = g.player.rooms.find((r) => r.kit === "sling");
+  const pad = g.player.rooms.find((r) => r.kit === "teleporter");
   assert.ok(pad);
   const taken = new Set<string>();
   for (const c of g.crew) {
@@ -45,7 +45,7 @@ function stand(g: Game, ids?: string[]) {
   }
 }
 
-describe("sling", () => {
+describe("teleporter", () => {
   it("sends one crew, recalls them, and loses anyone still over there", () => {
     const g = createGame(1);
     g.scrap = 200;
@@ -53,7 +53,7 @@ describe("sling", () => {
     assert.equal(g.scrap, 110);
 
     const kit = kitOf(g);
-    assert.equal(kit.id, "sling");
+    assert.equal(kit.id, "teleporter");
     kit.level = 1;
     kit.power = 1;
     engage(g);
@@ -83,7 +83,7 @@ describe("sling", () => {
     recallSling(g);
     assert.equal(ivo.aboard, "player");
     // Crew Teleporter: a retrieved crewmember fits in the 2-tile teleporter room.
-    assert.equal(ivo.room, g.player.rooms.find((r) => r.kit === "sling")?.id);
+    assert.equal(ivo.room, g.player.rooms.find((r) => r.kit === "teleporter")?.id);
     assert.deepEqual(ivo.path, []);
     assert.equal(kit.cool, 20);
 
@@ -105,7 +105,7 @@ describe("sling", () => {
     const kit = kitOf(g);
     kit.power = 1;
     engage(g);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
     const neighbors = g.player.doors.flatMap((d) => {
@@ -146,15 +146,15 @@ describe("sling", () => {
     // "Ships can have only 2-tile Teleporter rooms, except for three playable ships with four-person teleporters."
     const sendCount = (hull: string, tiles: number) => {
       const g = createGame(4, hull);
-      const pad = g.player.rooms.find((r) => r.kit === "sling");
+      const pad = g.player.rooms.find((r) => r.kit === "teleporter");
       assert.ok(pad);
       assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), tiles);
-      const kit = g.player.kits.sling;
+      const kit = g.player.kits.teleporter;
       assert.ok(kit);
       kit.power = Math.max(kit.power, 1);
-      if (g.player.kits.veil) {
-        g.player.kits.veil.on = false;
-        g.player.kits.veil.left = 0;
+      if (g.player.kits.cloaking) {
+        g.player.kits.cloaking.on = false;
+        g.player.kits.cloaking.left = 0;
       }
       engage(g);
       const source = g.crew.find((c) => c.side === "player" && c.hp > 0);
@@ -167,14 +167,14 @@ describe("sling", () => {
       sendSling(g, "e-weapons");
       return g.crew.filter((c) => c.side === "player" && c.aboard === "enemy").length;
     };
-    assert.equal(sendCount("mantis-b", 4), 4);
-    assert.equal(sendCount("mantis-c", 4), 4);
-    assert.equal(sendCount("crystal-b", 4), 4);
+    assert.equal(sendCount("PLAYER_SHIP_MANTIS_2", 4), 4);
+    assert.equal(sendCount("PLAYER_SHIP_MANTIS_3", 4), 4);
+    assert.equal(sendCount("PLAYER_SHIP_CRYSTAL_2", 4), 4);
 
     const g = createGame(4);
     g.scrap = 200;
     installSling(g);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
     kitOf(g).power = 1;
@@ -195,7 +195,7 @@ describe("sling", () => {
     const kit = kitOf(g);
     kit.power = 1;
     engage(g);
-    g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
 
     const ada = g.crew.find((c) => c.id === "c-ada");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
@@ -244,7 +244,7 @@ describe("sling", () => {
     const kit = kitOf(g);
     kit.power = 1;
     engage(g);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
 
     sendSling(g, "e-weapons");
@@ -276,7 +276,7 @@ describe("sling", () => {
     const g = createGame(1);
     g.scrap = 89;
     installSling(g);
-    assert.equal(g.player.kits.sling, undefined);
+    assert.equal(g.player.kits.teleporter, undefined);
 
     g.scrap = 180;
     installSling(g);
@@ -403,38 +403,38 @@ describe("sling", () => {
     }
     g.selected = ivo.id;
     stand(g, ["c-ivo"]);
-    g.enemy!.kits = { veil: cloak() };
+    g.enemy!.kits = { cloaking: cloak() };
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "player");
     assert.equal(kit.cool, 0);
     assert.equal(g.log[0], "Cloaking blocks the teleporter.");
 
-    g.enemy!.kits.veil!.on = false;
-    g.enemy!.kits.veil!.left = 0;
+    g.enemy!.kits.cloaking!.on = false;
+    g.enemy!.kits.cloaking!.left = 0;
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "enemy");
     assert.equal(kit.cool, 20);
     kit.cool = 0;
-    g.enemy!.kits.veil = cloak();
+    g.enemy!.kits.cloaking = cloak();
     recallSling(g);
     assert.equal(ivo.aboard, "enemy");
     assert.equal(kit.cool, 0);
     assert.equal(g.log[0], "Cloaking blocks the teleporter.");
 
-    g.enemy!.kits.veil!.on = false;
-    g.enemy!.kits.veil!.left = 0;
-    g.player.kits.veil = cloak();
+    g.enemy!.kits.cloaking!.on = false;
+    g.enemy!.kits.cloaking!.left = 0;
+    g.player.kits.cloaking = cloak();
     recallSling(g);
     assert.equal(ivo.aboard, "enemy");
     assert.equal(kit.cool, 0);
-    g.player.kits.veil.on = false;
-    g.player.kits.veil.left = 0;
+    g.player.kits.cloaking.on = false;
+    g.player.kits.cloaking.left = 0;
     recallSling(g);
     assert.equal(ivo.aboard, "player");
     assert.equal(kit.cool, 20);
 
     kit.cool = 0;
-    g.player.kits.veil = cloak();
+    g.player.kits.cloaking = cloak();
     sendSling(g, "e-weapons");
     assert.equal(ivo.aboard, "player");
     assert.equal(kit.cool, 0);
@@ -453,26 +453,26 @@ describe("sling", () => {
       c.path = [];
       c.move = 0;
     }
-    const pad = g.enemy!.kits.sling!;
+    const pad = g.enemy!.kits.teleporter!;
     pad.cool = 0;
-    g.enemy!.kits.veil = cloak();
+    g.enemy!.kits.cloaking = cloak();
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "enemy"));
     assert.equal(pad.cool, 0);
 
-    g.enemy!.kits.veil.on = false;
-    g.enemy!.kits.veil.left = 0;
+    g.enemy!.kits.cloaking.on = false;
+    g.enemy!.kits.cloaking.left = 0;
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "player"));
 
     for (const c of party) c.hp = c.maxHp * 0.1;
     pad.cool = 0;
-    g.enemy!.kits.veil = cloak();
+    g.enemy!.kits.cloaking = cloak();
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "player"));
     assert.equal(pad.cool, 0);
-    g.enemy!.kits.veil.on = false;
-    g.enemy!.kits.veil.left = 0;
+    g.enemy!.kits.cloaking.on = false;
+    g.enemy!.kits.cloaking.left = 0;
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "enemy"));
     assert.ok(pad.cool > 0);
@@ -480,7 +480,7 @@ describe("sling", () => {
 });
 
 function cloak(): Kit {
-  return { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  return { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
 }
 
 function mantisBoarder(): Game {
@@ -488,7 +488,7 @@ function mantisBoarder(): Game {
     const g = createGame(seed);
     startCombat(g, "Mantis ship");
     const crew = g.crew.filter((c) => c.side === "enemy" && c.hp > 0);
-    if (!g.enemy?.kits.sling || crew.length < 3) continue;
+    if (!g.enemy?.kits.teleporter || crew.length < 3) continue;
     g.enemy.weapons = [];
     g.player.weapons = [];
     g.enemyEscape = null;

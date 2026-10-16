@@ -7,7 +7,7 @@ const EXPECTED: Record<BypassKind, "pass" | "destroyed" | "launch-then-destroyed
   bomb: "pass",
   mind: "pass",
   hack: "destroyed",
-  board: "launch-then-destroyed",
+  BOARDER: "launch-then-destroyed",
 };
 
 describe("bypassZoltan", () => {

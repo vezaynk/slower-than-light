@@ -18,7 +18,7 @@ function gel(g: Game, room: string, id = "slug"): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "gel",
+    kin: "slug",
   };
   g.crew.push(crew);
   return crew;
@@ -48,7 +48,7 @@ function blindScout(seed: number): { g: Game; foe: Crew } {
   const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
   assert.ok(foe);
   assert.equal(
-    g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0),
+    g.crew.some((c) => c.side === "player" && c.kin === "slug" && c.hp > 0),
     false,
   );
   assert.equal(playerSensorLevel(g), 0);
@@ -108,7 +108,7 @@ describe("Slug vision", () => {
     assert.ok(foe && g.enemy);
     const open = shipSight(g);
     assert.equal(open.interior("enemy", foe.room), true);
-    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     const cloaked = shipSight(g);
     assert.equal(cloaked.interior("enemy", foe.room), false);
     assert.equal(cloaked.showCrew(foe), true);
@@ -138,7 +138,7 @@ describe("Slug vision", () => {
     park(g, "p-pilot");
     const foe = g.crew.find((c) => c.side === "enemy");
     assert.ok(foe);
-    foe.kin = "gel";
+    foe.kin = "slug";
     const sight = shipSight(g);
     assert.equal(sight.interior("player", "p-engines"), false);
     assert.equal(sight.showCrew(foe), false);
@@ -151,7 +151,7 @@ describe("Slug vision", () => {
   it("a fitted Lifeform Scanner reveals live enemy crew without opening that room", () => {
     const { g, foe } = blindScout(30);
     park(g, "p-pilot");
-    g.augments = ["pulseeye"];
+    g.augments = ["LIFE_SCANNER"];
     const boarder = g.crew.find((c) => c.side === "player");
     assert.ok(boarder);
     boarder.aboard = "enemy";
@@ -167,7 +167,7 @@ describe("Slug vision", () => {
 
   it("without a Lifeform Scanner the same dark ship hides enemy crew", () => {
     const { g, foe } = blindScout(27);
-    assert.equal(g.augments.includes("pulseeye"), false);
+    assert.equal(g.augments.includes("LIFE_SCANNER"), false);
     assert.equal(shipSight(g).showCrew(foe), false);
   });
 
@@ -178,11 +178,11 @@ describe("Slug vision", () => {
     assert.ok(here);
     here.kind = "nebula";
     g.player.systems.sensors.level = 3;
-    g.augments = ["pulseeye"];
+    g.augments = ["LIFE_SCANNER"];
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(foe);
     assert.equal(
-      g.crew.some((c) => c.side === "player" && c.kin === "gel" && c.hp > 0),
+      g.crew.some((c) => c.side === "player" && c.kin === "slug" && c.hp > 0),
       false,
     );
     const sight = shipSight(g);

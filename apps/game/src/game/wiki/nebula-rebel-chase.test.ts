@@ -99,7 +99,7 @@ describe("Rebel fight chance in nebula", () => {
     assert.equal(sensors.scrap, 10);
 
     const glass = createGame(3);
-    glass.augments = ["glass"];
+    glass.augments = ["ADV_SCANNERS"];
     open(glass);
     assert.equal(choiceDisabled(glass, SCANNERS), null);
     fillerChoose(glass, SCANNERS);
@@ -107,7 +107,7 @@ describe("Rebel fight chance in nebula", () => {
     assert.match(glass.log.join(" "), /malfunctioning sensors/);
 
     const life = createGame(4);
-    life.augments = ["pulseeye"];
+    life.augments = ["LIFE_SCANNER"];
     open(life);
     assert.equal(choiceDisabled(life, LIFE), null);
     fillerChoose(life, LIFE);

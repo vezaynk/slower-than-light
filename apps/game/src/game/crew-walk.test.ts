@@ -7,7 +7,7 @@ import type { Crew, Game } from "./types.ts";
 
 describe("crew orders outside a fight", () => {
   it("walks into the ordered room on the map", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -31,7 +31,7 @@ describe("crew orders outside a fight", () => {
   });
 
   it("holds the walk while paused", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.paused = true;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -44,7 +44,7 @@ describe("crew orders outside a fight", () => {
   });
 
   it("carries the doorway into the next room", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -66,7 +66,7 @@ describe("crew orders outside a fight", () => {
   });
 
   it("finishes on the tile they stand on, including a room that is already occupied", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -145,7 +145,7 @@ describe("crew orders outside a fight", () => {
   });
 
   it("stays on the same tile when the destination changes mid-walk", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -171,7 +171,7 @@ describe("crew orders outside a fight", () => {
   });
 
   it("walks to the stand when ordered to stay in the room being crossed", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const ivo = g.crew.find((c) => c.name === "Ivo Park");
@@ -220,7 +220,7 @@ function painted(g: Game, c: Crew): { x: number; y: number } {
 describe("crew keep their tiles in a shared room (per the user)", () => {
   /** Three crew idle in the Shields room of a Kestrel, tiles stamped by a tick. */
   function crowd() {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const room = g.player.rooms.find((r) => r.system === "shields")!;
@@ -257,7 +257,7 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
   it("fights an intruder before anyone heads for the terminal", () => {
     const { g, room, cell, op, others } = crowd();
     startCombat(g, "scout");
-    const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "spark")!;
+    const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "energy")!;
     foe.aboard = "player";
     foe.room = room.id;
     foe.path = [];
@@ -308,7 +308,7 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
 
 describe("saved stations keep the exact tile (per the user)", () => {
   it("sends each crew member back to the tile they stood on when stations were saved", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.enemy = null;
     const room = g.player.rooms.find((r) => r.system === "shields")!;
@@ -365,7 +365,7 @@ describe("walking crew are not immune to damage (per the user)", () => {
   }
 
   it("suffocates in an airless room and burns in a fire while walking through", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.paused = false;
     const { c, room, hold } = walker(g, "p-engines");
@@ -382,7 +382,7 @@ describe("walking crew are not immune to damage (per the user)", () => {
   });
 
   it("is struck by an enemy standing in the room it walks through", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     startCombat(g, "scout");
     const { c, hold } = walker(g, "p-engines");

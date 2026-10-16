@@ -9,7 +9,7 @@ export const ORDNANCE: WeaponDef[] = [
   // Lead: flak never causes fires or breaches, so fire 0 and breach 0 are stated, not a missing percent.
   // INFERRED: gap 0 from the lead "all the shots arrive almost simultaneously". Ion 0. No missile cost is listed, so ammo is false.
   {
-    id: "scatter",
+    id: "SHOTGUN",
     name: "Flak I",
     kind: "flak",
     power: 2,
@@ -29,7 +29,7 @@ export const ORDNANCE: WeaponDef[] = [
   // "Comparing bombs to missiles": 1 missile per shot, and bombs do no hull damage. Crew damage 30 is not a field.
   // INFERRED: shots 1, gap 0, ion 0. The section does not number them. How often the second fire happens is not published.
   {
-    id: "cask",
+    id: "BOMB_FIRE",
     name: "Fire Bomb",
     kind: "bomb",
     power: 2,

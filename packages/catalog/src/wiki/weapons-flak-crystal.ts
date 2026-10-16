@@ -33,7 +33,7 @@ const FLAK_FAMILY = {
 
 export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
-    id: "advflak",
+    id: "SHOTGUN_PLAYER",
     name: "Adv. Flak Gun",
     kind: "flak",
     // Flak (Weapons) "Adv. Flak Gun": 1 power, 8s, 3 shots, 1 damage.
@@ -55,7 +55,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
       "Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.",
   },
   {
-    id: "flak2",
+    id: "SHOTGUN_2",
     name: "Flak Gun Mark II",
     kind: "flak",
     // Flak (Weapons) "Flak Gun Mark II": 3 power, 21s, 7 shots, 1 damage, purchase price 80.
@@ -76,7 +76,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
       "Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.",
   },
   {
-    id: "crystalburst",
+    id: "CRYSTAL_BURST_1",
     name: "Crystal Burst Mark I",
     // Shards are projectiles. WeaponKind has no crystal kind.
     // kind "laser" is the closest stored kind and pierce is NOT modeled by kind.
@@ -100,7 +100,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     blurb: "Modified projectile weapon that fires shield piercing crystals.",
   },
   {
-    id: "crystalburst2",
+    id: "CRYSTAL_BURST_2",
     name: "Crystal Burst Mark II",
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
@@ -120,7 +120,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     blurb: "Modified projectile weapon that fires shield piercing crystals.",
   },
   {
-    id: "heavycrystal",
+    id: "CRYSTAL_HEAVY_1",
     name: "Heavy Crystal Mark I",
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
@@ -140,7 +140,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     blurb: "Modified projectile weapon that fires shield piercing crystals.",
   },
   {
-    id: "heavycrystal2",
+    id: "CRYSTAL_HEAVY_2",
     name: "Heavy Crystal Mark II",
     // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
     kind: "laser",
@@ -163,7 +163,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
 
 export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
   {
-    id: "advflak",
+    id: "SHOTGUN_PLAYER",
     radius: 40,
     fake: 3,
     sell: 30,
@@ -174,7 +174,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
     note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 and 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
   },
   {
-    id: "flak2",
+    id: "SHOTGUN_2",
     radius: 55,
     fake: 6,
     rooms: [
@@ -194,22 +194,22 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
     note: 'flakart.ts owns the system. Flak (Weapons) "Flak Artillery" matches that file on 4 levels, charge 50/40/30/20, shots 7, damage 1, and auto-fire. This section is more than that reminder: radius 35 (each flak projectile is auto-targeted at a random room), additional fake flak 7, and the room odds below are not applied there.',
   },
   {
-    id: "crystalburst",
+    id: "CRYSTAL_BURST_1",
     pierce: 1,
     note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
   },
   {
-    id: "crystalburst2",
+    id: "CRYSTAL_BURST_2",
     pierce: 1,
     note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
   },
   {
-    id: "heavycrystal",
+    id: "CRYSTAL_HEAVY_1",
     pierce: 1,
     note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
   },
   {
-    id: "heavycrystal2",
+    id: "CRYSTAL_HEAVY_2",
     pierce: 1,
     note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
   },

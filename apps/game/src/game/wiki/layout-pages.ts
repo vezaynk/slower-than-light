@@ -131,7 +131,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Kestrel Cruiser",
     layouts: [
       {
-        id: "kestrel-a",
+        id: "PLAYER_SHIP_HARD",
         page: "The Kestrel Cruiser",
         heading: "Layout A",
         source: "The Kestrel Cruiser, section Layout A",
@@ -241,7 +241,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "kestrel-b",
+        id: "PLAYER_SHIP_HARD_2",
         page: "The Kestrel Cruiser",
         heading: "Layout B",
         source: "The Kestrel Cruiser, section Layout B",
@@ -343,7 +343,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "kestrel-c",
+        id: "PLAYER_SHIP_HARD_3",
         page: "The Kestrel Cruiser",
         heading: "Layout C",
         source: "The Kestrel Cruiser, section Layout C",
@@ -454,7 +454,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Engi Cruiser",
     layouts: [
       {
-        id: "engi-a",
+        id: "PLAYER_SHIP_CIRCLE",
         page: "The Engi Cruiser",
         heading: "Layout A",
         source: "The Engi Cruiser, section Layout A",
@@ -568,7 +568,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "engi-b",
+        id: "PLAYER_SHIP_CIRCLE_2",
         page: "The Engi Cruiser",
         heading: "Layout B",
         source: "The Engi Cruiser, section Layout B",
@@ -686,7 +686,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "engi-c",
+        id: "PLAYER_SHIP_CIRCLE_3",
         page: "The Engi Cruiser",
         heading: "Layout C",
         source: "The Engi Cruiser, section Layout C",
@@ -809,7 +809,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Federation Cruiser",
     layouts: [
       {
-        id: "fed-a",
+        id: "PLAYER_SHIP_FED",
         page: "The Federation Cruiser",
         heading: "Layout A",
         source: "The Federation Cruiser, section Layout A",
@@ -935,7 +935,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "fed-b",
+        id: "PLAYER_SHIP_FED_2",
         page: "The Federation Cruiser",
         heading: "Layout B",
         source: "The Federation Cruiser, section Layout B",
@@ -1057,7 +1057,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "fed-c",
+        id: "PLAYER_SHIP_FED_3",
         page: "The Federation Cruiser",
         heading: "Layout C",
         source: "The Federation Cruiser, section Layout C",
@@ -1192,7 +1192,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Zoltan Cruiser",
     layouts: [
       {
-        id: "zoltan-a",
+        id: "PLAYER_SHIP_ENERGY",
         page: "The Zoltan Cruiser",
         heading: "Layout A",
         source: "The Zoltan Cruiser, section Layout A",
@@ -1310,7 +1310,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "zoltan-b",
+        id: "PLAYER_SHIP_ENERGY_2",
         page: "The Zoltan Cruiser",
         heading: "Layout B",
         source: "The Zoltan Cruiser, section Layout B",
@@ -1432,7 +1432,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "zoltan-c",
+        id: "PLAYER_SHIP_ENERGY_3",
         page: "The Zoltan Cruiser",
         heading: "Layout C",
         source: "The Zoltan Cruiser, section Layout C",
@@ -1567,7 +1567,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Lanius Cruiser",
     layouts: [
       {
-        id: "lanius-a",
+        id: "PLAYER_SHIP_ANAEROBIC",
         page: "The Lanius Cruiser",
         heading: "Layout A",
         source: "The Lanius Cruiser, section Layout A",
@@ -1689,7 +1689,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "lanius-b",
+        id: "PLAYER_SHIP_ANAEROBIC_2",
         page: "The Lanius Cruiser",
         heading: "Layout B",
         source: "The Lanius Cruiser, section Layout B",
@@ -1808,7 +1808,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Stealth Cruiser",
     layouts: [
       {
-        id: "stealth-a",
+        id: "PLAYER_SHIP_STEALTH",
         page: "The Stealth Cruiser",
         heading: "Layout A",
         source: "The Stealth Cruiser, section Layout A",
@@ -1934,7 +1934,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "stealth-b",
+        id: "PLAYER_SHIP_STEALTH_2",
         page: "The Stealth Cruiser",
         heading: "Layout B",
         source: "The Stealth Cruiser, section Layout B",
@@ -2040,7 +2040,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "stealth-c",
+        id: "PLAYER_SHIP_STEALTH_3",
         page: "The Stealth Cruiser",
         heading: "Layout C",
         source: "The Stealth Cruiser, section Layout C",
@@ -2163,7 +2163,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Rock Cruiser",
     layouts: [
       {
-        id: "rock-a",
+        id: "PLAYER_SHIP_ROCK",
         page: "The Rock Cruiser",
         heading: "Layout A",
         source: "The Rock Cruiser, section Layout A",
@@ -2285,7 +2285,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "rock-b",
+        id: "PLAYER_SHIP_ROCK_2",
         page: "The Rock Cruiser",
         heading: "Layout B",
         source: "The Rock Cruiser, section Layout B",
@@ -2403,7 +2403,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "rock-c",
+        id: "PLAYER_SHIP_ROCK_3",
         page: "The Rock Cruiser",
         heading: "Layout C",
         source: "The Rock Cruiser, section Layout C",
@@ -2526,7 +2526,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Slug Cruiser",
     layouts: [
       {
-        id: "slug-a",
+        id: "PLAYER_SHIP_JELLY",
         page: "The Slug Cruiser",
         heading: "Layout A",
         source: "The Slug Cruiser, section Layout A",
@@ -2648,7 +2648,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "slug-b",
+        id: "PLAYER_SHIP_JELLY_2",
         page: "The Slug Cruiser",
         heading: "Layout B",
         source: "The Slug Cruiser, section Layout B",
@@ -2766,7 +2766,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "slug-c",
+        id: "PLAYER_SHIP_JELLY_3",
         page: "The Slug Cruiser",
         heading: "Layout C",
         source: "The Slug Cruiser, section Layout C",
@@ -2893,7 +2893,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Mantis Cruiser",
     layouts: [
       {
-        id: "mantis-a",
+        id: "PLAYER_SHIP_MANTIS",
         page: "The Mantis Cruiser",
         heading: "Layout A",
         source: "The Mantis Cruiser, section Layout A",
@@ -3015,7 +3015,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "mantis-b",
+        id: "PLAYER_SHIP_MANTIS_2",
         page: "The Mantis Cruiser",
         heading: "Layout B",
         source: "The Mantis Cruiser, section Layout B",
@@ -3145,7 +3145,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "mantis-c",
+        id: "PLAYER_SHIP_MANTIS_3",
         page: "The Mantis Cruiser",
         heading: "Layout C",
         source: "The Mantis Cruiser, section Layout C",
@@ -3280,7 +3280,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
     page: "The Crystal Cruiser",
     layouts: [
       {
-        id: "crystal-a",
+        id: "PLAYER_SHIP_CRYSTAL",
         page: "The Crystal Cruiser",
         heading: "Layout A",
         source: "The Crystal Cruiser, section Layout A",
@@ -3398,7 +3398,7 @@ export const CRUISER_PAGES: { page: string; layouts: CruiserLayout[] }[] = [
         ],
       },
       {
-        id: "crystal-b",
+        id: "PLAYER_SHIP_CRYSTAL_2",
         page: "The Crystal Cruiser",
         heading: "Layout B",
         source: "The Crystal Cruiser, section Layout B",

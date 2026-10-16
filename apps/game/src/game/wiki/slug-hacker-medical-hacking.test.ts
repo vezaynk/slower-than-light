@@ -20,8 +20,8 @@ function open(g: Game) {
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     level: 1,
     power: 1,
     left: 0,
@@ -71,7 +71,7 @@ describe("Slug hacker (medical) hacking", () => {
     assert.equal(g.fightEvent, "slug-hacker-medical");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.scrap, 10);
-    assert.equal(g.player.kits.spike?.level, 1);
+    assert.equal(g.player.kits.hacking?.level, 1);
     assert.equal(playerHackingOff(g), true);
     assert.equal(playerMedicalOff(g), false);
     assert.equal(g.player.systems.medbay.level, 3);
@@ -79,11 +79,11 @@ describe("Slug hacker (medical) hacking", () => {
     assert.equal(aimed, true);
     assert.equal(launchSpike(g), false);
     assert.equal(g.player.parts, 2);
-    const hp = kinOf("gel").hp;
+    const hp = kinOf("slug").hp;
     const rooms = new Set(g.player.rooms.map((r) => r.id));
     const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 2);
-    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "gel" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "slug" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
     assert.ok(g.log.includes("2 slug boarders beam aboard your ship."));
     const away = g.player.rooms.find((r) => r.id !== bay.id);
     assert.ok(away);

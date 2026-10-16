@@ -288,7 +288,7 @@ describe("stock spends", () => {
     assert.equal(bundle.scrap, 0);
     assert.equal(bundle.missiles, 0);
     assert.equal(bundle.fuel, 0);
-    assert.equal(bundle.augments.includes("medbot"), true);
+    assert.equal(bundle.augments.includes("NANO_MEDBAY"), true);
     assert.match(bundle.event?.body ?? "", /Scrap: -40\./);
     assert.match(bundle.event?.body ?? "", /Missiles: -2\./);
     assert.match(bundle.event?.body ?? "", /Fuel: -2\./);
@@ -304,7 +304,7 @@ describe("stock spends", () => {
     assert.equal(partial.scrap, 40);
     assert.equal(partial.missiles, 0);
     assert.equal(partial.fuel, 2);
-    assert.equal(partial.augments.includes("medbot"), false);
+    assert.equal(partial.augments.includes("NANO_MEDBAY"), false);
     assert.equal(partial.seed, partialSeed);
 
     rewriteStock("q:engi-distress:supplies", [stock("scrap", 4), stock("missiles", 1), stock("fuel", 1)]);
@@ -316,7 +316,7 @@ describe("stock spends", () => {
     assert.equal(smaller.scrap, 0);
     assert.equal(smaller.missiles, 0);
     assert.equal(smaller.fuel, 0);
-    assert.equal(smaller.augments.includes("medbot"), true);
+    assert.equal(smaller.augments.includes("NANO_MEDBAY"), true);
     assert.match(smaller.event?.body ?? "", /Scrap: -4\./);
     assert.match(smaller.event?.body ?? "", /Missiles: -1\./);
     assert.match(smaller.event?.body ?? "", /Fuel: -1\./);
@@ -626,7 +626,7 @@ describe("stock spends", () => {
     assert.equal(bare.seed, seed);
 
     const paid = createGame(2);
-    paid.player.weapons.push(gun("artemis"));
+    paid.player.weapons.push(gun("MISSILES_2_PLAYER"));
     paid.missiles = 1;
     choose(paid, "q:war-camp:missile");
     assert.equal(paid.missiles, 0);
@@ -635,33 +635,33 @@ describe("stock spends", () => {
 
   it("spends a boarding-drone part and leaves the moon's missile blast on its literal one", () => {
     const paid = createGame(1);
-    paid.player.kits.swarm = kit("swarm", 2);
-    paid.player.kits.swarm.target = "board";
+    paid.player.kits.drones = kit("drones", 2);
+    paid.player.kits.drones.target = "BOARDER";
     paid.player.parts = 1;
-    const sparks = paid.crew.filter((crew) => crew.kin === "spark").length;
+    const sparks = paid.crew.filter((crew) => crew.kin === "energy").length;
     choose(paid, "c:zoltan-odd-moon:drone");
     assert.equal(paid.player.parts, 0);
-    assert.equal(paid.crew.filter((crew) => crew.kin === "spark").length, sparks + 1);
+    assert.equal(paid.crew.filter((crew) => crew.kin === "energy").length, sparks + 1);
     assert.match(paid.event?.body ?? "", /Drone parts: -1\./);
 
     rewriteStock("c:zoltan-odd-moon:drone", undefined);
     const gone = createGame(2);
-    gone.player.kits.swarm = kit("swarm", 2);
-    gone.player.kits.swarm.target = "board";
+    gone.player.kits.drones = kit("drones", 2);
+    gone.player.kits.drones.target = "BOARDER";
     gone.player.parts = 1;
-    const held = gone.crew.filter((crew) => crew.kin === "spark").length;
+    const held = gone.crew.filter((crew) => crew.kin === "energy").length;
     const seed = gone.seed;
     choose(gone, "c:zoltan-odd-moon:drone");
     assert.equal(gone.player.parts, 1);
-    assert.equal(gone.crew.filter((crew) => crew.kin === "spark").length, held);
+    assert.equal(gone.crew.filter((crew) => crew.kin === "energy").length, held);
     assert.equal(gone.seed, seed);
     assert.equal(stockCount("c:zoltan-odd-moon:boom", "missiles"), null);
   });
 
   it("spends a hull-repair part before the fuel gift", () => {
     const paid = createGame(1);
-    paid.player.kits.swarm = kit("swarm", 2);
-    paid.player.kits.swarm.target = "hull";
+    paid.player.kits.drones = kit("drones", 2);
+    paid.player.kits.drones.target = "SHIP_REPAIR";
     paid.player.parts = 1;
     const fuel = paid.fuel;
     choose(paid, "c:no-fuel-engi-ship-repair:2");
@@ -670,8 +670,8 @@ describe("stock spends", () => {
 
     rewriteStock("c:no-fuel-engi-ship-repair:2", undefined);
     const gone = createGame(2);
-    gone.player.kits.swarm = kit("swarm", 2);
-    gone.player.kits.swarm.target = "hull";
+    gone.player.kits.drones = kit("drones", 2);
+    gone.player.kits.drones.target = "SHIP_REPAIR";
     gone.player.parts = 1;
     const held = gone.fuel;
     const seed = gone.seed;
@@ -683,7 +683,7 @@ describe("stock spends", () => {
 
   it("spends the cache missile before the search and prints the story without a count", () => {
     const paid = createGame(1);
-    paid.player.weapons.push(gun("breachmissiles"));
+    paid.player.weapons.push(gun("MISSILES_BREACH"));
     paid.missiles = 1;
     const before = paid.seed;
     choose(paid, "c:crystalline-cache:breach");
@@ -702,7 +702,7 @@ describe("stock spends", () => {
 
   it("spends one hacking part at the storage station and one combat-drone part at the radar", () => {
     const storage = createGame(1);
-    storage.player.kits.spike = kit("spike", 1);
+    storage.player.kits.hacking = kit("hacking", 1);
     storage.player.parts = 1;
     const storageSeed = storage.seed;
     choose(storage, "c:auto-ship-near-storage-station-in-nebula:4");
@@ -711,7 +711,7 @@ describe("stock spends", () => {
 
     rewriteStock("c:auto-ship-near-storage-station-in-nebula:4", undefined);
     const quiet = createGame(2);
-    quiet.player.kits.spike = kit("spike", 1);
+    quiet.player.kits.hacking = kit("hacking", 1);
     quiet.player.parts = 1;
     const quietSeed = quiet.seed;
     choose(quiet, "c:auto-ship-near-storage-station-in-nebula:4");
@@ -720,15 +720,15 @@ describe("stock spends", () => {
 
     resetPackForTests();
     const radar = createGame(3);
-    radar.player.kits.swarm = kit("swarm", 1);
-    radar.player.kits.swarm.target = "striker";
+    radar.player.kits.drones = kit("drones", 1);
+    radar.player.kits.drones.target = "COMBAT_1";
     radar.player.parts = 1;
     choose(radar, "c:auto-ship-near-radar-station:2");
     assert.equal(radar.player.parts, 0);
     assert.match(radar.log.join("\n"), /Drone parts: -1\./);
 
     const fleet = createGame(4);
-    fleet.player.kits.spike = kit("spike", 1);
+    fleet.player.kits.hacking = kit("hacking", 1);
     fleet.player.parts = 1;
     const delay = fleet.fleet;
     const fleetSeed = fleet.seed;
@@ -740,8 +740,8 @@ describe("stock spends", () => {
 
   it("spends a hull-repair part on the freighter and a beam-drone part on the mine", () => {
     const freighter = createGame(1);
-    freighter.player.kits.swarm = kit("swarm", 2);
-    freighter.player.kits.swarm.target = "hull";
+    freighter.player.kits.drones = kit("drones", 2);
+    freighter.player.kits.drones.target = "SHIP_REPAIR";
     freighter.player.parts = 1;
     choose(freighter, "c:mantis-ships-battle-for-rock-freighter:3");
     assert.equal(freighter.player.parts, 0);
@@ -749,14 +749,14 @@ describe("stock spends", () => {
     assert.equal(stockCount("c:mantis-ships-battle-for-rock-freighter:2", "parts"), null);
 
     const mine = createGame(2);
-    mine.player.kits.swarm = kit("swarm", 2);
-    mine.player.kits.swarm.target = "beam2";
+    mine.player.kits.drones = kit("drones", 2);
+    mine.player.kits.drones.target = "COMBAT_BEAM_2";
     mine.player.parts = 1;
     const ignored = mine.seed;
     choose(mine, "s:rock-mine:beam");
     assert.equal(mine.player.parts, 1);
     assert.equal(mine.seed, ignored);
-    mine.player.kits.swarm.target = "beam";
+    mine.player.kits.drones.target = "COMBAT_BEAM";
     choose(mine, "s:rock-mine:beam");
     assert.equal(mine.player.parts, 0);
     assert.match(mine.event?.body ?? "", /Drone parts: -1\./);
@@ -771,7 +771,7 @@ describe("stock spends", () => {
     assert.equal(bare.seed, seed);
 
     const paid = createGame(2);
-    paid.player.weapons.push(gun("healburst"));
+    paid.player.weapons.push(gun("BOMB_HEAL"));
     paid.missiles = 1;
     choose(paid, "q:loyalists:heal");
     assert.equal(paid.missiles, 0);

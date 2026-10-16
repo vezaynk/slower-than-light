@@ -132,7 +132,7 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
   const teleporters = (id: string, pirate: boolean, sector: number, difficulty: "easy" | "normal" | "hard" = "hard") => {
     const rand = seeded(sector * 97 + (pirate ? 1 : 0));
     let n = 0;
-    for (let i = 0; i < 4000; i++) if (rollEnemy(cls(id), pirate, ctx(sector, difficulty), rand).kits.sling) n++;
+    for (let i = 0; i < 4000; i++) if (rollEnemy(cls(id), pirate, ctx(sector, difficulty), rand).kits.teleporter) n++;
     return n / 4000;
   };
 

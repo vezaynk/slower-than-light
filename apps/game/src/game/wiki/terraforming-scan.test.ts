@@ -36,7 +36,7 @@ describe("Terraforming scan blue options", () => {
     assert.equal(kind(g), "offer");
     assert.equal(g.phase, "event");
     assert.equal(g.player.systems.oxygen.level, oxygen);
-    g.crew[0].kin = "spark";
+    g.crew[0].kin = "energy";
     g.crew[0].hp = 0;
     assert.equal(choiceDisabled(g, ZOLTAN), "Needs a Zoltan crewmember");
     fillerChoose(g, ZOLTAN);
@@ -66,7 +66,7 @@ describe("Terraforming scan blue options", () => {
 
       const zoltan = offer(seed + 200);
       zoltan.player.systems.sensors.level = 1;
-      zoltan.crew[0].kin = "spark";
+      zoltan.crew[0].kin = "energy";
       assert.equal(choiceDisabled(zoltan, ZOLTAN), null);
       assert.equal(choiceDisabled(zoltan, SENSORS), "Needs Sensors level 2");
       fillerChoose(zoltan, ZOLTAN);

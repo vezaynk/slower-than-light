@@ -17,12 +17,12 @@ const VULCAN_CHARGE = [11.1, 9.1, 7.1, 5.1, 3.1, 1.1] as const;
 const ION_STEPS = [1, 2, 3, 4] as const;
 
 const CHARGE_STEPS: Record<string, readonly number[]> = {
-  chainlaser: BURST_CHARGE,
-  vulcan: VULCAN_CHARGE,
+  LASER_CHAINGUN: BURST_CHARGE,
+  LASER_CHAINGUN_2: VULCAN_CHARGE,
 };
 
 const ION_BY_ID: Record<string, readonly number[]> = {
-  chainion: ION_STEPS,
+  ION_CHAINGUN: ION_STEPS,
 };
 
 function capped(steps: readonly number[], step: number): number {

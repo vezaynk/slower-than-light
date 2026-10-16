@@ -39,7 +39,7 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
     const g = createGame(2);
     const pilot = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(pilot);
-    pilot.kin = "stone";
+    pilot.kin = "rock";
     open(g);
     assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:2"), null);
     choose(g, "c:mantis-ship-with-rock-body-parts:2");

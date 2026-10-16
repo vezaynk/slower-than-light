@@ -34,7 +34,7 @@ describe("reverse ion field", () => {
   it("lets two copies keep the bubble and stop a pulsar, an ion shot, and an ion bomb", () => {
     const pulse = createGame(3);
     startCombat(pulse, "Pirate ship", false, "rebel-fight-near-pulsar");
-    pulse.augments = ["baffle", "baffle"];
+    pulse.augments = ["ION_ARMOR", "ION_ARMOR"];
     pulse.player.zoltan = 5;
     applyPulsarPulse(pulse);
     assert.equal(pulse.player.zoltan, 5);
@@ -44,16 +44,16 @@ describe("reverse ion field", () => {
 
     const bare = createGame(4);
     startCombat(bare, "Pirate ship", false, "pirate-fight-near-pulsar");
-    bare.augments = ["baffle", "baffle"];
+    bare.augments = ["ION_ARMOR", "ION_ARMOR"];
     bare.player.systems.shields.level = 0;
     bare.player.zoltan = 5;
     applyPulsarPulse(bare);
     assert.equal(bare.player.zoltan, 5);
     assert.equal(ionCount(bare, "player"), 0);
 
-    const hit = createGame(5, "zoltan-a");
+    const hit = createGame(5, "PLAYER_SHIP_ENERGY");
     still(hit);
-    hit.augments = ["baffle", "baffle"];
+    hit.augments = ["ION_ARMOR", "ION_ARMOR"];
     const layers = hit.player.shieldNow;
     applyImpact(hit, shot({ kind: "ion", damage: 0, ion: 1 }));
     assert.equal(hit.player.zoltan, 5);
@@ -66,14 +66,14 @@ describe("reverse ion field", () => {
     assert.equal(hit.player.systems.weapons.ion.length, 1);
 
     hit.player.systems.weapons.ion = [];
-    applyImpact(hit, shot({ kind: "bomb", damage: 0, ion: 4, defId: "ionbomb" }));
+    applyImpact(hit, shot({ kind: "bomb", damage: 0, ion: 4, defId: "BOMB_ION" }));
     assert.equal(hit.player.zoltan, 5);
     assert.equal(hit.player.systems.weapons.ion.length, 0);
 
     const enemy = createGame(6);
     startCombat(enemy, "scout");
     still(enemy);
-    enemy.augments = ["baffle", "baffle"];
+    enemy.augments = ["ION_ARMOR", "ION_ARMOR"];
     const room = enemy.enemy?.rooms.find((item) => item.system);
     assert.ok(room && enemy.enemy);
     enemy.enemy.zoltan = 5;
@@ -85,9 +85,9 @@ describe("reverse ion field", () => {
     let held = 0;
     let spent = 0;
     for (let seed = 1; seed < 80 && (held === 0 || spent === 0); seed++) {
-      const g = createGame(seed, "zoltan-a");
+      const g = createGame(seed, "PLAYER_SHIP_ENERGY");
       still(g);
-      g.augments = ["baffle"];
+      g.augments = ["ION_ARMOR"];
       g.player.shieldNow = 2;
       applyImpact(g, shot({ kind: "ion", damage: 0, ion: 1 }));
       if (g.player.zoltan === 5 && g.player.systems.weapons.ion.length === 0) held += 1;
@@ -99,9 +99,9 @@ describe("reverse ion field", () => {
     let through = 0;
     let soaked = 0;
     for (let seed = 1; seed < 80 && (through === 0 || soaked === 0); seed++) {
-      const g = createGame(seed, "zoltan-a");
+      const g = createGame(seed, "PLAYER_SHIP_ENERGY");
       still(g);
-      g.augments = ["baffle"];
+      g.augments = ["ION_ARMOR"];
       g.player.shieldNow = 0;
       applyImpact(g, shot({ kind: "ion", damage: 0, ion: 1 }));
       if (g.player.zoltan === 5 && g.player.systems.weapons.ion.length === 1) through += 1;
@@ -115,7 +115,7 @@ describe("reverse ion field", () => {
     for (let seed = 1; seed < 80 && (clear === 0 || drained === 0); seed++) {
       const g = createGame(seed);
       startCombat(g, "Pirate ship", false, "lanius-fight-near-pulsar");
-      g.augments = ["baffle"];
+      g.augments = ["ION_ARMOR"];
       g.player.zoltan = 5;
       applyPulsarPulse(g);
       if (g.player.zoltan === 5 && ionCount(g, "player") === 0) clear += 1;
@@ -128,7 +128,7 @@ describe("reverse ion field", () => {
   it("stops an enemy ion intruder's ion and still stuns the crew in that room", () => {
     const g = createGame(9);
     startCombat(g, "scout");
-    g.augments = ["baffle", "baffle"];
+    g.augments = ["ION_ARMOR", "ION_ARMOR"];
     const room = g.player.rooms.find((item) => item.system === "weapons");
     assert.ok(room);
     for (const c of g.crew) {
@@ -137,8 +137,8 @@ describe("reverse ion field", () => {
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.parts = 8;
-    enemy.kits.swarm = {
-      id: "swarm",
+    enemy.kits.drones = {
+      id: "drones",
       level: 3,
       power: 3,
       left: 0,
@@ -146,11 +146,11 @@ describe("reverse ion field", () => {
       target: null,
       on: true,
       aux: 0,
-      loadout: ["ionintruder"],
+      loadout: ["BOARDER_ION"],
       drones: [
         {
           id: "ed-ion",
-          kind: "ionintruder",
+          kind: "BOARDER_ION",
           alive: true,
           powered: true,
           aux: 0,

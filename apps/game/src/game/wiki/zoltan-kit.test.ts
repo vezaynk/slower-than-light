@@ -19,7 +19,7 @@ function spark(room: string, id: string, hp = 70): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
@@ -32,8 +32,8 @@ describe("Zoltan bar on kit systems", () => {
     const g = createGame(21);
     fit(g);
     installVeil(g);
-    const kit = g.player.kits.veil;
-    const room = g.player.rooms.find((r) => r.kit === "veil");
+    const kit = g.player.kits.cloaking;
+    const room = g.player.rooms.find((r) => r.kit === "cloaking");
     assert.ok(kit && room);
     kit.power = 0;
     const spare = sparePower(g.player);
@@ -57,8 +57,8 @@ describe("Zoltan bar on kit systems", () => {
     const g = createGame(22);
     fit(g);
     installLeash(g);
-    const kit = g.player.kits.leash;
-    const room = g.player.rooms.find((r) => r.kit === "leash");
+    const kit = g.player.kits.mind;
+    const room = g.player.rooms.find((r) => r.kit === "mind");
     assert.ok(kit && room);
     kit.level = 3;
     kit.power = 0;
@@ -73,7 +73,7 @@ describe("Zoltan bar on kit systems", () => {
 
     kit.damage = 2;
     assert.equal(kitBars(kit), 1);
-    for (const c of g.crew) if (c.kin === "spark") c.hp = 0;
+    for (const c of g.crew) if (c.kin === "energy") c.hp = 0;
     noteZoltanKits(g);
     assert.equal(kitBars(kit), 0);
   });
@@ -83,8 +83,8 @@ describe("Zoltan bar on kit systems", () => {
     fit(g);
     g.player.parts = 1;
     assert.equal(installSpike(g), true);
-    const kit = g.player.kits.spike;
-    const room = g.player.rooms.find((r) => r.kit === "spike");
+    const kit = g.player.kits.hacking;
+    const room = g.player.rooms.find((r) => r.kit === "hacking");
     assert.ok(kit && room);
     kit.power = 0;
     startCombat(g, "scout");

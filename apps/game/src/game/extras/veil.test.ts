@@ -17,7 +17,7 @@ function fit(scrap = 400) {
   const g = createGame(1);
   g.scrap = scrap;
   installVeil(g);
-  const kit = g.player.kits.veil;
+  const kit = g.player.kits.cloaking;
   assert.ok(kit);
   return { g, kit };
 }
@@ -26,12 +26,12 @@ function arm(kit: Kit) {
   kit.power = 1;
 }
 
-describe("veil", () => {
+describe("cloaking", () => {
   it("pays 150, adds 60 evasion while up, blocks the shooter, then cools for 20", () => {
     const { g, kit } = fit();
     assert.equal(g.scrap, 250);
     assert.equal(g.log[0], "Cloaking fitted.");
-    assert.equal(kit.id, "veil");
+    assert.equal(kit.id, "cloaking");
     assert.equal(kit.level, 1);
     assert.equal(kit.power, 0);
     assert.equal(kit.left, 0);
@@ -44,7 +44,7 @@ describe("veil", () => {
     const again = g.scrap;
     installVeil(g);
     assert.equal(g.scrap, again);
-    assert.equal(g.player.kits.veil, kit);
+    assert.equal(g.player.kits.cloaking, kit);
 
     arm(kit);
     startVeil(g);
@@ -102,7 +102,7 @@ describe("veil", () => {
 
     kit.cool = 0;
     startVeil(g);
-    g.augments.push("quiet");
+    g.augments.push("CLOAK_FIRE");
     veilBrokenByFire(g, "player", "laser");
     assert.equal(kit.on, true);
     assert.equal(kit.left, 5);
@@ -115,18 +115,18 @@ describe("veil", () => {
     // Cloaking, Overview: Ion Charger and Charger Laser I (Laser Charger, not Laser Charger (S)).
     // Laser Charger II cuts once after the volley. A beam is exempt. Stealth Weapons skips the cut.
     const cases: [string, Partial<WeaponInst>, number][] = [
-      ["ioncharger", { loaded: 3, charge: 0 }, 6],
-      ["charger", { loaded: 2, charge: 0 }, 9],
-      ["charger2", { loaded: 4, charge: 0 }, 12],
-      ["chargers", { loaded: 2, charge: 0 }, 12],
-      ["burst1", { charge: 1 }, 12],
-      ["mini", { charge: 1 }, 15],
+      ["ION_CHARGEGUN", { loaded: 3, charge: 0 }, 6],
+      ["LASER_CHARGEGUN", { loaded: 2, charge: 0 }, 9],
+      ["LASER_CHARGEGUN_2", { loaded: 4, charge: 0 }, 12],
+      ["LASER_CHARGEGUN_PLAYER", { loaded: 2, charge: 0 }, 12],
+      ["LASER_BURST_2_A", { charge: 1 }, 12],
+      ["BEAM_1", { charge: 1 }, 15],
     ];
     for (const [id, extra, left] of cases) {
       const g = createGame(1);
       startCombat(g, "scout");
       const room = g.enemy!.rooms[0]!.id;
-      g.player.kits.veil = { id: "veil", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+      g.player.kits.cloaking = { id: "cloaking", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
       g.player.weapons = [
         { uid: "w-" + id, defId: id, charge: 0, enabled: true, autofire: false, target: room, ...extra },
       ];
@@ -137,17 +137,17 @@ describe("veil", () => {
       g.autofireAll = false;
       fireReady(g);
       assert.ok(g.shots.some((s) => s.defId === id), id);
-      assert.equal(g.player.kits.veil.left, left, id);
-      assert.equal(g.player.kits.veil.on, left > 0, id);
+      assert.equal(g.player.kits.cloaking.left, left, id);
+      assert.equal(g.player.kits.cloaking.on, left > 0, id);
     }
 
     const quiet = createGame(2);
     startCombat(quiet, "scout");
     const room = quiet.enemy!.rooms[0]!.id;
-    quiet.player.kits.veil = { id: "veil", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
-    quiet.augments.push("quiet");
+    quiet.player.kits.cloaking = { id: "cloaking", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    quiet.augments.push("CLOAK_FIRE");
     quiet.player.weapons = [
-      { uid: "w-ion", defId: "ioncharger", charge: 0, loaded: 3, enabled: true, autofire: false, target: room },
+      { uid: "w-ion", defId: "ION_CHARGEGUN", charge: 0, loaded: 3, enabled: true, autofire: false, target: room },
     ];
     quiet.player.systems.weapons.level = 8;
     quiet.player.systems.weapons.power = 8;
@@ -155,22 +155,22 @@ describe("veil", () => {
     quiet.player.systems.weapons.ion = [];
     quiet.autofireAll = false;
     fireReady(quiet);
-    assert.equal(quiet.shots.filter((s) => s.defId === "ioncharger").length, 3);
-    assert.equal(quiet.player.kits.veil!.on, true);
-    assert.equal(quiet.player.kits.veil!.left, 15);
+    assert.equal(quiet.shots.filter((s) => s.defId === "ION_CHARGEGUN").length, 3);
+    assert.equal(quiet.player.kits.cloaking!.on, true);
+    assert.equal(quiet.player.kits.cloaking!.left, 15);
   });
 
   it("refuses a short purse and will not start unpowered or early", () => {
     const g = createGame(1);
     g.scrap = 149;
     installVeil(g);
-    assert.equal(g.player.kits.veil, undefined);
+    assert.equal(g.player.kits.cloaking, undefined);
     assert.equal(g.scrap, 149);
 
     g.scrap = 150;
     installVeil(g);
     // Cast: the assert.equal(..., undefined) above narrows this path to undefined for TypeScript.
-    const kit = g.player.kits.veil as Kit | undefined;
+    const kit = g.player.kits.cloaking as Kit | undefined;
     assert.ok(kit);
     assert.equal(g.scrap, 0);
     startVeil(g);
@@ -275,8 +275,8 @@ describe("veil", () => {
   it("raises the other hull after time is past 8, then blocks our guns", () => {
     const g = createGame(1);
     g.enemy = { ...g.player, name: "Picket", kits: {} };
-    g.enemy.kits.veil = {
-      id: "veil",
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
       level: 2,
       // Enemy kits run at full power (sim enemy power-up); 5 seconds per powered bar.
       power: 2,
@@ -286,7 +286,7 @@ describe("veil", () => {
       on: false,
       aux: 0,
     };
-    const ek = g.enemy.kits.veil;
+    const ek = g.enemy.kits.cloaking;
     g.time = 0;
     tickVeil(g, 0);
     assert.equal(ek.on, true);

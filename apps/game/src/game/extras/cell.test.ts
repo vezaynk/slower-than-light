@@ -11,7 +11,7 @@ import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
 
 function pushCell(level = 1): Kit {
   return {
-    id: "cell",
+    id: "battery",
     level,
     power: 0,
     left: 0,
@@ -22,37 +22,37 @@ function pushCell(level = 1): Kit {
   };
 }
 
-describe("cell", () => {
+describe("battery", () => {
   it("gives 2 bars for 30s then cools for 20", () => {
     const g = createGame(1);
     g.phase = "combat";
     g.scrap = 35;
     installCell(g);
     assert.equal(g.scrap, 0);
-    assert.equal(g.player.kits.cell?.level, 1);
-    assert.equal(g.player.kits.cell?.power, 0);
+    assert.equal(g.player.kits.battery?.level, 1);
+    assert.equal(g.player.kits.battery?.power, 0);
     startCell(g);
     assert.equal(cellBonus(g.player), 2);
-    assert.equal(g.player.kits.cell?.aux, 2);
-    assert.equal(g.player.kits.cell?.left, 30);
+    assert.equal(g.player.kits.battery?.aux, 2);
+    assert.equal(g.player.kits.battery?.left, 30);
     tickCell(g, 30);
     assert.equal(cellBonus(g.player), 0);
-    assert.equal(g.player.kits.cell?.on, false);
-    assert.equal(g.player.kits.cell?.aux, 0);
-    assert.equal(g.player.kits.cell?.cool, 20);
-    assert.equal(g.player.kits.cell?.power, 0);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.aux, 0);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    assert.equal(g.player.kits.battery?.power, 0);
   });
 
   it("cools in 10s when augments include tap", () => {
     const g = createGame(2);
     g.phase = "combat";
-    g.augments = ["tap"];
-    g.player.kits.cell = pushCell(1);
+    g.augments = ["BATTERY_BOOSTER"];
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     assert.equal(cellBonus(g.player), 2);
     tickCell(g, 30);
     assert.equal(cellBonus(g.player), 0);
-    assert.equal(g.player.kits.cell?.cool, 10);
+    assert.equal(g.player.kits.battery?.cool, 10);
   });
 
   it("upgrades to 4 bars for 50 scrap", () => {
@@ -61,24 +61,24 @@ describe("cell", () => {
     installCell(g);
     upgradeCell(g);
     assert.equal(g.scrap, 0);
-    assert.equal(g.player.kits.cell?.level, 2);
-    assert.equal(g.player.kits.cell?.power, 0);
+    assert.equal(g.player.kits.battery?.level, 2);
+    assert.equal(g.player.kits.battery?.power, 0);
     startCell(g);
     assert.equal(cellBonus(g.player), 4);
-    assert.equal(g.player.kits.cell?.aux, 4);
+    assert.equal(g.player.kits.battery?.aux, 4);
   });
 
   it("does not start again until cool reaches 0", () => {
     const g = createGame(4);
     g.phase = "combat";
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     tickCell(g, 30);
     startCell(g);
     assert.equal(cellBonus(g.player), 0);
-    assert.equal(g.player.kits.cell?.cool, 20);
+    assert.equal(g.player.kits.battery?.cool, 20);
     tickCell(g, 20);
-    assert.equal(g.player.kits.cell?.cool, 0);
+    assert.equal(g.player.kits.battery?.cool, 0);
     startCell(g);
     assert.equal(cellBonus(g.player), 2);
   });
@@ -87,7 +87,7 @@ describe("cell", () => {
     const g = createGame(5);
     g.enemy = null;
     tickCell(g, 1);
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     tickCell(g, 0.5);
     assert.equal(cellBonus(g.player), 2);
@@ -95,90 +95,90 @@ describe("cell", () => {
 
   it("stays ready when it runs out and the ship is not in danger", () => {
     const g = createGame(7);
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     assert.equal(g.phase, "map");
     startCell(g);
     tickCell(g, 30);
-    assert.equal(g.player.kits.cell?.on, false);
-    assert.equal(g.player.kits.cell?.cool, 0);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.cool, 0);
     startCell(g);
     assert.equal(cellBonus(g.player), 2);
 
     // Backup Battery's IN DANGER note: an asteroid field still counts off the combat phase.
     g.asteroid = true;
     tickCell(g, 30);
-    assert.equal(g.player.kits.cell?.cool, 20);
+    assert.equal(g.player.kits.battery?.cool, 20);
     startCell(g);
     assert.equal(cellBonus(g.player), 0);
   });
 
   it("resets a cooldown on an FTL jump and not when waiting", () => {
     const g = createGame(8);
-    g.player.kits.cell = pushCell(1);
-    g.player.kits.cell.cool = 12;
+    g.player.kits.battery = pushCell(1);
+    g.player.kits.battery.cool = 12;
     onPlayerJump(g);
-    assert.equal(g.player.kits.cell.cool, 0);
+    assert.equal(g.player.kits.battery.cool, 0);
     assert.equal(g.log[0], "Backup Battery is ready.");
 
-    g.player.kits.cell.cool = 12;
+    g.player.kits.battery.cool = 12;
     g.phase = "map";
     g.fuel = 3;
     waitHere(g);
-    assert.equal(g.player.kits.cell.cool, 12);
+    assert.equal(g.player.kits.battery.cool, 12);
   });
 
   it("starts the 25s cooldown when one hit ionizes every level", () => {
     const g = createGame(9);
     g.phase = "map";
-    g.augments = ["tap"];
-    g.player.kits.cell = pushCell(1);
+    g.augments = ["BATTERY_BOOSTER"];
+    g.player.kits.battery = pushCell(1);
     startCell(g);
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), true);
-    assert.equal(g.player.kits.cell?.on, false);
-    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), true);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.cool, 25);
     assert.equal(cellBonus(g.player), 0);
     assert.equal(g.log[0], "Backup Battery cooling.");
     tickCell(g, 5);
-    assert.equal(g.player.kits.cell?.cool, 20);
+    assert.equal(g.player.kits.battery?.cool, 20);
 
-    g.player.kits.cell = pushCell(2);
+    g.player.kits.battery = pushCell(2);
     startCell(g);
     assert.equal(cellBonus(g.player), 4);
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
-    assert.equal(g.player.kits.cell?.on, true);
-    assert.equal(g.player.kits.cell?.cool, 0);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
     assert.equal(cellBonus(g.player), 4);
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 2), true);
-    assert.equal(g.player.kits.cell?.cool, 25);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 2), true);
+    assert.equal(g.player.kits.battery?.cool, 25);
     assert.equal(cellBonus(g.player), 0);
   });
 
   it("locks an activated level 2 battery when two 1-ion sources land together", () => {
     const g = createGame(11);
     g.phase = "combat";
-    g.player.kits.cell = pushCell(2);
+    g.player.kits.battery = pushCell(2);
     startCell(g);
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
-    assert.equal(g.player.kits.cell?.on, true);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
     assert.equal(g.log[0], "Backup Battery online.");
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), true);
-    assert.equal(g.player.kits.cell?.cool, 25);
-    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), true);
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(g.player.kits.battery?.on, false);
     assert.equal(cellBonus(g.player), 0);
 
-    g.player.kits.cell = pushCell(2);
+    g.player.kits.battery = pushCell(2);
     startCell(g);
     g.time = 1;
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
     g.time = 2;
-    assert.equal(ionOnCell(g, g.player.kits.cell!, 1), false);
-    assert.equal(g.player.kits.cell?.on, true);
-    assert.equal(g.player.kits.cell?.cool, 0);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
 
     const hit = createGame(12);
-    hit.player.kits.cell = pushCell(2);
+    hit.player.kits.battery = pushCell(2);
     seatKits(hit.player);
-    const room = hit.player.rooms.find((r) => r.kit === "cell");
+    const room = hit.player.rooms.find((r) => r.kit === "battery");
     assert.ok(room);
     hit.player.systems.engines.power = 0;
     hit.player.shieldNow = 0;
@@ -192,17 +192,17 @@ describe("cell", () => {
       ion: 1,
       fireChance: 0,
       breachChance: 0,
-      defId: "stunbomb",
+      defId: "BOMB_STUN",
       targetRoom: room.id,
       wait: 0,
       t: 1,
       duration: 1,
     };
     applyImpact(hit, bomb);
-    assert.equal(hit.player.kits.cell?.on, true);
+    assert.equal(hit.player.kits.battery?.on, true);
     applyImpact(hit, { ...bomb, id: "b2" });
-    assert.equal(hit.player.kits.cell?.cool, 25);
-    assert.equal(hit.player.kits.cell?.on, false);
+    assert.equal(hit.player.kits.battery?.cool, 25);
+    assert.equal(hit.player.kits.battery?.on, false);
   });
 
   it("lets an ion bomb and a pulsar cover the battery", () => {
@@ -210,7 +210,7 @@ describe("cell", () => {
     g.scrap = 85;
     installCell(g);
     upgradeCell(g);
-    const room = g.player.rooms.find((r) => r.kit === "cell");
+    const room = g.player.rooms.find((r) => r.kit === "battery");
     assert.ok(room);
     g.player.systems.engines.power = 0;
     g.player.shieldNow = 0;
@@ -224,7 +224,7 @@ describe("cell", () => {
       ion: 1,
       fireChance: 0,
       breachChance: 0,
-      defId: "stunbomb",
+      defId: "BOMB_STUN",
       targetRoom: room.id,
       wait: 0,
       t: 1,
@@ -232,22 +232,22 @@ describe("cell", () => {
     };
     applyImpact(g, bomb);
     assert.notEqual(g.log[0], "Bomb missed the Lark.");
-    assert.equal(g.player.kits.cell?.on, true);
-    assert.equal(g.player.kits.cell?.cool, 0);
-    applyImpact(g, { ...bomb, defId: "ionbomb", ion: 4 });
-    assert.equal(g.player.kits.cell?.cool, 25);
-    assert.equal(g.player.kits.cell?.on, false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
+    applyImpact(g, { ...bomb, defId: "BOMB_ION", ion: 4 });
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(g.player.kits.battery?.on, false);
     assert.equal(g.log[0], "Backup Battery cooling.");
 
     let pulsed = false;
     for (let seed = 1; seed < 80 && !pulsed; seed++) {
       const pulse = createGame(seed);
-      pulse.player.kits.cell = pushCell(2);
+      pulse.player.kits.battery = pushCell(2);
       pulse.player.zoltan = 0;
       pulse.player.systems.shields.power = 0;
       startCell(pulse);
       applyPulsarPulse(pulse);
-      pulsed = pulse.player.kits.cell?.cool === 25;
+      pulsed = pulse.player.kits.battery?.cool === 25;
     }
     assert.equal(pulsed, true);
   });
@@ -258,10 +258,10 @@ describe("cell", () => {
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
     g.player.reactor = 1;
     g.player.systems.engines.power = 1;
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
-    g.player.kits.veil = {
-      id: "veil",
+    g.player.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 1,
       left: 10,
@@ -271,10 +271,10 @@ describe("cell", () => {
       aux: 0,
     };
     tickCell(g, 30);
-    assert.equal(g.player.kits.cell?.cool, 20);
-    assert.equal(g.player.kits.veil?.on, false);
-    assert.equal(g.player.kits.veil?.power, 0);
-    assert.equal(g.player.kits.veil?.cool, 20);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    assert.equal(g.player.kits.cloaking?.on, false);
+    assert.equal(g.player.kits.cloaking?.power, 0);
+    assert.equal(g.player.kits.cloaking?.cool, 20);
     assert.equal(g.player.systems.engines.power, 1);
     assert.equal(sparePower(g.player), 0);
 
@@ -283,10 +283,10 @@ describe("cell", () => {
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) hold.player.systems[id].power = 0;
     hold.player.reactor = 1;
     hold.player.systems.engines.power = 1;
-    hold.player.kits.cell = pushCell(1);
+    hold.player.kits.battery = pushCell(1);
     startCell(hold);
-    hold.player.kits.leash = {
-      id: "leash",
+    hold.player.kits.mind = {
+      id: "mind",
       level: 1,
       power: 1,
       left: 14,
@@ -310,10 +310,10 @@ describe("cell", () => {
       leashed: 14,
     });
     tickCell(hold, 30);
-    assert.equal(hold.player.kits.leash?.on, false);
+    assert.equal(hold.player.kits.mind?.on, false);
     // Systems, "Systems cooldown": power loss ends the hold and starts the usual 20 seconds.
-    assert.equal(hold.player.kits.leash?.cool, 20);
-    assert.equal(hold.player.kits.leash?.power, 0);
+    assert.equal(hold.player.kits.mind?.cool, 20);
+    assert.equal(hold.player.kits.mind?.power, 0);
     assert.equal(hold.crew.find((c) => c.id === "foe")?.leashed, undefined);
     assert.equal(hold.player.systems.engines.power, 1);
 
@@ -322,10 +322,10 @@ describe("cell", () => {
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) guns.player.systems[id].power = 0;
     guns.player.reactor = 0;
     guns.player.systems.weapons.power = 2;
-    guns.player.kits.cell = pushCell(1);
+    guns.player.kits.battery = pushCell(1);
     startCell(guns);
     tickCell(guns, 30);
-    assert.equal(guns.player.kits.cell?.cool, 0);
+    assert.equal(guns.player.kits.battery?.cool, 0);
     assert.equal(guns.player.systems.weapons.power, 0);
     assert.equal(sparePower(guns.player), 0);
   });
@@ -336,10 +336,10 @@ describe("cell", () => {
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
     g.player.reactor = 1;
     g.player.systems.engines.power = 1;
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
-    g.player.kits.veil = {
-      id: "veil",
+    g.player.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 1,
       left: 0,
@@ -349,13 +349,13 @@ describe("cell", () => {
       aux: 0,
     };
     toggleVeilPower(g);
-    assert.equal(g.player.kits.veil.power, 1);
+    assert.equal(g.player.kits.cloaking.power, 1);
     tickCell(g, 30);
-    assert.equal(g.player.kits.veil.on, false);
-    assert.equal(g.player.kits.veil.power, 0);
-    assert.equal(g.player.kits.veil.cool, 15);
+    assert.equal(g.player.kits.cloaking.on, false);
+    assert.equal(g.player.kits.cloaking.power, 0);
+    assert.equal(g.player.kits.cloaking.cool, 15);
     assert.equal(g.player.systems.engines.power, 1);
-    assert.equal(g.player.kits.cell?.cool, 20);
+    assert.equal(g.player.kits.battery?.cool, 20);
   });
 
   it("counts battery bars as spare when a Zoltan leaves weapons", () => {
@@ -375,7 +375,7 @@ describe("cell", () => {
       autofire: false,
       target: null,
     });
-    g.player.weapons = ["vulcan", "burst1", "charger"].map(mount);
+    g.player.weapons = ["LASER_CHAINGUN_2", "LASER_BURST_2_A", "LASER_CHARGEGUN"].map(mount);
     const spark = (id: string): Crew => ({
       id,
       name: id,
@@ -388,17 +388,17 @@ describe("cell", () => {
       move: 0,
       think: 0,
       tone: 0,
-      kin: "spark",
+      kin: "energy",
     });
     g.crew.push(spark("za"), spark("zb"));
     settleZoltanPower(g);
     assert.equal(sys.power, 2);
     g.player.reactor -= sparePower(g.player);
     assert.equal(sparePower(g.player), 0);
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     assert.equal(sparePower(g.player), 2);
-    g.crew = g.crew.filter((c) => c.kin !== "spark");
+    g.crew = g.crew.filter((c) => c.kin !== "energy");
     settleZoltanPower(g);
     assert.equal(sys.power, 4);
     assert.equal(sys.zoltanHeld, undefined);
@@ -432,7 +432,7 @@ describe("cell", () => {
       "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.",
     );
 
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     assert.equal(cellBonus(g.player), 2);
     assert.equal(sparePower(g.player), 2);
@@ -448,7 +448,7 @@ describe("cell", () => {
     g.player.reactor = 5;
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
-    g.player.kits.cell = pushCell(1);
+    g.player.kits.battery = pushCell(1);
     startCell(g);
     assert.equal(batterySpareBars(g.player), 2);
     assert.equal(batteryPaint(g.player).systems.weapons, undefined);
@@ -480,7 +480,7 @@ describe("cell", () => {
     g.player.systems.weapons.power = 8;
     g.player.systems.oxygen.power = 1;
     assert.equal(sparePower(g.player), 0);
-    g.player.kits.cell = pushCell(2);
+    g.player.kits.battery = pushCell(2);
     startCell(g);
     assert.equal(cellBonus(g.player), 4);
     assert.equal(sparePower(g.player), 4);
@@ -503,11 +503,11 @@ describe("cell", () => {
       ...g.player,
       name: "Picket",
       reactor: 7,
-      kits: { cell: pushCell(2) },
+      kits: { battery: pushCell(2) },
     };
     tickCell(g, 0.16);
-    assert.equal(g.enemy?.kits.cell?.on, true);
-    assert.equal(g.enemy?.kits.cell?.left, 30);
+    assert.equal(g.enemy?.kits.battery?.on, true);
+    assert.equal(g.enemy?.kits.battery?.left, 30);
     assert.equal(cellBonus(g.enemy!), 4);
   });
 });

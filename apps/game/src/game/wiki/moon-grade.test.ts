@@ -70,12 +70,12 @@ describe("slug moon grade", () => {
     assert.ok(row);
     loadPack({ events: [{ ...row, grade: { hire: "Engi", pays: row.grade?.pays ?? [] } }] }, "append");
     const hired = open(2);
-    const gels = hired.crew.filter((c) => c.kin === "gel").length;
-    const shells = hired.crew.filter((c) => c.kin === "shell").length;
+    const gels = hired.crew.filter((c) => c.kin === "slug").length;
+    const shells = hired.crew.filter((c) => c.kin === "engi").length;
     const scrap = hired.scrap;
     answer(hired, moons(hired.event?.body ?? ""));
-    assert.equal(hired.crew.filter((c) => c.kin === "gel").length, gels);
-    assert.equal(hired.crew.filter((c) => c.kin === "shell").length, shells + 1);
+    assert.equal(hired.crew.filter((c) => c.kin === "slug").length, gels);
+    assert.equal(hired.crew.filter((c) => c.kin === "engi").length, shells + 1);
     assert.equal(hired.scrap, scrap);
     assert.match(hired.event?.body ?? "", /That isss\.\.\. correct/);
 

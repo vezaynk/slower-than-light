@@ -64,6 +64,6 @@ describe("Mantis ship-collectors hail", () => {
     assert.ok(g.log.includes(HAIL));
     const enemyCrew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(enemyCrew.length > 0);
-    assert.ok(enemyCrew.every((c) => c.kin === "blade"));
+    assert.ok(enemyCrew.every((c) => c.kin === "mantis"));
   });
 });

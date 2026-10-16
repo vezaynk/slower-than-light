@@ -151,7 +151,7 @@ function targetSide(shot: Shot): "player" | "enemy" {
 
 /**
  * A mount shot that leaves one camera and arrives in the other.
- * Drone fire stays beside the drone (swarm.ts "swarm-ready" / "swarm", or DRONE_LABEL).
+ * Drone fire stays beside the drone (swarm.ts "swarm-ready" / "drones", or DRONE_LABEL).
  * Bombs still appear on the room they hit. Rocks and artillery keep a single approach.
  */
 function crossesCameras(shot: Shot): boolean {
@@ -159,7 +159,7 @@ function crossesCameras(shot: Shot): boolean {
   if (shot.kind === "bomb") return false;
   if (targetSide(shot) === shot.from) return false;
   const label = shot.label ?? "";
-  if (label === "swarm-ready" || label === "swarm" || label.startsWith(DRONE_LABEL)) return false;
+  if (label === "swarm-ready" || label === "drones" || label.startsWith(DRONE_LABEL)) return false;
   return true;
 }
 
@@ -205,21 +205,21 @@ function entryPoint(origin: Pt, ang: number, rect: Box): Pt {
 
 /** Drones that fly at the enemy. The rest hold station around the player hull. */
 const OUTBOUND = new Set<DroneKey>([
-  "striker",
+  "COMBAT_1",
   "striker2",
-  "beam",
-  "beam2",
+  "COMBAT_BEAM",
+  "COMBAT_BEAM_2",
   "fire",
-  "board",
+  "BOARDER",
   "intruder",
   "personnel",
 ]);
 
 /** Enemy schematic ids (Kit.target strings) to drone art keys. */
 const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
-  combat2: "striker2",
-  ionintruder: "intruder",
-  overcharger: "overcharge",
+  COMBAT_2: "striker2",
+  BOARDER_ION: "intruder",
+  DRONE_SHIELD: "overcharge",
 };
 
 function enemyDroneKey(unit: DroneUnit): DroneKey | null {
@@ -227,7 +227,7 @@ function enemyDroneKey(unit: DroneUnit): DroneKey | null {
 }
 
 /** Enemy drone kinds whose swipe drains a Zoltan Shield (swarm.ts tickEnemyBeam, SWIPE_ZOLTAN). */
-const SWIPE_KINDS = new Set(["beam", "beam2", "fire"]);
+const SWIPE_KINDS = new Set(["COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
 
 /** A @theme colour token from styles.css, read once. The canvas cannot use var() directly. */
 const tokens = new Map<string, string>();
@@ -492,7 +492,7 @@ export function CombatFx() {
       // A drone on the enemy hull uses that hull's scale, so it matches the shrunk rooms.
       const foeScale = readShipScale(host.querySelector('.hull[data-ship="enemy"]'));
       const droneAt = new Map<DroneKey, Pt>();
-      const kit = g.player.kits.swarm;
+      const kit = g.player.kits.drones;
       const key = kit?.on ? droneKeyOf(kit.target) : null;
       if (kit && key) {
         const outbound = OUTBOUND.has(key);
@@ -530,7 +530,7 @@ export function CombatFx() {
       // and then sit in a player room, crew drones sit in an enemy room. Positions feed enemy drone shots below.
       const enemyDroneAt = new Map<string, Pt>();
       // Landed boarding drones stay on the player after that hull is destroyed (Game.boarded), drawn dim while unpowered.
-      for (const unit of [...(g.enemy?.kits.swarm?.drones ?? []), ...(g.boarded ?? [])]) {
+      for (const unit of [...(g.enemy?.kits.drones?.drones ?? []), ...(g.boarded ?? [])]) {
         const spot = enemyDroneSpot(unit);
         const ekey = enemyDroneKey(unit);
         if (!spot || !ekey) continue;
@@ -799,7 +799,7 @@ export function CombatFx() {
       // flash the shield ring in Zoltan green.
       const zoltanNow = g.player.zoltan ?? 0;
       if (g.phase === "combat" && zoltanNow < lastZoltan) {
-        const swiper = (g.enemy?.kits.swarm?.drones ?? []).find(
+        const swiper = (g.enemy?.kits.drones?.drones ?? []).find(
           (u) => u.alive && SWIPE_KINDS.has(u.kind) && (u.fired ?? 99) < 0.25,
         );
         const target = hull("player");
@@ -876,7 +876,7 @@ export function CombatFx() {
           // Enemy drone shots leave from that drone.
           const drone = enemyDroneAt.get(shot.label.slice(DRONE_LABEL.length));
           if (drone) return drone;
-        } else if (side === "player" && (shot.label === "swarm-ready" || shot.label === "swarm")) {
+        } else if (side === "player" && (shot.label === "swarm-ready" || shot.label === "drones")) {
           const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
           if (drone) return drone;
         }

@@ -293,6 +293,8 @@ export type Shot = {
 
 export type Kit = {
   id: KitId;
+  /** Archive weapon blueprint. Artillery Beam omits it or uses ARTILLERY_FED. Flak Artillery is ARTILLERY_FED_C. */
+  weapon?: string;
   level: number;
   /** Reactor bars currently fed into this kit. Subsystems stay at 0. */
   power: number;
@@ -428,7 +430,7 @@ export type Kit = {
 export type DroneUnit = {
   /** Stable id. CombatFx keys the orbit and the shot muzzle on it. */
   id: string;
-  /** Schematic id, the same strings as Kit.target ("striker", "ward", "beam2", "ionintruder", …). */
+  /** Schematic id, the same strings as Kit.target ("COMBAT_1", "DEFENSE_1", "COMBAT_BEAM_2", "BOARDER_ION", …). */
   kind: string;
   /** False once destroyed. `cool` then counts the redeploy delay. */
   alive: boolean;

@@ -53,7 +53,7 @@ function winByHull(g: Game) {
 
 function winByCrew(g: Game) {
   // Clone Bay, Overview: dead crew on a hull with a Clone Bay are cloned, so the fight would not end. Drop it.
-  if (g.enemy) delete g.enemy.kits.cradle;
+  if (g.enemy) delete g.enemy.kits.clonebay;
   for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
   for (let i = 0; i < 3 && g.phase === "combat"; i++) step(g, 1 / 30);
 }
@@ -206,7 +206,7 @@ describe("Cited events that add a marker", () => {
     const g = atCited(createGame(5), "Mantis Controlled Sector", "Mantis ship-collectors");
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");
-    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "blade" && c.name === "Mantis"));
+    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "mantis" && c.name === "Mantis"));
     assert.deepEqual([g.enemyEscape!.mode, g.enemyEscape!.chance, g.enemyEscape!.threshold, g.enemyEscape!.seconds], ["hull", 100, 50, 5]);
     g.enemyEscape!.running = true;
     g.enemyFlee = 1;
@@ -219,7 +219,7 @@ describe("Cited events that add a marker", () => {
     jumpTo(g, b);
     choose(g, "q:mantis-chase:fight");
     assert.equal(g.enemy!.faction, "mantis");
-    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "blade" && c.name === "Mantis"));
+    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "mantis" && c.name === "Mantis"));
     assert.equal(g.enemySurrender!.chance, 100);
     assert.equal(g.enemyEscape!.threshold, 60);
     winByCrew(g);
@@ -244,7 +244,7 @@ describe("Cited events that add a marker", () => {
       if (questBeacons(g, "defector-cache").length) {
         found = true;
         assert.equal(g.phase, "combat");
-        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "plain"));
+        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "human"));
       }
     }
     assert.ok(found);
@@ -322,9 +322,9 @@ describe("Engi fleet discussion", () => {
     // > "A quest marker is added to your map." — [[Engi fleet discussion]]
     // > "A second quest marker is added to your map." — [[Engi fleet discussion]]
     const g = atCited(createGame(6), "Engi Homeworlds", "Engi fleet discussion");
-    for (const c of g.crew) if (c.side === "player") c.kin = "plain";
+    for (const c of g.crew) if (c.side === "player") c.kin = "human";
     assert.equal(choiceDisabled(g, "c:engi-fleet-discussion:2"), "Needs an Engi crewmember");
-    g.crew.find((c) => c.side === "player")!.kin = "shell";
+    g.crew.find((c) => c.side === "player")!.kin = "engi";
     assert.equal(choiceDisabled(g, "c:engi-fleet-discussion:2"), null);
     choose(g, "c:engi-fleet-discussion:2");
     choose(g, "q:engi-fleet:offer");
@@ -364,14 +364,14 @@ describe("Engi fleet discussion", () => {
     jumpTo(g, final);
     choose(g, "q:engi-final:fight");
     assert.equal(g.enemySurrender!.chance, 0);
-    assert.ok(g.crew.filter((c) => c.side === "enemy").every((c) => c.kin === "plain"));
+    assert.ok(g.crew.filter((c) => c.side === "enemy").every((c) => c.kin === "human"));
     winByHull(g);
     assert.deepEqual(choiceIds(g), ["q:engi-victory:ask"]);
     choose(g, "q:engi-victory:ask");
     g.augments = [];
     const hull = (g.player.hull = 5);
     choose(g, "q:engi-victory:transmit");
-    assert.ok(g.augments.includes("casing"));
+    assert.ok(g.augments.includes("SYSTEM_CASING"));
     assert.equal(g.player.hull, Math.min(g.player.hullMax, hull + 20));
   });
 
@@ -437,14 +437,14 @@ describe("Other surrender pages with a marker", () => {
     assert.equal(b.kind, "nebula");
     choose(g, "ack");
     jumpTo(g, b);
-    for (const c of g.crew) if (c.side === "player") c.kin = "gel";
+    for (const c of g.crew) if (c.side === "player") c.kin = "slug";
     choose(g, "q:slug-platform:tail");
     choose(g, "q:slug-platform:slug");
     choose(g, "q:slug-platform:interceptor");
     assert.equal(g.enemyEscape!.seconds, 35);
     g.augments = [];
     winByHull(g);
-    assert.ok(g.augments.includes("gel"));
+    assert.ok(g.augments.includes("SLUG_GEL"));
   });
 
   it("Settlement mercenary work: the space dock marker; the rescue pays medium scrap, 5 repairs, and opens a store", () => {
@@ -584,7 +584,7 @@ describe("Rebel defector, Accept his proposal", () => {
     let cloned = false;
     for (let seed = 1; seed <= 80 && !cloned; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
-      g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:rebel-defector:0");
       if (!g.log.some((line) => line.includes("clone launches"))) continue;
@@ -617,7 +617,7 @@ describe("Space station under construction, Lanius sale", () => {
   it("pays an augmentation and high scrap, and splices the Lanius out even with a clone bay", () => {
     const g = atCited(createGame(3), "Civilian Sector", "Space station under construction");
     assert.ok(joinCrew(g, "Lanius"));
-    g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     const scrap = g.scrap;
     choose(g, "c:space-station-under-construction:2");
     assert.ok(choiceIds(g).includes("q:station:sale"));
@@ -629,20 +629,20 @@ describe("Space station under construction, Lanius sale", () => {
     assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false);
     assert.match(body, /fitted\.|stowed in cargo\./);
     assert.equal(g.scrap, scrap + paid);
-    assert.equal(g.crew.some((c) => c.kin === "voidlung"), false);
+    assert.equal(g.crew.some((c) => c.kin === "anaerobic"), false);
   });
 
   it("pays nothing when that Lanius is the last living crewmember", () => {
     const g = atCited(createGame(4), "Civilian Sector", "Space station under construction");
     assert.ok(joinCrew(g, "Lanius"));
-    for (const c of g.crew) if (c.kin !== "voidlung") c.hp = 0;
+    for (const c of g.crew) if (c.kin !== "anaerobic") c.hp = 0;
     const scrap = g.scrap;
     const augs = g.augments.length;
     choose(g, "c:space-station-under-construction:2");
     choose(g, "q:station:sale");
     assert.equal(g.scrap, scrap);
     assert.equal(g.augments.length, augs);
-    assert.equal(g.crew.some((c) => c.kin === "voidlung" && c.hp > 0), true);
+    assert.equal(g.crew.some((c) => c.kin === "anaerobic" && c.hp > 0), true);
   });
 });
 
@@ -654,7 +654,7 @@ describe("Federation loyalists, Healing Burst", () => {
       choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
       if (g.phase !== "combat") continue;
       winByHull(g);
-      g.player.weapons.push(gun("healburst"));
+      g.player.weapons.push(gun("BOMB_HEAL"));
       g.missiles = 0;
       choose(g, "q:loyalists:contact");
       if (!choiceIds(g).includes("q:loyalists:heal")) continue;
@@ -696,7 +696,7 @@ describe("Hidden Federation Base scans", () => {
   it("offers one scan button per requirement the ship meets", () => {
     const none = emptySearch((g) => {
       g.player.systems.sensors!.level = 0;
-      g.augments = g.augments.filter((id) => id !== "glass");
+      g.augments = g.augments.filter((id) => id !== "ADV_SCANNERS");
     });
     assert.deepEqual(choiceIds(none), ["ack"]);
 
@@ -713,7 +713,7 @@ describe("Hidden Federation Base scans", () => {
 
     const three = emptySearch((g) => {
       g.player.systems.sensors!.level = 3;
-      g.augments = g.augments.filter((id) => id !== "glass");
+      g.augments = g.augments.filter((id) => id !== "ADV_SCANNERS");
     });
     assert.deepEqual(choiceIds(three), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3"]);
     choose(three, "q:fed-base:scan-3");
@@ -724,13 +724,13 @@ describe("Hidden Federation Base scans", () => {
 
     const glass = emptySearch((g) => {
       g.player.systems.sensors!.level = 0;
-      if (!g.augments.includes("glass")) g.augments.push("glass");
+      if (!g.augments.includes("ADV_SCANNERS")) g.augments.push("ADV_SCANNERS");
     });
     assert.deepEqual(choiceIds(glass), ["ack", "q:fed-base:scan-glass"]);
 
     const both = emptySearch((g) => {
       g.player.systems.sensors!.level = 3;
-      if (!g.augments.includes("glass")) g.augments.push("glass");
+      if (!g.augments.includes("ADV_SCANNERS")) g.augments.push("ADV_SCANNERS");
     });
     assert.deepEqual(choiceIds(both), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3", "q:fed-base:scan-glass"]);
   });
@@ -747,9 +747,9 @@ describe("Mantis war camp, Missile Weapon", () => {
   }
 
   it("hides the button for a Hull Missile and shows it for a Leto", () => {
-    const hull = arrive("hullmissile");
+    const hull = arrive("MISSILES_HULL");
     assert.equal(choiceIds(hull).includes("q:war-camp:missile"), false);
-    const leto = arrive("leto");
+    const leto = arrive("MISSILES_1");
     assert.ok(choiceIds(leto).includes("q:war-camp:missile"));
     assert.equal(choiceDisabled(leto, "q:war-camp:missile"), "Need 1 missiles");
   });

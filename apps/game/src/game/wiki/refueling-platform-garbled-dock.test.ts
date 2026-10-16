@@ -166,7 +166,7 @@ describe("Refueling platform garbled broadcast dock", () => {
     assert.equal(diffs.reduce((a, b) => a + b, 0), 1);
     const boarders = boarded.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 1);
-    assert.equal(boarders[0]?.kin, "voidlung");
+    assert.equal(boarders[0]?.kin, "anaerobic");
     assert.equal(boarders[0]?.name, "Lanius");
     assert.equal(boarded.phase, "combat");
     assert.equal(boarded.fightEvent, "refueling-platform-garbled-broadcast");

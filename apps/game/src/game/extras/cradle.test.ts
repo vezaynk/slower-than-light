@@ -7,7 +7,7 @@ import type { Kit } from "../types.ts";
 
 function poweredKit(level = 1): Kit {
   return {
-    id: "cradle",
+    id: "clonebay",
     level,
     power: 1,
     left: 0,
@@ -18,10 +18,10 @@ function poweredKit(level = 1): Kit {
   };
 }
 
-describe("cradle", () => {
+describe("clonebay", () => {
   it("returns Ada at full health and keeps 80% of a skill", () => {
     const g = createGame(1);
-    g.player.kits.cradle = poweredKit();
+    g.player.kits.clonebay = poweredKit();
     const ada = g.crew.find((c) => c.name === "Ada Voss");
     assert.ok(ada);
     ada.hp = 0;
@@ -39,7 +39,7 @@ describe("cradle", () => {
   it("keeps 80 percent of a skill and loses one combat point", () => {
     // Crew skills: 20% off every skill, and Combat loses 1 point rather than 20%.
     const g = createGame(2);
-    g.player.kits.cradle = poweredKit();
+    g.player.kits.clonebay = poweredKit();
     const ada = g.crew.find((c) => c.name === "Ada Voss");
     assert.ok(ada);
     ada.hp = 0;
@@ -53,19 +53,19 @@ describe("cradle", () => {
   it("starts the clone timer after the printed death animation", () => {
     // Clone Bay, Overview: animation, then the 12/9/7 system time.
     const g = createGame(3);
-    g.player.kits.cradle = poweredKit(1);
+    g.player.kits.clonebay = poweredKit(1);
     const ada = g.crew.find((c) => c.name === "Ada Voss");
     assert.ok(ada);
     const pauses: [KinId | undefined, number][] = [
       [undefined, 1.8],
-      ["plain", 1.8],
-      ["gel", 1.8],
-      ["voidlung", 1.8],
-      ["shell", 2],
-      ["stone", 2],
-      ["shard", 2],
-      ["blade", 1.7],
-      ["spark", 1.5],
+      ["human", 1.8],
+      ["slug", 1.8],
+      ["anaerobic", 1.8],
+      ["engi", 2],
+      ["rock", 2],
+      ["crystal", 2],
+      ["mantis", 1.7],
+      ["energy", 1.5],
     ];
     for (const [kin, pause] of pauses) {
       ada.hp = 0;
@@ -79,9 +79,9 @@ describe("cradle", () => {
       ada.cloneSeq = undefined;
       ada.hp = ada.maxHp;
     }
-    g.player.kits.cradle = poweredKit(2);
+    g.player.kits.clonebay = poweredKit(2);
     ada.hp = 0;
-    ada.kin = "spark";
+    ada.kin = "energy";
     ada.cloneIn = undefined;
     assert.equal(onCradleDeath(g, ada), true);
     assert.equal(ada.cloneIn, 9 + 1.5);

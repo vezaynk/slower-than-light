@@ -32,6 +32,8 @@ export type HullKit = {
   loadout?: string[];
   /** Defaults to on when power is above 0. */
   on?: boolean;
+  /** Archive weapon blueprint when this kit is artillery. */
+  weapon?: string;
 };
 
 export type HullSpec = {
@@ -68,7 +70,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "kestrel-a",
+    id: "PLAYER_SHIP_HARD",
     cruiser: "Kestrel Cruiser",
     layout: "A",
     name: "The Kestrel",
@@ -89,11 +91,11 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["lineburst", "artemis"],
+    weapons: ["LASER_BURST_3", "MISSILES_2_PLAYER"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "plain", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "human", room: "p-weapons" },
     ],
     kits: {},
     augments: [],
@@ -105,7 +107,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "kestrel-b",
+    id: "PLAYER_SHIP_HARD_2",
     cruiser: "Kestrel Cruiser",
     layout: "B",
     name: "Red-Tail",
@@ -126,12 +128,12 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["spark", "spark", "spark", "spark"],
+    weapons: ["LASER_BURST_1", "LASER_BURST_1", "LASER_BURST_1", "LASER_BURST_1"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "blade", room: "p-weapons" },
-      { kin: "spark", room: "p-shields" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "mantis", room: "p-weapons" },
+      { kin: "energy", room: "p-shields" },
     ],
     kits: {},
     augments: [],
@@ -143,7 +145,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "kestrel-c",
+    id: "PLAYER_SHIP_HARD_3",
     cruiser: "Kestrel Cruiser",
     layout: "C",
     name: "The Swallow",
@@ -164,14 +166,14 @@ export const HULLS: HullSpec[] = [
       sensors: [2, 2],
       ...sub,
     },
-    weapons: ["twin", "stunner"],
+    weapons: ["LASER_BURST_2", "ION_STUN"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "voidlung", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "anaerobic", room: "p-weapons" },
     ],
     // Clone Bay is installed. No reactor left for its bar. INFERRED: it starts unpowered.
-    kits: { cradle: { level: 1, power: 0 } },
+    kits: { clonebay: { level: 1, power: 0 } },
     augments: [],
     unfitted: [],
   },
@@ -181,7 +183,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "engi-a",
+    id: "PLAYER_SHIP_CIRCLE",
     cruiser: "Engi Cruiser",
     layout: "A",
     name: "The Torus",
@@ -202,15 +204,15 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["ion2"],
+    weapons: ["ION_4"],
     crew: [
-      { kin: "shell", room: "p-pilot" },
-      { kin: "shell", room: "p-engines" },
-      { kin: "plain", room: "p-weapons" },
+      { kin: "engi", room: "p-pilot" },
+      { kin: "engi", room: "p-engines" },
+      { kin: "human", room: "p-weapons" },
     ],
     // Drone Control (3). Combat Drone Mark I takes 2 of those bars.
-    kits: { swarm: { level: 3, power: 2, target: "striker" } },
-    augments: ["medbot"],
+    kits: { drones: { level: 3, power: 2, target: "COMBAT_1" } },
+    augments: ["NANO_MEDBAY"],
     unfitted: [],
   },
   /**
@@ -219,7 +221,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "engi-b",
+    id: "PLAYER_SHIP_CIRCLE_2",
     cruiser: "Engi Cruiser",
     layout: "B",
     name: "The Vortex",
@@ -240,13 +242,13 @@ export const HULLS: HullSpec[] = [
       sensors: [0, 0],
       ...sub,
     },
-    weapons: ["heavyion", "heavy"],
-    crew: [{ kin: "shell", room: "p-pilot" }],
+    weapons: ["ION_2", "LASER_HEAVY_1"],
+    crew: [{ kin: "engi", room: "p-pilot" }],
     // The Engi Cruiser, Layout B: Augmentations lists Drone Reactor Booster.
     // Drones (3 slots): Anti-Personnel, and System Repair (x2). Both repair schematics are fitted.
     // Anti-Personnel stays a name. This build does not fly that third schematic.
-    kits: { swarm: { level: 3, power: 1, loadout: ["patch", "patch"] } },
-    augments: ["booster"],
+    kits: { drones: { level: 3, power: 1, loadout: ["REPAIR", "REPAIR"] } },
+    augments: ["DRONE_SPEED"],
     unfitted: ["Anti-Personnel Drone"],
   },
   /**
@@ -255,7 +257,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "engi-c",
+    id: "PLAYER_SHIP_CIRCLE_3",
     cruiser: "Engi Cruiser",
     layout: "C",
     name: "Tetragon",
@@ -276,19 +278,19 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["twin"],
+    weapons: ["LASER_BURST_2"],
     crew: [
-      { kin: "voidlung", room: "p-pilot" },
-      { kin: "shell", room: "p-engines" },
-      { kin: "shell", room: "p-weapons" },
+      { kin: "anaerobic", room: "p-pilot" },
+      { kin: "engi", room: "p-engines" },
+      { kin: "engi", room: "p-weapons" },
     ],
     kits: {
-      swarm: { level: 2, power: 2, target: "beam" },
-      spike: { level: 1, power: 1 },
-      cradle: { level: 1, power: 0 },
+      drones: { level: 2, power: 2, target: "COMBAT_BEAM" },
+      hacking: { level: 1, power: 1 },
+      clonebay: { level: 1, power: 0 },
     },
     // The Engi Cruiser, Layout C: Augmentations lists Defense Scrambler.
-    augments: ["scrambler"],
+    augments: ["DEFENSE_SCRAMBLER"],
     unfitted: [],
   },
   /**
@@ -297,7 +299,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "fed-a",
+    id: "PLAYER_SHIP_FED",
     cruiser: "Federation Cruiser",
     layout: "A",
     name: "The Osprey",
@@ -319,14 +321,14 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["lineburst"],
+    weapons: ["LASER_BURST_3"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "blade", room: "p-engines" },
-      { kin: "stone", room: "p-weapons" },
-      { kin: "shell", room: "p-shields" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "mantis", room: "p-engines" },
+      { kin: "rock", room: "p-weapons" },
+      { kin: "engi", room: "p-shields" },
     ],
-    kits: { lance: { level: 1, power: 1 } },
+    kits: { artillery: { weapon: "ARTILLERY_FED",  level: 1, power: 1 } },
     augments: [],
     unfitted: [],
   },
@@ -336,7 +338,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "fed-b",
+    id: "PLAYER_SHIP_FED_2",
     cruiser: "Federation Cruiser",
     layout: "B",
     name: "Nisos",
@@ -356,13 +358,13 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["twin", "leto"],
+    weapons: ["LASER_BURST_2", "MISSILES_1"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "gel", room: "p-engines" },
-      { kin: "spark", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "slug", room: "p-engines" },
+      { kin: "energy", room: "p-weapons" },
     ],
-    kits: { lance: { level: 2, power: 1 } },
+    kits: { artillery: { weapon: "ARTILLERY_FED",  level: 2, power: 1 } },
     augments: [],
     unfitted: [],
   },
@@ -372,7 +374,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "fed-c",
+    id: "PLAYER_SHIP_FED_3",
     cruiser: "Federation Cruiser",
     layout: "C",
     name: "The Fregatidae",
@@ -395,19 +397,19 @@ export const HULLS: HullSpec[] = [
     },
     weapons: [],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "spark", room: "p-engines" },
-      { kin: "spark", room: "p-shields" },
-      { kin: "blade", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "energy", room: "p-engines" },
+      { kin: "energy", room: "p-shields" },
+      { kin: "mantis", room: "p-weapons" },
     ],
     kits: {
-      cradle: { level: 2, power: 1 },
-      sling: { level: 1, power: 1 },
+      clonebay: { level: 2, power: 1 },
+      teleporter: { level: 1, power: 1 },
       // Flak Artillery tick keys off `on`, and the module comment says reactor bars are not taken off the hull.
       // Power stays 0 so the 7-bar reactor can cover shields, engines, oxygen, clone bay, and teleporter.
-      flak: { level: 1, power: 0, on: true },
+      artillery: { weapon: "ARTILLERY_FED_C",  level: 1, power: 0, on: true },
     },
-    augments: ["lung"],
+    augments: ["O2_MASKS"],
     unfitted: [],
   },
   /**
@@ -416,7 +418,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "zoltan-a",
+    id: "PLAYER_SHIP_ENERGY",
     cruiser: "Zoltan Cruiser",
     layout: "A",
     name: "The Adjudicator",
@@ -440,16 +442,16 @@ export const HULLS: HullSpec[] = [
     // Wiki page "The Zoltan Cruiser", section "Layout A": Leto Missiles and Halberd Beam.
     // Beam (Weapons), "Halberd Beam": power 3. Missile (Weapons), "Leto Missiles": power 1.
     // Together they need more than the starting weapon bars. powerMask powers the Leto first. The Halberd charges once the Leto is switched off or the weapon bars are raised.
-    weapons: ["leto", "halberd"],
+    weapons: ["MISSILES_1", "BEAM_2"],
     crew: [
-      { kin: "spark", room: "p-pilot" },
-      { kin: "spark", room: "p-engines" },
-      { kin: "spark", room: "p-weapons" },
+      { kin: "energy", room: "p-pilot" },
+      { kin: "energy", room: "p-engines" },
+      { kin: "energy", room: "p-weapons" },
     ],
     kits: {},
     // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
     // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
-    augments: ["zshield"],
+    augments: ["ENERGY_SHIELD"],
     unfitted: [],
   },
   /**
@@ -458,7 +460,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "zoltan-b",
+    id: "PLAYER_SHIP_ENERGY_2",
     cruiser: "Zoltan Cruiser",
     layout: "B",
     name: "Noether",
@@ -480,16 +482,16 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["needle", "needle", "shear"],
+    weapons: ["ION_1", "ION_1", "BEAM_LONG"],
     crew: [
-      { kin: "spark", room: "p-pilot" },
-      { kin: "spark", room: "p-engines" },
-      { kin: "spark", room: "p-shields" },
+      { kin: "energy", room: "p-pilot" },
+      { kin: "energy", room: "p-engines" },
+      { kin: "energy", room: "p-shields" },
     ],
     kits: {},
     // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
     // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
-    augments: ["zshield"],
+    augments: ["ENERGY_SHIELD"],
     unfitted: [],
   },
   /**
@@ -498,7 +500,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "zoltan-c",
+    id: "PLAYER_SHIP_ENERGY_3",
     cruiser: "Zoltan Cruiser",
     layout: "C",
     name: "Cerenkov",
@@ -521,21 +523,21 @@ export const HULLS: HullSpec[] = [
     },
     // Wiki page "The Zoltan Cruiser", section "Layout C": Ion Charger. Ion (Weapons), "Ion Charger": power 2.
     // Weapon bars start at 0 because the reactor's 2 bars are in shields. The charger is mounted and waits for those bars.
-    weapons: ["ioncharger"],
+    weapons: ["ION_CHARGEGUN"],
     crew: [
-      { kin: "spark", room: "p-pilot" },
-      { kin: "spark", room: "p-engines" },
-      { kin: "spark", room: "p-shields" },
-      { kin: "spark", room: "p-weapons" },
+      { kin: "energy", room: "p-pilot" },
+      { kin: "energy", room: "p-engines" },
+      { kin: "energy", room: "p-shields" },
+      { kin: "energy", room: "p-weapons" },
     ],
     kits: {
-      cradle: { level: 1, power: 0 },
-      swarm: { level: 3, power: 0, target: "beam" },
-      cell: { level: 2, power: 0 },
+      clonebay: { level: 1, power: 0 },
+      drones: { level: 3, power: 0, target: "COMBAT_BEAM" },
+      battery: { level: 2, power: 0 },
     },
     // Zoltan Shield, lead: "Zoltan Shield is an augmentation" with 5 points of energy shielding.
     // Augmentations: "Your ship can have only up to three augmentations". This one occupies a slot.
-    augments: ["zshield"],
+    augments: ["ENERGY_SHIELD"],
     unfitted: [],
   },
   /**
@@ -544,7 +546,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "slug-a",
+    id: "PLAYER_SHIP_JELLY",
     cruiser: "Slug Cruiser",
     layout: "A",
     name: "Man of War",
@@ -570,13 +572,13 @@ export const HULLS: HullSpec[] = [
       doors: [2, 2],
     },
     // Wiki page "The Slug Cruiser", section "Layout A": Dual Lasers, Anti-Bio Beam, Breach Bomb Mark I.
-    weapons: ["twin", "antibio", "breach1"],
+    weapons: ["LASER_BURST_2", "BEAM_BIO", "BOMB_BREACH_1"],
     crew: [
-      { kin: "gel", room: "p-pilot" },
-      { kin: "gel", room: "p-engines" },
+      { kin: "slug", room: "p-pilot" },
+      { kin: "slug", room: "p-engines" },
     ],
     kits: {},
-    augments: ["gel"],
+    augments: ["SLUG_GEL"],
     unfitted: [],
   },
   /**
@@ -585,7 +587,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "slug-b",
+    id: "PLAYER_SHIP_JELLY_2",
     cruiser: "Slug Cruiser",
     layout: "B",
     name: "The Stormwalker",
@@ -609,14 +611,14 @@ export const HULLS: HullSpec[] = [
       pilot: [1, 1],
       doors: [2, 2],
     },
-    weapons: ["artemis", "healburst"],
+    weapons: ["MISSILES_2_PLAYER", "BOMB_HEAL"],
     crew: [
-      { kin: "gel", room: "p-pilot" },
-      { kin: "gel", room: "p-engines" },
-      { kin: "gel", room: "p-weapons" },
+      { kin: "slug", room: "p-pilot" },
+      { kin: "slug", room: "p-engines" },
+      { kin: "slug", room: "p-weapons" },
     ],
-    kits: { sling: { level: 1, power: 1 } },
-    augments: ["gel"],
+    kits: { teleporter: { level: 1, power: 1 } },
+    augments: ["SLUG_GEL"],
     unfitted: [],
   },
   /**
@@ -627,7 +629,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "slug-c",
+    id: "PLAYER_SHIP_JELLY_3",
     cruiser: "Slug Cruiser",
     layout: "C",
     name: "Ariolimax",
@@ -650,18 +652,18 @@ export const HULLS: HullSpec[] = [
       doors: [2, 2],
     },
     // Wiki page "The Slug Cruiser", section "Layout C": Chain Burst Laser. Id chainlaser.
-    weapons: ["chainlaser"],
+    weapons: ["LASER_CHAINGUN"],
     crew: [
-      { kin: "gel", room: "p-pilot" },
-      { kin: "gel", room: "p-engines" },
-      { kin: "gel", room: "p-weapons" },
+      { kin: "slug", room: "p-pilot" },
+      { kin: "slug", room: "p-engines" },
+      { kin: "slug", room: "p-weapons" },
     ],
     kits: {
-      spike: { level: 1, power: 1 },
-      leash: { level: 1, power: 1 },
-      cradle: { level: 1, power: 0 },
+      hacking: { level: 1, power: 1 },
+      mind: { level: 1, power: 1 },
+      clonebay: { level: 1, power: 0 },
     },
-    augments: ["gel"],
+    augments: ["SLUG_GEL"],
     unfitted: [],
   },
   /**
@@ -670,7 +672,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "rock-a",
+    id: "PLAYER_SHIP_ROCK",
     cruiser: "Rock Cruiser",
     layout: "A",
     name: "Bulwark",
@@ -693,14 +695,14 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["artemis", "hullmissile"],
+    weapons: ["MISSILES_2_PLAYER", "MISSILES_HULL"],
     crew: [
-      { kin: "stone", room: "p-pilot" },
-      { kin: "stone", room: "p-engines" },
-      { kin: "stone", room: "p-weapons" },
+      { kin: "rock", room: "p-pilot" },
+      { kin: "rock", room: "p-engines" },
+      { kin: "rock", room: "p-weapons" },
     ],
     kits: {},
-    augments: ["keel"],
+    augments: ["ROCK_ARMOR"],
     unfitted: [],
   },
   /**
@@ -709,7 +711,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "rock-b",
+    id: "PLAYER_SHIP_ROCK_2",
     cruiser: "Rock Cruiser",
     layout: "B",
     name: "Shivan",
@@ -732,15 +734,15 @@ export const HULLS: HullSpec[] = [
     },
     // Wiki page "The Rock Cruiser", section "Layout B": Fire Bomb and Heavy Pierce Laser Mark I. Each is 2 power.
     // Weapon bars start at 2, so the Fire Bomb takes them. The Heavy Pierce charges once the Fire Bomb is switched off.
-    weapons: ["cask", "heavypierce"],
+    weapons: ["BOMB_FIRE", "LASER_HEAVY_1_SP"],
     crew: [
-      { kin: "stone", room: "p-pilot" },
-      { kin: "stone", room: "p-engines" },
-      { kin: "stone", room: "p-weapons" },
-      { kin: "stone", room: "p-shields" },
+      { kin: "rock", room: "p-pilot" },
+      { kin: "rock", room: "p-engines" },
+      { kin: "rock", room: "p-weapons" },
+      { kin: "rock", room: "p-shields" },
     ],
     kits: {},
-    augments: ["keel"],
+    augments: ["ROCK_ARMOR"],
     unfitted: [],
   },
   /**
@@ -749,7 +751,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "rock-c",
+    id: "PLAYER_SHIP_ROCK_3",
     cruiser: "Rock Cruiser",
     layout: "C",
     name: "Tektite",
@@ -772,14 +774,14 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["swarmmissiles", "heavycrystal"],
+    weapons: ["MISSILE_CHARGEGUN", "CRYSTAL_HEAVY_1"],
     crew: [
-      { kin: "stone", room: "p-pilot" },
-      { kin: "stone", room: "p-engines" },
-      { kin: "shard", room: "p-weapons" },
+      { kin: "rock", room: "p-pilot" },
+      { kin: "rock", room: "p-engines" },
+      { kin: "crystal", room: "p-weapons" },
     ],
-    kits: { cradle: { level: 1, power: 0 } },
-    augments: ["keel"],
+    kits: { clonebay: { level: 1, power: 0 } },
+    augments: ["ROCK_ARMOR"],
     unfitted: [],
   },
   /**
@@ -788,7 +790,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "stealth-a",
+    id: "PLAYER_SHIP_STEALTH",
     cruiser: "Stealth Cruiser",
     layout: "A",
     name: "The Nesasio",
@@ -811,14 +813,14 @@ export const HULLS: HullSpec[] = [
       sensors: [2, 2],
       ...sub,
     },
-    weapons: ["twin", "mini"],
+    weapons: ["LASER_BURST_2", "BEAM_1"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "plain", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "human", room: "p-weapons" },
     ],
-    kits: { veil: { level: 1, power: 1 } },
-    augments: ["casing", "glass"],
+    kits: { cloaking: { level: 1, power: 1 } },
+    augments: ["SYSTEM_CASING", "ADV_SCANNERS"],
     unfitted: [],
   },
   /**
@@ -827,7 +829,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "stealth-b",
+    id: "PLAYER_SHIP_STEALTH_2",
     cruiser: "Stealth Cruiser",
     layout: "B",
     name: "DA-SR 12",
@@ -851,14 +853,14 @@ export const HULLS: HullSpec[] = [
       sensors: [2, 2],
       ...sub,
     },
-    weapons: ["glaive"],
+    weapons: ["BEAM_3"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "spark", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "energy", room: "p-weapons" },
     ],
-    kits: { veil: { level: 2, power: 0 } },
-    augments: ["glass"],
+    kits: { cloaking: { level: 2, power: 0 } },
+    augments: ["ADV_SCANNERS"],
     unfitted: [],
   },
   /**
@@ -874,7 +876,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "stealth-c",
+    id: "PLAYER_SHIP_STEALTH_3",
     cruiser: "Stealth Cruiser",
     layout: "C",
     name: "Simo-H",
@@ -896,23 +898,23 @@ export const HULLS: HullSpec[] = [
       sensors: [0, 0],
       ...sub,
     },
-    weapons: ["chargers", "mini"],
+    weapons: ["LASER_CHARGEGUN_PLAYER", "BEAM_1"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "stone", room: "p-engines" },
-      { kin: "gel", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "rock", room: "p-engines" },
+      { kin: "slug", room: "p-weapons" },
     ],
     kits: {
-      cradle: { level: 1, power: 0 },
+      clonebay: { level: 1, power: 0 },
       // Wiki page "The Stealth Cruiser", section "Layout C": Starting Drones: Shield Overcharger +, Anti-Drone.
-      swarm: {
+      drones: {
         level: 2,
         power: 0,
-        target: "overchargerplus",
-        loadout: ["overchargerplus", "wardcut"],
+        target: "DRONE_SHIELD_PLAYER",
+        loadout: ["DRONE_SHIELD_PLAYER", "ANTI_DRONE"],
       },
     },
-    augments: ["glass"],
+    augments: ["ADV_SCANNERS"],
     unfitted: [],
   },
   /**
@@ -922,7 +924,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "lanius-a",
+    id: "PLAYER_SHIP_ANAEROBIC",
     cruiser: "Lanius Cruiser",
     layout: "A",
     name: "Kruos",
@@ -943,17 +945,17 @@ export const HULLS: HullSpec[] = [
       sensors: [1, 1],
       ...sub,
     },
-    weapons: ["chainlaser", "stunner"],
+    weapons: ["LASER_CHAINGUN", "ION_STUN"],
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "voidlung", room: "p-engines" },
-      { kin: "voidlung", room: "p-weapons" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "anaerobic", room: "p-engines" },
+      { kin: "anaerobic", room: "p-weapons" },
     ],
     kits: {
-      spike: { level: 1, power: 1 },
-      cradle: { level: 1, power: 0 },
+      hacking: { level: 1, power: 1 },
+      clonebay: { level: 1, power: 0 },
     },
-    augments: ["lung"],
+    augments: ["O2_MASKS"],
     unfitted: [],
   },
   /**
@@ -962,7 +964,7 @@ export const HULLS: HullSpec[] = [
    * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
-    id: "lanius-b",
+    id: "PLAYER_SHIP_ANAEROBIC_2",
     cruiser: "Lanius Cruiser",
     layout: "B",
     name: "The Shrike",
@@ -985,18 +987,18 @@ export const HULLS: HullSpec[] = [
       sensors: [0, 0],
       ...sub,
     },
-    weapons: ["advflak"],
+    weapons: ["SHOTGUN_PLAYER"],
     crew: [
-      { kin: "shell", room: "p-pilot" },
-      { kin: "voidlung", room: "p-engines" },
-      { kin: "voidlung", room: "p-weapons" },
+      { kin: "engi", room: "p-pilot" },
+      { kin: "anaerobic", room: "p-engines" },
+      { kin: "anaerobic", room: "p-weapons" },
     ],
     kits: {
-      sling: { level: 1, power: 1 },
-      leash: { level: 1, power: 1 },
-      cradle: { level: 1, power: 0 },
+      teleporter: { level: 1, power: 1 },
+      mind: { level: 1, power: 1 },
+      clonebay: { level: 1, power: 0 },
     },
-    augments: ["lung"],
+    augments: ["O2_MASKS"],
     unfitted: [],
   },
   ...MANTIS_HULLS,

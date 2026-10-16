@@ -53,9 +53,9 @@ import {
 function hasKin(g: Game, kin: string): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === kin);
 }
-const hasCrystal = (g: Game) => hasKin(g, "shard");
-const hasZoltan = (g: Game) => hasKin(g, "spark");
-const hasTeleporter = (g: Game) => (g.player.kits.sling?.level ?? 0) > 0;
+const hasCrystal = (g: Game) => hasKin(g, "crystal");
+const hasZoltan = (g: Game) => hasKin(g, "energy");
+const hasTeleporter = (g: Game) => (g.player.kits.teleporter?.level ?? 0) > 0;
 const medbayLevel = (g: Game) => g.player.systems.medbay?.level ?? 0;
 
 /** A fight whose page prints no surrender (or says it "doesn't surrender"): no offer this fight. */
@@ -72,7 +72,7 @@ function noOffer(g: Game) {
 }
 
 /** Same as surrender.ts humanBoarders, for another race ("2-4 zoltan boarders"). INFERRED: each lands in a random room. */
-function boarders(g: Game, race: string, kin: "spark", lo: number, hi: number) {
+function boarders(g: Game, race: string, kin: "energy", lo: number, hi: number) {
   const n = between(g, [lo, hi]);
   const hp = crewDef(kin).hp;
   for (let i = 0; i < n; i++) {
@@ -113,8 +113,8 @@ function maxedCrew(g: Game, race: string, name: string): string {
  * Augmentations: a ship holds three. A full rack does not add a fourth. The page does not name which augment to swap.
  */
 function zoltanShield(g: Game): string {
-  const line = grantAug(g, "zshield");
-  if (g.augments.includes("zshield")) g.player.zoltan = 5;
+  const line = grantAug(g, "ENERGY_SHIELD");
+  if (g.augments.includes("ENERGY_SHIELD")) g.player.zoltan = 5;
   return line;
 }
 
@@ -152,14 +152,14 @@ const ARRIVE: QuestPart["arrive"] = {
     // > "You arrive at the coordinates to find a massive Crystalline cruiser docked at a small repair station." — [[Ancient device#Quest Marker]]
     // > "You unlock the Crystal Cruiser; you receive medium fuel and scrap, Crystal Vengeance augmentation, and your ship receives 10 repairs." — [[Ancient device#Quest Marker]]
     // Rewards, "Fuel": T fuel and T scrap.
-    const unlocked = grantUnlock(g, "crystal-a"); // @agent:unlocks. Ancient device: "You unlock the Crystal Cruiser".
+    const unlocked = grantUnlock(g, "PLAYER_SHIP_CRYSTAL"); // @agent:unlocks. Ancient device: "You unlock the Crystal Cruiser".
     const offer = scrapOnly(g, "medium");
     offer.fuel = between(g, resourceBand("fuel", "medium"));
     result(
       g,
       "You arrive at the coordinates to find a massive Crystalline cruiser docked at a small repair station. You arrange for the ship to be sent back to the Federation base while the station upgrades your hull.",
       offer,
-      [unlocked, grantAug(g, "vengeance"), repair(g, 10)],
+      [unlocked, grantAug(g, "CRYSTAL_SHARDS"), repair(g, 10)],
     );
   },
   "rock-shipyard": (g) => {
@@ -167,7 +167,7 @@ const ARRIVE: QuestPart["arrive"] = {
     // > "You arrive at a massive Rockman shipyard" — [[Rock war vessel encounter#Shipyard Quest Marker]]
     // > "You unlock the Rock Cruiser." — [[Rock war vessel encounter#Shipyard Quest Marker]]
     // > "You receive Rock Plating augmentation and your ship receives 29 repairs." — [[Rock war vessel encounter#Shipyard Quest Marker]]
-    const unlocked = grantUnlock(g, "rock-a"); // @agent:unlocks. Rock war vessel encounter: "You unlock the Rock Cruiser."
+    const unlocked = grantUnlock(g, "PLAYER_SHIP_ROCK"); // @agent:unlocks. Rock war vessel encounter: "You unlock the Rock Cruiser."
     result(
       g,
       `You arrive at a massive Rockman shipyard and notice the ship that had just tried to kill you is docked and already being repaired. "Well fought! I must say I did not expect you to survive."
@@ -176,7 +176,7 @@ I am convinced of your strength and pledge to assist your cause. We'll immediate
 
 "Now that that's taken care of, let us patch up your hull. Maybe we can improve its armor plating while we're at it."`,
       undefined,
-      [unlocked, grantAug(g, "keel"), repair(g, 29)],
+      [unlocked, grantAug(g, "ROCK_ARMOR"), repair(g, 29)],
     );
   },
 };
@@ -463,7 +463,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
       "Suddenly all indications of the Rebel ship fade away and a Zoltan fleet appears around your ship. The captain of the ship you met previously materializes on your bridge.";
     const said =
       "\"Although your methods are crude and most certainly ineffective, it is clear you took our previous meeting to heart. If your ship represents the Federation's willingness to adapt we shall do what we can to aid in their fight.";
-    const unlocked = grantUnlock(g, "zoltan-a"); // @agent:unlocks. Unarmed Zoltan transport: "You unlock the Zoltan Cruiser".
+    const unlocked = grantUnlock(g, "PLAYER_SHIP_ENERGY"); // @agent:unlocks. Unarmed Zoltan transport: "You unlock the Zoltan Cruiser".
     // "(50% chance)" each.
     if (rand(g) < 0.5) {
       // "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap."
@@ -569,7 +569,7 @@ ${said} I will personally assist."`,
     // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
     // > "a quest marker will appear in the Rock Homeworlds" — [[Zoltan research facility]]
     // > "as long as Ruwen stays alive" — [[Zoltan research facility]]
-    const i = g.augments.indexOf("stasis");
+    const i = g.augments.indexOf("STASIS_POD");
     if (i < 0) return;
     g.augments.splice(i, 1);
     const joined = crew(g, "Crystal", undefined, "Ruwen");
@@ -610,7 +610,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
         "zoltan-trade-hub",
         { ...NEVER_RUN },
       );
-      boarders(g, "Zoltan", "spark", 2, 4);
+      boarders(g, "Zoltan", "energy", 2, 4);
     } else {
       zoltanHub(
         g,

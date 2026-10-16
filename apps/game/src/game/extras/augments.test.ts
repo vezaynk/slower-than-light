@@ -24,62 +24,62 @@ import {
 } from "./augments.ts";
 
 /** Sold rows only. medbot, gel, pheromone, booster, vengeance, stasis, and zshield have no purchase price and are not in CATALOG. */
-type CatalogId = Exclude<AugmentId, "medbot" | "gel" | "pheromone" | "booster" | "vengeance" | "stasis" | "zshield">;
+type CatalogId = Exclude<AugmentId, "NANO_MEDBAY" | "SLUG_GEL" | "CREW_STIMS" | "DRONE_SPEED" | "CRYSTAL_SHARDS" | "STASIS_POD" | "ENERGY_SHIELD">;
 
 const NAMES: Record<CatalogId, string> = {
-  feed: "Automated Re-loader",
-  echo: "Explosive Replicator",
-  quiet: "Stealth Weapons",
-  hot: "Weapon Pre-Igniter",
-  weld: "Repair Arm",
-  baffle: "Reverse Ion Field",
-  coil: "Shield Charge Booster",
-  spool: "FTL Recharge Booster",
-  hook: "Scrap Recovery Arm",
-  keel: "Rock Plating",
-  casing: "Titanium System Casing",
-  tap: "Battery Charger",
-  lung: "Emergency Respirators",
-  squall: "Fire Suppression",
-  falsebuoy: "Distraction Buoys",
-  glass: "Long-Ranged Scanners",
-  jammer: "FTL Jammer",
-  recover: "Drone Recovery Arm",
-  stun: "Hacking Stun",
-  dna: "Backup DNA Bank",
-  mend: "Reconstructive Teleport",
-  pulseeye: "Lifeform Scanner",
-  nav: "Adv. FTL Navigation",
-  scrambler: "Defense Scrambler",
-  bypass: "Zoltan Shield Bypass",
+  AUTO_COOLDOWN: "Automated Re-loader",
+  EXPLOSIVE_REPLICATOR: "Explosive Replicator",
+  CLOAK_FIRE: "Stealth Weapons",
+  WEAPON_PREIGNITE: "Weapon Pre-Igniter",
+  REPAIR_ARM: "Repair Arm",
+  ION_ARMOR: "Reverse Ion Field",
+  SHIELD_RECHARGE: "Shield Charge Booster",
+  FTL_BOOSTER: "FTL Recharge Booster",
+  SCRAP_COLLECTOR: "Scrap Recovery Arm",
+  ROCK_ARMOR: "Rock Plating",
+  SYSTEM_CASING: "Titanium System Casing",
+  BATTERY_BOOSTER: "Battery Charger",
+  O2_MASKS: "Emergency Respirators",
+  FIRE_EXTINGUISHERS: "Fire Suppression",
+  FLEET_DISTRACTION: "Distraction Buoys",
+  ADV_SCANNERS: "Long-Ranged Scanners",
+  FTL_JAMMER: "FTL Jammer",
+  DRONE_RECOVERY: "Drone Recovery Arm",
+  HACKING_STUN: "Hacking Stun",
+  BACKUP_DNA: "Backup DNA Bank",
+  TELEPORT_HEAL: "Reconstructive Teleport",
+  LIFE_SCANNER: "Lifeform Scanner",
+  FTL_JUMPER: "Adv. FTL Navigation",
+  DEFENSE_SCRAMBLER: "Defense Scrambler",
+  ZOLTAN_BYPASS: "Zoltan Shield Bypass",
 };
 
 const COSTS: Record<CatalogId, number> = {
-  feed: 40,
-  echo: 60,
-  quiet: 50,
-  hot: 120,
-  weld: 50,
-  baffle: 45,
-  coil: 45,
-  spool: 50,
-  hook: 50,
-  keel: 50,
-  casing: 50,
-  tap: 40,
-  lung: 50,
-  squall: 65,
-  falsebuoy: 55,
-  glass: 30,
-  jammer: 30,
-  recover: 50,
-  stun: 60,
-  dna: 40,
-  mend: 70,
-  pulseeye: 40,
-  nav: 50,
-  scrambler: 80,
-  bypass: 55,
+  AUTO_COOLDOWN: 40,
+  EXPLOSIVE_REPLICATOR: 60,
+  CLOAK_FIRE: 50,
+  WEAPON_PREIGNITE: 120,
+  REPAIR_ARM: 50,
+  ION_ARMOR: 45,
+  SHIELD_RECHARGE: 45,
+  FTL_BOOSTER: 50,
+  SCRAP_COLLECTOR: 50,
+  ROCK_ARMOR: 50,
+  SYSTEM_CASING: 50,
+  BATTERY_BOOSTER: 40,
+  O2_MASKS: 50,
+  FIRE_EXTINGUISHERS: 65,
+  FLEET_DISTRACTION: 55,
+  ADV_SCANNERS: 30,
+  FTL_JAMMER: 30,
+  DRONE_RECOVERY: 50,
+  HACKING_STUN: 60,
+  BACKUP_DNA: 40,
+  TELEPORT_HEAL: 70,
+  LIFE_SCANNER: 40,
+  FTL_JUMPER: 50,
+  DEFENSE_SCRAMBLER: 80,
+  ZOLTAN_BYPASS: 55,
 };
 
 function gun(partial: Partial<WeaponInst> & Pick<WeaponInst, "uid" | "defId">): WeaponInst {
@@ -108,7 +108,7 @@ describe("augments", () => {
   it("speeds charge by 1 + copies/10 and leaves the other hull at 1", () => {
     const g = createGame(1);
     assert.equal(feedRate(g, "player"), 1);
-    g.augments = ["feed", "feed"];
+    g.augments = ["AUTO_COOLDOWN", "AUTO_COOLDOWN"];
     assert.equal(feedRate(g, "player"), 1.2);
     assert.equal(feedRate(g, "enemy"), 1);
   });
@@ -116,22 +116,22 @@ describe("augments", () => {
   it("uses the wiki jump-charge times of 80, 67, and 57 percent", () => {
     const g = createGame(1);
     assert.equal(spoolRate(g), 1);
-    g.augments = ["spool"];
+    g.augments = ["FTL_BOOSTER"];
     assert.equal(spoolRate(g), 0.8);
-    g.augments = ["spool", "spool"];
+    g.augments = ["FTL_BOOSTER", "FTL_BOOSTER"];
     assert.equal(spoolRate(g), 0.67);
-    g.augments = ["spool", "spool", "spool"];
+    g.augments = ["FTL_BOOSTER", "FTL_BOOSTER", "FTL_BOOSTER"];
     assert.equal(spoolRate(g), 0.57);
   });
 
   it("adds hook before the weld cut, then floors, and heals hull by 2", () => {
     const g = createGame(1);
     g.player.hull = 12;
-    g.augments = ["hook"];
+    g.augments = ["SCRAP_COLLECTOR"];
     assert.equal(adjustScrapAmount(g, 10), 11);
     assert.equal(g.player.hull, 12);
 
-    g.augments = ["weld"];
+    g.augments = ["REPAIR_ARM"];
     assert.equal(adjustScrapAmount(g, 10), 8);
     assert.equal(g.player.hull, 14);
 
@@ -139,7 +139,7 @@ describe("augments", () => {
     assert.equal(adjustScrapAmount(g, 10), 10);
     assert.equal(g.player.hull, g.player.hullMax);
 
-    g.augments = ["hook", "weld"];
+    g.augments = ["SCRAP_COLLECTOR", "REPAIR_ARM"];
     assert.equal(adjustScrapAmount(g, 10), 11);
     assert.equal(g.player.hull, g.player.hullMax);
 
@@ -154,7 +154,7 @@ describe("augments", () => {
     assert.equal(baffleHolds(g), false);
     assert.equal(g.seed, seed);
 
-    g.augments = ["baffle", "baffle"];
+    g.augments = ["ION_ARMOR", "ION_ARMOR"];
     assert.equal(baffleHolds(g), true);
     assert.equal(baffleHolds(g), true);
     assert.equal(g.seed, seed);
@@ -172,13 +172,13 @@ describe("augments", () => {
   it("charges only enabled guns that have power", () => {
     const g = createGame(1);
     g.player.weapons = [
-      gun({ uid: "w-line", defId: "lineburst", charge: 0.2 }),
-      gun({ uid: "w-spark", defId: "spark", charge: 0.4 }),
+      gun({ uid: "w-line", defId: "LASER_BURST_3", charge: 0.2 }),
+      gun({ uid: "w-spark", defId: "LASER_BURST_1", charge: 0.4 }),
     ];
     primeWeapons(g);
     assert.equal(g.player.weapons[0].charge, 0.2);
 
-    g.augments = ["hot"];
+    g.augments = ["WEAPON_PREIGNITE"];
     primeWeapons(g);
     assert.equal(g.player.weapons[0].charge, 1);
     assert.equal(g.player.weapons[1].charge, 0.4);
@@ -197,7 +197,7 @@ describe("augments", () => {
     const theirs = { side: "enemy" } as Crew;
     assert.equal(coilRate(g, "player"), 1);
     assert.equal(lungScale(g, yours), 1);
-    g.augments = ["coil", "coil", "lung"];
+    g.augments = ["SHIELD_RECHARGE", "SHIELD_RECHARGE", "O2_MASKS"];
     assert.equal(coilRate(g, "player"), 1.3);
     assert.equal(coilRate(g, "enemy"), 1);
     assert.equal(lungScale(g, yours), 0.5);
@@ -220,7 +220,7 @@ describe("augments", () => {
     tickSquall(g, 0.25);
     assert.equal(g.player.rooms[0].fire, 1);
 
-    g.augments = ["squall"];
+    g.augments = ["FIRE_EXTINGUISHERS"];
     tickSquall(g, 0.25);
     const drop = 0.25 * FIRE_FIGHT_SHARE * crystalExtinguishScale();
     assert.equal(g.player.rooms[0].fire, 1 - drop);
@@ -236,7 +236,7 @@ describe("augments", () => {
     onNewSector(g);
     assert.equal(g.fleet, 4);
 
-    g.augments = ["falsebuoy"];
+    g.augments = ["FLEET_DISTRACTION"];
     onNewSector(g);
     assert.equal(g.fleet, 3);
 
@@ -257,7 +257,7 @@ describe("augments", () => {
     assert.equal(reveals(g, "empty"), false);
     assert.equal(reveals(g, "store"), false);
     assert.equal(reveals(g, "nebula"), false);
-    g.augments = ["glass"];
+    g.augments = ["ADV_SCANNERS"];
     assert.equal(reveals(g, "store"), false);
     assert.equal(reveals(g, "empty"), false);
     assert.equal(reveals(g, "nebula"), false);
@@ -276,7 +276,7 @@ describe("augments", () => {
     assert.equal(scanMark(g, rock).hazard, false);
     assert.equal(scanMark(g, rock).ship, false);
 
-    g.augments = ["glass"];
+    g.augments = ["ADV_SCANNERS"];
     assert.equal(scanMark(g, rock).hazard, true);
     assert.equal(scanMark(g, rock).ship, false);
 
@@ -304,7 +304,7 @@ describe("augments", () => {
     const both = { kind: "distress" as const, asteroid: true, flag: "pulsar", name: "Flare" };
     assert.deepEqual(scanMark(g, both), { ship: true, hazard: true });
 
-    g.augments = g.augments.filter((id) => id !== "glass");
+    g.augments = g.augments.filter((id) => id !== "ADV_SCANNERS");
     assert.deepEqual(scanMark(g, both), { ship: false, hazard: false });
     assert.deepEqual(scanMark(g, rock), { ship: false, hazard: false });
     assert.equal(reveals(g, "hostile"), false);
@@ -316,7 +316,7 @@ describe("augments", () => {
     const ships = ["zoltan-peace", "fed-assist", "capture-ship", "engi-real", "engi-fake", "engi-final", "rock-sun", "rock-shipyard", "mantis-chase"];
     const dark = ["merchant-delivery", "fed-base", "slug-pirate-trap", "rock-bride", "slug-platform", "space-station"];
     for (const quest of [...ships, ...dark]) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
-    g.augments = ["glass"];
+    g.augments = ["ADV_SCANNERS"];
     for (const quest of ships) assert.equal(scanMark(g, { ...beacon, quest }).ship, true, quest);
     for (const quest of dark) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
     assert.equal(scanMark(g, beacon).ship, false);
@@ -325,31 +325,31 @@ describe("augments", () => {
   it("spends the catalog cost, caps at 3, and refuses duplicates", () => {
     const g = createGame(1);
     g.scrap = 10;
-    assert.equal(installAugment(g, "hot"), false);
+    assert.equal(installAugment(g, "WEAPON_PREIGNITE"), false);
     assert.deepEqual(g.augments, []);
     assert.equal(g.scrap, 10);
 
     g.scrap = 500;
-    assert.equal(installAugment(g, "baffle"), true);
-    assert.equal(installAugment(g, "baffle"), false);
-    assert.deepEqual(g.augments, ["baffle"]);
+    assert.equal(installAugment(g, "ION_ARMOR"), true);
+    assert.equal(installAugment(g, "ION_ARMOR"), false);
+    assert.deepEqual(g.augments, ["ION_ARMOR"]);
     assert.equal(g.scrap, 500 - 45);
 
-    assert.equal(installAugment(g, "glass"), true);
-    assert.equal(installAugment(g, "feed"), true);
+    assert.equal(installAugment(g, "ADV_SCANNERS"), true);
+    assert.equal(installAugment(g, "AUTO_COOLDOWN"), true);
     assert.equal(g.augments.length, 3);
     const scrap = g.scrap;
-    assert.equal(installAugment(g, "echo"), false);
+    assert.equal(installAugment(g, "EXPLOSIVE_REPLICATOR"), false);
     assert.equal(g.augments.length, 3);
     assert.equal(g.scrap, scrap);
     // Re-read through a cast: the deepEqual above narrows g.augments to never[] for TypeScript.
-    assert.equal((g.augments as AugmentId[]).includes("echo"), false);
+    assert.equal((g.augments as AugmentId[]).includes("EXPLOSIVE_REPLICATOR"), false);
   });
 
   it("refuses to sell medbot, which has no purchase price", () => {
     const g = createGame(1);
     g.scrap = 500;
-    assert.equal(installAugment(g, "medbot"), false);
+    assert.equal(installAugment(g, "NANO_MEDBAY"), false);
     assert.deepEqual(g.augments, []);
     assert.equal(g.scrap, 500);
   });
@@ -368,7 +368,7 @@ describe("augments", () => {
     tickMedbot(g, 1);
     assert.equal(ada.hp, 40);
 
-    g.augments = ["medbot"];
+    g.augments = ["NANO_MEDBAY"];
     tickMedbot(g, 1);
     assert.equal(ada.hp, 41.6);
     assert.equal(ivo.hp, 51.6);
@@ -407,8 +407,8 @@ describe("augments", () => {
 
     // A clone bay makes the augment do nothing, even with a powered medbay.
     g.player.systems.medbay.power = 1;
-    g.player.kits.cradle = {
-      id: "cradle",
+    g.player.kits.clonebay = {
+      id: "clonebay",
       level: 1,
       power: 0,
       left: 0,
@@ -420,7 +420,7 @@ describe("augments", () => {
     tickMedbot(g, 1);
     assert.equal(ivo.hp, before + 1.6);
 
-    g.player.kits.cradle = undefined;
+    g.player.kits.clonebay = undefined;
     const boarder = { ...nen, id: "c-foe", side: "enemy" as const, hp: 10, maxHp: 100, room: "p-weapons" };
     g.crew.push(boarder);
     tickSquall(g, 1);
@@ -436,8 +436,8 @@ describe("augments", () => {
     const enemy = g.enemy;
     assert.ok(enemy);
     assert.equal(enemy.faction, "engi");
-    assert.equal(g.augments.includes("medbot"), false);
-    enemy.kits.cradle = undefined;
+    assert.equal(g.augments.includes("NANO_MEDBAY"), false);
+    enemy.kits.clonebay = undefined;
 
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     const ada = g.crew.find((c) => c.id === "c-ada");
@@ -456,8 +456,8 @@ describe("augments", () => {
     enemy.systems.medbay.damage = 0;
     enemy.systems.medbay.ion = [];
     // A player clone bay does not block the Engi hull.
-    g.player.kits.cradle = {
-      id: "cradle",
+    g.player.kits.clonebay = {
+      id: "clonebay",
       level: 1,
       power: 0,
       left: 0,
@@ -472,11 +472,11 @@ describe("augments", () => {
     assert.equal(foe.hp, 10);
     assert.equal(ada.hp, 40);
 
-    // Engi Ships: the augment heals when they have a powered Medbay. No "medbot" id on the player.
+    // Engi Ships: the augment heals when they have a powered Medbay. No "NANO_MEDBAY" id on the player.
     tickMedbot(g, 1);
     assert.equal(foe.hp, 11.6);
     assert.equal(ada.hp, 40);
-    g.player.kits.cradle = undefined;
+    g.player.kits.clonebay = undefined;
 
     enemy.systems.medbay.power = 0;
     tickMedbot(g, 1);
@@ -492,8 +492,8 @@ describe("augments", () => {
     enemy.systems.medbay.damage = 0;
     enemy.systems.medbay.ion = [];
     // "Does nothing if you have a Clone Bay." The enemy bay does not block the player copy.
-    enemy.kits.cradle = {
-      id: "cradle",
+    enemy.kits.clonebay = {
+      id: "clonebay",
       level: 1,
       power: 0,
       left: 0,
@@ -505,7 +505,7 @@ describe("augments", () => {
     tickMedbot(g, 1);
     assert.equal(foe.hp, 11.6);
 
-    g.augments = ["medbot"];
+    g.augments = ["NANO_MEDBAY"];
     g.player.systems.medbay.level = 1;
     g.player.systems.medbay.power = 1;
     g.player.systems.medbay.damage = 0;
@@ -514,7 +514,7 @@ describe("augments", () => {
     assert.equal(ada.hp, 41.6);
     assert.equal(foe.hp, 11.6);
     g.augments = [];
-    enemy.kits.cradle = undefined;
+    enemy.kits.clonebay = undefined;
 
     // "Does not work on crew that is on another ship (teleported)."
     foe.aboard = "player";
@@ -546,7 +546,7 @@ describe("augments", () => {
     enemy.systems.medbay.ion = [];
     tickMedbot(g, 1);
     assert.equal(foe.hp, 21.6);
-    assert.equal(g.augments.includes("medbot"), false);
+    assert.equal(g.augments.includes("NANO_MEDBAY"), false);
   });
 });
 
@@ -595,7 +595,7 @@ function stand(c: Crew, aboard: "player" | "enemy", room: string, hp = 80) {
 
 describe("Emergency Respirators", () => {
   it("is sold for 50", () => {
-    assert.equal(CATALOG.find((entry) => entry.id === "lung")?.cost, 50);
+    assert.equal(CATALOG.find((entry) => entry.id === "O2_MASKS")?.cost, 50);
   });
 
   it("halves a boarder and quarters a Crystal, and leaves the enemy at full", () => {
@@ -605,16 +605,16 @@ describe("Emergency Respirators", () => {
     for (const c of g.crew) if (c.room === room.id) c.room = away.id;
     const yours = g.crew.find((c) => c.side === "player")!;
     const theirs = g.crew.find((c) => c.side === "enemy")!;
-    yours.kin = "plain";
-    theirs.kin = "plain";
+    yours.kin = "human";
+    theirs.kin = "human";
     stand(yours, "enemy", room.id);
     stand(theirs, "enemy", room.id);
-    g.augments = ["lung"];
+    g.augments = ["O2_MASKS"];
     step(g, TICK);
     near(80 - yours.hp, FULL * 0.5);
     near(80 - theirs.hp, FULL);
 
-    yours.kin = "shard";
+    yours.kin = "crystal";
     stand(yours, "enemy", room.id);
     stand(theirs, "enemy", room.id);
     step(g, TICK);
@@ -622,7 +622,7 @@ describe("Emergency Respirators", () => {
     near(80 - theirs.hp, FULL);
 
     g.augments = [];
-    yours.kin = "shard";
+    yours.kin = "crystal";
     stand(yours, "enemy", room.id);
     step(g, TICK);
     near(80 - yours.hp, FULL * 0.5);
@@ -637,8 +637,8 @@ describe("Emergency Respirators", () => {
     const foe = g.crew.filter((c) => c.side === "enemy");
     assert.ok(foe.length >= 2);
     for (const c of g.crew) if (c !== foe[0] && c !== foe[1] && c.room === room.id) c.room = elsewhere.id;
-    foe[0].kin = "plain";
-    foe[1].kin = "plain";
+    foe[0].kin = "human";
+    foe[1].kin = "human";
     foe[0].lungs = true;
     foe[1].lungs = undefined;
     stand(foe[0], "player", room.id);
@@ -653,7 +653,7 @@ describe("Emergency Respirators", () => {
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const elsewhere = g.player.rooms.find((r) => r.id !== bay.id)!;
     const yours = g.crew.find((c) => c.side === "player")!;
-    yours.kin = "plain";
+    yours.kin = "human";
     for (const c of g.crew) if (c !== yours && c.room === bay.id) c.room = elsewhere.id;
     g.player.systems.medbay.damage = 0;
     g.player.systems.medbay.ion = [];
@@ -670,17 +670,17 @@ describe("Emergency Respirators", () => {
 
     // Level 1 equals suffocation, so a human nets zero. The augment's half leaves +3.2 HP/s.
     g.augments = [];
-    near(tickBay(1, "plain"), 0);
-    g.augments = ["lung"];
-    near(tickBay(1, "plain"), FULL * 0.5);
+    near(tickBay(1, "human"), 0);
+    g.augments = ["O2_MASKS"];
+    near(tickBay(1, "human"), FULL * 0.5);
     // Crystal's racial half nets the same +3.2 without the augment. With it, suffocation is a quarter.
     g.augments = [];
-    near(tickBay(1, "shard"), FULL * 0.5);
-    g.augments = ["lung"];
-    near(tickBay(1, "shard"), FULL * 0.75);
+    near(tickBay(1, "crystal"), FULL * 0.5);
+    g.augments = ["O2_MASKS"];
+    near(tickBay(1, "crystal"), FULL * 0.75);
     // Level 2 heals at 9.6 in an airless bay with no augment. Level 3 heals at 19.2.
     g.augments = [];
-    near(tickBay(2, "plain"), 9.6 * TICK - FULL);
-    near(tickBay(3, "plain"), 19.2 * TICK - FULL);
+    near(tickBay(2, "human"), 9.6 * TICK - FULL);
+    near(tickBay(3, "human"), 19.2 * TICK - FULL);
   });
 });

@@ -26,8 +26,8 @@ function enemy(reactor: number): Game {
   e.systems.oxygen.level = 1;
   e.systems.weapons.level = 3;
   e.weapons = [
-    { uid: "w1", defId: "spark", charge: 0, enabled: false, autofire: true, target: null },
-    { uid: "w2", defId: "lineburst", charge: 0, enabled: false, autofire: true, target: null },
+    { uid: "w1", defId: "LASER_BURST_1", charge: 0, enabled: false, autofire: true, target: null },
+    { uid: "w2", defId: "LASER_BURST_3", charge: 0, enabled: false, autofire: true, target: null },
   ];
   e.reactor = reactor;
   g.crew = g.crew.filter((c) => c.side === "player");
@@ -97,12 +97,12 @@ describe("enemy power (xftl doc/ship-ai, CheckPowerLevels)", () => {
   it("gives oxygen, the teleporter, and the clone bay their first bar before anything else", () => {
     const g = enemy(3);
     const e = g.enemy!;
-    e.kits.sling = kit("sling", 2);
-    e.kits.cradle = kit("cradle", 1);
+    e.kits.teleporter = kit("teleporter", 2);
+    e.kits.clonebay = kit("clonebay", 1);
     checkEnemyPower(g);
     assert.equal(e.systems.oxygen.power, 1);
-    assert.equal(e.kits.sling.power, 1);
-    assert.equal(e.kits.cradle.power, 1);
+    assert.equal(e.kits.teleporter.power, 1);
+    assert.equal(e.kits.clonebay.power, 1);
     assert.equal(e.systems.shields.power, 0);
   });
 

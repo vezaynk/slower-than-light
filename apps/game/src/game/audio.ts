@@ -108,7 +108,7 @@ export function playSfx(name: string) {
     case "ion":
       tone(420 * wobble, 0.14, "sine", 0.12, 200);
       break;
-    case "beam":
+    case "COMBAT_BEAM":
       tone(300, 0.2, "sawtooth", 0.08);
       tone(520, 0.2, "triangle", 0.06);
       break;

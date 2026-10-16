@@ -11,7 +11,7 @@ import type { WeaponDef } from "../content.ts";
 
 export const LASER_WEAPONS: WeaponDef[] = [
   {
-    id: "burst1",
+    id: "LASER_BURST_2_A",
     name: "Burst Laser Mark I",
     kind: "laser",
     // Laser (Weapons), "Burst Laser Mark I": "Power requirement: 2 power".
@@ -36,7 +36,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "This simple burst laser isn't flashy but it gets the job done.",
   },
   {
-    id: "burst3",
+    id: "LASER_BURST_5",
     name: "Burst Laser Mark III",
     kind: "laser",
     // Laser (Weapons), "Burst Laser Mark III": "Power requirement: 4 power".
@@ -61,7 +61,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "Powerful burst laser that fires off an impressive barrage.",
   },
   {
-    id: "heavypierce",
+    id: "LASER_HEAVY_1_SP",
     name: "Heavy Pierce Laser Mark I",
     kind: "laser",
     // Laser (Weapons), "Heavy Pierce Laser Mark I": "Power requirement: 2 power".
@@ -87,7 +87,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
       "Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.",
   },
   {
-    id: "heavy2",
+    id: "LASER_HEAVY_2",
     name: "Heavy Laser Mark II",
     kind: "laser",
     // Laser (Weapons), "Heavy Laser Mark II": "Power requirement: 3 power".
@@ -112,7 +112,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "This heavy laser fires two shots in quick succession, each dealing 2 damage",
   },
   {
-    id: "hullsmash",
+    id: "LASER_HULL_1",
     name: "Hull Smasher Laser",
     kind: "laser",
     // Laser (Weapons), "Hull Smasher Laser": "Power requirement: 2 power".
@@ -137,7 +137,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "A powerful laser designed to maximize hull damage.",
   },
   {
-    id: "hullsmash2",
+    id: "LASER_HULL_2",
     name: "Hull Smasher Laser Mark II",
     kind: "laser",
     // Laser (Weapons), "Hull Smasher Laser Mark II": "Power requirement: 3 power".
@@ -162,7 +162,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "This powerful counterpart to the Hull Smasher Mark I fires more projectiles per shot.",
   },
   {
-    id: "chainlaser",
+    id: "LASER_CHAINGUN",
     name: "Chain Burst Laser",
     kind: "laser",
     // Laser (Weapons), "Chain Burst Laser": "Power requirement: 2 power".
@@ -188,7 +188,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
       "This dual shot laser decreases in cooldown the more it fires. After 3 volleys it only takes 7 seconds to charge.",
   },
   {
-    id: "vulcan",
+    id: "LASER_CHAINGUN_2",
     name: "Chain Vulcan",
     kind: "laser",
     // Laser (Weapons), "Chain Vulcan": "Power requirement: 4 power".
@@ -214,7 +214,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
       "This laser weapon takes a long time to warm up. Each time it fires it decreases the cooldown, eventually able to take down any amount of shields.",
   },
   {
-    id: "chargers",
+    id: "LASER_CHARGEGUN_PLAYER",
     name: "Laser Charger (S)",
     kind: "laser",
     // Laser (Weapons), "Laser Charger (S)": "Power requirement: 1 power".
@@ -240,7 +240,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
       "This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.",
   },
   {
-    id: "charger",
+    id: "LASER_CHARGEGUN",
     name: "Laser Charger",
     kind: "laser",
     // Laser (Weapons), "Laser Charger": "Power requirement: 2 power".
@@ -265,7 +265,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     blurb: "This laser weapon can charge two times, giving it an extra projectile.",
   },
   {
-    id: "charger2",
+    id: "LASER_CHARGEGUN_2",
     name: "Laser Charger Mark II",
     kind: "laser",
     // Laser (Weapons), "Laser Charger Mark II": "Power requirement: 3 power".
@@ -293,51 +293,51 @@ export const LASER_WEAPONS: WeaponDef[] = [
 
 export const LASER_GAPS: { id: string; note: string }[] = [
   {
-    id: "heavypierce",
+    id: "LASER_HEAVY_1_SP",
     note: 'Laser (Weapons), "Heavy Pierce Laser Mark I": "Special: 1 shield piercing". "Types of lasers": "ignores one shield layer". WeaponDef has no pierce field.',
   },
   {
-    id: "heavypierce",
+    id: "LASER_HEAVY_1_SP",
     note: 'Laser (Weapons), "Types of lasers": "the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance." fire and breach store 0.3 each; the roll order is not a field. "51% chance of causing either a fire or a breach."',
   },
   {
-    id: "heavy2",
+    id: "LASER_HEAVY_2",
     note: 'Laser (Weapons), "Types of lasers": "the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance." fire and breach store 0.3 each; the roll order is not a field.',
   },
   {
-    id: "heavy2",
+    id: "LASER_HEAVY_2",
     note: 'Laser (Weapons), "Heavy Laser Mark II": "Moderate-low chance to stun crew". No stun percent is published. WeaponDef has no stun field.',
   },
   {
-    id: "hullsmash",
+    id: "LASER_HULL_1",
     note: 'Laser (Weapons), "Hull Smasher Laser": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2 hull damage. Crew damage is not increased. "Types of lasers" states both.',
   },
   {
-    id: "hullsmash2",
+    id: "LASER_HULL_2",
     note: 'Laser (Weapons), "Hull Smasher Laser Mark II": "Damage per shot: 1 (to system rooms) or 2 (to systemless rooms)". damage stores the system-room 1. Systemless rooms take 2 hull damage. Crew damage is not increased. "Types of lasers" states both.',
   },
   {
-    id: "chainlaser",
+    id: "LASER_CHAINGUN",
     note: 'Laser (Weapons), "Chain Burst Laser": "Charge-up profile: 16s/13s/10s/7s (-3s per step, 3 steps total)". charge stores the first step, 16. Later steps are 13, 10, and 7. "Charge time resets to 16 seconds if the weapon goes offline". cited-chain.ts steps combat through that profile.',
   },
   {
-    id: "vulcan",
+    id: "LASER_CHAINGUN_2",
     note: 'Laser (Weapons), "Chain Vulcan": "Charge-up profile: 11.1s / 9.1s / 7.1s / 5.1s / 3.1s / 1.1s (-2s per step, 5 steps total)". charge stores the first step, 11.1. Later steps are 9.1, 7.1, 5.1, 3.1, and 1.1. "Charge time resets to 11.1 seconds if the weapon goes offline". "It takes 35.5 seconds before the Vulcan gets up to full speed". cited-chain.ts steps combat through that profile.',
   },
   {
-    id: "chargers",
+    id: "LASER_CHARGEGUN_PLAYER",
     note: 'Laser (Weapons), "Laser Charger (S)": "Charge time: 5.5 seconds per shot, up to 2 shots". "Shots: 1-2". shots stores the full charge, 2. "Autofire" causes continuous fire, disables charging. "Weapon Pre-Igniter will only charge one shot by default".',
   },
   {
-    id: "charger",
+    id: "LASER_CHARGEGUN",
     note: 'Laser (Weapons), "Laser Charger": "Charge time: 6 seconds per shot, up to 2 shots". "Shots: 1-2". shots stores the full charge, 2. "Autofire" causes continuous fire, disables charging. "Weapon Pre-Igniter will only charge one shot by default".',
   },
   {
-    id: "charger2",
+    id: "LASER_CHARGEGUN_2",
     note: 'Laser (Weapons), "Laser Charger Mark II": "Charge time: 5 seconds per shot, up to 4 shots". "Shots: 1-4". shots stores the full charge, 4. "Autofire" causes continuous fire, disables charging. "Weapon Pre-Igniter will only charge one shot by default".',
   },
   {
-    id: "bosslaser",
+    id: "ARTILLERY_BOSS_1",
     // Laser (Weapons), "Boss Laser": "Artillery system: with 4 system levels maximum". No power requirement.
     // INFERRED: that maximum is the WeaponDef power in flagship-weapons.ts, and it is not a Weapons-pool cost.
     note: 'INFERRED: the artillery maximum is 4, stored on the WeaponDef in flagship-weapons.ts, and it is not a Weapons-pool cost. Laser (Weapons), "Boss Laser" states no power requirement. This catalog does not emit a second WeaponDef. Charge time 25s for level 1, 20s for level 2, 15s for level 3, 10s for level 4. Shots: 3. Damage per shot: 1. Artillery system with 4 system levels maximum. Only used by the Rebel Flagship in phase 1-3. Effect: low chance of fire or breach. The section gives no percent.',

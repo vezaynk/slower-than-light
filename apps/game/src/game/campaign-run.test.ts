@@ -28,7 +28,7 @@ import { augmentDef, crewDef, droneDef, hullDef, sectorDef, storeDef, systemDef,
 const STORE_SEED = 8;
 
 function kestrel(seed: number): Game {
-  return createGame(seed, "kestrel-a");
+  return createGame(seed, "PLAYER_SHIP_HARD");
 }
 
 function visitStore(seed: number): Game {
@@ -60,7 +60,7 @@ function pay(g: Game, id: string, cost: number) {
 describe("a seeded Kestrel run", () => {
   it("starts The Kestrel with the campaign guns, crew, and reactor", () => {
     const g = kestrel(2);
-    const hull = hullDef("kestrel-a");
+    const hull = hullDef("PLAYER_SHIP_HARD");
     assert.ok(hull);
     assert.equal(hull.name, "The Kestrel");
     assert.equal(g.player.name, hull.name);
@@ -70,7 +70,7 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.missiles, 8);
     assert.equal(g.player.parts, 2);
     assert.equal(g.scrap, 10);
-    assert.deepEqual(g.player.weapons.map((w) => w.defId), ["lineburst", "artemis"]);
+    assert.deepEqual(g.player.weapons.map((w) => w.defId), ["LASER_BURST_3", "MISSILES_2_PLAYER"]);
     assert.deepEqual(
       g.player.weapons.map((w) => weaponDef(w.defId)?.name),
       ["Burst Laser II", "Artemis Missiles"],
@@ -79,9 +79,9 @@ describe("a seeded Kestrel run", () => {
     assert.deepEqual(
       crew.map((c) => ({ kin: c.kin, room: c.room, hp: c.hp })),
       [
-        { kin: "plain", room: "p-pilot", hp: crewDef("plain").hp },
-        { kin: "plain", room: "p-engines", hp: crewDef("plain").hp },
-        { kin: "plain", room: "p-weapons", hp: crewDef("plain").hp },
+        { kin: "human", room: "p-pilot", hp: crewDef("human").hp },
+        { kin: "human", room: "p-engines", hp: crewDef("human").hp },
+        { kin: "human", room: "p-weapons", hp: crewDef("human").hp },
       ],
     );
     assert.equal(g.player.systems.shields.level, 2);
@@ -130,23 +130,23 @@ describe("a seeded Kestrel run", () => {
     const shields = g.player.rooms.find((r) => r.system === "shields");
     assert.ok(shields);
     assert.equal(joinCrew(g, "Zoltan"), true);
-    const zoltan = g.crew.find((c) => c.side === "player" && c.kin === "spark");
+    const zoltan = g.crew.find((c) => c.side === "player" && c.kin === "energy");
     assert.ok(zoltan);
     zoltan.room = shields.id;
-    assert.equal(crewDef("spark").bonusPower, 1);
+    assert.equal(crewDef("energy").bonusPower, 1);
     assert.equal(zoltan.hp, 70);
     assert.equal(zoltan.maxHp, 70);
     assert.equal(zoltanBars(g.crew, g.player, "player", "shields"), 1);
     assert.equal(g.player.reactor, reactor);
     assert.equal(g.player.systems.shields.power, shieldPower);
 
-    const human = g.crew.find((c) => c.side === "player" && c.kin === "plain");
+    const human = g.crew.find((c) => c.side === "player" && c.kin === "human");
     assert.ok(human);
     assert.equal(joinCrew(g, "Crystal"), true);
-    const crystal = g.crew.find((c) => c.side === "player" && c.kin === "shard");
+    const crystal = g.crew.find((c) => c.side === "player" && c.kin === "crystal");
     assert.ok(crystal);
-    assert.equal(crewDef("shard").lockdown, true);
-    assert.equal(crewDef("shard").lockCooldown, 50);
+    assert.equal(crewDef("crystal").lockdown, true);
+    assert.equal(crewDef("crystal").lockCooldown, 50);
     assert.equal(crystal.hp, 125);
     assert.equal(lockdown(g, human.id), false);
     assert.equal(lockdown(g, crystal.id), true);
@@ -155,7 +155,7 @@ describe("a seeded Kestrel run", () => {
 
     startCombat(g, "scout");
     g.paused = false;
-    const laser = g.player.weapons.find((w) => w.defId === "lineburst");
+    const laser = g.player.weapons.find((w) => w.defId === "LASER_BURST_3");
     assert.ok(laser);
     assert.equal(weaponDef(laser.defId)?.name, "Burst Laser II");
     const room = g.enemy?.rooms[0];
@@ -164,7 +164,7 @@ describe("a seeded Kestrel run", () => {
     aim(g, room.id);
     laser.charge = 0.999;
     for (let i = 0; i < 10 && laser.charge !== 0; i++) step(g, 1 / 30);
-    assert.ok(g.shots.some((s) => s.from === "player" && s.defId === "lineburst"));
+    assert.ok(g.shots.some((s) => s.from === "player" && s.defId === "LASER_BURST_3"));
   });
 
   it("hires Robert Smith as a Mantis and accepts the Anti-Bio Beam", () => {
@@ -182,8 +182,8 @@ describe("a seeded Kestrel run", () => {
     choose(hired, "s:confused-mantis:hire");
     const robert = hired.crew.find((c) => c.side === "player" && c.name === "Robert Smith");
     assert.ok(robert);
-    assert.equal(robert.kin, "blade");
-    assert.equal(robert.hp, crewDef("blade").hp);
+    assert.equal(robert.kin, "mantis");
+    assert.equal(robert.hp, crewDef("mantis").hp);
     assert.equal(robert.maxHp, 100);
     assert.equal(robert.hp, 100);
 
@@ -197,16 +197,16 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.phase, "event");
     assert.ok(g.event?.choices.some((c) => c.id === ACCEPT_ID));
     choose(g, ACCEPT_ID);
-    const beam = weaponDef("antibio");
+    const beam = weaponDef("BEAM_BIO");
     assert.equal(beam?.name, "Anti-Bio Beam");
-    assert.ok(g.player.weapons.some((w) => w.defId === "antibio"));
+    assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));
     assert.equal(g.phase, "reward");
   });
 
   it("sells Artemis for 19 and meets the flagship's stage-one guns", () => {
     const g = kestrel(9);
-    const burst = g.player.weapons.find((w) => w.defId === "lineburst");
-    const artemis = g.player.weapons.find((w) => w.defId === "artemis");
+    const burst = g.player.weapons.find((w) => w.defId === "LASER_BURST_3");
+    const artemis = g.player.weapons.find((w) => w.defId === "MISSILES_2_PLAYER");
     assert.ok(burst);
     assert.ok(artemis);
     const quotes = citedSellQuote(g);
@@ -214,18 +214,18 @@ describe("a seeded Kestrel run", () => {
     const artQuote = quotes.find((q) => q.id === `w:${artemis.uid}`);
     assert.ok(burstQuote);
     assert.ok(artQuote);
-    assert.equal(burstQuote.name, weaponDef("lineburst")?.name);
+    assert.equal(burstQuote.name, weaponDef("LASER_BURST_3")?.name);
     assert.equal(burstQuote.name, "Burst Laser II");
     assert.equal(burstQuote.scrap, 40);
-    assert.equal(artQuote.name, weaponDef("artemis")?.name);
+    assert.equal(artQuote.name, weaponDef("MISSILES_2_PLAYER")?.name);
     assert.equal(artQuote.name, "Artemis Missiles");
     assert.equal(artQuote.scrap, 19);
     assert.equal(quotes.filter((q) => q.kind === "weapon").length, 2);
     const scrap = g.scrap;
     assert.equal(citedSell(g, artQuote.id), true);
     assert.equal(g.scrap, scrap + 19);
-    assert.equal(g.player.weapons.some((w) => w.defId === "artemis"), false);
-    assert.equal(g.player.weapons.some((w) => w.defId === "lineburst"), true);
+    assert.equal(g.player.weapons.some((w) => w.defId === "MISSILES_2_PLAYER"), false);
+    assert.equal(g.player.weapons.some((w) => w.defId === "LASER_BURST_3"), true);
 
     const fight = kestrel(11);
     const boss = fight.beacons.find((b) => b.kind === "exit");
@@ -236,7 +236,7 @@ describe("a seeded Kestrel run", () => {
     const guns = fight.enemy?.weapons ?? [];
     assert.deepEqual(
       guns.map((w) => w.defId),
-      ["bossion", "bosslaser", "bossmissile", "bossbeam"],
+      ["ARTILLERY_BOSS_4", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
     assert.deepEqual(
       guns.map((w) => weaponDef(w.defId)?.name),
@@ -251,35 +251,35 @@ describe("a seeded Kestrel run", () => {
   it("buys fuel, a Human, the Re-loader, Drone Control, a schematic, and Mind Control", () => {
     const g = visitStore(STORE_SEED);
     const fuelLine = storeDef("standard")?.lines.find((row) => row.id === "fuel");
-    const humanLine = storeDef("standard")?.lines.find((row) => row.id === "plain");
+    const humanLine = storeDef("standard")?.lines.find((row) => row.id === "human");
     assert.equal(fuelLine?.name, "Fuel");
     assert.equal(fuelLine?.cost, 3);
     assert.equal(humanLine?.name, "Human");
     assert.equal(humanLine?.cost, 45);
     const fuel = stock(g, "fuel");
-    const human = stock(g, "crew-plain");
-    const loader = stock(g, "aug-feed");
-    const drone = stock(g, "drone-wardcut");
-    const control = stock(g, "sys-swarm-ward");
-    const mind = stock(g, "sys-leash");
+    const human = stock(g, "crew-human");
+    const loader = stock(g, "aug-AUTO_COOLDOWN");
+    const drone = stock(g, "drone-ANTI_DRONE");
+    const control = stock(g, "sys-drones-DEFENSE_1");
+    const mind = stock(g, "sys-mind");
     assert.equal(fuel.name, fuelLine?.name);
     assert.equal(fuel.cost, 3);
     assert.equal(fuel.amount, 5);
     assert.equal(human.name, humanLine?.name);
     assert.equal(human.cost, 45);
-    assert.equal(loader.name, augmentDef("feed")?.name);
+    assert.equal(loader.name, augmentDef("AUTO_COOLDOWN")?.name);
     assert.equal(loader.name, "Automated Re-loader");
-    assert.equal(loader.cost, augmentDef("feed")?.cost);
+    assert.equal(loader.cost, augmentDef("AUTO_COOLDOWN")?.cost);
     assert.equal(loader.cost, 40);
-    assert.equal(drone.name, droneDef("wardcut")?.name);
+    assert.equal(drone.name, droneDef("ANTI_DRONE")?.name);
     assert.equal(drone.name, "Anti-Combat Drone");
-    assert.equal(drone.cost, droneDef("wardcut")?.cost);
+    assert.equal(drone.cost, droneDef("ANTI_DRONE")?.cost);
     assert.equal(drone.cost, 35);
     assert.equal(control.name, "Drone Control");
     assert.equal(control.cost, 85);
-    assert.equal(mind.name, systemDef("leash")?.name);
+    assert.equal(mind.name, systemDef("mind")?.name);
     assert.equal(mind.name, "Mind Control");
-    assert.equal(mind.cost, systemDef("leash")?.cost);
+    assert.equal(mind.cost, systemDef("mind")?.cost);
     assert.equal(mind.cost, 75);
 
     const fuelBefore = g.fuel;
@@ -287,26 +287,26 @@ describe("a seeded Kestrel run", () => {
     pay(g, "fuel", 3);
     assert.equal(g.fuel, fuelBefore + 1);
     assert.equal(stock(g, "fuel").amount, 4);
-    pay(g, "crew-plain", 45);
-    const hired = g.crew.filter((c) => c.side === "player" && c.kin === "plain");
+    pay(g, "crew-human", 45);
+    const hired = g.crew.filter((c) => c.side === "player" && c.kin === "human");
     assert.equal(hired.length, crewBefore + 1);
     assert.equal(hired.at(-1)?.name, "Human");
-    assert.equal(hired.at(-1)?.hp, crewDef("plain").hp);
-    pay(g, "aug-feed", 40);
-    assert.ok(g.augments.includes("feed"));
-    pay(g, "sys-swarm-ward", 85);
-    assert.equal(g.player.kits.swarm?.level, 2);
-    assert.equal(g.player.kits.swarm?.power, 0);
-    assert.equal(g.player.kits.swarm?.target, "ward");
-    pay(g, "drone-wardcut", 35);
-    assert.deepEqual(g.player.kits.swarm?.loadout, ["ward", "wardcut"]);
-    pay(g, "sys-leash", 75);
-    assert.equal(g.player.kits.leash?.level, 1);
-    assert.equal(g.player.kits.leash?.power, 0);
-    assert.equal(g.stock?.some((row) => row.id === "crew-plain"), false);
-    assert.equal(g.stock?.some((row) => row.id === "aug-feed"), false);
-    assert.equal(g.stock?.some((row) => row.id === "drone-wardcut"), false);
-    assert.equal(g.stock?.some((row) => row.id === "sys-swarm-ward"), false);
-    assert.equal(g.stock?.some((row) => row.id === "sys-leash"), false);
+    assert.equal(hired.at(-1)?.hp, crewDef("human").hp);
+    pay(g, "aug-AUTO_COOLDOWN", 40);
+    assert.ok(g.augments.includes("AUTO_COOLDOWN"));
+    pay(g, "sys-drones-DEFENSE_1", 85);
+    assert.equal(g.player.kits.drones?.level, 2);
+    assert.equal(g.player.kits.drones?.power, 0);
+    assert.equal(g.player.kits.drones?.target, "DEFENSE_1");
+    pay(g, "drone-ANTI_DRONE", 35);
+    assert.deepEqual(g.player.kits.drones?.loadout, ["DEFENSE_1", "ANTI_DRONE"]);
+    pay(g, "sys-mind", 75);
+    assert.equal(g.player.kits.mind?.level, 1);
+    assert.equal(g.player.kits.mind?.power, 0);
+    assert.equal(g.stock?.some((row) => row.id === "crew-human"), false);
+    assert.equal(g.stock?.some((row) => row.id === "aug-AUTO_COOLDOWN"), false);
+    assert.equal(g.stock?.some((row) => row.id === "drone-ANTI_DRONE"), false);
+    assert.equal(g.stock?.some((row) => row.id === "sys-drones-DEFENSE_1"), false);
+    assert.equal(g.stock?.some((row) => row.id === "sys-mind"), false);
   });
 });

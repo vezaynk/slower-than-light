@@ -5,20 +5,20 @@ import { BOMB_FLIGHT_S, LASER_FLIGHT_S, LASER_SPEED, projectileFlightSeconds, sh
 
 describe("projectile speed", () => {
   it("keeps a speed-60 laser at 0.7s and scales the other printed speeds", () => {
-    assert.equal(projectileFlightSeconds("lineburst"), LASER_FLIGHT_S);
-    assert.equal(projectileFlightSeconds("bosslaser"), LASER_FLIGHT_S);
-    assert.equal(projectileFlightSeconds("hullsmash"), (LASER_SPEED * LASER_FLIGHT_S) / 75);
-    assert.equal(projectileFlightSeconds("hullsmash2"), (LASER_SPEED * LASER_FLIGHT_S) / 90);
-    assert.equal(projectileFlightSeconds("scatter"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
+    assert.equal(projectileFlightSeconds("LASER_BURST_3"), LASER_FLIGHT_S);
+    assert.equal(projectileFlightSeconds("ARTILLERY_BOSS_1"), LASER_FLIGHT_S);
+    assert.equal(projectileFlightSeconds("LASER_HULL_1"), (LASER_SPEED * LASER_FLIGHT_S) / 75);
+    assert.equal(projectileFlightSeconds("LASER_HULL_2"), (LASER_SPEED * LASER_FLIGHT_S) / 90);
+    assert.equal(projectileFlightSeconds("SHOTGUN"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
     assert.equal(projectileFlightSeconds("flak-artillery"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
-    assert.equal(projectileFlightSeconds("needle"), (LASER_SPEED * LASER_FLIGHT_S) / 30);
-    assert.equal(projectileFlightSeconds("heavyion"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
-    assert.equal(projectileFlightSeconds("bossion"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
-    assert.equal(projectileFlightSeconds("artemis"), (LASER_SPEED * LASER_FLIGHT_S) / 35);
-    assert.equal(projectileFlightSeconds("swarmmissiles"), (LASER_SPEED * LASER_FLIGHT_S) / 45);
-    assert.equal(projectileFlightSeconds("crystalburst"), (LASER_SPEED * LASER_FLIGHT_S) / 50);
+    assert.equal(projectileFlightSeconds("ION_1"), (LASER_SPEED * LASER_FLIGHT_S) / 30);
+    assert.equal(projectileFlightSeconds("ION_2"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
+    assert.equal(projectileFlightSeconds("ARTILLERY_BOSS_4"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
+    assert.equal(projectileFlightSeconds("MISSILES_2_PLAYER"), (LASER_SPEED * LASER_FLIGHT_S) / 35);
+    assert.equal(projectileFlightSeconds("MISSILE_CHARGEGUN"), (LASER_SPEED * LASER_FLIGHT_S) / 45);
+    assert.equal(projectileFlightSeconds("CRYSTAL_BURST_1"), (LASER_SPEED * LASER_FLIGHT_S) / 50);
     assert.equal(projectileFlightSeconds("dart"), null);
-    assert.equal(shotFlightSeconds("bomb", "cask"), BOMB_FLIGHT_S);
+    assert.equal(shotFlightSeconds("bomb", "BOMB_FIRE"), BOMB_FLIGHT_S);
     assert.equal(shotFlightSeconds("missile", "dart"), BOMB_FLIGHT_S);
   });
 
@@ -32,10 +32,10 @@ describe("projectile speed", () => {
     g.enemy.systems.weapons.damage = 0;
     g.enemy.ammo = 4;
     const expect: Record<string, number> = {
-      hullsmash2: (LASER_SPEED * LASER_FLIGHT_S) / 90,
-      scatter: (LASER_SPEED * LASER_FLIGHT_S) / 26,
-      leto: (LASER_SPEED * LASER_FLIGHT_S) / 35,
-      cask: BOMB_FLIGHT_S,
+      LASER_HULL_2: (LASER_SPEED * LASER_FLIGHT_S) / 90,
+      SHOTGUN: (LASER_SPEED * LASER_FLIGHT_S) / 26,
+      MISSILES_1: (LASER_SPEED * LASER_FLIGHT_S) / 35,
+      BOMB_FIRE: BOMB_FLIGHT_S,
       dart: BOMB_FLIGHT_S,
     };
     for (const [defId, duration] of Object.entries(expect)) {

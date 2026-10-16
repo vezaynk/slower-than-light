@@ -26,7 +26,7 @@ import { interruptVeil } from "./veil.ts";
 
 type Slot = { kind: "sys"; id: SysId; box: SystemState } | { kind: "kit"; id: KitId; box: Kit };
 
-const POWERED_KITS: readonly KitId[] = ["sling", "cradle", "swarm", "veil", "lance", "flak", "leash", "spike"];
+const POWERED_KITS: readonly KitId[] = ["teleporter", "clonebay", "drones", "cloaking", "artillery", "mind", "hacking"];
 
 /**
  * Bars reactor power may fill: the undamaged level less the bars Zoltans in the room supply (Zoltans: one bar per
@@ -118,21 +118,21 @@ export function checkEnemyPower(g: Game): void {
 
   /** "power up a drone": the next loadout drone's bars. */
   const addDrone = (): boolean => {
-    const s = find("swarm");
+    const s = find("drones");
     if (!s || s.kind !== "kit") return false;
     const have = power.get(s)!;
     let sum = 0;
     for (const p of dronePowers(s.box)) {
       sum += p;
-      if (sum > have) return add("swarm", sum - have);
+      if (sum > have) return add("drones", sum - have);
     }
     return false;
   };
 
   // "one power to several systems, in order: Oxygen, Teleporter, Clonebay, Medbay, but only if bHurtCrew is set".
   add("oxygen");
-  add("sling");
-  add("cradle");
+  add("teleporter");
+  add("clonebay");
   if (ship.crewAi?.hurt) add("medbay");
 
   // "If the ship is hostile and not escaping". INFERRED: every fight's enemy is hostile; escaping is a running escape.
@@ -142,19 +142,19 @@ export function checkEnemyPower(g: Game): void {
     let more = false;
     if (fighting && addDrone()) more = true;
     if (add("shields")) more = true;
-    if (add("veil")) more = true;
+    if (add("cloaking")) more = true;
     if (add("engines")) more = true;
     if (!more) break;
   }
 
   // "Finally ... add as much power to it as possible". INFERRED: weapons stop at the first pick that does not fit, as the
   // same longest-charging pick is made again.
-  for (const id of ["shields", "engines", "oxygen", "weapons", "swarm", "medbay", "sling", "veil", "lance", "flak", "cradle", "leash", "spike"] as const) {
+  for (const id of ["shields", "engines", "oxygen", "weapons", "drones", "medbay", "teleporter", "cloaking", "artillery", "clonebay", "mind", "hacking"] as const) {
     if (id === "weapons") {
       while (addWeapon());
       continue;
     }
-    if (id === "swarm") {
+    if (id === "drones") {
       while (addDrone());
       continue;
     }
@@ -164,8 +164,8 @@ export function checkEnemyPower(g: Game): void {
   for (const s of slots) {
     const next = power.get(s)!;
     // A cloak or mind control losing its bars ends, as when a battery runs out (extras/cell.ts shedOverAssigned).
-    if (next < s.box.power && s.kind === "kit" && s.id === "veil") interruptVeil(s.box);
-    if (next < s.box.power && s.kind === "kit" && s.id === "leash") interruptLeash(g, s.box);
+    if (next < s.box.power && s.kind === "kit" && s.id === "cloaking") interruptVeil(s.box);
+    if (next < s.box.power && s.kind === "kit" && s.id === "mind") interruptLeash(g, s.box);
     s.box.power = next;
   }
   if (!weaponsLocked) for (const w of ship.weapons) w.enabled = on.has(w.uid);

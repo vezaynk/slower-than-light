@@ -133,7 +133,7 @@ describe("Refueling platform dock", () => {
     assert.equal(sprung.player.systems.engines.damage, sprungEng + Math.min(3, sprungBars));
     const boarders = sprung.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.ok(boarders.length >= 2 && boarders.length <= 4, `boarders ${boarders.length}`);
-    assert.ok(boarders.every((c) => c.kin === "plain"));
+    assert.ok(boarders.every((c) => c.kin === "human"));
     assert.equal(sprung.phase, "combat");
     assert.equal(sprung.enemy, null);
 

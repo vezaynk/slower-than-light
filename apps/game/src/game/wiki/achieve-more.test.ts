@@ -28,7 +28,7 @@ describe("achievement counters", () => {
 
     const drone = quietMap();
     drone.sector = 5;
-    noteAchieve(drone, { k: "drone", kind: "striker", functioning: 1 });
+    noteAchieve(drone, { k: "drone", kind: "COMBAT_1", functioning: 1 });
     assert.equal(earnedNow(drone).includes("coming-in-for-my-pacifism-run"), false);
     assert.equal(drone.tally?.droneHurt, undefined);
   });
@@ -49,15 +49,15 @@ describe("achievement counters", () => {
   });
 
   it("a miss during a cloak counts that shot's damage as avoided", () => {
-    const g = quietMap(1, "stealth-a");
-    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    const g = quietMap(1, "PLAYER_SHIP_STEALTH");
+    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     noteAchieve(g, { k: "cloak" });
     noteAchieve(g, { k: "evade", missed: true, damage: 9 });
     assert.equal(earnedNow(g).includes("phase-shift"), true);
   });
 
   it("repair from 1 hull to full latches Tough Little Ship on the Kestrel", () => {
-    const g = quietMap(1, "kestrel-a");
+    const g = quietMap(1, "PLAYER_SHIP_HARD");
     noteAchieve(g, { k: "hull", before: 1, after: g.player.hullMax });
     assert.equal(earnedNow(g).includes("tough-little-ship"), true);
   });
@@ -72,7 +72,7 @@ describe("achievement counters", () => {
   });
 
   it("sector 8 with no jump does not earn loss of cabin pressure", () => {
-    const g = quietMap(1, "lanius-a");
+    const g = quietMap(1, "PLAYER_SHIP_ANAEROBIC");
     g.sector = 8;
     g.jumps = 0;
     noteAchieve(g, { k: "tick" });
@@ -151,12 +151,12 @@ describe("Advanced Edition content", () => {
       },
     });
     try {
-      const g = createGame(1, "kestrel-b");
+      const g = createGame(1, "PLAYER_SHIP_HARD_2");
       assert.equal(Object.hasOwn(g, "ae"), false);
       (g as { ae?: boolean }).ae = false;
       g.sector = 8;
-      const open = deriveUnlocks({ ships: ["kestrel-a"], wins: [] }, g, []);
-      assert.equal(open.ships.includes("kestrel-c"), true);
+      const open = deriveUnlocks({ ships: ["PLAYER_SHIP_HARD"], wins: [] }, g, []);
+      assert.equal(open.ships.includes("PLAYER_SHIP_HARD_3"), true);
     } finally {
       if (previous) Object.defineProperty(globalThis, "localStorage", previous);
       else delete (globalThis as { localStorage?: unknown }).localStorage;

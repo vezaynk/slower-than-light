@@ -59,22 +59,22 @@ function letterOf(heading: string): Letter {
 }
 
 const RACE_KIN: Record<string, KinId> = {
-  engi: "shell",
-  zoltan: "spark",
-  mantis: "blade",
-  slug: "gel",
-  rock: "stone",
-  rockman: "stone",
-  rockmen: "stone",
-  lanius: "voidlung",
-  crystal: "shard",
+  engi: "engi",
+  zoltan: "energy",
+  mantis: "mantis",
+  slug: "slug",
+  rock: "rock",
+  rockman: "rock",
+  rockmen: "rock",
+  lanius: "anaerobic",
+  crystal: "crystal",
 };
 
 /** Seats in the order the run will place them: the hull spec when there is one, else the sheet's race line. */
 function seatsOf(layoutId: string, races: string[]): KinId[] {
   const hull = hullDef(layoutId);
   if (hull) return hull.crew.map((seat) => seat.kin as KinId);
-  return races.map((race) => RACE_KIN[race.toLowerCase()] ?? "plain");
+  return races.map((race) => RACE_KIN[race.toLowerCase()] ?? "human");
 }
 
 function weaponPower(name: string) {

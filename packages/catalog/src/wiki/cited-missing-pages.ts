@@ -78,7 +78,7 @@ export const EXTRA_EVENTS: MissingEvent[] = [
       choice("crystalline-research-facility", "allow", "Allow them to run tests on a crew member."),
       choice("crystalline-research-facility", "refuse", "Refuse."),
       choice("crystalline-research-facility", "rock", "Send your Rockman crew."),
-      choice("crystalline-research-facility", "dna", "Send your crew's data."),
+      choice("crystalline-research-facility", "BACKUP_DNA", "Send your crew's data."),
     ],
   ),
   row(

@@ -61,7 +61,7 @@ function harness(g: Game, rolls: number[]) {
 
 describe("cited events", () => {
   it("spends 3 drone parts for 12 scrap and refuses when short", () => {
-    const g = createGame(4, "kestrel-a", "normal");
+    const g = createGame(4, "PLAYER_SHIP_HARD", "normal");
     const ev = citedEvent(g, beacon("Sell drone parts for scrap"));
     assert.ok(ev);
     const sell = ev.choices.find((c) => c.label === "Sell 3 drone parts for 12 scrap");
@@ -92,7 +92,7 @@ describe("cited events", () => {
   });
 
   it("rolls medium scrap inside the cited band and does not invent resources", () => {
-    const g = createGame(5, "kestrel-a", "normal");
+    const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
     g.sector = 1;
     g.difficulty = "normal";
     const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
@@ -130,7 +130,7 @@ describe("cited events", () => {
   });
 
   it("pays Free drone schematic's low scrap and a random drone schematic", () => {
-    const g = createGame(5, "kestrel-a", "normal");
+    const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
     const ev = citedEvent(g, beacon("Free drone schematic", "cited:free-drone-schematic"));
     assert.ok(ev);
     assert.equal(ev.choices[0]?.label, "You receive a drone schematic with low scrap");
@@ -222,7 +222,7 @@ describe("cited events", () => {
   });
 
   it("places the station when the sector opens and keeps the panel up if the price is short", () => {
-    const g = createGame(3, "kestrel-a", "normal");
+    const g = createGame(3, "PLAYER_SHIP_HARD", "normal");
     assert.equal(g.beacons.some((b) => b.flag.startsWith("cited:")), false);
     const start = g.route.find((node) => node.id === g.routeHere);
     assert.ok(start);
@@ -237,7 +237,7 @@ describe("cited events", () => {
     assert.ok(stamped.length >= 1, dest.name);
     assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, dest.name === "The Last Stand" ? 3 : 0);
 
-    const shop = createGame(4, "kestrel-a", "normal");
+    const shop = createGame(4, "PLAYER_SHIP_HARD", "normal");
     const sell = shop.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store");
     assert.ok(sell);
     sell.flag = "cited:sell-drone-parts-for-scrap";
@@ -288,9 +288,9 @@ describe("Auto-ship carrying shield virus", () => {
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     for (const w of g.enemy.weapons) w.enabled = false;
-    if (g.enemy.kits.spike) {
-      g.enemy.kits.spike.on = false;
-      g.enemy.kits.spike.power = 0;
+    if (g.enemy.kits.hacking) {
+      g.enemy.kits.hacking.on = false;
+      g.enemy.kits.hacking.power = 0;
     }
     assert.equal(g.player.shieldNow, 1);
     g.player.shieldNow = 2;
@@ -338,15 +338,15 @@ function openCited(g: ReturnType<typeof createGame>, sector: string, flag: strin
 function quietEnemy(g: ReturnType<typeof createGame>) {
   assert.ok(g.enemy);
   for (const w of g.enemy.weapons) w.enabled = false;
-  if (g.enemy.kits.spike) {
-    g.enemy.kits.spike.on = false;
-    g.enemy.kits.spike.power = 0;
+  if (g.enemy.kits.hacking) {
+    g.enemy.kits.hacking.on = false;
+    g.enemy.kits.hacking.power = 0;
   }
 }
 
 describe("crew entirely composed of Mantis", () => {
   it("replaces any other race on the collector Fighter and the followed Mantis ship", () => {
-    const hp = kinOf("blade").hp;
+    const hp = kinOf("mantis").hp;
     let fighter = false;
     let followed = false;
     for (let seed = 1; seed <= 40 && (!fighter || !followed); seed++) {
@@ -355,7 +355,7 @@ describe("crew entirely composed of Mantis", () => {
       choose(g, "c:mantis-ship-collectors:0");
       const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(aboard.length > 0);
-      assert.ok(aboard.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+      assert.ok(aboard.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
       assert.equal(g.log.some((line) => line.includes("Mantis crew is not applied")), false);
       fighter = true;
 
@@ -367,7 +367,7 @@ describe("crew entirely composed of Mantis", () => {
       assert.equal(z.enemy?.faction, "mantis");
       const theirs = z.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(theirs.length > 0);
-      assert.ok(theirs.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+      assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
       assert.equal(z.log.some((line) => line.includes("Mantis crew is not applied")), false);
       followed = true;
     }
@@ -378,7 +378,7 @@ describe("crew entirely composed of Mantis", () => {
 describe("Zoltan border police", () => {
   it("beams 3-4 Zoltan boarders aboard with the Zoltan ship and grants nothing else", () => {
     const seen = new Set<number>();
-    const hp = kinOf("spark").hp;
+    const hp = kinOf("energy").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
       const g = createGame(seed);
       const scrap = g.scrap;
@@ -396,7 +396,7 @@ describe("Zoltan border police", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Zoltan" && c.kin === "spark" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(boarders.every((c) => c.name === "Zoltan" && c.kin === "energy" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
@@ -435,7 +435,7 @@ describe("Zoltan border police", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "zoltan");
-    const zoltan = g.crew.filter((c) => c.side === "enemy" && c.kin === "spark" && c.aboard === "player");
+    const zoltan = g.crew.filter((c) => c.side === "enemy" && c.kin === "energy" && c.aboard === "player");
     assert.ok(zoltan.length >= 3 && zoltan.length <= 4, String(zoltan.length));
     assert.ok(g.log.some((line) => line.includes("zoltan boarders beam aboard your ship.")));
   });
@@ -444,7 +444,7 @@ describe("Zoltan border police", () => {
 describe("Boarders: Humans in plasma storm", () => {
   it("pays medium scrap and beams 3-4 human boarders aboard with no enemy ship", () => {
     const seen = new Set<number>();
-    const hp = kinOf("plain").hp;
+    const hp = kinOf("human").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
       const g = createGame(seed);
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
@@ -466,7 +466,7 @@ describe("Boarders: Humans in plasma storm", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
@@ -490,7 +490,7 @@ describe("Rebel fight with boarders", () => {
     // Wiki citations:
     // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     const seen = new Set<number>();
-    const hp = kinOf("plain").hp;
+    const hp = kinOf("human").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
       const g = createGame(seed);
       const scrap = g.scrap;
@@ -508,7 +508,7 @@ describe("Rebel fight with boarders", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 2 && boarders.length <= 3, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "plain" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
@@ -549,7 +549,7 @@ describe("Rebel fight with boarders", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
-    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
     assert.ok(humans.length >= 2 && humans.length <= 3, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
   });
@@ -558,7 +558,7 @@ describe("Rebel fight with boarders", () => {
 describe("Mantis outcasts", () => {
   it("beams 2-3 Mantis boarders aboard with the Mantis ship and grants nothing else", () => {
     const seen = new Set<number>();
-    const hp = kinOf("blade").hp;
+    const hp = kinOf("mantis").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
       const g = createGame(seed);
       const scrap = g.scrap;
@@ -576,7 +576,7 @@ describe("Mantis outcasts", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 2 && boarders.length <= 3, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Mantis" && c.kin === "blade" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(boarders.every((c) => c.name === "Mantis" && c.kin === "mantis" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
@@ -615,7 +615,7 @@ describe("Mantis outcasts", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
-    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "blade" && c.aboard === "player");
+    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis" && c.aboard === "player");
     assert.ok(mantis.length >= 2 && mantis.length <= 3, String(mantis.length));
     assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
   });
@@ -666,8 +666,8 @@ describe("Slug hacker (choice)", () => {
     guns.player.systems.weapons.damage = 0;
     guns.player.systems.weapons.ion = [];
     guns.player.weapons = [
-      { uid: "a", defId: "spark", charge: 0, enabled: true, autofire: false, target: null },
-      { uid: "b", defId: "spark", charge: 0, enabled: true, autofire: false, target: null },
+      { uid: "a", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
+      { uid: "b", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
     ];
     choose(guns, "c:slug-hacker-choice:2");
     assert.equal(guns.phase, "combat");
@@ -807,8 +807,8 @@ describe("Slug hacker (medical)", () => {
     g.player.systems.medbay.power = 3;
     g.player.systems.medbay.damage = 0;
     g.player.systems.medbay.ion = [];
-    g.player.kits.cradle = {
-      id: "cradle",
+    g.player.kits.clonebay = {
+      id: "clonebay",
       level: 1,
       power: 1,
       left: 0,
@@ -835,11 +835,11 @@ describe("Slug hacker (medical)", () => {
     choose(g, "c:slug-hacker-medical:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "slug");
-    const hp = kinOf("gel").hp;
+    const hp = kinOf("slug").hp;
     const rooms = new Set(g.player.rooms.map((r) => r.id));
     const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 2);
-    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "gel" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "slug" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);

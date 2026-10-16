@@ -18,7 +18,7 @@ const expected: Record<
     blurb: string;
   }
 > = {
-  artemisEnemy: {
+  MISSILES_2: {
     name: "Artemis Missiles (enemy)",
     power: 2,
     charge: 10,
@@ -29,7 +29,7 @@ const expected: Record<
     price: 0,
     blurb: "",
   },
-  hermes: {
+  MISSILES_3: {
     name: "Hermes Missile",
     power: 3,
     charge: 14,
@@ -40,7 +40,7 @@ const expected: Record<
     price: 45,
     blurb: "Standard but powerful missile.",
   },
-  breachmissiles: {
+  MISSILES_BREACH: {
     name: "Breach Missiles",
     power: 3,
     charge: 22,
@@ -51,7 +51,7 @@ const expected: Record<
     price: 65,
     blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
   },
-  hullmissile: {
+  MISSILES_HULL: {
     name: "Hull Missile",
     power: 2,
     charge: 17,
@@ -62,7 +62,7 @@ const expected: Record<
     price: 65,
     blurb: "High hull damage plus a decent breach chance.",
   },
-  swarmmissiles: {
+  MISSILE_CHARGEGUN: {
     name: "Swarm Missiles",
     power: 2,
     charge: 7,
@@ -73,7 +73,7 @@ const expected: Record<
     price: 65,
     blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
   },
-  pegasus: {
+  MISSILES_BURST: {
     name: "Pegasus Missile",
     power: 3,
     charge: 20,
@@ -84,7 +84,7 @@ const expected: Record<
     price: 60,
     blurb: "Creative missile design allows for two projectiles for the cost of one!",
   },
-  bossmissile: {
+  ARTILLERY_BOSS_2: {
     name: "Boss Missile",
     power: 4,
     charge: 28.75,
@@ -105,7 +105,7 @@ describe("missile weapons", () => {
       MISSILE_WEAPONS.map((weapon) => weapon.id),
       Object.keys(expected),
     );
-    assert.equal(MISSILE_WEAPONS.some((weapon) => weapon.id === "leto" || weapon.id === "artemis"), false);
+    assert.equal(MISSILE_WEAPONS.some((weapon) => weapon.id === "MISSILES_1" || weapon.id === "MISSILES_2_PLAYER"), false);
     assert.equal(
       MISSILE_WEAPONS.some((weapon) => weapon.name === "Leto Missiles" || weapon.name === "Artemis Missiles"),
       false,
@@ -133,35 +133,35 @@ describe("missile weapons", () => {
   }
 
   it("describes how enemy Artemis differs from the player row", () => {
-    const gap = MISSILE_GAPS.artemisEnemy;
+    const gap = MISSILE_GAPS.MISSILES_2;
     assert.match(gap.note, /Power 2 instead of 1/);
     assert.match(gap.note, /10 seconds instead of 11/);
     assert.equal(gap.playerPower, 1);
     assert.equal(gap.playerCharge, 11);
     assert.equal(gap.playerShots, 1);
     assert.equal(gap.playerDamage, 2);
-    assert.equal(byId.artemisEnemy.power, 2);
-    assert.equal(byId.artemisEnemy.charge, 10);
+    assert.equal(byId.MISSILES_2.power, 2);
+    assert.equal(byId.MISSILES_2.charge, 10);
   });
 
   it("keeps split damage, swarm aim, and boss charge times out of the weapon fields", () => {
-    assert.equal(MISSILE_GAPS.hullmissile.systemlessDamage, 4);
-    assert.equal(MISSILE_GAPS.hullmissile.countedAsMissileInEvents, false);
-    assert.equal(MISSILE_GAPS.swarmmissiles.minShots, 1);
-    assert.equal(MISSILE_GAPS.swarmmissiles.maxShots, 3);
-    assert.equal(MISSILE_GAPS.swarmmissiles.radius, 31);
-    assert.equal(MISSILE_GAPS.swarmmissiles.aim1x2MainPercent, 67.85);
-    assert.equal(MISSILE_GAPS.swarmmissiles.aim1x2LongSidePercent, 8.04);
-    assert.equal(MISSILE_GAPS.swarmmissiles.aim2x2MainPercent, 100);
-    assert.equal(MISSILE_GAPS.swarmmissiles.oneMissilePerVolley, true);
-    assert.equal(MISSILE_GAPS.pegasus.oneMissilePerVolley, true);
-    assert.equal(MISSILE_GAPS.bossmissile.chargeByLevel[1], 28.75);
-    assert.equal(MISSILE_GAPS.bossmissile.chargeByLevel[2], 23);
-    assert.equal(MISSILE_GAPS.bossmissile.chargeByLevel[3], 17.25);
-    assert.equal(MISSILE_GAPS.bossmissile.chargeByLevel[4], 11.5);
+    assert.equal(MISSILE_GAPS.MISSILES_HULL.systemlessDamage, 4);
+    assert.equal(MISSILE_GAPS.MISSILES_HULL.countedAsMissileInEvents, false);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.minShots, 1);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.maxShots, 3);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.radius, 31);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.aim1x2MainPercent, 67.85);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.aim1x2LongSidePercent, 8.04);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.aim2x2MainPercent, 100);
+    assert.equal(MISSILE_GAPS.MISSILE_CHARGEGUN.oneMissilePerVolley, true);
+    assert.equal(MISSILE_GAPS.MISSILES_BURST.oneMissilePerVolley, true);
+    assert.equal(MISSILE_GAPS.ARTILLERY_BOSS_2.chargeByLevel[1], 28.75);
+    assert.equal(MISSILE_GAPS.ARTILLERY_BOSS_2.chargeByLevel[2], 23);
+    assert.equal(MISSILE_GAPS.ARTILLERY_BOSS_2.chargeByLevel[3], 17.25);
+    assert.equal(MISSILE_GAPS.ARTILLERY_BOSS_2.chargeByLevel[4], 11.5);
     assert.equal(MISSILE_GAPS.roll.fireBeforeBreach, true);
     assert.equal(MISSILE_GAPS.roll.stunPercentPrinted, false);
-    assert.match(MISSILE_GAPS.breachmissiles.note, /killing a Zoltan/);
+    assert.match(MISSILE_GAPS.MISSILES_BREACH.note, /killing a Zoltan/);
   });
 });
 
@@ -177,7 +177,7 @@ function missileShot(partial: Partial<Shot> & Pick<Shot, "targetRoom">): Shot {
     wait: 0,
     t: 1,
     duration: 1,
-    defId: "breachmissiles",
+    defId: "MISSILES_BREACH",
     ...partial,
   };
 }
@@ -187,7 +187,7 @@ function quietRoom(seed: number): { g: ReturnType<typeof createGame>; roomId: st
   g.player.systems.engines.power = 0;
   g.player.shieldNow = 0;
   g.player.zoltan = 0;
-  g.augments = g.augments.filter((id) => id !== "keel" && id !== "casing");
+  g.augments = g.augments.filter((id) => id !== "ROCK_ARMOR" && id !== "SYSTEM_CASING");
   const room = g.player.rooms.find((item) => item.system);
   if (!room) throw new Error("no system room");
   room.fire = 0;

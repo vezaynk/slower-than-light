@@ -18,18 +18,18 @@ function has(g: Game, id: AugmentId): boolean {
 /** Augmentations, "Offensive Augmentations", Automated Re-loader: firing rate +10% per copy. */
 export function feedRate(g: Game, from: "player" | "enemy"): number {
   if (from !== "player") return 1;
-  return 1 + copies(g, "feed") / 10;
+  return 1 + copies(g, "AUTO_COOLDOWN") / 10;
 }
 
 /** Augmentations, "Offensive Augmentations", Explosive Replicator: 50% chance not to spend a missile. */
 export function saveMissile(g: Game): boolean {
-  if (!has(g, "echo")) return false;
+  if (!has(g, "EXPLOSIVE_REPLICATOR")) return false;
   return rand(g) < 0.5;
 }
 
 /** Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Artillery is a separate kit and is not primed. */
 export function primeWeapons(g: Game) {
-  if (!has(g, "hot")) return;
+  if (!has(g, "WEAPON_PREIGNITE")) return;
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   let primed = false;
   g.player.weapons.forEach((w, i) => {
@@ -47,7 +47,7 @@ export function primeWeapons(g: Game) {
 
 /** Augmentations, "Defensive Augmentations", Reverse Ion Field: 50% per copy, two or more ignore every ion. */
 export function baffleHolds(g: Game): boolean {
-  const n = copies(g, "baffle");
+  const n = copies(g, "ION_ARMOR");
   if (n >= 2) return true;
   if (n <= 0) return false;
   return rand(g) < 0.5;
@@ -56,7 +56,7 @@ export function baffleHolds(g: Game): boolean {
 /** Augmentations, "Defensive Augmentations", Shield Charge Booster: +15% recharge rate per copy, additive. */
 export function coilRate(g: Game, aboard: "player" | "enemy"): number {
   if (aboard !== "player") return 1;
-  return 1 + 0.15 * copies(g, "coil");
+  return 1 + 0.15 * copies(g, "SHIELD_RECHARGE");
 }
 
 /**
@@ -65,7 +65,7 @@ export function coilRate(g: Game, aboard: "player" | "enemy"): number {
  * The printed values, not 0.8^n (that would be 64% and 51%).
  */
 export function spoolRate(g: Game): number {
-  const n = copies(g, "spool");
+  const n = copies(g, "FTL_BOOSTER");
   if (n <= 0) return 1;
   if (n === 1) return 0.8;
   if (n === 2) return 0.67;
@@ -74,13 +74,13 @@ export function spoolRate(g: Game): number {
 
 /** Augmentations, "Non-Purchasable Augmentations", Rock Plating: 15% chance to negate hull damage. Store price is INVENTED. */
 export function keelHolds(g: Game): boolean {
-  if (!has(g, "keel")) return false;
+  if (!has(g, "ROCK_ARMOR")) return false;
   return rand(g) < 0.15;
 }
 
 /** Augmentations, "Non-Purchasable Augmentations", Titanium System Casing: 15% chance to negate system damage. Store price is INVENTED. */
 export function casingHolds(g: Game): boolean {
-  if (!has(g, "casing")) return false;
+  if (!has(g, "SYSTEM_CASING")) return false;
   return rand(g) < 0.15;
 }
 
@@ -96,7 +96,7 @@ export function casingHolds(g: Game): boolean {
  */
 export function lungScale(g: Game, crew: Crew): number {
   if (crew.lungs) return 0.5;
-  if (crew.side !== "player" || !has(g, "lung")) return 1;
+  if (crew.side !== "player" || !has(g, "O2_MASKS")) return 1;
   return 0.5;
 }
 
@@ -108,7 +108,7 @@ export function lungScale(g: Game, crew: Crew): number {
  * The enemy hull is ignored.
  */
 export function tickSquall(g: Game, dt: number) {
-  if (has(g, "squall")) {
+  if (has(g, "FIRE_EXTINGUISHERS")) {
     for (const room of g.player.rooms) {
       if (room.fire <= 0) continue;
       room.fire = Math.max(0, room.fire - dt * FIRE_FIGHT_SHARE * crystalExtinguishScale());
@@ -124,11 +124,11 @@ export function tickSquall(g: Game, dt: number) {
  * "Does nothing if you have a Clone Bay."
  * "Engi nano med-bots heal the crew outside of the med-bay (at a reduced speed)."
  * Engi Ships lead: "They have the Engi Med-bot Dispersal augment, but it only functions when they have a Medbay."
- * The player copy is g.augments "medbot". An Engi enemy uses the same heal and does not gain that id.
+ * The player copy is g.augments "NANO_MEDBAY". An Engi enemy uses the same heal and does not gain that id.
  * No purchase price, so it is not in CATALOG.
  */
 function medbotHeal(g: Game, dt: number, ship: Ship, side: "player" | "enemy") {
-  if (ship.kits.cradle) return;
+  if (ship.kits.clonebay) return;
   if (bars(ship.systems.medbay, zoltanBars(g.crew, ship, side, "medbay")) <= 0) return;
   for (const crew of g.crew) {
     if (crew.side !== side || crew.aboard !== side || crew.hp <= 0) continue;
@@ -140,7 +140,7 @@ function medbotHeal(g: Game, dt: number, ship: Ship, side: "player" | "enemy") {
 
 export function tickMedbot(g: Game, dt: number) {
   if (!(dt > 0)) return;
-  if (has(g, "medbot")) medbotHeal(g, dt, g.player, "player");
+  if (has(g, "NANO_MEDBAY")) medbotHeal(g, dt, g.player, "player");
   if (g.enemy && g.enemy.faction === "engi") medbotHeal(g, dt, g.enemy, "enemy");
 }
 
@@ -150,7 +150,7 @@ export function tickMedbot(g: Game, dt: number) {
  * No effect in the final sector. A fleet already at 0 skips its next advance.
  */
 export function onNewSector(g: Game) {
-  if (g.sector >= 8 || !has(g, "falsebuoy")) {
+  if (g.sector >= 8 || !has(g, "FLEET_DISTRACTION")) {
     g.buoyDelay = 0;
     return;
   }
@@ -191,7 +191,7 @@ const QUEST_SHIPS = new Set([
 ]);
 
 export function reveals(g: Game, beaconKind: BeaconKind): boolean {
-  if (!has(g, "glass")) return false;
+  if (!has(g, "ADV_SCANNERS")) return false;
   return SHIP_PRESENCE.includes(beaconKind);
 }
 
@@ -218,7 +218,7 @@ export function scanMark(
   g: Game,
   beacon: { kind: BeaconKind; asteroid?: boolean; flag?: string; name?: string; quest?: string },
 ): { ship: boolean; hazard: boolean } {
-  if (!has(g, "glass")) return { ship: false, hazard: false };
+  if (!has(g, "ADV_SCANNERS")) return { ship: false, hazard: false };
   return {
     ship: reveals(g, beacon.kind) || (!!beacon.quest && QUEST_SHIPS.has(beacon.quest)),
     hazard: beacon.asteroid === true || textHasHazard(beacon.flag) || textHasHazard(beacon.name),
@@ -232,8 +232,8 @@ export function scanMark(
  * INFERRED: the two are applied in that order. The page never states a combined formula.
  */
 export function adjustScrapAmount(g: Game, scrap: number): number {
-  let n = scrap * (1 + 0.1 * copies(g, "hook"));
-  if (has(g, "weld") && g.player.hull < g.player.hullMax) {
+  let n = scrap * (1 + 0.1 * copies(g, "SCRAP_COLLECTOR"));
+  if (has(g, "REPAIR_ARM") && g.player.hull < g.player.hullMax) {
     n *= 0.85;
     g.player.hull += 2;
     log(g, "Repair Arm seals 2 hull.");

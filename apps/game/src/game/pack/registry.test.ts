@@ -54,19 +54,21 @@ function gun(id: string, charge: number): WeaponBlueprint {
 }
 
 describe("content pack", () => {
-  it("keeps a race and a weapon that share an id apart", () => {
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(crewDef("spark").hp, 70);
-    assert.equal(weaponDef("spark")?.kind, "laser");
-    assert.equal(weaponDef("spark")?.charge, 10);
+  it("keeps the Zoltan and the Basic Laser on different ids", () => {
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(crewDef("energy").hp, 70);
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("LASER_BURST_1")?.charge, 10);
+    assert.equal(weaponDef("energy"), undefined);
+    assert.equal(crewDef("LASER_BURST_1").id, "human");
     assert.equal(crewDef("missing").hp, 100);
   });
 
   it("copies beam length, speed, and crew damage onto the campaign guns", () => {
-    assert.equal(weaponDef("shear")?.lengthTiles, 3.8);
-    assert.equal(weaponDef("shear")?.speed, 9);
-    assert.equal(weaponDef("shear")?.crewDamage, 15);
-    assert.equal(weaponDef("spark")?.lengthTiles, undefined);
+    assert.equal(weaponDef("BEAM_LONG")?.lengthTiles, 3.8);
+    assert.equal(weaponDef("BEAM_LONG")?.speed, 9);
+    assert.equal(weaponDef("BEAM_LONG")?.crewDamage, 15);
+    assert.equal(weaponDef("LASER_BURST_1")?.lengthTiles, undefined);
   });
 
   it("loads the catalog in its authored order", () => {
@@ -77,7 +79,7 @@ describe("content pack", () => {
   });
 
   it("keeps an augment id apart from a race and a weapon", () => {
-    const feed = augmentDef("feed");
+    const feed = augmentDef("AUTO_COOLDOWN");
     assert.ok(feed);
     loadPack(
       {
@@ -89,14 +91,15 @@ describe("content pack", () => {
       "append",
     );
     assert.equal(augmentDef("spark")?.name, "Not the laser");
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
-    assert.equal(augmentDef("feed")?.cost, 77);
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
+    assert.equal(augmentDef("AUTO_COOLDOWN")?.cost, 77);
     assert.equal(allAugments().at(-1)?.id, "spark");
     resetPackForTests();
     assert.equal(augmentDef("spark"), undefined);
-    assert.equal(augmentDef("feed")?.cost, CATALOG.find((row) => row.id === "feed")?.cost);
-    assert.equal(augmentDef("feed")?.name, CATALOG.find((row) => row.id === "feed")?.name);
+    assert.equal(augmentDef("AUTO_COOLDOWN")?.cost, CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.cost);
+    assert.equal(augmentDef("AUTO_COOLDOWN")?.name, CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.name);
   });
 
   it("loads the drone catalog in its authored order", () => {
@@ -109,8 +112,9 @@ describe("content pack", () => {
   it("keeps a drone id apart from a race, a weapon, and an augment", () => {
     loadPack({ drones: [{ id: "spark", name: "Not the laser", cost: 9 }] }, "append");
     assert.equal(droneDef("spark")?.name, "Not the laser");
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(allDrones().at(-1)?.id, "spark");
     resetPackForTests();
@@ -128,8 +132,9 @@ describe("content pack", () => {
   it("keeps a system id apart from a race, a weapon, an augment, and a drone", () => {
     loadPack({ systems: [{ id: "spark", name: "Not the laser", cost: 9, slot: "sys" }] }, "append");
     assert.equal(systemDef("spark")?.name, "Not the laser");
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(droneDef("spark"), undefined);
     assert.equal(allSystems().at(-1)?.id, "spark");
@@ -143,8 +148,8 @@ describe("content pack", () => {
       allHulls().map((row) => row.id),
       HULLS.map((row) => row.id),
     );
-    const kestrel = HULLS.find((row) => row.id === "kestrel-a");
-    const packed = hullDef("kestrel-a");
+    const kestrel = HULLS.find((row) => row.id === "PLAYER_SHIP_HARD");
+    const packed = hullDef("PLAYER_SHIP_HARD");
     assert.equal(packed?.name, kestrel?.name);
     assert.equal(packed?.reactor, kestrel?.reactor);
     assert.deepEqual(packed?.weapons, kestrel?.weapons);
@@ -175,17 +180,18 @@ describe("content pack", () => {
     };
     loadPack({ hulls: [ember] }, "append");
     assert.equal(hullDef("spark")?.name, "Not the laser");
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(droneDef("spark"), undefined);
     assert.equal(systemDef("spark"), undefined);
     assert.equal(allHulls().at(-1)?.id, "spark");
-    const campaign = HULLS.find((row) => row.id === "kestrel-a");
+    const campaign = HULLS.find((row) => row.id === "PLAYER_SHIP_HARD");
     resetPackForTests();
     assert.equal(hullDef("spark"), undefined);
-    assert.equal(hullDef("kestrel-a")?.name, campaign?.name);
-    assert.equal(hullDef("kestrel-a")?.reactor, campaign?.reactor);
+    assert.equal(hullDef("PLAYER_SHIP_HARD")?.name, campaign?.name);
+    assert.equal(hullDef("PLAYER_SHIP_HARD")?.reactor, campaign?.reactor);
   });
 
   it("loads the sector catalog in its authored order", () => {
@@ -202,8 +208,9 @@ describe("content pack", () => {
   it("keeps a sector id apart from a race, a weapon, an augment, a drone, a system, and a hull", () => {
     loadPack({ sectors: [{ id: "spark", name: "Not the laser", group: "nebula", notes: ["Later."] }] }, "append");
     assert.equal(sectorDef("spark")?.name, "Not the laser");
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(droneDef("spark"), undefined);
     assert.equal(systemDef("spark"), undefined);
@@ -245,8 +252,9 @@ describe("content pack", () => {
     );
     assert.equal(storeDef("spark")?.name, "Not the laser");
     assert.deepEqual(storeDef("spark")?.sections, ["relics"]);
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(augmentDef("spark"), undefined);
     assert.equal(droneDef("spark"), undefined);
     assert.equal(systemDef("spark"), undefined);
@@ -275,8 +283,9 @@ describe("content pack", () => {
   it("keeps a tune id apart from a race, a weapon, a system, and a store", () => {
     loadPack({ tunes: [{ id: "spark", start: 4, costs: [{ level: 1, cost: 9 }] }] }, "append");
     assert.equal(tuneDef("spark")?.start, 4);
-    assert.equal(crewDef("spark").name, "Zoltan");
-    assert.equal(weaponDef("spark")?.kind, "laser");
+    assert.equal(crewDef("energy").name, "Zoltan");
+    assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
+    assert.equal(weaponDef("spark"), undefined);
     assert.equal(systemDef("spark"), undefined);
     assert.equal(storeDef("spark"), undefined);
     assert.equal(allTunes().at(-1)?.id, "spark");
@@ -289,13 +298,14 @@ describe("content pack", () => {
   });
 
   it("appends over an id and reset restores the campaign row", () => {
-    const before = weaponDef("spark")?.charge;
-    loadPack({ crew: [race("ember", 40)], weapons: [gun("spark", 4)] }, "append");
+    const before = weaponDef("LASER_BURST_1")?.charge;
+    loadPack({ crew: [race("ember", 40)], weapons: [gun("LASER_BURST_1", 4)] }, "append");
     assert.equal(crewDef("ember").hp, 40);
-    assert.equal(weaponDef("spark")?.charge, 4);
-    assert.ok(allWeapons().some((row) => row.id === "spark"));
+    assert.equal(weaponDef("LASER_BURST_1")?.charge, 4);
+    assert.equal(crewDef("energy").hp, 70);
+    assert.ok(allWeapons().some((row) => row.id === "LASER_BURST_1"));
     resetPackForTests();
-    assert.equal(weaponDef("spark")?.charge, before);
-    assert.equal(crewDef("ember").id, "plain");
+    assert.equal(weaponDef("LASER_BURST_1")?.charge, before);
+    assert.equal(crewDef("ember").id, "human");
   });
 });

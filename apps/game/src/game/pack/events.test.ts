@@ -9,11 +9,11 @@ afterEach(() => resetPackForTests());
 
 describe("event grants", () => {
   it("stamps an appended race's health onto a joined crew and a rewritten enemy", () => {
-    loadPack({ crew: [{ ...crewDef("blade"), hp: 40 }] }, "append");
+    loadPack({ crew: [{ ...crewDef("mantis"), hp: 40 }] }, "append");
     const g = createGame(1);
     assert.equal(joinCrew(g, "Mantis"), true);
     const joined = g.crew[g.crew.length - 1];
-    assert.equal(joined?.kin, "blade");
+    assert.equal(joined?.kin, "mantis");
     assert.equal(joined?.hp, 40);
     assert.equal(joined?.maxHp, 40);
 
@@ -29,17 +29,17 @@ describe("event grants", () => {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "plain",
+      kin: "human",
     });
     allMantisCrew(g);
     const turned = g.crew.find((c) => c.id === "e1");
-    assert.equal(turned?.kin, "blade");
+    assert.equal(turned?.kin, "mantis");
     assert.equal(turned?.hp, 40);
     assert.equal(turned?.maxHp, 40);
   });
 
   it("resolves a named weapon reward from the pack", () => {
-    const spark = weaponDef("spark");
+    const spark = weaponDef("LASER_BURST_1");
     assert.ok(spark);
     loadPack({ weapons: [{ ...spark, id: "ember", name: "Ember", price: 20 }] }, "append");
     const offer = rollScriptedOffer(createGame(1), {

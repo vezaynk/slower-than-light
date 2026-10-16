@@ -18,18 +18,18 @@ const CLONE_SECONDS: Record<number, number> = { 1: 12, 2: 9, 3: 7 };
  * INFERRED: a body with no kin is a Human, the baseline row.
  */
 const DEATH_ANIM: Record<string, number> = {
-  stone: 2,
-  shard: 2,
-  shell: 2,
-  plain: 1.8,
-  gel: 1.8,
-  voidlung: 1.8,
-  blade: 1.7,
-  spark: 1.5,
+  rock: 2,
+  crystal: 2,
+  engi: 2,
+  human: 1.8,
+  slug: 1.8,
+  anaerobic: 1.8,
+  mantis: 1.7,
+  energy: 1.5,
 };
 
 export function deathAnimSeconds(kin: string | undefined): number {
-  return DEATH_ANIM[kin ?? "plain"] ?? 1.8;
+  return DEATH_ANIM[kin ?? "human"] ?? 1.8;
 }
 
 /**
@@ -47,7 +47,7 @@ const SKILL_KEEP = 0.8;
 
 function blankCradle(level: number): Kit {
   return {
-    id: "cradle",
+    id: "clonebay",
     level,
     power: 0,
     left: 0,
@@ -59,7 +59,7 @@ function blankCradle(level: number): Kit {
 }
 
 function poweredCradle(g: Game): Kit | null {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (!kit || kitBars(kit) < 1 || kit.level <= 0) return null;
   return kit;
@@ -72,14 +72,14 @@ export function installCradle(g: Game) {
     log(g, "Clone Bay price is not listed.");
     return;
   }
-  if (g.player.kits.cradle) return;
+  if (g.player.kits.clonebay) return;
   if (g.scrap < cost) {
     log(g, "Not enough scrap.");
     return;
   }
   g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.cradle = blankCradle(1);
+  g.player.kits.clonebay = blankCradle(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Clone Bay installed.");
 }
@@ -93,7 +93,7 @@ export function cradleUpgradeCost(level: number): number | null {
 
 /** Clone Bay, "System Upgrades": pay 35 to reach level 2, then 45 to reach level 3. */
 export function upgradeCradle(g: Game) {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit || kit.level >= 3) return;
   const cost = cradleUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return;
@@ -108,7 +108,7 @@ export function upgradeCradle(g: Game) {
  * "Overview": jump heal needs no power; this bar only gates cloning.
  */
 export function toggleCradlePower(g: Game) {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit || kit.level <= 0) return;
   if (kit.power >= 1) {
     lowerCradlePower(g);
@@ -119,7 +119,7 @@ export function toggleCradlePower(g: Game) {
 
 /** Configure controls, page 2: D adds one bar to Medbay or Clone Bay. Clone Bay keeps a single bar. */
 export function raiseCradlePower(g: Game) {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit || kit.level <= 0 || kit.power >= 1) return;
   if (sparePower(g.player) < 1) return;
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
@@ -130,7 +130,7 @@ export function raiseCradlePower(g: Game) {
 
 /** Systems, "Powering and upgrading systems": Shift plus the power key removes one bar. */
 export function lowerCradlePower(g: Game) {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit || kit.power <= 0) return;
   kit.power = 0;
   kit.on = false;
@@ -171,7 +171,7 @@ export function onCradleDeath(g: Game, crew: Crew): boolean {
   crew.cloneSeq = seq;
   // Kit room (layouts.ts seatKits): the clone appears in the Clone Bay room, which is the old medical room when the
   // store swapped it in. Hulls without a medical room (Fed C, Slug C, Lanius B, ...) have no "p-medbay".
-  crew.room = g.player.rooms.find((r) => r.kit === "cradle")?.id ?? "p-medbay";
+  crew.room = g.player.rooms.find((r) => r.kit === "clonebay")?.id ?? "p-medbay";
   crew.aboard = "player";
   crew.path = [];
   return true;
@@ -199,7 +199,7 @@ function restoreSkills(crew: Crew) {
  */
 export function tickCradle(g: Game, dt: number) {
   tickEnemyCradle(g, dt);
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit) return;
   // Slug hacker (medical): "Clone Bay offline".
   // INFERRED: the queue pauses. The 3-second copy loss is the unpowered bay on the Clone Bay page, not this fight.
@@ -208,7 +208,7 @@ export function tickCradle(g: Game, dt: number) {
   // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Clone Bay: disables the clone bay. (Backup DNA Bank
   // augmentation protects your crew from being erased)". INFERRED: disabled = offline for the pulse, so the queue stops
   // and the 3-second loss below runs, which is exactly what the Backup DNA Bank note guards against.
-  if (!poweredCradle(g) || cradleOffline(kit) || hackPulseOn(g, g.player, "cradle")) {
+  if (!poweredCradle(g) || cradleOffline(kit) || hackPulseOn(g, g.player, "clonebay")) {
     // Augmentations, "Crew Augmentations", Backup DNA Bank: an offline bay does not erase the copy.
     if (helixHolds(g)) return;
     if (!queued.length) {
@@ -243,7 +243,7 @@ export function tickCradle(g: Game, dt: number) {
  * "Overview": "Waiting at a beacon applies the jump heal effect": sim.ts waitHere calls this too.
  */
 export function onCradleJump(g: Game) {
-  const kit = g.player.kits.cradle;
+  const kit = g.player.kits.clonebay;
   if (!kit || kit.level <= 0) return;
   // Slug hacker (medical): "Clone Bay offline". INFERRED: the passive jump heal waits too.
   if (playerMedicalOff(g)) return;
@@ -261,9 +261,9 @@ export function onCradleJump(g: Game) {
 // Enemy Clone Bay. Wiki page "Clone Bay", section "Overview", unless noted.
 // ---------------------------------------------------------------------------
 
-/** The enemy's Clone Bay kit, if its hull has one (enemy-gen.ts maps "clonebay" to kit "cradle"). */
+/** The enemy's Clone Bay kit, if its hull has one (enemy-gen.ts maps "clonebay" to kit "clonebay"). */
 function enemyCradle(g: Game): Kit | null {
-  const kit = g.enemy?.kits.cradle;
+  const kit = g.enemy?.kits.clonebay;
   if (!kit || kit.level <= 0) return null;
   return kit;
 }
@@ -312,9 +312,9 @@ function purgeEnemyClones(g: Game): boolean {
   return true;
 }
 
-/** Clone Bay room on the enemy hull: the room housing kit "cradle" (enemy-gen.ts names it `e-clonebay`). */
+/** Clone Bay room on the enemy hull: the room housing kit "clonebay" (enemy-gen.ts names it `e-clonebay`). */
 function enemyCradleRoom(g: Game): string | null {
-  return g.enemy?.rooms.find((r) => r.kit === "cradle")?.id ?? null;
+  return g.enemy?.rooms.find((r) => r.kit === "clonebay")?.id ?? null;
 }
 
 /**
@@ -382,7 +382,7 @@ function tickEnemyCradle(g: Game, dt: number) {
   }
   // @agent:hacking. Hacking wiki, "Overview" (Active effects): "Clone Bay: disables the clone bay." The row names no
   // side, so the player's pulse on their Clone Bay does the same (spike.ts allows that target when they have one).
-  if (cradleOffline(kit) || (!!g.enemy && hackPulseOn(g, g.enemy, "cradle"))) {
+  if (cradleOffline(kit) || (!!g.enemy && hackPulseOn(g, g.enemy, "clonebay"))) {
     kit.aux += dt;
     if (kit.aux < 3) return;
     kit.aux = 0;
@@ -412,7 +412,7 @@ export function enemyCloneQueue(
   if (!kit) return null;
   const queued = enemyQueued(g);
   if (!queued.length) return null;
-  const hacked = !!g.enemy && hackPulseOn(g, g.enemy, "cradle");
+  const hacked = !!g.enemy && hackPulseOn(g, g.enemy, "clonebay");
   return {
     seconds: Math.ceil(queued[0].cloneIn ?? 0),
     count: queued.length,

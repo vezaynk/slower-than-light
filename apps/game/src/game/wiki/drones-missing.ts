@@ -22,7 +22,7 @@ const OVERCHARGER_COOLDOWN = "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers";
 
 export const MISSING_DRONES: DroneRow[] = [
   {
-    id: "ionintruder",
+    id: "BOARDER_ION",
     name: "Ion Intruder Drone",
     power: 3,
     cooldown: "Pulse time varies between 8.2 and 10 seconds",
@@ -30,7 +30,7 @@ export const MISSING_DRONES: DroneRow[] = [
     source: cite("Ion Intruder Drone"),
   },
   {
-    id: "combat2",
+    id: "COMBAT_2",
     name: "Combat Drone Mark II",
     power: 4,
     cooldown: null,
@@ -38,7 +38,7 @@ export const MISSING_DRONES: DroneRow[] = [
     source: cite("Combat Drone Mark II"),
   },
   {
-    id: "beam2",
+    id: "COMBAT_BEAM_2",
     name: "Anti-Ship Beam Drone II",
     power: 3,
     cooldown: null,
@@ -54,7 +54,7 @@ export const MISSING_DRONES: DroneRow[] = [
     source: cite("Anti-Ship Fire Drone"),
   },
   {
-    id: "antipersonnel",
+    id: "BATTLE",
     name: "Anti-Personnel Drone",
     power: 2,
     cooldown: null,
@@ -62,7 +62,7 @@ export const MISSING_DRONES: DroneRow[] = [
     source: cite("Anti-Personnel Drone"),
   },
   {
-    id: "overcharger",
+    id: "DRONE_SHIELD",
     name: "Shield Overcharger",
     power: 3,
     cooldown: OVERCHARGER_COOLDOWN,
@@ -70,7 +70,7 @@ export const MISSING_DRONES: DroneRow[] = [
     source: cite("Shield Overcharger"),
   },
   {
-    id: "overchargerplus",
+    id: "DRONE_SHIELD_PLAYER",
     name: "Shield Overcharger +",
     power: 2,
     cooldown: OVERCHARGER_COOLDOWN,

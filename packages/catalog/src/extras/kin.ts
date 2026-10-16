@@ -16,7 +16,7 @@
  * INFERRED as the encoding only.
  */
 
-export type KinId = "plain" | "shell" | "spark" | "blade" | "gel" | "stone" | "voidlung" | "shard";
+export type KinId = "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal";
 
 export type Kin = {
   name: string;
@@ -66,7 +66,7 @@ export type Kin = {
  * suffocation cut match the Crystal page.
  */
 export const KIN: Record<KinId, Kin> = {
-  plain: {
+  human: {
     name: "Human",
     hp: 100,
     move: 1,
@@ -75,7 +75,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 1,
   },
-  shell: {
+  engi: {
     name: "Engi",
     hp: 100,
     move: 1,
@@ -84,7 +84,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 1,
   },
-  spark: {
+  energy: {
     name: "Zoltan",
     hp: 70,
     move: 1,
@@ -93,7 +93,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 1,
   },
-  blade: {
+  mantis: {
     name: "Mantis",
     hp: 100,
     move: 1.2,
@@ -102,7 +102,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 1,
   },
-  gel: {
+  slug: {
     name: "Slug",
     hp: 100,
     move: 1,
@@ -111,7 +111,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 1,
   },
-  stone: {
+  rock: {
     name: "Rock",
     hp: 150,
     move: 0.5,
@@ -120,7 +120,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 1,
     fireTaken: 0,
   },
-  voidlung: {
+  anaerobic: {
     name: "Lanius",
     hp: 100,
     // Crew, "Crew races comparison": movement ×0.85. Lanius, "Race characteristics": 85%.
@@ -132,7 +132,7 @@ export const KIN: Record<KinId, Kin> = {
     suffocate: 0,
     fireTaken: 1,
   },
-  shard: {
+  crystal: {
     name: "Crystal",
     hp: 125,
     move: 0.8,

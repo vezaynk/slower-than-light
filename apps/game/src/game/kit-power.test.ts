@@ -12,29 +12,29 @@ describe("bar-by-bar power for Cloaking, the Crew Teleporter and Mind Control", 
     const g = createGame(1);
     g.scrap = 400;
     installSling(g);
-    const kit = g.player.kits.sling!;
+    const kit = g.player.kits.teleporter!;
     kit.level = 3;
     kit.power = 0;
     const spare = sparePower(g.player);
-    assert.equal(kitPowerUp(g, "sling"), true);
+    assert.equal(kitPowerUp(g, "teleporter"), true);
     assert.equal(kit.power, 1);
     assert.equal(sparePower(g.player), spare - 1);
-    setKitBars(g, "sling", 3);
+    setKitBars(g, "teleporter", 3);
     assert.equal(kit.power, Math.min(3, spare));
     kit.damage = 1;
-    setKitBars(g, "sling", 0);
-    setKitBars(g, "sling", 3);
+    setKitBars(g, "teleporter", 0);
+    setKitBars(g, "teleporter", 3);
     assert.ok(kit.power <= 2);
-    assert.equal(kitPowerDown(g, "sling"), true);
+    assert.equal(kitPowerDown(g, "teleporter"), true);
     kit.cool = 5;
-    assert.equal(kitPowerDown(g, "sling"), false);
+    assert.equal(kitPowerDown(g, "teleporter"), false);
   });
 
   it("runs the Teleporter on one bar and cools it for the powered level", () => {
     const g = createGame(1);
     g.scrap = 400;
     installSling(g);
-    const kit = g.player.kits.sling!;
+    const kit = g.player.kits.teleporter!;
     kit.level = 3;
     kit.power = 1;
     g.phase = "combat";
@@ -47,7 +47,7 @@ describe("bar-by-bar power for Cloaking, the Crew Teleporter and Mind Control", 
 });
 
 function padUp(g: Game) {
-  const pad = g.player.rooms.find((r) => r.kit === "sling")!;
+  const pad = g.player.rooms.find((r) => r.kit === "teleporter")!;
   const c = g.crew.find((x) => x.side === "player")!;
   c.room = pad.id;
   c.path = [];

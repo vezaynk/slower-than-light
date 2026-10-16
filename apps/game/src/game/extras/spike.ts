@@ -88,14 +88,14 @@ const TARGETS: readonly SysId[] = [
  * Weapon Control still drains every gun on a hull that is not the flagship.
  */
 const FLAGSHIP_GUN: Record<string, string> = {
-  "e-ion": "bossion",
-  "e-laser": "bosslaser",
-  "e-missile": "bossmissile",
-  "e-beam": "bossbeam",
+  "e-ion": "ARTILLERY_BOSS_4",
+  "e-laser": "ARTILLERY_BOSS_1",
+  "e-missile": "ARTILLERY_BOSS_2",
+  "e-beam": "ARTILLERY_BOSS_3",
 };
 
 function kitOf(g: Game): Kit | undefined {
-  return g.player.kits.spike;
+  return g.player.kits.hacking;
 }
 
 function running(kit: Kit): boolean {
@@ -132,15 +132,15 @@ function pulseSeconds(powered: number): number {
  * / Rebel Flagship weapons: drains charge". Effects: applyPulse below (flak / cradle read hackPulseOn).
  */
 const KIT_TARGETS: readonly KitId[] = [
-  "spike",
-  "cradle",
-  "veil",
-  "sling",
-  "leash",
-  "swarm",
-  "cell",
-  "flak",
-  "lance",
+  "hacking",
+  "clonebay",
+  "cloaking",
+  "teleporter",
+  "mind",
+  "drones",
+  "battery",
+  "artillery",
+  "artillery",
 ];
 
 /** Hacking wiki, "Overview": "A destroyed system cannot be actively hacked". */
@@ -177,12 +177,12 @@ function roomOf(ship: Ship, id: string): Room | undefined {
  * That table also prices level 2 at 35 and level 3 at 60; those costs are not charged here.
  */
 export function installSpike(g: Game): boolean {
-  if (g.player.kits.spike) return false;
+  if (g.player.kits.hacking) return false;
   if (g.scrap < SPIKE_COST) return false;
   g.scrap -= SPIKE_COST;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     // Hacking wiki, "System upgrades": a fresh install is level 1. Level 2 costs 35 and level 3 costs 60 on that table; neither is charged here.
     level: 1,
     power: 0,
@@ -206,7 +206,7 @@ export function spikeUpgradeCost(level: number): number | null {
 
 /** Hacking wiki, "System upgrades": pay 35 to reach level 2, then 60 to reach level 3. */
 export function upgradeSpike(g: Game): boolean {
-  const kit = g.player.kits.spike;
+  const kit = g.player.kits.hacking;
   if (!kit || kit.level >= 3) return false;
   const cost = spikeUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
@@ -283,7 +283,7 @@ export function launchSpike(g: Game): boolean {
   const latched = g.enemy.hackDrone != null && g.enemy.hackDrone === kit.target;
   if (latched) {
     if (running(kit) || kit.cool > 0) return false;
-    if (enemyPulseOn(g, ["spike"])) return false;
+    if (enemyPulseOn(g, ["hacking"])) return false;
     const again = pulseSeconds(powered);
     if (again <= 0) return false;
     startOwnPulse(g, kit, again);
@@ -305,7 +305,7 @@ export function launchSpike(g: Game): boolean {
   }
   // @agent:hacking. INFERRED: no launch while the enemy's pulse is on this Hacking system. Hacking, "Overview"
   // (Hacking row): a pulse "ends an active hack"; the page never says whether a new one can start meanwhile.
-  if (enemyPulseOn(g, ["spike"])) return false;
+  if (enemyPulseOn(g, ["hacking"])) return false;
   const seconds = pulseSeconds(powered);
   if (seconds <= 0) return false;
   // Hacking: "Hacking drone cannot be launched at a ship with a Zoltan Shield, even with the Zoltan Shield Bypass
@@ -387,8 +387,8 @@ function startOwnPulse(g: Game, kit: Kit, seconds: number) {
   // Crystal Lockdown: a pulse during the coating keeps normal hacked-door strength.
   if (kit.target) noteHackPulseDuringLock(foe, kit.target, g.difficulty);
   // "Cloaking: ends an active cloak". As startEnemyPulse: the cloak then cools 20 s (Cloaking, "Overview").
-  const veil = foe.kits.veil;
-  if (kit.target === "veil" && veil?.on) {
+  const veil = foe.kits.cloaking;
+  if (kit.target === "cloaking" && veil?.on) {
     veil.on = false;
     veil.left = 0;
     veil.cool = CLOAK_COOLDOWN;
@@ -420,7 +420,7 @@ function arriveOwn(g: Game, kit: Kit) {
   noteHackLatchedDuringLock(foe, target);
   log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
   const seconds = pulseSeconds(fedBars(kit));
-  if (seconds > 0 && !enemyPulseOn(g, ["spike"])) startOwnPulse(g, kit, seconds);
+  if (seconds > 0 && !enemyPulseOn(g, ["hacking"])) startOwnPulse(g, kit, seconds);
 }
 
 /**
@@ -509,23 +509,23 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
         if (c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
         c.stun = kit.left;
       }
-      const interior = g.player.kits.swarm;
+      const interior = g.player.kits.drones;
       if (
         interior?.on &&
         interior.hp != null &&
         interior.room === room.id &&
-        (interior.target === "ionintruder" || interior.target === "board")
+        (interior.target === "BOARDER_ION" || interior.target === "BOARDER")
       ) {
         interior.stun = Math.max(interior.stun ?? 0, kit.left);
       }
-      for (const unit of enemy.kits.swarm?.drones ?? []) {
+      for (const unit of enemy.kits.drones?.drones ?? []) {
         const spot = enemyDroneSpot(unit);
         if (!spot || spot.at !== "enemy-room" || spot.room !== room.id) continue;
         unit.stun = Math.max(unit.stun ?? 0, kit.left);
       }
     }
   }
-  if (kit.target === "spike") {
+  if (kit.target === "hacking") {
     pulseTheirHacking(g, kit, dt);
     return;
   }
@@ -571,11 +571,11 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
   // asks hackPulseOn. Sensors ("disable sensors"): enemySensorsHacked. Artillery Beam: enemy hulls fire none (lance.ts
   // runs the player's only), so a pulse on it has nothing to drain.
   switch (kit.target) {
-    case "veil": {
+    case "cloaking": {
       // "Cloaking: ends an active cloak, and prevents the enemy from entering cloak." The end is startOwnPulse; a cloak
       // started during the pulse is cancelled at once.
       // Cloaking, Overview: "Hacking pulse ends an active cloak and puts the Cloaking system on full (20 seconds) cooldown."
-      const veil = enemy.kits.veil;
+      const veil = enemy.kits.cloaking;
       if (veil?.on) {
         veil.on = false;
         veil.left = 0;
@@ -583,11 +583,11 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "cell": {
+    case "battery": {
       // "Backup Battery: disables bonus power, putting the system on cooldown if active, and temporarily removes two
       // regular power bars from reactor." The drain is syncOwnPulse (Kit.drained, cell.ts cellBonus).
-      // Backup Battery wiki, "Overview": 20 s cooldown (the "tap" augment is the player's, so not here).
-      const cell = enemy.kits.cell;
+      // Backup Battery wiki, "Overview": 20 s cooldown (the "BATTERY_BOOSTER" augment is the player's, so not here).
+      const cell = enemy.kits.battery;
       if (cell?.on && cell.left > 0) {
         cell.on = false;
         cell.left = 0;
@@ -596,13 +596,13 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "swarm":
+    case "drones":
       pulseTheirSwarm(g, kit, dt);
       return;
-    case "leash":
+    case "mind":
       pulseTheirMind(g, kit);
       return;
-    case "sling":
+    case "teleporter":
       pulseTheirSling(g);
       return;
     default:
@@ -617,7 +617,7 @@ function applyPulse(g: Game, kit: Kit, dt: number) {
  * INFERRED: the 15% is rolled per drone. A destroyed drone is reset as swarm.ts killUnit does (redeploy wait 10 s).
  */
 function pulseTheirSwarm(g: Game, kit: Kit, dt: number) {
-  const units = g.enemy?.kits.swarm?.drones ?? [];
+  const units = g.enemy?.kits.drones?.drones ?? [];
   const live = units.filter((u) => u.alive);
   for (const u of live) u.stun = Math.max(u.stun ?? 0, kit.left);
   const before = kit.aux;
@@ -633,7 +633,7 @@ function pulseTheirSwarm(g: Game, kit: Kit, dt: number) {
       u.ionT = undefined;
       u.fly = undefined;
       u.room = undefined;
-      if (u.kind !== "ionintruder") {
+      if (u.kind !== "BOARDER_ION") {
         u.aux = 0;
         u.left = undefined;
       }
@@ -677,7 +677,7 @@ function pulseTheirMind(g: Game, kit: Kit) {
  * INFERRED: a teleporter kit with no teleporter room uses the first room on that hull.
  */
 function retrievedRoom(ship: Ship, index: number): string | undefined {
-  const pad = ship.rooms.find((r) => r.kit === "sling");
+  const pad = ship.rooms.find((r) => r.kit === "teleporter");
   const id = pad?.id ?? ship.rooms[0]?.id;
   if (!id) return undefined;
   if (!pad) return id;
@@ -704,7 +704,7 @@ function retrievedRoom(ship: Ship, index: number): string | undefined {
  */
 function pulseTheirSling(g: Game) {
   const foe = g.enemy;
-  const sling = foe?.kits.sling;
+  const sling = foe?.kits.teleporter;
   if (!foe || !sling || veilBlocks(g, "enemy")) return;
   const away = g.crew.filter(
     (c) => c.aboard === "player" && c.hp > 0 && c.side === "enemy" && sideOf(c) === "enemy",
@@ -831,7 +831,7 @@ export function tickSpike(g: Game, dt: number) {
 function syncOwnPulse(g: Game, kit: Kit) {
   const foe = g.enemy;
   const on = !!foe && g.phase === "combat" && running(kit);
-  if (kit.hackHeld && !(on && kit.target === "leash")) {
+  if (kit.hackHeld && !(on && kit.target === "mind")) {
     const c = g.crew.find((x) => x.id === kit.hackHeld);
     kit.hackHeld = undefined;
     if (c && c.side === "enemy" && (c.leashed ?? 0) > 0) {
@@ -839,16 +839,16 @@ function syncOwnPulse(g: Game, kit: Kit) {
       delete c.leashed;
     }
   }
-  const cell = foe?.kits.cell;
+  const cell = foe?.kits.battery;
   if (cell) {
-    if (on && kit.target === "cell") cell.drained = DRAINED_BARS;
+    if (on && kit.target === "battery") cell.drained = DRAINED_BARS;
     else if (cell.drained != null) delete cell.drained;
   }
 }
 
 // ---------------------------------------------------------------------------------------------
 // @agent:hacking. Enemy Hacking: the enemy's kit (enemy-gen.ts, room `e-hacking`) hacks the player.
-// Same PULSE_SECONDS and COOLDOWN as the player's kit. State lives on g.enemy.kits.spike:
+// Same PULSE_SECONDS and COOLDOWN as the player's kit. State lives on g.enemy.kits.hacking:
 // hackFly / hackFlyTotal (drone in flight), hackLatched (drone on the hull), target (the hacked player system or
 // kit id), on / left (pulse), cool (cooldown or relaunch delay), aux (shield-drop or drone-kill clock), hackHeld.
 // ---------------------------------------------------------------------------------------------
@@ -886,9 +886,9 @@ const DRONE_KILL_PER_S = 0.15;
 /** Cloaking wiki, "Overview": the cloak ends with 4 ion damage, 20 seconds (veil.ts COOLDOWN). */
 const CLOAK_COOLDOWN = 20;
 
-/** Backup Battery wiki, "Overview": 20 seconds of cooldown, 10 with the charger augment (cell.ts, code id "tap"). */
+/** Backup Battery wiki, "Overview": 20 seconds of cooldown, 10 with the charger augment (cell.ts, code id "BATTERY_BOOSTER"). */
 function cellCooldown(g: Game): number {
-  return g.augments?.includes("tap") ? 10 : 20;
+  return g.augments?.includes("BATTERY_BOOSTER") ? 10 : 20;
 }
 
 /** Crew Teleporter wiki, "System Upgrades": 20 / 15 / 10 seconds at levels 1 / 2 / 3 (sling.ts cooldown). */
@@ -919,19 +919,18 @@ const LABEL: Record<string, string> = {
   pilot: "Piloting",
   sensors: "Sensors",
   doors: "Doors",
-  veil: "Cloaking",
-  sling: "Teleporter",
-  spike: "Hacking",
-  swarm: "Drone Control",
-  leash: "Mind Control",
-  cradle: "Clone Bay",
-  cell: "Backup Battery",
-  lance: "Artillery Beam",
-  flak: "Flak Artillery",
+  cloaking: "Cloaking",
+  teleporter: "Teleporter",
+  hacking: "Hacking",
+  drones: "Drone Control",
+  mind: "Mind Control",
+  clonebay: "Clone Bay",
+  battery: "Backup Battery",
+  artillery: "Artillery",
 };
 
 function enemyKit(g: Game): Kit | undefined {
-  return g.enemy?.kits.spike;
+  return g.enemy?.kits.hacking;
 }
 
 /**
@@ -1062,8 +1061,8 @@ function startEnemyPulse(g: Game, kit: Kit) {
   if (kit.target) noteHackPulseDuringLock(g.player, kit.target, g.difficulty);
   // Hacking wiki, "Overview" (Cloaking): "ends an active cloak". INFERRED: the cloak then cools as it does after any
   // ended cloak (Cloaking, "Overview": 20 seconds).
-  const veil = g.player.kits.veil;
-  if (kit.target === "veil" && veil?.on) {
+  const veil = g.player.kits.cloaking;
+  if (kit.target === "cloaking" && veil?.on) {
     veil.on = false;
     veil.left = 0;
     veil.cool = CLOAK_COOLDOWN;
@@ -1098,7 +1097,7 @@ function endEnemyPulse(g: Game, kit: Kit) {
 export const HACK_ION_LOCK = 5;
 
 export function ionHitsHack(g: Game, ship: Ship, points: number): void {
-  const kit = ship.kits.spike;
+  const kit = ship.kits.hacking;
   if (!kit || !running(kit)) return;
   kit.left = 0;
   kit.on = false;
@@ -1113,12 +1112,12 @@ export function ionHitsHack(g: Game, ship: Ship, points: number): void {
         delete c.leashed;
       }
     }
-    const cell = g.enemy?.kits.cell;
+    const cell = g.enemy?.kits.battery;
     if (cell?.drained != null) delete cell.drained;
     return;
   }
   releaseHeld(g, kit);
-  if (g.player.kits.cell?.drained != null) delete g.player.kits.cell.drained;
+  if (g.player.kits.battery?.drained != null) delete g.player.kits.battery.drained;
 }
 
 /**
@@ -1126,7 +1125,7 @@ export function ionHitsHack(g: Game, ship: Ship, points: number): void {
  * control from allies." From the enemy's side: one random player crew member fights for them this pulse, and the
  * player's own holds on enemy crew end. "Fails completely when used by automated ships." "If the enemy mind-controlled
  * crew dies during the disruption, then another enemy crew will be mind-controlled."
- * Mind Control, "Overview": "Slugs cannot be mind controlled." (kin "gel").
+ * Mind Control, "Overview": "Slugs cannot be mind controlled." (kin "slug").
  */
 function pulseMind(g: Game, kit: Kit) {
   if (g.enemy?.automated) return;
@@ -1136,7 +1135,7 @@ function pulseMind(g: Game, kit: Kit) {
       delete c.leashed;
     }
   }
-  const own = g.player.kits.leash;
+  const own = g.player.kits.mind;
   if (own?.on) {
     own.on = false;
     own.left = 0;
@@ -1178,7 +1177,7 @@ function pulseMind(g: Game, kit: Kit) {
  * INFERRED: a Zoltan counts while standing in the teleporter room, and the example puts one reactor bar back.
  */
 function pulseSling(g: Game) {
-  const sling = g.player.kits.sling;
+  const sling = g.player.kits.teleporter;
   if (!sling || veilBlocks(g, "player")) return;
   const away = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0 && sideOf(c) === "player");
   if (!away.length) return;
@@ -1209,7 +1208,7 @@ function pulseSling(g: Game) {
  * INFERRED: a destroyed drone is undeployed (kit.on false), so a new part is needed, as after any lost drone.
  */
 function pulseSwarm(g: Game, kit: Kit, dt: number) {
-  const swarm = g.player.kits.swarm;
+  const swarm = g.player.kits.drones;
   if (!swarm?.on) return;
   swarm.stun = Math.max(swarm.stun ?? 0, kit.left);
   const before = kit.aux;
@@ -1278,10 +1277,10 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "veil": {
+    case "cloaking": {
       // "Cloaking: ... prevents the enemy from entering cloak." A cloak started during the pulse is cancelled.
       // Cloaking, Overview: "Hacking pulse ends an active cloak and puts the Cloaking system on full (20 seconds) cooldown."
-      const veil = ship.kits.veil;
+      const veil = ship.kits.cloaking;
       if (veil?.on) {
         veil.on = false;
         veil.left = 0;
@@ -1289,11 +1288,11 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "spike": {
+    case "hacking": {
       // "Hacking: ends an active hack, with a chance to destroy the hacking drone". Choosing your hacking target: "It
       // can only be destroyed if the enemy hacks your hacking system." The drone at risk is the player's, latched on
       // the enemy hull (Ship.hackDrone): 15% a second after a one-second delay, as in pulseTheirHacking.
-      const own = ship.kits.spike;
+      const own = ship.kits.hacking;
       if (own && running(own)) {
         own.on = false;
         own.left = 0;
@@ -1313,10 +1312,10 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "cell": {
+    case "battery": {
       // "Backup Battery: disables bonus power, putting the system on cooldown if active". The other half, "temporarily
       // removes two regular power bars from reactor", is syncDrain (Kit.drained, read by cell.ts cellBonus).
-      const cell = ship.kits.cell;
+      const cell = ship.kits.battery;
       if (cell?.on && cell.left > 0) {
         cell.on = false;
         cell.left = 0;
@@ -1325,17 +1324,17 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       }
       return;
     }
-    case "swarm":
+    case "drones":
       pulseSwarm(g, kit, dt);
       return;
-    case "leash":
+    case "mind":
       pulseMind(g, kit);
       return;
-    case "sling":
+    case "teleporter":
       pulseSling(g);
       return;
     default:
-      // engines / pilot: predicates below (evasion 0, FTL frozen). doors: syncDoors. cell: syncDrain.
+      // engines / pilot: predicates below (evasion 0, FTL frozen). doors: syncDoors. battery: syncDrain.
       // Clone Bay ("disables the clone bay"): cradle.ts asks hackPulseOn. Sensors ("disable sensors"):
       // playerSensorLevel. Artillery Beam / Flak Artillery ("drains charge"): lance.ts / flakart.ts ask hackPulseOn.
       return;
@@ -1423,16 +1422,16 @@ function syncRooms(g: Game, kit: Kit | undefined) {
 const DRAINED_BARS = 2;
 
 function syncDrain(g: Game, kit: Kit | undefined) {
-  const cell = g.player.kits.cell;
+  const cell = g.player.kits.battery;
   if (!cell) return;
-  const on = !!kit && !!g.enemy && enemyPulseOn(g, ["cell"]);
+  const on = !!kit && !!g.enemy && enemyPulseOn(g, ["battery"]);
   if (on) cell.drained = DRAINED_BARS;
   else if (cell.drained != null) delete cell.drained;
 }
 
 /** Clears every enemy-hack mark on the player hull. sim.ts step calls it outside combat. */
 export function clearEnemyHackMarks(g: Game) {
-  if (g.player.kits.cell?.drained != null) delete g.player.kits.cell.drained;
+  if (g.player.kits.battery?.drained != null) delete g.player.kits.battery.drained;
   for (const r of g.player.rooms) if (r.hacked) delete r.hacked;
   for (const d of g.player.doors) {
     if (!d.hacked) continue;
@@ -1444,7 +1443,7 @@ export function clearEnemyHackMarks(g: Game) {
 /** Enemy half of tickSpike: launch, flight, latch, pulse, cooldown. */
 export function tickEnemySpike(g: Game, dt: number) {
   const ship = g.enemy;
-  const kit = ship?.kits.spike;
+  const kit = ship?.kits.hacking;
   if (!ship || !kit || g.phase !== "combat") {
     clearEnemyHackMarks(g);
     return;
@@ -1484,7 +1483,7 @@ export function tickEnemySpike(g: Game, dt: number) {
     }
   } else if (kit.cool > 0) {
     kit.cool = Math.max(0, kit.cool - dt);
-  } else if (live && !playerPulseOn(g, "spike")) {
+  } else if (live && !playerPulseOn(g, "hacking")) {
     // @agent:hacking. INFERRED: no new pulse while the player's pulse is on their Hacking ("ends an active hack").
     startEnemyPulse(g, kit);
   }
@@ -1536,7 +1535,7 @@ export function hackHoldsShields(g: Game, ship: Ship): boolean {
 
 /** Hacking wiki, "Overview" (Cloaking): "prevents the enemy from entering cloak". For the cloak button. */
 export function playerCloakHacked(g: Game): boolean {
-  return enemyPulseOn(g, ["veil"]);
+  return enemyPulseOn(g, ["cloaking"]);
 }
 
 /** sim.ts moveCrew: this door is a hacked level-3 blast door (syncDoors on the player hull, syncOwnDoors on the enemy). */

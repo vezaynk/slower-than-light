@@ -56,13 +56,13 @@ describe("Mantis fugitive", () => {
       if (g.player.hull === hull - 5) {
         trap = true;
         assert.ok(systemDamage(g) >= 1);
-        assert.ok(aboard.every((c) => c.kin === "blade"));
+        assert.ok(aboard.every((c) => c.kin === "mantis"));
         assert.ok(g.log.some((line) => line.includes("sabotages your ship")));
       } else {
         thanks = true;
         assert.equal(g.player.hull, hull);
         assert.equal(systemDamage(g), 0);
-        assert.ok(aboard.some((c) => c.kin === "shell"));
+        assert.ok(aboard.some((c) => c.kin === "engi"));
         assert.ok(g.log.some((line) => line.includes("expresses his thanks")));
       }
     }
@@ -91,9 +91,9 @@ describe("Mantis fugitive", () => {
         assert.equal(players(g).length, crew);
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.equal(boarders.length, 1);
-        assert.equal(boarders[0]?.kin, "blade");
+        assert.equal(boarders[0]?.kin, "mantis");
         const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
-        assert.ok(aboard.every((c) => c.kin === "blade"));
+        assert.ok(aboard.every((c) => c.kin === "mantis"));
       } else {
         const body = g.event?.body ?? "";
         const got = reward(body);

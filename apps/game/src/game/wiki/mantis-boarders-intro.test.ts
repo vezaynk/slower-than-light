@@ -53,7 +53,7 @@ describe("Boarders: Mantis intros", () => {
     const g = createGame(2);
     open(g);
     choose(g, "c:boarders-mantis:0");
-    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "blade" && c.aboard === "player");
+    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis" && c.aboard === "player");
     assert.ok(mantis.length >= 2 && mantis.length <= 4, String(mantis.length));
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");

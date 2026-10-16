@@ -580,9 +580,9 @@ function roomBreach(g: Game): string {
 
 /** Beam Drone, not an Anti-Ship Fire Drone and not Beam Drone II. The fitted schematic is kit.target. */
 function ownsMineBeam(g: Game): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit) return false;
-  return kit.target === "beam" || (kit.loadout ?? []).includes("beam");
+  return kit.target === "COMBAT_BEAM" || (kit.loadout ?? []).includes("COMBAT_BEAM");
 }
 
 /**
@@ -601,10 +601,10 @@ function roomBar(g: Game): string {
 
 /** Mantis fugitive, mantis-controlled Engi ship. INFERRED: the Engi hull's crew are Mantis. */
 function mantisControlled(g: Game) {
-  const hp = crewDef("blade").hp;
+  const hp = crewDef("mantis").hp;
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "enemy") continue;
-    c.kin = "blade";
+    c.kin = "mantis";
     c.hp = hp;
     c.maxHp = hp;
   }
@@ -692,7 +692,7 @@ function breachRandomSystem(g: Game): string {
 
 /** "You lose a crewmember." Clone Bay: "The lost crewmember is revived" unless `noClone`. INFERRED: never the last one. */
 function loseCrew(g: Game, noClone = false): string {
-  if (!noClone && g.player.kits.cradle) return "The lost crewmember is revived.";
+  if (!noClone && g.player.kits.clonebay) return "The lost crewmember is revived.";
   const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
   if (mine.length <= 1) return "";
   const lost = mine[Math.min(mine.length - 1, Math.floor(rand(g) * mine.length))];
@@ -719,7 +719,7 @@ function weighted<T>(g: Game, items: [T, number][]): T {
 /** Missile (Weapons), Hull Missile: "BUGGED: not considered a missile weapon for events." */
 function miningMissile(g: Game): boolean {
   return g.player.weapons.some(
-    (w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile",
+    (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
   );
 }
 
@@ -733,13 +733,13 @@ function miningOffers(): { id: string; label: string }[] {
 
 /** The fitted schematic is kit.target. A loadout entry counts the same way. */
 function ownsDrone(g: Game, kind: string): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit) return false;
   return kit.target === kind || (kit.loadout ?? []).includes(kind);
 }
 
 function ownsAntiBio(g: Game): boolean {
-  return g.player.weapons.some((w) => w.defId === "antibio");
+  return g.player.weapons.some((w) => w.defId === "BEAM_BIO");
 }
 
 /** Malfunctioning defense system, Ion Weapon: kind ion, or any weapon that deals ion, including Ion Bomb and Stun Bomb. */
@@ -752,15 +752,15 @@ function ownsIon(g: Game): boolean {
 
 /** Cloaking with no level named is any installed Cloaking. Improved is 2. Advanced is 3. */
 function cloakLevel(g: Game): number {
-  return g.player.kits.veil?.level ?? 0;
+  return g.player.kits.cloaking?.level ?? 0;
 }
 
 /** Crushed pirate: Anti-Bio Beam and Fire Beam are excluded. Artillery Beam is the lance kit. */
 function ownsCuttingBeam(g: Game): boolean {
-  if ((g.player.kits.lance?.level ?? 0) > 0) return true;
+  if ((g.player.kits.artillery?.level ?? 0) > 0) return true;
   return g.player.weapons.some((w) => {
     const def = weaponDef(w.defId);
-    return def?.kind === "beam" && w.defId !== "antibio" && w.defId !== "firebeam";
+    return def?.kind === "beam" && w.defId !== "BEAM_BIO" && w.defId !== "BEAM_FIRE";
   });
 }
 
@@ -775,9 +775,9 @@ function medbayLevel(g: Game): number {
 
 /** A beam drone, not an Anti-Ship Fire Drone. The fitted schematic is kit.target, and a loadout entry counts. */
 function ownsBeamDrone(g: Game): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit) return false;
-  return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "beam" || kind === "beam2");
+  return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2");
 }
 
 /** The launch offer is a blue option. It is absent without a missile weapon. */
@@ -936,7 +936,7 @@ function spiderCard(g: Game, page: Page): GameEvent {
   const choices = page.choices
     .filter((c) => {
       if (c.id === "c:giant-alien-spiders:2") return ownsDrone(g, "personnel");
-      if (c.id === "c:giant-alien-spiders:3") return ownsDrone(g, "board");
+      if (c.id === "c:giant-alien-spiders:3") return ownsDrone(g, "BOARDER");
       if (c.id === "c:giant-alien-spiders:4") return ownsAntiBio(g);
       return true;
     })
@@ -976,7 +976,7 @@ function defenseOptions(g: Game): { id: string; label: string }[] {
       id: "c:malfunctioning-defense-system:6",
       label: "(Advanced Cloaking) Use your cloaking to disable the system.",
     });
-  if (livingKin(g, "shell"))
+  if (livingKin(g, "engi"))
     choices.push({
       id: "c:malfunctioning-defense-system:7",
       label: "(Engi Crew) Remotely repair its targeting system.",
@@ -1000,7 +1000,7 @@ function payDronePart(g: Game, offer: SurrenderOffer, body: string, hull: number
   show(g, body, offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
 }
 
-function spiderDrone(g: Game, kind: "personnel" | "board", body: string) {
+function spiderDrone(g: Game, kind: "personnel" | "BOARDER", body: string) {
   if (!ownsDrone(g, kind)) return;
   const hull = g.player.hull;
   const lines = g.log.slice();
@@ -1025,8 +1025,8 @@ function pirateCard(g: Game, page: Page): GameEvent {
 function diseaseCard(g: Game, page: Page): GameEvent {
   const choices = page.choices
     .filter((c) => {
-      if (c.id === "c:unknown-disease-on-mining-colony:2") return livingKin(g, "stone");
-      if (c.id === "c:unknown-disease-on-mining-colony:3") return livingKin(g, "shell");
+      if (c.id === "c:unknown-disease-on-mining-colony:2") return livingKin(g, "rock");
+      if (c.id === "c:unknown-disease-on-mining-colony:3") return livingKin(g, "engi");
       if (c.id === "c:unknown-disease-on-mining-colony:4") return medbayLevel(g) >= 2;
       return true;
     })
@@ -1038,8 +1038,8 @@ function diseaseCard(g: Game, page: Page): GameEvent {
 function fireCard(g: Game, page: Page): GameEvent {
   const choices = page.choices
     .filter((c) => {
-      if (c.id === "c:fire-on-research-station:3") return livingKin(g, "stone");
-      if (c.id === "c:fire-on-research-station:4") return ownsDrone(g, "patch");
+      if (c.id === "c:fire-on-research-station:3") return livingKin(g, "rock");
+      if (c.id === "c:fire-on-research-station:4") return ownsDrone(g, "REPAIR");
       return true;
     })
     .map((c) => ({ id: c.id, label: c.label }));
@@ -1067,7 +1067,7 @@ function charlieJoins(g: Game, skills?: Crew["skills"]): string {
 }
 
 function clonebayLevel(g: Game): number {
-  return g.player.kits.cradle?.level ?? 0;
+  return g.player.kits.clonebay?.level ?? 0;
 }
 
 /** The cave. Blue options stay off until the ship meets the printed level. */
@@ -1085,7 +1085,7 @@ function moonCave(g: Game) {
     choices.push({ id: "s:moon:medbay2", label: "(Improved Medbay) Bring him to your medbay." });
   if (med >= 3)
     choices.push({ id: "s:moon:medbay3", label: "(Advanced Medbay) Bring him to your medbay." });
-  if (livingKin(g, "gel"))
+  if (livingKin(g, "slug"))
     choices.push({ id: "s:moon:slug", label: "Sir, allow me to assess his mental state." });
   card(
     g,
@@ -1149,7 +1149,7 @@ function moonCollapse(g: Game) {
 
 function diseaseCure(g: Game) {
   const choices = [{ id: "s:unknown-disease:continue", label: "Continue..." }];
-  if (g.augments.includes("medbot")) {
+  if (g.augments.includes("NANO_MEDBAY")) {
     choices.push({
       id: "s:unknown-disease:medbot",
       label: "Use the Nano med-bots to accelerate the dispersal of the cure.",
@@ -1187,7 +1187,7 @@ function robertJoins(g: Game): string {
 }
 
 function ownsMindControl(g: Game): boolean {
-  return (g.player.kits.leash?.level ?? 0) > 0;
+  return (g.player.kits.mind?.level ?? 0) > 0;
 }
 
 /** Confused Mantis, after listening. Blue options stay off until the ship has them. */
@@ -1203,12 +1203,12 @@ function confusedMantisCard(g: Game) {
     { id: "s:confused-mantis:shuttle", label: "Send a shuttle with an away team to help." },
     { id: "s:confused-mantis:leave", label: "Leave them, a cornered Mantis is too dangerous." },
   ];
-  if (livingKin(g, "plain"))
+  if (livingKin(g, "human"))
     choices.push({
       id: "s:confused-mantis:human",
       label: "Send your human crewmember to communicate with the Mantis.",
     });
-  if (livingKin(g, "blade"))
+  if (livingKin(g, "mantis"))
     choices.push({
       id: "s:confused-mantis:mantis",
       label: "Send your Mantis crewmember to communicate with the Mantis.",
@@ -1255,7 +1255,7 @@ function sensorsLevel(g: Game): number {
 
 /** Terraforming scan, Zoltan Crew. A dead Zoltan does not count. */
 function livingZoltan(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "spark");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "energy");
 }
 
 /**
@@ -1606,7 +1606,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:large-asteroid-field:1": done,
   // Large asteroid field, Scrap Recovery Arm: "You receive high scrap." The arm must be fitted.
   "c:large-asteroid-field:2": (g) => {
-    if (!g.augments.includes("hook")) return;
+    if (!g.augments.includes("SCRAP_COLLECTOR")) return;
     show(
       g,
       "You carefully extract as much usable material as possible from the nearest asteroids while waiting for the FTL to charge.",
@@ -1716,7 +1716,7 @@ Scrap: ${offer.scrap}.`,
     const extras: string[] = [];
     const note = loseCrew(g, true);
     if (note) extras.push(note);
-    if (g.player.kits.cradle)
+    if (g.player.kits.clonebay)
       extras.push(
         "You stop your crew's clone from forming, knowing that the disease would follow into his next life.",
       );
@@ -1875,7 +1875,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
     // > "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range." — [[Rebel fight chance in nebula]]
     // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
-    if (!g.augments.includes("glass")) return;
+    if (!g.augments.includes("ADV_SCANNERS")) return;
     fight(
       g,
       "As soon as they see you they make a run for it. You squeeze what you can out of the malfunctioning sensors and are able to keep track of them enough to get in firing range.",
@@ -1888,7 +1888,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
     // > "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight." — [[Rebel fight chance in nebula]]
     // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
-    if (!g.augments.includes("pulseeye")) return;
+    if (!g.augments.includes("LIFE_SCANNER")) return;
     fight(
       g,
       "Your augment's ability to keep track of their life signatures within the nebula proves useful. You catch up to the ship and prepare for a fight.",
@@ -1914,7 +1914,7 @@ Scrap: ${offer.scrap}.`,
       // > "You lose a crewmember." — [[Zoltan Great Eye]]
       // > "(Clone Bay) [no effect] You check your Cloning Bay but it lies dormant. Whatever just happened to your crewmember must be irreversible." — [[Zoltan Great Eye]]
       const extras = [];
-      if (g.player.kits.cradle)
+      if (g.player.kits.clonebay)
         extras.push(
           "You check your Cloning Bay but it lies dormant. Whatever just happened to your crewmember must be irreversible.",
         );
@@ -1964,7 +1964,7 @@ Scrap: ${offer.scrap}.`,
         fuel: 0,
         missiles: 0,
         parts: 0,
-        weapon: "healburst",
+        weapon: "BOMB_HEAL",
       },
     );
   },
@@ -2083,7 +2083,7 @@ Scrap: ${offer.scrap}.`,
     // Wiki citations:
     // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
     // > "Find remains of a ship." — [[Dense asteroid field distress]]
-    if (!g.augments.includes("keel")) return;
+    if (!g.augments.includes("ROCK_ARMOR")) return;
     asteroidRemains(g);
   },
   "s:dense-asteroid-field-distress:weapon": (g) => {
@@ -2103,7 +2103,7 @@ Scrap: ${offer.scrap}.`,
     // > "You receive Damaged Stasis Pod augmentation with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     // Damaged Stasis Pod can be held more than once. Three augments is the ship cap. INFERRED: a fourth is not installed.
     const note =
-      receiveAugment(g, "stasis") === "queued"
+      receiveAugment(g, "STASIS_POD") === "queued"
         ? "No free augmentation slot for the Damaged Stasis Pod: choose what to leave behind."
         : "Damaged Stasis Pod.";
     show(
@@ -2183,7 +2183,7 @@ Scrap: ${offer.scrap}.`,
     // Wiki citations:
     // > "(Slug Crew) Check for lifeforms and keep a lookout for ships while looting the wreck." — [[Disabled Rock ship]]
     // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
-    if (!livingKin(g, "gel")) return;
+    if (!livingKin(g, "slug")) return;
     const clear =
       weighted(g, [
         ["clear", 1],
@@ -2465,7 +2465,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Repair Drone) Repair the Rock ship. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
     // > "While the two Mantis fight you approach the Rock ship and send a repair drone through one of the many breaches. It fixes the ship up enough to make at least a single jump. You're surprised when, instead, they embark on a kamikaze run on the two Mantis, which results in the obliteration of all three!" — [[Mantis ships battle for Rock freighter]]
     // > "You receive high scrap with resources." — [[Mantis ships battle for Rock freighter]]
-    if (!ownsDrone(g, "patch")) return;
+    if (!ownsDrone(g, "REPAIR")) return;
     const hull = g.player.hull;
     const lines = g.log.slice();
     payDronePart(
@@ -2483,7 +2483,7 @@ Scrap: ${offer.scrap}.`,
     // > "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you." — [[Mantis ships battle for Rock freighter]]
     // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
     const n = affordStock(g, "c:mantis-ships-battle-for-rock-freighter:3", "parts");
-    if (!ownsDrone(g, "hull") || n == null) return;
+    if (!ownsDrone(g, "SHIP_REPAIR") || n == null) return;
     takeStock(g, "parts", n);
     log(g, partsLine(n));
     fight(
@@ -2605,7 +2605,7 @@ Scrap: ${offer.scrap}.`,
   // Engi smashed ships. "a random amount of resources with some scrap."
   // Rewards Stuff includes an unnamed bonus item. That grant stays unwired.
   "c:engi-smashed-ships:2": (g) => {
-    if (!livingKin(g, "shell")) return;
+    if (!livingKin(g, "engi")) return;
     show(
       g,
       'Your Engi crewmember refuses. In a halting use of adjectives and nouns, followed by some animated holographic aids, the Engi explains the ships are using each other to, loosely translated, "achieve a union." For some reason, this consolidation of ship matter sounds embarrassing and personal. You elect to leave the two Engi ships to their "business." After questioning your Engi crewmember, however, you do manage to salvage what scrap parts you can from the perimeter, even though you feel slightly dirty for doing so.',
@@ -2617,7 +2617,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
     // > "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
     // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
-    if (!livingKin(g, "voidlung")) return;
+    if (!livingKin(g, "anaerobic")) return;
     delayFleetOne(g);
     show(
       g,
@@ -2672,7 +2672,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
     // > "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials." — [[Lanius ship absorbing jump beacon]]
     // > "Decline." — [[Lanius ship absorbing jump beacon]]
-    if (!livingKin(g, "voidlung")) return;
+    if (!livingKin(g, "anaerobic")) return;
     card(
       g,
       "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials.",
@@ -2737,7 +2737,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
     // > "Your crewmember offers to aid in the process to speed it along. They think it can be performed a bit more efficiently with the extra help and request less scrap." — [[Lanius craftsmen]]
     // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
-    if (!livingKin(g, "voidlung")) return;
+    if (!livingKin(g, "anaerobic")) return;
     craftsmenMenu(g, true);
   },
   "s:lanius-craftsmen:help:aug": (g) => {
@@ -2809,7 +2809,7 @@ Scrap: ${offer.scrap}.`,
     // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
     // > "As soon as the drone gets close, a Lanius in a type of spacewalk maneuvering unit grabs it and immediately starts breaking it down for metal. You prepare for a fight but they appear quite grateful for the act. They start to use the metal to repair key portions of their ship. From what you can understand from the translator it appears one of their crew wishes to join you." — [[Lanius ship absorbing jump beacon]]
     // > "You receive a Lanius crewmember." — [[Lanius ship absorbing jump beacon]]
-    if (!ownsDrone(g, "hull")) return;
+    if (!ownsDrone(g, "SHIP_REPAIR")) return;
     const joined = joinCrew(g, "Lanius");
     show(
       g,
@@ -2825,7 +2825,7 @@ Scrap: ${offer.scrap}.`,
   // Lanius ship attacking civilian distress. Two results and no odds. INFERRED: equal.
   // A fight pays the page's medium or high standard. Powering down skips that and opens the same contact.
   "c:lanius-ship-attacking-civilian-distress:2": (g) => {
-    if (!livingKin(g, "voidlung")) return;
+    if (!livingKin(g, "anaerobic")) return;
     if (
       weighted(g, [
         ["fight", 1],
@@ -3019,7 +3019,7 @@ Scrap: ${offer.scrap}.`,
   // Clonebay DNA. DuplicateEvent|2 calm crewmember, or 1 crazed boarder. No printed odds (weight 2 / 1).
   // The two calm sentences are the duplicate. INFERRED: equal inside that weight. The boarder's race is not named.
   "s:abandoned-station:dna": (g) => {
-    if ((g.player.kits.cradle?.level ?? 0) <= 0) return;
+    if ((g.player.kits.clonebay?.level ?? 0) <= 0) return;
     const rebuilt =
       "While the cloning facilities are no longer functioning, you find someone was in queue to be cloned. You transfer their data to your Clonebay and after a time their body is rebuilt.";
     if (
@@ -3146,7 +3146,7 @@ Scrap: ${offer.scrap}.`,
   "c:nebula-lost-ship:1": done,
   // {{Blue Option|Teleporter}}. A crewmember and medium scrap.
   "c:nebula-lost-ship:2": (g) => {
-    if ((g.player.kits.sling?.level ?? 0) <= 0) return;
+    if ((g.player.kits.teleporter?.level ?? 0) <= 0) return;
     show(
       g,
       "You beam the Federation crew aboard. One gladly joins your crew, the rest wait to be dropped off at the next station.",
@@ -3156,7 +3156,7 @@ Scrap: ${offer.scrap}.`,
   },
   // {{Blue Option|Long-ranged Scanner}}. A crewmember, or medium scrap. No odds. INFERRED: equal.
   "c:nebula-lost-ship:3": (g) => {
-    if (!g.augments.includes("glass")) return;
+    if (!g.augments.includes("ADV_SCANNERS")) return;
     if (rand(g) < 0.5)
       show(
         g,
@@ -3279,7 +3279,7 @@ Scrap: ${offer.scrap}.`,
     if (r === "cannibals") {
       // Clone Bay revives them. The page prints that waiting sentence, then "The lost crewmember is revived."
       const extras = [loseCrew(g)];
-      if (g.player.kits.cradle)
+      if (g.player.kits.clonebay)
         extras.unshift(
           "Your abandoned crewmember is waiting on the ship when you return, trying not to dwell on the fate of his previous incarnation.",
         );
@@ -3482,7 +3482,7 @@ Scrap: ${offer.scrap}.`,
   "c:giant-alien-spiders:3": (g) => {
     spiderDrone(
       g,
-      "board",
+      "BOARDER",
       "You launch the drone and it crashes through their hull, leaving a huge breach. You watch as the drone tears through the creatures while debris and dead bodies fly out of the breach. The owners of the station are less than effusive when they thank you, and offer only a meager payment. Maybe it's a good time to leave...",
     );
   },
@@ -3575,7 +3575,7 @@ Scrap: ${offer.scrap}.`,
     const extras: string[] = [];
     const note = loseCrew(g, true);
     if (note) extras.push(note);
-    if (g.player.kits.cradle)
+    if (g.player.kits.clonebay)
       extras.push(
         "As your crewman is still alive and working towards a cure, it would be against Federation regulation to create a clone to continue with you on your journey.",
       );
@@ -3593,7 +3593,7 @@ Scrap: ${offer.scrap}.`,
     );
   },
   "c:unknown-disease-on-mining-colony:2": (g) => {
-    if (!livingKin(g, "stone")) return;
+    if (!livingKin(g, "rock")) return;
     show(
       g,
       "It's unlikely the Rock's impressive immune system is susceptible to a human virus so you send it in. It is able to intimidate the workers long enough for the colony forces to set up a quarantine. Their leaders offer a reward and assure you they will try to find a cure as soon as possible.",
@@ -3601,7 +3601,7 @@ Scrap: ${offer.scrap}.`,
     );
   },
   "c:unknown-disease-on-mining-colony:3": (g) => {
-    if (!livingKin(g, "shell")) return;
+    if (!livingKin(g, "engi")) return;
     show(
       g,
       "With no fear of catching the disease, your Engi crewmember helps reassure and organize the infected humans. Calmed by its extensive knowledge of human physiology, the infected submit to the quarantine in the hopes that a cure can be found soon. The colony leaders offer a reward for helping to prevent an ugly incident.",
@@ -3667,7 +3667,7 @@ Scrap: ${offer.scrap}.`,
     );
   },
   "c:fire-on-research-station:3": (g) => {
-    if (!livingKin(g, "stone")) return;
+    if (!livingKin(g, "rock")) return;
     // An augmentation with high scrap. Rewards, "Augment": "A random augmentation & T scrap."
     show(
       g,
@@ -3677,7 +3677,7 @@ Scrap: ${offer.scrap}.`,
     );
   },
   "c:fire-on-research-station:4": (g) => {
-    if (!ownsDrone(g, "patch")) return;
+    if (!ownsDrone(g, "REPAIR")) return;
     // A drone schematic with high scrap. Rewards, "Drone": "A random drone schematic & T scrap."
     show(
       g,
@@ -3773,7 +3773,7 @@ Scrap: ${offer.scrap}.`,
     );
   },
   "c:malfunctioning-defense-system:7": (g) => {
-    if (!livingKin(g, "shell")) return;
+    if (!livingKin(g, "engi")) return;
     show(
       g,
       "Your crew-member is able to remotely fix the glitch in the defense AI, allowing the repair crew to close in and finish the job. The station gives you its thanks along with a reward.",
@@ -3869,7 +3869,7 @@ Scrap: ${offer.scrap}.`,
     // > "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders." — [[Boarders: Humans jammed sensors]]
     // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans jammed sensors]]
     // > "If you counter the jam, the Hacking system is not disabled." — [[Boarders: Humans jammed sensors#Notes]]
-    if ((g.player.kits.spike?.level ?? 0) <= 0) return;
+    if ((g.player.kits.hacking?.level ?? 0) <= 0) return;
     log(
       g,
       "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders.",
@@ -3886,7 +3886,7 @@ Scrap: ${offer.scrap}.`,
     const note = loseCrew(g, true);
     if (!note) return;
     const extras = [note];
-    if (g.player.kits.cradle)
+    if (g.player.kits.clonebay)
       extras.push(
         "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.",
       );
@@ -4098,7 +4098,7 @@ function chooseRolled(g: Game, id: string): boolean {
     return true;
   }
   if (id === "s:unknown-disease:medbot") {
-    if (!g.augments.includes("medbot")) return true;
+    if (!g.augments.includes("NANO_MEDBAY")) return true;
     // A weapon with high scrap. Rewards, "Weapon": "A random weapon & T scrap."
     show(
       g,
@@ -4230,7 +4230,7 @@ function confusedMantisChoice(g: Game, id: string): boolean {
       // > "You lose a crewmember." — [[Confused Mantis]]
       // > "(Clone Bay) Your crew's clone is waiting when you return to the ship." — [[Confused Mantis]]
       // > "The lost crewmember is revived." — [[Confused Mantis]]
-      const revived = !!g.player.kits.cradle;
+      const revived = !!g.player.kits.clonebay;
       const note = loseCrew(g);
       const extras = revived ? ["Your crew's clone is waiting when you return to the ship."] : [];
       if (note) extras.push(note);
@@ -4257,7 +4257,7 @@ function confusedMantisChoice(g: Game, id: string): boolean {
     // Wiki citations:
     // > "The Mantis is grateful to see 'another human', and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there." — [[Confused Mantis]]
     // > "Return him home." — [[Confused Mantis]]
-    if (!livingKin(g, "plain")) return true;
+    if (!livingKin(g, "human")) return true;
     card(
       g,
       "The Mantis is grateful to see 'another human', and introduces himself as Robert Smith. He explains he's from a nearby human colony and would appreciate being returned there.",
@@ -4280,7 +4280,7 @@ function confusedMantisChoice(g: Game, id: string): boolean {
     // Wiki citations:
     // > "The Mantis is terrified at the sight of your crewmember. He immediately attacks his Engi rescuers, and your crewmember is forced to kill him. The Engi are grateful for your help and offer a small reward." — [[Confused Mantis]]
     // > "You receive low scrap with resources." — [[Confused Mantis]]
-    if (!livingKin(g, "blade")) return true;
+    if (!livingKin(g, "mantis")) return true;
     show(
       g,
       "The Mantis is terrified at the sight of your crewmember. He immediately attacks his Engi rescuers, and your crewmember is forced to kill him. The Engi are grateful for your help and offer a small reward.",
@@ -4458,7 +4458,7 @@ function moonChoice(g: Game, id: string): boolean {
     return true;
   }
   if (id === "s:moon:slug") {
-    if (!livingKin(g, "gel")) return true;
+    if (!livingKin(g, "slug")) return true;
     const r = weighted(g, [
       ["stay", 1],
       ["leave", 1],

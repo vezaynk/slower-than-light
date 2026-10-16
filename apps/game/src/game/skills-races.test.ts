@@ -33,7 +33,7 @@ function lone(g: Game): { worker: Crew; roomId: string; sys: string } {
   worker.room = room.id;
   worker.path = [];
   worker.stun = 0;
-  worker.kin = "plain";
+  worker.kin = "human";
   return { worker, roomId: room.id, sys: room.system! };
 }
 
@@ -123,7 +123,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
   }
@@ -164,7 +164,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     helper.room = roomId;
     helper.path = [];
     helper.stun = 0;
-    helper.kin = "plain";
+    helper.kin = "human";
     worker.skills = {};
     helper.skills = {};
     const room = g.player.rooms.find((r) => r.id === roomId)!;
@@ -222,9 +222,9 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     room.fire = 0;
     room.breach = 0;
     room.o2 = 100;
-    room.kit = "veil";
-    g.player.kits.veil = {
-      id: "veil",
+    room.kit = "cloaking";
+    g.player.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 0,
       left: 0,
@@ -236,7 +236,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       fix: 12.49,
     };
     step(g, 0.05);
-    assert.equal(g.player.kits.veil.damage ?? 0, 0);
+    assert.equal(g.player.kits.cloaking.damage ?? 0, 0);
     assert.equal(worker.skills?.repair ?? 0, 1);
   });
 
@@ -265,7 +265,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     hero.path = [];
     hero.stun = 0;
     hero.leashed = 10;
-    hero.kin = "plain";
+    hero.kin = "human";
     step(g, 0.05);
     assert.equal(sys.damage, 0);
     assert.equal(hero.skills?.repair ?? 0, 1);
@@ -273,7 +273,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
 
   it("grants one repair point per finished bar to every race", () => {
     // Crew skills, lead: "all races gain experience at the same rate (per job done)".
-    for (const kin of ["plain", "shell", "blade"] as const) {
+    for (const kin of ["human", "engi", "mantis"] as const) {
       const g = createGame(39);
       const { worker, roomId, sys } = lone(g);
       quiet(g);
@@ -295,7 +295,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
   it("an Engi repairs faster and a Mantis kills faster", () => {
     // Crew skills, lead: "Mantis can kill faster and Engi can finish repairs faster."
     // "The inverse is also true: Engi are slow killers and Mantis complete the repairs slower."
-    const fix = (kin: "plain" | "shell" | "blade") => {
+    const fix = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(48);
       const { worker, roomId, sys } = lone(g);
       quiet(g);
@@ -311,16 +311,16 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       step(g, 0.05);
       return s.fix;
     };
-    const humanFix = fix("plain");
-    assert.ok(Math.abs(fix("shell") / humanFix - 2) < 1e-6);
-    assert.ok(Math.abs(fix("blade") / humanFix - 0.5) < 1e-6);
+    const humanFix = fix("human");
+    assert.ok(Math.abs(fix("engi") / humanFix - 2) < 1e-6);
+    assert.ok(Math.abs(fix("mantis") / humanFix - 0.5) < 1e-6);
 
-    const hurt = (kin: "plain" | "shell" | "blade") => {
+    const hurt = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(49);
       startCombat(g, "scout");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
       const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms[0]!;
       const away = g.player.rooms.find((r) => r.id !== room.id)!;
       const hero = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
@@ -338,18 +338,18 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       hero.hp = hero.maxHp;
       foe.room = room.id;
       foe.aboard = "player";
-      foe.kin = "plain";
+      foe.kin = "human";
       foe.hp = foe.maxHp;
       foe.leashed = undefined;
       const before = foe.hp;
       for (let i = 0; i < 40 && foe.hp === before; i++) step(g, 0.05);
       return before - foe.hp;
     };
-    const humanHurt = hurt("plain");
+    const humanHurt = hurt("human");
     // Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
     assert.ok(humanHurt >= 3 && humanHurt <= 7);
-    assert.ok(Math.abs(hurt("shell") / humanHurt - 0.5) < 1e-6);
-    assert.ok(Math.abs(hurt("blade") / humanHurt - 1.5) < 1e-6);
+    assert.ok(Math.abs(hurt("engi") / humanHurt - 0.5) < 1e-6);
+    assert.ok(Math.abs(hurt("mantis") / humanHurt - 1.5) < 1e-6);
   });
 
   it("an untrained human finishes one system bar in 12.5 seconds", () => {
@@ -359,10 +359,10 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     quiet(g);
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its hacking and teleporter are removed.
     if (g.enemy) {
-      delete g.enemy.kits.spike;
-      delete g.enemy.kits.sling;
+      delete g.enemy.kits.hacking;
+      delete g.enemy.kits.teleporter;
     }
-    worker.kin = "plain";
+    worker.kin = "human";
     worker.skills = {};
     const room = g.player.rooms.find((r) => r.id === roomId)!;
     room.fire = 0;
@@ -386,14 +386,14 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
     const g = createGame(56);
     const { worker, roomId, sys } = lone(g);
     quiet(g);
-    if (g.enemy?.kits.spike) {
-      g.enemy.kits.spike.on = false;
-      g.enemy.kits.spike.left = 0;
-      g.enemy.kits.spike.cool = 999;
+    if (g.enemy?.kits.hacking) {
+      g.enemy.kits.hacking.on = false;
+      g.enemy.kits.hacking.left = 0;
+      g.enemy.kits.hacking.cool = 999;
     }
-    if (g.enemy?.kits.sling) g.enemy.kits.sling.power = 0;
+    if (g.enemy?.kits.teleporter) g.enemy.kits.teleporter.power = 0;
     g.augments = [];
-    worker.kin = "plain";
+    worker.kin = "human";
     worker.skills = {};
     const room = g.player.rooms.find((r) => r.id === roomId)!;
     g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
@@ -413,7 +413,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
 
   it("a Rock fights a fire at 1.67 and a Crystal at 0.83", () => {
     // Crew skills, Repair skill: Rocks have a hidden 1.67 multiplier, Crystals a 0.83 multiplier.
-    const drop = (kin: "plain" | "stone" | "shard") => {
+    const drop = (kin: "human" | "rock" | "crystal") => {
       const g = createGame(58);
       const { worker, roomId, sys } = lone(g);
       quiet(g);
@@ -427,10 +427,10 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
       step(g, 0.05);
       return 1 - room.fire;
     };
-    const human = drop("plain");
+    const human = drop("human");
     assert.ok(human > 0);
-    assert.ok(Math.abs(drop("stone") / human - 1.67) < 1e-6);
-    assert.ok(Math.abs(drop("shard") / human - 0.83) < 1e-6);
+    assert.ok(Math.abs(drop("rock") / human - 1.67) < 1e-6);
+    assert.ok(Math.abs(drop("crystal") / human - 0.83) < 1e-6);
   });
 });
 
@@ -438,12 +438,12 @@ describe("Crew skills: repair aptitude also fights fires", () => {
   it("an Engi fights a fire twice as fast and a Mantis half as fast", () => {
     // Crew skills, Repair skill: "Repair skill and racial aptitude for repairs also apply to fire-fighting."
     // "Engi repair at double speed, Mantis at half speed."
-    const drop = (kin: "plain" | "shell" | "blade") => {
+    const drop = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(63);
       const { worker, roomId, sys } = lone(g);
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
       g.asteroid = false;
       worker.kin = kin;
       worker.skills = {};
@@ -455,10 +455,10 @@ describe("Crew skills: repair aptitude also fights fires", () => {
       step(g, 0.05);
       return 1 - room.fire;
     };
-    const human = drop("plain");
+    const human = drop("human");
     assert.ok(human > 0);
-    assert.ok(Math.abs(drop("shell") / human - 2) < 1e-6);
-    assert.ok(Math.abs(drop("blade") / human - 0.5) < 1e-6);
+    assert.ok(Math.abs(drop("engi") / human - 2) < 1e-6);
+    assert.ok(Math.abs(drop("mantis") / human - 0.5) < 1e-6);
   });
 });
 
@@ -471,11 +471,11 @@ describe("Crew skills: repair skill also fights fires", () => {
       const { worker, roomId, sys } = lone(g);
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
       g.asteroid = false;
       const need = xpNeedFor(worker, "repair");
       assert.equal(need, 16);
-      worker.kin = "plain";
+      worker.kin = "human";
       worker.skills = { repair: rank * need };
       const room = g.player.rooms.find((r) => r.id === roomId)!;
       g.player.systems[sys as keyof typeof g.player.systems].damage = 0;
@@ -495,7 +495,7 @@ describe("Crew skills: repair skill also fights fires", () => {
 describe("Crew skills: sabotage damage ignores race", () => {
   it("deals the same system damage for a Human, an Engi, and a Mantis", () => {
     // Crew skills, lead: other jobs "are performed equally well by all crew races, including inflicting sabotage damage".
-    const progress = (kin: "plain" | "shell" | "blade") => {
+    const progress = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(50);
       startCombat(g, "scout");
       for (const w of g.player.weapons) w.enabled = false;
@@ -519,15 +519,15 @@ describe("Crew skills: sabotage damage ignores race", () => {
       tickSabotage(g, 0.5);
       return room.sabotage ?? 0;
     };
-    const human = progress("plain");
+    const human = progress("human");
     assert.ok(human > 0);
-    assert.equal(progress("shell"), human);
-    assert.equal(progress("blade"), human);
+    assert.equal(progress("engi"), human);
+    assert.equal(progress("mantis"), human);
   });
 
   it("one boarder breaks one bar in 12.5 seconds, skill and race aside", () => {
     // Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
-    const steps = (kin: "plain" | "shell" | "blade", combat: number) => {
+    const steps = (kin: "human" | "engi" | "mantis", combat: number) => {
       const g = createGame(57);
       startCombat(g, "scout");
       for (const w of g.player.weapons) w.enabled = false;
@@ -557,9 +557,9 @@ describe("Crew skills: sabotage damage ignores race", () => {
       }
       return n;
     };
-    assert.equal(steps("plain", 0), 250);
-    assert.equal(steps("shell", 0), 250);
-    assert.equal(steps("blade", 14), 250);
+    assert.equal(steps("human", 0), 250);
+    assert.equal(steps("engi", 0), 250);
+    assert.equal(steps("mantis", 14), 250);
   });
 });
 
@@ -576,13 +576,13 @@ describe("Crew skills: a repair drone cannot gain experience", () => {
     room.breach = 0;
     g.player.systems.weapons.damage = 1;
     g.player.systems.weapons.fix = 12.49;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       room: room.id,
@@ -597,7 +597,7 @@ describe("Crew skills: a repair drone cannot gain experience", () => {
 describe("Crew skills: human experience column", () => {
   it("uses the printed parenthetical requirements", () => {
     // Crew skills, Skills table: the value in parentheses is the human requirement.
-    const human = { kin: "plain" } as Crew;
+    const human = { kin: "human" } as Crew;
     assert.equal(xpNeedFor(human, "pilot"), 13);
     assert.equal(xpNeedFor(human, "engines"), 13);
     assert.equal(xpNeedFor(human, "shields"), 50);
@@ -612,7 +612,7 @@ describe("Crew skills: human experience column", () => {
 describe("Crew skills: the next rank costs the same", () => {
   it("asks for the same experience to reach level 1 and level 2", () => {
     // Crew skills, lead: "The amount of experience required to achieve skill level 1 and level 2 is exactly the same for a specific skill".
-    const human = { kin: "plain" } as Crew;
+    const human = { kin: "human" } as Crew;
     const need = xpNeedFor(human, "pilot");
     assert.equal(need, 13);
     assert.equal(skillRank(need - 1, need), 0);
@@ -625,7 +625,7 @@ describe("Crew skills: the next rank costs the same", () => {
 describe("Crew skills: which skill costs the most", () => {
   it("makes combat the cheapest, weapons the dearest, and piloting equal engines", () => {
     // Crew skills, lead: "The Combat skill requires the least amount of experience for a level up, while the Weapons skill requires the most, and the Piloting and the Engines skills require the same exact amount".
-    for (const crew of [{ kin: "plain" } as Crew, { kin: "shell" } as Crew]) {
+    for (const crew of [{ kin: "human" } as Crew, { kin: "engi" } as Crew]) {
       const need = (skill: SkillName) => xpNeedFor(crew, skill);
       const values = (["pilot", "engines", "shields", "weapons", "repair", "combat"] as const).map(need);
       assert.equal(need("pilot"), need("engines"));
@@ -638,11 +638,11 @@ describe("Crew skills: which skill costs the most", () => {
 describe("Crew skills: one experience table except humans", () => {
   it("gives every non-human the same requirement, and a human less", () => {
     // Crew skills, lead: "All crew races require the same amount of experience to achieve the next skill level, except for humans".
-    const human = { kin: "plain" } as Crew;
-    const others = ["shell", "spark", "blade", "gel", "stone", "voidlung", "shard"] as const;
+    const human = { kin: "human" } as Crew;
+    const others = ["engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"] as const;
     const skills: SkillName[] = ["pilot", "engines", "shields", "weapons", "repair", "combat"];
     for (const skill of skills) {
-      const shared = xpNeedFor({ kin: "shell" } as Crew, skill);
+      const shared = xpNeedFor({ kin: "engi" } as Crew, skill);
       for (const kin of others) assert.equal(xpNeedFor({ kin } as Crew, skill), shared);
       assert.ok(xpNeedFor(human, skill) < shared);
     }
@@ -707,13 +707,13 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
       }
       hero.room = room.id;
       hero.aboard = "player";
-      hero.kin = "plain";
+      hero.kin = "human";
       hero.skills = { combat: xp };
       hero.hp = hero.maxHp;
       foe.room = room.id;
       foe.aboard = "player";
       foe.side = "enemy";
-      foe.kin = "plain";
+      foe.kin = "human";
       foe.skills = {};
       foe.hp = foe.maxHp;
       foe.leashed = undefined;
@@ -776,12 +776,12 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     }
     hero.room = room.id;
     hero.aboard = "player";
-    hero.kin = "plain";
+    hero.kin = "human";
     hero.hp = hero.maxHp;
     foe.room = room.id;
     foe.aboard = "player";
     foe.side = "enemy";
-    foe.kin = "plain";
+    foe.kin = "human";
     foe.hp = foe.maxHp;
     foe.leashed = undefined;
     return { g, hero, foe, room };
@@ -806,7 +806,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     const mate = g.crew.find((c) => c.side === "player" && c.id !== hero.id)!;
     mate.room = room.id;
     mate.path = [];
-    mate.kin = "plain";
+    mate.kin = "human";
     mate.skills = {};
     foe.hp = 0.05;
     hero.swing = 2;
@@ -905,7 +905,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     hero.stun = 0;
     hero.leashed = undefined;
     hero.skills = {};
-    hero.kin = "plain";
+    hero.kin = "human";
     hero.swing = 2;
     const unit = {
       id: "crew-drone",
@@ -917,8 +917,8 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
       hp: 0.2,
       room: room.id,
     };
-    g.enemy!.kits.swarm = {
-      id: "swarm",
+    g.enemy!.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -967,7 +967,7 @@ describe("Crew skills: combat skill and onboard drones", () => {
       hero.path = [];
       hero.stun = 0;
       hero.leashed = undefined;
-      hero.kin = "plain";
+      hero.kin = "human";
       hero.skills = trained ? { combat: xpNeedFor(hero, "combat") * 2 } : {};
       if (trained) assert.equal(xpNeedFor(hero, "combat"), 7);
       const unit = {
@@ -980,8 +980,8 @@ describe("Crew skills: combat skill and onboard drones", () => {
         hp: 100,
         room: room.id,
       };
-      g.enemy!.kits.swarm = {
-        id: "swarm",
+      g.enemy!.kits.drones = {
+        id: "drones",
         level: 2,
         power: 2,
         left: 0,
@@ -1024,8 +1024,8 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
 
   it("grants one point when the artillery beam fires, and none while it is still charging", () => {
     const { g, crew } = gunner(41);
-    g.player.kits.lance = {
-      id: "lance",
+    g.player.kits.artillery = {
+      id: "artillery", weapon: "ARTILLERY_FED",
       level: 1,
       power: 1,
       left: 0,
@@ -1036,7 +1036,7 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
     };
     tickLance(g, 0.1);
     assert.equal(crew.skills?.weapons ?? 0, 0);
-    g.player.kits.lance.aux = 0.999;
+    g.player.kits.artillery.aux = 0.999;
     tickLance(g, 0.1);
     assert.equal(crew.skills?.weapons ?? 0, 1);
   });
@@ -1044,15 +1044,15 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
   it("counts a seven-shot flak burst as one fire", () => {
     const { g, crew, room, away } = gunner(42);
     armFlak(g, 1);
-    g.player.kits.flak!.power = 1;
-    g.player.kits.flak!.aux = 49.9;
+    g.player.kits.artillery!.power = 1;
+    g.player.kits.artillery!.aux = 49.9;
     const before = g.shots.length;
     tickFlak(g, 0.2);
     // Seven damaging shots plus seven fake pellets. Crew skills still counts the burst as one fire.
     assert.equal(g.shots.length - before, 14);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     crew.room = away.id;
-    g.player.kits.flak!.aux = 49.9;
+    g.player.kits.artillery!.aux = 49.9;
     tickFlak(g, 0.2);
     assert.equal(g.shots.length - before, 28);
     assert.equal(crew.skills?.weapons ?? 0, 1);
@@ -1067,16 +1067,16 @@ describe("Crew skills: a Basic Laser charge", () => {
       const g = createGame(60);
       startCombat(g, "scout");
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-      if (g.enemy?.kits.veil) {
-        g.enemy.kits.veil.on = false;
-        g.enemy.kits.veil.power = 0;
+      if (g.enemy?.kits.cloaking) {
+        g.enemy.kits.cloaking.on = false;
+        g.enemy.kits.cloaking.power = 0;
       }
-      if (g.enemy?.kits.spike) {
-        g.enemy.kits.spike.on = false;
-        g.enemy.kits.spike.left = 0;
-        g.enemy.kits.spike.cool = 999;
+      if (g.enemy?.kits.hacking) {
+        g.enemy.kits.hacking.on = false;
+        g.enemy.kits.hacking.left = 0;
+        g.enemy.kits.hacking.cool = 999;
       }
-      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
       g.augments = [];
       g.asteroid = false;
       g.player.systems.weapons.level = 1;
@@ -1094,13 +1094,13 @@ describe("Crew skills: a Basic Laser charge", () => {
       if (trained) {
         const crew = g.crew.find((c) => c.side === "player")!;
         crew.room = room.id;
-        crew.kin = "plain";
+        crew.kin = "human";
         crew.stun = 0;
         crew.skills = { weapons: xpNeedFor(crew, "weapons") * 2 };
         assert.equal(xpNeedFor(crew, "weapons"), 58);
       }
-      g.player.weapons = [{ uid: "gun", defId: "spark", charge: 0, enabled: true, autofire: false, target: null }];
-      assert.equal(WEAPONS.spark.charge, 10);
+      g.player.weapons = [{ uid: "gun", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null }];
+      assert.equal(WEAPONS.LASER_BURST_1.charge, 10);
       let steps = 0;
       while ((g.player.weapons[0]?.charge ?? 0) < 1 && steps < 250) {
         step(g, 0.05);
@@ -1123,16 +1123,16 @@ describe("Crew skills: a trained shield recharge", () => {
       startCombat(g, "scout");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
-      if (g.enemy?.kits.veil) {
-        g.enemy.kits.veil.on = false;
-        g.enemy.kits.veil.power = 0;
+      if (g.enemy?.kits.cloaking) {
+        g.enemy.kits.cloaking.on = false;
+        g.enemy.kits.cloaking.power = 0;
       }
-      if (g.enemy?.kits.spike) {
-        g.enemy.kits.spike.on = false;
-        g.enemy.kits.spike.left = 0;
-        g.enemy.kits.spike.cool = 999;
+      if (g.enemy?.kits.hacking) {
+        g.enemy.kits.hacking.on = false;
+        g.enemy.kits.hacking.left = 0;
+        g.enemy.kits.hacking.cool = 999;
       }
-      if (g.enemy?.kits.swarm) g.enemy.kits.swarm.loadout = [];
+      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
       g.augments = [];
       g.asteroid = false;
       g.player.systems.shields.level = 2;
@@ -1152,7 +1152,7 @@ describe("Crew skills: a trained shield recharge", () => {
       if (trained) {
         const crew = g.crew.find((c) => c.side === "player")!;
         crew.room = room.id;
-        crew.kin = "plain";
+        crew.kin = "human";
         crew.stun = 0;
         crew.skills = { shields: xpNeedFor(crew, "shields") * 2 };
         assert.equal(xpNeedFor(crew, "shields"), 50);
@@ -1207,7 +1207,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
   }
 
   it("drops a three-shot volley, keeps the one point, and the next fire trains again", () => {
-    const { g, crew, target } = primed(43, "lineburst");
+    const { g, crew, target } = primed(43, "LASER_BURST_3");
     assert.equal(g.shots.length, 3);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     assert.equal(g.player.weapons[0]!.charge, 0);
@@ -1228,7 +1228,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
   });
 
   it("still drops the shot one tick later, and a missile spent for it comes back", () => {
-    const { g, crew } = primed(44, "artemis");
+    const { g, crew } = primed(44, "MISSILES_2_PLAYER");
     assert.equal(g.shots.length, 1);
     assert.equal(g.missiles, 2);
     assert.equal(crew.skills?.weapons ?? 0, 1);
@@ -1243,7 +1243,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
   it("leaves the shot once the window has passed", () => {
     // INFERRED: 0.15s. Four 0.05s steps are past it. A laser flight is 0.7s, so the shot is still in the air.
     assert.equal(MUZZLE_S, 0.15);
-    const { g, crew } = primed(45, "spark");
+    const { g, crew } = primed(45, "LASER_BURST_1");
     assert.equal(g.shots.length, 1);
     for (let i = 0; i < 4; i++) step(g, 0.05);
     depowerWeapon(g, "gun");
@@ -1253,7 +1253,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
 
   it("grants one point as the shot leaves, hit or miss", () => {
     // Crew skills, Weapons: "It doesn't matter whether it hits or misses, or whether it can do damage."
-    const { g, crew } = primed(52, "spark");
+    const { g, crew } = primed(52, "LASER_BURST_1");
     assert.equal(g.shots.length, 1);
     assert.equal(crew.skills?.weapons ?? 0, 1);
     for (let i = 0; i < 20 && g.shots.length; i++) step(g, 0.05);
@@ -1263,7 +1263,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
 
   it("counts a three-shot burst as one fire", () => {
     // Crew skills, Weapons: "Volleys of multi-shot weapons such as burst lasers count as a single fire".
-    const { g, crew } = primed(54, "lineburst");
+    const { g, crew } = primed(54, "LASER_BURST_3");
     assert.equal(g.shots.length, 3);
     assert.equal(crew.skills?.weapons ?? 0, 1);
   });
@@ -1291,7 +1291,7 @@ describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () 
     g.player.systems.weapons.power = 4;
     g.player.systems.weapons.damage = 0;
     g.player.systems.weapons.ion = [];
-    g.player.weapons = [{ uid: "gun", defId: "smallbomb", charge: 0, enabled: true, autofire: false, target: null }];
+    g.player.weapons = [{ uid: "gun", defId: "BOMB_1", charge: 0, enabled: true, autofire: false, target: null }];
     g.missiles = 4;
     g.armed = "gun";
     g.targeting = true;
@@ -1392,15 +1392,15 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
       e.systems.weapons.power = 2;
       e.systems.weapons.damage = damage;
       e.systems.weapons.ion = [];
-      e.weapons = [{ uid: "w", defId: "spark", charge: 0, enabled: true, autofire: false, target: "p-pilot" }];
-      if (e.kits.veil) {
-        e.kits.veil.power = 0;
-        e.kits.veil.on = false;
+      e.weapons = [{ uid: "w", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: "p-pilot" }];
+      if (e.kits.cloaking) {
+        e.kits.cloaking.power = 0;
+        e.kits.cloaking.on = false;
       }
       step(g, 0.05);
       return e.weapons[0].charge;
     };
-    const bare = 0.05 / WEAPONS.spark.charge;
+    const bare = 0.05 / WEAPONS.LASER_BURST_1.charge;
     assert.ok(Math.abs(charged(0) - bare / 0.9) < 1e-9);
     assert.ok(Math.abs(charged(1) - bare) < 1e-9);
   });
@@ -1433,7 +1433,7 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.power = 0;
@@ -1446,7 +1446,7 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     assert.ok(ada && ivo && nen);
     nen.room = "p-shields";
     nen.path = [];
-    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 15, cool: 0, target: null, on: true, aux: 0 };
     const poke = () => {
       g.player.shieldNow = 1;
       g.player.hull = g.player.hullMax;
@@ -1484,8 +1484,8 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     assert.equal(missed, true);
     assert.equal(hit, true);
 
-    g.player.kits.veil.on = false;
-    g.player.kits.veil.left = 0;
+    g.player.kits.cloaking.on = false;
+    g.player.kits.cloaking.left = 0;
     g.player.systems.engines.level = 8;
     g.player.systems.engines.power = 8;
     let trained = false;
@@ -1505,7 +1505,7 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
@@ -1576,7 +1576,7 @@ describe("Crew skills: piloting and engines are different consoles", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
@@ -1654,7 +1654,7 @@ describe("Crew skills, Piloting: an asteroid during the fight", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.level = 8;
@@ -1716,7 +1716,7 @@ describe("Crew skills, Shields: an asteroid during the fight", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.power = 0;
@@ -1763,7 +1763,7 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
       g.enemy.weapons = [];
-      delete g.enemy.kits.swarm;
+      delete g.enemy.kits.drones;
     }
     g.asteroid = false;
     g.player.systems.engines.level = 8;

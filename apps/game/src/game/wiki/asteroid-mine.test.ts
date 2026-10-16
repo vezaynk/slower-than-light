@@ -20,7 +20,7 @@ describe("Large asteroid field mining", () => {
 
   it("a fitted arm pays high scrap and nothing else", () => {
     const g = createGame(4);
-    g.augments = ["hook"];
+    g.augments = ["SCRAP_COLLECTOR"];
     assert.equal(choiceDisabled(g, MINE), null);
     const scrap = g.scrap;
     const fuel = g.fuel;

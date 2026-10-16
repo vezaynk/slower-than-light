@@ -64,16 +64,16 @@ describe("Unknown disease on mining colony", () => {
     assert.equal(choiceDisabled(plain, "c:unknown-disease-on-mining-colony:4"), "Needs a level 2 Medbay");
 
     const dead = createGame(1);
-    dead.crew[0].kin = "stone";
+    dead.crew[0].kin = "rock";
     dead.crew[0].hp = 0;
     assert.equal(open(dead).choices.some((c) => c.id === "c:unknown-disease-on-mining-colony:2"), false);
 
     const rock = createGame(1);
-    rock.crew[0].kin = "stone";
+    rock.crew[0].kin = "rock";
     assert.ok(open(rock).choices.some((c) => c.id === "c:unknown-disease-on-mining-colony:2"));
 
     const engi = createGame(1);
-    engi.crew[0].kin = "shell";
+    engi.crew[0].kin = "engi";
     assert.ok(open(engi).choices.some((c) => c.id === "c:unknown-disease-on-mining-colony:3"));
 
     const bay = createGame(1);
@@ -111,7 +111,7 @@ describe("Unknown disease on mining colony", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
@@ -138,7 +138,7 @@ describe("Unknown disease on mining colony", () => {
 
   it("a Rock or an Engi is paid medium resources and stays aboard", () => {
     const rock = createGame(4);
-    rock.crew[0].kin = "stone";
+    rock.crew[0].kin = "rock";
     const crew = rock.crew.length;
     open(rock);
     fillerChoose(rock, "c:unknown-disease-on-mining-colony:2");
@@ -147,7 +147,7 @@ describe("Unknown disease on mining colony", () => {
     mediumStuff(rock.event?.body ?? "");
 
     const engi = createGame(5);
-    engi.crew[0].kin = "shell";
+    engi.crew[0].kin = "engi";
     const aboard = engi.crew.length;
     open(engi);
     fillerChoose(engi, "c:unknown-disease-on-mining-colony:3");
@@ -171,7 +171,7 @@ describe("Unknown disease on mining colony", () => {
 
     const bots = createGame(7);
     bots.player.systems.medbay.level = 2;
-    bots.augments = ["medbot"];
+    bots.augments = ["NANO_MEDBAY"];
     const guns = bots.player.weapons.length;
     open(bots);
     fillerChoose(bots, "c:unknown-disease-on-mining-colony:4");

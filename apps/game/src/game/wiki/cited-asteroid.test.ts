@@ -167,7 +167,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
         g.player.systems.engines.power = 0;
         g.player.systems.shields.power = 0;
         g.player.shieldNow = 0;
-        if (g.player.kits.swarm) g.player.kits.swarm.loadout = [];
+        if (g.player.kits.drones) g.player.kits.drones.loadout = [];
         rockNow(g);
         step(g, 0.05);
         const rock = g.shots.find(

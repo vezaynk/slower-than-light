@@ -23,8 +23,8 @@ function open(g: Game) {
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     level: 1,
     power: 1,
     left: 0,
@@ -75,7 +75,7 @@ describe("Auto-ship carrying shield virus hacking", () => {
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-carrying-shield-virus");
     assert.equal(g.scrap, 10);
-    assert.equal(g.player.kits.spike?.level, 1);
+    assert.equal(g.player.kits.hacking?.level, 1);
     assert.equal(playerHackingOff(g), true);
     assert.equal(g.player.shieldNow, 2);
     assert.equal(g.player.systems.shields.level, 4);

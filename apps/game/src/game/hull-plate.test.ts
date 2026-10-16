@@ -103,11 +103,11 @@ describe("hull plates", () => {
   it("keeps one skin for both kestrels and a different plate", () => {
     const paint = factionPaint("kestrel");
     assert.equal(paint.skin, "#c8c2b4");
-    const a = layoutFor("kestrel-a");
-    const b = layoutFor("kestrel-b");
+    const a = layoutFor("PLAYER_SHIP_HARD");
+    const b = layoutFor("PLAYER_SHIP_HARD_2");
     assert.ok(a && b);
-    const plateA = plateOf({ id: "kestrel-a", faction: "kestrel", facing: "right", cols: a.cols, rows: a.rows, rooms: a.rooms });
-    const plateB = plateOf({ id: "kestrel-b", faction: "kestrel", facing: "right", cols: b.cols, rows: b.rows, rooms: b.rooms });
+    const plateA = plateOf({ id: "PLAYER_SHIP_HARD", faction: "kestrel", facing: "right", cols: a.cols, rows: a.rows, rooms: a.rooms });
+    const plateB = plateOf({ id: "PLAYER_SHIP_HARD_2", faction: "kestrel", facing: "right", cols: b.cols, rows: b.rows, rooms: b.rooms });
     assert.equal(factionPaint("kestrel").skin, paint.skin);
     assert.notEqual(sig(plateA), sig(plateB));
   });
@@ -122,10 +122,10 @@ describe("hull plates", () => {
   });
 
   it("adds a pirate mark the plain plate does not have", () => {
-    const layout = layoutFor("kestrel-a");
+    const layout = layoutFor("PLAYER_SHIP_HARD");
     assert.ok(layout);
     const args = {
-      id: "kestrel-a",
+      id: "PLAYER_SHIP_HARD",
       faction: "kestrel",
       facing: "right" as const,
       cols: layout.cols,

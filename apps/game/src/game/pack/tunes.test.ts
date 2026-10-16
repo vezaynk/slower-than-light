@@ -24,13 +24,13 @@ function ownEveryPricedSystem(g: Game) {
   g.player.systems.medbay.level = 1;
   g.player.systems.sensors.level = 1;
   g.player.systems.doors.level = 1;
-  g.player.kits.cradle = kit("cradle");
-  g.player.kits.sling = kit("sling");
-  g.player.kits.veil = kit("veil");
-  g.player.kits.leash = kit("leash");
-  g.player.kits.spike = kit("spike");
-  g.player.kits.cell = kit("cell");
-  g.player.kits.swarm = kit("swarm", 2);
+  g.player.kits.clonebay = kit("clonebay");
+  g.player.kits.teleporter = kit("teleporter");
+  g.player.kits.cloaking = kit("cloaking");
+  g.player.kits.mind = kit("mind");
+  g.player.kits.hacking = kit("hacking");
+  g.player.kits.battery = kit("battery");
+  g.player.kits.drones = kit("drones", 2);
 }
 
 describe("system tunes", () => {

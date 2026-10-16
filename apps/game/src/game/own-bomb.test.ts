@@ -42,7 +42,7 @@ function sureEvade(g: Game, ship: "player" | "enemy") {
   hull.systems.engines.damage = 0;
   hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
   hull.systems.pilot.damage = 0;
-  hull.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  hull.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
   const engines = hull.rooms.find((r) => r.system === "engines");
   const pilot = hull.rooms.find((r) => r.system === "pilot");
   const crew = g.crew.filter((c) => c.aboard === ship && c.hp > 0);
@@ -60,7 +60,7 @@ describe("bombs aimed at your own ship", () => {
   it("heals your medbay crew and does not heal the enemy", () => {
     const g = createGame(11);
     quiet(g);
-    mount(g, "healburst");
+    mount(g, "BOMB_HEAL");
     const bay = g.player.rooms.find((r) => r.system === "medbay");
     assert.ok(bay);
     const crew = g.crew.find((c) => c.side === "player");
@@ -100,7 +100,7 @@ describe("bombs aimed at your own ship", () => {
     bay.fire = 1;
     bay.breach = 1;
     const hull = g.player.hull;
-    applyImpact(g, bomb({ defId: "repairburst", targetRoom: bay.id, own: true }));
+    applyImpact(g, bomb({ defId: "BOMB_HEAL_SYSTEM", targetRoom: bay.id, own: true }));
     assert.equal(g.player.systems[bay.system].damage, 0);
     assert.equal(bay.fire, 1);
     assert.equal(bay.breach, 1);
@@ -115,7 +115,7 @@ describe("bombs aimed at your own ship", () => {
     foe.aboard = "enemy";
     foe.room = enemyRoom.id;
     foe.hp = 20;
-    applyImpact(g, bomb({ defId: "healburst", targetRoom: enemyRoom.id }));
+    applyImpact(g, bomb({ defId: "BOMB_HEAL", targetRoom: enemyRoom.id }));
     assert.equal(foe.hp, 20);
   });
 
@@ -128,11 +128,11 @@ describe("bombs aimed at your own ship", () => {
     // Small Bomb prints 2 system damage. A level-1 medbay can only hold 1, so the bar count is raised first.
     g.player.systems[bay.system].level = 2;
     const hull = g.player.hull;
-    applyImpact(g, bomb({ defId: "smallbomb", damage: 2, targetRoom: bay.id, own: true }));
+    applyImpact(g, bomb({ defId: "BOMB_1", damage: 2, targetRoom: bay.id, own: true }));
     assert.equal(g.player.systems[bay.system].damage, 2);
     assert.equal(g.player.hull, hull);
 
-    g.player.weapons = [{ uid: "gun", defId: "lineburst", charge: 0, enabled: true, autofire: false, target: null }];
+    g.player.weapons = [{ uid: "gun", defId: "LASER_BURST_3", charge: 0, enabled: true, autofire: false, target: null }];
     g.targeting = true;
     g.armed = "gun";
     armWeapon(g, "gun");
@@ -161,7 +161,7 @@ describe("bombs aimed at your own ship", () => {
     enemy.shieldNow = 2;
     const hull = enemy.hull;
     const hp = g.crew.map((c) => c.hp);
-    applyImpact(g, bomb({ defId: "ionbomb", ion: 4, targetRoom: room.id }));
+    applyImpact(g, bomb({ defId: "BOMB_ION", ion: 4, targetRoom: room.id }));
     assert.equal(enemy.systems[room.system].ion.length, 4);
     assert.equal(enemy.systems[room.system].damage, 0);
     assert.equal(enemy.hull, hull);
@@ -173,7 +173,7 @@ describe("bombs aimed at your own ship", () => {
 
     enemy.zoltan = 5;
     enemy.systems[room.system].ion = [];
-    applyImpact(g, bomb({ defId: "ionbomb", ion: 4, targetRoom: room.id }));
+    applyImpact(g, bomb({ defId: "BOMB_ION", ion: 4, targetRoom: room.id }));
     assert.equal(enemy.zoltan, 0);
     assert.equal(enemy.systems[room.system].ion.length, 0);
     assert.equal(enemy.hull, hull);
@@ -194,13 +194,13 @@ describe("bombs aimed at your own ship", () => {
     g.player.systems.shields.level = 4;
     g.player.systems.shields.power = 4;
     g.player.shieldNow = 2;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       room: room.id,
@@ -208,8 +208,8 @@ describe("bombs aimed at your own ship", () => {
     };
     const enemy = g.enemy;
     assert.ok(enemy);
-    enemy.kits.swarm = {
-      id: "swarm",
+    enemy.kits.drones = {
+      id: "drones",
       level: 3,
       power: 3,
       left: 0,
@@ -217,11 +217,11 @@ describe("bombs aimed at your own ship", () => {
       target: null,
       on: true,
       aux: 0,
-      loadout: ["ionintruder"],
+      loadout: ["BOARDER_ION"],
       drones: [
         {
           id: "ed-ion",
-          kind: "ionintruder",
+          kind: "BOARDER_ION",
           alive: true,
           powered: true,
           aux: 0,
@@ -242,14 +242,14 @@ describe("bombs aimed at your own ship", () => {
     };
     const hull = g.player.hull;
     const hp = crew[0].hp;
-    applyImpact(g, bomb({ defId: "stunbomb", ion: 1, from: "enemy", targetRoom: room.id }));
+    applyImpact(g, bomb({ defId: "BOMB_STUN", ion: 1, from: "enemy", targetRoom: room.id }));
     assert.equal(g.player.systems[room.system].ion.length, 1);
     assert.equal(g.player.systems[room.system].damage, 0);
     assert.ok((crew[0].stun ?? 0) >= 15);
     assert.equal(crew[1].stun ?? 0, 0);
-    assert.ok((g.player.kits.swarm.stun ?? 0) >= 15);
-    assert.ok((enemy.kits.swarm.drones?.[0].stun ?? 0) >= 15);
-    assert.equal(enemy.kits.swarm.drones?.[1].stun ?? 0, 0);
+    assert.ok((g.player.kits.drones.stun ?? 0) >= 15);
+    assert.ok((enemy.kits.drones.drones?.[0].stun ?? 0) >= 15);
+    assert.equal(enemy.kits.drones.drones?.[1].stun ?? 0, 0);
     assert.equal(g.player.hull, hull);
     assert.equal(crew[0].hp, hp);
     assert.equal(g.player.shieldNow, 2);
@@ -257,14 +257,14 @@ describe("bombs aimed at your own ship", () => {
     g.player.zoltan = 5;
     g.player.systems[room.system].ion = [];
     crew[0].stun = 0;
-    g.player.kits.swarm.stun = 0;
-    enemy.kits.swarm.drones![0].stun = 0;
-    applyImpact(g, bomb({ defId: "stunbomb", ion: 1, from: "enemy", targetRoom: room.id }));
+    g.player.kits.drones.stun = 0;
+    enemy.kits.drones.drones![0].stun = 0;
+    applyImpact(g, bomb({ defId: "BOMB_STUN", ion: 1, from: "enemy", targetRoom: room.id }));
     assert.equal(g.player.zoltan, 3);
     assert.equal(g.player.systems[room.system].ion.length, 0);
     assert.equal(crew[0].stun ?? 0, 0);
-    assert.equal(g.player.kits.swarm.stun ?? 0, 0);
-    assert.equal(enemy.kits.swarm.drones![0].stun ?? 0, 0);
+    assert.equal(g.player.kits.drones.stun ?? 0, 0);
+    assert.equal(enemy.kits.drones.drones![0].stun ?? 0, 0);
   });
 });
 
@@ -286,13 +286,13 @@ describe("ion stunner", () => {
     crew[1].stun = 0;
     g.player.shieldNow = 0;
     g.player.systems.shields.power = 0;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       room: room.id,
@@ -309,21 +309,21 @@ describe("ion stunner", () => {
       wait: 0,
       t: 1,
       duration: 1,
-      defId: "stunner",
+      defId: "ION_STUN",
       targetRoom: room.id,
     };
     applyImpact(g, shot);
     assert.equal(crew[0].stun, 5);
     assert.equal(crew[1].stun ?? 0, 0);
-    assert.equal(g.player.kits.swarm.stun, 5);
+    assert.equal(g.player.kits.drones.stun, 5);
     assert.equal(g.player.systems[room.system].ion.length, 1);
 
     crew[0].stun = 0;
-    g.player.kits.swarm.stun = 0;
+    g.player.kits.drones.stun = 0;
     g.player.shieldNow = 1;
     applyImpact(g, { ...shot, id: "stunner-shield" });
     assert.equal(crew[0].stun ?? 0, 0);
-    assert.equal(g.player.kits.swarm.stun ?? 0, 0);
+    assert.equal(g.player.kits.drones.stun ?? 0, 0);
   });
 
   it("stuns Shields-room crew and drones when a bubble blocks the shot", () => {
@@ -345,13 +345,13 @@ describe("ion stunner", () => {
     g.player.shieldNow = 1;
     g.player.systems.shields.ion = [];
     g.player.systems.weapons.ion = [];
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       room: shields.id,
@@ -368,12 +368,12 @@ describe("ion stunner", () => {
       wait: 0,
       t: 1,
       duration: 1,
-      defId: "stunner",
+      defId: "ION_STUN",
       targetRoom: weapons.id,
     };
     applyImpact(g, shot);
     assert.equal(crew[1].stun, 5);
-    assert.equal(g.player.kits.swarm.stun, 5);
+    assert.equal(g.player.kits.drones.stun, 5);
     assert.equal(g.player.systems.shields.ion.length, 1);
     assert.equal(g.player.systems.weapons.ion.length, 0);
     assert.equal(crew[0].stun ?? 0, 0);
@@ -382,7 +382,7 @@ describe("ion stunner", () => {
 
 describe("an invalid tap clears the armed weapon's aim (per the user)", () => {
   it("drops a laser's earlier target when its next tap lands on your own ship", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     startCombat(g, "scout");
     const w = g.player.weapons[0]!;
     const enemyRoom = g.enemy!.rooms[0]!;

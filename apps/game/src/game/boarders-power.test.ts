@@ -14,16 +14,16 @@ function unit(kind: string, extra: Partial<DroneUnit> = {}): DroneUnit {
     powered: true,
     aux: 0,
     cool: 0,
-    hp: kind === "ionintruder" ? 125 : kind === "striker" ? undefined : 150,
-    fly: kind === "board" || kind === "ionintruder" ? 0 : undefined,
+    hp: kind === "BOARDER_ION" ? 125 : kind === "COMBAT_1" ? undefined : 150,
+    fly: kind === "BOARDER" || kind === "BOARDER_ION" ? 0 : undefined,
     ...extra,
   };
 }
 
 function mount(g: Game, drones: DroneUnit[]) {
   assert.ok(g.enemy);
-  g.enemy.kits.swarm = {
-    id: "swarm",
+  g.enemy.kits.drones = {
+    id: "drones",
     level: 8,
     power: 8,
     left: 0,
@@ -95,7 +95,7 @@ function stunBomb(room: string): Shot {
     fireChance: 0,
     breachChance: 0,
     targetRoom: room,
-    defId: "stunbomb",
+    defId: "BOMB_STUN",
     wait: 0,
     t: 1,
     duration: 1,
@@ -106,11 +106,11 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("keeps a landed boarder and ion intruder, unpowered, and drops drones still outside", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-weapons" });
-    const ion = unit("ionintruder", { id: "ion", room: "p-shields" });
-    const flying = unit("board", { id: "flying", room: undefined, fly: 2 });
-    const orbiter = unit("striker", { id: "orb" });
-    const dead = unit("board", { id: "dead", room: "p-oxygen", alive: false });
+    const board = unit("BOARDER", { id: "landed", room: "p-weapons" });
+    const ion = unit("BOARDER_ION", { id: "ion", room: "p-shields" });
+    const flying = unit("BOARDER", { id: "flying", room: undefined, fly: 2 });
+    const orbiter = unit("COMBAT_1", { id: "orb" });
+    const dead = unit("BOARDER", { id: "dead", room: "p-oxygen", alive: false });
     mount(g, [board, ion, flying, orbiter, dead]);
     const weapons = g.player.systems.weapons;
     const shields = g.player.systems.shields;
@@ -146,7 +146,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("can still be destroyed by your crew, and does not hit them back", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-weapons", hp: 150 });
+    const board = unit("BOARDER", { id: "landed", room: "p-weapons", hp: 150 });
     mount(g, [board]);
     const mate = g.crew.find((c) => c.side === "player" && c.room === "p-pilot");
     assert.ok(mate);
@@ -168,7 +168,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("leaves the room once your crew destroy it", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-weapons", hp: 1 });
+    const board = unit("BOARDER", { id: "landed", room: "p-weapons", hp: 1 });
     mount(g, [board]);
     const mate = g.crew.find((c) => c.side === "player");
     assert.ok(mate);
@@ -186,7 +186,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("still takes a weapon hit and a stun bomb after the ship is gone", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-weapons", hp: 40 });
+    const board = unit("BOARDER", { id: "landed", room: "p-weapons", hp: 40 });
     mount(g, [board]);
     destroy(g);
     hurtRoomDrones(g, "player", "p-weapons", 10);
@@ -200,7 +200,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("stays through the next fight and is removed when you jump", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-weapons" });
+    const board = unit("BOARDER", { id: "landed", room: "p-weapons" });
     mount(g, [board]);
     destroy(g);
     startCombat(g, "scout");
@@ -226,7 +226,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("is removed by the crystal jump too", () => {
     const g = quietFight();
     park(g);
-    const board = unit("board", { id: "landed", room: "p-sensors" });
+    const board = unit("BOARDER", { id: "landed", room: "p-sensors" });
     mount(g, [board]);
     destroy(g);
     assert.equal(g.boarded?.[0], board);
@@ -237,11 +237,11 @@ describe("boarding drones lose power when that hull is destroyed", () => {
   it("does not silence them when the crew die, the ship surrenders, or it flees", () => {
     const killed = quietFight(8, "pirate");
     park(killed);
-    const stayed = unit("board", { id: "stayed", room: "p-weapons" });
+    const stayed = unit("BOARDER", { id: "stayed", room: "p-weapons" });
     mount(killed, [stayed]);
     assert.equal(killed.enemy!.automated, false);
     assert.ok(killed.enemy!.classId);
-    if (killed.enemy!.kits.cradle) killed.enemy!.kits.cradle.level = 0;
+    if (killed.enemy!.kits.clonebay) killed.enemy!.kits.clonebay.level = 0;
     for (const c of killed.crew) if (c.side === "enemy") c.hp = 0;
     const hull = killed.enemy!.hull;
     step(killed, 0.05);
@@ -249,18 +249,18 @@ describe("boarding drones lose power when that hull is destroyed", () => {
     assert.ok(killed.wreck);
     assert.equal(killed.enemy, null);
     assert.equal(killed.boarded, undefined);
-    assert.equal(killed.wreck.kits.swarm?.drones?.includes(stayed), true);
+    assert.equal(killed.wreck.kits.drones?.drones?.includes(stayed), true);
 
     const surrendered = quietFight(9);
-    const offered = unit("board", { id: "offered", room: "p-doors" });
+    const offered = unit("BOARDER", { id: "offered", room: "p-doors" });
     mount(surrendered, [offered]);
     closeFight(surrendered);
     assert.ok(surrendered.wreck);
     assert.equal(surrendered.boarded, undefined);
-    assert.equal(surrendered.wreck.kits.swarm?.drones?.includes(offered), true);
+    assert.equal(surrendered.wreck.kits.drones?.drones?.includes(offered), true);
 
     const fled = quietFight(10);
-    const runner = unit("board", { id: "runner", room: "p-oxygen" });
+    const runner = unit("BOARDER", { id: "runner", room: "p-oxygen" });
     mount(fled, [runner]);
     fled.enemyFlee = 1;
     step(fled, 0.05);

@@ -23,7 +23,7 @@ import {
 describe("medical standing spots", () => {
   const wide = { x: 0, y: 0, w: 2, h: 2, system: "medbay" as const };
   const slim = { x: 0, y: 0, w: 2, h: 1, system: "medbay" as const };
-  const clone = { x: 0, y: 0, w: 2, h: 2, system: null, kit: "cradle" };
+  const clone = { x: 0, y: 0, w: 2, h: 2, system: null, kit: "clonebay" };
 
   it("uses the printed medbay and clone caps, and a dead-end player medbay stays at 2", () => {
     assert.equal(medicalLimit(wide, "player", 2), 3);
@@ -34,7 +34,7 @@ describe("medical standing spots", () => {
     assert.equal(medicalLimit(clone, "player", 2), 3);
     assert.equal(medicalLimit({ ...clone, w: 2, h: 1 }, "player", 1), 1);
     assert.equal(medicalLimit(clone, "enemy", 2), 4);
-    assert.equal(medicalLimit({ ...wide, kit: "cradle" }, "player", 2), 3);
+    assert.equal(medicalLimit({ ...wide, kit: "clonebay" }, "player", 2), 3);
   });
 });
 
@@ -44,13 +44,13 @@ describe("the medical machine's tile", () => {
     assert.deepEqual(blockedCells(wide, "player", 2), [{ x: 2, y: 1 }]);
     assert.deepEqual(blockedCells(wide, "enemy", 2), []);
     assert.deepEqual(blockedCells({ ...wide, w: 2, h: 1 }, "player", 2), []);
-    const vat = { id: "c", x: 0, y: 0, w: 2, h: 1, system: null, kit: "cradle" };
+    const vat = { id: "c", x: 0, y: 0, w: 2, h: 1, system: null, kit: "clonebay" };
     assert.deepEqual(blockedCells(vat, "player", 2), [{ x: 0, y: 0 }]);
     assert.deepEqual(blockedCells({ id: "o", x: 0, y: 0, w: 2, h: 2, system: "oxygen" }, "player", 2), []);
   });
 
   it("never stands crew on the blocked tile", () => {
-    const g = createGame(6, "kestrel-a");
+    const g = createGame(6, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const [blocked] = blockedCells(bay, "player", interiorLinks(g.player.doors, bay.id), g.player.doorMarks);
@@ -180,7 +180,7 @@ describe("crew room orders", () => {
   });
 
   it("names the crew the medbay is healing right now: hurt, in the bay, and only while it has power", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const [hurt, whole] = g.crew.filter((x) => x.side === "player");
@@ -197,7 +197,7 @@ describe("crew room orders", () => {
 
   it("heals out of a fight too, once the medbay has power", () => {
     // Medbay, "Overview": it heals friendly crew in the room whenever it is powered.
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.paused = false;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
@@ -228,7 +228,7 @@ describe("crew room orders", () => {
       ada.move = 0;
       // A boarder in the bay. Zoltans, lead: a Zoltan would power the room, so this one is another race.
       const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0)!;
-      foe.kin = "plain";
+      foe.kin = "human";
       foe.aboard = "player";
       foe.room = "p-medbay";
       foe.path = [];
@@ -288,7 +288,7 @@ describe("crew room orders", () => {
   });
 
   it("will not end a walk in a room that has no standing spot left", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const ada = g.crew.find((c) => c.name === "Ada Voss")!;
     const ivo = g.crew.find((c) => c.name === "Ivo Park")!;
@@ -353,7 +353,7 @@ describe("crew room orders", () => {
     ivo.room = "p-engines";
     ivo.path = ["p-oxygen"];
     ivo.move = 0;
-    ivo.kin = "plain";
+    ivo.kin = "human";
     g.player.rooms.find((r) => r.id === "p-engines")!.lock = 12;
     door.open = false;
     door.coat = 8;
@@ -361,7 +361,7 @@ describe("crew room orders", () => {
     assert.equal(ivo.room, "p-engines");
     assert.ok(ivo.path.length > 0);
 
-    ivo.kin = "shard";
+    ivo.kin = "crystal";
     ivo.path = ["p-oxygen"];
     ivo.move = 0;
     door.open = false;
@@ -370,7 +370,7 @@ describe("crew room orders", () => {
   });
 
   it("seeds every crew member's station with where they spawn, tile included", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     for (const c of g.crew.filter((x) => x.side === "player")) {
       assert.equal(c.station, c.room, c.name);
       assert.deepEqual(c.stationTile, { x: c.tile!.x, y: c.tile!.y }, c.name);
@@ -426,12 +426,12 @@ describe("crew room orders", () => {
     const g = createGame(12);
     g.scrap = 200;
     installSling(g);
-    const kit = g.player.kits.sling;
+    const kit = g.player.kits.teleporter;
     assert.ok(kit);
     kit.power = 1;
     g.phase = "combat";
     g.enemy = { rooms: [{ id: "e-weapons", title: "Weapons" }] } as unknown as typeof g.enemy;
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
     const ada = g.crew.find((c) => c.id === "c-ada");
     assert.ok(pad && ivo && ada && g.enemy);
@@ -459,7 +459,7 @@ describe("crew room orders", () => {
 
 describe("manning terminal", () => {
   it("puts the crew member who runs the system on the right-hand terminal", () => {
-    const g = createGame(4, "kestrel-a");
+    const g = createGame(4, "PLAYER_SHIP_HARD");
     const engines = g.player.rooms.find((r) => r.id === "p-engines");
     const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen");
     const medbay = g.player.rooms.find((r) => r.id === "p-medbay");

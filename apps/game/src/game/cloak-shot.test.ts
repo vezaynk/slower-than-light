@@ -13,8 +13,8 @@ function cloakedFight(): Game {
     gun.enabled = false;
     gun.target = null;
   }
-  g.enemy.kits.veil = {
-    id: "veil",
+  g.enemy.kits.cloaking = {
+    id: "cloaking",
     level: 1,
     power: 1,
     left: 10,
@@ -35,8 +35,8 @@ function assertNoPresence(g: Game) {
     g.crew.some((c) => c.hp > 0 && c.side === "enemy" && c.aboard === "enemy" && (c.leashed ?? 0) > 0),
     false,
   );
-  const swarm = g.player.kits.swarm;
-  assert.ok(!swarm || (swarm.target !== "board" && swarm.target !== "ionintruder"));
+  const swarm = g.player.kits.drones;
+  assert.ok(!swarm || (swarm.target !== "BOARDER" && swarm.target !== "BOARDER_ION"));
 }
 
 /** Power Weapon Control for the first slot without touching the cloak. */
@@ -113,13 +113,13 @@ describe("cloaked enemy, charged player shot", () => {
       g.crew.some((c) => c.hp > 0 && c.side === "enemy" && (c.leashed ?? 0) > 0),
       false,
     );
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 0,
       left: 0,
       cool: 0,
-      target: "ionintruder",
+      target: "BOARDER_ION",
       on: true,
       aux: 0,
       room: g.enemy!.rooms[0]!.id,
@@ -142,13 +142,13 @@ describe("cloaked enemy, charged player shot", () => {
       false,
     );
     const before = playerShots(g);
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 0,
       left: 0,
       cool: 0,
-      target: "board",
+      target: "BOARDER",
       on: true,
       aux: 0,
       hp: 125,
@@ -162,13 +162,13 @@ describe("cloaked enemy, charged player shot", () => {
     const g = cloakedFight();
     const w = primeLaser(g, 1);
     const before = playerShots(g);
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 0,
       left: 0,
       cool: 0,
-      target: "board",
+      target: "BOARDER",
       on: true,
       aux: 0,
       room: g.enemy!.rooms[0]!.id,

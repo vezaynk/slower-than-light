@@ -102,7 +102,7 @@ describe("Rock ship plating", () => {
     }
 
     const own = createGame(4);
-    own.augments = ["keel"];
+    own.augments = ["ROCK_ARMOR"];
     startCombat(own, "Rebel ship");
     const player = bareHull(own, "player");
     let ownHeld = 0;
@@ -119,7 +119,7 @@ describe("Rock ship plating", () => {
       const flare = createGame(1);
       flare.sector = 3;
       startCombat(flare, "Rock ship");
-      flare.augments = keel ? ["keel"] : [];
+      flare.augments = keel ? ["ROCK_ARMOR"] : [];
       flare.enemy!.faction = faction;
       flare.player.hull = 40;
       flare.enemy!.hull = 40;

@@ -1147,23 +1147,23 @@ export type EnemyDroneRow = { drones: string[]; maxDrones: number; parts: number
 
 /** Template row "Rebel Rigger D / Rebel Disruptor D/H": every column, 4 to 8 parts. */
 const REBEL_DRONES = [
-  "striker",
-  "combat2",
+  "COMBAT_1",
+  "COMBAT_2",
   "beam",
-  "beam2",
+  "COMBAT_BEAM_2",
   "fire",
-  "ward",
-  "ward2",
-  "wardcut",
-  "overcharger",
-  "patch",
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "DRONE_SHIELD",
+  "REPAIR",
   "personnel",
-  "board",
-  "ionintruder",
+  "BOARDER",
+  "BOARDER_ION",
 ];
 /** Template rows "Engi Scout / Outrider / Bomber / Hacker": defensive column only, 4 to 8 parts.
  * Enemy Ships: "an Engi ship will never have offensive drones." */
-const ENGI_DRONES = ["ward", "ward2", "wardcut"];
+const ENGI_DRONES = ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE"];
 
 export const ENEMY_DRONES: Record<string, EnemyDroneRow> = {
   "rebel-rigger": { drones: REBEL_DRONES, maxDrones: 4, parts: 4 },
@@ -1173,13 +1173,13 @@ export const ENEMY_DRONES: Record<string, EnemyDroneRow> = {
   "engi-bomber": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
   "engi-hacker": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
   /** Template row "Zoltan Bomber D": Combat Drone Mark I, Beam Drone I and II, Fire Drone. Min 2 parts, max 4. */
-  "energy-bomber": { drones: ["striker", "beam", "beam2", "fire"], maxDrones: 2, parts: 2 },
+  "energy-bomber": { drones: ["COMBAT_1", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"], maxDrones: 2, parts: 2 },
   /** Template row "Zoltan Hacker H": "Ships marked only by index H don't have regular drones".
    * Enemy Ships, "Missile and drone stocks": "Zoltan Hacker: 5 parts" (the template row prints "2 / 5 (H)"). */
   "energy-hacker": { drones: [], maxDrones: 0, parts: 5 },
   /** Template row "Auto-Assault D": offensive column (Combat I and II, Beam I and II, Fire). Min 5, max 6 parts. */
   "auto-assault": {
-    drones: ["striker", "combat2", "beam", "beam2", "fire"],
+    drones: ["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"],
     maxDrones: 3,
     parts: 5,
   },

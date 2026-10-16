@@ -24,39 +24,39 @@
     <syllable>ri</syllable>
     <syllable>os</syllable>
   </names>
-  <crewBlueprint name="plain">
+  <crewBlueprint name="human">
     <title>Human</title>
     <desc>Health 100. Move ×1. Repair ×1. Combat ×1. Suffocation ×1. Fire damage taken ×1.</desc>
   </crewBlueprint>
-  <crewBlueprint name="shell">
+  <crewBlueprint name="engi">
     <title>Engi</title>
     <desc>Health 100. Move ×1. Repair ×2. Combat ×0.5. Suffocation ×1. Fire damage taken ×1.</desc>
   </crewBlueprint>
-  <crewBlueprint name="spark">
+  <crewBlueprint name="energy">
     <title>Zoltan</title>
     <desc>Health 70. Move ×1. Repair ×1. Combat ×1. Suffocation ×1. Fire damage taken ×1. Supplies 1 power. Explodes on death.</desc>
   </crewBlueprint>
-  <crewBlueprint name="blade">
+  <crewBlueprint name="mantis">
     <title>Mantis</title>
     <desc>Health 100. Move ×1.2. Repair ×0.5. Combat ×1.5. Suffocation ×1. Fire damage taken ×1.</desc>
   </crewBlueprint>
-  <crewBlueprint name="gel">
+  <crewBlueprint name="slug">
     <title>Slug</title>
     <desc>Health 100. Move ×1. Repair ×1. Combat ×1. Suffocation ×1. Fire damage taken ×1. Detects lifeforms. Resists mind control.</desc>
   </crewBlueprint>
-  <crewBlueprint name="stone">
+  <crewBlueprint name="rock">
     <title>Rock</title>
     <desc>Health 150. Move ×0.5. Repair ×1. Combat ×1. Suffocation ×1. Fire damage taken ×0. Fire repair ×1.67.</desc>
   </crewBlueprint>
-  <crewBlueprint name="voidlung">
+  <crewBlueprint name="anaerobic">
     <title>Lanius</title>
     <desc>Health 100. Move ×0.85. Repair ×1. Combat ×1. Suffocation ×0. Fire damage taken ×1. Drains oxygen.</desc>
   </crewBlueprint>
-  <crewBlueprint name="shard">
+  <crewBlueprint name="crystal">
     <title>Crystal</title>
     <desc>Health 125. Move ×0.8. Repair ×1. Combat ×1. Suffocation ×0.5. Fire damage taken ×1. Locks a room for 50 seconds. Fire repair ×0.83.</desc>
   </crewBlueprint>
-  <weaponBlueprint name="lineburst">
+  <weaponBlueprint name="LASER_BURST_3">
     <type>LASER</type>
     <title>Burst Laser II</title>
     <tooltip>Laser. 2 power. Charges in 12 seconds. 3 shots of 1 damage. 0.28 seconds between shots. Costs 80 scrap.</tooltip>
@@ -70,7 +70,7 @@
     <breachChance>0</breachChance>
     <cost>80</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="spark">
+  <weaponBlueprint name="LASER_BURST_1">
     <type>LASER</type>
     <title>Basic Laser</title>
     <tooltip>Laser. 1 power. Charges in 10 seconds. 1 shot of 1 damage. Not sold.</tooltip>
@@ -84,7 +84,7 @@
     <breachChance>0</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="twin">
+  <weaponBlueprint name="LASER_BURST_2">
     <type>LASER</type>
     <title>Dual Lasers</title>
     <tooltip>Laser. 1 power. Charges in 10 seconds. 2 shots of 1 damage. 0.3 seconds between shots. Not sold.</tooltip>
@@ -98,7 +98,7 @@
     <breachChance>0</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavy">
+  <weaponBlueprint name="LASER_HEAVY_1">
     <type>LASER</type>
     <title>Heavy Laser</title>
     <tooltip>Laser. 1 power. Charges in 9 seconds. 1 shot of 2 damage. Fire chance 30%. Breach chance 30%. Costs 50 scrap.</tooltip>
@@ -127,7 +127,7 @@
     <cost>40</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="needle">
+  <weaponBlueprint name="ION_1">
     <type>ION</type>
     <title>Ion Blast</title>
     <tooltip>Ion. 1 power. Charges in 8 seconds. 1 shot of 0 damage. 1 ion damage. Costs 30 scrap.</tooltip>
@@ -141,7 +141,7 @@
     <breachChance>0</breachChance>
     <cost>30</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="artemis">
+  <weaponBlueprint name="MISSILES_2_PLAYER">
     <type>MISSILE</type>
     <title>Artemis Missiles</title>
     <tooltip>Missile. 1 power. Charges in 11 seconds. 1 shot of 2 damage. Uses a missile. Not sold.</tooltip>
@@ -156,7 +156,7 @@
     <cost>0</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="leto">
+  <weaponBlueprint name="MISSILES_1">
     <type>MISSILE</type>
     <title>Leto Missiles</title>
     <tooltip>Missile. 1 power. Charges in 9 seconds. 1 shot of 1 damage. Uses a missile. Not sold.</tooltip>
@@ -171,7 +171,7 @@
     <cost>0</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="ion2">
+  <weaponBlueprint name="ION_4">
     <type>ION</type>
     <title>Ion Blast II</title>
     <tooltip>Ion. 3 power. Charges in 4 seconds. 1 shot of 0 damage. 1 ion damage. Costs 70 scrap.</tooltip>
@@ -185,7 +185,7 @@
     <breachChance>0</breachChance>
     <cost>70</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavyion">
+  <weaponBlueprint name="ION_2">
     <type>ION</type>
     <title>Heavy Ion</title>
     <tooltip>Ion. 2 power. Charges in 13 seconds. 1 shot of 0 damage. 2 ion damage. Costs 45 scrap.</tooltip>
@@ -199,7 +199,7 @@
     <breachChance>0</breachChance>
     <cost>45</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="stunner">
+  <weaponBlueprint name="ION_STUN">
     <type>ION</type>
     <title>Ion Stunner</title>
     <tooltip>Ion. 1 power. Charges in 10 seconds. 1 shot of 0 damage. 1 ion damage. Costs 35 scrap.</tooltip>
@@ -213,10 +213,10 @@
     <breachChance>0</breachChance>
     <cost>35</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="shear">
+  <weaponBlueprint name="BEAM_LONG">
     <type>BEAM</type>
     <title>Pike Beam</title>
-    <tooltip>Beam. 2 power. Charges in 16 seconds. 1 shot of 1 damage. Length 3.8 tiles. Beam speed 9. Costs 55 scrap.</tooltip>
+    <tooltip>Beam. 2 power. Charges in 16 seconds. 1 shot of 1 damage. Length 3.8 tiles. Beam speed 9. Crew damage 15. Costs 55 scrap.</tooltip>
     <power>2</power>
     <cooldown>16</cooldown>
     <shots>1</shots>
@@ -228,8 +228,9 @@
     <cost>55</cost>
     <length>171</length>
     <speed>9</speed>
+    <crewDamage>15</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="scatter">
+  <weaponBlueprint name="SHOTGUN">
     <type>FLAK</type>
     <title>Flak I</title>
     <tooltip>Flak. 2 power. Charges in 10 seconds. 3 shots of 1 damage. Costs 65 scrap.</tooltip>
@@ -243,7 +244,7 @@
     <breachChance>0</breachChance>
     <cost>65</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="cask">
+  <weaponBlueprint name="BOMB_FIRE">
     <type>BOMB</type>
     <title>Fire Bomb</title>
     <tooltip>Bomb. 2 power. Charges in 15 seconds. 1 shot of 0 damage. Fire chance 100%. Uses a missile. Costs 50 scrap.</tooltip>
@@ -258,7 +259,7 @@
     <cost>50</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="burst1">
+  <weaponBlueprint name="LASER_BURST_2_A">
     <type>LASER</type>
     <title>Burst Laser Mark I</title>
     <tooltip>Laser. 2 power. Charges in 11 seconds. 2 shots of 1 damage. Costs 50 scrap.</tooltip>
@@ -272,7 +273,7 @@
     <breachChance>0</breachChance>
     <cost>50</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="burst3">
+  <weaponBlueprint name="LASER_BURST_5">
     <type>LASER</type>
     <title>Burst Laser Mark III</title>
     <tooltip>Laser. 4 power. Charges in 19 seconds. 5 shots of 1 damage. Costs 95 scrap.</tooltip>
@@ -286,7 +287,7 @@
     <breachChance>0</breachChance>
     <cost>95</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavypierce">
+  <weaponBlueprint name="LASER_HEAVY_1_SP">
     <type>LASER</type>
     <title>Heavy Pierce Laser Mark I</title>
     <tooltip>Laser. 2 power. Charges in 10 seconds. 1 shot of 2 damage. Fire chance 30%. Breach chance 30%. Not sold.</tooltip>
@@ -300,7 +301,7 @@
     <breachChance>3</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavy2">
+  <weaponBlueprint name="LASER_HEAVY_2">
     <type>LASER</type>
     <title>Heavy Laser Mark II</title>
     <tooltip>Laser. 3 power. Charges in 13 seconds. 2 shots of 2 damage. Fire chance 30%. Breach chance 30%. Costs 65 scrap.</tooltip>
@@ -314,7 +315,7 @@
     <breachChance>3</breachChance>
     <cost>65</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="hullsmash">
+  <weaponBlueprint name="LASER_HULL_1">
     <type>LASER</type>
     <title>Hull Smasher Laser</title>
     <tooltip>Laser. 2 power. Charges in 14 seconds. 2 shots of 1 damage. Costs 55 scrap.</tooltip>
@@ -328,7 +329,7 @@
     <breachChance>0</breachChance>
     <cost>55</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="hullsmash2">
+  <weaponBlueprint name="LASER_HULL_2">
     <type>LASER</type>
     <title>Hull Smasher Laser Mark II</title>
     <tooltip>Laser. 3 power. Charges in 15 seconds. 3 shots of 1 damage. Costs 75 scrap.</tooltip>
@@ -342,7 +343,7 @@
     <breachChance>0</breachChance>
     <cost>75</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="chainlaser">
+  <weaponBlueprint name="LASER_CHAINGUN">
     <type>LASER</type>
     <title>Chain Burst Laser</title>
     <tooltip>Laser. 2 power. Charges in 16 seconds. 2 shots of 1 damage. Costs 65 scrap.</tooltip>
@@ -356,7 +357,7 @@
     <breachChance>0</breachChance>
     <cost>65</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="vulcan">
+  <weaponBlueprint name="LASER_CHAINGUN_2">
     <type>LASER</type>
     <title>Chain Vulcan</title>
     <tooltip>Laser. 4 power. Charges in 11.1 seconds. 1 shot of 1 damage. Costs 95 scrap.</tooltip>
@@ -370,7 +371,7 @@
     <breachChance>0</breachChance>
     <cost>95</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="chargers">
+  <weaponBlueprint name="LASER_CHARGEGUN_PLAYER">
     <type>LASER</type>
     <title>Laser Charger (S)</title>
     <tooltip>Laser. 1 power. Charges in 5.5 seconds. 2 shots of 1 damage. Not sold.</tooltip>
@@ -384,7 +385,7 @@
     <breachChance>0</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="charger">
+  <weaponBlueprint name="LASER_CHARGEGUN">
     <type>LASER</type>
     <title>Laser Charger</title>
     <tooltip>Laser. 2 power. Charges in 6 seconds. 2 shots of 1 damage. Costs 55 scrap.</tooltip>
@@ -398,7 +399,7 @@
     <breachChance>0</breachChance>
     <cost>55</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="charger2">
+  <weaponBlueprint name="LASER_CHARGEGUN_2">
     <type>LASER</type>
     <title>Laser Charger Mark II</title>
     <tooltip>Laser. 3 power. Charges in 5 seconds. 4 shots of 1 damage. Costs 70 scrap.</tooltip>
@@ -412,7 +413,7 @@
     <breachChance>0</breachChance>
     <cost>70</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="mini">
+  <weaponBlueprint name="BEAM_1">
     <type>BEAM</type>
     <title>Mini Beam</title>
     <tooltip>Beam. 1 power. Charges in 12 seconds. 1 shot of 1 damage. Fire chance 10%. Length 1 tile. Beam speed 3. Crew damage 15. Not sold.</tooltip>
@@ -429,7 +430,7 @@
     <speed>3</speed>
     <crewDamage>15</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="hullbeam">
+  <weaponBlueprint name="BEAM_HULL">
     <type>BEAM</type>
     <title>Hull Beam</title>
     <tooltip>Beam. 2 power. Charges in 14 seconds. 1 shot of 1 damage. Length 2.2 tiles. Beam speed 5. Crew damage 15. Costs 70 scrap.</tooltip>
@@ -446,7 +447,7 @@
     <speed>5</speed>
     <crewDamage>15</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="halberd">
+  <weaponBlueprint name="BEAM_2">
     <type>BEAM</type>
     <title>Halberd Beam</title>
     <tooltip>Beam. 3 power. Charges in 17 seconds. 1 shot of 2 damage. Length 1.8 tiles. Beam speed 5. Crew damage 30. Costs 65 scrap.</tooltip>
@@ -463,7 +464,7 @@
     <speed>5</speed>
     <crewDamage>30</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="glaive">
+  <weaponBlueprint name="BEAM_3">
     <type>BEAM</type>
     <title>Glaive Beam</title>
     <tooltip>Beam. 4 power. Charges in 25 seconds. 1 shot of 3 damage. Length 1.8 tiles. Beam speed 5. Crew damage 45. Costs 95 scrap.</tooltip>
@@ -480,7 +481,7 @@
     <speed>5</speed>
     <crewDamage>45</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="firebeam">
+  <weaponBlueprint name="BEAM_FIRE">
     <type>BEAM</type>
     <title>Fire Beam</title>
     <tooltip>Beam. 2 power. Charges in 20 seconds. 1 shot of 0 damage. Fire chance 80%. Length 3.1 tiles. Beam speed 5. Costs 50 scrap.</tooltip>
@@ -496,7 +497,7 @@
     <length>139.5</length>
     <speed>5</speed>
   </weaponBlueprint>
-  <weaponBlueprint name="antibio">
+  <weaponBlueprint name="BEAM_BIO">
     <type>BEAM</type>
     <title>Anti-Bio Beam</title>
     <tooltip>Beam. 2 power. Charges in 16 seconds. 1 shot of 0 damage. Length 3.1 tiles. Beam speed 30. Crew damage 60. Costs 50 scrap.</tooltip>
@@ -513,7 +514,7 @@
     <speed>30</speed>
     <crewDamage>60</crewDamage>
   </weaponBlueprint>
-  <weaponBlueprint name="ioncharger">
+  <weaponBlueprint name="ION_CHARGEGUN">
     <type>ION</type>
     <title>Ion Charger</title>
     <tooltip>Ion. 2 power. Charges in 6 seconds. 3 shots of 0 damage. 1 ion damage. Costs 50 scrap.</tooltip>
@@ -527,7 +528,7 @@
     <breachChance>0</breachChance>
     <cost>50</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="chainion">
+  <weaponBlueprint name="ION_CHAINGUN">
     <type>ION</type>
     <title>Chain Ion</title>
     <tooltip>Ion. 3 power. Charges in 14 seconds. 1 shot of 0 damage. 1 ion damage. Costs 55 scrap.</tooltip>
@@ -541,7 +542,7 @@
     <breachChance>0</breachChance>
     <cost>55</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="bossion">
+  <weaponBlueprint name="ARTILLERY_BOSS_4">
     <type>ION</type>
     <title>Boss Ion</title>
     <tooltip>Ion. 3 power. Charges in 35 seconds. 3 shots of 0 damage. 1 ion damage. Not sold.</tooltip>
@@ -555,7 +556,7 @@
     <breachChance>0</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="artemisEnemy">
+  <weaponBlueprint name="MISSILES_2">
     <type>MISSILE</type>
     <title>Artemis Missiles (enemy)</title>
     <tooltip>Missile. 2 power. Charges in 10 seconds. 1 shot of 2 damage. Uses a missile. Not sold.</tooltip>
@@ -570,7 +571,7 @@
     <cost>0</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="hermes">
+  <weaponBlueprint name="MISSILES_3">
     <type>MISSILE</type>
     <title>Hermes Missile</title>
     <tooltip>Missile. 3 power. Charges in 14 seconds. 1 shot of 3 damage. Fire chance 30%. Uses a missile. Costs 45 scrap.</tooltip>
@@ -585,7 +586,7 @@
     <cost>45</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="breachmissiles">
+  <weaponBlueprint name="MISSILES_BREACH">
     <type>MISSILE</type>
     <title>Breach Missiles</title>
     <tooltip>Missile. 3 power. Charges in 22 seconds. 1 shot of 4 damage. Fire chance 30%. Breach chance 56%. Uses a missile. Costs 65 scrap.</tooltip>
@@ -600,7 +601,7 @@
     <cost>65</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="hullmissile">
+  <weaponBlueprint name="MISSILES_HULL">
     <type>MISSILE</type>
     <title>Hull Missile</title>
     <tooltip>Missile. 2 power. Charges in 17 seconds. 1 shot of 2 damage. Breach chance 27%. Uses a missile. Costs 65 scrap.</tooltip>
@@ -615,7 +616,7 @@
     <cost>65</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="swarmmissiles">
+  <weaponBlueprint name="MISSILE_CHARGEGUN">
     <type>MISSILE</type>
     <title>Swarm Missiles</title>
     <tooltip>Missile. 2 power. Charges in 7 seconds. 3 shots of 1 damage. Uses a missile. Costs 65 scrap.</tooltip>
@@ -630,7 +631,7 @@
     <cost>65</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="pegasus">
+  <weaponBlueprint name="MISSILES_BURST">
     <type>MISSILE</type>
     <title>Pegasus Missile</title>
     <tooltip>Missile. 3 power. Charges in 20 seconds. 2 shots of 2 damage. Fire chance 30%. Uses a missile. Costs 60 scrap.</tooltip>
@@ -645,7 +646,7 @@
     <cost>60</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="bossmissile">
+  <weaponBlueprint name="ARTILLERY_BOSS_2">
     <type>MISSILE</type>
     <title>Boss Missile</title>
     <tooltip>Missile. 4 power. Charges in 28.75 seconds. 3 shots of 1 damage. Fire chance 30%. Breach chance 14%. Uses a missile. Not sold.</tooltip>
@@ -660,7 +661,7 @@
     <cost>0</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="smallbomb">
+  <weaponBlueprint name="BOMB_1">
     <type>BOMB</type>
     <title>Small Bomb</title>
     <tooltip>Bomb. 1 power. Charges in 13 seconds. 1 shot of 2 damage. Uses a missile. Costs 45 scrap.</tooltip>
@@ -675,7 +676,7 @@
     <cost>45</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="breach1">
+  <weaponBlueprint name="BOMB_BREACH_1">
     <type>BOMB</type>
     <title>Breach Bomb Mark I</title>
     <tooltip>Bomb. 1 power. Charges in 9 seconds. 1 shot of 1 damage. Breach chance 100%. Uses a missile. Not sold.</tooltip>
@@ -690,7 +691,7 @@
     <cost>0</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="breach2">
+  <weaponBlueprint name="BOMB_BREACH_2">
     <type>BOMB</type>
     <title>Breach Bomb Mark II</title>
     <tooltip>Bomb. 2 power. Charges in 17 seconds. 1 shot of 3 damage. Breach chance 100%. Uses a missile. Costs 60 scrap.</tooltip>
@@ -705,7 +706,7 @@
     <cost>60</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="ionbomb">
+  <weaponBlueprint name="BOMB_ION">
     <type>BOMB</type>
     <title>Ion Bomb</title>
     <tooltip>Bomb. 1 power. Charges in 22 seconds. 1 shot of 0 damage. 4 ion damage. Uses a missile. Costs 55 scrap.</tooltip>
@@ -720,7 +721,7 @@
     <cost>55</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="stunbomb">
+  <weaponBlueprint name="BOMB_STUN">
     <type>BOMB</type>
     <title>Stun Bomb</title>
     <tooltip>Bomb. 1 power. Charges in 17 seconds. 1 shot of 0 damage. 1 ion damage. Uses a missile. Costs 45 scrap.</tooltip>
@@ -735,7 +736,7 @@
     <cost>45</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="healburst">
+  <weaponBlueprint name="BOMB_HEAL">
     <type>BOMB</type>
     <title>Healing Burst</title>
     <tooltip>Bomb. 1 power. Charges in 18 seconds. 1 shot of 0 damage. Uses a missile. Costs 40 scrap.</tooltip>
@@ -750,7 +751,7 @@
     <cost>40</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="repairburst">
+  <weaponBlueprint name="BOMB_HEAL_SYSTEM">
     <type>BOMB</type>
     <title>Repair Burst</title>
     <tooltip>Bomb. 1 power. Charges in 14 seconds. 1 shot of 0 damage. Uses a missile. Costs 40 scrap.</tooltip>
@@ -765,7 +766,7 @@
     <cost>40</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="lockdown">
+  <weaponBlueprint name="BOMB_LOCK">
     <type>BOMB</type>
     <title>Crystal Lockdown Bomb</title>
     <tooltip>Bomb. 1 power. Charges in 15 seconds. 1 shot of 0 damage. Uses a missile. Costs 45 scrap.</tooltip>
@@ -780,7 +781,7 @@
     <cost>45</cost>
     <missiles>1</missiles>
   </weaponBlueprint>
-  <weaponBlueprint name="advflak">
+  <weaponBlueprint name="SHOTGUN_PLAYER">
     <type>FLAK</type>
     <title>Adv. Flak Gun</title>
     <tooltip>Flak. 1 power. Charges in 8 seconds. 3 shots of 1 damage. Not sold.</tooltip>
@@ -794,7 +795,7 @@
     <breachChance>0</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="flak2">
+  <weaponBlueprint name="SHOTGUN_2">
     <type>FLAK</type>
     <title>Flak Gun Mark II</title>
     <tooltip>Flak. 3 power. Charges in 21 seconds. 7 shots of 1 damage. Costs 80 scrap.</tooltip>
@@ -808,7 +809,7 @@
     <breachChance>0</breachChance>
     <cost>80</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="crystalburst">
+  <weaponBlueprint name="CRYSTAL_BURST_1">
     <type>LASER</type>
     <title>Crystal Burst Mark I</title>
     <tooltip>Laser. 2 power. Charges in 15 seconds. 2 shots of 1 damage. Costs 20 scrap.</tooltip>
@@ -822,7 +823,7 @@
     <breachChance>0</breachChance>
     <cost>20</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="crystalburst2">
+  <weaponBlueprint name="CRYSTAL_BURST_2">
     <type>LASER</type>
     <title>Crystal Burst Mark II</title>
     <tooltip>Laser. 3 power. Charges in 17 seconds. 3 shots of 1 damage. Costs 20 scrap.</tooltip>
@@ -836,7 +837,7 @@
     <breachChance>0</breachChance>
     <cost>20</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavycrystal">
+  <weaponBlueprint name="CRYSTAL_HEAVY_1">
     <type>LASER</type>
     <title>Heavy Crystal Mark I</title>
     <tooltip>Laser. 1 power. Charges in 13 seconds. 1 shot of 2 damage. Costs 20 scrap.</tooltip>
@@ -850,7 +851,7 @@
     <breachChance>0</breachChance>
     <cost>20</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="heavycrystal2">
+  <weaponBlueprint name="CRYSTAL_HEAVY_2">
     <type>LASER</type>
     <title>Heavy Crystal Mark II</title>
     <tooltip>Laser. 3 power. Charges in 19 seconds. 1 shot of 4 damage. Breach chance 100%. Costs 20 scrap.</tooltip>
@@ -864,7 +865,7 @@
     <breachChance>10</breachChance>
     <cost>20</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="bosslaser">
+  <weaponBlueprint name="ARTILLERY_BOSS_1">
     <type>LASER</type>
     <title>Boss Laser</title>
     <tooltip>Laser. 4 power. Charges in 25 seconds. 3 shots of 1 damage. Fire chance 10%. Breach chance 9%. Not sold.</tooltip>
@@ -878,7 +879,7 @@
     <breachChance>0.8999999999999999</breachChance>
     <cost>0</cost>
   </weaponBlueprint>
-  <weaponBlueprint name="bossbeam">
+  <weaponBlueprint name="ARTILLERY_BOSS_3">
     <type>BEAM</type>
     <title>Boss Beam</title>
     <tooltip>Beam. 3 power. Charges in 32.5 seconds. 1 shot of 2 damage. Length 2.2 tiles. Beam speed 5. Not sold.</tooltip>
@@ -894,180 +895,180 @@
     <length>99.00000000000001</length>
     <speed>5</speed>
   </weaponBlueprint>
-  <augBlueprint name="feed">
+  <augBlueprint name="AUTO_COOLDOWN">
     <title>Automated Re-loader</title>
     <desc>Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.</desc>
     <cost>40</cost>
   </augBlueprint>
-  <augBlueprint name="echo">
+  <augBlueprint name="EXPLOSIVE_REPLICATOR">
     <title>Explosive Replicator</title>
     <desc>A missile has a 50% chance not to be spent.</desc>
     <cost>60</cost>
   </augBlueprint>
-  <augBlueprint name="quiet">
+  <augBlueprint name="CLOAK_FIRE">
     <title>Stealth Weapons</title>
     <desc>Firing does not drop cloaking.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="hot">
+  <augBlueprint name="WEAPON_PREIGNITE">
     <title>Weapon Pre-Igniter</title>
     <desc>After a jump, enabled weapons that have power start fully charged.</desc>
     <cost>120</cost>
   </augBlueprint>
-  <augBlueprint name="weld">
+  <augBlueprint name="REPAIR_ARM">
     <title>Repair Arm</title>
     <desc>Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="baffle">
+  <augBlueprint name="ION_ARMOR">
     <title>Reverse Ion Field</title>
     <desc>50% chance to ignore an ion hit. Two or more ignore every ion hit.</desc>
     <cost>45</cost>
   </augBlueprint>
-  <augBlueprint name="coil">
+  <augBlueprint name="SHIELD_RECHARGE">
     <title>Shield Charge Booster</title>
     <desc>Shields recharge 15% faster per copy.</desc>
     <cost>45</cost>
   </augBlueprint>
-  <augBlueprint name="spool">
+  <augBlueprint name="FTL_BOOSTER">
     <title>FTL Recharge Booster</title>
     <desc>One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="hook">
+  <augBlueprint name="SCRAP_COLLECTOR">
     <title>Scrap Recovery Arm</title>
     <desc>Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="keel">
+  <augBlueprint name="ROCK_ARMOR">
     <title>Rock Plating</title>
     <desc>15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="casing">
+  <augBlueprint name="SYSTEM_CASING">
     <title>Titanium System Casing</title>
     <desc>15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="tap">
+  <augBlueprint name="BATTERY_BOOSTER">
     <title>Battery Charger</title>
     <desc>The Backup Battery cooldown is cut in half.</desc>
     <cost>40</cost>
   </augBlueprint>
-  <augBlueprint name="lung">
+  <augBlueprint name="O2_MASKS">
     <title>Emergency Respirators</title>
     <desc>Suffocation damage is halved, including while boarding. A Crystal takes a quarter.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="squall">
+  <augBlueprint name="FIRE_EXTINGUISHERS">
     <title>Fire Suppression</title>
     <desc>Fires on your ship die down faster than a person can put them out.</desc>
     <cost>65</cost>
   </augBlueprint>
-  <augBlueprint name="falsebuoy">
+  <augBlueprint name="FLEET_DISTRACTION">
     <title>Distraction Buoys</title>
     <desc>At sector start, before sector 8, the fleet falls back one jump.</desc>
     <cost>55</cost>
   </augBlueprint>
-  <augBlueprint name="glass">
+  <augBlueprint name="ADV_SCANNERS">
     <title>Long-Ranged Scanners</title>
     <desc>Adjacent beacons show an environmental hazard and possible ship presence. Selling or swapping the scanners hides that again.</desc>
     <cost>30</cost>
   </augBlueprint>
-  <augBlueprint name="jammer">
+  <augBlueprint name="FTL_JAMMER">
     <title>FTL Jammer</title>
     <desc>Enemy ships take twice as long to charge FTL.</desc>
     <cost>30</cost>
   </augBlueprint>
-  <augBlueprint name="recover">
+  <augBlueprint name="DRONE_RECOVERY">
     <title>Drone Recovery Arm</title>
     <desc>A powered defense drone gives its part back when the jump starts. A powered combat drone gives it back only after the fight. Boarding, ion, crew, and hacking drones do not.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="stun">
+  <augBlueprint name="HACKING_STUN">
     <title>Hacking Stun</title>
     <desc>Everyone in a room during a hacking pulse is stunned for that pulse.</desc>
     <cost>60</cost>
   </augBlueprint>
-  <augBlueprint name="dna">
+  <augBlueprint name="BACKUP_DNA">
     <title>Backup DNA Bank</title>
     <desc>A waiting body stays in the clone bay queue even when the clone bay is off or broken.</desc>
     <cost>40</cost>
   </augBlueprint>
-  <augBlueprint name="mend">
+  <augBlueprint name="TELEPORT_HEAL">
     <title>Reconstructive Teleport</title>
     <desc>A person sent through the teleporter is fully healed.</desc>
     <cost>70</cost>
   </augBlueprint>
-  <augBlueprint name="pulseeye">
+  <augBlueprint name="LIFE_SCANNER">
     <title>Lifeform Scanner</title>
     <desc>Living crew show up even when sensors do not.</desc>
     <cost>40</cost>
   </augBlueprint>
-  <augBlueprint name="nav">
+  <augBlueprint name="FTL_JUMPER">
     <title>Adv. FTL Navigation</title>
     <desc>The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.</desc>
     <cost>50</cost>
   </augBlueprint>
-  <augBlueprint name="scrambler">
+  <augBlueprint name="DEFENSE_SCRAMBLER">
     <title>Defense Scrambler</title>
     <desc>Enemy Defense Drone I, Defense Drone II, and Anti-Combat drones cannot acquire or shoot down targets. Your own defense drones still fire.</desc>
     <cost>80</cost>
   </augBlueprint>
-  <augBlueprint name="bypass">
+  <augBlueprint name="ZOLTAN_BYPASS">
     <title>Zoltan Shield Bypass</title>
     <desc>Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.</desc>
     <cost>55</cost>
   </augBlueprint>
-  <droneBlueprint name="striker">
+  <droneBlueprint name="COMBAT_1">
     <title>Combat Drone Mark I</title>
     <cost>50</cost>
   </droneBlueprint>
-  <droneBlueprint name="combat2">
+  <droneBlueprint name="COMBAT_2">
     <title>Combat Drone Mark II</title>
     <cost>75</cost>
   </droneBlueprint>
-  <droneBlueprint name="beam">
+  <droneBlueprint name="COMBAT_BEAM">
     <title>Anti-Ship Beam Drone I</title>
     <cost>50</cost>
   </droneBlueprint>
-  <droneBlueprint name="beam2">
+  <droneBlueprint name="COMBAT_BEAM_2">
     <title>Anti-Ship Beam Drone II</title>
     <cost>60</cost>
   </droneBlueprint>
-  <droneBlueprint name="ward">
+  <droneBlueprint name="DEFENSE_1">
     <title>Defense Drone Mark I</title>
     <cost>50</cost>
   </droneBlueprint>
-  <droneBlueprint name="ward2">
+  <droneBlueprint name="DEFENSE_2">
     <title>Defense Drone Mark II</title>
     <cost>70</cost>
   </droneBlueprint>
-  <droneBlueprint name="wardcut">
+  <droneBlueprint name="ANTI_DRONE">
     <title>Anti-Combat Drone</title>
     <cost>35</cost>
   </droneBlueprint>
-  <droneBlueprint name="overcharger">
+  <droneBlueprint name="DRONE_SHIELD">
     <title>Shield Overcharger</title>
     <cost>60</cost>
   </droneBlueprint>
-  <droneBlueprint name="antipersonnel">
+  <droneBlueprint name="BATTLE">
     <title>Anti-Personnel Drone</title>
     <cost>35</cost>
   </droneBlueprint>
-  <droneBlueprint name="patch">
+  <droneBlueprint name="REPAIR">
     <title>System Repair Drone</title>
     <cost>30</cost>
   </droneBlueprint>
-  <droneBlueprint name="hull">
+  <droneBlueprint name="SHIP_REPAIR">
     <title>Hull Repair Drone</title>
     <cost>85</cost>
   </droneBlueprint>
-  <droneBlueprint name="board">
+  <droneBlueprint name="BOARDER">
     <title>Boarding Drone</title>
     <cost>70</cost>
   </droneBlueprint>
-  <droneBlueprint name="ionintruder">
+  <droneBlueprint name="BOARDER_ION">
     <title>Ion Intruder Drone</title>
     <cost>65</cost>
   </droneBlueprint>
@@ -1098,7 +1099,7 @@
       <level>45</level>
     </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="cradle">
+  <systemBlueprint name="clonebay">
     <title>Clone Bay</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 50 scrap.</desc>
     <cost>50</cost>
@@ -1106,7 +1107,7 @@
     <startPower>1</startPower>
     <upgradeCost/>
   </systemBlueprint>
-  <systemBlueprint name="sling">
+  <systemBlueprint name="teleporter">
     <title>Crew Teleporter</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 90 scrap.</desc>
     <cost>90</cost>
@@ -1114,7 +1115,7 @@
     <startPower>1</startPower>
     <upgradeCost/>
   </systemBlueprint>
-  <systemBlueprint name="veil">
+  <systemBlueprint name="cloaking">
     <title>Cloaking</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 150 scrap.</desc>
     <cost>150</cost>
@@ -1122,7 +1123,7 @@
     <startPower>1</startPower>
     <upgradeCost/>
   </systemBlueprint>
-  <systemBlueprint name="leash">
+  <systemBlueprint name="mind">
     <title>Mind Control</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 75 scrap.</desc>
     <cost>75</cost>
@@ -1130,7 +1131,7 @@
     <startPower>1</startPower>
     <upgradeCost/>
   </systemBlueprint>
-  <systemBlueprint name="spike">
+  <systemBlueprint name="hacking">
     <title>Hacking</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 80 scrap.</desc>
     <cost>80</cost>
@@ -1161,7 +1162,7 @@
       <level>50</level>
     </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="cell">
+  <systemBlueprint name="battery">
     <title>Backup Battery</title>
     <desc>Installs as a kit. A purchase starts at level 1. Store cost 35 scrap.</desc>
     <cost>35</cost>

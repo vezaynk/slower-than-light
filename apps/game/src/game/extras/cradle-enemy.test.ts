@@ -9,13 +9,13 @@ function cloneShip(): Game {
   for (let seed = 1; seed < 500; seed++) {
     const g = createGame(seed);
     startCombat(g, "Rebel ship");
-    if (g.enemy?.kits.cradle && !g.enemy.automated) return g;
+    if (g.enemy?.kits.clonebay && !g.enemy.automated) return g;
   }
   throw new Error("no Rebel ship with a Clone Bay");
 }
 
 function bay(g: Game): Kit {
-  const kit = g.enemy?.kits.cradle;
+  const kit = g.enemy?.kits.clonebay;
   assert.ok(kit);
   return kit;
 }
@@ -151,7 +151,7 @@ describe("enemy clone bay", () => {
 
   it("Enemy Ships: without a Clone Bay a crew kill still wins", () => {
     const g = cloneShip();
-    delete g.enemy?.kits.cradle;
+    delete g.enemy?.kits.clonebay;
     for (const c of foes(g)) c.hp = 0;
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");

@@ -167,7 +167,7 @@ describe("Asteroid belt distress", () => {
     // > "You receive a crewmember." — [[Asteroid belt distress]]
     reach(["damage", "marker"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
-      g.player.kits.swarm = kit("swarm", "ward");
+      g.player.kits.drones = kit("drones", "DEFENSE_1");
       g.player.parts = 2;
       choose(g, "c:asteroid-belt-distress:0");
       assert.ok(ids(g).includes("q:asteroid:defense"));
@@ -179,13 +179,13 @@ describe("Asteroid belt distress", () => {
       return "damage";
     });
     const g = atCited(createGame(3), "Civilian Sector", "Asteroid belt distress");
-    g.player.kits.swarm = kit("swarm", "ward");
+    g.player.kits.drones = kit("drones", "DEFENSE_1");
     g.player.parts = 0;
     choose(g, "c:asteroid-belt-distress:0");
     assert.equal(choiceDisabled(g, "q:asteroid:defense"), "Need 1 drone parts");
     reach(["crew", "high", "medium", "repair"], (seed) => {
       const g2 = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
-      g2.player.kits.sling = kit("sling");
+      g2.player.kits.teleporter = kit("teleporter");
       choose(g2, "c:asteroid-belt-distress:0");
       const crew = g2.crew.length;
       choose(g2, "q:asteroid:teleport");
@@ -227,7 +227,7 @@ describe("Capture the ship", () => {
     choose(g, "c:capture-the-ship:2");
     assert.equal(g.phase, "event");
     assert.equal(g.event!.body, citedEvent(g, here(g))!.body);
-    g.player.kits.sling = kit("sling");
+    g.player.kits.teleporter = kit("teleporter");
     choose(g, "c:capture-the-ship:2");
     assert.deepEqual(ids(g), ["q:capture:agree", "q:capture:decline"]);
     choose(g, "q:capture:agree");
@@ -251,7 +251,7 @@ describe("Capture the ship", () => {
     // > "Your ship takes 15 hull damage, 1 damage to a random system" — [[Capture the ship#Quest Marker]]
     const setup = () => {
       const g = atCited(createGame(6), "Civilian Sector", "Capture the ship");
-      g.player.kits.sling = kit("sling");
+      g.player.kits.teleporter = kit("teleporter");
       choose(g, "c:capture-the-ship:2");
       choose(g, "q:capture:agree");
       choose(g, "ack");
@@ -349,7 +349,7 @@ describe("Engi ship attacked by Mantis ship", () => {
       assert.equal(g.enemySurrender!.chance, 0);
       assert.equal(g.enemyEscape!.mode, "never");
       if (g.enemy!.faction === "engi") {
-        assert.ok(g.crew.filter((c) => c.side === "enemy").every((c) => c.kin === "blade"));
+        assert.ok(g.crew.filter((c) => c.side === "enemy").every((c) => c.kin === "mantis"));
         assert.ok(g.crew.some((c) => c.side === "enemy" && c.aboard === "player"));
         return "engi";
       }
@@ -418,7 +418,7 @@ describe("Merchant's request", () => {
       if (body.includes("no response to your hails")) {
         assert.deepEqual(ids(g), ["q:research:dock", "q:research:leave", "q:research:drone"]);
         assert.equal(choiceDisabled(g, "q:research:drone"), "Needs an Anti-Personnel Drone");
-        g.player.kits.swarm = kit("swarm", "antipersonnel");
+        g.player.kits.drones = kit("drones", "BATTLE");
         g.player.parts = 2;
         assert.equal(choiceDisabled(g, "q:research:drone"), null);
         choose(g, "q:research:dock");
@@ -512,7 +512,7 @@ describe("Nebula wreckage", () => {
     // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
     const setup = (seed: number) => {
       const g = atCited(createGame(seed), "Uncharted Nebula", "Nebula wreckage");
-      g.crew.find((c) => c.side === "player")!.kin = "gel";
+      g.crew.find((c) => c.side === "player")!.kin = "slug";
       choose(g, "c:nebula-wreckage:0");
       choose(g, "q:nebula:assist");
       choose(g, "q:nebula:comfort");

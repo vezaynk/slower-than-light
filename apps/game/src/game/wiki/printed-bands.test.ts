@@ -26,12 +26,12 @@ function rewrite(eventId: string, bands: EventBand[] | undefined) {
 }
 
 function swarm(level = 1, power = level) {
-  return { id: "swarm" as const, level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "drones" as const, level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 function upgrade(seed: number, scrap: number, power = 0): Game {
   const g = createGame(seed);
-  g.player.kits.swarm = swarm(1, power);
+  g.player.kits.drones = swarm(1, power);
   g.scrap = scrap;
   return g;
 }
@@ -61,7 +61,7 @@ function dullSeed(): number {
 function drink(seed: number, rock: boolean): Game {
   const g = createGame(seed);
   g.scrap = rock ? 80 : 100;
-  if (rock) g.crew[0]!.kin = "stone";
+  if (rock) g.crew[0]!.kin = "rock";
   choose(g, rock ? "c:slug-drink:2" : "c:slug-drink:1");
   return g;
 }
@@ -168,8 +168,8 @@ describe("printed bands", () => {
     const paidSeed = paid.seed;
     choose(paid, "q:pirate-drones:upgrade");
     assert.equal(paid.scrap, 88);
-    assert.equal(paid.player.kits.swarm?.level, 4);
-    assert.equal(paid.player.kits.swarm?.power, 4);
+    assert.equal(paid.player.kits.drones?.level, 4);
+    assert.equal(paid.player.kits.drones?.power, 4);
     assert.equal(paid.seed, paidSeed);
     assert.match(paid.event?.body ?? "", /level 4/);
 
@@ -178,7 +178,7 @@ describe("printed bands", () => {
     const shortSeed = short.seed;
     choose(short, "q:pirate-drones:upgrade");
     assert.equal(short.scrap, 10);
-    assert.equal(short.player.kits.swarm?.level, 1);
+    assert.equal(short.player.kits.drones?.level, 1);
     assert.equal(short.seed, shortSeed);
 
     rewrite("pirate-ship-selling-drones", pair("only", [15, 20], [6, 7]));
@@ -186,7 +186,7 @@ describe("printed bands", () => {
     const rolledSeed = rolledShort.seed;
     choose(rolledShort, "q:pirate-drones:upgrade");
     assert.equal(rolledShort.scrap, 10);
-    assert.equal(rolledShort.player.kits.swarm?.level, 1);
+    assert.equal(rolledShort.player.kits.drones?.level, 1);
     assert.notEqual(rolledShort.seed, rolledSeed);
 
     rewrite("pirate-ship-selling-drones", undefined);
@@ -194,7 +194,7 @@ describe("printed bands", () => {
     const goneSeed = gone.seed;
     choose(gone, "q:pirate-drones:upgrade");
     assert.equal(gone.scrap, 200);
-    assert.equal(gone.player.kits.swarm?.level, 1);
+    assert.equal(gone.player.kits.drones?.level, 1);
     assert.equal(gone.seed, goneSeed);
 
     rewrite("pirate-ship-selling-drones", [
@@ -208,7 +208,7 @@ describe("printed bands", () => {
       choose(g, "q:pirate-drones:upgrade");
       assert.equal(g.scrap, 95);
       assert.notEqual(g.seed, before);
-      const level = g.player.kits.swarm?.level ?? 0;
+      const level = g.player.kits.drones?.level ?? 0;
       assert.ok(level === 2 || level === 9, `level ${level}`);
       seen.add(level);
     }

@@ -73,19 +73,19 @@ describe("Zoltan retake the ship reward", () => {
       const g = createGame(seed);
       assert.equal(pageWin(g, "zoltan-retake-the-ship", false), true);
       g.scrap = 80;
-      const sparks = g.crew.filter((c) => c.side === "player" && c.kin === "spark").length;
+      const sparks = g.crew.filter((c) => c.side === "player" && c.kin === "energy").length;
       choose(g, "s:zoltan-raft:hire");
       if (g.event?.body.includes(ACCEPT)) {
         accepted++;
         assert.equal(g.scrap, 40);
         assert.ok(g.event.body.includes("A Zoltan crewmember joins you."));
-        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "spark").length, sparks + 1);
+        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "energy").length, sparks + 1);
         assert.equal(g.augments.length, g.augments.length);
       } else if (g.event?.body.includes(REFUSE)) {
         refused++;
         assert.equal(g.scrap, 80);
         assert.ok(g.event.body.includes("Nothing happens."));
-        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "spark").length, sparks);
+        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "energy").length, sparks);
       }
     }
     assert.ok(accepted > 0 && refused > 0, `accept ${accepted} refuse ${refused}`);

@@ -754,7 +754,7 @@ export function ShipView({
                 })()
               : null}
             {/* The medical machine on the tile nobody stands on (crew-spots blockedCells). */}
-            {open && (room.system === "medbay" || room.kit === "cradle")
+            {open && (room.system === "medbay" || room.kit === "clonebay")
               ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id), ship.doorMarks).map(
                   (cell) => (
                     <i
@@ -769,17 +769,17 @@ export function ShipView({
                         height: `${100 / room.h}%`,
                       }}
                     >
-                      <RoomProp kind={room.system === "medbay" ? "medbay" : "cradle"} />
+                      <RoomProp kind={room.system === "medbay" ? "medbay" : "clonebay"} />
                     </i>
                   ),
                 )
               : null}
-            {room.kit === "sling"
+            {room.kit === "teleporter"
               ? padCells(room).map((key) => {
                   const [xs, ys] = key.split(",");
                   const x = Number(xs) - room.x;
                   const y = Number(ys) - room.y;
-                  const live = (ship.kits.sling?.power ?? 0) > 0;
+                  const live = (ship.kits.teleporter?.power ?? 0) > 0;
                   return (
                     <i
                       key={key}
@@ -812,7 +812,7 @@ export function ShipView({
                 }
               >
                 <span className="hack-reticle-box">
-                  <PixelIcon name="spike" size={16} />
+                  <PixelIcon name="hacking" size={16} />
                 </span>
                 {drone.phase === "pulse" ? <b>{Math.ceil(drone.left)}</b> : null}
               </div>

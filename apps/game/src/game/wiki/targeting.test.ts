@@ -19,7 +19,7 @@ function kit(id: KitId, over: Partial<Kit> = {}): Kit {
 
 /** Kestrel A with nothing on the Hard list: shields and weapons unpowered, no evasion, full air. */
 function calm(difficulty: "easy" | "normal" | "hard"): Game {
-  const g = createGame(7, "kestrel-a", difficulty);
+  const g = createGame(7, "PLAYER_SHIP_HARD", difficulty);
   g.player.systems.engines.power = 0;
   g.player.systems.shields.power = 0;
   g.player.systems.weapons.power = 0;
@@ -76,18 +76,18 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
 
   it("Hard list: Cloaking off cooldown and not cloaked, even unpowered; Battery while active", () => {
     const g = calm("hard");
-    g.player.kits.veil = kit("veil", { power: 0, cool: 5 });
-    g.player.kits.cell = kit("cell");
+    g.player.kits.cloaking = kit("cloaking", { power: 0, cool: 5 });
+    g.player.kits.battery = kit("battery");
     seatKits(g.player);
     assert.deepEqual(priorityList(g), []);
-    g.player.kits.veil!.cool = 0;
-    assert.deepEqual(priorityList(g), ["veil"]);
-    g.player.kits.veil!.on = true;
-    g.player.kits.veil!.left = 5;
+    g.player.kits.cloaking!.cool = 0;
+    assert.deepEqual(priorityList(g), ["cloaking"]);
+    g.player.kits.cloaking!.on = true;
+    g.player.kits.cloaking!.left = 5;
     assert.deepEqual(priorityList(g), [], "an active cloak is not listed");
-    g.player.kits.cell!.on = true;
-    g.player.kits.cell!.left = 10;
-    assert.deepEqual(priorityList(g), ["cell"]);
+    g.player.kits.battery!.on = true;
+    g.player.kits.battery!.left = 10;
+    assert.deepEqual(priorityList(g), ["battery"]);
     assert.deepEqual(priorityRooms(g), ["p-battery"]);
   });
 
@@ -123,10 +123,10 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
   });
 
   it("each shot of an enemy burst rolls its own room (combat-ai UpdateWeapons)", () => {
-    const g = createGame(5, "kestrel-a", "normal");
+    const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
     startCombat(g, "scout");
     const gun = g.enemy!.weapons[0];
-    gun.defId = "burst3";
+    gun.defId = "LASER_BURST_5";
     gun.enabled = true;
     g.enemy!.weapons = [gun];
     g.enemy!.systems.weapons.level = g.enemy!.systems.weapons.power = 4;
@@ -137,7 +137,7 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
       gun.target = enemyTarget(g, gun);
       // sim.ts launch is internal; a full charge fires on the next tick.
       step(g, 0.001);
-      const rooms = new Set(g.shots.filter((s) => s.from === "enemy" && s.defId === "burst3").map((s) => s.targetRoom));
+      const rooms = new Set(g.shots.filter((s) => s.from === "enemy" && s.defId === "LASER_BURST_5").map((s) => s.targetRoom));
       if (rooms.size >= 2) spread++;
     }
     assert.ok(spread > 10, `volleys that split: ${spread} of 20`);

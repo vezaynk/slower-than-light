@@ -24,8 +24,8 @@ function open(g: Game) {
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     level: 1,
     power: 1,
     left: 0,

@@ -14,17 +14,17 @@ import {
 import type { Crew, Game, Kit } from "../types.ts";
 
 function kit(level: number, power = level): Kit {
-  return { id: "leash", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "mind", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
-/** Rebel ship fight with an enemy Mind Control kit in a room marked `kit: "leash"`. */
+/** Rebel ship fight with an enemy Mind Control kit in a room marked `kit: "mind"`. */
 function fight(seed: number, level = 1): Game {
   const g = createGame(seed);
   startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
-  g.enemy.kits.leash = kit(level);
+  g.enemy.kits.mind = kit(level);
   const room = g.enemy.rooms.find((r) => !r.system) ?? g.enemy.rooms[0]!;
-  room.kit = "leash";
+  room.kit = "mind";
   g.player.zoltan = 0;
   return g;
 }
@@ -47,7 +47,7 @@ describe("enemy mind control", () => {
       assert.equal(c.side, "player");
       assert.equal(sideOf(c), "enemy");
       assert.equal(c.leashed, duration);
-      const k = g.enemy!.kits.leash!;
+      const k = g.enemy!.kits.mind!;
       assert.equal(k.on, true);
       assert.equal(k.target, c.id);
       tickLeash(g, duration - 0.1);
@@ -108,7 +108,7 @@ describe("enemy mind control", () => {
 
   it("the enemy cannot cancel the player's mind control", () => {
     const g = fight(5, 3);
-    g.player.kits.leash = kit(1);
+    g.player.kits.mind = kit(1);
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
     g.enemy!.zoltan = 0;
     // Mind Control, Overview: the player's hold needs a view. Level 2 Sensors shows that crew.
@@ -129,26 +129,26 @@ describe("enemy mind control", () => {
 
   it("the player frees their own crew with any level of Mind Control", () => {
     const g = fight(6, 3);
-    g.player.kits.leash = kit(1);
+    g.player.kits.mind = kit(1);
     tickLeash(g, 0.05);
     const c = held(g)!;
     assert.equal(c.leashed, 28);
     startLeash(g, c.id);
     assert.equal(heldByEnemy(c), false);
     assert.equal(sideOf(c), "player");
-    const ek = g.enemy!.kits.leash!;
+    const ek = g.enemy!.kits.mind!;
     assert.equal(ek.on, false);
     assert.equal(ek.cool, 0);
-    assert.equal(g.player.kits.leash!.on, true);
+    assert.equal(g.player.kits.mind!.on, true);
   });
 
   it("an enemy leash at 0 working bars cannot fire", () => {
     const g = fight(7, 2);
-    g.enemy!.kits.leash!.damage = 2;
+    g.enemy!.kits.mind!.damage = 2;
     tickLeash(g, 1);
     assert.equal(held(g), undefined);
     const h = fight(7, 2);
-    h.enemy!.kits.leash!.power = 0;
+    h.enemy!.kits.mind!.power = 0;
     tickLeash(h, 1);
     assert.equal(held(h), undefined);
   });
@@ -157,14 +157,14 @@ describe("enemy mind control", () => {
     const g = fight(8, 2);
     tickLeash(g, 0.05);
     const c = held(g)!;
-    g.enemy!.kits.leash!.damage = 2;
+    g.enemy!.kits.mind!.damage = 2;
     tickLeash(g, 0.05);
     assert.equal(heldByEnemy(c), false);
   });
 
   it("skips Slugs and crew behind the player's Zoltan Shield", () => {
     const slugs = fight(9);
-    for (const c of slugs.crew) if (c.side === "player") c.kin = "gel";
+    for (const c of slugs.crew) if (c.side === "player") c.kin = "slug";
     assert.equal(fireEnemyLeash(slugs), false);
     const bubble = fight(9);
     bubble.player.zoltan = 5;
@@ -185,14 +185,14 @@ describe("enemy mind control", () => {
     assert.deepEqual(c.path, []);
     assert.equal(clearEnemyLeash(g), 1);
     assert.equal(heldByEnemy(c), false);
-    assert.equal(g.enemy!.kits.leash!.cool, 0);
+    assert.equal(g.enemy!.kits.mind!.cool, 0);
   });
 
   it("ionOnLeash sets 25 only when every level is ionized and leaves the hold up", () => {
     const g = fight(12, 3);
     assert.equal(fireEnemyLeash(g), true);
     const c = held(g)!;
-    const k = g.enemy!.kits.leash!;
+    const k = g.enemy!.kits.mind!;
     const power = k.power;
     const left = k.left;
     const leashed = c.leashed;
@@ -222,11 +222,11 @@ describe("enemy mind control", () => {
 
   it("a player hold ending does not clear an ion cooldown already set", () => {
     const dropped = fight(13, 1);
-    dropped.player.kits.leash = kit(1, 1);
+    dropped.player.kits.mind = kit(1, 1);
     dropped.player.systems.sensors.level = 2;
     const foe = dropped.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
     startLeash(dropped, foe.id);
-    const low = dropped.player.kits.leash!;
+    const low = dropped.player.kits.mind!;
     low.ion = [5];
     ionOnLeash(low);
     assert.equal(low.cool, ION_MAX_COOLDOWN);
@@ -236,11 +236,11 @@ describe("enemy mind control", () => {
     assert.equal(low.cool, ION_MAX_COOLDOWN);
 
     const g = fight(14, 2);
-    g.player.kits.leash = kit(2, 1);
+    g.player.kits.mind = kit(2, 1);
     g.player.systems.sensors.level = 2;
     const other = g.crew.find((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy")!;
     startLeash(g, other.id);
-    const pk = g.player.kits.leash!;
+    const pk = g.player.kits.mind!;
     pk.zoltan = 1;
     pk.ion = [5, 5];
     ionOnLeash(pk);

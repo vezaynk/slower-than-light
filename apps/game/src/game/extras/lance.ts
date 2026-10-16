@@ -1,4 +1,4 @@
-import type { Game, Room, Ship } from "../types.ts";
+import type { Game, Kit, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
@@ -48,9 +48,10 @@ function chargeSeconds(level: number): number {
   return CHARGE_SECONDS[lv] ?? CHARGE_SECONDS[1];
 }
 
-function blankKit() {
+function blankKit(): Kit {
   return {
-    id: "lance" as const,
+    id: "artillery",
+    weapon: "ARTILLERY_FED",
     level: 1,
     power: 0,
     left: 0,
@@ -62,7 +63,7 @@ function blankKit() {
 }
 
 /** Artillery Beam, "Overview": the system is pre-installed only on the Federation Cruiser's Type A and Type B. */
-const LANCE_HULLS: ReadonlySet<string> = new Set(["fed-a", "fed-b"]);
+const LANCE_HULLS: ReadonlySet<string> = new Set(["PLAYER_SHIP_FED", "PLAYER_SHIP_FED_2"]);
 
 /**
  * Mount the cutter on a hull that carries it. Template:Purchasable systems prints no price for the Artillery Beam, and
@@ -70,13 +71,13 @@ const LANCE_HULLS: ReadonlySet<string> = new Set(["fed-a", "fed-b"]);
  * Artillery Beam "System Upgrades": a fresh kit is level 1, whose cost is "-".
  */
 export function installLance(g: Game): boolean {
-  if (g.player.kits.lance) return false;
+  if (g.player.kits.artillery) return false;
   if (!LANCE_HULLS.has(g.hullId ?? "")) return false;
   if (INSTALL_COST != null) {
     if (g.scrap < INSTALL_COST) return false;
     g.scrap -= INSTALL_COST;
   }
-  g.player.kits.lance = blankKit();
+  g.player.kits.artillery = blankKit();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   return true;
 }
@@ -88,8 +89,8 @@ export function lanceUpgradeCost(level: number): number | null {
 
 /** Artillery Beam, "System Upgrades": 30, then 50, then 80, through level 4. */
 export function upgradeLance(g: Game): boolean {
-  const kit = g.player.kits.lance;
-  if (!kit || kit.level >= 4) return false;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.level >= 4) return false;
   const cost = lanceUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
@@ -105,22 +106,22 @@ export function upgradeLance(g: Game): boolean {
  * "Overview": powering off drains the charge. The page says "quickly" and gives no seconds, so a full bar empties in 2s. INFERRED.
  */
 export function raiseLancePower(g: Game): void {
-  const kit = g.player.kits.lance;
-  if (!kit || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
   kit.power += 1;
   kit.on = true;
 }
 
 export function lowerLancePower(g: Game): void {
-  const kit = g.player.kits.lance;
-  if (!kit || kit.power <= 0) return;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.power <= 0) return;
   kit.power -= 1;
   kit.on = kit.power > 0;
 }
 
 export function toggleLancePower(g: Game): void {
-  const kit = g.player.kits.lance;
-  if (!kit) return;
+  const kit = g.player.kits.artillery;
+  if (!kit || kit.weapon === "ARTILLERY_FED_C") return;
   if (kit.power < powerCap(kit) && sparePower(g.player) >= 1) {
     raiseLancePower(g);
     return;
@@ -264,7 +265,7 @@ function landCut(g: Game, ship: Ship, ids: string[]): void {
 
 /** Time still crossing. Returns whatever part of `dt` is left after the swipe. */
 function advanceSwipe(g: Game, dt: number): number {
-  const kit = g.player.kits.lance;
+  const kit = g.player.kits.artillery;
   const enemy = g.enemy;
   if (!kit || !(kit.left > 0) || !kit.path?.length || !enemy) return dt;
   const step = Math.min(dt, kit.left);
@@ -278,7 +279,7 @@ function advanceSwipe(g: Game, dt: number): number {
 }
 
 function beginSwipe(g: Game, enemy: Ship): void {
-  const kit = g.player.kits.lance;
+  const kit = g.player.kits.artillery;
   if (!kit) return;
   // xftl doc/artillery: "it randomly selects one room" each shot (the wiki's uncontrolled swipe).
   const first = enemy.rooms[Math.floor(rand(g) * enemy.rooms.length)];
@@ -316,8 +317,9 @@ function beginSwipe(g: Game, enemy: Ship): void {
 }
 
 export function tickLance(g: Game, dt: number): void {
-  const kit = g.player.kits.lance;
-  if (!kit || !(dt > 0)) return;
+  const kit = g.player.kits.artillery;
+  // Flak Artillery shares the kit id. An omitted weapon stays the beam so older fixtures still fire.
+  if (!kit || kit.weapon === "ARTILLERY_FED_C" || !(dt > 0)) return;
   let left = dt;
   if (kit.left > 0 && kit.path?.length) {
     if (g.paused || !!g.menuHold) return;
@@ -340,7 +342,7 @@ export function tickLance(g: Game, dt: number): void {
 
   // Beam (Weapons), Artillery Beam: the clock is the filled power level, not the installed level.
   const seconds = chargeSeconds(fed);
-  if (hackPulseOn(g, g.player, "lance")) {
+  if (hackPulseOn(g, g.player, "artillery")) {
     kit.aux = Math.max(0, kit.aux - left / seconds);
     return;
   }

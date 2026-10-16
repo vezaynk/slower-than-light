@@ -7,7 +7,7 @@ import { fleetToReach } from "./sector-map.ts";
 import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
 
 function enterLastStand(seed = 1) {
-  const g = createGame(seed, "kestrel-a", "normal");
+  const g = createGame(seed, "PLAYER_SHIP_HARD", "normal");
   const from = g.route.find((n) => n.links.includes("sec-7"));
   assert.ok(from);
   g.sector = 7;
@@ -202,7 +202,7 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.equal(shot.breachChance, 1);
     assert.equal(shot.fireChance, 0);
 
-    const g = createGame(1, "kestrel-a", "normal");
+    const g = createGame(1, "PLAYER_SHIP_HARD", "normal");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
     g.fleet = fleetToReach(g, here);
@@ -307,7 +307,7 @@ describe("fleet advance and the anti-ship battery", () => {
   });
 
   it("warns 15–20s after an overtaken fight, then waits 5–10s for the real shot", () => {
-    const g = createGame(2, "kestrel-a", "normal");
+    const g = createGame(2, "PLAYER_SHIP_HARD", "normal");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
     here.kind = "empty";
@@ -405,8 +405,8 @@ describe("ship info screen while in danger", () => {
     g.enemy.shieldNow = 0;
     g.player.zoltan = undefined;
     g.enemy.zoltan = undefined;
-    g.player.kits.swarm = undefined;
-    g.enemy.kits.swarm = undefined;
+    g.player.kits.drones = undefined;
+    g.enemy.kits.drones = undefined;
     const playerHull = g.player.hull;
     const enemyHull = g.enemy.hull;
     g.asteroidPhase = "wave1";

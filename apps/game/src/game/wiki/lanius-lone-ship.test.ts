@@ -86,7 +86,7 @@ describe("Lanius lone ship", () => {
     const dead = createGame(2);
     open(dead);
     assert.equal(joinCrew(dead, "Lanius"), true);
-    const lan = dead.crew.find((c) => c.kin === "voidlung");
+    const lan = dead.crew.find((c) => c.kin === "anaerobic");
     assert.ok(lan);
     lan.hp = 0;
     assert.equal(choiceDisabled(dead, "c:lanius-lone-ship:3"), "Needs a Lanius crewmember");

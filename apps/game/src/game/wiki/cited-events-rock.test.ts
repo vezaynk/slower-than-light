@@ -154,7 +154,7 @@ describe("Rock fight with boarders", () => {
     // Wiki citations:
     // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     const seen = new Set<number>();
-    const hp = kinOf("stone").hp;
+    const hp = kinOf("rock").hp;
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = arrive(seed, "Rock fight with boarders");
       const scrap = g.scrap;
@@ -179,7 +179,7 @@ describe("Rock fight with boarders", () => {
         boarders.every(
           (c) =>
             c.name === "Rock" &&
-            c.kin === "stone" &&
+            c.kin === "rock" &&
             c.hp === hp &&
             c.maxHp === hp &&
             rooms.has(c.room),
@@ -221,7 +221,7 @@ describe("Rock fight with boarders", () => {
       false,
     );
     const seen = new Set<number>();
-    const hp = kinOf("stone").hp;
+    const hp = kinOf("rock").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
       const g = arrive(seed, "Rock fight with boarders in asteroid field");
       const scrap = g.scrap;
@@ -245,7 +245,7 @@ describe("Rock fight with boarders", () => {
         boarders.every(
           (c) =>
             c.name === "Rock" &&
-            c.kin === "stone" &&
+            c.kin === "rock" &&
             c.hp === hp &&
             c.maxHp === hp &&
             rooms.has(c.room),

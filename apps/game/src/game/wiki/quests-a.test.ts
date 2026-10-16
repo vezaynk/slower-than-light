@@ -160,8 +160,8 @@ describe("quest openers (quests-a)", () => {
     g.player.hull = 1;
     goToQuest(g, "rock-shipyard");
     assert.equal(g.player.hull, Math.min(g.player.hullMax, 30));
-    assert.ok(g.unlocked?.includes("rock-a"));
-    assert.ok(g.augments.includes("keel") || g.augments.length >= 3);
+    assert.ok(g.unlocked?.includes("PLAYER_SHIP_ROCK"));
+    assert.ok(g.augments.includes("ROCK_ARMOR") || g.augments.length >= 3);
   });
 
   it("Rock war vessel, Sun marker destroyed: medium scrap with resources and no shipyard", () => {
@@ -202,8 +202,8 @@ describe("quest openers (quests-a)", () => {
     g.augments = [];
     const fuel = g.fuel;
     goToQuest(g, "crystal-unlock");
-    assert.ok(g.unlocked?.includes("crystal-a"));
-    assert.ok(g.augments.includes("vengeance"));
+    assert.ok(g.unlocked?.includes("PLAYER_SHIP_CRYSTAL"));
+    assert.ok(g.augments.includes("CRYSTAL_SHARDS"));
     assert.ok(g.fuel >= fuel - 1 + 2);
   });
 
@@ -333,7 +333,7 @@ describe("quest openers (quests-a)", () => {
     assert.equal(entry.quest, undefined);
 
     entry.resolved = false;
-    const ruwen = g.crew.find((c) => c.name === "Ruwen" && c.kin === "shard");
+    const ruwen = g.crew.find((c) => c.name === "Ruwen" && c.kin === "crystal");
     assert.ok(ruwen);
     entry.quest = "ruwen-entry";
     ruwen.hp = 0;
@@ -356,13 +356,13 @@ describe("quest openers (quests-a)", () => {
     const g = atCited(createGame(8), "Zoltan Homeworlds", "Zoltan research facility");
     assert.ok(ids(g).includes("c:zoltan-research-facility:3"));
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
-    g.augments.push("stasis");
+    g.augments.push("STASIS_POD");
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), null);
     choose(g, "c:zoltan-research-facility:3");
-    assert.equal(g.augments.includes("stasis"), false);
+    assert.equal(g.augments.includes("STASIS_POD"), false);
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
-    assert.equal(ruwen.kin, "shard");
+    assert.equal(ruwen.kin, "crystal");
     assert.ok(g.event!.body.includes("I've never seen a cryogenic system like this"));
   });
 
@@ -421,12 +421,12 @@ describe("quest openers (quests-a)", () => {
       choose(g, "qa:peace:reconcile");
       g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
       choose(g, "qa:peace:bloodless");
-      assert.ok(g.unlocked?.includes("zoltan-a"));
+      assert.ok(g.unlocked?.includes("PLAYER_SHIP_ENERGY"));
       if (g.player.zoltan === 5) {
-        assert.ok(g.augments.includes("zshield"));
+        assert.ok(g.augments.includes("ENERGY_SHIELD"));
         seen.add("shield");
       }
-      if (g.crew.some((c) => c.name === "Envoy" && c.kin === "spark")) seen.add("envoy");
+      if (g.crew.some((c) => c.name === "Envoy" && c.kin === "energy")) seen.add("envoy");
     }
     assert.deepEqual([...seen].sort(), ["envoy", "shield"]);
   });
@@ -439,7 +439,7 @@ describe("quest openers (quests-a)", () => {
     for (let seed = 1; seed < 80 && !(full && envoy); seed++) {
       const g = atCited(createGame(seed), "Zoltan Homeworlds", "Unarmed Zoltan transport");
       g.sector = 4;
-      g.augments = ["keel", "glass", "jammer"];
+      g.augments = ["ROCK_ARMOR", "ADV_SCANNERS", "FTL_JAMMER"];
       choose(g, "c:unarmed-zoltan-transport:1");
       choose(g, "ack");
       goToQuest(g, "zoltan-peace");
@@ -447,7 +447,7 @@ describe("quest openers (quests-a)", () => {
       choose(g, "qa:peace:reconcile");
       choose(g, "qa:peace:bloodless");
       assert.equal(g.augments.length, 3);
-      assert.equal(g.augments.includes("zshield"), false);
+      assert.equal(g.augments.includes("ENERGY_SHIELD"), false);
       if (g.crew.some((c) => c.name === "Envoy")) {
         envoy = true;
         assert.equal(g.player.zoltan, undefined);
@@ -510,7 +510,7 @@ describe("quest openers (quests-a)", () => {
     // > "A store opens." — [[Zoltan trade hub#In the Zoltan hub]]
     // > "A quest marker is added to your map." — [[Zoltan trade hub#In the Zoltan hub]]
     const g0 = atCited(createGame(4), "Zoltan Controlled Sector", "Zoltan trade hub");
-    g0.crew = g0.crew.filter((c) => c.kin !== "spark");
+    g0.crew = g0.crew.filter((c) => c.kin !== "energy");
     assert.equal(choiceDisabled(g0, "c:zoltan-trade-hub:2"), "Needs a Zoltan crewmember");
     const seen = new Set<string>();
     for (let seed = 1; seed < 60 && seen.size < 3; seed++) {
@@ -519,7 +519,7 @@ describe("quest openers (quests-a)", () => {
       choose(g, "c:zoltan-trade-hub:0");
       if (g.phase === "combat") {
         assert.equal(g.enemy!.faction, "zoltan");
-        const n = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "spark").length;
+        const n = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy").length;
         assert.ok(n >= 2 && n <= 4);
         seen.add("fight");
       } else if (ids(g).includes("q:open-store")) seen.add("store");
@@ -558,7 +558,7 @@ describe("quest openers (quests-a)", () => {
     assert.equal(hand.augments.length + (hand.overflow ?? []).filter((x) => x.kind === "augment").length, augs + 1);
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
-    assert.ok(g.crew.some((c) => c.name === "Ariadne" && c.kin === "stone"));
+    assert.ok(g.crew.some((c) => c.name === "Ariadne" && c.kin === "rock"));
     assert.equal(g.enemy!.faction, "rock");
     winByHull(g);
     assert.ok(g.event!.body.startsWith("His escort eliminated"));

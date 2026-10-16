@@ -303,19 +303,19 @@ export function rollSurrenderOffer(
 
 /** Display race -> kin id for joinCrew. Crew rewards do not draw from this list; an unnamed race is randomRace. */
 const RACES: [string, KinId][] = [
-  ["Human", "plain"],
-  ["Engi", "shell"],
-  ["Mantis", "blade"],
-  ["Slug", "gel"],
-  ["Rock", "stone"],
-  ["Zoltan", "spark"],
-  ["Crystal", "shard"],
-  ["Lanius", "voidlung"],
+  ["Human", "human"],
+  ["Engi", "engi"],
+  ["Mantis", "mantis"],
+  ["Slug", "slug"],
+  ["Rock", "rock"],
+  ["Zoltan", "energy"],
+  ["Crystal", "crystal"],
+  ["Lanius", "anaerobic"],
 ];
 
 /** The kin a surrender's crew race joins as (joinCrew), for the offer card's portrait too. */
 export function raceKin(race: string): KinId {
-  return RACES.find(([r]) => r === race)?.[1] ?? "plain";
+  return RACES.find(([r]) => r === race)?.[1] ?? "human";
 }
 
 function cap(t: string): string {
@@ -875,7 +875,7 @@ export function pageFight(
  */
 export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lungs = false) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("plain").hp;
+  const hp = crewDef("human").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -893,7 +893,7 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
       move: 0,
       think: 0,
       tone: 3,
-      kin: "plain",
+      kin: "human",
       ...(lungs ? { lungs: true } : {}),
     });
   }
@@ -918,7 +918,7 @@ export function plasmaHumanBoarders(g: Game) {
  */
 export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("gel").hp;
+  const hp = crewDef("slug").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -936,7 +936,7 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "gel",
+      kin: "slug",
     });
   }
   log(g, line ? `${n} ${line}` : `${n} slug boarders beam aboard.`);
@@ -947,11 +947,11 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
  * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
  * INFERRED: the count is an inclusive whole number from 1 to 3, and each boarder lands in a random player room,
  * the same pattern as humanBoarders. INFERRED: the display name is "Rock" because the page does not print names.
- * HP is crewDef("stone").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("rock").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 export function rockBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("stone").hp;
+  const hp = crewDef("rock").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -969,7 +969,7 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "stone",
+      kin: "rock",
     });
   }
   log(g, `${n} rock boarders beam aboard your ship.`);
@@ -980,11 +980,11 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
  * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
  * INFERRED: the count is an inclusive whole number from 2 to 3, and each boarder lands in a random player room,
  * the same pattern as rockBoarders. INFERRED: the display name is "Mantis" because the page does not print names.
- * HP is crewDef("blade").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("mantis").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 export function mantisBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("blade").hp;
+  const hp = crewDef("mantis").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -1002,7 +1002,7 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "blade",
+      kin: "mantis",
     });
   }
   log(g, `${n} mantis boarders beam aboard your ship.`);
@@ -1012,14 +1012,14 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
  * "crew entirely composed of Mantis."
  * Call this after startCombat. The class mix can still roll an Engi; this replaces that crew.
  * INFERRED: only enemy crew aboard the enemy ship change. A Mantis already there keeps the health
- * startCombat gave them. A converted crew member uses crewDef("blade") health. The display name is "Mantis".
+ * startCombat gave them. A converted crew member uses crewDef("mantis") health. The display name is "Mantis".
  */
 export function allMantisCrew(g: Game) {
-  const hp = crewDef("blade").hp;
+  const hp = crewDef("mantis").hp;
   for (const c of g.crew) {
     if (c.side !== "enemy" || c.aboard !== "enemy") continue;
-    if (c.kin === "blade") continue;
-    c.kin = "blade";
+    if (c.kin === "mantis") continue;
+    c.kin = "mantis";
     c.name = "Mantis";
     c.hp = hp;
     c.maxHp = hp;
@@ -1031,11 +1031,11 @@ export function allMantisCrew(g: Game) {
  * Call this after startCombat (ctx.fight). A new fight keeps intruders already aboard.
  * INFERRED: the count is an inclusive whole number from 3 to 4, and each boarder lands in a random player room,
  * the same pattern as mantisBoarders. INFERRED: the display name is "Zoltan" because the page does not print names.
- * HP is crewDef("spark").hp. No weapon, schematic, augment, crew reward, or scrap.
+ * HP is crewDef("energy").hp. No weapon, schematic, augment, crew reward, or scrap.
  */
 export function zoltanBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("spark").hp;
+  const hp = crewDef("energy").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -1053,7 +1053,7 @@ export function zoltanBoarders(g: Game, lo: number, hi: number) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "spark",
+      kin: "energy",
     });
   }
   log(g, `${n} zoltan boarders beam aboard your ship.`);
@@ -1062,12 +1062,12 @@ export function zoltanBoarders(g: Game, lo: number, hi: number) {
 /**
  * Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
  * INFERRED: the count is inclusive (between()), and each boarder lands in a random player room.
- * INFERRED: the display name is "Crystal" because the page does not print names. HP is crewDef("shard").hp.
+ * INFERRED: the display name is "Crystal" because the page does not print names. HP is crewDef("crystal").hp.
  * Not a crew grant. No ship.
  */
 export function crystalBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("shard").hp;
+  const hp = crewDef("crystal").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -1085,14 +1085,14 @@ export function crystalBoarders(g: Game, lo: number, hi: number) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "shard",
+      kin: "crystal",
     });
   }
   log(g, `${n} crystal boarders beam aboard your ship.`);
 }
 
 function livingSlug(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "slug");
 }
 
 function pick<T>(g: Game, items: T[]): T {
@@ -1269,7 +1269,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     cargoScan(g);
   },
   "c:destroyed-cargo-ship:3": (g) => {
-    if (!g.augments.includes("glass")) return;
+    if (!g.augments.includes("ADV_SCANNERS")) return;
     cargoScan(g);
   },
   "s:destroyed-cargo-ship:destroy": (g) => {

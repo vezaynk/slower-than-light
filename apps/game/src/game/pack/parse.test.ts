@@ -120,10 +120,10 @@ const XML = `
     <weapon>lineburst</weapon>
   </weaponList>
   <crewList>
-    <crewMember kin="plain" room="p-pilot"/>
+    <crewMember kin="human" room="p-pilot"/>
   </crewList>
   <kitList>
-    <kit name="veil">
+    <kit name="cloaking">
       <level>1</level>
       <power>0</power>
       <on>false</on>
@@ -392,12 +392,12 @@ describe("parsePack", () => {
     assert.equal(emberHull?.missiles, 1);
     assert.equal(emberHull?.parts, 3);
     assert.deepEqual(emberHull?.systems.shields, [2, 1]);
-    assert.deepEqual(emberHull?.weapons, ["lineburst"]);
-    assert.deepEqual(emberHull?.crew, [{ kin: "plain", room: "p-pilot" }]);
-    assert.equal(emberHull?.kits.veil?.level, 1);
-    assert.equal(emberHull?.kits.veil?.on, false);
-    assert.deepEqual(emberHull?.kits.veil?.loadout, ["patch"]);
-    assert.deepEqual(emberHull?.augments, ["zshield"]);
+    assert.deepEqual(emberHull?.weapons, ["LASER_BURST_3"]);
+    assert.deepEqual(emberHull?.crew, [{ kin: "human", room: "p-pilot" }]);
+    assert.equal(emberHull?.kits.cloaking?.level, 1);
+    assert.equal(emberHull?.kits.cloaking?.on, false);
+    assert.deepEqual(emberHull?.kits.cloaking?.loadout, ["REPAIR"]);
+    assert.deepEqual(emberHull?.augments, ["ENERGY_SHIELD"]);
     assert.deepEqual(emberHull?.unfitted, ["Spare"]);
     const bareHull = hullDef("barehull");
     assert.equal(bareHull?.name, "barehull");

@@ -70,7 +70,7 @@ describe("Escort civilians FTL haywire", () => {
 
     const g = createGame(3);
     open(g);
-    g.augments = ["nav"];
+    g.augments = ["FTL_JUMPER"];
     const guns = g.player.weapons.length;
     const crew = g.crew.filter((c) => c.side === "player").length;
     const fuel = g.fuel;

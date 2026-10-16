@@ -106,7 +106,7 @@ describe("Engi distress Rebel fight", () => {
         assert.equal(g.player.weapons.length, guns);
       } else if (/med-bot disperser/.test(body)) {
         seen.add("heal");
-        assert.equal(g.player.weapons.some((w) => w.defId === "healburst"), true);
+        assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), true);
         assert.match(body, /Healing Burst/);
       } else {
         seen.add("schematic");
@@ -141,7 +141,7 @@ describe("Engi distress Rebel fight", () => {
       choose(g, "q:engi-distress:scrap");
       if (/med-bot disperser/.test(g.event?.body ?? "")) {
         blocked = true;
-        assert.equal(g.player.weapons.some((w) => w.defId === "healburst"), false);
+        assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), false);
         assert.match(g.event?.body ?? "", /No free weapon slot/);
       }
     }
@@ -158,7 +158,7 @@ describe("Engi distress Rebel fight", () => {
     assert.equal(paid.scrap, 10);
     assert.equal(paid.missiles, 3);
     assert.equal(paid.fuel, 4);
-    assert.deepEqual(paid.augments, ["medbot"]);
+    assert.deepEqual(paid.augments, ["NANO_MEDBAY"]);
     assert.match(paid.event?.body ?? "", /Engi Med-bot Dispersal fitted/);
     assert.equal(paid.player.weapons.length, guns);
   });

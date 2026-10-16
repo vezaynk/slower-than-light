@@ -18,7 +18,7 @@ import type { WeaponDef } from "../content.ts";
  * "Effect: low chance of fire or breach". "The Rebel Flagship": "The lasers have a 10% fire and 9% breach chance."
  */
 export const BOSS_LASER: WeaponDef = {
-  id: "bosslaser",
+  id: "ARTILLERY_BOSS_1",
   name: "Boss Laser",
   kind: "laser",
   // INFERRED, chosen: the artillery maximum (4). No power line is printed. Not a Weapons-pool cost.
@@ -46,7 +46,7 @@ export const BOSS_LASER: WeaponDef = {
  * An enemy Boss Beam still swipes the aimed room and one neighbour. A player beam uses the drawn segment.
  */
 export const BOSS_BEAM: WeaponDef = {
-  id: "bossbeam",
+  id: "ARTILLERY_BOSS_3",
   name: "Boss Beam",
   kind: "beam",
   // INFERRED, chosen: the artillery maximum (3). No power line is printed. Not a Weapons-pool cost.
@@ -66,17 +66,17 @@ export const BOSS_BEAM: WeaponDef = {
 
 /**
  * "The Rebel Flagship", "Weapon cooldowns and status effects": "The missiles have a 30% fire and 14% breach chance."
- * The Missile page row (weapons-missile.ts) prints no breach percent, so WEAPONS.bossmissile takes the flagship page's
+ * The Missile page row (weapons-missile.ts) prints no breach percent, so WEAPONS.ARTILLERY_BOSS_2 takes the flagship page's
  * 14% here. MISSILE_WEAPONS itself is left as the Missile page has it.
  */
 export const BOSS_MISSILE_BREACH = 0.14;
 
 /** "Charge time (seconds)" table, rows = artillery system level. "-" cells (Ion / Beam at level 4) are absent. */
 export const ARTILLERY_CHARGE: Record<string, Partial<Record<1 | 2 | 3 | 4, number>>> = {
-  bossion: { 1: 35, 2: 28, 3: 21 },
-  bosslaser: { 1: 25, 2: 20, 3: 15, 4: 10 },
-  bossmissile: { 1: 28.75, 2: 23, 3: 17.25, 4: 11.5 },
-  bossbeam: { 1: 32.5, 2: 26, 3: 19.5 },
+  ARTILLERY_BOSS_4: { 1: 35, 2: 28, 3: 21 },
+  ARTILLERY_BOSS_1: { 1: 25, 2: 20, 3: 15, 4: 10 },
+  ARTILLERY_BOSS_2: { 1: 28.75, 2: 23, 3: 17.25, 4: 11.5 },
+  ARTILLERY_BOSS_3: { 1: 32.5, 2: 26, 3: 19.5 },
 };
 
 /**
@@ -97,7 +97,7 @@ export function artilleryChargeSeconds(defId: string, level: number): number | n
 /** Add Boss Laser / Boss Beam and the flagship page's Boss Missile breach to the weapon registry. */
 export function registerFlagshipWeapons(weapons: Record<string, WeaponDef>) {
   for (const def of [BOSS_LASER, BOSS_BEAM]) if (!weapons[def.id]) weapons[def.id] = def;
-  const missile = weapons.bossmissile;
+  const missile = weapons.ARTILLERY_BOSS_2;
   // A copy, so MISSILE_WEAPONS keeps the Missile page's row.
-  if (missile) weapons.bossmissile = { ...missile, breach: BOSS_MISSILE_BREACH };
+  if (missile) weapons.ARTILLERY_BOSS_2 = { ...missile, breach: BOSS_MISSILE_BREACH };
 }

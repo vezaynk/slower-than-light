@@ -19,8 +19,8 @@ function open(g: Game) {
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     level: 1,
     power: 1,
     left: 0,
@@ -59,7 +59,7 @@ describe("Slug hacker (doors) hacking", () => {
     assert.equal(g.fightEvent, "slug-hacker-doors");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.scrap, 10);
-    assert.equal(g.player.kits.spike?.level, 1);
+    assert.equal(g.player.kits.hacking?.level, 1);
     assert.equal(playerHackingOff(g), true);
     assert.equal(g.player.systems.doors.level, 3);
     assert.ok(doorLevel(g, g.player, "player") >= 2);

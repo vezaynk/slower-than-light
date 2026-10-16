@@ -37,7 +37,7 @@ type Tab = "supplies" | "weapon" | "system" | "drone" | "augment" | "crew" | "se
 const SECTION_TABS: [Tab, string, IconName][] = [
   ["weapon", "Weapons", "weapons"],
   ["system", "Systems", "upgrade"],
-  ["drone", "Drones", "swarm"],
+  ["drone", "Drones", "drones"],
   ["augment", "Augments", "upgrade"],
   ["crew", "Crew", "medbay"],
 ];
@@ -146,7 +146,7 @@ function Supplies({ game }: { game: Game }) {
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Resources "}
-          <span className="mini">{"One per purchase. ×N is what the store has left."}</span>
+          <span className="BEAM_1">{"One per purchase. ×N is what the store has left."}</span>
         </h3>
         <div className="store-cards">
           {(["fuel", "missiles", "parts"] as const).map((kind) => {
@@ -188,7 +188,7 @@ function Supplies({ game }: { game: Game }) {
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Hull repair "}
-          <span className="mini">
+          <span className="BEAM_1">
             {rate}
             {" scrap a point."}
           </span>
@@ -277,7 +277,7 @@ function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onD
         {item.name}
         {": who leaves?"}
       </p>
-      <p className="mini">
+      <p className="BEAM_1">
         {"A ship holds eight. Someone already aboard must be relieved before the hire."}
       </p>
       <div className="make-room-picks" role="radiogroup" aria-label={"Relieve"}>
@@ -297,7 +297,7 @@ function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onD
                 <CrewFace crew={c} size={40} />
               </span>
               <b>{c.name}</b>
-              <span className="mini">
+              <span className="BEAM_1">
                 {may ? kinLabel(c.kin) : c.aboard !== "player" ? "Not aboard." : "Can't leave now."}
               </span>
             </button>

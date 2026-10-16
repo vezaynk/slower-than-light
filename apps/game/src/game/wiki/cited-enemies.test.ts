@@ -42,8 +42,8 @@ describe("cited enemies", () => {
     assert.equal(ship.systems.medbay.level, 3);
     assert.equal(ship.systems.medbay.power, 3);
     assert.equal(ship.systems.doors.level, 3);
-    assert.equal(ship.kits.veil?.level, 2);
-    assert.equal(ship.kits.spike?.level, 3);
+    assert.equal(ship.kits.cloaking?.level, 2);
+    assert.equal(ship.kits.hacking?.level, 3);
     assert.equal(ship.parts, 10);
     const spent =
       ship.systems.shields.power +
@@ -55,10 +55,10 @@ describe("cited enemies", () => {
     assert.deepEqual(
       ship.weapons.map((weapon) => weapon.defId),
       // @agent:flagship. Boss Laser and Boss Beam are now WeaponDefs (wiki/flagship-weapons.ts).
-      ["bossion", "bosslaser", "bossmissile", "bossbeam"],
+      ["ARTILLERY_BOSS_4", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
-    assert.equal(WEAPONS.bossion?.power, 3);
-    assert.equal(WEAPONS.bossmissile?.power, 4);
+    assert.equal(WEAPONS.ARTILLERY_BOSS_4?.power, 3);
+    assert.equal(WEAPONS.ARTILLERY_BOSS_2?.power, 4);
     // @agent:flagship. Artillery is not fed from a Weapons power pool ("Weapon cooldowns and status effects"):
     // every mounted gun is armed, the 4-power Boss Missile included.
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
@@ -102,7 +102,7 @@ describe("cited enemies", () => {
     assert.equal(ship.shieldNow, 4);
     assert.deepEqual(
       ship.weapons.map((weapon) => weapon.defId),
-      ["bosslaser", "bossmissile", "bossbeam"],
+      ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
     // citedEnemy alone does not move crew; the stage swap that drops the Ion room is sim.ts advanceRam.
@@ -118,7 +118,7 @@ describe("cited enemies", () => {
     assert.equal(ship.systems.weapons.power, 4);
     assert.deepEqual(
       ship.weapons.map((weapon) => weapon.defId),
-      ["bosslaser", "bossmissile"],
+      ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2"],
     );
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
     assert.equal(ship.zoltan, 12);

@@ -81,7 +81,7 @@ describe("Auto-ship near storage station", () => {
     for (let seed = 1; seed <= 40 && (!fight || !station); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station:2"), null);
       choose(g, "c:auto-ship-near-storage-station:2");
       if (g.phase === "combat") {

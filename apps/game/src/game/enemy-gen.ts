@@ -72,31 +72,31 @@ export type EnemySpec = {
  */
 export const SCHEMATIC_POWER: Record<string, number> = {
   /** Combat Drone Mark I: "Power requirement: 2 power". */
-  striker: 2,
+  COMBAT_1: 2,
   /** Combat Drone Mark II: "Power requirement: 4 power". */
-  combat2: 4,
+  COMBAT_2: 4,
   /** Anti-Ship Beam Drone I: "Power requirement: 2 power". */
-  beam: 2,
+  COMBAT_BEAM: 2,
   /** Anti-Ship Beam Drone II: "Power requirement: 3 power". */
-  beam2: 3,
+  COMBAT_BEAM_2: 3,
   /** Anti-Ship Fire Drone: "Power requirement: 3 power". */
   fire: 3,
   /** Defense Drone Mark I: "Power requirement: 2 power". */
-  ward: 2,
+  DEFENSE_1: 2,
   /** Defense Drone Mark II: "Power requirement: 3 power". */
-  ward2: 3,
+  DEFENSE_2: 3,
   /** Anti-Combat Drone: "Power requirement: 1 power". */
-  wardcut: 1,
+  ANTI_DRONE: 1,
   /** Shield Overcharger: "Power requirement: 3 power". */
-  overcharger: 3,
+  DRONE_SHIELD: 3,
   /** System Repair Drone: "Power requirement: 1 power". */
-  patch: 1,
+  REPAIR: 1,
   /** Anti-Personnel Drone: "Power requirement: 2 power". */
   personnel: 2,
   /** Boarding Drone: "Power requirement: 3 power". */
-  board: 3,
+  BOARDER: 3,
   /** Ion Intruder Drone: "Power requirement: 3 power". */
-  ionintruder: 3,
+  BOARDER_ION: 3,
 };
 
 /**
@@ -104,19 +104,19 @@ export const SCHEMATIC_POWER: Record<string, number> = {
  * Combat Drone Mark II fires on the orbit leg in swarm.ts (cited-combat2.ts).
  */
 export const ENEMY_RUNNABLE = new Set([
-  "striker",
-  "combat2",
-  "beam",
-  "beam2",
+  "COMBAT_1",
+  "COMBAT_2",
+  "COMBAT_BEAM",
+  "COMBAT_BEAM_2",
   "fire",
-  "ward",
-  "ward2",
-  "wardcut",
-  "overcharger",
-  "patch",
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "DRONE_SHIELD",
+  "REPAIR",
   "personnel",
-  "board",
-  "ionintruder",
+  "BOARDER",
+  "BOARDER_ION",
 ]);
 
 /**
@@ -133,7 +133,7 @@ export function enemyParts(classId: string, drones: number): number {
  * Drone I and II, the Anti-Ship Beam Drones, and the Anti-Ship Fire Drone: the five schematics under Drone Control,
  * "Combat Drones (offensive drones)".
  */
-const COMBAT_DRONES = new Set(["striker", "combat2", "beam", "beam2", "fire"]);
+const COMBAT_DRONES = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
 
 /**
  * @agent:drones. Which drones this hull fields. Allowed schematics: Template:Enemy ships drones (ENEMY_DRONES).
@@ -189,13 +189,13 @@ const RUN: Partial<Record<EnemySystem, SysId>> = {
 
 /** Systems run by an extras module, keyed by that module's kit id. */
 const KIT: Partial<Record<EnemySystem, KitId>> = {
-  drones: "swarm",
-  hacking: "spike",
-  cloaking: "veil",
-  teleporter: "sling",
-  clonebay: "cradle",
-  mindcontrol: "leash",
-  battery: "cell",
+  drones: "drones",
+  hacking: "hacking",
+  cloaking: "cloaking",
+  teleporter: "teleporter",
+  clonebay: "clonebay",
+  mindcontrol: "mind",
+  battery: "battery",
 };
 
 const TITLE: Record<EnemySystem, string> = {
@@ -218,14 +218,14 @@ const TITLE: Record<EnemySystem, string> = {
 };
 
 const KIN_OF: Record<string, KinId> = {
-  Human: "plain",
-  Engi: "shell",
-  Mantis: "blade",
-  Slug: "gel",
-  Rock: "stone",
-  Zoltan: "spark",
-  Crystal: "shard",
-  Lanius: "voidlung",
+  Human: "human",
+  Engi: "engi",
+  Mantis: "mantis",
+  Slug: "slug",
+  Rock: "rock",
+  Zoltan: "energy",
+  Crystal: "crystal",
+  Lanius: "anaerobic",
 };
 
 export type PoolContext = { sector: number; sectorName: string; difficulty: Difficulty };
@@ -584,7 +584,7 @@ export function hullFor(cls: EnemyClass, ctx: PoolContext): number {
  * Missile (Weapons), Swarm Missiles and Pegasus Missile: "Enemies never use this weapon."
  */
 export function enemyMayMount(id: string): boolean {
-  return id !== "chargers" && id !== "swarmmissiles" && id !== "pegasus";
+  return id !== "LASER_CHARGEGUN_PLAYER" && id !== "MISSILE_CHARGEGUN" && id !== "MISSILES_BURST";
 }
 
 /** Mathchamp's first flag: "a weapon that is either a LASER, or is a MISSILE with at most 3 shield piercing. In vanilla,
@@ -928,7 +928,7 @@ export function rollEnemy(
   const stations = STATION.map((id) => `e-${id}`).filter((id) => rooms.some((r) => r.id === id));
   const others = rooms.map((r) => r.id).filter((id) => !stations.includes(id));
   const crew = races.map((race, i) => ({
-    kin: KIN_OF[race] ?? "plain",
+    kin: KIN_OF[race] ?? "human",
     race,
     room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0].id,
   }));
@@ -958,8 +958,8 @@ export function rollEnemy(
   };
   // @agent:drones. Mathchamp: drones are generated after weapons and see the weapon flags. Only for a hull with Drone
   // Control.
-  if (kits.swarm) {
-    spec.drones = rollDrones(cls.id, kits.swarm, rand, armed.flags.laser || armed.flags.hull);
+  if (kits.drones) {
+    spec.drones = rollDrones(cls.id, kits.drones, rand, armed.flags.laser || armed.flags.hull);
     spec.parts = enemyParts(cls.id, spec.drones.length);
   }
   return spec;

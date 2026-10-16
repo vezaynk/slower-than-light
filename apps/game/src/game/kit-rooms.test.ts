@@ -45,35 +45,35 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
 
   it("uses the rooms labelled on the traced hangar pictures", () => {
     const want: [string, KitId, string][] = [
-      ["stealth-a", "veil", "p-cloak"],
-      ["stealth-b", "veil", "p-cloak"],
-      ["engi-b", "swarm", "p-drones"],
-      ["fed-c", "sling", "p-tele"],
-      ["fed-c", "flak", "p-artillery"],
-      ["fed-c", "cradle", "p-clone"],
-      ["zoltan-c", "cell", "p-battery"],
-      ["zoltan-c", "swarm", "p-drones"],
-      ["slug-b", "sling", "p-tele"],
-      ["slug-c", "leash", "p-mind"],
-      ["slug-c", "spike", "p-hack"],
-      ["slug-c", "cradle", "p-clone"],
-      ["lanius-a", "spike", "p-hack"],
-      ["lanius-b", "leash", "p-mind"],
-      ["mantis-b", "sling", "p-tele"],
-      ["crystal-b", "sling", "p-tele"],
-      ["engi-a", "swarm", "p-drones"],
-      ["mantis-a", "sling", "p-tele"],
-      ["fed-a", "lance", "p-artillery"],
-      ["kestrel-c", "cradle", "p-clone"],
+      ["PLAYER_SHIP_STEALTH", "cloaking", "p-cloak"],
+      ["PLAYER_SHIP_STEALTH_2", "cloaking", "p-cloak"],
+      ["PLAYER_SHIP_CIRCLE_2", "drones", "p-drones"],
+      ["PLAYER_SHIP_FED_3", "teleporter", "p-tele"],
+      ["PLAYER_SHIP_FED_3", "artillery", "p-artillery"],
+      ["PLAYER_SHIP_FED_3", "clonebay", "p-clone"],
+      ["PLAYER_SHIP_ENERGY_3", "battery", "p-battery"],
+      ["PLAYER_SHIP_ENERGY_3", "drones", "p-drones"],
+      ["PLAYER_SHIP_JELLY_2", "teleporter", "p-tele"],
+      ["PLAYER_SHIP_JELLY_3", "mind", "p-mind"],
+      ["PLAYER_SHIP_JELLY_3", "hacking", "p-hack"],
+      ["PLAYER_SHIP_JELLY_3", "clonebay", "p-clone"],
+      ["PLAYER_SHIP_ANAEROBIC", "hacking", "p-hack"],
+      ["PLAYER_SHIP_ANAEROBIC_2", "mind", "p-mind"],
+      ["PLAYER_SHIP_MANTIS_2", "teleporter", "p-tele"],
+      ["PLAYER_SHIP_CRYSTAL_2", "teleporter", "p-tele"],
+      ["PLAYER_SHIP_CIRCLE", "drones", "p-drones"],
+      ["PLAYER_SHIP_MANTIS", "teleporter", "p-tele"],
+      ["PLAYER_SHIP_FED", "artillery", "p-artillery"],
+      ["PLAYER_SHIP_HARD_3", "clonebay", "p-clone"],
     ];
     for (const [hull, kit, room] of want) assert.equal(kitRoom(createGame(3, hull), kit)?.id, room, `${hull} ${kit}`);
   });
 
   it("keeps Teleporter rooms at 2 tiles except Mantis B, Mantis C and Crystal B (Crew Teleporter)", () => {
-    const four = new Set(["mantis-b", "mantis-c", "crystal-b"]);
+    const four = new Set(["PLAYER_SHIP_MANTIS_2", "PLAYER_SHIP_MANTIS_3", "PLAYER_SHIP_CRYSTAL_2"]);
     for (const h of HULLS) {
-      if (!h.kits.sling) continue;
-      const r = kitRoom(createGame(3, h.id), "sling")!;
+      if (!h.kits.teleporter) continue;
+      const r = kitRoom(createGame(3, h.id), "teleporter")!;
       assert.equal(r.w * r.h, four.has(h.id) ? 4 : 2, h.id);
     }
   });
@@ -87,17 +87,17 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("puts a kit bought mid-run in the room its hangar picture keeps for it, and is idempotent", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.scrap = 500;
     const halls = g.player.rooms.filter((r) => r.title === "Hall").length;
     installVeil(g);
-    const r = kitRoom(g, "veil")!;
+    const r = kitRoom(g, "cloaking")!;
     assert.equal(r.id, "p-cloak");
     assert.equal(r.title, "Cloaking");
     assert.equal(r.w * r.h, 4);
     assert.equal(g.player.rooms.filter((o) => o.title === "Hall").length, halls - 1);
     seatKits(g.player);
-    assert.equal(g.player.rooms.filter((o) => o.kit === "veil").length, 1);
+    assert.equal(g.player.rooms.filter((o) => o.kit === "cloaking").length, 1);
   });
 
   it("keeps a room for every system a store sells on every traced hull (Systems: one predetermined room)", () => {
@@ -111,7 +111,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("shows a room kept for an unbought system as a Hall, and names it once bought", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     const tele = g.player.rooms.find((r) => r.id === "p-tele")!;
     assert.equal(tele.title, "Hall");
     assert.equal(tele.reserve, "Teleporter");
@@ -122,24 +122,24 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     }
     g.scrap = 500;
     installSling(g);
-    assert.equal(tele.kit, "sling");
+    assert.equal(tele.kit, "teleporter");
     assert.equal(tele.title, "Teleporter");
     // Losing it leaves a Hall that is still kept for the teleporter.
-    delete g.player.kits.sling;
+    delete g.player.kits.teleporter;
     seatKits(g.player);
     assert.equal(tele.title, "Hall");
     assert.equal(tele.reserve, "Teleporter");
   });
 
   it("names a bought Shields room, and turns an older save's titled room into a kept Hall", () => {
-    const g = createGame(3, "stealth-a");
+    const g = createGame(3, "PLAYER_SHIP_STEALTH");
     const room = g.player.rooms.find((r) => r.id === "p-shields")!;
     assert.equal(room.title, "Hall");
     g.player.systems.shields.level = 2;
     seatKits(g.player);
     assert.equal(room.system, "shields");
     assert.equal(room.title, "Shields");
-    const old = createGame(3, "kestrel-a");
+    const old = createGame(3, "PLAYER_SHIP_HARD");
     const pads = old.player.rooms.find((r) => r.id === "p-tele")!;
     pads.title = "Teleporter";
     delete pads.reserve;
@@ -149,7 +149,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("gives bought Shields and Sensors the pale rooms on the hangar picture", () => {
-    const g = createGame(3, "stealth-c");
+    const g = createGame(3, "PLAYER_SHIP_STEALTH_3");
     assert.equal(g.player.rooms.find((r) => r.id === "p-shields")?.system, null);
     g.player.systems.shields.level = 2;
     g.player.systems.sensors.level = 1;
@@ -159,10 +159,10 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("seats a Clone Bay in the pale Medbay room of a hull with no medical system", () => {
-    const g = createGame(3, "slug-b");
-    g.player.kits.cradle = { id: "cradle", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const g = createGame(3, "PLAYER_SHIP_JELLY_2");
+    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     seatKits(g.player);
-    assert.equal(kitRoom(g, "cradle")?.id, "p-medbay");
+    assert.equal(kitRoom(g, "clonebay")?.id, "p-medbay");
   });
 
   it("grows the Lark a room under its grid, with doors, when it has no empty room (INVENTED)", () => {
@@ -171,8 +171,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     const rows = g.player.rows;
     installVeil(g);
     installSling(g);
-    const veil = kitRoom(g, "veil")!;
-    const sling = kitRoom(g, "sling")!;
+    const veil = kitRoom(g, "cloaking")!;
+    const sling = kitRoom(g, "teleporter")!;
     assert.deepEqual([veil.x, veil.y, sling.x, sling.y], [0, rows, 2, rows]);
     assert.equal(g.player.rows, rows + 1);
     assert.ok(g.player.doors.some((d) => d.b === veil.id && d.a === "p-doors"));
@@ -183,8 +183,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("puts the Medbay back in the Clone Bay room when the store swaps it in (Systems)", () => {
-    const g = createGame(3, "fed-c");
-    delete g.player.kits.cradle;
+    const g = createGame(3, "PLAYER_SHIP_FED_3");
+    delete g.player.kits.clonebay;
     g.player.systems.medbay.level = 2;
     seatKits(g.player);
     const r = g.player.rooms.find((o) => o.id === "p-clone")!;
@@ -193,8 +193,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("clones crew into the Clone Bay room on a hull without p-medbay", () => {
-    const g = createGame(3, "fed-c");
-    g.player.kits.cradle!.power = 1;
+    const g = createGame(3, "PLAYER_SHIP_FED_3");
+    g.player.kits.clonebay!.power = 1;
     const c = g.crew.find((o) => o.side === "player")!;
     c.hp = 0;
     assert.equal(onCradleDeath(g, c), true);
@@ -204,18 +204,18 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
 
 describe("weapon hits, repair and Hard targeting reach the kit rooms", () => {
   it("lists the Cloaking room on Hard (Cloaking, Enemy AI and Cloaking)", () => {
-    const g = quiet("stealth-a", "hard");
-    const veil = g.player.kits.veil!;
+    const g = quiet("PLAYER_SHIP_STEALTH", "hard");
+    const veil = g.player.kits.cloaking!;
     veil.power = 1;
     veil.cool = 0;
     assert.ok(priorityRooms(g).includes("p-cloak"));
   });
 
   it("an enemy hit on the room damages the kit and caps its power; a damaged veil cannot be powered", () => {
-    const g = quiet("stealth-a");
+    const g = quiet("PLAYER_SHIP_STEALTH");
     g.player.shieldNow = 0;
     g.player.systems.shields.power = 0;
-    const veil = g.player.kits.veil!;
+    const veil = g.player.kits.cloaking!;
     let landed = false;
     for (let i = 0; i < 40 && !landed; i++) {
       const s: Shot = {
@@ -245,8 +245,8 @@ describe("weapon hits, repair and Hard targeting reach the kit rooms", () => {
   });
 
   it("crew in the kit room repair it in REPAIR_SECONDS", () => {
-    const g = quiet("stealth-a");
-    const veil = g.player.kits.veil!;
+    const g = quiet("PLAYER_SHIP_STEALTH");
+    const veil = g.player.kits.cloaking!;
     veil.damage = 1;
     veil.power = 0;
     const c = g.crew.find((o) => o.side === "player")!;

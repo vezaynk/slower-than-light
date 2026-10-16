@@ -21,14 +21,14 @@ import {
 /** The charge tick starts the swipe. The next tick of the time still left lands the cut. */
 function land(g: Game, chargeDt: number): void {
   tickLance(g, chargeDt);
-  const kit = g.player.kits.lance;
+  const kit = g.player.kits.artillery;
   if (kit && kit.left > 0) tickLance(g, kit.left);
 }
 
 /** A Federation A hull with its beam taken off, so installLance fits a fresh one. */
 function fedFresh(seed: number): Game {
-  const g = createGame(seed, "fed-a");
-  delete g.player.kits.lance;
+  const g = createGame(seed, "PLAYER_SHIP_FED");
+  delete g.player.kits.artillery;
   return g;
 }
 
@@ -36,8 +36,8 @@ function armed(seed: number): Game {
   const g = createGame(seed);
   startCombat(g, "scout");
   assert.ok(g.enemy);
-  g.player.kits.lance = {
-    id: "lance",
+  g.player.kits.artillery = {
+    id: "artillery", weapon: "ARTILLERY_FED",
     level: 1,
     power: 1,
     left: 0,
@@ -49,7 +49,7 @@ function armed(seed: number): Game {
   return g;
 }
 
-describe("lance", () => {
+describe("artillery", () => {
   it("drops enemy hull on a short tick and leaves the shield bubble alone", () => {
     const g = armed(1);
     assert.ok(g.enemy);
@@ -68,16 +68,16 @@ describe("lance", () => {
     assert.equal(g.shots.length, 1);
     assert.equal(g.shots[0]?.label, ARTILLERY_SHOT_LABEL);
     assert.equal(g.shots[0]?.duration, artillerySwipeSeconds());
-    assert.equal(g.player.kits.lance?.aux, 0);
+    assert.equal(g.player.kits.artillery?.aux, 0);
     assert.equal(g.log[0], "mark");
-    const left = g.player.kits.lance?.left ?? 0;
+    const left = g.player.kits.artillery?.left ?? 0;
     assert.ok(left > 0);
     tickLance(g, left);
     assert.ok(g.enemy.hull < hull);
     assert.equal(g.enemy.shieldNow, bubble);
     assert.equal(g.enemy.systems.shields.damage, broken + 1);
     assert.equal(g.shots.length, 0);
-    assert.equal(g.player.kits.lance?.aux, 0);
+    assert.equal(g.player.kits.artillery?.aux, 0);
     assert.equal(g.log[0], `${DISPLAY_NAME} cuts ${g.enemy.name}.`);
     assert.equal(g.log[1], "mark");
   });
@@ -90,7 +90,7 @@ describe("lance", () => {
     const hull = g.enemy.hull;
     const bubble = g.enemy.shieldNow;
     aimLance(g, g.enemy.rooms[0].id);
-    assert.equal(g.player.kits.lance?.target, null);
+    assert.equal(g.player.kits.artillery?.target, null);
     const saved = g.seed;
     const first = g.enemy.rooms[Math.floor(rand(g) * g.enemy.rooms.length)];
     g.seed = saved;
@@ -153,7 +153,7 @@ describe("lance", () => {
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
     tickLance(g, 0.1);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit && kit.left > 0);
     kit.power = 0;
     tickLance(g, kit.left);
@@ -165,7 +165,7 @@ describe("lance", () => {
   it("does not charge without a reactor bar, and a stored charge drains", () => {
     const g = armed(5);
     assert.ok(g.enemy);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.power = 0;
     kit.aux = 0.25;
@@ -178,7 +178,7 @@ describe("lance", () => {
   it("fills aux on the level clock and fires on its own", () => {
     const g = armed(6);
     assert.ok(g.enemy);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     const hull = g.enemy.hull;
     kit.level = 1;
@@ -202,11 +202,11 @@ describe("lance", () => {
     // Augmentations, Automated Re-loader: one copy divides cooldown by 1.1; three raise firing rate by 30%.
     const once = armed(60);
     assert.ok(once.enemy);
-    const kit = once.player.kits.lance;
+    const kit = once.player.kits.artillery;
     assert.ok(kit);
     kit.aux = 0;
     kit.target = null;
-    once.augments.push("feed");
+    once.augments.push("AUTO_COOLDOWN");
     const hull = once.enemy.hull;
     tickLance(once, 50 / 1.1 - 0.05);
     assert.equal(once.enemy.hull, hull);
@@ -219,11 +219,11 @@ describe("lance", () => {
 
     const triple = armed(61);
     assert.ok(triple.enemy);
-    const fast = triple.player.kits.lance;
+    const fast = triple.player.kits.artillery;
     assert.ok(fast);
     fast.aux = 0;
     fast.target = null;
-    triple.augments.push("feed", "feed", "feed");
+    triple.augments.push("AUTO_COOLDOWN", "AUTO_COOLDOWN", "AUTO_COOLDOWN");
     const before = triple.enemy.hull;
     tickLance(triple, 50 / 1.3 - 0.05);
     assert.equal(triple.enemy.hull, before);
@@ -234,11 +234,11 @@ describe("lance", () => {
     assert.ok(triple.enemy.hull < before);
 
     const draining = armed(62);
-    const dark = draining.player.kits.lance;
+    const dark = draining.player.kits.artillery;
     assert.ok(dark);
     dark.power = 0;
     dark.aux = 1;
-    draining.augments.push("feed", "feed", "feed");
+    draining.augments.push("AUTO_COOLDOWN", "AUTO_COOLDOWN", "AUTO_COOLDOWN");
     tickLance(draining, 0.2);
     assert.equal(dark.aux, 0.9);
   });
@@ -258,7 +258,7 @@ describe("lance", () => {
     assert.equal(held.enemy.zoltan, 3);
     assert.equal(held.enemy.hull, hull);
     assert.equal(held.enemy.systems[room.system].damage, broken);
-    assert.equal(held.player.kits.lance?.aux, 0);
+    assert.equal(held.player.kits.artillery?.aux, 0);
 
     const open = armed(71);
     assert.ok(open.enemy);
@@ -277,8 +277,8 @@ describe("lance", () => {
     // Artillery Beam at system level 4 is the example that still fires, because that clock is 20 seconds.
     const cloak = (g: Game) => {
       assert.ok(g.enemy);
-      g.enemy.kits.veil = {
-        id: "veil",
+      g.enemy.kits.cloaking = {
+        id: "cloaking",
         level: 1,
         power: 1,
         left: 10,
@@ -290,7 +290,7 @@ describe("lance", () => {
     };
     const slow = armed(80);
     cloak(slow);
-    const kit = slow.player.kits.lance;
+    const kit = slow.player.kits.artillery;
     assert.ok(kit);
     kit.aux = 0;
     kit.level = 1;
@@ -300,7 +300,7 @@ describe("lance", () => {
 
     const fast = armed(81);
     cloak(fast);
-    const four = fast.player.kits.lance;
+    const four = fast.player.kits.artillery;
     assert.ok(four && fast.enemy);
     four.level = 4;
     four.power = 4;
@@ -317,7 +317,7 @@ describe("lance", () => {
     // Artillery Beam, "Overview": pre-installed only on the Federation Cruiser A and B. No purchase price is printed.
     const lark = createGame(7);
     assert.equal(installLance(lark), false);
-    assert.equal(lark.player.kits.lance, undefined);
+    assert.equal(lark.player.kits.artillery, undefined);
     const g = fedFresh(7);
     assert.equal(INSTALL_COST, null);
     assert.deepEqual(CHARGE_SECONDS, { 1: 50, 2: 40, 3: 30, 4: 20 });
@@ -326,15 +326,15 @@ describe("lance", () => {
     const scrap = g.scrap;
     assert.equal(installLance(g), true);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.player.kits.lance?.id, "lance");
-    assert.equal(g.player.kits.lance?.power, 0);
+    assert.equal(g.player.kits.artillery?.id, "artillery");
+    assert.equal(g.player.kits.artillery?.power, 0);
     assert.equal(installLance(g), false);
   });
 
   it("takes one spare reactor bar and gives it back", () => {
     const g = fedFresh(8);
     assert.equal(installLance(g), true);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     const spare = sparePower(g.player);
     assert.ok(spare >= 1);
@@ -353,7 +353,7 @@ describe("lance", () => {
   it("level 2 with one bar charges on the 50 second clock", () => {
     const g = armed(9);
     assert.ok(g.enemy);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 2;
     kit.power = 1;
@@ -367,7 +367,7 @@ describe("lance", () => {
   it("level 2 with two bars charges on the 40 second clock", () => {
     const g = armed(10);
     assert.ok(g.enemy);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 2;
     kit.power = 2;
@@ -381,7 +381,7 @@ describe("lance", () => {
   it("a stamped zoltan bar counts as one power level and does not change reactor power", () => {
     const g = armed(14);
     assert.ok(g.enemy);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 2;
     kit.power = 1;
@@ -395,7 +395,7 @@ describe("lance", () => {
   it("level 4 with four bars charges in 20 seconds and three bars charge in 30", () => {
     const g = fedFresh(11);
     assert.equal(installLance(g), true);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 4;
     const missing = 4 - sparePower(g.player);
@@ -422,7 +422,7 @@ describe("lance", () => {
   it("damage 1 on a level 3 beam caps power at 2", () => {
     const g = fedFresh(12);
     assert.equal(installLance(g), true);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 3;
     kit.damage = 1;
@@ -441,7 +441,7 @@ describe("lance", () => {
   it("the more control stops at the cap and the less control removes a bar", () => {
     const g = fedFresh(13);
     assert.equal(installLance(g), true);
-    const kit = g.player.kits.lance;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.level = 2;
     const missing = 2 - sparePower(g.player);

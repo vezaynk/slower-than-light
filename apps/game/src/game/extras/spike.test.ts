@@ -20,7 +20,7 @@ import {
  */
 function launchLanded(g: Game): boolean {
   const ok = launchSpike(g);
-  const kit = g.player.kits.spike;
+  const kit = g.player.kits.hacking;
   if (ok && kit && kit.hackFly != null) {
     kit.hackFly = 0;
     tickSpike(g, 1e-6);
@@ -34,32 +34,32 @@ function armed(parts = 2) {
   g.scrap = 80;
   g.player.parts = parts;
   assert.equal(installSpike(g), true);
-  assert.equal(g.player.kits.spike?.level, 1);
+  assert.equal(g.player.kits.hacking?.level, 1);
   toggleSpikePower(g);
-  assert.equal(g.player.kits.spike?.power, 1);
+  assert.equal(g.player.kits.hacking?.power, 1);
   startCombat(g, "scout");
   assert.ok(g.enemy);
   return g;
 }
 
-describe("spike", () => {
+describe("hacking", () => {
   it("spends a part, pulses shields for 4s, and drops one bubble after 2s", () => {
     const g = armed(2);
     armSpike(g, "shields");
     assert.equal(launchLanded(g), true);
     assert.equal(g.player.parts, 1);
-    assert.equal(g.player.kits.spike?.left, 4);
-    assert.equal(g.player.kits.spike?.on, true);
+    assert.equal(g.player.kits.hacking?.left, 4);
+    assert.equal(g.player.kits.hacking?.on, true);
     g.enemy!.shieldNow = 2;
     tickSpike(g, 2);
     assert.equal(g.enemy!.shieldNow, 1);
-    assert.equal(g.player.kits.spike?.left, 2);
+    assert.equal(g.player.kits.hacking?.left, 2);
 
     g.player.parts = 0;
-    const left = g.player.kits.spike?.left;
+    const left = g.player.kits.hacking?.left;
     assert.equal(launchLanded(g), false);
     assert.equal(g.player.parts, 0);
-    assert.equal(g.player.kits.spike?.left, left);
+    assert.equal(g.player.kits.hacking?.left, left);
   });
 
   it("randomly removes 1 or 2 shield layers across a full level-1 pulse", () => {
@@ -85,7 +85,7 @@ describe("spike", () => {
     armSpike(dry, "shields");
     assert.equal(launchLanded(dry), false);
     assert.equal(dry.player.parts, 0);
-    assert.equal(dry.player.kits.spike?.left, 0);
+    assert.equal(dry.player.kits.hacking?.left, 0);
 
     const cold = createGame(3);
     cold.scrap = 80;
@@ -93,7 +93,7 @@ describe("spike", () => {
     installSpike(cold);
     startCombat(cold, "scout");
     armSpike(cold, "shields");
-    assert.equal(cold.player.kits.spike?.power, 0);
+    assert.equal(cold.player.kits.hacking?.power, 0);
     assert.equal(launchLanded(cold), false);
     assert.equal(cold.player.parts, 2);
   });
@@ -106,24 +106,24 @@ describe("spike", () => {
     assert.equal(spikeEvadeZero(g, g.enemy!), true);
     assert.equal(spikeEvadeZero(g, g.player), false);
     tickSpike(g, 4);
-    assert.equal(g.player.kits.spike?.left, 0);
-    assert.equal(g.player.kits.spike?.on, false);
-    assert.equal(g.player.kits.spike?.cool, 20);
+    assert.equal(g.player.kits.hacking?.left, 0);
+    assert.equal(g.player.kits.hacking?.on, false);
+    assert.equal(g.player.kits.hacking?.cool, 20);
     assert.equal(spikeFreezesFtl(g), false);
     tickSpike(g, 20);
-    assert.equal(g.player.kits.spike?.cool, 0);
+    assert.equal(g.player.kits.hacking?.cool, 0);
 
     // Hacking wiki, "Choosing your hacking target": "this choice is permanent: you can only hack one system in a
     // fight, unless your hacking drone is somehow destroyed." This test used to retarget freely; now the latched
     // drone pins Engines, and Piloting is only reachable after the drone is gone.
     assert.equal(armSpike(g, "pilot"), false);
-    assert.equal(g.player.kits.spike?.target, "engines");
+    assert.equal(g.player.kits.hacking?.target, "engines");
     delete g.enemy!.hackDrone;
     assert.equal(armSpike(g, "pilot"), true);
     assert.equal(launchLanded(g), true);
     assert.equal(g.player.parts, 0);
     assert.equal(spikeFreezesFtl(g), true);
-    assert.equal(g.player.kits.spike?.left, 4);
+    assert.equal(g.player.kits.hacking?.left, 4);
   });
 
   it("drains weapons, air, medbay crew, and interior doors only", () => {
@@ -141,7 +141,7 @@ describe("spike", () => {
     }
 
     tickSpike(g, 3);
-    assert.equal(g.player.kits.spike?.cool, 20);
+    assert.equal(g.player.kits.hacking?.cool, 20);
     tickSpike(g, 20);
 
     for (const room of enemy.rooms) room.o2 = 100;
@@ -214,7 +214,7 @@ describe("spike", () => {
     const enemy = g.enemy!;
     g.player.weapons = [];
     enemy.weapons = [];
-    delete enemy.kits.swarm; // no enemy drones in this test
+    delete enemy.kits.drones; // no enemy drones in this test
     enemy.automated = true;
     enemy.systems.doors.level = 1;
     enemy.systems.doors.damage = 0;
@@ -255,7 +255,7 @@ describe("spike", () => {
     const foeHull = board.enemy!;
     board.player.weapons = [];
     foeHull.weapons = [];
-    delete foeHull.kits.swarm; // no enemy drones in this test
+    delete foeHull.kits.drones; // no enemy drones in this test
     foeHull.automated = true;
     foeHull.systems.doors.level = 1;
     foeHull.systems.doors.damage = 0;
@@ -287,7 +287,7 @@ describe("spike", () => {
     const hull = held.enemy!;
     held.player.weapons = [];
     hull.weapons = [];
-    delete hull.kits.swarm; // no enemy drones in this test
+    delete hull.kits.drones; // no enemy drones in this test
     hull.automated = true;
     hull.systems.doors.level = 1;
     hull.systems.doors.damage = 0;
@@ -325,7 +325,7 @@ describe("spike", () => {
     const enemy = g.enemy!;
     g.player.weapons = [];
     enemy.weapons = [];
-    delete enemy.kits.swarm; // no enemy drones in this test
+    delete enemy.kits.drones; // no enemy drones in this test
     enemy.automated = true;
     enemy.systems.doors.level = 1;
     enemy.systems.doors.damage = 0;
@@ -345,7 +345,7 @@ describe("spike", () => {
       c.stun = 100;
       if (parked) c.room = parked.id;
     }
-    const kit = g.player.kits.spike!;
+    const kit = g.player.kits.hacking!;
     assert.equal(door.hacked, true);
     kit.power = 0;
     step(g, 0.05);
@@ -387,7 +387,7 @@ describe("spike", () => {
     assert.equal(bareFoe.stun ?? 0, 0);
 
     const g = armed(2);
-    g.augments = ["stun"];
+    g.augments = ["HACKING_STUN"];
     const enemy = g.enemy!;
     const room = enemy.rooms.find((r) => r.system === "shields");
     const other = enemy.rooms.find((r) => r.id !== room?.id);
@@ -431,13 +431,13 @@ describe("spike", () => {
       stun: 0,
     };
     g.crew.push(walker, parked);
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "ionintruder",
+      target: "BOARDER_ION",
       on: true,
       aux: 0,
       hp: 125,
@@ -446,7 +446,7 @@ describe("spike", () => {
     };
     const patch = {
       id: "patch-1",
-      kind: "patch",
+      kind: "REPAIR",
       alive: true,
       powered: true,
       hp: 25,
@@ -457,7 +457,7 @@ describe("spike", () => {
     };
     const farDrone = {
       id: "patch-far",
-      kind: "patch",
+      kind: "REPAIR",
       alive: true,
       powered: true,
       hp: 25,
@@ -468,7 +468,7 @@ describe("spike", () => {
     };
     const orbiter = {
       id: "striker-1",
-      kind: "striker",
+      kind: "COMBAT_1",
       alive: true,
       powered: true,
       hp: 25,
@@ -477,13 +477,13 @@ describe("spike", () => {
       cool: 0,
       stun: 0,
     };
-    enemy.kits.swarm = {
-      id: "swarm",
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       drones: [patch, farDrone, orbiter],
@@ -491,10 +491,10 @@ describe("spike", () => {
     armSpike(g, "shields");
     assert.equal(launchLanded(g), true);
     tickSpike(g, 1e-6);
-    const kit = g.player.kits.spike!;
+    const kit = g.player.kits.hacking!;
     assert.equal(foe.stun, 4);
     assert.equal(boarder.stun, 4);
-    assert.equal(g.player.kits.swarm.stun, 4);
+    assert.equal(g.player.kits.drones.stun, 4);
     assert.equal(patch.stun, 4);
     assert.ok(Math.abs(kit.left - 4) < 1e-5);
     assert.equal(walker.stun, 0);
@@ -529,15 +529,15 @@ describe("flagship artillery hack", () => {
     assert.equal(armSpike(g, "weapons"), false);
     assert.equal(armSpike(g, "e-laser"), true);
     assert.equal(launchLanded(g), true);
-    assert.equal(g.player.kits.spike?.target, "e-laser");
+    assert.equal(g.player.kits.hacking?.target, "e-laser");
     for (const w of enemy.weapons) w.charge = 0.4;
     const before = Object.fromEntries(enemy.weapons.map((w) => [w.defId, w.charge]));
     for (let i = 0; i < 10; i++) step(g, 0.05);
-    const laser = enemy.weapons.find((w) => w.defId === "bosslaser");
+    const laser = enemy.weapons.find((w) => w.defId === "ARTILLERY_BOSS_1");
     assert.ok(laser);
-    assert.ok(laser.charge < (before.bosslaser ?? 1), String(laser.charge));
+    assert.ok(laser.charge < (before.ARTILLERY_BOSS_1 ?? 1), String(laser.charge));
     for (const w of enemy.weapons) {
-      if (w.defId === "bosslaser") continue;
+      if (w.defId === "ARTILLERY_BOSS_1") continue;
       assert.ok(w.charge > (before[w.defId] ?? 0), `${w.defId} ${w.charge}`);
     }
   });

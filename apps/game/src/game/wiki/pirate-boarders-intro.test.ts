@@ -61,7 +61,7 @@ describe("Boarders: Humans (Pirate) intros", () => {
     const g = createGame(2);
     open(g);
     choose(g, "c:boarders-humans-pirate:0");
-    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
     assert.ok(humans.length >= 3 && humans.length <= 5, String(humans.length));
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");

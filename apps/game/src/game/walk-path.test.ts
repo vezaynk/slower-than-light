@@ -49,7 +49,7 @@ describe("walk path", () => {
   });
 
   it("starts a Kestrel order on the standing tile and leaves through the door", () => {
-    const ship = createGame(4, "kestrel-a").player;
+    const ship = createGame(4, "PLAYER_SHIP_HARD").player;
     assert.ok(ship.doorMarks?.length);
     const cells = walkCells(ship, "p-engines", ["p-oxygen"], undefined);
     assert.deepEqual(cells, [
@@ -93,7 +93,7 @@ describe("walk path", () => {
   });
 
   it("resumes a hop at the exact point instead of the cell center", () => {
-    const ship = createGame(4, "kestrel-a").player;
+    const ship = createGame(4, "PLAYER_SHIP_HARD").player;
     const via = "2,2@2.5000,2.2000";
     const at = walkPoint(ship, "p-engines", ["p-oxygen"], via, 0);
     assert.deepEqual(at, { x: 2.5, y: 2.2 });

@@ -86,7 +86,7 @@ describe("cited fuel candidates", () => {
   });
 
   it("resolves a flagged out-of-fuel page and does not place one that names no sector", () => {
-    const g = createGame(1, "kestrel-a", "normal");
+    const g = createGame(1, "PLAYER_SHIP_HARD", "normal");
     const extra = new Set(EXTRA_EVENTS.map((ev) => ev.flag));
     const seen = new Set<string>();
     for (const row of [...DISTRESS_ON, ...DISTRESS_OFF]) {

@@ -82,7 +82,7 @@ export function receiveAugment(g: Game, id: string): "fitted" | "queued" {
 
 /** Ids of every drone schematic the ship holds, fitted or in cargo. */
 export function heldSchematics(g: Game): string[] {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   return [
     ...(kit ? fieldedSchematics(kit) : []),
     ...cargoOf(g)
@@ -124,7 +124,7 @@ export function stowWeapon(g: Game, uid: string): boolean {
 
 /** Inventory: a fitted drone schematic goes into cargo. */
 export function stowDrone(g: Game, index: number): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit || cargoOf(g).length >= CARGO_SLOTS) return false;
   const have = fieldedSchematics(kit);
   const ref = have[index];
@@ -158,7 +158,7 @@ export function canFitFromCargo(g: Game, index: number): boolean {
     : canFieldDrone(g, item.id);
 }
 
-function setFielded(kit: NonNullable<Game["player"]["kits"]["swarm"]>, next: string[]) {
+function setFielded(kit: NonNullable<Game["player"]["kits"]["drones"]>, next: string[]) {
   if (kit.loadout?.length) {
     kit.loadout = next;
     return;
@@ -222,13 +222,13 @@ export function resolveOverflow(g: Game, leave: string): boolean {
     const index = Number(/^a:(\d+)$/.exec(leave)?.[1] ?? -1);
     if (!(index >= 0 && index < g.augments.length)) return false;
     // Augmentations: the one left behind gives no scrap.
-    if (g.augments[index] === "zshield") {
+    if (g.augments[index] === "ENERGY_SHIELD") {
       g.player.zoltan = undefined;
       delete g.player.zoltanOver;
     }
     g.augments.splice(index, 1, head.id);
   } else {
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     const index = Number(/^d:(\d+)$/.exec(leave)?.[1] ?? -1);
     if (!kit) return false;
     const have = fieldedSchematics(kit);

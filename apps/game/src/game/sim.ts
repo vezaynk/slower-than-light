@@ -552,7 +552,7 @@ function makePlayer(): Ship {
     weapons: [
       {
         uid: "w-line",
-        defId: "lineburst",
+        defId: "LASER_BURST_3",
         charge: 0,
         enabled: true,
         autofire: false,
@@ -853,7 +853,7 @@ function noteDodge(g: Game) {
   // "they are gained at different system consoles." The pilot's point is not the engineer's.
   // Crew skills, Piloting: "Skill is also not gained when your ship is cloaked."
   // Engines is trained the same way, with those same limits. Shields does not say this.
-  const veil = g.player.kits.veil;
+  const veil = g.player.kits.cloaking;
   if (veil && veil.on && veil.left > 0 && veil.level > 0 && kitBars(veil) >= 1) return;
   const room = roomWith(g.player, "pilot");
   const pilot = g.crew.find(
@@ -1517,19 +1517,19 @@ function settleShipZoltan(g: Game, ship: Ship, aboard: "player" | "enemy"): void
   for (const id of ["engines", "medbay", "oxygen"] as const)
     settleCover(ship.systems[id], count(id));
   settleDisplace(ship, ship.systems.weapons, count("weapons"));
-  const swarm = ship.kits.swarm;
+  const swarm = ship.kits.drones;
   if (!swarm) return;
-  const room = ship.rooms.find((r) => r.kit === "swarm");
+  const room = ship.rooms.find((r) => r.kit === "drones");
   const z = room ? zoltanCount(g, ship, aboard, room.id) : (swarm.zoltan ?? 0);
   settleDisplace(ship, swarm, z);
 }
 
 const ACTIVATED_KITS: ReadonlySet<KitId> = new Set<KitId>([
-  "veil",
-  "sling",
-  "leash",
-  "spike",
-  "cell",
+  "cloaking",
+  "teleporter",
+  "mind",
+  "hacking",
+  "battery",
 ]);
 
 function capOf(sys: SystemState): number {
@@ -1834,8 +1834,8 @@ function doorsOf(ship: Ship, roomId: string): Door[] {
 function hackLatchedOn(g: Game, ship: Ship, room: Room): boolean {
   const id =
     ship === g.player
-      ? g.enemy?.kits.spike?.hackLatched
-        ? g.enemy.kits.spike.target
+      ? g.enemy?.kits.hacking?.hackLatched
+        ? g.enemy.kits.hacking.target
         : null
       : ship === g.enemy
         ? (g.enemy.hackDrone ?? null)
@@ -2194,7 +2194,7 @@ function claimFile(g: Game, c: Crew, dest: string) {
  */
 function claimPad(g: Game, c: Crew, ship: Ship, dest: string) {
   const room = roomById(ship, dest);
-  if (!room || room.kit !== "sling") {
+  if (!room || room.kit !== "teleporter") {
     delete c.pad;
     return;
   }
@@ -2878,13 +2878,13 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       : undefined;
   const aimed = roomById(targetShip, rooms[0]);
   // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. Radius 31 is not a pixel sim.
-  const scatter = w.defId === "swarmmissiles" && aimed != null && swarmAimRolls(aimed);
+  const scatter = w.defId === "MISSILE_CHARGEGUN" && aimed != null && swarmAimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim.
-  const flak1 = w.defId === "scatter" && aimed != null && flak1AimRolls(aimed);
+  const flak1 = w.defId === "SHOTGUN" && aimed != null && flak1AimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim.
-  const flak2 = w.defId === "flak2" && aimed != null && flak2AimRolls(aimed);
+  const flak2 = w.defId === "SHOTGUN_2" && aimed != null && flak2AimRolls(aimed);
   // Flak (Weapons), Adv. Flak Gun: 1x2 and 2x2 room odds. Radius 40 is not a pixel sim.
-  const advFlak = w.defId === "advflak" && aimed != null && advFlakAimRolls(aimed);
+  const advFlak = w.defId === "SHOTGUN_PLAYER" && aimed != null && advFlakAimRolls(aimed);
   const born: string[] = [];
   // Flak (Weapons): Additional fake flak is 3 on Flak I, 6 on Flak II, and 3 on Adv. Flak.
   // Understanding flak accuracy: fake flak cannot take down shields or deal damage, and a defense drone can shoot it.
@@ -2893,11 +2893,11 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   // INFERRED: flight matches the damaging pellets. The page does not print a separate time.
   // INVENTED: kind missile, damage 0, and the shared fake-flak label. The page prints no kind.
   const fakeN =
-    w.defId === "scatter"
+    w.defId === "SHOTGUN"
       ? FLAK1_FAKE
-      : w.defId === "flak2"
+      : w.defId === "SHOTGUN_2"
         ? FLAK2_FAKE
-        : w.defId === "advflak"
+        : w.defId === "SHOTGUN_PLAYER"
           ? ADV_FLAK_FAKE
           : 0;
   if (fakeN > 0) {
@@ -3036,7 +3036,7 @@ function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void 
  * "Systems cooldown"); full ion is 25 (leash.ts). The lock applies while kit.cool is counting,
  * including an enemy hold's wait and Hacking's relaunch wait, which share that field.
  */
-const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["veil", "spike", "sling", "leash"]);
+const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["cloaking", "hacking", "teleporter", "mind"]);
 
 /**
  * Systems, "Powering and upgrading systems": "Pressing the key powers one bar of the system and Shift-<key> unpowers one
@@ -3044,7 +3044,7 @@ const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["veil", "spike", "sling", "l
  * OVERRIDING the earlier one-bar on/off inference): one reactor bar per powered level, up to the undamaged level.
  * "Powering a system additional levels will make it more powerful": each one reads its powered bars (kitBars).
  */
-export type BarKit = "veil" | "sling" | "leash";
+export type BarKit = "cloaking" | "teleporter" | "mind";
 
 export function kitPowerUp(g: Game, id: BarKit): boolean {
   const kit = g.player.kits[id];
@@ -3161,7 +3161,7 @@ function rerouteRepaired(g: Game) {
     if (sys.power >= sys.want || sys.damage <= 0) delete sys.want;
   }
   if (shields) syncShields(ship, zoltanBars(g.crew, ship, "player", "shields"));
-  for (const id of ["veil", "sling", "leash"] as const) {
+  for (const id of ["cloaking", "teleporter", "mind"] as const) {
     const kit = ship.kits[id];
     if (kit?.want == null) continue;
     while (kit.power < kit.want && kitPowerUp(g, id));
@@ -3172,7 +3172,7 @@ function rerouteRepaired(g: Game) {
 }
 
 /** Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated while any ion point remains. */
-const ACTIVATION_ION: ReadonlySet<string> = new Set(["veil", "spike", "leash", "sling"]);
+const ACTIVATION_ION: ReadonlySet<string> = new Set(["cloaking", "hacking", "mind", "teleporter"]);
 
 export function kitIonLocked(kit: { ion?: number[] } | undefined): boolean {
   return (kit?.ion?.length ?? 0) > 0;
@@ -3240,12 +3240,12 @@ function zoltanBeamInstance(shot: Shot): number {
  * xftl doc/weapons, BeamWeapon::OnUpdate, gives the reason: the 80% tick "only applies if the beam is more than 20
  * pixels long (NOT greater than or equal to, which matters for the level-1 beam drone)", whose beam is 20 (Drone
  * Control: "20 (0.4 tile diagonally)").
- * INFERRED: those two are defId "beam" or "fire", or a drone label that names fire or beam1.
+ * INFERRED: those two are defId "COMBAT_BEAM" or "fire", or a drone label that names fire or beam1.
  * A drone label that does not name the kind still takes both ticks. swarm.ts spends the bubble
  * on a drone swipe before this shot is built, so that path is not a second specification.
  */
 function zoltanBeamTicks(shot: Shot): number {
-  if (shot.defId === "beam" || shot.defId === "fire") return 1;
+  if (shot.defId === "COMBAT_BEAM" || shot.defId === "fire") return 1;
   const label = shot.label ?? "";
   if (/drone:.*(fire|beam1|beam-1)/i.test(label)) return 1;
   if (label.startsWith("drone:") && shot.fireChance >= 0.9) return 1;
@@ -3275,12 +3275,12 @@ function stunRoom(g: Game, roomId: string, aboard: "player" | "enemy", seconds: 
     c.stun = Math.max(c.stun ?? 0, seconds);
   }
   // A beam drone stores the last room it swiped. That drone is still in orbit, so the room stun skips it.
-  const playerKit = g.player.kits.swarm;
+  const playerKit = g.player.kits.drones;
   if (playerKit?.on && playerKit.hp != null && playerKit.room === roomId) {
-    const onEnemy = playerKit.target === "ionintruder" || playerKit.target === "board";
+    const onEnemy = playerKit.target === "BOARDER_ION" || playerKit.target === "BOARDER";
     if ((aboard === "enemy") === onEnemy) playerKit.stun = Math.max(playerKit.stun ?? 0, seconds);
   }
-  for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
+  for (const unit of g.enemy?.kits.drones?.drones ?? []) {
     if (!unit.alive || unit.room !== roomId) continue;
     const spot = enemyDroneSpot(unit);
     if (aboard === "player" && spot?.at !== "player-room") continue;
@@ -3349,7 +3349,7 @@ export function applyImpact(g: Game, shot: Shot) {
     const bombThrough =
       (ship.zoltan ?? 0) > 0 &&
       shot.from === "player" &&
-      g.augments.includes("bypass") &&
+      g.augments.includes("ZOLTAN_BYPASS") &&
       bypassZoltan("bomb") === "pass";
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
     // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
@@ -3372,8 +3372,8 @@ export function applyImpact(g: Game, shot: Shot) {
       !bombThrough &&
       shot.damage <= 0 &&
       shot.ion <= 0 &&
-      shot.defId !== "healburst" &&
-      shot.defId !== "repairburst"
+      shot.defId !== "BOMB_HEAL" &&
+      shot.defId !== "BOMB_HEAL_SYSTEM"
     ) {
       log(
         g,
@@ -3403,19 +3403,19 @@ export function applyImpact(g: Game, shot: Shot) {
       // Bomb (Weapons), Ion Bomb: system damage 0, and 4 ion to the targeted system or subsystem.
       // Crew damage is 0. "Low chance to stun" prints no percent, so that stun is not rolled.
       // Bomb (Weapons), Stun Bomb: 1 ion, and every crew member and drone in the room is stunned for 15 seconds.
-      if ((shot.defId === "ionbomb" || shot.defId === "stunbomb") && shot.ion > 0) {
+      if ((shot.defId === "BOMB_ION" || shot.defId === "BOMB_STUN") && shot.ion > 0) {
         // INFERRED: Reverse Ion Field negates the ion. The Stun Bomb's 15 second stun is printed beside it, so it still lands.
         const held = playerTarget && negateIon(g);
         if (held) log(g, "Reverse Ion Field shrugged that off.");
         else {
-          if (r.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+          if (r.kit === "hacking") ionHitsHack(g, ship, Math.max(1, shot.ion));
           // Zoltans: those four systems cannot be activated if they are ionized. An active cloak or hold is not ended here.
           ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
           // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
-          if (r.kit === "leash" && ship.kits.leash) ionOnLeash(ship.kits.leash);
+          if (r.kit === "mind" && ship.kits.mind) ionOnLeash(ship.kits.mind);
           // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
-          if (r.kit === "cell" && ship.kits.cell)
-            ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
+          if (r.kit === "battery" && ship.kits.battery)
+            ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
           if (r.system) {
             if (!ionArtillery(ship, r.id, Math.max(1, shot.ion))) {
               applyIon(
@@ -3428,20 +3428,20 @@ export function applyImpact(g: Game, shot: Shot) {
             log(g, playerTarget ? `${r.title} ionized.` : `Ion on their ${r.title}.`);
           }
         }
-        if (shot.defId === "stunbomb") stunBombRoom(g, r.id, aboard);
+        if (shot.defId === "BOMB_STUN") stunBombRoom(g, r.id, aboard);
         r.flash = 0.25;
         sfx(g, "ion");
         return;
       }
       // Crystal, "Crystal Lockdown": the Crystal Lockdown Bomb is identical in its coating effect.
-      if (shot.defId === "lockdown") {
+      if (shot.defId === "BOMB_LOCK") {
         coatRoom(g, ship, aboard, r.id);
         log(g, playerTarget ? `${r.title} locked down.` : `Their ${r.title} locked down.`);
         sfx(g, "click");
         return;
       }
       // Bomb (Weapons), "Healing Burst": 150 health to personnel in the room, including mind-controlled crew.
-      if (shot.defId === "healburst") {
+      if (shot.defId === "BOMB_HEAL") {
         const owner = shot.from === "player" ? "player" : "enemy";
         for (const c of g.crew) {
           if (c.aboard !== aboard || c.room !== r.id || c.hp <= 0) continue;
@@ -3454,7 +3454,7 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Bomb (Weapons), "Repair Burst": 8 bars of system damage. It does not put out fires or seal breaches.
-      if (shot.defId === "repairburst") {
+      if (shot.defId === "BOMB_HEAL_SYSTEM") {
         if (r.system) {
           const sys = ship.systems[r.system];
           sys.damage = Math.max(0, sys.damage - 8);
@@ -3594,7 +3594,7 @@ export function applyImpact(g: Game, shot: Shot) {
       applyIon(ship, "shields", Math.max(1, shot.ion), zoltanBars(g.crew, ship, aboard, "shields"));
       // Ion (Weapons), Ion Stunner: "this includes crew in the shields room if the shields themselves were hit".
       // The Ion Stunner still stuns the Shields room.
-      if (shot.defId === "stunner") {
+      if (shot.defId === "ION_STUN") {
         const shields = roomWith(ship, "shields");
         if (shields) stunRoom(g, shields.id, aboard, ION_STUNNER_S);
       }
@@ -3619,12 +3619,12 @@ export function applyImpact(g: Game, shot: Shot) {
     // Zoltans: ion damage interrupts Hacking. The cooldown matches the ion damage.
     // A room that only houses the kit still counts. An active cloak or mind-control hold is not ended here.
     // Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated if they are ionized.
-    if (r?.kit === "spike") ionHitsHack(g, ship, Math.max(1, shot.ion));
+    if (r?.kit === "hacking") ionHitsHack(g, ship, Math.max(1, shot.ion));
     if (r) ionOnActivationKit(ship, r.kit, Math.max(1, shot.ion));
     // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
-    if (r?.kit === "leash" && ship.kits.leash) ionOnLeash(ship.kits.leash);
+    if (r?.kit === "mind" && ship.kits.mind) ionOnLeash(ship.kits.mind);
     // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
-    if (r?.kit === "cell" && ship.kits.cell) ionOnCell(g, ship.kits.cell, Math.max(1, shot.ion));
+    if (r?.kit === "battery" && ship.kits.battery) ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion)))
@@ -3638,7 +3638,7 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     // Boarding, "Stun effect": the Ion Stunner stuns crew and drones in the room for 5 seconds.
     // A shield bubble already returned above, so that room stays clear, as with any other ion.
-    if (shot.defId === "stunner" && r) stunRoom(g, r.id, aboard, ION_STUNNER_S);
+    if (shot.defId === "ION_STUN" && r) stunRoom(g, r.id, aboard, ION_STUNNER_S);
     sfx(g, "ion");
     if (r) r.flash = 0.25;
     return;
@@ -3677,7 +3677,7 @@ function roomHull(shot: Shot, room: Room, systemDamage: number, shieldCut: numbe
 function looseShard(g: Game) {
   const enemy = g.enemy;
   if (!enemy) return;
-  const shot = { kind: "laser" as const, from: "player" as const, defId: "vengeance" };
+  const shot = { kind: "laser" as const, from: "player" as const, defId: "CRYSTAL_SHARDS" };
   // Augmentations, Crystal Vengeance, grey note: a friendly defense drone can shoot the shard down.
   // INFERRED: that drone orbits this hull, so it is offered the shard before the enemy's drone.
   // Friendly projectiles are not given a meeting point. No flight time is printed, so the shard still resolves now.
@@ -3770,7 +3770,7 @@ function strikeRoom(
     if (
       playerHurt &&
       ship.hull < before &&
-      g.augments.includes("vengeance") &&
+      g.augments.includes("CRYSTAL_SHARDS") &&
       vengeanceFires(rand(g))
     ) {
       looseShard(g);
@@ -3811,7 +3811,7 @@ function strikeRoom(
   // A surge laser is hard-coded to 21% breach and has no defId, so it is not this gate.
   // INFERRED: "no fires started" is the fire roll missing, not the room's existing fire count.
   const heavyLaser =
-    shot.defId === "heavy" || shot.defId === "heavy2" || shot.defId === "heavypierce";
+    shot.defId === "LASER_HEAVY_1" || shot.defId === "LASER_HEAVY_2" || shot.defId === "LASER_HEAVY_1_SP";
   const missile = shot.kind === "missile" && shot.from !== "env";
   let fireStarted = false;
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
@@ -3852,7 +3852,7 @@ function strikeRoom(
  * `shots` on the def is the bank, not one volley of a normal gun.
  * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
  */
-const CHARGER_IDS = new Set(["ioncharger", "chargers", "charger", "charger2", "swarmmissiles"]);
+const CHARGER_IDS = new Set(["ION_CHARGEGUN", "LASER_CHARGEGUN_PLAYER", "LASER_CHARGEGUN", "LASER_CHARGEGUN_2", "MISSILE_CHARGEGUN"]);
 
 /** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
@@ -3958,7 +3958,7 @@ function tickCharger(
   // Missile (Weapons), Swarm Missiles: autofire "will fire a charge as soon as it is gained."
   // That charge is its own volley and spends one missile. A stored bank is not one volley.
   // INFERRED: one stored shot per tick. No target holds a single finished shot and does not bank.
-  if (w.defId === "swarmmissiles") {
+  if (w.defId === "MISSILE_CHARGEGUN") {
     if (!w.target) {
       if (w.charge >= 1) w.charge = 1;
       return;
@@ -4032,10 +4032,10 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
         c.aboard === "enemy" &&
         (c.side === "player" || (c.side === "enemy" && (c.leashed ?? 0) > 0)),
     );
-  const drone = from === "player" ? g.player.kits.swarm : undefined;
+  const drone = from === "player" ? g.player.kits.drones : undefined;
   const ionAboard =
     !!drone?.on &&
-    drone.target === "ionintruder" &&
+    drone.target === "BOARDER_ION" &&
     typeof drone.room === "string" &&
     drone.room.length > 0;
   // Cloaking, "Overview": fire only if the boarding drone "is onboard the enemy ship".
@@ -4043,7 +4043,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
   // A powered Boarding Drone with no room is still in space.
   const boardAboard =
     !!drone?.on &&
-    drone.target === "board" &&
+    drone.target === "BOARDER" &&
     typeof drone.room === "string" &&
     drone.room.length > 0;
   const presence = crewAboard || ionAboard || boardAboard;
@@ -4107,8 +4107,8 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
  */
 function crewPace(g: Game, c: Crew): number {
   return (
-    crewDef(c.kin ?? "plain").move *
-    (c.side === "player" && g.augments.includes("pheromone") ? 1.25 : 1)
+    crewDef(c.kin ?? "human").move *
+    (c.side === "player" && g.augments.includes("CREW_STIMS") ? 1.25 : 1)
   );
 }
 
@@ -4298,7 +4298,7 @@ export const FIRE_FIGHT_SHARE = 0.096;
  * aptitude for repairs also apply to fire-fighting". Used for systems, kit rooms, breaches, and fires.
  */
 export function repairPace(c: Crew): number {
-  return crewDef(c.kin ?? "plain").repair * repairSkillMult(rankOf(c, "repair"));
+  return crewDef(c.kin ?? "human").repair * repairSkillMult(rankOf(c, "repair"));
 }
 
 /**
@@ -4370,7 +4370,7 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   for (const c of g.crew) {
     if (c.hp <= 0 || c.aboard !== aboard) continue;
     if (crewDef(c.kin).drainsOxygen) lanius.set(c.room, (lanius.get(c.room) ?? 0) + 1);
-    else if (crewDef(c.kin ?? "plain").suffocate > 0)
+    else if (crewDef(c.kin ?? "human").suffocate > 0)
       breathers.set(c.room, (breathers.get(c.room) ?? 0) + 1);
   }
   stepAir(ship, { o2Bars: o2, doorLevel: doorLevel(g, ship, aboard), breathers, lanius }, dt);
@@ -4483,7 +4483,7 @@ function spreadFire(g: Game, ship: Ship, r: Room, closedSlow: number, dt: number
  */
 function burnCrew(r: Room, crew: Crew[], dt: number) {
   if (r.fire <= 0) return;
-  for (const c of crew) c.hp -= 2.128 * r.fire * crewDef(c.kin ?? "plain").fireTaken * dt;
+  for (const c of crew) c.hp -= 2.128 * r.fire * crewDef(c.kin ?? "human").fireTaken * dt;
 }
 
 /**
@@ -4529,7 +4529,7 @@ function byFile(a: Crew, b: Crew): number {
 /** Oxygen, Overview: crew in a room at 5% or less lose 6.4 HP per second, walking through or standing (per the user). */
 function suffocatePresent(g: Game, present: Crew[], dt: number) {
   for (const c of present)
-    c.hp -= 6.4 * suffocateScale(g, c) * crewDef(c.kin ?? "plain").suffocate * dt;
+    c.hp -= 6.4 * suffocateScale(g, c) * crewDef(c.kin ?? "human").suffocate * dt;
 }
 
 /**
@@ -4663,7 +4663,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const walkingFoes = inRoom.filter((c) => c.path.length > 0 && !withUs(c));
     // Medbay and Clone Bay standing spots. Idle crew past the cap do not repair or count as standing.
     // Fights, fire-fighting, and suffocation still use every idle body.
-    const spotRoom = r.system === "medbay" || r.kit === "cradle";
+    const spotRoom = r.system === "medbay" || r.kit === "clonebay";
     const fixing = spotRoom
       ? pals
           .slice()
@@ -4674,8 +4674,8 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
     const gun = artilleryGun(ship, r.id);
     // Augmentations, "Slug Repair Gel": "Fixes all breaches simultaneously, at 75% regular crew speed."
     // Slug Ships, lead: "All Slug ships automatically repair hull breaches due to Slug Repair Gel augmentation."
-    // The player copy is g.augments "gel". An enemy Slug ship has the augment by that lead sentence.
-    const slugGel = aboard === "player" ? g.augments.includes("gel") : ship.faction === "slug";
+    // The player copy is g.augments "SLUG_GEL". An enemy Slug ship has the augment by that lead sentence.
+    const slugGel = aboard === "player" ? g.augments.includes("SLUG_GEL") : ship.faction === "slug";
     if (r.breach > 0 && slugGel) r.breachFix += 0.75 * dt;
     if (
       !peace &&
@@ -4702,7 +4702,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
         target.hp -=
           roll *
           leashMult(attacker) *
-          crewDef(attacker.kin ?? "plain").fight *
+          crewDef(attacker.kin ?? "human").fight *
           combatSkillMult(rankOf(attacker, "combat"));
         // Crew skills, Combat: "one point of experience for dealing the killing blow to hostile crew".
         // "killing cloned crew or destroying onboard drones doesn't grant experience."
@@ -4926,15 +4926,15 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
     points: pulsarSystemIon(g, ship, aboard, id),
     powered: id === "shields" && pulsarShieldsPowered(g, ship, aboard),
   }));
-  const cell = ship.kits.cell;
+  const cell = ship.kits.battery;
   if (cell && cell.level > 0) {
-    pool.push({ id: "cell", points: cell.level, powered: false });
+    pool.push({ id: "battery", points: cell.level, powered: false });
   }
   const picks = pickPulsarTargets(pool, () => rand(g));
   if (picks.length === 0) return;
   const bonus = zoltanBars(g.crew, ship, aboard, "shields");
   for (const hit of picks) {
-    if (hit.id === "cell") {
+    if (hit.id === "battery") {
       if (cell) ionOnCell(g, cell, hit.points);
       continue;
     }
@@ -4942,8 +4942,8 @@ function hitPulsar(g: Game, ship: Ship, aboard: "player" | "enemy") {
   }
   const names = picks
     .map((hit) => {
-      if (hit.id === "cell")
-        return ship.rooms.find((r) => r.kit === "cell")?.title ?? "Backup Battery";
+      if (hit.id === "battery")
+        return ship.rooms.find((r) => r.kit === "battery")?.title ?? "Backup Battery";
       return roomWith(ship, hit.id)?.title ?? hit.id;
     })
     .join(" and ");
@@ -4989,7 +4989,7 @@ function flareHull(g: Game, ship: Ship, playerHurt: boolean) {
   if (
     playerHurt &&
     ship.hull < before &&
-    g.augments.includes("vengeance") &&
+    g.augments.includes("CRYSTAL_SHARDS") &&
     vengeanceFires(rand(g))
   )
     looseShard(g);
@@ -4999,11 +4999,11 @@ function flareHull(g: Game, ship: Ship, playerHurt: boolean) {
  * Rock Ships, lead: "They always have Rock Plating augmentation."
  * Augmentations, Rock Plating: "15 percent chance to negate incoming hull damage (hit systems will still be damaged)."
  * "Doesn't protect from damage sources with 100% breach chance -- i.e. ASBs."
- * The player copy is g.augments "keel". A Rock enemy has the augment by the Rock Ships lead.
+ * The player copy is g.augments "ROCK_ARMOR". A Rock enemy has the augment by the Rock Ships lead.
  */
 function platingNegates(g: Game, ship: Ship, playerHurt: boolean, breachChance: number): boolean {
   if (breachChance >= 1) return false;
-  const fitted = playerHurt ? g.augments.includes("keel") : ship.faction === "rock";
+  const fitted = playerHurt ? g.augments.includes("ROCK_ARMOR") : ship.faction === "rock";
   if (!fitted) return false;
   return rand(g) < 0.15;
 }
@@ -5214,7 +5214,7 @@ function boarders(g: Game, dt: number) {
  */
 export function leaveDeprivedAir(g: Game, c: Crew): boolean {
   if (c.hp <= 0 || (c.stun ?? 0) > 0) return false;
-  if (crewDef(c.kin ?? "plain").suffocate <= 0) return false;
+  if (crewDef(c.kin ?? "human").suffocate <= 0) return false;
   const ship = crewHull(g, c.aboard);
   if (!ship) return false;
   const here = roomById(ship, c.room);
@@ -5284,7 +5284,7 @@ export function intruderRoomPriority(g: Game, c: Crew, r: Room, boarders: number
     );
     if (foes) p -= 10;
   }
-  const kin = crewDef(c.kin ?? "plain");
+  const kin = crewDef(c.kin ?? "human");
   if (r.fire > 0 && kin.fireTaken > 0) p += 100;
   if (r.o2 < 10 && kin.suffocate > 0) p += 70;
   if (roomCapacity(r, c.aboard, interiorLinks(ship.doors, r.id)) !== boarders) p += 5;
@@ -5415,7 +5415,7 @@ function reap(g: Game) {
     const hull = c.aboard === "player" ? g.player : g.enemy;
     const room = hull?.rooms.find((r) => r.id === c.room);
     const livingPlayers = g.crew.filter((other) => other.side === "player" && other.hp > 0);
-    const board = g.player.kits.swarm;
+    const board = g.player.kits.drones;
     noteAchieve(g, {
       k: "death",
       side: c.side === "player" ? "player" : "enemy",
@@ -5439,7 +5439,7 @@ function reap(g: Game) {
         c.side === "enemy" &&
         c.aboard === "enemy" &&
         !!board?.on &&
-        board.target === "board" &&
+        board.target === "BOARDER" &&
         board.room === c.room,
     });
     if (cloned) continue;
@@ -5550,15 +5550,15 @@ function winCombat(g: Game) {
     !!g.enemy && g.enemy.hull > 0 && !g.crew.some((c) => c.side === "enemy" && c.hp > 0);
   const livingPlayer = g.crew.filter((c) => c.side === "player" && c.hp > 0);
   const foe = g.enemy;
-  const defenseUnits = foe?.kits.swarm?.drones ?? [];
+  const defenseUnits = foe?.kits.drones?.drones ?? [];
   noteAchieve(g, {
     k: "win",
     deadCrew,
     allAboard: livingPlayer.length > 0 && livingPlayer.every((c) => c.aboard === "enemy"),
     defense:
-      defenseUnits.some((d) => d.alive && (d.kind === "ward" || d.kind === "ward2")) ||
-      (!!foe?.kits.swarm?.on &&
-        (foe.kits.swarm.target === "ward" || foe.kits.swarm.target === "ward2")),
+      defenseUnits.some((d) => d.alive && (d.kind === "DEFENSE_1" || d.kind === "DEFENSE_2")) ||
+      (!!foe?.kits.drones?.on &&
+        (foe.kits.drones.target === "DEFENSE_1" || foe.kits.drones.target === "DEFENSE_2")),
     rock: foe?.faction === "rock",
   });
   g.kills += 1;
@@ -5817,7 +5817,7 @@ function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
     }),
     rooms,
     doors: addDoors(rooms),
-    weapons: ["lineburst", "dart"].map((defId) => enemyGun(g, defId)),
+    weapons: ["LASER_BURST_3", "dart"].map((defId) => enemyGun(g, defId)),
     ammo: 6,
     shieldNow: 2,
     shieldCharge: 0,
@@ -5839,7 +5839,7 @@ function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
   flagshipStage(g, ship, 1);
   // "The Rebel Flagship", "1st Stage" / "General": the crew is Human, one seat each (wiki/flagship-systems.ts).
   const crew: Crew[] = flagshipSeats(g.difficulty === "hard").map((roomId) =>
-    enemyCrew(g, "plain", "Human", roomId),
+    enemyCrew(g, "human", "Human", roomId),
   );
   citedEnemy(g, "boss", ship, crew);
   return { ship, crew };
@@ -5957,7 +5957,7 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
   };
   if (spec.marks) ship.doorMarks = spec.marks;
   // @agent:drones. Hidden drone loadout. extras/swarm.ts deploys it on the first combat tick.
-  if (ship.kits.swarm && spec.drones?.length) ship.kits.swarm.loadout = [...spec.drones];
+  if (ship.kits.drones && spec.drones?.length) ship.kits.drones.loadout = [...spec.drones];
   const crew = spec.crew.map((c) => enemyCrew(g, c.kin, c.race, c.room));
   citedEnemy(g, tier, ship, crew);
   // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
@@ -5965,9 +5965,9 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
   // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
   if (
     (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
-    !ship.weapons.some((w) => w.defId === "firebeam" || w.defId === "cask")
+    !ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
   ) {
-    const defId = rand(g) < 0.5 ? "firebeam" : "cask";
+    const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
     if (ship.weapons.length > 0) ship.weapons[0].defId = defId;
     else ship.weapons.push(enemyGun(g, defId));
   }
@@ -6465,15 +6465,14 @@ function tierFor(_g: Game, _exit: boolean): string {
 
 /** Kits a hull can install. Any other id stays on the blueprint and does not grow a room. */
 const INSTALLABLE_KITS: ReadonlySet<string> = new Set<KitId>([
-  "veil",
-  "sling",
-  "spike",
-  "swarm",
-  "leash",
-  "cradle",
-  "cell",
-  "lance",
-  "flak",
+  "cloaking",
+  "teleporter",
+  "hacking",
+  "drones",
+  "mind",
+  "clonebay",
+  "battery",
+  "artillery",
 ]);
 
 function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
@@ -6520,6 +6519,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
     };
     // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.
     if (kit.loadout?.length) fitted.loadout = [...kit.loadout];
+    if (kit.weapon) fitted.weapon = kit.weapon;
     ship.kits[fittedId] = fitted;
   }
   // Kit rooms: Systems, "Each system occupies one predetermined room specific to the ship" (layouts.ts seatKits).
@@ -6532,7 +6532,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   g.augments = [...spec.augments];
   // Zoltan Shield, lead: "Zoltan Shield is an augmentation" and "Zoltan Shield has 5 points of energy shielding".
   // Augmentations: "Your ship can have only up to three augmentations". Fitted zshield is one of those slots.
-  if (g.augments.includes("zshield")) ship.zoltan = 5;
+  if (g.augments.includes("ENERGY_SHIELD")) ship.zoltan = 5;
   g.armed = ship.weapons[0]?.uid ?? "";
   g.crew = g.crew.filter((c) => c.side !== "player");
   spec.crew.forEach((seat, i) => {
@@ -6685,7 +6685,7 @@ export function canJumpTo(g: Game, id: string): boolean {
   if (!here || id === here.id) return false;
   if (here.links.includes(id)) return true;
   // Augmentations, "Adv. FTL Navigation": any beacon already visited, including one the fleet overtook.
-  if (!g.augments.includes("nav")) return false;
+  if (!g.augments.includes("FTL_JUMPER")) return false;
   const dest = g.beacons.find((b) => b.id === id);
   if (!dest) return false;
   return navAllows(dest, g.fleet);
@@ -8058,7 +8058,7 @@ export function loadGame(): Game | null {
     if (g.shipTab !== "upgrades" && g.shipTab !== "crew" && g.shipTab !== "inventory")
       g.shipTab = "upgrades";
     if (!g.augments) g.augments = [];
-    if (g.player.zoltan == null && g.hullId?.startsWith("zoltan-")) g.player.zoltan = 5;
+    if (g.player.zoltan == null && g.hullId?.startsWith("PLAYER_SHIP_ENERGY")) g.player.zoltan = 5;
     if (!g.player.kits) g.player.kits = {};
     // Kit rooms: saves from before layouts.ts seatKits carry roomless player kits.
     seatKits(g.player);

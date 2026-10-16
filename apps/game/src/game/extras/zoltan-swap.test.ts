@@ -26,13 +26,13 @@ function spark(room: string, id: string): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
 function cloak(g: Game, power = 2) {
-  g.player.kits.veil = {
-    id: "veil",
+  g.player.kits.cloaking = {
+    id: "cloaking",
     level: 3,
     power,
     left: 0,
@@ -43,7 +43,7 @@ function cloak(g: Game, power = 2) {
   };
   const room = g.player.rooms.find((r) => r.id === "p-sensors");
   assert.ok(room);
-  room.kit = "veil";
+  room.kit = "cloaking";
 }
 
 describe("Zoltan cooldown swap", () => {
@@ -53,9 +53,9 @@ describe("Zoltan cooldown swap", () => {
     g.crew.push(spark("p-sensors", "z"));
     const spare = sparePower(g.player);
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.veil!.power, 2);
+    assert.equal(g.player.kits.cloaking!.power, 2);
     assert.equal(sparePower(g.player), spare);
-    assert.deepEqual(g.player.kits.veil!.swap, ["z"]);
+    assert.deepEqual(g.player.kits.cloaking!.swap, ["z"]);
   });
 
   it("frees one reactor bar when an intruding Zoltan walks into a cooling system", () => {
@@ -69,8 +69,8 @@ describe("Zoltan cooldown swap", () => {
     const spare = sparePower(g.player);
     swapZoltanCooldown(g);
     noteZoltanKits(g);
-    assert.equal(g.player.kits.veil!.power, 1);
-    assert.equal(g.player.kits.veil!.zoltan, 1);
+    assert.equal(g.player.kits.cloaking!.power, 1);
+    assert.equal(g.player.kits.cloaking!.zoltan, 1);
     assert.equal(sparePower(g.player), spare + 1);
   });
 
@@ -82,7 +82,7 @@ describe("Zoltan cooldown swap", () => {
     walker.leashed = 10;
     g.crew.push(walker);
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.veil!.power, 1);
+    assert.equal(g.player.kits.cloaking!.power, 1);
   });
 
   it("frees one reactor bar when a Zoltan walks in, and keeps it free after they leave", () => {
@@ -90,27 +90,27 @@ describe("Zoltan cooldown swap", () => {
     cloak(g);
     const spare = sparePower(g.player);
     swapZoltanCooldown(g);
-    assert.deepEqual(g.player.kits.veil!.swap, []);
+    assert.deepEqual(g.player.kits.cloaking!.swap, []);
     const walker = spark("p-sensors", "walk");
     g.crew.push(walker);
     swapZoltanCooldown(g);
     noteZoltanKits(g);
-    assert.equal(g.player.kits.veil!.power, 1);
-    assert.equal(g.player.kits.veil!.zoltan, 1);
-    assert.equal(kitBars(g.player.kits.veil), 2);
+    assert.equal(g.player.kits.cloaking!.power, 1);
+    assert.equal(g.player.kits.cloaking!.zoltan, 1);
+    assert.equal(kitBars(g.player.kits.cloaking), 2);
     assert.equal(sparePower(g.player), spare + 1);
 
     walker.room = "p-pilot";
     noteZoltanKits(g);
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.veil!.power, 1);
-    assert.equal(g.player.kits.veil!.zoltan, 0);
-    assert.equal(kitBars(g.player.kits.veil), 1);
+    assert.equal(g.player.kits.cloaking!.power, 1);
+    assert.equal(g.player.kits.cloaking!.zoltan, 0);
+    assert.equal(kitBars(g.player.kits.cloaking), 1);
     assert.equal(sparePower(g.player), spare + 1);
 
     walker.room = "p-sensors";
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.veil!.power, 0);
+    assert.equal(g.player.kits.cloaking!.power, 0);
     assert.equal(sparePower(g.player), spare + 2);
   });
 
@@ -120,17 +120,17 @@ describe("Zoltan cooldown swap", () => {
     swapZoltanCooldown(g);
     g.crew.push(spark("p-sensors", "a"), spark("p-sensors", "b"));
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.veil!.power, 1);
+    assert.equal(g.player.kits.cloaking!.power, 1);
   });
 
   it("will not let the reactor bars be moved by hand while the system cools", () => {
     const g = createGame(6);
     cloak(g, 2);
     toggleVeilPower(g);
-    assert.equal(g.player.kits.veil!.power, 2);
-    g.player.kits.veil!.cool = 0;
+    assert.equal(g.player.kits.cloaking!.power, 2);
+    g.player.kits.cloaking!.cool = 0;
     toggleVeilPower(g);
-    assert.equal(g.player.kits.veil!.power, 1);
+    assert.equal(g.player.kits.cloaking!.power, 1);
   });
 
   it("does not peel shields, and a Mind Control with no cooldown does not peel", () => {
@@ -143,8 +143,8 @@ describe("Zoltan cooldown swap", () => {
     assert.equal(g.player.systems.shields.power, 2);
     assert.equal(sparePower(g.player), spare);
 
-    g.player.kits.leash = {
-      id: "leash",
+    g.player.kits.mind = {
+      id: "mind",
       level: 1,
       power: 1,
       left: 0,
@@ -155,13 +155,13 @@ describe("Zoltan cooldown swap", () => {
     };
     const bay = g.player.rooms.find((r) => r.id === "p-medbay");
     assert.ok(bay);
-    bay.kit = "leash";
+    bay.kit = "mind";
     g.crew.push(spark("p-medbay", "m"));
     swapZoltanCooldown(g);
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.leash.power, 1);
+    assert.equal(g.player.kits.mind.power, 1);
     toggleLeashPower(g);
-    assert.equal(g.player.kits.leash.power, 0);
+    assert.equal(g.player.kits.mind.power, 0);
   });
 
   it("peels an enemy cloak the same way, including across a combat tick", () => {
@@ -170,10 +170,10 @@ describe("Zoltan cooldown swap", () => {
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     const room = g.enemy.rooms.find((r) => r.system === "sensors") ?? g.enemy.rooms[0];
-    room.kit = "veil";
+    room.kit = "cloaking";
     // Level 2, fully powered: the enemy's ship AI keeps a kit at its free bars (extras/ship-ai.ts).
-    g.enemy.kits.veil = {
-      id: "veil",
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
       level: 2,
       power: 2,
       left: 0,
@@ -183,7 +183,7 @@ describe("Zoltan cooldown swap", () => {
       aux: 0,
     };
     step(g, 0.05);
-    assert.equal(g.enemy.kits.veil.power, 2);
+    assert.equal(g.enemy.kits.cloaking.power, 2);
     g.crew.push({
       id: "ez",
       name: "ez",
@@ -196,10 +196,10 @@ describe("Zoltan cooldown swap", () => {
       move: 0,
       think: 0,
       tone: 0,
-      kin: "spark",
+      kin: "energy",
     });
     step(g, 0.05);
-    assert.equal(g.enemy.kits.veil.power, 1);
-    assert.ok((g.enemy.kits.veil.cool ?? 0) > 0);
+    assert.equal(g.enemy.kits.cloaking.power, 1);
+    assert.ok((g.enemy.kits.cloaking.cool ?? 0) > 0);
   });
 });

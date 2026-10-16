@@ -58,19 +58,18 @@ export const SYSTEM_TARGETS: readonly TargetSystem[] = [
   "engines",
   "oxygen",
   "weapons",
-  "swarm",
+  "drones",
   "medbay",
   "pilot",
   "sensors",
   "doors",
-  "sling",
-  "veil",
-  "lance",
-  "flak",
-  "cell",
-  "cradle",
-  "leash",
-  "spike",
+  "teleporter",
+  "cloaking",
+  "artillery",
+  "battery",
+  "clonebay",
+  "mind",
+  "hacking",
 ];
 
 const CORE = new Set<string>(["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"]);
@@ -101,13 +100,13 @@ function averageOxygen(ship: Ship): number {
 }
 
 /**
- * Seconds of charge on a player artillery kit (lance stores a 0..1 fraction, flak stores seconds): combat-ai's "been
- * charging for less than four seconds", read as seconds of charge built so far. A missing kit never lists.
+ * Seconds of charge on the player artillery kit. Artillery Beam stores a 0..1 fraction of its clock.
+ * Flak Artillery (ARTILLERY_FED_C) stores seconds. A missing kit never lists.
  */
-function artilleryCharge(g: Game, id: "lance" | "flak"): number {
-  const kit = g.player.kits[id];
+function artilleryCharge(g: Game): number {
+  const kit = g.player.kits.artillery;
   if (!kit) return Infinity;
-  if (id === "flak") return kit.aux;
+  if (kit.weapon === "ARTILLERY_FED_C") return kit.aux;
   // extras/lance.ts: Artillery Beam charge time is 50 / 40 / 30 / 20 seconds at level 1-4.
   const seconds = [50, 40, 30, 20][Math.max(0, Math.min(3, kit.level - 1))];
   return kit.aux * seconds;
@@ -125,21 +124,21 @@ export function priorityList(g: Game): TargetSystem[] {
   // Weapons, Drones: "if any weapon/drone is powered"; Zoltan bars count (reddit 7pmz3j, header). INFERRED: Drone
   // Control with any power counts as a powered drone.
   if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean)) out.push("weapons");
-  if (kits.swarm && kits.swarm.power > 0) out.push("swarm");
+  if (kits.drones && kits.drones.power > 0) out.push("drones");
   // Teleporter: "if the enemy ship has any intruders", i.e. player crew aboard the enemy (Boarding: "when your crew is
   // onboard enemy ship, your Teleporter system will be among the priority targets"). Cloaking: "if not on cooldown,
   // nor active". Artillery: "< 4sec of total charge".
-  if (kits.sling && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) out.push("sling");
-  if (kits.veil && kits.veil.cool <= 0 && !(kits.veil.on && kits.veil.left > 0)) out.push("veil");
-  for (const id of ["lance", "flak"] as const) if (kits[id] && artilleryCharge(g, id) < ARTILLERY_LINE) out.push(id);
+  if (kits.teleporter && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) out.push("teleporter");
+  if (kits.cloaking && kits.cloaking.cool <= 0 && !(kits.cloaking.on && kits.cloaking.left > 0)) out.push("cloaking");
+  if (kits.artillery && artilleryCharge(g) < ARTILLERY_LINE) out.push("artillery");
   // Clonebay: "if crew is being cloned". INFERRED: a dead player crew member with a clone queued (cloneSeq).
   // Mind control: "if active". Hacking: "if drone launched (flying or landed)". Doors: "if there are any intruders or
   // fires". Backup battery: "if active". Sensors: "never", so it is not checked.
-  if (kits.cradle && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null)) out.push("cradle");
-  if (kits.leash && kits.leash.on && kits.leash.left > 0) out.push("leash");
-  if (kits.spike && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null)) out.push("spike");
+  if (kits.clonebay && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null)) out.push("clonebay");
+  if (kits.mind && kits.mind.on && kits.mind.left > 0) out.push("mind");
+  if (kits.hacking && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null)) out.push("hacking");
   if (intruders(g) || ship.rooms.some((r) => r.fire > 0)) out.push("doors");
-  if (kits.cell && kits.cell.on && kits.cell.left > 0) out.push("cell");
+  if (kits.battery && kits.battery.on && kits.battery.left > 0) out.push("battery");
   return out.filter((id) => systemRoom(ship, id));
 }
 

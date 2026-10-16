@@ -5,17 +5,17 @@ import type { Game, Shot } from "../types.ts";
 import { LASER_GAPS, LASER_WEAPONS } from "./weapons-laser.ts";
 
 const expected: Record<string, { power: number; charge: number; shots: number; damage: number; price: number }> = {
-  burst1: { power: 2, charge: 11, shots: 2, damage: 1, price: 50 },
-  burst3: { power: 4, charge: 19, shots: 5, damage: 1, price: 95 },
-  heavypierce: { power: 2, charge: 10, shots: 1, damage: 2, price: 0 },
-  heavy2: { power: 3, charge: 13, shots: 2, damage: 2, price: 65 },
-  hullsmash: { power: 2, charge: 14, shots: 2, damage: 1, price: 55 },
-  hullsmash2: { power: 3, charge: 15, shots: 3, damage: 1, price: 75 },
-  chainlaser: { power: 2, charge: 16, shots: 2, damage: 1, price: 65 },
-  vulcan: { power: 4, charge: 11.1, shots: 1, damage: 1, price: 95 },
-  chargers: { power: 1, charge: 5.5, shots: 2, damage: 1, price: 0 },
-  charger: { power: 2, charge: 6, shots: 2, damage: 1, price: 55 },
-  charger2: { power: 3, charge: 5, shots: 4, damage: 1, price: 70 },
+  LASER_BURST_2_A: { power: 2, charge: 11, shots: 2, damage: 1, price: 50 },
+  LASER_BURST_5: { power: 4, charge: 19, shots: 5, damage: 1, price: 95 },
+  LASER_HEAVY_1_SP: { power: 2, charge: 10, shots: 1, damage: 2, price: 0 },
+  LASER_HEAVY_2: { power: 3, charge: 13, shots: 2, damage: 2, price: 65 },
+  LASER_HULL_1: { power: 2, charge: 14, shots: 2, damage: 1, price: 55 },
+  LASER_HULL_2: { power: 3, charge: 15, shots: 3, damage: 1, price: 75 },
+  LASER_CHAINGUN: { power: 2, charge: 16, shots: 2, damage: 1, price: 65 },
+  LASER_CHAINGUN_2: { power: 4, charge: 11.1, shots: 1, damage: 1, price: 95 },
+  LASER_CHARGEGUN_PLAYER: { power: 1, charge: 5.5, shots: 2, damage: 1, price: 0 },
+  LASER_CHARGEGUN: { power: 2, charge: 6, shots: 2, damage: 1, price: 55 },
+  LASER_CHARGEGUN_2: { power: 3, charge: 5, shots: 4, damage: 1, price: 70 },
 };
 
 function gap(id: string): string {
@@ -49,19 +49,19 @@ describe("laser weapons", () => {
   });
 
   it("keeps pierce, systemless hull damage, and charge profiles out of the weapon fields", () => {
-    assert.match(gap("heavypierce"), /1 shield piercing/);
-    assert.match(gap("hullsmash"), /2 \(to systemless rooms\)/);
-    assert.match(gap("hullsmash2"), /2 \(to systemless rooms\)/);
-    assert.match(gap("chainlaser"), /16s\/13s\/10s\/7s/);
-    assert.match(gap("vulcan"), /11\.1s \/ 9\.1s \/ 7\.1s \/ 5\.1s \/ 3\.1s \/ 1\.1s/);
-    assert.match(gap("chargers"), /5\.5 seconds per shot, up to 2 shots/);
-    assert.match(gap("charger"), /6 seconds per shot, up to 2 shots/);
-    assert.match(gap("charger2"), /5 seconds per shot, up to 4 shots/);
+    assert.match(gap("LASER_HEAVY_1_SP"), /1 shield piercing/);
+    assert.match(gap("LASER_HULL_1"), /2 \(to systemless rooms\)/);
+    assert.match(gap("LASER_HULL_2"), /2 \(to systemless rooms\)/);
+    assert.match(gap("LASER_CHAINGUN"), /16s\/13s\/10s\/7s/);
+    assert.match(gap("LASER_CHAINGUN_2"), /11\.1s \/ 9\.1s \/ 7\.1s \/ 5\.1s \/ 3\.1s \/ 1\.1s/);
+    assert.match(gap("LASER_CHARGEGUN_PLAYER"), /5\.5 seconds per shot, up to 2 shots/);
+    assert.match(gap("LASER_CHARGEGUN"), /6 seconds per shot, up to 2 shots/);
+    assert.match(gap("LASER_CHARGEGUN_2"), /5 seconds per shot, up to 4 shots/);
   });
 
   it("keeps Boss Laser out of the pool catalog", () => {
-    assert.equal(LASER_WEAPONS.some((weapon) => weapon.id === "bosslaser"), false);
-    const boss = gap("bosslaser");
+    assert.equal(LASER_WEAPONS.some((weapon) => weapon.id === "ARTILLERY_BOSS_1"), false);
+    const boss = gap("ARTILLERY_BOSS_1");
     assert.equal(boss.includes("BLOCKED"), false);
     assert.match(boss, /artillery maximum is 4/);
     assert.match(boss, /not a Weapons-pool cost/);
@@ -92,7 +92,7 @@ function bare(seed = 1): { g: Game; roomId: string } {
   g.player.systems.engines.power = 0;
   g.player.shieldNow = 0;
   g.player.zoltan = 0;
-  g.augments = g.augments.filter((id) => id !== "keel" && id !== "casing");
+  g.augments = g.augments.filter((id) => id !== "ROCK_ARMOR" && id !== "SYSTEM_CASING");
   const room = g.player.rooms.find((item) => item.system);
   if (!room) throw new Error("no system room");
   room.fire = 0;
@@ -108,7 +108,7 @@ function marks(g: Game, roomId: string): { fire: number; breach: number } {
 
 describe("Heavy Laser fire then breach", () => {
   it("skips the breach roll when the fire roll starts a fire", () => {
-    for (const defId of ["heavy", "heavy2", "heavypierce"]) {
+    for (const defId of ["LASER_HEAVY_1", "LASER_HEAVY_2", "LASER_HEAVY_1_SP"]) {
       const { g, roomId } = bare();
       applyImpact(g, laserShot({ defId, targetRoom: roomId, fireChance: 1, breachChance: 1 }));
       const hit = marks(g, roomId);
@@ -119,7 +119,7 @@ describe("Heavy Laser fire then breach", () => {
 
   it("still breaches when the fire roll starts nothing", () => {
     const { g, roomId } = bare();
-    applyImpact(g, laserShot({ defId: "heavy", targetRoom: roomId, fireChance: 0, breachChance: 1 }));
+    applyImpact(g, laserShot({ defId: "LASER_HEAVY_1", targetRoom: roomId, fireChance: 0, breachChance: 1 }));
     const hit = marks(g, roomId);
     assert.equal(hit.fire, 0);
     assert.ok(hit.breach > 0);
@@ -131,7 +131,7 @@ describe("Heavy Laser fire then breach", () => {
       trial.g.seed = seed;
       applyImpact(
         trial.g,
-        laserShot({ defId: "heavy", targetRoom: trial.roomId, fireChance: 0.3, breachChance: 0.3 }),
+        laserShot({ defId: "LASER_HEAVY_1", targetRoom: trial.roomId, fireChance: 0.3, breachChance: 0.3 }),
       );
       const next = marks(trial.g, trial.roomId);
       if (next.fire > 0) {

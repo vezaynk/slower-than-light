@@ -25,7 +25,7 @@ function beacon(): Beacon {
 }
 
 function boarded(g: Game) {
-  return g.crew.filter((c) => c.side === "enemy" && c.kin === "blade" && c.aboard === "player");
+  return g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis" && c.aboard === "player");
 }
 
 describe("Boarders: Mantis", () => {

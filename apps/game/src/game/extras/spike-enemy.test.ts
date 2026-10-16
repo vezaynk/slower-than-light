@@ -20,7 +20,7 @@ import { sideOf } from "./leash.ts";
 import type { Game, Kit } from "../types.ts";
 
 function kit(level: number, power = level): Kit {
-  return { id: "spike", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "hacking", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 /** A fight whose enemy has only a Hacking kit (room `e-hacking`), drone parts, and no guns. */
@@ -28,7 +28,7 @@ function fight(seed: number, level = 2, classId = "rebel-fighter"): Game {
   const g = createGame(seed);
   startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
-  g.enemy.kits = { spike: kit(level) };
+  g.enemy.kits = { hacking: kit(level) };
   g.enemy.classId = classId;
   g.enemy.parts = 3;
   g.enemy.weapons = [];
@@ -40,13 +40,13 @@ function fight(seed: number, level = 2, classId = "rebel-fighter"): Game {
 /** Same, with the drone already latched onto `target` and ready to pulse. */
 function latched(target: string, level = 2, seed = 7): Game {
   const g = fight(seed, level);
-  const k = g.enemy!.kits.spike!;
+  const k = g.enemy!.kits.hacking!;
   k.target = target;
   k.hackLatched = true;
   return g;
 }
 
-const spike = (g: Game) => g.enemy!.kits.spike!;
+const spike = (g: Game) => g.enemy!.kits.hacking!;
 
 describe("enemy hacking: launch and flight", () => {
   it("picks a random player system each launch", () => {
@@ -109,7 +109,7 @@ describe("enemy hacking: launch and flight", () => {
     let downed = false;
     for (let seed = 1; seed <= 20 && !downed; seed++) {
       const g = fight(seed);
-      g.player.kits.swarm = { id: "swarm", level: 3, power: 3, left: 0, cool: 0, target: "ward", on: true, aux: 0 };
+      g.player.kits.drones = { id: "drones", level: 3, power: 3, left: 0, cool: 0, target: "DEFENSE_1", on: true, aux: 0 };
       assert.equal(launchEnemySpike(g), true);
       for (let i = 0; i < 70 && spike(g).hackFly != null; i++) tickEnemySpike(g, 0.05);
       if (!spike(g).hackLatched && spike(g).hackFly == null) {
@@ -237,7 +237,7 @@ describe("enemy hacking: pulse effects", () => {
     const own = g.player.doors.filter((d) => d.b !== "void" && (d.a === room || d.b === room));
     const other = g.player.doors.find((d) => d.b !== "void" && d.a !== room && d.b !== room)!;
     for (const d of g.player.doors) d.open = true;
-    g.enemy!.kits.spike!.cool = 5;
+    g.enemy!.kits.hacking!.cool = 5;
     tickEnemySpike(g, 0.01);
     assert.ok(own.length > 0);
     for (const d of own) {
@@ -282,10 +282,10 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("ends the player's cloak and blocks a new one", () => {
-    const g = latched("veil");
-    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    const g = latched("cloaking");
+    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     tickEnemySpike(g, 0.01);
-    const veil = g.player.kits.veil!;
+    const veil = g.player.kits.cloaking!;
     assert.equal(veil.on, false);
     assert.equal(veil.cool, 20);
     assert.equal(playerCloakHacked(g), true);
@@ -298,12 +298,12 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("ends the player's own hack and blocks a launch", () => {
-    const g = latched("spike");
-    g.player.kits.spike = { id: "spike", level: 1, power: 1, left: 3, cool: 0, target: "shields", on: true, aux: 0 };
+    const g = latched("hacking");
+    g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 3, cool: 0, target: "shields", on: true, aux: 0 };
     g.player.parts = 2;
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
-    const own = g.player.kits.spike!;
+    const own = g.player.kits.hacking!;
     assert.equal(own.on, false);
     assert.equal(own.cool, 20);
     own.cool = 0;
@@ -312,8 +312,8 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("turns one player crew member and frees enemy crew the player holds; not from automated ships", () => {
-    const g = latched("leash");
-    g.player.kits.leash = { id: "leash", level: 1, power: 1, left: 10, cool: 0, target: null, on: true, aux: 0 };
+    const g = latched("mind");
+    g.player.kits.mind = { id: "mind", level: 1, power: 1, left: 10, cool: 0, target: null, on: true, aux: 0 };
     const foe = g.crew.find((c) => c.side === "enemy")!;
     foe.leashed = 10;
     tickEnemySpike(g, 0.01);
@@ -325,7 +325,7 @@ describe("enemy hacking: pulse effects", () => {
     tickEnemySpike(g, 7);
     assert.equal(sideOf(turned[0]!), "player");
 
-    const auto = latched("leash");
+    const auto = latched("mind");
     auto.enemy!.automated = true;
     tickEnemySpike(auto, 0.01);
     tickEnemySpike(auto, 0.1);
@@ -333,10 +333,10 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("recalls the player's boarders and cools the teleporter", () => {
-    const g = latched("sling");
-    g.player.kits.sling = { id: "sling", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const g = latched("teleporter");
+    g.player.kits.teleporter = { id: "teleporter", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
     seatKits(g.player);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     const crew = g.crew.find((c) => c.side === "player")!;
     crew.aboard = "enemy";
@@ -346,16 +346,16 @@ describe("enemy hacking: pulse effects", () => {
     assert.equal(crew.aboard, "player");
     // Crew Teleporter: a retrieved crewmember fits in the teleporter room.
     assert.equal(crew.room, pad.id);
-    assert.equal(g.player.kits.sling!.cool, 15);
+    assert.equal(g.player.kits.teleporter!.cool, 15);
   });
 
   it("seats a hacked retrieve in the teleporter room and the overflow next door", () => {
     // Crew Teleporter: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
     // Hacking does not reprint "up to 4", so every hostile boarder comes back.
-    const g = latched("sling");
-    g.player.kits.sling = { id: "sling", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const g = latched("teleporter");
+    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     seatKits(g.player);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     assert.equal(pad.w * pad.h - (pad.omit?.length ?? 0), 2);
     const neighbors = g.player.doors.flatMap((d) => {
@@ -389,10 +389,10 @@ describe("enemy hacking: pulse effects", () => {
 
   it("lands their recalled boarders in their teleporter room, overflow adjacent", () => {
     const g = fight(8);
-    g.enemy!.kits.spike!.cool = 999;
+    g.enemy!.kits.hacking!.cool = 999;
     const foe = g.enemy!;
     const pad = foe.rooms[0]!;
-    pad.kit = "sling";
+    pad.kit = "teleporter";
     pad.w = 2;
     pad.h = 1;
     delete pad.omit;
@@ -401,7 +401,7 @@ describe("enemy hacking: pulse effects", () => {
     if (!foe.doors.some((d) => (d.a === pad.id && d.b === next.id) || (d.b === pad.id && d.a === next.id))) {
       foe.doors.unshift({ a: pad.id, b: next.id, open: true, hp: 0, stuck: 0 });
     }
-    foe.kits.sling = { id: "sling", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    foe.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     const source = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(source);
     while (g.crew.filter((c) => c.side === "enemy" && c.hp > 0).length < 3) {
@@ -415,13 +415,13 @@ describe("enemy hacking: pulse effects", () => {
       c.path = [];
       delete c.leashed;
     }
-    g.player.kits.spike = {
-      id: "spike",
+    g.player.kits.hacking = {
+      id: "hacking",
       level: 1,
       power: 1,
       left: 4,
       cool: 0,
-      target: "sling",
+      target: "teleporter",
       on: true,
       aux: 0,
     };
@@ -433,13 +433,13 @@ describe("enemy hacking: pulse effects", () => {
     const neighbor = foe.doors.find((d) => d.b !== "void" && (d.a === pad.id || d.b === pad.id));
     const beside = neighbor ? (neighbor.a === pad.id ? neighbor.b : neighbor.a) : "";
     assert.equal(back.filter((c) => c.room === beside).length, 1);
-    assert.equal(foe.kits.sling!.cool, 20);
+    assert.equal(foe.kits.teleporter!.cool, 20);
   });
 
   it("a depowered teleporter does not bring the boarders home", () => {
     // Hacking: "Depowering a hacked Teleporter system will prevent sending your crew back".
-    const g = latched("sling");
-    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const g = latched("teleporter");
+    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     seatKits(g.player);
     const crew = g.crew.find((c) => c.side === "player")!;
     crew.aboard = "enemy";
@@ -447,74 +447,74 @@ describe("enemy hacking: pulse effects", () => {
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
     assert.equal(crew.aboard, "enemy");
-    assert.equal(g.player.kits.sling!.cool, 0);
-    assert.equal(g.player.kits.sling!.power, 0);
+    assert.equal(g.player.kits.teleporter!.cool, 0);
+    assert.equal(g.player.kits.teleporter!.power, 0);
   });
 
   it("a Zoltan in a depowered teleporter does not force the crew home without a cooldown", () => {
-    const g = latched("sling");
-    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    const g = latched("teleporter");
+    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     seatKits(g.player);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     const home = g.crew.find((c) => c.side === "player")!;
-    home.kin = "spark";
+    home.kin = "energy";
     home.aboard = "player";
     home.room = pad.id;
-    const away = { ...home, id: "c-stay", name: "Stay", kin: "plain" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    const away = { ...home, id: "c-stay", name: "Stay", kin: "human" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
     g.crew.push(away);
     g.player.reactor += 1;
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
     assert.equal(away.aboard, "enemy");
-    assert.equal(g.player.kits.sling!.power, 0);
-    assert.equal(g.player.kits.sling!.cool, 0);
+    assert.equal(g.player.kits.teleporter!.power, 0);
+    assert.equal(g.player.kits.teleporter!.cool, 0);
   });
 
   it("Zoltans, a cooldown, and spare reactor put one bar back and force the crew home", () => {
     // Hacking: the Teleporter-1 case redistributes spare reactor and forces the crew back.
-    const g = latched("sling");
-    g.player.kits.sling = { id: "sling", level: 1, power: 0, left: 0, cool: 8, target: null, on: false, aux: 0 };
+    const g = latched("teleporter");
+    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 8, target: null, on: false, aux: 0 };
     seatKits(g.player);
-    const pad = g.player.rooms.find((r) => r.kit === "sling");
+    const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
     const home = g.crew.find((c) => c.side === "player")!;
-    home.kin = "spark";
+    home.kin = "energy";
     home.aboard = "player";
     home.room = pad.id;
-    const away = { ...home, id: "c-away", name: "Away", kin: "plain" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    const away = { ...home, id: "c-away", name: "Away", kin: "human" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
     g.crew.push(away);
     g.player.reactor += 1;
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
     assert.equal(away.aboard, "player");
     assert.equal(away.room, pad.id);
-    assert.equal(g.player.kits.sling!.power, 1);
-    assert.equal(g.player.kits.sling!.cool, 20);
+    assert.equal(g.player.kits.teleporter!.power, 1);
+    assert.equal(g.player.kits.teleporter!.cool, 20);
   });
 
   it("stuns the player's drone and may destroy it", () => {
     let killed = 0;
     for (let seed = 1; seed <= 30; seed++) {
-      const g = latched("swarm", 2, seed);
-      g.player.kits.swarm = { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "ward", on: true, aux: 0 };
+      const g = latched("drones", 2, seed);
+      g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "DEFENSE_1", on: true, aux: 0 };
       tickEnemySpike(g, 0.01);
       tickEnemySpike(g, 0.5);
-      if (seed === 1) assert.ok((g.player.kits.swarm!.stun ?? 0) > 0);
+      if (seed === 1) assert.ok((g.player.kits.drones!.stun ?? 0) > 0);
       for (let i = 0; i < 70; i++) tickEnemySpike(g, 0.1);
-      if (!g.player.kits.swarm!.on) killed += 1;
+      if (!g.player.kits.drones!.on) killed += 1;
     }
     // Level 2: 62% on the wiki.
     assert.ok(killed > 5 && killed < 28, String(killed));
   });
 
   it("ends an active backup battery", () => {
-    const g = latched("cell");
-    g.player.kits.cell = { id: "cell", level: 1, power: 0, left: 20, cool: 0, target: null, on: true, aux: 2 };
+    const g = latched("battery");
+    g.player.kits.battery = { id: "battery", level: 1, power: 0, left: 20, cool: 0, target: null, on: true, aux: 2 };
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
-    assert.equal(g.player.kits.cell!.on, false);
-    assert.equal(g.player.kits.cell!.cool, 20);
+    assert.equal(g.player.kits.battery!.on, false);
+    assert.equal(g.player.kits.battery!.cool, 20);
   });
 });
 
@@ -554,12 +554,12 @@ describe("enemy hacking: interruption and cleanup", () => {
         const g = createGame(seed);
         g.sector = 4;
         startCombat(g, tier);
-        if (!g.enemy?.kits.spike || g.enemy.parts < 1) continue;
+        if (!g.enemy?.kits.hacking || g.enemy.parts < 1) continue;
         g.player.zoltan = undefined;
         for (let i = 0; i < 80; i++) tickSpike(g, 0.05);
-        if (g.enemy.kits.spike.hackLatched) {
+        if (g.enemy.kits.hacking.hackLatched) {
           launched = true;
-          assert.ok(g.enemy.kits.spike.level <= 3);
+          assert.ok(g.enemy.kits.hacking.level <= 3);
           break;
         }
       }

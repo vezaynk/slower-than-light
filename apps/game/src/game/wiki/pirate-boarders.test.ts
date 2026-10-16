@@ -25,7 +25,7 @@ function beacon(): Beacon {
 }
 
 function boarded(g: Game) {
-  return g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+  return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
 describe("Boarders: Humans (Pirate)", () => {
@@ -64,7 +64,7 @@ describe("Boarders: Humans (Pirate)", () => {
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
       assert.equal(g.kills, kills);
-      assert.equal(g.augments.includes("lung"), false);
+      assert.equal(g.augments.includes("O2_MASKS"), false);
     }
     assert.ok(seen.has(3) && seen.has(5), [...seen].sort().join(","));
   });

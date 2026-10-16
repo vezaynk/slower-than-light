@@ -43,15 +43,15 @@ const SYS_IDS: readonly SysId[] = [
   "doors",
 ];
 const KIT_IDS: readonly KitId[] = [
-  "veil",
-  "sling",
-  "spike",
-  "swarm",
-  "leash",
-  "cradle",
-  "cell",
-  "lance",
-  "flak",
+  "cloaking",
+  "teleporter",
+  "hacking",
+  "drones",
+  "mind",
+  "clonebay",
+  "battery",
+  "artillery",
+  "artillery",
 ];
 
 function isSysId(id: string): id is SysId {
@@ -79,9 +79,9 @@ function catalogOffers(): Offer[] {
  * Template order puts Drone Control after Hacking, so the sort key is 6.5.
  */
 const SWARM_BUNDLE = [
-  { schematic: "patch", label: "System Repair Drone", cost: 75 },
-  { schematic: "ward", label: "Defense Drone Mark I", cost: 85 },
-  { schematic: "striker", label: "Combat Drone Mark I", cost: 85 },
+  { schematic: "REPAIR", label: "System Repair Drone", cost: 75 },
+  { schematic: "DEFENSE_1", label: "Defense Drone Mark I", cost: 85 },
+  { schematic: "COMBAT_1", label: "Combat Drone Mark I", cost: 85 },
 ] as const;
 const SWARM_SORT = 6.5;
 
@@ -91,7 +91,7 @@ const AUGMENT_CAP = 3;
 const CREW_CAP = 8;
 
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
-export const NOT_SOLD: ReadonlySet<string> = new Set(["keel", "casing"]);
+export const NOT_SOLD: ReadonlySet<string> = new Set(["ROCK_ARMOR", "SYSTEM_CASING"]);
 
 /**
  * Sectors, "Hidden Crystal Worlds", "Sector specifics": "only crystal weapons (including Lockdown Bomb)
@@ -100,11 +100,11 @@ export const NOT_SOLD: ReadonlySet<string> = new Set(["keel", "casing"]);
  * Store rarity on those rows is not used. This list is the allowed set.
  */
 export const CRYSTAL_SECTOR_WEAPONS = [
-  "crystalburst",
-  "crystalburst2",
-  "heavycrystal",
-  "heavycrystal2",
-  "lockdown",
+  "CRYSTAL_BURST_1",
+  "CRYSTAL_BURST_2",
+  "CRYSTAL_HEAVY_1",
+  "CRYSTAL_HEAVY_2",
+  "BOMB_LOCK",
 ] as const;
 
 /** Authored schematic list. The store reads the loaded copy. Fire Drone, Shield Overcharger +, and Drone Control stay off it. */
@@ -114,15 +114,15 @@ type SlotKind = "systems" | "drones" | "augments" | "crew";
 
 // Weapon pages that print "Sells for: N" instead of a purchase price. Half of 0 is not used.
 const WEAPON_SELL: Readonly<Record<string, number>> = {
-  spark: 10,
-  twin: 12,
-  heavypierce: 27,
-  chargers: 15,
-  mini: 10,
-  breach1: 25,
-  advflak: 30,
-  artemis: 19,
-  leto: 10,
+  LASER_BURST_1: 10,
+  LASER_BURST_2: 12,
+  LASER_HEAVY_1_SP: 27,
+  LASER_CHARGEGUN_PLAYER: 15,
+  BEAM_1: 10,
+  BOMB_BREACH_1: 25,
+  SHOTGUN_PLAYER: 30,
+  MISSILES_2_PLAYER: 19,
+  MISSILES_1: 10,
 };
 
 // content.ts marks the Dart entry INVENTED, including its 40 scrap price. No sale.
@@ -130,21 +130,21 @@ const INVENTED_WEAPON_PRICE: ReadonlySet<string> = new Set(["dart"]);
 
 // Augmentations prints "Sell price:" on the non-purchasable rows. That is the sell line.
 const AUGMENT_SELL: Partial<Record<string, number>> = {
-  medbot: 30,
-  pheromone: 25,
-  gel: 30,
+  NANO_MEDBAY: 30,
+  CREW_STIMS: 25,
+  SLUG_GEL: 30,
   // Augmentations, "Crystal Vengeance": "Sell price: 40". No purchase price, so it is not in CATALOG.
-  vengeance: 40,
+  CRYSTAL_SHARDS: 40,
   // Zoltan Shield, "Sell value: 40". No purchase price, so it is not in CATALOG.
-  zshield: 40,
+  ENERGY_SHIELD: 40,
 };
 
 const AUGMENT_SELL_NAME: Partial<Record<string, string>> = {
-  medbot: "Engi Med-bot Dispersal",
-  pheromone: "Mantis Pheromones",
-  gel: "Slug Repair Gel",
-  vengeance: "Crystal Vengeance",
-  zshield: "Zoltan Shield",
+  NANO_MEDBAY: "Engi Med-bot Dispersal",
+  CREW_STIMS: "Mantis Pheromones",
+  SLUG_GEL: "Slug Repair Gel",
+  CRYSTAL_SHARDS: "Crystal Vengeance",
+  ENERGY_SHIELD: "Zoltan Shield",
 };
 
 export type SellQuote = {
@@ -165,7 +165,7 @@ function missingShields(g: Game): boolean {
 }
 
 function missingMedical(g: Game): boolean {
-  return g.player.systems.medbay.level <= 0 && (g.player.kits.cradle?.level ?? 0) <= 0;
+  return g.player.systems.medbay.level <= 0 && (g.player.kits.clonebay?.level ?? 0) <= 0;
 }
 
 function blankKit(id: KitId): Kit {
@@ -177,7 +177,7 @@ function swarmBundle(g: Game) {
 }
 
 function hasSwarm(g: Game): boolean {
-  return (g.player.kits.swarm?.level ?? 0) > 0;
+  return (g.player.kits.drones?.level ?? 0) > 0;
 }
 
 /**
@@ -253,11 +253,11 @@ export function storeSections(g: Game, storeId = "standard"): StoreSection[] {
  */
 function systemItems(g: Game, sections: readonly StoreSection[], slot: number): StockItem[] {
   const bundle = swarmBundle(g);
-  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost };
+  const swarmRow: Offer = { slot: "kit", ref: "drones", name: "Drone Control", cost: bundle.cost };
   const catalog = catalogOffers();
   const missing = catalog.filter((row) => !ownedSystem(g, row));
   const drones = sections.includes("drones");
-  const medical = (row: Offer) => row.ref === "medbay" || row.ref === "cradle";
+  const medical = (row: Offer) => row.ref === "medbay" || row.ref === "clonebay";
   const pool = missing.filter((row) => !medical(row) || !missingMedical(g));
   if (!drones && !hasSwarm(g)) pool.push(swarmRow);
   const count = Math.min(slot, pool.length);
@@ -269,7 +269,7 @@ function systemItems(g: Game, sections: readonly StoreSection[], slot: number): 
   }
   const roll = storeRoll(g, 1);
   if (missingMedical(g)) {
-    const ref = roll() < 0.5 ? "medbay" : "cradle";
+    const ref = roll() < 0.5 ? "medbay" : "clonebay";
     const row = catalog.find((offer) => offer.ref === ref);
     if (row) picked.push(row);
   }
@@ -280,12 +280,12 @@ function systemItems(g: Game, sections: readonly StoreSection[], slot: number): 
   while (picked.length < count && rest.length)
     picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
   return picked.slice(0, count).map((row) => ({
-    id: row.ref === "swarm" ? `sys-swarm-${bundle.schematic}` : `sys-${row.ref}`,
+    id: row.ref === "drones" ? `sys-drones-${bundle.schematic}` : `sys-${row.ref}`,
     kind: "system" as const,
     ref: row.ref,
     name: row.name,
     detail:
-      row.ref === "swarm"
+      row.ref === "drones"
         ? `Drone Control, the paragraph above Overview. Bundled with ${bundle.label}.`
         : `Template:Purchasable systems. ${row.name} ${row.cost}.`,
     cost: row.cost,
@@ -338,7 +338,7 @@ function crewItems(g: Game, storeId: string, slot: number): StockItem[] {
   // Not a random draw. The run RNG is left alone. First hire lines that still fit.
   const rows = (storeDef(storeId)?.lines ?? []).filter((row) => row.kind === "crew");
   const list =
-    g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "shard") : rows;
+    g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "crystal") : rows;
   return list.slice(0, slot).map((row) => {
     const hp = crewHp(row.id);
     return {
@@ -380,14 +380,14 @@ function clearMedbay(g: Game) {
 }
 
 function grantSystem(g: Game, item: StockItem): boolean {
-  if (item.ref === "swarm") {
+  if (item.ref === "drones") {
     const schematic = SWARM_BUNDLE.find(
-      (row) => item.id === `sys-swarm-${row.schematic}`,
+      (row) => item.id === `sys-drones-${row.schematic}`,
     )?.schematic;
     if (!schematic || hasSwarm(g)) return false;
     // Same shape as installSwarmBundle. buy() spends the scrap. 2 levels, schematic selected, not deployed.
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 0,
       left: 0,
@@ -401,20 +401,20 @@ function grantSystem(g: Game, item: StockItem): boolean {
   const row = systemDef(item.ref);
   if (!row) return false;
   const medbayLevel = g.player.systems.medbay.level;
-  const cradleLevel = g.player.kits.cradle?.level ?? 0;
+  const cradleLevel = g.player.kits.clonebay?.level ?? 0;
   // Systems, and Template:Purchasable systems: buying one medical system replaces the other.
   // Upgrade levels are kept. Power bars are not copied and not added.
   if (row.id === "medbay" && medbayLevel <= 0 && cradleLevel > 0) {
-    delete g.player.kits.cradle;
+    delete g.player.kits.clonebay;
     g.player.systems.medbay.level = cradleLevel;
     g.player.systems.medbay.power = 0;
     return true;
   }
-  if (row.id === "cradle" && cradleLevel <= 0 && medbayLevel > 0) {
+  if (row.id === "clonebay" && cradleLevel <= 0 && medbayLevel > 0) {
     clearMedbay(g);
-    const kit = blankKit("cradle");
+    const kit = blankKit("clonebay");
     kit.level = medbayLevel;
-    g.player.kits.cradle = kit;
+    g.player.kits.clonebay = kit;
     return true;
   }
   if (ownedSystem(g, { slot: row.slot, ref: row.id, name: row.name, cost: row.cost })) return false;
@@ -454,19 +454,19 @@ export function fieldedSchematics(kit: Kit): string[] {
  */
 function schematicCap(g: Game): number {
   const id = g.hullId ?? "";
-  if (id.startsWith("engi-") || id === "stealth-c") return 3;
+  if (id.startsWith("PLAYER_SHIP_CIRCLE") || id === "PLAYER_SHIP_STEALTH_3") return 3;
   return 2;
 }
 
 /** Schematic slots this hull can field. Zero when Drone Control is not installed — there is no slot to draw. */
 export function droneSlotCap(g: Game): number {
-  if (!g.player.kits.swarm) return 0;
+  if (!g.player.kits.drones) return 0;
   return schematicCap(g);
 }
 
 /** The Engi Cruiser, Layout B: two System Repair ids are two drones, not one swapped schematic. */
 function pairedRepair(kit: Kit): boolean {
-  return (kit.loadout?.filter((kind) => kind === "patch").length ?? 0) > 1;
+  return (kit.loadout?.filter((kind) => kind === "REPAIR").length ?? 0) > 1;
 }
 
 /** Per the user: a schematic that cannot be fitted goes to cargo. The store will not sell it when cargo is full too. */
@@ -478,18 +478,18 @@ function grantDrone(g: Game, item: StockItem): boolean {
 
 /** A schematic the ship can take now: Drone Control fitted, a free schematic slot, and not one it already fields. */
 export function canFieldDrone(g: Game, ref: string): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit || !droneDef(ref)) return false;
   const have = fieldedSchematics(kit);
   return (
-    !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "patch")
+    !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "REPAIR")
   );
 }
 
 /** Fits a drone schematic (a store purchase, or a loot bonus item). */
 export function fieldDroneSchematic(g: Game, ref: string): boolean {
   const row = droneDef(ref);
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!row || !kit) return false;
   const have = fieldedSchematics(kit);
   // Stores and resources: a store will never sell duplicate drone schematics.
@@ -497,7 +497,7 @@ export function fieldDroneSchematic(g: Game, ref: string): boolean {
   if (have.includes(row.id)) return false;
   if (have.length >= schematicCap(g)) return false;
   // INFERRED: a non-repair id on the paired System Repair list would fly as one swapped drone.
-  if (pairedRepair(kit) && row.id !== "patch") return false;
+  if (pairedRepair(kit) && row.id !== "REPAIR") return false;
   if (!kit.loadout?.length && !kit.target) {
     kit.target = row.id;
     return true;
@@ -617,13 +617,13 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   });
-  const over = g.player.kits.swarm;
+  const over = g.player.kits.drones;
   // A fitted Shield Overcharger + only. Identified by the drone id, not by the scrap amount.
-  if (over?.target === "overchargerplus") {
+  if (over?.target === "DRONE_SHIELD_PLAYER") {
     quotes.push({
       id: "d:overchargerplus",
       kind: "drone",
-      ref: "overchargerplus",
+      ref: "DRONE_SHIELD_PLAYER",
       name: "Shield Overcharger +",
       scrap: OVERCHARGER_PLUS.sell,
     });
@@ -636,7 +636,7 @@ export function citedSell(g: Game, id: string): boolean {
   const quote = citedSellQuote(g).find((row) => row.id === id);
   if (!quote) return false;
   if (quote.kind === "drone") {
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     if (!kit || kit.target !== quote.ref) return false;
     kit.target = null;
     kit.on = false;
@@ -676,7 +676,7 @@ export function citedSell(g: Game, id: string): boolean {
   g.augments.splice(index, 1);
   // Zoltan Shield prints "Sell value: 40" and does not print a leftover overcharger amount.
   // INFERRED: clearing the bubble is the augment leaving.
-  if (quote.ref === "zshield") {
+  if (quote.ref === "ENERGY_SHIELD") {
     g.player.zoltan = undefined;
     delete g.player.zoltanOver;
   }

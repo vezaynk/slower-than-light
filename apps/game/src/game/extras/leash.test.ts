@@ -16,7 +16,7 @@ import type { Kit } from "../types.ts";
 
 function pushKit(g: ReturnType<typeof createGame>, level = 1, power = 1): Kit {
   const kit: Kit = {
-    id: "leash",
+    id: "mind",
     level,
     power,
     left: 0,
@@ -25,7 +25,7 @@ function pushKit(g: ReturnType<typeof createGame>, level = 1, power = 1): Kit {
     on: false,
     aux: 0,
   };
-  g.player.kits.leash = kit;
+  g.player.kits.mind = kit;
   return kit;
 }
 
@@ -39,7 +39,7 @@ function see(g: ReturnType<typeof createGame>) {
   g.player.systems.sensors.level = 2;
 }
 
-describe("leash", () => {
+describe("mind", () => {
   it("leashes the enemy pilot for the level duration, then clears it", () => {
     const g = createGame(1);
     startCombat(g, "Rebel ship");
@@ -120,7 +120,7 @@ describe("leash", () => {
     g.scrap = 75;
     installLeash(g);
     assert.equal(g.scrap, 0);
-    const kit = g.player.kits.leash;
+    const kit = g.player.kits.mind;
     assert.ok(kit);
     assert.equal(kit.level, 1);
     assert.equal(kit.power, 0);
@@ -193,7 +193,7 @@ describe("leash", () => {
     g.player.systems.sensors.level = 0;
     const slug = g.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(slug);
-    slug.kin = "gel";
+    slug.kin = "slug";
     const pilot = enemyPilot(g);
     assert.ok(pilot);
     startLeash(g, pilot.id);
@@ -242,7 +242,7 @@ describe("leash", () => {
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, undefined);
     applyImpact(g, roomBomb(pilot.room));
-    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, 14);
     kit.on = false;
@@ -270,7 +270,7 @@ describe("leash", () => {
     assert.ok(g.enemy);
     forceEnemyEvade(g);
     assert.equal(evasionPercent(g, g.enemy, "enemy"), 100);
-    const crew = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.kin !== "gel");
+    const crew = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.kin !== "slug");
     assert.ok(crew);
     applyImpact(g, roomBomb(crew.room));
     startLeash(g, crew.id);
@@ -294,7 +294,7 @@ function roomBomb(targetRoom: string, from: "player" | "enemy" = "player"): Shot
     t: 1,
     duration: 1,
     targetRoom,
-    defId: "healburst",
+    defId: "BOMB_HEAL",
   };
 }
 
@@ -305,7 +305,7 @@ function forceEnemyEvade(g: Game) {
   hull.systems.engines.damage = 0;
   hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
   hull.systems.pilot.damage = 0;
-  hull.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  hull.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
   const engines = hull.rooms.find((r) => r.system === "engines");
   const pilot = hull.rooms.find((r) => r.system === "pilot");
   const crew = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0);

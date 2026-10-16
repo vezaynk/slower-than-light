@@ -260,16 +260,25 @@ const SYS_ORDER: SysId[] = [
 ];
 
 const KIT_LABEL: Record<KitId, string> = {
-  veil: "Cloaking",
-  sling: "Teleporter",
-  spike: "Hacking",
-  swarm: "Drone Control",
-  leash: "Mind Control",
-  cradle: "Clone Bay",
-  cell: "Backup Battery",
-  lance: "Artillery Beam",
-  flak: "Flak Artillery",
+  cloaking: "Cloaking",
+  teleporter: "Teleporter",
+  hacking: "Hacking",
+  drones: "Drone Control",
+  mind: "Mind Control",
+  clonebay: "Clone Bay",
+  battery: "Backup Battery",
+  artillery: "Artillery Beam",
 };
+
+function kitLabel(id: KitId, weapon?: string): string {
+  if (id === "artillery") return weapon === "ARTILLERY_FED_C" ? "Flak Artillery" : "Artillery Beam";
+  return KIT_LABEL[id];
+}
+
+function kitIcon(id: KitId, weapon?: string): IconName {
+  if (id === "artillery" && weapon === "ARTILLERY_FED_C") return "ARTILLERY_FED_C";
+  return id;
+}
 
 function act(fn: (g: Game) => void) {
   unlockAudio();
@@ -362,12 +371,12 @@ function slingRoomClick(roomId: string) {
 /** Mind Control, "Overview": click the system, then an enemy crewmember. Click again to leave aim. */
 /** The activation for a dock system: what its icon did before the icon took over power (per the user). */
 function activateKit(id: KitId) {
-  if (id === "veil") act((g) => startVeil(g));
-  else if (id === "cell") act((g) => startCell(g));
-  else if (id === "sling") slingIconClick();
-  else if (id === "leash") leashIconClick();
-  else if (id === "cradle") act((g) => toggleCradlePower(g));
-  else if (id === "swarm") act((g) => toggleSwarmPower(g));
+  if (id === "cloaking") act((g) => startVeil(g));
+  else if (id === "battery") act((g) => startCell(g));
+  else if (id === "teleporter") slingIconClick();
+  else if (id === "mind") leashIconClick();
+  else if (id === "clonebay") act((g) => toggleCradlePower(g));
+  else if (id === "drones") act((g) => toggleSwarmPower(g));
 }
 
 /**
@@ -389,9 +398,9 @@ function powerHotkey(code: string, down: boolean): boolean {
     return true;
   }
   const kit: Partial<Record<string, BarKit>> = {
-    KeyG: "sling",
-    KeyH: "veil",
-    KeyK: "leash",
+    KeyG: "teleporter",
+    KeyH: "cloaking",
+    KeyK: "mind",
   };
   const bar = kit[code];
   if (bar) {
@@ -416,13 +425,16 @@ function powerHotkey(code: string, down: boolean): boolean {
   }
   if (code === "KeyY") {
     act((g) => {
-      if (g.player.kits.lance) {
-        if (down) lowerLancePower(g);
-        else raiseLancePower(g);
+      const artillery = g.player.kits.artillery;
+      if (artillery?.weapon === "ARTILLERY_FED_C") {
+        if (down) lowerFlakPower(g);
+        else raiseFlakPower(g);
         return;
       }
-      if (down) lowerFlakPower(g);
-      else raiseFlakPower(g);
+      if (artillery) {
+        if (down) lowerLancePower(g);
+        else raiseLancePower(g);
+      }
     });
     return true;
   }
@@ -635,7 +647,7 @@ export function GameApp() {
         return;
       }
       // Configure controls, page 1: M starts mind control.
-      if (e.code === "KeyM" && plain && g.phase === "combat" && g.enemy && g.player.kits.leash) {
+      if (e.code === "KeyM" && plain && g.phase === "combat" && g.enemy && g.player.kits.mind) {
         e.preventDefault();
         leashIconClick();
         return;
@@ -665,7 +677,7 @@ export function GameApp() {
         act((game) => startVeil(game));
         return;
       }
-      if (e.code === "KeyT" && plain && g.phase === "combat" && g.enemy && g.player.kits.sling) {
+      if (e.code === "KeyT" && plain && g.phase === "combat" && g.enemy && g.player.kits.teleporter) {
         e.preventDefault();
         if (useSlingAim.getState().on) {
           setSlingAim(false);
@@ -677,7 +689,7 @@ export function GameApp() {
         setSlingAim(true);
         return;
       }
-      if (e.code === "KeyR" && plain && g.player.kits.sling) {
+      if (e.code === "KeyR" && plain && g.player.kits.teleporter) {
         e.preventDefault();
         setSlingAim(false);
         act((game) => recallSling(game));
@@ -954,18 +966,17 @@ const MAIN_ORDER: (SysId | KitId)[] = [
   "shields",
   "engines",
   "medbay",
-  "cradle",
+  "clonebay",
   "oxygen",
-  "sling",
-  "veil",
-  "leash",
-  "lance",
-  "flak",
-  "spike",
+  "teleporter",
+  "cloaking",
+  "mind",
+  "artillery",
+  "hacking",
   "weapons",
-  "swarm",
+  "drones",
 ];
-const SUB_KITS: KitId[] = ["cell"];
+const SUB_KITS: KitId[] = ["battery"];
 
 function isKitId(id: SysId | KitId): id is KitId {
   return id in KIT_LABEL;
@@ -1605,7 +1616,7 @@ function CrewRail({ game }: { game: Game }) {
           title={"Clone Bay queue: first in line is revived first"}
         >
           <p className="clone-queue-head">
-            <PixelIcon name="cradle" size={16} />
+            <PixelIcon name="clonebay" size={16} />
             {"CLONING · "}
             {clones.seconds}s
           </p>
@@ -1661,7 +1672,7 @@ function cloakClass(cloaked: boolean, releasing: boolean): string {
 }
 
 function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } }) {
-  const veil = game.player.kits.veil;
+  const veil = game.player.kits.cloaking;
   const cloaked = !!veil?.on && veil.left > 0;
   const releasing = useDecloak(cloaked);
   const intruders = game.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
@@ -1939,7 +1950,7 @@ function TargetPanel({
   const vision = hackVision(game);
   const hackMark = hackMarkOf(game);
   // Cloaking: "When an enemy ship is cloaked, you lose vision of its interior unless your crew… is aboard".
-  const veil = enemy.kits.veil;
+  const veil = enemy.kits.cloaking;
   const ownAboard = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const cloaked = !!veil?.on && veil.left > 0;
   const releasing = useDecloak(cloaked);
@@ -2218,7 +2229,7 @@ function TargetPanel({
           return (
             <span
               key={id}
-              title={`${KIT_LABEL[id]}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`}
+              title={`${kitLabel(id, kit.weapon)}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`}
               className={
                 [
                   kit.on ? "is-on" : "",
@@ -2231,7 +2242,7 @@ function TargetPanel({
               }
               style={rim.style}
             >
-              <PixelIcon name={id} size={16} />
+              <PixelIcon name={kitIcon(id, kit.weapon)} size={16} />
               {fullKit ? <b>{kit.level}</b> : null}
             </span>
           );
@@ -2330,11 +2341,11 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const guns = useTrayDrag("weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
   const drones = useTrayDrag("drones", (from, to) =>
     act((g) => {
-      const kit = g.player.kits.swarm;
+      const kit = g.player.kits.drones;
       if (kit) reorderDroneSlots(kit, from, to);
     }),
   );
-  const swarm = game.player.kits.swarm;
+  const swarm = game.player.kits.drones;
   const droneSlots = playerDroneSlots(swarm);
   // Per the user: WEAPONS and DRONES are always tabs, and either one can be selected.
   const [tab, setTab] = useState<"weapons" | "drones">("weapons");
@@ -2343,7 +2354,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
   const kitPod = (id: KitId) => {
     const kit = game.player.kits[id];
     if (!kit) return null;
-    if (id === "spike")
+    if (id === "hacking")
       return (
         <HackOrb
           key={id}
@@ -2353,25 +2364,26 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
         />
       );
     // Hacking wiki, "Overview" (Cloaking): "ends an active cloak, and prevents the enemy from entering cloak".
-    const cloakLocked = id === "veil" && playerCloakHacked(game);
+    const cloakLocked = id === "cloaking" && playerCloakHacked(game);
     // A kit with no room on the player ship still carries the latched drone; mark its orb instead
     // (Hacking wiki: "Launches a hacking drone that attaches to the enemy ship").
     const hacked = hackedKit?.id === id ? hackedKit.phase : null;
     const away =
-      id === "sling" &&
+      id === "teleporter" &&
       game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
+    const label = kitLabel(id, kit.weapon);
     const tip = cloakLocked
-      ? `${KIT_LABEL[id]}: hacked, cannot cloak`
+      ? `${label}: hacked, cannot cloak`
       : hacked
-        ? `${KIT_LABEL[id]}: hacking drone attached${hacked === "pulse" ? " (pulse)" : ""}`
-        : id === "sling"
+        ? `${label}: hacking drone attached${hacked === "pulse" ? " (pulse)" : ""}`
+        : id === "teleporter"
           ? away
             ? "Teleporter: recall crew"
             : "Teleporter: send crew"
-          : id === "leash"
+          : id === "mind"
             ? "Mind Control: pick a crewmember"
-            : KIT_LABEL[id];
-    const powered = id === "veil" || id === "sling" || id === "leash";
+            : label;
+    const powered = id === "cloaking" || id === "teleporter" || id === "mind";
     const flash = systemFlashClass(game, id);
     const rim = clockRim(systemClock(game.player, id));
     return (
@@ -2396,7 +2408,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             disabled={cloakLocked}
             onClick={() => activateKit(id)}
           >
-            {id === "veil" ? "CLOAK" : id === "sling" ? (away ? "RETURN" : "SEND") : "MIND"}
+            {id === "cloaking" ? "CLOAK" : id === "teleporter" ? (away ? "RETURN" : "SEND") : "MIND"}
           </button>
         ) : null}
         {powered ? (
@@ -2408,8 +2420,8 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             className={`sub-orb${kit.on ? " is-on" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
             style={rim.style}
             data-kit={id}
-            title={KIT_LABEL[id]}
-            aria-label={`${KIT_LABEL[id]}: add power (right-click removes)`}
+            title={label}
+            aria-label={`${label}: add power (right-click removes)`}
             onPointerDown={(e) => armHold(e, () => act((g) => kitPowerDown(g, id)))}
             onClick={(e) => {
               if (swallowHoldClick(e)) return;
@@ -2422,7 +2434,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               act((g) => kitPowerDown(g, id));
             }}
           >
-            <PixelIcon name={id} size={16} />
+            <PixelIcon name={kitIcon(id, kit.weapon)} size={16} />
           </button>
         ) : (
           <button
@@ -2434,7 +2446,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             title={tip}
             onClick={() => activateKit(id)}
           >
-            <PixelIcon name={id} size={16} />
+            <PixelIcon name={kitIcon(id, kit.weapon)} size={16} />
           </button>
         )}
       </span>
@@ -2566,7 +2578,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                     const dragging = drones.from === index;
                     const drop = drones.over === index && drones.from !== index;
                     const pairedRepair =
-                      (swarm?.loadout?.filter((id) => id === "patch").length ?? 0) > 1;
+                      (swarm?.loadout?.filter((id) => id === "REPAIR").length ?? 0) > 1;
                     const slotDark = !!swarm?.idle && (kind === swarm.target || pairedRepair);
                     return (
                       <button
@@ -2766,14 +2778,14 @@ function HackOrb({
           ? Math.max(0, Math.min(1, 1 - view.cool / 20)) * 100
           : 0;
   const show = (text: string) => status === text;
-  const flash = systemFlashClass(game, "spike");
-  const rim = clockRim(systemClock(game.player, "spike"));
+  const flash = systemFlashClass(game, "hacking");
+  const rim = clockRim(systemClock(game.player, "hacking"));
   return (
     <div className={`hack-pod is-${aiming ? "aiming" : view.state}${flash ? ` ${flash}` : ""}`}>
       {fight ? (
         <div className="hack-card" role="status">
           <span className="hack-card-title">
-            <PixelIcon name="spike" size={12} />
+            <PixelIcon name="hacking" size={12} />
             {"HACKING"}
             <span className="hack-card-pulse line-stack">
               <span className="is-reserve" aria-hidden="true">
@@ -2945,7 +2957,7 @@ function HackOrb({
         type="button"
         className={`sub-orb hack-orb${aiming ? " is-aiming" : ""}${view.state === "pulse" ? " is-on" : ""}${usable ? " is-usable" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
         style={rim.style}
-        data-kit="spike"
+        data-kit="hacking"
         aria-label={tip}
         aria-pressed={aiming}
         title={tip}
@@ -2964,15 +2976,15 @@ function HackOrb({
             <b
               key={n}
               className={[
-                kitBarClass(game, "spike", view.power, n),
-                barFlashClass(game, "spike", false, false, n < view.power),
+                kitBarClass(game, "hacking", view.power, n),
+                barFlashClass(game, "hacking", false, false, n < view.power),
               ]
                 .filter(Boolean)
                 .join(" ")}
             />
           ))}
         </i>
-        <PixelIcon name="spike" size={16} />
+        <PixelIcon name="hacking" size={16} />
       </button>
     </div>
   );
@@ -2990,7 +3002,7 @@ function hackActive(game: Game, id: string): boolean {
 function columnLocked(game: Game, id: string): boolean {
   const kit = game.player.kits[id as KitId];
   if (!kit) return false;
-  return cooldownLocksPower(kit) || kitIonLocked(kit) || (id === "cell" && kit.cool > 0);
+  return cooldownLocksPower(kit) || kitIonLocked(kit) || (id === "battery" && kit.cool > 0);
 }
 
 /** Boarders standing in this player system or kit. The column flashes red while they can attack it. */
@@ -3015,7 +3027,7 @@ function barFlashClass(
   if (hackActive(game, id)) return "is-flash-purple";
   if (!damaged && boarded(game, id)) return "is-flash-red";
   if (damaged) return "";
-  if (ionSlot || (columnLocked(game, id) && (powered || id === "cell"))) return "is-flash-blue";
+  if (ionSlot || (columnLocked(game, id) && (powered || id === "battery"))) return "is-flash-blue";
   return "";
 }
 
@@ -3055,7 +3067,7 @@ function foeFlash(game: Game, id: string, reveal: boolean, ion = 0): string {
   const locked =
     ion > 0 ||
     (sysId != null && ship.systems[sysId].ion.length > 0) ||
-    (!!kit && (kitIonLocked(kit) || cooldownLocksPower(kit) || (id === "cell" && kit.cool > 0)));
+    (!!kit && (kitIonLocked(kit) || cooldownLocksPower(kit) || (id === "battery" && kit.cool > 0)));
   return locked ? "is-flash-blue" : "";
 }
 
@@ -3247,7 +3259,7 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   }
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
-  if (!kitId || !kit || (kitId !== "veil" && kitId !== "sling" && kitId !== "leash")) return null;
+  if (!kitId || !kit || (kitId !== "cloaking" && kitId !== "teleporter" && kitId !== "mind")) return null;
   const barKit: BarKit = kitId;
   return (
     <>
@@ -3369,7 +3381,7 @@ function hasRadialPower(game: Game, roomId: string): boolean {
   if (!room) return false;
   if (room.system && MAIN_BARS.includes(room.system)) return true;
   return (
-    (room.kit === "veil" || room.kit === "sling" || room.kit === "leash") &&
+    (room.kit === "cloaking" || room.kit === "teleporter" || room.kit === "mind") &&
     !!game.player.kits[room.kit]
   );
 }
@@ -3450,22 +3462,22 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
   if (kitId && kit) {
-    const icon = <PixelIcon name={kitId} size={14} />;
+    const icon = <PixelIcon name={kitIcon(kitId, kit.weapon)} size={14} />;
     const idle = !kit.on && kit.cool <= 0;
-    if (kitId === "veil")
+    if (kitId === "cloaking")
       add(
-        "veil",
+        "cloaking",
         kit.on ? "Cloaked" : "Cloak",
         icon,
         () => act((g) => startVeil(g)),
         !idle || kitBars(kit) < 1,
       );
-    if (kitId === "cell")
-      add("cell", kit.on ? "Boosting" : "Boost", icon, () => act((g) => startCell(g)), !idle);
-    if (kitId === "sling") {
+    if (kitId === "battery")
+      add("battery", kit.on ? "Boosting" : "Boost", icon, () => act((g) => startCell(g)), !idle);
+    if (kitId === "teleporter") {
       const away = game.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
       add(
-        "sling",
+        "teleporter",
         away ? "Recall" : "Send",
         icon,
         () => {
@@ -3475,9 +3487,9 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
         kit.cool > 0 || kitBars(kit) < 1 || (!away && !game.enemy),
       );
     }
-    if (kitId === "leash")
+    if (kitId === "mind")
       add(
-        "leash",
+        "mind",
         "Mind control",
         icon,
         () => {
@@ -3486,9 +3498,9 @@ function radialActions(game: Game, roomId: string, close: () => void): ReactNode
         },
         !idle || kitBars(kit) < 1 || !game.enemy,
       );
-    if (kitId === "spike")
+    if (kitId === "hacking")
       add(
-        "spike",
+        "hacking",
         "Hack",
         icon,
         () => {
@@ -3741,7 +3753,7 @@ function roomPicks(game: Game, item: Overflow): RoomPick[] {
     ];
   }
   if (item.kind === "drone") {
-    const kit = game.player.kits.swarm;
+    const kit = game.player.kits.drones;
     const have = kit ? (kit.loadout?.length ? kit.loadout : kit.target ? [kit.target] : []) : [];
     return [
       ...have.map((ref, i) => ({
@@ -3837,9 +3849,9 @@ function MakeRoomCard({ game, item }: { game: Game; item: Overflow }) {
               <span className="make-room-art">{p.art}</span>
               <b>{p.name}</b>
               {p.locked ? (
-                <span className="mini">{p.locked}</span>
+                <span className="BEAM_1">{p.locked}</span>
               ) : p.note ? (
-                <span className="mini">{p.note}</span>
+                <span className="BEAM_1">{p.note}</span>
               ) : null}
             </button>
           ))}
@@ -4337,7 +4349,7 @@ function TitleScreen() {
     setView(view === id ? null : id);
   }
   function startTutorial() {
-    useGame.getState().newRun("kestrel-a");
+    useGame.getState().newRun("PLAYER_SHIP_HARD");
     useGame.getState().act((g) => {
       g.training = true;
     });
@@ -4769,7 +4781,7 @@ function MapScreen({ game }: { game: Game }) {
             const [bx, by] = at(b);
             const isHere = b.id === game.here;
             const linked = here?.links.includes(b.id) ?? false;
-            const open = linked || (game.augments.includes("nav") && navAllows(b, game.fleet));
+            const open = linked || (game.augments.includes("FTL_JUMPER") && navAllows(b, game.fleet));
             const swallowed = overtaken(game, b);
             const soon = !swallowed && !!warn && overtaken(warn, b);
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
@@ -4778,7 +4790,7 @@ function MapScreen({ game }: { game: Game }) {
             // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
             // Not the current beacon. Live from the fitted scanners; selling them hides the marks.
             const scan =
-              here && !isHere && game.augments.includes("glass") && here.links.includes(b.id)
+              here && !isHere && game.augments.includes("ADV_SCANNERS") && here.links.includes(b.id)
                 ? scanMark(game, b)
                 : null;
             const bits = scan
@@ -5091,8 +5103,8 @@ function upgradeRows(game: Game): UpgradeRow[] {
     const cost = costAt(kit.level) ?? null;
     rows.push({
       key: id,
-      icon: id,
-      name: KIT_LABEL[id],
+      icon: kitIcon(id, kit.weapon),
+      name: kitLabel(id, kit.weapon),
       level: kit.level,
       max: topLevel(kit.level, costAt),
       effect: cost != null ? effect : "",
@@ -5106,10 +5118,10 @@ function upgradeRows(game: Game): UpgradeRow[] {
   sys("engines");
   sys("medbay");
   {
-    const kit = game.player.kits.cradle;
+    const kit = game.player.kits.clonebay;
     if (kit) {
       fitted(
-        "cradle",
+        "clonebay",
         cradleUpgradeCost,
         kit.level === 1 ? "Clone in 9 sec. 16 HP per jump." : "Clone in 7 sec. 25 HP per jump.",
         (g) => upgradeCradle(g),
@@ -5118,10 +5130,10 @@ function upgradeRows(game: Game): UpgradeRow[] {
   }
   sys("oxygen");
   {
-    const kit = game.player.kits.sling;
+    const kit = game.player.kits.teleporter;
     if (kit) {
       fitted(
-        "sling",
+        "teleporter",
         slingUpgradeCost,
         kit.level === 1 ? "15 sec cooldown." : "10 sec cooldown.",
         (g) => upgradeSling(g),
@@ -5129,18 +5141,18 @@ function upgradeRows(game: Game): UpgradeRow[] {
     }
   }
   {
-    const kit = game.player.kits.veil;
+    const kit = game.player.kits.cloaking;
     if (kit) {
-      fitted("veil", veilUpgradeCost, kit.level === 1 ? "10 sec." : "15 sec.", (g) =>
+      fitted("cloaking", veilUpgradeCost, kit.level === 1 ? "10 sec." : "15 sec.", (g) =>
         upgradeVeil(g),
       );
     }
   }
   {
-    const kit = game.player.kits.leash;
+    const kit = game.player.kits.mind;
     if (kit) {
       fitted(
-        "leash",
+        "mind",
         (l) => LEASH_UPGRADE[l + 1] ?? null,
         kit.level === 1
           ? "+15 health, +25% combat damage, 20 sec."
@@ -5150,11 +5162,17 @@ function upgradeRows(game: Game): UpgradeRow[] {
     }
   }
   {
-    const kit = game.player.kits.lance;
-    if (kit) {
+    const kit = game.player.kits.artillery;
+    if (kit?.weapon === "ARTILLERY_FED_C") {
+      const next = kit.level + 1;
+      const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
+      fitted("artillery", flakUpgradeCost, seconds != null ? `${seconds} sec charge.` : "", (g) =>
+        upgradeFlak(g),
+      );
+    } else if (kit) {
       const next = kit.level + 1;
       fitted(
-        "lance",
+        "artillery",
         lanceUpgradeCost,
         LANCE_CHARGE[next] != null ? `${LANCE_CHARGE[next]} sec charge.` : "",
         (g) => upgradeLance(g),
@@ -5162,27 +5180,17 @@ function upgradeRows(game: Game): UpgradeRow[] {
     }
   }
   {
-    const kit = game.player.kits.flak;
+    const kit = game.player.kits.hacking;
     if (kit) {
-      const next = kit.level + 1;
-      const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
-      fitted("flak", flakUpgradeCost, seconds != null ? `${seconds} sec charge.` : "", (g) =>
-        upgradeFlak(g),
-      );
-    }
-  }
-  {
-    const kit = game.player.kits.spike;
-    if (kit) {
-      fitted("spike", spikeUpgradeCost, kit.level === 1 ? "7 sec pulse." : "10 sec pulse.", (g) =>
+      fitted("hacking", spikeUpgradeCost, kit.level === 1 ? "7 sec pulse." : "10 sec pulse.", (g) =>
         upgradeSpike(g),
       );
     }
   }
   sys("weapons");
-  if (game.player.kits.swarm)
+  if (game.player.kits.drones)
     fitted(
-      "swarm",
+      "drones",
       () => null,
       "",
       () => {},
@@ -5191,9 +5199,9 @@ function upgradeRows(game: Game): UpgradeRow[] {
   sys("sensors");
   sys("doors");
   {
-    const kit = game.player.kits.cell;
+    const kit = game.player.kits.battery;
     if (kit)
-      fitted("cell", cellUpgradeCost, "4 temporary power bars.", (g) => upgradeCell(g), true);
+      fitted("battery", cellUpgradeCost, "4 temporary power bars.", (g) => upgradeCell(g), true);
   }
   return rows;
 }
@@ -5210,7 +5218,7 @@ function ShipSheet({ game }: { game: Game }) {
   const guns = useTrayDrag("sheet-weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
   const drones = useTrayDrag("sheet-drones", (from, to) =>
     act((g) => {
-      const kit = g.player.kits.swarm;
+      const kit = g.player.kits.drones;
       if (kit) reorderDroneSlots(kit, from, to);
     }),
   );
@@ -5259,7 +5267,7 @@ function ShipSheet({ game }: { game: Game }) {
               id === "crew"
                 ? game.crew.filter((c) => c.side === "player" && c.hp > 0).length
                 : id === "inventory"
-                  ? game.player.weapons.length + (game.player.kits.swarm?.loadout?.length ?? 0)
+                  ? game.player.weapons.length + (game.player.kits.drones?.loadout?.length ?? 0)
                   : null;
             const face =
               id === "crew" ? game.crew.find((c) => c.side === "player" && c.hp > 0) : undefined;
@@ -5440,7 +5448,7 @@ function UpgradeList({ game }: { game: Game }) {
         <section className="sheet-group">
           <h3 className="sheet-group-head">
             {"Subsystems "}
-            <span className="mini">{"No reactor power needed."}</span>
+            <span className="BEAM_1">{"No reactor power needed."}</span>
           </h3>
           <div className="upgrade-cards">
             {subsystems.map((row) => (
@@ -5497,7 +5505,7 @@ function SkillBars({ crew }: { crew: Crew }) {
 function CrewManifest({ game }: { game: Game }) {
   const [confirm, setConfirm] = useState<string | null>(null);
   const crew = game.crew.filter((c) => c.side === "player" && c.hp > 0);
-  if (crew.length === 0) return <p className="mini">{"No crew aboard."}</p>;
+  if (crew.length === 0) return <p className="BEAM_1">{"No crew aboard."}</p>;
   return (
     <div className="manifest">
       {crew.map((c) => {
@@ -5612,7 +5620,7 @@ function CargoList({
   guns: ReturnType<typeof useTrayDrag>;
   drones: ReturnType<typeof useTrayDrag>;
 }) {
-  const slots = playerDroneSlots(game.player.kits.swarm);
+  const slots = playerDroneSlots(game.player.kits.drones);
   const gunCap = Math.max(weaponSlotCap(game), game.player.weapons.length);
   const augCap = Math.max(3, game.augments.length);
   const cargo = cargoOf(game);
@@ -5622,7 +5630,7 @@ function CargoList({
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Weapons"}{" "}
-          <span className="mini">
+          <span className="BEAM_1">
             {game.player.weapons.length}/{gunCap}
             {" slots. Drag to change the order."}
           </span>
@@ -5697,10 +5705,10 @@ function CargoList({
       </section>
       <section className="sheet-group">
         <h3 className="sheet-group-head">{"Drones"}</h3>
-        {!game.player.kits.swarm ? (
-          <p className="mini">{"No Drone Control system."}</p>
+        {!game.player.kits.drones ? (
+          <p className="BEAM_1">{"No Drone Control system."}</p>
         ) : slots.length === 0 ? (
-          <p className="mini">{"No drone schematics."}</p>
+          <p className="BEAM_1">{"No drone schematics."}</p>
         ) : (
           <div className="cargo-slots">
             {slots.map((kind, index) => {
@@ -5747,7 +5755,7 @@ function CargoList({
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Cargo"}{" "}
-          <span className="mini">
+          <span className="BEAM_1">
             {cargo.length}/{CARGO_SLOTS}
             {". Weapons and drone schematics that are not fitted."}
           </span>
@@ -5768,7 +5776,7 @@ function CargoList({
             const why =
               item.kind === "weapon"
                 ? "Weapon slots full."
-                : !game.player.kits.swarm
+                : !game.player.kits.drones
                   ? "Needs Drone Control."
                   : "Drone slots full.";
             return (
@@ -5782,7 +5790,7 @@ function CargoList({
                     )}
                   </span>
                   <span className="cargo-name">{name}</span>
-                  <span className="mini">
+                  <span className="BEAM_1">
                     {item.kind === "weapon" ? "Weapon" : "Drone schematic"}
                   </span>
                 </div>
@@ -5804,7 +5812,7 @@ function CargoList({
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Augments"}{" "}
-          <span className="mini">
+          <span className="BEAM_1">
             {game.augments.length}/{augCap}
           </span>
         </h3>

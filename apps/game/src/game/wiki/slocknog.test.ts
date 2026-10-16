@@ -35,7 +35,7 @@ describe("Slocknog", () => {
     fillerChoose(g, "c:slocknog:0");
     const slug = players(g).find((c) => c.name === "Slocknog");
     assert.ok(slug);
-    assert.equal(slug.kin, "gel");
+    assert.equal(slug.kin, "slug");
     assert.equal(slug.skills, undefined);
     assert.equal(players(g).length, crew + 1);
     assert.equal(g.scrap, 0);

@@ -65,7 +65,7 @@ describe("Sell drone parts for scrap", () => {
     hook.player.parts = 3;
     hook.scrap = 0;
     hook.scrapCollected = 0;
-    hook.augments = ["hook"];
+    hook.augments = ["SCRAP_COLLECTOR"];
     choose(hook, "c:sell-drone-parts-for-scrap:0");
     assert.equal(hook.player.parts, 0);
     assert.equal(hook.scrap, 13);
@@ -77,7 +77,7 @@ describe("Sell drone parts for scrap", () => {
     weld.scrap = 0;
     weld.scrapCollected = 0;
     weld.player.hull = weld.player.hullMax - 5;
-    weld.augments = ["weld"];
+    weld.augments = ["REPAIR_ARM"];
     choose(weld, "c:sell-drone-parts-for-scrap:0");
     assert.equal(weld.scrap, 10);
     assert.equal(weld.scrapCollected, 12);
@@ -87,7 +87,7 @@ describe("Sell drone parts for scrap", () => {
     both.player.parts = 3;
     both.scrap = 0;
     both.player.hull = 10;
-    both.augments = ["hook", "weld"];
+    both.augments = ["SCRAP_COLLECTOR", "REPAIR_ARM"];
     choose(both, "c:sell-drone-parts-for-scrap:0");
     assert.equal(both.scrap, 11);
     assert.equal(both.player.hull, 12);

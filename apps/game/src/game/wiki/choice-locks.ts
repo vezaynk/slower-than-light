@@ -41,6 +41,13 @@ function choiceLock(g: Game, id: string): string | null {
   return null;
 }
 
+/** The packed scrap this button spends, or null when the button stores none. */
+export function scrapStock(id: string): number | null {
+  const req = reqsFor(id)?.find((row) => row.k === "stock" && row.id === "scrap");
+  if (!req || req.k !== "stock") return null;
+  return req.n;
+}
+
 function reqsFor(id: string): readonly ChoiceReq[] | null {
   for (const ev of allEvents()) {
     for (const choice of ev.choices) {

@@ -33,7 +33,7 @@ import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
-import { ownedLock } from "./choice-locks.ts";
+import { ownedLock, scrapStock } from "./choice-locks.ts";
 import { FILLER_LOCKS } from "./choice-reqs.ts";
 
 /**
@@ -1158,7 +1158,7 @@ function beaconEaterLeave(g: Game) {
   fight(g, tx("wiki.filler-events.you-make-preparations-to-jump-but"), tx("wiki.filler-events.lanius-ship"), "lanius-ship-absorbing-jump-beacon");
 }
 
-/** Lanius craftsmen. The discount is 10 scrap off 45, 50, and 40. INFERRED: the button prints that reduced price. */
+/** Lanius craftsmen. Each craft button prints and spends its packed scrap count. */
 function craftsmenMenu(g: Game, discount: boolean) {
   // Wiki citations:
   // > "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"" — [[Lanius craftsmen]]
@@ -1172,16 +1172,18 @@ function craftsmenMenu(g: Game, discount: boolean) {
   // > "(Lanius Crew) Offer to help in the process." — [[Lanius craftsmen]]
   // > "Your crewmember offers to aid in the process to speed it along. They think it can be performed a bit more efficiently with the extra help and request less scrap." — [[Lanius craftsmen]]
   // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
-  const aug = discount ? 35 : 45;
-  const weapon = discount ? 40 : 50;
-  const drone = discount ? 30 : 40;
-  const id = discount ? "s:lanius-craftsmen:help" : "s:lanius-craftsmen";
-  const choices = [
-    { id: `${id}:aug`, label: tx("wiki.filler-events.give-n-scrap-to-craft-an", { n: aug }) },
-    { id: `${id}:weapon`, label: tx("wiki.filler-events.give-n-scrap-to-craft-a", { n: weapon }) },
-    { id: `${id}:drone`, label: tx("wiki.filler-events.give-n-scrap-to-craft-a-2", { n: drone }) },
-    { id: "s:lanius-craftsmen:decline", label: tx("wiki.filler-events.decline-their-offer") },
-  ];
+  const prefix = discount ? "s:lanius-craftsmen:help" : "s:lanius-craftsmen";
+  const choices: { id: string; label: string }[] = [];
+  const offer = (suffix: "aug" | "weapon" | "drone", key: string) => {
+    const id = `${prefix}:${suffix}`;
+    const n = scrapStock(id);
+    if (n == null) return;
+    choices.push({ id, label: tx(key, { n }) });
+  };
+  offer("aug", "wiki.filler-events.give-n-scrap-to-craft-an");
+  offer("weapon", "wiki.filler-events.give-n-scrap-to-craft-a");
+  offer("drone", "wiki.filler-events.give-n-scrap-to-craft-a-2");
+  choices.push({ id: "s:lanius-craftsmen:decline", label: tx("wiki.filler-events.decline-their-offer") });
   if (!discount) choices.push({ id: "s:lanius-craftsmen:help", label: tx("wiki.filler-events.offer-to-help-in-the-process") });
   card(
     g,
@@ -1191,8 +1193,9 @@ function craftsmenMenu(g: Game, discount: boolean) {
 }
 
 /** Unnamed augmentation, weapon, or drone schematic. Rewards names the kind and not the item. */
-function craftItem(g: Game, cost: number, kind: "augment" | "weapon" | "drone", story: string) {
-  if (g.scrap < cost) return;
+function craftItem(g: Game, id: string, kind: "augment" | "weapon" | "drone", story: string) {
+  const cost = scrapStock(id);
+  if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   const spent = tx("wiki.filler-events.scrap-2", { n: cost });
   log(g, spent);
@@ -1881,7 +1884,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Scrap lost: 45" — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the augmentation. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content augmentation." — [[Lanius craftsmen]]
-    craftItem(g, 45, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
+    craftItem(g, "s:lanius-craftsmen:aug", "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
   },
   "s:lanius-craftsmen:weapon": (g) => {
     // Wiki citations:
@@ -1889,7 +1892,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Scrap lost: 50" — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the weapon. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content weapon." — [[Lanius craftsmen]]
-    craftItem(g, 50, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
+    craftItem(g, "s:lanius-craftsmen:weapon", "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
   },
   "s:lanius-craftsmen:drone": (g) => {
     // Wiki citations:
@@ -1897,7 +1900,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Scrap lost: 40" — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the schematic. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content drone schematic." — [[Lanius craftsmen]]
-    craftItem(g, 40, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
+    craftItem(g, "s:lanius-craftsmen:drone", "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
   },
   "s:lanius-craftsmen:help": (g) => {
     // Wiki citations:
@@ -1912,21 +1915,21 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the augmentation. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content augmentation." — [[Lanius craftsmen]]
-    craftItem(g, 35, "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
+    craftItem(g, "s:lanius-craftsmen:help:aug", "augment", tx("wiki.filler-events.you-transfer-over-the-scrap-and"));
   },
   "s:lanius-craftsmen:help:weapon": (g) => {
     // Wiki citations:
     // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the weapon. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content weapon." — [[Lanius craftsmen]]
-    craftItem(g, 40, "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
+    craftItem(g, "s:lanius-craftsmen:help:weapon", "weapon", tx("wiki.filler-events.you-transfer-over-the-scrap-and-2"));
   },
   "s:lanius-craftsmen:help:drone": (g) => {
     // Wiki citations:
     // > "Same options as above with a Ftlgame-scrap.png 10 discount." — [[Lanius craftsmen]]
     // > "You transfer over the scrap and watch the master craftsmen work. They easily reshape the metal into pieces they can use and then add various additional materials on their ship to construct the schematic. You thank them and load it onto your ship." — [[Lanius craftsmen]]
     // > "You receive an Advanced Edition Content drone schematic." — [[Lanius craftsmen]]
-    craftItem(g, 30, "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
+    craftItem(g, "s:lanius-craftsmen:help:drone", "drone", tx("wiki.filler-events.you-transfer-over-the-scrap-and-3"));
   },
   "s:lanius-craftsmen:decline": (g) => {
     // Wiki citations:

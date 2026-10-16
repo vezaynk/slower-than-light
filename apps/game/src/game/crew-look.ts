@@ -61,11 +61,11 @@ export function uniformOf(crew: Pick<Crew, "side" | "tone" | "uniform">) {
   return UNIFORMS[crew.tone % PLAYER_UNIFORMS];
 }
 
-const SYLLABLES = ["ka", "ren", "vo", "li", "mar", "tes", "an", "dru", "sel", "ko", "ny", "bel", "ta", "ri", "os"];
+export const NAME_SYLLABLES = ["ka", "ren", "vo", "li", "mar", "tes", "an", "dru", "sel", "ko", "ny", "bel", "ta", "ri", "os"];
 
 export function randomName(rand: () => number = Math.random) {
   const part = (n: number) =>
-    Array.from({ length: n }, () => SYLLABLES[Math.floor(rand() * SYLLABLES.length)]).join("");
+    Array.from({ length: n }, () => NAME_SYLLABLES[Math.floor(rand() * NAME_SYLLABLES.length)]).join("");
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return `${cap(part(1 + Math.floor(rand() * 2)))} ${cap(part(2))}`.slice(0, NAME_MAX);
 }

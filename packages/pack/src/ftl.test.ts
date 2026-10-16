@@ -152,6 +152,34 @@ describe("packFromFtl", () => {
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.slot, "sys");
     assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.slot, "kit");
     assert.equal(pack.systems?.find((row) => row.id === "artillery_ember")?.slot, "kit");
+    const tagged = packFromFtl([
+      {
+        path: "data/slot.xml",
+        xml: `<?xml version="1.0"?>
+<FTL>
+  <facts/>
+  <names>
+    <pool>Ada Voss</pool>
+    <syllable>ka</syllable>
+  </names>
+  <crewBlueprint name="plain">
+    <title>Human</title>
+    <desc>Health 100.</desc>
+  </crewBlueprint>
+  <systemBlueprint name="veil">
+    <title>Cloak</title>
+    <desc>Installs as a kit.</desc>
+    <slot>kit</slot>
+  </systemBlueprint>
+</FTL>`,
+      },
+    ]);
+    assert.equal(tagged.facts, true);
+    assert.deepEqual(tagged.names, { pool: ["Ada Voss"], syllables: ["ka"] });
+    assert.equal(tagged.crew?.find((row) => row.id === "plain")?.name, "Human");
+    assert.equal(tagged.crew?.find((row) => row.id === "plain")?.detail, "Health 100.");
+    assert.equal(tagged.systems?.find((row) => row.id === "veil")?.slot, "kit");
+    assert.equal(tagged.systems?.find((row) => row.id === "veil")?.detail, "Installs as a kit.");
     assert.deepEqual(pack.tunes?.find((row) => row.id === "shields"), {
       id: "shields",
       start: 2,

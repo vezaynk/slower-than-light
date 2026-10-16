@@ -313,6 +313,25 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/totallynotftl:
+    dependencies:
+      '@stl/pack':
+        specifier: workspace:*
+        version: link:../pack
+      '@xmldom/xmldom':
+        specifier: ^0.9.12
+        version: 0.9.12
+    devDependencies:
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../ftldat
+      '@types/node':
+        specifier: ^22.16.5
+        version: 22.20.5
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
   packages/ui:
     devDependencies:
       '@types/react':

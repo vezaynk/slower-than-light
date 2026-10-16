@@ -9,6 +9,10 @@
       "dependsOn": ["parity", "^build"],
       "outputs": ["dist/**"]
     },
+    "@stl/game#build": {
+      "dependsOn": ["@stl/totallynotftl#generate", "^build"],
+      "outputs": ["dist/**", ".output/**"]
+    },
     "parity": {
       "outputs": ["public/parity.json"],
       "inputs": ["src/**", "../../apps/game/src/**", "../../packages/wiki-dump/**"]
@@ -23,6 +27,35 @@
         "!../../apps/game/src/game/**/*.test.ts",
         "../../packages/pack/src/**",
         "../../packages/pack/package.json"
+      ]
+    },
+    "@stl/totallynotftl#generate": {
+      "outputs": ["totallynotftl.dat"],
+      "inputs": [
+        "package.json",
+        "src/sources.ts",
+        "src/document.ts",
+        "src/archive.ts",
+        "src/generate.ts",
+        "../../apps/game/src/game/**/*.ts",
+        "!../../apps/game/src/game/**/*.test.ts",
+        "../../apps/game/src/i18n/**",
+        "../../packages/pack/src/**",
+        "../../packages/pack/package.json"
+      ]
+    },
+    "@stl/totallynotftl#test": {
+      "inputs": [
+        "package.json",
+        "src/**",
+        "totallynotftl.dat",
+        "../../apps/game/src/game/**/*.ts",
+        "!../../apps/game/src/game/**/*.test.ts",
+        "../../apps/game/src/i18n/**",
+        "../../packages/pack/src/**",
+        "../../packages/pack/package.json",
+        "../../packages/ftldat/src/**",
+        "../../packages/ftldat/package.json"
       ]
     },
     "@stl/campaign#test": {

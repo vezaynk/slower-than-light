@@ -30,7 +30,7 @@
       ]
     },
     "@stl/totallynotftl#generate": {
-      "outputs": ["totallynotftl.dat"],
+      "outputs": ["totallynotftl.xml", "totallynotftl.dat"],
       "inputs": [
         "package.json",
         "src/sources.ts",
@@ -48,6 +48,7 @@
       "inputs": [
         "package.json",
         "src/**",
+        "totallynotftl.xml",
         "totallynotftl.dat",
         "../../apps/game/src/game/**/*.ts",
         "!../../apps/game/src/game/**/*.test.ts",

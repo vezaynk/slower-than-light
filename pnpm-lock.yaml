@@ -315,6 +315,9 @@ importers:
 
   packages/totallynotftl:
     dependencies:
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../ftldat
       '@stl/pack':
         specifier: workspace:*
         version: link:../pack
@@ -322,9 +325,6 @@ importers:
         specifier: ^0.9.12
         version: 0.9.12
     devDependencies:
-      '@stl/ftldat':
-        specifier: workspace:*
-        version: link:../ftldat
       '@types/node':
         specifier: ^22.16.5
         version: 22.20.5

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parsePack } from "@stl/pack";
-import { extractFtlDat } from "./extract.ts";
+import { extractFtlDat, packFtlDat } from "./extract.ts";
 
 const HEADER_SIZE = 16;
 const ENTRY_SIZE = 20;
@@ -147,12 +147,41 @@ describe("extractFtlDat", () => {
   });
 
   it("rejects a file that is not a PKG archive", async () => {
-    await assert.rejects(extractFtlDat(Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)), /not a PKG archive/);
+    await assert.rejects(
+      extractFtlDat(Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
+      /not a PKG archive/,
+    );
   });
 
   it("rejects an entry whose inflated size does not match", async () => {
     const entry = await xmlEntry("data/blueprints.xml", WEAPON_XML, true);
     entry.unpacked = 4;
     await assert.rejects(extractFtlDat(packDat([entry])), /expected 4/);
+  });
+});
+
+describe("packFtlDat", () => {
+  it("packs xml documents and reads them back", async () => {
+    const documents = [
+      { path: "data/blueprints.xml", xml: WEAPON_XML },
+      { path: "data/names.xml", xml: NAMES_XML },
+    ];
+    const extracted = await extractFtlDat(packFtlDat(documents));
+    assert.deepEqual(extracted.documents, documents);
+    assert.equal(extracted.text.size, 0);
+    assert.equal(extracted.assets.size, 0);
+  });
+
+  it("rejects a path the reader could not return", () => {
+    assert.throws(() => packFtlDat([{ path: "data/caf\u00e9.xml", xml: "<FTL/>" }]), /not ASCII/);
+    assert.throws(() => packFtlDat([{ path: "", xml: "<FTL/>" }]), /empty/);
+    assert.throws(
+      () =>
+        packFtlDat([
+          { path: "data/a.xml", xml: "<FTL/>" },
+          { path: "data/a.xml", xml: "<FTL/>" },
+        ]),
+      /repeats/,
+    );
   });
 });

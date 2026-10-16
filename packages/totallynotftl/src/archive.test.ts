@@ -3,12 +3,18 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromFtl } from "@stl/pack";
-import { standInDat } from "./archive.ts";
+import { standInDat, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
-  it("rebuilds the committed archive and unpacks factual blueprints", async () => {
+  it("rebuilds the committed xml and archive", async () => {
+    const xml = await standInXml();
+    const goldenXml = readFileSync(new URL("../totallynotftl.xml", import.meta.url), "utf8");
+    assert.equal(xml, goldenXml);
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
+    assert.equal(extracted.documents.length, 1);
+    assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
+    assert.equal(extracted.documents[0]?.xml, goldenXml);
     assert.equal(extracted.assets.size, 0);
     const pack = packFromFtl(extracted.documents);
     assert.equal(pack.facts, true);

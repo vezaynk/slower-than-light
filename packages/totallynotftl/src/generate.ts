@@ -1,7 +1,8 @@
 import { writeFileSync } from "node:fs";
-import { standInDat } from "./archive.ts";
+import { standInDat, standInXml } from "./archive.ts";
 
-const target = new URL("../totallynotftl.dat", import.meta.url);
+const xml = await standInXml();
 const bytes = await standInDat();
-writeFileSync(target, bytes);
-console.log(`wrote ${bytes.byteLength} bytes`);
+writeFileSync(new URL("../totallynotftl.xml", import.meta.url), xml);
+writeFileSync(new URL("../totallynotftl.dat", import.meta.url), bytes);
+console.log(`wrote ${xml.length} xml chars, ${bytes.byteLength} dat bytes`);

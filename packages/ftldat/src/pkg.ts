@@ -30,7 +30,9 @@ export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
   const headerSize = view.getUint16(4, false);
   const entrySize = view.getUint16(6, false);
   if (headerSize !== HEADER_SIZE || entrySize !== ENTRY_SIZE) {
-    throw new Error(`ftl.dat header is ${headerSize}/${entrySize}, expected ${HEADER_SIZE}/${ENTRY_SIZE}`);
+    throw new Error(
+      `ftl.dat header is ${headerSize}/${entrySize}, expected ${HEADER_SIZE}/${ENTRY_SIZE}`,
+    );
   }
   const entryCount = view.getUint32(8, false);
   const pathsSize = view.getUint32(12, false);
@@ -51,7 +53,8 @@ export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
     if (seen.has(path)) throw new Error(`ftl.dat repeats ${path}`);
     seen.add(path);
     const size = view.getUint32(at + 12, false);
-    if (offset + size > bytes.byteLength) throw new Error(`ftl.dat entry ${path} runs past the end of the file`);
+    if (offset + size > bytes.byteLength)
+      throw new Error(`ftl.dat entry ${path} runs past the end of the file`);
     rows.push({
       path,
       offset,
@@ -66,11 +69,55 @@ export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
       const packed = bytes.subarray(row.offset, row.offset + row.size);
       const body = row.deflated ? await inflate(packed, row.path) : packed.slice();
       if (row.unpacked !== 0 && body.byteLength !== row.unpacked) {
-        throw new Error(`ftl.dat entry ${row.path} is ${body.byteLength} bytes, expected ${row.unpacked}`);
+        throw new Error(
+          `ftl.dat entry ${row.path} is ${body.byteLength} bytes, expected ${row.unpacked}`,
+        );
       }
       return { path: row.path, bytes: body };
     }),
   );
+}
+
+/** Writes an uncompressed FTL 1.6 PKG. Bit 24 of each path field stays clear. */
+export function writePkg(files: readonly PkgFile[]): Uint8Array {
+  let pathsSize = 0;
+  let bodySize = 0;
+  const seen = new Set<string>();
+  for (const file of files) {
+    if (file.path.length === 0) throw new Error("ftl.dat path is empty");
+    if (seen.has(file.path)) throw new Error(`ftl.dat repeats ${file.path}`);
+    seen.add(file.path);
+    for (let i = 0; i < file.path.length; i++) {
+      const code = file.path.charCodeAt(i);
+      if (code === 0 || code > 0x7f) throw new Error(`ftl.dat path is not ASCII: ${file.path}`);
+    }
+    pathsSize += file.path.length + 1;
+    bodySize += file.bytes.byteLength;
+  }
+  const dataStart = HEADER_SIZE + files.length * ENTRY_SIZE + pathsSize;
+  const out = new Uint8Array(dataStart + bodySize);
+  const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
+  out.set(SIGNATURE, 0);
+  view.setUint16(4, HEADER_SIZE, false);
+  view.setUint16(6, ENTRY_SIZE, false);
+  view.setUint32(8, files.length, false);
+  view.setUint32(12, pathsSize, false);
+  let pathAt = 0;
+  let dataAt = dataStart;
+  const pathTable = HEADER_SIZE + files.length * ENTRY_SIZE;
+  files.forEach((file, index) => {
+    const at = HEADER_SIZE + index * ENTRY_SIZE;
+    view.setUint32(at + 4, pathAt, false);
+    view.setUint32(at + 8, dataAt, false);
+    view.setUint32(at + 12, file.bytes.byteLength, false);
+    view.setUint32(at + 16, file.bytes.byteLength, false);
+    for (let i = 0; i < file.path.length; i++)
+      out[pathTable + pathAt + i] = file.path.charCodeAt(i);
+    pathAt += file.path.length + 1;
+    out.set(file.bytes, dataAt);
+    dataAt += file.bytes.byteLength;
+  });
+  return out;
 }
 
 function readAscii(region: Uint8Array, offset: number): string {
@@ -98,7 +145,9 @@ async function inflate(packed: Uint8Array, path: string): Promise<Uint8Array> {
     throw new Error("ftl.dat inflate needs DecompressionStream");
   }
   try {
-    const stream = new Blob([arrayBuffer(packed)]).stream().pipeThrough(new DecompressionStream("deflate"));
+    const stream = new Blob([arrayBuffer(packed)])
+      .stream()
+      .pipeThrough(new DecompressionStream("deflate"));
     return new Uint8Array(await new Response(stream).arrayBuffer());
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);

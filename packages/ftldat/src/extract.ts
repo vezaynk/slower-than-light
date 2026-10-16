@@ -1,4 +1,4 @@
-import { readPkg } from "./pkg.ts";
+import { readPkg, writePkg } from "./pkg.ts";
 
 const ASSET_TYPES: Record<string, string> = {
   png: "image/png",
@@ -32,6 +32,12 @@ export type FtlExtract = {
   assets: ReadonlyMap<string, Blob>;
 };
 
+/** Packs XML documents into an uncompressed FTL 1.6 `ftl.dat`. */
+export function packFtlDat(documents: readonly FtlDocument[]): Uint8Array {
+  const encoder = new TextEncoder();
+  return writePkg(documents.map((doc) => ({ path: doc.path, bytes: encoder.encode(doc.xml) })));
+}
+
 /** Reads one FTL 1.6 `ftl.dat` into pack XML documents and asset blobs. */
 export async function extractFtlDat(source: FtlDatSource): Promise<FtlExtract> {
   const files = await readPkg(await sourceBytes(source));
@@ -50,7 +56,10 @@ export async function extractFtlDat(source: FtlDatSource): Promise<FtlExtract> {
     }
     const copy = new ArrayBuffer(file.bytes.byteLength);
     new Uint8Array(copy).set(file.bytes);
-    assets.set(file.path, new Blob([copy], { type: ASSET_TYPES[kind] ?? "application/octet-stream" }));
+    assets.set(
+      file.path,
+      new Blob([copy], { type: ASSET_TYPES[kind] ?? "application/octet-stream" }),
+    );
   }
   return { documents, text, assets };
 }
@@ -58,7 +67,8 @@ export async function extractFtlDat(source: FtlDatSource): Promise<FtlExtract> {
 async function sourceBytes(source: FtlDatSource): Promise<Uint8Array> {
   if (source instanceof Uint8Array) return source;
   if (source instanceof ArrayBuffer) return new Uint8Array(source);
-  if (typeof Blob !== "undefined" && source instanceof Blob) return new Uint8Array(await source.arrayBuffer());
+  if (typeof Blob !== "undefined" && source instanceof Blob)
+    return new Uint8Array(await source.arrayBuffer());
   throw new Error("ftl.dat source must be bytes or a Blob");
 }
 

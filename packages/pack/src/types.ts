@@ -52,6 +52,10 @@ export type CrewDef = {
   lockdown: boolean;
   lockCooldown: number;
   fireRepairMultiplier: number;
+  /** Player-facing blurb from an archive crewBlueprint. Absent on a stats-only row. */
+  detail?: string;
+  /** Hire price from an archive crewBlueprint. Absent on a stats-only row. */
+  cost?: number;
 };
 
 /** A store listing. Effect code still switches on the campaign ids. */
@@ -72,12 +76,14 @@ export type DroneDef = {
 /** Where a purchased system is installed. Power and the starting level stay in the effect code. */
 export type SystemSlot = "sys" | "kit";
 
-/** A store listing for one single-price system. */
+/** A store listing for one single-price system. `detail` is the archive's factual line. */
 export type SystemDef = {
   id: string;
   name: string;
   cost: number;
   slot: SystemSlot;
+  /** Factual install line from the archive. Absent on a stats-only row. */
+  detail?: string;
 };
 
 /** A hangar layout letter. Room tiles stay in the layout tables. */
@@ -461,4 +467,11 @@ export type ContentPack = {
   events?: EventDef[];
   lists?: FillerListDef[];
   empties?: EmptyBeaconDef[];
+  /**
+   * The archive is the factual stand-in. Item text states numbers.
+   * A run can replace decision prose with outcomes.
+   */
+  facts?: boolean;
+  /** Crew name pool and the syllables the name generator joins. */
+  names?: { pool: string[]; syllables: string[] };
 };

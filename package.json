@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "wiki:dump": "pnpm --filter @stl/wiki-dump dump",
     "wiki:parity": "pnpm --filter @stl/wiki parity",
-    "campaign:xml": "turbo run generate --filter=@stl/campaign"
+    "campaign:xml": "turbo run generate --filter=@stl/campaign",
+    "totallynotftl:dat": "turbo run generate --filter=@stl/totallynotftl"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

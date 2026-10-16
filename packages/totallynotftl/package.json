@@ -1,0 +1,26 @@
+{
+  "name": "@stl/totallynotftl",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/archive.ts",
+    "./totallynotftl.xml": "./totallynotftl.xml",
+    "./totallynotftl.dat": "./totallynotftl.dat"
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types src/generate.ts",
+    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && ./node_modules/.bin/eslint packages/totallynotftl"
+  },
+  "dependencies": {
+    "@stl/ftldat": "workspace:*",
+    "@stl/pack": "workspace:*",
+    "@xmldom/xmldom": "^0.9.12",
+    "xml-formatter": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.7.0"
+  }
+}

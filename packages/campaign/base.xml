@@ -23,8 +23,9 @@
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A price tag is a band rolled onto a button when that card opens. The id names the button.
-  A fixed price does not roll. The handler still reads the amount from the choice id.
+  A price tag is a band the handler rolls at its existing call site. The id names the price.
+  A fixed price does not roll. A missing price omits that button and pays nothing.
+  A button that shows the amount still reads it from the choice id.
   A bribe tag is the scrap price named bribe.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
@@ -4515,6 +4516,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.</text>
+    <price id="offer" k="scrap" lo="5" hi="10"/>
     <choice name="c:refueling-platform:0">
       <text>Dock with the refueling platform.</text>
       <effect k="nothing"/>

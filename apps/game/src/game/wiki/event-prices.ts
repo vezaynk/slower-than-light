@@ -1,7 +1,7 @@
 /**
- * Bands rolled onto buttons when a card opens.
+ * Named price bands on a page.
  * A fixed band has the same ends and does not roll.
- * The handler still reads the amount from the choice id.
+ * The handler pays the rolled amount. A button that shows the amount reads it from the choice id.
  */
 import { eventDef } from "@stl/pack";
 import type { EventPrice } from "@stl/pack";
@@ -15,6 +15,9 @@ export const PRICE_BANDS: Record<string, EventPrice[]> = {
   "friendly-ship-out-of-fuel": [{ id: "give", k: "fuel", lo: 2, hi: 4 }],
   "no-fuel-drifting-debris": [{ id: "ransom", k: "scrap", lo: 25, hi: 40 }],
   "terraforming-scan": [{ id: "scan", k: "scrap", lo: 15, hi: 25 }],
+  // Rolled when the dock offer is accepted. The button does not print the amount.
+  // Scrap stock 5 on that button is only the floor.
+  "refueling-platform": [{ id: "offer", k: "scrap", lo: 5, hi: 10 }],
 };
 
 /** The packed band for this button, or null when the page rolls none. */

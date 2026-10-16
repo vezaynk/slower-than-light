@@ -40,7 +40,7 @@ import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { QUEST_LOCKS } from "./choice-reqs.ts";
-import { priced, rollPrice } from "./event-prices.ts";
+import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
@@ -882,6 +882,11 @@ const choiceWin = new WeakMap<Game, "shields" | "oxygen" | "weapons" | "hack">()
  */
 const rebelCrystalBones = new WeakMap<Game, true>();
 
+/** The dock offer is a scrap price. Scrap stock 5 on the button is only the floor. */
+function refuelOffer(): boolean {
+  return priceBand("refueling-platform", "offer")?.k === "scrap";
+}
+
 const CHOICES: Record<string, (g: Game) => void> = {
   // ---- Cited cards that open a quest branch ----
   // Slug comm tapping. "Ignore them." One printed result.
@@ -1601,14 +1606,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     pageFight(g, tx("wiki.quests.as-you-prepare-to-leave-the"), tx("wiki.quests.pirate-ship"), "refueling-platform");
   },
   // Refueling platform. "Dock with the refueling platform." Five printed results and no odds.
-  // INFERRED: equal, one of five. The offer's price is rolled on accept.
+  // INFERRED: equal, one of five. The offer's packed scrap price is rolled on accept.
   "c:refueling-platform:0": (g) => {
     const kind = pick(g, ["offer", "steal", "ignite", "staff", "ambush"] as const);
     if (kind === "offer") {
-      card(g, tx("wiki.quests.the-platform-makes-an-offer"), [
-        { id: "s:refuel-dock:accept", label: tx("wiki.quests.accept-it") },
-        { id: "s:refuel-dock:reject", label: tx("wiki.quests.reject-it") },
-      ]);
+      const choices = [{ id: "s:refuel-dock:reject", label: tx("wiki.quests.reject-it") }];
+      if (refuelOffer()) {
+        choices.unshift({ id: "s:refuel-dock:accept", label: tx("wiki.quests.accept-it") });
+      }
+      card(g, tx("wiki.quests.the-platform-makes-an-offer"), choices);
       return;
     }
     if (kind === "steal") {
@@ -1635,8 +1641,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
     refuelAmbush(g);
   },
   "s:refuel-dock:accept": (g) => {
-    const n = between(g, [5, 10]);
-    if (g.scrap < n) return;
+    if (!refuelOffer()) return;
+    const n = rollPrice("refueling-platform", "offer", (lo, hi) => between(g, [lo, hi]));
+    if (n == null || g.scrap < n) return;
     g.scrap -= n;
     g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
     log(g, tx("wiki.quests.scrap-3", { n: n }));

@@ -18,22 +18,28 @@
   Several text tags are the opening sentences. The first is the page body.
   An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
   The sim still picks one sentence when the card opens.
-  An offer tag is one row of the table that card rolls. The sim still picks the row and still rolls its bands.
-  Fuel rows name band high or pt2. Lanius rows name band base or better. A supply row can hold a 0-0 band.
+  An offer table is an eventList named trade, high, pt2, base, better, or supply.
+  Each row is a nameless event with one item_modify. The sim still picks the row and still rolls its bands.
+  A trade row spends a resource and gains a resource. A fuel row gains fuel, then spends parts, missiles, or scrap.
+  A Lanius row spends a resource and gains scrap. A supply row holds missiles, drone parts, and fuel. A band may be 0-0.
+  high and pt2 are the fuel lists. base and better are the Lanius lists.
   A roll tag is one entry of a list the card draws. A repeated hull is a heavier weight.
   A hull entry is a ship id. A label entry is a button sentence. A count entry is a number and its word.
   A card tag is one whole opening the page draws. The sim still draws one with between.
   The buttons on that opening stay handlers in code.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, effects, req locks, and an optional fuel gift.
-  A req is checked in order and its text is the refusal.
-  A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A price tag is a band the handler rolls at its existing call site. The id names the price.
+  A req is checked in order. Its text is the refusal. A system lock is req and lvl. A band lock also sets max_lvl.
+  A stock lock is a negative item_modify inside the req. Crew, augment, drone, and weapon locks name that blueprint.
+  A weapon family is an empty weapon tag and the req attribute.
+  A gift is the fuel the handler pays. On a page it sits inside the empty result. On a card it is a fuel item_modify.
+  A fixed gift has the same ends and does not roll.
+  A named price is a direct item_modify. The name is the price. The item is scrap or fuel.
   A fixed price does not roll. A missing price omits that button and pays nothing.
   A button that shows the amount still reads it from the choice id.
-  A band tag is a printed range the handler rolls at its existing call site.
+  Printed bands are item_modify rows inside a nameless eventList. The name is the row. Level is an item type.
   A fixed band does not roll. A missing band pays or grants nothing and does not roll.
-  An upgrade row is the same id with a scrap band and a level band.
+  An upgrade row uses the same name twice, once for scrap and once for level.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
   A fixed trade does not roll. The handler still reads the amount from the choice id.
@@ -43,8 +49,9 @@
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
   The sim still checks the hull and still hands that reward over.
-  An event list is page ids in draw order. unique means the page can appear once per sector.
+  An event list with page ids is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
+  A list with no page ids is an offer table or the printed bands.
   An empty beacon stores the sentences for a quiet jump and the sectors that use them.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
@@ -3392,7 +3399,7 @@
     </choice>
     <choice name="c:auto-ship-carrying-shield-virus:1">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Auto-ship"/>
     </choice>
   </event>
@@ -3626,7 +3633,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:crystalline-ship-messaging-about-rebels:2">
       <text>Accept the scrap but give them falsified flight plans.</text>
-      <req k="augment" id="falsebuoy">Needs Distraction Buoys</req>
+      <req><augment name="falsebuoy"/>Needs Distraction Buoys</req>
       <event/>
     </choice>
     <choice name="c:crystalline-ship-messaging-about-rebels:3">
@@ -3686,7 +3693,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:engi-smashed-ships:2">
       <text>Have your Engi crewmember hail the vessel and assess the damage.</text>
-      <req k="crew" id="shell">Needs an Engi crewmember</req>
+      <req><crewMember name="shell"/>Needs an Engi crewmember</req>
       <event>
         <text>Random resources with some scrap.</text>
       </event>
@@ -3898,7 +3905,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:lanius-ship-attacking-civilian-distress:2">
       <text>Have your crew admonish their captain.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event>
         <text>A Lanius crewmember starts a fight or powers the ship down.</text>
       </event>
@@ -3923,14 +3930,14 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:lanius-ship-in-rich-debris-field:3">
       <text>Engage the auto-pilot and safely harvest the debris.</text>
-      <req k="system" id="pilot" level="2">Needs level 2 Piloting</req>
+      <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event>
         <text>Improved Piloting at level 2 pays medium scrap with resources.</text>
       </event>
     </choice>
     <choice name="c:lanius-ship-in-rich-debris-field:4">
       <text>Engage the auto-pilot and safely harvest the debris.</text>
-      <req k="system" id="pilot" level="3">Needs level 3 Piloting</req>
+      <req req="pilot" lvl="3">Needs level 3 Piloting</req>
       <event>
         <text>Advanced Piloting at level 3 pays high scrap with resources.</text>
       </event>
@@ -3957,7 +3964,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:lanius-ship-salvager:2">
       <text>Request some scrap.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event>
         <text>A Lanius crewmember may receive medium scrap only, a scoff, or nothing.</text>
       </event>
@@ -3971,12 +3978,46 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.</text>
     <text>A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.</text>
     <text>You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.</text>
-    <offer k="lanius" band="base" res="fuel" cost="3-7" scrap="15-30"/>
-    <offer k="lanius" band="base" res="missiles" cost="3-7" scrap="20-40"/>
-    <offer k="lanius" band="base" res="parts" cost="3-7" scrap="20-40"/>
-    <offer k="lanius" band="better" res="fuel" cost="3-7" scrap="20-35"/>
-    <offer k="lanius" band="better" res="missiles" cost="3-7" scrap="25-50"/>
-    <offer k="lanius" band="better" res="parts" cost="3-7" scrap="25-50"/>
+    <eventList name="base">
+      <event>
+        <item_modify>
+          <item type="fuel" min="-7" max="-3"/>
+          <item type="scrap" min="15" max="30"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-7" max="-3"/>
+          <item type="scrap" min="20" max="40"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="drones" min="-7" max="-3"/>
+          <item type="scrap" min="20" max="40"/>
+        </item_modify>
+      </event>
+    </eventList>
+    <eventList name="better">
+      <event>
+        <item_modify>
+          <item type="fuel" min="-7" max="-3"/>
+          <item type="scrap" min="20" max="35"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-7" max="-3"/>
+          <item type="scrap" min="25" max="50"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="drones" min="-7" max="-3"/>
+          <item type="scrap" min="25" max="50"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:lanius-trader:0">
       <text>You lose 3-7 fuel and receive 15-30 scrap</text>
       <item_modify>
@@ -4016,9 +4057,26 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Lanius trader with translator</alias>
     <sector>Abandoned Sector</sector>
     <text/>
-    <offer k="lanius" band="base" res="fuel" cost="3-7" scrap="15-30"/>
-    <offer k="lanius" band="base" res="missiles" cost="3-7" scrap="20-40"/>
-    <offer k="lanius" band="base" res="parts" cost="3-7" scrap="20-40"/>
+    <eventList name="base">
+      <event>
+        <item_modify>
+          <item type="fuel" min="-7" max="-3"/>
+          <item type="scrap" min="15" max="30"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-7" max="-3"/>
+          <item type="scrap" min="20" max="40"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="drones" min="-7" max="-3"/>
+          <item type="scrap" min="20" max="40"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:lanius-trader-with-translator:0">
       <text>You lose 3-7 fuel and receive 15-30 scrap</text>
       <item_modify>
@@ -4064,7 +4122,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:legendary-thief-kazaaakplethkilik:1">
       <text>Attempt to hail him.</text>
-      <req k="crew" id="blade">Needs a Mantis crewmember</req>
+      <req><crewMember name="blade"/>Needs a Mantis crewmember</req>
       <ship hostile="true" load="Mantis ship"/>
     </choice>
   </event>
@@ -4141,10 +4199,13 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:no-fuel-engi-ship-repair:2">
       <text>Offer to help repair their hull.</text>
-      <req k="drone" id="hull">Needs a Hull Repair Drone</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
-      <gift k="fuel" lo="4" hi="6"/>
-      <event/>
+      <req><drone name="hull"/>Needs a Hull Repair Drone</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="6"/>
+        </item_modify>
+      </event>
     </choice>
   </event>
   <event name="no-fuel-mantis-fight" flag="cited:no-fuel-mantis-fight">
@@ -4347,12 +4408,38 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>A ship with conspicuous pirate markings is orbiting a nearby moon, broadcasting a simple message claiming to have equipment available for sale.</text>
-    <band id="low" k="scrap" lo="15" hi="20"/>
-    <band id="low" k="level" lo="2" hi="3"/>
-    <band id="mid" k="scrap" lo="25" hi="33"/>
-    <band id="mid" k="level" lo="4" hi="5"/>
-    <band id="high" k="scrap" lo="50" hi="65"/>
-    <band id="high" k="level" lo="6" hi="7"/>
+    <eventList>
+      <event>
+        <item_modify name="low">
+          <item type="scrap" min="15" max="20"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="low">
+          <item type="level" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="mid">
+          <item type="scrap" min="25" max="33"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="mid">
+          <item type="level" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="high">
+          <item type="scrap" min="50" max="65"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="high">
+          <item type="level" min="6" max="7"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:pirate-ship-selling-drones:0">
       <text>Buy some Drone parts</text>
       <item_modify>
@@ -4391,7 +4478,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-ship-selling-weapon:2">
       <text>Convince him to make it a better deal.</text>
-      <req k="system" id="leash" level="1">Needs Mind Control</req>
+      <req req="leash" lvl="1">Needs Mind Control</req>
       <event>
         <text>A declined deal, or a Pirate ship.</text>
       </event>
@@ -4412,7 +4499,9 @@ They apologize for their hasty response to your presence and spend some time ref
     <roll k="label">Shut down all non-vital systems and stay hidden.</roll>
     <roll k="label">Stay quiet and hope they don't notice you.</roll>
     <roll k="label">Stay out of their way and charge your FTL drive.</roll>
-    <price id="bribe" k="scrap" lo="10" hi="15"/>
+    <item_modify name="bribe">
+      <item type="scrap" min="10" max="15"/>
+    </item_modify>
     <choice name="c:rebel-checkpoint:0">
       <text>Fend for yourself, attack, and escape</text>
       <ship hostile="true" load="Rebel ship"/>
@@ -4607,7 +4696,9 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.</text>
-    <price id="offer" k="scrap" lo="5" hi="10"/>
+    <item_modify name="offer">
+      <item type="scrap" min="5" max="10"/>
+    </item_modify>
     <choice name="c:refueling-platform:0">
       <text>Dock with the refueling platform.</text>
       <event/>
@@ -4640,7 +4731,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A ship re-fueling station is stationed at this beacon. We can purchase fuel here.</text>
     <choice name="c:refueling-station:0">
       <text>Buy 6 Fuel for 12 Scrap</text>
-      <req k="stock" id="scrap" n="12">Need 12 scrap</req>
+      <req><item_modify><item type="scrap" min="-12" max="-12"/></item_modify>Need 12 scrap</req>
       <item_modify>
         <item type="scrap" min="-12" max="-12"/>
       </item_modify>
@@ -4650,7 +4741,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:refueling-station:1">
       <text>Buy 3 Fuel for 6 Scrap</text>
-      <req k="stock" id="scrap" n="6">Need 6 scrap</req>
+      <req><item_modify><item type="scrap" min="-6" max="-6"/></item_modify>Need 6 scrap</req>
       <item_modify>
         <item type="scrap" min="-6" max="-6"/>
       </item_modify>
@@ -4660,7 +4751,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:refueling-station:2">
       <text>Buy 1 Fuel for 2 Scrap</text>
-      <req k="stock" id="scrap" n="2">Need 2 scrap</req>
+      <req><item_modify><item type="scrap" min="-2" max="-2"/></item_modify>Need 2 scrap</req>
       <item_modify>
         <item type="scrap" min="-2" max="-2"/>
       </item_modify>
@@ -4849,7 +4940,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slaver-hostile:1">
       <text>Attempt to out-run the slaver ship.</text>
-      <req k="system" id="engines" level="6">Needs Engines level 6</req>
+      <req req="engines" lvl="6">Needs Engines level 6</req>
       <ship hostile="true" load="Pirate ship"/>
     </choice>
     <surrender chance="80" low="20" high="40">
@@ -4869,7 +4960,13 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. "Now, most gracioussss captain, you must join me please in a drink to our alliance!"</text>
-    <band id="trap" k="scrap" lo="25" hi="35"/>
+    <eventList>
+      <event>
+        <item_modify name="trap">
+          <item type="scrap" min="25" max="35"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:slug-drink:0">
       <text>Refuse</text>
       <ship hostile="true" load="Slug ship"/>
@@ -4903,7 +5000,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slug-hacker-choice:4">
       <text>Counter any hack attempt.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
   </event>
@@ -4920,7 +5017,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slug-hacker-doors:1">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
   </event>
@@ -4936,12 +5033,12 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slug-hacker-medical:1">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
     <choice name="c:slug-hacker-medical:2">
       <text>Try to squeeze some extra power to the system.</text>
-      <req k="system" id="medbay" level="2">Needs level 2 Medbay</req>
+      <req req="medbay" lvl="2">Needs level 2 Medbay</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
   </event>
@@ -4959,12 +5056,12 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slug-hacker-oxygen:1">
       <text>Try to squeeze some extra power to the system.</text>
-      <req k="system" id="oxygen" level="2">Needs level 2 Oxygen</req>
+      <req req="oxygen" lvl="2">Needs level 2 Oxygen</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:2">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Slug ship"/>
     </choice>
   </event>
@@ -5294,7 +5391,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:lanius-lone-ship:3">
       <text>Try to contact the ship.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event>
         <text>A Lanius crewmember opens a store.</text>
       </event>
@@ -5428,7 +5525,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-engine-hacker:1">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <ship hostile="true" load="Pirate ship"/>
     </choice>
   </event>
@@ -5675,7 +5772,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:rebel-fight-choice-in-nebula:2">
       <text>Cloak to stay hidden.</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
   </event>
@@ -5740,8 +5837,18 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Refueling platform garbled broadcast</alias>
     <sector>Abandoned Sector</sector>
     <text>You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message.</text>
-    <band id="sensors3" k="parts" lo="1" hi="3"/>
-    <band id="extra" k="fuel" lo="3" hi="5"/>
+    <eventList>
+      <event>
+        <item_modify name="sensors3">
+          <item type="drones" min="1" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="extra">
+          <item type="fuel" min="3" max="5"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refueling-platform-garbled-broadcast:0">
       <text>Hail the platform and attempt to communicate</text>
       <ship hostile="true" load="Lanius ship"/>
@@ -5770,12 +5877,12 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:remote-settlement:2">
       <text>Show the pirate how to intimidate settlers: burn their crops!</text>
-      <req k="weapon" id="firebeam">Needs a Fire Beam</req>
+      <req><weapon name="firebeam"/>Needs a Fire Beam</req>
       <effect k="tier" tier="high"/>
     </choice>
     <choice name="c:remote-settlement:3">
       <text>Show the pirate how to intimidate settlers: start fires in their crude dwellings.</text>
-      <req k="weapon" id="cask">Needs a Fire Bomb</req>
+      <req><weapon name="cask"/>Needs a Fire Bomb</req>
       <item_modify>
         <item type="missiles" min="-1" max="-1"/>
       </item_modify>
@@ -5908,10 +6015,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Despite the barren area, a trader has set up shop at this beacon. He presents his offer.</text>
     <text>The beacon at first glance seems home to a junk yard. Upon closer inspection, it reveals itself to be a ramshackle market. One trader has a deal that catches your eye.</text>
     <text>A pawn broker has set up shop at this obscure beacon. He might be offering something worth looking at.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:trade-resources:0">
       <text>Trade 1-2 drone parts for 5-10 fuel</text>
       <item_modify>
@@ -5964,10 +6093,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text/>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:trade-resources-in-nebula:0">
       <text>Trade 1-2 drone parts for 5-10 fuel</text>
       <item_modify>
@@ -6130,7 +6281,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:mantis-fight-choice:2">
       <text>Cloak to stay hidden.</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
   </event>
@@ -6299,10 +6450,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Refugee (Pirate)</alias>
     <sector>Pirate Controlled Sector</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-pirate:0">
       <text>Hail them.</text>
       <event>
@@ -6319,10 +6492,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Refugee distress (Pirate)</alias>
     <sector>Pirate Controlled Sector</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-distress-pirate:0">
       <text>Hail them.</text>
       <event>
@@ -6351,14 +6546,14 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:research-station-with-no-response:2">
       <text>Send your battle drone in to help.</text>
-      <req k="drone" id="antipersonnel">Needs an Anti-Personnel Drone</req>
+      <req><drone name="antipersonnel"/>Needs an Anti-Personnel Drone</req>
       <event>
         <text>Nothing, or medium scrap with resources.</text>
       </event>
     </choice>
     <choice name="c:research-station-with-no-response:3">
       <text>Run advanced life scans.</text>
-      <req k="augment" id="pulseeye">Needs a Lifeform Scanner</req>
+      <req><augment name="pulseeye"/>Needs a Lifeform Scanner</req>
       <event>
         <text>Medium scrap with resources, or nothing.</text>
       </event>
@@ -6415,12 +6610,12 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:mantis-ship-with-rock-body-parts:2">
       <text>Put your Rock crewmember on the comm.</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <ship hostile="true" load="Mantis ship"/>
     </choice>
     <choice name="c:mantis-ship-with-rock-body-parts:3">
       <text>Ram the bastards.</text>
-      <req k="augment" id="keel">Needs Rock Plating</req>
+      <req><augment name="keel"/>Needs Rock Plating</req>
       <ship hostile="true" load="Mantis ship"/>
     </choice>
   </event>
@@ -6569,7 +6764,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:disabled-rock-ship:2">
       <text>Check for lifeforms and keep a lookout for ships while looting the wreck.</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event>
         <text>Random scrap.</text>
       </event>
@@ -6581,8 +6776,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Rock Controlled Sector</sector>
     <sector>Rock Homeworlds</sector>
     <text>You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand.</text>
-    <price id="debt" k="scrap" lo="10" hi="15"/>
-    <price id="upgrade" k="scrap" lo="10" hi="15"/>
+    <item_modify name="debt">
+      <item type="scrap" min="10" max="15"/>
+    </item_modify>
+    <item_modify name="upgrade">
+      <item type="scrap" min="10" max="15"/>
+    </item_modify>
     <choice name="c:rock-and-slug-standoff:0">
       <text>Hail them to see what's wrong.</text>
       <event>
@@ -6618,15 +6817,15 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:mantis-ships-battle-for-rock-freighter:2">
       <text>Repair the Rock ship.</text>
-      <req k="drone" id="patch">Needs a Repair Drone</req>
+      <req><drone name="patch"/>Needs a Repair Drone</req>
       <event>
         <text>High scrap.</text>
       </event>
     </choice>
     <choice name="c:mantis-ships-battle-for-rock-freighter:3">
       <text>Repair their hull.</text>
-      <req k="drone" id="hull">Needs a Hull Repair Drone</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req><drone name="hull"/>Needs a Hull Repair Drone</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event>
         <text>A Mantis ship.</text>
       </event>
@@ -6647,7 +6846,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:rock-live-mine:1">
       <text>Reverse thrusters!</text>
-      <req k="system" id="engines" level="5">Needs Engines level 5</req>
+      <req req="engines" lvl="5">Needs Engines level 5</req>
       <event>
         <text>Nothing happens.</text>
       </event>
@@ -6834,17 +7033,17 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:rebel-fight-chance-in-nebula:2">
       <text>Try to track them as you move to engage.</text>
-      <req k="system" id="sensors" level="3">Needs Sensors level 3</req>
+      <req req="sensors" lvl="3">Needs Sensors level 3</req>
       <ship hostile="true" load="Rebel ship"/>
     </choice>
     <choice name="c:rebel-fight-chance-in-nebula:3">
       <text>Try to track them as you move to engage.</text>
-      <req k="augment" id="glass">Needs Long-Ranged Scanners</req>
+      <req><augment name="glass"/>Needs Long-Ranged Scanners</req>
       <ship hostile="true" load="Rebel ship"/>
     </choice>
     <choice name="c:rebel-fight-chance-in-nebula:4">
       <text>Use their life signatures to follow.</text>
-      <req k="augment" id="pulseeye">Needs a Lifeform Scanner</req>
+      <req><augment name="pulseeye"/>Needs a Lifeform Scanner</req>
       <ship hostile="true" load="Rebel ship"/>
     </choice>
   </event>
@@ -6856,7 +7055,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You detect life signs on a nearby moon - a lone Slug marooned on its surface. "Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum."</text>
     <choice name="c:slocknog:0">
       <text>Hire Slocknog.</text>
-      <req k="stock" id="scrap" n="55">Need 55 scrap</req>
+      <req><item_modify><item type="scrap" min="-55" max="-55"/></item_modify>Need 55 scrap</req>
       <event/>
     </choice>
     <choice name="c:slocknog:1">
@@ -6887,10 +7086,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-slug:0">
       <text>Hail them.</text>
       <event>
@@ -6908,10 +7129,32 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-distress-slug:0">
       <text>Hail them.</text>
       <event>
@@ -7122,7 +7365,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:boarders-humans-jammed-sensors:1">
       <text>Counter the remote hacking.</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <event/>
     </choice>
   </event>
@@ -7174,8 +7417,18 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: Slug fuel trader</title>
     <alias>No fuel: Slug fuel trader</alias>
     <text/>
-    <band id="theft" k="missiles" lo="2" hi="4"/>
-    <band id="theft" k="scrap" lo="20" hi="35"/>
+    <eventList>
+      <event>
+        <item_modify name="theft">
+          <item type="missiles" min="2" max="4"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="theft">
+          <item type="scrap" min="20" max="35"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:no-fuel-slug-fuel-trader:0">
       <text>Continue</text>
       <event/>
@@ -7185,7 +7438,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: drifting debris</title>
     <alias>No fuel: drifting debris</alias>
     <text/>
-    <price id="ransom" k="scrap" lo="25" hi="40"/>
+    <item_modify name="ransom">
+      <item type="scrap" min="25" max="40"/>
+    </item_modify>
     <choice name="c:no-fuel-drifting-debris:0">
       <text>Continue</text>
       <event/>
@@ -7200,12 +7455,46 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A nearby settlement sends a small ship in your direction. It keeps its distance and hails you, "We can give you fuel for a price. Just don't even think of doing anything rash. We've got a teleporter at our base and a squad ready to defend us."</text>
     <text>A large caravan of merchant ships jumps to a location near your position. Sensing an opportunity, one ship breaks off from the fleet to offer you an exchange.</text>
     <text>A modified YT-1300 freighter jumps to an area near your sector. Your gut tells you these people are smugglers, but they seem to be feeling altruistic and present an offer of assistance.</text>
-    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
+    <eventList name="high">
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="missiles" min="-4" max="-2"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="scrap" min="-25" max="-15"/>
+        </item_modify>
+      </event>
+    </eventList>
+    <eventList name="pt2">
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="missiles" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="7"/>
+          <item type="scrap" min="-12" max="-5"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:no-fuel-fuel-trader-distress-off:0">
       <text>Continue</text>
       <event/>
@@ -7219,12 +7508,46 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A ship arrives at the beacon. "We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade."</text>
     <text>A ship traveling near the beacon approaches your ship and hails you. "Out of fuel? This is a good opportunity for both of us... Care to trade?"</text>
     <text>A mercenary ship arrives at the beacon. "We have a bit of extra fuel we can give you... for a price."</text>
-    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
+    <eventList name="high">
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="missiles" min="-4" max="-2"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="scrap" min="-25" max="-15"/>
+        </item_modify>
+      </event>
+    </eventList>
+    <eventList name="pt2">
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="missiles" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="7"/>
+          <item type="scrap" min="-12" max="-5"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:no-fuel-fuel-trader-distress-on:0">
       <text>Continue</text>
       <event/>
@@ -7234,12 +7557,46 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: prepare to dock</title>
     <alias>No fuel: prepare to dock</alias>
     <text/>
-    <offer k="fuel" band="high" fuel="2-4" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="missiles" amt="2-4"/>
-    <offer k="fuel" band="high" fuel="2-5" pay="scrap" amt="15-25"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="parts" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="4-7" pay="missiles" amt="1-2"/>
-    <offer k="fuel" band="pt2" fuel="3-7" pay="scrap" amt="5-12"/>
+    <eventList name="high">
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="missiles" min="-4" max="-2"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+          <item type="scrap" min="-25" max="-15"/>
+        </item_modify>
+      </event>
+    </eventList>
+    <eventList name="pt2">
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="drones" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="4" max="7"/>
+          <item type="missiles" min="-2" max="-1"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="7"/>
+          <item type="scrap" min="-12" max="-5"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:no-fuel-prepare-to-dock:0">
       <text>Continue</text>
       <event/>
@@ -7259,12 +7616,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, its hull looks damaged — it is in bad need of scrap and is willing to trade fuel for it.</text>
       <choice name="c:no-fuel-refugee-trading:trade">
         <text>Trade 10 scrap for 3 fuel.</text>
-        <req k="stock" id="scrap" n="10">Need 10 scrap</req>
-        <gift k="fuel" lo="3" hi="3"/>
+        <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
+        <item_modify>
+          <item type="fuel" min="3" max="3"/>
+        </item_modify>
       </choice>
       <choice name="c:no-fuel-refugee-trading:engi">
         <text>Negotiate a better trade.</text>
-        <req k="crew" id="shell">Needs an Engi crewmember</req>
+        <req><crewMember name="shell"/>Needs an Engi crewmember</req>
       </choice>
       <choice name="c:no-fuel-refugee-trading:refuse">
         <text>Refuse their offer.</text>
@@ -7277,8 +7636,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is in bad need of armaments and is willing to trade for them.</text>
       <choice name="c:no-fuel-refugee-trading:missiles">
         <text>Offer some missiles for fuel.</text>
-        <req k="stock" id="missiles" n="1">Need 1 missiles</req>
-        <gift k="fuel" lo="5" hi="7"/>
+        <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
+        <item_modify>
+          <item type="fuel" min="5" max="7"/>
+        </item_modify>
       </choice>
       <choice name="c:no-fuel-refugee-trading:arm-no">
         <text>Refuse their offer.</text>
@@ -7310,7 +7671,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:dense-asteroid-field-distress:2">
       <text>Make a thorough search for the ship without fear of stray asteroids.</text>
-      <req k="augment" id="keel">Needs Rock Plating</req>
+      <req><augment name="keel"/>Needs Rock Plating</req>
       <event>
         <text>The remains.</text>
       </event>
@@ -7350,14 +7711,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:lanius-ship-absorbing-jump-beacon:2">
       <text>(Lanius Crew) Ask if they require assistance.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event>
         <text>Nothing happens.</text>
       </event>
     </choice>
     <choice name="c:lanius-ship-absorbing-jump-beacon:3">
       <text>(Hull Repair Drone) Send a drone to help.</text>
-      <req k="drone" id="hull">Needs a Hull Repair Drone</req>
+      <req><drone name="hull"/>Needs a Hull Repair Drone</req>
       <event>
         <text>A Lanius crewmember.</text>
       </event>
@@ -7382,7 +7743,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:lanius-ship-absorbing-rebel-base:2">
       <text>Try to use them to delay the Rebels.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event>
         <text>Medium scrap and a fleet delay.</text>
       </event>
@@ -7485,10 +7846,32 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-zoltan:0">
       <text>Hail them.</text>
       <event>
@@ -7506,10 +7889,32 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-distress-zoltan:0">
       <text>Hail them.</text>
       <event>
@@ -7547,7 +7952,13 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <alias>Destroyed Cargo Ship</alias>
     <sector>Pirate Controlled Sector</sector>
     <text>Not too far from the beacon, you detect a destroyed cargo ship with its cargo scattered nearby, intact.</text>
-    <band id="scan" k="scrap" lo="20" hi="35"/>
+    <eventList>
+      <event>
+        <item_modify name="scan">
+          <item type="scrap" min="20" max="35"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:destroyed-cargo-ship:0">
       <text>Bring it aboard.</text>
       <ship hostile="true" load="Pirate ship"/>
@@ -7558,14 +7969,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:destroyed-cargo-ship:2">
       <text>Run an advanced scan on the boxes.</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event>
         <text>Scan the boxes.</text>
       </event>
     </choice>
     <choice name="c:destroyed-cargo-ship:3">
       <text>Run an advanced scan on the boxes.</text>
-      <req k="augment" id="glass">Needs Long-Ranged Scanners</req>
+      <req><augment name="glass"/>Needs Long-Ranged Scanners</req>
       <event>
         <text>Scan the boxes.</text>
       </event>
@@ -7694,7 +8105,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:engi-fleet-discussion:2">
       <text>Have your Engi crewmember contact them.</text>
-      <req k="crew" id="shell">Needs an Engi crewmember</req>
+      <req><crewMember name="shell"/>Needs an Engi crewmember</req>
       <event>
         <text>Two quest markers are added to your map.</text>
       </event>
@@ -7718,7 +8129,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:ancient-device:2">
       <text>Reactivate it.</text>
-      <req k="crew" id="shard">Needs a Crystal crewmember</req>
+      <req><crewMember name="shard"/>Needs a Crystal crewmember</req>
       <event>
         <text>The device opens a wormhole.</text>
       </event>
@@ -7794,14 +8205,14 @@ They finish: "Please, spread the word of enlightenment to those that have not he
     </choice>
     <choice name="c:zoltan-research-facility:2">
       <text>Give them your medical records.</text>
-      <req k="system" id="medbay" level="3">Needs Medbay level 3</req>
+      <req req="medbay" lvl="3">Needs Medbay level 3</req>
       <event>
         <text>They pay for the data.</text>
       </event>
     </choice>
     <choice name="c:zoltan-research-facility:3">
       <text>Ask if they can fix this.</text>
-      <req k="augment" id="stasis">Needs a Damaged Stasis Pod</req>
+      <req><augment name="stasis"/>Needs a Damaged Stasis Pod</req>
       <event>
         <text>"Interesting. I've never seen a cryogenic system like this. It appears to still be functioning..." They hook it up to their system and run a number of tests on it.
 
@@ -7826,15 +8237,15 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     </choice>
     <choice name="c:zoltan-trade-hub:1">
       <text>Beam directly to the civilian deck.</text>
-      <req k="system" id="sling" level="1">Needs a Teleporter</req>
+      <req req="sling" lvl="1">Needs a Teleporter</req>
       <event>
         <text>In the Zoltan hub.</text>
       </event>
     </choice>
     <choice name="c:zoltan-trade-hub:2">
       <text>Present his official documentation and pay the entry fee.</text>
-      <req k="crew" id="spark">Needs a Zoltan crewmember</req>
-      <req k="stock" id="scrap" n="10">Need 10 scrap</req>
+      <req><crewMember name="spark"/>Needs a Zoltan crewmember</req>
+      <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
       <item_modify>
         <item type="scrap" min="-10" max="-10"/>
       </item_modify>
@@ -7909,21 +8320,21 @@ Overhearing their conversation, it seems that they need to take possession of an
     </choice>
     <choice name="c:capture-the-ship:2">
       <text>Offer to board their ship.</text>
-      <req k="system" id="sling" level="1">Needs a Teleporter</req>
+      <req req="sling" lvl="1">Needs a Teleporter</req>
       <event>
         <text>They hear your offer.</text>
       </event>
     </choice>
     <choice name="c:capture-the-ship:3">
       <text>Offer to burn the crew out.</text>
-      <req k="weapon" id="cask">Needs a Fire Bomb</req>
+      <req><weapon name="cask"/>Needs a Fire Bomb</req>
       <event>
         <text>They hear your offer.</text>
       </event>
     </choice>
     <choice name="c:capture-the-ship:4">
       <text>Offer to 'remove' their crew.</text>
-      <req k="weapon" id="antibio">Needs an Anti-Bio Beam</req>
+      <req><weapon name="antibio"/>Needs an Anti-Bio Beam</req>
       <event>
         <text>They hear your offer.</text>
       </event>
@@ -7984,9 +8395,23 @@ Overhearing their conversation, it seems that they need to take possession of an
     <sector>Rebel Controlled Sector</sector>
     <sector>Rebel Stronghold</sector>
     <text>You arrive at a populated sector. One merchant seems to be mass-broadcasting a request for a mercenary ship to aid him. Shall we respond?</text>
-    <band id="paltry" k="scrap" lo="20" hi="30"/>
-    <band id="full" k="scrap" lo="40" hi="55"/>
-    <band id="weapons" k="scrap" lo="55" hi="70"/>
+    <eventList>
+      <event>
+        <item_modify name="paltry">
+          <item type="scrap" min="20" max="30"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="full">
+          <item type="scrap" min="40" max="55"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="weapons">
+          <item type="scrap" min="55" max="70"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:merchant-s-request:0">
       <text>Yes.</text>
       <event>
@@ -8007,7 +8432,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>This nebula looks like it's recently seen two ships exchange fire... with mutually-assured destructive results. Wreckage drifts by your screens and tumbles into the depths of the nebula to be lost to sight. It's hard to determine who the combatants were without closer investigation.</text>
     <choice name="c:nebula-wreckage:0">
       <text>Ask your Slug crew to scan for survivors.</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event>
         <text>Your Slug finds a survivor.</text>
       </event>
@@ -8038,7 +8463,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     </choice>
     <choice name="c:crystal-chat:crystal">
       <text>Have your crew speak to them.</text>
-      <req k="crew" id="shard">Needs a Crystal crewmember</req>
+      <req><crewMember name="shard"/>Needs a Crystal crewmember</req>
       <event/>
     </choice>
   </event>
@@ -8053,13 +8478,13 @@ Overhearing their conversation, it seems that they need to take possession of an
     </choice>
     <choice name="c:crystalline-cache:breach">
       <text>Use a breach missile.</text>
-      <req k="weapon" id="breachmissiles">Needs Breach Missiles</req>
-      <req k="stock" id="missiles" n="1">Need 1 missiles</req>
+      <req><weapon name="breachmissiles"/>Needs Breach Missiles</req>
+      <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
     <choice name="c:crystalline-cache:crystal">
       <text>Have your Crystalline Being recalibrate your weapons.</text>
-      <req k="crew" id="shard">Needs a Crystal crewmember</req>
+      <req><crewMember name="shard"/>Needs a Crystal crewmember</req>
       <event/>
     </choice>
   </event>
@@ -8092,12 +8517,12 @@ Overhearing their conversation, it seems that they need to take possession of an
     </choice>
     <choice name="c:crystalline-research-facility:rock">
       <text>Send your Rockman crew.</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
     <choice name="c:crystalline-research-facility:dna">
       <text>Send your crew's data.</text>
-      <req k="augment" id="dna">Needs a Backup DNA Bank</req>
+      <req><augment name="dna"/>Needs a Backup DNA Bank</req>
       <event/>
     </choice>
   </event>
@@ -8117,12 +8542,12 @@ Overhearing their conversation, it seems that they need to take possession of an
     </choice>
     <choice name="c:engi-research-station:sensors">
       <text>Run another scan.</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event/>
     </choice>
     <choice name="c:engi-research-station:scanners">
       <text>Run another scan.</text>
-      <req k="augment" id="glass">Needs Long-Ranged Scanners</req>
+      <req><augment name="glass"/>Needs Long-Ranged Scanners</req>
       <event/>
     </choice>
   </event>
@@ -8196,7 +8621,7 @@ The current sector map is revealed.</text>
     </choice>
     <choice name="c:lanius-with-federation-science-craft:lanius">
       <text>Offer to copy your translator's data suite.</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
     <choice name="c:lanius-with-federation-science-craft:leave">
@@ -8248,7 +8673,7 @@ The current sector map is revealed.</text>
     </choice>
     <choice name="c:slug-oxygen-malfunction:mantis">
       <text>Have your Mantis oversee the repairs.</text>
-      <req k="crew" id="blade">Needs a Mantis crewmember</req>
+      <req><crewMember name="blade"/>Needs a Mantis crewmember</req>
       <event/>
     </choice>
   </event>
@@ -8559,7 +8984,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:large-asteroid-field:2">
       <text>Attempt to mine the asteroids.</text>
-      <req k="augment" id="hook">Needs a Scrap Recovery Arm</req>
+      <req><augment name="hook"/>Needs a Scrap Recovery Arm</req>
       <event>
         <text>High scrap.</text>
       </event>
@@ -8586,7 +9011,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:battlefield-wreckage:2">
       <text>Use your Sensors to scan the wreckage.</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
@@ -8630,12 +9055,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:rebel-fight-chance:2">
       <text>Perform a scan of the area.</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <ship hostile="true" load="Rebel ship"/>
     </choice>
     <choice name="c:rebel-fight-chance:3">
       <text>Pinpoint the Rebel's location.</text>
-      <req k="system" id="sensors" level="3">Needs Sensors level 3</req>
+      <req req="sensors" lvl="3">Needs Sensors level 3</req>
       <ship hostile="true" load="Rebel ship"/>
     </choice>
   </event>
@@ -8648,10 +9073,32 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee:0">
       <text>Hail them.</text>
       <ship hostile="true" load="Pirate ship"/>
@@ -8705,7 +9152,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>You receive a hail from a station orbiting a nearby planet. "Captain, we are Federation Terraforming Team C12 and are in need of assistance. Do you have some time?"</text>
-    <price id="scan" k="scrap" lo="15" hi="25"/>
+    <item_modify name="scan">
+      <item type="scrap" min="15" max="25"/>
+    </item_modify>
     <choice name="c:terraforming-scan:0">
       <text>You offer your assistance.</text>
       <event>
@@ -8759,12 +9208,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:nebula-lost-ship:2">
       <text>Lock onto their life-signs with your teleporter.</text>
-      <req k="system" id="sling" level="1">Needs a Teleporter</req>
+      <req req="sling" lvl="1">Needs a Teleporter</req>
       <event/>
     </choice>
     <choice name="c:nebula-lost-ship:3">
       <text>Pump extra power into your sensors and try to track them.</text>
-      <req k="augment" id="glass">Needs Long-Ranged Scanners</req>
+      <req><augment name="glass"/>Needs Long-Ranged Scanners</req>
       <event/>
     </choice>
   </event>
@@ -8790,7 +9239,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:plasma-storm-incapacitated-ships:2">
       <text>Have your pilot carefully explore the debris.</text>
-      <req k="system" id="pilot" level="2">Needs level 2 Piloting</req>
+      <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event/>
     </choice>
   </event>
@@ -8813,7 +9262,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>"Greetings! It is so good to see you! We've been out of fuel and floating out here for weeks. We were terrified a pirate or those damn Rebels would find us first. Could you spare some fuel?"</text>
-    <price id="give" k="fuel" lo="2" hi="4"/>
+    <item_modify name="give">
+      <item type="fuel" min="2" max="4"/>
+    </item_modify>
     <choice name="c:friendly-ship-out-of-fuel:0">
       <text>Give them the fuel.</text>
       <item_modify>
@@ -8834,10 +9285,32 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Pirate Controlled Sector</sector>
     <sector>Uncharted Nebula</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
-    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
-    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
-    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
-    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="drones" min="-2" max="-1"/>
+          <item type="fuel" min="5" max="10"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="fuel" min="-2" max="-1"/>
+          <item type="missiles" min="4" max="5"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-3" max="-2"/>
+          <item type="drones" min="2" max="3"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="-4" max="-2"/>
+          <item type="fuel" min="4" max="10"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:refugee-distress:0">
       <text>Hail them.</text>
       <ship hostile="true" load="Pirate ship"/>
@@ -8920,23 +9393,33 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Slug Home Nebula</sector>
     <sector>Uncharted Nebula</sector>
     <text>You come across an asteroid mining colony. They message you immediately, saying, "Greetings. Our supplies of mining explosives have run out ever since the Rebels blockaded this system. Do you have any extra explosives?"</text>
-    <band id="thanks" k="scrap" lo="15" hi="25"/>
-    <band id="wow" k="scrap" lo="30" hi="40"/>
+    <eventList>
+      <event>
+        <item_modify name="thanks">
+          <item type="scrap" min="15" max="25"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify name="wow">
+          <item type="scrap" min="30" max="40"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:asteroid-mining-colony:0">
       <text>Offer to solve their problem by launching a missile.</text>
-      <req k="family" id="missile">Needs a missile weapon</req>
+      <req req="missile"><weapon/>Needs a missile weapon</req>
       <event/>
     </choice>
     <choice name="c:asteroid-mining-colony:1">
       <text>Give them the requested 5 missiles.</text>
-      <req k="stock" id="missiles" n="5">Need 5 missiles</req>
+      <req><item_modify><item type="missiles" min="-5" max="-5"/></item_modify>Need 5 missiles</req>
       <item_modify>
         <item type="missiles" min="-5" max="-5"/>
       </item_modify>
     </choice>
     <choice name="c:asteroid-mining-colony:2">
       <text>Give them 15 missiles.</text>
-      <req k="stock" id="missiles" n="15">Need 15 missiles</req>
+      <req><item_modify><item type="missiles" min="-15" max="-15"/></item_modify>Need 15 missiles</req>
       <item_modify>
         <item type="missiles" min="-15" max="-15"/>
       </item_modify>
@@ -8965,9 +9448,29 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
     <text>"You look like a military vessel. We're trying to get back to our homes alive. I'm an engineer by trade and could try to improve your reactor if you have any extra supplies."</text>
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
-    <offer k="supply" missiles="3-5" parts="0-2" fuel="0-0"/>
-    <offer k="supply" missiles="0-2" parts="2-3" fuel="0-0"/>
-    <offer k="supply" missiles="0-2" parts="0-2" fuel="2-3"/>
+    <eventList name="supply">
+      <event>
+        <item_modify>
+          <item type="missiles" min="3" max="5"/>
+          <item type="drones" min="0" max="2"/>
+          <item type="fuel" min="0" max="0"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="0" max="2"/>
+          <item type="drones" min="2" max="3"/>
+          <item type="fuel" min="0" max="0"/>
+        </item_modify>
+      </event>
+      <event>
+        <item_modify>
+          <item type="missiles" min="0" max="2"/>
+          <item type="drones" min="0" max="2"/>
+          <item type="fuel" min="2" max="3"/>
+        </item_modify>
+      </event>
+    </eventList>
     <choice name="c:improve-reactor-for-supplies:0">
       <text>Agree to the trade.</text>
       <event>
@@ -9004,21 +9507,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:giant-alien-spiders:2">
       <text>Send your battle drone in to help.</text>
-      <req k="drone" id="personnel">Needs an Anti-Personnel Drone</req>
+      <req><drone name="personnel"/>Needs an Anti-Personnel Drone</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
     <choice name="c:giant-alien-spiders:3">
       <text>Launch a Boarding drone into the station.</text>
-      <req k="drone" id="board">Needs a Boarding Drone</req>
+      <req><drone name="board"/>Needs a Boarding Drone</req>
       <event>
         <text>Low scrap with resources.</text>
       </event>
     </choice>
     <choice name="c:giant-alien-spiders:4">
       <text>Use the beam to pick off the spiders.</text>
-      <req k="weapon" id="antibio">Needs an Anti-Bio Beam</req>
+      <req><weapon name="antibio"/>Needs an Anti-Bio Beam</req>
       <event>
         <text>High resources with some scrap.</text>
       </event>
@@ -9051,14 +9554,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:crushed-pirate:2">
       <text>Carefully cut the ship out.</text>
-      <req k="family" id="beam">Needs a beam weapon</req>
+      <req req="beam"><weapon/>Needs a beam weapon</req>
       <event>
         <text>Medium scrap with resources.</text>
       </event>
     </choice>
     <choice name="c:crushed-pirate:3">
       <text>Have your drone cut the ship out.</text>
-      <req k="drone" id="beam">Needs a beam drone</req>
+      <req><drone name="beam"/>Needs a beam drone</req>
       <event>
         <text>Medium scrap with resources.</text>
       </event>
@@ -9087,21 +9590,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:unknown-disease-on-mining-colony:2">
       <text>Send your Rock crew-member to prevent a riot.</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
     <choice name="c:unknown-disease-on-mining-colony:3">
       <text>Send your Engi to calm down the infected.</text>
-      <req k="crew" id="shell">Needs an Engi crewmember</req>
+      <req><crewMember name="shell"/>Needs an Engi crewmember</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
     <choice name="c:unknown-disease-on-mining-colony:4">
       <text>Use your medbay to help synthesize a cure.</text>
-      <req k="system" id="medbay" level="2">Needs a level 2 Medbay</req>
+      <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event>
         <text>Medium resources, or high scrap.</text>
       </event>
@@ -9141,14 +9644,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:fire-on-research-station:3">
       <text>Send your Rock crew-member in.</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <event>
         <text>High scrap and a random augmentation.</text>
       </event>
     </choice>
     <choice name="c:fire-on-research-station:4">
       <text>Send your repair drone into the fire.</text>
-      <req k="drone" id="patch">Needs a Repair Drone</req>
+      <req><drone name="patch"/>Needs a Repair Drone</req>
       <event>
         <text>High scrap and a random drone schematic.</text>
       </event>
@@ -9233,483 +9736,519 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text/>
     <choice name="c:malfunctioning-defense-system:3">
       <text>c:malfunctioning-defense-system:3</text>
-      <req k="family" id="ion">Needs an ion weapon</req>
+      <req req="ion"><weapon/>Needs an ion weapon</req>
       <event/>
     </choice>
     <choice name="c:malfunctioning-defense-system:4">
       <text>c:malfunctioning-defense-system:4</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
     <choice name="c:malfunctioning-defense-system:5">
       <text>c:malfunctioning-defense-system:5</text>
-      <req k="system" id="veil" level="2">Needs Improved Cloaking</req>
+      <req req="veil" lvl="2">Needs Improved Cloaking</req>
       <event/>
     </choice>
     <choice name="c:malfunctioning-defense-system:6">
       <text>c:malfunctioning-defense-system:6</text>
-      <req k="system" id="veil" level="3">Needs Advanced Cloaking</req>
+      <req req="veil" lvl="3">Needs Advanced Cloaking</req>
       <event/>
     </choice>
     <choice name="c:malfunctioning-defense-system:7">
       <text>c:malfunctioning-defense-system:7</text>
-      <req k="crew" id="shell">Needs an Engi crewmember</req>
+      <req><crewMember name="shell"/>Needs an Engi crewmember</req>
       <event/>
     </choice>
     <choice name="s:plagued-station:cure">
       <text>s:plagued-station:cure</text>
-      <req k="system" id="medbay" level="2">Needs a level 2 Medbay</req>
+      <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
     <choice name="s:unknown-disease:medbot">
       <text>s:unknown-disease:medbot</text>
-      <req k="augment" id="medbot">Needs Engi Med-bot Dispersal</req>
+      <req><augment name="medbot"/>Needs Engi Med-bot Dispersal</req>
       <event/>
     </choice>
     <choice name="s:moon:medbay2">
       <text>s:moon:medbay2</text>
-      <req k="system" id="medbay" level="2">Needs a level 2 Medbay</req>
+      <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
     <choice name="s:moon:collapse-medbay">
       <text>s:moon:collapse-medbay</text>
-      <req k="system" id="medbay" level="2">Needs a level 2 Medbay</req>
+      <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
     <choice name="s:moon:medbay3">
       <text>s:moon:medbay3</text>
-      <req k="system" id="medbay" level="3">Needs a level 3 Medbay</req>
+      <req req="medbay" lvl="3">Needs a level 3 Medbay</req>
       <event/>
     </choice>
     <choice name="s:moon:collapse-clone">
       <text>s:moon:collapse-clone</text>
-      <req k="system" id="cradle" level="2">Needs a level 2 Clone Bay</req>
+      <req req="cradle" lvl="2">Needs a level 2 Clone Bay</req>
       <event/>
     </choice>
     <choice name="s:moon:slug">
       <text>s:moon:slug</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
     <choice name="s:confused-mantis:human">
       <text>s:confused-mantis:human</text>
-      <req k="crew" id="plain">Needs a Human crewmember</req>
+      <req><crewMember name="plain"/>Needs a Human crewmember</req>
       <event/>
     </choice>
     <choice name="s:confused-mantis:mantis">
       <text>s:confused-mantis:mantis</text>
-      <req k="crew" id="blade">Needs a Mantis crewmember</req>
+      <req><crewMember name="blade"/>Needs a Mantis crewmember</req>
       <event/>
     </choice>
     <choice name="s:confused-mantis:mind">
       <text>s:confused-mantis:mind</text>
-      <req k="system" id="leash" level="1">Needs Mind Control</req>
+      <req req="leash" lvl="1">Needs Mind Control</req>
       <event/>
     </choice>
     <choice name="s:rock-mine:missile">
       <text>s:rock-mine:missile</text>
-      <req k="family" id="missile">Needs a missile weapon</req>
+      <req req="missile"><weapon/>Needs a missile weapon</req>
       <event/>
     </choice>
     <choice name="s:rock-mine:beam">
       <text>s:rock-mine:beam</text>
-      <req k="drone" id="mine">Needs a Beam Drone</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req><drone name="mine"/>Needs a Beam Drone</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:help">
       <text>s:lanius-craftsmen:help</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:aug">
       <text>s:lanius-craftsmen:aug</text>
-      <req k="stock" id="scrap" n="45">Need 45 scrap</req>
+      <req><item_modify><item type="scrap" min="-45" max="-45"/></item_modify>Need 45 scrap</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:weapon">
       <text>s:lanius-craftsmen:weapon</text>
-      <req k="stock" id="scrap" n="50">Need 50 scrap</req>
+      <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:drone">
       <text>s:lanius-craftsmen:drone</text>
-      <req k="stock" id="scrap" n="40">Need 40 scrap</req>
+      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:help:aug">
       <text>s:lanius-craftsmen:help:aug</text>
-      <req k="stock" id="scrap" n="35">Need 35 scrap</req>
+      <req><item_modify><item type="scrap" min="-35" max="-35"/></item_modify>Need 35 scrap</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:help:weapon">
       <text>s:lanius-craftsmen:help:weapon</text>
-      <req k="stock" id="scrap" n="40">Need 40 scrap</req>
+      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
     <choice name="s:lanius-craftsmen:help:drone">
       <text>s:lanius-craftsmen:help:drone</text>
-      <req k="stock" id="scrap" n="30">Need 30 scrap</req>
+      <req><item_modify><item type="scrap" min="-30" max="-30"/></item_modify>Need 30 scrap</req>
       <event/>
     </choice>
     <choice name="s:abandoned-station:dna">
       <text>s:abandoned-station:dna</text>
-      <req k="system" id="cradle" level="1">Needs a Clone Bay</req>
+      <req req="cradle" lvl="1">Needs a Clone Bay</req>
       <event/>
     </choice>
     <choice name="s:terraforming-scan:sensors">
       <text>s:terraforming-scan:sensors</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event/>
     </choice>
     <choice name="s:terraforming-scan:zoltan">
       <text>s:terraforming-scan:zoltan</text>
-      <req k="crew" id="spark">Needs a Zoltan crewmember</req>
+      <req><crewMember name="spark"/>Needs a Zoltan crewmember</req>
       <event/>
     </choice>
     <choice name="c:crystalline-cache:teleport">
       <text>c:crystalline-cache:teleport</text>
-      <req k="system" id="sling" level="2">Needs a Teleporter level 2</req>
+      <req req="sling" lvl="2">Needs a Teleporter level 2</req>
       <event/>
     </choice>
     <choice name="c:crystalline-cache:engines">
       <text>c:crystalline-cache:engines</text>
-      <req k="system" id="engines" level="7">Needs Engines level 7</req>
+      <req req="engines" lvl="7">Needs Engines level 7</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-slug-fuel-trader:slug">
       <text>c:no-fuel-slug-fuel-trader:slug</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
-      <req k="stock" id="scrap" n="15">Need 15 scrap</req>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
+      <req><item_modify><item type="scrap" min="-15" max="-15"/></item_modify>Need 15 scrap</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:slug-store-ship:slug">
       <text>c:slug-store-ship:slug</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-drifting-debris:scan">
       <text>c:no-fuel-drifting-debris:scan</text>
-      <req k="augment" id="pulseeye">Needs a Lifeform Scanner</req>
+      <req><augment name="pulseeye"/>Needs a Lifeform Scanner</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:sensors">
       <text>c:no-fuel-prepare-to-dock:sensors</text>
-      <req k="system" id="sensors" level="3">Needs Sensors level 3</req>
+      <req req="sensors" lvl="3">Needs Sensors level 3</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:scanners">
       <text>c:no-fuel-prepare-to-dock:scanners</text>
-      <req k="augment" id="glass">Needs Long-Ranged Scanners</req>
+      <req><augment name="glass"/>Needs Long-Ranged Scanners</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:cloak">
       <text>c:no-fuel-prepare-to-dock:cloak</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
     <choice name="c:no-fuel-slug-fuel-trader:pay">
       <text>c:no-fuel-slug-fuel-trader:pay</text>
-      <req k="stock" id="scrap" n="15">Need 15 scrap</req>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <req><item_modify><item type="scrap" min="-15" max="-15"/></item_modify>Need 15 scrap</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-refugee-trading:better">
       <text>c:no-fuel-refugee-trading:better</text>
-      <req k="stock" id="scrap" n="10">Need 10 scrap</req>
-      <gift k="fuel" lo="6" hi="6"/>
-      <event/>
+      <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="6" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-refugee-trading:again">
       <text>c:no-fuel-refugee-trading:again</text>
-      <req k="stock" id="scrap" n="10">Need 10 scrap</req>
-      <gift k="fuel" lo="6" hi="6"/>
-      <event/>
+      <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="6" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:slug-repair-station:fuel">
       <text>c:slug-repair-station:fuel</text>
-      <req k="stock" id="fuel" n="15">Need 15 fuel</req>
+      <req><item_modify><item type="fuel" min="-15" max="-15"/></item_modify>Need 15 fuel</req>
       <event/>
     </choice>
     <choice name="c:slug-repair-station:scrap50">
       <text>c:slug-repair-station:scrap50</text>
-      <req k="stock" id="scrap" n="50">Need 50 scrap</req>
+      <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
     <choice name="c:slug-repair-station:accept50">
       <text>c:slug-repair-station:accept50</text>
-      <req k="stock" id="scrap" n="50">Need 50 scrap</req>
+      <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
     <choice name="c:zoltan-odd-moon:drone">
       <text>c:zoltan-odd-moon:drone</text>
-      <req k="drone" id="board">Needs a Boarding Drone</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req><drone name="board"/>Needs a Boarding Drone</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="c:lanius-trader:4">
       <text>c:lanius-trader:4</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
     <choice name="c:space-station-under-construction:2">
       <text>c:space-station-under-construction:2</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
     <choice name="q:lanius-dormant:plunder">
       <text>q:lanius-dormant:plunder</text>
-      <req k="crew" id="voidlung">Needs a Lanius crewmember</req>
+      <req><crewMember name="voidlung"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
     <choice name="q:lanius-dormant:autopilot">
       <text>q:lanius-dormant:autopilot</text>
-      <req k="system" id="pilot" level="2">Needs level 2 Piloting</req>
+      <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event/>
     </choice>
     <choice name="q:lanius-translator:buy">
       <text>q:lanius-translator:buy</text>
-      <req k="stock" id="scrap" n="40">Need 40 scrap</req>
+      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-sensor-station:2">
       <text>c:auto-ship-near-sensor-station:2</text>
-      <req k="system" id="sensors" level="3">Needs level 3 Sensors</req>
+      <req req="sensors" lvl="3">Needs level 3 Sensors</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-sensor-station:3">
       <text>c:auto-ship-near-sensor-station:3</text>
-      <req k="system" id="sling" level="1">Needs a Teleporter</req>
+      <req req="sling" lvl="1">Needs a Teleporter</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-fight-in-plasma-storm:1">
       <text>c:auto-ship-fight-in-plasma-storm:1</text>
-      <req k="band" id="engines" lo="3" hi="5">Needs Engines level 3-5</req>
+      <req req="engines" lvl="3" max_lvl="5">Needs Engines level 3-5</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-fight-in-plasma-storm:2">
       <text>c:auto-ship-fight-in-plasma-storm:2</text>
-      <req k="system" id="engines" level="6">Needs level 6 Engines</req>
+      <req req="engines" lvl="6">Needs level 6 Engines</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-fight-in-plasma-storm:3">
       <text>c:auto-ship-fight-in-plasma-storm:3</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
     <choice name="c:deactivated-auto-ship:2">
       <text>c:deactivated-auto-ship:2</text>
-      <req k="system" id="sensors" level="3">Needs level 3 Sensors</req>
+      <req req="sensors" lvl="3">Needs level 3 Sensors</req>
       <event/>
     </choice>
     <choice name="c:rock-ship-in-plasma-storm:2">
       <text>c:rock-ship-in-plasma-storm:2</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
     <choice name="c:slug-drink:2">
       <text>c:slug-drink:2</text>
-      <req k="crew" id="stone">Needs a Rock crewmember</req>
+      <req><crewMember name="stone"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
     <choice name="c:escort-civilians-ftl-haywire:2">
       <text>c:escort-civilians-ftl-haywire:2</text>
-      <req k="augment" id="nav">Needs Adv. FTL Navigation</req>
+      <req><augment name="nav"/>Needs Adv. FTL Navigation</req>
       <event/>
     </choice>
     <choice name="c:zoltan-security-checkpoint:2">
       <text>c:zoltan-security-checkpoint:2</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
-      <gift k="fuel" lo="2" hi="4"/>
-      <event/>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:zoltan-security-checkpoint:3">
       <text>c:zoltan-security-checkpoint:3</text>
-      <req k="system" id="leash" level="1">Needs Mind Control</req>
-      <gift k="fuel" lo="2" hi="4"/>
-      <event/>
+      <req req="leash" lvl="1">Needs Mind Control</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian-distress:2">
       <text>c:pirate-ship-attacking-civilian-distress:2</text>
-      <req k="system" id="weapons" level="6">Needs level 6 Weapons</req>
+      <req req="weapons" lvl="6">Needs level 6 Weapons</req>
       <event/>
     </choice>
     <choice name="c:pirate-smuggler:2">
       <text>c:pirate-smuggler:2</text>
-      <req k="system" id="weapons" level="6">Needs level 6 Weapons</req>
+      <req req="weapons" lvl="6">Needs level 6 Weapons</req>
       <event/>
     </choice>
     <choice name="c:rock-atheists:2">
       <text>c:rock-atheists:2</text>
-      <req k="system" id="sensors" level="2">Needs level 2 Sensors</req>
+      <req req="sensors" lvl="2">Needs level 2 Sensors</req>
       <event/>
     </choice>
     <choice name="q:pirate-drones:slug">
       <text>q:pirate-drones:slug</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
     <choice name="q:pirate-drones:hack">
       <text>q:pirate-drones:hack</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
       <event/>
     </choice>
     <choice name="q:pirate-drones:upgrade">
       <text>q:pirate-drones:upgrade</text>
-      <req k="system" id="swarm" level="1">Needs Drone Control</req>
+      <req req="swarm" lvl="1">Needs Drone Control</req>
       <event/>
     </choice>
     <choice name="q:engi-distress:scrap">
       <text>q:engi-distress:scrap</text>
-      <req k="stock" id="scrap" n="25">Need 25 scrap</req>
+      <req><item_modify><item type="scrap" min="-25" max="-25"/></item_modify>Need 25 scrap</req>
       <event/>
     </choice>
     <choice name="q:engi-distress:supplies">
       <text>q:engi-distress:supplies</text>
-      <req k="stock" id="scrap" n="40">Need 40 scrap</req>
-      <req k="stock" id="missiles" n="2">Need 2 missiles</req>
-      <req k="stock" id="fuel" n="2">Need 2 fuel</req>
+      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
+      <req><item_modify><item type="missiles" min="-2" max="-2"/></item_modify>Need 2 missiles</req>
+      <req><item_modify><item type="fuel" min="-2" max="-2"/></item_modify>Need 2 fuel</req>
       <event/>
     </choice>
     <choice name="q:rebel-nebula:engines">
       <text>q:rebel-nebula:engines</text>
-      <req k="system" id="engines" level="4">Needs level 4 Engines</req>
+      <req req="engines" lvl="4">Needs level 4 Engines</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-storage-station:2">
       <text>c:auto-ship-near-storage-station:2</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-storage-station-in-nebula:2">
       <text>c:auto-ship-near-storage-station-in-nebula:2</text>
-      <req k="system" id="veil" level="1">Needs Cloaking</req>
+      <req req="veil" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-storage-station-in-nebula:3">
       <text>c:auto-ship-near-storage-station-in-nebula:3</text>
-      <req k="system" id="veil" level="2">Needs level 2 Cloaking</req>
+      <req req="veil" lvl="2">Needs level 2 Cloaking</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-storage-station-in-nebula:4">
       <text>c:auto-ship-near-storage-station-in-nebula:4</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-storage-station-in-nebula:5">
       <text>c:auto-ship-near-storage-station-in-nebula:5</text>
-      <req k="system" id="spike" level="2">Needs level 2 Hacking</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req req="spike" lvl="2">Needs level 2 Hacking</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-radar-station:2">
       <text>c:auto-ship-near-radar-station:2</text>
-      <req k="drone" id="radar">Needs a Combat Drone</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req><drone name="radar"/>Needs a Combat Drone</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="q:auto-radar:drone">
       <text>q:auto-radar:drone</text>
-      <req k="system" id="spike" level="1">Needs a Hacking system</req>
-      <req k="stock" id="parts" n="1">Need 1 drone part</req>
+      <req req="spike" lvl="1">Needs a Hacking system</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
     <choice name="s:the-black-raven:duel">
       <text>s:the-black-raven:duel</text>
-      <req k="crew" id="gel">Needs a Slug crewmember</req>
+      <req><crewMember name="gel"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
     <choice name="s:garbled-dock:doors">
       <text>s:garbled-dock:doors</text>
-      <req k="system" id="doors" level="2">Needs level 2 Door System</req>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <req req="doors" lvl="2">Needs level 2 Door System</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:garbled-dock:sensors2">
       <text>s:garbled-dock:sensors2</text>
-      <req k="system" id="sensors" level="2">Needs Sensors level 2</req>
-      <gift k="fuel" lo="1" hi="3"/>
-      <event/>
+      <req req="sensors" lvl="2">Needs Sensors level 2</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="1" max="3"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:garbled-dock:sensors3">
       <text>s:garbled-dock:sensors3</text>
-      <req k="system" id="sensors" level="3">Needs Sensors level 3</req>
-      <gift k="fuel" lo="2" hi="3"/>
-      <event/>
+      <req req="sensors" lvl="3">Needs Sensors level 3</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="3"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:refuel-dock:accept">
       <text>s:refuel-dock:accept</text>
-      <req k="stock" id="scrap" n="5">Need 5 scrap</req>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <req><item_modify><item type="scrap" min="-5" max="-5"/></item_modify>Need 5 scrap</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:zoltan-raft:hire">
       <text>s:zoltan-raft:hire</text>
-      <req k="stock" id="scrap" n="40">Need 40 scrap</req>
+      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
     <choice name="s:refuel-dock:doors">
       <text>s:refuel-dock:doors</text>
-      <req k="system" id="doors" level="2">Needs level 2 Door System</req>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <req req="doors" lvl="2">Needs level 2 Door System</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:war-camp:missile">
       <text>q:war-camp:missile</text>
-      <req k="stock" id="missiles" n="1">Need 1 missiles</req>
+      <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
     <choice name="q:loyalists:heal">
       <text>q:loyalists:heal</text>
-      <req k="stock" id="missiles" n="1">Need 1 missiles</req>
+      <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
     <choice name="q:war-camp:firebomb">
       <text>q:war-camp:firebomb</text>
-      <req k="stock" id="missiles" n="2">Need 2 missiles</req>
+      <req><item_modify><item type="missiles" min="-2" max="-2"/></item_modify>Need 2 missiles</req>
       <event/>
     </choice>
     <choice name="q:station:fuel4">
       <text>q:station:fuel4</text>
-      <req k="stock" id="fuel" n="4">Need 4 fuel</req>
+      <req><item_modify><item type="fuel" min="-4" max="-4"/></item_modify>Need 4 fuel</req>
       <event/>
     </choice>
     <choice name="q:station:fuel1">
       <text>q:station:fuel1</text>
-      <req k="stock" id="fuel" n="1">Need 1 fuel</req>
+      <req><item_modify><item type="fuel" min="-1" max="-1"/></item_modify>Need 1 fuel</req>
       <event/>
     </choice>
     <choice name="q:asteroid:defense">
       <text>q:asteroid:defense</text>
-      <req k="stock" id="parts" n="1">Need 1 drone parts</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone parts</req>
       <event/>
     </choice>
     <choice name="q:asteroid:repair">
       <text>q:asteroid:repair</text>
-      <req k="stock" id="parts" n="1">Need 1 drone parts</req>
+      <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone parts</req>
       <event/>
     </choice>
     <choice name="q:merchant:paltry">
       <text>q:merchant:paltry</text>
-      <req k="stock" id="parts" n="5">Need 5 drone parts</req>
+      <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
       <event/>
     </choice>
     <choice name="q:merchant:full">
       <text>q:merchant:full</text>
-      <req k="stock" id="parts" n="5">Need 5 drone parts</req>
+      <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
       <event/>
     </choice>
     <choice name="q:merchant:weapons">
       <text>q:merchant:weapons</text>
-      <req k="stock" id="parts" n="5">Need 5 drone parts</req>
-      <gift k="fuel" lo="2" hi="5"/>
-      <event/>
+      <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:research:drone">
       <text>q:research:drone</text>
-      <req k="drone" id="antipersonnel">Needs an Anti-Personnel Drone</req>
+      <req><drone name="antipersonnel"/>Needs an Anti-Personnel Drone</req>
       <event/>
     </choice>
   </event>
@@ -9718,78 +10257,123 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text/>
     <choice name="c:slug-store-ship:ok">
       <text>c:slug-store-ship:ok</text>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-fuel-trader-distress-off:pity">
       <text>c:no-fuel-fuel-trader-distress-off:pity</text>
-      <gift k="fuel" lo="1" hi="6"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="1" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-fuel-trader-distress-on:pity">
       <text>c:no-fuel-fuel-trader-distress-on:pity</text>
-      <gift k="fuel" lo="1" hi="6"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="1" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:pity">
       <text>c:no-fuel-prepare-to-dock:pity</text>
-      <gift k="fuel" lo="1" hi="6"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="1" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:accept">
       <text>c:no-fuel-prepare-to-dock:accept</text>
-      <gift k="fuel" lo="2" hi="6"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:distance">
       <text>c:no-fuel-prepare-to-dock:distance</text>
-      <gift k="fuel" lo="1" hi="4"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="1" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="c:no-fuel-prepare-to-dock:scan">
       <text>c:no-fuel-prepare-to-dock:scan</text>
-      <gift k="fuel" lo="3" hi="7"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="7"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:garbled-dock:signal">
       <text>s:garbled-dock:signal</text>
-      <gift k="fuel" lo="3" hi="5"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:refuel-dock:steal">
       <text>s:refuel-dock:steal</text>
-      <gift k="fuel" lo="3" hi="5"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="s:refuel-dock:quick">
       <text>s:refuel-dock:quick</text>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:pirate-smuggler:bribe">
       <text>q:pirate-smuggler:bribe</text>
-      <gift k="fuel" lo="2" hi="4"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:refuel-outpost:contact">
       <text>q:refuel-outpost:contact</text>
-      <gift k="fuel" lo="2" hi="4"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:loyalists:medbot">
       <text>q:loyalists:medbot</text>
-      <gift k="fuel" lo="3" hi="6"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="6"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="q:engi-station:contact">
       <text>q:engi-station:contact</text>
-      <gift k="fuel" lo="2" hi="4"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="2" max="4"/>
+        </item_modify>
+      </event>
     </choice>
     <choice name="last-stand-repair">
       <text>last-stand-repair</text>
-      <gift k="fuel" lo="5" hi="5"/>
-      <event/>
+      <event>
+        <item_modify>
+          <item type="fuel" min="5" max="5"/>
+        </item_modify>
+      </event>
     </choice>
   </event>
   <eventList name="filler">

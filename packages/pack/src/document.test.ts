@@ -240,23 +240,66 @@ describe("pack document", () => {
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /k="fuel"[^>]*fuel="0-0"/);
-    assert.match(xml, /k="supply"[^>]*fuel="0-0"/);
+    assert.match(xml, /<eventList name="high">/);
+    assert.match(xml, /<eventList name="supply">/);
+    assert.equal((xml.match(/<item type="fuel" min="0" max="0"\/>/g) ?? []).length, 2);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
-        <offer k="trade" pay="parts" cost="1-2" get="fuel"/>
-        <offer k="nope" pay="parts" cost="1-2" get="fuel" gain="1-1"/>
-        <offer k="fuel" fuel="2-4" pay="parts" amt="1-2"/>
+        <eventList name="trade">
+          <event>
+            <item_modify>
+              <item type="drones" min="-2" max="-1"/>
+            </item_modify>
+          </event>
+          <event>
+            <item_modify>
+              <item type="fuel" min="1" max="1"/>
+              <item type="missiles" min="4" max="4"/>
+            </item_modify>
+          </event>
+          <event>
+            <item_modify>
+              <item type="drones" min="-1" max="-1"/>
+              <item type="fuel" min="5" max="5"/>
+            </item_modify>
+          </event>
+        </eventList>
+        <eventList name="nope">
+          <event>
+            <item_modify>
+              <item type="fuel" min="1" max="1"/>
+              <item type="scrap" min="-2" max="-2"/>
+            </item_modify>
+          </event>
+        </eventList>
+        <eventList name="high">
+          <event>
+            <item_modify>
+              <item type="scrap" min="2" max="4"/>
+              <item type="drones" min="-2" max="-1"/>
+            </item_modify>
+          </event>
+        </eventList>
         <choice name="c:broken:0">
           <text>Nested</text>
-          <offer k="trade" pay="fuel" cost="1-1" get="missiles" gain="4-4"/>
+          <eventList name="trade">
+            <event>
+              <item_modify>
+                <item type="fuel" min="-1" max="-1"/>
+                <item type="missiles" min="4" max="4"/>
+              </item_modify>
+            </event>
+          </eventList>
+          <event/>
         </choice>
       </event>
     </FTL>`);
-    assert.equal(broken.events?.[0]?.offers, undefined);
+    assert.deepEqual(broken.events?.[0]?.offers, [
+      { k: "trade", pay: "parts", cost: [1, 1], get: "fuel", gain: [5, 5] },
+    ]);
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
   });
 
@@ -369,8 +412,13 @@ describe("pack document", () => {
             id: "c:locked:go",
             label: "Go",
             reqs: [
+              { k: "system" as const, id: "medbay", level: 2, text: "Needs a level 2 Medbay." },
               { k: "band" as const, id: "engines", lo: 3, hi: 5, text: "Needs Engines level 3-5." },
-              { k: "stock" as const, id: "scrap", n: 10, text: "Need 10 scrap." },
+              { k: "stock" as const, id: "parts", n: 1, text: "Need 1 drone part." },
+              { k: "augment" as const, id: "glass", text: "Needs a Crystal Vengeance." },
+              { k: "weapon" as const, id: "antibio", text: "Needs an Anti-Bio Beam." },
+              { k: "family" as const, id: "missile", text: "Needs a missile weapon." },
+              { k: "drone" as const, id: "beam", text: "Needs a beam drone." },
             ],
             fx: [{ k: "nothing" as const }],
           },
@@ -378,8 +426,11 @@ describe("pack document", () => {
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<req k="crew" id="shell">Needs an Engi crewmember\.<\/req>/);
-    assert.match(xml, /<req k="band" id="engines" lo="3" hi="5">/);
+    assert.match(xml, /<crewMember name="shell"\/>/);
+    assert.match(xml, /req="engines" lvl="3" max_lvl="5"/);
+    assert.match(xml, /<item type="drones" min="-1" max="-1"\/>/);
+    assert.match(xml, /<drone name="beam"\/>/);
+    assert.match(xml, /<req req="missile">/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <event name="broken" flag="cited:broken">
@@ -387,11 +438,18 @@ describe("pack document", () => {
         <text>Body</text>
         <choice name="c:broken:0">
           <text>Go</text>
-          <req k="crew" id="shell"></req>
-          <req k="nope" id="shell">Nope.</req>
-          <req k="band" id="engines" lo="5" hi="3">Backwards.</req>
-          <req k="stock" id="scrap" n="1.5">Half.</req>
-          <req k="system" id="engines">No level.</req>
+          <req><crewMember name="shell"/></req>
+          <req req="nope">Nope.</req>
+          <req req="engines" lvl="5" max_lvl="3">Backwards.</req>
+          <req>
+            <item_modify><item type="scrap" min="-5" max="-1"/></item_modify>
+            Range.
+          </req>
+          <req>
+            <item_modify><item type="scrap" min="-1.5" max="-1.5"/></item_modify>
+            Half.
+          </req>
+          <req req="engines">No level.</req>
           <event/>
         </choice>
       </event>
@@ -428,27 +486,52 @@ describe("pack document", () => {
             gift: { k: "fuel" as const, lo: 4, hi: 6 },
             fx: [{ k: "nothing" as const }],
           },
+          {
+            id: "c:gifted:find",
+            label: "Find fuel",
+            fx: [{ k: "res" as const, id: "fuel" as const, sign: 1 as const, lo: 1, hi: 3 }],
+          },
         ],
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<gift k="fuel" lo="4" hi="6"\/>/);
-    assert.match(xml, /<gift k="fuel" lo="3" hi="3"\/>/);
+    assert.match(xml, /<item type="fuel" min="4" max="6"\/>/);
+    assert.match(xml, /<item type="fuel" min="3" max="3"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
+        <card>
+          <text>Opening.</text>
+          <choice name="c:broken:take">
+            <text>Take</text>
+            <item_modify><item type="fuel" min="6" max="4"/></item_modify>
+          </choice>
+        </card>
         <choice name="c:broken:0">
           <text>Go</text>
-          <gift k="scrap" lo="1" hi="2"/>
-          <gift k="fuel" lo="6" hi="4"/>
-          <gift k="fuel" lo="1.5" hi="2"/>
-          <event/>
+          <event>
+            <item_modify><item type="scrap" min="1" max="2"/></item_modify>
+          </event>
+          <event>
+            <item_modify><item type="fuel" min="6" max="4"/></item_modify>
+          </event>
+          <event>
+            <item_modify><item type="fuel" min="1.5" max="2"/></item_modify>
+          </event>
+          <item_modify><item type="fuel" min="2" max="4"/></item_modify>
         </choice>
       </event>
     </FTL>`);
+    assert.equal(broken.events?.[0]?.cards?.[0]?.choices[0]?.gift, undefined);
     assert.equal(broken.events?.[0]?.choices[0]?.gift, undefined);
+    assert.deepEqual(broken.events?.[0]?.choices[0]?.fx, [
+      { k: "nothing" },
+      { k: "nothing" },
+      { k: "nothing" },
+      { k: "res", id: "fuel", sign: 1, lo: 2, hi: 4 },
+    ]);
   });
 
   it("round-trips named prices and keeps the first row for an id", () => {
@@ -468,23 +551,24 @@ describe("pack document", () => {
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<price id="bribe" k="scrap" lo="10" hi="15"\/>/);
-    assert.match(xml, /<price id="give" k="fuel" lo="2" hi="4"\/>/);
+    assert.match(xml, /<item_modify name="bribe">/);
+    assert.match(xml, /<item type="scrap" min="10" max="15"\/>/);
+    assert.match(xml, /<item type="fuel" min="2" max="4"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
-        <price k="scrap" lo="10" hi="15"/>
-        <price id="debt" k="missiles" lo="1" hi="2"/>
-        <price id="debt" k="scrap" lo="15" hi="10"/>
-        <price id="debt" k="scrap" lo="1.5" hi="2"/>
-        <price id="bribe" k="scrap" lo="8" hi="8"/>
-        <price id="bribe" k="scrap" lo="20" hi="30"/>
-        <price id="scan" k="scrap" lo="15" hi="25"/>
+        <item_modify><item type="scrap" min="10" max="15"/></item_modify>
+        <item_modify name="debt"><item type="missiles" min="1" max="2"/></item_modify>
+        <item_modify name="debt"><item type="scrap" min="15" max="10"/></item_modify>
+        <item_modify name="debt"><item type="scrap" min="1.5" max="2"/></item_modify>
+        <item_modify name="bribe"><item type="scrap" min="8" max="8"/></item_modify>
+        <item_modify name="bribe"><item type="scrap" min="20" max="30"/></item_modify>
+        <item_modify name="scan"><item type="scrap" min="15" max="25"/></item_modify>
         <choice name="c:broken:0">
           <text>Go</text>
-          <price id="nested" k="scrap" lo="1" hi="2"/>
+          <item_modify name="nested"><item type="scrap" min="1" max="2"/></item_modify>
           <event/>
         </choice>
       </event>
@@ -504,6 +588,7 @@ describe("pack document", () => {
         aliases: [],
         sectors: [],
         body: "A salesman.",
+        prices: [{ id: "bribe", k: "scrap" as const, lo: 10, hi: 15 }],
         bands: [
           { id: "low", k: "scrap" as const, lo: 15, hi: 20 },
           { id: "low", k: "level" as const, lo: 2, hi: 3 },
@@ -513,26 +598,30 @@ describe("pack document", () => {
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<band id="low" k="scrap" lo="15" hi="20"\/>/);
-    assert.match(xml, /<band id="low" k="level" lo="2" hi="3"\/>/);
-    assert.match(xml, /<band id="scan" k="parts" lo="1" hi="3"\/>/);
+    assert.match(xml, /<item_modify name="low">/);
+    assert.match(xml, /<item type="level" min="2" max="3"\/>/);
+    assert.match(xml, /<item type="drones" min="1" max="3"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
-        <band k="scrap" lo="15" hi="20"/>
-        <band id="" k="scrap" lo="15" hi="20"/>
-        <band id="scan" k="crew" lo="1" hi="2"/>
-        <band id="scan" k="scrap" lo="30" hi="10"/>
-        <band id="scan" k="scrap" lo="1.5" hi="2"/>
-        <band id="scan" k="scrap" lo="8" hi="8"/>
-        <band id="scan" k="scrap" lo="20" hi="35"/>
-        <band id="scan" k="parts" lo="1" hi="3"/>
-        <band id="low" k="missiles" lo="2" hi="4"/>
+        <eventList>
+          <event><item_modify><item type="scrap" min="15" max="20"/></item_modify></event>
+          <event><item_modify name=""><item type="scrap" min="15" max="20"/></item_modify></event>
+          <event><item_modify name="scan"><item type="crew" min="1" max="2"/></item_modify></event>
+          <event><item_modify name="scan"><item type="scrap" min="30" max="10"/></item_modify></event>
+          <event><item_modify name="scan"><item type="scrap" min="1.5" max="2"/></item_modify></event>
+          <event><item_modify name="scan"><item type="scrap" min="8" max="8"/></item_modify></event>
+          <event><item_modify name="scan"><item type="scrap" min="20" max="35"/></item_modify></event>
+          <event><item_modify name="scan"><item type="drones" min="1" max="3"/></item_modify></event>
+          <event><item_modify name="low"><item type="missiles" min="2" max="4"/></item_modify></event>
+        </eventList>
         <choice name="c:broken:0">
           <text>Go</text>
-          <band id="nested" k="scrap" lo="1" hi="2"/>
+          <eventList>
+            <event><item_modify name="nested"><item type="scrap" min="1" max="2"/></item_modify></event>
+          </eventList>
           <event/>
         </choice>
       </event>
@@ -706,8 +795,13 @@ describe("pack document", () => {
         <title>Pay</title>
         <text>A toll.</text>
         <bribe k="scrap" lo="1" hi="1"/>
+        <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+        <price id="bribe" k="scrap" lo="10" hi="15"/>
+        <band id="low" k="scrap" lo="15" hi="20"/>
         <choice name="c:pay:0">
           <text>Pay</text>
+          <gift k="fuel" lo="1" hi="1"/>
+          <req k="system" id="medbay" level="2">Needs a level 2 Medbay.</req>
           <effect k="res" id="scrap" sign="-1" lo="10" hi="15"/>
           <effect k="fight" tier="pirate"/>
           <effect k="note">Gone.</effect>
@@ -724,13 +818,18 @@ describe("pack document", () => {
       </eventBlueprint>
     </FTL>`);
     assert.equal(retired.events?.length, 1);
+    assert.equal(retired.events?.[0]?.offers, undefined);
     assert.equal(retired.events?.[0]?.prices, undefined);
+    assert.equal(retired.events?.[0]?.bands, undefined);
+    assert.equal(retired.events?.[0]?.choices[0]?.gift, undefined);
+    assert.equal(retired.events?.[0]?.choices[0]?.reqs, undefined);
     assert.deepEqual(retired.events?.[0]?.choices[0]?.fx, []);
   });
 
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>
+      <eventList name="empty"/>
       <eventList name="ember"><event unique="true"/><event id="kept"/></eventList>
       <emptyBeacon name="quiet"><title>Quiet</title></emptyBeacon>
       <emptyBeacon><title>No name</title><text>Hi</text></emptyBeacon>

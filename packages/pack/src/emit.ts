@@ -69,8 +69,9 @@ const HEADER = `
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A price tag is a band rolled onto a button when that card opens. The id names the button.
-  A fixed price does not roll. The handler still reads the amount from the choice id.
+  A price tag is a band the handler rolls at its existing call site. The id names the price.
+  A fixed price does not roll. A missing price omits that button and pays nothing.
+  A button that shows the amount still reads it from the choice id.
   A bribe tag is the scrap price named bribe.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.

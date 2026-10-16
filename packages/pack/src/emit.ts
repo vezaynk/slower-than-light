@@ -65,22 +65,28 @@ const HEADER = `
   Several text tags are the opening sentences. The first is the page body.
   An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
   The sim still picks one sentence when the card opens.
-  An offer tag is one row of the table that card rolls. The sim still picks the row and still rolls its bands.
-  Fuel rows name band high or pt2. Lanius rows name band base or better. A supply row can hold a 0-0 band.
+  An offer table is an eventList named trade, high, pt2, base, better, or supply.
+  Each row is a nameless event with one item_modify. The sim still picks the row and still rolls its bands.
+  A trade row spends a resource and gains a resource. A fuel row gains fuel, then spends parts, missiles, or scrap.
+  A Lanius row spends a resource and gains scrap. A supply row holds missiles, drone parts, and fuel. A band may be 0-0.
+  high and pt2 are the fuel lists. base and better are the Lanius lists.
   A roll tag is one entry of a list the card draws. A repeated hull is a heavier weight.
   A hull entry is a ship id. A label entry is a button sentence. A count entry is a number and its word.
   A card tag is one whole opening the page draws. The sim still draws one with between.
   The buttons on that opening stay handlers in code.
   Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
   A choice is its id, label, effects, req locks, and an optional fuel gift.
-  A req is checked in order and its text is the refusal.
-  A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A price tag is a band the handler rolls at its existing call site. The id names the price.
+  A req is checked in order. Its text is the refusal. A system lock is req and lvl. A band lock also sets max_lvl.
+  A stock lock is a negative item_modify inside the req. Crew, augment, drone, and weapon locks name that blueprint.
+  A weapon family is an empty weapon tag and the req attribute.
+  A gift is the fuel the handler pays. On a page it sits inside the empty result. On a card it is a fuel item_modify.
+  A fixed gift has the same ends and does not roll.
+  A named price is a direct item_modify. The name is the price. The item is scrap or fuel.
   A fixed price does not roll. A missing price omits that button and pays nothing.
   A button that shows the amount still reads it from the choice id.
-  A band tag is a printed range the handler rolls at its existing call site.
+  Printed bands are item_modify rows inside a nameless eventList. The name is the row. Level is an item type.
   A fixed band does not roll. A missing band pays or grants nothing and does not roll.
-  An upgrade row is the same id with a scrap band and a level band.
+  An upgrade row uses the same name twice, once for scrap and once for level.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
   A fixed trade does not roll. The handler still reads the amount from the choice id.
@@ -90,8 +96,9 @@ const HEADER = `
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
   The sim still checks the hull and still hands that reward over.
-  An event list is page ids in draw order. unique means the page can appear once per sector.
+  An event list with page ids is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
+  A list with no page ids is an offer table or the printed bands.
   An empty beacon stores the sentences for a quiet jump and the sectors that use them.
   sp is shield layers pierced. power is reactor bars.
   shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
@@ -168,10 +175,10 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
-  for (const offer of event.offers ?? []) add(node, offerElement(doc, offer));
+  for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
   for (const price of event.prices ?? []) add(node, priceElement(doc, price));
-  for (const band of event.bands ?? []) add(node, bandElement(doc, band));
+  if (event.bands?.length) add(node, bandListElement(doc, event.bands));
   for (const step of event.trades ?? []) add(node, tradeElement(doc, step));
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
@@ -179,52 +186,62 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
     const choiceNode = element(doc, "choice", { name: choice.id });
     add(choiceNode, leaf(doc, "text", choice.label));
     for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req));
-    if (choice.gift) add(choiceNode, giftElement(doc, choice.gift));
-    for (const fx of choice.fx) add(choiceNode, effectElement(doc, fx));
+    let placedGift = false;
+    for (const fx of choice.fx) {
+      if (fx.k === "nothing" && choice.gift && !placedGift) {
+        add(choiceNode, nothingEvent(doc, choice.gift));
+        placedGift = true;
+      } else {
+        add(choiceNode, effectElement(doc, fx));
+      }
+    }
     add(node, choiceNode);
   }
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));
   return node;
 }
 
-function span(band: [number, number]): string {
-  return `${band[0]}-${band[1]}`;
+/** Consecutive rows that share a list name stay in one eventList. Document order is the flat row order. */
+function offerLists(doc: XmlDocument, offers: OfferRow[]): XmlElement[] {
+  const lists: XmlElement[] = [];
+  let current: { name: string; node: XmlElement } | undefined;
+  for (const offer of offers) {
+    const name = offerListName(offer);
+    if (!current || current.name !== name) {
+      const node = element(doc, "eventList", { name });
+      lists.push(node);
+      current = { name, node };
+    }
+    add(current.node, offerEvent(doc, offer));
+  }
+  return lists;
 }
 
-function offerElement(doc: XmlDocument, offer: OfferRow): XmlElement {
+function offerListName(offer: OfferRow): string {
+  if (offer.k === "trade") return "trade";
+  if (offer.k === "fuel" || offer.k === "lanius") return offer.band;
+  return "supply";
+}
+
+function offerEvent(doc: XmlDocument, offer: OfferRow): XmlElement {
+  const event = element(doc, "event", {});
+  const modify = element(doc, "item_modify", {});
   if (offer.k === "trade") {
-    return element(doc, "offer", {
-      k: "trade",
-      pay: offer.pay,
-      cost: span(offer.cost),
-      get: offer.get,
-      gain: span(offer.gain),
-    });
+    add(modify, resourceItem(doc, offer.pay, offer.cost[0], offer.cost[1], -1));
+    add(modify, resourceItem(doc, offer.get, offer.gain[0], offer.gain[1], 1));
+  } else if (offer.k === "fuel") {
+    add(modify, resourceItem(doc, "fuel", offer.fuel[0], offer.fuel[1], 1));
+    add(modify, resourceItem(doc, offer.pay, offer.amt[0], offer.amt[1], -1));
+  } else if (offer.k === "lanius") {
+    add(modify, resourceItem(doc, offer.res, offer.cost[0], offer.cost[1], -1));
+    add(modify, resourceItem(doc, "scrap", offer.scrap[0], offer.scrap[1], 1));
+  } else {
+    add(modify, resourceItem(doc, "missiles", offer.missiles[0], offer.missiles[1], 1));
+    add(modify, resourceItem(doc, "parts", offer.parts[0], offer.parts[1], 1));
+    add(modify, resourceItem(doc, "fuel", offer.fuel[0], offer.fuel[1], 1));
   }
-  if (offer.k === "fuel") {
-    return element(doc, "offer", {
-      k: "fuel",
-      band: offer.band,
-      fuel: span(offer.fuel),
-      pay: offer.pay,
-      amt: span(offer.amt),
-    });
-  }
-  if (offer.k === "lanius") {
-    return element(doc, "offer", {
-      k: "lanius",
-      band: offer.band,
-      res: offer.res,
-      cost: span(offer.cost),
-      scrap: span(offer.scrap),
-    });
-  }
-  return element(doc, "offer", {
-    k: "supply",
-    missiles: span(offer.missiles),
-    parts: span(offer.parts),
-    fuel: span(offer.fuel),
-  });
+  add(event, modify);
+  return event;
 }
 
 function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
@@ -280,20 +297,54 @@ function choiceElement(
   const node = element(doc, "choice", { name: id });
   add(node, leaf(doc, "text", label));
   for (const req of reqs ?? []) add(node, reqElement(doc, req));
-  if (gift) add(node, giftElement(doc, gift));
+  if (gift) add(node, fuelModify(doc, gift));
   return node;
 }
 
-function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
-  return element(doc, "gift", { k: gift.k, lo: num(gift.lo), hi: num(gift.hi) });
+/** A page gift lives inside the empty result, so a direct fuel item stays a resource effect. */
+function nothingEvent(doc: XmlDocument, gift: ChoiceGift): XmlElement {
+  const node = element(doc, "event", {});
+  add(node, fuelModify(doc, gift));
+  return node;
+}
+
+function fuelModify(doc: XmlDocument, gift: ChoiceGift): XmlElement {
+  const node = element(doc, "item_modify", {});
+  add(node, resourceItem(doc, "fuel", gift.lo, gift.hi, 1));
+  return node;
 }
 
 function priceElement(doc: XmlDocument, price: EventPrice): XmlElement {
-  return element(doc, "price", { id: price.id, k: price.k, lo: num(price.lo), hi: num(price.hi) });
+  const node = element(doc, "item_modify", { name: price.id });
+  add(node, resourceItem(doc, price.k, price.lo, price.hi, 1));
+  return node;
 }
 
-function bandElement(doc: XmlDocument, band: EventBand): XmlElement {
-  return element(doc, "band", { id: band.id, k: band.k, lo: num(band.lo), hi: num(band.hi) });
+function bandListElement(doc: XmlDocument, bands: EventBand[]): XmlElement {
+  const list = element(doc, "eventList", {});
+  for (const band of bands) {
+    const event = element(doc, "event", {});
+    const modify = element(doc, "item_modify", { name: band.id });
+    add(modify, resourceItem(doc, band.k, band.lo, band.hi, 1));
+    add(event, modify);
+    add(list, event);
+  }
+  return list;
+}
+
+function resourceItem(
+  doc: XmlDocument,
+  type: string,
+  lo: number,
+  hi: number,
+  sign: 1 | -1,
+): XmlElement {
+  const loss = sign === -1;
+  return element(doc, "item", {
+    type: type === "parts" ? "drones" : type,
+    min: num(loss ? -hi : lo),
+    max: num(loss ? -lo : hi),
+  });
 }
 
 function tradeElement(doc: XmlDocument, step: TradeStep): XmlElement {
@@ -313,15 +364,38 @@ function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {
-  const attrs: Record<string, string> = { k: req.k, id: req.id };
-  if (req.k === "system") attrs.level = num(req.level);
+  if (req.k === "system") return reqText(doc, { req: req.id, lvl: num(req.level) }, req.text);
   if (req.k === "band") {
-    attrs.lo = num(req.lo);
-    attrs.hi = num(req.hi);
+    return reqText(doc, { req: req.id, lvl: num(req.lo), max_lvl: num(req.hi) }, req.text);
   }
-  if (req.k === "stock") attrs.n = num(req.n);
-  const node = element(doc, "req", attrs);
+  if (req.k === "stock") {
+    const node = element(doc, "req", {});
+    const modify = element(doc, "item_modify", {});
+    add(modify, resourceItem(doc, req.id, req.n, req.n, -1));
+    add(node, modify);
+    node.appendChild(doc.createTextNode(req.text));
+    return node;
+  }
+  if (req.k === "crew") return blueprintReq(doc, "crewMember", req.id, req.text);
+  if (req.k === "augment") return blueprintReq(doc, "augment", req.id, req.text);
+  if (req.k === "drone") return blueprintReq(doc, "drone", req.id, req.text);
+  if (req.k === "weapon") return blueprintReq(doc, "weapon", req.id, req.text);
+  const node = element(doc, "req", { req: req.id });
+  add(node, element(doc, "weapon", {}));
   node.appendChild(doc.createTextNode(req.text));
+  return node;
+}
+
+function reqText(doc: XmlDocument, attrs: Record<string, string>, text: string): XmlElement {
+  const node = element(doc, "req", attrs);
+  node.appendChild(doc.createTextNode(text));
+  return node;
+}
+
+function blueprintReq(doc: XmlDocument, tag: string, id: string, text: string): XmlElement {
+  const node = element(doc, "req", {});
+  add(node, element(doc, tag, { name: id }));
+  node.appendChild(doc.createTextNode(text));
   return node;
 }
 
@@ -349,16 +423,8 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
   if (fx.k === "item") return element(doc, fx.item, {});
   if (fx.k === "hull") return element(doc, "damage", { amount: num(-fx.n) });
   if (fx.k === "res") {
-    const loss = fx.sign === -1;
     const node = element(doc, "item_modify", {});
-    add(
-      node,
-      element(doc, "item", {
-        type: fx.id === "parts" ? "drones" : fx.id,
-        min: num(loss ? -fx.hi : fx.lo),
-        max: num(loss ? -fx.lo : fx.hi),
-      }),
-    );
+    add(node, resourceItem(doc, fx.id, fx.lo, fx.hi, fx.sign));
     return node;
   }
   if (fx.k === "tier") {

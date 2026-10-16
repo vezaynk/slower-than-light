@@ -1,3 +1,4 @@
+import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
 import type {
   AugmentDef,
   ChoiceGift,
@@ -10,10 +11,17 @@ import type {
   EventChoice,
   EventDef,
   EventEffect,
+  EventTier,
+  FactionSurrender,
   FillerListDef,
   HullDef,
   HullKitDef,
+  NamedReward,
   OfferRow,
+  ResourceReward,
+  RewardResource,
+  RewardScaling,
+  RewardTable,
   RollEntry,
   SectorDef,
   StoreDef,
@@ -37,6 +45,9 @@ const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
 const lists = new Map<string, FillerListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
+const factions = new Map<string, FactionSurrender>();
+let reward: RewardTable | undefined;
+let baseReward: RewardTable | undefined;
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -49,6 +60,7 @@ let baseTunes: TuneDef[] = [];
 let baseEvents: EventDef[] = [];
 let baseLists: FillerListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
+let baseFactions: FactionSurrender[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   return { ...row };
@@ -96,6 +108,46 @@ function copyStep(step: TuneStep): TuneStep {
 
 function copyTune(row: TuneDef): TuneDef {
   return { ...row, costs: row.costs.map(copyStep) };
+}
+
+function copyScaling(row: RewardScaling): RewardScaling {
+  const copy: RewardScaling = {
+    baseAmount: row.baseAmount,
+    sectorAmount: row.sectorAmount,
+    difficultyAmount: row.difficultyAmount,
+  };
+  if (row.difficulty !== undefined) copy.difficulty = row.difficulty;
+  return copy;
+}
+
+function copyResourceReward(row: ResourceReward): ResourceReward {
+  return { ...row };
+}
+
+function copyRewardResource(row: RewardResource): RewardResource {
+  const copy: RewardResource = { name: row.name };
+  if (row.level !== undefined) copy.level = row.level;
+  return copy;
+}
+
+function copyNamedReward(row: NamedReward): NamedReward {
+  const copy: NamedReward = { name: row.name, resources: row.resources.map(copyRewardResource) };
+  if (row.minResources !== undefined) copy.minResources = row.minResources;
+  if (row.maxResources !== undefined) copy.maxResources = row.maxResources;
+  if (row.bonus) copy.bonus = { ...row.bonus };
+  return copy;
+}
+
+function copyReward(row: RewardTable): RewardTable {
+  return {
+    scaling: row.scaling.map(copyScaling),
+    resources: row.resources.map(copyResourceReward),
+    rewards: row.rewards.map(copyNamedReward),
+  };
+}
+
+function copyFaction(row: FactionSurrender): FactionSurrender {
+  return { ...row };
 }
 
 function copyEffect(fx: EventEffect): EventEffect {
@@ -342,6 +394,10 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     events.clear();
     lists.clear();
     empties.clear();
+    factions.clear();
+    reward = pack.rewards ? copyReward(pack.rewards) : undefined;
+    baseReward = reward ? copyReward(reward) : undefined;
+    baseFactions = (pack.factions ?? []).map(copyFaction);
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -354,6 +410,9 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseEvents = (pack.events ?? []).map(copyEvent);
     baseLists = (pack.lists ?? []).map(copyList);
     baseEmpties = (pack.empties ?? []).map(copyEmpty);
+  }
+  if (mode === "append" && pack.rewards) {
+    reward = copyReward(pack.rewards);
   }
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -378,6 +437,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     lists.set(row.id, copyList(row));
   for (const row of mode === "base" ? baseEmpties : (pack.empties ?? []))
     empties.set(row.id, copyEmpty(row));
+  for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
+    factions.set(row.id, copyFaction(row));
 }
 
 /** The loaded race, or the plain race when the id is missing. */
@@ -493,6 +554,51 @@ export function allFillerLists(): FillerListDef[] {
   return [...lists.values()];
 }
 
+/** The loaded reward table, if this pack has one. */
+export function rewardTable(): RewardTable | undefined {
+  return reward ? copyReward(reward) : undefined;
+}
+
+/**
+ * Inclusive scrap band. Sector 1 is the first row. A sector past 8 uses sector 8.
+ * This does not roll.
+ */
+export function scrapRange(
+  difficulty: RewardDifficulty,
+  sector: number,
+  tier: EventTier,
+): [number, number] {
+  if (!reward) throw new Error("reward table is not loaded");
+  return scrapBounds(reward, difficulty, sector, tier);
+}
+
+/** Absolute fuel, missile, or drone-part band for a tier. This does not roll. */
+export function resourceRange(
+  kind: "fuel" | "missiles" | "parts",
+  tier: EventTier,
+): [number, number] {
+  if (!reward) throw new Error("reward table is not loaded");
+  return resourceBounds(reward, kind, tier);
+}
+
+/** chance / roll for a named reward. Undefined when that reward has no bonus. */
+export function rewardBonus(name: string): number | undefined {
+  if (!reward) throw new Error("reward table is not loaded");
+  return bonusChance(reward, name);
+}
+
+/** A faction's default surrender, or undefined when that faction does not offer. */
+export function factionSurrender(id: string | undefined): FactionSurrender | undefined {
+  if (!id) return undefined;
+  const row = factions.get(id);
+  return row ? copyFaction(row) : undefined;
+}
+
+/** Faction order. An appended id sits at the end. */
+export function allFactions(): FactionSurrender[] {
+  return [...factions.values()].map(copyFaction);
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -517,6 +623,8 @@ export function resetPackForTests(): void {
   events.clear();
   lists.clear();
   empties.clear();
+  factions.clear();
+  reward = baseReward ? copyReward(baseReward) : undefined;
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
@@ -529,4 +637,5 @@ export function resetPackForTests(): void {
   for (const row of baseEvents) events.set(row.id, copyEvent(row));
   for (const row of baseLists) lists.set(row.id, copyList(row));
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
+  for (const row of baseFactions) factions.set(row.id, copyFaction(row));
 }

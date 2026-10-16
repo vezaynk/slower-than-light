@@ -25,6 +25,7 @@ import {
   pageResult,
   payOffer,
   rollStandard,
+  resourceBand,
   rollSurrenderOffer,
   scrapBand,
   slugBoarders,
@@ -49,12 +50,6 @@ const NEBULA_ON_ARRIVAL = new Set([
 ]);
 
 type PayKind = "parts" | "missiles" | "scrap";
-
-const FUEL_BAND: Record<SurrenderTier, [number, number]> = {
-  low: [1, 3],
-  medium: [2, 4],
-  high: [3, 6],
-};
 
 const OWNED = new Set(
   EXTRA_EVENTS.map((ev) => ev.slug).concat([
@@ -108,13 +103,13 @@ function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
 }
 
 function fuelOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
-  return { tier, scrap: 0, eligible: 0, fuel: between(g, FUEL_BAND[tier]), missiles: 0, parts: 0 };
+  return { tier, scrap: 0, eligible: 0, fuel: between(g, resourceBand("fuel", tier)), missiles: 0, parts: 0 };
 }
 
 /** Rewards, "Fuel": T fuel and T scrap. No bonus item. */
 function fuelAndScrap(g: Game, tier: SurrenderTier): SurrenderOffer {
   const offer = scrapOnly(g, tier);
-  offer.fuel = between(g, FUEL_BAND[tier]);
+  offer.fuel = between(g, resourceBand("fuel", tier));
   return offer;
 }
 
@@ -1278,7 +1273,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       }
       if (branch === 2) {
         const offer = scrapOnly(g, "medium");
-        offer.missiles = between(g, [2, 4]);
+        offer.missiles = between(g, resourceBand("missiles", "medium"));
         done(
           g,
           "A short time later the team returns with a stash of ammunition and scrap — but all the fuel on board is long gone.",

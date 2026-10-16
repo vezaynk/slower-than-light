@@ -26,6 +26,7 @@ import {
   joinCrew,
   payOffer,
   randomRace,
+  resourceBand,
   rollStandard,
   rollSurrenderOffer,
   scrapBand,
@@ -495,13 +496,13 @@ function scrapOnly(g: Game, tier?: SurrenderTier): SurrenderOffer {
 function resource(
   g: Game,
   id: "fuel" | "missiles" | "parts",
-  range: [number, number],
+  tier: SurrenderTier,
   scrapTier?: SurrenderTier,
 ): SurrenderOffer {
   const offer = scrapTier
     ? scrapOnly(g, scrapTier)
     : { tier: "low" as SurrenderTier, scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
-  offer[id] = between(g, range);
+  offer[id] = between(g, resourceBand(id, tier));
   return offer;
 }
 
@@ -1569,19 +1570,19 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       show(
         g,
         "Scans reveal a number of asteroids with useful compositions. You extract some fuel.",
-        resource(g, "fuel", [3, 6]),
+        resource(g, "fuel", "high"),
       );
     else if (r === "missiles")
       show(
         g,
         "You discover the remains of ship embedded into an asteroid. It still has some functional missiles.",
-        resource(g, "missiles", [2, 4], "medium"),
+        resource(g, "missiles", "medium", "medium"),
       );
     else if (r === "parts")
       show(
         g,
         "You happen upon an abandoned mining site. A few mining drones were left behind and could be repurposed.",
-        resource(g, "parts", [1, 1], "medium"),
+        resource(g, "parts", "medium", "medium"),
       );
     else if (r === "pirate")
       fight(
@@ -3299,7 +3300,7 @@ Scrap: ${offer.scrap}.`,
       show(
         g,
         "The ship is completely abandoned. It looks like it ran out of fuel... and the crew ran out of food not long after. Despite the grisly scene that remains, you are able to scavenge some supplies from the cargo hold.",
-        resource(g, "missiles", [2, 4], "medium"),
+        resource(g, "missiles", "medium", "medium"),
       );
     else if (r === "boarders") {
       log(

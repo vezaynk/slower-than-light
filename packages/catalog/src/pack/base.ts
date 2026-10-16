@@ -21,6 +21,7 @@ import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
 import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
+import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { loadPack } from "@stl/pack";
@@ -417,6 +418,8 @@ export function loadCatalog(): void {
       sectors: SECTOR_TYPES.map(sectorRow),
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),
+      rewards: REWARD_TABLE,
+      factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       events: campaignEvents,
       lists: fillerListRecords().map(listRow),
       empties: emptyBeaconRecords().map(emptyRow),

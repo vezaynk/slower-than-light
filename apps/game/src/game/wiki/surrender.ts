@@ -11,16 +11,26 @@
  * Hooks in sim.ts (marked @agent:surrender): startCombat sets the plan, step calls surrenderTick before
  * enemyEscapeStep, and choose routes the two offer choices here.
  */
-import { CREW_POOL, mediumScrapBand } from "../content.ts";
+import { CREW_POOL } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { type KinId } from "../extras/kin.ts";
-import { allWeapons, crewDef, eventDef, weaponDef, type SurrenderOfferDef } from "@stl/pack";
+import {
+  allWeapons,
+  crewDef,
+  eventDef,
+  factionSurrender,
+  resourceRange,
+  rewardBonus,
+  scrapRange,
+  weaponDef,
+  type SurrenderOfferDef,
+} from "@stl/pack";
 import { SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
 export { SCRIPTED_SURRENDERS };
 export type { ScriptedReward, ScriptedSurrender } from "./surrender-offers.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
-import type { Crew, Difficulty, Game } from "../types.ts";
+import type { Crew, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
@@ -86,30 +96,6 @@ export type SurrenderContext = {
   pirate?: boolean;
   event?: string;
 };
-
-/**
- * Enemy Ships, "Surrender/escape values for ships of various factions with 'Default rewards'":
- * Crystal ("CRYSTAL_SHIP") "40% surrender offer chance at 30-40% hull"; Slug ("JELLY") "50% ... at 30-40% hull";
- * Lanius ("LANIUS_SHIP") "80% ... at 30-40% hull"; Pirate ("PIRATE") "50% ... at 30-40% hull";
- * Rebel ("REBEL") "50% ... at 20-30% hull"; Rock ("ROCK_SHIP") "30% ... at 30-40% hull".
- * "Remember that pirates are different from their regular counterparts", so a pirate uses the Pirate row.
- */
-export const SURRENDER_ROWS: Record<string, { chance: number; low: number; high: number }> = {
-  crystal: { chance: 40, low: 30, high: 40 },
-  slug: { chance: 50, low: 30, high: 40 },
-  lanius: { chance: 80, low: 30, high: 40 },
-  pirate: { chance: 50, low: 30, high: 40 },
-  rebel: { chance: 50, low: 20, high: 30 },
-  rock: { chance: 30, low: 30, high: 40 },
-};
-
-/**
- * Enemy Ships, "Never run away, never surrender": Auto-ships, Engi ships, Mantis ships, Zoltan ships.
- * Federation has no row; Template:SurrenderEscape reads a ship with no data as "should not escape or offer surrender".
- * "Crystal ships (some ships only)" also appear there, but the page does not say which, so every Crystal ship uses
- * the 40% row. INFERRED.
- */
-export const NEVER_SURRENDER = new Set(["auto", "engi", "mantis", "zoltan", "federation"]);
 
 /**
  * Enemy Ships, "Never run away, never surrender": "Rebel ships in certain events ([[Rebel ship attacking Federation
@@ -255,94 +241,28 @@ export function surrenderPlan(ctx: SurrenderContext, roll: () => number): Surren
     const threshold = scripted.low + roll() * (scripted.high - scripted.low);
     return { ...never(), chance: scripted.chance, threshold, event: ctx.event };
   }
-  if (!ctx.pirate && NEVER_SURRENDER.has(ctx.faction ?? "")) return never();
+  // A faction with no blueprint does not offer. A pirate uses the pirate row.
   // INFERRED: a ship with no faction field is a generic Rebel, as in wiki/escape.ts.
-  const row = SURRENDER_ROWS[ctx.pirate ? "pirate" : (ctx.faction ?? "rebel")];
+  const row = factionSurrender(ctx.pirate ? "pirate" : (ctx.faction ?? "rebel"));
   if (!row) return never();
   // Enemy Ships, DISCLAIMER: the percent "may be incorrect as a concept"; read as a percent of max hull here.
   // INFERRED: one threshold drawn uniformly inside the row's range, like the escape threshold.
-  const threshold = row.low + roll() * (row.high - row.low);
+  const threshold = row.min + roll() * (row.max - row.min);
   return { ...never(), chance: row.chance, threshold };
 }
 
-/** Template:Scrap rewards, Low and High columns, sectors 1–8. Medium comes from content.ts. */
-const SCRAP_LOW: Record<Difficulty, [number, number][]> = {
-  easy: [
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-    [28, 39],
-    [31, 44],
-  ],
-  normal: [
-    [7, 10],
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-    [28, 39],
-  ],
-  hard: [
-    [7, 10],
-    [7, 10],
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-  ],
-};
-const SCRAP_HIGH: Record<Difficulty, [number, number][]> = {
-  easy: [
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-    [74, 88],
-    [81, 97],
-  ],
-  normal: [
-    [19, 23],
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-    [74, 88],
-  ],
-  hard: [
-    [19, 23],
-    [19, 23],
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-  ],
-};
-
+/** Inclusive scrap band from the loaded reward table. This does not roll. */
 export function scrapBand(g: Game, tier: SurrenderTier): [number, number] {
-  if (tier === "medium") return mediumScrapBand(g.difficulty ?? "normal", g.sector);
-  const table = tier === "low" ? SCRAP_LOW : SCRAP_HIGH;
-  return (table[g.difficulty] ?? table.normal)[Math.min(7, Math.max(0, g.sector - 1))];
+  return scrapRange(g.difficulty ?? "normal", g.sector, tier);
 }
 
-/** Template:Resources rewards: Fuel 1–3 / 2–4 / 3–6, Missiles 1–2 / 2–4 / 4–8, Drone parts 1 / 1 / 1–2. */
-const RESOURCES: Record<"fuel" | "missiles" | "parts", Record<SurrenderTier, [number, number]>> = {
-  fuel: { low: [1, 3], medium: [2, 4], high: [3, 6] },
-  missiles: { low: [1, 2], medium: [2, 4], high: [4, 8] },
-  parts: { low: [1, 1], medium: [1, 1], high: [1, 2] },
-};
+/** Absolute fuel, missile, or drone-part band. A fixed band still has equal ends. */
+export function resourceBand(
+  kind: "fuel" | "missiles" | "parts",
+  tier: SurrenderTier,
+): [number, number] {
+  return resourceRange(kind, tier);
+}
 
 export function between(g: Game, [lo, hi]: [number, number]): number {
   return lo + Math.floor(rand(g) * (hi - lo + 1));
@@ -367,10 +287,11 @@ export function rollSurrenderOffer(
   const skip = Math.min(2, Math.floor(rand(g) * 3));
   const offer: SurrenderOffer = { tier, scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
   kinds.forEach((k, i) => {
-    if (i !== skip) offer[k] = between(g, RESOURCES[k][tier]);
+    if (i !== skip) offer[k] = between(g, resourceBand(k, tier));
   });
   // `noBonus`: a page gift (not a surrender) that names its reward; the unnamed bonus item is not granted there.
-  const bonus = !noBonus && rand(g) < 0.06;
+  const chance = rewardBonus("stuff");
+  const bonus = !noBonus && chance != null && rand(g) < chance;
   const item = bonus ? rollBonusItem(g) : undefined;
   if (item?.kind === "weapon") offer.weapon = item.id;
   else if (item?.kind === "augment") offer.augment = item.id;
@@ -416,7 +337,7 @@ export function rollStandard(g: Game, tier?: SurrenderTier): SurrenderOffer {
   const offer: SurrenderOffer = { tier: t, scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
   const skip = Math.min(2, Math.floor(rand(g) * 3));
   (["fuel", "missiles", "parts"] as const).forEach((k, i) => {
-    if (i !== skip) offer[k] = between(g, RESOURCES[k].low);
+    if (i !== skip) offer[k] = between(g, resourceBand(k, "low"));
   });
   offer.eligible = between(g, scrapBand(g, t));
   offer.scrap = adjustScrap(g, offer.eligible);
@@ -467,7 +388,7 @@ export function rollScriptedOffer(g: Game, s: SurrenderOfferDef): SurrenderOffer
     offer.note = `A ${offer.crew} crewmember.`;
   } else if (r.k === "fuel-repairs") {
     // Rewards, "Fuel": "T fuel & T scrap"; the page's tooltip "low: 1-3 fuel" is Template:Resources rewards' low fuel.
-    offer.fuel = between(g, RESOURCES.fuel.low);
+    offer.fuel = between(g, resourceBand("fuel", "low"));
     offer.eligible = between(g, scrapBand(g, "low"));
     offer.scrap = adjustScrap(g, offer.eligible);
     offer.repairs = r.repairs;

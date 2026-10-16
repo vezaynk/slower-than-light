@@ -198,6 +198,68 @@ export type EventResource = "scrap" | "fuel" | "missiles" | "parts";
 
 export type EventTier = "low" | "medium" | "high";
 
+/** A Hyperspace reward level. MED is this game's medium tier. */
+export type RewardLevel = "LOW" | "MED" | "HIGH";
+
+/** A resource inside `<rewards>`. Drone parts use the Hyperspace name. */
+export type RewardKind = "scrap" | "fuel" | "missiles" | "droneparts";
+
+/**
+ * Scrap scaling for one difficulty.
+ * Absent `difficulty` is normal. 0 is easy and 2 is hard.
+ * `difficultyAmount` is added to the sector index before the sector step.
+ */
+export type RewardScaling = {
+  difficulty?: 0 | 2;
+  baseAmount: number;
+  sectorAmount: number;
+  difficultyAmount: number;
+};
+
+/** An absolute or thousandths band at one reward level. Scrap values are thousandths of the scaled amount. */
+export type ResourceReward = {
+  kind: RewardKind;
+  level: RewardLevel;
+  min: number;
+  max: number;
+};
+
+/** One resource a named reward pays. Absent `level` means the tier the caller asked for. */
+export type RewardResource = {
+  name: RewardKind;
+  level?: RewardLevel;
+};
+
+/** A named reward such as standard, stuff, or fuel. The bonus is chance out of roll. */
+export type NamedReward = {
+  name: string;
+  resources: RewardResource[];
+  minResources?: number;
+  maxResources?: number;
+  bonus?: { roll: number; chance: number };
+};
+
+/**
+ * The shared reward table.
+ * Scrap bands are derived. Fuel, missiles, and drone parts are the absolute min and max.
+ */
+export type RewardTable = {
+  scaling: RewardScaling[];
+  resources: ResourceReward[];
+  rewards: NamedReward[];
+};
+
+/**
+ * A faction's default surrender offer.
+ * `chance` is the percent. `min` and `max` are the hull band, as a percent of max hull.
+ */
+export type FactionSurrender = {
+  id: string;
+  chance: number;
+  min: number;
+  max: number;
+};
+
 export type EventItem = "weapon" | "augment" | "drone";
 
 /**
@@ -487,6 +549,10 @@ export type ContentPack = {
   events?: EventDef[];
   lists?: FillerListDef[];
   empties?: EmptyBeaconDef[];
+  /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
+  rewards?: RewardTable;
+  /** Faction surrender rows. A missing id does not offer. */
+  factions?: FactionSurrender[];
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

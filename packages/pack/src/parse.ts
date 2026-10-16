@@ -21,9 +21,9 @@ import type {
   EventChoice,
   EventDef,
   EventEffect,
-  EventItem,
   EventResource,
   EventTier,
+  FactionSurrender,
   FillerEntry,
   FillerListDef,
   HullDef,
@@ -33,6 +33,13 @@ import type {
   OfferRes,
   OfferRow,
   RollEntry,
+  NamedReward,
+  ResourceReward,
+  RewardKind,
+  RewardLevel,
+  RewardResource,
+  RewardScaling,
+  RewardTable,
   SectorDef,
   StoreDef,
   StoreLine,
@@ -244,15 +251,42 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   };
 }
 
-function readSystem(node: XmlElement): SystemDef | undefined {
+const SHELF_KIND: Record<string, string> = {
+  WEAPONS: "weapons",
+  DRONES: "drones",
+  AUGMENTS: "augments",
+  CREW: "crew",
+  SYSTEMS: "systems",
+};
+
+/**
+ * A store listing needs a cost child, so a tune-only blueprint stays a tune.
+ * subSystem="true" is a kit. startPower or upgradeCost is the tune.
+ */
+function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: TuneDef } {
   const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
-  return {
-    id,
-    name: textOf(node, "title") ?? id,
-    cost: numOf(node, "cost") ?? 0,
-    slot: textOf(node, "slot") === "kit" ? "kit" : "sys",
-  };
+  if (!id) return {};
+  const found: { system?: SystemDef; tune?: TuneDef } = {};
+  if (child(node, "cost")) {
+    found.system = {
+      id,
+      name: textOf(node, "title") ?? id,
+      cost: numOf(node, "cost") ?? 0,
+      slot: attr(node, "subSystem") === "true" ? "kit" : "sys",
+    };
+  }
+  const upgrades = elements(node).filter((item) => item.tagName === "upgradeCost");
+  if (child(node, "startPower") || upgrades.length > 0) {
+    const costs: TuneStep[] = [];
+    for (const item of upgrades) {
+      const level = numOf(item, "level");
+      const cost = numOf(item, "cost");
+      if (level == null || cost == null) continue;
+      costs.push({ level, cost });
+    }
+    found.tune = { id, start: numOf(node, "startPower") ?? 1, costs };
+  }
+  return found;
 }
 
 function hullLayout(value: string | undefined): HullLayout {
@@ -261,7 +295,8 @@ function hullLayout(value: string | undefined): HullLayout {
 
 function readHull(node: XmlElement): HullDef | undefined {
   const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
+  const layout = attr(node, "layout")?.trim();
+  if (!id || !layout) return undefined;
   const systems: Record<string, [number, number]> = {};
   for (const item of elements(child(node, "systemList"))) {
     if (item.tagName !== "system") continue;
@@ -317,7 +352,7 @@ function readHull(node: XmlElement): HullDef | undefined {
   return {
     id,
     cruiser: textOf(node, "class") ?? "",
-    layout: hullLayout(attr(node, "layout")?.trim()),
+    layout: hullLayout(layout),
     name: textOf(node, "title") ?? id,
     quote: textOf(node, "desc") ?? "",
     unlock: textOf(node, "unlock") ?? "",
@@ -335,56 +370,138 @@ function readHull(node: XmlElement): HullDef | undefined {
   };
 }
 
-function readStore(node: XmlElement): StoreDef | undefined {
+/** A shipBlueprint with no layout and a surrender child is a faction row. */
+function readFaction(node: XmlElement): FactionSurrender | undefined {
   const id = attr(node, "name")?.trim();
+  if (!id || attr(node, "layout")?.trim()) return undefined;
+  const offer = child(node, "surrender");
+  if (!offer) return undefined;
+  const chance = attrNum(offer.getAttribute("chance"));
+  const min = attrNum(offer.getAttribute("min"));
+  const max = attrNum(offer.getAttribute("max"));
+  if (chance == null || min == null || max == null) return undefined;
+  return { id, chance, min, max };
+}
+
+function readCount(node: XmlElement): { min: number; max: number } {
+  const count = child(node, "count");
+  if (!count) return { min: 0, max: 0 };
+  const text = Number(ownText(count).trim());
+  const min = attrNum(count.getAttribute("min")) ?? (Number.isFinite(text) ? text : 0);
+  return { min, max: attrNum(count.getAttribute("max")) ?? min };
+}
+
+function itemBlueprint(item: XmlElement): { empty: boolean; id: string } | undefined {
+  const blueprint = child(item, "blueprint");
+  if (!blueprint) return undefined;
+  const id = ownText(blueprint).trim();
+  return id ? { empty: false, id } : { empty: true, id: "" };
+}
+
+function readNamedItem(item: XmlElement, kind: string): StoreLine | undefined {
+  const blueprint = itemBlueprint(item);
+  if (!blueprint || blueprint.empty) return undefined;
+  const count = readCount(item);
+  return {
+    id: blueprint.id,
+    kind,
+    name: textOf(item, "title") ?? blueprint.id,
+    cost: numOf(item, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function readResourceLine(node: XmlElement): StoreLine | undefined {
+  const type = textOf(node, "type");
+  const kind = type === "drones" ? "parts" : type;
+  if (kind !== "fuel" && kind !== "missiles" && kind !== "parts") return undefined;
+  const count = readCount(node);
+  return {
+    id: kind,
+    kind,
+    name: textOf(node, "title") ?? kind,
+    cost: numOf(node, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function readRepairLine(node: XmlElement): StoreLine | undefined {
+  const count = readCount(node);
+  return {
+    id: "repair",
+    kind: "repair",
+    name: textOf(node, "title") ?? "repair",
+    cost: numOf(node, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function emptyBlueprints(node: XmlElement): number {
+  let count = 0;
+  for (const item of elements(node)) {
+    if (item.tagName !== "item") continue;
+    const blueprint = itemBlueprint(item);
+    if (blueprint?.empty) count += 1;
+  }
+  return count;
+}
+
+function readStore(node: XmlElement): StoreDef | undefined {
+  const id = attr(node, "id")?.trim();
   if (!id) return undefined;
   const sections: string[] = [];
   const lines: StoreLine[] = [];
+  let weapons = 2;
+  let slot = 3;
+  let sawWeapons = false;
+  let sawSlot = false;
   for (const item of elements(node)) {
-    if (item.tagName === "section") {
-      const text = ownText(item).trim();
-      if (text) sections.push(text);
+    if (item.tagName === "resource") {
+      const line = readResourceLine(item);
+      if (line) lines.push(line);
       continue;
     }
-    if (item.tagName !== "stock") continue;
-    const lineId = attr(item, "id")?.trim();
-    if (!lineId) continue;
-    const min = attrNum(item.getAttribute("min")) ?? 0;
-    lines.push({
-      id: lineId,
-      kind: attr(item, "kind")?.trim() ?? "",
-      name: textOf(item, "title") ?? lineId,
-      cost: numOf(item, "cost") ?? 0,
-      min,
-      max: attrNum(item.getAttribute("max")) ?? min,
-    });
+    if (item.tagName === "hullRepair") {
+      const line = readRepairLine(item);
+      if (line) lines.push(line);
+      continue;
+    }
+    if (item.tagName === "category") {
+      const type = attr(item, "type")?.trim() ?? "";
+      const kind = SHELF_KIND[type] ?? type;
+      if (kind && !sections.includes(kind)) sections.push(kind);
+      const empties = emptyBlueprints(item);
+      if (kind === "weapons") {
+        if (!sawWeapons) {
+          weapons = empties;
+          sawWeapons = true;
+        }
+      } else if (!sawSlot) {
+        slot = empties;
+        sawSlot = true;
+      }
+      for (const entry of elements(item)) {
+        if (entry.tagName !== "item") continue;
+        const line = readNamedItem(entry, kind);
+        if (line) lines.push(line);
+      }
+      continue;
+    }
+    if (item.tagName === "item" && item.hasAttribute("kind")) {
+      const line = readNamedItem(item, attr(item, "kind")?.trim() ?? "");
+      if (line) lines.push(line);
+    }
   }
   return {
     id,
     name: textOf(node, "title") ?? id,
-    slot: numOf(node, "slot") ?? 3,
-    weapons: numOf(node, "weapons") ?? 2,
+    slot,
+    weapons,
     sections,
     lines,
-  };
-}
-
-function readTune(node: XmlElement): TuneDef | undefined {
-  const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
-  const costs: TuneStep[] = [];
-  for (const item of elements(node)) {
-    if (item.tagName !== "upgrade") continue;
-    const level = attrNum(item.getAttribute("level"));
-    if (level == null) continue;
-    const cost = Number(ownText(item).trim());
-    if (!Number.isFinite(cost)) continue;
-    costs.push({ level, cost });
-  }
-  return {
-    id,
-    start: numOf(node, "start") ?? 1,
-    costs,
   };
 }
 
@@ -415,7 +532,101 @@ export function tagged(doc: XmlDocument, tag: string): XmlElement[] {
   return found;
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
+function isLevel(value: string | undefined): value is RewardLevel {
+  return value === "LOW" || value === "MED" || value === "HIGH";
+}
+
+function isRewardKind(value: string | undefined): value is RewardKind {
+  return value === "scrap" || value === "fuel" || value === "missiles" || value === "droneparts";
+}
+
+function readScaling(node: XmlElement): RewardScaling | undefined {
+  const difficulty = attr(node, "difficulty")?.trim();
+  if (difficulty != null && difficulty !== "" && difficulty !== "0" && difficulty !== "2") return undefined;
+  const scrap = child(node, "scrap");
+  if (!scrap) return undefined;
+  const baseAmount = attrNum(scrap.getAttribute("baseAmount"));
+  const sectorAmount = attrNum(scrap.getAttribute("sectorAmount"));
+  if (baseAmount == null || sectorAmount == null) return undefined;
+  const row: RewardScaling = {
+    baseAmount,
+    sectorAmount,
+    difficultyAmount: attrNum(scrap.getAttribute("difficultyAmount")) ?? 0,
+  };
+  if (difficulty === "0" || difficulty === "2") row.difficulty = difficulty === "0" ? 0 : 2;
+  return row;
+}
+
+function readResourceReward(node: XmlElement): ResourceReward | undefined {
+  if (!isRewardKind(node.tagName)) return undefined;
+  const level = attr(node, "level")?.trim();
+  if (!isLevel(level)) return undefined;
+  const min = attrNum(node.getAttribute("min"));
+  const max = attrNum(node.getAttribute("max"));
+  if (min == null || max == null) return undefined;
+  return { kind: node.tagName, level, min, max };
+}
+
+function readRewardResource(node: XmlElement): RewardResource | undefined {
+  const name = attr(node, "name")?.trim();
+  if (!isRewardKind(name)) return undefined;
+  const level = attr(node, "level")?.trim();
+  if (level && !isLevel(level)) return undefined;
+  const row: RewardResource = { name };
+  if (isLevel(level)) row.level = level;
+  return row;
+}
+
+function readNamedReward(node: XmlElement): NamedReward | undefined {
+  const name = attr(node, "name")?.trim();
+  const body = child(node, "reward");
+  if (!name || !body) return undefined;
+  const resources: RewardResource[] = [];
+  for (const item of elements(body)) {
+    if (item.tagName !== "resource") continue;
+    const row = readRewardResource(item);
+    if (row) resources.push(row);
+  }
+  const reward: NamedReward = { name, resources };
+  const minResources = attrNum(body.getAttribute("minResources"));
+  const maxResources = attrNum(body.getAttribute("maxResources"));
+  if (minResources != null) reward.minResources = minResources;
+  if (maxResources != null) reward.maxResources = maxResources;
+  const bonus = child(body, "bonus");
+  const item = bonus ? child(bonus, "item") : undefined;
+  const roll = bonus ? attrNum(bonus.getAttribute("roll")) : undefined;
+  const chance = item ? attrNum(item.getAttribute("chance")) : undefined;
+  if (roll != null && chance != null) reward.bonus = { roll, chance };
+  return reward;
+}
+
+/** Direct children of the root rewards block. A surrender reward is not this tag. */
+function readRewards(node: XmlElement): RewardTable | undefined {
+  const scaling: RewardScaling[] = [];
+  const resources: ResourceReward[] = [];
+  const rewards: NamedReward[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName === "rewardScaling") {
+      const row = readScaling(item);
+      if (row) scaling.push(row);
+      continue;
+    }
+    if (item.tagName === "resourceRewards") {
+      for (const band of elements(item)) {
+        const row = readResourceReward(band);
+        if (row) resources.push(row);
+      }
+      continue;
+    }
+    if (item.tagName !== "reward") continue;
+    const row = readNamedReward(item);
+    if (row) rewards.push(row);
+  }
+  if (scaling.length === 0 && resources.length === 0 && rewards.length === 0) return undefined;
+  return { scaling, resources, rewards };
+}
+
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -424,6 +635,7 @@ export function parsePack(xml: string): ContentPack {
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
   const hulls: HullDef[] = [];
+  const factions: FactionSurrender[] = [];
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
@@ -447,24 +659,26 @@ export function parsePack(xml: string): ContentPack {
     if (row) drones.push(row);
   }
   for (const node of tagged(doc, "systemBlueprint")) {
-    const row = readSystem(node);
-    if (row) systems.push(row);
+    const row = readSystemBlueprint(node);
+    if (row.system) systems.push(row.system);
+    if (row.tune) tunes.push(row.tune);
   }
   for (const node of tagged(doc, "shipBlueprint")) {
-    const row = readHull(node);
-    if (row) hulls.push(row);
+    const hull = readHull(node);
+    if (hull) {
+      hulls.push(hull);
+      continue;
+    }
+    const faction = readFaction(node);
+    if (faction) factions.push(faction);
   }
   for (const node of tagged(doc, "sectorDescription")) {
     const row = readSector(node);
     if (row) sectors.push(row);
   }
-  for (const node of tagged(doc, "storeBlueprint")) {
+  for (const node of tagged(doc, "customStore")) {
     const row = readStore(node);
     if (row) stores.push(row);
-  }
-  for (const node of tagged(doc, "systemTune")) {
-    const row = readTune(node);
-    if (row) tunes.push(row);
   }
   for (const node of tagged(doc, "event")) {
     const row = readEvent(node);
@@ -478,7 +692,9 @@ export function parsePack(xml: string): ContentPack {
     const row = readEmpty(node);
     if (row) empties.push(row);
   }
-  return {
+  const rewardsNode = elements(doc.documentElement ?? undefined).find((item) => item.tagName === "rewards");
+  const rewards = rewardsNode ? readRewards(rewardsNode) : undefined;
+  const pack: ContentPack = {
     crew,
     weapons,
     augments,
@@ -492,6 +708,9 @@ export function parsePack(xml: string): ContentPack {
     lists,
     empties,
   };
+  if (rewards) pack.rewards = rewards;
+  if (factions.length > 0) pack.factions = factions;
+  return pack;
 }
 
 function readList(node: XmlElement): FillerListDef | undefined {
@@ -500,7 +719,7 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const entries: FillerEntry[] = [];
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
-    const eventId = attr(item, "id")?.trim();
+    const eventId = attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
@@ -535,6 +754,8 @@ function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
 }
 
 function readEvent(node: XmlElement): EventDef | undefined {
+  const parent = node.parentNode as XmlElement | null;
+  if (parent?.tagName === "eventList") return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const aliases: string[] = [];
@@ -771,12 +992,72 @@ function openingTexts(node: XmlElement, lines: string[]): string[] | undefined {
   return texts.length > 1 ? texts : undefined;
 }
 
+function levelTier(level: string | undefined): EventTier | undefined {
+  if (level === "LOW") return "low";
+  if (level === "MED") return "medium";
+  if (level === "HIGH") return "high";
+  return undefined;
+}
+
+function emptyBlueprint(node: XmlElement | undefined): boolean {
+  if (!node) return false;
+  return !attr(node, "name")?.trim() && ownText(node).trim() === "";
+}
+
+/** A missing reward child is none. A bad autoReward skips the whole offer. */
+function readSurrenderReward(node: XmlElement): SurrenderReward | undefined {
+  const autos = elements(node).filter((item) => item.tagName === "autoReward");
+  const weapons = elements(node).filter((item) => item.tagName === "weapon");
+  const drones = elements(node).filter((item) => item.tagName === "drone");
+  const augments = elements(node).filter((item) => item.tagName === "augment");
+  const crews = elements(node).filter((item) => item.tagName === "crewMember");
+  const repairs = elements(node).filter((item) => item.tagName === "fuelRepairs");
+  const present = autos.length + weapons.length + drones.length + augments.length + crews.length + repairs.length;
+  if (present === 0) return { k: "none" };
+  if (autos.length > 0) {
+    const text = ownText(autos[0]!).trim();
+    const level = attr(autos[0]!, "level")?.trim();
+    const tier = levelTier(level);
+    if (level && !tier) return undefined;
+    if (text === "stuff") return tier ? { k: "stuff", tier } : { k: "stuff" };
+    if (text === "standard") {
+      if (!tier) return undefined;
+      const race = crews[0] ? ownText(crews[0]).trim() : "";
+      return race ? { k: "standard", tier, race } : { k: "standard", tier };
+    }
+    if (text === "scrap_only") {
+      if (!tier) return undefined;
+      const unnamed = emptyBlueprint(weapons[0])
+        ? "weapon"
+        : emptyBlueprint(drones[0])
+          ? "drone"
+          : emptyBlueprint(augments[0])
+            ? "augment"
+            : undefined;
+      return unnamed ? { k: "scrap", tier, unnamed } : { k: "scrap", tier };
+    }
+    return undefined;
+  }
+  const named = weapons.find((item) => attr(item, "name")?.trim());
+  const weaponName = named ? attr(named, "name")?.trim() : undefined;
+  if (weaponName) return { k: "weapon", name: weaponName };
+  if (crews.length > 0) {
+    const race = ownText(crews[0]!).trim();
+    return race ? { k: "crew", race } : { k: "crew" };
+  }
+  if (repairs.length > 0) {
+    const n = attrNum(repairs[0]!.getAttribute("repairs"));
+    if (n == null) return undefined;
+    return { k: "fuel-repairs", repairs: n };
+  }
+  return undefined;
+}
+
 function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
   const chance = attrNum(node.getAttribute("chance"));
-  const low = attrNum(node.getAttribute("low"));
-  const high = attrNum(node.getAttribute("high"));
-  const rewardNode = child(node, "reward");
-  const reward = rewardNode ? readReward(rewardNode) : undefined;
+  const low = attrNum(node.getAttribute("min"));
+  const high = attrNum(node.getAttribute("max"));
+  const reward = readSurrenderReward(node);
   const hails = elements(node)
     .filter((item) => item.tagName === "text")
     .map((item) => ownText(item).trim())
@@ -1047,50 +1328,6 @@ function readStockReq(node: XmlElement): { id: string; n: number } | undefined {
   const max = intAttr(item, "max");
   if (min == null || max == null || min !== max || min >= 0) return undefined;
   return { id, n: -min };
-}
-
-function readReward(node: XmlElement): SurrenderReward | undefined {
-  const kind = attr(node, "k");
-  if (kind === "none") return { k: "none" };
-  if (kind === "crew") {
-    const race = attr(node, "race")?.trim();
-    return race ? { k: "crew", race } : { k: "crew" };
-  }
-  if (kind === "stuff") {
-    const tier = attr(node, "tier");
-    if (!tier) return { k: "stuff" };
-    if (!isTier(tier)) return undefined;
-    return { k: "stuff", tier };
-  }
-  if (kind === "fuel-repairs") {
-    const repairs = attrNum(node.getAttribute("repairs"));
-    if (repairs == null) return undefined;
-    return { k: "fuel-repairs", repairs };
-  }
-  if (kind === "weapon") {
-    const name = attr(node, "name")?.trim();
-    if (!name) return undefined;
-    return { k: "weapon", name };
-  }
-  if (kind === "standard") {
-    const tier = attr(node, "tier");
-    if (!isTier(tier)) return undefined;
-    const race = attr(node, "race")?.trim();
-    return race ? { k: "standard", tier, race } : { k: "standard", tier };
-  }
-  if (kind === "scrap") {
-    const tier = attr(node, "tier");
-    if (!isTier(tier)) return undefined;
-    const unnamed = attr(node, "unnamed");
-    if (!unnamed) return { k: "scrap", tier };
-    if (!isItem(unnamed)) return undefined;
-    return { k: "scrap", tier, unnamed };
-  }
-  return undefined;
-}
-
-function isItem(value: string): value is EventItem {
-  return value === "weapon" || value === "augment" || value === "drone";
 }
 
 /** Choice results, in document order. */

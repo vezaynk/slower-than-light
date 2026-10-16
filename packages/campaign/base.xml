@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
-  System tags are the listing id, title, store cost, and install slot.
+  A systemBlueprint with a cost is a store listing. subSystem marks a kit.
+  startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
   Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
+  A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
-  Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
-  Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
+  A customStore holds resource lines, hull repair, and one category per section.
+  Empty blueprint items are the weapon shelf and the other section size.
+  A rewards block is the scrap scaling and the fuel, missile, and drone-part bands.
   An event tag is a page. flag, title, alias, and sector are extra names this sim looks up.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
@@ -47,9 +50,10 @@
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
-  A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
+  A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
+  An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
   The sim still checks the hull and still hands that reward over.
-  An event list with page ids is drawn in that order. unique means the page can appear once per sector.
+  An event list with page names is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
   A list with no page ids is an offer table or the printed bands.
   An empty beacon stores the sentences for a quiet jump and the sectors that use them.
@@ -1231,52 +1235,186 @@
   <systemBlueprint name="shields">
     <title>Shields</title>
     <cost>125</cost>
-    <slot>sys</slot>
+    <startPower>2</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>100</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>20</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>30</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>80</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>100</cost>
+    </upgradeCost>
+  </systemBlueprint>
+  <systemBlueprint name="engines">
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>10</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>15</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>30</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>80</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>120</cost>
+    </upgradeCost>
+  </systemBlueprint>
+  <systemBlueprint name="oxygen">
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>50</cost>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="medbay">
     <title>Medbay</title>
     <cost>50</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>45</cost>
+    </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="cradle">
+  <systemBlueprint name="weapons">
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>40</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>3</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>4</level>
+      <cost>50</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>5</level>
+      <cost>75</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>6</level>
+      <cost>90</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>7</level>
+      <cost>100</cost>
+    </upgradeCost>
+  </systemBlueprint>
+  <systemBlueprint name="pilot">
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>20</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>50</cost>
+    </upgradeCost>
+  </systemBlueprint>
+  <systemBlueprint name="cradle" subSystem="true">
     <title>Clone Bay</title>
     <cost>50</cost>
-    <slot>kit</slot>
   </systemBlueprint>
-  <systemBlueprint name="sling">
+  <systemBlueprint name="sling" subSystem="true">
     <title>Crew Teleporter</title>
     <cost>90</cost>
-    <slot>kit</slot>
   </systemBlueprint>
-  <systemBlueprint name="veil">
+  <systemBlueprint name="veil" subSystem="true">
     <title>Cloaking</title>
     <cost>150</cost>
-    <slot>kit</slot>
   </systemBlueprint>
-  <systemBlueprint name="leash">
+  <systemBlueprint name="leash" subSystem="true">
     <title>Mind Control</title>
     <cost>75</cost>
-    <slot>kit</slot>
   </systemBlueprint>
-  <systemBlueprint name="spike">
+  <systemBlueprint name="spike" subSystem="true">
     <title>Hacking</title>
     <cost>80</cost>
-    <slot>kit</slot>
   </systemBlueprint>
   <systemBlueprint name="sensors">
     <title>Sensors</title>
     <cost>40</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>1</level>
+      <cost>25</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>40</cost>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="doors">
     <title>Door System</title>
     <cost>60</cost>
-    <slot>sys</slot>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>0</level>
+      <cost>60</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>1</level>
+      <cost>35</cost>
+    </upgradeCost>
+    <upgradeCost>
+      <level>2</level>
+      <cost>50</cost>
+    </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="cell">
+  <systemBlueprint name="cell" subSystem="true">
     <title>Backup Battery</title>
     <cost>35</cost>
-    <slot>kit</slot>
   </systemBlueprint>
   <shipBlueprint name="kestrel-a" layout="A">
     <class>Kestrel Cruiser</class>
@@ -3092,6 +3230,24 @@
     </augmentList>
     <unfitted/>
   </shipBlueprint>
+  <shipBlueprint name="crystal">
+    <surrender chance="40" min="30" max="40"/>
+  </shipBlueprint>
+  <shipBlueprint name="slug">
+    <surrender chance="50" min="30" max="40"/>
+  </shipBlueprint>
+  <shipBlueprint name="lanius">
+    <surrender chance="80" min="30" max="40"/>
+  </shipBlueprint>
+  <shipBlueprint name="pirate">
+    <surrender chance="50" min="30" max="40"/>
+  </shipBlueprint>
+  <shipBlueprint name="rebel">
+    <surrender chance="50" min="20" max="30"/>
+  </shipBlueprint>
+  <shipBlueprint name="rock">
+    <surrender chance="30" min="30" max="40"/>
+  </shipBlueprint>
   <sectorDescription name="civilian-start">
     <title>Civilian (Starting) Sector</title>
     <type>civilian</type>
@@ -3241,120 +3397,217 @@
     <note>The beacon list gives 1 store and 3 repair stations.</note>
     <note>Crew bought or received as a reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <storeBlueprint name="standard">
+  <customStore id="standard">
     <title>Store</title>
-    <slot>3</slot>
-    <weapons>2</weapons>
-    <section>weapons</section>
-    <section>drones</section>
-    <section>augments</section>
-    <section>crew</section>
-    <section>systems</section>
-    <stock id="fuel" kind="fuel" min="3" max="7">
+    <resource>
+      <type>fuel</type>
+      <count min="3" max="7"/>
+      <price>3</price>
       <title>Fuel</title>
-      <cost>3</cost>
-    </stock>
-    <stock id="missiles" kind="missiles" min="2" max="6">
+    </resource>
+    <resource>
+      <type>missiles</type>
+      <count min="2" max="6"/>
+      <price>6</price>
       <title>Missiles</title>
-      <cost>6</cost>
-    </stock>
-    <stock id="parts" kind="parts" min="2" max="4">
+    </resource>
+    <resource>
+      <type>drones</type>
+      <count min="2" max="4"/>
+      <price>8</price>
       <title>Drone parts</title>
-      <cost>8</cost>
-    </stock>
-    <stock id="repair" kind="repair" min="5" max="5">
+    </resource>
+    <hullRepair>
+      <price>0</price>
+      <count min="5" max="5"/>
       <title>Hull patch +5</title>
-      <cost>0</cost>
-    </stock>
-    <stock id="plain" kind="crew" min="1" max="1">
-      <title>Human</title>
-      <cost>45</cost>
-    </stock>
-    <stock id="shell" kind="crew" min="1" max="1">
-      <title>Engi</title>
-      <cost>50</cost>
-    </stock>
-    <stock id="blade" kind="crew" min="1" max="1">
-      <title>Mantis</title>
-      <cost>55</cost>
-    </stock>
-    <stock id="stone" kind="crew" min="1" max="1">
-      <title>Rock</title>
-      <cost>55</cost>
-    </stock>
-    <stock id="spark" kind="crew" min="1" max="1">
-      <title>Zoltan</title>
-      <cost>60</cost>
-    </stock>
-    <stock id="gel" kind="crew" min="1" max="1">
-      <title>Slug</title>
-      <cost>45</cost>
-    </stock>
-    <stock id="shard" kind="crew" min="1" max="1">
-      <title>Crystal</title>
-      <cost>60</cost>
-    </stock>
-    <stock id="voidlung" kind="crew" min="1" max="1">
-      <title>Lanius</title>
-      <cost>50</cost>
-    </stock>
-  </storeBlueprint>
-  <systemTune name="shields">
-    <start>2</start>
-    <upgrade level="1">100</upgrade>
-    <upgrade level="2">20</upgrade>
-    <upgrade level="3">30</upgrade>
-    <upgrade level="4">40</upgrade>
-    <upgrade level="5">60</upgrade>
-    <upgrade level="6">80</upgrade>
-    <upgrade level="7">100</upgrade>
-  </systemTune>
-  <systemTune name="engines">
-    <start>1</start>
-    <upgrade level="1">10</upgrade>
-    <upgrade level="2">15</upgrade>
-    <upgrade level="3">30</upgrade>
-    <upgrade level="4">40</upgrade>
-    <upgrade level="5">60</upgrade>
-    <upgrade level="6">80</upgrade>
-    <upgrade level="7">120</upgrade>
-  </systemTune>
-  <systemTune name="oxygen">
-    <start>1</start>
-    <upgrade level="1">25</upgrade>
-    <upgrade level="2">50</upgrade>
-  </systemTune>
-  <systemTune name="medbay">
-    <start>1</start>
-    <upgrade level="1">35</upgrade>
-    <upgrade level="2">45</upgrade>
-  </systemTune>
-  <systemTune name="weapons">
-    <start>1</start>
-    <upgrade level="1">40</upgrade>
-    <upgrade level="2">25</upgrade>
-    <upgrade level="3">35</upgrade>
-    <upgrade level="4">50</upgrade>
-    <upgrade level="5">75</upgrade>
-    <upgrade level="6">90</upgrade>
-    <upgrade level="7">100</upgrade>
-  </systemTune>
-  <systemTune name="pilot">
-    <start>1</start>
-    <upgrade level="1">20</upgrade>
-    <upgrade level="2">50</upgrade>
-  </systemTune>
-  <systemTune name="sensors">
-    <start>1</start>
-    <upgrade level="1">25</upgrade>
-    <upgrade level="2">40</upgrade>
-  </systemTune>
-  <systemTune name="doors">
-    <start>1</start>
-    <upgrade level="0">60</upgrade>
-    <upgrade level="1">35</upgrade>
-    <upgrade level="2">50</upgrade>
-  </systemTune>
+    </hullRepair>
+    <category type="WEAPONS">
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+    </category>
+    <category type="DRONES">
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+    </category>
+    <category type="AUGMENTS">
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+    </category>
+    <category type="CREW">
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint>plain</blueprint>
+        <price>45</price>
+        <count min="1" max="1"/>
+        <title>Human</title>
+      </item>
+      <item>
+        <blueprint>shell</blueprint>
+        <price>50</price>
+        <count min="1" max="1"/>
+        <title>Engi</title>
+      </item>
+      <item>
+        <blueprint>blade</blueprint>
+        <price>55</price>
+        <count min="1" max="1"/>
+        <title>Mantis</title>
+      </item>
+      <item>
+        <blueprint>stone</blueprint>
+        <price>55</price>
+        <count min="1" max="1"/>
+        <title>Rock</title>
+      </item>
+      <item>
+        <blueprint>spark</blueprint>
+        <price>60</price>
+        <count min="1" max="1"/>
+        <title>Zoltan</title>
+      </item>
+      <item>
+        <blueprint>gel</blueprint>
+        <price>45</price>
+        <count min="1" max="1"/>
+        <title>Slug</title>
+      </item>
+      <item>
+        <blueprint>shard</blueprint>
+        <price>60</price>
+        <count min="1" max="1"/>
+        <title>Crystal</title>
+      </item>
+      <item>
+        <blueprint>voidlung</blueprint>
+        <price>50</price>
+        <count min="1" max="1"/>
+        <title>Lanius</title>
+      </item>
+    </category>
+    <category type="SYSTEMS">
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+      <item>
+        <blueprint/>
+      </item>
+    </category>
+  </customStore>
+  <rewards>
+    <rewardScaling>
+      <scrap baseAmount="15" sectorAmount="6"/>
+    </rewardScaling>
+    <rewardScaling difficulty="0">
+      <scrap baseAmount="15" sectorAmount="6" difficultyAmount="1"/>
+    </rewardScaling>
+    <rewardScaling difficulty="2">
+      <scrap baseAmount="15" sectorAmount="6" difficultyAmount="-1"/>
+    </rewardScaling>
+    <resourceRewards>
+      <scrap level="LOW" min="500" max="700"/>
+      <scrap level="MED" min="800" max="1300"/>
+      <scrap level="HIGH" min="1300" max="1550"/>
+      <fuel level="LOW" min="1" max="3"/>
+      <fuel level="MED" min="2" max="4"/>
+      <fuel level="HIGH" min="3" max="6"/>
+      <missiles level="LOW" min="1" max="2"/>
+      <missiles level="MED" min="2" max="4"/>
+      <missiles level="HIGH" min="4" max="8"/>
+      <droneparts level="LOW" min="1" max="1"/>
+      <droneparts level="MED" min="1" max="1"/>
+      <droneparts level="HIGH" min="1" max="2"/>
+    </resourceRewards>
+    <reward name="standard">
+      <reward minResources="2" maxResources="2">
+        <resource name="scrap"/>
+        <resource name="fuel" level="LOW"/>
+        <resource name="missiles" level="LOW"/>
+        <resource name="droneparts" level="LOW"/>
+        <bonus roll="100">
+          <item chance="3"/>
+        </bonus>
+      </reward>
+    </reward>
+    <reward name="stuff">
+      <reward minResources="2" maxResources="2">
+        <resource name="scrap" level="LOW"/>
+        <resource name="fuel"/>
+        <resource name="missiles"/>
+        <resource name="droneparts"/>
+        <bonus roll="100">
+          <item chance="6"/>
+        </bonus>
+      </reward>
+    </reward>
+    <reward name="scrap_only">
+      <reward>
+        <resource name="scrap"/>
+      </reward>
+    </reward>
+    <reward name="fuel">
+      <reward>
+        <resource name="scrap"/>
+        <resource name="fuel"/>
+      </reward>
+    </reward>
+    <reward name="missiles">
+      <reward>
+        <resource name="scrap"/>
+        <resource name="missiles"/>
+      </reward>
+    </reward>
+    <reward name="droneparts">
+      <reward>
+        <resource name="scrap"/>
+        <resource name="droneparts"/>
+      </reward>
+    </reward>
+    <reward name="fuel_only">
+      <reward>
+        <resource name="fuel"/>
+      </reward>
+    </reward>
+    <reward name="missiles_only">
+      <reward>
+        <resource name="missiles"/>
+      </reward>
+    </reward>
+    <reward name="droneparts_only">
+      <reward>
+        <resource name="droneparts"/>
+      </reward>
+    </reward>
+  </rewards>
   <event name="auto-ship-attacking-civilian" flag="cited:auto-ship-attacking-civilian">
     <title>Auto-ship attacking civilian</title>
     <alias>Auto-ship attacking civilian</alias>
@@ -3566,9 +3819,9 @@
       <text>Fight a Crystal ship</text>
       <ship hostile="true" load="Crystal ship"/>
     </choice>
-    <surrender chance="50" low="30" high="40" continues="true">
+    <surrender chance="50" min="30" max="40" continues="true">
       <text>The hunters message you, "We surrender. Take one of these squishy meat sacks that we've captured." He must be referring to the human captives.</text>
-      <reward k="crew" race="Human"/>
+      <crewMember>Human</crewMember>
       <choice name="surrender-accept">
         <text>Accept their surrender.</text>
       </choice>
@@ -3588,9 +3841,9 @@
       <text>Fight a Crystal ship</text>
       <ship hostile="true" load="Crystal ship"/>
     </choice>
-    <surrender chance="100" low="30" high="40">
+    <surrender chance="100" min="30" max="40">
       <text>Their ship seems severely damaged and they look to be reconsidering the fight. Should you power down your weapons and explain that you mean no threat?</text>
-      <reward k="fuel-repairs" repairs="8"/>
+      <fuelRepairs repairs="8"/>
       <result>They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.
 
 They apologize for their hasty response to your presence and spend some time refueling and repairing both ships.</result>
@@ -4352,9 +4605,9 @@ They apologize for their hasty response to your presence and spend some time ref
       <text>Try to be a hero. Attack the pirate</text>
       <ship hostile="true" load="Pirate ship"/>
     </choice>
-    <surrender chance="70" low="30" high="40">
+    <surrender chance="70" min="30" max="40">
       <text>"Fine! Our previous offer was not generous enough, let's improve it."</text>
-      <reward k="stuff" tier="high"/>
+      <autoReward level="HIGH">stuff</autoReward>
       <choice name="surrender-accept">
         <text>Accept the more generous bribe and leave.</text>
       </choice>
@@ -4912,9 +5165,9 @@ They apologize for their hasty response to your presence and spend some time ref
       <text>Ignore the slaver and continue on your way</text>
       <event/>
     </choice>
-    <surrender chance="80" low="20" high="40">
+    <surrender chance="80" min="20" max="40">
       <text>We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!</text>
-      <reward k="crew"/>
+      <crewMember/>
       <choice name="surrender-accept">
         <text>Accept their offer.</text>
       </choice>
@@ -4943,9 +5196,9 @@ They apologize for their hasty response to your presence and spend some time ref
       <req req="engines" lvl="6">Needs Engines level 6</req>
       <ship hostile="true" load="Pirate ship"/>
     </choice>
-    <surrender chance="80" low="20" high="40">
+    <surrender chance="80" min="20" max="40">
       <text>We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!</text>
-      <reward k="crew"/>
+      <crewMember/>
       <choice name="surrender-accept">
         <text>Accept their offer.</text>
       </choice>
@@ -5673,9 +5926,9 @@ They apologize for their hasty response to your presence and spend some time ref
       <text>Ignore the ship</text>
       <event/>
     </choice>
-    <surrender chance="50" low="20" high="40">
+    <surrender chance="50" min="20" max="40">
       <text>They hail you, "We realize our ship is no match for yours. If you let us go we can make it worth your while."</text>
-      <reward k="stuff"/>
+      <autoReward>stuff</autoReward>
       <choice name="surrender-accept">
         <text>Accept their offer.</text>
       </choice>
@@ -5888,9 +6141,9 @@ They apologize for their hasty response to your presence and spend some time ref
       </item_modify>
       <effect k="tier" tier="high"/>
     </choice>
-    <surrender chance="50" low="20" high="40">
+    <surrender chance="50" min="20" max="40">
       <text>"Alright! We give up! We're terrible at this pirating thing anyway..."</text>
-      <reward k="stuff" tier="medium"/>
+      <autoReward level="MED">stuff</autoReward>
       <choice name="surrender-accept">
         <text>Let them go.</text>
       </choice>
@@ -6176,13 +6429,12 @@ They apologize for their hasty response to your presence and spend some time ref
       <text>Fight a Crystal ship (default rewards)</text>
       <ship hostile="true" load="Crystal ship"/>
     </choice>
-    <surrender chance="40" low="30" high="40">
+    <surrender chance="40" min="30" max="40">
       <text>"We yield, aliens. We have no wish to die fighting you."</text>
       <text>"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace."</text>
       <text>They appear to be transmitting the universal signals for surrender. Will you let them go?</text>
       <text>They message you, "I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?"</text>
       <text>"We cannot beat you, we surrender. Surely there is mercy wherever you come from."</text>
-      <reward k="none"/>
       <choice name="surrender-accept">
         <text>Accept their surrender.</text>
       </choice>
@@ -6959,9 +7211,9 @@ They apologize for their hasty response to your presence and spend some time ref
       <text>Fight a Slug ship</text>
       <ship hostile="true" load="Slug ship"/>
     </choice>
-    <surrender chance="100" low="30" high="40">
+    <surrender chance="100" min="30" max="40">
       <text>"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?" "Take thisss newly developed weapon we're transporting..."</text>
-      <reward k="weapon" name="Anti-Bio Beam"/>
+      <weapon name="Anti-Bio Beam"/>
       <result>This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!</result>
       <choice name="surrender-accept">
         <text>Let them live. Accept the prototype weapon.</text>
@@ -7981,9 +8233,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         <text>Scan the boxes.</text>
       </event>
     </choice>
-    <surrender chance="100" low="0" high="50">
+    <surrender chance="100" min="0" max="50">
       <text>The pirates hail you: "Enough! Take what's left of the cargo and let us go."</text>
-      <reward k="stuff"/>
+      <autoReward>stuff</autoReward>
       <choice name="surrender-accept">
         <text>Accept their surrender.</text>
       </choice>
@@ -8011,9 +8263,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Decline.</text>
       <event/>
     </choice>
-    <surrender chance="100" low="30" high="40">
+    <surrender chance="100" min="30" max="40">
       <text>They hail your ship saying, "You win! We're not cut out for this!"</text>
-      <reward k="scrap" tier="medium" unnamed="weapon"/>
+      <autoReward level="MED">scrap_only</autoReward>
+      <weapon/>
       <result>With the pirates dissuaded from their career path, you return to the settlement. "Thank you, they returned to us before you did. I don't think we'll need this anymore."</result>
       <choice name="surrender-accept">
         <text>Let them live and then return to the settlement.</text>
@@ -8033,9 +8286,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>No.</text>
       <ship hostile="true" load="Slug pirate ship"/>
     </choice>
-    <surrender chance="100" low="30" high="40">
+    <surrender chance="100" min="30" max="40">
       <text>"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame."</text>
-      <reward k="scrap" tier="high" unnamed="weapon"/>
+      <autoReward level="HIGH">scrap_only</autoReward>
+      <weapon/>
       <result>He transfers over the goods and starts to repair his ship.</result>
       <choice name="surrender-accept">
         <text>Accept his surrender.</text>
@@ -8060,9 +8314,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Have them keep their distance.</text>
       <event/>
     </choice>
-    <surrender chance="50" low="30" high="40" forced="true">
+    <surrender chance="50" min="30" max="40" forced="true">
       <text>The Zoltan captain sends an urgent hail: "Wait, this was all a test! A test that you passed! A diverse crew, working together, surely a sight to warm the heart of any dispassionate observer. Come, I shall join your crew!"</text>
-      <reward k="standard" tier="low" race="Zoltan"/>
+      <autoReward level="LOW">standard</autoReward>
+      <crewMember>Zoltan</crewMember>
       <choice name="surrender-accept">
         <text>Welcome the captain aboard.</text>
       </choice>
@@ -8901,9 +9156,9 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <event name="quest-slug-pirate-trap-engage" flag="surrender:quest-slug-pirate-trap-engage">
     <title>Slug comm tapping</title>
     <text/>
-    <surrender chance="100" low="30" high="40">
+    <surrender chance="100" min="30" max="40">
       <text>When the pirate ship looks ready to break apart you notice the Slug ship has secured the loot and is preparing to jump away!</text>
-      <reward k="scrap" tier="high"/>
+      <autoReward level="HIGH">scrap_only</autoReward>
       <result>The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. "Ah, of courssse, we would never leave without providing the agreed upon ssspoils." They transfer over a decent chunk of the profits and set off.</result>
       <choice name="surrender-accept">
         <text>Let the pirate escape and go after the Slugman ship.</text>
@@ -8916,9 +9171,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <event name="quest-engi-real" flag="surrender:quest-engi-real">
     <title>Engi fleet discussion</title>
     <text/>
-    <surrender chance="100" low="50" high="50" forced="true" quest="engi-final">
+    <surrender chance="100" min="50" max="50" forced="true" quest="engi-final">
       <text>"Stop!  This isn't worth dying for..."</text>
-      <reward k="none"/>
       <result>"Of course, that's why you're here. Yes, they passed by here but I had nothing to do with it, I don't know what they were carrying. I'll transmit coordinates. Now just let us go..." You prepare an FTL message containing the coordinates to send to the Engies and get ready to jump.</result>
       <choice name="surrender-accept">
         <text>Demand information on the stolen technology.</text>
@@ -8928,9 +9182,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <event name="quest-engi-fake" flag="surrender:quest-engi-fake">
     <title>Engi fleet discussion</title>
     <text/>
-    <surrender chance="100" low="40" high="40" forced="true">
+    <surrender chance="100" min="40" max="40" forced="true">
       <text>"Stop! I don't want to die here."</text>
-      <reward k="none"/>
       <choice name="surrender-accept">
         <text>Demand information on the stolen technology.</text>
       </choice>
@@ -8948,9 +9201,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <event name="quest-mantis-chase" flag="surrender:quest-mantis-chase">
     <title>Mantis ship-collectors</title>
     <text/>
-    <surrender chance="100" low="20" high="20">
+    <surrender chance="100" min="20" max="20">
       <text>"Look, you proved your point. We don't want to die... Take this and let us go. Please?"</text>
-      <reward k="scrap" tier="high" unnamed="weapon"/>
+      <autoReward level="HIGH">scrap_only</autoReward>
+      <weapon/>
       <result>"Thank you. But do you have any idea how much repairing TWO ships will set us back?..." What an odd Mantis. You prepare to leave.</result>
       <choice name="surrender-accept">
         <text>Let them live.</text>
@@ -10377,109 +10631,109 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
   </event>
   <eventList name="filler">
-    <event id="abandoned-station" unique="true"/>
-    <event id="auto-ship-attacking-outpost" unique="true"/>
-    <event id="auto-ship-near-storage-station" unique="true"/>
-    <event id="battlefield-wreckage" unique="false"/>
-    <event id="deactivated-auto-ship" unique="true"/>
-    <event id="intelligent-ponies" unique="true"/>
-    <event id="large-asteroid-field" unique="true"/>
-    <event id="pirate-briber" unique="true"/>
-    <event id="pirate-ship-attacking-civilian" unique="false"/>
-    <event id="pirate-ship-selling-drones" unique="true"/>
-    <event id="plagued-station" unique="true"/>
-    <event id="rebel-checkpoint" unique="false"/>
-    <event id="rebel-fight-chance" unique="false"/>
-    <event id="rebel-ship-supplying-civilians" unique="false"/>
-    <event id="rebel-transport-ship" unique="true"/>
-    <event id="refueling-platform" unique="true"/>
-    <event id="refugee" unique="false"/>
-    <event id="slaver-friendly" unique="true"/>
-    <event id="terraforming-scan" unique="true"/>
-    <event id="the-mercenary" unique="false"/>
+    <event name="abandoned-station" unique="true"/>
+    <event name="auto-ship-attacking-outpost" unique="true"/>
+    <event name="auto-ship-near-storage-station" unique="true"/>
+    <event name="battlefield-wreckage" unique="false"/>
+    <event name="deactivated-auto-ship" unique="true"/>
+    <event name="intelligent-ponies" unique="true"/>
+    <event name="large-asteroid-field" unique="true"/>
+    <event name="pirate-briber" unique="true"/>
+    <event name="pirate-ship-attacking-civilian" unique="false"/>
+    <event name="pirate-ship-selling-drones" unique="true"/>
+    <event name="plagued-station" unique="true"/>
+    <event name="rebel-checkpoint" unique="false"/>
+    <event name="rebel-fight-chance" unique="false"/>
+    <event name="rebel-ship-supplying-civilians" unique="false"/>
+    <event name="rebel-transport-ship" unique="true"/>
+    <event name="refueling-platform" unique="true"/>
+    <event name="refugee" unique="false"/>
+    <event name="slaver-friendly" unique="true"/>
+    <event name="terraforming-scan" unique="true"/>
+    <event name="the-mercenary" unique="false"/>
   </eventList>
   <eventList name="nebula">
-    <event id="auto-ship-fight-in-nebula" unique="false"/>
-    <event id="auto-ship-near-storage-station-in-nebula" unique="true"/>
-    <event id="auto-ship-warning-in-nebula" unique="true"/>
-    <event id="boarders-humans-in-nebula" unique="true"/>
-    <event id="empty-nebula-beacon" unique="false"/>
-    <event id="nebula-lost-ship" unique="true"/>
-    <event id="mantis-fight-in-nebula" unique="false"/>
-    <event id="pirate-smuggler" unique="false"/>
-    <event id="rebel-fight-in-nebula" unique="false"/>
-    <event id="trade-resources-in-nebula" unique="true"/>
-    <event id="pirate-ship-selling-weapon" unique="true"/>
-    <event id="auto-ship-fight-in-plasma-storm" unique="true"/>
-    <event id="boarders-humans-in-plasma-storm" unique="true"/>
-    <event id="plasma-storm-incapacitated-ships" unique="true"/>
-    <event id="rebel-fight-in-plasma-storm" unique="true"/>
+    <event name="auto-ship-fight-in-nebula" unique="false"/>
+    <event name="auto-ship-near-storage-station-in-nebula" unique="true"/>
+    <event name="auto-ship-warning-in-nebula" unique="true"/>
+    <event name="boarders-humans-in-nebula" unique="true"/>
+    <event name="empty-nebula-beacon" unique="false"/>
+    <event name="nebula-lost-ship" unique="true"/>
+    <event name="mantis-fight-in-nebula" unique="false"/>
+    <event name="pirate-smuggler" unique="false"/>
+    <event name="rebel-fight-in-nebula" unique="false"/>
+    <event name="trade-resources-in-nebula" unique="true"/>
+    <event name="pirate-ship-selling-weapon" unique="true"/>
+    <event name="auto-ship-fight-in-plasma-storm" unique="true"/>
+    <event name="boarders-humans-in-plasma-storm" unique="true"/>
+    <event name="plasma-storm-incapacitated-ships" unique="true"/>
+    <event name="rebel-fight-in-plasma-storm" unique="true"/>
   </eventList>
   <eventList name="distress">
-    <event id="asteroid-belt-distress" unique="true"/>
-    <event id="giant-alien-spiders" unique="true"/>
-    <event id="malfunctioning-defense-system" unique="true"/>
-    <event id="unknown-disease-on-mining-colony" unique="true"/>
-    <event id="fire-on-research-station" unique="true"/>
-    <event id="crushed-pirate" unique="true"/>
-    <event id="escort-civilians-ftl-haywire" unique="true"/>
-    <event id="friendly-ship-out-of-fuel" unique="false"/>
-    <event id="pirate-ship-attacking-civilian-distress" unique="false"/>
-    <event id="refugee-distress" unique="false"/>
-    <event id="refugee-comms-down" unique="false"/>
-    <event id="single-life-form-on-moon" unique="true"/>
-    <event id="pirate-ship-distress-trap" unique="true"/>
+    <event name="asteroid-belt-distress" unique="true"/>
+    <event name="giant-alien-spiders" unique="true"/>
+    <event name="malfunctioning-defense-system" unique="true"/>
+    <event name="unknown-disease-on-mining-colony" unique="true"/>
+    <event name="fire-on-research-station" unique="true"/>
+    <event name="crushed-pirate" unique="true"/>
+    <event name="escort-civilians-ftl-haywire" unique="true"/>
+    <event name="friendly-ship-out-of-fuel" unique="false"/>
+    <event name="pirate-ship-attacking-civilian-distress" unique="false"/>
+    <event name="refugee-distress" unique="false"/>
+    <event name="refugee-comms-down" unique="false"/>
+    <event name="single-life-form-on-moon" unique="true"/>
+    <event name="pirate-ship-distress-trap" unique="true"/>
   </eventList>
   <eventList name="items">
-    <event id="free-drone-schematic" unique="false"/>
-    <event id="free-weapon" unique="false"/>
-    <event id="free-scrap-with-resources" unique="false"/>
-    <event id="trade-fuel-for-drone-parts" unique="false"/>
-    <event id="asteroid-mining-colony" unique="true"/>
-    <event id="refueling-station" unique="true"/>
-    <event id="repair-station" unique="true"/>
-    <event id="sell-drone-parts-for-scrap" unique="true"/>
-    <event id="sell-missiles-for-scrap" unique="true"/>
-    <event id="crew-hiring-station" unique="true"/>
-    <event id="trade-resources" unique="false"/>
-    <event id="trade-scrap-for-upgrades" unique="true"/>
-    <event id="improve-reactor-for-supplies" unique="true"/>
+    <event name="free-drone-schematic" unique="false"/>
+    <event name="free-weapon" unique="false"/>
+    <event name="free-scrap-with-resources" unique="false"/>
+    <event name="trade-fuel-for-drone-parts" unique="false"/>
+    <event name="asteroid-mining-colony" unique="true"/>
+    <event name="refueling-station" unique="true"/>
+    <event name="repair-station" unique="true"/>
+    <event name="sell-drone-parts-for-scrap" unique="true"/>
+    <event name="sell-missiles-for-scrap" unique="true"/>
+    <event name="crew-hiring-station" unique="true"/>
+    <event name="trade-resources" unique="false"/>
+    <event name="trade-scrap-for-upgrades" unique="true"/>
+    <event name="improve-reactor-for-supplies" unique="true"/>
   </eventList>
   <eventList name="exitNeutral">
-    <event id="large-asteroid-field" unique="true"/>
-    <event id="auto-ship-near-storage-station" unique="true"/>
-    <event id="auto-ship-attacking-outpost" unique="true"/>
-    <event id="plagued-station" unique="true"/>
-    <event id="intelligent-ponies" unique="true"/>
-    <event id="abandoned-station" unique="true"/>
-    <event id="slaver-friendly" unique="true"/>
-    <event id="refueling-platform" unique="true"/>
-    <event id="pirate-briber" unique="true"/>
-    <event id="pirate-ship-attacking-civilian" unique="false"/>
-    <event id="pirate-ship-selling-drones" unique="true"/>
-    <event id="rebel-checkpoint" unique="false"/>
-    <event id="rebel-ship-supplying-civilians" unique="false"/>
-    <event id="rebel-transport-ship" unique="true"/>
-    <event id="refugee" unique="false"/>
-    <event id="rebel-fight-chance" unique="false"/>
-    <event id="trade-scrap-for-upgrades" unique="true"/>
-    <event id="battlefield-wreckage" unique="false"/>
+    <event name="large-asteroid-field" unique="true"/>
+    <event name="auto-ship-near-storage-station" unique="true"/>
+    <event name="auto-ship-attacking-outpost" unique="true"/>
+    <event name="plagued-station" unique="true"/>
+    <event name="intelligent-ponies" unique="true"/>
+    <event name="abandoned-station" unique="true"/>
+    <event name="slaver-friendly" unique="true"/>
+    <event name="refueling-platform" unique="true"/>
+    <event name="pirate-briber" unique="true"/>
+    <event name="pirate-ship-attacking-civilian" unique="false"/>
+    <event name="pirate-ship-selling-drones" unique="true"/>
+    <event name="rebel-checkpoint" unique="false"/>
+    <event name="rebel-ship-supplying-civilians" unique="false"/>
+    <event name="rebel-transport-ship" unique="true"/>
+    <event name="refugee" unique="false"/>
+    <event name="rebel-fight-chance" unique="false"/>
+    <event name="trade-scrap-for-upgrades" unique="true"/>
+    <event name="battlefield-wreckage" unique="false"/>
   </eventList>
   <eventList name="exitItems">
-    <event id="free-drone-schematic" unique="false"/>
-    <event id="free-weapon" unique="false"/>
-    <event id="free-scrap-with-resources" unique="false"/>
-    <event id="trade-fuel-for-drone-parts" unique="false"/>
-    <event id="asteroid-mining-colony" unique="true"/>
-    <event id="refueling-station" unique="true"/>
-    <event id="repair-station" unique="true"/>
-    <event id="sell-drone-parts-for-scrap" unique="true"/>
-    <event id="sell-missiles-for-scrap" unique="true"/>
-    <event id="large-trade-station" unique="true"/>
-    <event id="crew-hiring-station" unique="true"/>
-    <event id="trade-resources" unique="false"/>
-    <event id="trade-scrap-for-upgrades" unique="true"/>
-    <event id="improve-reactor-for-supplies" unique="true"/>
+    <event name="free-drone-schematic" unique="false"/>
+    <event name="free-weapon" unique="false"/>
+    <event name="free-scrap-with-resources" unique="false"/>
+    <event name="trade-fuel-for-drone-parts" unique="false"/>
+    <event name="asteroid-mining-colony" unique="true"/>
+    <event name="refueling-station" unique="true"/>
+    <event name="repair-station" unique="true"/>
+    <event name="sell-drone-parts-for-scrap" unique="true"/>
+    <event name="sell-missiles-for-scrap" unique="true"/>
+    <event name="large-trade-station" unique="true"/>
+    <event name="crew-hiring-station" unique="true"/>
+    <event name="trade-resources" unique="false"/>
+    <event name="trade-scrap-for-upgrades" unique="true"/>
+    <event name="improve-reactor-for-supplies" unique="true"/>
   </eventList>
   <emptyBeacon name="empty-beacon-civilian">
     <title>Empty beacon (Civilian)</title>

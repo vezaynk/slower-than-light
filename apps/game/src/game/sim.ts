@@ -18,7 +18,6 @@ import {
   FTL_HAZARD_BASE,
   FTL_SKILL,
   FTL_UNMANNED,
-  SCRAP_MEDIUM,
   flagshipStageScrap,
   mediumScrapBand,
   SECTOR_NAMES,
@@ -100,6 +99,8 @@ import {
   allWeapons,
   crewDef,
   hullDef,
+  rewardBonus,
+  scrapRange,
   sectorDef,
   storeDef,
   weaponDef,
@@ -236,6 +237,7 @@ import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.t
 import {
   joinCrew,
   randomRace,
+  resourceBand,
   scrapBand,
   surrenderChoose,
   surrenderPlan,
@@ -350,6 +352,23 @@ export function rand(g: Game): number {
 
 function irand(g: Game, n: number): number {
   return Math.floor(rand(g) * n);
+}
+
+/** A fixed band adds that amount and does not roll. An open band matches between. */
+function rolledResource(
+  g: Game,
+  kind: "fuel" | "missiles" | "parts",
+  tier: "low" | "medium" | "high",
+): number {
+  const [lo, hi] = resourceBand(kind, tier);
+  if (hi <= lo) return lo;
+  return lo + irand(g, hi - lo + 1);
+}
+
+/** The standard reward's item chance. A missing bonus does not roll. */
+function standardBonus(g: Game): boolean {
+  const chance = rewardBonus("standard");
+  return chance != null && rand(g) < chance;
 }
 
 function pick<T>(g: Game, arr: readonly T[]): T {
@@ -5612,19 +5631,20 @@ function winCombat(g: Game) {
       for (let draw = 0; draw < 2; draw++) {
         const kind = resourceKinds[irand(g, resourceKinds.length)];
         if (kind === "fuel") {
-          const n = 1 + irand(g, 3);
+          const n = rolledResource(g, "fuel", "low");
           g.fuel += n;
           notes.push(`Low fuel ${n}.`);
         } else if (kind === "missiles") {
-          const n = 1 + irand(g, 2);
+          const n = rolledResource(g, "missiles", "low");
           g.missiles += n;
           notes.push(`Low missiles ${n}.`);
         } else {
-          g.player.parts += 1;
-          notes.push("Low drone part 1.");
+          const n = rolledResource(g, "parts", "low");
+          g.player.parts += n;
+          notes.push(`Low drone part ${n}.`);
         }
       }
-      if (rand(g) < 0.03) {
+      if (standardBonus(g)) {
         const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
         const crystal = g.sectorName === "Hidden Crystal Worlds";
         const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
@@ -5643,7 +5663,7 @@ function winCombat(g: Game) {
       }
     } else if (roll <= 6) {
       // 2 high fuel and scrap. Rewards, "Fuel": high scrap and 3-6 fuel. No 3% item.
-      const n = 3 + irand(g, 4);
+      const n = rolledResource(g, "fuel", "high");
       g.fuel += n;
       notes.push(`Fuel: ${n}.`);
     } else if (roll === 7) {
@@ -5662,7 +5682,7 @@ function winCombat(g: Game) {
     if (taken) taken.resolved = true;
     return;
   }
-  const band = SCRAP_MEDIUM[Math.min(7, Math.max(0, g.sector - 1))];
+  const band = scrapRange("normal", g.sector, "medium");
   // Score, s: the band counts. Scrap Recovery Arm's extra does not. Repair Arm does not reduce s.
   let eligible = band[0] + irand(g, band[1] - band[0] + 1);
   let scrap = adjustScrap(g, eligible);
@@ -5693,19 +5713,20 @@ function winCombat(g: Game) {
   for (let draw = 0; draw < 2; draw++) {
     const kind = resourceKinds[irand(g, resourceKinds.length)];
     if (kind === "fuel") {
-      const n = 1 + irand(g, 3);
+      const n = rolledResource(g, "fuel", "low");
       g.fuel += n;
       notes.push(`Low fuel ${n}.`);
     } else if (kind === "missiles") {
-      const n = 1 + irand(g, 2);
+      const n = rolledResource(g, "missiles", "low");
       g.missiles += n;
       notes.push(`Low missiles ${n}.`);
     } else {
-      g.player.parts += 1;
-      notes.push("Low drone part 1.");
+      const n = rolledResource(g, "parts", "low");
+      g.player.parts += n;
+      notes.push(`Low drone part ${n}.`);
     }
   }
-  if (rand(g) < 0.03) {
+  if (standardBonus(g)) {
     // Sectors, "Hidden Crystal Worlds", "Sector specifics": a crew-kill reward is a crystal weapon, including the Lockdown Bomb.
     // A hull kill keeps the priced pool.
     const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);

@@ -85,10 +85,9 @@ const XML = `
   <title>No name</title>
   <cost>4</cost>
 </droneBlueprint>
-<systemBlueprint name="embersys">
+<systemBlueprint name="embersys" subSystem="true">
   <title>Ember</title>
   <cost>15</cost>
-  <slot>kit</slot>
   <maxPower>8</maxPower>
 </systemBlueprint>
 <systemBlueprint name="baresys">
@@ -140,7 +139,7 @@ const XML = `
     <item>Spare</item>
   </unfitted>
 </shipBlueprint>
-<shipBlueprint name="barehull">
+<shipBlueprint name="barehull" layout="A">
   <reactor>0</reactor>
 </shipBlueprint>
 <shipBlueprint>
@@ -159,51 +158,65 @@ const XML = `
 <sectorDescription>
   <title>No name</title>
 </sectorDescription>
-<storeBlueprint name="emberstore">
+<customStore id="emberstore">
   <title>Ember</title>
-  <slot>1</slot>
-  <weapons>4</weapons>
-  <section>crew</section>
-  <section>relics</section>
-  <stock id="fuel" kind="fuel" min="1" max="2">
+  <resource>
+    <type>fuel</type>
+    <count min="1" max="2"/>
+    <price>4</price>
     <title>Ember Fuel</title>
-    <cost>4</cost>
-  </stock>
-  <stock id="bareline" min="2">
-    <cost>5</cost>
-  </stock>
+  </resource>
+  <category type="WEAPONS">
+    <item><blueprint/></item>
+    <item><blueprint/></item>
+    <item><blueprint/></item>
+    <item><blueprint/></item>
+  </category>
+  <category type="CREW">
+    <item><blueprint/></item>
+  </category>
+  <category type="relics">
+    <item><blueprint/></item>
+  </category>
+  <item kind="">
+    <blueprint>bareline</blueprint>
+    <price>5</price>
+    <count min="2"/>
+  </item>
   <minSector>4</minSector>
-</storeBlueprint>
-<storeBlueprint name="barestore">
+</customStore>
+<customStore id="barestore">
   <title></title>
-</storeBlueprint>
-<storeBlueprint>
+</customStore>
+<customStore>
   <title>No name</title>
-</storeBlueprint>
-<systemTune name="embertune">
-  <start>3</start>
-  <upgrade level="1">7</upgrade>
-  <upgrade level="0">60</upgrade>
+</customStore>
+<systemBlueprint name="embertune">
+  <startPower>3</startPower>
+  <upgradeCost><level>1</level><cost>7</cost></upgradeCost>
+  <upgradeCost><level>0</level><cost>60</cost></upgradeCost>
   <minSector>4</minSector>
-</systemTune>
-<systemTune name="baretune">
-  <title></title>
-</systemTune>
-<systemTune>
-  <start>4</start>
-</systemTune>
-<eventBlueprint name="ember" flag="cited:ember">
+</systemBlueprint>
+<systemBlueprint name="baretune">
+  <startPower>1</startPower>
+</systemBlueprint>
+<systemBlueprint>
+  <startPower>4</startPower>
+</systemBlueprint>
+<event name="ember" flag="cited:ember">
   <title>Ember</title>
   <alias>Ember Page</alias>
   <sector>Civilian Sector</sector>
   <text>A packed beacon.</text>
   <choice name="c:ember:0">
     <text>Take</text>
-    <effect k="res" id="scrap" sign="1" lo="7" hi="7"/>
-    <effect k="fight" tier="pirate" asteroid="true"/>
-    <effect k="note">Hello &amp; co</effect>
+    <item_modify>
+      <item type="scrap" min="7" max="7"/>
+    </item_modify>
+    <ship hostile="true" load="pirate" asteroid="true"/>
+    <event><text>Hello &amp; co</text></event>
     <effect k="quest" id="ember-quest"/>
-    <effect k="goto" id="ember-next"/>
+    <event load="ember-next"/>
     <effect k="close"/>
     <effect k="nope"/>
     <minSector>4</minSector>
@@ -211,10 +224,10 @@ const XML = `
   <choice>
     <text>No name</text>
   </choice>
-  <surrender chance="100" low="0" high="40" continues="true" forced="true" quest="ember-quest">
+  <surrender chance="100" min="0" max="40" continues="true" forced="true" quest="ember-quest">
     <text>Yield.</text>
     <text>Please.</text>
-    <reward k="weapon" name="Anti-Bio Beam"/>
+    <weapon name="Anti-Bio Beam"/>
     <result>They leave.</result>
     <choice name="surrender-accept"><text>Spare them</text></choice>
     <choice name="surrender-refuse">Finish them</choice>
@@ -224,18 +237,18 @@ const XML = `
       <choice name="s:ember:go">Go</choice>
     </card>
   </surrender>
-</eventBlueprint>
-<eventBlueprint name="bareevent">
+</event>
+<event name="bareevent">
   <title></title>
   <surrender chance="1" low="1" high="1">
     <reward k="nope"/>
   </surrender>
-</eventBlueprint>
-<eventBlueprint>
+</event>
+<event>
   <title>No name</title>
-</eventBlueprint>
+</event>
 <eventList name="ember-list">
-  <event id="large-asteroid-field" unique="true"/>
+  <event name="large-asteroid-field" unique="true"/>
   <event unique="true"/>
 </eventList>
 <eventList></eventList>
@@ -409,7 +422,7 @@ describe("parsePack", () => {
     assert.equal(emberStore?.name, "Ember");
     assert.equal(emberStore?.slot, 1);
     assert.equal(emberStore?.weapons, 4);
-    assert.deepEqual(emberStore?.sections, ["crew", "relics"]);
+    assert.deepEqual(emberStore?.sections, ["weapons", "crew", "relics"]);
     assert.equal(emberStore?.lines[0]?.name, "Ember Fuel");
     assert.equal(emberStore?.lines[0]?.kind, "fuel");
     assert.equal(emberStore?.lines[0]?.cost, 4);

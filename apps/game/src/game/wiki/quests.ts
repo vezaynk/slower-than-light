@@ -73,6 +73,7 @@ import {
   zoltanBoarders,
   randomRace,
   rollStandard,
+  resourceBand,
   rollSurrenderOffer,
   scrapBand,
   type SurrenderOffer,
@@ -256,9 +257,7 @@ export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
 /** Rewards, "Fuel" / "Missiles": T of that resource and T scrap. Bands are the page tooltips. */
 function cargoAndScrap(g: Game, tier: "low" | "high", kind: "fuel" | "missiles"): SurrenderOffer {
   const offer = scrapOnly(g, tier);
-  const band =
-    kind === "fuel" ? (tier === "high" ? [3, 6] : [1, 3]) : tier === "high" ? [4, 8] : [1, 2];
-  offer[kind] = between(g, band as [number, number]);
+  offer[kind] = between(g, resourceBand(kind, tier));
   return offer;
 }
 
@@ -1212,7 +1211,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ] as const) === "missiles"
     ) {
       const offer = scrapOnly(g, "medium");
-      offer.missiles = between(g, [2, 4]);
+      offer.missiles = between(g, resourceBand("missiles", "medium"));
       result(
         g,
         "The Mantis hiss and click, angry at being saved, and angry at themselves for needing to be saved. They part ways with some scrap metal that is no longer attached to their hull and a few missiles they can no longer use.",

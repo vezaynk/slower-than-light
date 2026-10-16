@@ -21,9 +21,9 @@ import type {
   EventChoice,
   EventDef,
   EventEffect,
-  EventItem,
   EventResource,
   EventTier,
+  FactionSurrender,
   FillerEntry,
   FillerListDef,
   HullDef,
@@ -33,6 +33,13 @@ import type {
   OfferRes,
   OfferRow,
   RollEntry,
+  NamedReward,
+  ResourceReward,
+  RewardKind,
+  RewardLevel,
+  RewardResource,
+  RewardScaling,
+  RewardTable,
   SectorDef,
   StoreDef,
   StoreLine,
@@ -220,8 +227,7 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (speed != null) row.speed = speed;
   const crew = numOf(node, "crewDamage");
   if (crew != null) row.crewDamage = crew;
-  // FTL names shield pierce <sp>. <pierce> is the same field.
-  const pierce = numOf(node, "sp") ?? numOf(node, "pierce");
+  const pierce = numOf(node, "sp");
   if (pierce != null) row.pierce = pierce;
   return row;
 }
@@ -247,15 +253,42 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   };
 }
 
-function readSystem(node: XmlElement): SystemDef | undefined {
+const SHELF_KIND: Record<string, string> = {
+  WEAPONS: "weapons",
+  DRONES: "drones",
+  AUGMENTS: "augments",
+  CREW: "crew",
+  SYSTEMS: "systems",
+};
+
+/**
+ * A store listing needs a cost child, so a tune-only blueprint stays a tune.
+ * subSystem="true" is a kit. startPower or upgradeCost is the tune.
+ */
+function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: TuneDef } {
   const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
-  return {
-    id,
-    name: textOf(node, "title") ?? id,
-    cost: numOf(node, "cost") ?? 0,
-    slot: textOf(node, "slot") === "kit" ? "kit" : "sys",
-  };
+  if (!id) return {};
+  const found: { system?: SystemDef; tune?: TuneDef } = {};
+  if (child(node, "cost")) {
+    found.system = {
+      id,
+      name: textOf(node, "title") ?? id,
+      cost: numOf(node, "cost") ?? 0,
+      slot: attr(node, "subSystem") === "true" ? "kit" : "sys",
+    };
+  }
+  const upgrades = elements(node).filter((item) => item.tagName === "upgradeCost");
+  if (child(node, "startPower") || upgrades.length > 0) {
+    const costs: TuneStep[] = [];
+    for (const item of upgrades) {
+      const level = numOf(item, "level");
+      const cost = numOf(item, "cost");
+      if (level == null || cost == null) continue;
+      costs.push({ level, cost });
+    }
+    found.tune = { id, start: numOf(node, "startPower") ?? 1, costs };
+  }
+  return found;
 }
 
 function hullLayout(value: string | undefined): HullLayout {
@@ -264,7 +297,8 @@ function hullLayout(value: string | undefined): HullLayout {
 
 function readHull(node: XmlElement): HullDef | undefined {
   const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
+  const layout = attr(node, "layout")?.trim();
+  if (!id || !layout) return undefined;
   const systems: Record<string, [number, number]> = {};
   for (const item of elements(child(node, "systemList"))) {
     if (item.tagName !== "system") continue;
@@ -320,7 +354,7 @@ function readHull(node: XmlElement): HullDef | undefined {
   return {
     id,
     cruiser: textOf(node, "class") ?? "",
-    layout: hullLayout(attr(node, "layout")?.trim()),
+    layout: hullLayout(layout),
     name: textOf(node, "title") ?? id,
     quote: textOf(node, "desc") ?? "",
     unlock: textOf(node, "unlock") ?? "",
@@ -338,56 +372,138 @@ function readHull(node: XmlElement): HullDef | undefined {
   };
 }
 
-function readStore(node: XmlElement): StoreDef | undefined {
+/** A shipBlueprint with no layout and a surrender child is a faction row. */
+function readFaction(node: XmlElement): FactionSurrender | undefined {
   const id = attr(node, "name")?.trim();
+  if (!id || attr(node, "layout")?.trim()) return undefined;
+  const offer = child(node, "surrender");
+  if (!offer) return undefined;
+  const chance = attrNum(offer.getAttribute("chance"));
+  const min = attrNum(offer.getAttribute("min"));
+  const max = attrNum(offer.getAttribute("max"));
+  if (chance == null || min == null || max == null) return undefined;
+  return { id, chance, min, max };
+}
+
+function readCount(node: XmlElement): { min: number; max: number } {
+  const count = child(node, "count");
+  if (!count) return { min: 0, max: 0 };
+  const text = Number(ownText(count).trim());
+  const min = attrNum(count.getAttribute("min")) ?? (Number.isFinite(text) ? text : 0);
+  return { min, max: attrNum(count.getAttribute("max")) ?? min };
+}
+
+function itemBlueprint(item: XmlElement): { empty: boolean; id: string } | undefined {
+  const blueprint = child(item, "blueprint");
+  if (!blueprint) return undefined;
+  const id = ownText(blueprint).trim();
+  return id ? { empty: false, id } : { empty: true, id: "" };
+}
+
+function readNamedItem(item: XmlElement, kind: string): StoreLine | undefined {
+  const blueprint = itemBlueprint(item);
+  if (!blueprint || blueprint.empty) return undefined;
+  const count = readCount(item);
+  return {
+    id: blueprint.id,
+    kind,
+    name: textOf(item, "title") ?? blueprint.id,
+    cost: numOf(item, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function readResourceLine(node: XmlElement): StoreLine | undefined {
+  const type = textOf(node, "type");
+  const kind = type === "drones" ? "parts" : type;
+  if (kind !== "fuel" && kind !== "missiles" && kind !== "parts") return undefined;
+  const count = readCount(node);
+  return {
+    id: kind,
+    kind,
+    name: textOf(node, "title") ?? kind,
+    cost: numOf(node, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function readRepairLine(node: XmlElement): StoreLine | undefined {
+  const count = readCount(node);
+  return {
+    id: "repair",
+    kind: "repair",
+    name: textOf(node, "title") ?? "repair",
+    cost: numOf(node, "price") ?? 0,
+    min: count.min,
+    max: count.max,
+  };
+}
+
+function emptyBlueprints(node: XmlElement): number {
+  let count = 0;
+  for (const item of elements(node)) {
+    if (item.tagName !== "item") continue;
+    const blueprint = itemBlueprint(item);
+    if (blueprint?.empty) count += 1;
+  }
+  return count;
+}
+
+function readStore(node: XmlElement): StoreDef | undefined {
+  const id = attr(node, "id")?.trim();
   if (!id) return undefined;
   const sections: string[] = [];
   const lines: StoreLine[] = [];
+  let weapons = 2;
+  let slot = 3;
+  let sawWeapons = false;
+  let sawSlot = false;
   for (const item of elements(node)) {
-    if (item.tagName === "section") {
-      const text = ownText(item).trim();
-      if (text) sections.push(text);
+    if (item.tagName === "resource") {
+      const line = readResourceLine(item);
+      if (line) lines.push(line);
       continue;
     }
-    if (item.tagName !== "stock") continue;
-    const lineId = attr(item, "id")?.trim();
-    if (!lineId) continue;
-    const min = attrNum(item.getAttribute("min")) ?? 0;
-    lines.push({
-      id: lineId,
-      kind: attr(item, "kind")?.trim() ?? "",
-      name: textOf(item, "title") ?? lineId,
-      cost: numOf(item, "cost") ?? 0,
-      min,
-      max: attrNum(item.getAttribute("max")) ?? min,
-    });
+    if (item.tagName === "hullRepair") {
+      const line = readRepairLine(item);
+      if (line) lines.push(line);
+      continue;
+    }
+    if (item.tagName === "category") {
+      const type = attr(item, "type")?.trim() ?? "";
+      const kind = SHELF_KIND[type] ?? type;
+      if (kind && !sections.includes(kind)) sections.push(kind);
+      const empties = emptyBlueprints(item);
+      if (kind === "weapons") {
+        if (!sawWeapons) {
+          weapons = empties;
+          sawWeapons = true;
+        }
+      } else if (!sawSlot) {
+        slot = empties;
+        sawSlot = true;
+      }
+      for (const entry of elements(item)) {
+        if (entry.tagName !== "item") continue;
+        const line = readNamedItem(entry, kind);
+        if (line) lines.push(line);
+      }
+      continue;
+    }
+    if (item.tagName === "item" && item.hasAttribute("kind")) {
+      const line = readNamedItem(item, attr(item, "kind")?.trim() ?? "");
+      if (line) lines.push(line);
+    }
   }
   return {
     id,
     name: textOf(node, "title") ?? id,
-    slot: numOf(node, "slot") ?? 3,
-    weapons: numOf(node, "weapons") ?? 2,
+    slot,
+    weapons,
     sections,
     lines,
-  };
-}
-
-function readTune(node: XmlElement): TuneDef | undefined {
-  const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
-  const costs: TuneStep[] = [];
-  for (const item of elements(node)) {
-    if (item.tagName !== "upgrade") continue;
-    const level = attrNum(item.getAttribute("level"));
-    if (level == null) continue;
-    const cost = Number(ownText(item).trim());
-    if (!Number.isFinite(cost)) continue;
-    costs.push({ level, cost });
-  }
-  return {
-    id,
-    start: numOf(node, "start") ?? 1,
-    costs,
   };
 }
 
@@ -418,7 +534,101 @@ export function tagged(doc: XmlDocument, tag: string): XmlElement[] {
   return found;
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
+function isLevel(value: string | undefined): value is RewardLevel {
+  return value === "LOW" || value === "MED" || value === "HIGH";
+}
+
+function isRewardKind(value: string | undefined): value is RewardKind {
+  return value === "scrap" || value === "fuel" || value === "missiles" || value === "droneparts";
+}
+
+function readScaling(node: XmlElement): RewardScaling | undefined {
+  const difficulty = attr(node, "difficulty")?.trim();
+  if (difficulty != null && difficulty !== "" && difficulty !== "0" && difficulty !== "2") return undefined;
+  const scrap = child(node, "scrap");
+  if (!scrap) return undefined;
+  const baseAmount = attrNum(scrap.getAttribute("baseAmount"));
+  const sectorAmount = attrNum(scrap.getAttribute("sectorAmount"));
+  if (baseAmount == null || sectorAmount == null) return undefined;
+  const row: RewardScaling = {
+    baseAmount,
+    sectorAmount,
+    difficultyAmount: attrNum(scrap.getAttribute("difficultyAmount")) ?? 0,
+  };
+  if (difficulty === "0" || difficulty === "2") row.difficulty = difficulty === "0" ? 0 : 2;
+  return row;
+}
+
+function readResourceReward(node: XmlElement): ResourceReward | undefined {
+  if (!isRewardKind(node.tagName)) return undefined;
+  const level = attr(node, "level")?.trim();
+  if (!isLevel(level)) return undefined;
+  const min = attrNum(node.getAttribute("min"));
+  const max = attrNum(node.getAttribute("max"));
+  if (min == null || max == null) return undefined;
+  return { kind: node.tagName, level, min, max };
+}
+
+function readRewardResource(node: XmlElement): RewardResource | undefined {
+  const name = attr(node, "name")?.trim();
+  if (!isRewardKind(name)) return undefined;
+  const level = attr(node, "level")?.trim();
+  if (level && !isLevel(level)) return undefined;
+  const row: RewardResource = { name };
+  if (isLevel(level)) row.level = level;
+  return row;
+}
+
+function readNamedReward(node: XmlElement): NamedReward | undefined {
+  const name = attr(node, "name")?.trim();
+  const body = child(node, "reward");
+  if (!name || !body) return undefined;
+  const resources: RewardResource[] = [];
+  for (const item of elements(body)) {
+    if (item.tagName !== "resource") continue;
+    const row = readRewardResource(item);
+    if (row) resources.push(row);
+  }
+  const reward: NamedReward = { name, resources };
+  const minResources = attrNum(body.getAttribute("minResources"));
+  const maxResources = attrNum(body.getAttribute("maxResources"));
+  if (minResources != null) reward.minResources = minResources;
+  if (maxResources != null) reward.maxResources = maxResources;
+  const bonus = child(body, "bonus");
+  const item = bonus ? child(bonus, "item") : undefined;
+  const roll = bonus ? attrNum(bonus.getAttribute("roll")) : undefined;
+  const chance = item ? attrNum(item.getAttribute("chance")) : undefined;
+  if (roll != null && chance != null) reward.bonus = { roll, chance };
+  return reward;
+}
+
+/** Direct children of the root rewards block. A surrender reward is not this tag. */
+function readRewards(node: XmlElement): RewardTable | undefined {
+  const scaling: RewardScaling[] = [];
+  const resources: ResourceReward[] = [];
+  const rewards: NamedReward[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName === "rewardScaling") {
+      const row = readScaling(item);
+      if (row) scaling.push(row);
+      continue;
+    }
+    if (item.tagName === "resourceRewards") {
+      for (const band of elements(item)) {
+        const row = readResourceReward(band);
+        if (row) resources.push(row);
+      }
+      continue;
+    }
+    if (item.tagName !== "reward") continue;
+    const row = readNamedReward(item);
+    if (row) rewards.push(row);
+  }
+  if (scaling.length === 0 && resources.length === 0 && rewards.length === 0) return undefined;
+  return { scaling, resources, rewards };
+}
+
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -427,6 +637,7 @@ export function parsePack(xml: string): ContentPack {
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
   const hulls: HullDef[] = [];
+  const factions: FactionSurrender[] = [];
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
@@ -450,26 +661,28 @@ export function parsePack(xml: string): ContentPack {
     if (row) drones.push(row);
   }
   for (const node of tagged(doc, "systemBlueprint")) {
-    const row = readSystem(node);
-    if (row) systems.push(row);
+    const row = readSystemBlueprint(node);
+    if (row.system) systems.push(row.system);
+    if (row.tune) tunes.push(row.tune);
   }
   for (const node of tagged(doc, "shipBlueprint")) {
-    const row = readHull(node);
-    if (row) hulls.push(row);
+    const hull = readHull(node);
+    if (hull) {
+      hulls.push(hull);
+      continue;
+    }
+    const faction = readFaction(node);
+    if (faction) factions.push(faction);
   }
   for (const node of tagged(doc, "sectorDescription")) {
     const row = readSector(node);
     if (row) sectors.push(row);
   }
-  for (const node of tagged(doc, "storeBlueprint")) {
+  for (const node of tagged(doc, "customStore")) {
     const row = readStore(node);
     if (row) stores.push(row);
   }
-  for (const node of tagged(doc, "systemTune")) {
-    const row = readTune(node);
-    if (row) tunes.push(row);
-  }
-  for (const node of tagged(doc, "eventBlueprint")) {
+  for (const node of tagged(doc, "event")) {
     const row = readEvent(node);
     if (row) events.push(row);
   }
@@ -481,7 +694,9 @@ export function parsePack(xml: string): ContentPack {
     const row = readEmpty(node);
     if (row) empties.push(row);
   }
-  return {
+  const rewardsNode = elements(doc.documentElement ?? undefined).find((item) => item.tagName === "rewards");
+  const rewards = rewardsNode ? readRewards(rewardsNode) : undefined;
+  const pack: ContentPack = {
     crew,
     weapons,
     augments,
@@ -495,6 +710,9 @@ export function parsePack(xml: string): ContentPack {
     lists,
     empties,
   };
+  if (rewards) pack.rewards = rewards;
+  if (factions.length > 0) pack.factions = factions;
+  return pack;
 }
 
 function readList(node: XmlElement): FillerListDef | undefined {
@@ -503,10 +721,11 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const entries: FillerEntry[] = [];
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
-    const eventId = attr(item, "id")?.trim();
+    const eventId = attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
+  if (entries.length === 0) return undefined;
   return { id, entries };
 }
 
@@ -537,6 +756,8 @@ function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
 }
 
 function readEvent(node: XmlElement): EventDef | undefined {
+  const parent = node.parentNode as XmlElement | null;
+  if (parent?.tagName === "eventList") return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const aliases: string[] = [];
@@ -556,26 +777,22 @@ function readEvent(node: XmlElement): EventDef | undefined {
       lines.push(ownText(item).trim());
       continue;
     }
-    if (item.tagName === "offer") {
-      const offer = readOffer(item);
-      if (offer) offers.push(offer);
+    if (item.tagName === "eventList") {
+      const name = attr(item, "name")?.trim();
+      if (name && OFFER_LISTS.has(name)) {
+        for (const offer of readOfferRows(name, item)) offers.push(offer);
+      } else if (!name) {
+        for (const band of readBandRows(item)) keepBand(bands, band);
+      }
+      continue;
+    }
+    if (item.tagName === "item_modify") {
+      keepPrice(prices, readNamedPrice(item));
       continue;
     }
     if (item.tagName === "roll") {
       const roll = readRoll(item);
       if (roll) rolls.push(roll);
-      continue;
-    }
-    if (item.tagName === "price") {
-      keepPrice(prices, readPrice(item));
-      continue;
-    }
-    if (item.tagName === "bribe") {
-      keepPrice(prices, readBribe(item));
-      continue;
-    }
-    if (item.tagName === "band") {
-      keepBand(bands, readPrinted(item));
       continue;
     }
     if (item.tagName === "trade") {
@@ -608,16 +825,11 @@ function readEvent(node: XmlElement): EventDef | undefined {
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
-    const fx: EventEffect[] = [];
-    for (const effect of elements(item)) {
-      if (effect.tagName !== "effect") continue;
-      const parsed = readEffect(effect);
-      if (parsed) fx.push(parsed);
-    }
+    const fx = readChoiceEffects(item);
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
-    const gift = readGift(item);
+    const gift = readGift(item, "page");
     if (gift) choice.gift = gift;
     choices.push(choice);
   }
@@ -643,58 +855,103 @@ function readEvent(node: XmlElement): EventDef | undefined {
   return event;
 }
 
-function bandOf(raw: string | undefined): [number, number] | undefined {
-  if (!raw) return undefined;
-  const match = /^(-?\d+)-(-?\d+)$/.exec(raw.trim());
-  if (!match) return undefined;
-  return [Number(match[1]), Number(match[2])];
+const OFFER_LISTS = new Set(["trade", "high", "pt2", "base", "better", "supply"]);
+
+/** Rows of one offer list. A row whose items do not match that list is skipped. */
+function readOfferRows(name: string, node: XmlElement): OfferRow[] {
+  const rows: OfferRow[] = [];
+  for (const event of elements(node)) {
+    if (event.tagName !== "event") continue;
+    if (attr(event, "name")?.trim() || attr(event, "id")?.trim()) continue;
+    const row = readOfferRow(name, event);
+    if (row) rows.push(row);
+  }
+  return rows;
 }
 
-function offerRes(raw: string | undefined): OfferRes | undefined {
-  if (raw === "fuel" || raw === "missiles" || raw === "parts") return raw;
+function readOfferRow(name: string, event: XmlElement): OfferRow | undefined {
+  const modify = child(event, "item_modify");
+  if (!modify) return undefined;
+  const items = readModifyItems(modify);
+  if (!items) return undefined;
+  if (name === "trade") return tradeRow(items);
+  if (name === "high" || name === "pt2") return fuelRow(name, items);
+  if (name === "base" || name === "better") return laniusRow(name, items);
+  if (name === "supply") return supplyRow(items);
   return undefined;
 }
 
-function offerPay(raw: string | undefined): OfferPay | undefined {
-  if (raw === "parts" || raw === "missiles" || raw === "scrap") return raw;
-  return undefined;
+function readModifyItems(modify: XmlElement): EventEffect[] | undefined {
+  const found = elements(modify).filter((item) => item.tagName === "item");
+  const items: EventEffect[] = [];
+  for (const item of found) {
+    const parsed = readResourceItem(item);
+    if (!parsed || parsed.k !== "res") return undefined;
+    items.push(parsed);
+  }
+  return items;
 }
 
-/** One direct offer child. A row missing its bands is skipped. */
-function readOffer(node: XmlElement): OfferRow | undefined {
-  const kind = attr(node, "k");
-  if (kind === "trade") {
-    const pay = offerRes(attr(node, "pay"));
-    const get = offerRes(attr(node, "get"));
-    const cost = bandOf(attr(node, "cost"));
-    const gain = bandOf(attr(node, "gain"));
-    if (!pay || !get || !cost || !gain) return undefined;
-    return { k: "trade", pay, cost, get, gain };
+function tradeRow(items: EventEffect[]): OfferRow | undefined {
+  if (items.length !== 2) return undefined;
+  const pay = items[0];
+  const gain = items[1];
+  if (!pay || pay.k !== "res" || !gain || gain.k !== "res") return undefined;
+  if (pay.sign !== -1 || gain.sign !== 1) return undefined;
+  if (!isOfferRes(pay.id) || !isOfferRes(gain.id)) return undefined;
+  return { k: "trade", pay: pay.id, cost: [pay.lo, pay.hi], get: gain.id, gain: [gain.lo, gain.hi] };
+}
+
+function fuelRow(band: "high" | "pt2", items: EventEffect[]): OfferRow | undefined {
+  if (items.length !== 2) return undefined;
+  const fuel = items[0];
+  const pay = items[1];
+  if (!fuel || fuel.k !== "res" || !pay || pay.k !== "res") return undefined;
+  if (fuel.sign !== 1 || fuel.id !== "fuel" || pay.sign !== -1) return undefined;
+  if (!isOfferPay(pay.id)) return undefined;
+  return { k: "fuel", band, fuel: [fuel.lo, fuel.hi], pay: pay.id, amt: [pay.lo, pay.hi] };
+}
+
+function laniusRow(band: "base" | "better", items: EventEffect[]): OfferRow | undefined {
+  if (items.length !== 2) return undefined;
+  const cost = items[0];
+  const scrap = items[1];
+  if (!cost || cost.k !== "res" || !scrap || scrap.k !== "res") return undefined;
+  if (cost.sign !== -1 || scrap.sign !== 1 || scrap.id !== "scrap") return undefined;
+  if (!isOfferRes(cost.id)) return undefined;
+  return {
+    k: "lanius",
+    band,
+    res: cost.id,
+    cost: [cost.lo, cost.hi],
+    scrap: [scrap.lo, scrap.hi],
+  };
+}
+
+function supplyRow(items: EventEffect[]): OfferRow | undefined {
+  if (items.length !== 3) return undefined;
+  const missiles = items[0];
+  const parts = items[1];
+  const fuel = items[2];
+  if (!missiles || missiles.k !== "res" || !parts || parts.k !== "res" || !fuel || fuel.k !== "res") {
+    return undefined;
   }
-  if (kind === "fuel") {
-    const band = attr(node, "band");
-    const fuel = bandOf(attr(node, "fuel"));
-    const pay = offerPay(attr(node, "pay"));
-    const amt = bandOf(attr(node, "amt"));
-    if ((band !== "high" && band !== "pt2") || !fuel || !pay || !amt) return undefined;
-    return { k: "fuel", band, fuel, pay, amt };
-  }
-  if (kind === "lanius") {
-    const band = attr(node, "band");
-    const res = offerRes(attr(node, "res"));
-    const cost = bandOf(attr(node, "cost"));
-    const scrap = bandOf(attr(node, "scrap"));
-    if ((band !== "base" && band !== "better") || !res || !cost || !scrap) return undefined;
-    return { k: "lanius", band, res, cost, scrap };
-  }
-  if (kind === "supply") {
-    const missiles = bandOf(attr(node, "missiles"));
-    const parts = bandOf(attr(node, "parts"));
-    const fuel = bandOf(attr(node, "fuel"));
-    if (!missiles || !parts || !fuel) return undefined;
-    return { k: "supply", missiles, parts, fuel };
-  }
-  return undefined;
+  if (missiles.sign !== 1 || parts.sign !== 1 || fuel.sign !== 1) return undefined;
+  if (missiles.id !== "missiles" || parts.id !== "parts" || fuel.id !== "fuel") return undefined;
+  return {
+    k: "supply",
+    missiles: [missiles.lo, missiles.hi],
+    parts: [parts.lo, parts.hi],
+    fuel: [fuel.lo, fuel.hi],
+  };
+}
+
+function isOfferRes(value: string): value is OfferRes {
+  return value === "fuel" || value === "missiles" || value === "parts";
+}
+
+function isOfferPay(value: string): value is OfferPay {
+  return value === "parts" || value === "missiles" || value === "scrap";
 }
 
 /** One direct card child. A card with no body or no button is skipped. */
@@ -705,7 +962,7 @@ function readCard(node: XmlElement): EventCard | undefined {
     const id = attr(item, "name")?.trim();
     if (!id) return [];
     const reqs = readReqs(item);
-    const gift = readGift(item);
+    const gift = readGift(item, "card");
     const choice: EventCard["choices"][number] = { id, label: choiceLabel(item, id) };
     if (reqs) choice.reqs = reqs;
     if (gift) choice.gift = gift;
@@ -737,12 +994,72 @@ function openingTexts(node: XmlElement, lines: string[]): string[] | undefined {
   return texts.length > 1 ? texts : undefined;
 }
 
+function levelTier(level: string | undefined): EventTier | undefined {
+  if (level === "LOW") return "low";
+  if (level === "MED") return "medium";
+  if (level === "HIGH") return "high";
+  return undefined;
+}
+
+function emptyBlueprint(node: XmlElement | undefined): boolean {
+  if (!node) return false;
+  return !attr(node, "name")?.trim() && ownText(node).trim() === "";
+}
+
+/** A missing reward child is none. A bad autoReward skips the whole offer. */
+function readSurrenderReward(node: XmlElement): SurrenderReward | undefined {
+  const autos = elements(node).filter((item) => item.tagName === "autoReward");
+  const weapons = elements(node).filter((item) => item.tagName === "weapon");
+  const drones = elements(node).filter((item) => item.tagName === "drone");
+  const augments = elements(node).filter((item) => item.tagName === "augment");
+  const crews = elements(node).filter((item) => item.tagName === "crewMember");
+  const repairs = elements(node).filter((item) => item.tagName === "fuelRepairs");
+  const present = autos.length + weapons.length + drones.length + augments.length + crews.length + repairs.length;
+  if (present === 0) return { k: "none" };
+  if (autos.length > 0) {
+    const text = ownText(autos[0]!).trim();
+    const level = attr(autos[0]!, "level")?.trim();
+    const tier = levelTier(level);
+    if (level && !tier) return undefined;
+    if (text === "stuff") return tier ? { k: "stuff", tier } : { k: "stuff" };
+    if (text === "standard") {
+      if (!tier) return undefined;
+      const race = crews[0] ? ownText(crews[0]).trim() : "";
+      return race ? { k: "standard", tier, race } : { k: "standard", tier };
+    }
+    if (text === "scrap_only") {
+      if (!tier) return undefined;
+      const unnamed = emptyBlueprint(weapons[0])
+        ? "weapon"
+        : emptyBlueprint(drones[0])
+          ? "drone"
+          : emptyBlueprint(augments[0])
+            ? "augment"
+            : undefined;
+      return unnamed ? { k: "scrap", tier, unnamed } : { k: "scrap", tier };
+    }
+    return undefined;
+  }
+  const named = weapons.find((item) => attr(item, "name")?.trim());
+  const weaponName = named ? attr(named, "name")?.trim() : undefined;
+  if (weaponName) return { k: "weapon", name: weaponName };
+  if (crews.length > 0) {
+    const race = ownText(crews[0]!).trim();
+    return race ? { k: "crew", race } : { k: "crew" };
+  }
+  if (repairs.length > 0) {
+    const n = attrNum(repairs[0]!.getAttribute("repairs"));
+    if (n == null) return undefined;
+    return { k: "fuel-repairs", repairs: n };
+  }
+  return undefined;
+}
+
 function readSurrender(node: XmlElement): SurrenderOfferDef | undefined {
   const chance = attrNum(node.getAttribute("chance"));
-  const low = attrNum(node.getAttribute("low"));
-  const high = attrNum(node.getAttribute("high"));
-  const rewardNode = child(node, "reward");
-  const reward = rewardNode ? readReward(rewardNode) : undefined;
+  const low = attrNum(node.getAttribute("min"));
+  const high = attrNum(node.getAttribute("max"));
+  const reward = readSurrenderReward(node);
   const hails = elements(node)
     .filter((item) => item.tagName === "text")
     .map((item) => ownText(item).trim())
@@ -832,15 +1149,18 @@ function keepPrice(prices: EventPrice[], price: EventPrice | undefined) {
   prices.push(price);
 }
 
-function readPrice(node: XmlElement): EventPrice | undefined {
-  const id = attr(node, "id")?.trim();
-  return id ? readBand(node, id) : undefined;
-}
-
-/** A bribe tag is the scrap price named bribe. */
-function readBribe(node: XmlElement): EventPrice | undefined {
-  if (attr(node, "k")?.trim() !== "scrap") return undefined;
-  return readBand(node, "bribe");
+/** A direct named item_modify. The first scrap or fuel item is the price. */
+function readNamedPrice(node: XmlElement): EventPrice | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  for (const item of elements(node)) {
+    if (item.tagName !== "item") continue;
+    const parsed = readResourceItem(item);
+    if (!parsed || parsed.k !== "res" || parsed.sign !== 1) continue;
+    if (parsed.id !== "scrap" && parsed.id !== "fuel") continue;
+    return { id, k: parsed.id, lo: parsed.lo, hi: parsed.hi };
+  }
+  return undefined;
 }
 
 /** The first valid band for a specialty and the level already owned. */
@@ -866,42 +1186,80 @@ function readTrade(node: XmlElement): TradeStep | undefined {
   return { id, level, lo, hi };
 }
 
-function readBand(node: XmlElement, id: string): EventPrice | undefined {
-  const k = attr(node, "k")?.trim();
-  if (k !== "scrap" && k !== "fuel") return undefined;
-  const lo = intAttr(node, "lo");
-  const hi = intAttr(node, "hi");
-  if (lo == null || hi == null || lo > hi) return undefined;
-  return { id, k, lo, hi };
-}
-
 /** The first valid printed range for an id and a kind. */
 function keepBand(bands: EventBand[], band: EventBand | undefined) {
   if (!band || bands.some((row) => row.id === band.id && row.k === band.k)) return;
   bands.push(band);
 }
 
-function readPrinted(node: XmlElement): EventBand | undefined {
-  const id = attr(node, "id")?.trim();
-  const k = attr(node, "k")?.trim();
-  if (!id || (k !== "scrap" && k !== "fuel" && k !== "missiles" && k !== "parts" && k !== "level")) return undefined;
-  const lo = intAttr(node, "lo");
-  const hi = intAttr(node, "hi");
-  if (lo == null || hi == null || lo > hi) return undefined;
+/** Bands live in a nameless eventList. A negative range is not a printed band. */
+function readBandRows(node: XmlElement): EventBand[] {
+  const bands: EventBand[] = [];
+  for (const event of elements(node)) {
+    if (event.tagName !== "event") continue;
+    if (attr(event, "name")?.trim() || attr(event, "id")?.trim()) continue;
+    const modify = child(event, "item_modify");
+    if (!modify) continue;
+    const id = attr(modify, "name")?.trim();
+    if (!id) continue;
+    for (const item of elements(modify)) {
+      if (item.tagName !== "item") continue;
+      const band = readBandItem(id, item);
+      if (!band) continue;
+      bands.push(band);
+      break;
+    }
+  }
+  return bands;
+}
+
+function readBandItem(id: string, node: XmlElement): EventBand | undefined {
+  const type = attr(node, "type")?.trim();
+  const k = type === "drones" ? "parts" : type;
+  if (k !== "scrap" && k !== "fuel" && k !== "missiles" && k !== "parts" && k !== "level") {
+    return undefined;
+  }
+  const lo = intAttr(node, "min");
+  const hi = intAttr(node, "max");
+  if (lo == null || hi == null || lo > hi || lo < 0) return undefined;
   return { id, k, lo, hi };
 }
 
-/** The first fuel gift. An unknown kind, a bad number, or a backwards band is skipped. */
-function readGift(node: XmlElement): ChoiceGift | undefined {
+/**
+ * A page gift is fuel inside the empty result.
+ * A card has no results, so a direct fuel item_modify is the gift.
+ * A direct fuel item on a page stays a resource effect.
+ */
+function readGift(node: XmlElement, where: "page" | "card"): ChoiceGift | undefined {
+  if (where === "card") {
+    for (const item of elements(node)) {
+      if (item.tagName !== "item_modify") continue;
+      const gift = fuelGift(item);
+      if (gift) return gift;
+    }
+    return undefined;
+  }
   for (const item of elements(node)) {
-    if (item.tagName !== "gift") continue;
-    if (attr(item, "k")?.trim() !== "fuel") continue;
-    const lo = intAttr(item, "lo");
-    const hi = intAttr(item, "hi");
-    if (lo == null || hi == null || lo > hi) continue;
-    return { k: "fuel", lo, hi };
+    if (item.tagName !== "event") continue;
+    if (attr(item, "load")?.trim()) continue;
+    if (textOf(item, "text") != null) continue;
+    const modify = child(item, "item_modify");
+    if (!modify) continue;
+    const gift = fuelGift(modify);
+    if (gift) return gift;
   }
   return undefined;
+}
+
+function fuelGift(modify: XmlElement): ChoiceGift | undefined {
+  const items = elements(modify).filter((item) => item.tagName === "item");
+  if (items.length !== 1) return undefined;
+  const item = items[0];
+  if (!item || attr(item, "type")?.trim() !== "fuel") return undefined;
+  const lo = intAttr(item, "min");
+  const hi = intAttr(item, "max");
+  if (lo == null || hi == null || lo > hi || lo < 0) return undefined;
+  return { k: "fuel", lo, hi };
 }
 
 /** Direct req children. An unknown kind, a blank refusal, or a bad number is skipped. */
@@ -922,105 +1280,129 @@ function intAttr(node: XmlElement, name: string): number | undefined {
 }
 
 function readReq(node: XmlElement): ChoiceReq | undefined {
-  const kind = attr(node, "k")?.trim();
-  const id = attr(node, "id")?.trim();
   const text = ownText(node).trim();
-  if (!kind || !id || !text) return undefined;
-  if (
-    kind === "crew" ||
-    kind === "augment" ||
-    kind === "weapon" ||
-    kind === "family" ||
-    kind === "drone"
-  ) {
-    return { k: kind, id, text };
+  if (!text) return undefined;
+  const crew = namedChild(node, "crewMember");
+  if (crew) return { k: "crew", id: crew, text };
+  const augment = namedChild(node, "augment");
+  if (augment) return { k: "augment", id: augment, text };
+  const drone = namedChild(node, "drone");
+  if (drone) return { k: "drone", id: drone, text };
+  const weapon = child(node, "weapon");
+  if (weapon) {
+    const name = attr(weapon, "name")?.trim();
+    if (name) return { k: "weapon", id: name, text };
+    const family = attr(node, "req")?.trim();
+    if (!family) return undefined;
+    return { k: "family", id: family, text };
   }
-  if (kind === "system") {
-    const level = intAttr(node, "level");
-    if (level == null) return undefined;
-    return { k: "system", id, level, text };
+  const stock = readStockReq(node);
+  if (stock) return { k: "stock", id: stock.id, n: stock.n, text };
+  const id = attr(node, "req")?.trim();
+  const lvl = intAttr(node, "lvl");
+  const max = intAttr(node, "max_lvl");
+  if (max != null) {
+    if (!id || lvl == null || lvl > max) return undefined;
+    return { k: "band", id, lo: lvl, hi: max, text };
   }
-  if (kind === "band") {
-    const lo = intAttr(node, "lo");
-    const hi = intAttr(node, "hi");
-    if (lo == null || hi == null || lo > hi) return undefined;
-    return { k: "band", id, lo, hi, text };
+  if (lvl != null && id) return { k: "system", id, level: lvl, text };
+  return undefined;
+}
+
+function namedChild(node: XmlElement, tag: string): string | undefined {
+  const found = child(node, tag);
+  const name = found ? attr(found, "name")?.trim() : undefined;
+  return name ? name : undefined;
+}
+
+/** An exact negative resource. A range is not a stock lock. */
+function readStockReq(node: XmlElement): { id: string; n: number } | undefined {
+  const modify = child(node, "item_modify");
+  if (!modify) return undefined;
+  const items = elements(modify).filter((item) => item.tagName === "item");
+  if (items.length !== 1) return undefined;
+  const item = items[0];
+  if (!item) return undefined;
+  const type = attr(item, "type")?.trim();
+  const id = type === "drones" ? "parts" : type;
+  if (id !== "scrap" && id !== "fuel" && id !== "missiles" && id !== "parts") return undefined;
+  const min = intAttr(item, "min");
+  const max = intAttr(item, "max");
+  if (min == null || max == null || min !== max || min >= 0) return undefined;
+  return { id, n: -min };
+}
+
+/** Choice results, in document order. */
+function readChoiceEffects(node: XmlElement): EventEffect[] {
+  const fx: EventEffect[] = [];
+  for (const child of elements(node)) {
+    for (const effect of readChoiceEffect(child) ?? []) fx.push(effect);
   }
-  if (kind === "stock") {
-    const n = intAttr(node, "n");
-    if (n == null) return undefined;
-    return { k: "stock", id, n, text };
+  return fx;
+}
+
+function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
+  if (node.tagName === "effect") {
+    const parsed = readEffect(node);
+    return parsed ? [parsed] : undefined;
+  }
+  if (node.tagName === "item_modify") {
+    const rows: EventEffect[] = [];
+    for (const item of elements(node)) {
+      if (item.tagName !== "item") continue;
+      const parsed = readResourceItem(item);
+      if (parsed) rows.push(parsed);
+    }
+    return rows;
+  }
+  if (node.tagName === "ship") {
+    const tier = attr(node, "load")?.trim();
+    if (!tier) return undefined;
+    const effect: EventEffect = { k: "fight", tier };
+    if (node.getAttribute("asteroid") === "true") effect.asteroid = true;
+    return [effect];
+  }
+  if (node.tagName === "event") {
+    const load = attr(node, "load")?.trim();
+    if (load) return [{ k: "goto", id: load }];
+    const text = textOf(node, "text");
+    if (text != null) return [{ k: "note", text }];
+    return [{ k: "nothing" }];
+  }
+  if (node.tagName === "damage") {
+    const amount = intAttr(node, "amount");
+    if (amount == null) return undefined;
+    return [{ k: "hull", n: -amount }];
+  }
+  if (node.tagName === "modifyPursuit") {
+    const amount = intAttr(node, "amount");
+    if (amount == null) return undefined;
+    const faster = node.getAttribute("faster") === "true";
+    const effect: EventEffect = { k: "fleet", n: faster ? amount : -amount };
+    if (node.getAttribute("double") === "true") effect.double = true;
+    if (faster) effect.faster = true;
+    if (node.getAttribute("lastStand") === "true") effect.lastStand = true;
+    return [effect];
+  }
+  if (node.tagName === "weapon" || node.tagName === "drone" || node.tagName === "augment") {
+    return [{ k: "item", item: node.tagName === "weapon" ? "weapon" : node.tagName === "drone" ? "drone" : "augment" }];
   }
   return undefined;
 }
 
-function readReward(node: XmlElement): SurrenderReward | undefined {
-  const kind = attr(node, "k");
-  if (kind === "none") return { k: "none" };
-  if (kind === "crew") {
-    const race = attr(node, "race")?.trim();
-    return race ? { k: "crew", race } : { k: "crew" };
-  }
-  if (kind === "stuff") {
-    const tier = attr(node, "tier");
-    if (!tier) return { k: "stuff" };
-    if (!isTier(tier)) return undefined;
-    return { k: "stuff", tier };
-  }
-  if (kind === "fuel-repairs") {
-    const repairs = attrNum(node.getAttribute("repairs"));
-    if (repairs == null) return undefined;
-    return { k: "fuel-repairs", repairs };
-  }
-  if (kind === "weapon") {
-    const name = attr(node, "name")?.trim();
-    if (!name) return undefined;
-    return { k: "weapon", name };
-  }
-  if (kind === "standard") {
-    const tier = attr(node, "tier");
-    if (!isTier(tier)) return undefined;
-    const race = attr(node, "race")?.trim();
-    return race ? { k: "standard", tier, race } : { k: "standard", tier };
-  }
-  if (kind === "scrap") {
-    const tier = attr(node, "tier");
-    if (!isTier(tier)) return undefined;
-    const unnamed = attr(node, "unnamed");
-    if (!unnamed) return { k: "scrap", tier };
-    if (!isItem(unnamed)) return undefined;
-    return { k: "scrap", tier, unnamed };
-  }
-  return undefined;
-}
-
-function isItem(value: string): value is EventItem {
-  return value === "weapon" || value === "augment" || value === "drone";
+function readResourceItem(node: XmlElement): EventEffect | undefined {
+  const type = attr(node, "type")?.trim();
+  const id = type === "drones" ? "parts" : type;
+  if (!isResource(id)) return undefined;
+  const min = intAttr(node, "min");
+  const max = intAttr(node, "max");
+  if (min == null || max == null || min > max) return undefined;
+  if (max < 0 || (max === 0 && min < 0)) return { k: "res", id, sign: -1, lo: -max, hi: -min };
+  return { k: "res", id, sign: 1, lo: min, hi: max };
 }
 
 function readEffect(node: XmlElement): EventEffect | undefined {
   const kind = attr(node, "k");
-  if (kind === "nothing") return { k: "nothing" };
-  if (kind === "note") return { k: "note", text: ownText(node).trim() };
-  if (kind === "item") {
-    const item = attr(node, "item");
-    if (item !== "weapon" && item !== "augment" && item !== "drone") return undefined;
-    return { k: "item", item };
-  }
-  if (kind === "hull") {
-    const n = attrNum(node.getAttribute("n"));
-    if (n == null) return undefined;
-    return { k: "hull", n };
-  }
-  if (kind === "res") {
-    const id = attr(node, "id");
-    if (!isResource(id)) return undefined;
-    const lo = attrNum(node.getAttribute("lo"));
-    const hi = attrNum(node.getAttribute("hi"));
-    if (lo == null || hi == null) return undefined;
-    const sign = attrNum(node.getAttribute("sign"));
-    return { k: "res", id, sign: sign === -1 ? -1 : 1, lo, hi };
-  }
   if (kind === "tier") {
     const tier = attr(node, "tier");
     if (!isTier(tier)) return undefined;
@@ -1029,27 +1411,10 @@ function readEffect(node: XmlElement): EventEffect | undefined {
       effect.resources = node.getAttribute("resources") === "true";
     return effect;
   }
-  if (kind === "fleet") {
-    const n = attrNum(node.getAttribute("n"));
-    if (n == null) return undefined;
-    const effect: EventEffect = { k: "fleet", n };
-    if (node.hasAttribute("double")) effect.double = node.getAttribute("double") === "true";
-    if (node.hasAttribute("faster")) effect.faster = node.getAttribute("faster") === "true";
-    if (node.hasAttribute("lastStand"))
-      effect.lastStand = node.getAttribute("lastStand") === "true";
-    return effect;
-  }
-  if (kind === "fight") {
-    const tier = attr(node, "tier")?.trim();
-    if (!tier) return undefined;
-    const effect: EventEffect = { k: "fight", tier };
-    if (node.hasAttribute("asteroid")) effect.asteroid = node.getAttribute("asteroid") === "true";
-    return effect;
-  }
-  if (kind === "quest" || kind === "goto") {
+  if (kind === "quest") {
     const id = attr(node, "id")?.trim();
     if (!id) return undefined;
-    return { k: kind, id };
+    return { k: "quest", id };
   }
   if (kind === "close") return { k: "close" };
   return undefined;

@@ -41,6 +41,7 @@ import {
   NEVER_RUN,
   pageFight,
   rollStandard,
+  resourceBand,
   rollSurrenderOffer,
   type SurrenderPlan,
 } from "./surrender.ts";
@@ -153,7 +154,7 @@ const ARRIVE: QuestPart["arrive"] = {
     // Rewards, "Fuel": T fuel and T scrap.
     const unlocked = grantUnlock(g, "crystal-a"); // @agent:unlocks. Ancient device: "You unlock the Crystal Cruiser".
     const offer = scrapOnly(g, "medium");
-    offer.fuel = between(g, [2, 4]);
+    offer.fuel = between(g, resourceBand("fuel", "medium"));
     result(
       g,
       "You arrive at the coordinates to find a massive Crystalline cruiser docked at a small repair station. You arrange for the ship to be sent back to the Federation base while the station upgrades your hull.",

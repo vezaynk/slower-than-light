@@ -16,7 +16,8 @@
   "dependencies": {
     "@stl/ftldat": "workspace:*",
     "@stl/pack": "workspace:*",
-    "@xmldom/xmldom": "^0.9.12"
+    "@xmldom/xmldom": "^0.9.12",
+    "xml-formatter": "^3.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.16.5",

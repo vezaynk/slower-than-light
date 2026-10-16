@@ -56,7 +56,12 @@ const HEADER = `
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
   Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
-  Event tags are the page slug, beacon flag, title, aliases, sectors, text, and choices.
+  An event tag is a page. flag, title, alias, and sector are extra names this sim looks up.
+  A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
+  A fight is a hostile ship. Its load is the ship name this sim already fights.
+  An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
+  Hull change is damage. A positive amount hurts. A negative amount repairs.
+  A plain fleet delay is modifyPursuit with a negative amount. faster and lastStand are extra.
   Several text tags are the opening sentences. The first is the page body.
   An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
   The sim still picks one sentence when the card opens.
@@ -157,7 +162,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const texts = event.texts ?? [];
   const attrs: Record<string, string> = { name: event.id, flag: event.flag };
   if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
-  const node = element(doc, "eventBlueprint", attrs);
+  const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
   for (const alias of event.aliases) add(node, leaf(doc, "alias", alias));
   for (const sector of event.sectors) add(node, leaf(doc, "sector", sector));
@@ -333,25 +338,29 @@ function rewardElement(doc: XmlDocument, reward: SurrenderReward): XmlElement {
 }
 
 function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
-  if (fx.k === "nothing") return element(doc, "effect", { k: "nothing" });
+  if (fx.k === "nothing") return element(doc, "event", {});
   if (fx.k === "note") {
-    const node = element(doc, "effect", { k: "note" });
-    node.appendChild(doc.createTextNode(fx.text));
+    const node = element(doc, "event", {});
+    add(node, leaf(doc, "text", fx.text));
     return node;
   }
   if (fx.k === "quest") return element(doc, "effect", { k: "quest", id: fx.id });
-  if (fx.k === "goto") return element(doc, "effect", { k: "goto", id: fx.id });
+  if (fx.k === "goto") return element(doc, "event", { load: fx.id });
   if (fx.k === "close") return element(doc, "effect", { k: "close" });
-  if (fx.k === "item") return element(doc, "effect", { k: "item", item: fx.item });
-  if (fx.k === "hull") return element(doc, "effect", { k: "hull", n: num(fx.n) });
+  if (fx.k === "item") return element(doc, fx.item, {});
+  if (fx.k === "hull") return element(doc, "damage", { amount: num(-fx.n) });
   if (fx.k === "res") {
-    return element(doc, "effect", {
-      k: "res",
-      id: fx.id,
-      sign: num(fx.sign),
-      lo: num(fx.lo),
-      hi: num(fx.hi),
-    });
+    const loss = fx.sign === -1;
+    const node = element(doc, "item_modify", {});
+    add(
+      node,
+      element(doc, "item", {
+        type: fx.id === "parts" ? "drones" : fx.id,
+        min: num(loss ? -fx.hi : fx.lo),
+        max: num(loss ? -fx.lo : fx.hi),
+      }),
+    );
+    return node;
   }
   if (fx.k === "tier") {
     const attrs: Record<string, string> = { k: "tier", tier: fx.tier };
@@ -359,15 +368,17 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
     return element(doc, "effect", attrs);
   }
   if (fx.k === "fleet") {
-    const attrs: Record<string, string> = { k: "fleet", n: num(fx.n) };
-    if (fx.double !== undefined) attrs.double = String(fx.double);
-    if (fx.faster !== undefined) attrs.faster = String(fx.faster);
-    if (fx.lastStand !== undefined) attrs.lastStand = String(fx.lastStand);
-    return element(doc, "effect", attrs);
+    const attrs: Record<string, string> = {
+      amount: num(fx.faster ? fx.n : -fx.n),
+    };
+    if (fx.double) attrs.double = "true";
+    if (fx.faster) attrs.faster = "true";
+    if (fx.lastStand) attrs.lastStand = "true";
+    return element(doc, "modifyPursuit", attrs);
   }
-  const attrs: Record<string, string> = { k: "fight", tier: fx.tier };
-  if (fx.asteroid !== undefined) attrs.asteroid = String(fx.asteroid);
-  return element(doc, "effect", attrs);
+  const attrs: Record<string, string> = { hostile: "true", load: fx.tier };
+  if (fx.asteroid) attrs.asteroid = "true";
+  return element(doc, "ship", attrs);
 }
 
 function tuneElement(doc: XmlDocument, tune: TuneDef): XmlElement {

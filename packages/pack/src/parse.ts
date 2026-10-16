@@ -13,6 +13,7 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventPrice,
+  EventBand,
   TradeStep,
   EventGrade,
   GradePay,
@@ -544,6 +545,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
   const prices: EventPrice[] = [];
+  const bands: EventBand[] = [];
   const trades: TradeStep[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
@@ -568,6 +570,10 @@ function readEvent(node: XmlElement): EventDef | undefined {
     }
     if (item.tagName === "bribe") {
       keepPrice(prices, readBribe(item));
+      continue;
+    }
+    if (item.tagName === "band") {
+      keepBand(bands, readPrinted(item));
       continue;
     }
     if (item.tagName === "trade") {
@@ -627,6 +633,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
   if (prices.length > 0) event.prices = prices;
+  if (bands.length > 0) event.bands = bands;
   if (trades.length > 0) event.trades = trades;
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
@@ -860,6 +867,22 @@ function readTrade(node: XmlElement): TradeStep | undefined {
 function readBand(node: XmlElement, id: string): EventPrice | undefined {
   const k = attr(node, "k")?.trim();
   if (k !== "scrap" && k !== "fuel") return undefined;
+  const lo = intAttr(node, "lo");
+  const hi = intAttr(node, "hi");
+  if (lo == null || hi == null || lo > hi) return undefined;
+  return { id, k, lo, hi };
+}
+
+/** The first valid printed range for an id and a kind. */
+function keepBand(bands: EventBand[], band: EventBand | undefined) {
+  if (!band || bands.some((row) => row.id === band.id && row.k === band.k)) return;
+  bands.push(band);
+}
+
+function readPrinted(node: XmlElement): EventBand | undefined {
+  const id = attr(node, "id")?.trim();
+  const k = attr(node, "k")?.trim();
+  if (!id || (k !== "scrap" && k !== "fuel" && k !== "missiles" && k !== "parts" && k !== "level")) return undefined;
   const lo = intAttr(node, "lo");
   const hi = intAttr(node, "hi");
   if (lo == null || hi == null || lo > hi) return undefined;

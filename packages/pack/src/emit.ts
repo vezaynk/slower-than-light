@@ -13,6 +13,7 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventPrice,
+  EventBand,
   TradeStep,
   EventGrade,
   EventCard,
@@ -72,6 +73,9 @@ const HEADER = `
   A price tag is a band the handler rolls at its existing call site. The id names the price.
   A fixed price does not roll. A missing price omits that button and pays nothing.
   A button that shows the amount still reads it from the choice id.
+  A band tag is a printed range the handler rolls at its existing call site.
+  A fixed band does not roll. A missing band pays or grants nothing and does not roll.
+  An upgrade row is the same id with a scrap band and a level band.
   A bribe tag is the scrap price named bribe.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
@@ -163,6 +167,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer));
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
   for (const price of event.prices ?? []) add(node, priceElement(doc, price));
+  for (const band of event.bands ?? []) add(node, bandElement(doc, band));
   for (const step of event.trades ?? []) add(node, tradeElement(doc, step));
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
@@ -281,6 +286,10 @@ function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
 
 function priceElement(doc: XmlDocument, price: EventPrice): XmlElement {
   return element(doc, "price", { id: price.id, k: price.k, lo: num(price.lo), hi: num(price.hi) });
+}
+
+function bandElement(doc: XmlDocument, band: EventBand): XmlElement {
+  return element(doc, "band", { id: band.id, k: band.k, lo: num(band.lo), hi: num(band.hi) });
 }
 
 function tradeElement(doc: XmlDocument, step: TradeStep): XmlElement {

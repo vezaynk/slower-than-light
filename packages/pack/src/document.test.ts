@@ -497,6 +497,56 @@ describe("pack document", () => {
     ]);
   });
 
+  it("round-trips printed bands and keeps the first row for an id and a kind", () => {
+    const events = [
+      {
+        id: "drones",
+        dest: "Drones",
+        flag: "cited:drones",
+        aliases: [],
+        sectors: [],
+        body: "A salesman.",
+        bands: [
+          { id: "low", k: "scrap" as const, lo: 15, hi: 20 },
+          { id: "low", k: "level" as const, lo: 2, hi: 3 },
+          { id: "scan", k: "parts" as const, lo: 1, hi: 3 },
+        ],
+        choices: [{ id: "c:drones:0", label: "Buy", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<band id="low" k="scrap" lo="15" hi="20"\/>/);
+    assert.match(xml, /<band id="low" k="level" lo="2" hi="3"\/>/);
+    assert.match(xml, /<band id="scan" k="parts" lo="1" hi="3"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <band k="scrap" lo="15" hi="20"/>
+        <band id="" k="scrap" lo="15" hi="20"/>
+        <band id="scan" k="crew" lo="1" hi="2"/>
+        <band id="scan" k="scrap" lo="30" hi="10"/>
+        <band id="scan" k="scrap" lo="1.5" hi="2"/>
+        <band id="scan" k="scrap" lo="8" hi="8"/>
+        <band id="scan" k="scrap" lo="20" hi="35"/>
+        <band id="scan" k="parts" lo="1" hi="3"/>
+        <band id="low" k="missiles" lo="2" hi="4"/>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <band id="nested" k="scrap" lo="1" hi="2"/>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.deepEqual(broken.events?.[0]?.bands, [
+      { id: "scan", k: "scrap", lo: 8, hi: 8 },
+      { id: "scan", k: "parts", lo: 1, hi: 3 },
+      { id: "low", k: "missiles", lo: 2, hi: 4 },
+    ]);
+    assert.equal(broken.events?.[0]?.prices, undefined);
+  });
+
   it("round-trips trade bands and keeps the first row for a specialty and level", () => {
     const events = [
       {

@@ -29,6 +29,7 @@ import {
 import { noteReactorEvent } from "./achievement-track.ts";
 import { SECTOR_MIX } from "./beacon-mix.ts";
 import { citedPagesFor } from "./cited-events.ts";
+import { rollBand } from "./event-bands.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
@@ -737,8 +738,8 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
       const note = bumpReactor(g);
       show(g, tx("wiki.filler-events.they-thank-you-and-offer-to-2"), undefined, note ? [note] : []);
     } else {
-      const base = between(g, [15, 25]);
-      show(g, tx("wiki.filler-events.they-thank-you-for-your-generosity"), undefined, payMiners(g, base, 0));
+      const base = rollBand("asteroid-mining-colony", "thanks", "scrap", (lo, hi) => between(g, [lo, hi]));
+      show(g, tx("wiki.filler-events.they-thank-you-for-your-generosity"), undefined, base == null ? [] : payMiners(g, base, 0));
     }
     return;
   }
@@ -752,8 +753,8 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
   } else if (r === "augment") {
     show(g, tx("wiki.filler-events.wow-this-will-help-our-efforts-2"), undefined, [grantRandomItem(g, "augment")]);
   } else {
-    const base = between(g, [30, 40]);
-    show(g, tx("wiki.filler-events.wow-this-will-help-our-efforts-3"), undefined, payMiners(g, base, 5));
+    const base = rollBand("asteroid-mining-colony", "wow", "scrap", (lo, hi) => between(g, [lo, hi]));
+    show(g, tx("wiki.filler-events.wow-this-will-help-our-efforts-3"), undefined, base == null ? [] : payMiners(g, base, 5));
   }
 }
 

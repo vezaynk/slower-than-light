@@ -13,6 +13,7 @@ import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
 import { PRICE_BANDS } from "../wiki/event-prices.ts";
+import { PRINTED_BANDS } from "../wiki/event-bands.ts";
 import { TRADE_STEPS } from "../wiki/event-trades.ts";
 import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
@@ -172,6 +173,8 @@ function eventRow(row: EventDef): EventDef {
   if (rolls && rolls.length > 0) copy.rolls = rolls.map(copyRoll);
   const prices = PRICE_BANDS[row.id];
   if (prices?.length) copy.prices = prices.map((price) => ({ id: price.id, k: price.k, lo: price.lo, hi: price.hi }));
+  const bands = PRINTED_BANDS[row.id];
+  if (bands?.length) copy.bands = bands.map((band) => ({ id: band.id, k: band.k, lo: band.lo, hi: band.hi }));
   const trades = TRADE_STEPS[row.id];
   if (trades?.length) copy.trades = trades.map(copyTrade);
   const grade = GRADES[row.id];

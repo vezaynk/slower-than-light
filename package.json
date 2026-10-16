@@ -4,6 +4,8 @@
   "packageManager": "pnpm@10.18.2",
   "scripts": {
     "dev": "pnpm --filter @stl/game dev",
+    "dev:reels": "pnpm --filter @stl/reels dev",
+    "reels:record": "pnpm --filter @stl/reels record",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",

@@ -7,7 +7,6 @@
  * Drone Control (extras/swarm.ts, `kit.loadout`), Teleporter (extras/sling.ts, room "e-teleporter"), and
  * Mind Control (extras/leash.ts). sim.ts makeFlagship / advanceRam / bossThink call into this file.
  */
-import { tx } from "../../i18n/index.ts";
 import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
@@ -16,7 +15,12 @@ import { artilleryChargeSeconds } from "./flagship-weapons.ts";
 import { BEAM1_SPEED, DRONE_LABEL, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
-import { flagshipHardLinks, flagshipStage1, flagshipStage2, flagshipStage3 } from "./flagship-layout.ts";
+import {
+  flagshipHardLinks,
+  flagshipStage1,
+  flagshipStage2,
+  flagshipStage3,
+} from "./flagship-layout.ts";
 import type { Layout } from "../layouts.ts";
 
 /**
@@ -78,7 +82,16 @@ export function isFlagship(ship: Ship | null | undefined): boolean {
 // Rooms
 // ---------------------------------------------------------------------------------------------
 
-export type FlagshipRoomSpec = { id: string; title: string; system: SysId | null; kit?: KitId; x: number; y: number; w: number; h: number };
+export type FlagshipRoomSpec = {
+  id: string;
+  title: string;
+  system: SysId | null;
+  kit?: KitId;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
 
 /**
  * Traced id suffix -> enemy room id / system / kit. Kit rooms use the ids the extras modules expect
@@ -107,14 +120,21 @@ const ROLE: Record<string, { id: string; system: SysId | null; kit?: KitId }> = 
   "missile-link": { id: "e-missile-link", system: null },
 };
 
-const STAGE_LAYOUT: Record<1 | 2 | 3, Layout> = { 1: flagshipStage1, 2: flagshipStage2, 3: flagshipStage3 };
+const STAGE_LAYOUT: Record<1 | 2 | 3, Layout> = {
+  1: flagshipStage1,
+  2: flagshipStage2,
+  3: flagshipStage3,
+};
 
 /**
  * The stage's rooms and door bars. "Flagship variation": "On Hard mode, two additional rooms link the Laser and
  * Missile ones to the main section of the ship." Every stage keeps the Laser and Missile rooms, so the Hard links
  * are added on all three. Halls get a position id ("e-hall-x-y") so crew in the same cell keep a stable room.
  */
-export function flagshipRooms(stage: 1 | 2 | 3, hard: boolean): { rooms: FlagshipRoomSpec[]; marks: DoorMark[]; cols: number; rows: number } {
+export function flagshipRooms(
+  stage: 1 | 2 | 3,
+  hard: boolean,
+): { rooms: FlagshipRoomSpec[]; marks: DoorMark[]; cols: number; rows: number } {
   const base = STAGE_LAYOUT[stage];
   const layouts = hard ? [base, flagshipHardLinks] : [base];
   const rooms: FlagshipRoomSpec[] = [];
@@ -124,7 +144,16 @@ export function flagshipRooms(stage: 1 | 2 | 3, hard: boolean): { rooms: Flagshi
       const key = r.id.replace(/^f[123h]-/, "");
       const role = ROLE[key];
       const id = role?.id ?? `e-hall-${r.x}-${r.y}`;
-      rooms.push({ id, title: r.title, system: role ? role.system : null, ...(role?.kit ? { kit: role.kit } : {}), x: r.x, y: r.y, w: r.w, h: r.h });
+      rooms.push({
+        id,
+        title: r.title,
+        system: role ? role.system : null,
+        ...(role?.kit ? { kit: role.kit } : {}),
+        x: r.x,
+        y: r.y,
+        w: r.w,
+        h: r.h,
+      });
     }
     marks.push(...(layout.marks ?? []));
   }
@@ -138,7 +167,19 @@ export function flagshipRooms(stage: 1 | 2 | 3, hard: boolean): { rooms: Flagshi
  * FLAGSHIP_HARD, "Boarding strategy / Hard mode": "The main body has two extra crew." INFERRED seats: medbay and shields.
  */
 export function flagshipSeats(hard: boolean): string[] {
-  const seats = ["e-pilot", "e-shields", "e-engines", "e-oxygen", "e-doors", "e-cloaking", "e-hacking", "e-ion", "e-laser", "e-missile", "e-beam"];
+  const seats = [
+    "e-pilot",
+    "e-shields",
+    "e-engines",
+    "e-oxygen",
+    "e-doors",
+    "e-cloaking",
+    "e-hacking",
+    "e-ion",
+    "e-laser",
+    "e-missile",
+    "e-beam",
+  ];
   if (hard) seats.push("e-medbay", "e-shields");
   return seats;
 }
@@ -186,7 +227,8 @@ function blankKit(id: KitId, level: number): Kit {
  */
 export function flagshipKits(stage: 1 | 2 | 3): Ship["kits"] {
   const kits: Ship["kits"] = {};
-  for (const [id, level] of Object.entries(STAGE_KITS[stage]) as [KitId, number][]) kits[id] = blankKit(id, level);
+  for (const [id, level] of Object.entries(STAGE_KITS[stage]) as [KitId, number][])
+    kits[id] = blankKit(id, level);
   if (kits.swarm) kits.swarm.loadout = [...STAGE2_DRONES];
   return kits;
 }
@@ -209,12 +251,22 @@ export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3) {
   ship.parts = FLAGSHIP_PARTS;
   ship.boards = stage === 3;
   // limit is unused while invasion is set. A stored 99 was a stand-in, not a printed cap.
-  ship.boarding = stage === 3 ? { sent: 0, limit: 0, party: [], away: [], home: {}, invasion: true } : undefined;
+  ship.boarding =
+    stage === 3 ? { sent: 0, limit: 0, party: [], away: [], home: {}, invasion: true } : undefined;
   ship.crewAi = undefined;
   const prev = ship.flagship;
   // "Hull and system damage of the Rebel Flagship will be repaired on the next stage": fresh guns.
-  ship.flagship = { stage, warned: false, split: prev?.split, surge: [], lasers: 0, ai: prev?.ai ?? false, guns: {} };
-  for (const r of ship.rooms) if (r.system === "weapons") ship.flagship.guns![r.id] = { damage: 0, ion: [], fix: 0 };
+  ship.flagship = {
+    stage,
+    warned: false,
+    split: prev?.split,
+    surge: [],
+    lasers: 0,
+    ai: prev?.ai ?? false,
+    guns: {},
+  };
+  for (const r of ship.rooms)
+    if (r.system === "weapons") ship.flagship.guns![r.id] = { damage: 0, ion: [], fix: 0 };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -237,15 +289,25 @@ function cellsOf(r: { x: number; y: number; w: number; h: number }): [number, nu
 export function carryCrew(g: Game, oldRooms: Room[], ship: Ship) {
   const at = new Map<string, string>();
   for (const r of ship.rooms) for (const [x, y] of cellsOf(r)) at.set(`${x},${y}`, r.id);
-  const lostArtillery = new Set(oldRooms.filter((r) => r.system === "weapons" && !ship.rooms.some((n) => n.id === r.id)).map((r) => r.id));
-  g.crew = g.crew.filter((c) => !(c.aboard === "enemy" && c.side === "enemy" && lostArtillery.has(c.room)));
+  const lostArtillery = new Set(
+    oldRooms
+      .filter((r) => r.system === "weapons" && !ship.rooms.some((n) => n.id === r.id))
+      .map((r) => r.id),
+  );
+  g.crew = g.crew.filter(
+    (c) => !(c.aboard === "enemy" && c.side === "enemy" && lostArtillery.has(c.room)),
+  );
   for (const c of g.crew) {
     if (c.aboard !== "enemy") continue;
     c.path = [];
     c.move = 0;
     if (ship.rooms.some((r) => r.id === c.room)) continue;
     const old = oldRooms.find((r) => r.id === c.room);
-    const same = old ? cellsOf(old).map(([x, y]) => at.get(`${x},${y}`)).find((id) => !!id) : undefined;
+    const same = old
+      ? cellsOf(old)
+          .map(([x, y]) => at.get(`${x},${y}`))
+          .find((id) => !!id)
+      : undefined;
     if (same) {
       c.room = same;
       continue;
@@ -347,16 +409,18 @@ export function firePowerSurge(g: Game, ship: Ship) {
   if (!state) return;
   if (state.stage === 2) {
     state.split ??= rollSplit(g);
-    for (let i = 0; i < state.split.beam; i++) state.surge.push({ id: "surge-" + nextId(g), kind: "beam", shots: 0, aux: 0 });
-    for (let i = 0; i < state.split.striker; i++) state.surge.push({ id: "surge-" + nextId(g), kind: "striker", shots: 0, aux: 0 });
-    log(g, tx("wiki.flagship-systems.power-surge-drones-deploy", { v: state.split.beam + state.split.striker }));
+    for (let i = 0; i < state.split.beam; i++)
+      state.surge.push({ id: "surge-" + nextId(g), kind: "beam", shots: 0, aux: 0 });
+    for (let i = 0; i < state.split.striker; i++)
+      state.surge.push({ id: "surge-" + nextId(g), kind: "striker", shots: 0, aux: 0 });
+    log(g, `Power surge: ${state.split.beam + state.split.striker} drones deploy.`);
     return;
   }
   if (state.stage === 3) {
     if (state.lasers >= LASER_SURGES_PER_RESTORE) {
       state.lasers = 0;
       ship.zoltan = FLAGSHIP_ZOLTAN;
-      log(g, tx("wiki.flagship-systems.power-surge-their-zoltan-shield-is"));
+      log(g, "Power surge: their Zoltan Shield is back online.");
       return;
     }
     state.lasers += 1;
@@ -375,10 +439,10 @@ export function firePowerSurge(g: Game, ship: Ship) {
         wait: 0,
         t: 0,
         duration: 0.7,
-        label: tx("wiki.flagship-systems.surge"),
+        label: "Surge",
       });
     }
-    log(g, tx("wiki.flagship-systems.power-surge-lasers", { SURGE_LASERS: SURGE_LASERS }));
+    log(g, `Power surge: ${SURGE_LASERS} lasers.`);
   }
 }
 
@@ -447,7 +511,7 @@ function tickAi(g: Game, ship: Ship, state: FlagshipState, dt: number) {
     state.ai = true;
     // sim.ts present(): automated systems run with nobody aboard; crewai.ts stops planning.
     ship.automated = true;
-    log(g, tx("wiki.flagship-systems.the-flagship-s-ai-has-taken"));
+    log(g, "The Flagship's AI has taken control of the ship.");
   }
   for (const r of ship.rooms) {
     if (r.fire > 0 || r.breach > 0) continue;
@@ -537,7 +601,7 @@ export function surgeWarning(g: Game, ship: Ship, left: number) {
   const state = ship.flagship;
   if (!state || state.warned || left > SURGE_WARNING_S) return;
   state.warned = true;
-  log(g, tx("wiki.flagship-systems.warning-power-surge-in-5-seconds"));
+  log(g, "Warning: power surge in 5 seconds.");
   g.sfx.push("alarm");
 }
 
@@ -637,12 +701,20 @@ export function flagshipPowerMask(ship: Ship): boolean[] | null {
 }
 
 /** Target-panel chips: one per artillery room still on the hull, with its gun's working bars. */
-export function artilleryView(ship: Ship | null | undefined): { room: string; defId: string; level: number; bars: number; ion: number }[] {
+export function artilleryView(
+  ship: Ship | null | undefined,
+): { room: string; defId: string; level: number; bars: number; ion: number }[] {
   if (!ship?.flagship) return [];
   const out = [];
   for (const [defId, room] of Object.entries(GUN_ROOM)) {
     if (!ship.rooms.some((r) => r.id === room)) continue;
-    out.push({ room, defId, level: ship.systems.weapons.level, bars: artilleryBars(ship, room), ion: artilleryGun(ship, room)?.ion.length ?? 0 });
+    out.push({
+      room,
+      defId,
+      level: ship.systems.weapons.level,
+      bars: artilleryBars(ship, room),
+      ion: artilleryGun(ship, room)?.ion.length ?? 0,
+    });
   }
   return out;
 }
@@ -691,7 +763,9 @@ export function takeFlagshipMemo(g: Game): FlagshipMemo | null {
 export function resumeCrew(ship: Ship, memo: FlagshipMemo): Crew[] {
   const main = ship.rooms.filter((r) => r.system !== "weapons");
   return memo.crew.map((c, i) => {
-    const room = ship.rooms.some((r) => r.id === c.room) ? c.room : (main[i % Math.max(1, main.length)] ?? ship.rooms[0])?.id ?? c.room;
+    const room = ship.rooms.some((r) => r.id === c.room)
+      ? c.room
+      : ((main[i % Math.max(1, main.length)] ?? ship.rooms[0])?.id ?? c.room);
     return { ...c, room, aboard: "enemy" as const };
   });
 }

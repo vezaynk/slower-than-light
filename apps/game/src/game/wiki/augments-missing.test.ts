@@ -7,7 +7,10 @@ import { wikiPage } from "@stl/wiki-dump";
 const source = readFileSync(new URL("./augments-missing.ts", import.meta.url), "utf8");
 const augmentsWiki = wikiPage("Augmentations");
 const zoltanWiki = wikiPage("Zoltan Shield");
-const catalogSrc = readFileSync(new URL("../extras/augment-catalog.ts", import.meta.url), "utf8");
+const catalogSrc = readFileSync(
+  new URL("../../../../../packages/catalog/src/extras/augment-catalog.ts", import.meta.url),
+  "utf8",
+);
 
 const EXPECTED: Record<string, string> = {
   vengeance: "Crystal Vengeance",

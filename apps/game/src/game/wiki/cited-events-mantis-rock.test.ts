@@ -64,7 +64,10 @@ const SECTORS = new Set([
   "The Last Stand",
 ]);
 
-const SRC = new URL("./cited-events-mantis-rock.ts", import.meta.url);
+const SRC = new URL(
+  "../../../../../packages/catalog/src/wiki/cited-events-mantis-rock.ts",
+  import.meta.url,
+);
 
 function slug(title: string): string {
   return title

@@ -1,8 +1,26 @@
-import { tx } from "@/i18n";
 import { animSpeed } from "./speed";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { clipBeamEnd, pointInRoom, roomsOnSegment } from "@/game/beam-line";
-import { assignStands, blockedCells, consoleSpot, interiorLinks, padCells, restSpot, roomConsole, shiftPoint, stationSide } from "@/game/crew-spots";
+import {
+  assignStands,
+  blockedCells,
+  consoleSpot,
+  interiorLinks,
+  padCells,
+  restSpot,
+  roomConsole,
+  shiftPoint,
+  stationSide,
+} from "@/game/crew-spots";
 import { cellOccupied, roomClip } from "@/game/layouts";
 import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
@@ -83,7 +101,8 @@ function crewPlace(
   const step = walkStep(ship, c);
   if (step && paint) {
     const at = walkPose(ship, c.room, c.path, c.via, paint.t, paint.goal);
-    if (at) return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100, faceLeft: at.faceLeft };
+    if (at)
+      return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100, faceLeft: at.faceLeft };
     const from = roomCenter(step.from, ship);
     const to = roomCenter(step.to, ship);
     return {
@@ -112,7 +131,11 @@ function crewPlace(
 }
 
 /** The operator on the console tile. A second body in the room, and anyone stunned, stands idle. */
-function atConsole(ship: Ship, c: Crew, spot: { x: number; y: number; stack: number } | undefined): boolean {
+function atConsole(
+  ship: Ship,
+  c: Crew,
+  spot: { x: number; y: number; stack: number } | undefined,
+): boolean {
   if (!spot || spot.stack !== 0 || c.path.length > 0 || (c.stun ?? 0) > 0 || c.shift) return false;
   const room = ship.rooms.find((r) => r.id === c.room);
   if (!room) return false;
@@ -126,7 +149,8 @@ function meleeIds(list: Crew[]): Set<string> {
   for (const c of list) {
     if (c.path.length > 0 || (c.stun ?? 0) > 0) continue;
     const side = effectiveSide(c);
-    if (list.some((o) => o.id !== c.id && o.room === c.room && effectiveSide(o) !== side)) ids.add(c.id);
+    if (list.some((o) => o.id !== c.id && o.room === c.room && effectiveSide(o) !== side))
+      ids.add(c.id);
   }
   return ids;
 }
@@ -171,7 +195,7 @@ function CrewToken({
       style={style}
       data-crew={c.id}
       aria-label={leashed ? `${c.name} (mind-controlled)` : c.name}
-      title={leashed ? tx("ui.ShipView.mind-controlled-s", { name: c.name, ceil: Math.ceil(c.leashed ?? 0) }) : undefined}
+      title={leashed ? `${c.name}: mind-controlled, ${Math.ceil(c.leashed ?? 0)}s` : undefined}
       aria-pressed={picked}
       onPointerDown={(e) => {
         const open = onHold?.(c.room);
@@ -335,7 +359,9 @@ export function ShipView({
     if ((c.stun ?? 0) > 0 && c.path.length > 0) {
       const room = ship.rooms.find((r) => r.id === c.room);
       if (room) {
-        const local = here.filter((o) => o.room === c.room && ((o.stun ?? 0) > 0 || o.path.length === 0));
+        const local = here.filter(
+          (o) => o.room === c.room && ((o.stun ?? 0) > 0 || o.path.length === 0),
+        );
         const spot = assignStands(room, local, { hull: ship, aboard }).get(c.id);
         if (spot) return spot;
       }
@@ -393,8 +419,17 @@ export function ShipView({
   const swallowClick = useRef(false);
   const [hover, setHover] = useState<BeamPoint | null>(null);
   const [destRoom, setDestRoom] = useState<string | null>(null);
-  const [dragBox, setDragBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
-  const [radial, setRadial] = useState<{ room: string; at: { x: number; y: number }; turn: QuarterTurn } | null>(null);
+  const [dragBox, setDragBox] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [radial, setRadial] = useState<{
+    room: string;
+    at: { x: number; y: number };
+    turn: QuarterTurn;
+  } | null>(null);
   const radialPicks = useRef(0);
   const closeRadial = useCallback(() => setRadial(null), []);
   const radialOpen = radial != null;
@@ -407,7 +442,12 @@ export function ShipView({
   }, [radialOpen]);
   // Room menu (RoomRadial): your crew in the room who can be seen, and on your hull the doors.
   const radialCrew = (roomId: string) =>
-    here.filter((c) => c.room === roomId && c.side === "player" && ((seen ? seen(c.room) : true) || (crewLit?.(c) ?? false)));
+    here.filter(
+      (c) =>
+        c.room === roomId &&
+        c.side === "player" &&
+        ((seen ? seen(c.room) : true) || (crewLit?.(c) ?? false)),
+    );
   const radialDoors = (roomId: string) => (onDoor ? roomDoors(ship, cells, roomId) : []);
   /** The opener for a hold on this room, or null when its menu would be empty (the hold then leaves the click alone). */
   const radialOpener = (roomId: string) => {
@@ -421,8 +461,13 @@ export function ShipView({
       radialPicks.current = 0;
       setDragBox(null);
       dragRef.current = null;
-      const inner = (((ancestorTurn(el as HTMLElement) - ancestorTurn(document.body)) % 360) + 360) % 360;
-      setRadial({ room: roomId, at: { x: box.left + box.width / 2, y: box.top + box.height / 2 }, turn: inner as QuarterTurn });
+      const inner =
+        (((ancestorTurn(el as HTMLElement) - ancestorTurn(document.body)) % 360) + 360) % 360;
+      setRadial({
+        room: roomId,
+        at: { x: box.left + box.width / 2, y: box.top + box.height / 2 },
+        turn: inner as QuarterTurn,
+      });
     };
   };
   const radialRoom = radial ? ship.rooms.find((r) => r.id === radial.room) : undefined;
@@ -430,7 +475,11 @@ export function ShipView({
     if (!beamAnchor) setHover(null);
   }, [beamAnchor]);
   const previewEnd =
-    beamAnchor && hover ? (beamReach != null ? clipBeamEnd(beamAnchor, hover, beamReach) : hover) : null;
+    beamAnchor && hover
+      ? beamReach != null
+        ? clipBeamEnd(beamAnchor, hover, beamReach)
+        : hover
+      : null;
   const strokes: { a: BeamPoint; b: BeamPoint; preview: boolean }[] = [
     ...beamLines.map((line) => ({ a: line.a, b: line.b, preview: false })),
     ...(beamAnchor && previewEnd ? [{ a: beamAnchor, b: previewEnd, preview: true }] : []),
@@ -511,7 +560,13 @@ export function ShipView({
           if (!at) continue;
           const px = (at.x / 100) * w;
           const py = (at.y / 100) * h;
-          if (px >= box.left && px <= box.left + box.width && py >= box.top && py <= box.top + box.height) ids.push(c.id);
+          if (
+            px >= box.left &&
+            px <= box.left + box.width &&
+            py >= box.top &&
+            py <= box.top + box.height
+          )
+            ids.push(c.id);
         }
         onDragCrew(ids);
       }}
@@ -579,7 +634,7 @@ export function ShipView({
             <button
               type="button"
               className="room-hit"
-              aria-label={(targetable ? tx("ui.ShipView.target") : tx("ui.ShipView.open")) + room.title}
+              aria-label={(targetable ? "Target " : "Open ") + room.title}
               title={room.title}
               onPointerDown={(e) => {
                 e.currentTarget.dataset.ptr = e.pointerType;
@@ -591,7 +646,10 @@ export function ShipView({
                 if (swallowHoldClick(e)) return;
                 const f = frac(e.currentTarget, e.clientX, e.clientY);
                 const touch = e.currentTarget.dataset.ptr === "touch";
-                onRoom(room.id, pointInRoom(room, f.x, f.y), { touch, autofire: e.ctrlKey && !e.metaKey });
+                onRoom(room.id, pointInRoom(room, f.x, f.y), {
+                  touch,
+                  autofire: e.ctrlKey && !e.metaKey,
+                });
               }}
               onContextMenu={(e) => {
                 if (!onRoomMenu) return;
@@ -608,25 +666,38 @@ export function ShipView({
                 dark room, so systems can be targeted without Sensors (Sensors, "Overview" does not list where systems
                 are among what its levels reveal).
               */}
-              {room.system ?? room.kit ? (
-                <PixelIcon name={(room.system ?? room.kit)!} size={20} className={`room-icon${iconState(ship, room)}`} />
+              {(room.system ?? room.kit) ? (
+                <PixelIcon
+                  name={(room.system ?? room.kit)!}
+                  size={20}
+                  className={`room-icon${iconState(ship, room)}`}
+                />
               ) : null}
               {open ? (
                 <div className="room-flags">
-                  {room.fire > 0 ? <span>{tx("ui.ShipView.fire")}</span> : null}
-                  {room.breach > 0 ? <span>{tx("ui.ShipView.leak")}</span> : null}
-                  {room.venting ? <span>{tx("ui.ShipView.vent")}</span> : null}
+                  {room.fire > 0 ? <span>{"Fire"}</span> : null}
+                  {room.breach > 0 ? <span>{"Leak"}</span> : null}
+                  {room.venting ? <span>{"Vent"}</span> : null}
                   {/* @agent:flagship. A flagship artillery room shows its own gun (wiki/flagship-systems.ts artilleryGun). */}
-                  {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
-                    <span>{tx("ui.ShipView.dmg")}{(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}</span>
+                  {room.system &&
+                  (artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage > 0 ? (
+                    <span>
+                      {"Dmg "}
+                      {(artilleryGun(ship, room.id) ?? ship.systems[room.system]).damage}
+                    </span>
                   ) : null}
-                  {room.system && (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
-                    <span>{tx("ui.ShipView.ion")}</span>
+                  {room.system &&
+                  (artilleryGun(ship, room.id) ?? ship.systems[room.system]).ion.length > 0 ? (
+                    <span>{"Ion"}</span>
                   ) : null}
                   {droneHp
                     .filter((mark) => mark.room === room.id)
                     .map((mark, i) => (
-                      <span key={`drone-hp-${i}`} data-drone-hp={mark.shown} aria-label={tx("ui.ShipView.drone-health", { shown: mark.shown })}>
+                      <span
+                        key={`drone-hp-${i}`}
+                        data-drone-hp={mark.shown}
+                        aria-label={`Drone health ${mark.shown}`}
+                      >
                         {mark.shown}
                       </span>
                     ))}
@@ -634,7 +705,10 @@ export function ShipView({
               ) : null}
               {open ? (
                 <div className="o2" aria-hidden="true">
-                  <span className={room.o2 <= 10 ? "low" : ""} style={{ width: `${airShown(room.o2)}%` }} />
+                  <span
+                    className={room.o2 <= 10 ? "low" : ""}
+                    style={{ width: `${airShown(room.o2)}%` }}
+                  />
                 </div>
               ) : null}
             </div>
@@ -643,12 +717,15 @@ export function ShipView({
                   const cell = consoleSpot(room, ship);
                   if (!cell || !room.system) return null;
                   // Seated and working: on the terminal tile, not still walking onto it, and not fighting an intruder.
-                  const manned = !roomBusy(room.id) && here.some((c) => {
-                    if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard) return false;
-                    if (c.shift || fighting.has(c.id)) return false;
-                    const spot = stands.get(c.id);
-                    return !!spot && spot.stack === 0 && spot.x === cell.x && spot.y === cell.y;
-                  });
+                  const manned =
+                    !roomBusy(room.id) &&
+                    here.some((c) => {
+                      if (c.room !== room.id || c.path.length > 0 || stationSide(c) !== aboard)
+                        return false;
+                      if (c.shift || fighting.has(c.id)) return false;
+                      const spot = stands.get(c.id);
+                      return !!spot && spot.stack === 0 && spot.x === cell.x && spot.y === cell.y;
+                    });
                   return (
                     <i
                       className={"room-console" + (manned ? " is-on" : "")}
@@ -678,22 +755,24 @@ export function ShipView({
               : null}
             {/* The medical machine on the tile nobody stands on (crew-spots blockedCells). */}
             {open && (room.system === "medbay" || room.kit === "cradle")
-              ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id), ship.doorMarks).map((cell) => (
-                  <i
-                    key={`prop-${cell.x},${cell.y}`}
-                    className="room-prop"
-                    data-prop={`${cell.x},${cell.y}`}
-                    aria-hidden="true"
-                    style={{
-                      left: `${((cell.x - room.x) / room.w) * 100}%`,
-                      top: `${((cell.y - room.y) / room.h) * 100}%`,
-                      width: `${100 / room.w}%`,
-                      height: `${100 / room.h}%`,
-                    }}
-                  >
-                    <RoomProp kind={room.system === "medbay" ? "medbay" : "cradle"} />
-                  </i>
-                ))
+              ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id), ship.doorMarks).map(
+                  (cell) => (
+                    <i
+                      key={`prop-${cell.x},${cell.y}`}
+                      className="room-prop"
+                      data-prop={`${cell.x},${cell.y}`}
+                      aria-hidden="true"
+                      style={{
+                        left: `${((cell.x - room.x) / room.w) * 100}%`,
+                        top: `${((cell.y - room.y) / room.h) * 100}%`,
+                        width: `${100 / room.w}%`,
+                        height: `${100 / room.h}%`,
+                      }}
+                    >
+                      <RoomProp kind={room.system === "medbay" ? "medbay" : "cradle"} />
+                    </i>
+                  ),
+                )
               : null}
             {room.kit === "sling"
               ? padCells(room).map((key) => {
@@ -714,7 +793,10 @@ export function ShipView({
                 })
               : null}
             {room.hacked ? (
-              <div className="hack-mark" aria-label={room.hacked === "pulse" ? tx("ui.ShipView.hacked-pulse") : tx("ui.ShipView.hacking-drone-attached")}>
+              <div
+                className="hack-mark"
+                aria-label={room.hacked === "pulse" ? "Hacked: pulse" : "Hacking drone attached"}
+              >
                 <i className="hack-drone" aria-hidden="true" />
               </div>
             ) : null}
@@ -723,10 +805,10 @@ export function ShipView({
                 className={`hack-reticle is-${drone.phase}`}
                 aria-label={
                   drone.phase === "pulse"
-                    ? tx("ui.ShipView.hacking-pulse-seconds", { ceil: Math.ceil(drone.left) })
+                    ? `Hacking pulse, ${Math.ceil(drone.left)} seconds`
                     : drone.phase === "latched"
-                      ? tx("ui.ShipView.your-hacking-drone-is-attached")
-                      : tx("ui.ShipView.hacking-target")
+                      ? "Your hacking drone is attached"
+                      : "Hacking target"
                 }
               >
                 <span className="hack-reticle-box">
@@ -797,7 +879,10 @@ export function ShipView({
                 className="token is-sprite crew-walker crew-ghost"
                 data-ghost={c.id}
                 aria-hidden="true"
-                style={{ left: `${((goal.x + 0.5) / ship.cols) * 100}%`, top: `${((goal.y + 0.5) / ship.rows) * 100}%` }}
+                style={{
+                  left: `${((goal.x + 0.5) / ship.cols) * 100}%`,
+                  top: `${((goal.y + 0.5) / ship.rows) * 100}%`,
+                }}
               >
                 <CrewFace crew={c} pose="idle" frame={0} cycle={false} />
               </span>
@@ -814,8 +899,13 @@ export function ShipView({
             const { step, pose, frame, cycle } = lookOf(c, spot, paint);
             const nudge = spot && !step ? spot.stack * 4 : 0;
             // Seated at a terminal: back from the wall its monitor hangs on, facing it (the seat sits the same way).
-            const seated = pose === "work" ? consoleSpot(ship.rooms.find((r) => r.id === c.room) ?? ship.rooms[0]!, ship) : null;
-            const back = seated ? { e: [-0.18, 0], w: [0.18, 0], n: [0, 0.18], s: [0, -0.18] }[seated.wall] : [0, 0];
+            const seated =
+              pose === "work"
+                ? consoleSpot(ship.rooms.find((r) => r.id === c.room) ?? ship.rooms[0]!, ship)
+                : null;
+            const back = seated
+              ? { e: [-0.18, 0], w: [0.18, 0], n: [0, 0.18], s: [0, -0.18] }[seated.wall]
+              : [0, 0];
             const placeX = at.x + (back[0]! / ship.cols) * 100;
             const placeY = at.y + (back[1]! / ship.rows) * 100;
             const facing = seated ? seated.wall === "w" : faceLeft;
@@ -880,12 +970,15 @@ export function ShipView({
 function BreachHoles({ room }: { room: Ship["rooms"][number] }) {
   const cells: { x: number; y: number }[] = [];
   for (let y = room.y; y < room.y + room.h; y++) {
-    for (let x = room.x; x < room.x + room.w; x++) if (cellOccupied(room, x, y)) cells.push({ x, y });
+    for (let x = room.x; x < room.x + room.w; x++)
+      if (cellOccupied(room, x, y)) cells.push({ x, y });
   }
   if (!cells.length) return null;
   let seed = 0;
   for (const ch of room.id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-  const order = cells.map((c, i) => ({ c, k: ((seed ^ (i * 2654435761)) >>> 0) % 997 })).sort((a, b) => a.k - b.k);
+  const order = cells
+    .map((c, i) => ({ c, k: ((seed ^ (i * 2654435761)) >>> 0) % 997 }))
+    .sort((a, b) => a.k - b.k);
   const shown = order.slice(0, Math.min(room.breach, cells.length));
   return (
     <>
@@ -907,7 +1000,10 @@ function BreachHoles({ room }: { room: Ship["rooms"][number] }) {
               fill="#a7adb7"
               d="M6 1h3v1h2v2h2v1h1v3h1v2h-1v2h-1v1h-2v1H9v1H6v-1H4v-1H3v-1H2V9H1V6h1V4h1V3h2V2h1z"
             />
-            <path fill="#5b616b" d="M6 3h3v1h2v1h1v2h1v3h-1v1h-1v1H9v1H6v-1H5v-1H4V9H3V6h1V5h1V4h1z" />
+            <path
+              fill="#5b616b"
+              d="M6 3h3v1h2v1h1v2h1v3h-1v1h-1v1H9v1H6v-1H5v-1H4V9H3V6h1V5h1V4h1z"
+            />
             <path fill="#05060c" d="M7 4h2v1h2v2h1v3h-1v1H9v1H7v-1H5V9H4V7h1V5h2z" />
             <rect x="7" y="7" width="1" height="1" fill="#f4f1e8" />
             <rect x="10" y="9" width="1" height="1" fill="#9fb8ff" />
@@ -950,7 +1046,12 @@ function ancestorTurn(el: HTMLElement): QuarterTurn {
  * The pointer is in viewport pixels. The rubber band's left/top are local pixels,
  * and an ancestor may scale the board or rotate it for an upright phone.
  */
-function clientToLayer(el: HTMLElement, clientX: number, clientY: number, turn: QuarterTurn): { x: number; y: number } {
+function clientToLayer(
+  el: HTMLElement,
+  clientX: number,
+  clientY: number,
+  turn: QuarterTurn,
+): { x: number; y: number } {
   const rect = el.getBoundingClientRect();
   const w = el.offsetWidth || 1;
   const h = el.offsetHeight || 1;
@@ -1005,7 +1106,13 @@ function frac(el: HTMLElement, clientX: number, clientY: number): { x: number; y
   };
 }
 
-function pointOnHull(hull: HTMLElement, ship: Ship, clientX: number, clientY: number, roomEl: Element | null): BeamPoint | null {
+function pointOnHull(
+  hull: HTMLElement,
+  ship: Ship,
+  clientX: number,
+  clientY: number,
+  roomEl: Element | null,
+): BeamPoint | null {
   if (roomEl) {
     const id = roomEl.getAttribute("data-room");
     const room = ship.rooms.find((r) => r.id === id);
@@ -1030,7 +1137,10 @@ function pointOnHull(hull: HTMLElement, ship: Ship, clientX: number, clientY: nu
   if (cx < 0 || cy < 0 || cx >= ship.cols || cy >= ship.rows) return null;
   const fx = (localX - cx * pitch) / tile;
   const fy = (localY - cy * pitch) / tile;
-  return { x: cx + Math.min(Math.max(fx, 0), 0.999999), y: cy + Math.min(Math.max(fy, 0), 0.999999) };
+  return {
+    x: cx + Math.min(Math.max(fx, 0), 0.999999),
+    y: cy + Math.min(Math.max(fy, 0), 0.999999),
+  };
 }
 
 function BeamOverlay({

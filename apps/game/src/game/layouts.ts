@@ -1,4 +1,3 @@
-import { tx } from "../i18n/index.ts";
 import type { Door, DoorMark, DoorSide, KitId, Room, Ship, SysId } from "./types.ts";
 
 /**
@@ -53,8 +52,18 @@ function traced(rows: Raw[], bars: Bar[], cols: number, gridRows: number): Layou
  * Stores and resources: "Stores cannot sell a system you already own"; "Shields are guaranteed if you don't have them".
  */
 const RESERVABLE = new Set<string>([
-  "Teleporter", "Cloaking", "Hacking", "Drones", "Mind Control", "Clone Bay", "Backup Battery", "Artillery",
-  "Shields", "Sensors", "Doors", "Medbay",
+  "Teleporter",
+  "Cloaking",
+  "Hacking",
+  "Drones",
+  "Mind Control",
+  "Clone Bay",
+  "Backup Battery",
+  "Artillery",
+  "Shields",
+  "Sensors",
+  "Doors",
+  "Medbay",
 ]);
 
 /**
@@ -62,11 +71,13 @@ const RESERVABLE = new Set<string>([
  * system's name for seatKits. Idempotent; also turns rooms from older saves (titled for the system) into Halls.
  * INFERRED: "Hall" because the wiki names no such room and the traced layouts already call an empty room a Hall.
  */
-export function reserveRooms(rooms: { title: string; system: SysId | null; kit?: KitId; reserve?: string }[]): void {
+export function reserveRooms(
+  rooms: { title: string; system: SysId | null; kit?: KitId; reserve?: string }[],
+): void {
   for (const r of rooms) {
     if (r.system !== null || r.kit || !RESERVABLE.has(r.title)) continue;
     r.reserve = r.title;
-    r.title = tx("game.layouts.hall");
+    r.title = "Hall";
   }
 }
 
@@ -114,7 +125,8 @@ export function roomClip(room: {
     }
   }
   const next = new Map<string, string>();
-  const link = (ax: number, ay: number, bx: number, by: number) => next.set(`${ax},${ay}`, `${bx},${by}`);
+  const link = (ax: number, ay: number, bx: number, by: number) =>
+    next.set(`${ax},${ay}`, `${bx},${by}`);
   for (let y = room.y; y < room.y + room.h; y++) {
     for (let x = room.x; x < room.x + room.w; x++) {
       if (!on.has(`${x},${y}`)) continue;
@@ -139,7 +151,7 @@ export function roomClip(room: {
     if (!step) break;
     cur = step;
   } while (cur !== start && !seen.has(cur));
-  return tx("game.layouts.polygon", { join: pts.join(",") });
+  return `polygon(${pts.join(",")})`;
 }
 
 type Sized = {
@@ -185,12 +197,12 @@ function sized(rooms: Sized[], twos: number, fours: number): Layout {
   let f = out.filter((r) => r.size === 4).length;
   let n = 0;
   while (f < fours) {
-    out.push({ id: `p-x${n}`, title: tx("game.layouts.hold"), system: null, size: 4 });
+    out.push({ id: `p-x${n}`, title: "Hold", system: null, size: 4 });
     f += 1;
     n += 1;
   }
   while (t < twos) {
-    out.push({ id: `p-x${n}`, title: tx("game.layouts.hall"), system: null, size: 2 });
+    out.push({ id: `p-x${n}`, title: "Hall", system: null, size: 2 });
     t += 1;
     n += 1;
   }
@@ -199,37 +211,37 @@ function sized(rooms: Sized[], twos: number, fours: number): Layout {
 
 /** Shared system rooms, sized 2 or 4 so a published total can be kept. Positions are INFERRED because the wiki picture was not text. */
 const core = (med: "Medbay" | "Clone Bay", medSys: SysId | null): Sized[] => [
-  { id: "p-engines", title: tx("game.layouts.engines"), system: "engines", size: 4 },
-  { id: "p-oxygen", title: tx("game.layouts.oxygen"), system: "oxygen", size: 2 },
-  { id: "p-doors", title: tx("game.layouts.doors"), system: "doors", size: 2 },
-  { id: "p-shields", title: tx("game.layouts.shields"), system: "shields", size: 4 },
+  { id: "p-engines", title: "Engines", system: "engines", size: 4 },
+  { id: "p-oxygen", title: "Oxygen", system: "oxygen", size: 2 },
+  { id: "p-doors", title: "Doors", system: "doors", size: 2 },
+  { id: "p-shields", title: "Shields", system: "shields", size: 4 },
   { id: "p-medbay", title: med, system: medSys, size: 4 },
-  { id: "p-sensors", title: tx("game.layouts.sensors"), system: "sensors", size: 2 },
-  { id: "p-weapons", title: tx("game.layouts.weapons"), system: "weapons", size: 4 },
-  { id: "p-pilot", title: tx("game.layouts.piloting"), system: "pilot", size: 4 },
+  { id: "p-sensors", title: "Sensors", system: "sensors", size: 2 },
+  { id: "p-weapons", title: "Weapons", system: "weapons", size: 4 },
+  { id: "p-pilot", title: "Piloting", system: "pilot", size: 4 },
 ];
 
 /** Each entry keeps its published square total. Cruiser pages do not state square counts, so the count is the comparison already in the file header. Positions are INFERRED because the wiki picture was not text. */
 /** Traced from `KestralASystems.png`, the Kestrel A hangar picture (The Kestrel): 48 squares, 17 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Backup Battery, Mind Control, Drones, Cloaking, Teleporter, Hacking. */
 const kestrelA = traced(
   [
-    ["p-kah0", tx("game.layouts.hall"), null, 6, 0, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 1, 1, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 3, 1, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 6, 1, 2, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 8, 1, 2, 2],
-    ["p-kah1", tx("game.layouts.hall"), null, 0, 2, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 1, 2, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 4, 2, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 10, 2, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 12, 2, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 14, 2, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 6, 3, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 8, 3, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 10, 3, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 1, 4, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 3, 4, 2, 1],
-    ["p-kah2", tx("game.layouts.hall"), null, 6, 5, 2, 1],
+    ["p-kah0", "Hall", null, 6, 0, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 1, 1, 2, 1],
+    ["p-battery", "Backup Battery", null, 3, 1, 2, 1],
+    ["p-mind", "Mind Control", null, 6, 1, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 8, 1, 2, 2],
+    ["p-kah1", "Hall", null, 0, 2, 1, 2],
+    ["p-engines", "Engines", "engines", 1, 2, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 4, 2, 2, 2],
+    ["p-doors", "Doors", "doors", 10, 2, 2, 1],
+    ["p-drones", "Drones", null, 12, 2, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 14, 2, 1, 2],
+    ["p-cloak", "Cloaking", null, 6, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 8, 3, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 10, 3, 2, 1],
+    ["p-tele", "Teleporter", null, 1, 4, 2, 1],
+    ["p-hack", "Hacking", null, 3, 4, 2, 1],
+    ["p-kah2", "Hall", null, 6, 5, 2, 1],
   ],
   [
     [6, 0, "n"],
@@ -266,21 +278,21 @@ const kestrelA = traced(
 /** Traced from `KestralB.png`, the Kestrel B hangar picture (Red-Tail): 42 squares, 15 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Teleporter, Backup Battery, Cloaking, Drones, Hacking. */
 const kestrelB = traced(
   [
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 3, 0, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 5, 0, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 1, 1, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 6, 1, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 4, 2, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 3, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 6, 3, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 8, 3, 2, 1],
-    ["p-kbh0", tx("game.layouts.hall"), null, 10, 3, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 12, 3, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 1, 4, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 4, 4, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 6, 4, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 3, 5, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 5, 6, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 3, 0, 2, 2],
+    ["p-mind", "Mind Control", null, 5, 0, 2, 1],
+    ["p-shields", "Shields", "shields", 1, 1, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 6, 1, 2, 2],
+    ["p-tele", "Teleporter", null, 4, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 1],
+    ["p-battery", "Backup Battery", null, 6, 3, 2, 1],
+    ["p-doors", "Doors", "doors", 8, 3, 2, 1],
+    ["p-kbh0", "Hall", null, 10, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 12, 3, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 1, 4, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 4, 4, 2, 1],
+    ["p-cloak", "Cloaking", null, 6, 4, 2, 2],
+    ["p-drones", "Drones", null, 3, 5, 2, 2],
+    ["p-hack", "Hacking", null, 5, 6, 2, 1],
   ],
   [
     [4, 0, "e"],
@@ -326,24 +338,24 @@ const kestrelB = traced(
 /** Traced from `KestralCSystems.png`, the Kestrel C hangar picture (The Swallow): 46 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Teleporter, Drones, Backup Battery, Hacking, Mind Control. */
 const kestrelC = traced(
   [
-    ["p-kch0", tx("game.layouts.hall"), null, 6, 0, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 1, 1, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 4, 1, 2, 2],
-    ["p-kch1", tx("game.layouts.hall"), null, 6, 1, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 8, 1, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 2, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 2, 2, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 7, 2, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 9, 2, 1, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 10, 2, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 12, 2, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 14, 2, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 3, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 12, 3, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 1, 4, 2, 1],
-    ["p-kch2", tx("game.layouts.hall"), null, 6, 4, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 8, 4, 2, 1],
-    ["p-kch3", tx("game.layouts.hall"), null, 6, 5, 2, 1],
+    ["p-kch0", "Hall", null, 6, 0, 2, 1],
+    ["p-cloak", "Cloaking", null, 1, 1, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 4, 1, 2, 2],
+    ["p-kch1", "Hall", null, 6, 1, 2, 1],
+    ["p-tele", "Teleporter", null, 8, 1, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 2, 2, 2],
+    ["p-drones", "Drones", null, 2, 2, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 7, 2, 1, 2],
+    ["p-battery", "Backup Battery", null, 9, 2, 1, 2],
+    ["p-clone", "Clone Bay", null, 10, 2, 2, 2],
+    ["p-doors", "Doors", "doors", 12, 2, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 14, 2, 1, 2],
+    ["p-shields", "Shields", "shields", 4, 3, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 12, 3, 2, 1],
+    ["p-hack", "Hacking", null, 1, 4, 2, 1],
+    ["p-kch2", "Hall", null, 6, 4, 2, 1],
+    ["p-mind", "Mind Control", null, 8, 4, 2, 1],
+    ["p-kch3", "Hall", null, 6, 5, 2, 1],
   ],
   [
     [6, 0, "n"],
@@ -386,22 +398,22 @@ const kestrelC = traced(
 /** Traced from `EngiASystems.png`, the Engi A hangar picture (The Torus): 42 squares, 16 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Hacking, Backup Battery, Teleporter, Mind Control. */
 const engiA = traced(
   [
-    ["p-drones", tx("game.layouts.drones"), null, 0, 0, 2, 2],
-    ["p-eah0", tx("game.layouts.hall"), null, 3, 0, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 5, 0, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 2, 1, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 3, 1, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 6, 1, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 1, 2, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 4, 3, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 6, 3, 1, 2],
-    ["p-eah1", tx("game.layouts.hall"), null, 7, 3, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 4, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 4, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 5, 4, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 4, 5, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 6, 5, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 5, 1, 2],
+    ["p-drones", "Drones", null, 0, 0, 2, 2],
+    ["p-eah0", "Hall", null, 3, 0, 2, 1],
+    ["p-cloak", "Cloaking", null, 5, 0, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 2, 1, 1, 2],
+    ["p-hack", "Hacking", null, 3, 1, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 6, 1, 2, 2],
+    ["p-battery", "Backup Battery", null, 1, 2, 1, 2],
+    ["p-sensors", "Sensors", "sensors", 4, 3, 1, 2],
+    ["p-tele", "Teleporter", null, 6, 3, 1, 2],
+    ["p-eah1", "Hall", null, 7, 3, 1, 2],
+    ["p-engines", "Engines", "engines", 0, 4, 2, 2],
+    ["p-shields", "Shields", "shields", 2, 4, 2, 2],
+    ["p-mind", "Mind Control", null, 5, 4, 1, 2],
+    ["p-doors", "Doors", "doors", 4, 5, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 6, 5, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 8, 5, 1, 2],
   ],
   [
     [3, 0, "n"],
@@ -434,20 +446,20 @@ const engiA = traced(
 /** Traced from `EngiBSystems.png`, the Engi B hangar picture (The Vortex): 32 squares, 14 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Sensors, Teleporter, Mind Control, Hacking, Backup Battery, Cloaking. */
 const engiB = traced(
   [
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 0, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 2, 1, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), null, 4, 1, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 6, 1, 1, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 0, 2, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 1, 2, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 6, 3, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 0, 4, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 2, 4, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 4, 4, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 5, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 5, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 6, 5, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 5, 1, 2],
+    ["p-engines", "Engines", "engines", 0, 0, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 2, 1, 2, 1],
+    ["p-sensors", "Sensors", null, 4, 1, 2, 1],
+    ["p-tele", "Teleporter", null, 6, 1, 1, 2],
+    ["p-mind", "Mind Control", null, 0, 2, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 1, 2, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 6, 3, 1, 2],
+    ["p-drones", "Drones", null, 0, 4, 2, 2],
+    ["p-doors", "Doors", "doors", 2, 4, 2, 1],
+    ["p-hack", "Hacking", null, 4, 4, 2, 1],
+    ["p-battery", "Backup Battery", null, 2, 5, 2, 1],
+    ["p-shields", "Shields", "shields", 4, 5, 2, 1],
+    ["p-cloak", "Cloaking", null, 6, 5, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 5, 1, 2],
   ],
   [
     [1, 1, "e"],
@@ -479,23 +491,23 @@ const engiB = traced(
 /** Traced from `EngiCSystems.png`, the Engi C hangar picture (Tetragon): 40 squares, 17 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Backup Battery, Mind Control, Teleporter. */
 const engiC = traced(
   [
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 0, 0, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 1, 0, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 0, 1, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 3, 0, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 4, 0, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 5, 0, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 6, 1, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 1, 2, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 3, 2, 2],
-    ["p-ech0", tx("game.layouts.hall"), null, 6, 3, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 4, 1, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 2, 4, 2, 1],
-    ["p-ech1", tx("game.layouts.hall"), null, 1, 5, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 3, 5, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 5, 1, 2],
-    ["p-ech2", tx("game.layouts.hall"), null, 4, 6, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 6, 6, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 0, 0, 1, 2],
+    ["p-cloak", "Cloaking", null, 1, 0, 1, 2],
+    ["p-battery", "Backup Battery", null, 2, 0, 1, 2],
+    ["p-mind", "Mind Control", null, 3, 0, 1, 2],
+    ["p-tele", "Teleporter", null, 4, 0, 1, 2],
+    ["p-hack", "Hacking", null, 5, 0, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 6, 1, 2, 2],
+    ["p-drones", "Drones", null, 1, 2, 2, 2],
+    ["p-shields", "Shields", "shields", 4, 3, 2, 2],
+    ["p-ech0", "Hall", null, 6, 3, 1, 2],
+    ["p-engines", "Engines", "engines", 0, 4, 1, 2],
+    ["p-clone", "Clone Bay", null, 2, 4, 2, 1],
+    ["p-ech1", "Hall", null, 1, 5, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 3, 5, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 5, 1, 2],
+    ["p-ech2", "Hall", null, 4, 6, 2, 1],
+    ["p-doors", "Doors", "doors", 6, 6, 2, 1],
   ],
   [
     [2, 0, "n"],
@@ -529,24 +541,24 @@ const engiC = traced(
 /** Traced from `FedASystems.png`, the Federation A hangar picture (The Osprey): 46 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Teleporter, Hacking, Cloaking, Backup Battery, Drones, Mind Control, Artillery. */
 const fedA = traced(
   [
-    ["p-fah0", tx("game.layouts.hall"), null, 0, 0, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 1, 1, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 2, 2, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 4, 2, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 12, 2, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 1, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 3, 3, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 5, 3, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 7, 3, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 9, 3, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 10, 3, 2, 1],
-    ["p-fah1", tx("game.layouts.hall"), null, 14, 3, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 4, 4, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 10, 4, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 12, 4, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 2, 5, 2, 1],
-    ["p-fah2", tx("game.layouts.hall"), null, 0, 6, 1, 2],
-    ["p-artillery", tx("game.layouts.artillery"), null, 1, 6, 2, 1],
+    ["p-fah0", "Hall", null, 0, 0, 1, 2],
+    ["p-tele", "Teleporter", null, 1, 1, 2, 1],
+    ["p-hack", "Hacking", null, 2, 2, 2, 1],
+    ["p-doors", "Doors", "doors", 4, 2, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 12, 2, 2, 2],
+    ["p-engines", "Engines", "engines", 1, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 3, 3, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 5, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 7, 3, 2, 2],
+    ["p-cloak", "Cloaking", null, 9, 3, 1, 2],
+    ["p-sensors", "Sensors", "sensors", 10, 3, 2, 1],
+    ["p-fah1", "Hall", null, 14, 3, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 4, 1, 2],
+    ["p-battery", "Backup Battery", null, 10, 4, 2, 1],
+    ["p-drones", "Drones", null, 12, 4, 2, 2],
+    ["p-mind", "Mind Control", null, 2, 5, 2, 1],
+    ["p-fah2", "Hall", null, 0, 6, 1, 2],
+    ["p-artillery", "Artillery", null, 1, 6, 2, 1],
   ],
   [
     [0, 0, "w"],
@@ -583,24 +595,24 @@ const fedA = traced(
 /** Traced from `FederationBSystems.png`, the Federation B hangar picture (Nisos): 44 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Drones, Backup Battery, Teleporter, Mind Control, Cloaking, Artillery, Hacking. */
 const fedB = traced(
   [
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 0, 0, 2, 1],
-    ["p-fbh0", tx("game.layouts.hall"), null, 2, 0, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 0, 1, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 2, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 11, 2, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 3, 3, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 9, 3, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 1, 4, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 4, 4, 2, 1],
-    ["p-fbh1", tx("game.layouts.hall"), null, 6, 4, 2, 1],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 8, 4, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 2, 5, 1, 2],
-    ["p-artillery", tx("game.layouts.artillery"), null, 3, 5, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 9, 5, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 11, 5, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 6, 2, 2],
-    ["p-fbh2", tx("game.layouts.hall"), null, 2, 7, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 0, 8, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 0, 0, 2, 1],
+    ["p-fbh0", "Hall", null, 2, 0, 1, 2],
+    ["p-drones", "Drones", null, 0, 1, 2, 2],
+    ["p-battery", "Backup Battery", null, 2, 2, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 11, 2, 2, 2],
+    ["p-tele", "Teleporter", null, 3, 3, 2, 1],
+    ["p-mind", "Mind Control", null, 9, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 1, 4, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 4, 2, 1],
+    ["p-fbh1", "Hall", null, 6, 4, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 8, 4, 2, 1],
+    ["p-cloak", "Cloaking", null, 2, 5, 1, 2],
+    ["p-artillery", "Artillery", null, 3, 5, 2, 1],
+    ["p-hack", "Hacking", null, 9, 5, 2, 1],
+    ["p-shields", "Shields", "shields", 11, 5, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 6, 2, 2],
+    ["p-fbh2", "Hall", null, 2, 7, 1, 2],
+    ["p-doors", "Doors", "doors", 0, 8, 2, 1],
   ],
   [
     [1, 0, "e"],
@@ -637,25 +649,25 @@ const fedB = traced(
 /** Traced from `FederationCSystems.png`, the Federation C hangar picture (The Fregatidae): 46 squares, 19 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Hacking, Cloaking, Backup Battery, Artillery, Mind Control, Drones. */
 const fedC = traced(
   [
-    ["p-fch0", tx("game.layouts.hall"), null, 0, 0, 1, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 1, 1, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 3, 2, 2, 1],
-    ["p-fch1", tx("game.layouts.hall"), null, 11, 2, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 12, 2, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 1, 3, 1, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 2, 3, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 4, 3, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 5, 3, 2, 1],
-    ["p-artillery", tx("game.layouts.artillery"), null, 7, 3, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 9, 3, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 13, 3, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 5, 4, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 9, 4, 2, 1],
-    ["p-fch2", tx("game.layouts.hall"), null, 11, 4, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 1, 5, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 3, 5, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 12, 5, 2, 1],
-    ["p-fch3", tx("game.layouts.hall"), null, 0, 6, 1, 2],
+    ["p-fch0", "Hall", null, 0, 0, 1, 2],
+    ["p-clone", "Clone Bay", null, 1, 1, 2, 2],
+    ["p-hack", "Hacking", null, 3, 2, 2, 1],
+    ["p-fch1", "Hall", null, 11, 2, 1, 2],
+    ["p-cloak", "Cloaking", null, 12, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 1, 3, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 2, 3, 1, 2],
+    ["p-battery", "Backup Battery", null, 4, 3, 1, 2],
+    ["p-tele", "Teleporter", null, 5, 3, 2, 1],
+    ["p-artillery", "Artillery", null, 7, 3, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 9, 3, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 13, 3, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 5, 4, 2, 1],
+    ["p-doors", "Doors", "doors", 9, 4, 2, 1],
+    ["p-fch2", "Hall", null, 11, 4, 1, 2],
+    ["p-shields", "Shields", "shields", 1, 5, 2, 2],
+    ["p-mind", "Mind Control", null, 3, 5, 2, 1],
+    ["p-drones", "Drones", null, 12, 5, 2, 1],
+    ["p-fch3", "Hall", null, 0, 6, 1, 2],
   ],
   [
     [0, 0, "w"],
@@ -699,24 +711,24 @@ const fedC = traced(
 /** Traced from `ZoltanASystems.png`, the Zoltan A hangar picture (The Adjudicator): 46 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Teleporter, Mind Control, Hacking, Cloaking, Backup Battery, Drones. */
 const zoltanA = traced(
   [
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 1, 0, 2, 1],
-    ["p-zah0", tx("game.layouts.hall"), null, 3, 0, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 1, 1, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 8, 1, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 9, 1, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 3, 2, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 5, 2, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 7, 2, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 9, 2, 2, 2],
-    ["p-zah1", tx("game.layouts.hall"), null, 4, 3, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 8, 3, 1, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 12, 3, 1, 2],
-    ["p-zah2", tx("game.layouts.hall"), null, 10, 4, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 5, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 2, 5, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 5, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 5, 2, 2],
-    ["p-zah3", tx("game.layouts.hall"), null, 9, 5, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 1, 0, 2, 1],
+    ["p-zah0", "Hall", null, 3, 0, 1, 2],
+    ["p-tele", "Teleporter", null, 1, 1, 2, 1],
+    ["p-mind", "Mind Control", null, 8, 1, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 9, 1, 2, 1],
+    ["p-hack", "Hacking", null, 3, 2, 2, 1],
+    ["p-cloak", "Cloaking", null, 5, 2, 2, 1],
+    ["p-battery", "Backup Battery", null, 7, 2, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 9, 2, 2, 2],
+    ["p-zah1", "Hall", null, 4, 3, 1, 2],
+    ["p-doors", "Doors", "doors", 8, 3, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 12, 3, 1, 2],
+    ["p-zah2", "Hall", null, 10, 4, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 5, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 2, 5, 2, 2],
+    ["p-shields", "Shields", "shields", 4, 5, 2, 2],
+    ["p-drones", "Drones", null, 6, 5, 2, 2],
+    ["p-zah3", "Hall", null, 9, 5, 2, 1],
   ],
   [
     [2, 0, "e"],
@@ -754,21 +766,21 @@ const zoltanA = traced(
 /** Traced from `ZoltanB.png`, the Zoltan B hangar picture (Noether): 40 squares, 15 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Drones, Hacking, Cloaking, Backup Battery, Teleporter. */
 const zoltanB = traced(
   [
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 6, 0, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 8, 0, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 10, 0, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 2, 1, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 4, 1, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 8, 1, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 6, 2, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 10, 2, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 0, 3, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 3, 2, 1],
-    ["p-zbh0", tx("game.layouts.hall"), null, 4, 3, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 8, 3, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 2, 4, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 4, 4, 1, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 6, 4, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 6, 0, 2, 2],
+    ["p-mind", "Mind Control", null, 8, 0, 2, 1],
+    ["p-drones", "Drones", null, 10, 0, 2, 2],
+    ["p-engines", "Engines", "engines", 2, 1, 1, 2],
+    ["p-hack", "Hacking", null, 4, 1, 1, 2],
+    ["p-shields", "Shields", "shields", 8, 1, 2, 2],
+    ["p-cloak", "Cloaking", null, 6, 2, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 10, 2, 2, 2],
+    ["p-doors", "Doors", "doors", 0, 3, 2, 1],
+    ["p-battery", "Backup Battery", null, 2, 3, 2, 1],
+    ["p-zbh0", "Hall", null, 4, 3, 2, 1],
+    ["p-tele", "Teleporter", null, 8, 3, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 2, 4, 1, 2],
+    ["p-sensors", "Sensors", "sensors", 4, 4, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 6, 4, 1, 2],
   ],
   [
     [7, 0, "e"],
@@ -802,24 +814,24 @@ const zoltanB = traced(
 /** Traced from `ZoltanCSystems.png`, the Zoltan C hangar picture (Cerenkov): 46 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Hacking, Cloaking, Mind Control, Teleporter. */
 const zoltanC = traced(
   [
-    ["p-engines", tx("game.layouts.engines"), "engines", 1, 0, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 0, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 7, 1, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 9, 1, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 3, 2, 2, 1],
-    ["p-zch0", tx("game.layouts.hall"), null, 5, 2, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 10, 2, 1, 2],
-    ["p-zch1", tx("game.layouts.hall"), null, 6, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 12, 3, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 8, 4, 2, 1],
-    ["p-zch2", tx("game.layouts.hall"), null, 10, 4, 2, 1],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 0, 5, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 2, 5, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 4, 5, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 5, 2, 2],
-    ["p-zch3", tx("game.layouts.hall"), null, 9, 5, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 2, 6, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 4, 6, 2, 1],
+    ["p-engines", "Engines", "engines", 1, 0, 1, 2],
+    ["p-shields", "Shields", "shields", 2, 0, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 7, 1, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 9, 1, 2, 1],
+    ["p-battery", "Backup Battery", null, 3, 2, 2, 1],
+    ["p-zch0", "Hall", null, 5, 2, 2, 1],
+    ["p-hack", "Hacking", null, 10, 2, 1, 2],
+    ["p-zch1", "Hall", null, 6, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 12, 3, 1, 2],
+    ["p-cloak", "Cloaking", null, 8, 4, 2, 1],
+    ["p-zch2", "Hall", null, 10, 4, 2, 1],
+    ["p-clone", "Clone Bay", null, 0, 5, 2, 2],
+    ["p-mind", "Mind Control", null, 2, 5, 2, 1],
+    ["p-tele", "Teleporter", null, 4, 5, 2, 1],
+    ["p-drones", "Drones", null, 6, 5, 2, 2],
+    ["p-zch3", "Hall", null, 9, 5, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 2, 6, 2, 1],
+    ["p-doors", "Doors", "doors", 4, 6, 2, 1],
   ],
   [
     [1, 0, "e"],
@@ -858,21 +870,21 @@ const zoltanC = traced(
 /** Traced from `SlugASystems.png`, the Slug A hangar picture (Man of War): 40 squares, 15 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Cloaking, Backup Battery, Teleporter, Sensors, Hacking, Drones. */
 const slugA = traced(
   [
-    ["p-mind", tx("game.layouts.mind-control"), null, 1, 0, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 2, 0, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 3, 0, 2, 1],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 4, 1, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 6, 1, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 2, 2, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 3, 2, 2],
-    ["p-sah0", tx("game.layouts.hall"), null, 5, 3, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 7, 3, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 3, 4, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 5, 4, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), null, 6, 5, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 1, 6, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 6, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 4, 6, 2, 2],
+    ["p-mind", "Mind Control", null, 1, 0, 1, 2],
+    ["p-doors", "Doors", "doors", 2, 0, 1, 2],
+    ["p-cloak", "Cloaking", null, 3, 0, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 4, 1, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 6, 1, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 2, 2, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 2],
+    ["p-sah0", "Hall", null, 5, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 7, 3, 1, 2],
+    ["p-battery", "Backup Battery", null, 3, 4, 1, 2],
+    ["p-tele", "Teleporter", null, 5, 4, 1, 2],
+    ["p-sensors", "Sensors", null, 6, 5, 1, 2],
+    ["p-hack", "Hacking", null, 1, 6, 1, 2],
+    ["p-shields", "Shields", "shields", 2, 6, 2, 2],
+    ["p-drones", "Drones", null, 4, 6, 2, 2],
   ],
   [
     [1, 0, "e"],
@@ -903,26 +915,26 @@ const slugA = traced(
 /** Traced from `SlugBSystems.png`, the Slug B hangar picture (The Stormwalker): 54 squares, 20 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Sensors, Mind Control, Cloaking, Medbay, Hacking, Backup Battery, Drones. */
 const slugB = traced(
   [
-    ["p-sensors", tx("game.layouts.sensors"), null, 6, 0, 2, 1],
-    ["p-sbh0", tx("game.layouts.hall"), null, 4, 1, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 6, 1, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 5, 2, 1, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 0, 3, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 2, 3, 2, 2],
-    ["p-sbh1", tx("game.layouts.hall"), null, 8, 3, 2, 1],
-    ["p-medbay", tx("game.layouts.medbay"), null, 10, 3, 2, 2],
-    ["p-sbh2", tx("game.layouts.hall"), null, 0, 4, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 4, 4, 2, 2],
-    ["p-sbh3", tx("game.layouts.hall"), null, 6, 4, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 4, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 5, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 10, 5, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 0, 6, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 5, 6, 1, 2],
-    ["p-sbh4", tx("game.layouts.hall"), null, 8, 6, 2, 1],
-    ["p-sbh5", tx("game.layouts.hall"), null, 4, 7, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 7, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 6, 9, 2, 1],
+    ["p-sensors", "Sensors", null, 6, 0, 2, 1],
+    ["p-sbh0", "Hall", null, 4, 1, 1, 2],
+    ["p-engines", "Engines", "engines", 6, 1, 2, 2],
+    ["p-tele", "Teleporter", null, 5, 2, 1, 2],
+    ["p-mind", "Mind Control", null, 0, 3, 2, 1],
+    ["p-cloak", "Cloaking", null, 2, 3, 2, 2],
+    ["p-sbh1", "Hall", null, 8, 3, 2, 1],
+    ["p-medbay", "Medbay", null, 10, 3, 2, 2],
+    ["p-sbh2", "Hall", null, 0, 4, 1, 2],
+    ["p-hack", "Hacking", null, 4, 4, 2, 2],
+    ["p-sbh3", "Hall", null, 6, 4, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 4, 1, 2],
+    ["p-shields", "Shields", "shields", 2, 5, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 10, 5, 2, 2],
+    ["p-battery", "Backup Battery", null, 0, 6, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 5, 6, 1, 2],
+    ["p-sbh4", "Hall", null, 8, 6, 2, 1],
+    ["p-sbh5", "Hall", null, 4, 7, 1, 2],
+    ["p-drones", "Drones", null, 6, 7, 2, 2],
+    ["p-doors", "Doors", "doors", 6, 9, 2, 1],
   ],
   [
     [6, 0, "s"],
@@ -966,22 +978,22 @@ const slugB = traced(
 /** Traced from `SlugCSystems.png`, the Slug C hangar picture (Ariolimax): 42 squares, 16 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Backup Battery, Sensors, Teleporter, Drones. */
 const slugC = traced(
   [
-    ["p-mind", tx("game.layouts.mind-control"), null, 1, 0, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 3, 0, 2, 1],
-    ["p-sch0", tx("game.layouts.hall"), null, 5, 0, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 3, 1, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 6, 1, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), null, 1, 2, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 3, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 4, 3, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 6, 3, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 1, 5, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 6, 5, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 1, 6, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 3, 6, 2, 1],
-    ["p-sch1", tx("game.layouts.hall"), null, 5, 6, 1, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 3, 7, 2, 1],
+    ["p-mind", "Mind Control", null, 1, 0, 2, 2],
+    ["p-cloak", "Cloaking", null, 3, 0, 2, 1],
+    ["p-sch0", "Hall", null, 5, 0, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 3, 1, 2, 1],
+    ["p-battery", "Backup Battery", null, 6, 1, 1, 2],
+    ["p-sensors", "Sensors", null, 1, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 2, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 4, 3, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 6, 3, 2, 2],
+    ["p-doors", "Doors", "doors", 1, 5, 2, 1],
+    ["p-tele", "Teleporter", null, 6, 5, 1, 2],
+    ["p-hack", "Hacking", null, 1, 6, 2, 2],
+    ["p-drones", "Drones", null, 3, 6, 2, 1],
+    ["p-sch1", "Hall", null, 5, 6, 1, 2],
+    ["p-clone", "Clone Bay", null, 3, 7, 2, 1],
   ],
   [
     [1, 0, "w"],
@@ -1020,24 +1032,24 @@ const slugC = traced(
 /** Traced from `RockASystems.png`, the Rock A hangar picture (Bulwark): 48 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Drones, Mind Control, Hacking, Backup Battery, Teleporter. */
 const rockA = traced(
   [
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 0, 0, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 1, 0, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 2, 0, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 4, 0, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 0, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 0, 1, 2],
-    ["p-rah0", tx("game.layouts.hall"), null, 1, 2, 1, 2],
-    ["p-rah1", tx("game.layouts.hall"), null, 2, 2, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 4, 2, 2, 1],
-    ["p-rah2", tx("game.layouts.hall"), null, 6, 2, 1, 2],
-    ["p-rah3", tx("game.layouts.hall"), null, 2, 3, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 4, 3, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 0, 4, 1, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 1, 4, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 2, 4, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 4, 4, 2, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 6, 4, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 8, 4, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 0, 0, 1, 2],
+    ["p-doors", "Doors", "doors", 1, 0, 1, 2],
+    ["p-shields", "Shields", "shields", 2, 0, 2, 2],
+    ["p-cloak", "Cloaking", null, 4, 0, 2, 2],
+    ["p-drones", "Drones", null, 6, 0, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 8, 0, 1, 2],
+    ["p-rah0", "Hall", null, 1, 2, 1, 2],
+    ["p-rah1", "Hall", null, 2, 2, 2, 1],
+    ["p-mind", "Mind Control", null, 4, 2, 2, 1],
+    ["p-rah2", "Hall", null, 6, 2, 1, 2],
+    ["p-rah3", "Hall", null, 2, 3, 2, 1],
+    ["p-hack", "Hacking", null, 4, 3, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 0, 4, 1, 2],
+    ["p-battery", "Backup Battery", null, 1, 4, 1, 2],
+    ["p-engines", "Engines", "engines", 2, 4, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 4, 4, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 6, 4, 2, 2],
+    ["p-tele", "Teleporter", null, 8, 4, 1, 2],
   ],
   [
     [0, 0, "e"],
@@ -1078,22 +1090,22 @@ const rockA = traced(
 /** Traced from `RockBSystems.png`, the Rock B hangar picture (Shivan): 44 squares, 16 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Backup Battery, Teleporter, Hacking, Cloaking, Drones, Doors. */
 const rockB = traced(
   [
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 0, 2, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 2, 0, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 6, 0, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 8, 0, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 4, 1, 1, 2],
-    ["p-rbh0", tx("game.layouts.hall"), null, 2, 2, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 5, 2, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 4, 3, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 6, 3, 2, 1],
-    ["p-rbh1", tx("game.layouts.hall"), null, 2, 4, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 4, 4, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 5, 4, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 0, 5, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 2, 5, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 5, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), null, 8, 5, 1, 2],
+    ["p-engines", "Engines", "engines", 0, 0, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 2, 0, 2, 2],
+    ["p-shields", "Shields", "shields", 6, 0, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 8, 0, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 1, 1, 2],
+    ["p-rbh0", "Hall", null, 2, 2, 2, 1],
+    ["p-mind", "Mind Control", null, 5, 2, 2, 1],
+    ["p-battery", "Backup Battery", null, 4, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 6, 3, 2, 1],
+    ["p-rbh1", "Hall", null, 2, 4, 2, 1],
+    ["p-tele", "Teleporter", null, 4, 4, 1, 2],
+    ["p-hack", "Hacking", null, 5, 4, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 0, 5, 2, 2],
+    ["p-cloak", "Cloaking", null, 2, 5, 2, 2],
+    ["p-drones", "Drones", null, 6, 5, 2, 2],
+    ["p-doors", "Doors", null, 8, 5, 1, 2],
   ],
   [
     [1, 0, "e"],
@@ -1125,23 +1137,23 @@ const rockB = traced(
 /** Traced from `RockCSystems.png`, the Rock C hangar picture (Tektite): 40 squares, 17 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Mind Control, Hacking, Drones, Teleporter, Backup Battery. */
 const rockC = traced(
   [
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 0, 0, 2, 2],
-    ["p-rch0", tx("game.layouts.hall"), null, 2, 0, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 4, 0, 2, 1],
-    ["p-rch1", tx("game.layouts.hall"), null, 6, 0, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 8, 0, 1, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 3, 1, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 5, 1, 1, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 7, 1, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 2, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 3, 3, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 5, 3, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 7, 3, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 0, 4, 2, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 8, 4, 1, 2],
-    ["p-rch2", tx("game.layouts.hall"), null, 2, 5, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 4, 5, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 6, 5, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 0, 0, 2, 2],
+    ["p-rch0", "Hall", null, 2, 0, 2, 1],
+    ["p-cloak", "Cloaking", null, 4, 0, 2, 1],
+    ["p-rch1", "Hall", null, 6, 0, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 8, 0, 1, 2],
+    ["p-mind", "Mind Control", null, 3, 1, 1, 2],
+    ["p-doors", "Doors", "doors", 5, 1, 1, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 7, 1, 1, 2],
+    ["p-engines", "Engines", "engines", 0, 2, 2, 2],
+    ["p-hack", "Hacking", null, 3, 3, 1, 2],
+    ["p-sensors", "Sensors", "sensors", 5, 3, 1, 2],
+    ["p-drones", "Drones", null, 7, 3, 1, 2],
+    ["p-shields", "Shields", "shields", 0, 4, 2, 2],
+    ["p-clone", "Clone Bay", null, 8, 4, 1, 2],
+    ["p-rch2", "Hall", null, 2, 5, 2, 1],
+    ["p-tele", "Teleporter", null, 4, 5, 2, 1],
+    ["p-battery", "Backup Battery", null, 6, 5, 2, 1],
   ],
   [
     [1, 0, "e"],
@@ -1183,21 +1195,21 @@ const rockC = traced(
 /** Traced from `StealthASystems.png`, the Stealth A hangar picture (The Nesasio): 40 squares, 15 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Backup Battery, Drones, Shields, Mind Control, Teleporter, Hacking. */
 const stealthA = traced(
   [
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 2, 0, 2, 1],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 4, 0, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 6, 1, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 2, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 2, 2, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), null, 3, 2, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 5, 2, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 7, 2, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 8, 2, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 10, 2, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 12, 2, 1, 2],
-    ["p-sah0", tx("game.layouts.hall"), null, 10, 3, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 4, 4, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 6, 4, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 2, 5, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 2, 0, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 4, 0, 2, 2],
+    ["p-battery", "Backup Battery", null, 6, 1, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 2, 2, 2],
+    ["p-drones", "Drones", null, 2, 2, 1, 2],
+    ["p-shields", "Shields", null, 3, 2, 2, 2],
+    ["p-mind", "Mind Control", null, 5, 2, 1, 2],
+    ["p-tele", "Teleporter", null, 7, 2, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 8, 2, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 10, 2, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 12, 2, 1, 2],
+    ["p-sah0", "Hall", null, 10, 3, 2, 1],
+    ["p-cloak", "Cloaking", null, 4, 4, 2, 2],
+    ["p-hack", "Hacking", null, 6, 4, 2, 1],
+    ["p-doors", "Doors", "doors", 2, 5, 2, 1],
   ],
   [
     [3, 0, "e"],
@@ -1229,21 +1241,21 @@ const stealthA = traced(
 /** Traced from `StealthBSystems.png`, the Stealth B hangar picture (DA-SR 12): 38 squares, 15 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Drones, Shields, Backup Battery, Hacking, Mind Control, Teleporter. */
 const stealthB = traced(
   [
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 2, 0, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 3, 1, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), null, 5, 1, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 1, 2, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 7, 2, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 3, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 3, 3, 2, 1],
-    ["p-sbh0", tx("game.layouts.hall"), null, 5, 3, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 8, 3, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 10, 3, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 1, 4, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 3, 4, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 5, 4, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 7, 4, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 2, 6, 2, 1],
+    ["p-medbay", "Medbay", "medbay", 2, 0, 2, 1],
+    ["p-drones", "Drones", null, 3, 1, 2, 2],
+    ["p-shields", "Shields", null, 5, 1, 2, 2],
+    ["p-battery", "Backup Battery", null, 1, 2, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 7, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 0, 3, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 3, 3, 2, 1],
+    ["p-sbh0", "Hall", null, 5, 3, 2, 1],
+    ["p-hack", "Hacking", null, 8, 3, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 10, 3, 2, 1],
+    ["p-mind", "Mind Control", null, 1, 4, 2, 1],
+    ["p-cloak", "Cloaking", null, 3, 4, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 5, 4, 2, 2],
+    ["p-doors", "Doors", "doors", 7, 4, 2, 1],
+    ["p-tele", "Teleporter", null, 2, 6, 2, 1],
   ],
   [
     [3, 0, "s"],
@@ -1274,20 +1286,20 @@ const stealthB = traced(
 /** Traced from `StealthCSystems.png`, the Stealth C hangar picture (Simo-H): 40 squares, 14 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Backup Battery, Sensors, Shields, Mind Control, Teleporter, Cloaking, Hacking. */
 const stealthC = traced(
   [
-    ["p-clone", tx("game.layouts.clone-bay"), null, 2, 0, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 4, 0, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 5, 1, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 6, 1, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), null, 0, 2, 2, 1],
-    ["p-engines", tx("game.layouts.engines"), "engines", 2, 2, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), null, 8, 2, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 10, 2, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 12, 2, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 0, 3, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 5, 3, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 6, 3, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 2, 4, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 4, 5, 2, 1],
+    ["p-clone", "Clone Bay", null, 2, 0, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 0, 2, 1],
+    ["p-battery", "Backup Battery", null, 5, 1, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 6, 1, 2, 2],
+    ["p-sensors", "Sensors", null, 0, 2, 2, 1],
+    ["p-engines", "Engines", "engines", 2, 2, 2, 2],
+    ["p-shields", "Shields", null, 8, 2, 2, 2],
+    ["p-mind", "Mind Control", null, 10, 2, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 12, 2, 1, 2],
+    ["p-doors", "Doors", "doors", 0, 3, 2, 1],
+    ["p-tele", "Teleporter", null, 5, 3, 1, 2],
+    ["p-drones", "Drones", null, 6, 3, 2, 2],
+    ["p-cloak", "Cloaking", null, 2, 4, 2, 2],
+    ["p-hack", "Hacking", null, 4, 5, 2, 1],
   ],
   [
     [3, 0, "e"],
@@ -1321,22 +1333,22 @@ const stealthC = traced(
 /** Traced from `LaniusASystems.png`, the Lanius A hangar picture (Kruos): 42 squares, 16 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Teleporter, Cloaking, Backup Battery, Drones, Mind Control. */
 const laniusA = traced(
   [
-    ["p-clone", tx("game.layouts.clone-bay"), null, 0, 0, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 2, 0, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 4, 0, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 6, 0, 1, 2],
-    ["p-lah0", tx("game.layouts.hall"), null, 2, 1, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 1, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 7, 1, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 3, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 7, 3, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 4, 5, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 7, 5, 1, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 0, 6, 2, 2],
-    ["p-lah1", tx("game.layouts.hall"), null, 2, 6, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 6, 6, 1, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 2, 7, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 4, 7, 2, 1],
+    ["p-clone", "Clone Bay", null, 0, 0, 2, 2],
+    ["p-tele", "Teleporter", null, 2, 0, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 4, 0, 2, 1],
+    ["p-hack", "Hacking", null, 6, 0, 1, 2],
+    ["p-lah0", "Hall", null, 2, 1, 2, 1],
+    ["p-shields", "Shields", "shields", 4, 1, 2, 2],
+    ["p-cloak", "Cloaking", null, 7, 1, 1, 2],
+    ["p-engines", "Engines", "engines", 3, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 7, 3, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 4, 5, 2, 2],
+    ["p-battery", "Backup Battery", null, 7, 5, 1, 2],
+    ["p-drones", "Drones", null, 0, 6, 2, 2],
+    ["p-lah1", "Hall", null, 2, 6, 2, 1],
+    ["p-mind", "Mind Control", null, 6, 6, 1, 2],
+    ["p-sensors", "Sensors", "sensors", 2, 7, 2, 1],
+    ["p-doors", "Doors", "doors", 4, 7, 2, 1],
   ],
   [
     [1, 0, "e"],
@@ -1373,24 +1385,24 @@ const laniusA = traced(
 /** Traced from `LaniusBSystems.png`, the Lanius B hangar picture (The Shrike): 50 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Sensors, Cloaking, Drones, Hacking, Backup Battery. */
 const laniusB = traced(
   [
-    ["p-sensors", tx("game.layouts.sensors"), null, 2, 0, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 4, 0, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 0, 1, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 2, 1, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 5, 1, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 2, 2, 2, 1],
-    ["p-lbh0", tx("game.layouts.hall"), null, 7, 2, 2, 1],
-    ["p-lbh1", tx("game.layouts.hall"), null, 5, 3, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 3, 4, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 7, 4, 1, 2],
-    ["p-lbh2", tx("game.layouts.hall"), null, 5, 5, 2, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 0, 7, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 2, 7, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 5, 7, 2, 2],
-    ["p-lbh3", tx("game.layouts.hall"), null, 7, 7, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 8, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 2, 9, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 4, 9, 2, 1],
+    ["p-sensors", "Sensors", null, 2, 0, 2, 1],
+    ["p-cloak", "Cloaking", null, 4, 0, 2, 1],
+    ["p-drones", "Drones", null, 0, 1, 2, 2],
+    ["p-hack", "Hacking", null, 2, 1, 2, 1],
+    ["p-shields", "Shields", "shields", 5, 1, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 2, 2, 2, 1],
+    ["p-lbh0", "Hall", null, 7, 2, 2, 1],
+    ["p-lbh1", "Hall", null, 5, 3, 2, 2],
+    ["p-engines", "Engines", "engines", 3, 4, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 7, 4, 1, 2],
+    ["p-lbh2", "Hall", null, 5, 5, 2, 2],
+    ["p-clone", "Clone Bay", null, 0, 7, 2, 2],
+    ["p-tele", "Teleporter", null, 2, 7, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 5, 7, 2, 2],
+    ["p-lbh3", "Hall", null, 7, 7, 2, 1],
+    ["p-battery", "Backup Battery", null, 2, 8, 2, 1],
+    ["p-doors", "Doors", "doors", 2, 9, 2, 1],
+    ["p-mind", "Mind Control", null, 4, 9, 2, 1],
   ],
   [
     [3, 0, "e"],
@@ -1435,24 +1447,24 @@ const laniusB = traced(
 /** Traced from `MantisASystems.png`, the Mantis A hangar picture (The Gila Monster): 54 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Drones, Cloaking, Backup Battery, Hacking, Sensors. */
 const mantisA = traced(
   [
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 0, 0, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 2, 1, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 1, 2, 2, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 8, 2, 2, 2],
-    ["p-mah0", tx("game.layouts.hall"), null, 5, 3, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 10, 3, 2, 1],
-    ["p-mah1", tx("game.layouts.hall"), null, 1, 4, 1, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 2, 4, 2, 2],
-    ["p-mah2", tx("game.layouts.hall"), null, 4, 4, 1, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 5, 4, 1, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 6, 4, 2, 2],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 8, 4, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 1, 6, 2, 2],
-    ["p-mah3", tx("game.layouts.hall"), null, 5, 6, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 8, 6, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 10, 6, 2, 1],
-    ["p-shields", tx("game.layouts.shields"), "shields", 0, 8, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), null, 2, 8, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 0, 0, 2, 2],
+    ["p-doors", "Doors", "doors", 2, 1, 2, 1],
+    ["p-mind", "Mind Control", null, 1, 2, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 8, 2, 2, 2],
+    ["p-mah0", "Hall", null, 5, 3, 2, 1],
+    ["p-drones", "Drones", null, 10, 3, 2, 1],
+    ["p-mah1", "Hall", null, 1, 4, 1, 2],
+    ["p-engines", "Engines", "engines", 2, 4, 2, 2],
+    ["p-mah2", "Hall", null, 4, 4, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 5, 4, 1, 2],
+    ["p-cloak", "Cloaking", null, 6, 4, 2, 2],
+    ["p-battery", "Backup Battery", null, 8, 4, 2, 2],
+    ["p-hack", "Hacking", null, 1, 6, 2, 2],
+    ["p-mah3", "Hall", null, 5, 6, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 8, 6, 2, 2],
+    ["p-tele", "Teleporter", null, 10, 6, 2, 1],
+    ["p-shields", "Shields", "shields", 0, 8, 2, 2],
+    ["p-sensors", "Sensors", null, 2, 8, 2, 1],
   ],
   [
     [1, 1, "s"],
@@ -1488,23 +1500,23 @@ const mantisA = traced(
 /** Traced from `MantisBSystems.png`, the Mantis B hangar picture (The Basilisk): 46 squares, 17 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Cloaking, Backup Battery, Mind Control, Hacking. */
 const mantisB = traced(
   [
-    ["p-cloak", tx("game.layouts.cloaking"), null, 0, 0, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 0, 1, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 2, 1, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 1, 3, 2, 2],
-    ["p-mbh0", tx("game.layouts.hall"), null, 3, 3, 2, 1],
-    ["p-mind", tx("game.layouts.mind-control"), null, 5, 3, 2, 1],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 7, 3, 2, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 9, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 5, 4, 1, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 1, 5, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 7, 5, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 9, 5, 2, 2],
-    ["p-mbh1", tx("game.layouts.hall"), null, 3, 6, 2, 1],
-    ["p-hack", tx("game.layouts.hacking"), null, 5, 6, 2, 1],
-    ["p-mbh2", tx("game.layouts.hall"), null, 2, 7, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 0, 8, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 0, 9, 2, 1],
+    ["p-cloak", "Cloaking", null, 0, 0, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 0, 1, 2, 1],
+    ["p-battery", "Backup Battery", null, 2, 1, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 1, 3, 2, 2],
+    ["p-mbh0", "Hall", null, 3, 3, 2, 1],
+    ["p-mind", "Mind Control", null, 5, 3, 2, 1],
+    ["p-weapons", "Weapons", "weapons", 7, 3, 2, 2],
+    ["p-shields", "Shields", "shields", 9, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 5, 4, 1, 2],
+    ["p-tele", "Teleporter", null, 1, 5, 2, 2],
+    ["p-engines", "Engines", "engines", 7, 5, 2, 2],
+    ["p-drones", "Drones", null, 9, 5, 2, 2],
+    ["p-mbh1", "Hall", null, 3, 6, 2, 1],
+    ["p-hack", "Hacking", null, 5, 6, 2, 1],
+    ["p-mbh2", "Hall", null, 2, 7, 1, 2],
+    ["p-doors", "Doors", "doors", 0, 8, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 0, 9, 2, 1],
   ],
   [
     [0, 0, "s"],
@@ -1544,24 +1556,24 @@ const mantisB = traced(
 /** Traced from `MantisCSystems.png`, the Mantis C hangar picture (The Theseus): 56 squares, 18 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Hacking, Mind Control, Backup Battery, Cloaking, Drones. */
 const mantisC = traced(
   [
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 0, 2, 2],
-    ["p-mch0", tx("game.layouts.hall"), null, 2, 0, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 1, 2, 2, 2],
-    ["p-clone", tx("game.layouts.clone-bay"), null, 8, 2, 2, 2],
-    ["p-mch1", tx("game.layouts.hall"), null, 3, 3, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 7, 3, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 10, 3, 2, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 3, 4, 1, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 4, 4, 1, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 5, 4, 2, 1],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 5, 5, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 7, 5, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 10, 5, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 1, 6, 2, 2],
-    ["p-mch2", tx("game.layouts.hall"), null, 3, 6, 2, 1],
-    ["p-tele", tx("game.layouts.teleporter"), null, 8, 6, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 0, 8, 2, 2],
-    ["p-mch3", tx("game.layouts.hall"), null, 2, 8, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 0, 2, 2],
+    ["p-mch0", "Hall", null, 2, 0, 2, 2],
+    ["p-hack", "Hacking", null, 1, 2, 2, 2],
+    ["p-clone", "Clone Bay", null, 8, 2, 2, 2],
+    ["p-mch1", "Hall", null, 3, 3, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 7, 3, 1, 2],
+    ["p-shields", "Shields", "shields", 10, 3, 2, 2],
+    ["p-pilot", "Piloting", "pilot", 3, 4, 1, 2],
+    ["p-mind", "Mind Control", null, 4, 4, 1, 2],
+    ["p-doors", "Doors", "doors", 5, 4, 2, 1],
+    ["p-sensors", "Sensors", "sensors", 5, 5, 2, 1],
+    ["p-battery", "Backup Battery", null, 7, 5, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 10, 5, 2, 2],
+    ["p-cloak", "Cloaking", null, 1, 6, 2, 2],
+    ["p-mch2", "Hall", null, 3, 6, 2, 1],
+    ["p-tele", "Teleporter", null, 8, 6, 2, 2],
+    ["p-drones", "Drones", null, 0, 8, 2, 2],
+    ["p-mch3", "Hall", null, 2, 8, 2, 2],
   ],
   [
     [2, 0, "n"],
@@ -1606,25 +1618,25 @@ const mantisC = traced(
 /** Traced from `CrystalASystems.png`, the Crystal A hangar picture (Bravais): 54 squares, 19 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Drones, Mind Control, Teleporter, Hacking, Backup Battery, Cloaking. */
 const crystalA = traced(
   [
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 0, 2, 2],
-    ["p-drones", tx("game.layouts.drones"), null, 2, 0, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 5, 0, 2, 1],
-    ["p-doors", tx("game.layouts.doors"), "doors", 12, 0, 1, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 13, 0, 2, 2],
-    ["p-mind", tx("game.layouts.mind-control"), null, 4, 1, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 10, 1, 1, 2],
-    ["p-cah0", tx("game.layouts.hall"), null, 2, 2, 1, 2],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 6, 2, 1, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 11, 2, 2, 2],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 5, 3, 1, 2],
-    ["p-cah1", tx("game.layouts.hall"), null, 13, 3, 1, 2],
-    ["p-cah2", tx("game.layouts.hall"), null, 2, 4, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 3, 4, 2, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 11, 4, 2, 2],
-    ["p-cah3", tx("game.layouts.hall"), null, 5, 5, 2, 1],
-    ["p-cah4", tx("game.layouts.hall"), null, 7, 5, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 9, 5, 2, 1],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 4, 6, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 0, 2, 2],
+    ["p-drones", "Drones", null, 2, 0, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 5, 0, 2, 1],
+    ["p-doors", "Doors", "doors", 12, 0, 1, 2],
+    ["p-weapons", "Weapons", "weapons", 13, 0, 2, 2],
+    ["p-mind", "Mind Control", null, 4, 1, 2, 2],
+    ["p-tele", "Teleporter", null, 10, 1, 1, 2],
+    ["p-cah0", "Hall", null, 2, 2, 1, 2],
+    ["p-pilot", "Piloting", "pilot", 6, 2, 1, 2],
+    ["p-hack", "Hacking", null, 11, 2, 2, 2],
+    ["p-oxygen", "Oxygen", "oxygen", 5, 3, 1, 2],
+    ["p-cah1", "Hall", null, 13, 3, 1, 2],
+    ["p-cah2", "Hall", null, 2, 4, 1, 2],
+    ["p-shields", "Shields", "shields", 3, 4, 2, 2],
+    ["p-medbay", "Medbay", "medbay", 11, 4, 2, 2],
+    ["p-cah3", "Hall", null, 5, 5, 2, 1],
+    ["p-cah4", "Hall", null, 7, 5, 2, 1],
+    ["p-battery", "Backup Battery", null, 9, 5, 2, 1],
+    ["p-cloak", "Cloaking", null, 4, 6, 2, 2],
   ],
   [
     [5, 0, "s"],
@@ -1666,22 +1678,22 @@ const crystalA = traced(
 /** Traced from `CrystalBSystems.png`, the Crystal B hangar picture (Carnelian): 46 squares, 16 rooms, the orange or grey door bars, and the room of every system icon. Pale icons mark rooms kept for systems this hull can buy: Mind Control, Hacking, Backup Battery, Drones. */
 const crystalB = traced(
   [
-    ["p-mind", tx("game.layouts.mind-control"), null, 3, 0, 1, 2],
-    ["p-shields", tx("game.layouts.shields"), "shields", 4, 0, 2, 2],
-    ["p-cloak", tx("game.layouts.cloaking"), null, 12, 0, 2, 2],
-    ["p-engines", tx("game.layouts.engines"), "engines", 0, 1, 2, 2],
-    ["p-tele", tx("game.layouts.teleporter"), null, 2, 2, 2, 2],
-    ["p-weapons", tx("game.layouts.weapons"), "weapons", 7, 2, 2, 2],
-    ["p-hack", tx("game.layouts.hacking"), null, 9, 2, 2, 1],
-    ["p-cbh0", tx("game.layouts.hall"), null, 11, 2, 2, 1],
-    ["p-oxygen", tx("game.layouts.oxygen"), "oxygen", 1, 4, 1, 2],
-    ["p-medbay", tx("game.layouts.medbay"), "medbay", 2, 4, 2, 2],
-    ["p-sensors", tx("game.layouts.sensors"), "sensors", 4, 4, 2, 1],
-    ["p-cbh1", tx("game.layouts.hall"), null, 6, 4, 2, 1],
-    ["p-battery", tx("game.layouts.backup-battery"), null, 3, 6, 2, 1],
-    ["p-drones", tx("game.layouts.drones"), null, 5, 6, 2, 2],
-    ["p-doors", tx("game.layouts.doors"), "doors", 7, 6, 2, 1],
-    ["p-pilot", tx("game.layouts.piloting"), "pilot", 9, 6, 1, 2],
+    ["p-mind", "Mind Control", null, 3, 0, 1, 2],
+    ["p-shields", "Shields", "shields", 4, 0, 2, 2],
+    ["p-cloak", "Cloaking", null, 12, 0, 2, 2],
+    ["p-engines", "Engines", "engines", 0, 1, 2, 2],
+    ["p-tele", "Teleporter", null, 2, 2, 2, 2],
+    ["p-weapons", "Weapons", "weapons", 7, 2, 2, 2],
+    ["p-hack", "Hacking", null, 9, 2, 2, 1],
+    ["p-cbh0", "Hall", null, 11, 2, 2, 1],
+    ["p-oxygen", "Oxygen", "oxygen", 1, 4, 1, 2],
+    ["p-medbay", "Medbay", "medbay", 2, 4, 2, 2],
+    ["p-sensors", "Sensors", "sensors", 4, 4, 2, 1],
+    ["p-cbh1", "Hall", null, 6, 4, 2, 1],
+    ["p-battery", "Backup Battery", null, 3, 6, 2, 1],
+    ["p-drones", "Drones", null, 5, 6, 2, 2],
+    ["p-doors", "Doors", "doors", 7, 6, 2, 1],
+    ["p-pilot", "Piloting", "pilot", 9, 6, 1, 2],
   ],
   [
     [3, 0, "e"],
@@ -1740,7 +1752,6 @@ export const LAYOUTS: Record<string, Layout> = {
   "crystal-b": crystalB,
 };
 
-
 // ---------------------------------------------------------------------------------------------
 // Kit rooms on player hulls.
 // Systems, lead: "Each system occupies one predetermined room specific to the ship (the player cannot choose what
@@ -1752,15 +1763,15 @@ export const LAYOUTS: Record<string, Layout> = {
 
 /** Room title for a kit, as the hangar pictures label it. Artillery Beam and Flak Artillery share one label. */
 export const KIT_TITLE: Record<KitId, string> = {
-  veil: tx("game.layouts.cloaking"),
-  sling: tx("game.layouts.teleporter"),
-  spike: tx("game.layouts.hacking"),
-  swarm: tx("game.layouts.drones"),
-  leash: tx("game.layouts.mind-control"),
-  cradle: tx("game.layouts.clone-bay"),
-  cell: tx("game.layouts.backup-battery"),
-  lance: tx("game.layouts.artillery"),
-  flak: tx("game.layouts.artillery"),
+  veil: "Cloaking",
+  sling: "Teleporter",
+  spike: "Hacking",
+  swarm: "Drones",
+  leash: "Mind Control",
+  cradle: "Clone Bay",
+  cell: "Backup Battery",
+  lance: "Artillery",
+  flak: "Artillery",
 };
 
 /**
@@ -1813,11 +1824,15 @@ export function kitSeat<R extends Seat>(rooms: R[], kit: KitId, medbayLevel = 0)
   const traced = rooms.find((r) => free(r) && r.reserve === KIT_TITLE[kit]);
   if (traced) return traced;
   if (kit === "cradle" && medbayLevel <= 0) {
-    const bay = rooms.find((r) => !r.kit && (r.system === "medbay" || (r.system === null && r.reserve === "Medbay")));
+    const bay = rooms.find(
+      (r) => !r.kit && (r.system === "medbay" || (r.system === null && r.reserve === "Medbay")),
+    );
     if (bay) return bay;
   }
   // A room kept for another system is not free (Systems: "Each system occupies one predetermined room").
-  const empty = rooms.filter((r) => free(r) && !r.reserve && (r.title === "Hall" || r.title === "Hold"));
+  const empty = rooms.filter(
+    (r) => free(r) && !r.reserve && (r.title === "Hall" || r.title === "Hold"),
+  );
   for (const n of KIT_SQUARES[kit]) {
     const hit = empty.find((r) => squares(r) === n);
     if (hit) return hit;
@@ -1889,7 +1904,8 @@ function growRoom(ship: Ship, kit: KitId): Room {
     venting: false,
   };
   const doors: Door[] = [{ a: r.id, b: "void", open: false, hp: 0, stuck: 0 }];
-  for (const o of ship.rooms) if (touching(o, r)) doors.push({ a: o.id, b: r.id, open: false, hp: 0, stuck: 0 });
+  for (const o of ship.rooms)
+    if (touching(o, r)) doors.push({ a: o.id, b: r.id, open: false, hp: 0, stuck: 0 });
   ship.rooms.push(r);
   ship.doors.push(...doors);
   ship.rows = Math.max(ship.rows, y + 1);
@@ -1901,10 +1917,10 @@ function growRoom(ship: Ship, kit: KitId): Room {
  * the traced hangar pictures). Stores and resources names Shields, Sensors, and "a medical system" among store stock.
  */
 const BOUGHT_SYSTEMS: [SysId, string][] = [
-  ["shields", tx("game.layouts.shields")],
-  ["sensors", tx("game.layouts.sensors")],
-  ["doors", tx("game.layouts.doors")],
-  ["medbay", tx("game.layouts.medbay")],
+  ["shields", "Shields"],
+  ["sensors", "Sensors"],
+  ["doors", "Doors"],
+  ["medbay", "Medbay"],
 ];
 
 /**
@@ -1921,12 +1937,12 @@ export function seatKits(ship: Ship): void {
     if (!r.kit || ship.kits[r.kit]) continue;
     if (r.kit === "cradle" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {
       r.system = "medbay";
-      r.title = tx("game.layouts.medbay");
+      r.title = "Medbay";
     } else {
       // The system left: its room is a Hall again, still kept for it (Systems: "Each system occupies one predetermined
       // room specific to the ship").
       r.reserve = r.title;
-      r.title = tx("game.layouts.hall");
+      r.title = "Hall";
     }
     delete r.kit;
   }
@@ -1934,7 +1950,9 @@ export function seatKits(ship: Ship): void {
     if ((ship.systems?.[id]?.level ?? 0) <= 0 || ship.rooms.some((r) => r.system === id)) continue;
     // Systems: "buying one replaces the other" - the medical room is kept for Medbay and Clone Bay alike.
     const medical = (o: Room) => id === "medbay" && o.reserve === "Clone Bay";
-    const r = ship.rooms.find((o) => o.system === null && !o.kit && (o.reserve === title || medical(o)));
+    const r = ship.rooms.find(
+      (o) => o.system === null && !o.kit && (o.reserve === title || medical(o)),
+    );
     if (r) {
       r.system = id;
       r.title = title;

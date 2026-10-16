@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
@@ -126,7 +125,7 @@ export function upgradeFlak(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, tx("extras.flakart.flak-artillery-raised"));
+  log(g, "Flak Artillery raised.");
   return true;
 }
 
@@ -257,7 +256,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
  */
 export function tickFlak(g: Game, dt: number): void {
   if (!(dt > 0)) return;
-  if ((g.paused || !!g.menuHold) || g.phase !== "combat") return;
+  if (g.paused || !!g.menuHold || g.phase !== "combat") return;
   tickShip(g, g.player, "player", dt);
   if (g.enemy) tickShip(g, g.enemy, "enemy", dt);
 }
@@ -308,7 +307,8 @@ function twoTile(room: FlakAimRoom): [Tile, Tile] | null {
   const tiles = floorTiles(room);
   if (tiles.length !== 2) return null;
   const [a, b] = tiles;
-  const straight = (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
+  const straight =
+    (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
   return straight ? [a, b] : null;
 }
 
@@ -363,7 +363,11 @@ export function flakLanding(rooms: readonly FlakAimRoom[], aimId: string, roll: 
   return { kind: "room", roomId: hit.id };
 }
 
-function spreadRooms(g: Game, rooms: readonly FlakAimRoom[], count: number): { roomId: string; offRoom: boolean }[] {
+function spreadRooms(
+  g: Game,
+  rooms: readonly FlakAimRoom[],
+  count: number,
+): { roomId: string; offRoom: boolean }[] {
   const ids = rooms.map((room) => room.id);
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.floor(rand(g) * (i + 1));

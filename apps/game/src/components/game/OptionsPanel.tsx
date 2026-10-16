@@ -4,7 +4,6 @@
  * INVENTED layout, on the ship sheet's tab styles.
  */
 import { Kicker } from "@stl/ui";
-import { tx } from "@/i18n";
 import { useState } from "react";
 import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/settings";
 import { saveGame } from "@/game/sim";
@@ -14,12 +13,12 @@ import { CloseX } from "./CloseX";
 
 type Tab = "exit" | "graphics" | "sound" | "keys";
 const TABS: [Tab, string][] = [
-  ["graphics", tx("ui.OptionsPanel.graphics")],
-  ["sound", tx("ui.OptionsPanel.sound")],
-  ["keys", tx("ui.OptionsPanel.keyboard")],
+  ["graphics", "Graphics"],
+  ["sound", "Sound"],
+  ["keys", "Keyboard"],
 ];
 /** Per the user: opened from a run, an Exit tab comes first (and opens first). */
-const GAME_TABS: [Tab, string][] = [["exit", tx("ui.OptionsPanel.exit")], ...TABS];
+const GAME_TABS: [Tab, string][] = [["exit", "Exit"], ...TABS];
 
 /** Leave the run for the title or the hangar. The run is saved first, so CONTINUE picks it up. */
 function leaveRun(boot: "title" | "hangar") {
@@ -36,119 +35,146 @@ function leaveRun(boot: "title" | "hangar") {
 /** Mirrors GameApp onKey (and the room menu's Esc, the ship sheet's arrows). Keep the two in step. */
 const KEYS: [string, [string, string][]][] = [
   [
-    tx("ui.OptionsPanel.general"),
+    "General",
     [
-      [tx("ui.OptionsPanel.space"), tx("ui.OptionsPanel.pause-or-resume")],
-      [tx("ui.OptionsPanel.middle-mouse"), tx("ui.OptionsPanel.pause-or-resume")],
-      ["`", tx("ui.OptionsPanel.fast-forward-on-or-off")],
-      ["\\", tx("ui.OptionsPanel.mute-or-unmute-sound")],
-      ["J", tx("ui.OptionsPanel.open-the-beacon-chart")],
-      ["O", tx("ui.OptionsPanel.open-options")],
-      [tx("ui.OptionsPanel.esc"), tx("ui.OptionsPanel.close-a-menu-or-open-options")],
-      ["U", tx("ui.OptionsPanel.ship-menu-upgrades")],
-      ["I", tx("ui.OptionsPanel.ship-menu-inventory")],
-      ["← →", tx("ui.OptionsPanel.switch-ship-menu-tabs")],
-      ["−", tx("ui.OptionsPanel.larger-event-text")],
-      ["=", tx("ui.OptionsPanel.smaller-event-text")],
+      ["Space", "Pause or resume"],
+      ["Middle mouse", "Pause or resume"],
+      ["`", "Fast forward on or off"],
+      ["\\", "Mute or unmute sound"],
+      ["J", "Open or close the beacon chart"],
+      ["O", "Open Options"],
+      ["Esc", "Close a menu, open Options, or leave the victory credits"],
+      ["U", "Ship menu: Upgrades"],
+      ["I", "Ship menu: Inventory"],
+      ["← →", "Switch ship menu tabs"],
+      ["−", "Larger event text"],
+      ["=", "Smaller event text"],
     ],
   ],
   [
-    tx("ui.OptionsPanel.weapons-and-drones"),
+    "Weapons and drones",
     [
-      ["1–4", tx("ui.OptionsPanel.select-a-weapon-then-click-a")],
-      [tx("ui.OptionsPanel.shift-1-4"), tx("ui.OptionsPanel.depower-that-weapon")],
-      [tx("ui.OptionsPanel.ctrl-1-4"), tx("ui.OptionsPanel.flip-that-weapon-s-autofire")],
-      ["5–7", tx("ui.OptionsPanel.use-drone-schematic-1-3")],
-      ["V", tx("ui.OptionsPanel.toggle-autofire-for-every-weapon")],
-      [tx("ui.OptionsPanel.ctrl-click"), tx("ui.OptionsPanel.aim-that-weapon-on-autofire")],
-      ["C", tx("ui.OptionsPanel.activate-cloaking-in-a-fight")],
-      ["T", tx("ui.OptionsPanel.teleporter-pick-an-enemy-room-to")],
-      ["R", tx("ui.OptionsPanel.teleporter-bring-crew-back")],
-      ["N", tx("ui.OptionsPanel.hacking-drone-in-a-fight")],
-      ["M", tx("ui.OptionsPanel.mind-control-pick-a-crewmember")],
-      ["B", tx("ui.OptionsPanel.activate-the-backup-battery")],
+      ["1–4", "Select a weapon, then click a room to aim"],
+      ["Shift + 1–4", "Depower that weapon"],
+      ["Ctrl + 1–4", "Flip that weapon's autofire"],
+      ["5–7", "Use drone schematic 1–3"],
+      ["V", "Turn autofire on or off for every weapon"],
+      ["Ctrl + click a target", "Aim that weapon on autofire"],
+      ["C", "Activate cloaking (in a fight)"],
+      ["T", "Teleporter: pick an enemy room to send crew to"],
+      ["R", "Teleporter: bring crew back"],
+      ["N", "Hacking drone (in a fight)"],
+      ["M", "Mind control: pick a crewmember"],
+      ["B", "Activate the backup battery"],
     ],
   ],
   [
-    tx("ui.OptionsPanel.crew"),
+    "Crew",
     [
-      ["Q", tx("ui.OptionsPanel.select-every-crew-member")],
-      ["F1–F8", tx("ui.OptionsPanel.select-crew-member-1-8")],
-      ["/", tx("ui.OptionsPanel.save-crew-stations")],
-      [tx("ui.OptionsPanel.enter"), tx("ui.OptionsPanel.send-crew-back-to-their-stations")],
-      ["P", tx("ui.OptionsPanel.crystal-lockdown-selected-crystal-crew")],
+      ["Q", "Select every crew member"],
+      ["F1–F8", "Select crew member 1–8"],
+      ["/", "Save crew stations"],
+      ["Enter", "Send crew back to their stations"],
+      ["P", "Crystal Lockdown (selected Crystal crew)"],
     ],
   ],
   [
-    tx("ui.OptionsPanel.power"),
+    "Power",
     [
-      ["A", tx("ui.OptionsPanel.shields-one-bar")],
-      ["S", tx("ui.OptionsPanel.engines-one-bar")],
-      ["F", tx("ui.OptionsPanel.oxygen-one-bar")],
-      ["D", tx("ui.OptionsPanel.medbay-or-clone-bay-one-bar")],
-      ["G", tx("ui.OptionsPanel.teleporter-one-bar")],
-      ["H", tx("ui.OptionsPanel.cloaking-one-bar")],
-      ["K", tx("ui.OptionsPanel.mind-control-one-bar")],
-      ["L", tx("ui.OptionsPanel.hacking-one-bar")],
-      ["Y", tx("ui.OptionsPanel.artillery-one-bar")],
-      ["W", tx("ui.OptionsPanel.weapons-one-bar")],
-      ["E", tx("ui.OptionsPanel.drones-one-bar")],
-      [tx("ui.OptionsPanel.shift-key"), tx("ui.OptionsPanel.remove-one-bar-from-that-system")],
+      ["A", "Shields, one layer"],
+      ["S", "Engines, one bar"],
+      ["F", "Oxygen, one bar"],
+      ["D", "Medbay or Clone Bay, one bar"],
+      ["G", "Teleporter, one bar"],
+      ["H", "Cloaking, one bar"],
+      ["K", "Mind control, one bar"],
+      ["L", "Hacking, one bar"],
+      ["Y", "Artillery, one bar"],
+      ["W", "Weapons, enough for the next weapon"],
+      ["E", "Drones, one bar"],
+      ["Shift + that key", "Remove one step from that system"],
     ],
   ],
   [
-    tx("ui.OptionsPanel.doors"),
+    "Doors",
     [
-      ["Z", tx("ui.OptionsPanel.open-all-doors-interior-first-then")],
-      ["X", tx("ui.OptionsPanel.close-all-doors-airlocks-first-then")],
+      ["Z", "Open all doors (interior first, then airlocks)"],
+      ["X", "Close all doors (airlocks first, then interior)"],
     ],
   ],
   [
-    tx("ui.OptionsPanel.events"),
+    "Events",
     [
-      ["1–9", tx("ui.OptionsPanel.pick-that-answer")],
-      ["1", tx("ui.OptionsPanel.continue-past-a-reward")],
+      ["1–9", "Pick that answer"],
+      ["1", "Continue past a reward"],
     ],
   ],
 ];
 
-function Toggle({ label, note, value, onChange }: { label: string; note: string; value: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  label,
+  note,
+  value,
+  onChange,
+}: {
+  label: string;
+  note: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <label className="opt-row">
       <span className="opt-text">
         <b>{label}</b>
         <span className="mini">{note}</span>
       </span>
-      <button type="button" role="switch" aria-checked={value} className={`opt-switch${value ? " is-on" : ""}`} onClick={() => onChange(!value)}>
-        {value ? tx("ui.OptionsPanel.on") : tx("ui.OptionsPanel.off")}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        className={`opt-switch${value ? " is-on" : ""}`}
+        onClick={() => onChange(!value)}
+      >
+        {value ? "ON" : "OFF"}
       </button>
     </label>
   );
 }
 
-export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void; inGame?: boolean }) {
+export function OptionsPanel({
+  onClose,
+  inGame = false,
+}: {
+  onClose: () => void;
+  inGame?: boolean;
+}) {
   const tabs = inGame ? GAME_TABS : TABS;
   const [tab, setTab] = useState<Tab>(inGame ? "exit" : "graphics");
   const landscapeOk = canForceLandscape();
   const s = useSettings();
-  const set = <K extends keyof Settings>(key: K) => (value: Settings[K]) => setSetting(key, value);
+  const set =
+    <K extends keyof Settings>(key: K) =>
+    (value: Settings[K]) =>
+      setSetting(key, value);
   // Esc closes it through CloseX (every panel with an × answers Esc).
   return (
     <div className="overlay options-overlay" onClick={(e) => e.stopPropagation()}>
-      <article className="sheet ftl-sheet ship-sheet options-sheet has-x" aria-label={tx("ui.OptionsPanel.options")}>
+      <article className="sheet ftl-sheet ship-sheet options-sheet has-x" aria-label={"Options"}>
         <CloseX onClose={onClose} />
         <header className="ship-sheet-head">
-          <Kicker as="h2">{tx("ui.OptionsPanel.options")}</Kicker>
+          <Kicker as="h2">{"Options"}</Kicker>
         </header>
         <div
           className="ship-tabs"
           role="tablist"
-          aria-label={tx("ui.OptionsPanel.options")}
+          aria-label={"Options"}
           onKeyDown={(e) => {
             if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
             e.preventDefault();
             const ids = tabs.map(([id]) => id);
-            const focused = ids.indexOf((e.target as HTMLElement).id.replace("opt-tab-", "") as Tab);
+            const focused = ids.indexOf(
+              (e.target as HTMLElement).id.replace("opt-tab-", "") as Tab,
+            );
             const at = focused >= 0 ? focused : ids.indexOf(tab);
             const next = ids[(at + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]!;
             setTab(next);
@@ -171,43 +197,64 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
             </button>
           ))}
         </div>
-        <div className="ship-tab-panel options-panel" id="opt-tab-panel" role="tabpanel" aria-labelledby={`opt-tab-${tab}`}>
+        <div
+          className="ship-tab-panel options-panel"
+          id="opt-tab-panel"
+          role="tabpanel"
+          aria-labelledby={`opt-tab-${tab}`}
+        >
           {tab === "exit" ? (
             <div className="opt-exit">
               <button type="button" className="is-primary" onClick={onClose}>
-                <b>{tx("ui.OptionsPanel.resume")}</b>
-                <span className="mini">{tx("ui.OptionsPanel.back-to-the-game")}</span>
+                <b>{"Resume"}</b>
+                <span className="mini">{"Back to the game."}</span>
               </button>
               <button type="button" onClick={() => leaveRun("title")}>
-                <b>{tx("ui.OptionsPanel.save-and-exit")}</b>
-                <span className="mini">{tx("ui.OptionsPanel.save-this-run-and-go-to")}</span>
+                <b>{"Save and exit"}</b>
+                <span className="mini">
+                  {"Save this run and go to the title screen. CONTINUE picks it up."}
+                </span>
               </button>
               <button type="button" onClick={() => leaveRun("hangar")}>
-                <b>{tx("ui.OptionsPanel.return-to-hangar")}</b>
-                <span className="mini">{tx("ui.OptionsPanel.save-this-run-and-pick-a")}</span>
+                <b>{"Return to hangar"}</b>
+                <span className="mini">
+                  {
+                    "Save this run and pick a ship for a new one. Starting a new run replaces the save."
+                  }
+                </span>
               </button>
             </div>
           ) : null}
           {tab === "graphics" ? (
             <div className="opt-list">
-              <Toggle label={tx("ui.OptionsPanel.screen-shake")} note={tx("ui.OptionsPanel.the-ship-view-shakes-when-it")} value={s.shake} onChange={set("shake")} />
               <Toggle
-                label={tx("ui.OptionsPanel.walk-targets")}
-                note={tx("ui.OptionsPanel.a-faint-copy-of-each-walking")}
+                label={"Screen shake"}
+                note={"The ship view shakes when it is hit."}
+                value={s.shake}
+                onChange={set("shake")}
+              />
+              <Toggle
+                label={"Walk targets"}
+                note={"A faint copy of each walking crew member where they are headed."}
                 value={s.ghosts}
                 onChange={set("ghosts")}
               />
-              <Toggle label={tx("ui.OptionsPanel.room-oxygen-bars")} note={tx("ui.OptionsPanel.the-oxygen-level-along-each-room")} value={s.roomAir} onChange={set("roomAir")} />
+              <Toggle
+                label={"Room oxygen bars"}
+                note={"The oxygen level along each room's floor."}
+                value={s.roomAir}
+                onChange={set("roomAir")}
+              />
               <div className="opt-row">
                 <span className="opt-text">
-                  <b>{tx("ui.OptionsPanel.lock-to-landscape")}</b>
+                  <b>{"Lock to landscape"}</b>
                   <span className="mini">
                     {landscapeOk
-                      ? tx("ui.OptionsPanel.keep-the-game-sideways-however-the")
-                      : tx("ui.OptionsPanel.only-in-the-installed-app-on")}
+                      ? "Keep the game sideways however the phone is held, with the phone's top on this side."
+                      : "Only in the installed app on a phone (INSTALL APP on the title screen)."}
                   </span>
                 </span>
-                <span className="opt-choice" role="group" aria-label={tx("ui.OptionsPanel.lock-to-landscape")}>
+                <span className="opt-choice" role="group" aria-label={"Lock to landscape"}>
                   {(
                     [
                       ["off", "Off"],
@@ -231,17 +278,24 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
           ) : null}
           {tab === "sound" ? (
             <div className="opt-list">
-              <Toggle label={tx("ui.OptionsPanel.mute")} note={tx("ui.OptionsPanel.silence-all-sound-m-toggles-it")} value={s.muted} onChange={set("muted")} />
               <Toggle
-                label={tx("ui.OptionsPanel.haptics")}
-                note={tx("ui.OptionsPanel.phone-vibration-for-hits-crew-losses")}
+                label={"Mute"}
+                note={"Silence all sound. M toggles it in a game."}
+                value={s.muted}
+                onChange={set("muted")}
+              />
+              <Toggle
+                label={"Haptics"}
+                note={
+                  "Phone vibration for hits, crew losses, jumps, wins and long presses. iPhone (iOS 18+) only allows a light tap for your own presses: a long press or a power drag is felt when you let go."
+                }
                 value={s.haptics}
                 onChange={set("haptics")}
               />
               <label className="opt-row">
                 <span className="opt-text">
-                  <b>{tx("ui.OptionsPanel.volume")}</b>
-                  <span className="mini">{tx("ui.OptionsPanel.master-volume-for-every-sound")}</span>
+                  <b>{"Volume"}</b>
+                  <span className="mini">{"Master volume for every sound."}</span>
                 </span>
                 <span className="opt-volume">
                   <input
@@ -250,7 +304,7 @@ export function OptionsPanel({ onClose, inGame = false }: { onClose: () => void;
                     max={100}
                     step={5}
                     value={Math.round(s.volume * 100)}
-                    aria-label={tx("ui.OptionsPanel.volume")}
+                    aria-label={"Volume"}
                     disabled={s.muted}
                     onChange={(e) => setSetting("volume", Number(e.target.value) / 100)}
                   />

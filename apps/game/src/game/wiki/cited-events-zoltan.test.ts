@@ -30,7 +30,6 @@ const TITLES = [
   "Zoltan trade hub",
 ];
 
-
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -111,7 +110,10 @@ describe("cited zoltan events", () => {
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan Great Eye]]
     assert.equal(wiki.size, TITLES.length);
     const seen = new Set<string>();
-    const src = readFileSync(new URL("./cited-events-zoltan.ts", import.meta.url), "utf8");
+    const src = readFileSync(
+      new URL("../../../../../packages/catalog/src/wiki/cited-events-zoltan.ts", import.meta.url),
+      "utf8",
+    );
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest), ev.dest);
       assert.equal(seen.has(ev.dest), false, ev.dest);

@@ -128,6 +128,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.4.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@stl/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@stl/pack':
         specifier: workspace:*
         version: link:../../packages/pack
@@ -167,9 +170,6 @@ importers:
       date-fns:
         specifier: ^4.0.0
         version: 4.4.0
-      i18next:
-        specifier: ^26.4.4
-        version: 26.4.4(typescript@5.9.3)
       lightningcss:
         specifier: ^1.28.0
         version: 1.33.0
@@ -241,41 +241,23 @@ importers:
         specifier: ^1.62.0
         version: 1.64.0
 
-  apps/wiki:
+  packages/campaign:
     dependencies:
-      '@stl/ui':
+      '@stl/catalog':
         specifier: workspace:*
-        version: link:../../packages/ui
-      '@stl/wiki-dump':
+        version: link:../catalog
+      '@stl/pack':
         specifier: workspace:*
-        version: link:../../packages/wiki-dump
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
+        version: link:../pack
     devDependencies:
       '@types/node':
-        specifier: ^22.20.5
+        specifier: ^22.16.5
         version: 22.20.5
-      '@types/react':
-        specifier: ^19.2.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.2.0
-        version: 19.3.0(@types/react@19.3.0)
-      '@vitejs/plugin-react':
-        specifier: ^5.2.0
-        version: 5.2.0(vite@8.3.4(@types/node@22.20.5)(jiti@2.7.0))
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
-      vite:
-        specifier: ^8.2.0
-        version: 8.3.4(@types/node@22.20.5)(jiti@2.7.0)
 
-  packages/campaign:
+  packages/catalog:
     dependencies:
       '@stl/pack':
         specifier: workspace:*
@@ -318,6 +300,9 @@ importers:
 
   packages/totallynotftl:
     dependencies:
+      '@stl/catalog':
+        specifier: workspace:*
+        version: link:../catalog
       '@stl/ftldat':
         specifier: workspace:*
         version: link:../ftldat
@@ -2235,14 +2220,6 @@ packages:
 
   httpxy@0.5.5:
     resolution: {integrity: sha512-uDjmnPyp1q4Sgzf3w+J/Fc6UqcCEj0x4Wjp7OqK5dGhNeDgpyrAmnS6ey8QWrX3SWDon2DMKf9sBa5X9+CVyMA==}
-
-  i18next@26.4.4:
-    resolution: {integrity: sha512-O+rqmQUi54OwAgnZ4SAwO6aRrbXZt36VZXWt6zvq0FpC3vJbH46oQRs6u4Uwm1vf8ZI7UqOXQiJhQVTor7vRiQ==}
-    peerDependencies:
-      typescript: ^5 || ^6 || ^7
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
@@ -5159,10 +5136,6 @@ snapshots:
   hookable@6.1.2: {}
 
   httpxy@0.5.5: {}
-
-  i18next@26.4.4(typescript@5.9.3):
-    optionalDependencies:
-      typescript: 5.9.3
 
   ignore@5.3.2: {}
 

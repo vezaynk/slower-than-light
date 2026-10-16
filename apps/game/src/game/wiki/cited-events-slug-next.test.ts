@@ -41,7 +41,10 @@ const SECTORS = new Set([
   "The Last Stand",
 ]);
 
-const SRC = new URL("./cited-events-slug-next.ts", import.meta.url);
+const SRC = new URL(
+  "../../../../../packages/catalog/src/wiki/cited-events-slug-next.ts",
+  import.meta.url,
+);
 
 function slug(title: string): string {
   return title

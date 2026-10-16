@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-The game is `@stl/game` (`apps/game`). `pnpm dev` starts it on port 8080. The wiki explorer is a separate app: `pnpm dev:wiki` (port 8090). It does not start the game, and the game does not link to it.
+The game is `@stl/game` (`apps/game`). `pnpm dev` starts it on port 8080.
 
 `pnpm test` runs every package test, including the game suite. `pnpm typecheck` is `tsc --noEmit` in each package.
 

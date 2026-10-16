@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import type { Game, Room, Ship } from "../types.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
@@ -9,7 +8,7 @@ import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";
 
 /** Shown wherever the kit is named. Artillery Beam, "Overview". */
-export const DISPLAY_NAME = tx("extras.lance.artillery-beam");
+export const DISPLAY_NAME = "Artillery Beam";
 
 /**
  * Artillery Beam "Overview": pre-installed, not a store item. "System Upgrades" level 1 cost is "-".
@@ -96,7 +95,7 @@ export function upgradeLance(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, tx("extras.lance.artillery-beam-raised"));
+  log(g, "Artillery Beam raised.");
   return true;
 }
 
@@ -191,7 +190,9 @@ export function cutLine(ship: Ship, origin: string): Room[] {
     const [x, y] = centre(r);
     return (x - from[0]) ** 2 + (y - from[1]) ** 2;
   };
-  return ship.rooms.filter((r) => r === first || r === far || crosses(r, from, to)).sort((a, z) => along(a) - along(z));
+  return ship.rooms
+    .filter((r) => r === first || r === far || crosses(r, from, to))
+    .sort((a, z) => along(a) - along(z));
 }
 
 /**
@@ -244,7 +245,9 @@ function clearArtilleryShot(g: Game): void {
 
 /** Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total. */
 function landCut(g: Game, ship: Ship, ids: string[]): void {
-  const rooms = ids.map((id) => ship.rooms.find((room) => room.id === id)).filter((room): room is Room => !!room);
+  const rooms = ids
+    .map((id) => ship.rooms.find((room) => room.id === id))
+    .filter((room): room is Room => !!room);
   clearArtilleryShot(g);
   if (rooms.length === 0) return;
   // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
@@ -255,7 +258,7 @@ function landCut(g: Game, ship: Ship, ids: string[]): void {
     const shieldNow = ship.shieldNow;
     for (const room of rooms) nick(g, ship, room);
     ship.shieldNow = shieldNow;
-    log(g, tx("extras.lance.cuts", { DISPLAY_NAME: DISPLAY_NAME, name: ship.name }));
+    log(g, `${DISPLAY_NAME} cuts ${ship.name}.`);
   }
 }
 
@@ -333,7 +336,7 @@ export function tickLance(g: Game, dt: number): void {
     kit.aux = Math.max(0, kit.aux - left / 2);
     return;
   }
-  if ((g.paused || !!g.menuHold) || g.phase !== "combat" || !g.enemy) return;
+  if (g.paused || !!g.menuHold || g.phase !== "combat" || !g.enemy) return;
 
   // Beam (Weapons), Artillery Beam: the clock is the filled power level, not the installed level.
   const seconds = chargeSeconds(fed);

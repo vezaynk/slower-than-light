@@ -12,12 +12,17 @@
  * A miss keeps the bolt's inbound speed and flies it through the aim point until it leaves
  * that camera. Beams never miss. Bombs teleport, so a miss stays a puff on the room.
  */
-import { tx } from "@/i18n";
 import { useEffect, useRef } from "react";
 import { halted, shieldChargeFraction } from "@/game/sim";
 import { bubbleRoom, readShipScale, struckPad, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
-import { DRONE_LOOKS, droneKeyOf, dronePixels, weaponPalette, type DroneKey } from "@/game/gear-look";
+import {
+  DRONE_LOOKS,
+  droneKeyOf,
+  dronePixels,
+  weaponPalette,
+  type DroneKey,
+} from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
 import { stepDrift, type DroneDrift } from "@/game/drone-drift";
 import { roomInterior } from "@/game/extras/slug-sight";
@@ -27,7 +32,14 @@ import { enemyHackView, playerHackView } from "@/game/extras/spike";
 import { surgeDroneView } from "@/game/wiki/flagship-systems";
 import { useGame } from "@/game/store";
 import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
-import { flightSpeed, leftCamera, MISS_EXIT_MARGIN, MISS_MAX_AGE, missVelocity, shotFliesPast } from "./miss-flight";
+import {
+  flightSpeed,
+  leftCamera,
+  MISS_EXIT_MARGIN,
+  MISS_MAX_AGE,
+  missVelocity,
+  shotFliesPast,
+} from "./miss-flight";
 import { beamStroke } from "@/game/beam-line";
 import { drawnBeamTiles } from "@/game/pack/beams";
 import "@/game/pack/base";
@@ -68,9 +80,25 @@ type Mark = {
 /** Beam afterimage: the stroke from the last frame it was drawn. */
 type Scorch = { a: Pt; b: Pt; life: number; max: number; color: string };
 /** Short white-hot laser streak along the shot angle. */
-type Streak = { x: number; y: number; ang: number; len: number; life: number; max: number; color: string };
+type Streak = {
+  x: number;
+  y: number;
+  ang: number;
+  len: number;
+  life: number;
+  max: number;
+  color: string;
+};
 /** `side` / `slot`: @agent:flagship floater stagger (simultaneous numbers over one hull take separate slots). */
-type Text = { text: string; x: number; y: number; life: number; color: string; side?: "player" | "enemy"; slot?: number };
+type Text = {
+  text: string;
+  x: number;
+  y: number;
+  life: number;
+  color: string;
+  side?: "player" | "enemy";
+  slot?: number;
+};
 type FxLayer = "world" | "panel" | "over";
 type Seen = {
   at: Pt;
@@ -176,7 +204,16 @@ function entryPoint(origin: Pt, ang: number, rect: Box): Pt {
 }
 
 /** Drones that fly at the enemy. The rest hold station around the player hull. */
-const OUTBOUND = new Set<DroneKey>(["striker", "striker2", "beam", "beam2", "fire", "board", "intruder", "personnel"]);
+const OUTBOUND = new Set<DroneKey>([
+  "striker",
+  "striker2",
+  "beam",
+  "beam2",
+  "fire",
+  "board",
+  "intruder",
+  "personnel",
+]);
 
 /** Enemy schematic ids (Kit.target strings) to drone art keys. */
 const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
@@ -209,13 +246,24 @@ function token(name: string, fallback: string) {
  */
 const HACK_POD = [".h...h.", "..ddd..", ".dhwhd.", "hdwwwdh", ".dhwhd.", "..ddd..", ".h...h."];
 
-function drawHackPod(ctx: CanvasRenderingContext2D, at: Pt, cell: number, teal: string, light: string) {
+function drawHackPod(
+  ctx: CanvasRenderingContext2D,
+  at: Pt,
+  cell: number,
+  teal: string,
+  light: string,
+) {
   const half = (HACK_POD.length * cell) / 2;
   HACK_POD.forEach((row, y) => {
     [...row].forEach((ch, x) => {
       if (ch === ".") return;
       ctx.fillStyle = ch === "h" ? teal : ch === "w" ? light : "#0b2a22";
-      ctx.fillRect(Math.round(at.x - half + x * cell), Math.round(at.y - half + y * cell), cell, cell);
+      ctx.fillRect(
+        Math.round(at.x - half + x * cell),
+        Math.round(at.y - half + y * cell),
+        cell,
+        cell,
+      );
     });
   });
 }
@@ -311,7 +359,14 @@ function droneSprite(key: DroneKey) {
   art.rows.forEach((row, y) => {
     [...row].forEach((ch, x) => {
       if (ch === ".") return;
-      ctx.fillStyle = ch === "b" ? art.palette.body : ch === "t" ? art.palette.trim : ch === "g" ? art.palette.glow : "#14181d";
+      ctx.fillStyle =
+        ch === "b"
+          ? art.palette.body
+          : ch === "t"
+            ? art.palette.trim
+            : ch === "g"
+              ? art.palette.glow
+              : "#14181d";
       ctx.fillRect(x, y, 1, 1);
     });
   });
@@ -386,9 +441,15 @@ export function CombatFx() {
       const box = (el: Element | null): Box | null => {
         if (!el) return null;
         const r = pageRect(el);
-        return { x: (r.left - base.left) / scale, y: (r.top - base.top) / scale, w: r.width / scale, h: r.height / scale };
+        return {
+          x: (r.left - base.left) / scale,
+          y: (r.top - base.top) / scale,
+          w: r.width / scale,
+          h: r.height / scale,
+        };
       };
-      const hull = (side: "player" | "enemy") => box(host.querySelector(`.hull[data-ship="${side}"]`));
+      const hull = (side: "player" | "enemy") =>
+        box(host.querySelector(`.hull[data-ship="${side}"]`));
       const room = (side: "player" | "enemy", id: string) =>
         box(host.querySelector(`.hull[data-ship="${side}"] [data-room="${CSS.escape(id)}"]`));
       // Player beam: the flight follows the two clicks, in the same tile space as the hull grid.
@@ -442,7 +503,10 @@ export function CombatFx() {
           const s = outbound ? foeScale : 1;
           const cx = around.x + around.w / 2;
           const cy = around.y + around.h / 2;
-          const p = { x: cx + Math.cos(a) * (around.w / 2 + 22 * s), y: cy + Math.sin(a) * (around.h / 2 + 18 * s) };
+          const p = {
+            x: cx + Math.cos(a) * (around.w / 2 + 22 * s),
+            y: cy + Math.sin(a) * (around.h / 2 + 18 * s),
+          };
           droneAt.set(key, p);
           const sprite = droneSprite(key);
           const size = 27 * s;
@@ -496,7 +560,11 @@ export function CombatFx() {
             size = 27 * s;
             p = {
               x: a.x + a.w / 2 + (b.x + b.w / 2 - (a.x + a.w / 2)) * k,
-              y: a.y + a.h / 2 + (b.y + b.h / 2 - (a.y + a.h / 2)) * k + Math.sin(k * Math.PI) * -30 * s,
+              y:
+                a.y +
+                a.h / 2 +
+                (b.y + b.h / 2 - (a.y + a.h / 2)) * k +
+                Math.sin(k * Math.PI) * -30 * s,
             };
           }
         } else {
@@ -515,16 +583,32 @@ export function CombatFx() {
         enemyDroneAt.set(unit.id, p);
         const stunned = (unit.stun ?? 0) > 0;
         ctx.globalAlpha = !unit.powered ? 0.4 : stunned ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
-        ctx.drawImage(droneSprite(ekey), Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+        ctx.drawImage(
+          droneSprite(ekey),
+          Math.round(p.x - size / 2),
+          Math.round(p.y - size / 2),
+          size,
+          size,
+        );
         ctx.globalAlpha = 1;
         // Enemy drones carry a red tag pixel pair so they never read as yours.
         ctx.fillStyle = "#ff5a4a";
-        ctx.fillRect(Math.round(p.x - s), Math.round(p.y - size / 2) - 4 * s, Math.max(1, 3 * s), Math.max(1, 2 * s));
+        ctx.fillRect(
+          Math.round(p.x - s),
+          Math.round(p.y - size / 2) - 4 * s,
+          Math.max(1, 3 * s),
+          Math.max(1, 2 * s),
+        );
         if (stunned) {
           ctx.strokeStyle = "#b48cff";
           ctx.lineWidth = 1.5 * s;
           const pad = 2 * s;
-          ctx.strokeRect(Math.round(p.x - size / 2) - pad, Math.round(p.y - size / 2) - pad, size + pad * 2, size + pad * 2);
+          ctx.strokeRect(
+            Math.round(p.x - size / 2) - pad,
+            Math.round(p.y - size / 2) - pad,
+            size + pad * 2,
+            size + pad * 2,
+          );
         }
         // The fire drone's swipe makes no shot; draw it here for its first 0.4 s.
         if (unit.kind === "fire" && unit.room && (unit.fired ?? 99) < 0.4) {
@@ -556,11 +640,22 @@ export function CombatFx() {
         const size = 24;
         // Fade out on the second (last) shot's cooldown, so the exit reads as "disappear".
         ctx.globalAlpha = d.shots >= 1 ? 0.75 : 1;
-        ctx.drawImage(droneSprite(d.kind), Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+        ctx.drawImage(
+          droneSprite(d.kind),
+          Math.round(p.x - size / 2),
+          Math.round(p.y - size / 2),
+          size,
+          size,
+        );
         ctx.globalAlpha = 0.45 + 0.35 * Math.sin(time * 8 + i);
         ctx.strokeStyle = "#ffb43a";
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(Math.round(p.x - size / 2) - 2, Math.round(p.y - size / 2) - 2, size + 4, size + 4);
+        ctx.strokeRect(
+          Math.round(p.x - size / 2) - 2,
+          Math.round(p.y - size / 2) - 2,
+          size + 4,
+          size + 4,
+        );
         ctx.globalAlpha = 1;
         ctx.fillStyle = "#ff5a4a";
         ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - size / 2) - 4, 3, 2);
@@ -578,7 +673,10 @@ export function CombatFx() {
         const from = hull("enemy");
         if (target) {
           // Room centre (a little low, clear of the room title) so the pod and its pulse stay inside the room.
-          const end = { x: target.x + target.w / 2, y: target.y + target.h / 2 + (hack.room ? 6 : 0) };
+          const end = {
+            x: target.x + target.w / 2,
+            y: target.y + target.h / 2 + (hack.room ? 6 : 0),
+          };
           if (hack.phase === "flying" && from) {
             const k = hack.progress;
             const start = { x: from.x, y: from.y + from.h / 2 };
@@ -588,7 +686,16 @@ export function CombatFx() {
             };
             // Thruster trail behind the pod.
             if (live && Math.random() < 0.8) {
-              sparks.push({ x: p.x + 6, y: p.y, vx: 30, vy: (Math.random() - 0.5) * 16, life: 0.4, max: 0.4, color: teal, size: 2 });
+              sparks.push({
+                x: p.x + 6,
+                y: p.y,
+                vx: 30,
+                vy: (Math.random() - 0.5) * 16,
+                life: 0.4,
+                max: 0.4,
+                color: teal,
+                size: 2,
+              });
             }
             drawHackPod(ctx, p, 3, teal, light);
           } else {
@@ -604,7 +711,12 @@ export function CombatFx() {
                 const rw = 6 + ph * (target.w - 10);
                 const rh = 6 + ph * (target.h - 10);
                 ctx.globalAlpha = 0.8 * (1 - ph);
-                ctx.strokeRect(Math.round(end.x - rw / 2), Math.round(end.y - rh / 2), Math.round(rw), Math.round(rh));
+                ctx.strokeRect(
+                  Math.round(end.x - rw / 2),
+                  Math.round(end.y - rh / 2),
+                  Math.round(rw),
+                  Math.round(rh),
+                );
               }
               ctx.globalAlpha = 1;
             } else if (pulse) {
@@ -614,14 +726,22 @@ export function CombatFx() {
               ctx.lineWidth = 2;
               ctx.globalAlpha = 0.7 * (1 - ph);
               ctx.beginPath();
-              ctx.ellipse(end.x, end.y, 12 + ph * (target.w / 2), 12 + ph * (target.h / 2), 0, 0, Math.PI * 2);
+              ctx.ellipse(
+                end.x,
+                end.y,
+                12 + ph * (target.w / 2),
+                12 + ph * (target.h / 2),
+                0,
+                0,
+                Math.PI * 2,
+              );
               ctx.stroke();
               ctx.globalAlpha = 1;
             }
             // Label tag under the pod, VT323 like the floaters.
             ctx.font = "18px VT323, monospace";
             ctx.textAlign = "center";
-            const tag = pulse ? tx("ui.CombatFx.hack-s", { ceil: Math.ceil(hack.left) }) : tx("ui.CombatFx.hack");
+            const tag = pulse ? `HACK ${Math.ceil(hack.left)}s` : "HACK";
             ctx.fillStyle = "#020308";
             ctx.fillText(tag, Math.round(end.x) + 1, Math.round(end.y) + 22);
             ctx.fillStyle = teal;
@@ -651,7 +771,16 @@ export function CombatFx() {
           const held = mine.stunned || mine.power < 1;
           const dir = end.x >= start.x ? -1 : 1;
           if (live && !held && Math.random() < 0.8) {
-            sparks.push({ x: p.x + 6 * dir, y: p.y, vx: 30 * dir, vy: (Math.random() - 0.5) * 16, life: 0.4, max: 0.4, color: ion, size: 2 });
+            sparks.push({
+              x: p.x + 6 * dir,
+              y: p.y,
+              vx: 30 * dir,
+              vy: (Math.random() - 0.5) * 16,
+              life: 0.4,
+              max: 0.4,
+              color: ion,
+              size: 2,
+            });
           }
           ctx.globalAlpha = held ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
           drawHackPod(ctx, p, 3, ion, light);
@@ -690,7 +819,10 @@ export function CombatFx() {
             const cx = target.x + target.w / 2;
             const cy = target.y + target.h / 2;
             const a = Math.atan2(p.y - cy, p.x - cx);
-            const edge = { x: cx + Math.cos(a) * (target.w / 2 + pad), y: cy + Math.sin(a) * (target.h / 2 + pad) };
+            const edge = {
+              x: cx + Math.cos(a) * (target.w / 2 + pad),
+              y: cy + Math.sin(a) * (target.h / 2 + pad),
+            };
             ctx.strokeStyle = green;
             ctx.lineWidth = 4 * scale;
             line(ctx, p, edge);
@@ -698,7 +830,16 @@ export function CombatFx() {
             for (let i = 0; i < 8; i++) {
               const ang = Math.random() * Math.PI * 2;
               const v = 70 * (0.3 + Math.random() * 0.7);
-              sparks.push({ x: edge.x, y: edge.y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, life: 0.5, max: 0.5, color: green, size: 2 });
+              sparks.push({
+                x: edge.x,
+                y: edge.y,
+                vx: Math.cos(ang) * v,
+                vy: Math.sin(ang) * v,
+                life: 0.5,
+                max: 0.5,
+                color: green,
+                size: 2,
+              });
             }
           }
         }
@@ -713,17 +854,23 @@ export function CombatFx() {
           const side = targetSide(shot);
           const target = hull(side);
           if (!target) return null;
-          if (shot.label === "Artillery") return { x: target.x + target.w * (0.2 + 0.6 * hash(shot.id)), y: target.y - 24 };
+          if (shot.label === "Artillery")
+            return { x: target.x + target.w * (0.2 + 0.6 * hash(shot.id)), y: target.y - 24 };
           const right = side === "enemy" && panelBox ? panelBox.x + panelBox.w + 20 : w + 20;
           return { x: right, y: target.y + target.h * hash(shot.id) };
         }
         const side = shot.from;
         if (shot.defId) {
-          const mounts = host.querySelectorAll(`.hull[data-ship="${side}"] [data-def="${CSS.escape(shot.defId)}"]`);
+          const mounts = host.querySelectorAll(
+            `.hull[data-ship="${side}"] [data-def="${CSS.escape(shot.defId)}"]`,
+          );
           if (mounts.length) {
             const m = box(mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length]);
             // Player barrels point right. Enemy barrels in the preview point up.
-            if (m) return side === "player" ? { x: m.x + m.w, y: m.y + m.h / 2 } : { x: m.x + m.w / 2, y: m.y };
+            if (m)
+              return side === "player"
+                ? { x: m.x + m.w, y: m.y + m.h / 2 }
+                : { x: m.x + m.w / 2, y: m.y };
           }
         } else if (shot.label?.startsWith(DRONE_LABEL)) {
           // Enemy drone shots leave from that drone.
@@ -735,7 +882,9 @@ export function CombatFx() {
         }
         const own = hull(side);
         if (!own) return null;
-        return side === "player" ? { x: own.x + own.w, y: own.y + own.h / 2 } : { x: own.x + own.w / 2, y: own.y };
+        return side === "player"
+          ? { x: own.x + own.w, y: own.y + own.h / 2 }
+          : { x: own.x + own.w / 2, y: own.y };
       };
 
       const aimAt = (shot: Shot, roomId: string): Pt | null => {
@@ -750,7 +899,17 @@ export function CombatFx() {
         for (let i = 0; i < count; i++) {
           const a = Math.random() * Math.PI * 2;
           const v = speed * (0.3 + Math.random() * 0.7);
-          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.5, max: 0.5, color, size: Math.random() < 0.3 ? 3 : 2, layer });
+          sparks.push({
+            x: at.x,
+            y: at.y,
+            vx: Math.cos(a) * v,
+            vy: Math.sin(a) * v,
+            life: 0.5,
+            max: 0.5,
+            color,
+            size: Math.random() < 0.3 ? 3 : 2,
+            layer,
+          });
         }
       };
 
@@ -810,7 +969,9 @@ export function CombatFx() {
             a = pts[0] ?? null;
             b = pts[pts.length - 1] ?? a;
           }
-          const tileDist = lineEnds ? Math.hypot(lineEnds.b.x - lineEnds.a.x, lineEnds.b.y - lineEnds.a.y) : 0;
+          const tileDist = lineEnds
+            ? Math.hypot(lineEnds.b.x - lineEnds.a.x, lineEnds.b.y - lineEnds.a.y)
+            : 0;
           // A one-room swipe has no second point. Cross that room so the long stroke still has a direction.
           if (a && b && !(tileDist > 0.05) && Math.hypot(b.x - a.x, b.y - a.y) < 1) {
             const r = room(side, shot.targetRoom);
@@ -821,11 +982,14 @@ export function CombatFx() {
           }
           if (a && b) {
             const hullEl = host.querySelector(`.hull[data-ship="${side}"]`);
-            const tile = hullEl ? parseFloat(getComputedStyle(hullEl).getPropertyValue("--tile")) || 0 : 0;
+            const tile = hullEl
+              ? parseFloat(getComputedStyle(hullEl).getPropertyValue("--tile")) || 0
+              : 0;
             const screenSpan = Math.hypot(b.x - a.x, b.y - a.y);
             const pxPerTile = tileDist > 0.05 ? screenSpan / tileDist : tile;
             const body = drawnBeamTiles(shot.defId);
-            const lengthPx = body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
+            const lengthPx =
+              body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
             const stroke = beamStroke(a, b, t, lengthPx);
             const beamLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";
             const ang = Math.atan2(stroke.head.y - stroke.tail.y, stroke.head.x - stroke.tail.x);
@@ -887,7 +1051,12 @@ export function CombatFx() {
           const bounds =
             shot.from === "player"
               ? panelBox
-              : { x: -OFFSCREEN_PX, y: -OFFSCREEN_PX, w: w + OFFSCREEN_PX * 2, h: h + OFFSCREEN_PX * 2 };
+              : {
+                  x: -OFFSCREEN_PX,
+                  y: -OFFSCREEN_PX,
+                  w: w + OFFSCREEN_PX * 2,
+                  h: h + OFFSCREEN_PX * 2,
+                };
           const entry = entryPoint(to, approach, bounds);
           x = entry.x + (to.x - entry.x) * leg;
           y = entry.y + (to.y - entry.y) * leg;
@@ -907,7 +1076,12 @@ export function CombatFx() {
           const bounds =
             shot.from === "player"
               ? panelBox
-              : { x: -OFFSCREEN_PX, y: -OFFSCREEN_PX, w: w + OFFSCREEN_PX * 2, h: h + OFFSCREEN_PX * 2 };
+              : {
+                  x: -OFFSCREEN_PX,
+                  y: -OFFSCREEN_PX,
+                  w: w + OFFSCREEN_PX * 2,
+                  h: h + OFFSCREEN_PX * 2,
+                };
           aimFrom = entryPoint(to, approach, bounds);
           approachAng = Math.atan2(to.y - aimFrom.y, to.x - aimFrom.x);
           aimSeconds = shot.duration / 2;
@@ -965,10 +1139,20 @@ export function CombatFx() {
             c.strokeStyle = color;
             c.lineWidth = 2 * bombScale;
             c.globalAlpha = 0.4 + 0.6 * t;
-            c.strokeRect(Math.round(to.x - r), Math.round(to.y - r), Math.round(r * 2), Math.round(r * 2));
+            c.strokeRect(
+              Math.round(to.x - r),
+              Math.round(to.y - r),
+              Math.round(r * 2),
+              Math.round(r * 2),
+            );
             c.globalAlpha = 1;
             c.fillStyle = color;
-            c.fillRect(Math.round(to.x) - 2 * bombScale, Math.round(to.y) - 2 * bombScale, 4 * bombScale, 4 * bombScale);
+            c.fillRect(
+              Math.round(to.x) - 2 * bombScale,
+              Math.round(to.y) - 2 * bombScale,
+              4 * bombScale,
+              4 * bombScale,
+            );
           });
           continue;
         }
@@ -1021,7 +1205,10 @@ export function CombatFx() {
         while (q.length > n) {
           const hits = q.filter((c) => c.text === "HIT").length;
           if (hits <= 1) break;
-          q.splice(q.findIndex((c) => c.text === "HIT"), 1);
+          q.splice(
+            q.findIndex((c) => c.text === "HIT"),
+            1,
+          );
         }
         queues[side] = q;
       }
@@ -1029,15 +1216,42 @@ export function CombatFx() {
         for (let i = 0; i < 4; i++) {
           const a = Math.random() * Math.PI * 2;
           const v = 24 * (0.45 + Math.random());
-          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.18, max: 0.18, color: "#ffffff", size: 2 });
+          sparks.push({
+            x: at.x,
+            y: at.y,
+            vx: Math.cos(a) * v,
+            vy: Math.sin(a) * v,
+            life: 0.18,
+            max: 0.18,
+            color: "#ffffff",
+            size: 2,
+          });
         }
       };
       const shieldSpark = (at: Pt) => {
-        sparks.push({ x: at.x, y: at.y, vx: 0, vy: 0, life: 0.16, max: 0.16, color: "#ffffff", size: 2 });
+        sparks.push({
+          x: at.x,
+          y: at.y,
+          vx: 0,
+          vy: 0,
+          life: 0.16,
+          max: 0.16,
+          color: "#ffffff",
+          size: 2,
+        });
         for (let i = 0; i < 3; i++) {
           const a = Math.random() * Math.PI * 2;
           const v = 34 * (0.4 + Math.random());
-          sparks.push({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.22, max: 0.22, color: "#6cc4ff", size: 2 });
+          sparks.push({
+            x: at.x,
+            y: at.y,
+            vx: Math.cos(a) * v,
+            vy: Math.sin(a) * v,
+            life: 0.22,
+            max: 0.22,
+            color: "#6cc4ff",
+            size: 2,
+          });
         }
       };
       const kindImpact = (s: Seen) => {
@@ -1057,11 +1271,28 @@ export function CombatFx() {
               drag: 0.9,
             });
           }
-          marks.push({ x: s.at.x, y: s.at.y, w: 6, h: 6, life: 0.2, max: 0.2, color: "#c4b8a4", fill: true });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 6,
+            h: 6,
+            life: 0.2,
+            max: 0.2,
+            color: "#c4b8a4",
+            fill: true,
+          });
           return;
         }
         if (s.kind === "laser") {
-          streaks.push({ x: s.at.x, y: s.at.y, ang: s.ang, len: 16, life: 0.16, max: 0.16, color: s.color });
+          streaks.push({
+            x: s.at.x,
+            y: s.at.y,
+            ang: s.ang,
+            len: 16,
+            life: 0.16,
+            max: 0.16,
+            color: s.color,
+          });
           for (let i = 0; i < 6; i++) {
             const a = s.ang + (Math.random() - 0.5) * 0.85;
             const v = 78 * (0.35 + Math.random() * 0.9);
@@ -1076,14 +1307,54 @@ export function CombatFx() {
               size: 2,
             });
           }
-          marks.push({ x: s.at.x, y: s.at.y, w: 8, h: 8, life: 0.22, max: 0.22, color: "#ffffff", fill: false, grow: 22, ring: true });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 8,
+            h: 8,
+            life: 0.22,
+            max: 0.22,
+            color: "#ffffff",
+            fill: false,
+            grow: 22,
+            ring: true,
+          });
           return;
         }
         if (s.kind === "ion") {
           const blue = token("--color-ion", "#8ecbff");
-          marks.push({ x: s.at.x, y: s.at.y, w: 14, h: 14, life: 0.14, max: 0.14, color: blue, fill: true });
-          marks.push({ x: s.at.x, y: s.at.y, w: 4, h: 4, life: 0.14, max: 0.14, color: "#ffffff", fill: true });
-          marks.push({ x: s.at.x, y: s.at.y, w: 12, h: 12, life: 0.4, max: 0.4, color: blue, fill: false, grow: 78, width: 2 });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 14,
+            h: 14,
+            life: 0.14,
+            max: 0.14,
+            color: blue,
+            fill: true,
+          });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 4,
+            h: 4,
+            life: 0.14,
+            max: 0.14,
+            color: "#ffffff",
+            fill: true,
+          });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 12,
+            h: 12,
+            life: 0.4,
+            max: 0.4,
+            color: blue,
+            fill: false,
+            grow: 78,
+            width: 2,
+          });
           for (let i = 0; i < 5; i++) {
             const a = (i / 5) * Math.PI * 2;
             const v = 110 * (0.45 + Math.random() * 0.7);
@@ -1102,9 +1373,38 @@ export function CombatFx() {
           return;
         }
         if (s.kind === "missile") {
-          marks.push({ x: s.at.x, y: s.at.y, w: 18, h: 18, life: 0.7, max: 0.7, color: "#ff6a1a", fill: true, grow: 16 });
-          marks.push({ x: s.at.x, y: s.at.y, w: 10, h: 10, life: 0.7, max: 0.7, color: "#ffc14a", fill: true, grow: 6 });
-          marks.push({ x: s.at.x, y: s.at.y, w: 4, h: 4, life: 0.35, max: 0.35, color: "#fff6e0", fill: true });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 18,
+            h: 18,
+            life: 0.7,
+            max: 0.7,
+            color: "#ff6a1a",
+            fill: true,
+            grow: 16,
+          });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 10,
+            h: 10,
+            life: 0.7,
+            max: 0.7,
+            color: "#ffc14a",
+            fill: true,
+            grow: 6,
+          });
+          marks.push({
+            x: s.at.x,
+            y: s.at.y,
+            w: 4,
+            h: 4,
+            life: 0.35,
+            max: 0.35,
+            color: "#fff6e0",
+            fill: true,
+          });
           for (let i = 0; i < 7; i++) {
             sparks.push({
               x: s.at.x + (Math.random() - 0.5) * 8,
@@ -1123,9 +1423,19 @@ export function CombatFx() {
         }
         if (s.kind === "bomb") {
           const box = room(s.side, s.roomId);
-          const rect = box && box.w > 2 && box.h > 2 ? box : { x: s.at.x - 18, y: s.at.y - 18, w: 36, h: 36 };
+          const rect =
+            box && box.w > 2 && box.h > 2 ? box : { x: s.at.x - 18, y: s.at.y - 18, w: 36, h: 36 };
           const at = { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
-          marks.push({ x: at.x, y: at.y, w: rect.w, h: rect.h, life: 0.26, max: 0.26, color: "#fff1c9", fill: true });
+          marks.push({
+            x: at.x,
+            y: at.y,
+            w: rect.w,
+            h: rect.h,
+            life: 0.26,
+            max: 0.26,
+            color: "#fff1c9",
+            fill: true,
+          });
           burst(at, s.color, 18, 120);
           burst(at, "#ffffff", 4, 50);
           return;
@@ -1164,7 +1474,9 @@ export function CombatFx() {
         if (claim?.text === "MISS") {
           // The dodge is already resolved. The bolt keeps flying through the room and out of the camera.
           const start = s.onArrival ? s.at : s.aim;
-          const vel = shotFliesPast(s.kind) ? missVelocity(start, s.aim, s.approachAng, s.speed) : null;
+          const vel = shotFliesPast(s.kind)
+            ? missVelocity(start, s.aim, s.approachAng, s.speed)
+            : null;
           if (vel) {
             flybys.push({
               x: start.x,
@@ -1207,7 +1519,10 @@ export function CombatFx() {
           f.age += dt;
         }
         const bounds = f.layer === "panel" && panelBox ? panelBox : { x: 0, y: 0, w, h };
-        if (!f.fresh && (f.age > MISS_MAX_AGE || leftCamera({ x: f.x, y: f.y }, bounds, MISS_EXIT_MARGIN))) {
+        if (
+          !f.fresh &&
+          (f.age > MISS_MAX_AGE || leftCamera({ x: f.x, y: f.y }, bounds, MISS_EXIT_MARGIN))
+        ) {
           flybys.splice(i, 1);
           continue;
         }
@@ -1215,7 +1530,16 @@ export function CombatFx() {
         drawOn(f.layer, (c) => {
           c.save();
           c.translate(Math.round(f.x), Math.round(f.y));
-          paintBolt(c, f.kind, f.color, f.ang, tumble, f.rock, f.spin, f.rock && f.layer === "panel" ? foeScale : 1);
+          paintBolt(
+            c,
+            f.kind,
+            f.color,
+            f.ang,
+            tumble,
+            f.rock,
+            f.spin,
+            f.rock && f.layer === "panel" ? foeScale : 1,
+          );
           c.restore();
         });
         if (live && f.rock && Math.random() < 0.65) {
@@ -1259,14 +1583,21 @@ export function CombatFx() {
           const hullNode = host.querySelector(`.hull[data-ship="${side}"]`);
           const scale = readShipScale(hullNode);
           const pad = ship
-            ? struckPad(bubbleRoom(hullNode, target, box), ship.shieldNow, (ship.zoltan ?? 0) > 0, scale)
+            ? struckPad(
+                bubbleRoom(hullNode, target, box),
+                ship.shieldNow,
+                (ship.zoltan ?? 0) > 0,
+                scale,
+              )
             : 16 * scale;
           rings.push({ box: target, life: 0.45, pad, scale });
         }
         // @agent:flagship. Stagger: a volley lands several numbers at once (the 7-laser surge printed "MMISS -11 -1").
         // Each new number takes the lowest slot not held by a still-fresh number over the same hull: three columns
         // 58 px apart, then rows 24 px higher.
-        const busy = new Set(texts.filter((x) => x.side === side && x.life > 0.35).map((x) => x.slot));
+        const busy = new Set(
+          texts.filter((x) => x.side === side && x.life > 0.35).map((x) => x.slot),
+        );
         let slot = 0;
         while (busy.has(slot)) slot += 1;
         const col = [0, -1, 1][slot % 3];
@@ -1281,7 +1612,8 @@ export function CombatFx() {
           slot,
         });
       }
-      if (seenFloaters.size > 64) for (const id of [...seenFloaters].slice(0, 32)) seenFloaters.delete(id);
+      if (seenFloaters.size > 64)
+        for (const id of [...seenFloaters].slice(0, 32)) seenFloaters.delete(id);
 
       // Drone hits. g.droneBlasts has no id; one burst the first time a key shows up.
       // Age already past 0.15 means a reload, not a hit this moment, so it does not replay.
@@ -1311,12 +1643,31 @@ export function CombatFx() {
         }
         if (!at) continue;
         if (b.result === "ion") {
-          marks.push({ x: at.x, y: at.y, w: 10, h: 10, life: 0.18, max: 0.18, color: token("--color-ion", "#8ecbff"), fill: true });
+          marks.push({
+            x: at.x,
+            y: at.y,
+            w: 10,
+            h: 10,
+            life: 0.18,
+            max: 0.18,
+            color: token("--color-ion", "#8ecbff"),
+            fill: true,
+          });
           continue;
         }
         burst(at, "#ff7a22", 18, 120);
         burst(at, "#ffffff", 4, 50);
-        marks.push({ x: at.x, y: at.y, w: 16, h: 16, life: 0.35, max: 0.35, color: "#ff7a22", fill: true, grow: 28 });
+        marks.push({
+          x: at.x,
+          y: at.y,
+          w: 16,
+          h: 16,
+          life: 0.35,
+          max: 0.35,
+          color: "#ff7a22",
+          fill: true,
+          grow: 28,
+        });
       }
       for (const key of seenBlast) if (!liveBlasts.has(key)) seenBlast.delete(key);
 
@@ -1360,7 +1711,12 @@ export function CombatFx() {
           ctx.fillStyle = m.color;
           for (let n = 0; n < 8; n++) {
             const a = (n / 8) * Math.PI * 2;
-            ctx.fillRect(Math.round(m.x + Math.cos(a) * r) - 1, Math.round(m.y + Math.sin(a) * r) - 1, 2, 2);
+            ctx.fillRect(
+              Math.round(m.x + Math.cos(a) * r) - 1,
+              Math.round(m.y + Math.sin(a) * r) - 1,
+              2,
+              2,
+            );
           }
           continue;
         }
@@ -1437,7 +1793,15 @@ export function CombatFx() {
         ctx.strokeStyle = r.color ?? "#6cc4ff";
         ctx.lineWidth = 4 * (r.scale ?? 1);
         ctx.beginPath();
-        ctx.ellipse(r.box.x + r.box.w / 2, r.box.y + r.box.h / 2, r.box.w / 2 + r.pad, r.box.h / 2 + r.pad, 0, 0, Math.PI * 2);
+        ctx.ellipse(
+          r.box.x + r.box.w / 2,
+          r.box.y + r.box.h / 2,
+          r.box.w / 2 + r.pad,
+          r.box.h / 2 + r.pad,
+          0,
+          0,
+          Math.PI * 2,
+        );
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
@@ -1481,4 +1845,3 @@ function line(ctx: CanvasRenderingContext2D, a: Pt, b: Pt) {
   ctx.lineTo(Math.round(b.x), Math.round(b.y));
   ctx.stroke();
 }
-

@@ -4,7 +4,6 @@
  * Earned ids are kept in localStorage. Two lines stay untracked: slug vision of every room, and four blue events.
  * Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
-import { tx } from "../../i18n/index.ts";
 import { HULLS } from "../hulls.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
 import type { Difficulty, Game } from "../types.ts";
@@ -87,7 +86,7 @@ function flying(g: Game, cruiser: string) {
  * Cruiser simultaneously." Page "The United Federation": "One human does count toward this achievement."
  */
 function unitedFederation(g: Game): boolean {
-  if (!flying(g, tx("wiki.achievement-track.kestrel-cruiser"))) return false;
+  if (!flying(g, "Kestrel Cruiser")) return false;
   return new Set(g.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.kin)).size >= 6;
 }
 
@@ -96,7 +95,7 @@ function unitedFederation(g: Game): boolean {
  * systems" and "subsystems" are not distinguished. INFERRED: every system level above 0 and every kit fitted counts.
  */
 function fullArsenal(g: Game): boolean {
-  if (!flying(g, tx("wiki.achievement-track.kestrel-cruiser"))) return false;
+  if (!flying(g, "Kestrel Cruiser")) return false;
   const systems = Object.values(g.player.systems).filter((s) => s.level > 0).length;
   const kits = Object.values(g.player.kits).filter((k) => k && k.level > 0).length;
   return systems + kits >= 11;
@@ -107,7 +106,7 @@ function fullArsenal(g: Game): boolean {
  * time." INFERRED: the power fields of systems and kits; a Zoltan's own bar is counted only where the sim stores it there.
  */
 function givinHerAll(g: Game): boolean {
-  if (!flying(g, tx("wiki.achievement-track.zoltan-cruiser"))) return false;
+  if (!flying(g, "Zoltan Cruiser")) return false;
   const sys = Object.values(g.player.systems).reduce((n, s) => n + s.power, 0);
   const kits = Object.values(g.player.kits).reduce((n, k) => n + (k?.power ?? 0), 0);
   return sys + kits >= 29;
@@ -123,7 +122,7 @@ export function noteReactorEvent(g: Game): void {
 }
 
 function manpower(g: Game): boolean {
-  const hull = flying(g, tx("wiki.achievement-track.zoltan-cruiser"));
+  const hull = flying(g, "Zoltan Cruiser");
   if (!hull || g.sector < 5) return false;
   return g.player.reactor - (g.reactorEvent ?? 0) <= hull.reactor;
 }
@@ -133,14 +132,14 @@ function manpower(g: Game): boolean {
  * system." INFERRED: weapons level at or below the layout's start level.
  */
 function artilleryMastery(g: Game): boolean {
-  const hull = flying(g, tx("wiki.achievement-track.federation-cruiser"));
+  const hull = flying(g, "Federation Cruiser");
   const start = hull?.systems.weapons?.[0] ?? 0;
   return !!hull && g.sector >= 5 && g.player.systems.weapons.level <= start;
 }
 
 /** @agent:unlocks. "Ancestry" — "Find the secret sector with the Rock Cruiser." Sectors: "Hidden Crystal Worlds". */
 function ancestry(g: Game): boolean {
-  return !!flying(g, tx("wiki.achievement-track.rock-cruiser")) && g.sectorName === "Hidden Crystal Worlds";
+  return !!flying(g, "Rock Cruiser") && g.sectorName === "Hidden Crystal Worlds";
 }
 
 function flag(g: Game, key: keyof NonNullable<Game["tally"]>): boolean {
@@ -169,7 +168,11 @@ const RULES: Rule[] = [
   { id: "rule-ten-greed-is-eternal", met: (g) => lifetimeOf(g).scrap >= 10000 },
   { id: "warlord", met: (g) => lifetimeOf(g).kills >= 1000 },
   // Achievements, Going the Distance. An absent tally flag means that action has not happened.
-  { id: "coming-in-for-my-pacifism-run", met: (g) => g.sector >= 5 && !flag(g, "shot") && !flag(g, "offensiveDrone") && !flag(g, "teleported") },
+  {
+    id: "coming-in-for-my-pacifism-run",
+    met: (g) =>
+      g.sector >= 5 && !flag(g, "shot") && !flag(g, "offensiveDrone") && !flag(g, "teleported"),
+  },
   { id: "i-dont-need-no-stinkin-upgrades", met: (g) => g.sector >= 5 && !flag(g, "upgraded") },
   { id: "on-a-wing-and-a-prayer", met: (g) => g.sector >= 5 && !flag(g, "storeRepair") },
   { id: "ballistophobia", met: (g) => g.sector >= 8 && !flag(g, "missileOrBomb") },
@@ -185,27 +188,52 @@ const RULES: Rule[] = [
   { id: "slice-and-dice", met: (g) => flag(g, "sliced") },
   { id: "victory-through-asphyxiation", met: (g) => flag(g, "asphyxia") },
   // Ship Achievements. The cruiser check is the same one the earlier rules use.
-  { id: "tough-little-ship", met: (g) => !!flying(g, tx("wiki.achievement-track.kestrel-cruiser")) && flag(g, "fromOne") },
-  { id: "bird-of-prey", met: (g) => !!flying(g, tx("wiki.achievement-track.stealth-cruiser")) && flag(g, "bird") },
-  { id: "phase-shift", met: (g) => !!flying(g, tx("wiki.achievement-track.stealth-cruiser")) && flag(g, "phaseShift") },
-  { id: "tactical-approach", met: (g) => !!flying(g, tx("wiki.achievement-track.stealth-cruiser")) && flag(g, "reachedClean") },
-  { id: "take-no-prisoners", met: (g) => !!flying(g, tx("wiki.achievement-track.mantis-cruiser")) && atLeast(g, "crewKillShips", 20) },
-  { id: "avast-ye-scurvy-dogs", met: (g) => !!flying(g, tx("wiki.achievement-track.mantis-cruiser")) && flag(g, "avast") },
-  { id: "battle-royale", met: (g) => !!flying(g, tx("wiki.achievement-track.mantis-cruiser")) && flag(g, "lastStand") },
-  { id: "robotic-warfare", met: (g) => !!flying(g, tx("wiki.achievement-track.engi-cruiser")) && atLeast(g, "dronePeak", 3) },
-  { id: "i-hardly-lifted-a-finger", met: (g) => !!flying(g, tx("wiki.achievement-track.engi-cruiser")) && flag(g, "droneOnly") },
-  { id: "the-guns-theyve-stopped", met: (g) => !!flying(g, tx("wiki.achievement-track.engi-cruiser")) && flag(g, "ionFour") },
-  { id: "master-of-patience", met: (g) => !!flying(g, tx("wiki.achievement-track.federation-cruiser")) && flag(g, "artilleryKill") },
-  { id: "home-sweet-home", met: (g) => !!flying(g, tx("wiki.achievement-track.slug-cruiser")) && g.sector < 8 && atLeast(g, "nebulaJumps", 30) },
-  { id: "disintegration-ray", met: (g) => !!flying(g, tx("wiki.achievement-track.slug-cruiser")) && atLeast(g, "antiBio", 3) },
-  { id: "is-it-warm-in-here", met: (g) => !!flying(g, tx("wiki.achievement-track.rock-cruiser")) && flag(g, "warmKill") },
-  { id: "defense-drones-dont-do-danything", met: (g) => !!flying(g, tx("wiki.achievement-track.rock-cruiser")) && flag(g, "missileDefense") },
-  { id: "shields-holding", met: (g) => !!flying(g, tx("wiki.achievement-track.zoltan-cruiser")) && flag(g, "shieldsHeld") },
-  { id: "sweet-revenge", met: (g) => !!flying(g, tx("wiki.achievement-track.crystal-cruiser")) && flag(g, "vengeance") },
-  { id: "no-escape", met: (g) => !!flying(g, tx("wiki.achievement-track.crystal-cruiser")) && flag(g, "trapped") },
-  { id: "clash-of-the-titans", met: (g) => !!flying(g, tx("wiki.achievement-track.crystal-cruiser")) && atLeast(g, "rockKills", 10) },
-  { id: "advanced-mastery", met: (g) => !!flying(g, tx("wiki.achievement-track.lanius-cruiser")) && flag(g, "mastery") },
-  { id: "loss-of-cabin-pressure", met: (g) => !!flying(g, tx("wiki.achievement-track.lanius-cruiser")) && g.sector >= 8 && (g.jumps ?? 0) > 0 && !flag(g, "o2Broke") },
+  { id: "tough-little-ship", met: (g) => !!flying(g, "Kestrel Cruiser") && flag(g, "fromOne") },
+  { id: "bird-of-prey", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "bird") },
+  { id: "phase-shift", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "phaseShift") },
+  {
+    id: "tactical-approach",
+    met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "reachedClean"),
+  },
+  {
+    id: "take-no-prisoners",
+    met: (g) => !!flying(g, "Mantis Cruiser") && atLeast(g, "crewKillShips", 20),
+  },
+  { id: "avast-ye-scurvy-dogs", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "avast") },
+  { id: "battle-royale", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "lastStand") },
+  { id: "robotic-warfare", met: (g) => !!flying(g, "Engi Cruiser") && atLeast(g, "dronePeak", 3) },
+  {
+    id: "i-hardly-lifted-a-finger",
+    met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "droneOnly"),
+  },
+  { id: "the-guns-theyve-stopped", met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "ionFour") },
+  {
+    id: "master-of-patience",
+    met: (g) => !!flying(g, "Federation Cruiser") && flag(g, "artilleryKill"),
+  },
+  {
+    id: "home-sweet-home",
+    met: (g) => !!flying(g, "Slug Cruiser") && g.sector < 8 && atLeast(g, "nebulaJumps", 30),
+  },
+  { id: "disintegration-ray", met: (g) => !!flying(g, "Slug Cruiser") && atLeast(g, "antiBio", 3) },
+  { id: "is-it-warm-in-here", met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "warmKill") },
+  {
+    id: "defense-drones-dont-do-danything",
+    met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "missileDefense"),
+  },
+  { id: "shields-holding", met: (g) => !!flying(g, "Zoltan Cruiser") && flag(g, "shieldsHeld") },
+  { id: "sweet-revenge", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "vengeance") },
+  { id: "no-escape", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "trapped") },
+  {
+    id: "clash-of-the-titans",
+    met: (g) => !!flying(g, "Crystal Cruiser") && atLeast(g, "rockKills", 10),
+  },
+  { id: "advanced-mastery", met: (g) => !!flying(g, "Lanius Cruiser") && flag(g, "mastery") },
+  {
+    id: "loss-of-cabin-pressure",
+    met: (g) =>
+      !!flying(g, "Lanius Cruiser") && g.sector >= 8 && (g.jumps ?? 0) > 0 && !flag(g, "o2Broke"),
+  },
 ];
 
 /**

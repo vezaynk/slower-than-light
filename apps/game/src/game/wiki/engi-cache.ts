@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import type { Game } from "../types.ts";
 
 /**
@@ -15,24 +14,24 @@ const SECTORS = new Set(["Engi Controlled Sector", "Engi Homeworlds"]);
 export function stampEngiCache(g: Game) {
   if (!SECTORS.has(g.sectorName)) return;
   if (g.beacons.some((b) => b.flag === "engi-cache")) return;
-  const pool = g.beacons.filter((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store");
+  const pool = g.beacons.filter(
+    (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",
+  );
   const spot = pool.find((b) => b.kind === "cache") ?? pool[0];
   if (!spot) return;
   spot.flag = "engi-cache";
   spot.kind = "event";
   spot.asteroid = false;
-  spot.name = tx("wiki.engi-cache.engi-cache");
+  spot.name = "Engi cache";
 }
 
 export function engiCacheEvent(): NonNullable<Game["event"]> {
   return {
-    title: tx("wiki.engi-cache.engi-cache"),
-    body: tx("wiki.engi-cache.you-notice-an-engi-colony-hiding"),
+    title: "Engi cache",
+    body: "You notice an Engi colony hiding on the other side of a nearby moon. It turns out they're excavating an equipment cache from the Federation-Mantis War, and they suggest it might be used to lure the pursuing rebel fleet.",
     choices: [
-      { id: "engi-cache-trap", label: tx("wiki.engi-cache.booby-trap-the-cache") },
-      { id: "engi-cache-secure", label: tx("wiki.engi-cache.secure-the-cache") },
+      { id: "engi-cache-trap", label: "Booby trap the cache." },
+      { id: "engi-cache-secure", label: "Secure the cache." },
     ],
   };
 }
-
-

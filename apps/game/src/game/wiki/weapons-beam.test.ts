@@ -3,7 +3,18 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { ARTILLERY_BEAM_PX, BEAM_CREW, BEAM_GAPS, BEAM_SPEED, BEAM_TILES, BEAM_WEAPONS, artillerySwipeSeconds, beamBodyTiles, beamSwipeSeconds, beamTileLength } from "./weapons-beam.ts";
+import {
+  ARTILLERY_BEAM_PX,
+  BEAM_CREW,
+  BEAM_GAPS,
+  BEAM_SPEED,
+  BEAM_TILES,
+  BEAM_WEAPONS,
+  artillerySwipeSeconds,
+  beamBodyTiles,
+  beamSwipeSeconds,
+  beamTileLength,
+} from "./weapons-beam.ts";
 
 function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
   return {
@@ -43,7 +54,10 @@ function gap(id: string): string {
     .join("\n");
 }
 
-const src = readFileSync(new URL("./weapons-beam.ts", import.meta.url), "utf8");
+const src = readFileSync(
+  new URL("../../../../../packages/catalog/src/wiki/weapons-beam.ts", import.meta.url),
+  "utf8",
+);
 
 describe("beam weapons", () => {
   it("emits the slotted rows and not Artillery Beam or Boss Beam", () => {
@@ -96,7 +110,10 @@ describe("beam weapons", () => {
     assert.equal(byId.pike.damage, 1);
     assert.equal(byId.pike.fire, 0);
     assert.equal(byId.pike.price, 55);
-    assert.equal(byId.pike.blurb, "Can cut across entire ships, assuming there's no shield to stop it.");
+    assert.equal(
+      byId.pike.blurb,
+      "Can cut across entire ships, assuming there's no shield to stop it.",
+    );
 
     assert.equal(byId.hullbeam.power, 2);
     assert.equal(byId.hullbeam.charge, 14);
@@ -130,7 +147,10 @@ describe("beam weapons", () => {
     assert.equal(byId.firebeam.damage, 0);
     assert.equal(byId.firebeam.fire, 0.8);
     assert.equal(byId.firebeam.price, 50);
-    assert.equal(byId.firebeam.blurb, "This terrifying beam does no physical damage but ignites fires.");
+    assert.equal(
+      byId.firebeam.blurb,
+      "This terrifying beam does no physical damage but ignites fires.",
+    );
 
     assert.equal(byId.antibio.power, 2);
     assert.equal(byId.antibio.charge, 16);
@@ -260,8 +280,15 @@ describe("beam weapons", () => {
       g.player.systems.shields.power = layers * 2;
       g.player.shieldNow = layers;
       const hull = g.player.hull;
-      applyImpact(g, beamShot({ damage: 3, defId: "glaive", beamRooms: ["p-weapons"], targetRoom: "p-weapons" }));
-      return { shields: g.player.shieldNow, system: systemDamage(g, "p-weapons"), hull: hull - g.player.hull };
+      applyImpact(
+        g,
+        beamShot({ damage: 3, defId: "glaive", beamRooms: ["p-weapons"], targetRoom: "p-weapons" }),
+      );
+      return {
+        shields: g.player.shieldNow,
+        system: systemDamage(g, "p-weapons"),
+        hull: hull - g.player.hull,
+      };
     }
     const one = hit(1);
     assert.equal(one.shields, 1);
@@ -413,14 +440,20 @@ describe("beam weapons", () => {
     // Beam Drone 1 and Fire Drone have no second tick. The first tick breaks a 1-point bubble at 33%.
     const drone = quiet();
     drone.player.zoltan = 1;
-    applyImpact(drone, beamShot({ damage: 1, defId: "beam", label: "drone:beam1", beamRooms: path }));
+    applyImpact(
+      drone,
+      beamShot({ damage: 1, defId: "beam", label: "drone:beam1", beamRooms: path }),
+    );
     assert.equal(drone.player.zoltan, 0);
     assert.equal(systemDamage(drone, "p-engines"), 0);
     assert.equal(systemDamage(drone, "p-shields"), 1);
 
     const flame = quiet();
     flame.player.zoltan = 4;
-    applyImpact(flame, beamShot({ damage: 1, defId: "fire", fireChance: 0.9, label: "drone:fire", beamRooms: path }));
+    applyImpact(
+      flame,
+      beamShot({ damage: 1, defId: "fire", fireChance: 0.9, label: "drone:fire", beamRooms: path }),
+    );
     assert.equal(flame.player.zoltan, 3);
     assert.equal(flame.player.hull, hull);
   });
@@ -436,7 +469,16 @@ describe("beam weapons", () => {
     ship.systems.engines.damage = 0;
     ship.systems.pilot.level = Math.max(1, ship.systems.pilot.level);
     ship.systems.pilot.damage = 0;
-    ship.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    ship.kits.veil = {
+      id: "veil",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const engines = ship.rooms.find((r) => r.system === "engines");
     const pilot = ship.rooms.find((r) => r.system === "pilot");
     const crew = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0);
@@ -456,7 +498,13 @@ describe("beam weapons", () => {
     const before = ship.hull;
     applyImpact(
       g,
-      beamShot({ damage: 1, from: "player", targetRoom: room.id, beamRooms: [room.id], defId: "mini" }),
+      beamShot({
+        damage: 1,
+        from: "player",
+        targetRoom: room.id,
+        beamRooms: [room.id],
+        defId: "mini",
+      }),
     );
     assert.equal(ship.hull, before - 1);
     applyImpact(g, {

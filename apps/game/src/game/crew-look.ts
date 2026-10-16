@@ -3,12 +3,14 @@
  * The hangar and every in-run view read these helpers, so a crew member
  * looks the same on the bay card, the crew rail, the ship tokens, and the ship sheet.
  */
-import { tx } from "../i18n/index.ts";
+import { NAME_SYLLABLES } from "@stl/catalog";
 import { CREW_POOL } from "./content.ts";
 import { type KinId } from "./extras/kin.ts";
 import "./pack/base.ts";
 import { crewDef } from "@stl/pack";
 import type { Crew } from "./types.ts";
+
+export { NAME_SYLLABLES };
 
 /** Uniform swatches. Index 5 is the enemy red and is not offered in the hangar. */
 export const UNIFORMS = ["#3d6fb0", "#d0a23a", "#4f9a5c", "#8a5cc0", "#2fa3a3", "#b8402f"] as const;
@@ -37,7 +39,7 @@ export function kinLabel(kin: string | undefined) {
 }
 
 export function defaultPick(seat: number): CrewPick {
-  return { name: CREW_POOL[seat % CREW_POOL.length] ?? tx("game.crew-look.crew"), uniform: seat % PLAYER_UNIFORMS };
+  return { name: CREW_POOL[seat % CREW_POOL.length] ?? "Crew", uniform: seat % PLAYER_UNIFORMS };
 }
 
 export function defaultPicks(count: number): CrewPick[] {
@@ -61,11 +63,12 @@ export function uniformOf(crew: Pick<Crew, "side" | "tone" | "uniform">) {
   return UNIFORMS[crew.tone % PLAYER_UNIFORMS];
 }
 
-export const NAME_SYLLABLES = ["ka", "ren", "vo", "li", "mar", "tes", "an", "dru", "sel", "ko", "ny", "bel", "ta", "ri", "os"];
-
 export function randomName(rand: () => number = Math.random) {
   const part = (n: number) =>
-    Array.from({ length: n }, () => NAME_SYLLABLES[Math.floor(rand() * NAME_SYLLABLES.length)]).join("");
+    Array.from(
+      { length: n },
+      () => NAME_SYLLABLES[Math.floor(rand() * NAME_SYLLABLES.length)],
+    ).join("");
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return `${cap(part(1 + Math.floor(rand() * 2)))} ${cap(part(2))}`.slice(0, NAME_MAX);
 }

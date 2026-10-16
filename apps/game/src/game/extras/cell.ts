@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -83,7 +82,8 @@ export function batteryPaint(ship: Ship): {
   systems: Partial<Record<"weapons" | "medbay" | "oxygen" | "engines" | "shields", number>>;
   kits: Partial<Record<string, number>>;
 } {
-  const systems: Partial<Record<"weapons" | "medbay" | "oxygen" | "engines" | "shields", number>> = {};
+  const systems: Partial<Record<"weapons" | "medbay" | "oxygen" | "engines" | "shields", number>> =
+    {};
   const kits: Partial<Record<string, number>> = {};
   const bonus = Math.max(0, cellBonus(ship));
   const spare = Math.max(0, sparePower(ship));
@@ -115,7 +115,13 @@ export function batterySpareBars(ship: Ship): number {
 /** How many of this system's powered bars are Backup Battery bars, from the top of the stack. */
 export function batteryBarsOn(ship: Ship, id: string): number {
   const paint = batteryPaint(ship);
-  if (id === "weapons" || id === "medbay" || id === "oxygen" || id === "engines" || id === "shields") {
+  if (
+    id === "weapons" ||
+    id === "medbay" ||
+    id === "oxygen" ||
+    id === "engines" ||
+    id === "shields"
+  ) {
     return paint.systems[id] ?? 0;
   }
   return paint.kits[id] ?? 0;
@@ -138,7 +144,8 @@ function shedDrained(g: Game, ship: Ship) {
     const take = Math.min(other.power, over);
     other.power -= take;
     over -= take;
-    if (other.power <= 0 && other.on && (other.id === "veil" || other.id === "leash")) other.on = false;
+    if (other.power <= 0 && other.on && (other.id === "veil" || other.id === "leash"))
+      other.on = false;
   }
   for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
     if (over <= 0) break;
@@ -187,14 +194,14 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
 export function installCell(g: Game) {
   if (g.player.kits.cell) return;
   if (g.scrap < INSTALL_COST) {
-    log(g, tx("extras.cell.not-enough-scrap"));
+    log(g, "Not enough scrap.");
     return;
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.cell = makeCell(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.cell.backup-battery-fitted-to-the-lark"));
+  log(g, "Backup Battery fitted to the Lark.");
 }
 
 /** Wiki page "Backup Battery", section "System Upgrades": 1→2 costs 50 and supplies 4 bars. Power stays 0. */
@@ -202,7 +209,7 @@ export function upgradeCell(g: Game) {
   const kit = g.player.kits.cell;
   if (!kit || kit.level !== 1) return;
   if (g.scrap < UPGRADE_COST) {
-    log(g, tx("extras.cell.not-enough-scrap"));
+    log(g, "Not enough scrap.");
     return;
   }
   g.scrap -= UPGRADE_COST;
@@ -210,7 +217,7 @@ export function upgradeCell(g: Game) {
   kit.level = 2;
   kit.power = 0;
   if (running(kit)) kit.aux = barsFor(2);
-  log(g, tx("extras.cell.backup-battery-level-2"));
+  log(g, "Backup Battery level 2.");
 }
 
 /**
@@ -221,7 +228,7 @@ export function cellOnJump(g: Game) {
   const kit = g.player.kits.cell;
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
-  log(g, tx("extras.cell.backup-battery-is-ready"));
+  log(g, "Backup Battery is ready.");
 }
 
 /**
@@ -253,7 +260,7 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
     const ship = kit === g.player.kits.cell ? g.player : g.enemy;
     if (ship) shedOverAssigned(g, ship, ship === g.player ? "player" : "enemy");
   }
-  log(g, kit === g.player.kits.cell ? tx("extras.cell.backup-battery-cooling") : tx("extras.cell.their-backup-battery-cooling"));
+  log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
   return true;
 }
 
@@ -265,7 +272,7 @@ export function startCell(g: Game) {
   // Systems, "Damaged and destroyed systems": every level damaged is "completely unfunctional".
   if ((kit.damage ?? 0) >= kit.level) return;
   arm(kit);
-  log(g, tx("extras.cell.backup-battery-online"));
+  log(g, "Backup Battery online.");
 }
 
 function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {

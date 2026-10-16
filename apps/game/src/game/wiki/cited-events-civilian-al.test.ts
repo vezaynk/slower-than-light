@@ -107,7 +107,13 @@ function numberTokens(text: string): number[] {
 }
 
 describe("cited events civilian and abandoned", () => {
-  const src = readFileSync(new URL("./cited-events-civilian-al.ts", import.meta.url), "utf8");
+  const src = readFileSync(
+    new URL(
+      "../../../../../packages/catalog/src/wiki/cited-events-civilian-al.ts",
+      import.meta.url,
+    ),
+    "utf8",
+  );
   const pages = loadPages(TITLES);
 
   it("keeps every dest on this title list and every sector on that page", () => {
@@ -129,10 +135,18 @@ describe("cited events civilian and abandoned", () => {
         assert.ok(choice.fx.length > 0);
       });
       const stated = ev.choices.some((choice) =>
-        choice.fx.some((fx) => fx.k === "res" || fx.k === "tier" || fx.k === "hull" || fx.k === "fleet" || fx.k === "fight"),
+        choice.fx.some(
+          (fx) =>
+            fx.k === "res" ||
+            fx.k === "tier" ||
+            fx.k === "hull" ||
+            fx.k === "fleet" ||
+            fx.k === "fight",
+        ),
       );
       // Nebula boarder pages state the boarder line and no resource or fight.
-      const boarders = ev.dest === "Boarders: Humans in nebula" || ev.dest === "Boarders: rebels in nebula";
+      const boarders =
+        ev.dest === "Boarders: Humans in nebula" || ev.dest === "Boarders: rebels in nebula";
       assert.ok(stated || boarders, ev.dest);
     }
   });
@@ -152,7 +166,8 @@ describe("cited events civilian and abandoned", () => {
             assert.ok(pageNumbers.has(n), `${ev.dest} page missing ${n}`);
           }
           if (fx.k === "fight") assert.ok(SHIPS.has(fx.tier), fx.tier);
-          if (fx.k === "tier") assert.ok(fx.tier === "low" || fx.tier === "medium" || fx.tier === "high");
+          if (fx.k === "tier")
+            assert.ok(fx.tier === "low" || fx.tier === "medium" || fx.tier === "high");
           if (fx.k === "res") {
             assert.ok(fx.lo <= fx.hi);
             assert.ok(fx.sign === 1 || fx.sign === -1);
@@ -161,7 +176,10 @@ describe("cited events civilian and abandoned", () => {
         const tier = choice.fx.find((fx) => fx.k === "tier");
         if (tier && tier.k === "tier" && tier.resources) {
           assert.equal(
-            choice.fx.some((fx) => fx.k === "res" && (fx.id === "fuel" || fx.id === "missiles" || fx.id === "parts")),
+            choice.fx.some(
+              (fx) =>
+                fx.k === "res" && (fx.id === "fuel" || fx.id === "missiles" || fx.id === "parts"),
+            ),
             false,
           );
         }

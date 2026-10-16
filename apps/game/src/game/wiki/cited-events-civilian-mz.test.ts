@@ -59,7 +59,10 @@ const SHIPS = new Set([
   "Crystal ship",
 ]);
 
-const SOURCE = readFileSync(new URL("./cited-events-civilian-mz.ts", import.meta.url), "utf8");
+const SOURCE = readFileSync(
+  new URL("../../../../../packages/catalog/src/wiki/cited-events-civilian-mz.ts", import.meta.url),
+  "utf8",
+);
 
 function slug(title: string): string {
   return title
@@ -145,7 +148,9 @@ describe("Pirate engine hacker", () => {
     g.sectorName = "Civilian Sector";
     const ev = EXTRA_EVENTS.find((e) => e.dest === "Pirate engine hacker");
     assert.ok(ev);
-    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+    const b = g.beacons.find(
+      (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
+    );
     assert.ok(b);
     b.flag = ev.flag;
     b.kind = "event";
@@ -153,7 +158,10 @@ describe("Pirate engine hacker", () => {
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";
-    assert.equal(g.event?.body, "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.");
+    assert.equal(
+      g.event?.body,
+      "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.",
+    );
     g.player.systems.engines.level = 5;
     g.player.systems.engines.power = 5;
     g.player.systems.engines.damage = 0;

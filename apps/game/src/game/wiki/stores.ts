@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 /**
  * wiki page "Stores and resources".
  * Numeric store and resource rules from that page.
@@ -10,42 +9,42 @@ export const STORE_RULES: { id: string; source: string; text: string; value: num
   // The count is determined by sector type and is not numbered.
   {
     id: "guaranteed-store-count",
-    source: tx("wiki.stores.guaranteed-stores"),
-    text: tx("wiki.stores.the-number-of-guaranteed-stores-is"),
+    source: "Guaranteed stores",
+    text: "The number of guaranteed stores is determined by the sector type.",
     value: null,
   },
   // wiki page "Stores and resources", heading "Additional stores".
   // The count sits in an unexpanded template and is not numbered.
   {
     id: "additional-store-count",
-    source: tx("wiki.stores.additional-stores"),
-    text: tx("wiki.stores.additional-stores-come-from-events-and"),
+    source: "Additional stores",
+    text: "Additional stores come from events, and how many depends on the sector.",
     value: null,
   },
 
   // wiki page "Stores and resources", heading "Store bugs".
   {
     id: "ae-off-weapons",
-    source: tx("wiki.stores.store-bugs"),
-    text: tx("wiki.stores.with-advanced-edition-content-off-a"),
+    source: "Store bugs",
+    text: "With Advanced Edition content off, a store might sell only 2 weapons instead of a regular 3.",
     value: 2,
   },
   {
     id: "ae-off-crew",
-    source: tx("wiki.stores.store-bugs"),
-    text: tx("wiki.stores.with-advanced-edition-content-off-a-2"),
+    source: "Store bugs",
+    text: "With Advanced Edition content off, a store might sell only 1 crew instead of a regular 3.",
     value: 1,
   },
   {
     id: "ae-off-regular-count",
-    source: tx("wiki.stores.store-bugs"),
-    text: tx("wiki.stores.a-regular-store-offering-is-3"),
+    source: "Store bugs",
+    text: "A regular store offering is 3 items, which the empty-slot bug can undercut.",
     value: 3,
   },
   {
     id: "main-systems",
-    source: tx("wiki.stores.store-bugs"),
-    text: tx("wiki.stores.with-all-8-main-systems-installed"),
+    source: "Store bugs",
+    text: "With all 8 main systems installed, some system slots in a store can be empty.",
     value: 8,
   },
 
@@ -53,198 +52,198 @@ export const STORE_RULES: { id: string; source: string; text: string; value: num
   // Missile price is fixed, but the page does not number it.
   {
     id: "missile-price",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.missile-stock-varies-but-the-missile"),
+    source: "Stores assortment",
+    text: "Missile stock varies, but the missile price is fixed.",
     value: null,
   },
   // Drone part price is fixed, but the page does not number it.
   {
     id: "drone-part-price",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.drone-part-stock-varies-but-the"),
+    source: "Stores assortment",
+    text: "Drone part stock varies, but the drone part price is fixed.",
     value: null,
   },
   // Repair price per hull point varies by sector and is not numbered.
   {
     id: "repair-per-hull",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.the-cost-of-repairing-1-hull"),
+    source: "Stores assortment",
+    text: "The cost of repairing 1 hull point of damage is determined by the sector number.",
     value: null,
   },
   // Stock size is limited and varies, and it is not numbered.
   {
     id: "resource-stock",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.stores-sell-limited-quantities-of-fuel"),
+    source: "Stores assortment",
+    text: "Stores sell limited quantities of fuel, missiles, and drone parts, and that stock varies.",
     value: null,
   },
   {
     id: "assortment-slots-min",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.stores-sell-2-4-slots-of"),
+    source: "Stores assortment",
+    text: "Stores sell 2-4 slots of systems, weapons, drone schematics, augmentations, and crewmembers.",
     value: 2,
   },
   {
     id: "assortment-slots-max",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.stores-sell-2-4-slots-of"),
+    source: "Stores assortment",
+    text: "Stores sell 2-4 slots of systems, weapons, drone schematics, augmentations, and crewmembers.",
     value: 4,
   },
   {
     id: "items-per-slot",
-    source: tx("wiki.stores.stores-assortment"),
-    text: tx("wiki.stores.each-slot-contains-3-random-items"),
+    source: "Stores assortment",
+    text: "Each slot contains 3 random items or crewmembers of that type.",
     value: 3,
   },
 
   // wiki page "Stores and resources", heading "Systems".
   {
     id: "systems-offered",
-    source: tx("wiki.stores.systems"),
-    text: tx("wiki.stores.stores-may-sell-3-random-systems"),
+    source: "Systems",
+    text: "Stores may sell 3 random systems.",
     value: 3,
   },
   {
     id: "teleporter-slots",
-    source: tx("wiki.stores.systems"),
-    text: tx("wiki.stores.a-bought-teleporter-always-has-2"),
+    source: "Systems",
+    text: "A bought teleporter always has 2 slots, not 4.",
     value: 2,
   },
   {
     id: "teleporter-not-four",
-    source: tx("wiki.stores.systems"),
-    text: tx("wiki.stores.a-bought-teleporter-always-has-2"),
+    source: "Systems",
+    text: "A bought teleporter always has 2 slots, not 4.",
     value: 4,
   },
   {
     id: "systems-force-count",
-    source: tx("wiki.stores.systems"),
-    text: tx("wiki.stores.if-a-ship-has-less-than"),
+    source: "Systems",
+    text: "If a ship has less than 11 systems and subsystems, there is a 50% chance the first store slot is forced to be systems.",
     value: 11,
   },
   {
     id: "systems-force-chance",
-    source: tx("wiki.stores.systems"),
-    text: tx("wiki.stores.if-a-ship-has-less-than"),
+    source: "Systems",
+    text: "If a ship has less than 11 systems and subsystems, there is a 50% chance the first store slot is forced to be systems.",
     value: 50,
   },
 
   // wiki page "Stores and resources", heading "Items and crew rarity".
   {
     id: "rarity-common",
-    source: tx("wiki.stores.items-and-crew-rarity"),
-    text: tx("wiki.stores.rarity-normally-goes-from-1-to"),
+    source: "Items and crew rarity",
+    text: "Rarity normally goes from 1 to 5, with 1 being common.",
     value: 1,
   },
   {
     id: "rarity-rare",
-    source: tx("wiki.stores.items-and-crew-rarity"),
-    text: tx("wiki.stores.rarity-normally-goes-from-1-to-2"),
+    source: "Items and crew rarity",
+    text: "Rarity normally goes from 1 to 5, with 5 being rare.",
     value: 5,
   },
   {
     id: "rarity-unlisted",
-    source: tx("wiki.stores.items-and-crew-rarity"),
-    text: tx("wiki.stores.if-rarity-is-set-to-0"),
+    source: "Items and crew rarity",
+    text: "If rarity is set to 0, that item cannot be randomly found in game.",
     value: 0,
   },
 
   // wiki page "Stores and resources", heading "Crewmembers".
   {
     id: "crew-offered",
-    source: tx("wiki.stores.crewmembers"),
-    text: tx("wiki.stores.stores-may-sell-3-random-crew"),
+    source: "Crewmembers",
+    text: "Stores may sell 3 random crew.",
     value: 3,
   },
 
   // wiki page "Stores and resources", heading "Fuel".
   {
     id: "fuel-store-price",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.fuel-costs-3-scrap-from-stores"),
+    source: "Fuel",
+    text: "Fuel costs 3 scrap from stores.",
     value: 3,
   },
   {
     id: "fuel-event-price",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.fuel-costs-2-scrap-from-refuelling"),
+    source: "Fuel",
+    text: "Fuel costs 2 scrap from refuelling station events.",
     value: 2,
   },
   {
     id: "fuel-per-jump",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.each-jump-between-beacons-costs-1"),
+    source: "Fuel",
+    text: "Each jump between beacons costs 1 fuel, including backtracking.",
     value: 1,
   },
   {
     id: "starting-fuel",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.all-ships-start-with-16-fuel"),
+    source: "Fuel",
+    text: "All ships start with 16 fuel.",
     value: 16,
   },
   {
     id: "no-fuel-jump",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-enemy-ships-usually"),
+    source: "Fuel",
+    text: "Out of fuel, enemy ships usually jump away after 90 seconds if not stopped.",
     value: 90,
   },
   // The page guesses this threshold and does not give a precise hull value.
   {
     id: "no-fuel-hull-likely",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-the-anti-stalemate"),
+    source: "Fuel",
+    text: "Out of fuel, the anti-stalemate hull threshold is likely below 50%.",
     value: 50,
   },
   {
     id: "no-fuel-hull-low",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-that-hull-threshold"),
+    source: "Fuel",
+    text: "Out of fuel, that hull threshold is closer to 30-40%.",
     value: 30,
   },
   {
     id: "no-fuel-hull-high",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-that-hull-threshold"),
+    source: "Fuel",
+    text: "Out of fuel, that hull threshold is closer to 30-40%.",
     value: 40,
   },
   {
     id: "no-fuel-grant",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-the-anti-stalemate-2"),
+    source: "Fuel",
+    text: "Out of fuel, the anti-stalemate ends the fight by granting 2 fuel.",
     value: 2,
   },
   {
     id: "no-fuel-quiet",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-the-anti-stalemate-3"),
+    source: "Fuel",
+    text: "Out of fuel, the anti-stalemate waits 1 minute without further hull damage.",
     value: 1,
   },
   {
     id: "no-fuel-boarder",
-    source: tx("wiki.stores.fuel"),
-    text: tx("wiki.stores.out-of-fuel-the-anti-stalemate-4"),
+    source: "Fuel",
+    text: "Out of fuel, the anti-stalemate trigger works 60 seconds after an enemy boarder dies.",
     value: 60,
   },
 
   // wiki page "Stores and resources", heading "Missiles".
   {
     id: "missile-per-shot",
-    source: tx("wiki.stores.missiles"),
-    text: tx("wiki.stores.firing-a-missile-or-a-bomb"),
+    source: "Missiles",
+    text: "Firing a missile or a bomb consumes 1 missile.",
     value: 1,
   },
   {
     id: "explosive-replicator",
-    source: tx("wiki.stores.missiles"),
-    text: tx("wiki.stores.the-explosive-replicator-gives-a-50"),
+    source: "Missiles",
+    text: "The Explosive Replicator gives a 50% chance of not consuming a missile.",
     value: 50,
   },
 
   // wiki page "Stores and resources", heading "Drone parts".
   {
     id: "drone-part-per-deploy",
-    source: tx("wiki.stores.drone-parts"),
-    text: tx("wiki.stores.each-drone-deployment-costs-1-drone"),
+    source: "Drone parts",
+    text: "Each drone deployment costs 1 drone part.",
     value: 1,
   },
 ];

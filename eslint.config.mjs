@@ -57,12 +57,8 @@ export default tseslint.config(
               name: "@stl/wiki-dump",
               message: "The running game does not import the wiki dump. Tests may.",
             },
-            {
-              name: "@stl/wiki",
-              message: "The game does not link to the wiki explorer.",
-            },
           ],
-          patterns: ["@stl/wiki-dump/*", "@stl/wiki/*"],
+          patterns: ["@stl/wiki-dump/*"],
         },
       ],
     },

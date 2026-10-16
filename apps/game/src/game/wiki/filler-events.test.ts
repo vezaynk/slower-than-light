@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -22,11 +24,31 @@ import {
 } from "./filler-events.ts";
 import { DUMP } from "@stl/wiki-dump";
 
+function storedCopy(): string {
+  const root = fileURLToPath(new URL("../../", import.meta.url));
+  const parts: string[] = [];
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(name) && !name.endsWith(".test.ts"))
+        parts.push(readFileSync(full, "utf8"));
+    }
+  };
+  walk(root);
+  return parts.join("\n");
+}
+
 function loadDump(): Map<string, string> {
   const pages = new Map<string, string>();
   for (const line of readFileSync(DUMP, "utf8").split("\n")) {
     if (!line) continue;
-    const row = JSON.parse(line) as { title?: string; text?: string; ns?: number; redirect?: string };
+    const row = JSON.parse(line) as {
+      title?: string;
+      text?: string;
+      ns?: number;
+      redirect?: string;
+    };
     // A redirect title reads as its target's page; count each page once, under its own title.
     if (row.ns === 0 && row.title && !row.redirect) pages.set(row.title, row.text ?? "");
   }
@@ -45,7 +67,10 @@ function fetchTemplate(t: string): string {
 function locations(page: string): { sectors: string[]; params: Record<string, string> } {
   const m = page.match(/\{\{Locations\|([^}]+)\}\}/);
   assert.ok(m, "page has a Locations line");
-  const parts = m[1].split("|").map((p) => p.trim()).filter(Boolean);
+  const parts = m[1]
+    .split("|")
+    .map((p) => p.trim())
+    .filter(Boolean);
   const params: Record<string, string> = {};
   for (const p of parts.filter((x) => x.includes("="))) params[p.split("=")[0]] = p.split("=")[1];
   return { sectors: parts.filter((p) => !p.includes("=")), params };
@@ -66,7 +91,15 @@ function dealt(seed: number, name: string): Game {
   return g;
 }
 
-const INVENTED = ["Deserter buoy", "Split wreck", "Mayday", "Dust well", "Fuel cache", "Rock field", "Deep cache"];
+const INVENTED = [
+  "Deserter buoy",
+  "Split wreck",
+  "Mayday",
+  "Dust well",
+  "Fuel cache",
+  "Rock field",
+  "Deep cache",
+];
 
 describe("filler events (Sectors, Fallback events; EventList templates)", () => {
   const dump = loadDump();
@@ -76,17 +109,19 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     for (const [title, text] of dump) {
       if (/^#REDIRECT/i.test(text) || !/\{\{Locations\|/.test(text)) continue;
       const { params } = locations(text);
-      if (params.alsooccur === "filler" || params.alsooccur === "exitandfiller") want.push([title, params.unique === "true"]);
+      if (params.alsooccur === "filler" || params.alsooccur === "exitandfiller")
+        want.push([title, params.unique === "true"]);
     }
-    assert.deepEqual(
-      FILLER.map((r) => [r.dest, r.unique]).sort(),
-      want.sort(),
-    );
+    assert.deepEqual(FILLER.map((r) => [r.dest, r.unique]).sort(), want.sort());
   });
 
   it("the NEBULA, DISTRESS and ITEMS rows are their templates' rows", () => {
     const rows = (t: string) =>
-      [...(dump.get(t) ?? "").matchAll(/^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm)].map((m) => [m[1], m[2] === "true"]);
+      [
+        ...(dump.get(t) ?? "").matchAll(
+          /^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm,
+        ),
+      ].map((m) => [m[1], m[2] === "true"]);
     const fetch = (t: string) => {
       const raw = readFileSync(DUMP, "utf8");
       for (const line of raw.split("\n")) {
@@ -100,17 +135,31 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       dump.set(t, fetch(t));
       return rows(t);
     };
-    assert.deepEqual(NEBULA.map((r) => [r.dest, r.unique]), parse("Template:EventList NEBULA"));
+    assert.deepEqual(
+      NEBULA.map((r) => [r.dest, r.unique]),
+      parse("Template:EventList NEBULA"),
+    );
     // Rebel ship attacking Federation loyalists is on the distress template, and one choice is a free exit.
     // It is a neutral event, so distress slots do not draw it.
-    const distress = parse("Template:EventList DISTRESS BEACON").filter((row) => row[0] !== "Rebel ship attacking Federation loyalists");
-    assert.deepEqual(DISTRESS.map((r) => [r.dest, r.unique]), distress);
-    assert.deepEqual(ITEMS.map((r) => [r.dest, r.unique]), parse("Template:EventList ITEMS"));
+    const distress = parse("Template:EventList DISTRESS BEACON").filter(
+      (row) => row[0] !== "Rebel ship attacking Federation loyalists",
+    );
+    assert.deepEqual(
+      DISTRESS.map((r) => [r.dest, r.unique]),
+      distress,
+    );
+    assert.deepEqual(
+      ITEMS.map((r) => [r.dest, r.unique]),
+      parse("Template:EventList ITEMS"),
+    );
   });
 
   it("new cards follow the table format, name their page's sectors, and every choice has a handler", () => {
     for (const ev of FILLER_PAGES) {
-      const slug = ev.dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const slug = ev.dest
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
       assert.equal(ev.slug, slug);
       assert.equal(ev.flag, `cited:${slug}`);
       assert.ok(ev.aliases.includes(ev.dest));
@@ -134,13 +183,17 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   });
 
   it("deals no plain distress, items or nebula beacon, and no unique page twice", () => {
-    const uniques = new Set([...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS].filter((r) => r.unique).map((r) => r.dest));
+    const uniques = new Set(
+      [...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS].filter((r) => r.unique).map((r) => r.dest),
+    );
     for (const name of Object.keys(SECTOR_MIX)) {
       for (let seed = 1; seed <= 40; seed++) {
         const g = dealt(seed, name);
         for (const b of g.beacons) {
-          if (b.kind === "distress" || b.kind === "cache" || b.kind === "nebula") assert.ok(b.flag, `${name} ${seed} ${b.kind}`);
-          if (b.flag.startsWith(FILLER_FLAG)) assert.ok(b.flag.slice(FILLER_FLAG.length).length > 0);
+          if (b.kind === "distress" || b.kind === "cache" || b.kind === "nebula")
+            assert.ok(b.flag, `${name} ${seed} ${b.kind}`);
+          if (b.flag.startsWith(FILLER_FLAG))
+            assert.ok(b.flag.slice(FILLER_FLAG.length).length > 0);
         }
         const names = g.beacons.filter((b) => b.flag && uniques.has(b.name)).map((b) => b.name);
         assert.equal(new Set(names).size, names.length, `${name} ${seed} ${names}`);
@@ -150,7 +203,10 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
 
   it("every list row a draw can reach has a card", () => {
     const wired = [...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS].filter((r) => pageForRow(r.dest));
-    assert.ok(FILLER.every((r) => pageForRow(r.dest)), "every filler row is wired");
+    assert.ok(
+      FILLER.every((r) => pageForRow(r.dest)),
+      "every filler row is wired",
+    );
     assert.ok(wired.length >= 50, `${wired.length}`);
   });
 
@@ -160,7 +216,12 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       for (let seed = 1; seed <= 12; seed++) {
         const g0 = dealt(seed, name);
         for (const b0 of g0.beacons) {
-          if (!(b0.flag.startsWith(FILLER_FLAG) || b0.kind === "empty" || (b0.kind === "event" && !b0.flag))) continue;
+          if (!(
+            b0.flag.startsWith(FILLER_FLAG) ||
+            b0.kind === "empty" ||
+            (b0.kind === "event" && !b0.flag)
+          ))
+            continue;
           for (let pick = 0; pick < 3; pick++) {
             const g = dealt(seed, name);
             const b = g.beacons.find((x) => x.id === b0.id)!;
@@ -183,18 +244,34 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   it("sim.ts no longer carries the invented filler events", () => {
     const src = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
     for (const t of INVENTED) assert.ok(!src.includes(`"${t}"`), t);
-    for (const id of ["empty-take", "cache-take", "distress-help", "nebula-ping", "wreck-deep", "deserter-pay", "asteroid-skirt"]) {
+    for (const id of [
+      "empty-take",
+      "cache-take",
+      "distress-help",
+      "nebula-ping",
+      "wreck-deep",
+      "deserter-pay",
+      "asteroid-skirt",
+    ]) {
       assert.ok(!src.includes(`"${id}"`), id);
     }
   });
 
   it("the exit lists are Template:EventList OVERRIDE NEUTRAL EXIT and OVERRIDE ITEMS", () => {
     const rows = (t: string) =>
-      [...(dump.get(t) ?? fetchTemplate(t)).matchAll(/^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm)].map(
-        (m) => [m[1], m[2] === "true"],
-      );
-    assert.deepEqual(EXIT_NEUTRAL.map((r) => [r.dest, r.unique]), rows("Template:EventList OVERRIDE NEUTRAL EXIT"));
-    assert.deepEqual(EXIT_ITEMS.map((r) => [r.dest, r.unique]), rows("Template:EventList OVERRIDE ITEMS"));
+      [
+        ...(dump.get(t) ?? fetchTemplate(t)).matchAll(
+          /^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm,
+        ),
+      ].map((m) => [m[1], m[2] === "true"]);
+    assert.deepEqual(
+      EXIT_NEUTRAL.map((r) => [r.dest, r.unique]),
+      rows("Template:EventList OVERRIDE NEUTRAL EXIT"),
+    );
+    assert.deepEqual(
+      EXIT_ITEMS.map((r) => [r.dest, r.unique]),
+      rows("Template:EventList OVERRIDE ITEMS"),
+    );
     assert.equal(EXIT_NEUTRAL.length, 18);
     assert.equal(EXIT_ITEMS.length, 14);
   });
@@ -211,7 +288,10 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       g.fuel = 5;
       commitJump(g, exit.id);
       assert.equal(g.phase, "event");
-      assert.equal(g.event?.body, "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.");
+      assert.equal(
+        g.event?.body,
+        "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
+      );
       choose(g, "exit-continue");
       assert.ok(exit.flag.startsWith(FILLER_FLAG), `${seed}`);
       assert.ok(pages.has(exit.name), exit.name);
@@ -219,7 +299,11 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       else halves.items += 1;
       if (seed > 3) continue;
       // Play the card out, then the lane card follows on the map.
-      for (let depth = 0; depth < 6 && g.phase === "event" && g.event?.title !== "Exit beacon"; depth++) {
+      for (
+        let depth = 0;
+        depth < 6 && g.phase === "event" && g.event?.title !== "Exit beacon";
+        depth++
+      ) {
         const open = g.event!.choices.find((c) => !choiceDisabled(g, c.id)) ?? g.event!.choices[0];
         choose(g, open.id);
       }
@@ -247,8 +331,14 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     if (!from.links.includes(exit.id)) from.links.push(exit.id);
     g.fuel = 5;
     commitJump(g, exit.id);
-    assert.equal(g.event?.body, "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.");
-    assert.deepEqual(g.event?.choices.map((c) => c.id), ["exit-leave"]);
+    assert.equal(
+      g.event?.body,
+      "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.",
+    );
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.id),
+      ["exit-leave"],
+    );
     assert.equal(g.event?.choices[0]?.label, "Continue...");
     assert.equal(exit.flag, "");
   });
@@ -267,8 +357,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   });
 
   it("the invented exit sentences are not stored", () => {
-    const sim = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
-    const en = readFileSync(new URL("../../i18n/en.json", import.meta.url), "utf8");
+    const stored = storedCopy();
     for (const t of [
       "The picket is scrap",
       "The exit buoy is green",
@@ -282,26 +371,23 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       "You hold. The line advances",
       "The buoy is quiet",
     ]) {
-      assert.equal(sim.includes(t), false, t);
-      assert.equal(en.includes(t), false, t);
+      assert.equal(stored.includes(t), false, t);
     }
   });
 
   it("the unused invented labels are not stored", () => {
-    const sim = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
-    const en = readFileSync(new URL("../../i18n/en.json", import.meta.url), "utf8");
+    const stored = storedCopy();
     for (const t of [
       "leaves the hangar",
       "Not fitted:",
       "The Flagship jumps toward the Federation base.",
       "The boarders are dead.",
       "They charged FTL and left.",
-      "\"Departure\"",
-      "\"Silt\"",
-      "\"Wake\"",
+      '"Departure"',
+      '"Silt"',
+      '"Wake"',
     ]) {
-      assert.equal(sim.includes(t), false, t);
-      assert.equal(en.includes(t), false, t);
+      assert.equal(stored.includes(t), false, t);
     }
   });
 });

@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 /**
  * Wiki page "Difficulty".
  * The page has no article text and no section headings (missing title).
@@ -19,9 +18,9 @@ export type Strain = {
 };
 
 export const STRAIN: Record<StrainId, Strain> = {
-  calm: { name: tx("extras.strain.calm") },
-  even: { name: tx("extras.strain.even") },
-  harsh: { name: tx("extras.strain.harsh") },
+  calm: { name: "Calm" },
+  even: { name: "Even" },
+  harsh: { name: "Harsh" },
 };
 
 export function strainOf(id: StrainId): Strain {
